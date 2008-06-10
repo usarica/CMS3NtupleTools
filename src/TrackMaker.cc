@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.1 2008/06/10 19:44:10 jmuelmen Exp $
+// $Id: TrackMaker.cc,v 1.2 2008/06/10 20:06:15 jmuelmen Exp $
 //
 //
 
@@ -48,7 +48,7 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
 {
      // stream mu track quantities
      produces<vector<LorentzVector> >	("musp4"		).setBranchAlias("mus_p4"           	);	// candidate p4						
-     produces<vector<LorentzVector> >	("mustrk_p4"		).setBranchAlias("mus_trk_p4"       	);	// track p4						
+     produces<vector<LorentzVector> >	("mustrkp4"		).setBranchAlias("mus_trk_p4"       	);	// track p4						
      produces<vector<float> >		("musd0"		).setBranchAlias("mus_d0"           	);	// impact parameter at the point of closest approach	
      produces<vector<float> >		("musz0"		).setBranchAlias("mus_z0"           	);	// z position of the point of closest approach		
      produces<vector<float> >		("musvertexphi"		).setBranchAlias("mus_vertexphi"    	);	// phi angle of the point of closest approach		
@@ -61,10 +61,10 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >		("musptErr"		).setBranchAlias("mus_ptErr"        	);	// track Pt error					
      produces<vector<float> >		("musetaErr"		).setBranchAlias("mus_etaErr"       	);	// track eta error					
      produces<vector<float> >		("musphiErr"		).setBranchAlias("mus_phiErr"       	);	// track phi error					
-     produces<vector<LorentzVector> >	("musmc_p4"		).setBranchAlias("mus_mc_p4"        	);	// p4 of matched MC particle				
-     produces<vector<int> >		("musmc_id"		).setBranchAlias("mus_mc_id"        	);	// PDG id of matched MC particle			
+     produces<vector<LorentzVector> >	("musmcp4"		).setBranchAlias("mus_mc_p4"        	);	// p4 of matched MC particle				
+     produces<vector<int> >		("musmcid"		).setBranchAlias("mus_mc_id"        	);	// PDG id of matched MC particle			
      produces<vector<int> >		("muscharge"		).setBranchAlias("mus_charge"       	);	// charge						
-     produces<vector<int> >		("musmc_motherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
+     produces<vector<int> >		("musmcmotherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
      produces<vector<float> >		("musouterPhi"		).setBranchAlias("mus_outerPhi"     	);	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("musouterEta"		).setBranchAlias("mus_outerEta"     	);	// eta angle of the outermost point in tracker		
 }
@@ -124,26 +124,26 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 #endif
      }
      // store vectors
-     iEvent.put(vector_mus_p4           , "mus_p4"               );
-     iEvent.put(vector_mus_trk_p4       , "mus_trk_p4"           );
-     iEvent.put(vector_mus_d0           , "mus_d0"               );
-     iEvent.put(vector_mus_z0           , "mus_z0"               );
-     iEvent.put(vector_mus_vertexphi    , "mus_vertexphi"        );
-     iEvent.put(vector_mus_chi2         , "mus_chi2"             );
-     iEvent.put(vector_mus_ndof         , "mus_ndof"             );
-     iEvent.put(vector_mus_validHits    , "mus_validHits"        );
-     iEvent.put(vector_mus_lostHits     , "mus_lostHits"         );
-     iEvent.put(vector_mus_d0Err        , "mus_d0Err"            );
-     iEvent.put(vector_mus_z0Err        , "mus_z0Err"            );
-     iEvent.put(vector_mus_ptErr        , "mus_ptErr"            );
-     iEvent.put(vector_mus_etaErr       , "mus_etaErr"           );
-     iEvent.put(vector_mus_phiErr       , "mus_phiErr"           );
-     iEvent.put(vector_mus_mc_p4        , "mus_mc_p4"            );
-     iEvent.put(vector_mus_mc_id        , "mus_mc_id"            );
-     iEvent.put(vector_mus_charge       , "mus_charge"           );
-     iEvent.put(vector_mus_mc_motherid  , "mus_mc_motherid"      );
-     iEvent.put(vector_mus_outerPhi     , "mus_outerPhi"         );
-     iEvent.put(vector_mus_outerEta     , "mus_outerEta"         );
+     iEvent.put(vector_mus_p4           , "musp4"                );
+     iEvent.put(vector_mus_trk_p4       , "mustrkp4"             );
+     iEvent.put(vector_mus_d0           , "musd0"                );
+     iEvent.put(vector_mus_z0           , "musz0"                );
+     iEvent.put(vector_mus_vertexphi    , "musvertexphi"         );
+     iEvent.put(vector_mus_chi2         , "muschi2"              );
+     iEvent.put(vector_mus_ndof         , "musndof"              );
+     iEvent.put(vector_mus_validHits    , "musvalidHits"         );
+     iEvent.put(vector_mus_lostHits     , "muslostHits"          );
+     iEvent.put(vector_mus_d0Err        , "musd0Err"             );
+     iEvent.put(vector_mus_z0Err        , "musz0Err"             );
+     iEvent.put(vector_mus_ptErr        , "musptErr"             );
+     iEvent.put(vector_mus_etaErr       , "musetaErr"            );
+     iEvent.put(vector_mus_phiErr       , "musphiErr"            );
+     iEvent.put(vector_mus_mc_p4        , "musmcp4"              );
+     iEvent.put(vector_mus_mc_id        , "musmcid"              );
+     iEvent.put(vector_mus_charge       , "muscharge"            );
+     iEvent.put(vector_mus_mc_motherid  , "musmcmotherid"        );
+     iEvent.put(vector_mus_outerPhi     , "musouterPhi"          );
+     iEvent.put(vector_mus_outerEta     , "musouterEta"          );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

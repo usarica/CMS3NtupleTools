@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.2 2008/06/10 19:42:37 jmuelmen Exp $
+// $Id: MuonMaker.cc,v 1.3 2008/06/10 20:06:15 jmuelmen Exp $
 //
 //
 
@@ -43,7 +43,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
 {
      // mu track quantities
      produces<vector<LorentzVector> >	("musp4"		).setBranchAlias("mus_p4"           	);	// candidate p4						
-     produces<vector<LorentzVector> >	("mustrk_p4"		).setBranchAlias("mus_trk_p4"       	);	// track p4						
+     produces<vector<LorentzVector> >	("mustrkp4"		).setBranchAlias("mus_trk_p4"       	);	// track p4						
      produces<vector<float> >		("musd0"		).setBranchAlias("mus_d0"           	);	// impact parameter at the point of closest approach	
      produces<vector<float> >		("musz0"		).setBranchAlias("mus_z0"           	);	// z position of the point of closest approach		
      produces<vector<float> >		("musvertexphi"		).setBranchAlias("mus_vertexphi"    	);	// phi angle of the point of closest approach		
@@ -56,37 +56,37 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >		("musptErr"		).setBranchAlias("mus_ptErr"        	);	// track Pt error					
      produces<vector<float> >		("musetaErr"		).setBranchAlias("mus_etaErr"       	);	// track eta error					
      produces<vector<float> >		("musphiErr"		).setBranchAlias("mus_phiErr"       	);	// track phi error					
-     produces<vector<LorentzVector> >	("musmc_p4"		).setBranchAlias("mus_mc_p4"        	);	// p4 of matched MC particle				
-     produces<vector<int> >		("musmc_id"		).setBranchAlias("mus_mc_id"        	);	// PDG id of matched MC particle			
+     produces<vector<LorentzVector> >	("musmcp4"		).setBranchAlias("mus_mc_p4"        	);	// p4 of matched MC particle				
+     produces<vector<int> >		("musmcid"		).setBranchAlias("mus_mc_id"        	);	// PDG id of matched MC particle			
      produces<vector<int> >		("muscharge"		).setBranchAlias("mus_charge"       	);	// charge						
-     produces<vector<int> >		("musmc_motherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
+     produces<vector<int> >		("musmcmotherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
      produces<vector<float> >		("musouterPhi"		).setBranchAlias("mus_outerPhi"     	);	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("musouterEta"		).setBranchAlias("mus_outerEta"     	);	// eta angle of the outermost point in tracker		
      // muon quantities
-     produces<vector<int> >	("musnmatches"			).setBranchAlias("mus_nmatches"                     	);
-     produces<vector<float> >	("museem"			).setBranchAlias("mus_e_em"                         	);
-     produces<vector<float> >	("musehad"			).setBranchAlias("mus_e_had"                        	);
-     produces<vector<float> >	("museho"			).setBranchAlias("mus_e_ho"                         	);
-     produces<vector<float> >	("museemS9"			).setBranchAlias("mus_e_emS9"                       	);
-     produces<vector<float> >	("musehadS9"			).setBranchAlias("mus_e_hadS9"                      	);
-     produces<vector<float> >	("musehoS9"			).setBranchAlias("mus_e_hoS9"                       	);
-     produces<vector<float> >	("musiso03sumPt"		).setBranchAlias("mus_iso03_sumPt"                  	);
-     produces<vector<float> >	("musiso03emEt"			).setBranchAlias("mus_iso03_emEt"                   	);
-     produces<vector<float> >	("musiso03hadEt"		).setBranchAlias("mus_iso03_hadEt"                  	);
-     produces<vector<float> >	("musiso03hoEt"			).setBranchAlias("mus_iso03_hoEt"                   	);
-     produces<vector<int> >	("musiso03ntrk"			).setBranchAlias("mus_iso03_ntrk"                   	);
-     produces<vector<float> >	("musiso05sumPt"		).setBranchAlias("mus_iso05_sumPt"                  	);
-     produces<vector<float> >	("musiso05emEt"			).setBranchAlias("mus_iso05_emEt"                   	);
-     produces<vector<float> >	("musiso05hadEt"		).setBranchAlias("mus_iso05_hadEt"                  	);
-     produces<vector<float> >	("musiso05hoEt"			).setBranchAlias("mus_iso05_hoEt"                   	);
-     produces<vector<int> >	("musiso05ntrk"			).setBranchAlias("mus_iso05_ntrk"                   	);
-     produces<vector<int> >	("muspidTMLastStationLoose"	).setBranchAlias("mus_pid_TMLastStationLoose"       	);
-     produces<vector<int> >	("muspidTMLastStationTight"	).setBranchAlias("mus_pid_TMLastStationTight"       	);
-     produces<vector<int> >	("muspidTM2DCompatibilityLoose"	).setBranchAlias("mus_pid_TM2DCompatibilityLoose"   	);
-     produces<vector<int> >	("muspidTM2DCompatibilityTight"	).setBranchAlias("mus_pid_TM2DCompatibilityTight"   	);
-     produces<vector<float> >	("musgfitchi2"			).setBranchAlias("mus_gfit_chi2"                    	);
-     produces<vector<float> >	("musgfitndof"			).setBranchAlias("mus_gfit_ndof"                    	);
-     produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);
+     produces<vector<int> >	("musnmatches"			).setBranchAlias("mus_nmatches"                     	);	// number of stations with matched segments                                                  
+     produces<vector<float> >	("museem"			).setBranchAlias("mus_e_em"                         	);	// energy in crossed ECAL crystalls                                                          
+     produces<vector<float> >	("musehad"			).setBranchAlias("mus_e_had"                        	);	// energy in crossed HCAL towers                                                             
+     produces<vector<float> >	("museho"			).setBranchAlias("mus_e_ho"                         	);	// energy in crossed HO towers                                                               
+     produces<vector<float> >	("museemS9"			).setBranchAlias("mus_e_emS9"                       	);	// energy in 3x3 ECAL crystall shape                                                         
+     produces<vector<float> >	("musehadS9"			).setBranchAlias("mus_e_hadS9"                      	);	// energy in 3x3 HCAL towers                                                                 
+     produces<vector<float> >	("musehoS9"			).setBranchAlias("mus_e_hoS9"                       	);	// energy in 3x3 HO towers                                                                   
+     produces<vector<float> >	("musiso03sumPt"		).setBranchAlias("mus_iso03_sumPt"                  	);	// sum of track Pt for cone of 0.3                                                           
+     produces<vector<float> >	("musiso03emEt"			).setBranchAlias("mus_iso03_emEt"                   	);	// sum of ecal Et for cone of 0.3                                                            
+     produces<vector<float> >	("musiso03hadEt"		).setBranchAlias("mus_iso03_hadEt"                  	);	// sum of hcal Et for cone of 0.3                                                            
+     produces<vector<float> >	("musiso03hoEt"			).setBranchAlias("mus_iso03_hoEt"                   	);	// sum of ho Et for cone of 0.3                                                              
+     produces<vector<int> >	("musiso03ntrk"			).setBranchAlias("mus_iso03_ntrk"                   	);	// number of tracks in the cone of 0.3                                                       
+     produces<vector<float> >	("musiso05sumPt"		).setBranchAlias("mus_iso05_sumPt"                  	);	// sum of track Pt for cone of 0.5                                                           
+     produces<vector<float> >	("musiso05emEt"			).setBranchAlias("mus_iso05_emEt"                   	);	// sum of ecal Et for cone of 0.5                                                            
+     produces<vector<float> >	("musiso05hadEt"		).setBranchAlias("mus_iso05_hadEt"                  	);	// sum of hcal Et for cone of 0.5                                                            
+     produces<vector<float> >	("musiso05hoEt"			).setBranchAlias("mus_iso05_hoEt"                   	);	// sum of ho Et for cone of 0.5                                                              
+     produces<vector<int> >	("musiso05ntrk"			).setBranchAlias("mus_iso05_ntrk"                   	);	// number of tracks in the cone of 0.5                                                       
+     produces<vector<int> >	("muspidTMLastStationLoose"	).setBranchAlias("mus_pid_TMLastStationLoose"       	);	// loose tracker muon identification based on muon/hadron penetration depth difference       
+     produces<vector<int> >	("muspidTMLastStationTight"	).setBranchAlias("mus_pid_TMLastStationTight"       	);	// tight tracker muon identification based on muon/hadron penetration depth difference       
+     produces<vector<int> >	("muspidTM2DCompatibilityLoose"	).setBranchAlias("mus_pid_TM2DCompatibilityLoose"   	);	// loose tracker muon likelihood identification based on muon matches and calo depositions   
+     produces<vector<int> >	("muspidTM2DCompatibilityTight"	).setBranchAlias("mus_pid_TM2DCompatibilityTight"   	);	// tight tracker muon likelihood identification based on muon matches and calo depositions   
+     produces<vector<float> >	("musgfitchi2"			).setBranchAlias("mus_gfit_chi2"                    	);	// chi2 of the global muon fit                                                               
+     produces<vector<float> >	("musgfitndof"			).setBranchAlias("mus_gfit_ndof"                    	);	// number of degree of freedom of the global muon fit                                        
+     produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);	// number of valid hits of the global muon fit                                               
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -193,26 +193,26 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      	  vector_mus_gfit_validHits               ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->numberOfValidHits() 	: -999	);
      }
      // store vectors
-     iEvent.put(vector_mus_p4           , "mus_p4"               );
-     iEvent.put(vector_mus_trk_p4       , "mus_trk_p4"           );
-     iEvent.put(vector_mus_d0           , "mus_d0"               );
-     iEvent.put(vector_mus_z0           , "mus_z0"               );
-     iEvent.put(vector_mus_vertexphi    , "mus_vertexphi"        );
-     iEvent.put(vector_mus_chi2         , "mus_chi2"             );
-     iEvent.put(vector_mus_ndof         , "mus_ndof"             );
-     iEvent.put(vector_mus_validHits    , "mus_validHits"        );
-     iEvent.put(vector_mus_lostHits     , "mus_lostHits"         );
-     iEvent.put(vector_mus_d0Err        , "mus_d0Err"            );
-     iEvent.put(vector_mus_z0Err        , "mus_z0Err"            );
-     iEvent.put(vector_mus_ptErr        , "mus_ptErr"            );
-     iEvent.put(vector_mus_etaErr       , "mus_etaErr"           );
-     iEvent.put(vector_mus_phiErr       , "mus_phiErr"           );
-     iEvent.put(vector_mus_mc_p4        , "mus_mc_p4"            );
-     iEvent.put(vector_mus_mc_id        , "mus_mc_id"            );
-     iEvent.put(vector_mus_charge       , "mus_charge"           );
-     iEvent.put(vector_mus_mc_motherid  , "mus_mc_motherid"      );
-     iEvent.put(vector_mus_outerPhi     , "mus_outerPhi"         );
-     iEvent.put(vector_mus_outerEta     , "mus_outerEta"         );
+     iEvent.put(vector_mus_p4           , "musp4"                );
+     iEvent.put(vector_mus_trk_p4       , "mustrkp4"             );
+     iEvent.put(vector_mus_d0           , "musd0"                );
+     iEvent.put(vector_mus_z0           , "musz0"                );
+     iEvent.put(vector_mus_vertexphi    , "musvertexphi"         );
+     iEvent.put(vector_mus_chi2         , "muschi2"              );
+     iEvent.put(vector_mus_ndof         , "musndof"              );
+     iEvent.put(vector_mus_validHits    , "musvalidHits"         );
+     iEvent.put(vector_mus_lostHits     , "muslostHits"          );
+     iEvent.put(vector_mus_d0Err        , "musd0Err"             );
+     iEvent.put(vector_mus_z0Err        , "musz0Err"             );
+     iEvent.put(vector_mus_ptErr        , "musptErr"             );
+     iEvent.put(vector_mus_etaErr       , "musetaErr"            );
+     iEvent.put(vector_mus_phiErr       , "musphiErr"            );
+     iEvent.put(vector_mus_mc_p4        , "musmcp4"              );
+     iEvent.put(vector_mus_mc_id        , "musmcid"              );
+     iEvent.put(vector_mus_charge       , "muscharge"            );
+     iEvent.put(vector_mus_mc_motherid  , "musmcmotherid"        );
+     iEvent.put(vector_mus_outerPhi     , "musouterPhi"          );
+     iEvent.put(vector_mus_outerEta     , "musouterEta"          );
      iEvent.put(vector_mus_nmatches			, "musnmatches"                  );
      iEvent.put(vector_mus_e_em				, "museem"                       );
      iEvent.put(vector_mus_e_had			, "musehad"                      );
