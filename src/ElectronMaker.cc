@@ -1,4 +1,4 @@
-// -*- C++ -*-
+//-*- C++ -*-
 //
 // Package:    ElectronMaker
 // Class:      ElectronMaker
@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.1 2008/06/11 03:52:33 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.2 2008/06/11 21:53:23 kalavase Exp $
 //
 //
 
@@ -30,11 +30,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CMS2/NtupleMaker/interface/ElectronMaker.h"
 
-//#include "CMS2/Electrons/interface/Electrons.h"
-
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/TrackReco/interface/Track.h"
-
 
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
@@ -43,6 +39,7 @@ Implementation:
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 //#include "CMS1/ExternalDataFormats/interface/EcalCluster.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "Math/VectorUtil.h"
 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -59,86 +56,68 @@ using namespace std;
 ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 {
 
-  produces<vector<int> >          ("elsvalidHits"        ).setBranchAlias("els_validHits"        );
-  produces<vector<int> >  	  ("elslostHits"         ).setBranchAlias("els_lostHits"         );
-  produces<vector<int> >  	  ("elsmcid"             ).setBranchAlias("els_mcid"             );
-  produces<vector<int> >  	  ("elscharge"           ).setBranchAlias("els_charge"           );
-  produces<vector<int> >  	  ("elsmcmotherid"       ).setBranchAlias("els_mcmotherid"       );
-  produces<vector<int> >  	  ("elsnSeed"            ).setBranchAlias("els_nSeed"            );
-  produces<vector<int> >  	  ("elsclass"            ).setBranchAlias("els_class"            );
-  produces<vector<int> >  	  ("elsrobustId"         ).setBranchAlias("els_robustId"         );
-  produces<vector<int> >  	  ("elslooseId"          ).setBranchAlias("els_looseId"          );
-  produces<vector<int> >  	  ("elstightId"          ).setBranchAlias("els_tightId"          );
-  produces<vector<int> >  	  ("elspass3simpleId"    ).setBranchAlias("els_pass3simpleId"    );
-  produces<vector<int> >	  ("elspass3looseId"     ).setBranchAlias("els_pass3looseId"     );
-  produces<vector<int> >	  ("elspass3tightId"     ).setBranchAlias("els_pass3tightId"     );
-  produces<vector<int> >	  ("elssimpleIdPlus"     ).setBranchAlias("els_simpleIdPlus"     );
-  //produces<vector<int> >          ("elstqegammaTkNumIso" ).setBranchAlias("els_tq_egammaTkNumIso" );
-  //produces<vector<int> >	    ("elstqgenID"          ).setBranchAlias("els_tq_genID"          );
-  //produces<vector<int> >	    ("elstqgenMotherID"    ).setBranchAlias("els_tq_genMotherID"    );
-  produces<vector<int> >	  ("elsclosestMuon"      ).setBranchAlias("els_closestMuon"      );
-  produces<vector<float> >	  ("elsd0"               ).setBranchAlias("els_d0");
-  produces<vector<float> >	  ("elsz0"               ).setBranchAlias("els_z0");
-  produces<vector<float> >	  ("elsvertexphi"        ).setBranchAlias("els_vertexphi");
-  produces<vector<float> >	  ("elschi2"             ).setBranchAlias("els_chi2");
-  produces<vector<float> >	  ("elsndof"             ).setBranchAlias("els_ndof");
-  produces<vector<float> >	  ("elsd0Err"            ).setBranchAlias("els_d0Err");
-  produces<vector<float> >	  ("elsz0Err"            ).setBranchAlias("els_z0Err");
-  produces<vector<float> >	  ("elsptErr"            ).setBranchAlias("els_ptErr");
-  produces<vector<float> >	  ("elsetaErr"           ).setBranchAlias("els_etaErr");
-  produces<vector<float> >	  ("elsphiErr"           ).setBranchAlias("els_phiErr");
-  produces<vector<float> >	  ("elshOverE"           ).setBranchAlias("els_hOverE");
-  produces<vector<float> >	  ("elseOverPIn"         ).setBranchAlias("els_eOverPIn");
-  produces<vector<float> >	  ("elseSeedOverPOut"    ).setBranchAlias("els_eSeedOverPOut");
-  produces<vector<float> >	  ("elsfBrem"            ).setBranchAlias("els_fBrem");
-  produces<vector<float> >	  ("elsdEtaIn"           ).setBranchAlias("els_dEtaIn");
-  produces<vector<float> >	  ("elsdEtaOut"          ).setBranchAlias("els_dEtaOut");
-  produces<vector<float> >	  ("elsdPhiIn"           ).setBranchAlias("els_dPhiIn");
-  produces<vector<float> >	  ("elsdPhiOut"          ).setBranchAlias("els_dPhiOut");
-  produces<vector<float> >	  ("elsESc"              ).setBranchAlias("els_ESc");
-  produces<vector<float> >	  ("elsEScraw"           ).setBranchAlias("els_ESc");
-  produces<vector<float> >	  ("else3x3"             ).setBranchAlias("els_e3x3");
-  produces<vector<float> >	  ("else5x5"             ).setBranchAlias("els_e5x5");
-  produces<vector<float> >	  ("elsESeed"            ).setBranchAlias("els_ESeed");
-  produces<vector<float> >	  ("elssigmaPhiPhi"      ).setBranchAlias("els_sigmaPhiPhi");
-  produces<vector<float> >	  ("elssigmaEtaEta"      ).setBranchAlias("els_sigmaEtaEta");
-  produces<vector<float> >	  ("elstkIso"            ).setBranchAlias("els_tkIso");
-  //produces<vector<float> >	    ("elstqtrackIso"        ).setBranchAlias("els_tq_trackIso");
-  //produces<vector<float> >	    ("elstqcaloIso"         ).setBranchAlias("els_tq_caloIso");
-  //produces<vector<float> >	    ("elstqleptonID"        ).setBranchAlias("els_tq_leptonID");
-  //produces<vector<float> >	    ("elstqelectronIDRobust").setBranchAlias("els_tq_electronIDRobust");
-  //produces<vector<float> >	    ("elstqegammaTkIso"     ).setBranchAlias("els_tq_egammaTkIso");
-  //produces<vector<float> >	    ("elstqegammaEcalIso"   ).setBranchAlias("els_tq_egammaEcalIso");
-  //produces<vector<float> >	    ("elstqegammaHcalIso"   ).setBranchAlias("els_tq_egammaHcalIso");
-  //produces<vector<float> >	    ("elstqLRComb"          ).setBranchAlias("els_tq_LRComb");
-  produces<vector<LorentzVector> >  ("elsp4"              ).setBranchAlias("els_p4");
-  produces<vector<LorentzVector> >  ("elstrkp4"           ).setBranchAlias("els_trk_p4");
-  produces<vector<LorentzVector> >  ("elsmcp4"            ).setBranchAlias("els_mc_p4");
-  produces<vector<LorentzVector> >  ("elsp4In"            ).setBranchAlias("els_p4_In");
-  produces<vector<LorentzVector> >  ("elsp4Out"           ).setBranchAlias("els_p4_Out");
-  //produces<vector<LorentzVector> >  ("elstqgenP4"         ).setBranchAlias("els_tq_genP4");
-  //produces<vector<LorentzVector> >  ("elstqgenMotherP4"   ).setBranchAlias("els_tq_genMotherP4");
+  produces<vector<int> >            ("elsvalidHits"        ).setBranchAlias("els_validHits"        ); //number of used hits in fit
+  produces<vector<int> >  	    ("elslostHits"         ).setBranchAlias("els_lostHits"         ); //number of lost hits in fit
+  produces<vector<int> >  	    ("elsmcid"             ).setBranchAlias("els_mcid"             ); //MC matched id
+  produces<vector<int> >  	    ("elscharge"           ).setBranchAlias("els_charge"           ); //candidate charge
+  produces<vector<int> >  	    ("elsmcmotherid"       ).setBranchAlias("els_mcmotherid"       ); //Id of MC matched mother
+  produces<vector<int> >  	    ("elsnSeed"            ).setBranchAlias("els_nSeed"            ); 
+  produces<vector<int> >  	    ("elsclass"            ).setBranchAlias("els_class"            );
+  produces<vector<int> >  	    ("elsrobustId"         ).setBranchAlias("els_robustId"         );
+  produces<vector<int> >  	    ("elslooseId"          ).setBranchAlias("els_looseId"          );
+  produces<vector<int> >  	    ("elstightId"          ).setBranchAlias("els_tightId"          );
+  produces<vector<int> >  	    ("elspass3simpleId"    ).setBranchAlias("els_pass3simpleId"    );
+  produces<vector<int> >	    ("elspass3looseId"     ).setBranchAlias("els_pass3looseId"     );
+  produces<vector<int> >	    ("elspass3tightId"     ).setBranchAlias("els_pass3tightId"     );
+  produces<vector<int> >	    ("elssimpleIdPlus"     ).setBranchAlias("els_simpleIdPlus"     );
+  produces<vector<int> >	    ("elsclosestMuon"      ).setBranchAlias("els_closestMuon"      );
+  produces<vector<float> >	    ("elsd0"               ).setBranchAlias("els_d0"               );
+  produces<vector<float> >	    ("elsz0"               ).setBranchAlias("els_z0"               );
+  produces<vector<float> >	    ("elsvertexphi"        ).setBranchAlias("els_vertexphi"        );
+  produces<vector<float> >	    ("elschi2"             ).setBranchAlias("els_chi2"             );
+  produces<vector<float> >	    ("elsndof"             ).setBranchAlias("els_ndof"             );
+  produces<vector<float> >	    ("elsd0Err"            ).setBranchAlias("els_d0Err"            );
+  produces<vector<float> >	    ("elsz0Err"            ).setBranchAlias("els_z0Err"            );
+  produces<vector<float> >	    ("elsptErr"            ).setBranchAlias("els_ptErr"            );
+  produces<vector<float> >	    ("elsetaErr"           ).setBranchAlias("els_etaErr"           );
+  produces<vector<float> >	    ("elsphiErr"           ).setBranchAlias("els_phiErr"           );
+  produces<vector<float> >	    ("elshOverE"           ).setBranchAlias("els_hOverE"           );
+  produces<vector<float> >	    ("elseOverPIn"         ).setBranchAlias("els_eOverPIn"         );
+  produces<vector<float> >	    ("elseSeedOverPOut"    ).setBranchAlias("els_eSeedOverPOut"    );
+  produces<vector<float> >	    ("elsfBrem"            ).setBranchAlias("els_fBrem"            );
+  produces<vector<float> >	    ("elsdEtaIn"           ).setBranchAlias("els_dEtaIn"           );
+  produces<vector<float> >	    ("elsdEtaOut"          ).setBranchAlias("els_dEtaOut"          );
+  produces<vector<float> >	    ("elsdPhiIn"           ).setBranchAlias("els_dPhiIn"           );
+  produces<vector<float> >	    ("elsdPhiOut"          ).setBranchAlias("els_dPhiOut"          );
+  produces<vector<float> >	    ("elsESc"              ).setBranchAlias("els_ESc"              );
+  produces<vector<float> >	    ("elsEScraw"           ).setBranchAlias("els_ESc"              );
+  produces<vector<float> >	    ("else3x3"             ).setBranchAlias("els_e3x3"             );
+  produces<vector<float> >	    ("else5x5"             ).setBranchAlias("els_e5x5"             );
+  produces<vector<float> >	    ("elsESeed"            ).setBranchAlias("els_ESeed"            );
+  produces<vector<float> >	    ("elssigmaPhiPhi"      ).setBranchAlias("els_sigmaPhiPhi"      );
+  produces<vector<float> >	    ("elssigmaEtaEta"      ).setBranchAlias("els_sigmaEtaEta"      );
+  produces<vector<float> >	    ("elstkIso"            ).setBranchAlias("els_tkIso"            );
+  produces<vector<LorentzVector> >  ("elsp4"              ).setBranchAlias("els_p4"                );
+  produces<vector<LorentzVector> >  ("elstrkp4"           ).setBranchAlias("els_trk_p4"            );
+  produces<vector<LorentzVector> >  ("elsmcp4"            ).setBranchAlias("els_mc_p4"             );
+  produces<vector<LorentzVector> >  ("elsp4In"            ).setBranchAlias("els_p4_In"             );
+  produces<vector<LorentzVector> >  ("elsp4Out"           ).setBranchAlias("els_p4_Out"            );
   
-  
-
-
-  //now do what ever other initialization is needed
-
 }
 
 
 ElectronMaker::~ElectronMaker()
 {
- 
-  // do anything here that needs to be done at desctruction time
-  // (e.g. close files, deallocate resources etc.)
+}
 
+void  ElectronMaker::beginJob(const edm::EventSetup&)
+{
+}
+
+void ElectronMaker::endJob() {
 }
 
 
-//
-// member functions
-//
 
 // ------------ method called to produce the data  ------------
 void
@@ -159,9 +138,6 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	   els_pass3looseId         (new vector<int>) ;
   auto_ptr<vector<int> >	   els_pass3tightId         (new vector<int>) ;
   auto_ptr<vector<int> >	   els_simpleIdPlus         (new vector<int>) ;
-  //auto_ptr<vector<int> >	     els_tq_egammaTkNumIso    (new vector<int>) ;
-  //auto_ptr<vector<int> >	     els_tq_genID             (new vector<int>) ;
-  //auto_ptr<vector<int> >	     els_tq_genMotherID       (new vector<int>) ;
   auto_ptr<vector<int> >	   els_closestMuon          (new vector<int>) ;
   auto_ptr<vector<float> >	   els_d0                   (new vector<float>) ;
   auto_ptr<vector<float> >	   els_z0                   (new vector<float>) ;
@@ -189,26 +165,45 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	   els_sigmaPhiPhi          (new vector<float>) ;
   auto_ptr<vector<float> >	   els_sigmaEtaEta          (new vector<float>) ;
   auto_ptr<vector<float> >	   els_tkIso                (new vector<float>) ;
-  //auto_ptr<vector<float> >         els_tq_trackIso          (new vector<float>) ;
-  //auto_ptr<vector<float> >  	     els_tq_caloIso           (new vector<float>) ;
-  //auto_ptr<vector<float> >  	     els_tq_leptonID          (new vector<float>) ;
-  //auto_ptr<vector<float> >	     els_tq_electronIDRobust  (new vector<float>) ;
-  //auto_ptr<vector<float> >	     els_tq_egammaTkIso       (new vector<float>) ;
-  //auto_ptr<vector<float> >	     els_tq_egammaEcalIso     (new vector<float>) ;
-  //auto_ptr<vector<float> >	     els_tq_egammaHcalIso     (new vector<float>) ;
-  //auto_ptr<vector<float> >	     els_tq_LRComb            (new vector<float>) ;
   auto_ptr<vector<LorentzVector> > els_p4                   (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_trk_p4               (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_mc_p4                (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4In                 (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4Out                (new vector<LorentzVector>) ;
-  //auto_ptr<vector<LorentzVector> > els_tq_genp4             (new vector<LorentzVector>) ;
-  //auto_ptr<vector<LorentzVector> > els_tq_genMotherp4       (new vector<LorentzVector>) ;
   
-								 
+  
+	
+
+  //Get required collections ->have to be made configurable, hard wired for now
   vector<const PixelMatchGsfElectron*> electron_coll = getElectrons(iEvent);
   removeElectrons(&electron_coll);
 
+  Handle<View<Track> > tk_h;
+  iEvent.getByLabel("ctfWithMaterialTracks", tk_h);
+  const View<Track> *track_coll = tk_h.product();
+  
+  //for(View<Track>::const_iterator tk_it = tk_h->begin();
+  //tk_it != tk_h->end(); tk_it++) {
+  //track_coll->push_back(*tk_it);
+  //}
+  
+  Handle<BasicClusterShapeAssociationCollection> barrelClShp_h;
+  iEvent.getByLabel("hybridSuperClusters", "hybridShapeAssoc", barrelClShp_h);
+  if(!barrelClShp_h.isValid()) {
+    LogError("ElectronMaker") << "Can't get EcalBarrel Cluster Shape Collection";
+  }
+  const BasicClusterShapeAssociationCollection *barrelClShp = barrelClShp_h.product();
+  
+  Handle<BasicClusterShapeAssociationCollection> endcapClShp_h;
+  iEvent.getByLabel("islandBasicClusters", "islandEndcapShapeAssoc", endcapClShp_h);
+  if(!barrelClShp_h.isValid()) {
+    LogError("ElectronMaker") << "Can't get Ecal EndcapCluster Shape Collection";
+  }
+  const BasicClusterShapeAssociationCollection *endcapClShp = endcapClShp_h.product();
+  
+
+
+  //loop over electron collection
   for(vector<const PixelMatchGsfElectron*>::const_iterator el_it = electron_coll.begin();
       el_it != electron_coll.end(); el_it++) {
 
@@ -216,24 +211,83 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::Track *el_track = (const reco::Track*)(*el_it)->gsfTrack().get();
     
 
+    //get Cluster info
+    //const EcalSuperClusterCollection *barrelExtraShapes, *endcapExtraShapes;
+    float esc, e3x3, e5x5, see, spp;
+    R9_25(barrelClShp, endcapClShp, el, esc, e3x3, e5x5, spp, see);
+    
+
+    
+    /* fill Electron Id array
+       robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
+       oldlooseId = 4, oldtightId = 5, simpleIdPlus = 6
+    */
+    int id[7];
+    for(int i=0; i<7; ++i) {
+      if (identify(el,barrelClShp,endcapClShp, i))
+        id[i] = 1;
+      else
+        id[i] = 0;
+    }
+
+
+    //stuff for track pterr
+    float pt = el_track->pt();
+    float p = el_track->p();
+    float q = el_track->charge();
+    float pz = el_track->pz();
+    float err = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
+					       +2*pt*p/q*pz*(el_track->covariance(0,1))
+					       + pz*pz*(el_track->covariance(1,1) ) ) : -999.;
+    
+    //variables to get fbrem
+    float pin  = el->trackMomentumAtVtx().R();
+    float pout = el->trackMomentumOut().R();
+
+    
+    //electron track p4
+    LorentzVector trk_p4( el_track->px(), el_track->py(), 
+			  el_track->pz(), el_track->p() );
+    
+
+    //inner and outer p4s
+    double          mass = 0.000510998918;
+    LorentzVector   p4In; 
+    math::XYZVector p3In = el->trackMomentumAtVtx();
+    p4In.SetXYZT(   p3In.x(), p3In.y(), p3In.z(), sqrt(mass*mass+p3In.R()*p3In.R()));
+    
+    LorentzVector   p4Out; 
+    math::XYZVector p3Out = el->trackMomentumOut();
+    p4Out.SetXYZT(  p3Out.x(), p3Out.y(), p3Out.z(), sqrt(mass*mass+p3Out.R()*p3Out.R()));
+
+    
+    float tkIso = trackRelIsolation(el->momentum(), el->vertex(), track_coll,
+				    0.3,     //! dR < 0.3
+				    0.01,    //! dR > 0.01
+				    0.1,     //! |d0_tk| < 0.1 cm
+				    999.9,   //! |el_2D - tk_2D| < 999
+				    0.5,     //! |z0_el - z0_track| < 0.5
+				    1.0,     //! min pt
+				    7);      //! min nHits
+
+
+    
+    //fill the vectors
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-    els_mcid                  ->push_back(999);
+    els_mcid                  ->push_back(999); //placeholder 
     els_charge                ->push_back( el->charge()                              );
-    els_mcmotherid            ->push_back(999);
+    els_mcmotherid            ->push_back(999); //placeholder 
     els_nSeed                 ->push_back( el->numberOfClusters() - 1                );                             
     els_class                 ->push_back( el->classification()                      );
-    els_robustId              ->push_back(999);
-    els_looseId               ->push_back(999);
-    els_tightId               ->push_back(999);
-    els_pass3simpleId         ->push_back(999);
-    els_pass3looseId          ->push_back(999);
-    els_pass3tightId          ->push_back(99);
-    els_simpleIdPlus          ->push_back(999);
-    //els_tq_egammaTkNumIso     ->push_back();
-    //els_tq_genID              ->push_back();
-    //els_tq_genMotherID        ->push_back();
-    els_closestMuon           ->push_back(999 );
+    els_robustId              ->push_back( id[0]                                     );
+    els_looseId               ->push_back( id[1]                                     );
+    els_tightId               ->push_back( id[2]                                     );
+    els_pass3simpleId         ->push_back( id[3]                                     );
+    els_pass3looseId          ->push_back( id[4]                                     );
+    els_pass3tightId          ->push_back( id[5]                                     );
+    els_simpleIdPlus          ->push_back( id[6]                                     );
+    els_closestMuon           ->push_back( 999 ); //placeholder
     els_d0                    ->push_back( el_track->d0()                            );
     els_z0                    ->push_back( el_track->dz()                            );
     els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )   );
@@ -241,130 +295,80 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_ndof                  ->push_back( el_track->ndof()                          );
     els_d0Err                 ->push_back( el_track->d0Error()                       );
     els_z0Err                 ->push_back( el_track->dzError()                       );
-    
-    float pt = el_track->pt();
-    float p = el_track->p();
-    float q = el_track->charge();
-    float pz = el_track->pz();
-    float err = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
-                                           +2*pt*p/q*pz*(el_track->covariance(0,1))
-                                           + pz*pz*(el_track->covariance(1,1) ) )
-                                           : -999.;
     els_ptErr                 ->push_back( err                                       );
     els_etaErr                ->push_back( el_track->etaError()                      );
     els_phiErr                ->push_back( el_track->phiError()                      );
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                  );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                );
-
-    float pin  = el->trackMomentumAtVtx().R();
-    float pout = el->trackMomentumOut().R();
-
     els_fBrem                 ->push_back( (pin-pout)/pin                            );
     els_dEtaIn                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()      );
     els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()      );
     els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()      );
     els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()      );
-    els_ESc                   ->push_back(999.);
+    els_ESc                   ->push_back( esc                                       );
     els_EScraw                ->push_back( el->superCluster()->rawEnergy()           );
-    els_e3x3                  ->push_back(999.);
-    els_e5x5                  ->push_back(999.);
+    els_e3x3                  ->push_back( e3x3                                      );
+    els_e5x5                  ->push_back( e5x5                                      );
     els_ESeed                 ->push_back( el->superCluster()->seed()->energy()      );
-    els_sigmaPhiPhi           ->push_back(999.);
-    els_sigmaEtaEta           ->push_back(999.);
-    els_tkIso                 ->push_back(999.);
-    //els_tq_trackIso           ->push_back();
-    //els_tq_caloIso            ->push_back();
-    //els_tq_leptonId           ->push_back();
-    //els_tq_electronIDRobust   ->push_back();
-    //els_tq_egammaTkIso        ->push_back();
-    //els_tq_egammaEcalIso      ->push_back();
-    //els_tq_egammaHcalIso      ->push_back();
-    //els_tq_LRComb             ->push_back();
+    els_sigmaPhiPhi           ->push_back( see                                       );
+    els_sigmaEtaEta           ->push_back( spp                                       );
+    els_tkIso                 ->push_back( tkIso                                     );
     els_p4                    ->push_back( el->p4()                                  );
-
-
-    LorentzVector trk_p4( el_track->px(), el_track->py(), 
-			  el_track->pz(), el_track->p() );
-    
     els_trk_p4                ->push_back( trk_p4                                    );
     els_mc_p4                 ->push_back( LorentzVector(0,0,0,0)                    );
-    math::XYZVector p3 = el->trackMomentumAtVtx();
-    double mass = 0.000510998918;
-    LorentzVector p4; 
-    p4.SetXYZT(p3.x(), p3.y(), p3.z(), sqrt(mass*mass+p3.R()*p3.R()));
-    
-    els_p4In                  ->push_back( p4                                        );
-
-    p3 = el->trackMomentumOut();
-    p4.SetXYZT(p3.x(), p3.y(), p3.z(), sqrt(mass*mass+p3.R()*p3.R()));
-        
-    els_p4Out                 ->push_back( p4                                        );
-    //auto_ptr<vector<LorentzVector> > els_tq_genp4             (new vector<LorentzVector>) ;
-    //auto_ptr<vector<LorentzVector> > els_tq_genMotherp4       (new vector<LorentzVector>) ;
+    els_p4In                  ->push_back( p4In                                      );
+    els_p4Out                 ->push_back( p4Out                                     );
   
   }
 
 
-  iEvent.put(els_validHits                    ,"elsvalidHits"     );
-  iEvent.put(els_lostHits                     ,"elslostHits"      );
-  iEvent.put(els_mcid                         ,"elsmcid"          );
-  iEvent.put(els_charge                       ,"elscharge"        );
-  iEvent.put(els_mcmotherid                   ,"elsmcmotherid"    );
-  iEvent.put(els_nSeed                        ,"elsnSeed"         );
-  iEvent.put(els_class                        ,"elsclass"         );
-  iEvent.put(els_robustId                     ,"elsrobustId"      );
-  iEvent.put(els_looseId                      ,"elslooseId"       );
-  iEvent.put(els_tightId                      ,"elstightId"       );
-  iEvent.put(els_pass3simpleId                ,"elspass3simpleId" );
-  iEvent.put(els_pass3looseId                 ,"elspass3looseId"  );
-  iEvent.put(els_pass3tightId                 ,"elspass3tightId"  );
-  iEvent.put(els_simpleIdPlus                 ,"elssimpleIdPlus"  );
-  //auto_ptr<vector<int> >	     els_tq_egammaTkNumIso    (new vector<int>);
-  //auto_ptr<vector<int> >	     els_tq_genID             (new vector<int>);
-  //auto_ptr<vector<int> >	     els_tq_genMotherID       (new vector<int>);
-  iEvent.put(els_closestMuon                  ,"elsclosestMuon"          );
-  iEvent.put(els_d0                   ,"elsd0"                   );
-  iEvent.put(els_z0                   ,"elsz0"                   );
-  iEvent.put(els_vertexphi            ,"elsvertexphi"            );
-  iEvent.put(els_chi2                 ,"elschi2"                 );
-  iEvent.put(els_ndof                 ,"elsndof"                 );
-  iEvent.put(els_d0Err                ,"elsd0Err"                );
-  iEvent.put(els_z0Err                ,"elsz0Err"                );
-  iEvent.put(els_ptErr                ,"elsptErr"                );
-  iEvent.put(els_etaErr               ,"elsetaErr"               );
-  iEvent.put(els_phiErr               ,"elsphiErr"               );
-  iEvent.put(els_hOverE               ,"elshOverE"               );
-  iEvent.put(els_eOverPIn             ,"elseOverPIn"             );
-  iEvent.put(els_eSeedOverPOut        ,"elseSeedOverPOut"        );
-  iEvent.put(els_fBrem                ,"elsfBrem"                );
-  iEvent.put(els_dEtaIn               ,"elsdEtaIn"               );
-  iEvent.put(els_dEtaOut              ,"elsdEtaOut"              );
-  iEvent.put(els_dPhiIn               ,"elsdPhiIn"               );
-  iEvent.put(els_dPhiOut              ,"elsdPhiOut"              );
-  iEvent.put(els_ESc                  ,"elsESc"                  );
-  iEvent.put(els_EScraw               ,"elsEScraw"               );
-  iEvent.put(els_e3x3                 ,"else3x3"                 );
-  iEvent.put(els_e5x5                 ,"else5x5"                 );
-  iEvent.put(els_ESeed                ,"elsESeed"                );
-  iEvent.put(els_sigmaPhiPhi          ,"elssigmaPhiPhi"          );
-  iEvent.put(els_sigmaEtaEta          ,"elssigmaEtaEta"          );
-  iEvent.put(els_tkIso                ,"elstkIso"                );
-  //iEvent.put(els_tq_trackIso          ,"elstq_trackIso"          );
-  //iEvent.put(els_tq_caloIso           ,"elstq_caloIso"           );
-  //iEvent.put(els_tq_leptonID          ,"elstq_leptonID"          );
-  //iEvent.put(els_tq_electronIDRobust  ,"elstq_electronIDRobust"  );
-  //iEvent.put(els_tq_egammaTkIso       ,"elstq_egammaTkIso"       );
-  //iEvent.put(els_tq_egammaEcalIso     ,"elstq_egammaEcalIso"     );
-  //iEvent.put(els_tq_egammaHcalIso     ,"elstq_egammaHcalIso"     );
-  //iEvent.put(els_tq_LRComb            ,"elstq_LRComb"            );
-  iEvent.put(els_p4                   ,"elsp4"                     );
-  iEvent.put(els_trk_p4               ,"elstrkp4"                 );
-  iEvent.put(els_mc_p4                ,"elsmcp4"                  );
-  iEvent.put(els_p4In                 ,"elsp4In"                   );
-  iEvent.put(els_p4Out                ,"elsp4Out"                  );
-  //iEvent.put(els_tq_genp4             ,"elstq_genp4"             );
-  //iEvent.put(els_tq_genMotherp4       ,"elstq_genMotherp4"       );
+  iEvent.put(els_validHits                    ,"elsvalidHits"       );
+  iEvent.put(els_lostHits                     ,"elslostHits"        );
+  iEvent.put(els_mcid                         ,"elsmcid"            );
+  iEvent.put(els_charge                       ,"elscharge"          );
+  iEvent.put(els_mcmotherid                   ,"elsmcmotherid"      );
+  iEvent.put(els_nSeed                        ,"elsnSeed"           );
+  iEvent.put(els_class                        ,"elsclass"           );
+  iEvent.put(els_robustId                     ,"elsrobustId"        );
+  iEvent.put(els_looseId                      ,"elslooseId"         );
+  iEvent.put(els_tightId                      ,"elstightId"         );
+  iEvent.put(els_pass3simpleId                ,"elspass3simpleId"   );
+  iEvent.put(els_pass3looseId                 ,"elspass3looseId"    );
+  iEvent.put(els_pass3tightId                 ,"elspass3tightId"    );
+  iEvent.put(els_simpleIdPlus                 ,"elssimpleIdPlus"    );
+  iEvent.put(els_closestMuon                  ,"elsclosestMuon"     );
+  iEvent.put(els_d0                           ,"elsd0"              );
+  iEvent.put(els_z0                           ,"elsz0"              );
+  iEvent.put(els_vertexphi                    ,"elsvertexphi"       );
+  iEvent.put(els_chi2                         ,"elschi2"            );
+  iEvent.put(els_ndof                         ,"elsndof"            );
+  iEvent.put(els_d0Err                        ,"elsd0Err"           );
+  iEvent.put(els_z0Err                        ,"elsz0Err"           );
+  iEvent.put(els_ptErr                        ,"elsptErr"           );
+  iEvent.put(els_etaErr                       ,"elsetaErr"          );
+  iEvent.put(els_phiErr                       ,"elsphiErr"          );
+  iEvent.put(els_hOverE                       ,"elshOverE"          );
+  iEvent.put(els_eOverPIn                     ,"elseOverPIn"        );
+  iEvent.put(els_eSeedOverPOut                ,"elseSeedOverPOut"   );
+  iEvent.put(els_fBrem                        ,"elsfBrem"           );
+  iEvent.put(els_dEtaIn                       ,"elsdEtaIn"          );
+  iEvent.put(els_dEtaOut                      ,"elsdEtaOut"         );
+  iEvent.put(els_dPhiIn                       ,"elsdPhiIn"          );
+  iEvent.put(els_dPhiOut                      ,"elsdPhiOut"         );
+  iEvent.put(els_ESc                          ,"elsESc"             );
+  iEvent.put(els_EScraw                       ,"elsEScraw"          );
+  iEvent.put(els_e3x3                         ,"else3x3"            );
+  iEvent.put(els_e5x5                         ,"else5x5"            );
+  iEvent.put(els_ESeed                        ,"elsESeed"           );
+  iEvent.put(els_sigmaPhiPhi                  ,"elssigmaPhiPhi"     );
+  iEvent.put(els_sigmaEtaEta                  ,"elssigmaEtaEta"     );
+  iEvent.put(els_tkIso                        ,"elstkIso"           );
+  iEvent.put(els_p4                           ,"elsp4"              );
+  iEvent.put(els_trk_p4                       ,"elstrkp4"           );
+  iEvent.put(els_mc_p4                        ,"elsmcp4"            );
+  iEvent.put(els_p4In                         ,"elsp4In"            );
+  iEvent.put(els_p4Out                        ,"elsp4Out"           );
 
 }
 
@@ -383,7 +387,8 @@ vector<const PixelMatchGsfElectron*> ElectronMaker::getElectrons(const edm::Even
   
   vector<const PixelMatchGsfElectron*> collection;
   
-  for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); electron != electron_h->end(); ++electron){
+  for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
+      electron != electron_h->end(); ++electron){
     collection.push_back(&*electron);
   }
 
@@ -428,15 +433,356 @@ void ElectronMaker::removeElectrons(const vector<const PixelMatchGsfElectron*>* 
   }
 }
 
-// ------------ method called once each job just before starting event loop  ------------
-void 
-ElectronMaker::beginJob(const edm::EventSetup&)
-{
+//--------------------------------------------------------------------------------------------
+//Function to fill SC Parameters
+//--------------------------------------------------------------------------------------------
+void ElectronMaker::R9_25(const reco::BasicClusterShapeAssociationCollection* barrelClShp,
+			  const reco::BasicClusterShapeAssociationCollection* endcapClShp, 
+			  const reco::PixelMatchGsfElectron* electron,
+			  float& eMax, float& e3x3, float& e5x5, float& spp, float& see) { 
+
+  reco::SuperClusterRef sclRef=electron->superCluster();
+  reco::BasicClusterShapeAssociationCollection::const_iterator seedShpItr;
+  DetId id = sclRef->seed()->getHitsByDetId()[0];
+  if (id.subdetId() == EcalBarrel) {
+    seedShpItr = barrelClShp->find(sclRef->seed());
+  } else {
+    seedShpItr = endcapClShp->find(sclRef->seed());
+  }
+  
+  // Get the ClusterShapeRef corresponding to the BasicCluster
+  const reco::ClusterShapeRef& seedShapeRef = seedShpItr->val;
+  
+  eMax = sclRef->energy();
+  e3x3 = seedShapeRef->e3x3();
+  e5x5 = seedShapeRef->e5x5();
+  spp = sqrt(seedShapeRef->covPhiPhi());
+  see = sqrt(seedShapeRef->covEtaEta());
 }
 
-// ------------ method called once each job just after ending the event loop  ------------
-void 
-ElectronMaker::endJob() {
+
+//-------------------------------------------------------------------------------------------------
+//Electron ID
+//-------------------------------------------------------------------------------------------------
+bool ElectronMaker::identify(const reco::PixelMatchGsfElectron* electron, 
+			     const reco::BasicClusterShapeAssociationCollection* barrelClShp,
+			     const reco::BasicClusterShapeAssociationCollection* endcapClShp, int type) {
+  
+  // type = 0 robust (looser and safe), 1 loose, 2 tight, 3 simple (old robust), 4 old loose (6 categories), 5 old tight (6 categories) 
+  
+  float dummy, e3x3, e5x5, i, l; 
+  R9_25(barrelClShp, endcapClShp, electron, dummy, e3x3, e5x5, l, i);
+  int eb;
+  
+  double eOverP = electron->eSuperClusterOverP();
+  double eSeedOverPOut = electron->eSeedClusterOverPout();
+  double eSeed = electron->superCluster()->seed()->energy();
+  double pin  = electron->trackMomentumAtVtx().R();   
+  double eSeedOverPin = eSeed/pin; 
+  double pout = electron->trackMomentumOut().R(); 
+  double fBrem = (pin-pout)/pin;
+  double hOverE = electron->hadronicOverEm();
+  double sigmaee = i;
+  double sigmaeecor = i;
+  double deltaPhiIn = electron->deltaPhiSuperClusterTrackAtVtx();
+  double deltaEtaIn = electron->deltaEtaSuperClusterTrackAtVtx();
+  double eta = fabs(electron->p4().Eta());
+  double d0 = electron->gsfTrack()->d0();
+
+  if (eta < 1.479) 
+    eb = 0;
+  else {
+    eb = 1; 
+    sigmaeecor = sigmaee - 0.02*(fabs(eta) - 2.3);   //correct sigmaetaeta dependence on eta in endcap
+  }
+  
+  if (type == 2) { 
+    
+    float cuthoe[]  = {0.05,    0.042,  0.045,  0.,  
+                       0.055,   0.037,  0.050,  0.};
+    float cutsee[]  = {0.0125,  0.011,  0.01,   0.,
+                       0.0265,  0.0252, 0.026,  0.};
+    float cutdphi[] = {0.032,   0.016,  0.0525, 0.09, 
+                       0.025,   0.035,  0.065,  0.092};
+    float cutdeta[] = {0.0055,  0.0030, 0.0065, 0.,
+                       0.0060,  0.0055, 0.0075, 0.}; 
+    float cuteop2[] = {0.24,    0.94,   0.11,   0.,   
+                       0.32,    0.83,   0.,     0.}; 
+    
+    int cat = classify(electron);
+        
+    // TIGHT Selection
+    if ((eOverP < 0.8) && (fBrem < 0.2)) 
+      return false;
+    
+    if (eOverP < 0.9*(1-fBrem))
+      return false;
+    
+    if (hOverE > cuthoe[cat+eb*4]) 
+      return false;    
+    
+    if (sigmaeecor > cutsee[cat+4*eb]) 
+      return false;    
+    
+    if (eOverP < 1.5) {
+      if (fabs(deltaPhiIn) > cutdphi[cat+4*eb]) 
+        return false;    
+    } else {
+      if (fabs(deltaPhiIn) > cutdphi[3+4*eb])
+        return false;
+    }
+    
+    if (fabs(deltaEtaIn) > cutdeta[cat+4*eb]) 
+      return false;    
+    
+    if (eSeedOverPin < cuteop2[cat+4*eb]) 
+      return false;  
+    
+    return true; 
+  }
+
+  if (type == 1) { 
+    
+    float cutsee[]  = {0.014,  0.012,  0.0115, 0.,
+                       0.0275, 0.0265, 0.0265, 0.};  // first row barrel, second endcap
+    float cutdeta[] = {0.009,  0.0045, 0.0085, 0.,
+                       0.0105, 0.0068, 0.010,  0.};
+    float cuteop2[] = {0.11,   0.91,    0.11,  0.,
+                       0.0,    0.85,    0.0,   0.};
+    float cutdphi[] = {0.05,   0.025,  0.053,  0.09,
+                       0.07,   0.03,   0.092,  0.092};
+    float cuthoe[]  = {0.115,  0.10,   0.055,  0.,
+                       0.145,  0.12,   0.15,   0.};
+    
+    int cat = classify(electron);
+    
+    // const reco::ClusterShapeRef& shapeRef = getClusterShape(electron, e);
+    
+    // LOOSE Selection
+    if ((eOverP < 0.8) && (fBrem < 0.2)) 
+      return false;
+    
+    if (hOverE > cuthoe[cat+eb*4]) 
+      return false;    
+    
+    if (sigmaeecor > cutsee[cat+4*eb]) 
+      return false;    
+    
+    if (eOverP < 1.5) {
+      if (fabs(deltaPhiIn) > cutdphi[cat+4*eb]) 
+	return false;    
+    } else {
+      if (fabs(deltaPhiIn) > cutdphi[3+4*eb])
+	return false;
+    }
+    
+    if (fabs(deltaEtaIn) > cutdeta[cat+4*eb]) 
+      return false;    
+    
+    if (eSeedOverPin < cuteop2[cat+4*eb]) 
+      return false;  
+    
+    return true; 
+  }
+
+  if (type == 0) {
+    
+    double cut[] = {0.115, 0.0140, 0.090, 0.0090,
+                    0.150, 0.0275, 0.092, 0.0105};
+    
+    if (hOverE > cut[0+eb*4]) 
+      return false;    
+    
+    if (sigmaeecor > cut[1+eb*4]) 
+      return false;    
+    
+    if (fabs(deltaPhiIn) > cut[2+eb*4]) 
+      return false;    
+    
+    if (fabs(deltaEtaIn) > cut[3+eb*4]) 
+      return false;    
+    
+    return true;
+  }
+  
+  if (type == 3) {
+    double dRIn = sqrt(pow(deltaEtaIn,2)+pow(deltaPhiIn,2));
+    if ((eta > 1.479 || sigmaee < 0.012) && sigmaee < 0.03 && 
+        fabs(deltaEtaIn) < 0.012 && hOverE < 0.1 && eOverP > 0.9 && dRIn < 0.1)
+      return true;
+    
+    return false;
+  }
+  
+  if (type == 4) {
+    
+    int cat_old = classify_old(electron);
+    
+    float cutsee[] =  {0.014,  0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 
+                       0.031,  0.028,  0.028,  0.028,  0.028,  0.028,  0.028,  0.028}; // first row barrel, second endcap
+    float cutdeta[] = {0.009,  0.0085, 0.0085, 0.0035, 0.0085, 0.0035, 0.0085, 0.0085,
+                       0.009,  0.009,  0.009,  0.009,  0.009,  0.009,  0.009,  0.009};
+    float cutdphi[] = {0.06,   0.06,   0.10,   0.02,   0.06,   0.06,   0.06,   0.06,
+                       0.06,   0.10,   0.10,   0.02,   0.10,   0.10,   0.10,   0.10};
+    float cuthoe[] =  {0.125,  0.055,  0.055,  0.10,   0.055,  0.055,  0.055,  0.055,
+                       0.125,  0.10,   0.10,   0.10,   0.10,   0.10,   0.10,   0.10};
+    float cuteop2[] = {0.55,   0.88,   0.88,   0.88,   0.88,   0.88,   0.88,   0.88,
+                       0.85,   0.85,   0.85,   0.85,   0.85,   0.85,   0.85,   0.85};
+    
+    if(sigmaeecor < cutsee[cat_old+eb*8]) {
+      if(fabs(deltaEtaIn) < cutdeta[cat_old+eb*8]) {
+        if(fabs(deltaPhiIn) < cutdphi[cat_old+eb*8]) {
+          if(eSeedOverPOut > cuteop2[cat_old+eb*8]) {
+            if(hOverE < cuthoe[cat_old+eb*8]) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+  
+    return false;
+  }
+
+  if (type == 5) {
+    
+    int cat_old = classify_old(electron);
+    
+    float cutsee[] =  {0.014,  0.012,  0.012,  0.012,  0.012,  0.012,  0.012,  0.012, 
+                       0.027,  0.026,  0.026,  0.026,  0.026,  0.026,  0.026,  0.026}; // first row barrel, second endcap
+    float cutdeta[] = {0.009,  0.0055, 0.0055, 0.004,  0.0055, 0.004,  0.0055, 0.0055,
+                       0.008,  0.008,  0.008,  0.008,  0.008,  0.008,  0.008,  0.008};
+    float cutdphi[] = {0.04,   0.04,   0.07,   0.02,   0.04,   0.04,   0.04,   0.04,
+                       0.055,  0.085,  0.085,  0.02,   0.085,  0.085,  0.085,  0.085};
+    float cuthoe[] =  {0.12,   0.055,  0.055,  0.095,  0.055,  0.055,  0.055,  0.055,
+                       0.05,   0.03,   0.03,   0.03,   0.03,   0.03,   0.03,   0.03};
+    float cuteop2[] = {0.55,   0.91,   0.91,   0.91,   0.91,   0.91,   0.91,   0.91,
+                       0.85,   0.85,   0.85,   0.85,   0.85,   0.85,   0.85,   0.85};
+    
+    if(sigmaeecor < cutsee[cat_old+eb*8]) {
+      if(fabs(deltaEtaIn) < cutdeta[cat_old+eb*8]) {
+        if(fabs(deltaPhiIn) < cutdphi[cat_old+eb*8]) {
+          if(eSeedOverPOut > cuteop2[cat_old+eb*8]) {
+            if(hOverE < cuthoe[cat_old+eb*8]) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  //This is for the simple selection Plus
+  //Added by mnorman using types suggested by A. Yagil
+  if (type == 6) {
+    double dRIn = sqrt(pow(deltaEtaIn,2)+pow(deltaPhiIn,2));
+    if ((eta > 1.479 || sigmaee < 0.012) && sigmaee < 0.03 && 
+        fabs(deltaEtaIn) < 0.012 && hOverE < 0.05 && eOverP > 0.9 && dRIn < 0.1 && d0 < 0.02)
+      return true;
+    
+    return false;
+  }
+  
+  return false;
+}
+
+//----------------------------------------------------------------------------
+//Old Electron Id classification function
+//----------------------------------------------------------------------------
+int ElectronMaker::classify_old(const reco::PixelMatchGsfElectron* electron) {
+   
+  double eOverP = electron->eSuperClusterOverP();
+  double pin  = electron->trackMomentumAtVtx().R(); 
+  double pout = electron->trackMomentumOut().R(); 
+  double fBrem = (pin-pout)/pin;
+  
+  int cat=6;
+  if(eOverP > 0.9*(1-fBrem)) {
+    if(fBrem > 0.06) {
+      if(eOverP > 1.5) 
+        cat=2;
+      else if(eOverP > 1.2) 
+        cat=1;
+      else if(eOverP > 0.8) 
+        cat=0;
+      else 
+        cat=4;
+    }
+    else if(eOverP > 1.5) 
+      cat=5;
+    else 
+      cat=3;
+  } 
+  
+  return cat;
+}
+
+//----------------------------------------------------------------------------
+//Electron Id classification function
+//----------------------------------------------------------------------------
+int ElectronMaker::classify(const reco::PixelMatchGsfElectron* electron) {
+  
+  double eta = electron->p4().Eta();
+  double eOverP = electron->eSuperClusterOverP();
+  double pin  = electron->trackMomentumAtVtx().R(); 
+  double pout = electron->trackMomentumOut().R(); 
+  double fBrem = (pin-pout)/pin;
+  
+  int cat;
+  
+  if((fabs(eta)<1.479 && fBrem<0.06) || (fabs(eta)>1.479 && fBrem<0.1)) 
+    cat=1;
+  else if (eOverP < 1.2 && eOverP > 0.8) 
+    cat=0;
+  else 
+    cat=2;
+  
+  return cat;
+}
+
+
+//---------------------------------------------------------------------------
+//Track Isolation
+//---------------------------------------------------------------------------
+double ElectronMaker::trackRelIsolation(const math::XYZVector momentum,
+                                     const math::XYZPoint vertex,
+                                     const  edm::View<reco::Track>* tracks,
+                                     double dRConeMax, double dRConeMin,
+                                     double tkVtxDMax,
+                                     double vtxDiffDMax, double vtxDiffZMax, double ptMin, unsigned int nHits)
+{
+    double isoResult = -10.;
+    if ( tracks == 0 ) {
+       std::cout << "Configuration Error: track collection is not set!" <<std::endl;
+       return isoResult;
+    }
+
+    double sumPt = 0;
+
+    View<Track>::const_iterator iTk = tracks->begin();
+    for (; iTk != tracks->end(); ++iTk){
+      double dR = ROOT::Math::VectorUtil::DeltaR(momentum, iTk->momentum());
+      //exclude tks in veto cone (set it to small number to
+      //exclude this track
+      double dZ = fabs(vertex.z() - iTk->vz());
+      double d0 = sqrt(iTk->vertex().perp2());
+      double dD0 = sqrt((iTk->vertex() - vertex).perp2());
+      if (dR < dRConeMin) continue;
+      if ( dR < dRConeMax
+           && dZ < vtxDiffZMax
+           && d0 < tkVtxDMax
+           && dD0 < vtxDiffDMax
+           && iTk->pt() >= ptMin
+           && iTk->found() > nHits){
+        sumPt += iTk->pt();
+      }
+    }
+
+    isoResult = sumPt;
+    return isoResult;
+
 }
 
 //define this as a plug-in
