@@ -3,9 +3,9 @@
 // Package:    JetMaker
 // Class:      JetMaker
 // 
-/**\class JetMaker JetMaker.h CMS2/JetMaker/interface/JetMaker.h
+/**\class JetMaker JetMaker.h CMS2/NtupleMaker/interface/JetMaker.h
 
-Description: copy some jet variables in simble data structures into the EDM event tree
+Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
 Implementation:
 - take TQAF jets
@@ -13,8 +13,8 @@ Implementation:
 */
 //
 // Original Author:  Oliver Gutsche
-//         Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.1 2008/06/12 00:11:51 gutsche Exp $
+// Created:  Tue Jun  9 11:07:38 CDT 2008
+// $Id: JetMaker.h,v 1.2 2008/06/12 23:40:37 gutsche Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H

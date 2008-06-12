@@ -3,18 +3,18 @@
 // Package:    JetMaker
 // Class:      JetMaker
 // 
-/**\class JetMaker JetMaker.cc CMS2/JetMaker/src/JetMaker.cc
+/**\class JetMaker JetMaker.cc CMS2/NtupleMaker/src/JetMaker.cc
 
- Description: copy some jet variables in simble data structures into the EDM event tree
+Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
  Implementation:
      - take TQAF jets
      - extract and fill variables
 */
 //
-// Original Author:  pts/4
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.1 2008/06/12 00:11:51 gutsche Exp $
+// Original Author:  Oliver Gutsche
+// Created:  Tue Jun  9 11:07:38 CDT 2008
+// $Id: JetMaker.cc,v 1.2 2008/06/12 23:40:37 gutsche Exp $
 //
 //
 
@@ -35,7 +35,6 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
-#include "DataFormats/TrackReco/interface/Track.h"
 
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
 

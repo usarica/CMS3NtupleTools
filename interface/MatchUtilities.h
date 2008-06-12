@@ -10,8 +10,8 @@ Description: utilities to match objects
 */
 //
 // Original Author:  Oliver Gutsche
-//         Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.1 2008/06/12 00:12:20 gutsche Exp $
+// Wed Jun 11 17:20:33 CDT 2008
+// $Id: MatchUtilities.h,v 1.2 2008/06/12 23:40:37 gutsche Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
