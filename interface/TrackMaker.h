@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.1 2008/06/10 19:44:10 jmuelmen Exp $
+// $Id: TrackMaker.h,v 1.2 2008/06/13 02:26:22 jmuelmen Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -24,6 +24,9 @@
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "DataFormats/Common/interface/Handle.h"
 
 //
 // class declaration

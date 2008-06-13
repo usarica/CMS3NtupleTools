@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.3 2008/06/10 20:06:15 jmuelmen Exp $
+// $Id: MuonMaker.cc,v 1.4 2008/06/13 02:26:22 jmuelmen Exp $
 //
 //
 
@@ -144,9 +144,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      for (edm::View<reco::Muon>::const_iterator muon = muon_h->begin(); 
 	  muon != muons_end; ++muon) {
 	  // fill vectors
+	  vector_mus_p4           ->push_back(muon->p4());
 #if 0
-	  // track information will be copied from TrackMaker later...
-	  vector_mus_p4           ->push_back(	);
 	  vector_mus_trk_p4       ->push_back(	);
 	  vector_mus_d0           ->push_back(	);
 	  vector_mus_z0           ->push_back(	);

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonToTrackAssMaker.cc,v 1.1 2008/06/10 20:54:41 jmuelmen Exp $
+// $Id: MuonToTrackAssMaker.cc,v 1.2 2008/06/13 02:26:22 jmuelmen Exp $
 //
 //
 
@@ -52,7 +52,7 @@ void MuonToTrackAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
      iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
      // get track p4's
      Handle<vector<LorentzVector> > trks_p4_h;
-     iEvent.getByLabel("trackMaker", "trksp4", trks_p4_h);  
+     iEvent.getByLabel("trackMaker", "trkstrkp4", trks_p4_h);  
      vector<LorentzVector>::const_iterator muons_end = mus_p4_h->end();
      for (vector<LorentzVector>::const_iterator muon = mus_p4_h->begin(); 
 	  muon != muons_end; ++muon) {
