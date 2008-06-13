@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.3 2008/06/13 19:15:20 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.4 2008/06/13 21:30:11 kalavase Exp $
 //
 //
 
@@ -338,8 +338,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_e3x3                  ->push_back( e3x3                                      );
     els_e5x5                  ->push_back( e5x5                                      );
     els_ESeed                 ->push_back( el->superCluster()->seed()->energy()      );
-    els_sigmaPhiPhi           ->push_back( see                                       );
-    els_sigmaEtaEta           ->push_back( spp                                       );
+    els_sigmaPhiPhi           ->push_back( spp                                       );
+    els_sigmaEtaEta           ->push_back( see                                       );
     els_tkIso                 ->push_back( tkIso                                     );
     els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                        );
     //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                            );
