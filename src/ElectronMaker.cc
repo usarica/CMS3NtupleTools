@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.2 2008/06/11 21:53:23 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.3 2008/06/13 19:15:20 kalavase Exp $
 //
 //
 
@@ -37,7 +37,7 @@ Implementation:
 
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
-//#include "CMS1/ExternalDataFormats/interface/EcalCluster.h"
+//#include "CMS2/ExternalDataFormats/interface/EcalCluster.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "Math/VectorUtil.h"
 
@@ -55,7 +55,7 @@ using namespace std;
 //
 ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 {
-
+  produces<unsigned int>            ("evtnels"             ).setBranchAlias("evt_nels"             ); //number of electrons in event
   produces<vector<int> >            ("elsvalidHits"        ).setBranchAlias("els_validHits"        ); //number of used hits in fit
   produces<vector<int> >  	    ("elslostHits"         ).setBranchAlias("els_lostHits"         ); //number of lost hits in fit
   produces<vector<int> >  	    ("elsmcid"             ).setBranchAlias("els_mcid"             ); //MC matched id
@@ -70,7 +70,6 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >	    ("elspass3looseId"     ).setBranchAlias("els_pass3looseId"     );
   produces<vector<int> >	    ("elspass3tightId"     ).setBranchAlias("els_pass3tightId"     );
   produces<vector<int> >	    ("elssimpleIdPlus"     ).setBranchAlias("els_simpleIdPlus"     );
-  produces<vector<int> >	    ("elsclosestMuon"      ).setBranchAlias("els_closestMuon"      );
   produces<vector<float> >	    ("elsd0"               ).setBranchAlias("els_d0"               );
   produces<vector<float> >	    ("elsz0"               ).setBranchAlias("els_z0"               );
   produces<vector<float> >	    ("elsvertexphi"        ).setBranchAlias("els_vertexphi"        );
@@ -90,18 +89,20 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	    ("elsdPhiIn"           ).setBranchAlias("els_dPhiIn"           );
   produces<vector<float> >	    ("elsdPhiOut"          ).setBranchAlias("els_dPhiOut"          );
   produces<vector<float> >	    ("elsESc"              ).setBranchAlias("els_ESc"              );
-  produces<vector<float> >	    ("elsEScraw"           ).setBranchAlias("els_ESc"              );
+  produces<vector<float> >	    ("elsEScraw"           ).setBranchAlias("els_ESc_raw"          );
   produces<vector<float> >	    ("else3x3"             ).setBranchAlias("els_e3x3"             );
   produces<vector<float> >	    ("else5x5"             ).setBranchAlias("els_e5x5"             );
   produces<vector<float> >	    ("elsESeed"            ).setBranchAlias("els_ESeed"            );
   produces<vector<float> >	    ("elssigmaPhiPhi"      ).setBranchAlias("els_sigmaPhiPhi"      );
   produces<vector<float> >	    ("elssigmaEtaEta"      ).setBranchAlias("els_sigmaEtaEta"      );
   produces<vector<float> >	    ("elstkIso"            ).setBranchAlias("els_tkIso"            );
-  produces<vector<LorentzVector> >  ("elsp4"              ).setBranchAlias("els_p4"                );
-  produces<vector<LorentzVector> >  ("elstrkp4"           ).setBranchAlias("els_trk_p4"            );
-  produces<vector<LorentzVector> >  ("elsmcp4"            ).setBranchAlias("els_mc_p4"             );
-  produces<vector<LorentzVector> >  ("elsp4In"            ).setBranchAlias("els_p4_In"             );
-  produces<vector<LorentzVector> >  ("elsp4Out"           ).setBranchAlias("els_p4_Out"            );
+  produces<vector<float> >	    ("elsdPhiInPhiOut"     ).setBranchAlias("els_dPhiInPhiOut"     );
+  //produces<vector<float> >	    ("elsdPhiOutEcalHit"   ).setBranchAlias("els_dPhiOutEcalHit"   );
+  produces<vector<LorentzVector> >  ("elsp4"               ).setBranchAlias("els_p4"               );
+  produces<vector<LorentzVector> >  ("elstrkp4"            ).setBranchAlias("els_trk_p4"           );
+  produces<vector<LorentzVector> >  ("elsmcp4"             ).setBranchAlias("els_mc_p4"            );
+  produces<vector<LorentzVector> >  ("elsp4In"             ).setBranchAlias("els_p4In"            );
+  produces<vector<LorentzVector> >  ("elsp4Out"            ).setBranchAlias("els_p4Out"           );
   
 }
 
@@ -120,59 +121,58 @@ void ElectronMaker::endJob() {
 
 
 // ------------ method called to produce the data  ------------
-void
-ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-
+void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-  auto_ptr<vector<int> >           els_validHits            (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_lostHits             (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_mcid                 (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_charge               (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_mcmotherid           (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_nSeed                (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_class                (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_robustId             (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_looseId              (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_tightId              (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_pass3simpleId        (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_pass3looseId         (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_pass3tightId         (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_simpleIdPlus         (new vector<int>) ;
-  auto_ptr<vector<int> >	   els_closestMuon          (new vector<int>) ;
-  auto_ptr<vector<float> >	   els_d0                   (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_z0                   (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_vertexphi            (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_chi2                 (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_ndof                 (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_d0Err                (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_z0Err                (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_ptErr                (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_etaErr               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_phiErr               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_hOverE               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_eOverPIn             (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_eSeedOverPOut        (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_fBrem                (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_dEtaIn               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_dEtaOut              (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_dPhiIn               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_dPhiOut              (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_ESc                  (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_EScraw               (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_e3x3                 (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_e5x5                 (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_ESeed                (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_sigmaPhiPhi          (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_sigmaEtaEta          (new vector<float>) ;
-  auto_ptr<vector<float> >	   els_tkIso                (new vector<float>) ;
+
+  auto_ptr<unsigned int>           evt_nels                 (new unsigned int         ) ;
+  auto_ptr<vector<int> >           els_validHits            (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_lostHits             (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_mcid                 (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_charge               (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_mcmotherid           (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_nSeed                (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_class                (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_robustId             (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_looseId              (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_tightId              (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_pass3simpleId        (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_pass3looseId         (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_pass3tightId         (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_simpleIdPlus         (new vector<int>          ) ;
+  auto_ptr<vector<float> >	   els_d0                   (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_z0                   (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_vertexphi            (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_chi2                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_ndof                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_d0Err                (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_z0Err                (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_ptErr                (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_etaErr               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_phiErr               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_hOverE               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_eOverPIn             (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_eSeedOverPOut        (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_fBrem                (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_dEtaIn               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_dEtaOut              (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_dPhiIn               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_dPhiOut              (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_ESc                  (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_EScraw               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_e3x3                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_e5x5                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_ESeed                (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_sigmaPhiPhi          (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_sigmaEtaEta          (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_tkIso                (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_dPhiInPhiOut         (new vector<float>        ) ;
+  //auto_ptr<vector<float> >	   els_dPhiOutEcalHit       (new vector<float>        ) ;
   auto_ptr<vector<LorentzVector> > els_p4                   (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_trk_p4               (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_mc_p4                (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4In                 (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4Out                (new vector<LorentzVector>) ;
-  
-  
-	
+
 
   //Get required collections ->have to be made configurable, hard wired for now
   vector<const PixelMatchGsfElectron*> electron_coll = getElectrons(iEvent);
@@ -201,8 +201,9 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
   const BasicClusterShapeAssociationCollection *endcapClShp = endcapClShp_h.product();
   
-
-
+  //fill number of electrons variable
+  *evt_nels = electron_coll.size();
+  
   //loop over electron collection
   for(vector<const PixelMatchGsfElectron*>::const_iterator el_it = electron_coll.begin();
       el_it != electron_coll.end(); el_it++) {
@@ -270,6 +271,33 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				    1.0,     //! min pt
 				    7);      //! min nHits
 
+    //variables need to fill dPhiInPhiOut
+    double phi_pin = el->caloPosition().phi() -
+      el->deltaPhiSuperClusterTrackAtVtx();
+    double phi_pout = el->superCluster()->seed()->position().phi()
+      - el->deltaPhiSeedClusterTrackAtCalo();
+
+
+    //for dPhiOutEcalHit
+    //  for (EcalSuperClusterCollection::const_iterator i_barrel = barrelExtraShapes->begin();
+    // 	 i_barrel != barrelExtraShapes->end(); ++i_barrel) {
+    //       if (i_barrel->superCluster() == aElectron->superCluster()) 
+    // 	break;
+    //     }
+
+    
+    //     for (EcalSuperClusterCollection::const_iterator i_endcap = endcapExtraShapes->begin();
+    // 	 i_endcap != endcapExtraShapes->end(); ++i_endcap) {
+    //       if (i_endcap->superCluster() == aElectron->superCluster()) 
+    // 	   break;
+    //     }
+    
+    //     float dPhiOutEcalHit = -999.;
+    //     if (i_barrel != barrelExtraShapes->end()) {
+    //       dPhiOutEcalHit = i_barrel->DphitoNonzeroCrystal(phi_pout);
+    //     } else if (i_endcap != endcapExtraShapes->end()) {
+    //       dPhiOutEcalHit = i_endcap->DphitoNonzeroCrystal(phi_pout);
+    //    }
 
     
     //fill the vectors
@@ -287,7 +315,6 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_pass3looseId          ->push_back( id[4]                                     );
     els_pass3tightId          ->push_back( id[5]                                     );
     els_simpleIdPlus          ->push_back( id[6]                                     );
-    els_closestMuon           ->push_back( 999 ); //placeholder
     els_d0                    ->push_back( el_track->d0()                            );
     els_z0                    ->push_back( el_track->dz()                            );
     els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )   );
@@ -314,6 +341,8 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_sigmaPhiPhi           ->push_back( see                                       );
     els_sigmaEtaEta           ->push_back( spp                                       );
     els_tkIso                 ->push_back( tkIso                                     );
+    els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                        );
+    //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                            );
     els_p4                    ->push_back( el->p4()                                  );
     els_trk_p4                ->push_back( trk_p4                                    );
     els_mc_p4                 ->push_back( LorentzVector(0,0,0,0)                    );
@@ -322,7 +351,7 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   }
 
-
+  iEvent.put(evt_nels                         ,"evtnels"            );
   iEvent.put(els_validHits                    ,"elsvalidHits"       );
   iEvent.put(els_lostHits                     ,"elslostHits"        );
   iEvent.put(els_mcid                         ,"elsmcid"            );
@@ -337,7 +366,6 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_pass3looseId                 ,"elspass3looseId"    );
   iEvent.put(els_pass3tightId                 ,"elspass3tightId"    );
   iEvent.put(els_simpleIdPlus                 ,"elssimpleIdPlus"    );
-  iEvent.put(els_closestMuon                  ,"elsclosestMuon"     );
   iEvent.put(els_d0                           ,"elsd0"              );
   iEvent.put(els_z0                           ,"elsz0"              );
   iEvent.put(els_vertexphi                    ,"elsvertexphi"       );
@@ -364,6 +392,8 @@ ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_sigmaPhiPhi                  ,"elssigmaPhiPhi"     );
   iEvent.put(els_sigmaEtaEta                  ,"elssigmaEtaEta"     );
   iEvent.put(els_tkIso                        ,"elstkIso"           );
+  iEvent.put(els_dPhiInPhiOut                 ,"elsdPhiInPhiOut"    );
+  //iEvent.put(els_dPhiOutEcalHit               ,"elsdPhiOutEcalHit"  );
   iEvent.put(els_p4                           ,"elsp4"              );
   iEvent.put(els_trk_p4                       ,"elstrkp4"           );
   iEvent.put(els_mc_p4                        ,"elsmcp4"            );
@@ -403,7 +433,7 @@ vector<const PixelMatchGsfElectron*> ElectronMaker::getElectrons(const edm::Even
 void ElectronMaker::removeElectrons(const vector<const PixelMatchGsfElectron*>* collection) {
 
   vector<const reco::PixelMatchGsfElectron*>* newEl = const_cast<vector<const PixelMatchGsfElectron*>* >(collection);
- vector<const reco::PixelMatchGsfElectron*> copy = *newEl;
+  vector<const reco::PixelMatchGsfElectron*> copy = *newEl;
 
   newEl->clear();
 
@@ -747,41 +777,41 @@ int ElectronMaker::classify(const reco::PixelMatchGsfElectron* electron) {
 //Track Isolation
 //---------------------------------------------------------------------------
 double ElectronMaker::trackRelIsolation(const math::XYZVector momentum,
-                                     const math::XYZPoint vertex,
-                                     const  edm::View<reco::Track>* tracks,
-                                     double dRConeMax, double dRConeMin,
-                                     double tkVtxDMax,
-                                     double vtxDiffDMax, double vtxDiffZMax, double ptMin, unsigned int nHits)
+					const math::XYZPoint vertex,
+					const  edm::View<reco::Track>* tracks,
+					double dRConeMax, double dRConeMin,
+					double tkVtxDMax,
+					double vtxDiffDMax, double vtxDiffZMax, double ptMin, unsigned int nHits)
 {
-    double isoResult = -10.;
-    if ( tracks == 0 ) {
-       std::cout << "Configuration Error: track collection is not set!" <<std::endl;
-       return isoResult;
-    }
-
-    double sumPt = 0;
-
-    View<Track>::const_iterator iTk = tracks->begin();
-    for (; iTk != tracks->end(); ++iTk){
-      double dR = ROOT::Math::VectorUtil::DeltaR(momentum, iTk->momentum());
-      //exclude tks in veto cone (set it to small number to
-      //exclude this track
-      double dZ = fabs(vertex.z() - iTk->vz());
-      double d0 = sqrt(iTk->vertex().perp2());
-      double dD0 = sqrt((iTk->vertex() - vertex).perp2());
-      if (dR < dRConeMin) continue;
-      if ( dR < dRConeMax
-           && dZ < vtxDiffZMax
-           && d0 < tkVtxDMax
-           && dD0 < vtxDiffDMax
-           && iTk->pt() >= ptMin
-           && iTk->found() > nHits){
-        sumPt += iTk->pt();
-      }
-    }
-
-    isoResult = sumPt;
+  double isoResult = -10.;
+  if ( tracks == 0 ) {
+    std::cout << "Configuration Error: track collection is not set!" <<std::endl;
     return isoResult;
+  }
+
+  double sumPt = 0;
+
+  View<Track>::const_iterator iTk = tracks->begin();
+  for (; iTk != tracks->end(); ++iTk){
+    double dR = ROOT::Math::VectorUtil::DeltaR(momentum, iTk->momentum());
+    //exclude tks in veto cone (set it to small number to
+    //exclude this track
+    double dZ = fabs(vertex.z() - iTk->vz());
+    double d0 = sqrt(iTk->vertex().perp2());
+    double dD0 = sqrt((iTk->vertex() - vertex).perp2());
+    if (dR < dRConeMin) continue;
+    if ( dR < dRConeMax
+	 && dZ < vtxDiffZMax
+	 && d0 < tkVtxDMax
+	 && dD0 < vtxDiffDMax
+	 && iTk->pt() >= ptMin
+	 && iTk->found() > nHits){
+      sumPt += iTk->pt();
+    }
+  }
+
+  isoResult = sumPt;
+  return isoResult;
 
 }
 
