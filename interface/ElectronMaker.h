@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.2 2008/06/11 21:52:45 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.3 2008/06/14 19:07:04 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -50,7 +50,7 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 
-  std::vector<const reco::PixelMatchGsfElectron*> getElectrons(const edm::Event&);
+  std::vector<const reco::PixelMatchGsfElectron*> getElectrons(const edm::Event&, edm::InputTag);
   void removeElectrons(const std::vector<const reco::PixelMatchGsfElectron*>* );
   void R9_25(const reco::BasicClusterShapeAssociationCollection*,
              const reco::BasicClusterShapeAssociationCollection*,
@@ -71,8 +71,9 @@ private:
   
 
 
-  std::string electronType;
-      
+   edm::InputTag electronsInputTag;
+   edm::InputTag tracksInputTag;
+   edm::InputTag genParticlesInputTag;
       // ----------member data ---------------------------
 };
 
