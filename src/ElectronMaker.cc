@@ -13,9 +13,10 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.4 2008/06/13 21:30:11 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.5 2008/06/14 19:06:04 kalavase Exp $
 //
 //
+
 
 // system include files
 #include <memory>
@@ -23,20 +24,20 @@ Implementation:
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 #include "CMS2/NtupleMaker/interface/ElectronMaker.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
-
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 //#include "CMS2/ExternalDataFormats/interface/EcalCluster.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "Math/VectorUtil.h"
@@ -103,7 +104,12 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> >  ("elsmcp4"             ).setBranchAlias("els_mc_p4"            );
   produces<vector<LorentzVector> >  ("elsp4In"             ).setBranchAlias("els_p4In"            );
   produces<vector<LorentzVector> >  ("elsp4Out"            ).setBranchAlias("els_p4Out"           );
-  
+
+
+ //get setup parameters
+  electronsInputTag    = iConfig.getParameter<InputTag>("electronsInputTag");
+  tracksInputTag       = iConfig.getParameter<InputTag>("tracksInputTag");
+  genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
 }
 
 
@@ -175,17 +181,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   //Get required collections ->have to be made configurable, hard wired for now
-  vector<const PixelMatchGsfElectron*> electron_coll = getElectrons(iEvent);
+  vector<const PixelMatchGsfElectron*> electron_coll = getElectrons(iEvent, electronsInputTag);
   removeElectrons(&electron_coll);
 
   Handle<View<Track> > tk_h;
-  iEvent.getByLabel("ctfWithMaterialTracks", tk_h);
+  iEvent.getByLabel(tracksInputTag, tk_h);
   const View<Track> *track_coll = tk_h.product();
-  
-  //for(View<Track>::const_iterator tk_it = tk_h->begin();
-  //tk_it != tk_h->end(); tk_it++) {
-  //track_coll->push_back(*tk_it);
-  //}
   
   Handle<BasicClusterShapeAssociationCollection> barrelClShp_h;
   iEvent.getByLabel("hybridSuperClusters", "hybridShapeAssoc", barrelClShp_h);
@@ -201,6 +202,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
   const BasicClusterShapeAssociationCollection *endcapClShp = endcapClShp_h.product();
   
+  // get MC particle collection
+  edm::Handle<reco::GenParticleCollection> genParticlesHandle;
+  iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
+
+
+
+
+
   //fill number of electrons variable
   *evt_nels = electron_coll.size();
   
@@ -217,8 +226,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     float esc, e3x3, e5x5, see, spp;
     R9_25(barrelClShp, endcapClShp, el, esc, e3x3, e5x5, spp, see);
     
-
-    
     /* fill Electron Id array
        robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
        oldlooseId = 4, oldtightId = 5, simpleIdPlus = 6
@@ -231,13 +238,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         id[i] = 0;
     }
 
-
     //stuff for track pterr
     float pt = el_track->pt();
     float p = el_track->p();
     float q = el_track->charge();
     float pz = el_track->pz();
-    float err = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
+    float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
 					       +2*pt*p/q*pz*(el_track->covariance(0,1))
 					       + pz*pz*(el_track->covariance(1,1) ) ) : -999.;
     
@@ -278,6 +284,16 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       - el->deltaPhiSeedClusterTrackAtCalo();
 
 
+    //MC matching stuff
+    const reco::GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*el,genParticlesHandle.product());
+    int mcid = -999, mom_mcid = -999;
+    LorentzVector mc_p4(0,0,0,0);
+    if(matchedGenParticle != 0) {
+      matchedGenParticle->pdgId();
+      LorentzVector mc_p4 = matchedGenParticle->p4();
+      mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
+    }
+      
     //for dPhiOutEcalHit
     //  for (EcalSuperClusterCollection::const_iterator i_barrel = barrelExtraShapes->begin();
     // 	 i_barrel != barrelExtraShapes->end(); ++i_barrel) {
@@ -303,9 +319,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //fill the vectors
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-    els_mcid                  ->push_back(999); //placeholder 
+    els_mcid                  ->push_back( mcid                                      );
     els_charge                ->push_back( el->charge()                              );
-    els_mcmotherid            ->push_back(999); //placeholder 
+    els_mcmotherid            ->push_back( matchedGenParticle !=0); //placeholder 
     els_nSeed                 ->push_back( el->numberOfClusters() - 1                );                             
     els_class                 ->push_back( el->classification()                      );
     els_robustId              ->push_back( id[0]                                     );
@@ -322,7 +338,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_ndof                  ->push_back( el_track->ndof()                          );
     els_d0Err                 ->push_back( el_track->d0Error()                       );
     els_z0Err                 ->push_back( el_track->dzError()                       );
-    els_ptErr                 ->push_back( err                                       );
+    els_ptErr                 ->push_back( trkpterr                                  );
     els_etaErr                ->push_back( el_track->etaError()                      );
     els_phiErr                ->push_back( el_track->phiError()                      );
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
@@ -408,13 +424,11 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //--------------------------------------------------------------------------------------------
 //gets the electrons from the event
 //--------------------------------------------------------------------------------------------
-vector<const PixelMatchGsfElectron*> ElectronMaker::getElectrons(const edm::Event& iEvent) {
+vector<const PixelMatchGsfElectron*> ElectronMaker::getElectrons(const edm::Event& iEvent, InputTag electronsInputTag) {
   
 
   Handle<View<PixelMatchGsfElectron> > electron_h;
-  //iEvent.getByLabel(electronType.c_str(), electron_h);
-  iEvent.getByLabel("allLayer1TopElectrons", electron_h);
-  
+  iEvent.getByLabel(electronsInputTag, electron_h);
   vector<const PixelMatchGsfElectron*> collection;
   
   for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 

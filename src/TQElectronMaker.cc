@@ -14,7 +14,7 @@ Description: copy additional TQAF jet variables in simple data structures into t
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: TQElectronMaker.cc,v 1.1 2008/06/14 16:28:44 kalavase Exp $
+// $Id: TQElectronMaker.cc,v 1.2 2008/06/14 19:05:24 kalavase Exp $
 //
 //
 
@@ -56,17 +56,17 @@ TQElectronMaker::TQElectronMaker(const edm::ParameterSet& iConfig) {
   // product of this EDProducer
   produces<vector<int>            >   ("elstqegammaTkNumIso"      ).setBranchAlias("els_tq_egammaTkNumIso"   );
   produces<vector<int>            >   ("elstqgenID"               ).setBranchAlias("els_tq_genID"            );
-  produces<vector<int>            >   ("elstqgenMotherID"         ).setBranchAlias("els_tq_genMotherID"      );
+  //produces<vector<int>            >   ("elstqgenMotherID"         ).setBranchAlias("els_tq_genMotherID"      );
   produces<vector<float>          >   ("elstqtrackIso"            ).setBranchAlias("els_tq_trackIso"         );
   produces<vector<float>          >   ("elstqcaloIso"             ).setBranchAlias("els_tq_caloIso"          );
-  produces<vector<float>          >   ("elstqleptopID"            ).setBranchAlias("els_tq_leptonID"         );
+  produces<vector<float>          >   ("elstqleptonID"            ).setBranchAlias("els_tq_leptonID"         );
   produces<vector<float>          >   ("elstqelectronIDRobust"    ).setBranchAlias("els_tq_electronIDRobust" );
   produces<vector<float>          >   ("elstqegammaTkIso"         ).setBranchAlias("els_tq_egammaTkIso"      );
   produces<vector<float>          >   ("elstqegammaEcalIso"       ).setBranchAlias("els_tq_egammaEcalIso"    );
   produces<vector<float>          >   ("elstqegammaHcalIso"       ).setBranchAlias("els_tq_egammaHcalIso"    );
   produces<vector<float>          >   ("elstqLRComb"              ).setBranchAlias("els_tq_LRComb"           );
   produces<vector<LorentzVector>  >   ("elstqgenP4"               ).setBranchAlias("els_tq_genP4"            );
-  produces<vector<LorentzVector>  >   ("elstqgenMtherP4"          ).setBranchAlias("els_tq_genMotherP4"      );
+  //produces<vector<LorentzVector>  >   ("elstqgenMtherP4"          ).setBranchAlias("els_tq_genMotherP4"      );
   
 
   // parameters from configuration
@@ -88,17 +88,17 @@ void TQElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // create containers
   auto_ptr<vector<int>            >   els_tq_egammaTkNumIso(   new vector<int>               );
   auto_ptr<vector<int>            >   els_tq_genID(            new vector<int>               );
-  auto_ptr<vector<int>            >   els_tq_genMotherID(      new vector<int>               );
-  auto_ptr<vector<float>          >   els_tq_trackIso(         new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_caloIso(          new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_leptonID(         new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_electronIDRobust( new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_egammaTkIso(      new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_egammaEcalIso(    new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_egammaHcalIso(    new vector<float>             );
-  auto_ptr<vector<float>          >   els_tq_LRComb(           new vector<float>             ); 
-  auto_ptr<vector<LorentzVector>  >   els_tq_genP4(            new vector<LorentzVector>     );
-  auto_ptr<vector<LorentzVector>  >   els_tq_genMotherP4(      new vector<LorentzVector>     );
+  //auto_ptr<vector<int>            >   els_tq_genMotherID(      new vector<int>               );
+   auto_ptr<vector<float>          >   els_tq_trackIso(         new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_caloIso(          new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_leptonID(         new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_electronIDRobust( new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_egammaTkIso(      new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_egammaEcalIso(    new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_egammaHcalIso(    new vector<float>             );
+   auto_ptr<vector<float>          >   els_tq_LRComb(           new vector<float>             ); 
+   auto_ptr<vector<LorentzVector>  >   els_tq_genP4(            new vector<LorentzVector>     );
+  //auto_ptr<vector<LorentzVector>  >   els_tq_genMotherP4(      new vector<LorentzVector>     );
   
   // loop over top electrons and fill containers
   for ( std::vector<TopElectron>::const_iterator tqel_it = tqElectronHandle->begin();
@@ -116,9 +116,9 @@ void TQElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     els_tq_electronIDRobust  ->push_back( tqel_it->getElectronIDRobust() );
     els_tq_egammaTkIso       ->push_back( tqel_it->getEgammaTkIso()      );
     els_tq_egammaEcalIso     ->push_back( tqel_it->getEgammaEcalIso()    );
-    els_tq_egammaHcalIso     ->push_back( tqel_it->getEgammaHcalIso()    );
-    els_tq_LRComb            ->push_back( tqel_it->getLRComb()           );
-    els_tq_genP4             ->push_back( gen.p4()                       );
+     els_tq_egammaHcalIso     ->push_back( tqel_it->getEgammaHcalIso()    );
+     els_tq_LRComb            ->push_back( tqel_it->getLRComb()           );
+     els_tq_genP4             ->push_back( gen.p4()                       );
     //els_tq_genMotherP4       ->push_back( 
     
   }
@@ -137,7 +137,6 @@ void TQElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(els_tq_LRComb,            "elstqLRComb"               );
   iEvent.put(els_tq_genP4,             "elstqgenP4"                );
   //iEvent.put(els_tq_genMotherP4,       "elstqgenMotherP4"          );
-  //iEvent.put(vector_jets_tq_jet_p4, "jetstqjetp4");
 }
 
 // ------------ method called once each job just before starting event loop  ------------
