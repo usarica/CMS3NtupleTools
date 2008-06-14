@@ -1,0 +1,12 @@
+module electronMaker = ElectronMaker {
+
+  # jet collection
+  InputTag electronsInputTag = allLayer1TopElectrons
+
+  #track collection
+  InputTag tracksInputTag = ctfWithMaterialTracks
+
+  # MC particles
+  InputTag genParticlesInputTag = genParticles
+
+}
