@@ -1,0 +1,12 @@
+module eventMaker = EventMaker {
+
+
+ untracked double inclusiveCrossSection = 0
+  untracked double exclusiveCrossSection = 0
+  untracked double kfactor = 1
+
+  untracked bool haveTriggerInfo = true  
+  untracked bool csa07_soup = true
+  untracked bool writeL1Particles = true 
+
+}
