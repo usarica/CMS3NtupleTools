@@ -14,7 +14,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.2 2008/06/12 23:40:37 gutsche Exp $
+// $Id: JetMaker.cc,v 1.3 2008/06/17 23:15:23 gutsche Exp $
 //
 //
 
@@ -136,7 +136,7 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_jets_mc_invEnergy->push_back(matchedGenJet->invisibleEnergy());
       vector_jets_mc_otherEnergy->push_back(matchedGenJet->auxiliaryEnergy());
     } else {
-      edm::LogWarning("JetMaker") << "Jet " << (jet - jetsHandle->begin()) << " could not be matched to a GetJet!";
+      edm::LogWarning("JetMaker") << "Jet " << (jet - jetsHandle->begin()) << " could not be matched to a GenJet!";
       vector_jets_mc_p4->push_back(LorentzVector(0,0,0,0));
       vector_jets_mc_emEnergy->push_back(-999.);
       vector_jets_mc_hadEnergy->push_back(-999.);
@@ -149,7 +149,7 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_jets_mc_gp_p4->push_back(matchedGenParticle->p4());
       vector_jets_mc_id->push_back(matchedGenParticle->pdgId());
     } else {
-      edm::LogWarning("JetMaker") << "Jet " << (jet - jetsHandle->begin()) << " could not be matched to a GetParticle!";
+      edm::LogWarning("JetMaker") << "Jet " << (jet - jetsHandle->begin()) << " could not be matched to a GenParticle!";
       vector_jets_mc_gp_p4->push_back(LorentzVector(0,0,0,0));
       vector_jets_mc_id->push_back(0);
     }
