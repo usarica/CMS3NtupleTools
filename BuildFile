@@ -7,8 +7,14 @@
 <use name=DataFormats/EgammaCandidates>
 <use name=DataFormats/EcalDetId>
 <use name=DataFormats/TrackReco>
+<use name=DataFormats/L1Trigger>
+<use name=DataFormats/Common>
+<use name=DataFormats/Math>
 <use name=AnalysisDataFormats/TopObjects>
 <use name=RecoMuon/MuonIdentification>
+<use name=PhysicsTools/HepMCCandAlgos>
+<use name=SimDataFormats/HepMCProduct>
+<use name=clhep>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=CMS2NtupleMaker>
