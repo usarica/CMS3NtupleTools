@@ -3,8 +3,11 @@ module jetMaker = JetMaker {
   # jet collection
   InputTag jetsInputTag = allLayer1TopJets
 
-  # generator jets collection
-  InputTag genJetsInputTag = midPointCone5GenJets
+  # generator jets collection (for RECO)
+  #InputTag genJetsInputTag = midPointCone5GenJets
+
+  # generator jets collection (for AOD)
+  InputTag genJetsInputTag = midPointCone5GenJetsPt10
 
   # MC particles
   InputTag genParticlesInputTag = genParticles
