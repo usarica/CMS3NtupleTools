@@ -59,12 +59,15 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart) {
 
-    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+    if ( itPart->status() != 3 ) {
 
-    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
-    if (dR < dRmin) {
-      dRmin = dR;
-      output = &(*itPart);
+      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
+      if (dR < dRmin) {
+	dRmin = dR;
+	output = &(*itPart);
+      }
     }
   }
 
