@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.2 2008/06/20 23:48:39 kalavase Exp $
+// $Id: EventMaker.h,v 1.3 2008/06/20 23:56:29 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -62,7 +62,6 @@ private:
   double kfactorValue;
   bool csa07_soup_;
   bool haveTriggerInfo_;
-  bool writeL1Particles_;
     
 };
 
