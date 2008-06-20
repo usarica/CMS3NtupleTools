@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.1 2008/06/16 21:42:14 kalavase Exp $
+// $Id: EventMaker.h,v 1.2 2008/06/20 23:48:39 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -55,8 +55,7 @@ private:
   void fillHLTInfo(const edm::Event&, int*, int*,
 	      int*, int*);
   void fillL1Info(const edm::Event&, int*, int*, int*, int*);
-  void fillL1ParticlesInfo(const edm::Event&, int*, int*, int*, int*, int*, int*);
-  
+    
   
   double inclusiveCrossSectionValue;
   double exclusiveCrossSectionValue;

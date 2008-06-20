@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.1 2008/06/16 21:42:49 kalavase Exp $
+// $Id: EventMaker.cc,v 1.2 2008/06/20 23:49:10 kalavase Exp $
 //
 //
 
@@ -71,22 +71,6 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>    ("evtL12"               ).setBranchAlias("evt_L1_2"                 );
   produces<int>    ("evtL13"               ).setBranchAlias("evt_L1_3"                 );
   produces<int>    ("evtL14"               ).setBranchAlias("evt_L1_4"                 );
-  produces<int>    ("evtnl1mus"            ).setBranchAlias("evt_nl1mus"               );
-  produces<int>    ("evtnl1emiso"          ).setBranchAlias("evt_nl1emiso"             );
-  produces<int>    ("evtnl1emnoiso"        ).setBranchAlias("evt_nl1emnoiso"           );
-  produces<int>    ("evtnl1jetsc"          ).setBranchAlias("evt_nl1jetsc"             );
-  produces<int>    ("evtnl1jetsf"          ).setBranchAlias("evt_nl1jetsf"             );
-  produces<int>    ("evtnl1jetst"          ).setBranchAlias("evt_nl1jetst"             );
-  /*
-    produces<float>  ("evtmet"               ).setBranchAlias("evt_met"                  );
-    produces<float>  ("evtmetPhi"            ).setBranchAlias("evt_metPhi"               );
-    produces<float>  ("evtsumEt"             ).setBranchAlias("evt_sumEt"                );
-    produces<float>  ("evtmetSig"            ).setBranchAlias("evt_metSig"               );
-    produces<float>  ("evtmetjetcorr"        ).setBranchAlias("evt_met_jetcorr"          );
-    produces<float>  ("evtmetphijetcorr"        ).setBranchAlias("metphi_jetcorr");
-    produces<float>  ("evtgenmet"               ).setBranchAlias("gen_met");
-    produces<float>  ("evtgenmetPhi"            ).setBranchAlias("gen_metPhi");
-  */
   produces<float>  ("evtweight"            ).setBranchAlias("evt_weight");
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
@@ -139,22 +123,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>      evt_L12               (new int);
   auto_ptr<int>      evt_L13               (new int);
   auto_ptr<int>      evt_L14               (new int);
-  auto_ptr<int>      evt_nl1mus            (new int);
-  auto_ptr<int>      evt_nl1emiso          (new int);
-  auto_ptr<int>      evt_nl1emnoiso        (new int);
-  auto_ptr<int>      evt_nl1jetsc          (new int);
-  auto_ptr<int>      evt_nl1jetsf          (new int);
-  auto_ptr<int>      evt_nl1jetst          (new int);
-  /* MET variables - go to MET producer
-     auto_ptr<float>    evt_met               (new float);
-     auto_ptr<float>    evt_metPhi            (new float);
-     auto_ptr<float>    evt_sumEt             (new float);
-     auto_ptr<float>    evt_metSig            (new float);
-     auto_ptr<float>    evt_metjetcorr        (new float);
-     auto_ptr<float>    evt_metphijetcorr         (new float);
-     auto_ptr<float>    evt_genmet                (new float);
-     auto_ptr<float>    evt_genmetPhi             (new float);
-  */
   auto_ptr<float>    evt_weight            (new float);
   auto_ptr<float>    evt_xsec_incl          (new float);
   auto_ptr<float>    evt_xsec_excl          (new float);
@@ -225,32 +193,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    
   }
 
-  if(writeL1Particles_) {
-    int *nl1mus     = new int;
-    int *nl1emiso   = new int; 
-    int *nl1emnoiso = new int;
-    int *nl1jetsc   = new int;
-    int *nl1jetsf  = new int;
-    int *nl1jetst  = new int;
-
-    fillL1ParticlesInfo(iEvent, nl1mus,nl1emiso, nl1emnoiso,
-		       nl1jetsc, nl1jetsf, nl1jetst);
-    
-    *evt_nl1mus     = *nl1mus;
-    *evt_nl1emiso   = *nl1emiso;
-    *evt_nl1emnoiso = *nl1emnoiso;
-    *evt_nl1jetsc   = *nl1jetsc;
-    *evt_nl1jetsf   = *nl1jetsf;
-    *evt_nl1jetst   = *nl1jetst;
-  } else {
-    *evt_nl1mus     = -999;
-    *evt_nl1emiso   = -999;
-    *evt_nl1emnoiso = -999;
-    *evt_nl1jetsc   = -999;
-    *evt_nl1jetsf   = -999;
-    *evt_nl1jetst   = -999; 
-  }
-    
+ 
   
    //get the MC event weights
    //if weights do not exist (Pythia), default is weight of 1
@@ -289,22 +232,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_L12              ,"evtL12"             );
   iEvent.put(evt_L13              ,"evtL13"             );
   iEvent.put(evt_L14              ,"evtL14"             );
-  iEvent.put(evt_nl1mus           ,"evtnl1mus"          );
-  iEvent.put(evt_nl1emiso         ,"evtnl1emiso"        );
-  iEvent.put(evt_nl1emnoiso       ,"evtnl1emnoiso"      );
-  iEvent.put(evt_nl1jetsc         ,"evtnl1jetsc"        );
-  iEvent.put(evt_nl1jetsf         ,"evtnl1jetsf"        );
-  iEvent.put(evt_nl1jetst         ,"evtnl1jetst"        );
-  /*
-    iEvent.put(evt_met              ,"evtmet"             );
-    iEvent.put(evt_metPhi           ,"evtmetPhi"          );
-    iEvent.put(evt_sumEt            ,"evtsumEt"           );
-    iEvent.put(evt_metSig           ,"evtmetSig"          );
-    iEvent.put(evt_metjetcorr       ,"evtmetjetcorr"      );
-    iEvent.put(evt_metphijetcorr"       ,"evtmetphijetcorr"       );
-    iEvent.put(evt_genmet"              ,"evtgenmet"       );
-    iEvent.put(evt_genmetPhi"           ,"evtgenmetPhi"       );
-  */
   iEvent.put(evt_weight           ,"evtweight"          );
   iEvent.put(evt_xsec_incl         ,"evtxsecincl"        );
   iEvent.put(evt_xsec_excl         ,"evtxsecexcl"        );
@@ -466,40 +393,6 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3
 
 }
 
-//----------------------------------------------------------
-//fill L1 info
-//---------------------------------------------------------
-void EventMaker::fillL1ParticlesInfo(const Event& iEvent, int* nl1mus, int* nl1emiso,
-			 int* nl1emnoiso, int* nl1jetsc, int* nl1jetsf, 
-			 int* nl1jetst) {
-
-  Handle<vector<l1extra::L1MuonParticle> > l1mus_h;
-  iEvent.getByLabel("l1extraParticles", l1mus_h);
-  *nl1mus = l1mus_h.product()->size();
-  
-  Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
-  iEvent.getByLabel("l1extraParticles", "Isolated", l1emiso_h);
-  *nl1emiso = l1emiso_h.product()->size();
-  
-  Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
-  iEvent.getByLabel("l1extraParticles", "NonIsolated", l1emnoiso_h);
-  *nl1emnoiso = l1emnoiso_h.product()->size();
-  
-  
-  Handle<vector<l1extra::L1JetParticle> > l1jetsc_h;
-  iEvent.getByLabel("l1extraParticles", "Central", l1jetsc_h);
-  *nl1jetsc = l1jetsc_h.product()->size();
-  
-  
-  Handle<vector<l1extra::L1JetParticle> > l1jetsf_h;
-  iEvent.getByLabel("l1extraParticles", "Forward", l1jetsf_h);
-  *nl1jetsf = l1jetsf_h.product()->size();
-
-  Handle<vector<l1extra::L1JetParticle> > l1jetst_h;
-  iEvent.getByLabel("l1extraParticles", "Tau", l1jetst_h);
-  *nl1jetst = l1jetst_h.product()->size();
-  
-}
 //define this as a plug-in
 DEFINE_FWK_MODULE(EventMaker);
 
