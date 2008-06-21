@@ -7,6 +7,5 @@ module eventMaker = EventMaker {
 
   untracked bool haveTriggerInfo = true  
   untracked bool csa07_soup = true
-  untracked bool writeL1Particles = true 
 
 }
