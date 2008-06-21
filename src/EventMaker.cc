@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.2 2008/06/20 23:49:10 kalavase Exp $
+// $Id: EventMaker.cc,v 1.3 2008/06/21 00:06:30 kalavase Exp $
 //
 //
 
@@ -82,9 +82,6 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
   kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
-  
-  // choose if we want to write L1 particles. The dafault is true
-  writeL1Particles_ = iConfig.getUntrackedParameter<bool>("writeL1Particles", true);
   
   //CSA07 info
   csa07_soup_ = iConfig.getUntrackedParameter<bool>("csa07_soup");
