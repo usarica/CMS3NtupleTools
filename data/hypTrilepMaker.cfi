@@ -1,0 +1,18 @@
+module hypTrilepMaker = HypTrilepMaker {
+
+  # jet collection
+  InputTag jetsInputTag = jetMaker
+
+  # muons collection
+  InputTag muonsInputTag = muonMaker
+
+  # electrons collection
+  InputTag electronsInputTag = electronMaker
+
+  # electron to muon association collection
+  InputTag elToMuAssInputTag = elToMuAssMaker
+
+  # met collection
+  InputTag metInputTag = metMaker
+
+}
