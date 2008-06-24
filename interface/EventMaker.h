@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:    NtupleMaker
-// Class:      NtupleMaker
+// Class:      EventMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/EventMaker.cc
 
  Description: <one line class summary>
 
@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.3 2008/06/20 23:56:29 kalavase Exp $
+// $Id: EventMaker.h,v 1.4 2008/06/24 20:13:43 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H

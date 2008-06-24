@@ -1,9 +1,9 @@
 //-*- C++ -*-
 //
-// Package:    EventMaker
+// Package:    NtupleMaker
 // Class:      EventMaker
 // 
-/**\class EventMaker EventMaker.cc CMS2/EventMaker/src/EventMaker.cc
+/**\class EventMaker EventMaker.cc CMS2/NtupleMakerMaker/src/EventMaker.cc
 
 Description: <one line class summary>
 
@@ -11,9 +11,9 @@ Implementation:
 <Notes on implementation>
 */
 //
-// Original Author:  pts/4
+// Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.3 2008/06/21 00:06:30 kalavase Exp $
+// $Id: EventMaker.cc,v 1.4 2008/06/24 20:16:21 kalavase Exp $
 //
 //
 
