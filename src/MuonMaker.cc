@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.4 2008/06/13 02:26:22 jmuelmen Exp $
+// $Id: MuonMaker.cc,v 1.5 2008/06/24 00:34:56 gutsche Exp $
 //
 //
 
@@ -145,27 +145,25 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  muon != muons_end; ++muon) {
 	  // fill vectors
 	  vector_mus_p4           ->push_back(muon->p4());
-#if 0
-	  vector_mus_trk_p4       ->push_back(	);
-	  vector_mus_d0           ->push_back(	);
-	  vector_mus_z0           ->push_back(	);
-	  vector_mus_vertexphi    ->push_back(	);
-	  vector_mus_chi2         ->push_back(	);
-	  vector_mus_ndof         ->push_back(	);
-	  vector_mus_validHits    ->push_back(	);
-	  vector_mus_lostHits     ->push_back(	);
-	  vector_mus_d0Err        ->push_back(	);
-	  vector_mus_z0Err        ->push_back(	);
-	  vector_mus_ptErr        ->push_back(	);
-	  vector_mus_etaErr       ->push_back(	);
-	  vector_mus_phiErr       ->push_back(	);
-	  vector_mus_mc_p4        ->push_back(	);
-	  vector_mus_mc_id        ->push_back(	);
-	  vector_mus_charge       ->push_back(	);
-	  vector_mus_mc_motherid  ->push_back(	);
-	  vector_mus_outerPhi     ->push_back(	);
-	  vector_mus_outerEta     ->push_back(	);
-#endif
+	  vector_mus_trk_p4       ->push_back(LorentzVector(0,0,0,0));
+	  vector_mus_d0           ->push_back(-999);
+	  vector_mus_z0           ->push_back(-999);
+	  vector_mus_vertexphi    ->push_back(-999);
+	  vector_mus_chi2         ->push_back(-999);
+	  vector_mus_ndof         ->push_back(-999);
+	  vector_mus_validHits    ->push_back(-999);
+	  vector_mus_lostHits     ->push_back(-999);
+	  vector_mus_d0Err        ->push_back(-999);
+	  vector_mus_z0Err        ->push_back(-999);
+	  vector_mus_ptErr        ->push_back(-999);
+	  vector_mus_etaErr       ->push_back(-999);
+	  vector_mus_phiErr       ->push_back(-999);
+	  vector_mus_mc_p4        ->push_back(LorentzVector(0,0,0,0));
+	  vector_mus_mc_id        ->push_back(-999);
+	  vector_mus_charge       ->push_back(-999);
+	  vector_mus_mc_motherid  ->push_back(-999);
+	  vector_mus_outerPhi     ->push_back(-999);
+	  vector_mus_outerEta     ->push_back(-999);
 	  vector_mus_nmatches                     ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()			: -999	);
 	  vector_mus_e_em                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().em			: -999	);
 	  vector_mus_e_had                        ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().had			: -999	);
