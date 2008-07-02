@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.5 2008/06/24 00:34:56 gutsche Exp $
+// $Id: MuonMaker.cc,v 1.6 2008/07/02 01:01:43 jmuelmen Exp $
 //
 //
 
@@ -62,6 +62,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("musmcmotherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
      produces<vector<float> >		("musouterPhi"		).setBranchAlias("mus_outerPhi"     	);	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("musouterEta"		).setBranchAlias("mus_outerEta"     	);	// eta angle of the outermost point in tracker		
+     produces<vector<int> >             ("mustrkrefkey"         ).setBranchAlias("mus_trkrefkey"        );      // index of track from track ref stored in muon collection
      // muon quantities
      produces<vector<int> >	("musnmatches"			).setBranchAlias("mus_nmatches"                     	);	// number of stations with matched segments                                                  
      produces<vector<float> >	("museem"			).setBranchAlias("mus_e_em"                         	);	// energy in crossed ECAL crystalls                                                          
@@ -113,6 +114,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<int> >		vector_mus_mc_motherid	(new vector<int>		);        
      std::auto_ptr<vector<float> >		vector_mus_outerPhi	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_mus_outerEta	(new vector<float>		);      
+     std::auto_ptr<vector<int> >                vector_mus_trkrefkey    (new vector<int>                );
      std::auto_ptr<vector<int> >		vector_mus_nmatches			(new vector<int>  	);
      std::auto_ptr<vector<float> >		vector_mus_e_em				(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_e_had			(new vector<float>	);
@@ -145,25 +147,26 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  muon != muons_end; ++muon) {
 	  // fill vectors
 	  vector_mus_p4           ->push_back(muon->p4());
-	  vector_mus_trk_p4       ->push_back(LorentzVector(0,0,0,0));
-	  vector_mus_d0           ->push_back(-999);
-	  vector_mus_z0           ->push_back(-999);
-	  vector_mus_vertexphi    ->push_back(-999);
-	  vector_mus_chi2         ->push_back(-999);
-	  vector_mus_ndof         ->push_back(-999);
-	  vector_mus_validHits    ->push_back(-999);
-	  vector_mus_lostHits     ->push_back(-999);
-	  vector_mus_d0Err        ->push_back(-999);
-	  vector_mus_z0Err        ->push_back(-999);
-	  vector_mus_ptErr        ->push_back(-999);
-	  vector_mus_etaErr       ->push_back(-999);
-	  vector_mus_phiErr       ->push_back(-999);
+	  vector_mus_trk_p4       ->push_back(LorentzVector( muon->track().get()->p(), muon->track().get()->px(), muon->track().get()->py(), muon->track().get()->pz() ));
+	  vector_mus_d0           ->push_back(muon->track().isNonnull() ? muon->track()->d0()                       :	-999);
+	  vector_mus_z0           ->push_back(muon->track().isNonnull() ? muon->track()->dz()                       :	-999);
+	  vector_mus_vertexphi    ->push_back(muon->track().isNonnull() ? atan2( muon->track()->vy(), muon->track()->vx() )	:	-999);
+	  vector_mus_chi2         ->push_back(muon->track().isNonnull() ? muon->track()->chi2()                     :	-999);
+	  vector_mus_ndof         ->push_back(muon->track().isNonnull() ? muon->track()->ndof()                     :	-999);
+	  vector_mus_validHits    ->push_back(muon->track().isNonnull() ? muon->track()->numberOfValidHits()        :	-999);
+	  vector_mus_lostHits     ->push_back(muon->track().isNonnull() ? muon->track()->numberOfLostHits()         :	-999);
+	  vector_mus_d0Err        ->push_back(muon->track().isNonnull() ? muon->track()->d0Error()                  :	-999);
+	  vector_mus_z0Err        ->push_back(muon->track().isNonnull() ? muon->track()->dzError()                  :	-999);
+	  vector_mus_ptErr        ->push_back(muon->track().isNonnull() ? muon->track()->ptError()                  :	-999);
+	  vector_mus_etaErr       ->push_back(muon->track().isNonnull() ? muon->track()->etaError()                 :	-999);
+	  vector_mus_phiErr       ->push_back(muon->track().isNonnull() ? muon->track()->phiError()                 :	-999);
 	  vector_mus_mc_p4        ->push_back(LorentzVector(0,0,0,0));
 	  vector_mus_mc_id        ->push_back(-999);
 	  vector_mus_charge       ->push_back(-999);
 	  vector_mus_mc_motherid  ->push_back(-999);
 	  vector_mus_outerPhi     ->push_back(-999);
 	  vector_mus_outerEta     ->push_back(-999);
+	  vector_mus_trkrefkey    ->push_back(muon->track().index());
 	  vector_mus_nmatches                     ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()			: -999	);
 	  vector_mus_e_em                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().em			: -999	);
 	  vector_mus_e_had                        ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().had			: -999	);
@@ -210,6 +213,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_mus_mc_motherid  , "musmcmotherid"        );
      iEvent.put(vector_mus_outerPhi     , "musouterPhi"          );
      iEvent.put(vector_mus_outerEta     , "musouterEta"          );
+     iEvent.put(vector_mus_trkrefkey    , "mustrkrefkey"         );
      iEvent.put(vector_mus_nmatches			, "musnmatches"                  );
      iEvent.put(vector_mus_e_em				, "museem"                       );
      iEvent.put(vector_mus_e_had			, "musehad"                      );
