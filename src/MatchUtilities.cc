@@ -74,6 +74,59 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   return output;
 }
 
+const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, const std::vector<reco::GenParticle>* genParticles, int& genidx) {
+
+  const reco::GenParticle* output = 0;
+  double dRmin = 0.1;
+  unsigned int i = 0;
+
+  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != 3 ) {
+
+      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
+      if (dR < dRmin) {
+	dRmin = dR;
+	output = &(*itPart);
+	genidx = i;
+      }
+    }
+  }
+
+  return output;
+}
+
+const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track, const std::vector<reco::GenParticle>* genParticles, int& genidx) {
+
+  const reco::GenParticle* output = 0;
+  double dRmin = 0.1;
+  unsigned int i = 0;
+  
+  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != 3 ) {
+
+      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+      ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > cand( track.px(), track.py(), track.pz(), track.p() );
+
+      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand);
+
+      if (dR < dRmin) {
+	dRmin = dR;
+	output = &(*itPart);
+	genidx = i;
+      }//END find minimum delta R loop
+    }//END loop over status != 3 particles
+  }//END loop over genParticles
+
+  return output;
+}
+
 const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenParticle& p, std::vector<const reco::Candidate*> cand) {
 
   const reco::Candidate* output = 0;
