@@ -1,0 +1,6 @@
+module trackMaker = TrackMaker {
+
+  # track collection
+  InputTag tracksInputTag = ctfWithMaterialTracks
+
+}
