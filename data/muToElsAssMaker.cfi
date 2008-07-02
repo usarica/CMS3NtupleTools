@@ -1,0 +1,6 @@
+module muToElsAssMaker = MuToElsAssMaker{
+
+  # min DR
+  double minDR = 0.1
+
+}
