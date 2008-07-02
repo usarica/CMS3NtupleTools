@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.2 2008/07/02 04:12:51 jmuelmen Exp $
+// $Id: ElToMuAssMaker.cc,v 1.3 2008/07/02 04:41:30 jmuelmen Exp $
 //
 //
 
@@ -50,7 +50,7 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      using namespace edm;
      // make vectors to hold the information
      std::auto_ptr<vector<int>    > vector_els_closestMuon(new vector<int>   );
-     std::auto_ptr<vector<double> > vector_els_musdr      (new vector<double>);
+     std::auto_ptr<vector<float> > vector_els_musdr      (new vector<float>);
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
      iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
