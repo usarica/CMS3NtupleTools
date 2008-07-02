@@ -1,0 +1,6 @@
+module trackToJetAssMaker = TrackToJetAssMaker{
+
+  # min DR
+  double minDR = 0.1
+
+}

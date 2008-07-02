@@ -1,0 +1,12 @@
+module trackToGenAssMaker = TrackToGenAssMaker{
+
+  # min DR
+  double minDR = 0.1
+
+  #track collection
+  InputTag tracksInputTag = ctfWithMaterialTracks
+
+  # MC particles
+  InputTag genParticlesInputTag = genParticles
+
+}
