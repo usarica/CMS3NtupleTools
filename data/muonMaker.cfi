@@ -1,0 +1,6 @@
+module muonMaker = MuonMaker {
+
+  # muon collection
+  InputTag muonsInputTag = allLayer1TopMuons
+
+}
