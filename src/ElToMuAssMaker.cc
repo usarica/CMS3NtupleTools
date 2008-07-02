@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.1 2008/06/13 16:45:09 kalavase Exp $
+// $Id: ElToMuAssMaker.cc,v 1.2 2008/07/02 04:12:51 jmuelmen Exp $
 //
 //
 
@@ -41,14 +41,16 @@ using std::vector;
 
 ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig)
 {
-     produces<vector<int> >("elsclosestMuon").setBranchAlias("els_closestMuon");	// track index matched to muon
+     produces<vector<int>   >("elsclosestMuon").setBranchAlias("els_closestMuon");	// track index matched to muon
+     produces<vector<float> >("elsmusdr"      ).setBranchAlias("els_musdr"      );
 }
 
 void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
      using namespace edm;
      // make vectors to hold the information
-     std::auto_ptr<vector<int> > vector_els_closestMuon(new vector<int>);        
+     std::auto_ptr<vector<int>    > vector_els_closestMuon(new vector<int>   );
+     std::auto_ptr<vector<double> > vector_els_musdr      (new vector<double>);
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
      iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
@@ -68,12 +70,15 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double minDR = 0.1;
        unsigned int i = 0;
        int index = -1; 
+
        for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin();
 	   mus_it != mus_p4_h->end(); mus_it++, i++) {
 	 
 	 double mu_eta = mus_it->Eta();
 	 double mu_phi = mus_it->Phi();
+
 	 double dR = deltaR(el_eta, el_phi, mu_eta, mu_phi);
+
 	 if(dR < minDR) {
 	   minDR = dR;
 	   index = i;
@@ -81,9 +86,11 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
        // fill vector
        vector_els_closestMuon->push_back(index);
+       vector_els_musdr      ->push_back(minDR);
      }
      // store vectors
      iEvent.put(vector_els_closestMuon, "elsclosestMuon");
+     iEvent.put(vector_els_musdr      , "elsmusdr"      );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
