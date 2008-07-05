@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.6 2008/07/02 01:01:43 jmuelmen Exp $
+// $Id: MuonMaker.cc,v 1.7 2008/07/05 23:04:49 kalavase Exp $
 //
 //
 
@@ -30,11 +30,14 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CMS2/NtupleMaker/interface/MuonMaker.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoMuon/MuonIdentification/interface/IdGlobalFunctions.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
@@ -87,7 +90,9 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >	("muspidTM2DCompatibilityTight"	).setBranchAlias("mus_pid_TM2DCompatibilityTight"   	);	// tight tracker muon likelihood identification based on muon matches and calo depositions   
      produces<vector<float> >	("musgfitchi2"			).setBranchAlias("mus_gfit_chi2"                    	);	// chi2 of the global muon fit                                                               
      produces<vector<float> >	("musgfitndof"			).setBranchAlias("mus_gfit_ndof"                    	);	// number of degree of freedom of the global muon fit                                        
-     produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);	// number of valid hits of the global muon fit                                               
+     produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);	// number of valid hits of the global muon fit                
+
+     genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag");                               
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -143,55 +148,73 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      Handle<edm::View<reco::Muon> > muon_h;
      iEvent.getByLabel("allLayer1TopMuons", muon_h);      // change this in the future
      edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
+
+     // get MC particle collection
+     edm::Handle<reco::GenParticleCollection> genParticlesHandle;
+     iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
+     
      for (edm::View<reco::Muon>::const_iterator muon = muon_h->begin(); 
 	  muon != muons_end; ++muon) {
-	  // fill vectors
-	  vector_mus_p4           ->push_back(muon->p4());
-	  vector_mus_trk_p4       ->push_back(LorentzVector( muon->track().get()->p(), muon->track().get()->px(), muon->track().get()->py(), muon->track().get()->pz() ));
-	  vector_mus_d0           ->push_back(muon->track().isNonnull() ? muon->track()->d0()                       :	-999);
-	  vector_mus_z0           ->push_back(muon->track().isNonnull() ? muon->track()->dz()                       :	-999);
-	  vector_mus_vertexphi    ->push_back(muon->track().isNonnull() ? atan2( muon->track()->vy(), muon->track()->vx() )	:	-999);
-	  vector_mus_chi2         ->push_back(muon->track().isNonnull() ? muon->track()->chi2()                     :	-999);
-	  vector_mus_ndof         ->push_back(muon->track().isNonnull() ? muon->track()->ndof()                     :	-999);
-	  vector_mus_validHits    ->push_back(muon->track().isNonnull() ? muon->track()->numberOfValidHits()        :	-999);
-	  vector_mus_lostHits     ->push_back(muon->track().isNonnull() ? muon->track()->numberOfLostHits()         :	-999);
-	  vector_mus_d0Err        ->push_back(muon->track().isNonnull() ? muon->track()->d0Error()                  :	-999);
-	  vector_mus_z0Err        ->push_back(muon->track().isNonnull() ? muon->track()->dzError()                  :	-999);
-	  vector_mus_ptErr        ->push_back(muon->track().isNonnull() ? muon->track()->ptError()                  :	-999);
-	  vector_mus_etaErr       ->push_back(muon->track().isNonnull() ? muon->track()->etaError()                 :	-999);
-	  vector_mus_phiErr       ->push_back(muon->track().isNonnull() ? muon->track()->phiError()                 :	-999);
-	  vector_mus_mc_p4        ->push_back(LorentzVector(0,0,0,0));
-	  vector_mus_mc_id        ->push_back(-999);
-	  vector_mus_charge       ->push_back(-999);
-	  vector_mus_mc_motherid  ->push_back(-999);
-	  vector_mus_outerPhi     ->push_back(-999);
-	  vector_mus_outerEta     ->push_back(-999);
-	  vector_mus_trkrefkey    ->push_back(muon->track().index());
-	  vector_mus_nmatches                     ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()			: -999	);
-	  vector_mus_e_em                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().em			: -999	);
-	  vector_mus_e_had                        ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().had			: -999	);
-	  vector_mus_e_ho                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().ho			: -999	);
-	  vector_mus_e_emS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().emS9			: -999	);
-	  vector_mus_e_hadS9                      ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hadS9		: -999	);
-	  vector_mus_e_hoS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hoS9			: -999	);
-	  vector_mus_iso03_sumPt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().sumPt		: -999	);
-	  vector_mus_iso03_emEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().emEt		: -999	);
-	  vector_mus_iso03_hadEt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().hadEt		: -999	);
-	  vector_mus_iso03_hoEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().hoEt		: -999	);
-	  vector_mus_iso03_ntrk                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().nTracks	: -999	);
-	  vector_mus_iso05_sumPt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().sumPt		: -999	);
-	  vector_mus_iso05_emEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().emEt		: -999	);
-	  vector_mus_iso05_hadEt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().hadEt		: -999	);
-	  vector_mus_iso05_hoEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().hoEt		: -999	);
-	  vector_mus_iso05_ntrk                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().nTracks	: -999	);
-	  vector_mus_pid_TMLastStationLoose       ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TMLastStationLoose)     : -999	);
-	  vector_mus_pid_TMLastStationTight       ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TMLastStationTight)     : -999	);
-	  vector_mus_pid_TM2DCompatibilityLoose   ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TM2DCompatibilityLoose)	: -999	);
-	  vector_mus_pid_TM2DCompatibilityTight   ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TM2DCompatibilityTight)	: -999	);
-	  vector_mus_gfit_chi2                    ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->chi2() 			: -999	);
-	  vector_mus_gfit_ndof                    ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->ndof() 			: -999	);
-     	  vector_mus_gfit_validHits               ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->numberOfValidHits() 	: -999	);
+
+       //MC matching stuff
+       const reco::GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*muon,
+										    genParticlesHandle.product());
+       int mcid = -999, mom_mcid = -999;
+       LorentzVector mc_p4(0,0,0,0);
+       if(matchedGenParticle != 0) {
+	 mcid = matchedGenParticle->pdgId();
+	 mc_p4 = matchedGenParticle->p4();
+	 mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
+       }
+
+       // fill vectors
+       vector_mus_p4           ->push_back(muon->p4());
+       vector_mus_trk_p4       ->push_back(LorentzVector( muon->track().get()->px(), muon->track().get()->py(), muon->track().get()->pz(), muon->track().get()->p() ));
+       vector_mus_d0           ->push_back(muon->track().isNonnull() ? muon->track()->d0()                       :	-999);
+       vector_mus_z0           ->push_back(muon->track().isNonnull() ? muon->track()->dz()                       :	-999);
+       vector_mus_vertexphi    ->push_back(muon->track().isNonnull() ? atan2( muon->track()->vy(), muon->track()->vx() )	:	-999);
+       vector_mus_chi2         ->push_back(muon->track().isNonnull() ? muon->track()->chi2()                     :	-999);
+       vector_mus_ndof         ->push_back(muon->track().isNonnull() ? muon->track()->ndof()                     :	-999);
+       vector_mus_validHits    ->push_back(muon->track().isNonnull() ? muon->track()->numberOfValidHits()        :	-999);
+       vector_mus_lostHits     ->push_back(muon->track().isNonnull() ? muon->track()->numberOfLostHits()         :	-999);
+       vector_mus_d0Err        ->push_back(muon->track().isNonnull() ? muon->track()->d0Error()                  :	-999);
+       vector_mus_z0Err        ->push_back(muon->track().isNonnull() ? muon->track()->dzError()                  :	-999);
+       vector_mus_ptErr        ->push_back(muon->track().isNonnull() ? muon->track()->ptError()                  :	-999);
+       vector_mus_etaErr       ->push_back(muon->track().isNonnull() ? muon->track()->etaError()                 :	-999);
+       vector_mus_phiErr       ->push_back(muon->track().isNonnull() ? muon->track()->phiError()                 :	-999);
+       vector_mus_mc_p4        ->push_back(mc_p4                                                                            );
+       vector_mus_mc_id        ->push_back(mcid                                                                             );
+       vector_mus_charge       ->push_back(muon->charge()                                                                   );
+       vector_mus_mc_motherid  ->push_back(mom_mcid                                                                         );
+       vector_mus_outerPhi     ->push_back(-999);
+       vector_mus_outerEta     ->push_back(-999);
+       vector_mus_trkrefkey    ->push_back(muon->track().index());
+       vector_mus_nmatches                     ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()			: -999	);
+       vector_mus_e_em                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().em			: -999	);
+       vector_mus_e_had                        ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().had			: -999	);
+       vector_mus_e_ho                         ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().ho			: -999	);
+       vector_mus_e_emS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().emS9			: -999	);
+       vector_mus_e_hadS9                      ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hadS9		: -999	);
+       vector_mus_e_hoS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hoS9			: -999	);
+       vector_mus_iso03_sumPt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().sumPt		: -999	);
+       vector_mus_iso03_emEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().emEt		: -999	);
+       vector_mus_iso03_hadEt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().hadEt		: -999	);
+       vector_mus_iso03_hoEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().hoEt		: -999	);
+       vector_mus_iso03_ntrk                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().nTracks	: -999	);
+       vector_mus_iso05_sumPt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().sumPt		: -999	);
+       vector_mus_iso05_emEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().emEt		: -999	);
+       vector_mus_iso05_hadEt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().hadEt		: -999	);
+       vector_mus_iso05_hoEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().hoEt		: -999	);
+       vector_mus_iso05_ntrk                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR05().nTracks	: -999	);
+       vector_mus_pid_TMLastStationLoose       ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TMLastStationLoose)     : -999	);
+       vector_mus_pid_TMLastStationTight       ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TMLastStationTight)     : -999	);
+       vector_mus_pid_TM2DCompatibilityLoose   ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TM2DCompatibilityLoose)	: -999	);
+       vector_mus_pid_TM2DCompatibilityTight   ->push_back(muon->isMatchesValid() ? muonid::isGoodMuon(*muon,muonid::TM2DCompatibilityTight)	: -999	);
+       vector_mus_gfit_chi2                    ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->chi2() 			: -999	);
+       vector_mus_gfit_ndof                    ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->ndof() 			: -999	);
+       vector_mus_gfit_validHits               ->push_back(muon->combinedMuon().isNonnull() ? muon->combinedMuon()->numberOfValidHits() 	: -999	);
      }
+     
      // store vectors
      iEvent.put(vector_mus_p4           , "musp4"                );
      iEvent.put(vector_mus_trk_p4       , "mustrkp4"             );

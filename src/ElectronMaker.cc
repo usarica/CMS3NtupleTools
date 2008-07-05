@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.6 2008/07/05 21:58:43 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.7 2008/07/05 23:04:59 kalavase Exp $
 //
 //
 
@@ -294,7 +294,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     LorentzVector mc_p4(0,0,0,0);
     if(matchedGenParticle != 0) {
       mcid = matchedGenParticle->pdgId();
-      LorentzVector mc_p4 = matchedGenParticle->p4();
+      mc_p4 = matchedGenParticle->p4();
       mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
     }
       
@@ -344,9 +344,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_z0Err                 ->push_back( el_track->dzError()                       );
     els_ptErr                 ->push_back( trkpterr                                  );
     els_etaErr                ->push_back( el_track->etaError()                      );
-    els_phiErr                ->push_back( el_track->phiError()                      );  //PLACEHOLDER!!!!!
+    els_phiErr                ->push_back( el_track->phiError()                      );  
     els_outerPhi              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
-    els_outerEta              ->push_back( -9999.                                    );
+    els_outerEta              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                  );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                );
@@ -367,7 +367,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                            );
     els_p4                    ->push_back( el->p4()                                  );
     els_trk_p4                ->push_back( trk_p4                                    );
-    els_mc_p4                 ->push_back( LorentzVector(0,0,0,0)                    );
+    els_mc_p4                 ->push_back( mc_p4                                     );
     els_p4In                  ->push_back( p4In                                      );
     els_p4Out                 ->push_back( p4Out                                     );
   
