@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.5 2008/06/14 19:06:04 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.6 2008/07/05 21:58:43 kalavase Exp $
 //
 //
 
@@ -81,6 +81,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	    ("elsptErr"            ).setBranchAlias("els_ptErr"            );
   produces<vector<float> >	    ("elsetaErr"           ).setBranchAlias("els_etaErr"           );
   produces<vector<float> >	    ("elsphiErr"           ).setBranchAlias("els_phiErr"           );
+  produces<vector<float> >	    ("elsouterPhi"         ).setBranchAlias("els_outerPhi"         );
+  produces<vector<float> >	    ("elsouterEta"         ).setBranchAlias("els_outerEta"         );
   produces<vector<float> >	    ("elshOverE"           ).setBranchAlias("els_hOverE"           );
   produces<vector<float> >	    ("elseOverPIn"         ).setBranchAlias("els_eOverPIn"         );
   produces<vector<float> >	    ("elseSeedOverPOut"    ).setBranchAlias("els_eSeedOverPOut"    );
@@ -155,6 +157,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	   els_ptErr                (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_etaErr               (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_phiErr               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_outerPhi             (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_outerEta             (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_hOverE               (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_eOverPIn             (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_eSeedOverPOut        (new vector<float>        ) ;
@@ -289,7 +293,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int mcid = -999, mom_mcid = -999;
     LorentzVector mc_p4(0,0,0,0);
     if(matchedGenParticle != 0) {
-      matchedGenParticle->pdgId();
+      mcid = matchedGenParticle->pdgId();
       LorentzVector mc_p4 = matchedGenParticle->p4();
       mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
     }
@@ -340,7 +344,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_z0Err                 ->push_back( el_track->dzError()                       );
     els_ptErr                 ->push_back( trkpterr                                  );
     els_etaErr                ->push_back( el_track->etaError()                      );
-    els_phiErr                ->push_back( el_track->phiError()                      );
+    els_phiErr                ->push_back( el_track->phiError()                      );  //PLACEHOLDER!!!!!
+    els_outerPhi              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
+    els_outerEta              ->push_back( -9999.                                    );
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                  );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                );
@@ -392,6 +398,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_ptErr                        ,"elsptErr"           );
   iEvent.put(els_etaErr                       ,"elsetaErr"          );
   iEvent.put(els_phiErr                       ,"elsphiErr"          );
+  iEvent.put(els_outerPhi                     ,"elsouterPhi"        );
+  iEvent.put(els_outerEta                     ,"elsouterEta"        );
   iEvent.put(els_hOverE                       ,"elshOverE"          );
   iEvent.put(els_eOverPIn                     ,"elseOverPIn"        );
   iEvent.put(els_eSeedOverPOut                ,"elseSeedOverPOut"   );
