@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.1 2008/06/20 23:51:36 kalavase Exp $
+// $Id: L1DigiMaker.cc,v 1.2 2008/07/07 06:41:09 kalavase Exp $
 //
 //
 
@@ -50,46 +50,46 @@ using namespace std;
 
 L1DigiMaker::L1DigiMaker(const edm::ParameterSet& iConfig) {
   
-  produces<int>            ("evtnl1mus"         ).setBranchAlias("evt_nl1mus"       );
-  produces<int>            ("evtnl1emiso"       ).setBranchAlias("evt_nl1emiso"     );
-  produces<int>            ("evtnl1emnoiso"     ).setBranchAlias("evt_nl1emnoiso"   );
-  produces<int>            ("evtnl1jetsc"       ).setBranchAlias("evt_nl1jetsc"     );
-  produces<int>            ("evtnl1jetsf"       ).setBranchAlias("evt_nl1jetsf"     );
-  produces<int>            ("evtnl1jetst"       ).setBranchAlias("evt_nl1jetst"     );
-  produces<vector<int> >   ("l1musq"            ).setBranchAlias("l1mus_q"          );
-  produces<vector<int> >   ("l1musqual"         ).setBranchAlias("l1mus_qual"       );
-  produces<vector<int> >   ("l1musqualFlags"    ).setBranchAlias("l1mus_qualFlags"  );
-  produces<vector<int> >   ("l1musflags"        ).setBranchAlias("l1mus_flags"      );
-  produces<vector<int> >   ("l1emisotype"       ).setBranchAlias("l1emiso_type"     );
-  produces<vector<int> >   ("l1emisorawId"      ).setBranchAlias("l1emiso_rawId"    );
-  produces<vector<int> >   ("l1emisoieta"       ).setBranchAlias("l1emiso_ieta"     );
-  produces<vector<int> >   ("l1emisoiphi"       ).setBranchAlias("l1emiso_iphi"     );
-  produces<vector<int> >   ("l1emnoisotype"     ).setBranchAlias("l1emnoiso_type"   );
-  produces<vector<int> >   ("l1emnoisorawId"    ).setBranchAlias("l1emnoiso_rawId"  );
-  produces<vector<int> >   ("l1emnoisoieta"     ).setBranchAlias("l1emnoiso_ieta"   );
-  produces<vector<int> >   ("l1emnoisoiphi"     ).setBranchAlias("l1emnoiso_iphi"   );
-  produces<vector<int> >   ("l1jetsctype"       ).setBranchAlias("l1jetsc_type"     );
-  produces<vector<int> >   ("l1jetscrawId"      ).setBranchAlias("l1jetsc_rawId"    );
-  produces<vector<int> >   ("l1jetscieta"       ).setBranchAlias("l1jetsc_ieta"     );
-  produces<vector<int> >   ("l1jetsciphi"       ).setBranchAlias("l1jetsc_iphi"     );
-  produces<vector<int> >   ("l1jetsftype"       ).setBranchAlias("l1jetsf_type"     );
-  produces<vector<int> >   ("l1jetsfrawId"      ).setBranchAlias("l1jetsf_rawId"    );
-  produces<vector<int> >   ("l1jetsfieta"       ).setBranchAlias("l1jetsf_ieta"     );
-  produces<vector<int> >   ("l1jetsfiphi"       ).setBranchAlias("l1jetsf_iphi"     );
-  produces<vector<int> >   ("l1jetsttype"       ).setBranchAlias("l1jetst_type"     );
-  produces<vector<int> >   ("l1jetstrawId"      ).setBranchAlias("l1jetst_rawId"    );
-  produces<vector<int> >   ("l1jetstieta"       ).setBranchAlias("l1jetst_ieta"     );
-  produces<vector<int> >   ("l1jetstiphi"       ).setBranchAlias("l1jetst_iphi"     );
-  produces<float>          ("l1metmet"          ).setBranchAlias("l1met_met"        );
-  produces<float>          ("l1metetHad"        ).setBranchAlias("l1met_etHad"      );
-  produces<float>          ("l1metetTot"        ).setBranchAlias("l1met_etTot"      );
-  produces<LorentzVector>  ("l1metp4"           ).setBranchAlias("l1met_p4"         );
-  produces<LorentzVector>  ("l1musp4"           ).setBranchAlias("l1mus_p4"         );
-  produces<LorentzVector>  ("l1emisop4"         ).setBranchAlias("l1emiso_p4"       );
-  produces<LorentzVector>  ("l1emnoisop4"       ).setBranchAlias("l1emnoiso_p4"     );
-  produces<LorentzVector>  ("l1jetscp4"         ).setBranchAlias("l1jetsc_p4"       );
-  produces<LorentzVector>  ("l1jetsfp4"         ).setBranchAlias("l1jetsf_p4"       );
-  produces<LorentzVector>  ("l1jetstp4"         ).setBranchAlias("l1jetst_p4"       );
+  produces<int>                    ("evtnl1mus"         ).setBranchAlias("evt_nl1mus"       );
+  produces<int>                    ("evtnl1emiso"       ).setBranchAlias("evt_nl1emiso"     );
+  produces<int>                    ("evtnl1emnoiso"     ).setBranchAlias("evt_nl1emnoiso"   );
+  produces<int>                    ("evtnl1jetsc"       ).setBranchAlias("evt_nl1jetsc"     );
+  produces<int>                    ("evtnl1jetsf"       ).setBranchAlias("evt_nl1jetsf"     );
+  produces<int>                    ("evtnl1jetst"       ).setBranchAlias("evt_nl1jetst"     );
+  produces<vector<int> >           ("l1musq"            ).setBranchAlias("l1mus_q"          );
+  produces<vector<int> >           ("l1musqual"         ).setBranchAlias("l1mus_qual"       );
+  produces<vector<int> >           ("l1musqualFlags"    ).setBranchAlias("l1mus_qualFlags"  );
+  produces<vector<int> >           ("l1musflags"        ).setBranchAlias("l1mus_flags"      );
+  produces<vector<int> >           ("l1emisotype"       ).setBranchAlias("l1emiso_type"     );
+  produces<vector<int> >           ("l1emisorawId"      ).setBranchAlias("l1emiso_rawId"    );
+  produces<vector<int> >           ("l1emisoieta"       ).setBranchAlias("l1emiso_ieta"     );
+  produces<vector<int> >           ("l1emisoiphi"       ).setBranchAlias("l1emiso_iphi"     );
+  produces<vector<int> >           ("l1emnoisotype"     ).setBranchAlias("l1emnoiso_type"   );
+  produces<vector<int> >           ("l1emnoisorawId"    ).setBranchAlias("l1emnoiso_rawId"  );
+  produces<vector<int> >           ("l1emnoisoieta"     ).setBranchAlias("l1emnoiso_ieta"   );
+  produces<vector<int> >           ("l1emnoisoiphi"     ).setBranchAlias("l1emnoiso_iphi"   );
+  produces<vector<int> >           ("l1jetsctype"       ).setBranchAlias("l1jetsc_type"     );
+  produces<vector<int> >           ("l1jetscrawId"      ).setBranchAlias("l1jetsc_rawId"    );
+  produces<vector<int> >           ("l1jetscieta"       ).setBranchAlias("l1jetsc_ieta"     );
+  produces<vector<int> >           ("l1jetsciphi"       ).setBranchAlias("l1jetsc_iphi"     );
+  produces<vector<int> >           ("l1jetsftype"       ).setBranchAlias("l1jetsf_type"     );
+  produces<vector<int> >           ("l1jetsfrawId"      ).setBranchAlias("l1jetsf_rawId"    );
+  produces<vector<int> >           ("l1jetsfieta"       ).setBranchAlias("l1jetsf_ieta"     );
+  produces<vector<int> >           ("l1jetsfiphi"       ).setBranchAlias("l1jetsf_iphi"     );
+  produces<vector<int> >           ("l1jetsttype"       ).setBranchAlias("l1jetst_type"     );
+  produces<vector<int> >           ("l1jetstrawId"      ).setBranchAlias("l1jetst_rawId"    );
+  produces<vector<int> >           ("l1jetstieta"       ).setBranchAlias("l1jetst_ieta"     );
+  produces<vector<int> >           ("l1jetstiphi"       ).setBranchAlias("l1jetst_iphi"     );
+  produces<float>                  ("l1metmet"          ).setBranchAlias("l1met_met"        );
+  produces<float>                  ("l1metetHad"        ).setBranchAlias("l1met_etHad"      );
+  produces<float>                  ("l1metetTot"        ).setBranchAlias("l1met_etTot"      );
+  produces<LorentzVector>          ("l1metp4"           ).setBranchAlias("l1met_p4"         );
+  produces<vector<LorentzVector> > ("l1musp4"           ).setBranchAlias("l1mus_p4"         );
+  produces<vector<LorentzVector> > ("l1emisop4"         ).setBranchAlias("l1emiso_p4"       );
+  produces<vector<LorentzVector> > ("l1emnoisop4"       ).setBranchAlias("l1emnoiso_p4"     );
+  produces<vector<LorentzVector> > ("l1jetscp4"         ).setBranchAlias("l1jetsc_p4"       );
+  produces<vector<LorentzVector> > ("l1jetsfp4"         ).setBranchAlias("l1jetsf_p4"       );
+  produces<vector<LorentzVector> > ("l1jetstp4"         ).setBranchAlias("l1jetst_p4"       );
   
 
 }
@@ -141,7 +141,7 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>                   l1met_met        (new float                  );
   auto_ptr<float>                   l1met_etHad      (new float                  );
   auto_ptr<float>                   l1met_etTot      (new float                  );
-  auto_ptr<vector<LorentzVector> >  l1met_p4         (new vector<LorentzVector>  );
+  auto_ptr<LorentzVector>           l1met_p4         (new LorentzVector          );
   auto_ptr<vector<LorentzVector> >  l1mus_p4         (new vector<LorentzVector>  );        
   auto_ptr<vector<LorentzVector> >  l1emiso_p4       (new vector<LorentzVector>  );
   auto_ptr<vector<LorentzVector> >  l1emnoiso_p4     (new vector<LorentzVector>  );
@@ -269,37 +269,84 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       l1jetsf_iphi       ->push_back(jetGct->regionId().iphi()     );
     }
 
- }
+  }
 
 
- for(vector<l1extra::L1JetParticle>::const_iterator l1jetst_it = l1jetst_h->begin();
-     l1jetst_it != l1jetst_h->end(); l1jetst_it++) {
+  for(vector<l1extra::L1JetParticle>::const_iterator l1jetst_it = l1jetst_h->begin();
+      l1jetst_it != l1jetst_h->end(); l1jetst_it++) {
    
-   l1jetst_type       ->push_back(l1jetst_it->type()                );
-   l1jetst_p4         ->push_back(l1jetst_it->p4()                  );
+    l1jetst_type       ->push_back(l1jetst_it->type()                );
+    l1jetst_p4         ->push_back(l1jetst_it->p4()                  );
 
-   if (!(l1jetst_it->gctJetCandRef().isNonnull() && l1jetst_it->gctJetCandRef().isAvailable())) continue;
-   const L1GctJetCand* jetGct =  l1jetst_it->gctJetCand();
-   if(jetGct) {
-     l1jetst_rawId      ->push_back(jetGct->regionId().rawId()    );
-     l1jetst_ieta       ->push_back(jetGct->regionId().ieta()     );
-     l1jetst_iphi       ->push_back(jetGct->regionId().iphi()     );
-   }
+    if (!(l1jetst_it->gctJetCandRef().isNonnull() && l1jetst_it->gctJetCandRef().isAvailable())) continue;
+    const L1GctJetCand* jetGct =  l1jetst_it->gctJetCand();
+    if(jetGct) {
+      l1jetst_rawId      ->push_back(jetGct->regionId().rawId()    );
+      l1jetst_ieta       ->push_back(jetGct->regionId().ieta()     );
+      l1jetst_iphi       ->push_back(jetGct->regionId().iphi()     );
+    }
    
- }
+  }
  
-   //l1extra::L1EtMissParticle l1met = l1met_h.product()->front();
-   //*l1met_met     = l1met.etMiss();
-   //*l1met_etHad   = l1met.etHad();
-   //*l1met_etTot   = l1met.etTotal();
-   *l1met_met       = l1met_h->et();
-   *l1met_etHad     = l1met_h->etHad();
-   *l1met_etTot     = l1met_h->etTotal();
+  //const l1extra::L1EtMissParticle *l1met = l1met_h.product();
+  *l1met_met     = l1met_h->etMiss();
+  *l1met_etHad   = l1met_h->etHad();
+  *l1met_etTot   = l1met_h->etTotal();
+  *l1met_p4      = LorentzVector(l1met_h->px(), 
+				 l1met_h->py(),
+				 l1met_h->pz(),
+				 l1met_h->energy() ); 
+ 
+ 
+  iEvent.put(evt_nl1mus           ,"evtnl1mus"         );
+  iEvent.put(evt_nl1emiso         ,"evtnl1emiso"       );
+  iEvent.put(evt_nl1emnoiso       ,"evtnl1emnoiso"     );
+  iEvent.put(evt_nl1jetsc         ,"evtnl1jetsc"       );
+  iEvent.put(evt_nl1jetsf         ,"evtnl1jetsf"       );
+  iEvent.put(evt_nl1jetst         ,"evtnl1jetst"       );
+  iEvent.put(l1mus_q              ,"l1musq"            );
+  iEvent.put(l1mus_qual           ,"l1musqual"         );
+  iEvent.put(l1mus_qualFlags      ,"l1musqualFlags"    );
+  iEvent.put(l1mus_flags          ,"l1musflags"        );
+  iEvent.put(l1emiso_type         ,"l1emisotype"       );
+  iEvent.put(l1emiso_rawId        ,"l1emisorawId"      );
+  iEvent.put(l1emiso_ieta         ,"l1emisoieta"       );
+  iEvent.put(l1emiso_iphi         ,"l1emisoiphi"       );
+  iEvent.put(l1emnoiso_type       ,"l1emnoisotype"     );
+  iEvent.put(l1emnoiso_rawId      ,"l1emnoisorawId"    );
+  iEvent.put(l1emnoiso_ieta       ,"l1emnoisoieta"     );
+  iEvent.put(l1emnoiso_iphi       ,"l1emnoisoiphi"     );
+  iEvent.put(l1jetsc_type         ,"l1jetsctype"       );
+  iEvent.put(l1jetsc_rawId        ,"l1jetscrawId"      );
+  iEvent.put(l1jetsc_ieta         ,"l1jetscieta"       );
+  iEvent.put(l1jetsc_iphi         ,"l1jetsciphi"       );
+  iEvent.put(l1jetsf_type         ,"l1jetsftype"       );
+  iEvent.put(l1jetsf_rawId        ,"l1jetsfrawId"      );
+  iEvent.put(l1jetsf_ieta         ,"l1jetsfieta"       );
+  iEvent.put(l1jetsf_iphi         ,"l1jetsfiphi"       );
+  iEvent.put(l1jetst_type         ,"l1jetsttype"       );
+  iEvent.put(l1jetst_rawId        ,"l1jetstrawId"      );
+  iEvent.put(l1jetst_ieta         ,"l1jetstieta"       );
+  iEvent.put(l1jetst_iphi         ,"l1jetstiphi"       );
+  iEvent.put(l1met_met            ,"l1metmet"          );
+  iEvent.put(l1met_etHad          ,"l1metetHad"        );
+  iEvent.put(l1met_etTot          ,"l1metetTot"        );
+  iEvent.put(l1met_p4             ,"l1metp4"           );
+  iEvent.put(l1mus_p4             ,"l1musp4"           );
+  iEvent.put(l1emiso_p4           ,"l1emisop4"         );
+  iEvent.put(l1emnoiso_p4         ,"l1emnoisop4"       );
+  iEvent.put(l1jetsc_p4           ,"l1jetscp4"         );
+  iEvent.put(l1jetsf_p4           ,"l1jetsfp4"         );
+  iEvent.put(l1jetst_p4           ,"l1jetstp4"         );
+   
+
+
+   
  
  
 }
-  //define this as a plug-in
-  DEFINE_FWK_MODULE(L1DigiMaker);
+//define this as a plug-in
+DEFINE_FWK_MODULE(L1DigiMaker);
   
 
   

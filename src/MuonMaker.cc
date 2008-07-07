@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.7 2008/07/05 23:04:49 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.8 2008/07/07 06:41:18 kalavase Exp $
 //
 //
 
@@ -184,7 +184,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        vector_mus_phiErr       ->push_back(muon->track().isNonnull() ? muon->track()->phiError()                 :	-999);
        vector_mus_mc_p4        ->push_back(mc_p4                                                                            );
        vector_mus_mc_id        ->push_back(mcid                                                                             );
-       vector_mus_charge       ->push_back(muon->charge()                                                                   );
+       vector_mus_charge       ->push_back(muon->track()->charge()                                                                   );
        vector_mus_mc_motherid  ->push_back(mom_mcid                                                                         );
        vector_mus_outerPhi     ->push_back(-999);
        vector_mus_outerEta     ->push_back(-999);
