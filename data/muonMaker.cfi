@@ -2,5 +2,5 @@ module muonMaker = MuonMaker {
 
   # muon collection
   InputTag muonsInputTag = allLayer1TopMuons
-
+  InputTag genParticlesInputTag = genParticles
 }

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.2 2008/06/10 19:42:37 jmuelmen Exp $
+// $Id: MuonMaker.h,v 1.3 2008/07/07 06:40:35 kalavase Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -39,6 +39,8 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
+      edm::InputTag genParticlesInputTag;
+
 };
 
 
