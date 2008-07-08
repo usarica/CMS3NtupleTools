@@ -12,4 +12,10 @@ module jetMaker = JetMaker {
   # MC particles
   InputTag genParticlesInputTag = genParticles
 
+  #MC corrected Jet Collection
+  InputTag mcJetCorrectionInputTag = MCJetCorJetIcone5
+
+  #EMF corrected Jet Collection
+  InputTag emfJetCorrectionInputTag = L4EMFJetCorJetIcone5
+
 }

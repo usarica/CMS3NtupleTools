@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.2 2008/06/12 23:40:37 gutsche Exp $
+// $Id: JetMaker.h,v 1.3 2008/07/08 16:58:42 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -52,6 +52,8 @@ private:
   edm::InputTag jetsInputTag;
   edm::InputTag genJetsInputTag;
   edm::InputTag genParticlesInputTag;
+  edm::InputTag mcJetCorrectionInputTag;
+  edm::InputTag emfJetCorrectionInputTag;
 
 };
 

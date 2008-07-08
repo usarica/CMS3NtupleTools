@@ -14,7 +14,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.4 2008/06/24 00:36:17 gutsche Exp $
+// $Id: JetMaker.cc,v 1.5 2008/07/08 16:58:58 kalavase Exp $
 //
 //
 
@@ -55,7 +55,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 JetMaker::JetMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
-  produces<unsigned int> ("njets").setBranchAlias("njets"); // number of jets
+  produces<unsigned int> ("evtnjets").setBranchAlias("evt_njets"); // number of jets
   produces<std::vector<LorentzVector> >	("jetsp4").setBranchAlias("jets_p4"); // p4 of the jet
   produces<std::vector<LorentzVector> >	("jetsmcp4").setBranchAlias("jets_mc_p4"); // p4 of the matched GenJet
   produces<std::vector<LorentzVector> >	("jetsmcgpp4").setBranchAlias("jets_mc_gp_p4"); // p4 of the matched MC particle
@@ -73,6 +73,8 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
   genJetsInputTag = iConfig.getParameter<edm::InputTag>("genJetsInputTag");
   genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag");
+  mcJetCorrectionInputTag = iConfig.getParameter<edm::InputTag>("mcJetCorrectionInputTag");
+  emfJetCorrectionInputTag = iConfig.getParameter<edm::InputTag>("emfJetCorrectionInputTag");
 
 }
 
@@ -104,8 +106,16 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
+  //get the MC corrected Jets
+  edm::Handle<edm::View<reco::CaloJet> > mccorJetsHandle;
+  iEvent.getByLabel(mcJetCorrectionInputTag, mccorJetsHandle);
+
+  //get the EMF corrected jets
+  edm::Handle<edm::View<reco::CaloJet> > emfJetsHandle;
+  iEvent.getByLabel(emfJetCorrectionInputTag, emfJetsHandle);
+
   // create containers
-  std::auto_ptr<unsigned int> njets(new unsigned int(jetsHandle->size()));
+  std::auto_ptr<unsigned int> evt_njets(new unsigned int(jetsHandle->size()));
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_p4(new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_mc_p4(new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_mc_gp_p4(new std::vector<LorentzVector>);
@@ -115,8 +125,8 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> > vector_jets_mc_hadEnergy(new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_jets_mc_invEnergy(new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_jets_mc_otherEnergy(new std::vector<float>);
-//   std::auto_ptr<std::vector<float> > vector_jets_cor(new std::vector<float>);
-//   std::auto_ptr<std::vector<float> > vector_jets_EMFcor(new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_jets_cor(new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_jets_EMFcor(new std::vector<float>);
   std::auto_ptr<std::vector<int> > vector_jets_mc_id(new std::vector<int>);
 
   // loop over jets and fill containers
@@ -153,14 +163,61 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_jets_mc_gp_p4->push_back(LorentzVector(0,0,0,0));
       vector_jets_mc_id->push_back(0);
     }
+    
+    
+    //find the corresponding Corrected Jets
+    float mcjetcorfactor = -999;
+    float emfjetcorfactor = -999;
+    for(edm::View<reco::CaloJet>::const_iterator jetsCorIt = mccorJetsHandle->begin();
+	jetsCorIt != mccorJetsHandle->end(); jetsCorIt++) {
+      
+      
+      LorentzVector injetP4 = jet->p4();
+      if (injetP4.e() < 0) injetP4 *= -1;
+      double injet_eta = jet->eta();
+      double injet_phi = jet->phi();
+      double injet_et = jet->et();
+      
+      LorentzVector corJetP4 = jetsCorIt->p4();
+      if (corJetP4.e() < 0){
+	corJetP4 *= -1;
+      }
+      
+      if(fabs(jetsCorIt->eta()- injet_eta) < 0.01 && acos(cos((jetsCorIt->phi()-injet_phi))) < 0.01 ) {
+	mcjetcorfactor = jetsCorIt->et()/(injet_et);
+	break;
+      }
+    }
 
-//     vector_jets_cor->push_back(-999.);
-//     vector_jets_EMFcor->push_back(-999.);
+
+    for(edm::View<reco::CaloJet>::const_iterator jetsCorIt = emfJetsHandle->begin();
+	jetsCorIt != emfJetsHandle->end(); jetsCorIt++) {
+      
+      LorentzVector injetP4 = jet->p4();
+      if (injetP4.e() < 0) injetP4 *= -1;
+      double injet_eta = jet->eta();
+      double injet_phi = jet->phi();
+      double injet_et = jet->et();
+
+      LorentzVector corJetP4 = jetsCorIt->p4();
+      if (corJetP4.e() < 0){
+	corJetP4 *= -1;
+      }
+      
+      if(fabs(corJetP4.eta()- injetP4.eta()) < 0.01 && acos(cos((corJetP4.phi()-injetP4.phi()))) < 0.01 ) {
+	emfjetcorfactor = jetsCorIt->et()/(injet_et);
+	break;
+      }
+    }
+    
+
+     vector_jets_cor->push_back(mcjetcorfactor);
+     vector_jets_EMFcor->push_back(emfjetcorfactor);
 
   }
 
   // put containers into event
-  iEvent.put(njets, "njets");
+  iEvent.put(evt_njets, "evtnjets");
   iEvent.put(vector_jets_p4, "jetsp4");
   iEvent.put(vector_jets_mc_p4,"jetsmcp4");
   iEvent.put(vector_jets_mc_gp_p4,"jetsmcgpp4");
@@ -170,8 +227,8 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_jets_mc_hadEnergy,"jetsmchadEnergy");
   iEvent.put(vector_jets_mc_invEnergy,"jetsmcinvEnergy");
   iEvent.put(vector_jets_mc_otherEnergy,"jetsmcotherEnergy");
-//   iEvent.put(vector_jets_cor,"jetscor");
-//   iEvent.put(vector_jets_EMFcor,"jetsEMFcor");
+   iEvent.put(vector_jets_cor,"jetscor");
+   iEvent.put(vector_jets_EMFcor,"jetsEMFcor");
   iEvent.put(vector_jets_mc_id,"jetsmcid");
 }
 

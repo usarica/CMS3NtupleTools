@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.2 2008/07/07 06:41:09 kalavase Exp $
+// $Id: L1DigiMaker.cc,v 1.3 2008/07/08 16:59:04 kalavase Exp $
 //
 //
 
@@ -152,36 +152,42 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   Handle<vector<l1extra::L1MuonParticle> > l1mus_h;
   iEvent.getByLabel("l1extraParticles", l1mus_h);
-  //const vector<l1extra::L1MuonParticle> *l1mus_coll = l1mus_h.product();
-  *evt_nl1mus = l1mus_h.product()->size();
+  const vector<l1extra::L1MuonParticle> *l1mus_coll = l1mus_h.product();
+  *evt_nl1mus = l1mus_coll->size();
   
   Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
   iEvent.getByLabel("l1extraParticles", "Isolated", l1emiso_h);
-  *evt_nl1emiso = l1emiso_h.product()->size();
+  const vector<l1extra::L1EmParticle> *l1emiso_coll = l1emiso_h.product();
+  *evt_nl1emiso = l1emiso_coll->size();
   
   Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
   iEvent.getByLabel("l1extraParticles", "NonIsolated", l1emnoiso_h);
-  *evt_nl1emnoiso = l1emnoiso_h.product()->size();
+  const vector<l1extra::L1EmParticle> *l1emnoiso_coll = l1emnoiso_h.product();
+  *evt_nl1emnoiso = l1emnoiso_coll->size();
   
   Handle<vector<l1extra::L1JetParticle> > l1jetsc_h;
   iEvent.getByLabel("l1extraParticles", "Central", l1jetsc_h);
-  *evt_nl1jetsc = l1jetsc_h.product()->size();
+  const vector<l1extra::L1JetParticle> *l1jetsc_coll = l1jetsc_h.product();
+  *evt_nl1jetsc = l1jetsc_coll->size();
   
   Handle<vector<l1extra::L1JetParticle> > l1jetsf_h;
   iEvent.getByLabel("l1extraParticles", "Forward", l1jetsf_h);
-  *evt_nl1jetsf = l1jetsf_h.product()->size();
+  const vector<l1extra::L1JetParticle> *l1jetsf_coll = l1jetsf_h.product();
+  *evt_nl1jetsf = l1jetsf_coll->size();
 
   Handle<vector<l1extra::L1JetParticle> > l1jetst_h;
   iEvent.getByLabel("l1extraParticles", "Tau", l1jetst_h);
+  const vector<l1extra::L1JetParticle> *l1jetst_coll = l1jetst_h.product();
   *evt_nl1jetst = l1jetst_h.product()->size();
 
   Handle<l1extra::L1EtMissParticle> l1met_h;
   iEvent.getByLabel("l1extraParticles", l1met_h);
+  const l1extra::L1EtMissParticle *l1met = l1met_h.product();
   
 
   
-  for(vector<l1extra::L1MuonParticle>::const_iterator l1mus_it = l1mus_h->begin();
-      l1mus_it != l1mus_h->end(); l1mus_it++) {
+  for(vector<l1extra::L1MuonParticle>::const_iterator l1mus_it = l1mus_coll->begin();
+      l1mus_it != l1mus_coll->end(); l1mus_it++) {
 
     int qualflag = (( l1mus_it->gmtMuonCand().useInSingleMuonTrigger() & 0x1 )
 		    | ( ( l1mus_it->gmtMuonCand().useInDiMuonTrigger() & 0x1 ) << 1)
@@ -203,8 +209,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   }			 
   
-  for(vector<l1extra::L1EmParticle>::const_iterator l1emiso_it = l1emiso_h->begin();
-      l1emiso_it != l1emiso_h->end();
+  for(vector<l1extra::L1EmParticle>::const_iterator l1emiso_it = l1emiso_coll->begin();
+      l1emiso_it != l1emiso_coll->end();
       l1emiso_it++ ) {
     
     l1emiso_type     ->push_back(l1emiso_it->type()                  );
@@ -221,8 +227,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   }
   
-  for(vector<l1extra::L1EmParticle>::const_iterator l1emnoiso_it = l1emnoiso_h->begin();
-      l1emnoiso_it != l1emnoiso_h->end();
+  for(vector<l1extra::L1EmParticle>::const_iterator l1emnoiso_it = l1emnoiso_coll->begin();
+      l1emnoiso_it != l1emnoiso_coll->end();
       l1emnoiso_it++ ) {
 
 
@@ -239,8 +245,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   }
   
-  for(vector<l1extra::L1JetParticle>::const_iterator l1jetsc_it = l1jetsc_h->begin();
-      l1jetsc_it != l1jetsc_h->end(); l1jetsc_it++) {
+  for(vector<l1extra::L1JetParticle>::const_iterator l1jetsc_it = l1jetsc_coll->begin();
+      l1jetsc_it != l1jetsc_coll->end(); l1jetsc_it++) {
     
     l1jetsc_type       ->push_back(l1jetsc_it->type()                );
     l1jetsc_p4         ->push_back(l1jetsc_it->p4()                  );
@@ -255,8 +261,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   }
 
-  for(vector<l1extra::L1JetParticle>::const_iterator l1jetsf_it = l1jetsf_h->begin();
-      l1jetsf_it != l1jetsf_h->end(); l1jetsf_it++) {
+  for(vector<l1extra::L1JetParticle>::const_iterator l1jetsf_it = l1jetsf_coll->begin();
+      l1jetsf_it != l1jetsf_coll->end(); l1jetsf_it++) {
     
     l1jetsf_type       ->push_back(l1jetsf_it->type()                );
     l1jetsf_p4         ->push_back(l1jetsf_it->p4()                  );
@@ -272,8 +278,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
 
 
-  for(vector<l1extra::L1JetParticle>::const_iterator l1jetst_it = l1jetst_h->begin();
-      l1jetst_it != l1jetst_h->end(); l1jetst_it++) {
+  for(vector<l1extra::L1JetParticle>::const_iterator l1jetst_it = l1jetst_coll->begin();
+      l1jetst_it != l1jetst_coll->end(); l1jetst_it++) {
    
     l1jetst_type       ->push_back(l1jetst_it->type()                );
     l1jetst_p4         ->push_back(l1jetst_it->p4()                  );
@@ -289,13 +295,13 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
  
   //const l1extra::L1EtMissParticle *l1met = l1met_h.product();
-  *l1met_met     = l1met_h->etMiss();
-  *l1met_etHad   = l1met_h->etHad();
-  *l1met_etTot   = l1met_h->etTotal();
-  *l1met_p4      = LorentzVector(l1met_h->px(), 
-				 l1met_h->py(),
-				 l1met_h->pz(),
-				 l1met_h->energy() ); 
+  *l1met_met     = l1met->etMiss();
+  *l1met_etHad   = l1met->etHad();
+  *l1met_etTot   = l1met->etTotal();
+  *l1met_p4      = LorentzVector(l1met->px(), 
+				 l1met->py(),
+				 l1met->pz(),
+				 l1met->energy() ); 
  
  
   iEvent.put(evt_nl1mus           ,"evtnl1mus"         );
