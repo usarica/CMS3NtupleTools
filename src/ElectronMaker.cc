@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.7 2008/07/05 23:04:59 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.8 2008/07/09 06:36:41 jmuelmen Exp $
 //
 //
 
@@ -59,9 +59,9 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>            ("evtnels"             ).setBranchAlias("evt_nels"             ); //number of electrons in event
   produces<vector<int> >            ("elsvalidHits"        ).setBranchAlias("els_validHits"        ); //number of used hits in fit
   produces<vector<int> >  	    ("elslostHits"         ).setBranchAlias("els_lostHits"         ); //number of lost hits in fit
-  produces<vector<int> >  	    ("elsmcid"             ).setBranchAlias("els_mcid"             ); //MC matched id
+  produces<vector<int> >  	    ("elsmcid"             ).setBranchAlias("els_mc_id"            ); //MC matched id
   produces<vector<int> >  	    ("elscharge"           ).setBranchAlias("els_charge"           ); //candidate charge
-  produces<vector<int> >  	    ("elsmcmotherid"       ).setBranchAlias("els_mcmotherid"       ); //Id of MC matched mother
+  produces<vector<int> >  	    ("elsmcmotherid"       ).setBranchAlias("els_mc_motherid"      ); //Id of MC matched mother
   produces<vector<int> >  	    ("elsnSeed"            ).setBranchAlias("els_nSeed"            ); 
   produces<vector<int> >  	    ("elsclass"            ).setBranchAlias("els_class"            );
   produces<vector<int> >  	    ("elsrobustId"         ).setBranchAlias("els_robustId"         );
@@ -135,9 +135,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<unsigned int>           evt_nels                 (new unsigned int         ) ;
   auto_ptr<vector<int> >           els_validHits            (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_lostHits             (new vector<int>          ) ;
-  auto_ptr<vector<int> >	   els_mcid                 (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_mc_id                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_charge               (new vector<int>          ) ;
-  auto_ptr<vector<int> >	   els_mcmotherid           (new vector<int>          ) ;
+  auto_ptr<vector<int> >	   els_mc_motherid          (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_nSeed                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_class                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_robustId             (new vector<int>          ) ;
@@ -323,9 +323,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //fill the vectors
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-    els_mcid                  ->push_back( mcid                                      );
+    els_mc_id                 ->push_back( mcid                                      );
     els_charge                ->push_back( el->charge()                              );
-    els_mcmotherid            ->push_back( matchedGenParticle !=0); //placeholder 
+    els_mc_motherid           ->push_back( matchedGenParticle !=0); //placeholder 
     els_nSeed                 ->push_back( el->numberOfClusters() - 1                );                             
     els_class                 ->push_back( el->classification()                      );
     els_robustId              ->push_back( id[0]                                     );
@@ -376,9 +376,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_nels                         ,"evtnels"            );
   iEvent.put(els_validHits                    ,"elsvalidHits"       );
   iEvent.put(els_lostHits                     ,"elslostHits"        );
-  iEvent.put(els_mcid                         ,"elsmcid"            );
+  iEvent.put(els_mc_id                        ,"elsmcid"            );
   iEvent.put(els_charge                       ,"elscharge"          );
-  iEvent.put(els_mcmotherid                   ,"elsmcmotherid"      );
+  iEvent.put(els_mc_motherid                  ,"elsmcmotherid"      );
   iEvent.put(els_nSeed                        ,"elsnSeed"           );
   iEvent.put(els_class                        ,"elsclass"           );
   iEvent.put(els_robustId                     ,"elsrobustId"        );

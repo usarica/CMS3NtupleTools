@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToGenAssMaker.cc,v 1.1 2008/07/02 03:32:45 jmuelmen Exp $
+// $Id: TrackToGenAssMaker.cc,v 1.2 2008/07/09 06:36:41 jmuelmen Exp $
 //
 //
 
@@ -44,10 +44,10 @@ using std::vector;
 
 TrackToGenAssMaker::TrackToGenAssMaker(const edm::ParameterSet& iConfig)
 {
-     produces<vector<int>           >("trkmcid"      ).setBranchAlias("trk_mcid"      ); // track matched to gen particle
-     produces<vector<int>           >("trkmcmotherid").setBranchAlias("trk_mcmotherid");
-     produces<vector<int>           >("trkmcidx"     ).setBranchAlias("trk_mcidx"     );
-     produces<vector<LorentzVector> >("trkmcp4"      ).setBranchAlias("trk_mcp4"      );
+     produces<vector<int>           >("trkmcid"      ).setBranchAlias("trk_mc_id"      ); // track matched to gen particle
+     produces<vector<int>           >("trkmcmotherid").setBranchAlias("trk_mc_motherid");
+     produces<vector<int>           >("trkmcidx"     ).setBranchAlias("trk_mcidx"      );
+     produces<vector<LorentzVector> >("trkmcp4"      ).setBranchAlias("trk_mcp4"       );
 
      //tracksInputTag       = iConfig.getParameter<InputTag>("tracksInputTag"      );
      //genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
@@ -57,10 +57,10 @@ void TrackToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
 {
      using namespace edm;
      // make vectors to hold the information
-     std::auto_ptr<vector<int>           > vector_trk_mcid      (new vector<int>          );
-     std::auto_ptr<vector<int>           > vector_trk_mcmotherid(new vector<int>          );
-     std::auto_ptr<vector<int>           > vector_trk_mcidx     (new vector<int>          );
-     std::auto_ptr<vector<LorentzVector> > vector_trk_mcp4      (new vector<LorentzVector>);
+     std::auto_ptr<vector<int>           > vector_trk_mc_id      (new vector<int>          );
+     std::auto_ptr<vector<int>           > vector_trk_mc_motherid(new vector<int>          );
+     std::auto_ptr<vector<int>           > vector_trk_mcidx      (new vector<int>          );
+     std::auto_ptr<vector<LorentzVector> > vector_trk_mcp4       (new vector<LorentzVector>);
 
      // get tracks
      Handle<edm::View<reco::Track> > trackhandle;
@@ -89,17 +89,17 @@ void TrackToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
        }
 
        // fill vector
-       vector_trk_mcid      ->push_back(mcid    );
-       vector_trk_mcmotherid->push_back(mom_mcid);
-       vector_trk_mcidx     ->push_back(genidx  );
-       vector_trk_mcp4      ->push_back(mc_p4   );
+       vector_trk_mc_id      ->push_back(mcid    );
+       vector_trk_mc_motherid->push_back(mom_mcid);
+       vector_trk_mcidx      ->push_back(genidx  );
+       vector_trk_mcp4       ->push_back(mc_p4   );
      }
 
      // store vectors
-     iEvent.put(vector_trk_mcid      , "trkmcid"      );
-     iEvent.put(vector_trk_mcmotherid, "trkmcmotherid");
-     iEvent.put(vector_trk_mcidx     , "trkmcidx"     );
-     iEvent.put(vector_trk_mcp4      , "trkmcp4"      );
+     iEvent.put(vector_trk_mc_id      , "trkmcid"      );
+     iEvent.put(vector_trk_mc_motherid, "trkmcmotherid");
+     iEvent.put(vector_trk_mcidx      , "trkmcidx"     );
+     iEvent.put(vector_trk_mcp4       , "trkmcp4"      );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
