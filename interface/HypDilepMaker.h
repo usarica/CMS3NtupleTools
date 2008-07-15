@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.1 2008/07/07 19:48:04 kalavase Exp $
+// $Id: HypDilepMaker.h,v 1.2 2008/07/15 18:47:58 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -54,7 +54,7 @@ private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-  bool testJetForElectrons(const math::XYZTLorentzVector& jetP4, const std::vector<math::XYZTLorentzVector> *elP4s);
+  bool testJetForElectrons(const math::XYZTLorentzVector& jetP4, const math::XYZTLorentzVector& elP4);
    
   // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
@@ -63,7 +63,15 @@ private:
   edm::InputTag jetsInputTag;
   edm::InputTag tqJetsInputTag;
   edm::InputTag trksInputTag;
-  bool          havetqVars;
+  //edm::InputTag genParticlesInputTag;
+  //edm::InputTag genJetsInputTag;
+  //edm::InputTag mcJetCorrectionInputTag;
+  //edm::InputTag emfJetCorrectionInputTag;
+  //edm::InputTag hypJetsInputTag;
+  bool          usingTQJets;
+  double        hypJetMinEtaCut;
+  double        hypJetMaxEtaCut;
+  double        hypJetMinPtCut;
   double        tightptcut;
   double        looseptcut;
   
