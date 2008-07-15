@@ -11,7 +11,7 @@ Description: MET utilities
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: METUtilities.h,v 1.1 2008/07/01 19:45:42 kalavase Exp $
+// $Id: METUtilities.h,v 1.2 2008/07/15 18:50:27 kalavase Exp $
 //
 //
 #ifndef CMS2_METUTILITIES_H
@@ -45,7 +45,7 @@ public:
   static void correctMETmuons_nocalo(const std::pair<math::XYZTLorentzVector, math::XYZTLorentzVector>& metMuonP4,
 				     double& met, double& metPhi);
 				       
-  static void correctedJetMET(const std::vector<math::XYZTLorentzVector>& jetp4s, const std::vector<double>& jetcors,
+  static void correctedJetMET(const std::vector<math::XYZTLorentzVector>& jetp4s, const std::vector<float>& jetcors,
 			      double& met, double& metPhi,
 			      const double min_pt=30.);
 

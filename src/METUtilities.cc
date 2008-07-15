@@ -189,7 +189,7 @@ void METUtilities::correctMETmuons_nocalo(const pair<LorentzVector, LorentzVecto
 //-------------------------------------------------------------------------------------------
 
 // list of UNCORRECTED jets must be supplied along with the correction factor
-void METUtilities::correctedJetMET(const vector<LorentzVector>& jetp4s, const vector<double>& jetcors,
+void METUtilities::correctedJetMET(const vector<LorentzVector>& jetp4s, const vector<float>& jetcors,
 				   double& met, double& metPhi, 
 				   const double min_pt) {
    //iterate over candidates, cast them to calojets and then correct for the energy
@@ -226,18 +226,22 @@ void METUtilities::correctedJetMET(const vector<LorentzVector>& jetp4s, const ve
 //-------------------------------------------------------------------------------------------
 double METUtilities::metObjDPhi(const vector<LorentzVector> p4s,const double metPhi, double ptcut) {
 
-  double minDphi = 999;
+  double minDphi = 9999;
+  double returnDphi = 9999;
   for (vector<LorentzVector>::const_iterator p4_it = p4s.begin();
 	 p4_it != p4s.end(); ++p4_it)
        {
-	 double dphi = p4_it->phi()- metPhi;
-	 if(fabs(dphi) > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
-	 
-	 if(dphi < minDphi) 
-	   dphi = minDphi;
-	 
+         if(p4_it->Pt() < ptcut) continue;
+	 //double dphi = p4_it->phi()- metPhi;
+	 //if(fabs(dphi) > TMath::Pi()) dphi = 2*TMath::Pi() - dphi;
+	 double dphi = fabs(cos(p4_it->phi()-metPhi));
+         
+	 if(dphi < minDphi) { 
+	   minDphi = dphi;
+	   returnDphi = p4_it->phi() - metPhi;
        }
-  return minDphi;
+  }
+  return returnDphi;
 }
 
 //-------------------------------------------------------------------------------------------
