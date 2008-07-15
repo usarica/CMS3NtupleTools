@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.4 2008/06/24 20:16:21 kalavase Exp $
+// $Id: EventMaker.cc,v 1.5 2008/07/15 17:33:12 kalavase Exp $
 //
 //
 
@@ -54,15 +54,8 @@ using namespace std;
 EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
   
-  /*
-    produces<int>    ("evtnmus"              ).setBranchAlias("evt_nels"                 );
-    produces<int>    ("evtntrks"             ).setBranchAlias("evt_ntrks"                );
-    produces<int>    ("evtnels"              ).setBranchAlias("evt_nels"                 );
-  produces<int>    ("evtnjets"             ).setBranchAlias("evt_njets"                );
-  */
   produces<int>    ("evtrun"               ).setBranchAlias("evt_run"                  );
   produces<int>    ("evtevent"             ).setBranchAlias("evt_event"                );
-  produces<int>    ("evtCSA07Process"      ).setBranchAlias("evt_CSA07Process"         );
   produces<int>    ("evtHLT1"              ).setBranchAlias("evt_HLT1"                 );
   produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
   produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
@@ -71,20 +64,16 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>    ("evtL12"               ).setBranchAlias("evt_L1_2"                 );
   produces<int>    ("evtL13"               ).setBranchAlias("evt_L1_3"                 );
   produces<int>    ("evtL14"               ).setBranchAlias("evt_L1_4"                 );
-  produces<float>  ("evtweight"            ).setBranchAlias("evt_weight");
+  produces<float>  ("evtweight"            ).setBranchAlias("evt_weight"               );
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
   produces<float>  ("evtkfactor"           ).setBranchAlias("evt_kfactor"              );
-  produces<float>  ("evtCSA07Pthat"        ).setBranchAlias("evt_CSA07Pthat"           );
-  produces<float>  ("evtCSA07FilterEff"    ).setBranchAlias("evt_CSA07FilterEff"       );
-  produces<float>  ("evtCSA07Weight"       ).setBranchAlias("evt_CSA07Weight"          );
   
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
   kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
   
   //CSA07 info
-  csa07_soup_ = iConfig.getUntrackedParameter<bool>("csa07_soup");
   haveTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveTriggerInfo");
 
 }
@@ -102,16 +91,8 @@ void EventMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-
-  /* variables that should be handled by their respective modules
-     auto_ptr<int>      evt_nmus              (new int);
-     auto_ptr<int>      evt_ntrks             (new int);
-     auto_ptr<int>      evt_nels              (new int);
-     auto_ptr<int>      evt_njets             (new int);
-  */
   auto_ptr<int>      evt_run               (new int);
   auto_ptr<int>      evt_event             (new int);
-  auto_ptr<int>      evt_CSA07Process      (new int);
   auto_ptr<int>      evt_HLT1              (new int);
   auto_ptr<int>      evt_HLT2              (new int);
   auto_ptr<int>      evt_HLT3              (new int);
@@ -121,39 +102,13 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>      evt_L13               (new int);
   auto_ptr<int>      evt_L14               (new int);
   auto_ptr<float>    evt_weight            (new float);
-  auto_ptr<float>    evt_xsec_incl          (new float);
-  auto_ptr<float>    evt_xsec_excl          (new float);
+  auto_ptr<float>    evt_xsec_incl         (new float);
+  auto_ptr<float>    evt_xsec_excl         (new float);
   auto_ptr<float>    evt_kfactor           (new float);
-  auto_ptr<float>    evt_CSA07Pthat        (new float);
-  auto_ptr<float>    evt_CSA07FilterEff    (new float);
-  auto_ptr<float>    evt_CSA07Weight       (new float);
-  
+    
   *evt_run   = iEvent.id().run();
   *evt_event = iEvent.id().event();
 
-
-    
-  //fill CSA07 info, if running on a CSA07 file
-  if(csa07_soup_) {
-    int*   process = new int; 
-    float* pthat = new float;
-    float* feff = new float;
-    float* weight = new float;
-    fillCSA07Info(iEvent , process,
-		  pthat, feff,
-		  weight);
-    *evt_CSA07Process   = *process;
-    *evt_CSA07Pthat     = *pthat;
-    *evt_CSA07FilterEff = *feff;
-    *evt_CSA07Weight    = *weight;
-    
-  } else { 
-    *evt_CSA07Process   = -999;
-    *evt_CSA07Pthat     = -999.;
-    *evt_CSA07FilterEff = -999.;
-    *evt_CSA07Weight    = -999.;
-  }
-  
   
   //fill HLT info
   if(haveTriggerInfo_) {
@@ -214,13 +169,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_xsec_excl = exclusiveCrossSectionValue;
   *evt_kfactor   = kfactorValue;
       
-  //iEvent.put(evt_nmus             ,"evtnmus"            );
-  //iEvent.put(evt_ntrks            ,"evtntrks"           );
-  //iEvent.put(evt_nels             ,"evtnels"            );
-  //iEvent.put(evt_njets            ,"evtnjets"           );
   iEvent.put(evt_run              ,"evtrun"             );
   iEvent.put(evt_event            ,"evtevent"           );
-  iEvent.put(evt_CSA07Process     ,"evtCSA07Process"    );
   iEvent.put(evt_HLT1             ,"evtHLT1"            );
   iEvent.put(evt_HLT2             ,"evtHLT2"            );
   iEvent.put(evt_HLT3             ,"evtHLT3"            );
@@ -233,52 +183,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_xsec_incl         ,"evtxsecincl"        );
   iEvent.put(evt_xsec_excl         ,"evtxsecexcl"        );
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
-  iEvent.put(evt_CSA07Pthat       ,"evtCSA07Pthat"      );
-  iEvent.put(evt_CSA07FilterEff   ,"evtCSA07FilterEff"  );
-  iEvent.put(evt_CSA07Weight      ,"evtCSA07Weight"     );
   
-
-
 }
 
 
-
-//-------------------------------------------------------------------
-// fill CSA07 info
-//-------------------------------------------------------------------
-void EventMaker::fillCSA07Info(const Event& iEvent, int *pid, 
-			       float *ptHat, float *filterEff,
-			       float *weight) {
-  
-  edm::Handle<int> procIdH;
-  iEvent.getByLabel("genEventProcID", procIdH);
-  int procId = *procIdH;
-    
-  //get generator event scale
-   edm::Handle<double> scale;
-   iEvent.getByLabel("genEventScale", scale);
-   *ptHat = *scale;
-   // get generated filter efficiency
-   if (procId == 4) {
-     *filterEff = -1; // not available for alpgen samples
-   } else {
-     edm::Handle<double> filterEffH;
-     iEvent.getByLabel("genEventRunInfo", "FilterEfficiency", filterEffH);
-     *filterEff = *filterEffH;
-   }
-
-    // get csa07 weight
-    edm::Handle<double> weightH;
-    if (procId == 4) {
-      iEvent.getByLabel("csa07EventWeightProducer", "weight", weightH);
-    } else {
-      iEvent.getByLabel("genEventWeight", weightH);
-    }
-    *weight = *weightH;
-    
-    *pid = csa07::csa07ProcessId(iEvent);
-     
-}
 
 //-----------------------------------------------------------------------
 // fill HLT info

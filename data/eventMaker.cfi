@@ -6,6 +6,5 @@ module eventMaker = EventMaker {
   untracked double kfactor = 1
 
   untracked bool haveTriggerInfo = true  
-  untracked bool csa07_soup = true
 
 }
