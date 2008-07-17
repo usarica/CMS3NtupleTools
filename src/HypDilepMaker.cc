@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.3 2008/07/15 20:48:34 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.4 2008/07/17 00:46:55 kalavase Exp $
 //
 //
 
@@ -527,6 +527,11 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(mus_outerEta_tag, mus_outerEta_h);
   const vector<float> *mus_outerEta = mus_outerEta_h.product();
 
+  //temp iso for CMS1 validation
+  InputTag mus_iso_tag(muonsInputTag.label(), "musiso");
+  Handle<vector<float> > mus_iso_h;
+  iEvent.getByLabel(mus_iso_tag, mus_iso_h);
+  const vector<float> *mus_iso = mus_iso_h.product();
 
   //track isolation in dR = 0.3 from the muon object
   InputTag mus_iso03_sumPt_tag(muonsInputTag.label(),"musiso03sumPt");
@@ -1293,8 +1298,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_lt_phiErr       ->push_back(mus_phiErr       ->at(tight_index)  );
       hyp_lt_outerPhi     ->push_back(mus_outerPhi     ->at(tight_index)  );
       hyp_lt_outerEta     ->push_back(mus_outerEta     ->at(tight_index)  );
-      hyp_lt_iso          ->push_back(mus_iso03_sumPt  ->at(tight_index)  );
-      hyp_lt_tkIso        ->push_back(-999.                               );
+      hyp_lt_iso          ->push_back(mus_iso          ->at(tight_index)  );
+      hyp_lt_tkIso        ->push_back(mus_iso03_sumPt  ->at(tight_index)  );
       hyp_lt_p4           ->push_back(mus_p4           ->at(tight_index)  );
       hyp_lt_trk_p4       ->push_back(mus_trk_p4       ->at(tight_index)  );
       hyp_lt_mc_p4        ->push_back(mus_mc_p4        ->at(tight_index)  );
@@ -1318,8 +1323,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_ll_phiErr       ->push_back(mus_phiErr       ->at(loose_index)  );
       hyp_ll_outerPhi     ->push_back(mus_outerPhi     ->at(loose_index)  );
       hyp_ll_outerEta     ->push_back(mus_outerEta     ->at(loose_index)  );
-      hyp_ll_iso          ->push_back(mus_iso03_sumPt  ->at(loose_index)  );
-      hyp_ll_tkIso        ->push_back(-999.                               );
+      hyp_ll_iso          ->push_back(mus_iso          ->at(loose_index)  );
+      hyp_ll_tkIso        ->push_back(mus_iso03_sumPt  ->at(loose_index)  );
       hyp_ll_p4           ->push_back(mus_p4           ->at(loose_index)  );
       hyp_ll_trk_p4       ->push_back(mus_trk_p4       ->at(loose_index)  );
       hyp_ll_mc_p4        ->push_back(mus_mc_p4        ->at(loose_index)  );
@@ -2162,8 +2167,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_lt_phiErr       ->push_back(mus_phiErr       ->at(mus_index)  );
       hyp_lt_outerPhi     ->push_back(mus_outerPhi     ->at(mus_index)  );
       hyp_lt_outerEta     ->push_back(mus_outerEta     ->at(mus_index)  );
-      hyp_lt_iso          ->push_back(mus_iso03_sumPt  ->at(mus_index)  );
-      hyp_lt_tkIso        ->push_back(-999.                             );
+      hyp_lt_iso          ->push_back(mus_iso          ->at(mus_index)  );
+      hyp_lt_tkIso        ->push_back(mus_iso03_sumPt  ->at(mus_index)  );
       hyp_lt_p4           ->push_back(mus_p4           ->at(mus_index)  );
       hyp_lt_trk_p4       ->push_back(mus_trk_p4       ->at(mus_index)  );
       hyp_lt_mc_p4        ->push_back(mus_mc_p4        ->at(mus_index)  );
@@ -2243,8 +2248,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_ll_phiErr       ->push_back(mus_phiErr       ->at(mus_index)  );
       hyp_ll_outerPhi     ->push_back(mus_outerPhi     ->at(mus_index)  );
       hyp_ll_outerEta     ->push_back(mus_outerEta     ->at(mus_index)  );
-      hyp_ll_iso          ->push_back(mus_iso03_sumPt  ->at(mus_index)  );
-      hyp_ll_tkIso        ->push_back(-999                              );
+      hyp_ll_iso          ->push_back(mus_iso          ->at(mus_index)  );
+      hyp_ll_tkIso        ->push_back(mus_iso03_sumPt  ->at(mus_index)  );
       hyp_ll_p4           ->push_back(mus_p4           ->at(mus_index)  );
       hyp_ll_trk_p4       ->push_back(mus_trk_p4       ->at(mus_index)  );
       hyp_ll_mc_p4        ->push_back(mus_mc_p4        ->at(mus_index)  );

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.8 2008/07/07 06:41:18 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.9 2008/07/17 00:46:49 kalavase Exp $
 //
 //
 
@@ -38,6 +38,10 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoMuon/MuonIdentification/interface/IdGlobalFunctions.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
+#include "DataFormats/Math/interface/deltaR.h"
+#include "Math/VectorUtil.h"
+
 
 typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
@@ -74,6 +78,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >	("museemS9"			).setBranchAlias("mus_e_emS9"                       	);	// energy in 3x3 ECAL crystall shape                                                         
      produces<vector<float> >	("musehadS9"			).setBranchAlias("mus_e_hadS9"                      	);	// energy in 3x3 HCAL towers                                                                 
      produces<vector<float> >	("musehoS9"			).setBranchAlias("mus_e_hoS9"                       	);	// energy in 3x3 HO towers                                                                   
+     produces<vector<float> >   ("musiso"                       ).setBranchAlias("mus_iso"                              );      //mirrors the isolation in CMS1 (home grown trackIsolatio()
      produces<vector<float> >	("musiso03sumPt"		).setBranchAlias("mus_iso03_sumPt"                  	);	// sum of track Pt for cone of 0.3                                                           
      produces<vector<float> >	("musiso03emEt"			).setBranchAlias("mus_iso03_emEt"                   	);	// sum of ecal Et for cone of 0.3                                                            
      produces<vector<float> >	("musiso03hadEt"		).setBranchAlias("mus_iso03_hadEt"                  	);	// sum of hcal Et for cone of 0.3                                                            
@@ -92,7 +97,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >	("musgfitndof"			).setBranchAlias("mus_gfit_ndof"                    	);	// number of degree of freedom of the global muon fit                                        
      produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);	// number of valid hits of the global muon fit                
 
-     genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag");                               
+     genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag"); 
+     tracksInputTag       = iConfig.getParameter<edm::InputTag>("tracksInputTag");
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -127,6 +133,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<float> >		vector_mus_e_emS9			(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_e_hadS9			(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_e_hoS9			(new vector<float>	);
+     std::auto_ptr<vector<float> >              vector_mus_iso                          (new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_iso03_sumPt			(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_iso03_emEt			(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_iso03_hadEt			(new vector<float>	);
@@ -152,6 +159,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      // get MC particle collection
      edm::Handle<reco::GenParticleCollection> genParticlesHandle;
      iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
+
+     Handle<edm::View<reco::Track> > tk_h;
+     iEvent.getByLabel(tracksInputTag, tk_h);
+     const edm::View<reco::Track> *track_coll = tk_h.product();
+
      
      for (edm::View<reco::Muon>::const_iterator muon = muon_h->begin(); 
 	  muon != muons_end; ++muon) {
@@ -167,6 +179,18 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
        }
 
+
+       
+       float tempIso = trackRelIsolation(muon->momentum(), muon->vertex(), track_coll,
+                                    0.3,     //! dR < 0.3
+                                    0.01,    //! dR > 0.01
+                                    0.1,     //! |d0_tk| < 0.1 cm
+                                    999.9,   //! |el_2D - tk_2D| < 999
+                                    0.5,     //! |z0_el - z0_track| < 0.5
+                                    1.0,     //! min pt
+                                    7);      //! min nHits
+
+       
        // fill vectors
        vector_mus_p4           ->push_back(muon->p4());
        vector_mus_trk_p4       ->push_back(LorentzVector( muon->track().get()->px(), muon->track().get()->py(), muon->track().get()->pz(), muon->track().get()->p() ));
@@ -196,6 +220,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        vector_mus_e_emS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().emS9			: -999	);
        vector_mus_e_hadS9                      ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hadS9		: -999	);
        vector_mus_e_hoS9                       ->push_back(muon->isEnergyValid() ? muon->getCalEnergy().hoS9			: -999	);
+       vector_mus_iso                          ->push_back(tempIso);
        vector_mus_iso03_sumPt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().sumPt		: -999	);
        vector_mus_iso03_emEt                   ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().emEt		: -999	);
        vector_mus_iso03_hadEt                  ->push_back(muon->isIsolationValid() ? muon->getIsolationR03().hadEt		: -999	);
@@ -244,6 +269,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_mus_e_emS9			, "museemS9"                     );
      iEvent.put(vector_mus_e_hadS9			, "musehadS9"                    );
      iEvent.put(vector_mus_e_hoS9			, "musehoS9"                     );
+     iEvent.put(vector_mus_iso                          , "musiso"                       );
      iEvent.put(vector_mus_iso03_sumPt			, "musiso03sumPt"                );
      iEvent.put(vector_mus_iso03_emEt			, "musiso03emEt"                 );
      iEvent.put(vector_mus_iso03_hadEt			, "musiso03hadEt"                );
@@ -272,6 +298,47 @@ MuonMaker::beginJob(const edm::EventSetup&)
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 MuonMaker::endJob() {
+}
+//---------------------------------------------------------------------------
+//Track Isolation
+//---------------------------------------------------------------------------
+double MuonMaker::trackRelIsolation(const math::XYZVector momentum,
+				    const math::XYZPoint vertex,
+				    const  edm::View<reco::Track>* tracks,
+				    double dRConeMax, double dRConeMin,
+				    double tkVtxDMax,
+				    double vtxDiffDMax, double vtxDiffZMax, double ptMin, unsigned int nHits)
+{
+  double isoResult = -10.;
+  if ( tracks == 0 ) {
+    std::cout << "Configuration Error: track collection is not set!" <<std::endl;
+    return isoResult;
+  }
+
+  double sumPt = 0;
+
+  edm::View<reco::Track>::const_iterator iTk = tracks->begin();
+  for (; iTk != tracks->end(); ++iTk){
+    double dR = ROOT::Math::VectorUtil::DeltaR(momentum, iTk->momentum());
+    //exclude tks in veto cone (set it to small number to
+    //exclude this track
+    double dZ = fabs(vertex.z() - iTk->vz());
+    double d0 = sqrt(iTk->vertex().perp2());
+    double dD0 = sqrt((iTk->vertex() - vertex).perp2());
+    if (dR < dRConeMin) continue;
+    if ( dR < dRConeMax
+         && dZ < vtxDiffZMax
+         && d0 < tkVtxDMax
+         && dD0 < vtxDiffDMax
+         && iTk->pt() >= ptMin
+         && iTk->found() > nHits){
+      sumPt += iTk->pt();
+    }
+  }
+
+  isoResult = sumPt;
+  return isoResult;
+
 }
 
 //define this as a plug-in
