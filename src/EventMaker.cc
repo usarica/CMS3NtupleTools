@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.5 2008/07/15 17:33:12 kalavase Exp $
+// $Id: EventMaker.cc,v 1.6 2008/07/17 20:28:46 gutsche Exp $
 //
 //
 
@@ -160,9 +160,13 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      if(wc.size() == 0) weight = -1.0; 
      *evt_weight = weight;
   } else {
-    Handle<double> evtwt;
-    iEvent.getByLabel("genEventWeight", evtwt);
-    *evt_weight = (float)*evtwt;
+    try {
+      Handle<double> evtwt;
+      iEvent.getByLabel("genEventWeight", evtwt);
+      *evt_weight = (float)*evtwt;
+    } catch (edm::Exception const& x) {
+      *evt_weight = 1.;
+    }
   }   
 
   *evt_xsec_incl = inclusiveCrossSectionValue;
