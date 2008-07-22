@@ -1,0 +1,9 @@
+module hypQuadlepMaker = HypQuadlepMaker {
+
+  # muons collection
+  InputTag muonsInputTag = muonMaker
+
+  # electrons collection
+  InputTag electronsInputTag = electronMaker
+
+}
