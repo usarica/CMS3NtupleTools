@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.2 2008/06/13 02:26:22 jmuelmen Exp $
+// $Id: TrackMaker.h,v 1.3 2008/07/22 06:08:48 fgolf Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -42,6 +42,7 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
+  edm::InputTag tracksInputTag;
 };
 
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.3 2008/06/13 02:26:22 jmuelmen Exp $
+// $Id: TrackMaker.cc,v 1.4 2008/07/22 06:08:21 fgolf Exp $
 //
 //
 
@@ -74,6 +74,8 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("trkscharge"		).setBranchAlias("trks_charge"       	);	// charge						
      produces<vector<float> >		("trksouterPhi"		).setBranchAlias("trks_outerPhi"     	);	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("trksouterEta"		).setBranchAlias("trks_outerEta"     	);	// eta angle of the outermost point in tracker		
+
+     tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
 }
 
 void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -99,7 +101,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<float> >		vector_trks_outerEta	(new vector<float>		);      
      // get tracks
      Handle<edm::View<reco::Track> > track_h;
-     iEvent.getByLabel("ctfWithMaterialTracks", track_h);      // change this in the future
+     iEvent.getByLabel(tracksInputTag, track_h);      // change this in the future
      edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
      // get magnetic field
      edm::ESHandle<MagneticField> theMagField;

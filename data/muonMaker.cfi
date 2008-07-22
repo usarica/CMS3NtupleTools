@@ -2,8 +2,8 @@ module muonMaker = MuonMaker {
 
   # muon collection
   InputTag muonsInputTag = allLayer1TopMuons
-  InputTag genParticlesInputTag = genParticles
-   #track collection
+
+  #track collection
   InputTag tracksInputTag = ctfWithMaterialTracks
 
 }
