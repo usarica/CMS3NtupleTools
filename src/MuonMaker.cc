@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.9 2008/07/17 00:46:49 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.10 2008/07/22 06:10:14 fgolf Exp $
 //
 //
 
@@ -63,10 +63,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >		("musptErr"		).setBranchAlias("mus_ptErr"        	);	// track Pt error					
      produces<vector<float> >		("musetaErr"		).setBranchAlias("mus_etaErr"       	);	// track eta error					
      produces<vector<float> >		("musphiErr"		).setBranchAlias("mus_phiErr"       	);	// track phi error					
-     produces<vector<LorentzVector> >	("musmcp4"		).setBranchAlias("mus_mc_p4"        	);	// p4 of matched MC particle				
-     produces<vector<int> >		("musmcid"		).setBranchAlias("mus_mc_id"        	);	// PDG id of matched MC particle			
      produces<vector<int> >		("muscharge"		).setBranchAlias("mus_charge"       	);	// charge						
-     produces<vector<int> >		("musmcmotherid"	).setBranchAlias("mus_mc_motherid"  	);	// PDG id of the mother of the particle			
      produces<vector<float> >		("musouterPhi"		).setBranchAlias("mus_outerPhi"     	);	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("musouterEta"		).setBranchAlias("mus_outerEta"     	);	// eta angle of the outermost point in tracker		
      produces<vector<int> >             ("mustrkrefkey"         ).setBranchAlias("mus_trkrefkey"        );      // index of track from track ref stored in muon collection
@@ -97,8 +94,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >	("musgfitndof"			).setBranchAlias("mus_gfit_ndof"                    	);	// number of degree of freedom of the global muon fit                                        
      produces<vector<int> >	("musgfitvalidHits"		).setBranchAlias("mus_gfit_validHits"               	);	// number of valid hits of the global muon fit                
 
-     genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag"); 
-     tracksInputTag       = iConfig.getParameter<edm::InputTag>("tracksInputTag");
+     muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
+     tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -119,10 +116,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<float> >		vector_mus_ptErr	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_mus_etaErr	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_mus_phiErr	(new vector<float>		);      
-     std::auto_ptr<vector<LorentzVector> >	vector_mus_mc_p4	(new vector<LorentzVector>	);
-     std::auto_ptr<vector<int> >		vector_mus_mc_id	(new vector<int>		);        
      std::auto_ptr<vector<int> >		vector_mus_charge	(new vector<int>		);        
-     std::auto_ptr<vector<int> >		vector_mus_mc_motherid	(new vector<int>		);        
      std::auto_ptr<vector<float> >		vector_mus_outerPhi	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_mus_outerEta	(new vector<float>		);      
      std::auto_ptr<vector<int> >                vector_mus_trkrefkey    (new vector<int>                );
@@ -151,14 +145,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<float> >		vector_mus_gfit_chi2			(new vector<float>	);
      std::auto_ptr<vector<float> >		vector_mus_gfit_ndof			(new vector<float>	);
      std::auto_ptr<vector<int> >		vector_mus_gfit_validHits		(new vector<int>  	);
+
      // get muons
      Handle<edm::View<reco::Muon> > muon_h;
-     iEvent.getByLabel("allLayer1TopMuons", muon_h);      // change this in the future
+     iEvent.getByLabel(muonsInputTag, muon_h);      // change this in the future
      edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
-
-     // get MC particle collection
-     edm::Handle<reco::GenParticleCollection> genParticlesHandle;
-     iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
      Handle<edm::View<reco::Track> > tk_h;
      iEvent.getByLabel(tracksInputTag, tk_h);
@@ -167,19 +158,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      
      for (edm::View<reco::Muon>::const_iterator muon = muon_h->begin(); 
 	  muon != muons_end; ++muon) {
-
-       //MC matching stuff
-       const reco::GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*muon,
-										    genParticlesHandle.product());
-       int mcid = -999, mom_mcid = -999;
-       LorentzVector mc_p4(0,0,0,0);
-       if(matchedGenParticle != 0) {
-	 mcid = matchedGenParticle->pdgId();
-	 mc_p4 = matchedGenParticle->p4();
-	 mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
-       }
-
-
        
        float tempIso = trackRelIsolation(muon->momentum(), muon->vertex(), track_coll,
                                     0.3,     //! dR < 0.3
@@ -206,10 +184,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        vector_mus_ptErr        ->push_back(muon->track().isNonnull() ? muon->track()->ptError()                  :	-999);
        vector_mus_etaErr       ->push_back(muon->track().isNonnull() ? muon->track()->etaError()                 :	-999);
        vector_mus_phiErr       ->push_back(muon->track().isNonnull() ? muon->track()->phiError()                 :	-999);
-       vector_mus_mc_p4        ->push_back(mc_p4                                                                            );
-       vector_mus_mc_id        ->push_back(mcid                                                                             );
-       vector_mus_charge       ->push_back(muon->track()->charge()                                                                   );
-       vector_mus_mc_motherid  ->push_back(mom_mcid                                                                         );
        vector_mus_outerPhi     ->push_back(-999);
        vector_mus_outerEta     ->push_back(-999);
        vector_mus_trkrefkey    ->push_back(muon->track().index());
@@ -255,10 +229,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_mus_ptErr        , "musptErr"             );
      iEvent.put(vector_mus_etaErr       , "musetaErr"            );
      iEvent.put(vector_mus_phiErr       , "musphiErr"            );
-     iEvent.put(vector_mus_mc_p4        , "musmcp4"              );
-     iEvent.put(vector_mus_mc_id        , "musmcid"              );
      iEvent.put(vector_mus_charge       , "muscharge"            );
-     iEvent.put(vector_mus_mc_motherid  , "musmcmotherid"        );
      iEvent.put(vector_mus_outerPhi     , "musouterPhi"          );
      iEvent.put(vector_mus_outerEta     , "musouterEta"          );
      iEvent.put(vector_mus_trkrefkey    , "mustrkrefkey"         );
