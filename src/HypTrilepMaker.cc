@@ -15,33 +15,33 @@ Implementation:
 Hypothesis:
 - lepton type: 1:m+, -1:m-, 2:e+, -2:e-
 - trilepton 20 buckets:
-e+e+e+: 0
-e+e+e-: 1
-e+e-e-: 2
-e-e-e-: 3
-m+m+m+: 4
-m+m+m-: 5
-m+m-m-: 6
-m-m-m-: 7
-m+e+e+: 8
-m-e+e+: 9
-m-e+e-: 10
+m+m+m+: 0
+m+m+m-: 1
+m+m-m-: 2
+m-m-m-: 3
+m+m+e+: 4
+m+m+e-: 5
+m+m-e+: 6
+m+m-e-: 7
+m-m-e+: 8
+m-m-e-: 9
+m+e+e+: 10
 m+e+e-: 11
-m-e-e-: 12
-m+e-e-: 13
-m+m+e+: 14
-m+m+e-: 15
-m+m-e-: 16
-m+m-e+: 17
-m-m-e-: 18
-m-m-e+: 19
+m+e-e-: 12
+m-e+e+: 13
+m-e+e-: 14
+m-e-e-: 15
+e+e+e+: 16
+e+e+e-: 17
+e+e-e-: 18
+e-e-e-: 19
 - trilepton hypothesis first/second/third follows bucket definition. In the case of the same type, ordering follows descending index number within muon and electron collection.
 
 */
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.2 2008/06/25 00:36:12 gutsche Exp $
+// $Id: HypTrilepMaker.cc,v 1.3 2008/07/22 19:00:18 gutsche Exp $
 //
 //
 
@@ -109,6 +109,15 @@ void
 HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
+  // output collections
+  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_bucket(new std::vector<unsigned int>);
+  std::auto_ptr<std::vector<int> > vector_hyp_trilep_first_type(new std::vector<int>);
+  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_first_index(new std::vector<unsigned int>);
+  std::auto_ptr<std::vector<int> > vector_hyp_trilep_second_type(new std::vector<int>);
+  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_second_index(new std::vector<unsigned int>);
+  std::auto_ptr<std::vector<int> > vector_hyp_trilep_third_type(new std::vector<int>);
+  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_third_index(new std::vector<unsigned int>);
+
   //input collections
 
   // muon charge
@@ -123,14 +132,37 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(els_charge_tag, els_charge_h);
   const std::vector<int> *els_charge = els_charge_h.product();
 
-  // output collections
-  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_bucket(new std::vector<unsigned int>);
-  std::auto_ptr<std::vector<int> > vector_hyp_trilep_first_type(new std::vector<int>);
-  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_first_index(new std::vector<unsigned int>);
-  std::auto_ptr<std::vector<int> > vector_hyp_trilep_second_type(new std::vector<int>);
-  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_second_index(new std::vector<unsigned int>);
-  std::auto_ptr<std::vector<int> > vector_hyp_trilep_third_type(new std::vector<int>);
-  std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_third_index(new std::vector<unsigned int>);
+  // number of electrons
+  unsigned int evt_nels = els_charge->size();
+
+  // number of electrons
+  unsigned int evt_nmus = mus_charge->size();
+
+  // check for numbers of electrons/muons
+  // if more than 99 electrons of 99 muons, skip event and fill empty vectors
+  if ( evt_nels > 99 ) {
+    edm::LogWarning("HypTrilepMaker") << "more than 99 electrons, skipping event!!!";
+    // put empty containers into event
+    iEvent.put(vector_hyp_trilep_bucket,"hyptrilepbucket");
+    iEvent.put(vector_hyp_trilep_first_type,"hyptrilepfirsttype");
+    iEvent.put(vector_hyp_trilep_first_index,"hyptrilepfirstindex");
+    iEvent.put(vector_hyp_trilep_second_type,"hyptrilepsecondtype");
+    iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
+    iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
+    iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
+    return;
+  } else if ( evt_nmus > 99 ) {
+    edm::LogWarning("HypTrilepMaker") << "more than 99 muons, skipping event!!!";
+    // put empty containers into event
+    iEvent.put(vector_hyp_trilep_bucket,"hyptrilepbucket");
+    iEvent.put(vector_hyp_trilep_first_type,"hyptrilepfirsttype");
+    iEvent.put(vector_hyp_trilep_first_index,"hyptrilepfirstindex");
+    iEvent.put(vector_hyp_trilep_second_type,"hyptrilepsecondtype");
+    iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
+    iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
+    iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
+    return;
+  }
 
   // processed trilepton candidates 
   // ordered: first by type (1st muon, 2nd electron), then by index number
@@ -139,12 +171,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // array for sorts
   unsigned int sorter[3] = {0,0,0};
 
-
-  // number of electrons
-  unsigned int evt_nels = els_charge->size();
-
-  // number of electrons
-  unsigned int evt_nmus = mus_charge->size();
 
   // m
   for (unsigned int firstMuon = 0; firstMuon < evt_nmus; ++firstMuon) {
@@ -158,24 +184,25 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	sorter[1] = secondMuon;
 	sorter[2] = thirdMuon;
 	std::sort(sorter,sorter+3);
-	unsigned int candIndex = encodeTrileptonCandidate(sorter[0],
+	unsigned int candIndex = encodeTrileptonCandidate(0,
+							  sorter[0],
 							  sorter[1],
 							  sorter[2]);
 	if ( find(cand.begin(),cand.end(), candIndex) == cand.end() ) {
 	  cand.push_back(candIndex);
 	  int charge = mus_charge->at(sorter[0]) + mus_charge->at(sorter[1]) + mus_charge->at(sorter[2]);
-	  if ( charge == -3 ) {
-	    // m-m-m-
-	    vector_hyp_trilep_bucket->push_back(7);
-	  } else if ( charge == -1) {
-	    // m+m-m-
-	    vector_hyp_trilep_bucket->push_back(6);
-	  } else if ( charge == 1 ) {
-	    // m+m+m-
-	    vector_hyp_trilep_bucket->push_back(5);
-	  } else if ( charge == 3 ) {
+	  if ( charge == 3 ) {
 	    // m+m+m+
-	    vector_hyp_trilep_bucket->push_back(4);
+	    vector_hyp_trilep_bucket->push_back(0);
+	  } else if ( charge == 1) {
+	    // m+m+m-
+	    vector_hyp_trilep_bucket->push_back(1);
+	  } else if ( charge == -1 ) {
+	    // m+m-m-
+	    vector_hyp_trilep_bucket->push_back(2);
+	  } else if ( charge == -3 ) {
+	    // m-m-m-
+	    vector_hyp_trilep_bucket->push_back(3);
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mmm : charge combination could not be identified!!!";
 	  }
@@ -195,35 +222,36 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::sort(sorter,sorter+2);
 	// add electron
 	sorter[2] = thirdElectron;
-	unsigned int candIndex = encodeTrileptonCandidate(sorter[0],
+	unsigned int candIndex = encodeTrileptonCandidate(1,
+							  sorter[0],
 							  sorter[1],
 							  sorter[2]);
 	if ( find(cand.begin(),cand.end(), candIndex) == cand.end() ) {
 	  cand.push_back(candIndex);
 	  int charge = mus_charge->at(sorter[0]) + mus_charge->at(sorter[1]);
-	  if ( charge == -2 ) {
-	    if ( els_charge->at(sorter[2]) < 0 ) {
-	      // m-m-e-
-	      vector_hyp_trilep_bucket->push_back(18);
+	  if ( charge == 2 ) {
+	    if ( els_charge->at(sorter[2]) > 0 ) {
+	      // m+m+e+
+	      vector_hyp_trilep_bucket->push_back(4);
 	    } else {
-	      // m-m-e+
-	      vector_hyp_trilep_bucket->push_back(19);
+	      // m+m+e-
+	      vector_hyp_trilep_bucket->push_back(5);
 	    }
 	  } else if ( charge == 0) {
-	    if ( els_charge->at(sorter[2]) < 0 ) {
-	      // m+m-e-
-	      vector_hyp_trilep_bucket->push_back(16);
-	    } else {
+	    if ( els_charge->at(sorter[2]) > 0 ) {
 	      // m+m-e+
-	      vector_hyp_trilep_bucket->push_back(17);
-	    }
-	  } else if ( charge == 2 ) {
-	    if ( els_charge->at(sorter[2]) < 0 ) {
-	      // m+m+e-
-	      vector_hyp_trilep_bucket->push_back(15);
+	      vector_hyp_trilep_bucket->push_back(6);
 	    } else {
-	      // m+m+e+
-	      vector_hyp_trilep_bucket->push_back(14);
+	      // m+m-e-
+	      vector_hyp_trilep_bucket->push_back(7);
+	    }
+	  } else if ( charge == -2 ) {
+	    if ( els_charge->at(sorter[2]) > 0 ) {
+	      // m-m-e+
+	      vector_hyp_trilep_bucket->push_back(8);
+	    } else {
+	      // m-m-e-
+	      vector_hyp_trilep_bucket->push_back(9);
 	    }
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mme: charge combination could not be identified!!!";
@@ -250,36 +278,39 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	sorter[2] = sorter[1];
 	sorter[1] = sorter[0];
 	sorter[0] = firstMuon;
-	unsigned int candIndex = encodeTrileptonCandidate(sorter[0],
+	unsigned int candIndex = encodeTrileptonCandidate(2,
+							  sorter[0],
 							  sorter[1],
 							  sorter[2]);
 	if ( find(cand.begin(),cand.end(), candIndex) == cand.end() ) {
 	  cand.push_back(candIndex);
 	  // check for charge to identify bucket number
 	  int charge = els_charge->at(sorter[1]) + els_charge->at(sorter[2]);
-	  if ( charge == -2 ) {
-	    if ( mus_charge->at(sorter[0]) < 0 ) {
-	      // e-e-m-
+	  if ( mus_charge->at(sorter[0]) > 0 ) {
+	    if ( charge == 2 ) {
+	      // m+e+e+
+	      vector_hyp_trilep_bucket->push_back(10);
+	    } else if ( charge == 0) {
+	      // m+e+e-
+	      vector_hyp_trilep_bucket->push_back(11);
+	    } else if ( charge == -2 ) {
+	      // m+e-e-
 	      vector_hyp_trilep_bucket->push_back(12);
 	    } else {
-	      // e-e-m+
+	      edm::LogError("HypTrilepMaker") << "combineTriLeptons m+ee: charge combination could not be identified!!!";
+	    }
+	  } else if ( mus_charge->at(sorter[0]) < 0 ) {
+	    if ( charge == 2 ) {
+	      // m-e+e+
 	      vector_hyp_trilep_bucket->push_back(13);
-	    }
-	  } else if ( charge == 0) {
-	    if ( mus_charge->at(sorter[0]) < 0 ) {
-	      // e+e-m-
-	      vector_hyp_trilep_bucket->push_back(10);
+	    } else if ( charge == 0) {
+	      // m-e+e-
+	      vector_hyp_trilep_bucket->push_back(14);
+	    } else if ( charge == -2 ) {
+	      // m-e-e-
+	      vector_hyp_trilep_bucket->push_back(15);
 	    } else {
-	      // e+e-m+
-	      vector_hyp_trilep_bucket->push_back(11);
-	    }
-	  } else if ( charge == 2 ) {
-	    if ( mus_charge->at(sorter[0]) < 0 ) {
-	      // e+e+m-
-	      vector_hyp_trilep_bucket->push_back(9);
-	    } else {
-	      // e+e+m+
-	      vector_hyp_trilep_bucket->push_back(8);
+	      edm::LogError("HypTrilepMaker") << "combineTriLeptons m-ee: charge combination could not be identified!!!";
 	    }
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mee: charge combination could not be identified!!!";
@@ -309,25 +340,26 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	sorter[1] = secondElectron;
 	sorter[2] = thirdElectron;
 	std::sort(sorter,sorter+3);
-	unsigned int candIndex = encodeTrileptonCandidate(sorter[0],
+	unsigned int candIndex = encodeTrileptonCandidate(3,
+							  sorter[0],
 							  sorter[1],
 							  sorter[2]);
 	if ( find(cand.begin(),cand.end(), candIndex) == cand.end() ) {
 	  cand.push_back(candIndex);
 	  // check for charge to identify bucket number
 	  int charge = els_charge->at(sorter[0]) + els_charge->at(sorter[1]) + els_charge->at(sorter[2]);
-	  if ( charge == -3 ) {
-	    // e-e-e-
-	    vector_hyp_trilep_bucket->push_back(3);
-	  } else if ( charge == -1) {
-	    // e+e-e-
-	    vector_hyp_trilep_bucket->push_back(2);
-	  } else if ( charge == 1 ) {
-	    // e+e+e-
-	    vector_hyp_trilep_bucket->push_back(1);
-	  } else if ( charge == 3 ) {
+	  if ( charge == 3 ) {
 	    // e+e+e+
-	    vector_hyp_trilep_bucket->push_back(0);
+	    vector_hyp_trilep_bucket->push_back(16);
+	  } else if ( charge == 1) {
+	    // e+e+e-
+	    vector_hyp_trilep_bucket->push_back(17);
+	  } else if ( charge == -1 ) {
+	    // e+e-e-
+	    vector_hyp_trilep_bucket->push_back(18);
+	  } else if ( charge == -3 ) {
+	    // e-e-e-
+	    vector_hyp_trilep_bucket->push_back(19);
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons eee: charge combination could not be identified!!!";
 	  }
@@ -363,11 +395,12 @@ void
 HypTrilepMaker::endJob() {
 }
 
-unsigned int HypTrilepMaker::encodeTrileptonCandidate(unsigned int first, unsigned int second, unsigned int third) {
+unsigned int HypTrilepMaker::encodeTrileptonCandidate(unsigned int combination, unsigned int first, unsigned int second, unsigned int third) {
   // encode trilepton candidate according to
   //
-  // trilepton candidate is identified by coded unsigned integer: BBCCDD
+  // trilepton candidate is identified by coded unsigned integer: ABBCCDD
   //
+  //  A: trilepton combination: mmm:0, mme: 1, mee: 2, eee: 3
   // BB: index of first lepton from els and mus collection
   // CC: index of second lepton from els and mus collection
   // DD: index of third lepton from els and mus collection
@@ -376,7 +409,7 @@ unsigned int HypTrilepMaker::encodeTrileptonCandidate(unsigned int first, unsign
   // same flavor leptons in candidate are ordered by increasing index
   //
 
-  return first * 10000 + second * 100 + third;
+  return combination * 100000 + first * 10000 + second * 100 + third;
 }
 
 //define this as a plug-in

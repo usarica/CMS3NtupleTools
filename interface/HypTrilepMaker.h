@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.2 2008/06/25 00:36:12 gutsche Exp $
+// $Id: HypTrilepMaker.h,v 1.3 2008/07/22 19:00:18 gutsche Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -47,7 +47,8 @@ class HypTrilepMaker : public edm::EDProducer {
 public:
   explicit HypTrilepMaker (const edm::ParameterSet&);
   ~HypTrilepMaker();
-  unsigned int encodeTrileptonCandidate(unsigned int first,
+  unsigned int encodeTrileptonCandidate(unsigned int combination,
+					unsigned int first,
 					unsigned int second,
 					unsigned int third);
 
