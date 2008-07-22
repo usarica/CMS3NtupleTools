@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.4 2008/07/17 00:46:55 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.5 2008/07/22 21:12:45 fgolf Exp $
 //
 //
 
@@ -65,6 +65,7 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   
   
   muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"                 );
+  muToGenInputTag          = iConfig.getParameter<InputTag>("muToGenInputTag"               );
   electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"             );
   metInputTag              = iConfig.getParameter<InputTag>("metInputTag"                   );
   jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"                  );
@@ -441,14 +442,14 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
 
   //PDG id of matched MC particle
-  InputTag mus_mc_id_tag(muonsInputTag.label(),"musmcid");
+  InputTag mus_mc_id_tag(muToGenInputTag.label(),"musmcid");
   Handle<vector<int> > mus_mc_id_h;
   iEvent.getByLabel(mus_mc_id_tag, mus_mc_id_h);
   const vector<int> *mus_mc_id = mus_mc_id_h.product();
 
   
   //PDG id of MC matched mother 
-  InputTag mus_mc_motherid_tag(muonsInputTag.label(),"musmcid");
+  InputTag mus_mc_motherid_tag(muToGenInputTag.label(),"musmcid");
   Handle<vector<int> > mus_mc_motherid_h;
   iEvent.getByLabel(mus_mc_motherid_tag, mus_mc_motherid_h);
   const vector<int> *mus_mc_motherid = mus_mc_motherid_h.product();
@@ -548,7 +549,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
 
   //muon mc P4
-  InputTag mus_mc_p4_tag(muonsInputTag.label(),"musmcp4");
+  InputTag mus_mc_p4_tag(muToGenInputTag.label(),"musmcp4");
   Handle<vector<LorentzVector> > mus_mc_p4_h;
   iEvent.getByLabel(mus_mc_p4_tag, mus_mc_p4_h);
   const vector<LorentzVector> *mus_mc_p4 = mus_mc_p4_h.product();

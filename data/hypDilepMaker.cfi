@@ -3,6 +3,9 @@ module hypDilepMaker = HypDilepMaker {
   # muons collection
   InputTag muonsInputTag = muonMaker
 
+  # muon to gen particle association
+  InputTag muToGenInputTag = muToGenAssMaker
+
   # electrons collection
   InputTag electronsInputTag = electronMaker
  

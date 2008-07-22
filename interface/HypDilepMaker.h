@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.2 2008/07/15 18:47:58 kalavase Exp $
+// $Id: HypDilepMaker.h,v 1.3 2008/07/22 21:12:32 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -58,6 +58,7 @@ private:
    
   // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
+  edm::InputTag muToGenInputTag;
   edm::InputTag electronsInputTag;
   edm::InputTag metInputTag;
   edm::InputTag jetsInputTag;
