@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.1 2008/07/22 00:50:16 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.2 2008/07/22 18:54:56 gutsche Exp $
 //
 //
 
@@ -172,6 +172,7 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
     iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
     iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    return;
   } else if ( evt_nmus > 99 ) {
     edm::LogWarning("HypQuadlepMaker") << "more than 99 muons, skipping event!!!";
     // put empty containers into event
@@ -184,10 +185,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
     iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
     iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    return;
   }
-
-
-
 
   // processed quadlepton candidates 
   // ordered: first by type (1st muon, 2nd electron), then by index number
