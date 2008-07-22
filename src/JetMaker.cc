@@ -14,7 +14,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.5 2008/07/08 16:58:58 kalavase Exp $
+// $Id: JetMaker.cc,v 1.6 2008/07/22 00:49:51 gutsche Exp $
 //
 //
 
@@ -195,8 +195,8 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       LorentzVector injetP4 = jet->p4();
       if (injetP4.e() < 0) injetP4 *= -1;
-      double injet_eta = jet->eta();
-      double injet_phi = jet->phi();
+//       double injet_eta = jet->eta();
+//       double injet_phi = jet->phi();
       double injet_et = jet->et();
 
       LorentzVector corJetP4 = jetsCorIt->p4();
