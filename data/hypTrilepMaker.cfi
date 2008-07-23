@@ -6,4 +6,31 @@ module hypTrilepMaker = HypTrilepMaker {
   # electrons collection
   InputTag electronsInputTag = electronMaker
 
+  # met collection
+  InputTag metInputTag = metMaker  
+ 
+  #jet collection
+  InputTag jetsInputTag = jetMaker 
+
+  #tqjets collection
+  InputTag tqJetsInputTag = tqJetMaker
+
+ #cuts on the hyp jets
+ double hypJetMinEtaCut = -3.0
+ double hypJetMaxEtaCut = 3.0
+ double hypJetMinPtCut  = 15 #this is an uncorrected pt cut!
+
+  #are we using tqaf jets in the JetMaker?
+  #matters for JetCorrection
+  bool usingTQJets = true
+
+  #tracks collection
+  InputTag trksInputTag = trackMaker
+ 
+  #loose lepton pt cut
+  double LooseLepton_PtCut = 5.
+  
+  #tight lepton pt cut
+  double TightLepton_PtCut = 20.
+
 }

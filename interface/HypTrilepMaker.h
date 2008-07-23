@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.3 2008/07/22 19:00:18 gutsche Exp $
+// $Id: HypTrilepMaker.h,v 1.4 2008/07/23 00:29:14 gutsche Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -60,6 +60,14 @@ private:
   // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
   edm::InputTag electronsInputTag;
+  edm::InputTag metInputTag;
+  edm::InputTag jetsInputTag;
+  edm::InputTag trksInputTag;
+  double        hypJetMinEtaCut;
+  double        hypJetMaxEtaCut;
+  double        hypJetMinPtCut;
+  double        tightptcut;
+  double        looseptcut;
 
 };
 

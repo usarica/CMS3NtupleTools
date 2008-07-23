@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.2 2008/07/22 18:54:56 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.3 2008/07/23 00:29:14 gutsche Exp $
 //
 //
 
@@ -77,8 +77,9 @@ e-e-e-e-: 34
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CMS2/NtupleMaker/interface/HypQuadlepMaker.h"
 
-
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/METUtilities.h"
+#include "CMS2/NtupleMaker/interface/JetUtilities.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -91,6 +92,18 @@ e-e-e-e-: 34
 //
 HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
 {
+  // parameters from configuration
+  muonsInputTag = iConfig.getParameter<edm::InputTag>("muonsInputTag");
+  electronsInputTag = iConfig.getParameter<edm::InputTag>("electronsInputTag");
+  metInputTag = iConfig.getParameter<edm::InputTag>("metInputTag");
+  jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
+  trksInputTag = iConfig.getParameter<edm::InputTag>("trksInputTag");
+  hypJetMinEtaCut = iConfig.getParameter<double>("hypJetMinEtaCut");
+  hypJetMaxEtaCut = iConfig.getParameter<double>("hypJetMaxEtaCut");
+  hypJetMinPtCut = iConfig.getParameter<double>("hypJetMinPtCut");
+  tightptcut = iConfig.getParameter<double>("TightLepton_PtCut");
+  looseptcut = iConfig.getParameter<double>("LooseLepton_PtCut");
+
   // product of this EDProducer
   // 
   // quadlepton hyptothesis
@@ -104,10 +117,9 @@ HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<unsigned int> > ("hypquadlepthirdindex").setBranchAlias("hyp_quadlep_third_index");   // index of third lepton in lepton collection
   produces<std::vector<int> >          ("hypquadlepfourthtype").setBranchAlias("hyp_quadlep_fourth_type");   // type of the fourth lepton in the quadlepton hypothesis (1: muon, 2: electron)
   produces<std::vector<unsigned int> > ("hypquadlepfourthindex").setBranchAlias("hyp_quadlep_fourth_index"); // index of fourth lepton in lepton collection
-
-  // parameters from configuration
-  muonsInputTag = iConfig.getParameter<edm::InputTag>("muonsInputTag");
-  electronsInputTag = iConfig.getParameter<edm::InputTag>("electronsInputTag");
+  produces<std::vector<float> >                       ("hypquadlepmet").setBranchAlias("hyp_quadlep_met");
+  produces<std::vector<float> >                       ("hypquadlepmetAll").setBranchAlias("hyp_quadlep_metAll");
+  produces<std::vector<std::vector<int> > >  ("hypquadlepjetsindex").setBranchAlias("hyp_quadlep_jets_index");
 
 }
 
@@ -127,26 +139,6 @@ void
 HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-  //input collections
-
-  // muon charge
-  edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
-  edm::Handle<std::vector<int> > mus_charge_h;
-  iEvent.getByLabel(mus_charge_tag, mus_charge_h);
-  const std::vector<int> *mus_charge = mus_charge_h.product();
-
-  // electron charge
-  edm::InputTag els_charge_tag(electronsInputTag.label(),"elscharge");
-  edm::Handle<std::vector<int> > els_charge_h;
-  iEvent.getByLabel(els_charge_tag, els_charge_h);
-  const std::vector<int> *els_charge = els_charge_h.product();
-
-  // number of electrons
-  unsigned int evt_nels = els_charge->size();
-
-  // number of electrons
-  unsigned int evt_nmus = mus_charge->size();
-
   // output collections
   std::auto_ptr<std::vector<unsigned int> > vector_hyp_quadlep_bucket(new std::vector<unsigned int>);
   std::auto_ptr<std::vector<int> > vector_hyp_quadlep_first_type(new std::vector<int>);
@@ -157,6 +149,83 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<unsigned int> > vector_hyp_quadlep_third_index(new std::vector<unsigned int>);
   std::auto_ptr<std::vector<int> > vector_hyp_quadlep_fourth_type(new std::vector<int>);
   std::auto_ptr<std::vector<unsigned int> > vector_hyp_quadlep_fourth_index(new std::vector<unsigned int>);
+  std::auto_ptr<std::vector<float> > vector_hyp_quadlep_met(new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_hyp_quadlep_metAll(new std::vector<float>);
+  std::auto_ptr<std::vector<std::vector<int> > > vector_hyp_quadlep_jets_index(new std::vector<std::vector<int> > );
+
+  //input collections
+
+  // muon charge
+  edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
+  edm::Handle<std::vector<int> > mus_charge_h;
+  iEvent.getByLabel(mus_charge_tag, mus_charge_h);
+  const std::vector<int> *mus_charge = mus_charge_h.product();
+
+  //muon p4
+  edm::InputTag mus_p4_tag(muonsInputTag.label(),"musp4");
+  edm::Handle<std::vector<LorentzVector> > mus_p4_h;
+  iEvent.getByLabel(mus_p4_tag, mus_p4_h);
+  const std::vector<LorentzVector> *mus_p4 = mus_p4_h.product();
+
+  //energy deposited in EM cal
+  edm::InputTag mus_e_em_tag(muonsInputTag.label(), "museem");
+  edm::Handle<std::vector<float> > mus_e_em_h;
+  iEvent.getByLabel(mus_e_em_tag, mus_e_em_h);
+  const std::vector<float> *mus_e_em = mus_e_em_h.product();
+
+  //energy deposited in HAD cal
+  edm::InputTag mus_e_had_tag(muonsInputTag.label(), "musehad");
+  edm::Handle<std::vector<float> > mus_e_had_h;
+  iEvent.getByLabel(mus_e_had_tag, mus_e_had_h);
+  const std::vector<float> *mus_e_had = mus_e_had_h.product();
+  
+  //energy deposited in HO cal
+  edm::InputTag mus_e_ho_tag(muonsInputTag.label(), "museho");
+  edm::Handle<std::vector<float> > mus_e_ho_h;
+  iEvent.getByLabel(mus_e_ho_tag, mus_e_ho_h);
+  const std::vector<float> *mus_e_ho = mus_e_ho_h.product();
+
+  //muon track P4
+  edm::InputTag mus_trk_p4_tag(muonsInputTag.label(),"mustrkp4");
+  edm::Handle<std::vector<LorentzVector> > mus_trk_p4_h;
+  iEvent.getByLabel(mus_trk_p4_tag, mus_trk_p4_h);
+  const std::vector<LorentzVector> *mus_trk_p4 = mus_trk_p4_h.product();
+
+  // electron charge
+  edm::InputTag els_charge_tag(electronsInputTag.label(),"elscharge");
+  edm::Handle<std::vector<int> > els_charge_h;
+  iEvent.getByLabel(els_charge_tag, els_charge_h);
+  const std::vector<int> *els_charge = els_charge_h.product();
+
+  // electron p4
+  edm::InputTag els_p4_tag(electronsInputTag.label(),"elsp4");
+  edm::Handle<std::vector<LorentzVector> > els_p4_h;
+  iEvent.getByLabel(els_p4_tag, els_p4_h);
+  const std::vector<LorentzVector> *els_p4 = els_p4_h.product();
+  
+  //event met - this is uncorrected
+  edm::InputTag met_tag(metInputTag.label(), "evtmet");
+  edm::Handle<float> met_tag_h;
+  iEvent.getByLabel(met_tag, met_tag_h);
+  const float* evt_met = met_tag_h.product();
+
+  //event metPhi
+  edm::InputTag metphi_tag(metInputTag.label(), "evtmetPhi");
+  edm::Handle<float> metphi_tag_h;
+  iEvent.getByLabel(metphi_tag, metphi_tag_h);
+  const float* evt_metphi = metphi_tag_h.product();
+
+  //jet p4
+  edm::InputTag jets_p4_tag(jetsInputTag.label(), "jetsp4");
+  edm::Handle<std::vector<LorentzVector> > jets_p4_h;
+  iEvent.getByLabel(jets_p4_tag, jets_p4_h);
+  const std::vector<LorentzVector> *jets_p4 = jets_p4_h.product();
+
+  // number of electrons
+  unsigned int evt_nels = els_charge->size();
+
+  // number of electrons
+  unsigned int evt_nmus = mus_charge->size();
 
   // check for numbers of electrons/muons
   // if more than 99 electrons of 99 muons, skip event and fill empty vectors
@@ -172,6 +241,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
     iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
     iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    iEvent.put(vector_hyp_quadlep_met,"hypquadlepmet");
+    iEvent.put(vector_hyp_quadlep_metAll,"hypquadlepmetAll");
+    iEvent.put(vector_hyp_quadlep_jets_index,"hypquadlepjetsindex");
     return;
   } else if ( evt_nmus > 99 ) {
     edm::LogWarning("HypQuadlepMaker") << "more than 99 muons, skipping event!!!";
@@ -185,7 +257,25 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
     iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
     iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    iEvent.put(vector_hyp_quadlep_met,"hypquadlepmet");
+    iEvent.put(vector_hyp_quadlep_metAll,"hypquadlepmetAll");
+    iEvent.put(vector_hyp_quadlep_jets_index,"hypquadlepjetsindex");
     return;
+  }
+
+  // MET variables
+  double hypmet = *evt_met;
+  double hypmetPhi = *evt_metphi;
+  double metAll           = *evt_met;
+  double metPhiAll        = *evt_met;
+
+  // correct MET for all muons
+  // should be moved to EventMaker
+  for(unsigned int i = 0; i < mus_p4->size(); ++i) {
+    std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(i),
+								       mus_trk_p4->at(i) );
+    METUtilities::correctMETmuons_crossedE(muon_pair, metAll, metPhiAll,
+					   mus_e_em->at(i), mus_e_had->at(i),  mus_e_ho->at(i) );
   }
 
   // processed quadlepton candidates 
@@ -207,6 +297,19 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// m
 	for (unsigned int fourthMuon = 0; fourthMuon < evt_nmus; ++fourthMuon) {
 	  if ( fourthMuon == firstMuon || fourthMuon == secondMuon || fourthMuon == thirdMuon ) continue;
+	  
+	  // hyp lepton pt cuts
+	  // check that all leptons have >= looseptcut
+	  if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
+	       mus_p4->at(secondMuon).Pt() < looseptcut &&
+	       mus_p4->at(thirdMuon).Pt() < looseptcut &&
+	       mus_p4->at(fourthMuon).Pt() < looseptcut ) continue;
+	  // check that at least one lepton has >= tightptcut
+	  if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
+	       mus_p4->at(secondMuon).Pt() < tightptcut ||
+	       mus_p4->at(thirdMuon).Pt() < tightptcut ||
+	       mus_p4->at(fourthMuon).Pt() < tightptcut ) continue;
+	  
 	  sorter[0] = firstMuon;
 	  sorter[1] = secondMuon;
 	  sorter[2] = thirdMuon;
@@ -238,6 +341,25 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    } else {
 	      edm::LogError("HypQuadlepMaker") << "combineQuadleptons mmmm : charge combination could not be identified!!!";
 	    }
+
+	    // correct MET for muons in hypothesis
+	    for ( unsigned int i = 0; i < 4; ++i ) {
+	      std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
+										 mus_trk_p4->at(sorter[i]) );
+	      METUtilities::correctMETmuons_crossedE(muon_pair,
+						     hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
+						     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
+	    }
+
+	    // store jet indices which pass cuts
+	    std::vector<int>  jets_index;
+	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
+	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      jets_index.push_back(i);
+	    }
+
 	    vector_hyp_quadlep_first_type->push_back(mus_charge->at(sorter[0]));
 	    vector_hyp_quadlep_first_index->push_back(sorter[0]);
 	    vector_hyp_quadlep_second_type->push_back(mus_charge->at(sorter[1]));
@@ -246,10 +368,25 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_third_index->push_back(sorter[2]);
 	    vector_hyp_quadlep_fourth_type->push_back(mus_charge->at(sorter[3]));
 	    vector_hyp_quadlep_fourth_index->push_back(sorter[3]);
+	    vector_hyp_quadlep_met->push_back(hypmet);
+	    vector_hyp_quadlep_metAll->push_back(metAll);
+	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
 	// e
 	for (unsigned int fourthElectron = 0; fourthElectron < evt_nels; ++fourthElectron) {
+	// hyp lepton pt cuts
+	// check that all leptons have >= looseptcut
+	if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
+	     mus_p4->at(secondMuon).Pt() < looseptcut &&
+	     mus_p4->at(thirdMuon).Pt() < looseptcut &&
+	     els_p4->at(fourthElectron).Pt() < looseptcut ) continue;
+	// check that at least one lepton has >= tightptcut
+	if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
+	     mus_p4->at(secondMuon).Pt() < tightptcut ||
+	     mus_p4->at(thirdMuon).Pt() < tightptcut ||
+	     els_p4->at(fourthElectron).Pt() < tightptcut ) continue;
+
 	  // order muon indices
 	  sorter[0] = firstMuon;
 	  sorter[1] = secondMuon;
@@ -300,6 +437,27 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    } else {
 	      edm::LogError("HypQuadlepMaker") << "combineQuadleptons mmme: charge combination could not be identified!!!";
 	    }
+
+	    // correct MET for muons in hypothesis
+	    for ( unsigned int i = 0; i < 3; ++i ) {
+	      std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
+										 mus_trk_p4->at(sorter[i]) );
+	      METUtilities::correctMETmuons_crossedE(muon_pair,
+						     hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
+						     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
+	    }
+
+	    // store jet indices which pass cuts
+	    std::vector<int>  jets_index;
+	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
+	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      // veto electron jets
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+	      jets_index.push_back(i);
+	    }
+
 	    vector_hyp_quadlep_first_type->push_back(mus_charge->at(sorter[0]));
 	    vector_hyp_quadlep_first_index->push_back(sorter[0]);
 	    vector_hyp_quadlep_second_type->push_back(mus_charge->at(sorter[1]));
@@ -308,6 +466,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_third_index->push_back(sorter[2]);
 	    vector_hyp_quadlep_fourth_type->push_back(els_charge->at(sorter[3])*2);
 	    vector_hyp_quadlep_fourth_index->push_back(sorter[3]);
+	    vector_hyp_quadlep_met->push_back(hypmet);
+	    vector_hyp_quadlep_metAll->push_back(metAll);
+	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
       }
@@ -316,6 +477,19 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// e
 	for (unsigned int fourthElectron = 0; fourthElectron < evt_nels; ++fourthElectron) {
 	  if ( fourthElectron == thirdElectron ) continue;
+
+	  // hyp lepton pt cuts
+	  // check that all leptons have >= looseptcut
+	  if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
+	       mus_p4->at(secondMuon).Pt() < looseptcut &&
+	       els_p4->at(thirdElectron).Pt() < looseptcut &&
+	       els_p4->at(fourthElectron).Pt() < looseptcut ) continue;
+	  // check that at least one lepton has >= tightptcut
+	  if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
+	       mus_p4->at(secondMuon).Pt() < tightptcut ||
+	       els_p4->at(thirdElectron).Pt() < tightptcut ||
+	       els_p4->at(fourthElectron).Pt() < tightptcut ) continue;
+
 	  // order electron indices
 	  sorter2[0] = thirdElectron;
 	  sorter2[1] = fourthElectron;
@@ -379,6 +553,28 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    } else {
 	      edm::LogError("HypQuadlepMaker") << "combineQuadleptons mmee: charge combination could not be identified!!!";
 	    }
+
+	    // correct MET for muons in hypothesis
+	    for ( unsigned int i = 0; i < 2; ++i ) {
+	      std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
+										 mus_trk_p4->at(sorter[i]) );
+	      METUtilities::correctMETmuons_crossedE(muon_pair,
+						     hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
+						     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
+	    }
+
+	    // store jet indices which pass cuts
+	    std::vector<int>  jets_index;
+	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
+	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      // veto electron jets
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+	      jets_index.push_back(i);
+	    }
+
 	    vector_hyp_quadlep_first_type->push_back(mus_charge->at(sorter[0]));
 	    vector_hyp_quadlep_first_index->push_back(sorter[0]);
 	    vector_hyp_quadlep_second_type->push_back(mus_charge->at(sorter[1]));
@@ -387,6 +583,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_third_index->push_back(sorter[2]);
 	    vector_hyp_quadlep_fourth_type->push_back(els_charge->at(sorter[3])*2);
 	    vector_hyp_quadlep_fourth_index->push_back(sorter[3]);
+	    vector_hyp_quadlep_met->push_back(hypmet);
+	    vector_hyp_quadlep_metAll->push_back(metAll);
+	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
       }
@@ -399,6 +598,19 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// e
 	for (unsigned int fourthElectron = 0; fourthElectron < evt_nels; ++fourthElectron) {
     	  if ( fourthElectron == thirdElectron || fourthElectron == secondElectron ) continue;
+
+	  // hyp lepton pt cuts
+	  // check that all leptons have >= looseptcut
+	  if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
+	       els_p4->at(secondElectron).Pt() < looseptcut &&
+	       els_p4->at(thirdElectron).Pt() < looseptcut &&
+	       els_p4->at(fourthElectron).Pt() < looseptcut ) continue;
+	  // check that at least one lepton has >= tightptcut
+	  if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
+	       els_p4->at(secondElectron).Pt() < tightptcut ||
+	       els_p4->at(thirdElectron).Pt() < tightptcut ||
+	       els_p4->at(fourthElectron).Pt() < tightptcut ) continue;
+
 	  // sort electrons
 	  sorter2[0] = secondElectron;
 	  sorter2[1] = thirdElectron;
@@ -452,6 +664,29 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    } else {
 	      edm::LogError("HypQuadlepMaker") << "combineQuadleptons meee: charge combination could not be identified!!!";
 	    }
+
+	    // correct MET for muons in hypothesis
+	    for ( unsigned int i = 0; i < 1; ++i ) {
+	      std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
+										 mus_trk_p4->at(sorter[i]) );
+	      METUtilities::correctMETmuons_crossedE(muon_pair,
+						     hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
+						     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
+	    }
+
+	    // store jet indices which pass cuts
+	    std::vector<int>  jets_index;
+	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
+	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      // veto electron jets
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[1]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+	      jets_index.push_back(i);
+	    }
+
 	    vector_hyp_quadlep_first_type->push_back(mus_charge->at(sorter[0]));
 	    vector_hyp_quadlep_first_index->push_back(sorter[0]);
 	    vector_hyp_quadlep_second_type->push_back(els_charge->at(sorter[1])*2);
@@ -460,6 +695,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_third_index->push_back(sorter[2]);
 	    vector_hyp_quadlep_fourth_type->push_back(els_charge->at(sorter[3])*2);
 	    vector_hyp_quadlep_fourth_index->push_back(sorter[3]);
+	    vector_hyp_quadlep_met->push_back(hypmet);
+	    vector_hyp_quadlep_metAll->push_back(metAll);
+	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
       }
@@ -477,6 +715,19 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// e
 	for (unsigned int fourthElectron = 0; fourthElectron < evt_nmus; ++fourthElectron) {
 	  if ( fourthElectron == firstElectron || fourthElectron == secondElectron || fourthElectron == thirdElectron ) continue;
+
+	  // hyp lepton pt cuts
+	  // check that all leptons have >= looseptcut
+	  if ( els_p4->at(firstElectron).Pt() < looseptcut &&
+	       els_p4->at(secondElectron).Pt() < looseptcut &&
+	       els_p4->at(thirdElectron).Pt() < looseptcut &&
+	       els_p4->at(fourthElectron).Pt() < looseptcut ) continue;
+	  // check that at least one lepton has >= tightptcut
+	  if ( els_p4->at(firstElectron).Pt() < tightptcut ||
+	       els_p4->at(secondElectron).Pt() < tightptcut ||
+	       els_p4->at(thirdElectron).Pt() < tightptcut ||
+	       els_p4->at(fourthElectron).Pt() < tightptcut ) continue;
+
 	  sorter[0] = firstElectron;
 	  sorter[1] = secondElectron;
 	  sorter[2] = thirdElectron;
@@ -508,6 +759,21 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    } else {
 	      edm::LogError("HypQuadlepMaker") << "combineQuadleptons eeee : charge combination could not be identified!!!";
 	    }
+
+	    // store jet indices which pass cuts
+	    std::vector<int>  jets_index;
+	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
+	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      // veto electron jets
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[0]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[1]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
+	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+	      jets_index.push_back(i);
+	    }
+
 	    vector_hyp_quadlep_first_type->push_back(els_charge->at(sorter[0])*2);
 	    vector_hyp_quadlep_first_index->push_back(sorter[0]);
 	    vector_hyp_quadlep_second_type->push_back(els_charge->at(sorter[1])*2);
@@ -516,6 +782,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_third_index->push_back(sorter[2]);
 	    vector_hyp_quadlep_fourth_type->push_back(els_charge->at(sorter[3])*2);
 	    vector_hyp_quadlep_fourth_index->push_back(sorter[3]);
+	    vector_hyp_quadlep_met->push_back(hypmet);
+	    vector_hyp_quadlep_metAll->push_back(metAll);
+	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
       }
@@ -532,6 +801,9 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
   iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
   iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+  iEvent.put(vector_hyp_quadlep_met,"hypquadlepmet");
+  iEvent.put(vector_hyp_quadlep_metAll,"hypquadlepmetAll");
+  iEvent.put(vector_hyp_quadlep_jets_index,"hypquadlepjetsindex");
 }
 
 // ------------ method called once each job just before starting event loop  ------------
