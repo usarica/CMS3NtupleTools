@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToGenAssMaker.cc,v 1.3 2008/07/22 20:12:20 fgolf Exp $
+// $Id: MuToGenAssMaker.cc,v 1.4 2008/07/23 05:35:01 fgolf Exp $
 //
 //
 
@@ -41,7 +41,7 @@
 
 
 typedef math::XYZTLorentzVector LorentzVector;
-using std::vector;
+using namespace std;
 using namespace edm;
 
 MuToGenAssMaker::MuToGenAssMaker(const edm::ParameterSet& iConfig)
@@ -90,7 +90,7 @@ void MuToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
        for (vector<LorentzVector>::const_iterator genps = genps_p4_h->begin(),
 	    genps_end = genps_p4_h->end();
-	    genps != genps_end; ++genp) { 
+	    genps != genps_end; ++genps, ++genp) { 
 
 	 const double deltaR = ROOT::Math::VectorUtil::DeltaR(*muon, *genps);
 
@@ -100,7 +100,9 @@ void MuToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   genidx   = genp;
 	   mom_mcid = (*genps_id_mother_h)[genp];
 	   mc_p4    = (*genps_p4_h)[genp];
+
 	 }	 
+
        }
 
        // fill vector
