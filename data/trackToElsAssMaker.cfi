@@ -1,4 +1,4 @@
-module trackToElsAssMaker = TrackToElsAssMaker{
+module trackToElsAssMaker = TrackToElAssMaker{
 
   # min DR
   double minDR = 0.1
