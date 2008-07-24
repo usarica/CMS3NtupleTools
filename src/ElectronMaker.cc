@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.8 2008/07/09 06:36:41 jmuelmen Exp $
+// $Id: ElectronMaker.cc,v 1.9 2008/07/24 04:35:19 kalavase Exp $
 //
 //
 
@@ -59,9 +59,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>            ("evtnels"             ).setBranchAlias("evt_nels"             ); //number of electrons in event
   produces<vector<int> >            ("elsvalidHits"        ).setBranchAlias("els_validHits"        ); //number of used hits in fit
   produces<vector<int> >  	    ("elslostHits"         ).setBranchAlias("els_lostHits"         ); //number of lost hits in fit
-  produces<vector<int> >  	    ("elsmcid"             ).setBranchAlias("els_mc_id"            ); //MC matched id
   produces<vector<int> >  	    ("elscharge"           ).setBranchAlias("els_charge"           ); //candidate charge
-  produces<vector<int> >  	    ("elsmcmotherid"       ).setBranchAlias("els_mc_motherid"      ); //Id of MC matched mother
   produces<vector<int> >  	    ("elsnSeed"            ).setBranchAlias("els_nSeed"            ); 
   produces<vector<int> >  	    ("elsclass"            ).setBranchAlias("els_class"            );
   produces<vector<int> >  	    ("elsrobustId"         ).setBranchAlias("els_robustId"         );
@@ -103,7 +101,6 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   //produces<vector<float> >	    ("elsdPhiOutEcalHit"   ).setBranchAlias("els_dPhiOutEcalHit"   );
   produces<vector<LorentzVector> >  ("elsp4"               ).setBranchAlias("els_p4"               );
   produces<vector<LorentzVector> >  ("elstrkp4"            ).setBranchAlias("els_trk_p4"           );
-  produces<vector<LorentzVector> >  ("elsmcp4"             ).setBranchAlias("els_mc_p4"            );
   produces<vector<LorentzVector> >  ("elsp4In"             ).setBranchAlias("els_p4In"            );
   produces<vector<LorentzVector> >  ("elsp4Out"            ).setBranchAlias("els_p4Out"           );
 
@@ -135,9 +132,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<unsigned int>           evt_nels                 (new unsigned int         ) ;
   auto_ptr<vector<int> >           els_validHits            (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_lostHits             (new vector<int>          ) ;
-  auto_ptr<vector<int> >	   els_mc_id                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_charge               (new vector<int>          ) ;
-  auto_ptr<vector<int> >	   els_mc_motherid          (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_nSeed                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_class                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_robustId             (new vector<int>          ) ;
@@ -179,7 +174,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //auto_ptr<vector<float> >	   els_dPhiOutEcalHit       (new vector<float>        ) ;
   auto_ptr<vector<LorentzVector> > els_p4                   (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_trk_p4               (new vector<LorentzVector>) ;
-  auto_ptr<vector<LorentzVector> > els_mc_p4                (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4In                 (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4Out                (new vector<LorentzVector>) ;
 
@@ -323,9 +317,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //fill the vectors
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-    els_mc_id                 ->push_back( mcid                                      );
     els_charge                ->push_back( el->charge()                              );
-    els_mc_motherid           ->push_back( matchedGenParticle !=0); //placeholder 
     els_nSeed                 ->push_back( el->numberOfClusters() - 1                );                             
     els_class                 ->push_back( el->classification()                      );
     els_robustId              ->push_back( id[0]                                     );
@@ -367,7 +359,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                            );
     els_p4                    ->push_back( el->p4()                                  );
     els_trk_p4                ->push_back( trk_p4                                    );
-    els_mc_p4                 ->push_back( mc_p4                                     );
     els_p4In                  ->push_back( p4In                                      );
     els_p4Out                 ->push_back( p4Out                                     );
   
@@ -376,9 +367,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_nels                         ,"evtnels"            );
   iEvent.put(els_validHits                    ,"elsvalidHits"       );
   iEvent.put(els_lostHits                     ,"elslostHits"        );
-  iEvent.put(els_mc_id                        ,"elsmcid"            );
   iEvent.put(els_charge                       ,"elscharge"          );
-  iEvent.put(els_mc_motherid                  ,"elsmcmotherid"      );
   iEvent.put(els_nSeed                        ,"elsnSeed"           );
   iEvent.put(els_class                        ,"elsclass"           );
   iEvent.put(els_robustId                     ,"elsrobustId"        );
@@ -420,7 +409,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //iEvent.put(els_dPhiOutEcalHit               ,"elsdPhiOutEcalHit"  );
   iEvent.put(els_p4                           ,"elsp4"              );
   iEvent.put(els_trk_p4                       ,"elstrkp4"           );
-  iEvent.put(els_mc_p4                        ,"elsmcp4"            );
   iEvent.put(els_p4In                         ,"elsp4In"            );
   iEvent.put(els_p4Out                        ,"elsp4Out"           );
 

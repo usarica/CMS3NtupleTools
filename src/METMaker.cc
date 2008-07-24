@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.1 2008/06/19 20:04:17 kalavase Exp $
+// $Id: METMaker.cc,v 1.2 2008/07/24 04:35:36 kalavase Exp $
 //
 //
 
@@ -51,8 +51,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetSig"       ).setBranchAlias("evt_metSig"       );
   produces<float> ("evtmetjetcorr"   ).setBranchAlias("evt_met_jetcorr"  );
   produces<float> ("metphijetcorr"   ).setBranchAlias("metphi_jetcorr"   );
-  produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
-  produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
+ 
  
 
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
@@ -76,9 +75,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_metSig           (new float     );
   auto_ptr<float>   evt_met_jetcorr    (new float     );
   auto_ptr<float>   metphi_jetcorr     (new float     );
-  auto_ptr<float>   gen_met              (new float     );
-  auto_ptr<float>   gen_metPhi           (new float     );
-  
 
   Handle< View<CaloMET> > metcollection_h;
   iEvent.getByLabel("met", metcollection_h);
@@ -88,23 +84,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
-  const vector<GenParticle>* genParticles = genParticlesHandle.product();
-
-  math::XYZTLorentzVector tempvect = math::XYZTLorentzVector(0,0,0,0);
-  for(vector<GenParticle>::const_iterator it=genParticles->begin();
-      it!=genParticles->end(); ++it) {
-    int part_id = abs( it->pdgId() );
-    //12 = nuE, 14=nuMu, 16=nuTau,
-    if( it->status() != 3) {
-      if( part_id == 12 || part_id == 14 || part_id == 16) {
-	tempvect = tempvect+math::XYZTLorentzVector( it->p4().x(),
-						     it->p4().y(),
-						     it->p4().z(),
-						     it->p4().e() );
-      }
-    }
-  }
-
   
 
   *evt_met    =   metobj->et();
@@ -112,15 +91,13 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_metSig =   metobj->mEtSig();
   *evt_met_jetcorr = 0; 
   *metphi_jetcorr  = 0;
-  *gen_met    =   tempvect.Pt();
-  *gen_metPhi =   tempvect.Phi();
+  
   
   
   iEvent.put(evt_met            ,"evtmet"       );
   iEvent.put(evt_metPhi         ,"evtmetPhi"    );
   iEvent.put(evt_metSig         ,"evtmetSig"    );
-  iEvent.put(gen_met            ,"genmet"       );
-  iEvent.put(gen_metPhi         ,"genmetPhi"    );
+  
     
   
   
