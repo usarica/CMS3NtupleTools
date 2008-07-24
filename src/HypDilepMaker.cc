@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.6 2008/07/24 03:05:20 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.7 2008/07/24 04:30:57 kalavase Exp $
 //
 //
 
@@ -63,21 +63,19 @@ using namespace std;
 HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
 {
   
-  
-  muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"                 );
-  muToGenInputTag          = iConfig.getParameter<InputTag>("muToGenInputTag"               );
-  electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"             );
-  metInputTag              = iConfig.getParameter<InputTag>("metInputTag"                   );
-  jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"                  );
-  tqJetsInputTag           = iConfig.getParameter<InputTag>("tqJetsInputTag"                );
-  trksInputTag             = iConfig.getParameter<InputTag>("trksInputTag"                  );
-  usingTQJets                = iConfig.getParameter<bool>("usingTQJets"                     );
-  hypJetMinEtaCut            = iConfig.getParameter<double>("hypJetMinEtaCut"               );
-  hypJetMaxEtaCut            = iConfig.getParameter<double>("hypJetMaxEtaCut"               );
-  hypJetMinPtCut             = iConfig.getParameter<double>("hypJetMinPtCut"                );
-  tightptcut          = iConfig.getParameter<double>  ("TightLepton_PtCut"            );
-  looseptcut          = iConfig.getParameter<double>  ("LooseLepton_PtCut"            );
-  
+  muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"             );
+  electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"         );
+  metInputTag              = iConfig.getParameter<InputTag>("metInputTag"               );
+  jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"              );
+  tqJetsInputTag           = iConfig.getParameter<InputTag>("tqJetsInputTag"            );
+  trksInputTag             = iConfig.getParameter<InputTag>("trksInputTag"              );
+  candToGenAssTag          = iConfig.getParameter<InputTag>("candToGenAssTag"           );  
+  usingTQJets              = iConfig.getParameter<bool>("usingTQJets"                   );
+  hypJetMinEtaCut          = iConfig.getParameter<double>("hypJetMinEtaCut"             );
+  hypJetMaxEtaCut          = iConfig.getParameter<double>("hypJetMaxEtaCut"             );
+  hypJetMinPtCut           = iConfig.getParameter<double>("hypJetMinPtCut"              );
+  tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut"         );
+  looseptcut               = iConfig.getParameter<double>  ("LooseLepton_PtCut"         );
 
 
 
@@ -440,20 +438,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(mus_lostHits_tag, mus_lostHits_h);
   const vector<int> *mus_lostHits = mus_lostHits_h.product();
 
-
-  //PDG id of matched MC particle
-  InputTag mus_mc_id_tag(muToGenInputTag.label(),"musmcid");
-  Handle<vector<int> > mus_mc_id_h;
-  iEvent.getByLabel(mus_mc_id_tag, mus_mc_id_h);
-  const vector<int> *mus_mc_id = mus_mc_id_h.product();
-
   
-  //PDG id of MC matched mother 
-  InputTag mus_mc_motherid_tag(muToGenInputTag.label(),"musmcmotherid");
-  Handle<vector<int> > mus_mc_motherid_h;
-  iEvent.getByLabel(mus_mc_motherid_tag, mus_mc_motherid_h);
-  const vector<int> *mus_mc_motherid = mus_mc_motherid_h.product();
-
   //muond0
   InputTag mus_d0_tag(muonsInputTag.label(),"musd0");
   Handle<vector<float> > mus_d0_h;
@@ -547,14 +532,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(mus_trk_p4_tag, mus_trk_p4_h);
   const vector<LorentzVector> *mus_trk_p4 = mus_trk_p4_h.product();
 
-
-  //muon mc P4
-  InputTag mus_mc_p4_tag(muToGenInputTag.label(),"musmcp4");
-  Handle<vector<LorentzVector> > mus_mc_p4_h;
-  iEvent.getByLabel(mus_mc_p4_tag, mus_mc_p4_h);
-  const vector<LorentzVector> *mus_mc_p4 = mus_mc_p4_h.product();
-
-
   //energy deposited in EM cal
   InputTag mus_e_em_tag(muonsInputTag.label(), "museem");
   Handle<vector<float> > mus_e_em_h;
@@ -620,20 +597,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   Handle<vector<int> > els_lostHits_h;
   iEvent.getByLabel(els_lostHits_tag, els_lostHits_h);
   const vector<int> *els_lostHits = els_lostHits_h.product();
-
-
-  //PDG id of matched MC particle
-  InputTag els_mc_id_tag(electronsInputTag.label(),"elsmcid");
-  Handle<vector<int> > els_mc_id_h;
-  iEvent.getByLabel(els_mc_id_tag, els_mc_id_h);
-  const vector<int> *els_mc_id = els_mc_id_h.product();
-
-  
-  //PDG id of MC matched mother 
-  InputTag els_mc_motherid_tag(electronsInputTag.label(),"elsmcmotherid");
-  Handle<vector<int> > els_mc_motherid_h;
-  iEvent.getByLabel(els_mc_motherid_tag, els_mc_motherid_h);
-  const vector<int> *els_mc_motherid = els_mc_motherid_h.product();
 
   //electrond0
   InputTag els_d0_tag(electronsInputTag.label(),"elsd0");
@@ -721,24 +684,12 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(els_trk_p4_tag, els_trk_p4_h);
   const vector<LorentzVector> *els_trk_p4 = els_trk_p4_h.product();
 
-
-  //electron mc P4
-  InputTag els_mc_p4_tag(electronsInputTag.label(),"elsmcp4");
-  Handle<vector<LorentzVector> > els_mc_p4_h;
-  iEvent.getByLabel(els_mc_p4_tag, els_mc_p4_h);
-  const vector<LorentzVector> *els_mc_p4 = els_mc_p4_h.product();
   
 
   //--------------------------------------------------------------------
   //Get the Jet collections
   //--------------------------------------------------------------------
-  
-  //jet MC matching
-  InputTag jets_mc_id_tag(jetsInputTag.label(), "jetsmcid");
-  Handle<vector<int> > jets_mc_id_h;
-  iEvent.getByLabel(jets_mc_id_tag, jets_mc_id_h);
-  const vector<int> *jets_mc_id = jets_mc_id_h.product();
-
+    
   //Get the jet EM fraction
   InputTag jets_emFrac_tag(jetsInputTag.label(), "jetsemFrac");
   Handle<vector<float> > jets_emFrac_h;
@@ -750,30 +701,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   Handle<vector<float> > jets_chFrac_h;
   iEvent.getByLabel(jets_chFrac_tag, jets_chFrac_h);
   const vector<float> *jets_chFrac = jets_chFrac_h.product();
-
-  //Get the jet mc EM energy
-  InputTag jets_mc_emEnergy_tag(jetsInputTag.label(), "jetsmcemEnergy");
-  Handle<vector<float> > jets_mc_emEnergy_h;
-  iEvent.getByLabel(jets_mc_emEnergy_tag, jets_mc_emEnergy_h);
-  const vector<float> *jets_mc_emEnergy = jets_mc_emEnergy_h.product();
-
-  //Get the jet mc had energy
-  InputTag jets_mc_hadEnergy_tag(jetsInputTag.label(), "jetsmchadEnergy");
-  Handle<vector<float> > jets_mc_hadEnergy_h;
-  iEvent.getByLabel(jets_mc_hadEnergy_tag, jets_mc_hadEnergy_h);
-  const vector<float> *jets_mc_hadEnergy = jets_mc_hadEnergy_h.product();
-
-  //Get the jet mc invisible energy
-  InputTag jets_mc_invEnergy_tag(jetsInputTag.label(), "jetsmcinvEnergy");
-  Handle<vector<float> > jets_mc_invEnergy_h;
-  iEvent.getByLabel(jets_mc_invEnergy_tag, jets_mc_invEnergy_h);
-  const vector<float> *jets_mc_invEnergy = jets_mc_invEnergy_h.product();
-
-  //Get the jet mc other energy
-  InputTag jets_mc_otherEnergy_tag(jetsInputTag.label(), "jetsmcotherEnergy");
-  Handle<vector<float> > jets_mc_otherEnergy_h;
-  iEvent.getByLabel(jets_mc_otherEnergy_tag, jets_mc_otherEnergy_h);
-  const vector<float> *jets_mc_otherEnergy = jets_mc_otherEnergy_h.product();
 
   //Get the JES correction collection
   InputTag jetscor_tag(jetsInputTag.label(), "jetscor");
@@ -792,18 +719,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   Handle<vector<LorentzVector> > jets_p4_h;
   iEvent.getByLabel(jets_p4_tag, jets_p4_h);
   const vector<LorentzVector> *jets_p4 = jets_p4_h.product();
-
-  //jet mc p4
-  InputTag jets_mc_p4_tag(jetsInputTag.label(), "jetsmcp4");
-  Handle<vector<LorentzVector> > jets_mc_p4_h;
-  iEvent.getByLabel(jets_mc_p4_tag, jets_mc_p4_h);
-  const vector<LorentzVector> *jets_mc_p4 = jets_mc_p4_h.product();
-
-  //jet mc genParton p4
-  InputTag jets_mc_gp_p4_tag(jetsInputTag.label(), "jetsmcgpp4");
-  Handle<vector<LorentzVector> > jets_mc_gp_p4_h;
-  iEvent.getByLabel(jets_mc_gp_p4_tag, jets_mc_gp_p4_h);
-  const vector<LorentzVector> *jets_mc_gp_p4 = jets_mc_gp_p4_h.product();
 
   //------------------------------------------------------------
   //Get the TQ jet corrections if we're using TQAF Jets
@@ -899,8 +814,90 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   Handle<vector<LorentzVector> > trks_p4_h;
   iEvent.getByLabel(trks_p4_tag, trks_p4_h);
   const vector<LorentzVector>* trks_p4 = trks_p4_h.product();
-  
 
+
+
+  //Generator to Candidate matching stuff
+
+  //PDG id of matched MC particle
+  InputTag mus_mc_id_tag(candToGenAssTag.label(),"musmcid");
+  Handle<vector<int> > mus_mc_id_h;
+  iEvent.getByLabel(mus_mc_id_tag, mus_mc_id_h);
+  const vector<int> *mus_mc_id = mus_mc_id_h.product();
+
+   //PDG id of MC matched mother 
+  InputTag mus_mc_motherid_tag(candToGenAssTag.label(),"musmcmotherid");
+  Handle<vector<int> > mus_mc_motherid_h;
+  iEvent.getByLabel(mus_mc_motherid_tag, mus_mc_motherid_h);
+  const vector<int> *mus_mc_motherid = mus_mc_motherid_h.product();
+
+  //muon mc P4
+  InputTag mus_mc_p4_tag(candToGenAssTag.label(),"musmcp4");
+  Handle<vector<LorentzVector> > mus_mc_p4_h;
+  iEvent.getByLabel(mus_mc_p4_tag, mus_mc_p4_h);
+  const vector<LorentzVector> *mus_mc_p4 = mus_mc_p4_h.product();
+
+  //PDG id of matched MC particle
+  InputTag els_mc_id_tag(candToGenAssTag.label(),"elsmcid");
+  Handle<vector<int> > els_mc_id_h;
+  iEvent.getByLabel(els_mc_id_tag, els_mc_id_h);
+  const vector<int> *els_mc_id = els_mc_id_h.product();
+
+  //PDG id of MC matched mother 
+  InputTag els_mc_motherid_tag(candToGenAssTag.label(),"elsmcmotherid");
+  Handle<vector<int> > els_mc_motherid_h;
+  iEvent.getByLabel(els_mc_motherid_tag, els_mc_motherid_h);
+  const vector<int> *els_mc_motherid = els_mc_motherid_h.product();
+
+  
+  //electron mc P4
+  InputTag els_mc_p4_tag(candToGenAssTag.label(),"elsmcp4");
+  Handle<vector<LorentzVector> > els_mc_p4_h;
+  iEvent.getByLabel(els_mc_p4_tag, els_mc_p4_h);
+  const vector<LorentzVector> *els_mc_p4 = els_mc_p4_h.product();
+
+  //jet MC matching
+  InputTag jets_mc_id_tag(candToGenAssTag.label(), "jetsmcid");
+  Handle<vector<int> > jets_mc_id_h;
+  iEvent.getByLabel(jets_mc_id_tag, jets_mc_id_h);
+  const vector<int> *jets_mc_id = jets_mc_id_h.product();
+
+  //Get the jet mc EM energy
+  InputTag jets_mc_emEnergy_tag(candToGenAssTag.label(), "jetsmcemEnergy");
+  Handle<vector<float> > jets_mc_emEnergy_h;
+  iEvent.getByLabel(jets_mc_emEnergy_tag, jets_mc_emEnergy_h);
+  const vector<float> *jets_mc_emEnergy = jets_mc_emEnergy_h.product();
+
+  //Get the jet mc had energy
+  InputTag jets_mc_hadEnergy_tag(candToGenAssTag.label(), "jetsmchadEnergy");
+  Handle<vector<float> > jets_mc_hadEnergy_h;
+  iEvent.getByLabel(jets_mc_hadEnergy_tag, jets_mc_hadEnergy_h);
+  const vector<float> *jets_mc_hadEnergy = jets_mc_hadEnergy_h.product();
+
+  //Get the jet mc invisible energy
+  InputTag jets_mc_invEnergy_tag(candToGenAssTag.label(), "jetsmcinvEnergy");
+  Handle<vector<float> > jets_mc_invEnergy_h;
+  iEvent.getByLabel(jets_mc_invEnergy_tag, jets_mc_invEnergy_h);
+  const vector<float> *jets_mc_invEnergy = jets_mc_invEnergy_h.product();
+
+  //Get the jet mc other energy
+  InputTag jets_mc_otherEnergy_tag(candToGenAssTag.label(), "jetsmcotherEnergy");
+  Handle<vector<float> > jets_mc_otherEnergy_h;
+  iEvent.getByLabel(jets_mc_otherEnergy_tag, jets_mc_otherEnergy_h);
+  const vector<float> *jets_mc_otherEnergy = jets_mc_otherEnergy_h.product();
+
+  //jet mc p4
+  InputTag jets_mc_p4_tag(candToGenAssTag.label(), "jetsmcp4");
+  Handle<vector<LorentzVector> > jets_mc_p4_h;
+  iEvent.getByLabel(jets_mc_p4_tag, jets_mc_p4_h);
+  const vector<LorentzVector> *jets_mc_p4 = jets_mc_p4_h.product();
+
+  //jet mc genParton p4
+  InputTag jets_mc_gp_p4_tag(candToGenAssTag.label(), "jetsmcgpp4");
+  Handle<vector<LorentzVector> > jets_mc_gp_p4_h;
+  iEvent.getByLabel(jets_mc_gp_p4_tag, jets_mc_gp_p4_h);
+  const vector<LorentzVector> *jets_mc_gp_p4 = jets_mc_gp_p4_h.product();
+  
 
 
   double metAll           = *evt_met;
@@ -2319,6 +2316,7 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
 iEvent.put(hyp_type                     ,"hyptype"                     );
 iEvent.put(hyp_njets                    ,"hypnjets"                    );
 iEvent.put(hyp_nojets                   ,"hypnojets"                   );
+iEvent.put(hyp_p4                      ,"hypp4"                        );
   
 iEvent.put(hyp_lt_validHits             ,"hypltvalidHits"              );
 iEvent.put(hyp_lt_lostHits              ,"hypltlostHits"               );
@@ -2492,5 +2490,4 @@ bool HypDilepMaker::testJetForElectrons(const LorentzVector& jetP4, const Lorent
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(HypDilepMaker);
-
 
