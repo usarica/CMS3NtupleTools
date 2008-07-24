@@ -16,11 +16,11 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.4 2008/07/24 04:31:16 kalavase Exp $
+// $Id: HypDilepMaker.h,v 1.5 2008/07/24 21:07:20 fgolf Exp $
 //
 //
-#ifndef CMS2_HYPTRILEPMAKER_H
-#define CMS2_HYPTRILEPMAKER_H
+#ifndef CMS2_HYPDILEPMAKER_H
+#define CMS2_HYPDILEPMAKER_H
 
 // system include files
 #include <memory>
