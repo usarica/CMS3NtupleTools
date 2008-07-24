@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.5 2008/07/22 21:12:45 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.6 2008/07/24 03:05:20 fgolf Exp $
 //
 //
 
@@ -449,7 +449,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
   
   //PDG id of MC matched mother 
-  InputTag mus_mc_motherid_tag(muToGenInputTag.label(),"musmcid");
+  InputTag mus_mc_motherid_tag(muToGenInputTag.label(),"musmcmotherid");
   Handle<vector<int> > mus_mc_motherid_h;
   iEvent.getByLabel(mus_mc_motherid_tag, mus_mc_motherid_h);
   const vector<int> *mus_mc_motherid = mus_mc_motherid_h.product();
@@ -630,7 +630,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
   
   //PDG id of MC matched mother 
-  InputTag els_mc_motherid_tag(electronsInputTag.label(),"elsmcid");
+  InputTag els_mc_motherid_tag(electronsInputTag.label(),"elsmcmotherid");
   Handle<vector<int> > els_mc_motherid_h;
   iEvent.getByLabel(els_mc_motherid_tag, els_mc_motherid_h);
   const vector<int> *els_mc_motherid = els_mc_motherid_h.product();
