@@ -18,6 +18,9 @@ module hypDilepMaker = HypDilepMaker {
   #tqjets collection
   InputTag tqJetsInputTag = tqJetMaker
 
+  #Candidate to Generator association maker
+  InputTag candToGenAssTag = candToGenAssMaker
+
  #cuts on the hyp jets
  double hypJetMinEtaCut = -3.0
  double hypJetMaxEtaCut = 3.0
