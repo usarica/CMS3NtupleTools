@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.1 2008/06/25 01:39:08 kalavase Exp $
+// $Id: GenMaker.cc,v 1.2 2008/07/25 00:25:04 fgolf Exp $
 //
 //
 
@@ -50,9 +50,11 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("genpsidmother"    ).setBranchAlias("genps_id_mother"   );
   produces<vector<LorentzVector> >  ("genpsp4"          ).setBranchAlias("genps_p4"          );
   produces<vector<LorentzVector> >  ("genpsprodvtx"     ).setBranchAlias("genps_prod_vtx"    );
+  produces<vector<int> >            ("genpsstatus"      ).setBranchAlias("genps_status"      );
   
 
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
+  ntupleOnlyStatus3    = iConfig.getParameter<bool>("ntupleOnlyStatus3");
 
 }
 
@@ -74,6 +76,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >            genps_id_mother   (new vector<int>             );
   auto_ptr<vector<LorentzVector> >  genps_p4          (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> >  genps_prod_vtx    (new vector<LorentzVector>   );
+  auto_ptr<vector<int> >            genps_status      (new vector<int>             );
 
    // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -85,8 +88,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       genps_it != genps_coll->end(); genps_it++) {
     
     //look 
-    if(genps_it->status() !=3) continue;
+    if(ntupleOnlyStatus3 && (genps_it->status() !=3)) continue;
 
+    genps_status    ->push_back(genps_it->status());
     genps_id        ->push_back(genps_it->pdgId()                         );
     genps_id_mother ->push_back(MCUtilities::motherID(*genps_it)->pdgId() );
     
@@ -117,6 +121,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_id_mother    ,"genpsidmother"   );
   iEvent.put(genps_p4           ,"genpsp4"         );
   iEvent.put(genps_prod_vtx     ,"genpsprodvtx"    );
+  iEvent.put(genps_status       ,"genpsstatus"     );
 
 }
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.1 2008/06/25 01:39:01 kalavase Exp $
+// $Id: GenMaker.h,v 1.2 2008/07/25 00:25:15 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -47,6 +47,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag genParticlesInputTag;
+  bool ntupleOnlyStatus3;
 };
 
 

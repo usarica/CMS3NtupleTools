@@ -1,6 +1,7 @@
  module genMaker  = GenMaker  {
     
     InputTag genParticlesInputTag = genParticles
+    bool ntupleOnlyStatus3 = false
 
 }
 
