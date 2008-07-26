@@ -1,0 +1,27 @@
+ module eventWeights  = EventWeights  {
+
+  # CSA07 module label
+  InputTag csa07InputTag = csa07InfoMaker
+
+  # event module label
+  InputTag eventInputTag = eventMaker
+
+  # number of events in DiElectron skim ntuple
+  untracked double topDilepton2Electron_nevts = 1
+
+  # number of events in DiMuon skim ntuple
+  untracked double topDileptonMuonX_nevts = 25000
+
+  # flag for DiElectron skim
+  untracked bool IsTopDilepton2Electron = false
+
+  # flag for DiMuon skim
+  untracked bool IsTopDileptonMuonX = true
+
+  # number of events in DiElectron skim data file
+  untracked double Chowder_topDilepton2Electron_nevts = 639013
+
+  # number of events in DiMuon skim data file
+  untracked double Chowder_topDileptonMuonX_nevts = 725295
+}
+
