@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.3 2008/07/08 16:59:04 kalavase Exp $
+// $Id: L1DigiMaker.cc,v 1.4 2008/07/28 21:52:37 kalavase Exp $
 //
 //
 
@@ -216,15 +216,19 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     l1emiso_type     ->push_back(l1emiso_it->type()                  );
     l1emiso_p4       ->push_back(l1emiso_it->p4()                    );
     
-    if (!(l1emiso_it->gctEmCandRef().isNonnull() && l1emiso_it->gctEmCandRef().isAvailable())) continue;
-    const L1GctEmCand* emGct =  l1emiso_it->gctEmCand();
-    if (emGct){     
+    
+    if (l1emiso_it->gctEmCandRef().isNonnull() && 
+	l1emiso_it->gctEmCandRef().isAvailable()
+	&& l1emiso_it->gctEmCand()) {
+      const L1GctEmCand* emGct =  l1emiso_it->gctEmCand();
       l1emiso_rawId    ->push_back(emGct->regionId().rawId()      );
       l1emiso_ieta     ->push_back(emGct->regionId().ieta()       );
       l1emiso_iphi     ->push_back(emGct->regionId().iphi()       );
+    } else {
+      l1emiso_rawId    ->push_back(-999      );
+      l1emiso_ieta     ->push_back(-999      );
+      l1emiso_iphi     ->push_back(-999      );
     }
-      
-  
   }
   
   for(vector<l1extra::L1EmParticle>::const_iterator l1emnoiso_it = l1emnoiso_coll->begin();
@@ -235,14 +239,18 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     l1emnoiso_type     ->push_back(l1emnoiso_it->type()                  );
     l1emnoiso_p4       ->push_back(l1emnoiso_it->p4()                    );
     
-    if (!(l1emnoiso_it->gctEmCandRef().isNonnull() && l1emnoiso_it->gctEmCandRef().isAvailable())) continue;
-    const L1GctEmCand* emGct =  l1emnoiso_it->gctEmCand();
-    if (emGct){     
+    if (l1emnoiso_it->gctEmCandRef().isNonnull() && 
+	l1emnoiso_it->gctEmCandRef().isAvailable() &&
+	l1emnoiso_it->gctEmCand()) {
+      const L1GctEmCand* emGct =  l1emnoiso_it->gctEmCand();
       l1emnoiso_rawId    ->push_back(emGct->regionId().rawId()      );
       l1emnoiso_ieta     ->push_back(emGct->regionId().ieta()       );
       l1emnoiso_iphi     ->push_back(emGct->regionId().iphi()       );
+    } else {
+      l1emnoiso_rawId    ->push_back(-999      );
+      l1emnoiso_ieta     ->push_back(-999      );
+      l1emnoiso_iphi     ->push_back(-999      );
     }
-    
   }
   
   for(vector<l1extra::L1JetParticle>::const_iterator l1jetsc_it = l1jetsc_coll->begin();
@@ -251,14 +259,18 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     l1jetsc_type       ->push_back(l1jetsc_it->type()                );
     l1jetsc_p4         ->push_back(l1jetsc_it->p4()                  );
     
-    if (!(l1jetsc_it->gctJetCandRef().isNonnull() && l1jetsc_it->gctJetCandRef().isAvailable())) continue;
-    const L1GctJetCand* jetGct =  l1jetsc_it->gctJetCand();
-    if (jetGct){    
+    if (l1jetsc_it->gctJetCandRef().isNonnull() &&
+	l1jetsc_it->gctJetCandRef().isAvailable() &&
+	l1jetsc_it->gctJetCand()) {
+      const L1GctJetCand* jetGct =  l1jetsc_it->gctJetCand();
       l1jetsc_rawId      ->push_back(jetGct->regionId().rawId()    );
       l1jetsc_ieta       ->push_back(jetGct->regionId().ieta()     );
       l1jetsc_iphi       ->push_back(jetGct->regionId().iphi()     );
+    } else {
+      l1jetsc_rawId      ->push_back(-999      );
+      l1jetsc_ieta       ->push_back(-999      );
+      l1jetsc_iphi       ->push_back(-999      );
     }
-  
   }
 
   for(vector<l1extra::L1JetParticle>::const_iterator l1jetsf_it = l1jetsf_coll->begin();
@@ -267,31 +279,38 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     l1jetsf_type       ->push_back(l1jetsf_it->type()                );
     l1jetsf_p4         ->push_back(l1jetsf_it->p4()                  );
     
-    if (!(l1jetsf_it->gctJetCandRef().isNonnull() && l1jetsf_it->gctJetCandRef().isAvailable())) continue;
-    const L1GctJetCand* jetGct =  l1jetsf_it->gctJetCand();
-    if(jetGct) {
+    if (l1jetsf_it->gctJetCandRef().isNonnull() && 
+	l1jetsf_it->gctJetCandRef().isAvailable() &&
+	l1jetsf_it->gctJetCand()) {
+      const L1GctJetCand* jetGct =  l1jetsf_it->gctJetCand();
       l1jetsf_rawId      ->push_back(jetGct->regionId().rawId()    );
       l1jetsf_ieta       ->push_back(jetGct->regionId().ieta()     );
       l1jetsf_iphi       ->push_back(jetGct->regionId().iphi()     );
+    } else {
+      l1jetsf_rawId      ->push_back(-999      );
+      l1jetsf_ieta       ->push_back(-999      );
+      l1jetsf_iphi       ->push_back(-999      );
     }
-
   }
-
-
+  
   for(vector<l1extra::L1JetParticle>::const_iterator l1jetst_it = l1jetst_coll->begin();
       l1jetst_it != l1jetst_coll->end(); l1jetst_it++) {
    
     l1jetst_type       ->push_back(l1jetst_it->type()                );
     l1jetst_p4         ->push_back(l1jetst_it->p4()                  );
 
-    if (!(l1jetst_it->gctJetCandRef().isNonnull() && l1jetst_it->gctJetCandRef().isAvailable())) continue;
-    const L1GctJetCand* jetGct =  l1jetst_it->gctJetCand();
-    if(jetGct) {
+    if (l1jetst_it->gctJetCandRef().isNonnull() && 
+	l1jetst_it->gctJetCandRef().isAvailable() &&
+	l1jetst_it->gctJetCand()) {
+      const L1GctJetCand* jetGct =  l1jetst_it->gctJetCand();
       l1jetst_rawId      ->push_back(jetGct->regionId().rawId()    );
       l1jetst_ieta       ->push_back(jetGct->regionId().ieta()     );
       l1jetst_iphi       ->push_back(jetGct->regionId().iphi()     );
+    } else {
+      l1jetst_rawId      ->push_back(-999      );
+      l1jetst_ieta       ->push_back(-999      );
+      l1jetst_iphi       ->push_back(-999      );
     }
-   
   }
  
   //const l1extra::L1EtMissParticle *l1met = l1met_h.product();
@@ -352,7 +371,7 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  
 }
 //define this as a plug-in
-DEFINE_FWK_MODULE(L1DigiMaker);
+  DEFINE_FWK_MODULE(L1DigiMaker);
   
 
   
