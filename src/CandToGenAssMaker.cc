@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.2 2008/07/26 02:32:26 fgolf Exp $
+// $Id: CandToGenAssMaker.cc,v 1.3 2008/07/28 02:00:41 fgolf Exp $
 //
 //
 
@@ -72,8 +72,8 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<float>         >("jetsmcotherEnergy"  ).setBranchAlias("jets_mc_otherEnergy"); // other energy (undecayed Sigmas etc.) of the matched GenJet
   produces<vector<LorentzVector> >("jetsmcp4"           ).setBranchAlias("jets_mc_p4"         ); // p4 of the matched GenJet
   produces<vector<LorentzVector> >("jetsmcgpp4"         ).setBranchAlias("jets_mc_gp_p4"      ); // p4 of the matched MC particle
-  produces<vector<float>        >("jetmcdr"            ).setBranchAlias("jets_mcdr"          );
-  produces<vector<float>        >("jetmcgpdr"          ).setBranchAlias("jets_mc_gpdr"       );
+  produces<vector<float>         >("jetsmcdr"            ).setBranchAlias("jets_mcdr"          );
+  produces<vector<float>         >("jetsmcgpdr"          ).setBranchAlias("jets_mc_gpdr"       );
 
   // track matched to gen particle
   produces<vector<int>           >("trkmcid"      ).setBranchAlias("trk_mc_id"      ); // track matched to gen particle
