@@ -1,0 +1,10 @@
+module theFilter  = TheFilter  {
+      # this syntax means: keep events that contain more than 0
+      # entries in the collection hypDilepMaker:hyptype  
+      VInputTag filterExpressions = { 
+      		hypDilepMaker:hyptype
+		# more, if you've got these in the path:
+		# , hypTrilepMaker:hyptrilepfirsttype
+		# , hypQuadlepMaker:hypquadlepfirsttype
+      }
+}
