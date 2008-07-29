@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.4 2008/07/23 00:29:14 gutsche Exp $
+// $Id: HypTrilepMaker.cc,v 1.5 2008/07/29 17:03:04 gutsche Exp $
 //
 //
 
@@ -264,20 +264,20 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // m
   for (unsigned int firstMuon = 0; firstMuon < evt_nmus; ++firstMuon) {
     // m
-    for (unsigned int secondMuon = 0; secondMuon < evt_nmus; ++secondMuon) {
+    for (unsigned int secondMuon = firstMuon+1; secondMuon < evt_nmus; ++secondMuon) {
       if ( secondMuon == firstMuon ) continue;
       // m
-      for (unsigned int thirdMuon = 0; thirdMuon < evt_nmus; ++thirdMuon) {
+      for (unsigned int thirdMuon = secondMuon+1; thirdMuon < evt_nmus; ++thirdMuon) {
 	if ( thirdMuon == firstMuon || thirdMuon == secondMuon ) continue;
 
 	// hyp lepton pt cuts
 	// check that all leptons have >= looseptcut
-	if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
-	     mus_p4->at(secondMuon).Pt() < looseptcut &&
+	if ( mus_p4->at(firstMuon).Pt() < looseptcut ||
+	     mus_p4->at(secondMuon).Pt() < looseptcut ||
 	     mus_p4->at(thirdMuon).Pt() < looseptcut ) continue;
 	// check that at least one lepton has >= tightptcut
-	if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
-	     mus_p4->at(secondMuon).Pt() < tightptcut ||
+	if ( mus_p4->at(firstMuon).Pt() < tightptcut &&
+	     mus_p4->at(secondMuon).Pt() < tightptcut &&
 	     mus_p4->at(thirdMuon).Pt() < tightptcut ) continue;
 
 	sorter[0] = firstMuon;
@@ -341,12 +341,12 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	// hyp lepton pt cuts
 	// check that all leptons have >= looseptcut
-	if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
-	     mus_p4->at(secondMuon).Pt() < looseptcut &&
+	if ( mus_p4->at(firstMuon).Pt() < looseptcut ||
+	     mus_p4->at(secondMuon).Pt() < looseptcut ||
 	     els_p4->at(thirdElectron).Pt() < looseptcut ) continue;
 	// check that at least one lepton has >= tightptcut
-	if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
-	     mus_p4->at(secondMuon).Pt() < tightptcut ||
+	if ( mus_p4->at(firstMuon).Pt() < tightptcut &&
+	     mus_p4->at(secondMuon).Pt() < tightptcut &&
 	     els_p4->at(thirdElectron).Pt() < tightptcut ) continue;
 
 	// order muon indices
@@ -425,17 +425,17 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // e
     for (unsigned int secondElectron = 0; secondElectron < evt_nels; ++secondElectron) {
       // e
-      for (unsigned int thirdElectron = 0; thirdElectron < evt_nels; ++thirdElectron) {
+      for (unsigned int thirdElectron = secondElectron+1; thirdElectron < evt_nels; ++thirdElectron) {
 	if ( thirdElectron == secondElectron ) continue;
 
 	// hyp lepton pt cuts
 	// check that all leptons have >= looseptcut
-	if ( mus_p4->at(firstMuon).Pt() < looseptcut &&
-	     els_p4->at(secondElectron).Pt() < looseptcut &&
+	if ( mus_p4->at(firstMuon).Pt() < looseptcut ||
+	     els_p4->at(secondElectron).Pt() < looseptcut ||
 	     els_p4->at(thirdElectron).Pt() < looseptcut ) continue;
 	// check that at least one lepton has >= tightptcut
-	if ( mus_p4->at(firstMuon).Pt() < tightptcut ||
-	     els_p4->at(secondElectron).Pt() < tightptcut ||
+	if ( mus_p4->at(firstMuon).Pt() < tightptcut &&
+	     els_p4->at(secondElectron).Pt() < tightptcut &&
 	     els_p4->at(thirdElectron).Pt() < tightptcut ) continue;
 
 
@@ -523,20 +523,20 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // e
   for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) {
     // e
-    for (unsigned int secondElectron = 0; secondElectron < evt_nels; ++secondElectron) {
+    for (unsigned int secondElectron = firstElectron+1; secondElectron < evt_nels; ++secondElectron) {
       if ( secondElectron == firstElectron ) continue;
       // e
-      for (unsigned int thirdElectron = 0; thirdElectron < evt_nels; ++thirdElectron) {
+      for (unsigned int thirdElectron = secondElectron+1; thirdElectron < evt_nels; ++thirdElectron) {
 	if ( thirdElectron == firstElectron || thirdElectron == secondElectron) continue;	      
 
 	// hyp lepton pt cuts
 	// check that all leptons have >= looseptcut
-	if ( els_p4->at(firstElectron).Pt() < looseptcut &&
-	     els_p4->at(secondElectron).Pt() < looseptcut &&
+	if ( els_p4->at(firstElectron).Pt() < looseptcut ||
+	     els_p4->at(secondElectron).Pt() < looseptcut ||
 	     els_p4->at(thirdElectron).Pt() < looseptcut ) continue;
 	// check that at least one lepton has >= tightptcut
-	if ( els_p4->at(firstElectron).Pt() < tightptcut ||
-	     els_p4->at(secondElectron).Pt() < tightptcut ||
+	if ( els_p4->at(firstElectron).Pt() < tightptcut &&
+	     els_p4->at(secondElectron).Pt() < tightptcut &&
 	     els_p4->at(thirdElectron).Pt() < tightptcut ) continue;
 
 	sorter[0] = firstElectron;
@@ -632,7 +632,7 @@ unsigned int HypTrilepMaker::encodeTrileptonCandidate(unsigned int combination, 
   // same flavor leptons in candidate are ordered by increasing index
   //
 
-  return combination * 100000 + first * 10000 + second * 100 + third;
+  return combination * 1000000 + first * 10000 + second * 100 + third;
 }
 
 //define this as a plug-in
