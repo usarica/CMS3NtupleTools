@@ -4,7 +4,7 @@ module theFilter  = TheFilter  {
       VInputTag filterExpressions = { 
       		hypDilepMaker:hyptype
 		# more, if you've got these in the path:
-		# , hypTrilepMaker:hyptrilepfirsttype
-		# , hypQuadlepMaker:hypquadlepfirsttype
+		, hypTrilepMaker:hyptrilepfirsttype
+		, hypQuadlepMaker:hypquadlepfirsttype
       }
 }
