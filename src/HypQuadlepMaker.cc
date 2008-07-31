@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.4 2008/07/29 17:03:04 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.5 2008/07/31 00:39:15 gutsche Exp $
 //
 //
 
@@ -373,6 +373,7 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    vector_hyp_quadlep_jets_index->push_back(jets_index);
 	  }
 	}
+
 	// e
 	for (unsigned int fourthElectron = 0; fourthElectron < evt_nels; ++fourthElectron) {
 	// hyp lepton pt cuts
@@ -472,6 +473,7 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  }
 	}
       }
+
       // e
       for (unsigned int thirdElectron = 0; thirdElectron < evt_nels; ++thirdElectron) {
 	// e
@@ -590,6 +592,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
       }
     }
+
+
     // e
     for (unsigned int secondElectron = 0; secondElectron < evt_nels; ++secondElectron) {
       // e
@@ -705,15 +709,15 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 	  
   // e
-  for (unsigned int firstElectron = 0; firstElectron < evt_nmus; ++firstElectron) {
+  for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) {
     // e
-    for (unsigned int secondElectron = firstElectron+1; secondElectron < evt_nmus; ++secondElectron) {
+    for (unsigned int secondElectron = firstElectron+1; secondElectron < evt_nels; ++secondElectron) {
       if ( secondElectron == firstElectron ) continue;
       // e
-      for (unsigned int thirdElectron = secondElectron+1; thirdElectron < evt_nmus; ++thirdElectron) {
+      for (unsigned int thirdElectron = secondElectron+1; thirdElectron < evt_nels; ++thirdElectron) {
 	if ( thirdElectron == firstElectron || thirdElectron == secondElectron ) continue;
 	// e
-	for (unsigned int fourthElectron = thirdElectron+1; fourthElectron < evt_nmus; ++fourthElectron) {
+	for (unsigned int fourthElectron = thirdElectron+1; fourthElectron < evt_nels; ++fourthElectron) {
 	  if ( fourthElectron == firstElectron || fourthElectron == secondElectron || fourthElectron == thirdElectron ) continue;
 
 	  // hyp lepton pt cuts
