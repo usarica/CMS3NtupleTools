@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.6 2008/07/17 20:28:46 gutsche Exp $
+// $Id: EventMaker.cc,v 1.7 2008/07/31 04:37:19 jmuelmen Exp $
 //
 //
 
@@ -54,8 +54,8 @@ using namespace std;
 EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
   
-  produces<int>    ("evtrun"               ).setBranchAlias("evt_run"                  );
-  produces<int>    ("evtevent"             ).setBranchAlias("evt_event"                );
+  produces<unsigned int>   ("evtrun"               ).setBranchAlias("evt_run"                  );
+  produces<unsigned int>   ("evtevent"             ).setBranchAlias("evt_event"                );
   produces<int>    ("evtHLT1"              ).setBranchAlias("evt_HLT1"                 );
   produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
   produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
@@ -91,8 +91,8 @@ void EventMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-  auto_ptr<int>      evt_run               (new int);
-  auto_ptr<int>      evt_event             (new int);
+  auto_ptr<unsigned int>      evt_run               (new unsigned int);
+  auto_ptr<unsigned int>      evt_event             (new unsigned int);
   auto_ptr<int>      evt_HLT1              (new int);
   auto_ptr<int>      evt_HLT2              (new int);
   auto_ptr<int>      evt_HLT3              (new int);
@@ -304,9 +304,3 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(EventMaker);
-
-
-
-
-
-  
