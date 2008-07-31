@@ -1,0 +1,7 @@
+module duplicateFilter = DuplicateFilter {
+       vstring removeEvents = { }
+       InputTag runTag = eventMaker:evtrun
+       InputTag eventTag = eventMaker:evtevent
+       InputTag trksD0Tag = trackMaker:trksd0
+       InputTag hypLtP4Tag = hypDilepMaker:hypltp4
+}
