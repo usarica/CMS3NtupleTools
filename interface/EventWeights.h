@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventWeights.h,v 1.1 2008/07/26 02:28:08 fgolf Exp $
+// $Id: EventWeights.h,v 1.2 2008/08/05 01:24:16 jmuelmen Exp $
 //
 //
 #ifndef CMS2_EVENTWEIGHTS_H
@@ -54,6 +54,10 @@ private:
   bool  IsTopDileptonMuonX;
   float Chowder_topDilepton2Electron_nevts;
   float Chowder_topDileptonMuonX_nevts;
+     bool  IsNotSoup;
+     float Xsec;
+     int Nevts;
+
 };
 
 

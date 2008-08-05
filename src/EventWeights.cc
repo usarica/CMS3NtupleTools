@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventWeights.cc,v 1.1 2008/07/26 02:28:27 fgolf Exp $
+// $Id: EventWeights.cc,v 1.2 2008/08/05 01:24:16 jmuelmen Exp $
 //
 //
 
@@ -44,8 +44,13 @@ using namespace std;
 // constructors and destructor
 //
 
-EventWeights::EventWeights(const edm::ParameterSet& iConfig) {
-
+EventWeights::EventWeights(const edm::ParameterSet& iConfig) 
+     : IsTopDilepton2Electron(false),
+       IsTopDileptonMuonX(false),
+       IsNotSoup(true),
+       Xsec(0),
+       Nevts(0)
+{
   produces<float> ("evtscale1fb").setBranchAlias("evt_scale1fb");
 
   csa07InputTag                      = iConfig.getParameter<InputTag>("csa07InputTag"                            );
@@ -56,6 +61,9 @@ EventWeights::EventWeights(const edm::ParameterSet& iConfig) {
   IsTopDileptonMuonX                 = iConfig.getUntrackedParameter<bool>("IsTopDileptonMuonX"                  );
   Chowder_topDilepton2Electron_nevts = iConfig.getUntrackedParameter<double>("Chowder_topDilepton2Electron_nevts");
   Chowder_topDileptonMuonX_nevts     = iConfig.getUntrackedParameter<double>("Chowder_topDileptonMuonX_nevts"    );
+  IsNotSoup		             = iConfig.getUntrackedParameter<bool>("IsNotSoup" 		                 );
+  Xsec			             = iConfig.getUntrackedParameter<double>("Xsec" 		                 );
+  Nevts			             = iConfig.getUntrackedParameter<int>("Nevts" 		                 );
 }
 
 EventWeights::~EventWeights() {
@@ -68,34 +76,39 @@ void EventWeights::endJob() {
 }
 
 // ------------ method called to produce the data  ------------
-void EventWeights::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-
-  printf("Hello\n");
+void EventWeights::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
+{
   auto_ptr<float> evt_scale1fb (new float);
 
   float scale1fb;
   const float* evt_CSA07Weight;
   const float* evt_weight;
 
-  if(IsTopDilepton2Electron || IsTopDileptonMuonX) {
+  if(IsTopDilepton2Electron || IsTopDileptonMuonX) { // soup 
     // get CSA07 Event Weight
     InputTag evt_CSA07Weight_tag(csa07InputTag.label(), "evtCSA07Weight");
     Handle<float> csaHandleWeight_h;
     iEvent.getByLabel(evt_CSA07Weight_tag, csaHandleWeight_h);     
     evt_CSA07Weight = csaHandleWeight_h.product();
-  }
-  else {
+    // calculate event scale factor
+    if (IsTopDilepton2Electron)  
+	 scale1fb = *evt_CSA07Weight * Chowder_topDilepton2Electron_nevts / topDilepton2Electron_nevts;
+    else if(IsTopDileptonMuonX) 
+	 scale1fb = *evt_CSA07Weight * Chowder_topDileptonMuonX_nevts     / topDileptonMuonX_nevts;
+  } else if (IsNotSoup) { // not soup
+       // calculate weight from xsec and number of events
+       assert(Xsec != 0);
+       assert(Nevts != 0);
+       scale1fb = 1000 /* pb^-1 */ * Xsec /* pb */ /  Nevts;
+  } else { // neither soup nor not soup?
     // get Event Weight
     InputTag evt_evtWeight_tag(eventInputTag.label(), "evtweight");
     Handle<float> evtHandleWeight_h;
     iEvent.getByLabel(evt_evtWeight_tag, evtHandleWeight_h);     
     evt_weight = evtHandleWeight_h.product();
+    // calculate event scale factor
+    scale1fb = *evt_weight;
   }
-
-  // calculate event scale factor
-  if(IsTopDilepton2Electron)  scale1fb = *evt_CSA07Weight * Chowder_topDilepton2Electron_nevts / topDilepton2Electron_nevts;
-  else if(IsTopDileptonMuonX) scale1fb = *evt_CSA07Weight * Chowder_topDileptonMuonX_nevts     / topDileptonMuonX_nevts;
-  else                        scale1fb = *evt_weight;
 
   *evt_scale1fb = scale1fb;
 
