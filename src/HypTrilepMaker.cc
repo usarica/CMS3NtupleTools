@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.5 2008/07/29 17:03:04 gutsche Exp $
+// $Id: HypTrilepMaker.cc,v 1.6 2008/08/07 00:27:58 gutsche Exp $
 //
 //
 
@@ -243,7 +243,7 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   double hypmet = *evt_met;
   double hypmetPhi = *evt_metphi;
   double metAll           = *evt_met;
-  double metPhiAll        = *evt_met;
+  double metPhiAll        = *evt_metphi;
 
   // correct MET for all muons
   // should be moved to EventMaker

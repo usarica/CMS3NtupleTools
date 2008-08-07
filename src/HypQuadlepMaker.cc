@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.5 2008/07/31 00:39:15 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.6 2008/08/07 00:27:58 gutsche Exp $
 //
 //
 
@@ -267,7 +267,7 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   double hypmet = *evt_met;
   double hypmetPhi = *evt_metphi;
   double metAll           = *evt_met;
-  double metPhiAll        = *evt_met;
+  double metPhiAll        = *evt_metphi;
 
   // correct MET for all muons
   // should be moved to EventMaker
