@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.6 2008/08/07 00:27:58 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.7 2008/08/09 21:30:24 gutsche Exp $
 //
 //
 
@@ -98,6 +98,8 @@ HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
   metInputTag = iConfig.getParameter<edm::InputTag>("metInputTag");
   jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
   trksInputTag = iConfig.getParameter<edm::InputTag>("trksInputTag");
+  tqJetsInputTag = iConfig.getParameter<edm::InputTag>("tqJetsInputTag");
+  usingTQJets = iConfig.getParameter<bool>("usingTQJets");
   hypJetMinEtaCut = iConfig.getParameter<double>("hypJetMinEtaCut");
   hypJetMaxEtaCut = iConfig.getParameter<double>("hypJetMaxEtaCut");
   hypJetMinPtCut = iConfig.getParameter<double>("hypJetMinPtCut");
@@ -220,6 +222,13 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<std::vector<LorentzVector> > jets_p4_h;
   iEvent.getByLabel(jets_p4_tag, jets_p4_h);
   const std::vector<LorentzVector> *jets_p4 = jets_p4_h.product();
+
+  //correction factor
+  edm::InputTag jets_tq_noCorrF_tag(tqJetsInputTag.label(), "jetstqnoCorrF");
+  edm::Handle<std::vector<float> > jets_tq_noCorrF_h;
+  if ( usingTQJets ) {
+    iEvent.getByLabel(jets_tq_noCorrF_tag, jets_tq_noCorrF_h);
+  }
 
   // number of electrons
   unsigned int evt_nels = els_charge->size();
@@ -354,9 +363,16 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    // store jet indices which pass cuts
 	    std::vector<int>  jets_index;
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
+	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
+	      if ( usingTQJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      }
+
+	      // jet-preselection
 	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
-	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCutAdapted ) continue;
 	      jets_index.push_back(i);
 	    }
 
@@ -451,11 +467,20 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    // store jet indices which pass cuts
 	    std::vector<int>  jets_index;
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
+	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
+	      if ( usingTQJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      }
+
+	      // jet pre-selection
 	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
-	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCutAdapted ) continue;
+
 	      // veto electron jets
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+
 	      jets_index.push_back(i);
 	    }
 
@@ -568,12 +593,21 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    // store jet indices which pass cuts
 	    std::vector<int>  jets_index;
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
+	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
+	      if ( usingTQJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      }
+
+	      // jet pre-selection
 	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
-	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCutAdapted ) continue;
+
 	      // veto electron jets
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+
 	      jets_index.push_back(i);
 	    }
 
@@ -681,13 +715,22 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    // store jet indices which pass cuts
 	    std::vector<int>  jets_index;
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
+	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
+	      if ( usingTQJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      }
+
+	      // jet pre-selection
 	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
-	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCutAdapted ) continue;
+
 	      // veto electron jets
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[1]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+
 	      jets_index.push_back(i);
 	    }
 
@@ -767,14 +810,23 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    // store jet indices which pass cuts
 	    std::vector<int>  jets_index;
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
+	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
+	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
+	      if ( usingTQJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      }
+
+	      // jet pre-selection
 	      if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	      if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
-	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCut ) continue;
+	      if ( jets_p4->at(i).Pt() <= hypJetMinPtCutAdapted ) continue;
+
 	      // veto electron jets
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[0]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[1]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[2]))) continue;
 	      if(!JetUtilities::testJetForElectrons(jets_p4->at(i), els_p4->at(sorter[3]))) continue;
+
 	      jets_index.push_back(i);
 	    }
 

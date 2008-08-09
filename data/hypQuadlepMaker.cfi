@@ -15,13 +15,13 @@ module hypQuadlepMaker = HypQuadlepMaker {
   #tqjets collection
   InputTag tqJetsInputTag = tqJetMaker
 
- #cuts on the hyp jets
- double hypJetMinEtaCut = -3.0
- double hypJetMaxEtaCut = 3.0
- double hypJetMinPtCut  = 15 #this is an uncorrected pt cut!
+  #cuts on the hyp jets
+  double hypJetMinEtaCut = -3.0
+  double hypJetMaxEtaCut = 3.0
+  double hypJetMinPtCut  = 15 #this is an uncorrected pt cut!
 
   #are we using tqaf jets in the JetMaker?
-  #matters for JetCorrection
+  #matters for JetCorrection, tqaf jets are corrected, hyp jets cut is on uncorrected jets
   bool usingTQJets = true
 
   #tracks collection
