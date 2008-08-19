@@ -1,0 +1,18 @@
+
+include "SimGeneral/HepPDTESSource/data/pythiapdt.cfi"
+
+module localTrkColl = TrkMuonFilter {
+       InputTag TrackProducerTag = ctfWithMaterialTracks
+       InputTag MuonTag = muons
+       bool subMuon = true
+       double muIsoFrac = 0.92
+       double muChi2N  = 5
+       double muMinPt = 7 
+       double muMaxEta = 2.5
+}
+
+module subTrkColl = ChargedCandidateProducer {
+        InputTag src = localTrkColl
+        string particleType = "pi+"
+}
+

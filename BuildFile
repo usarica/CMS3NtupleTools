@@ -7,9 +7,12 @@
 <use name=DataFormats/EgammaCandidates>
 <use name=DataFormats/EcalDetId>
 <use name=DataFormats/TrackReco>
+<use name=DataFormats/TrackCandidate>
 <use name=DataFormats/L1Trigger>
 <use name=DataFormats/Common>
 <use name=DataFormats/Math>
+<use name=RecoMuon/MuonIsolation>
+<use name=RecoMuon/MuonIdentification>
 <use name=AnalysisDataFormats/TopObjects>
 <use name=RecoMuon/MuonIdentification>
 <use name=PhysicsTools/HepMCCandAlgos>
