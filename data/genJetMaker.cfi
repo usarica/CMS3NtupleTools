@@ -4,9 +4,11 @@ module genParticlesAllStables = GenParticleCandidateSelector {
     bool stableOnly = true
     untracked bool verbose = false
     vstring excludeList = {
+        "nu_e", 
         "nu_mu", 
 	"nu_tau", 
 	"mu-", 
+	"mu+", 
 	"~chi_10", 
 	"~nu_eR", 
 	"~nu_muR", 
