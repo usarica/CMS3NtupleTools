@@ -19,13 +19,13 @@ bool DuplicateFilter::DorkyEventIdentifier::operator < (
      // the floating point numbers are not easy, because we're
      // comapring ones that are truncated (because they were written
      // to file and read back in) with ones that are not truncated.
-     if (fabs(trks_d0 - other.trks_d0) > 1e-6 * trks_d0)
+     if (fabs(trks_d0 - other.trks_d0) > 1e-5 * trks_d0)
 	  return trks_d0 < other.trks_d0;
-     if (fabs(hyp_lt_pt - other.hyp_lt_pt) > 1e-6 * hyp_lt_pt)
+     if (fabs(hyp_lt_pt - other.hyp_lt_pt) > 1e-5 * hyp_lt_pt)
 	  return hyp_lt_pt < other.hyp_lt_pt;
-     if (fabs(hyp_lt_eta - other.hyp_lt_eta) > 1e-6 * hyp_lt_eta)
+     if (fabs(hyp_lt_eta - other.hyp_lt_eta) > 1e-5 * hyp_lt_eta)
 	  return hyp_lt_eta < other.hyp_lt_eta;
-     if (fabs(hyp_lt_phi - other.hyp_lt_phi) > 1e-6 * hyp_lt_phi)
+     if (fabs(hyp_lt_phi - other.hyp_lt_phi) > 1e-5 * hyp_lt_phi)
 	  return hyp_lt_phi < other.hyp_lt_phi;
      // if the records are exactly the same, then r1 is not less than
      // r2.  Duh!
