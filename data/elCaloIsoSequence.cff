@@ -1,0 +1,4 @@
+include "EgammaAnalysis/EgammaIsolationProducers/data/egammaBasicClusterMerger.cfi"
+include "CMS2/NtupleMaker/data/elCaloIsoMaker.cfi"
+
+sequence elCaloIsoSequence = { egammaBasicClusterMerger , elCaloIsoMaker }
