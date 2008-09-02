@@ -1,0 +1,4 @@
+include "RecoMuon/MuonIdentification/data/trackerMuons.cfi"
+include "CMS2/NtupleMaker/data/trackerMuonMaker.cfi"
+replace trackerMuons.minNumberOfMatches = 1
+sequence trackerMuonSequence = { trackerMuons, trackerMuonMaker }
