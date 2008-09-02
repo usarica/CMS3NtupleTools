@@ -20,6 +20,7 @@
 <use name=CMS2/Dictionaries>
 <use name=root>
 <use name=clhep>
+<lib name=EG>
 <flags EDM_PLUGIN=1>
 <export>
    <lib name=CMS2NtupleMaker>
@@ -27,3 +28,4 @@
    <use name=FWCore/PluginManager>
    <use name=FWCore/ParameterSet>
 </export>
+# <Flags CXXFLAGS="-g -O0">
