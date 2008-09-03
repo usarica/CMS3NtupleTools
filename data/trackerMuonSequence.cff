@@ -1,4 +1,11 @@
 include "RecoMuon/MuonIdentification/data/trackerMuons.cfi"
 include "CMS2/NtupleMaker/data/trackerMuonMaker.cfi"
-replace trackerMuons.minNumberOfMatches = 1
-sequence trackerMuonSequence = { trackerMuons, trackerMuonMaker }
+# replace trackerMuons.minNumberOfMatches = 1
+# replace trackerMuons.fillEnergy = false
+# replace trackerMuons.fillIsolation = false
+# replace trackerMuons.TrackAssociatorParameters.useEcal = false 
+# replace trackerMuons.TrackAssociatorParameters.useHcal = false 
+# replace trackerMuons.TrackAssociatorParameters.useHO   = false
+# replace trackerMuons.TrackAssociatorParameters.useCalo = false
+
+sequence trackerMuonSequence = { trackerMuonMaker }
