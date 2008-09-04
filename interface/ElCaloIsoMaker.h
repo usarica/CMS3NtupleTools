@@ -1,7 +1,7 @@
 #ifndef NTUPLEMAKER_ElCaloIsoMaker_H
 #define NTUPLEMAKER_ElCaloIsoMaker_H
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.h,v 1.1 2008/09/01 20:01:35 dmytro Exp $
+// $Id: ElCaloIsoMaker.h,v 1.2 2008/09/04 06:06:48 dmytro Exp $
 
 
 // system include files
@@ -24,6 +24,7 @@ class ElCaloIsoMaker : public edm::EDProducer {
  private:
    void produce(edm::Event&, const edm::EventSetup&);
    void produceEcalIso(edm::Event&, const edm::EventSetup&);
+   void produceEcalTowerIso(edm::Event&, const edm::EventSetup&);
    void produceHcalIso(edm::Event&, const edm::EventSetup&);
    edm::InputTag m_electronsInputTag;
    edm::InputTag m_basicClusterInputTag;

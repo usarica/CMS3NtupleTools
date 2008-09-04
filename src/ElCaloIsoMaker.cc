@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.cc,v 1.1 2008/09/01 20:01:35 dmytro Exp $
+// $Id: ElCaloIsoMaker.cc,v 1.2 2008/09/04 06:06:49 dmytro Exp $
 
 // system include files
 #include <memory>
@@ -23,6 +23,7 @@
 ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig)
 {
    produces<std::vector<float> >  ("elsecalJuraIso").setBranchAlias("els_ecalJuraIso");
+   produces<std::vector<float> >  ("elsecalJuraTowerIso").setBranchAlias("els_ecalJuraTowerIso");
    produces<std::vector<float> >  ("elshcalConeIso").setBranchAlias("els_hcalConeIso");
    m_electronsInputTag =    iConfig.getParameter<edm::InputTag>("electronsInputTag");
    m_basicClusterInputTag = iConfig.getParameter<edm::InputTag>("basicClusterInputTag");
@@ -41,6 +42,7 @@ void
 ElCaloIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
    produceEcalIso(iEvent,iSetup);
+   produceEcalTowerIso(iEvent,iSetup);
    produceHcalIso(iEvent,iSetup);
 }
 
@@ -103,6 +105,37 @@ ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
       els_hcalIso->push_back( hcalIso );
    }
    iEvent.put(els_hcalIso, "elshcalConeIso");
+}
+
+void
+ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+   std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
+   
+   edm::Handle<edm::View<reco::PixelMatchGsfElectron> > electron_h;
+   iEvent.getByLabel(m_electronsInputTag, electron_h);
+   
+   edm::Handle<CaloTowerCollection> caloTowers;
+   iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
+   
+   for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
+       electron != electron_h->end(); ++electron){
+      math::XYZPoint positionAtEcal = electron->caloPosition();
+      double juraIso(0);
+      // loop over towers
+      for(CaloTowerCollection::const_iterator tower = caloTowers->begin();
+	  tower != caloTowers->end(); ++tower)
+	{
+	   double dR = deltaR( positionAtEcal.eta(), positionAtEcal.phi(), tower->eta(), tower->phi() );
+	   if ( dR > m_maxDR ) continue;
+	   if ( dR < m_minDR ) continue;
+	   if ( fabs( positionAtEcal.eta() - tower->eta() ) < m_minDEta ) continue;
+	   
+	   juraIso += tower->hadEnergy() + tower->outerEnergy();
+	}
+      els_juraIso->push_back( juraIso );
+   }
+   iEvent.put(els_juraIso, "elsecalJuraTowerIso");
 }
 
 //define this as a plug-in
