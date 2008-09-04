@@ -16,3 +16,10 @@ module subTrkColl = ChargedCandidateProducer {
         string particleType = "pi+"
 }
 
+
+module trkColl = ChargedCandidateProducer {
+        InputTag src = ctfWithMaterialTracks
+        string particleType = "pi+"
+}
+
+
