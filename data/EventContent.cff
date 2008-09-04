@@ -13,7 +13,7 @@
 #  FEVTSIMANA, RECOSIMANA, AODSIMANA: 
 #    include reconstruction, simulation and analysis
 #
-#  $Id: EventContent.cff,v 1.1 2008/09/04 07:49:59 jmuelmen Exp $
+#  $Id: EventContent.cff,v 1.2 2008/09/04 08:29:12 jmuelmen Exp $
 #
 #####################################################################
 
@@ -242,38 +242,7 @@ block AODSIMCMS2EventContentNoPF = {
 }
 
 replace AODSIMCMS2EventContentNoPF.outputCommands  += AODSIMEventContentNoPF.outputCommands
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_muonMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackerMuonMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_tqMuonMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_electronMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_elCaloIsoMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_tqElectronMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_jetMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_tqJetMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_tqElectronMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_jetToMuAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_jetToElAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_eventMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_metMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_l1DigiMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_genMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_muToElsAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_candToGenAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_muToJetAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_muToTrackAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_elToTrackAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_elToMuAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackToMuonAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackToELAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_trackToGenAssMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_hypDilepMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_csa07InfoMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_hypTrilepMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_hypQuadlepMaker_*_B"
-replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_wwCutMaker_*_B"
-
+replace AODSIMCMS2EventContentNoPF.outputCommands +=     "keep *_*Maker_*_B"
 
 #####################################################################
 #
