@@ -24,7 +24,7 @@ of the selection code, which would get out of sync sooner or later
 //
 // Original Author:  Johannes Muelmenstaedt 
 //		     (but just calls functions in selection.C)
-// $Id: WWCutMaker.cc,v 1.1 2008/09/02 09:45:22 jmuelmen Exp $
+// $Id: WWCutMaker.cc,v 1.2 2008/09/05 08:46:36 jmuelmen Exp $
 //
 //
 
@@ -77,14 +77,14 @@ WWCutMaker::WWCutMaker(const edm::ParameterSet& iConfig)
        eltomuassInputTag(iConfig.getParameter<InputTag>("eltomuassInputTag")),
        genpsInputTag	(iConfig.getParameter<InputTag>("genpsInputTag"))
 {
-     produces<vector<bool> >		("wwoppsign"		).setBranchAlias("ww_oppsign"		);
-     produces<vector<bool> >		("wwpasszveto"		).setBranchAlias("ww_passzveto"		);
-     produces<vector<bool> >		("wwisdyee"		).setBranchAlias("ww_isdyee"		);
-     produces<vector<bool> >		("wwisdymm"		).setBranchAlias("ww_isdymm"		);
-     produces<vector<bool> >		("wwisdytt"		).setBranchAlias("ww_isdytt"		);
+     produces<vector<int> >		("wwoppsign"		).setBranchAlias("ww_oppsign"		);
+     produces<vector<int> >		("wwpasszveto"		).setBranchAlias("ww_passzveto"		);
+     produces<vector<int> >		("wwisdyee"		).setBranchAlias("ww_isdyee"		);
+     produces<vector<int> >		("wwisdymm"		).setBranchAlias("ww_isdymm"		);
+     produces<vector<int> >		("wwisdytt"		).setBranchAlias("ww_isdytt"		);
      produces<vector<float> >		("wwpmet"		).setBranchAlias("ww_pmet"		);
-     produces<vector<bool> >		("wwpass4met"		).setBranchAlias("ww_pass4met"		);
-     produces<vector<bool> >		("wwpass2met"		).setBranchAlias("ww_pass2met"		);
+     produces<vector<int> >		("wwpass4met"		).setBranchAlias("ww_pass4met"		);
+     produces<vector<int> >		("wwpass2met"		).setBranchAlias("ww_pass2met"		);
      produces<vector<int> >		("wwltgoodmu"		).setBranchAlias("ww_ltgoodmu"		);
      produces<vector<int> >		("wwllgoodmu"		).setBranchAlias("ww_llgoodmu"		);
      produces<vector<int> >		("wwltgoodmuiso"	).setBranchAlias("ww_ltgoodmuiso"	);
@@ -93,7 +93,7 @@ WWCutMaker::WWCutMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("wwllgoodel"		).setBranchAlias("ww_llgoodel"		);
      produces<vector<int> >		("wwltgoodeliso"	).setBranchAlias("ww_ltgoodeliso"	);
      produces<vector<int> >		("wwllgoodeliso"	).setBranchAlias("ww_llgoodeliso"	);
-     produces<vector<bool> >		("wwaddzveto"		).setBranchAlias("ww_passaddzveto"	);
+     produces<vector<int> >		("wwaddzveto"		).setBranchAlias("ww_passaddzveto"	);
 }
 
 //
@@ -252,16 +252,16 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      const vector<float> *mus_d0 = mus_d0_h.product();
 
      //chi2
-     InputTag mus_chi2_tag(muonsInputTag.label(),"muschi2");
-     Handle<vector<float> > mus_chi2_h;
-     iEvent.getByLabel(mus_chi2_tag, mus_chi2_h);
-     const vector<float> *mus_chi2 = mus_chi2_h.product();
+     InputTag mus_gfit_chi2_tag(muonsInputTag.label(),"musgfitchi2");
+     Handle<vector<float> > mus_gfit_chi2_h;
+     iEvent.getByLabel(mus_gfit_chi2_tag, mus_gfit_chi2_h);
+     const vector<float> *mus_gfit_chi2 = mus_gfit_chi2_h.product();
   
      //ndof
-     InputTag mus_ndof_tag(muonsInputTag.label(),"musndof");
-     Handle<vector<float> > mus_ndof_h;
-     iEvent.getByLabel(mus_ndof_tag, mus_ndof_h);
-     const vector<float> *mus_ndof = mus_ndof_h.product();
+     InputTag mus_gfit_ndof_tag(muonsInputTag.label(),"musgfitndof");
+     Handle<vector<float> > mus_gfit_ndof_h;
+     iEvent.getByLabel(mus_gfit_ndof_tag, mus_gfit_ndof_h);
+     const vector<float> *mus_gfit_ndof = mus_gfit_ndof_h.product();
   
      //track isolation in dR = 0.3 from the muon object
      InputTag mus_iso03_sumPt_tag(muonsInputTag.label(),"musiso03sumPt");
@@ -302,8 +302,8 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	  hyp_type         ,
 	  mus_charge       ,
 	  mus_d0           ,
-	  mus_chi2    	   ,
-	  mus_ndof    	   ,
+	  mus_gfit_chi2    ,
+	  mus_gfit_ndof    ,
 	  mus_iso03_emEt   ,
 	  mus_iso03_hadEt  ,
 	  mus_iso03_sumPt  ,
@@ -313,14 +313,14 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      cms2 = CMS2Adapter(myCMS2);
 
      // now we're ready to fill our own variables
-     auto_ptr<vector<bool> >		vec_ww_oppsign   	(new vector<bool> );
-     auto_ptr<vector<bool> >		vec_ww_passzveto     	(new vector<bool> );
-     auto_ptr<vector<bool> >		vec_ww_isdyee    	(new vector<bool> );
-     auto_ptr<vector<bool> >		vec_ww_isdymm    	(new vector<bool> );
-     auto_ptr<vector<bool> >		vec_ww_isdytt    	(new vector<bool> );
+     auto_ptr<vector<int> >		vec_ww_oppsign   	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_passzveto     	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_isdyee    	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_isdymm    	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_isdytt    	(new vector<int> );
      auto_ptr<vector<float> >		vec_ww_pmet      	(new vector<float>);
-     auto_ptr<vector<bool> >		vec_ww_pass4met  	(new vector<bool> );
-     auto_ptr<vector<bool> >		vec_ww_pass2met  	(new vector<bool> );
+     auto_ptr<vector<int> >		vec_ww_pass4met  	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_pass2met  	(new vector<int> );
      auto_ptr<vector<int> >		vec_ww_ltgoodmu  	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_llgoodmu  	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_ltgoodmuiso	(new vector<int>  );
@@ -329,26 +329,26 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      auto_ptr<vector<int> >		vec_ww_llgoodel  	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_ltgoodeliso	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_llgoodeliso	(new vector<int>  );
-     auto_ptr<vector<bool> >		vec_ww_passaddzveto  	(new vector<bool> );
+     auto_ptr<vector<int> >		vec_ww_passaddzveto  	(new vector<int> );
 
      // additional Z veto is applied per-event, not per-candidate
-     bool ww_passaddzveto = not additionalZveto();
+     int ww_passaddzveto = not additionalZveto();
 
      // the remaining cuts are applied per-candidate
      for (unsigned int i_hyp = 0; i_hyp < hyp_p4->size(); ++i_hyp) {
-	  bool ww_oppsign = true;
+	  int ww_oppsign = true;
 	  if (cms2.hyp_lt_id()[i_hyp] * cms2.hyp_ll_id()[i_hyp] > 0)
 	       ww_oppsign = false;
-	  bool ww_passzveto = true;
+	  int ww_passzveto = true;
 	  if (cms2.hyp_type()[i_hyp] == 0 || cms2.hyp_type()[i_hyp] == 3) 
 	       if (inZmassWindow(cms2.hyp_p4()[i_hyp].mass())) 
 		    ww_passzveto = false;
-	  bool ww_isdyee = isDYee();
-	  bool ww_isdymm = isDYmm();
-	  bool ww_isdytt = isDYtt();
+	  int ww_isdyee = isDYee();
+	  int ww_isdymm = isDYmm();
+	  int ww_isdytt = isDYtt();
 	  float ww_pmet = MetSpecial(cms2.hyp_met()[i_hyp], cms2.hyp_metPhi()[i_hyp], i_hyp);
-	  bool ww_pass4met = pass4Met(i_hyp);
-	  bool ww_pass2met = pass4Met(i_hyp);
+	  int ww_pass4met = pass4Met(i_hyp);
+	  int ww_pass2met = pass2Met(i_hyp);
 	  int ww_ltgoodmu = -1; // if lt is not a muon, the quality var is -1
 	  if (abs(cms2.hyp_lt_id()[i_hyp]) == 13)
 	       ww_ltgoodmu = goodMuonWithoutIsolation(cms2.hyp_lt_index()[i_hyp]);
