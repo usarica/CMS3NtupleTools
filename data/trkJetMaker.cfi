@@ -27,7 +27,7 @@
   InputTag trkJetsInputTag = iterativeCone5TrkJets
   }
 
-  module alltrkJetMaker = TrkJetMaker {
+  module alltrkJetMaker = AllTrkJetMaker {
   # jet collection
   InputTag trkJetsInputTag = iterativeCone5AllTrkJets
   }
