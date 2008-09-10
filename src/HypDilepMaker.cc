@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.7 2008/07/24 04:30:57 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.8 2008/09/10 22:43:21 kalavase Exp $
 //
 //
 
@@ -2446,10 +2446,11 @@ if(usingTQJets) {
   iEvent.put(hyp_jets_tq_genPartonMother_p4       ,"hypjetstqgenPartonMotherp4"        );
   iEvent.put(hyp_jets_tq_genJet_p4                ,"hypjetstqgenJetp4"                 );         
   iEvent.put(hyp_jets_tq_jet_p4                   ,"hypjetstqjetp4"                    );            
-  iEvent.put(hyp_other_jets_tq_genParton_p4       ,"hypotherjetstqgenPartonp4"        );
-  iEvent.put(hyp_other_jets_tq_genPartonMother_p4 ,"hypotherjetstqgenPartonMotherp4"  );
-  iEvent.put(hyp_other_jets_tq_genJet_p4          ,"hypotherjetstqgenJetp4"           );   
-  iEvent.put(hyp_other_jets_tq_jet_p4             ,"hypotherjetstqjetp4"              );      
+  iEvent.put(hyp_jets_tq_noCorrF                  ,"hypjetstqnoCorrF"                  );                  
+  iEvent.put(hyp_other_jets_tq_genParton_p4       ,"hypotherjetstqgenPartonp4"         );
+  iEvent.put(hyp_other_jets_tq_genPartonMother_p4 ,"hypotherjetstqgenPartonMotherp4"   );
+  iEvent.put(hyp_other_jets_tq_genJet_p4          ,"hypotherjetstqgenJetp4"            );   
+  iEvent.put(hyp_other_jets_tq_jet_p4             ,"hypotherjetstqjetp4"               );      
  }
   
 
