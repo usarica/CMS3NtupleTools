@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.3 2008/07/28 02:00:41 fgolf Exp $
+// $Id: CandToGenAssMaker.cc,v 1.4 2008/09/11 19:22:13 kalavase Exp $
 //
 //
 
@@ -204,7 +204,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_els_mc_motherid->push_back(mom_mcid);
     vector_els_mcidx      ->push_back(genidx  );
     vector_els_mcp4       ->push_back(mc_p4   );
-    vector_trk_mcdr       ->push_back( dR     );
+    vector_els_mcdr       ->push_back( dR     );
   }
  
   
@@ -231,7 +231,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_mus_mc_motherid->push_back(mom_mcid);
     vector_mus_mcidx      ->push_back(genidx  );
     vector_mus_mcp4       ->push_back(mc_p4   );
-    vector_trk_mcdr       ->push_back( dR     );
+    vector_mus_mcdr       ->push_back( dR     );
   }
 
   
