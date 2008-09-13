@@ -24,7 +24,7 @@ of the selection code, which would get out of sync sooner or later
 //
 // Original Author:  Johannes Muelmenstaedt 
 //		     (but just calls functions in selection.C)
-// $Id: WWCutMaker.cc,v 1.3 2008/09/13 08:06:19 jmuelmen Exp $
+// $Id: WWCutMaker.cc,v 1.4 2008/09/13 09:10:17 jmuelmen Exp $
 //
 //
 
@@ -94,6 +94,8 @@ WWCutMaker::WWCutMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("wwltgoodeliso"	).setBranchAlias("ww_ltgoodeliso"	);
      produces<vector<int> >		("wwllgoodeliso"	).setBranchAlias("ww_llgoodeliso"	);
      produces<vector<int> >		("wwpassaddzveto"	).setBranchAlias("ww_passaddzveto"	);
+     produces<vector<int> >		("wwpassFebselnojetveto").setBranchAlias("ww_passFebsel_no_jetveto");
+     produces<vector<int> >		("wwpassFebselwithjetveto").setBranchAlias("ww_passFebsel_with_jetveto");
 }
 
 //
@@ -222,6 +224,12 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      Handle<vector<int> > hyp_lt_index_h;
      iEvent.getByLabel(hyp_lt_index_tag, hyp_lt_index_h);
      const vector<int> *hyp_lt_index = hyp_lt_index_h.product();
+     
+     // njets
+     InputTag hyp_njets_tag(dileptonInputTag.label(),"hypnjets");
+     Handle<vector<int> > hyp_njets_h;
+     iEvent.getByLabel(hyp_njets_tag, hyp_njets_h);
+     const vector<int> *hyp_njets = hyp_njets_h.product();
 
      //-----------------------------------------------------------
      // muon variables
@@ -330,6 +338,8 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      auto_ptr<vector<int> >		vec_ww_ltgoodeliso	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_llgoodeliso	(new vector<int>  );
      auto_ptr<vector<int> >		vec_ww_passaddzveto  	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_passFebsel_no_jetveto	(new vector<int> );
+     auto_ptr<vector<int> >		vec_ww_passFebsel_with_jetveto	(new vector<int> );
 
      // additional Z veto is applied per-event, not per-candidate
      int ww_passaddzveto = not additionalZveto();
@@ -373,6 +383,14 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	  int ww_llgoodeliso = -1;
 	  if (abs(cms2.hyp_ll_id()[i_hyp]) == 11)
 	       ww_llgoodeliso = goodElectronIsolated(cms2.hyp_ll_index()[i_hyp]);
+	  int ww_passFebsel_no_jetveto = 
+	       ww_oppsign && ww_passzveto && ww_pass4met && ww_pass2met &&
+	       ww_ltgoodmuiso && ww_llgoodmuiso && 
+	       ww_ltgoodeliso && ww_llgoodeliso &&
+	       ww_passaddzveto;
+	  int ww_passFebsel_with_jetveto = 
+	       ww_passFebsel_no_jetveto && (*hyp_njets)[i_hyp] == 0;
+	  
 	  vec_ww_oppsign       ->push_back(ww_oppsign     );
 	  vec_ww_passzveto     ->push_back(ww_passzveto   );
 	  vec_ww_isdyee        ->push_back(ww_isdyee      );
@@ -390,6 +408,8 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	  vec_ww_ltgoodeliso   ->push_back(ww_ltgoodeliso );
 	  vec_ww_llgoodeliso   ->push_back(ww_llgoodeliso );
 	  vec_ww_passaddzveto  ->push_back(ww_passaddzveto);
+	  vec_ww_passFebsel_no_jetveto->push_back(ww_passFebsel_no_jetveto);
+	  vec_ww_passFebsel_with_jetveto->push_back(ww_passFebsel_with_jetveto);
      }
      
      iEvent.put(vec_ww_oppsign     	, "wwoppsign"		);
@@ -409,6 +429,8 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vec_ww_ltgoodeliso 	, "wwltgoodeliso"	);
      iEvent.put(vec_ww_llgoodeliso 	, "wwllgoodeliso"	);
      iEvent.put(vec_ww_passaddzveto	, "wwpassaddzveto"	);
+     iEvent.put(vec_ww_passFebsel_no_jetveto, "wwpassFebselnojetveto");
+     iEvent.put(vec_ww_passFebsel_with_jetveto, "wwpassFebselwithjetveto");
 }
 
 //define this as a plug-in
