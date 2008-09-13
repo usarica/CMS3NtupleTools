@@ -24,7 +24,7 @@ of the selection code, which would get out of sync sooner or later
 //
 // Original Author:  Johannes Muelmenstaedt 
 //		     (but just calls functions in selection.C)
-// $Id: WWCutMaker.cc,v 1.2 2008/09/05 08:46:36 jmuelmen Exp $
+// $Id: WWCutMaker.cc,v 1.3 2008/09/13 08:06:19 jmuelmen Exp $
 //
 //
 
@@ -93,7 +93,7 @@ WWCutMaker::WWCutMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("wwllgoodel"		).setBranchAlias("ww_llgoodel"		);
      produces<vector<int> >		("wwltgoodeliso"	).setBranchAlias("ww_ltgoodeliso"	);
      produces<vector<int> >		("wwllgoodeliso"	).setBranchAlias("ww_llgoodeliso"	);
-     produces<vector<int> >		("wwaddzveto"		).setBranchAlias("ww_passaddzveto"	);
+     produces<vector<int> >		("wwpassaddzveto"	).setBranchAlias("ww_passaddzveto"	);
 }
 
 //
@@ -408,7 +408,7 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vec_ww_llgoodel    	, "wwllgoodel"		);
      iEvent.put(vec_ww_ltgoodeliso 	, "wwltgoodeliso"	);
      iEvent.put(vec_ww_llgoodeliso 	, "wwllgoodeliso"	);
-     iEvent.put(vec_ww_passaddzveto	, "wwaddzveto"		);
+     iEvent.put(vec_ww_passaddzveto	, "wwpassaddzveto"	);
 }
 
 //define this as a plug-in
