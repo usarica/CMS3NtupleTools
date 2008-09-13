@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
+// $Id: JetToMuAssMaker.cc,v 1.3 2008/09/13 09:26:04 jmuelmen Exp $
 //
 //
 
@@ -41,7 +41,7 @@ JetToMuAssMaker::JetToMuAssMaker(const edm::ParameterSet& iConfig)
      : m_minDR(iConfig.getParameter<double>("minDR"))
 {
      produces<vector<int> >("jetsclosestMuon").setBranchAlias("jets_closestMuon");	// muon closest to jet
-     produces<vector<double> >("jetsclosestElectronDR").setBranchAlias("jets_closestElectron_DR");	// Delta R of muon closest to jet
+     produces<vector<double> >("jetsclosestMuonDR").setBranchAlias("jets_closestMuon_DR");	// Delta R of muon closest to jet
 }
 
 void JetToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
