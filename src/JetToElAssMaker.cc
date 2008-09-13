@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToElAssMaker.cc,v 1.1 2008/06/17 23:16:00 gutsche Exp $
+// $Id: JetToElAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
 //
 //
 
@@ -38,11 +38,10 @@ typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
 JetToElAssMaker::JetToElAssMaker(const edm::ParameterSet& iConfig)
+     : m_minDR(iConfig.getParameter<double>("minDR"))
 {
-     produces<vector<int> >("jetsclosestElectron").setBranchAlias("jets_closestElectron");	// muon closest to jet
-     
-     minDR = iConfig.getParameter<double>("minDR");
-
+     produces<vector<int> >("jetsclosestElectron").setBranchAlias("jets_closestElectron");		// electron closest to jet
+     produces<vector<double> >("jetsclosestElectronDR").setBranchAlias("jets_closestElectron_DR");	// Delta R of electron closest to jet
 }
 
 void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -50,6 +49,7 @@ void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      using namespace edm;
      // make vectors to hold the information
      std::auto_ptr<vector<int> > vector_jets_closestElectron(new vector<int>);        
+     std::auto_ptr<vector<double> > vector_jets_closestElectron_DR(new vector<double>);        
      // get muons
      Handle<vector<LorentzVector> > els_p4_h;
      iEvent.getByLabel("electronMaker", "elsp4", els_p4_h);  
@@ -66,7 +66,7 @@ void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double jet_eta = jets_it->Eta();
        double jet_phi = jets_it->Phi();
        
-       double minDR = 0.1;
+       double minDR = m_minDR;
        unsigned int i = 0;
        int index = -1; 
        for(vector<LorentzVector>::const_iterator els_it = els_p4_h->begin();
@@ -82,9 +82,11 @@ void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
        // fill vector
        vector_jets_closestElectron->push_back(index);
+       vector_jets_closestElectron_DR->push_back(minDR);
      }
      // store vectors
      iEvent.put(vector_jets_closestElectron, "jetsclosestElectron");
+     iEvent.put(vector_jets_closestElectron_DR, "jetsclosestElectronDR");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

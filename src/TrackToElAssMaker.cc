@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.1 2008/07/02 03:32:45 jmuelmen Exp $
+// $Id: TrackToElAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
 //
 //
 
@@ -41,6 +41,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
 TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig)
+     : m_minDR(iConfig.getParameter<double>("minDR"))
 {
      produces<vector<int>   >("trkelsidx").setBranchAlias("trk_elsidx");	// track index matched to electron
      produces<vector<float> >("trkelsdr" ).setBranchAlias("trk_elsdr" );
@@ -69,7 +70,7 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     double trk_eta = trk_it->Eta();
     double trk_phi = trk_it->Phi();
        
-    double minDR   = 999;
+    double minDR = m_minDR;
     unsigned int i = 0;
     int index      = -999;
      

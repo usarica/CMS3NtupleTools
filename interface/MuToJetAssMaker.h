@@ -11,7 +11,7 @@ Description: make associations between muons and jets
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.h,v 1.1 2008/07/02 02:28:31 jmuelmen Exp $
+// $Id: MuToJetAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
 //
 //
 #ifndef CMS2_MUTOJETASSMAKER_H
@@ -37,7 +37,7 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  double minDR;
+  double m_minDR;
   
 };
 

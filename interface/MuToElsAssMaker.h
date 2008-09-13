@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.h,v 1.1 2008/07/02 02:28:30 jmuelmen Exp $
+// $Id: MuToElsAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
 //
 //
 #ifndef CMS2_MUTOELASSMAKER_H
@@ -39,6 +39,7 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
+     double m_minDR;
 };
 
 

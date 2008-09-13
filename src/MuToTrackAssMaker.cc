@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToTrackAssMaker.cc,v 1.1 2008/07/02 02:20:18 jmuelmen Exp $
+// $Id: MuToTrackAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
 //
 //
 
@@ -38,6 +38,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
 MuToTrackAssMaker::MuToTrackAssMaker(const edm::ParameterSet& iConfig)
+     : m_minDR(iConfig.getParameter<double>("minDR"))
 {
      produces<vector<int>   >("mustrkidx").setBranchAlias("mus_trkidx");	// track index matched to muon
      produces<vector<float> >("mustrkdr" ).setBranchAlias("mus_trkdr" );
@@ -65,7 +66,7 @@ void MuToTrackAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 	  // find track with min dR
 	  int trkidx = -999;
-	  double min_dR = 999;
+	  double minDR = m_minDR;
 	  int i_track = 0;
 
 	  for (vector<LorentzVector>::const_iterator track = trks_p4_h->begin(); 
@@ -73,15 +74,15 @@ void MuToTrackAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 	       const double deltaR = ROOT::Math::VectorUtil::DeltaR(*muon, *track);
 
-	       if (deltaR < min_dR) {
-		    min_dR = deltaR;
+	       if (deltaR < minDR) {
+		    minDR = deltaR;
 		    trkidx = i_track;
 	       }
 	  }
 
 	  // fill vector
 	  vector_mus_trkidx->push_back(trkidx);
-	  vector_mus_trkdr ->push_back(min_dR);
+	  vector_mus_trkdr ->push_back(minDR);
      }
 
      // store vectors

@@ -1,21 +1,21 @@
 // -*- C++ -*-
 //
 // Package:    NtupleMaker
-// Class:      JetToMuAssMaker
+// Class:      ElToJetAssMaker
 // 
-/**\class JetToMuAssMaker JetToMuAssMaker.h CMS2/NtupleMaker/interface/JetToMuAssMaker.h
+/**\class ElToJetAssMaker ElToJetAssMaker.h CMS2/NtupleMaker/interface/ElToJetAssMaker.h
 
-Description: make associations between jets and muons
+Description: make associations between electrons and jets
 
 */
 //
-// Original Author:  Oliver Gutsche
-//         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
+// Original Author:  Frank Golf
+//         Created:  Wed Jun 25 18:32:24 UTC 2008
+// $Id: ElToJetAssMaker.h,v 1.1 2008/09/13 08:07:22 jmuelmen Exp $
 //
 //
-#ifndef CMS2_JETTOMUASSMAKER_H
-#define CMS2_JETTOMUASSMAKER_H
+#ifndef CMS2_ELTOJETASSMAKER_H
+#define CMS2_ELTOJETASSMAKER_H
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -27,9 +27,9 @@ Description: make associations between jets and muons
 // class declaration
 //
 
-class JetToMuAssMaker : public edm::EDProducer {
+class ElToJetAssMaker : public edm::EDProducer {
 public:
-  explicit JetToMuAssMaker (const edm::ParameterSet&);
+  explicit ElToJetAssMaker (const edm::ParameterSet&);
 
 private:
   virtual void beginJob(const edm::EventSetup&) ;

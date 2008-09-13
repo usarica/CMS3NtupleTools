@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.cc,v 1.1 2008/07/02 02:28:07 jmuelmen Exp $
+// $Id: MuToElsAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
 //
 //
 
@@ -40,6 +40,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
 MuToElsAssMaker::MuToElsAssMaker(const edm::ParameterSet& iConfig)
+     : m_minDR(iConfig.getParameter<double>("minDR"))
 {
      produces<vector<int>   >("musclosestEle").setBranchAlias("mus_closestEle");	// muon matched to electron
      produces<vector<float> >("museledr"     ).setBranchAlias("mus_eledr"     );
@@ -68,7 +69,7 @@ void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double mu_eta = mus_it->Eta();
        double mu_phi = mus_it->Phi();
        
-       double minDR   = 999;
+       double minDR = m_minDR;
        unsigned int i = 0;
        int index      = -999;
  

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.3 2008/07/02 04:41:30 jmuelmen Exp $
+// $Id: ElToMuAssMaker.cc,v 1.4 2008/09/13 08:07:22 jmuelmen Exp $
 //
 //
 
@@ -40,6 +40,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
 ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig)
+     : m_minDR(iConfig.getParameter<double>("minDR"))
 {
      produces<vector<int>   >("elsclosestMuon").setBranchAlias("els_closestMuon");	// track index matched to muon
      produces<vector<float> >("elsmusdr"      ).setBranchAlias("els_musdr"      );
@@ -67,7 +68,7 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double el_eta = els_it->Eta();
        double el_phi = els_it->Phi();
        
-       double minDR = 0.1;
+       double minDR = m_minDR;
        unsigned int i = 0;
        int index = -1; 
 

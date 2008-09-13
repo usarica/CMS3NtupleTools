@@ -1,17 +1,17 @@
 // -*- C++ -*-
 //
 // Package:    NtupleMaker
-// Class:      MuToJetAssMaker
+// Class:      ElToJetAssMaker
 // 
-/**\class MuToJetAssMaker MuToJetAssMaker.cc CMS2/NtupleMaker/src/MuToJetAssMaker.cc
+/**\class ElToJetAssMaker ElToJetAssMaker.cc CMS2/NtupleMaker/src/ElToJetAssMaker.cc
 
- Description: make associations between jets and muons
+ Description: make associations between jets and electrons
 
 */
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
+// $Id: ElToJetAssMaker.cc,v 1.1 2008/09/13 08:07:22 jmuelmen Exp $
 //
 //
 
@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/MuToJetAssMaker.h"
+#include "CMS2/NtupleMaker/interface/ElToJetAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"
@@ -37,35 +37,35 @@
 typedef math::XYZTLorentzVector LorentzVector;
 using std::vector;
 
-MuToJetAssMaker::MuToJetAssMaker(const edm::ParameterSet& iConfig)
+ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig)
      : m_minDR(iConfig.getParameter<double>("minDR"))
 {
-     produces<vector<int>   >("musclosestJet").setBranchAlias("mus_closestJet");	// muon closest to jet
-     produces<vector<float> >("musjetdr"     ).setBranchAlias("mus_jetdr"     );     
+     produces<vector<int>   >("elsclosestJet").setBranchAlias("els_closestJet");	// electron closest to jet
+     produces<vector<float> >("elsjetdr"     ).setBranchAlias("els_jetdr"     );     
 }
 
-void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
      using namespace edm;
      // make vectors to hold the information
-     std::auto_ptr<vector<int>   > vector_mus_closestJet(new vector<int>  );
-     std::auto_ptr<vector<float> > vector_mus_jetdr     (new vector<float>);
+     std::auto_ptr<vector<int>   > vector_els_closestJet(new vector<int>  );
+     std::auto_ptr<vector<float> > vector_els_jetdr     (new vector<float>);
 
-     // get muons
-     Handle<vector<LorentzVector> > mus_p4_h;
-     iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
+     // get electrons
+     Handle<vector<LorentzVector> > els_p4_h;
+     iEvent.getByLabel("electronMaker", "elsp4", els_p4_h);  
 
      // get jet p4's
      Handle<vector<LorentzVector> > jets_p4_h;
      iEvent.getByLabel("jetMaker", "jetsp4", jets_p4_h);
      
-     // loop over all muons
-     for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin(),
-	 mus_end = mus_p4_h->end();
-	 mus_it != mus_end; ++mus_it) {
+     // loop over all electrons
+     for(vector<LorentzVector>::const_iterator els_it = els_p4_h->begin(),
+	 els_end = els_p4_h->end();
+	 els_it != els_end; ++els_it) {
 	 
-       double mu_eta = mus_it->Eta();
-       double mu_phi = mus_it->Phi();
+       double el_eta = els_it->Eta();
+       double el_phi = els_it->Phi();
        
        double minDR = m_minDR;
        unsigned int i = 0;
@@ -78,7 +78,7 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 double jet_eta = jets_it->Eta();
 	 double jet_phi = jets_it->Phi();
 
-	 double dR = deltaR(mu_eta, mu_phi, jet_eta, jet_phi);
+	 double dR = deltaR(el_eta, el_phi, jet_eta, jet_phi);
 	 if(dR < minDR) {
 	   minDR = dR;
 	   index = i;
@@ -86,25 +86,25 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
 
        // fill vector
-       vector_mus_closestJet->push_back(index);
-       vector_mus_jetdr     ->push_back(minDR);
+       vector_els_closestJet->push_back(index);
+       vector_els_jetdr     ->push_back(minDR);
      }
 
      // store vectors
-     iEvent.put(vector_mus_closestJet, "musclosestJet");
-     iEvent.put(vector_mus_jetdr     , "musjetdr"     );
+     iEvent.put(vector_els_closestJet, "elsclosestJet");
+     iEvent.put(vector_els_jetdr     , "elsjetdr"     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-MuToJetAssMaker::beginJob(const edm::EventSetup&)
+ElToJetAssMaker::beginJob(const edm::EventSetup&)
 {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void 
-MuToJetAssMaker::endJob() {
+ElToJetAssMaker::endJob() {
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(MuToJetAssMaker);
+DEFINE_FWK_MODULE(ElToJetAssMaker);
