@@ -1,0 +1,14 @@
+module askimFilter  = ASkimFilter  {
+      # this syntax means: keep events that contain entries 
+      # with Pt > filterPtCut in the collections given below
+      # Needs to be collection of type TLorentzVector
+      VInputTag filterExpressions = { 
+      		electronMaker:elsp4
+	        , muonMaker:musp4
+      }
+      
+      # select each event that has an entry
+      # with pt > filterPtCut in the above 
+      # collections
+      double filterPtCut  = 10.0
+}
