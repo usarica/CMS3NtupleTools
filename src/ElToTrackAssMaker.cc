@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToTrackAssMaker.cc,v 1.3 2008/10/21 16:35:07 kalavase Exp $
+// $Id: ElToTrackAssMaker.cc,v 1.4 2008/10/21 16:56:53 kalavase Exp $
 //
 //
 
@@ -58,7 +58,7 @@ ElToTrackAssMaker::ElToTrackAssMaker(const ParameterSet& iConfig)
      produces<vector<float> >("elstrkdr"      ).setBranchAlias("els_trkdr" );
 
      
-     m_minDR             = iConfig.getParameter<double>("minDR");
+     minDr_             = iConfig.getParameter<double>("minDR");
      haveHits_          = iConfig.getParameter<bool>("haveHits");
      electronsInputTag_ = iConfig.getParameter<InputTag>("electronsInputTag");
      tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
