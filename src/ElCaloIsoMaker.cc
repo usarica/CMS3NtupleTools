@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.cc,v 1.2 2008/09/04 06:06:49 dmytro Exp $
+// $Id: ElCaloIsoMaker.cc,v 1.3 2008/10/21 18:19:01 kalavase Exp $
 
 // system include files
 #include <memory>
@@ -15,7 +15,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
-#include "DataFormats/EgammaCandidates/interface/PixelMatchGsfElectron.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
 #include "DataFormats/CaloTowers/interface/CaloTower.h"
 #include "CMS2/NtupleMaker/interface/ElCaloIsoMaker.h"
