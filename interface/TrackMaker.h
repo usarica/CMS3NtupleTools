@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.3 2008/07/22 06:08:48 fgolf Exp $
+// $Id: TrackMaker.h,v 1.4 2008/10/21 16:29:24 kalavase Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -43,6 +43,7 @@ private:
       
       // ----------member data ---------------------------
   edm::InputTag tracksInputTag;
+  edm::InputTag beamSpotTag;
 };
 
 
