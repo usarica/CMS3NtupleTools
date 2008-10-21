@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.7 2008/07/31 04:37:19 jmuelmen Exp $
+// $Id: EventMaker.cc,v 1.8 2008/10/21 16:35:50 kalavase Exp $
 //
 //
 
@@ -29,12 +29,13 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/EventMaker.h"
-#include "PhysicsTools/HepMCCandAlgos/interface/CSA07ProcessId.h"
 
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 #include "DataFormats/L1Trigger/interface/L1ParticleMap.h"
+#include "DataFormats/L1Trigger/interface/L1ParticleMapFwd.h"
 #include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
 #include "DataFormats/L1Trigger/interface/L1JetParticle.h"
 #include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
@@ -60,6 +61,10 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
   produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
   produces<int>    ("evtHLT4"              ).setBranchAlias("evt_HLT4"                 );
+  produces<int>    ("evtHLT5"              ).setBranchAlias("evt_HLT5"                 );
+  produces<int>    ("evtHLT6"              ).setBranchAlias("evt_HLT6"                 );
+  produces<int>    ("evtHLT7"              ).setBranchAlias("evt_HLT7"                 );
+  produces<int>    ("evtHLT8"              ).setBranchAlias("evt_HLT8"                 );
   produces<int>    ("evtL11"               ).setBranchAlias("evt_L1_1"                 );
   produces<int>    ("evtL12"               ).setBranchAlias("evt_L1_2"                 );
   produces<int>    ("evtL13"               ).setBranchAlias("evt_L1_3"                 );
@@ -73,7 +78,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
   kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
   
-  //CSA07 info
+  // info
   haveTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveTriggerInfo");
 
 }
@@ -97,6 +102,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>      evt_HLT2              (new int);
   auto_ptr<int>      evt_HLT3              (new int);
   auto_ptr<int>      evt_HLT4              (new int);
+  auto_ptr<int>      evt_HLT5              (new int);
+  auto_ptr<int>      evt_HLT6              (new int);
+  auto_ptr<int>      evt_HLT7              (new int);
+  auto_ptr<int>      evt_HLT8              (new int);
   auto_ptr<int>      evt_L11               (new int);
   auto_ptr<int>      evt_L12               (new int);
   auto_ptr<int>      evt_L13               (new int);
@@ -116,18 +125,26 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int *hlt2       = new int;
     int *hlt3       = new int;
     int *hlt4       = new int;
+    int *hlt5       = new int;
+    int *hlt6       = new int;
+    int *hlt7       = new int;
+    int *hlt8       = new int;
     int *l11        = new int;
     int *l12        = new int;
     int *l13        = new int;
     int *l14        = new int;
     
-    fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4);
+    fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, hlt6, hlt7, hlt8);
     fillL1Info(iEvent, l11, l12, l13, l14);
 
     *evt_HLT1 = *hlt1;
     *evt_HLT2 = *hlt2;
     *evt_HLT3 = *hlt3;
     *evt_HLT4 = *hlt4;
+    *evt_HLT5 = *hlt5;
+    *evt_HLT6 = *hlt6;
+    *evt_HLT7 = *hlt7;
+    *evt_HLT8 = *hlt8;
     *evt_L11  = *l11;
     *evt_L12  = *l12;
     *evt_L13  = *l13;
@@ -138,6 +155,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_HLT2 = -999;
     *evt_HLT3 = -999;
     *evt_HLT4 = -999;
+    *evt_HLT5 = -999;
+    *evt_HLT6 = -999;
+    *evt_HLT7 = -999;
+    *evt_HLT8 = -999;
     *evt_L11  = -999;
     *evt_L12  = -999;
     *evt_L13  = -999;
@@ -179,6 +200,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_HLT2             ,"evtHLT2"            );
   iEvent.put(evt_HLT3             ,"evtHLT3"            );
   iEvent.put(evt_HLT4             ,"evtHLT4"            );
+  iEvent.put(evt_HLT5             ,"evtHLT5"            );
+  iEvent.put(evt_HLT6             ,"evtHLT6"            );
+  iEvent.put(evt_HLT7             ,"evtHLT7"            );
+  iEvent.put(evt_HLT8             ,"evtHLT8"            );
   iEvent.put(evt_L11              ,"evtL11"             );
   iEvent.put(evt_L12              ,"evtL12"             );
   iEvent.put(evt_L13              ,"evtL13"             );
@@ -195,7 +220,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //-----------------------------------------------------------------------
 // fill HLT info
 //-----------------------------------------------------------------------
-void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int *h4) {
+void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int *h4,
+			     int *h5, int *h6, int *h7, int *h8) {
 
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
@@ -203,9 +229,14 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
   *h2=0;
   *h3=0;
   *h4=0;
+  *h5=0;
+  *h6=0;
+  *h7=0;
+  *h8=0;
+
   unsigned int ntriggers = triggerResults->size();
-  if(ntriggers > 128)
-    throw cms::Exception("CSA07EffAnalyser: Number of HLT trigger variables must be increased!");
+  if(ntriggers > 255)
+    throw cms::Exception("EventMaker: Number of HLT trigger variables must be increased!");
   for (unsigned int i = 0; i < ntriggers; i++) {
     
     if(i<=31) {
@@ -241,6 +272,38 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          }
        }
 
+       if(i>=128&&i<=159) {
+         unsigned int bitmask = 1;
+         if(triggerResults->accept(i)) {
+           bitmask <<=(i-128);
+           *h5 |= bitmask;
+         }
+       }
+
+       if(i>=160&&i<=191) {
+         unsigned int bitmask = 1;
+         if(triggerResults->accept(i)) {
+           bitmask <<=(i-160);
+           *h6 |= bitmask;
+         }
+       }
+
+       if(i>=192&&i<=223) {
+         unsigned int bitmask = 1;
+         if(triggerResults->accept(i)) {
+           bitmask <<=(i-192);
+           *h7 |= bitmask;
+         }
+       }
+
+       if(i>=224&&i<=255) {
+         unsigned int bitmask = 1;
+         if(triggerResults->accept(i)) {
+           bitmask <<=(i-224);
+           *h8 |= bitmask;
+         }
+       }
+
      }
   
 }
@@ -250,24 +313,22 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
 //---------------------------------------------------------
 void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3, int* l1_4) {
   
-  edm::Handle<l1extra::L1ParticleMapCollection> L1PMC;
-  iEvent.getByLabel("l1extraParticleMap", L1PMC);
+  edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
+  iEvent.getByLabel("gtDigis", gtRecord);
   //if(L1PMC.isValid()) {
-  
+  const DecisionWord dWord = gtRecord->decisionWord();
+
    *l1_1=0;
    *l1_2=0;
    *l1_3=0;
    *l1_4=0;
-   int ntriggers = L1PMC->size();
+   unsigned int ntriggers = dWord.size();
    if(ntriggers > 128)
-     throw cms::Exception("CSA07EffAnalyser: Number of HLT trigger variables must be increased!");
-   for(unsigned int i = 0; i<L1PMC->size() ; i++) {
-     //this is how you get the trigger name, if you want it:
-     //l1extra::L1ParticleMap::L1TriggerType type(static_cast<l1extra::L1ParticleMap::L1TriggerType>(i));
-     //std::cout << type << l1extra::L1ParticleMap::triggerName(type) << std::endl;
+     throw cms::Exception("EventMaker: Number of HLT trigger variables must be increased!");
+   for(unsigned int i = 0; i<ntriggers ; i++) {
      if(i<=31) {
        unsigned int bitmask = 1;
-       if((L1PMC->at(i)).triggerDecision()) {
+       if(dWord.at(i)) {
          bitmask <<=i;
          *l1_1 |= bitmask;
        }
@@ -275,7 +336,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3
      
      if(i>=32&&i<=63) {
        unsigned int bitmask = 1;
-       if((L1PMC->at(i)).triggerDecision()) {
+       if(dWord.at(i)) {
          bitmask <<=(i-32);
          *l1_2 |= bitmask;
        }
@@ -283,7 +344,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3
      
      if(i>=64&&i<=95) {
        unsigned int bitmask = 1;
-       if((L1PMC->at(i)).triggerDecision()) {
+       if(dWord.at(i)) {
          bitmask <<=(i-64);
          *l1_3 |= bitmask;
        }
@@ -291,7 +352,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3
      
      if(i>=96&&i<=127) {
        unsigned int bitmask = 1;
-       if((L1PMC->at(i)).triggerDecision()) {
+       if(dWord.at(i)) {
          bitmask <<=(i-96);
          *l1_4 |= bitmask;
        }
