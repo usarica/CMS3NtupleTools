@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.1 2008/08/19 14:23:33 spadhi Exp $
+// $Id: TrkMuonFilter.cc,v 1.2 2008/10/21 18:30:53 kalavase Exp $
 //
 
 // system include files
@@ -117,9 +117,9 @@ bool TrkMuonFilter::muonisolation(reco::Muon muon)
 {
   if(!muon.isIsolationValid())
     {cout<<"Invalid Isolation!"; return false;}
-  const reco::MuonIsolation miso= muon.getIsolationR03();
+  const reco::MuonIsolation miso= muon.isolationR03();
   double sum = miso.sumPt + miso.emEt + miso.hadEt;
-  const reco::TrackRef mu = muon.combinedMuon();
+  const reco::TrackRef mu = muon.globalTrack();
   double pt = mu->pt();
   if ( pt/(pt+sum) < muIsoFrac) return false;
   else if (mu->chi2()/mu->ndof() > muChi2N) return false;
