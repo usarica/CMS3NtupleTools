@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.h,v 1.3 2008/08/09 21:30:23 gutsche Exp $
+// $Id: HypQuadlepMaker.h,v 1.4 2008/10/21 16:41:44 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPQUADLEPMAKER_H
@@ -64,8 +64,8 @@ private:
   edm::InputTag metInputTag;
   edm::InputTag jetsInputTag;
   edm::InputTag trksInputTag;
-  edm::InputTag tqJetsInputTag;
-  bool          usingTQJets;
+  edm::InputTag patJetsInputTag;
+  bool          usingPATJets;
   double        hypJetMinEtaCut;
   double        hypJetMaxEtaCut;
   double        hypJetMinPtCut;

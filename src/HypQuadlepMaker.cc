@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.7 2008/08/09 21:30:24 gutsche Exp $
+// $Id: HypQuadlepMaker.cc,v 1.8 2008/10/21 16:42:08 kalavase Exp $
 //
 //
 
@@ -98,8 +98,8 @@ HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
   metInputTag = iConfig.getParameter<edm::InputTag>("metInputTag");
   jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
   trksInputTag = iConfig.getParameter<edm::InputTag>("trksInputTag");
-  tqJetsInputTag = iConfig.getParameter<edm::InputTag>("tqJetsInputTag");
-  usingTQJets = iConfig.getParameter<bool>("usingTQJets");
+  patJetsInputTag = iConfig.getParameter<edm::InputTag>("patJetsInputTag");
+  usingPATJets = iConfig.getParameter<bool>("usingPATJets");
   hypJetMinEtaCut = iConfig.getParameter<double>("hypJetMinEtaCut");
   hypJetMaxEtaCut = iConfig.getParameter<double>("hypJetMaxEtaCut");
   hypJetMinPtCut = iConfig.getParameter<double>("hypJetMinPtCut");
@@ -224,10 +224,10 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   const std::vector<LorentzVector> *jets_p4 = jets_p4_h.product();
 
   //correction factor
-  edm::InputTag jets_tq_noCorrF_tag(tqJetsInputTag.label(), "jetstqnoCorrF");
-  edm::Handle<std::vector<float> > jets_tq_noCorrF_h;
-  if ( usingTQJets ) {
-    iEvent.getByLabel(jets_tq_noCorrF_tag, jets_tq_noCorrF_h);
+  edm::InputTag jets_pat_noCorrF_tag(patJetsInputTag.label(), "jetspatnoCorrF");
+  edm::Handle<std::vector<float> > jets_pat_noCorrF_h;
+  if ( usingPATJets ) {
+    iEvent.getByLabel(jets_pat_noCorrF_tag, jets_pat_noCorrF_h);
   }
 
   // number of electrons
@@ -365,8 +365,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	      if ( usingTQJets ) {
-		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      if ( usingPATJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
 	      }
 
 	      // jet-preselection
@@ -469,8 +469,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	      if ( usingTQJets ) {
-		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      if ( usingPATJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
 	      }
 
 	      // jet pre-selection
@@ -595,8 +595,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	      if ( usingTQJets ) {
-		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      if ( usingPATJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
 	      }
 
 	      // jet pre-selection
@@ -717,8 +717,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	      if ( usingTQJets ) {
-		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      if ( usingPATJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
 	      }
 
 	      // jet pre-selection
@@ -812,8 +812,8 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	      // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	      double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	      if ( usingTQJets ) {
-		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_tq_noCorrF_h.product()->at(i);
+	      if ( usingPATJets ) {
+		hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
 	      }
 
 	      // jet pre-selection
