@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.5 2008/07/22 06:09:10 fgolf Exp $
+// $Id: MuonMaker.h,v 1.6 2008/10/21 16:19:27 kalavase Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -57,6 +57,7 @@ private:
       // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
   edm::InputTag tracksInputTag;
+  edm::InputTag beamSpotInputTag;
 };
 
 
