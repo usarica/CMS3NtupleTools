@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.3 2008/06/14 19:07:04 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.4 2008/10/21 16:09:07 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -30,11 +30,15 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "DataFormats/EgammaCandidates/interface/PixelMatchGsfElectron.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "DataFormats/Math/interface/Point3D.h"
+#include "Math/VectorUtil.h"
 
 //
 // class decleration
@@ -50,17 +54,13 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 
-  std::vector<const reco::PixelMatchGsfElectron*> getElectrons(const edm::Event&, edm::InputTag);
-  void removeElectrons(const std::vector<const reco::PixelMatchGsfElectron*>* );
   void R9_25(const reco::BasicClusterShapeAssociationCollection*,
              const reco::BasicClusterShapeAssociationCollection*,
-             const reco::PixelMatchGsfElectron*,
+             const reco::GsfElectron*,
              float&, float&, float&, float&, float&);
-  bool identify(const reco::PixelMatchGsfElectron*,
-		const reco::BasicClusterShapeAssociationCollection* barrelClShp,
-                const reco::BasicClusterShapeAssociationCollection* endcapClShp, int);
-  int classify(const reco::PixelMatchGsfElectron*);
-  int classify_old(const reco::PixelMatchGsfElectron*);
+  bool identify(const reco::GsfElectron*, int);
+  int classify(const reco::GsfElectron*);
+  int classify_old(const reco::GsfElectron*);
   double trackRelIsolation(const math::XYZVector momentum,
 			   const math::XYZPoint vertex,
 			   const edm::View<reco::Track>* tracks = 0,
@@ -68,13 +68,13 @@ private:
 			   double tkVtxDMax = 0.1,
 			   double vtxDiffDMax = 999.9, double vtxDiffZMax = 0.5,
 			   double ptMin = 1.0, unsigned int nHits = 7);
-  
-
 
    edm::InputTag electronsInputTag;
    edm::InputTag tracksInputTag;
    edm::InputTag genParticlesInputTag;
+  edm::InputTag beamSpotInputTag;
       // ----------member data ---------------------------
+  EcalClusterLazyTools* clusterTools_;
 };
 
 

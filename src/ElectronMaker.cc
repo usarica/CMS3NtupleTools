@@ -11,9 +11,9 @@ Implementation:
 <Notes on implementation>
 */
 //
-// Original Author:  pts/4
+// Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.9 2008/07/24 04:35:19 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.10 2008/10/21 16:08:44 kalavase Exp $
 //
 //
 
@@ -33,8 +33,17 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+#include "DataFormats/EgammaReco/interface/BasicCluster.h"
+#include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
+
+#include "DataFormats/EgammaReco/interface/ClusterShape.h"
+#include "DataFormats/EgammaReco/interface/ClusterShapeFwd.h"
+
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -42,8 +51,10 @@ Implementation:
 #include "DataFormats/Math/interface/deltaR.h"
 #include "Math/VectorUtil.h"
 
+#include "CMS2/NtupleMaker/interface/ElUtilities.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -60,17 +71,29 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >            ("elsvalidHits"        ).setBranchAlias("els_validHits"        ); //number of used hits in fit
   produces<vector<int> >  	    ("elslostHits"         ).setBranchAlias("els_lostHits"         ); //number of lost hits in fit
   produces<vector<int> >  	    ("elscharge"           ).setBranchAlias("els_charge"           ); //candidate charge
-  produces<vector<int> >  	    ("elsnSeed"            ).setBranchAlias("els_nSeed"            ); 
+  produces<vector<int> >  	    ("elsnSeed"            ).setBranchAlias("els_nSeed"            );
+  /* classification defined here:
+     http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
+  */
   produces<vector<int> >  	    ("elsclass"            ).setBranchAlias("els_class"            );
+  //for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
+  produces<vector<int> >            ("elscategory"         ).setBranchAlias("els_category"         );
+  produces<vector<int> >            ("elscategoryold"      ).setBranchAlias("els_categoryold"      );
+
+  //These ids are hardwired (see functions below). They are the category based cuts,
+  // and are the SAME as the els_pat_*id branches made by PATElectronMaker
   produces<vector<int> >  	    ("elsrobustId"         ).setBranchAlias("els_robustId"         );
   produces<vector<int> >  	    ("elslooseId"          ).setBranchAlias("els_looseId"          );
   produces<vector<int> >  	    ("elstightId"          ).setBranchAlias("els_tightId"          );
+  
   produces<vector<int> >  	    ("elspass3simpleId"    ).setBranchAlias("els_pass3simpleId"    );
   produces<vector<int> >	    ("elspass3looseId"     ).setBranchAlias("els_pass3looseId"     );
   produces<vector<int> >	    ("elspass3tightId"     ).setBranchAlias("els_pass3tightId"     );
   produces<vector<int> >	    ("elssimpleIdPlus"     ).setBranchAlias("els_simpleIdPlus"     );
   produces<vector<float> >	    ("elsd0"               ).setBranchAlias("els_d0"               );
   produces<vector<float> >	    ("elsz0"               ).setBranchAlias("els_z0"               );
+  produces<vector<float> >	    ("elsd0corr"           ).setBranchAlias("els_d0corr"           );
+  produces<vector<float> >	    ("elsz0corr"           ).setBranchAlias("els_z0corr"           );
   produces<vector<float> >	    ("elsvertexphi"        ).setBranchAlias("els_vertexphi"        );
   produces<vector<float> >	    ("elschi2"             ).setBranchAlias("els_chi2"             );
   produces<vector<float> >	    ("elsndof"             ).setBranchAlias("els_ndof"             );
@@ -109,11 +132,15 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   electronsInputTag    = iConfig.getParameter<InputTag>("electronsInputTag");
   tracksInputTag       = iConfig.getParameter<InputTag>("tracksInputTag");
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
+  clusterTools_ = 0;
+  beamSpotInputTag = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+
 }
 
 
 ElectronMaker::~ElectronMaker()
 {
+  if (clusterTools_) delete clusterTools_;
 }
 
 void  ElectronMaker::beginJob(const edm::EventSetup&)
@@ -135,6 +162,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	   els_charge               (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_nSeed                (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_class                (new vector<int>          ) ;
+  auto_ptr<vector<int> >           els_category             (new vector<int>          ) ;
+  auto_ptr<vector<int> >           els_categoryold          (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_robustId             (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_looseId              (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_tightId              (new vector<int>          ) ;
@@ -144,6 +173,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	   els_simpleIdPlus         (new vector<int>          ) ;
   auto_ptr<vector<float> >	   els_d0                   (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_z0                   (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_d0corr               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_z0corr               (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_vertexphi            (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_chi2                 (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_ndof                 (new vector<float>        ) ;
@@ -179,50 +210,47 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   //Get required collections ->have to be made configurable, hard wired for now
-  vector<const PixelMatchGsfElectron*> electron_coll = getElectrons(iEvent, electronsInputTag);
-  removeElectrons(&electron_coll);
+  vector<const GsfElectron*> electron_coll = ElUtilities::getElectrons(iEvent, electronsInputTag);
+  ElUtilities::removeElectrons(&electron_coll);
 
   Handle<View<Track> > tk_h;
   iEvent.getByLabel(tracksInputTag, tk_h);
   const View<Track> *track_coll = tk_h.product();
-  
-  Handle<BasicClusterShapeAssociationCollection> barrelClShp_h;
-  iEvent.getByLabel("hybridSuperClusters", "hybridShapeAssoc", barrelClShp_h);
-  if(!barrelClShp_h.isValid()) {
-    LogError("ElectronMaker") << "Can't get EcalBarrel Cluster Shape Collection";
-  }
-  const BasicClusterShapeAssociationCollection *barrelClShp = barrelClShp_h.product();
-  
-  Handle<BasicClusterShapeAssociationCollection> endcapClShp_h;
-  iEvent.getByLabel("islandBasicClusters", "islandEndcapShapeAssoc", endcapClShp_h);
-  if(!barrelClShp_h.isValid()) {
-    LogError("ElectronMaker") << "Can't get Ecal EndcapCluster Shape Collection";
-  }
-  const BasicClusterShapeAssociationCollection *endcapClShp = endcapClShp_h.product();
+    
+  if (clusterTools_) delete clusterTools_;
+  clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
+					   edm::InputTag("reducedEcalRecHitsEB"), 
+					   edm::InputTag("reducedEcalRecHitsEE"));
   
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
-
-
-
+  edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbs");
+  edm::Handle<math::XYZPoint> beamSpotH;
+  iEvent.getByLabel(beamSpot_tag, beamSpotH);
+  const Point beamSpot = beamSpotH.isValid() ? *(beamSpotH.product()) : Point(0,0,0);
 
   //fill number of electrons variable
   *evt_nels = electron_coll.size();
   
   //loop over electron collection
-  for(vector<const PixelMatchGsfElectron*>::const_iterator el_it = electron_coll.begin();
+  for(vector<const GsfElectron*>::const_iterator el_it = electron_coll.begin();
       el_it != electron_coll.end(); el_it++) {
 
-    const PixelMatchGsfElectron *el = *el_it;
+    const GsfElectron *el = *el_it;
     const reco::Track *el_track = (const reco::Track*)(*el_it)->gsfTrack().get();
-    
 
     //get Cluster info
     //const EcalSuperClusterCollection *barrelExtraShapes, *endcapExtraShapes;
     float esc, e3x3, e5x5, see, spp;
-    R9_25(barrelClShp, endcapClShp, el, esc, e3x3, e5x5, spp, see);
+    const reco::BasicCluster& clRef= *(*el_it)->superCluster()->seed();
+    esc = clusterTools_->eMax(clRef);
+    e3x3 = clusterTools_->e3x3(clRef);
+    e5x5 = clusterTools_->e5x5(clRef);
+    const std::vector<float>& covs = clusterTools_->covariances(clRef);
+    spp = sqrt(covs[2]);
+    see = sqrt(covs[0]);
     
     /* fill Electron Id array
        robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
@@ -230,7 +258,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     */
     int id[7];
     for(int i=0; i<7; ++i) {
-      if (identify(el,barrelClShp,endcapClShp, i))
+      if (identify(el, i))
         id[i] = 1;
       else
         id[i] = 0;
@@ -315,61 +343,67 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     
     //fill the vectors
-    els_validHits             ->push_back( el_track->numberOfValidHits()             );
-    els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-    els_charge                ->push_back( el->charge()                              );
-    els_nSeed                 ->push_back( el->numberOfClusters() - 1                );                             
-    els_class                 ->push_back( el->classification()                      );
-    els_robustId              ->push_back( id[0]                                     );
-    els_looseId               ->push_back( id[1]                                     );
-    els_tightId               ->push_back( id[2]                                     );
-    els_pass3simpleId         ->push_back( id[3]                                     );
-    els_pass3looseId          ->push_back( id[4]                                     );
-    els_pass3tightId          ->push_back( id[5]                                     );
-    els_simpleIdPlus          ->push_back( id[6]                                     );
-    els_d0                    ->push_back( el_track->d0()                            );
-    els_z0                    ->push_back( el_track->dz()                            );
-    els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )   );
-    els_chi2                  ->push_back( el_track->chi2()                          );
-    els_ndof                  ->push_back( el_track->ndof()                          );
-    els_d0Err                 ->push_back( el_track->d0Error()                       );
-    els_z0Err                 ->push_back( el_track->dzError()                       );
-    els_ptErr                 ->push_back( trkpterr                                  );
-    els_etaErr                ->push_back( el_track->etaError()                      );
-    els_phiErr                ->push_back( el_track->phiError()                      );  
-    els_outerPhi              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
-    els_outerEta              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
-    els_hOverE                ->push_back( el->hadronicOverEm()                      );
-    els_eOverPIn              ->push_back( el->eSuperClusterOverP()                  );
-    els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                );
-    els_fBrem                 ->push_back( (pin-pout)/pin                            );
-    els_dEtaIn                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()      );
-    els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()      );
-    els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()      );
-    els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()      );
-    els_ESc                   ->push_back( esc                                       );
-    els_EScraw                ->push_back( el->superCluster()->rawEnergy()           );
-    els_e3x3                  ->push_back( e3x3                                      );
-    els_e5x5                  ->push_back( e5x5                                      );
-    els_ESeed                 ->push_back( el->superCluster()->seed()->energy()      );
-    els_sigmaPhiPhi           ->push_back( spp                                       );
-    els_sigmaEtaEta           ->push_back( see                                       );
-    els_tkIso                 ->push_back( tkIso                                     );
-    els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                        );
-    //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                            );
-    els_p4                    ->push_back( el->p4()                                  );
-    els_trk_p4                ->push_back( trk_p4                                    );
-    els_p4In                  ->push_back( p4In                                      );
-    els_p4Out                 ->push_back( p4Out                                     );
+    els_validHits             ->push_back( el_track->numberOfValidHits()                   );
+    els_lostHits              ->push_back( el_track->numberOfLostHits()                    );
+    els_charge                ->push_back( el->charge()                                    );
+    els_nSeed                 ->push_back( el->numberOfClusters() - 1                      );                             
+    els_class                 ->push_back( el->classification()                            );
+    els_category              ->push_back( classify(el)                                    );
+    els_categoryold           ->push_back( classify_old(el)                                );
+    els_robustId              ->push_back( id[0]                                           );
+    els_looseId               ->push_back( id[1]                                           );
+    els_tightId               ->push_back( id[2]                                           );
+    els_pass3simpleId         ->push_back( id[3]                                           );
+    els_pass3looseId          ->push_back( id[4]                                           );
+    els_pass3tightId          ->push_back( id[5]                                           );
+    els_simpleIdPlus          ->push_back( id[6]                                           );
+    els_d0                    ->push_back( el_track->d0()                                  );
+    els_z0                    ->push_back( el_track->dz()                                  );
+    els_d0corr                ->push_back( el_track->dxy(beamSpot)                         );
+    els_z0corr                ->push_back( el_track->dz(beamSpot)                          );
+    els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )         );
+    els_chi2                  ->push_back( el_track->chi2()                                );
+    els_ndof                  ->push_back( el_track->ndof()                                );
+    els_d0Err                 ->push_back( el_track->d0Error()                             );
+    els_z0Err                 ->push_back( el_track->dzError()                             );
+    els_ptErr                 ->push_back( trkpterr                                        );
+    els_etaErr                ->push_back( el_track->etaError()                            );
+    els_phiErr                ->push_back( el_track->phiError()                            );  
+    els_outerPhi              ->push_back( -9999.                                          );  //PLACEHOLDER!!!!!
+    els_outerEta              ->push_back( -9999.                                          );  //PLACEHOLDER!!!!!
+    els_hOverE                ->push_back( el->hadronicOverEm()                            );
+    els_eOverPIn              ->push_back( el->eSuperClusterOverP()                        );
+    els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                      );
+    els_fBrem                 ->push_back( (pin-pout)/pin                                  );
+    els_dEtaIn                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()            );
+    els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()            );
+    els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()            );
+    els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()            );
+    els_ESc                   ->push_back( esc                                             );
+    els_EScraw                ->push_back( el->superCluster()->rawEnergy()                 );
+    els_e3x3                  ->push_back( e3x3                                            );
+    els_e5x5                  ->push_back( e5x5                                            );
+    els_ESeed                 ->push_back( el->superCluster()->seed()->energy()            );
+    els_sigmaPhiPhi           ->push_back( spp                                             );
+    els_sigmaEtaEta           ->push_back( see                                             );
+    els_tkIso                 ->push_back( tkIso                                           );
+    els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                              );
+    //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                                  );
+    els_p4                    ->push_back( el->p4()                                        );
+    els_trk_p4                ->push_back( trk_p4                                          );
+    els_p4In                  ->push_back( p4In                                            );
+    els_p4Out                 ->push_back( p4Out                                           );
   
   }
-
+  
   iEvent.put(evt_nels                         ,"evtnels"            );
   iEvent.put(els_validHits                    ,"elsvalidHits"       );
   iEvent.put(els_lostHits                     ,"elslostHits"        );
   iEvent.put(els_charge                       ,"elscharge"          );
   iEvent.put(els_nSeed                        ,"elsnSeed"           );
   iEvent.put(els_class                        ,"elsclass"           );
+  iEvent.put(els_category                     ,"elscategory"        );
+  iEvent.put(els_categoryold                  ,"elscategoryold"     );
   iEvent.put(els_robustId                     ,"elsrobustId"        );
   iEvent.put(els_looseId                      ,"elslooseId"         );
   iEvent.put(els_tightId                      ,"elstightId"         );
@@ -379,6 +413,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_simpleIdPlus                 ,"elssimpleIdPlus"    );
   iEvent.put(els_d0                           ,"elsd0"              );
   iEvent.put(els_z0                           ,"elsz0"              );
+  iEvent.put(els_d0corr                       ,"elsd0corr"          );
+  iEvent.put(els_z0corr                       ,"elsz0corr"          );
   iEvent.put(els_vertexphi                    ,"elsvertexphi"       );
   iEvent.put(els_chi2                         ,"elschi2"            );
   iEvent.put(els_ndof                         ,"elsndof"            );
@@ -416,69 +452,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
 
-
-//--------------------------------------------------------------------------------------------
-//gets the electrons from the event
-//--------------------------------------------------------------------------------------------
-vector<const PixelMatchGsfElectron*> ElectronMaker::getElectrons(const edm::Event& iEvent, InputTag electronsInputTag) {
-  
-
-  Handle<View<PixelMatchGsfElectron> > electron_h;
-  iEvent.getByLabel(electronsInputTag, electron_h);
-  vector<const PixelMatchGsfElectron*> collection;
-  
-  for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
-      electron != electron_h->end(); ++electron){
-    collection.push_back(&*electron);
-  }
-
-  return collection;
-  
-}
-
-
-//--------------------------------------------------------------------------------------------
-//remove electrons that have the same SC
-//--------------------------------------------------------------------------------------------
-void ElectronMaker::removeElectrons(const vector<const PixelMatchGsfElectron*>* collection) {
-
-  vector<const reco::PixelMatchGsfElectron*>* newEl = const_cast<vector<const PixelMatchGsfElectron*>* >(collection);
-  vector<const reco::PixelMatchGsfElectron*> copy = *newEl;
-
-  newEl->clear();
-
-  vector<const PixelMatchGsfElectron*>::iterator it1, it2;
-
-  for(it1=copy.begin(); it1!=copy.end(); ++it1) {
-
-    bool isRemoved = false;
-    for(it2=copy.begin(); it2!=copy.end(); ++it2) {
-      if (it1 == it2)
-        continue;
-      if (((**it1).superCluster().id() == (**it2).superCluster().id()) &&
-          ((**it1).superCluster().index() == (**it2).superCluster().index())) {
-
-        float deltaEp1 = fabs((**it1).eSuperClusterOverP() - 1.);
-        float deltaEp2 = fabs((**it2).eSuperClusterOverP() - 1.);
-        if (deltaEp1 > deltaEp2) {
-          isRemoved = true;
-          break;
-        }
-      }
-    }
-
-    if (!isRemoved)
-      newEl->push_back(*it1);
-
-  }
-}
-
 //--------------------------------------------------------------------------------------------
 //Function to fill SC Parameters
 //--------------------------------------------------------------------------------------------
 void ElectronMaker::R9_25(const reco::BasicClusterShapeAssociationCollection* barrelClShp,
 			  const reco::BasicClusterShapeAssociationCollection* endcapClShp, 
-			  const reco::PixelMatchGsfElectron* electron,
+			  const reco::GsfElectron* electron,
 			  float& eMax, float& e3x3, float& e5x5, float& spp, float& see) { 
 
   reco::SuperClusterRef sclRef=electron->superCluster();
@@ -504,14 +483,20 @@ void ElectronMaker::R9_25(const reco::BasicClusterShapeAssociationCollection* ba
 //-------------------------------------------------------------------------------------------------
 //Electron ID
 //-------------------------------------------------------------------------------------------------
-bool ElectronMaker::identify(const reco::PixelMatchGsfElectron* electron, 
-			     const reco::BasicClusterShapeAssociationCollection* barrelClShp,
-			     const reco::BasicClusterShapeAssociationCollection* endcapClShp, int type) {
+bool ElectronMaker::identify(const reco::GsfElectron* electron, 
+			     int type) {
   
   // type = 0 robust (looser and safe), 1 loose, 2 tight, 3 simple (old robust), 4 old loose (6 categories), 5 old tight (6 categories) 
   
-  float dummy, e3x3, e5x5, i, l; 
-  R9_25(barrelClShp, endcapClShp, electron, dummy, e3x3, e5x5, l, i);
+  float e3x3, e5x5, i, l; 
+  const reco::BasicCluster& clRef=*electron->superCluster()->seed();
+  e3x3 = clusterTools_->e3x3(clRef);
+  e5x5 = clusterTools_->e5x5(clRef);
+  const std::vector<float>& covs = clusterTools_->covariances(clRef);
+  l = sqrt(covs[2]);
+  i = sqrt(covs[0]);
+  
+  //  R9_25(barrelClShp, endcapClShp, electron, dummy, e3x3, e5x5, l, i);
   int eb;
   
   double eOverP = electron->eSuperClusterOverP();
@@ -731,7 +716,7 @@ bool ElectronMaker::identify(const reco::PixelMatchGsfElectron* electron,
 //----------------------------------------------------------------------------
 //Old Electron Id classification function
 //----------------------------------------------------------------------------
-int ElectronMaker::classify_old(const reco::PixelMatchGsfElectron* electron) {
+int ElectronMaker::classify_old(const reco::GsfElectron* electron) {
    
   double eOverP = electron->eSuperClusterOverP();
   double pin  = electron->trackMomentumAtVtx().R(); 
@@ -762,7 +747,7 @@ int ElectronMaker::classify_old(const reco::PixelMatchGsfElectron* electron) {
 //----------------------------------------------------------------------------
 //Electron Id classification function
 //----------------------------------------------------------------------------
-int ElectronMaker::classify(const reco::PixelMatchGsfElectron* electron) {
+int ElectronMaker::classify(const reco::GsfElectron* electron) {
   
   double eta = electron->p4().Eta();
   double eOverP = electron->eSuperClusterOverP();
