@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.8 2008/09/10 22:43:21 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.9 2008/10/21 16:39:35 kalavase Exp $
 //
 //
 
@@ -67,13 +67,13 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"         );
   metInputTag              = iConfig.getParameter<InputTag>("metInputTag"               );
   jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"              );
-  tqJetsInputTag           = iConfig.getParameter<InputTag>("tqJetsInputTag"            );
+  patJetsInputTag          = iConfig.getParameter<InputTag>("patJetsInputTag"            );
   trksInputTag             = iConfig.getParameter<InputTag>("trksInputTag"              );
   candToGenAssTag          = iConfig.getParameter<InputTag>("candToGenAssTag"           );  
-  usingTQJets              = iConfig.getParameter<bool>("usingTQJets"                   );
-  hypJetMinEtaCut          = iConfig.getParameter<double>("hypJetMinEtaCut"             );
-  hypJetMaxEtaCut          = iConfig.getParameter<double>("hypJetMaxEtaCut"             );
-  hypJetMinPtCut           = iConfig.getParameter<double>("hypJetMinPtCut"              );
+  usingPATJets             = iConfig.getParameter<bool>    ("usingPATJets"                   );
+  hypJetMinEtaCut          = iConfig.getParameter<double>  ("hypJetMinEtaCut"             );
+  hypJetMaxEtaCut          = iConfig.getParameter<double>  ("hypJetMaxEtaCut"             );
+  hypJetMinPtCut           = iConfig.getParameter<double>  ("hypJetMinPtCut"              );
   tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut"         );
   looseptcut               = iConfig.getParameter<double>  ("LooseLepton_PtCut"         );
 
@@ -93,6 +93,8 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >           ("hypltid"                  ).setBranchAlias("hyp_lt_id"                    );
   produces<vector<float> >         ("hypltd0"                  ).setBranchAlias("hyp_lt_d0"                    );
   produces<vector<float> >         ("hypltz0"                  ).setBranchAlias("hyp_lt_z0"                    );
+  produces<vector<float> >         ("hypltd0corr"              ).setBranchAlias("hyp_lt_d0corr"                );
+  produces<vector<float> >         ("hypltz0corr"              ).setBranchAlias("hyp_lt_z0corr"                );
   produces<vector<float> >         ("hypltvertexphi"           ).setBranchAlias("hyp_lt_vertexphi"             );
   produces<vector<float> >         ("hypltchi2"                ).setBranchAlias("hyp_lt_chi2"                  );
   produces<vector<float> >         ("hypltndof"                ).setBranchAlias("hyp_lt_ndof"                  );
@@ -119,6 +121,8 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >           ("hypllid"                  ).setBranchAlias("hyp_ll_id"                    );
   produces<vector<float> >         ("hyplld0"                  ).setBranchAlias("hyp_ll_d0"                    );
   produces<vector<float> >         ("hypllz0"                  ).setBranchAlias("hyp_ll_z0"                    );
+  produces<vector<float> >         ("hyplld0corr"              ).setBranchAlias("hyp_ll_d0corr"                );
+  produces<vector<float> >         ("hypllz0corr"              ).setBranchAlias("hyp_ll_z0corr"                );
   produces<vector<float> >         ("hypllvertexphi"           ).setBranchAlias("hyp_ll_vertexphi"             );
   produces<vector<float> >         ("hypllchi2"                ).setBranchAlias("hyp_ll_chi2"                  );
   produces<vector<float> >         ("hypllndof"                ).setBranchAlias("hyp_ll_ndof"                  );
@@ -203,34 +207,34 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   produces<vector<vector<LorentzVector> > >  ("hypotherjetsp4"            ).setBranchAlias("hyp_other_jets_p4"               );
   produces<vector<vector<LorentzVector> > >  ("hypotherjetsmcp4"          ).setBranchAlias("hyp_other_jets_mc_p4"            );
   produces<vector<vector<LorentzVector> > >  ("hypotherjetsmcgpp4"        ).setBranchAlias("hyp_other_jets_mc_gp_p4"         );
-  produces<vector<vector<LorentzVector> > >  ("hypotherjetstqgenPartonp4" ).setBranchAlias("hyp_other_jets_tq_genParton_p4"  );
-  produces<vector<vector<LorentzVector> > >  ("hypotherjetstqgenPartonMotherp4"  ).setBranchAlias("hyp_other_jets_tq_genPartonMother_p4");
+  produces<vector<vector<LorentzVector> > >  ("hypotherjetspatgenPartonp4" ).setBranchAlias("hyp_other_jets_pat_genParton_p4"  );
+  produces<vector<vector<LorentzVector> > >  ("hypotherjetspatgenPartonMotherp4"  ).setBranchAlias("hyp_other_jets_pat_genPartonMother_p4");
   
-  if(usingTQJets) {
-    produces<vector<vector<int> > >           ("hypjetstqgenPartonid"           ).setBranchAlias("hyp_jets_tq_genParton_id"             );
-    produces<vector<vector<int> > >            ("hypjetstqgenPartonMotherid"     ).setBranchAlias("hyp_jets_tq_genPartonMother_id"       );
-    produces<vector<vector<int> > >            ("hypjetstqpartonFlavour"         ).setBranchAlias("hyp_jets_tq_partonFlavour"            );
-    produces<vector<vector<float> > >          ("hypjetstqnoCorrF"               ).setBranchAlias("hyp_jets_tq_noCorrF"                  );
-    produces<vector<vector<float> > >          ("hypjetstqudsCorrF"              ).setBranchAlias("hyp_jets_tq_udsCorrF"                 );
-    produces<vector<vector<float> > >          ("hypjetstqgluCorrF"              ).setBranchAlias("hyp_jets_tq_gluCorrF"                 );
-    produces<vector<vector<float> > >          ("hypjetstqcCorrF"                ).setBranchAlias("hyp_jets_tq_cCorrF"                   );
-    produces<vector<vector<float> > >          ("hypjetstqbCorrF"                ).setBranchAlias("hyp_jets_tq_bCorrF"                   );
-    produces<vector<vector<float> > >          ("hypjetstqjetCharge"             ).setBranchAlias("hyp_jets_tq_jetCharge"                );
-    produces<vector<vector<int> > >            ("hypotherjetstqgenPartonid"      ).setBranchAlias("hyp_other_jets_tq_genParton_id"       );
-    produces<vector<vector<int> > >            ("hypotherjetstqgenPartonMotherid").setBranchAlias("hyp_other_jets_tq_genPartonMother_id" );
-    produces<vector<vector<int> > >            ("hypotherjetstqpartonFlavour"     ).setBranchAlias("hyp_other_jets_tq_partonFlavour"      );
-    produces<vector<vector<float> > >          ("hypotherjetstqnoCorrF"          ).setBranchAlias("hyp_other_jets_tq_noCorrF"            );
-    produces<vector<vector<float> > >          ("hypotherjetstqudsCorrF"         ).setBranchAlias("hyp_other_jets_tq_udsCorrF"           );
-    produces<vector<vector<float> > >          ("hypotherjetstqgluCorrF"         ).setBranchAlias("hyp_other_jets_tq_gluCorrF"           );
-    produces<vector<vector<float> > >          ("hypotherjetstqcCorrF"           ).setBranchAlias("hyp_other_jets_tq_cCorrF"             );
-    produces<vector<vector<float> > >          ("hypotherjetstqbCorrF"           ).setBranchAlias("hyp_other_jets_tq_bCorrF"             );
-    produces<vector<vector<float> > >          ("hypotherjetstqjetCharge"        ).setBranchAlias("hyp_other_jets_tq_jetCharge"          );
-    produces<vector<vector<LorentzVector> > >  ("hypjetstqgenPartonp4"           ).setBranchAlias("hyp_jets_tq_genParton_p4"             );
-    produces<vector<vector<LorentzVector> > >  ("hypjetstqgenPartonMotherp4"     ).setBranchAlias("hyp_jets_tq_genPartonMother_p4"       );
-    produces<vector<vector<LorentzVector> > >  ("hypjetstqgenJetp4"              ).setBranchAlias("hyp_jets_tq_p4"                       );
-    produces<vector<vector<LorentzVector> > >  ("hypjetstqjetp4"                 ).setBranchAlias("hyp_jets_tq_jet_p4"                   );
-    produces<vector<vector<LorentzVector> > >  ("hypotherjetstqgenJetp4"         ).setBranchAlias("hyp_other_jets_tq_genJet_p4"          );
-    produces<vector<vector<LorentzVector> > >  ("hypotherjetstqjetp4"            ).setBranchAlias("hyp_other_jets_tq_jet_p4"             );
+  if(usingPATJets) {
+    produces<vector<vector<int> > >           ("hypjetspatgenPartonid"           ).setBranchAlias("hyp_jets_pat_genParton_id"             );
+    produces<vector<vector<int> > >            ("hypjetspatgenPartonMotherid"     ).setBranchAlias("hyp_jets_pat_genPartonMother_id"       );
+    produces<vector<vector<int> > >            ("hypjetspatpartonFlavour"         ).setBranchAlias("hyp_jets_pat_partonFlavour"            );
+    produces<vector<vector<float> > >          ("hypjetspatnoCorrF"               ).setBranchAlias("hyp_jets_pat_noCorrF"                  );
+    produces<vector<vector<float> > >          ("hypjetspatudsCorrF"              ).setBranchAlias("hyp_jets_pat_udsCorrF"                 );
+    produces<vector<vector<float> > >          ("hypjetspatgluCorrF"              ).setBranchAlias("hyp_jets_pat_gluCorrF"                 );
+    produces<vector<vector<float> > >          ("hypjetspatcCorrF"                ).setBranchAlias("hyp_jets_pat_cCorrF"                   );
+    produces<vector<vector<float> > >          ("hypjetspatbCorrF"                ).setBranchAlias("hyp_jets_pat_bCorrF"                   );
+    produces<vector<vector<float> > >          ("hypjetspatjetCharge"             ).setBranchAlias("hyp_jets_pat_jetCharge"                );
+    produces<vector<vector<int> > >            ("hypotherjetspatgenPartonid"      ).setBranchAlias("hyp_other_jets_pat_genParton_id"       );
+    produces<vector<vector<int> > >            ("hypotherjetspatgenPartonMotherid").setBranchAlias("hyp_other_jets_pat_genPartonMother_id" );
+    produces<vector<vector<int> > >            ("hypotherjetspatpartonFlavour"     ).setBranchAlias("hyp_other_jets_pat_partonFlavour"      );
+    produces<vector<vector<float> > >          ("hypotherjetspatnoCorrF"          ).setBranchAlias("hyp_other_jets_pat_noCorrF"            );
+    produces<vector<vector<float> > >          ("hypotherjetspatudsCorrF"         ).setBranchAlias("hyp_other_jets_pat_udsCorrF"           );
+    produces<vector<vector<float> > >          ("hypotherjetspatgluCorrF"         ).setBranchAlias("hyp_other_jets_pat_gluCorrF"           );
+    produces<vector<vector<float> > >          ("hypotherjetspatcCorrF"           ).setBranchAlias("hyp_other_jets_pat_cCorrF"             );
+    produces<vector<vector<float> > >          ("hypotherjetspatbCorrF"           ).setBranchAlias("hyp_other_jets_pat_bCorrF"             );
+    produces<vector<vector<float> > >          ("hypotherjetspatjetCharge"        ).setBranchAlias("hyp_other_jets_pat_jetCharge"          );
+    produces<vector<vector<LorentzVector> > >  ("hypjetspatgenPartonp4"           ).setBranchAlias("hyp_jets_pat_genParton_p4"             );
+    produces<vector<vector<LorentzVector> > >  ("hypjetspatgenPartonMotherp4"     ).setBranchAlias("hyp_jets_pat_genPartonMother_p4"       );
+    produces<vector<vector<LorentzVector> > >  ("hypjetspatgenJetp4"              ).setBranchAlias("hyp_jets_pat_p4"                       );
+    produces<vector<vector<LorentzVector> > >  ("hypjetspatjetp4"                 ).setBranchAlias("hyp_jets_pat_jet_p4"                   );
+    produces<vector<vector<LorentzVector> > >  ("hypotherjetspatgenJetp4"         ).setBranchAlias("hyp_other_jets_pat_genJet_p4"          );
+    produces<vector<vector<LorentzVector> > >  ("hypotherjetspatjetp4"            ).setBranchAlias("hyp_other_jets_pat_jet_p4"             );
   }
   
   
@@ -255,14 +259,11 @@ HypDilepMaker::~HypDilepMaker()
 void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-
-  
   // output collections
   auto_ptr<vector<int> >   hyp_type                     (new vector<int>);
   auto_ptr<vector<int> >   hyp_njets                    (new vector<int>);
   auto_ptr<vector<int> >   hyp_nojets                   (new vector<int>);
   auto_ptr<vector<LorentzVector> > hyp_p4               (new vector<LorentzVector>);
-
 
   auto_ptr<vector<int> >   hyp_lt_validHits             (new vector<int>);
   auto_ptr<vector<int> >   hyp_lt_lostHits              (new vector<int>);
@@ -273,6 +274,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >   hyp_lt_id                    (new vector<int>);
   auto_ptr<vector<float> > hyp_lt_d0                    (new vector<float>);
   auto_ptr<vector<float> > hyp_lt_z0                    (new vector<float>);
+  auto_ptr<vector<float> > hyp_lt_d0corr                (new vector<float>);
+  auto_ptr<vector<float> > hyp_lt_z0corr                (new vector<float>);
   auto_ptr<vector<float> > hyp_lt_vertexphi             (new vector<float>);
   auto_ptr<vector<float> > hyp_lt_chi2                  (new vector<float>);
   auto_ptr<vector<float> > hyp_lt_ndof                  (new vector<float>);
@@ -298,6 +301,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >   hyp_ll_id                    (new vector<int>);
   auto_ptr<vector<float> > hyp_ll_d0                    (new vector<float>);
   auto_ptr<vector<float> > hyp_ll_z0                    (new vector<float>);
+  auto_ptr<vector<float> > hyp_ll_d0corr                (new vector<float>);
+  auto_ptr<vector<float> > hyp_ll_z0corr                (new vector<float>);
   auto_ptr<vector<float> > hyp_ll_vertexphi             (new vector<float>);
   auto_ptr<vector<float> > hyp_ll_chi2                  (new vector<float>);
   auto_ptr<vector<float> > hyp_ll_ndof                  (new vector<float>);
@@ -384,33 +389,33 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_mc_p4   (new vector<vector<LorentzVector> >);
   auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_mc_gp_p4(new vector<vector<LorentzVector> >);
 
-  auto_ptr<vector<vector<int> > >  hyp_jets_tq_genParton_id                (new vector<vector<int> >);
-  auto_ptr<vector<vector<int> > >  hyp_jets_tq_genPartonMother_id          (new vector<vector<int> >);
-  auto_ptr<vector<vector<int> > >  hyp_jets_tq_partonFlavour               (new vector<vector<int> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_noCorrF                  (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_udsCorrF                 (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_gluCorrF                 (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_cCorrF                   (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_bCorrF                   (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_jets_tq_jetCharge                (new vector<vector<float> >);
-  auto_ptr<vector<vector<int> > >  hyp_other_jets_tq_genParton_id          (new vector<vector<int> >);
-  auto_ptr<vector<vector<int> > >  hyp_other_jets_tq_genPartonMother_id    (new vector<vector<int> >);
-  auto_ptr<vector<vector<int> > >  hyp_other_jets_tq_partonFlavour         (new vector<vector<int> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_noCorrF                  (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_udsCorrF                 (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_gluCorrF                 (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_cCorrF                   (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_bCorrF                   (new vector<vector<float> >);
-  auto_ptr<vector<vector<float> > > hyp_other_jets_tq_jetCharge                (new vector<vector<float> >);
+  auto_ptr<vector<vector<int> > >  hyp_jets_pat_genParton_id                (new vector<vector<int> >);
+  auto_ptr<vector<vector<int> > >  hyp_jets_pat_genPartonMother_id          (new vector<vector<int> >);
+  auto_ptr<vector<vector<int> > >  hyp_jets_pat_partonFlavour               (new vector<vector<int> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_noCorrF                  (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_udsCorrF                 (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_gluCorrF                 (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_cCorrF                   (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_bCorrF                   (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_jets_pat_jetCharge                (new vector<vector<float> >);
+  auto_ptr<vector<vector<int> > >  hyp_other_jets_pat_genParton_id          (new vector<vector<int> >);
+  auto_ptr<vector<vector<int> > >  hyp_other_jets_pat_genPartonMother_id    (new vector<vector<int> >);
+  auto_ptr<vector<vector<int> > >  hyp_other_jets_pat_partonFlavour         (new vector<vector<int> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_noCorrF                  (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_udsCorrF                 (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_gluCorrF                 (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_cCorrF                   (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_bCorrF                   (new vector<vector<float> >);
+  auto_ptr<vector<vector<float> > > hyp_other_jets_pat_jetCharge                (new vector<vector<float> >);
   
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_tq_genParton_p4      (new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_tq_genPartonMother_p4(new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_tq_genJet_p4         (new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_tq_jet_p4            (new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_tq_genParton_p4(new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_tq_genPartonMother_p4(new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_tq_genJet_p4   (new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_tq_jet_p4      (new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_pat_genParton_p4      (new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_pat_genPartonMother_p4(new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_pat_genJet_p4         (new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_pat_jet_p4            (new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_pat_genParton_p4(new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_pat_genPartonMother_p4(new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_pat_genJet_p4   (new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_pat_jet_p4      (new vector<vector<LorentzVector> >);
   
   
 
@@ -445,11 +450,23 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(mus_d0_tag, mus_d0_h);
   const vector<float> *mus_d0 = mus_d0_h.product();
 
+  //muon d0, corrected for the beamspot
+  InputTag mus_d0corr_tag(muonsInputTag.label(),"musd0corr");
+  Handle<vector<float> > mus_d0corr_h;
+  iEvent.getByLabel(mus_d0corr_tag, mus_d0corr_h);
+  const vector<float> *mus_d0corr = mus_d0corr_h.product();
+
   //muon z0
   InputTag mus_z0_tag(muonsInputTag.label(),"musz0");
   Handle<vector<float> > mus_z0_h;
   iEvent.getByLabel(mus_z0_tag, mus_z0_h);
   const vector<float> *mus_z0 = mus_z0_h.product();
+
+  //muon z0, corrected for the beamspot
+  InputTag mus_z0corr_tag(muonsInputTag.label(),"musz0corr");
+  Handle<vector<float> > mus_z0corr_h;
+  iEvent.getByLabel(mus_z0corr_tag, mus_z0corr_h);
+  const vector<float> *mus_z0corr = mus_z0corr_h.product();
 
   //vertex Phi
   InputTag mus_vertexphi_tag(muonsInputTag.label(),"musvertexphi");
@@ -604,12 +621,25 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(els_d0_tag, els_d0_h);
   const vector<float> *els_d0 = els_d0_h.product();
 
+  //electrond0 corrected from the beamSpot
+  InputTag els_d0corr_tag(electronsInputTag.label(),"elsd0corr");
+  Handle<vector<float> > els_d0corr_h;
+  iEvent.getByLabel(els_d0corr_tag, els_d0corr_h);
+  const vector<float> *els_d0corr = els_d0corr_h.product();
+
   //electron z0
   InputTag els_z0_tag(electronsInputTag.label(),"elsz0");
   Handle<vector<float> > els_z0_h;
   iEvent.getByLabel(els_z0_tag, els_z0_h);
   const vector<float> *els_z0 = els_z0_h.product();
 
+  //electron z0, corrected for the beamspot
+  InputTag els_z0corr_tag(electronsInputTag.label(),"elsz0corr");
+  Handle<vector<float> > els_z0corr_h;
+  iEvent.getByLabel(els_z0corr_tag, els_z0corr_h);
+  const vector<float> *els_z0corr = els_z0corr_h.product();
+
+  
   //vertex Phi
   InputTag els_vertexphi_tag(electronsInputTag.label(),"elsvertexphi");
   Handle<vector<float> > els_vertexphi_h;
@@ -721,79 +751,79 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   const vector<LorentzVector> *jets_p4 = jets_p4_h.product();
 
   //------------------------------------------------------------
-  //Get the TQ jet corrections if we're using TQAF Jets
+  //Get the PAT jet corrections if we're using PATAF Jets
   //-----------------------------------------------------------
-  InputTag jets_tq_genParton_id_tag(tqJetsInputTag.label(), "jetstqgenPartonid");
-  Handle<vector<int> > jets_tq_genParton_id_h;
+  InputTag jets_pat_genParton_id_tag(patJetsInputTag.label(), "jetspatgenPartonid");
+  Handle<vector<int> > jets_pat_genParton_id_h;
     
-  InputTag jets_tq_genPartonMother_id_tag(tqJetsInputTag.label(), "jetstqgenPartonMotherid");
-  Handle<vector<int> > jets_tq_genPartonMother_id_h;
+  InputTag jets_pat_genPartonMother_id_tag(patJetsInputTag.label(), "jetspatgenPartonMotherid");
+  Handle<vector<int> > jets_pat_genPartonMother_id_h;
     
-  InputTag jets_tq_partonFlavour_tag(tqJetsInputTag.label(), "jetstqpartonFlavour");
-  Handle<vector<int> > jets_tq_partonFlavour_h;
+  InputTag jets_pat_partonFlavour_tag(patJetsInputTag.label(), "jetspatpartonFlavour");
+  Handle<vector<int> > jets_pat_partonFlavour_h;
 
   
   
-  InputTag jets_tq_genParton_p4_tag(tqJetsInputTag.label(), "jetstqgenPartonp4");
-  Handle<vector<LorentzVector> > jets_tq_genParton_p4_h;
+  InputTag jets_pat_genParton_p4_tag(patJetsInputTag.label(), "jetspatgenPartonp4");
+  Handle<vector<LorentzVector> > jets_pat_genParton_p4_h;
     
-  InputTag jets_tq_genPartonMother_p4_tag(tqJetsInputTag.label(), "jetstqgenPartonMotherp4");
-  Handle<vector<LorentzVector> > jets_tq_genPartonMother_p4_h;
+  InputTag jets_pat_genPartonMother_p4_tag(patJetsInputTag.label(), "jetspatgenPartonMotherp4");
+  Handle<vector<LorentzVector> > jets_pat_genPartonMother_p4_h;
     
-  InputTag jets_tq_genJet_p4_tag(tqJetsInputTag.label(), "jetstqgenJetp4");
-  Handle<vector<LorentzVector> > jets_tq_genJet_p4_h;
+  InputTag jets_pat_genJet_p4_tag(patJetsInputTag.label(), "jetspatgenJetp4");
+  Handle<vector<LorentzVector> > jets_pat_genJet_p4_h;
     
   //This is corrected! Be careful when using this to correct the MET!
-  InputTag jets_tq_jet_p4_tag(tqJetsInputTag.label(), "jetstqjetp4");
-  Handle<vector<LorentzVector> > jets_tq_jet_p4_h;
+  InputTag jets_pat_jet_p4_tag(patJetsInputTag.label(), "jetspatjetp4");
+  Handle<vector<LorentzVector> > jets_pat_jet_p4_h;
     
   //correction factor
-  InputTag jets_tq_noCorrF_tag(tqJetsInputTag.label(), "jetstqnoCorrF");
-  Handle<vector<float> > jets_tq_noCorrF_h;
+  InputTag jets_pat_noCorrF_tag(patJetsInputTag.label(), "jetspatnoCorrF");
+  Handle<vector<float> > jets_pat_noCorrF_h;
   
-  InputTag jets_tq_udsCorrF_tag(tqJetsInputTag.label(),"jetstqudsCorrF");
-  Handle<vector<float> > jets_tq_udsCorrF_h;
+  InputTag jets_pat_udsCorrF_tag(patJetsInputTag.label(),"jetspatudsCorrF");
+  Handle<vector<float> > jets_pat_udsCorrF_h;
 
-  InputTag jets_tq_gluCorrF_tag(tqJetsInputTag.label(),"jetstqgluCorrF");
-  Handle<vector<float> > jets_tq_gluCorrF_h;
+  InputTag jets_pat_gluCorrF_tag(patJetsInputTag.label(),"jetspatgluCorrF");
+  Handle<vector<float> > jets_pat_gluCorrF_h;
 
-  InputTag jets_tq_cCorrF_tag(tqJetsInputTag.label(),"jetstqcCorrF");
-  Handle<vector<float> > jets_tq_cCorrF_h;
+  InputTag jets_pat_cCorrF_tag(patJetsInputTag.label(),"jetspatcCorrF");
+  Handle<vector<float> > jets_pat_cCorrF_h;
 
-  InputTag jets_tq_bCorrF_tag(tqJetsInputTag.label(),"jetstqbCorrF");
-  Handle<vector<float> > jets_tq_bCorrF_h;
+  InputTag jets_pat_bCorrF_tag(patJetsInputTag.label(),"jetspatbCorrF");
+  Handle<vector<float> > jets_pat_bCorrF_h;
 
-  InputTag jets_tq_jetCharge_tag(tqJetsInputTag.label(),"jetstqjetCharge");
-  Handle<vector<float> > jets_tq_jetCharge_h;
+  InputTag jets_pat_jetCharge_tag(patJetsInputTag.label(),"jetspatjetCharge");
+  Handle<vector<float> > jets_pat_jetCharge_h;
   
 
     
-  if(usingTQJets) {
-    iEvent.getByLabel(jets_tq_genParton_id_tag, jets_tq_genParton_id_h);
+  if(usingPATJets) {
+    iEvent.getByLabel(jets_pat_genParton_id_tag, jets_pat_genParton_id_h);
     
-    iEvent.getByLabel(jets_tq_genPartonMother_id_tag, jets_tq_genPartonMother_id_h);
+    iEvent.getByLabel(jets_pat_genPartonMother_id_tag, jets_pat_genPartonMother_id_h);
     
-    iEvent.getByLabel(jets_tq_partonFlavour_tag, jets_tq_partonFlavour_h);
+    iEvent.getByLabel(jets_pat_partonFlavour_tag, jets_pat_partonFlavour_h);
     
-    iEvent.getByLabel(jets_tq_genParton_p4_tag, jets_tq_genParton_p4_h);
+    iEvent.getByLabel(jets_pat_genParton_p4_tag, jets_pat_genParton_p4_h);
             
-    iEvent.getByLabel(jets_tq_genPartonMother_p4_tag, jets_tq_genPartonMother_p4_h);
+    iEvent.getByLabel(jets_pat_genPartonMother_p4_tag, jets_pat_genPartonMother_p4_h);
         
-    iEvent.getByLabel(jets_tq_genJet_p4_tag, jets_tq_genJet_p4_h);
+    iEvent.getByLabel(jets_pat_genJet_p4_tag, jets_pat_genJet_p4_h);
         
-    iEvent.getByLabel(jets_tq_jet_p4_tag, jets_tq_jet_p4_h);
+    iEvent.getByLabel(jets_pat_jet_p4_tag, jets_pat_jet_p4_h);
         
-    iEvent.getByLabel(jets_tq_noCorrF_tag, jets_tq_noCorrF_h);
+    iEvent.getByLabel(jets_pat_noCorrF_tag, jets_pat_noCorrF_h);
 
-    iEvent.getByLabel(jets_tq_udsCorrF_tag, jets_tq_udsCorrF_h);
+    iEvent.getByLabel(jets_pat_udsCorrF_tag, jets_pat_udsCorrF_h);
         
-    iEvent.getByLabel(jets_tq_gluCorrF_tag,jets_tq_gluCorrF_h);
+    iEvent.getByLabel(jets_pat_gluCorrF_tag,jets_pat_gluCorrF_h);
         
-    iEvent.getByLabel(jets_tq_cCorrF_tag, jets_tq_cCorrF_h);
+    iEvent.getByLabel(jets_pat_cCorrF_tag, jets_pat_cCorrF_h);
         
-    iEvent.getByLabel(jets_tq_bCorrF_tag, jets_tq_bCorrF_h);
+    iEvent.getByLabel(jets_pat_bCorrF_tag, jets_pat_bCorrF_h);
         
-    iEvent.getByLabel(jets_tq_jetCharge_tag,jets_tq_jetCharge_h);
+    iEvent.getByLabel(jets_pat_jetCharge_tag,jets_pat_jetCharge_h);
             
   }
  
@@ -990,33 +1020,33 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       vector<LorentzVector>  temp_other_jets_mc_p4;
       vector<LorentzVector>  temp_other_jets_mc_gp_p4;
 
-      vector<int>            temp_jets_tq_genParton_id;
-      vector<int>            temp_jets_tq_genPartonMother_id;
-      vector<int>            temp_jets_tq_partonFlavour;
-      vector<float>          temp_jets_tq_noCorrF;                  
-      vector<float>          temp_jets_tq_udsCorrF;                 
-      vector<float>          temp_jets_tq_gluCorrF;                 
-      vector<float>          temp_jets_tq_cCorrF;                   
-      vector<float>          temp_jets_tq_bCorrF;                   
-      vector<float>          temp_jets_tq_jetCharge;                
-      vector<LorentzVector>  temp_jets_tq_genParton_p4;
-      vector<LorentzVector>  temp_jets_tq_genPartonMother_p4;
-      vector<LorentzVector>  temp_jets_tq_genJet_p4;
-      vector<LorentzVector>  temp_jets_tq_jet_p4;
+      vector<int>            temp_jets_pat_genParton_id;
+      vector<int>            temp_jets_pat_genPartonMother_id;
+      vector<int>            temp_jets_pat_partonFlavour;
+      vector<float>          temp_jets_pat_noCorrF;                  
+      vector<float>          temp_jets_pat_udsCorrF;                 
+      vector<float>          temp_jets_pat_gluCorrF;                 
+      vector<float>          temp_jets_pat_cCorrF;                   
+      vector<float>          temp_jets_pat_bCorrF;                   
+      vector<float>          temp_jets_pat_jetCharge;                
+      vector<LorentzVector>  temp_jets_pat_genParton_p4;
+      vector<LorentzVector>  temp_jets_pat_genPartonMother_p4;
+      vector<LorentzVector>  temp_jets_pat_genJet_p4;
+      vector<LorentzVector>  temp_jets_pat_jet_p4;
       
-      vector<int>            temp_other_jets_tq_genParton_id;
-      vector<int>            temp_other_jets_tq_genPartonMother_id;
-      vector<int>            temp_other_jets_tq_partonFlavour;
-      vector<float>          temp_other_jets_tq_noCorrF;                  
-      vector<float>          temp_other_jets_tq_udsCorrF;                 
-      vector<float>          temp_other_jets_tq_gluCorrF;                 
-      vector<float>          temp_other_jets_tq_cCorrF;                   
-      vector<float>          temp_other_jets_tq_bCorrF;                   
-      vector<float>          temp_other_jets_tq_jetCharge;                
-      vector<LorentzVector>  temp_other_jets_tq_genParton_p4;
-      vector<LorentzVector>  temp_other_jets_tq_genPartonMother_p4;
-      vector<LorentzVector>  temp_other_jets_tq_genJet_p4;
-      vector<LorentzVector>  temp_other_jets_tq_jet_p4;
+      vector<int>            temp_other_jets_pat_genParton_id;
+      vector<int>            temp_other_jets_pat_genPartonMother_id;
+      vector<int>            temp_other_jets_pat_partonFlavour;
+      vector<float>          temp_other_jets_pat_noCorrF;                  
+      vector<float>          temp_other_jets_pat_udsCorrF;                 
+      vector<float>          temp_other_jets_pat_gluCorrF;                 
+      vector<float>          temp_other_jets_pat_cCorrF;                   
+      vector<float>          temp_other_jets_pat_bCorrF;                   
+      vector<float>          temp_other_jets_pat_jetCharge;                
+      vector<LorentzVector>  temp_other_jets_pat_genParton_p4;
+      vector<LorentzVector>  temp_other_jets_pat_genPartonMother_p4;
+      vector<LorentzVector>  temp_other_jets_pat_genJet_p4;
+      vector<LorentzVector>  temp_other_jets_pat_jet_p4;
       	
       
       //these are for the MET correction later
@@ -1026,16 +1056,16 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	
       for(unsigned int i = 0; i<jets_p4->size(); i++) {
 
-	//These have to uncorrected, so if we use TQjets
+	//These have to uncorrected, so if we use PATjets
 	//we have to scale accordingly
-	if(usingTQJets) {
-	  float px = (jets_p4->at(i).px())*jets_tq_noCorrF_h->at(i);
-	  float py = (jets_p4->at(i).py())*jets_tq_noCorrF_h->at(i);
-	  float pz = (jets_p4->at(i).pz())*jets_tq_noCorrF_h->at(i);
-	  float E  = (jets_p4->at(i).E())*jets_tq_noCorrF_h->at(i);
+	if(usingPATJets) {
+	  float px = (jets_p4->at(i).px())*jets_pat_noCorrF_h->at(i);
+	  float py = (jets_p4->at(i).py())*jets_pat_noCorrF_h->at(i);
+	  float pz = (jets_p4->at(i).pz())*jets_pat_noCorrF_h->at(i);
+	  float E  = (jets_p4->at(i).E())*jets_pat_noCorrF_h->at(i);
 	  LorentzVector temp(px, py, pz, E);
 	  jets_noel_p4        .push_back(temp);
-	  jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_tq_noCorrF_h->at(i)));
+	  jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_pat_noCorrF_h->at(i)));
 	} else {
 	  jets_noel_p4        .push_back(jets_p4    ->at(i));
 	  jets_noel_jescor    .push_back(jets_cor   ->at(i));
@@ -1047,8 +1077,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	double jet_pt  = jets_p4->at(i).Pt();
 	double jet_ptcut;
 	
-	if(usingTQJets) {
-	  jet_ptcut =  hypJetMinPtCut/(jets_tq_noCorrF_h->at(i));
+	if(usingPATJets) {
+	  jet_ptcut =  hypJetMinPtCut/(jets_pat_noCorrF_h->at(i));
 	} else jet_ptcut = hypJetMinPtCut;
 	
 	if( hypJetMinEtaCut < jet_eta && 
@@ -1072,20 +1102,20 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
 	  
 	  
-	  if(usingTQJets) {
-	    temp_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	    temp_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	    temp_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	    temp_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	    temp_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	    temp_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	    temp_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	    temp_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	    temp_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	    temp_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	    temp_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	    temp_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	    temp_jets_tq_jetCharge         .push_back(jets_tq_jetCharge_h          ->at(i));               
+	  if(usingPATJets) {
+	    temp_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	    temp_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	    temp_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	    temp_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	    temp_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	    temp_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	    temp_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	    temp_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	    temp_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	    temp_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	    temp_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	    temp_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	    temp_jets_pat_jetCharge         .push_back(jets_pat_jetCharge_h          ->at(i));               
 	  }
 	  
 	} else {
@@ -1105,20 +1135,20 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	  temp_other_jets_mc_gp_p4         .push_back(jets_mc_gp_p4        ->at(i));
 
 	   
-	  if(usingTQJets) {
-	    temp_other_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	    temp_other_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	    temp_other_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	    temp_other_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	    temp_other_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	    temp_other_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	    temp_other_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	    temp_other_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	    temp_other_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	    temp_other_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	    temp_other_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	    temp_other_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	    temp_other_jets_tq_jetCharge        .push_back(jets_tq_jetCharge_h          ->at(i));               
+	  if(usingPATJets) {
+	    temp_other_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	    temp_other_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	    temp_other_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	    temp_other_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	    temp_other_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	    temp_other_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	    temp_other_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	    temp_other_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	    temp_other_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	    temp_other_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	    temp_other_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	    temp_other_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	    temp_other_jets_pat_jetCharge        .push_back(jets_pat_jetCharge_h          ->at(i));               
 	  }
 
 	}
@@ -1154,34 +1184,34 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_other_jets_mc_gp_p4        ->push_back(temp_other_jets_mc_gp_p4      );
       
       
-      if(usingTQJets) {
-	hyp_jets_tq_genParton_id            ->push_back(temp_jets_tq_genParton_id             );
-	hyp_jets_tq_genPartonMother_id      ->push_back(temp_jets_tq_genPartonMother_id       );
-	hyp_jets_tq_partonFlavour           ->push_back(temp_jets_tq_partonFlavour            );
-	hyp_jets_tq_genParton_p4            ->push_back(temp_jets_tq_genParton_p4             );
-	hyp_jets_tq_genPartonMother_p4      ->push_back(temp_jets_tq_genPartonMother_p4       );
-	hyp_jets_tq_genJet_p4               ->push_back(temp_jets_tq_genJet_p4                );
-	hyp_jets_tq_jet_p4                  ->push_back(temp_jets_tq_jet_p4                   );
-	hyp_jets_tq_noCorrF                 ->push_back(temp_jets_tq_noCorrF                  );                  
-	hyp_jets_tq_udsCorrF                ->push_back(temp_jets_tq_udsCorrF                 );                 
-	hyp_jets_tq_gluCorrF                ->push_back(temp_jets_tq_gluCorrF                 );                 
-	hyp_jets_tq_cCorrF                  ->push_back(temp_jets_tq_cCorrF                   );                   
-	hyp_jets_tq_bCorrF                  ->push_back(temp_jets_tq_bCorrF                   );                   
-	hyp_jets_tq_jetCharge              ->push_back(temp_jets_tq_jetCharge                );               
+      if(usingPATJets) {
+	hyp_jets_pat_genParton_id            ->push_back(temp_jets_pat_genParton_id             );
+	hyp_jets_pat_genPartonMother_id      ->push_back(temp_jets_pat_genPartonMother_id       );
+	hyp_jets_pat_partonFlavour           ->push_back(temp_jets_pat_partonFlavour            );
+	hyp_jets_pat_genParton_p4            ->push_back(temp_jets_pat_genParton_p4             );
+	hyp_jets_pat_genPartonMother_p4      ->push_back(temp_jets_pat_genPartonMother_p4       );
+	hyp_jets_pat_genJet_p4               ->push_back(temp_jets_pat_genJet_p4                );
+	hyp_jets_pat_jet_p4                  ->push_back(temp_jets_pat_jet_p4                   );
+	hyp_jets_pat_noCorrF                 ->push_back(temp_jets_pat_noCorrF                  );                  
+	hyp_jets_pat_udsCorrF                ->push_back(temp_jets_pat_udsCorrF                 );                 
+	hyp_jets_pat_gluCorrF                ->push_back(temp_jets_pat_gluCorrF                 );                 
+	hyp_jets_pat_cCorrF                  ->push_back(temp_jets_pat_cCorrF                   );                   
+	hyp_jets_pat_bCorrF                  ->push_back(temp_jets_pat_bCorrF                   );                   
+	hyp_jets_pat_jetCharge              ->push_back(temp_jets_pat_jetCharge                );               
 
-	hyp_other_jets_tq_genParton_id      ->push_back(temp_other_jets_tq_genParton_id       );
-	hyp_other_jets_tq_genPartonMother_id->push_back(temp_other_jets_tq_genPartonMother_id );
-	hyp_other_jets_tq_partonFlavour     ->push_back(temp_other_jets_tq_partonFlavour      );
-	hyp_other_jets_tq_genParton_p4      ->push_back(temp_other_jets_tq_genParton_p4       );
-	hyp_other_jets_tq_genPartonMother_p4->push_back(temp_other_jets_tq_genPartonMother_p4 );
-	hyp_other_jets_tq_genJet_p4         ->push_back(temp_other_jets_tq_genJet_p4          );
-	hyp_other_jets_tq_jet_p4            ->push_back(temp_other_jets_tq_jet_p4             );
-	hyp_other_jets_tq_noCorrF           ->push_back(temp_other_jets_tq_noCorrF            );                  
-	hyp_other_jets_tq_udsCorrF          ->push_back(temp_other_jets_tq_udsCorrF           );                 
-	hyp_other_jets_tq_gluCorrF          ->push_back(temp_other_jets_tq_gluCorrF           );                 
-	hyp_other_jets_tq_cCorrF            ->push_back(temp_other_jets_tq_cCorrF             );                   
-	hyp_other_jets_tq_bCorrF            ->push_back(temp_other_jets_tq_bCorrF             );                   
-	hyp_other_jets_tq_jetCharge        ->push_back(temp_other_jets_tq_jetCharge          );               
+	hyp_other_jets_pat_genParton_id      ->push_back(temp_other_jets_pat_genParton_id       );
+	hyp_other_jets_pat_genPartonMother_id->push_back(temp_other_jets_pat_genPartonMother_id );
+	hyp_other_jets_pat_partonFlavour     ->push_back(temp_other_jets_pat_partonFlavour      );
+	hyp_other_jets_pat_genParton_p4      ->push_back(temp_other_jets_pat_genParton_p4       );
+	hyp_other_jets_pat_genPartonMother_p4->push_back(temp_other_jets_pat_genPartonMother_p4 );
+	hyp_other_jets_pat_genJet_p4         ->push_back(temp_other_jets_pat_genJet_p4          );
+	hyp_other_jets_pat_jet_p4            ->push_back(temp_other_jets_pat_jet_p4             );
+	hyp_other_jets_pat_noCorrF           ->push_back(temp_other_jets_pat_noCorrF            );                  
+	hyp_other_jets_pat_udsCorrF          ->push_back(temp_other_jets_pat_udsCorrF           );                 
+	hyp_other_jets_pat_gluCorrF          ->push_back(temp_other_jets_pat_gluCorrF           );                 
+	hyp_other_jets_pat_cCorrF            ->push_back(temp_other_jets_pat_cCorrF             );                   
+	hyp_other_jets_pat_bCorrF            ->push_back(temp_other_jets_pat_bCorrF             );                   
+	hyp_other_jets_pat_jetCharge        ->push_back(temp_other_jets_pat_jetCharge          );               
       }
 
       //correct the met for the hyp muons
@@ -1286,6 +1316,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_lt_id           ->push_back(-13*(mus_charge   ->at(tight_index)) );
       hyp_lt_d0           ->push_back(mus_d0           ->at(tight_index)  );
       hyp_lt_z0           ->push_back(mus_z0           ->at(tight_index)  );
+      hyp_lt_d0corr       ->push_back(mus_d0corr       ->at(tight_index)  );
+      hyp_lt_z0corr       ->push_back(mus_z0corr       ->at(tight_index)  );
       hyp_lt_vertexphi    ->push_back(mus_vertexphi    ->at(tight_index)  );
       hyp_lt_chi2         ->push_back(mus_chi2         ->at(tight_index)  );
       hyp_lt_ndof         ->push_back(mus_ndof         ->at(tight_index)  );
@@ -1311,6 +1343,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_ll_id           ->push_back(-13*(mus_charge   ->at(loose_index)) );
       hyp_ll_d0           ->push_back(mus_d0           ->at(loose_index)  );
       hyp_ll_z0           ->push_back(mus_z0           ->at(loose_index)  );
+      hyp_ll_d0corr       ->push_back(mus_d0corr       ->at(loose_index)  );
+      hyp_ll_z0corr       ->push_back(mus_z0corr       ->at(loose_index)  );
       hyp_ll_vertexphi    ->push_back(mus_vertexphi    ->at(loose_index)  );
       hyp_ll_chi2         ->push_back(mus_chi2         ->at(loose_index)  );
       hyp_ll_ndof         ->push_back(mus_ndof         ->at(loose_index)  );
@@ -1451,33 +1485,33 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       vector<LorentzVector>  temp_other_jets_mc_p4;
       vector<LorentzVector>  temp_other_jets_mc_gp_p4;
 
-      vector<int>            temp_jets_tq_genParton_id;
-      vector<int>            temp_jets_tq_genPartonMother_id;
-      vector<int>            temp_jets_tq_partonFlavour;
-      vector<float>          temp_jets_tq_noCorrF;                  
-      vector<float>          temp_jets_tq_udsCorrF;                 
-      vector<float>          temp_jets_tq_gluCorrF;                 
-      vector<float>          temp_jets_tq_cCorrF;                   
-      vector<float>          temp_jets_tq_bCorrF;                   
-      vector<float>          temp_jets_tq_jetCharge;   
-      vector<LorentzVector>  temp_jets_tq_genParton_p4;
-      vector<LorentzVector>  temp_jets_tq_genPartonMother_p4;
-      vector<LorentzVector>  temp_jets_tq_genJet_p4;
-      vector<LorentzVector>  temp_jets_tq_jet_p4;
+      vector<int>            temp_jets_pat_genParton_id;
+      vector<int>            temp_jets_pat_genPartonMother_id;
+      vector<int>            temp_jets_pat_partonFlavour;
+      vector<float>          temp_jets_pat_noCorrF;                  
+      vector<float>          temp_jets_pat_udsCorrF;                 
+      vector<float>          temp_jets_pat_gluCorrF;                 
+      vector<float>          temp_jets_pat_cCorrF;                   
+      vector<float>          temp_jets_pat_bCorrF;                   
+      vector<float>          temp_jets_pat_jetCharge;   
+      vector<LorentzVector>  temp_jets_pat_genParton_p4;
+      vector<LorentzVector>  temp_jets_pat_genPartonMother_p4;
+      vector<LorentzVector>  temp_jets_pat_genJet_p4;
+      vector<LorentzVector>  temp_jets_pat_jet_p4;
       
-      vector<int>            temp_other_jets_tq_genParton_id;
-      vector<int>            temp_other_jets_tq_genPartonMother_id;
-      vector<int>            temp_other_jets_tq_partonFlavour;
-      vector<float>          temp_other_jets_tq_noCorrF;                  
-      vector<float>          temp_other_jets_tq_udsCorrF;                 
-      vector<float>          temp_other_jets_tq_gluCorrF;                 
-      vector<float>          temp_other_jets_tq_cCorrF;                   
-      vector<float>          temp_other_jets_tq_bCorrF;                   
-      vector<float>          temp_other_jets_tq_jetCharge;     
-      vector<LorentzVector>  temp_other_jets_tq_genParton_p4;
-      vector<LorentzVector>  temp_other_jets_tq_genPartonMother_p4;
-      vector<LorentzVector>  temp_other_jets_tq_genJet_p4;
-      vector<LorentzVector>  temp_other_jets_tq_jet_p4;
+      vector<int>            temp_other_jets_pat_genParton_id;
+      vector<int>            temp_other_jets_pat_genPartonMother_id;
+      vector<int>            temp_other_jets_pat_partonFlavour;
+      vector<float>          temp_other_jets_pat_noCorrF;                  
+      vector<float>          temp_other_jets_pat_udsCorrF;                 
+      vector<float>          temp_other_jets_pat_gluCorrF;                 
+      vector<float>          temp_other_jets_pat_cCorrF;                   
+      vector<float>          temp_other_jets_pat_bCorrF;                   
+      vector<float>          temp_other_jets_pat_jetCharge;     
+      vector<LorentzVector>  temp_other_jets_pat_genParton_p4;
+      vector<LorentzVector>  temp_other_jets_pat_genPartonMother_p4;
+      vector<LorentzVector>  temp_other_jets_pat_genJet_p4;
+      vector<LorentzVector>  temp_other_jets_pat_jet_p4;
 
       //these are for the MET correction later
       vector<LorentzVector> jets_noel_p4;
@@ -1491,14 +1525,14 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	if(!testJetForElectrons(jets_p4->at(i), els_p4->at(loose_index))) continue;
 	if(!testJetForElectrons(jets_p4->at(i), els_p4->at(tight_index))) continue;
 	
-	float px = (jets_p4->at(i).px())*jets_tq_noCorrF_h->at(i);
-	float py = (jets_p4->at(i).py())*jets_tq_noCorrF_h->at(i);
-	float pz = (jets_p4->at(i).pz())*jets_tq_noCorrF_h->at(i);
-	float E  = (jets_p4->at(i).E())*jets_tq_noCorrF_h->at(i);
+	float px = (jets_p4->at(i).px())*jets_pat_noCorrF_h->at(i);
+	float py = (jets_p4->at(i).py())*jets_pat_noCorrF_h->at(i);
+	float pz = (jets_p4->at(i).pz())*jets_pat_noCorrF_h->at(i);
+	float E  = (jets_p4->at(i).E())*jets_pat_noCorrF_h->at(i);
 	LorentzVector temp(px, py, pz, E);
-	if(usingTQJets) {
+	if(usingPATJets) {
 	  jets_noel_p4        .push_back(temp); //uncorrected p4
-	  jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_tq_noCorrF_h->at(i)));
+	  jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_pat_noCorrF_h->at(i)));
 	} else {
 	  jets_noel_p4        .push_back(jets_p4    ->at(i));
 	  jets_noel_jescor    .push_back(jets_cor   ->at(i));
@@ -1517,8 +1551,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	double jet_pt = jets_p4->at(i).Pt();
 	double jet_ptcut;
 	
-	if(usingTQJets) {
-	  jet_ptcut = hypJetMinPtCut/(jets_tq_noCorrF_h->at(i));
+	if(usingPATJets) {
+	  jet_ptcut = hypJetMinPtCut/(jets_pat_noCorrF_h->at(i));
 	} else jet_ptcut = hypJetMinPtCut;
 	
 	if( hypJetMinEtaCut < jet_eta && 
@@ -1541,20 +1575,20 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	  temp_jets_mc_gp_p4               .push_back(jets_mc_gp_p4        ->at(i));
 
 	   
-	  if(usingTQJets) {
-	    temp_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	    temp_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	    temp_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	    temp_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	    temp_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	    temp_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	    temp_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	    temp_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	    temp_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	    temp_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	    temp_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	    temp_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	    temp_jets_tq_jetCharge        .push_back(jets_tq_jetCharge_h            ->at(i));               
+	  if(usingPATJets) {
+	    temp_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	    temp_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	    temp_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	    temp_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	    temp_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	    temp_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	    temp_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	    temp_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	    temp_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	    temp_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	    temp_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	    temp_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	    temp_jets_pat_jetCharge        .push_back(jets_pat_jetCharge_h            ->at(i));               
 	  }
 	  
       } else {
@@ -1573,20 +1607,20 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	temp_other_jets_mc_p4            .push_back(jets_mc_p4           ->at(i));
 	temp_other_jets_mc_gp_p4         .push_back(jets_mc_gp_p4        ->at(i));
   
-	if(usingTQJets) {
-	  temp_other_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	  temp_other_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	  temp_other_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	  temp_other_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	  temp_other_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	  temp_other_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	  temp_other_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	  temp_other_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	  temp_other_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	  temp_other_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	  temp_other_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	  temp_other_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	  temp_other_jets_tq_jetCharge         .push_back(jets_tq_jetCharge_h            ->at(i));               
+	if(usingPATJets) {
+	  temp_other_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	  temp_other_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	  temp_other_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	  temp_other_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	  temp_other_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	  temp_other_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	  temp_other_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	  temp_other_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	  temp_other_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	  temp_other_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	  temp_other_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	  temp_other_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	  temp_other_jets_pat_jetCharge         .push_back(jets_pat_jetCharge_h            ->at(i));               
 	}
 	  
       }
@@ -1621,34 +1655,34 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
     hyp_other_jets_mc_p4           ->push_back(temp_other_jets_mc_p4         );
     hyp_other_jets_mc_gp_p4        ->push_back(temp_other_jets_mc_gp_p4      );
 
-    if(usingTQJets) {
-      hyp_jets_tq_genParton_id            ->push_back(temp_jets_tq_genParton_id             );
-      hyp_jets_tq_genPartonMother_id      ->push_back(temp_jets_tq_genPartonMother_id       );
-      hyp_jets_tq_partonFlavour           ->push_back(temp_jets_tq_partonFlavour            );
-      hyp_jets_tq_genParton_p4            ->push_back(temp_jets_tq_genParton_p4             );
-      hyp_jets_tq_genPartonMother_p4      ->push_back(temp_jets_tq_genPartonMother_p4       );
-      hyp_jets_tq_genJet_p4               ->push_back(temp_jets_tq_genJet_p4                );
-      hyp_jets_tq_noCorrF                 ->push_back(temp_jets_tq_noCorrF                );                  
-      hyp_jets_tq_udsCorrF                ->push_back(temp_jets_tq_udsCorrF               );                 
-      hyp_jets_tq_gluCorrF                ->push_back(temp_jets_tq_gluCorrF               );                 
-      hyp_jets_tq_cCorrF                  ->push_back(temp_jets_tq_cCorrF                 );                   
-      hyp_jets_tq_bCorrF                  ->push_back(temp_jets_tq_bCorrF                 );                   
-      hyp_jets_tq_jetCharge              ->push_back(temp_jets_tq_jetCharge                );               
+    if(usingPATJets) {
+      hyp_jets_pat_genParton_id            ->push_back(temp_jets_pat_genParton_id             );
+      hyp_jets_pat_genPartonMother_id      ->push_back(temp_jets_pat_genPartonMother_id       );
+      hyp_jets_pat_partonFlavour           ->push_back(temp_jets_pat_partonFlavour            );
+      hyp_jets_pat_genParton_p4            ->push_back(temp_jets_pat_genParton_p4             );
+      hyp_jets_pat_genPartonMother_p4      ->push_back(temp_jets_pat_genPartonMother_p4       );
+      hyp_jets_pat_genJet_p4               ->push_back(temp_jets_pat_genJet_p4                );
+      hyp_jets_pat_noCorrF                 ->push_back(temp_jets_pat_noCorrF                );                  
+      hyp_jets_pat_udsCorrF                ->push_back(temp_jets_pat_udsCorrF               );                 
+      hyp_jets_pat_gluCorrF                ->push_back(temp_jets_pat_gluCorrF               );                 
+      hyp_jets_pat_cCorrF                  ->push_back(temp_jets_pat_cCorrF                 );                   
+      hyp_jets_pat_bCorrF                  ->push_back(temp_jets_pat_bCorrF                 );                   
+      hyp_jets_pat_jetCharge              ->push_back(temp_jets_pat_jetCharge                );               
 
-      hyp_jets_tq_jet_p4                  ->push_back(temp_jets_tq_jet_p4                   );
-      hyp_other_jets_tq_genParton_id      ->push_back(temp_other_jets_tq_genParton_id       );
-      hyp_other_jets_tq_genPartonMother_id->push_back(temp_other_jets_tq_genPartonMother_id );
-      hyp_other_jets_tq_partonFlavour     ->push_back(temp_other_jets_tq_partonFlavour      );
-      hyp_other_jets_tq_genParton_p4      ->push_back(temp_other_jets_tq_genParton_p4       );
-      hyp_other_jets_tq_genPartonMother_p4->push_back(temp_other_jets_tq_genPartonMother_p4 );
-      hyp_other_jets_tq_genJet_p4         ->push_back(temp_other_jets_tq_genJet_p4          );
-      hyp_other_jets_tq_jet_p4            ->push_back(temp_other_jets_tq_jet_p4             );
-      hyp_other_jets_tq_noCorrF           ->push_back(temp_other_jets_tq_noCorrF          );                  
-      hyp_other_jets_tq_udsCorrF          ->push_back(temp_other_jets_tq_udsCorrF         );                 
-      hyp_other_jets_tq_gluCorrF          ->push_back(temp_other_jets_tq_gluCorrF         );                 
-      hyp_other_jets_tq_cCorrF            ->push_back(temp_other_jets_tq_cCorrF           );                   
-      hyp_other_jets_tq_bCorrF            ->push_back(temp_other_jets_tq_bCorrF           );                   
-      hyp_other_jets_tq_jetCharge        ->push_back(temp_other_jets_tq_jetCharge          );               
+      hyp_jets_pat_jet_p4                  ->push_back(temp_jets_pat_jet_p4                   );
+      hyp_other_jets_pat_genParton_id      ->push_back(temp_other_jets_pat_genParton_id       );
+      hyp_other_jets_pat_genPartonMother_id->push_back(temp_other_jets_pat_genPartonMother_id );
+      hyp_other_jets_pat_partonFlavour     ->push_back(temp_other_jets_pat_partonFlavour      );
+      hyp_other_jets_pat_genParton_p4      ->push_back(temp_other_jets_pat_genParton_p4       );
+      hyp_other_jets_pat_genPartonMother_p4->push_back(temp_other_jets_pat_genPartonMother_p4 );
+      hyp_other_jets_pat_genJet_p4         ->push_back(temp_other_jets_pat_genJet_p4          );
+      hyp_other_jets_pat_jet_p4            ->push_back(temp_other_jets_pat_jet_p4             );
+      hyp_other_jets_pat_noCorrF           ->push_back(temp_other_jets_pat_noCorrF          );                  
+      hyp_other_jets_pat_udsCorrF          ->push_back(temp_other_jets_pat_udsCorrF         );                 
+      hyp_other_jets_pat_gluCorrF          ->push_back(temp_other_jets_pat_gluCorrF         );                 
+      hyp_other_jets_pat_cCorrF            ->push_back(temp_other_jets_pat_cCorrF           );                   
+      hyp_other_jets_pat_bCorrF            ->push_back(temp_other_jets_pat_bCorrF           );                   
+      hyp_other_jets_pat_jetCharge        ->push_back(temp_other_jets_pat_jetCharge          );               
     }
 
 	
@@ -1716,6 +1750,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
     hyp_lt_id           ->push_back(-11*(els_charge   ->at(tight_index)));
     hyp_lt_d0           ->push_back(els_d0           ->at(tight_index)  );
     hyp_lt_z0           ->push_back(els_z0           ->at(tight_index)  );
+    hyp_lt_d0corr       ->push_back(els_d0corr       ->at(tight_index)  );
+    hyp_lt_z0corr       ->push_back(els_z0corr       ->at(tight_index)  );
     hyp_lt_vertexphi    ->push_back(els_vertexphi    ->at(tight_index)  );
     hyp_lt_chi2         ->push_back(els_chi2         ->at(tight_index)  );
     hyp_lt_ndof         ->push_back(els_ndof         ->at(tight_index)  );
@@ -1741,6 +1777,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
     hyp_ll_id           ->push_back(-11*(els_charge   ->at(loose_index)) );
     hyp_ll_d0           ->push_back(els_d0           ->at(loose_index)  );
     hyp_ll_z0           ->push_back(els_z0           ->at(loose_index)  );
+    hyp_ll_d0corr       ->push_back(els_d0corr       ->at(loose_index)  );
+    hyp_ll_z0corr       ->push_back(els_z0corr       ->at(loose_index)  );
     hyp_ll_vertexphi    ->push_back(els_vertexphi    ->at(loose_index)  );
     hyp_ll_chi2         ->push_back(els_chi2         ->at(loose_index)  );
     hyp_ll_ndof         ->push_back(els_ndof         ->at(loose_index)  );
@@ -1870,33 +1908,33 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
     vector<LorentzVector>  temp_other_jets_mc_p4;
     vector<LorentzVector>  temp_other_jets_mc_gp_p4;
       
-    vector<int>            temp_jets_tq_genParton_id;
-    vector<int>            temp_jets_tq_genPartonMother_id;
-    vector<int>            temp_jets_tq_partonFlavour;
-    vector<float>          temp_jets_tq_noCorrF;                  
-    vector<float>          temp_jets_tq_udsCorrF;                 
-    vector<float>          temp_jets_tq_gluCorrF;                 
-    vector<float>          temp_jets_tq_cCorrF;                   
-    vector<float>          temp_jets_tq_bCorrF;                   
-    vector<float>          temp_jets_tq_jetCharge;   
-    vector<LorentzVector>  temp_jets_tq_genParton_p4;
-    vector<LorentzVector>  temp_jets_tq_genPartonMother_p4;
-    vector<LorentzVector>  temp_jets_tq_genJet_p4;
-    vector<LorentzVector>  temp_jets_tq_jet_p4;
+    vector<int>            temp_jets_pat_genParton_id;
+    vector<int>            temp_jets_pat_genPartonMother_id;
+    vector<int>            temp_jets_pat_partonFlavour;
+    vector<float>          temp_jets_pat_noCorrF;                  
+    vector<float>          temp_jets_pat_udsCorrF;                 
+    vector<float>          temp_jets_pat_gluCorrF;                 
+    vector<float>          temp_jets_pat_cCorrF;                   
+    vector<float>          temp_jets_pat_bCorrF;                   
+    vector<float>          temp_jets_pat_jetCharge;   
+    vector<LorentzVector>  temp_jets_pat_genParton_p4;
+    vector<LorentzVector>  temp_jets_pat_genPartonMother_p4;
+    vector<LorentzVector>  temp_jets_pat_genJet_p4;
+    vector<LorentzVector>  temp_jets_pat_jet_p4;
       
-    vector<int>            temp_other_jets_tq_genParton_id;
-    vector<int>            temp_other_jets_tq_genPartonMother_id;
-    vector<int>            temp_other_jets_tq_partonFlavour;
-    vector<float>          temp_other_jets_tq_noCorrF;                  
-    vector<float>          temp_other_jets_tq_udsCorrF;                 
-    vector<float>          temp_other_jets_tq_gluCorrF;                 
-    vector<float>          temp_other_jets_tq_cCorrF;                   
-    vector<float>          temp_other_jets_tq_bCorrF;                   
-    vector<float>          temp_other_jets_tq_jetCharge;    
-    vector<LorentzVector>  temp_other_jets_tq_genParton_p4;
-    vector<LorentzVector>  temp_other_jets_tq_genPartonMother_p4;
-    vector<LorentzVector>  temp_other_jets_tq_genJet_p4;
-    vector<LorentzVector>  temp_other_jets_tq_jet_p4;
+    vector<int>            temp_other_jets_pat_genParton_id;
+    vector<int>            temp_other_jets_pat_genPartonMother_id;
+    vector<int>            temp_other_jets_pat_partonFlavour;
+    vector<float>          temp_other_jets_pat_noCorrF;                  
+    vector<float>          temp_other_jets_pat_udsCorrF;                 
+    vector<float>          temp_other_jets_pat_gluCorrF;                 
+    vector<float>          temp_other_jets_pat_cCorrF;                   
+    vector<float>          temp_other_jets_pat_bCorrF;                   
+    vector<float>          temp_other_jets_pat_jetCharge;    
+    vector<LorentzVector>  temp_other_jets_pat_genParton_p4;
+    vector<LorentzVector>  temp_other_jets_pat_genPartonMother_p4;
+    vector<LorentzVector>  temp_other_jets_pat_genJet_p4;
+    vector<LorentzVector>  temp_other_jets_pat_jet_p4;
       
     //these are for the MET correction later
     vector<LorentzVector> jets_noel_p4;
@@ -1910,14 +1948,14 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       //we don't any jets that overlap with an electron
       if(!testJetForElectrons(jets_p4->at(i), els_p4->at(els_index))) continue;
 	
-      if(usingTQJets) {
-	float px = (jets_p4->at(i).px())*jets_tq_noCorrF_h->at(i);
-	float py = (jets_p4->at(i).py())*jets_tq_noCorrF_h->at(i);
-	float pz = (jets_p4->at(i).pz())*jets_tq_noCorrF_h->at(i);
-	float E  = (jets_p4->at(i).E())*jets_tq_noCorrF_h->at(i);
+      if(usingPATJets) {
+	float px = (jets_p4->at(i).px())*jets_pat_noCorrF_h->at(i);
+	float py = (jets_p4->at(i).py())*jets_pat_noCorrF_h->at(i);
+	float pz = (jets_p4->at(i).pz())*jets_pat_noCorrF_h->at(i);
+	float E  = (jets_p4->at(i).E())*jets_pat_noCorrF_h->at(i);
 	LorentzVector temp(px, py, pz, E);
 	jets_noel_p4        .push_back(temp);
-	jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_tq_noCorrF_h->at(i)));
+	jets_noel_jescor    .push_back(jets_cor->at(i)/(jets_pat_noCorrF_h->at(i)));
       } else {
 	jets_noel_p4        .push_back(jets_p4    ->at(i));
 	jets_noel_jescor    .push_back(jets_cor   ->at(i));
@@ -1929,8 +1967,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       double jet_pt  = jets_p4->at(i).Pt();
       double jet_ptcut;
 
-      if(usingTQJets) {
-	jet_ptcut = hypJetMinPtCut/(jets_tq_noCorrF_h->at(i));
+      if(usingPATJets) {
+	jet_ptcut = hypJetMinPtCut/(jets_pat_noCorrF_h->at(i));
       } else jet_ptcut =  hypJetMinPtCut;
 	
       if( hypJetMinEtaCut < jet_eta && 
@@ -1952,20 +1990,20 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
 	temp_jets_mc_p4                  .push_back(jets_mc_p4           ->at(i));
 	temp_jets_mc_gp_p4               .push_back(jets_mc_gp_p4        ->at(i));
  
-	if(usingTQJets) {
-	  temp_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	  temp_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	  temp_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	  temp_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	  temp_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	  temp_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	  temp_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	  temp_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	  temp_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	  temp_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	  temp_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	  temp_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	  temp_jets_tq_jetCharge        .push_back(jets_tq_jetCharge_h          ->at(i));               
+	if(usingPATJets) {
+	  temp_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	  temp_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	  temp_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	  temp_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	  temp_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	  temp_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	  temp_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	  temp_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	  temp_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	  temp_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	  temp_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	  temp_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	  temp_jets_pat_jetCharge        .push_back(jets_pat_jetCharge_h          ->at(i));               
 	}
 
       } else {
@@ -1984,20 +2022,20 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
 	temp_other_jets_mc_p4            .push_back(jets_mc_p4           ->at(i));
 	temp_other_jets_mc_gp_p4         .push_back(jets_mc_gp_p4        ->at(i));
 
-	if(usingTQJets) {
-	  temp_other_jets_tq_genParton_id      .push_back(jets_tq_genParton_id_h       ->at(i));
-	  temp_other_jets_tq_genPartonMother_id.push_back(jets_tq_genPartonMother_id_h ->at(i));
-	  temp_other_jets_tq_partonFlavour     .push_back(jets_tq_partonFlavour_h      ->at(i));
-	  temp_other_jets_tq_genParton_p4      .push_back(jets_tq_genParton_p4_h       ->at(i));
-	  temp_other_jets_tq_genPartonMother_p4.push_back(jets_tq_genPartonMother_p4_h ->at(i));
-	  temp_other_jets_tq_genJet_p4         .push_back(jets_tq_genJet_p4_h          ->at(i));
-	  temp_other_jets_tq_jet_p4            .push_back(jets_tq_jet_p4_h             ->at(i));
-	  temp_other_jets_tq_noCorrF           .push_back(jets_tq_noCorrF_h            ->at(i));                  
-	  temp_other_jets_tq_udsCorrF          .push_back(jets_tq_udsCorrF_h           ->at(i));                 
-	  temp_other_jets_tq_gluCorrF          .push_back(jets_tq_gluCorrF_h           ->at(i));                 
-	  temp_other_jets_tq_cCorrF            .push_back(jets_tq_cCorrF_h             ->at(i));                   
-	  temp_other_jets_tq_bCorrF            .push_back(jets_tq_bCorrF_h             ->at(i));                   
-	  temp_other_jets_tq_jetCharge        .push_back(jets_tq_jetCharge_h          ->at(i));               
+	if(usingPATJets) {
+	  temp_other_jets_pat_genParton_id      .push_back(jets_pat_genParton_id_h       ->at(i));
+	  temp_other_jets_pat_genPartonMother_id.push_back(jets_pat_genPartonMother_id_h ->at(i));
+	  temp_other_jets_pat_partonFlavour     .push_back(jets_pat_partonFlavour_h      ->at(i));
+	  temp_other_jets_pat_genParton_p4      .push_back(jets_pat_genParton_p4_h       ->at(i));
+	  temp_other_jets_pat_genPartonMother_p4.push_back(jets_pat_genPartonMother_p4_h ->at(i));
+	  temp_other_jets_pat_genJet_p4         .push_back(jets_pat_genJet_p4_h          ->at(i));
+	  temp_other_jets_pat_jet_p4            .push_back(jets_pat_jet_p4_h             ->at(i));
+	  temp_other_jets_pat_noCorrF           .push_back(jets_pat_noCorrF_h            ->at(i));                  
+	  temp_other_jets_pat_udsCorrF          .push_back(jets_pat_udsCorrF_h           ->at(i));                 
+	  temp_other_jets_pat_gluCorrF          .push_back(jets_pat_gluCorrF_h           ->at(i));                 
+	  temp_other_jets_pat_cCorrF            .push_back(jets_pat_cCorrF_h             ->at(i));                   
+	  temp_other_jets_pat_bCorrF            .push_back(jets_pat_bCorrF_h             ->at(i));                   
+	  temp_other_jets_pat_jetCharge        .push_back(jets_pat_jetCharge_h          ->at(i));               
 	}
 	  
       }
@@ -2034,34 +2072,34 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
     hyp_other_jets_mc_gp_p4        ->push_back(temp_other_jets_mc_gp_p4      );
 
    
-    if(usingTQJets) {
-      hyp_jets_tq_genParton_id            ->push_back(temp_jets_tq_genParton_id             );
-      hyp_jets_tq_genPartonMother_id      ->push_back(temp_jets_tq_genPartonMother_id       );
-      hyp_jets_tq_partonFlavour           ->push_back(temp_jets_tq_partonFlavour            );
-      hyp_jets_tq_genParton_p4            ->push_back(temp_jets_tq_genParton_p4             );
-      hyp_jets_tq_genPartonMother_p4      ->push_back(temp_jets_tq_genPartonMother_p4       );
-      hyp_jets_tq_genJet_p4               ->push_back(temp_jets_tq_genJet_p4                );
-      hyp_jets_tq_jet_p4                  ->push_back(temp_jets_tq_jet_p4                   );
-      hyp_jets_tq_noCorrF                 ->push_back(temp_jets_tq_noCorrF                );                  
-      hyp_jets_tq_udsCorrF                ->push_back(temp_jets_tq_udsCorrF               );                 
-      hyp_jets_tq_gluCorrF                ->push_back(temp_jets_tq_gluCorrF               );                 
-      hyp_jets_tq_cCorrF                  ->push_back(temp_jets_tq_cCorrF                 );                   
-      hyp_jets_tq_bCorrF                  ->push_back(temp_jets_tq_bCorrF                 );                   
-      hyp_jets_tq_jetCharge              ->push_back(temp_jets_tq_jetCharge                );               
+    if(usingPATJets) {
+      hyp_jets_pat_genParton_id            ->push_back(temp_jets_pat_genParton_id             );
+      hyp_jets_pat_genPartonMother_id      ->push_back(temp_jets_pat_genPartonMother_id       );
+      hyp_jets_pat_partonFlavour           ->push_back(temp_jets_pat_partonFlavour            );
+      hyp_jets_pat_genParton_p4            ->push_back(temp_jets_pat_genParton_p4             );
+      hyp_jets_pat_genPartonMother_p4      ->push_back(temp_jets_pat_genPartonMother_p4       );
+      hyp_jets_pat_genJet_p4               ->push_back(temp_jets_pat_genJet_p4                );
+      hyp_jets_pat_jet_p4                  ->push_back(temp_jets_pat_jet_p4                   );
+      hyp_jets_pat_noCorrF                 ->push_back(temp_jets_pat_noCorrF                );                  
+      hyp_jets_pat_udsCorrF                ->push_back(temp_jets_pat_udsCorrF               );                 
+      hyp_jets_pat_gluCorrF                ->push_back(temp_jets_pat_gluCorrF               );                 
+      hyp_jets_pat_cCorrF                  ->push_back(temp_jets_pat_cCorrF                 );                   
+      hyp_jets_pat_bCorrF                  ->push_back(temp_jets_pat_bCorrF                 );                   
+      hyp_jets_pat_jetCharge              ->push_back(temp_jets_pat_jetCharge                );               
 	
-      hyp_other_jets_tq_genParton_id      ->push_back(temp_other_jets_tq_genParton_id       );
-      hyp_other_jets_tq_genPartonMother_id->push_back(temp_other_jets_tq_genPartonMother_id );
-      hyp_other_jets_tq_partonFlavour     ->push_back(temp_other_jets_tq_partonFlavour      );
-      hyp_other_jets_tq_genParton_p4      ->push_back(temp_other_jets_tq_genParton_p4       );
-      hyp_other_jets_tq_genPartonMother_p4->push_back(temp_other_jets_tq_genPartonMother_p4 );
-      hyp_other_jets_tq_genJet_p4         ->push_back(temp_other_jets_tq_genJet_p4          );
-      hyp_other_jets_tq_jet_p4            ->push_back(temp_other_jets_tq_jet_p4             );
-      hyp_other_jets_tq_noCorrF           ->push_back(temp_other_jets_tq_noCorrF          );                  
-      hyp_other_jets_tq_udsCorrF          ->push_back(temp_other_jets_tq_udsCorrF         );                 
-      hyp_other_jets_tq_gluCorrF          ->push_back(temp_other_jets_tq_gluCorrF         );                 
-      hyp_other_jets_tq_cCorrF            ->push_back(temp_other_jets_tq_cCorrF           );                   
-      hyp_other_jets_tq_bCorrF            ->push_back(temp_other_jets_tq_bCorrF           );                   
-      hyp_other_jets_tq_jetCharge        ->push_back(temp_other_jets_tq_jetCharge          );               
+      hyp_other_jets_pat_genParton_id      ->push_back(temp_other_jets_pat_genParton_id       );
+      hyp_other_jets_pat_genPartonMother_id->push_back(temp_other_jets_pat_genPartonMother_id );
+      hyp_other_jets_pat_partonFlavour     ->push_back(temp_other_jets_pat_partonFlavour      );
+      hyp_other_jets_pat_genParton_p4      ->push_back(temp_other_jets_pat_genParton_p4       );
+      hyp_other_jets_pat_genPartonMother_p4->push_back(temp_other_jets_pat_genPartonMother_p4 );
+      hyp_other_jets_pat_genJet_p4         ->push_back(temp_other_jets_pat_genJet_p4          );
+      hyp_other_jets_pat_jet_p4            ->push_back(temp_other_jets_pat_jet_p4             );
+      hyp_other_jets_pat_noCorrF           ->push_back(temp_other_jets_pat_noCorrF          );                  
+      hyp_other_jets_pat_udsCorrF          ->push_back(temp_other_jets_pat_udsCorrF         );                 
+      hyp_other_jets_pat_gluCorrF          ->push_back(temp_other_jets_pat_gluCorrF         );                 
+      hyp_other_jets_pat_cCorrF            ->push_back(temp_other_jets_pat_cCorrF           );                   
+      hyp_other_jets_pat_bCorrF            ->push_back(temp_other_jets_pat_bCorrF           );                   
+      hyp_other_jets_pat_jetCharge        ->push_back(temp_other_jets_pat_jetCharge          );               
     }
      
     double hypmet = *evt_met;
@@ -2155,6 +2193,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_lt_id           ->push_back(-13*(mus_charge   ->at(mus_index)) );
       hyp_lt_d0           ->push_back(mus_d0           ->at(mus_index)  );
       hyp_lt_z0           ->push_back(mus_z0           ->at(mus_index)  );
+      hyp_lt_d0corr       ->push_back(mus_d0corr       ->at(mus_index)  );
+      hyp_lt_z0corr       ->push_back(mus_z0corr       ->at(mus_index)  );
       hyp_lt_vertexphi    ->push_back(mus_vertexphi    ->at(mus_index)  );
       hyp_lt_chi2         ->push_back(mus_chi2         ->at(mus_index)  );
       hyp_lt_ndof         ->push_back(mus_ndof         ->at(mus_index)  );
@@ -2180,6 +2220,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_ll_id           ->push_back(-11*(els_charge   ->at(els_index)) );
       hyp_ll_d0           ->push_back(els_d0           ->at(els_index)  );
       hyp_ll_z0           ->push_back(els_z0           ->at(els_index)  );
+      hyp_ll_d0corr       ->push_back(els_d0corr       ->at(els_index)  );
+      hyp_ll_z0corr       ->push_back(els_z0corr       ->at(els_index)  );
       hyp_ll_vertexphi    ->push_back(els_vertexphi    ->at(els_index)  );
       hyp_ll_chi2         ->push_back(els_chi2         ->at(els_index)  );
       hyp_ll_ndof         ->push_back(els_ndof         ->at(els_index)  );
@@ -2209,6 +2251,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_lt_id           ->push_back(-11*(els_charge   ->at(els_index)) );
       hyp_lt_d0           ->push_back(els_d0           ->at(els_index)  );
       hyp_lt_z0           ->push_back(els_z0           ->at(els_index)  );
+      hyp_lt_d0corr       ->push_back(els_d0corr       ->at(els_index)  );
+      hyp_lt_z0corr       ->push_back(els_z0corr       ->at(els_index)  );
       hyp_lt_vertexphi    ->push_back(els_vertexphi    ->at(els_index)  );
       hyp_lt_chi2         ->push_back(els_chi2         ->at(els_index)  );
       hyp_lt_ndof         ->push_back(els_ndof         ->at(els_index)  );
@@ -2236,6 +2280,8 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
       hyp_ll_id           ->push_back(-13*(mus_charge   ->at(mus_index)) );
       hyp_ll_d0           ->push_back(mus_d0           ->at(mus_index)  );
       hyp_ll_z0           ->push_back(mus_z0           ->at(mus_index)  );
+      hyp_ll_d0corr       ->push_back(mus_d0corr       ->at(mus_index)  );
+      hyp_ll_z0corr       ->push_back(mus_z0corr       ->at(mus_index)  );
       hyp_ll_vertexphi    ->push_back(mus_vertexphi    ->at(mus_index)  );
       hyp_ll_chi2         ->push_back(mus_chi2         ->at(mus_index)  );
       hyp_ll_ndof         ->push_back(mus_ndof         ->at(mus_index)  );
@@ -2313,84 +2359,88 @@ for(unsigned int els_index = 0; els_index < nels; els_index++) {
 
 
   
-iEvent.put(hyp_type                     ,"hyptype"                     );
-iEvent.put(hyp_njets                    ,"hypnjets"                    );
-iEvent.put(hyp_nojets                   ,"hypnojets"                   );
-iEvent.put(hyp_p4                      ,"hypp4"                        );
-  
-iEvent.put(hyp_lt_validHits             ,"hypltvalidHits"              );
-iEvent.put(hyp_lt_lostHits              ,"hypltlostHits"               );
-iEvent.put(hyp_lt_mc_id                 ,"hypltmcid"                   );
-iEvent.put(hyp_lt_charge                ,"hypltcharge"                 );
-iEvent.put(hyp_lt_mc_motherid           ,"hypltmcmotherid"             );
-iEvent.put(hyp_lt_index                 ,"hypltindex"                  );
-iEvent.put(hyp_lt_id                    ,"hypltid"                     );
-iEvent.put(hyp_lt_d0                    ,"hypltd0"                     );
-iEvent.put(hyp_lt_z0                    ,"hypltz0"                     );
-iEvent.put(hyp_lt_vertexphi             ,"hypltvertexphi"              );
-iEvent.put(hyp_lt_chi2                  ,"hypltchi2"                   );
-iEvent.put(hyp_lt_ndof                  ,"hypltndof"                   );
-iEvent.put(hyp_lt_d0Err                 ,"hypltd0Err"                  );
-iEvent.put(hyp_lt_z0Err                 ,"hypltz0Err"                  );
-iEvent.put(hyp_lt_ptErr                 ,"hypltptErr"                  );
-iEvent.put(hyp_lt_etaErr                ,"hypltetaErr"                 );
-iEvent.put(hyp_lt_phiErr                ,"hypltphiErr"                 );
-iEvent.put(hyp_lt_outerPhi              ,"hypltouterPhi"               );
-iEvent.put(hyp_lt_outerEta              ,"hypltouterEta"               );
-iEvent.put(hyp_lt_iso                   ,"hypltiso"                    );
-iEvent.put(hyp_lt_tkIso                 ,"hyplttkIso"                  );
-iEvent.put(hyp_lt_p4                    ,"hypltp4"                     );
-iEvent.put(hyp_lt_trk_p4                ,"hyplttrkp4"                  );
-iEvent.put(hyp_lt_mc_p4                 ,"hypltmcp4"                   );
-
-iEvent.put(hyp_ll_validHits             ,"hypllvalidHits"              );
-iEvent.put(hyp_ll_lostHits              ,"hyplllostHits"               );
-iEvent.put(hyp_ll_mc_id                 ,"hypllmcid"                   );
-iEvent.put(hyp_ll_charge                ,"hypllcharge"                 );
-iEvent.put(hyp_ll_mc_motherid           ,"hypllmcmotherid"             );
-iEvent.put(hyp_ll_index                 ,"hypllindex"                  );
-iEvent.put(hyp_ll_id                    ,"hypllid"                     );
-iEvent.put(hyp_ll_d0                    ,"hyplld0"                     );
-iEvent.put(hyp_ll_z0                    ,"hypllz0"                     );
-iEvent.put(hyp_ll_vertexphi             ,"hypllvertexphi"              );
-iEvent.put(hyp_ll_chi2                  ,"hypllchi2"                   );
-iEvent.put(hyp_ll_ndof                  ,"hypllndof"                   );
-iEvent.put(hyp_ll_d0Err                 ,"hyplld0Err"                  );
-iEvent.put(hyp_ll_z0Err                 ,"hypllz0Err"                  );
-iEvent.put(hyp_ll_ptErr                 ,"hypllptErr"                  );
-iEvent.put(hyp_ll_etaErr                ,"hyplletaErr"                 );
-iEvent.put(hyp_ll_phiErr                ,"hypllphiErr"                 );
-iEvent.put(hyp_ll_outerPhi              ,"hypllouterPhi"               );
-iEvent.put(hyp_ll_outerEta              ,"hypllouterEta"               );
-iEvent.put(hyp_ll_iso                   ,"hyplliso"                    );
-iEvent.put(hyp_ll_tkIso                 ,"hyplltkIso"                  );
-iEvent.put(hyp_ll_p4                    ,"hypllp4"                     );
-iEvent.put(hyp_ll_trk_p4                ,"hyplltrkp4"                  );
-iEvent.put(hyp_ll_mc_p4                 ,"hypllmcp4"                   );
-  
-iEvent.put(hyp_met                      ,"hypmet"                      );
-iEvent.put(hyp_metPhi                   ,"hypmetPhi"                   );
-iEvent.put(hyp_metCaloExp               ,"hypmetCaloExp"               );
-iEvent.put(hyp_metPhiCaloExp            ,"hypmetPhiCaloExp"            );
-iEvent.put(hyp_metCone                  ,"hypmetCone"                  );
-iEvent.put(hyp_metPhiCone               ,"hypmetPhiCone"               );
-iEvent.put(hyp_metNoCalo                ,"hypmetNoCalo"                );
-iEvent.put(hyp_metPhiNoCalo             ,"hypmetPhiNoCalo"             );
-iEvent.put(hyp_metAll                   ,"hypmetAll"                   );
-iEvent.put(hyp_metPhiAll                ,"hypmetPhiAll"                );
-iEvent.put(hyp_metAllCaloExp            ,"hypmetAllCaloExp"            );
-iEvent.put(hyp_metPhiAllCaloExp         ,"hypmetPhiAllCaloExp"         );
-iEvent.put(hyp_metJes5                  ,"hypmetJes5"                  );
-iEvent.put(hyp_metPhiJes5               ,"hypmetPhiJes5"               );
-iEvent.put(hyp_metJes10                 ,"hypmetJes10"                 );
-iEvent.put(hyp_metPhiJes10              ,"hypmetPhiJes10"              );
-iEvent.put(hyp_metJes15                 ,"hypmetJes15"                 );
-iEvent.put(hyp_metPhiJes15              ,"hypmetPhiJes15"              );
-iEvent.put(hyp_metJes30                 ,"hypmetJes30"                 );
-iEvent.put(hyp_metPhiJes30              ,"hypmetPhiJes30"              );
-iEvent.put(hyp_metJes50                 ,"hypmetJes50"                 );
-iEvent.put(hyp_metPhiJes50              ,"hypmetPhiJes50"              );
-//   iEvent.put(hyp_metEMF5                  ,"hypmetEMF5"                  );
+ iEvent.put(hyp_type                     ,"hyptype"                     );
+ iEvent.put(hyp_njets                    ,"hypnjets"                    );
+ iEvent.put(hyp_nojets                   ,"hypnojets"                   );
+ iEvent.put(hyp_p4                      ,"hypp4"                        );
+ 
+ iEvent.put(hyp_lt_validHits             ,"hypltvalidHits"              );
+ iEvent.put(hyp_lt_lostHits              ,"hypltlostHits"               );
+ iEvent.put(hyp_lt_mc_id                 ,"hypltmcid"                   );
+ iEvent.put(hyp_lt_charge                ,"hypltcharge"                 );
+ iEvent.put(hyp_lt_mc_motherid           ,"hypltmcmotherid"             );
+ iEvent.put(hyp_lt_index                 ,"hypltindex"                  );
+ iEvent.put(hyp_lt_id                    ,"hypltid"                     );
+ iEvent.put(hyp_lt_d0                    ,"hypltd0"                     );
+ iEvent.put(hyp_lt_z0                    ,"hypltz0"                     );
+ iEvent.put(hyp_lt_d0corr                ,"hypltd0corr"                 );
+ iEvent.put(hyp_lt_z0corr                ,"hypltz0corr"                 );
+ iEvent.put(hyp_lt_vertexphi             ,"hypltvertexphi"              );
+ iEvent.put(hyp_lt_chi2                  ,"hypltchi2"                   );
+ iEvent.put(hyp_lt_ndof                  ,"hypltndof"                   );
+ iEvent.put(hyp_lt_d0Err                 ,"hypltd0Err"                  );
+ iEvent.put(hyp_lt_z0Err                 ,"hypltz0Err"                  );
+ iEvent.put(hyp_lt_ptErr                 ,"hypltptErr"                  );
+ iEvent.put(hyp_lt_etaErr                ,"hypltetaErr"                 );
+ iEvent.put(hyp_lt_phiErr                ,"hypltphiErr"                 );
+ iEvent.put(hyp_lt_outerPhi              ,"hypltouterPhi"               );
+ iEvent.put(hyp_lt_outerEta              ,"hypltouterEta"               );
+ iEvent.put(hyp_lt_iso                   ,"hypltiso"                    );
+ iEvent.put(hyp_lt_tkIso                 ,"hyplttkIso"                  );
+ iEvent.put(hyp_lt_p4                    ,"hypltp4"                     );
+ iEvent.put(hyp_lt_trk_p4                ,"hyplttrkp4"                  );
+ iEvent.put(hyp_lt_mc_p4                 ,"hypltmcp4"                   );
+ 
+ iEvent.put(hyp_ll_validHits             ,"hypllvalidHits"              );
+ iEvent.put(hyp_ll_lostHits              ,"hyplllostHits"               );
+ iEvent.put(hyp_ll_mc_id                 ,"hypllmcid"                   );
+ iEvent.put(hyp_ll_charge                ,"hypllcharge"                 );
+ iEvent.put(hyp_ll_mc_motherid           ,"hypllmcmotherid"             );
+ iEvent.put(hyp_ll_index                 ,"hypllindex"                  );
+ iEvent.put(hyp_ll_id                    ,"hypllid"                     );
+ iEvent.put(hyp_ll_d0                    ,"hyplld0"                     );
+ iEvent.put(hyp_ll_z0                    ,"hypllz0"                     );
+ iEvent.put(hyp_ll_d0corr                ,"hyplld0corr"                 );
+ iEvent.put(hyp_ll_z0corr                ,"hypllz0corr"                 );
+ iEvent.put(hyp_ll_vertexphi             ,"hypllvertexphi"              );
+ iEvent.put(hyp_ll_chi2                  ,"hypllchi2"                   );
+ iEvent.put(hyp_ll_ndof                  ,"hypllndof"                   );
+ iEvent.put(hyp_ll_d0Err                 ,"hyplld0Err"                  );
+ iEvent.put(hyp_ll_z0Err                 ,"hypllz0Err"                  );
+ iEvent.put(hyp_ll_ptErr                 ,"hypllptErr"                  );
+ iEvent.put(hyp_ll_etaErr                ,"hyplletaErr"                 );
+ iEvent.put(hyp_ll_phiErr                ,"hypllphiErr"                 );
+ iEvent.put(hyp_ll_outerPhi              ,"hypllouterPhi"               );
+ iEvent.put(hyp_ll_outerEta              ,"hypllouterEta"               );
+ iEvent.put(hyp_ll_iso                   ,"hyplliso"                    );
+ iEvent.put(hyp_ll_tkIso                 ,"hyplltkIso"                  );
+ iEvent.put(hyp_ll_p4                    ,"hypllp4"                     );
+ iEvent.put(hyp_ll_trk_p4                ,"hyplltrkp4"                  );
+ iEvent.put(hyp_ll_mc_p4                 ,"hypllmcp4"                   );
+ 
+ iEvent.put(hyp_met                      ,"hypmet"                      );
+ iEvent.put(hyp_metPhi                   ,"hypmetPhi"                   );
+ iEvent.put(hyp_metCaloExp               ,"hypmetCaloExp"               );
+ iEvent.put(hyp_metPhiCaloExp            ,"hypmetPhiCaloExp"            );
+ iEvent.put(hyp_metCone                  ,"hypmetCone"                  );
+ iEvent.put(hyp_metPhiCone               ,"hypmetPhiCone"               );
+ iEvent.put(hyp_metNoCalo                ,"hypmetNoCalo"                );
+ iEvent.put(hyp_metPhiNoCalo             ,"hypmetPhiNoCalo"             );
+ iEvent.put(hyp_metAll                   ,"hypmetAll"                   );
+ iEvent.put(hyp_metPhiAll                ,"hypmetPhiAll"                );
+ iEvent.put(hyp_metAllCaloExp            ,"hypmetAllCaloExp"            );
+ iEvent.put(hyp_metPhiAllCaloExp         ,"hypmetPhiAllCaloExp"         );
+ iEvent.put(hyp_metJes5                  ,"hypmetJes5"                  );
+ iEvent.put(hyp_metPhiJes5               ,"hypmetPhiJes5"               );
+ iEvent.put(hyp_metJes10                 ,"hypmetJes10"                 );
+ iEvent.put(hyp_metPhiJes10              ,"hypmetPhiJes10"              );
+ iEvent.put(hyp_metJes15                 ,"hypmetJes15"                 );
+ iEvent.put(hyp_metPhiJes15              ,"hypmetPhiJes15"              );
+ iEvent.put(hyp_metJes30                 ,"hypmetJes30"                 );
+ iEvent.put(hyp_metPhiJes30              ,"hypmetPhiJes30"              );
+ iEvent.put(hyp_metJes50                 ,"hypmetJes50"                 );
+ iEvent.put(hyp_metPhiJes50              ,"hypmetPhiJes50"              );
+ //   iEvent.put(hyp_metEMF5                  ,"hypmetEMF5"                  );
 //   iEvent.put(hyp_metPhiEMF5               ,"hypmetPhiEMF5"               );
 //   iEvent.put(hyp_metEMF10                 ,"hypmetEMF10"                 );
 //   iEvent.put(hyp_metPhiEMF10              ,"hypmetPhiEMF10"              );
@@ -2434,25 +2484,23 @@ iEvent.put(hyp_other_jets_mc_p4         ,"hypotherjetsmcp4"            );
 iEvent.put(hyp_other_jets_mc_gp_p4      ,"hypotherjetsmcgpp4"          );
 
 
-if(usingTQJets) {
-  iEvent.put(hyp_jets_tq_genParton_id             ,"hypjetstqgenPartonid"              );    //ok            
-  iEvent.put(hyp_jets_tq_genPartonMother_id       ,"hypjetstqgenPartonMotherid"        );    //ok      
-  iEvent.put(hyp_jets_tq_partonFlavour            ,"hypjetstqpartonFlavour"             );   //ok            
-  iEvent.put(hyp_other_jets_tq_genParton_id       ,"hypotherjetstqgenPartonid"        );     //ok      
-  iEvent.put(hyp_other_jets_tq_genPartonMother_id ,"hypotherjetstqgenPartonMotherid"  );    
-  iEvent.put(hyp_other_jets_tq_partonFlavour      ,"hypotherjetstqpartonFlavour"       );         
+if(usingPATJets) {
+  iEvent.put(hyp_jets_pat_genParton_id             ,"hypjetspatgenPartonid"              );    //ok            
+  iEvent.put(hyp_jets_pat_genPartonMother_id       ,"hypjetspatgenPartonMotherid"        );    //ok      
+  iEvent.put(hyp_jets_pat_partonFlavour            ,"hypjetspatpartonFlavour"             );   //ok            
+  iEvent.put(hyp_other_jets_pat_genParton_id       ,"hypotherjetspatgenPartonid"        );     //ok      
+  iEvent.put(hyp_other_jets_pat_genPartonMother_id ,"hypotherjetspatgenPartonMotherid"  );    
+  iEvent.put(hyp_other_jets_pat_partonFlavour      ,"hypotherjetspatpartonFlavour"       );         
   
-  iEvent.put(hyp_jets_tq_genParton_p4             ,"hypjetstqgenPartonp4"              );      
-  iEvent.put(hyp_jets_tq_genPartonMother_p4       ,"hypjetstqgenPartonMotherp4"        );
-  iEvent.put(hyp_jets_tq_genJet_p4                ,"hypjetstqgenJetp4"                 );         
-  iEvent.put(hyp_jets_tq_jet_p4                   ,"hypjetstqjetp4"                    );            
-  iEvent.put(hyp_jets_tq_noCorrF                  ,"hypjetstqnoCorrF"                  );                  
-  iEvent.put(hyp_other_jets_tq_genParton_p4       ,"hypotherjetstqgenPartonp4"         );
-  iEvent.put(hyp_other_jets_tq_genPartonMother_p4 ,"hypotherjetstqgenPartonMotherp4"   );
-  iEvent.put(hyp_other_jets_tq_genJet_p4          ,"hypotherjetstqgenJetp4"            );   
-  iEvent.put(hyp_other_jets_tq_jet_p4             ,"hypotherjetstqjetp4"               );      
- }
-  
+  iEvent.put(hyp_jets_pat_genParton_p4             ,"hypjetspatgenPartonp4"              );      
+  iEvent.put(hyp_jets_pat_genPartonMother_p4       ,"hypjetspatgenPartonMotherp4"        );
+  iEvent.put(hyp_jets_pat_genJet_p4                ,"hypjetspatgenJetp4"                 );         
+  iEvent.put(hyp_jets_pat_jet_p4                   ,"hypjetspatjetp4"                    );            
+  iEvent.put(hyp_other_jets_pat_genParton_p4       ,"hypotherjetspatgenPartonp4"        );
+  iEvent.put(hyp_other_jets_pat_genPartonMother_p4 ,"hypotherjetspatgenPartonMotherp4"  );
+  iEvent.put(hyp_other_jets_pat_genJet_p4          ,"hypotherjetspatgenJetp4"           );   
+  iEvent.put(hyp_other_jets_pat_jet_p4             ,"hypotherjetspatjetp4"              );      
+ }  
 
   
 }

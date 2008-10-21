@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.5 2008/07/24 21:07:20 fgolf Exp $
+// $Id: HypDilepMaker.h,v 1.6 2008/10/21 16:39:27 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPDILEPMAKER_H
@@ -62,7 +62,7 @@ private:
   edm::InputTag electronsInputTag;
   edm::InputTag metInputTag;
   edm::InputTag jetsInputTag;
-  edm::InputTag tqJetsInputTag;
+  edm::InputTag patJetsInputTag;
   edm::InputTag trksInputTag;
   edm::InputTag candToGenAssTag;
   //edm::InputTag genParticlesInputTag;
@@ -70,7 +70,7 @@ private:
   //edm::InputTag mcJetCorrectionInputTag;
   //edm::InputTag emfJetCorrectionInputTag;
   //edm::InputTag hypJetsInputTag;
-  bool          usingTQJets;
+  bool          usingPATJets;
   double        hypJetMinEtaCut;
   double        hypJetMaxEtaCut;
   double        hypJetMinPtCut;
