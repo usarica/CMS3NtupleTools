@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.8 2008/10/21 16:35:50 kalavase Exp $
+// $Id: EventMaker.cc,v 1.9 2008/10/23 21:54:03 kalavase Exp $
 //
 //
 
@@ -25,9 +25,10 @@ Implementation:
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
+#include "FWCore/Framework/interface/ESHandle.h"
 #include "CMS2/NtupleMaker/interface/EventMaker.h"
 
 
@@ -41,9 +42,15 @@ Implementation:
 #include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
 #include "DataFormats/L1Trigger/interface/L1EmParticle.h"
 
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+
+
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -69,6 +76,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>    ("evtL12"               ).setBranchAlias("evt_L1_2"                 );
   produces<int>    ("evtL13"               ).setBranchAlias("evt_L1_3"                 );
   produces<int>    ("evtL14"               ).setBranchAlias("evt_L1_4"                 );
+  produces<float>  ("evtbField"            ).setBranchAlias("evt_bField"               );
   produces<float>  ("evtweight"            ).setBranchAlias("evt_weight"               );
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
@@ -87,6 +95,8 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 EventMaker::~EventMaker() {}
 
 void  EventMaker::beginJob(const edm::EventSetup&) {
+
+
 }
 
 void EventMaker::endJob() {
@@ -110,6 +120,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>      evt_L12               (new int);
   auto_ptr<int>      evt_L13               (new int);
   auto_ptr<int>      evt_L14               (new int);
+  auto_ptr<float>    evt_bField            (new float);
   auto_ptr<float>    evt_weight            (new float);
   auto_ptr<float>    evt_xsec_incl         (new float);
   auto_ptr<float>    evt_xsec_excl         (new float);
@@ -166,6 +177,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    
   }
 
+ //need the magnetic field
+  ESHandle<MagneticField> magneticField;
+  iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
+  *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
  
   
    //get the MC event weights
@@ -208,9 +223,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_L12              ,"evtL12"             );
   iEvent.put(evt_L13              ,"evtL13"             );
   iEvent.put(evt_L14              ,"evtL14"             );
+  iEvent.put(evt_bField           ,"evtbField"          );
   iEvent.put(evt_weight           ,"evtweight"          );
-  iEvent.put(evt_xsec_incl         ,"evtxsecincl"        );
-  iEvent.put(evt_xsec_excl         ,"evtxsecexcl"        );
+  iEvent.put(evt_xsec_incl        ,"evtxsecincl"        );
+  iEvent.put(evt_xsec_excl        ,"evtxsecexcl"        );
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
   
 }
