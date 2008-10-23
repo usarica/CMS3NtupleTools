@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.4 2008/07/28 21:52:37 kalavase Exp $
+// $Id: L1DigiMaker.cc,v 1.5 2008/10/23 21:58:30 kalavase Exp $
 //
 //
 
@@ -35,9 +35,13 @@ Implementation:
 
 
 #include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
+#include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h"
 #include "DataFormats/L1Trigger/interface/L1JetParticle.h"
+#include "DataFormats/L1Trigger/interface/L1JetParticleFwd.h"
 #include "DataFormats/L1Trigger/interface/L1EtMissParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EtMissParticleFwd.h"
 #include "DataFormats/L1Trigger/interface/L1EmParticle.h"
+#include "DataFormats/L1Trigger/interface/L1EmParticleFwd.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 using namespace reco;
@@ -180,9 +184,9 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   const vector<l1extra::L1JetParticle> *l1jetst_coll = l1jetst_h.product();
   *evt_nl1jetst = l1jetst_h.product()->size();
 
-  Handle<l1extra::L1EtMissParticle> l1met_h;
-  iEvent.getByLabel("l1extraParticles", l1met_h);
-  const l1extra::L1EtMissParticle *l1met = l1met_h.product();
+  Handle<l1extra::L1EtMissParticleCollection> l1mets_h;
+  iEvent.getByLabel("l1extraParticles", l1mets_h);
+  const l1extra::L1EtMissParticleCollection *l1mets = l1mets_h.product();
   
 
   
@@ -314,6 +318,10 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
  
   //const l1extra::L1EtMissParticle *l1met = l1met_h.product();
+  if (l1mets->size() > 1 ){
+    throw cms::Exception("L1DigiMaker: Read more than 1 L1-MET, expected one");
+  }
+  l1extra::L1EtMissParticleCollection::const_iterator l1met = l1mets->begin();
   *l1met_met     = l1met->etMiss();
   *l1met_etHad   = l1met->etHad();
   *l1met_etTot   = l1met->etTotal();
