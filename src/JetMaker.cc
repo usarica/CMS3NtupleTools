@@ -8,13 +8,13 @@
 Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
  Implementation:
-     - take TQAF jets
+     - take  jets
      - extract and fill variables
 */
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.7 2008/07/24 04:35:28 kalavase Exp $
+// $Id: JetMaker.cc,v 1.8 2008/10/23 21:57:09 kalavase Exp $
 //
 //
 
@@ -35,6 +35,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
 
@@ -88,7 +89,7 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   // get jet collection
-  edm::Handle<edm::View<reco::CaloJet> > jetsHandle;
+  edm::Handle<edm::View<reco::Jet> > jetsHandle;
   iEvent.getByLabel(jetsInputTag, jetsHandle);
 
   // get generator jet collection
@@ -116,12 +117,18 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> > vector_jets_EMFcor(new std::vector<float>);
   
   // loop over jets and fill containers
-  edm::View<reco::CaloJet>::const_iterator jetsEnd = jetsHandle->end(); 
-  for ( edm::View<reco::CaloJet>::const_iterator jet = jetsHandle->begin();
+  edm::View<reco::Jet>::const_iterator jetsEnd = jetsHandle->end(); 
+  for ( edm::View<reco::Jet>::const_iterator jet = jetsHandle->begin();
 	jet != jetsEnd; 
 	++jet) {
+    // triangle here
+    const reco::CaloJet* calJet = dynamic_cast<const reco::CaloJet*>(&*jet);
+    const pat::Jet* patJet = dynamic_cast<const pat::Jet*>(&*jet);
+    float emFrac = -999;
+    if (calJet) emFrac =  calJet->emEnergyFraction();
+    if (patJet) emFrac =  patJet->emEnergyFraction();
     vector_jets_p4->push_back(jet->p4());
-    vector_jets_emFrac->push_back(jet->emEnergyFraction());
+    vector_jets_emFrac->push_back(emFrac);
     vector_jets_chFrac->push_back(-999.);
     
     
