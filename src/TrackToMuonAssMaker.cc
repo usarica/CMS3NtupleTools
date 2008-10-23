@@ -8,12 +8,15 @@
  Description: <one line class summary>
 
  Implementation:
-     <Notes on implementation>
+     Code to associate a track to a muon. Since a GlobalMuon or TrackerMuon
+     will always have a Si track, we want to keep the dR requirement very 
+     tight, so that we always associate the track to a muon only if it 
+     actually belongs to a muon
 */
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.3 2008/10/23 19:06:32 kalavase Exp $
 //
 //
 
@@ -42,6 +45,8 @@ TrackToMuonAssMaker::TrackToMuonAssMaker(const edm::ParameterSet& iConfig)
 {
      produces<vector<int>   >("trkmusidx").setBranchAlias("trk_musidx");	// track index matched to muon
      produces<vector<float> >("trkmusdr" ).setBranchAlias("trk_musdr" );
+     
+     m_minDR = iConfig.getParameter<double>("minDR");
 }
 
 void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -55,10 +60,17 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
      Handle<vector<LorentzVector> > mus_trk_p4_h;
      iEvent.getByLabel("muonMaker", "mustrkp4", mus_trk_p4_h);  
 
+     //get the muon type
+     Handle<vector<int> > mus_type_h;
+     iEvent.getByLabel("muonMaker", "mustype", mus_type_h);
+     const vector<int> *mus_type = mus_type_h.product();
+     
      // get track p4's
      Handle<vector<LorentzVector> > trks_p4_h;
      iEvent.getByLabel("trackMaker", "trkstrkp4", trks_p4_h);  
-
+     
+     
+     
      for (vector<LorentzVector>::const_iterator track = trks_p4_h->begin(),
 	    trks_end = trks_p4_h->end();
 	  track != trks_end; ++track) { 
@@ -71,9 +83,14 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
        for (vector<LorentzVector>::const_iterator muon = mus_trk_p4_h->begin(),
 	    muons_end = mus_trk_p4_h->end();
 	    muon != muons_end; ++muon, ++i_track) {
-
+	 
+	 //do the association ONLY if it is either a 
+	 //tracker muon or global muon
+	 //see DataFormats/MuonReco/interface/Muon.h
+	 if( !(mus_type->at(i_track) & 1<<1) && !(mus_type->at(i_track) & 1<<2) ) continue;
+	 
 	 const double deltaR = ROOT::Math::VectorUtil::DeltaR(*track, *muon);
-
+	 
 	 if (deltaR < minDR) {
 	   minDR = deltaR;
 	   trkidx = i_track;
@@ -82,7 +99,8 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
        // fill vector
        vector_trk_musidx->push_back(trkidx);
-       vector_trk_musdr ->push_back(minDR );
+       vector_trk_musdr ->push_back(trkidx > -5 ? minDR : 999);
+       
      }
 
      // store vectors
