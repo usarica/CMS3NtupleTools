@@ -18,6 +18,8 @@ process.load("PhysicsTools.PatAlgos.patLayer0_cff")
 
 process.load("PhysicsTools.PatAlgos.patLayer1_cff")
 
+
+
 # CMS2 includes
 process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
 
@@ -32,8 +34,6 @@ process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.patJetMaker_cfi")
 
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
-
-process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 
 process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
 
@@ -136,11 +136,10 @@ process.JetCorrection = cms.Sequence(process.JetCorrectionsExtra)
 process.pat = cms.Sequence(process.patLayer0*process.patLayer1)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker)
-process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker*process.conversionMaker)
+process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.generalmakers = cms.Sequence(process.l1extraParticles*process.eventMaker*process.metMaker*process.l1DigiMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
-#process.p = cms.Path(process.JetCorrection*process.pat*process.cms2*process.theFilter)
-process.p = cms.Path(process.JetCorrection*process.pat*process.cms2*process.theFilter)
+process.p = cms.Path(process.JetCorrection*process.pat*process.cms2)
 process.outpath = cms.EndPath(process.outMod)
 
