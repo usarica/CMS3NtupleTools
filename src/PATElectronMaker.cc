@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.1 2008/10/21 07:26:05 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.2 2008/10/24 00:35:05 kalavase Exp $
 //
 //
 
@@ -62,10 +62,14 @@ PATElectronMaker::PATElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>          >   ("elspatcaloIso"             ).setBranchAlias("els_pat_caloIso"          );
   produces<vector<float>          >   ("elspatecalIso"             ).setBranchAlias("els_pat_ecalIso"          );
   produces<vector<float>          >   ("elspathcalIso"             ).setBranchAlias("els_pat_hcalIso"          );
-  produces<vector<float>          >   ("elspatleptonID"            ).setBranchAlias("els_pat_leptonID"         );
-  produces<vector<float>          >   ("elspatrobustId"            ).setBranchAlias("els_pat_robustId" );
-  produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId" );
-  produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId" );
+  // produces<vector<float>          >   ("elspatleptonID"            ).setBranchAlias("els_pat_leptonID"       );
+//   produces<vector<float>          >   ("elspatrobustId"            ).setBranchAlias("els_pat_robustId" );
+//   produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId" );
+//   produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId" );
+  produces<vector<float>          >   ("elspatrobustLooseId"       ).setBranchAlias("els_pat_robustLooseId"    );
+  produces<vector<float>          >   ("elspatrobustTightId"       ).setBranchAlias("els_pat_robustTightId"    );
+  produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId"          );
+  produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId"          );
   produces<vector<LorentzVector>  >   ("elspatgenP4"               ).setBranchAlias("els_pat_genP4"            );
   produces<vector<LorentzVector>  >   ("elspatgenMotherP4"         ).setBranchAlias("els_pat_genMotherP4"      );
   
@@ -94,8 +98,8 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<float>          >   els_pat_caloIso          (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_ecalIso          (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_hcalIso          (new vector<float>             );
-  auto_ptr<vector<float>          >   els_pat_leptonID         (new vector<float>             );
-  auto_ptr<vector<float>          >   els_pat_robustId         (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_robustLooseId    (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_robustTightId    (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_looseId          (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_tightId          (new vector<float>             );
   auto_ptr<vector<LorentzVector>  >   els_pat_genP4            (new vector<LorentzVector>     );
@@ -117,10 +121,10 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     els_pat_caloIso           ->push_back( patel_it->caloIso()             );
     els_pat_ecalIso           ->push_back( patel_it->ecalIso()             );
     els_pat_hcalIso           ->push_back( patel_it->hcalIso()             );
-    els_pat_leptonID          ->push_back( patel_it->leptonID("likelihood"));
-    els_pat_robustId          ->push_back( patel_it->leptonID("robust")    );
-    els_pat_looseId           ->push_back( patel_it->leptonID("loose")     );
-    els_pat_tightId           ->push_back( patel_it->leptonID("tight")     );
+    els_pat_robustLooseId     ->push_back( patel_it->leptonID("eidRobustLoose")    );
+    els_pat_robustTightId     ->push_back( patel_it->leptonID("eidRobustTight")    );
+    els_pat_looseId           ->push_back( patel_it->leptonID("eidLoose")    );
+    els_pat_tightId           ->push_back( patel_it->leptonID("eidTight")    );
     els_pat_genP4             ->push_back( gen.p4()                        );
     els_pat_genMotherP4       ->push_back( gen_mom->p4()                   );
     
@@ -134,8 +138,8 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.put(els_pat_caloIso,           "elspatcaloIso"              );
   iEvent.put(els_pat_ecalIso,           "elspatecalIso"              );
   iEvent.put(els_pat_hcalIso,           "elspathcalIso"              );
-  iEvent.put(els_pat_leptonID,          "elspatleptonID"             );
-  iEvent.put(els_pat_robustId,          "elspatrobustId"             );
+  iEvent.put(els_pat_robustLooseId,     "elspatrobustLooseId"        );
+  iEvent.put(els_pat_robustTightId,     "elspatrobustTightId"        );
   iEvent.put(els_pat_looseId,           "elspatlooseId"              );
   iEvent.put(els_pat_tightId,           "elspattightId"              );
   iEvent.put(els_pat_genP4,             "elspatgenP4"                );
