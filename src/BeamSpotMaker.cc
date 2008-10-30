@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.1 2008/10/21 17:42:00 kalavase Exp $
+// $Id: BeamSpotMaker.cc,v 1.2 2008/10/30 14:18:28 kalavase Exp $
 //
 //
 
@@ -54,8 +54,8 @@ BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
   produces<float>  ("evtbssigmaZErr"  ).setBranchAlias("evt_bs_sigmaZErr"    );
   produces<float>  ("evtbsdxdz"       ).setBranchAlias("evt_bs_dxdz"         );
   produces<float>  ("evtbsdxdzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
-  produces<float>  ("evtbsdydz"       ).setBranchAlias("evt_bs_dxdz"         );
-  produces<float>  ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
+  produces<float>  ("evtbsdydz"       ).setBranchAlias("evt_bs_dydz"         );
+  produces<float>  ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dydzErr"      );
   produces<float>  ("evtbswidthErr"   ).setBranchAlias("evt_bs_widthErr"     );
   
   beamSpotInputTag = iConfig.getParameter<InputTag>("beamSpotInputTag");
