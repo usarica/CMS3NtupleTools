@@ -12,13 +12,11 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("L1Trigger.L1ExtraFromDigis.l1extraParticles_cff")
 process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
 
-process.GlobalTag.globaltag = "STARTUP_V4::All"
+process.GlobalTag.globaltag = "IDEAL_V9::All"
 
-process.load("PhysicsTools.PatAlgos.patLayer0_cff")
-
-process.load("PhysicsTools.PatAlgos.patLayer1_cff")
-
-
+#replace with the patched PAT layer 0 and layer1,
+#patched for the electron isolation
+process.load("CMS2.NtupleMaker.PATElecIsoPatch_cfi")
 
 # CMS2 includes
 process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
@@ -74,14 +72,15 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(-1)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
+
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('/store/relval/CMSSW_2_1_9/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG-RECO/IDEAL_V9_v2/0000/1A0FD639-1B86-DD11-A3C0-000423D99614.root')
+    fileNames = cms.untracked.vstring('/store/relval/CMSSW_2_1_8/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG-RECO/IDEAL_V9_v1/0002/04983078-9082-DD11-BB8C-0019DB2F3F9B.root')
 )
 
 process.MCJetCorrectorIcone5 = cms.ESSource("MCJetCorrectionService",
@@ -128,18 +127,18 @@ process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 process.outMod = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *',
         'keep *_*Maker_*_CMS2'), 
-    fileName = cms.untracked.string('ntuple_test.root')
+    fileName = cms.untracked.string('ntuple_ttbar_3.root')
 )
 
 process.JetCorrectionsExtra = cms.Sequence(process.L4EMFJetCorJetIcone5*process.MCJetCorJetIcone5)
 process.JetCorrection = cms.Sequence(process.JetCorrectionsExtra)
-process.pat = cms.Sequence(process.patLayer0*process.patLayer1)
+process.pat = cms.Sequence(process.patchPATSequence)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.generalmakers = cms.Sequence(process.l1extraParticles*process.eventMaker*process.metMaker*process.l1DigiMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
-process.p = cms.Path(process.JetCorrection*process.pat*process.cms2)
+process.p = cms.Path(process.JetCorrection*process.pat*process.cms2*process.theFilter)
 process.outpath = cms.EndPath(process.outMod)
 
