@@ -9,8 +9,8 @@ process = cms.Process("CMS2")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.load("L1Trigger.L1ExtraFromDigis.l1extraParticles_cff")
-process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
+#process.load("L1Trigger.L1ExtraFromDigis.l1extraParticles_cff")
+#process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
 
 process.GlobalTag.globaltag = "IDEAL_V9::All"
 
@@ -80,7 +80,11 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('/store/relval/CMSSW_2_1_8/RelValTTbar/GEN-SIM-DIGI-RAW-HLTDEBUG-RECO/IDEAL_V9_v1/0002/04983078-9082-DD11-BB8C-0019DB2F3F9B.root')
+    fileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0005/A2C11692-3BA1-DD11-B5E7-00304865C492.root')
+   #secondaryFileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/D4CD0886-BA9E-DD11-8B40-003048770C6C.root',
+   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/7EC5CAC6-1A9F-DD11-9811-003048770BAA.root',
+   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0032/8A31B75C-F29F-DD11-A96E-0002B3E92671.root',
+   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/0C79D330-169F-DD11-8585-003048770DBE.root')
 )
 
 process.MCJetCorrectorIcone5 = cms.ESSource("MCJetCorrectionService",
@@ -136,7 +140,7 @@ process.pat = cms.Sequence(process.patchPATSequence)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
-process.generalmakers = cms.Sequence(process.l1extraParticles*process.eventMaker*process.metMaker*process.l1DigiMaker*process.genMaker)
+process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
 process.p = cms.Path(process.JetCorrection*process.pat*process.cms2*process.theFilter)
