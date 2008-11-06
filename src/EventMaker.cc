@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.10 2008/11/06 14:12:09 kalavase Exp $
+// $Id: EventMaker.cc,v 1.11 2008/11/06 17:41:53 kalavase Exp $
 //
 //
 
@@ -189,7 +189,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
   HepMC::WeightContainer wc;
   if(hepmc_vect.size() != 0) { //found HepMC branch
-    cout << hepmc_vect.size() << endl;
     const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
      wc = genEvt->weights();
      float weight = -999.;

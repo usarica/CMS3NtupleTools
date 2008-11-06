@@ -54,7 +54,6 @@ void ElUtilities::removeElectrons(const vector<const GsfElectron*>* collection) 
         continue;
       if (((**it1).superCluster().id() == (**it2).superCluster().id()) &&
           ((**it1).superCluster().index() == (**it2).superCluster().index())) {
-	cout << __FILE__ << endl;
         float deltaEp1 = fabs((**it1).eSuperClusterOverP() - 1.);
         float deltaEp2 = fabs((**it2).eSuperClusterOverP() - 1.);
         if (deltaEp1 > deltaEp2) {
