@@ -6,6 +6,12 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("CMS2")
 
+process.configurationMetadata = cms.untracked.PSet(
+        version = cms.untracked.string('$Revision: 1.5 $'),
+        annotation = cms.untracked.string('CMS2'),
+        name = cms.untracked.string('CMS2 test configuration')
+)
+
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
@@ -72,7 +78,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -131,7 +137,10 @@ process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 process.outMod = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *',
         'keep *_*Maker_*_CMS2'), 
-    fileName = cms.untracked.string('ntuple_ttbar_3.root')
+    fileName = cms.untracked.string('ntuple_ttbar_3.root'),
+    dataset = cms.untracked.PSet(
+        dataTier = cms.untracked.string('USER')
+    )
 )
 
 process.JetCorrectionsExtra = cms.Sequence(process.L4EMFJetCorJetIcone5*process.MCJetCorJetIcone5)
