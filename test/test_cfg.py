@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.5 $'),
+        version = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -52,6 +52,8 @@ process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
 
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
+
+process.load("CMS2.NtupleMaker.patMETMaker_cfi")
 
 process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
 
@@ -147,7 +149,7 @@ process.JetCorrectionsExtra = cms.Sequence(process.L4EMFJetCorJetIcone5*process.
 process.JetCorrection = cms.Sequence(process.JetCorrectionsExtra)
 process.pat = cms.Sequence(process.patchPATSequence)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
-process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker)
+process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
