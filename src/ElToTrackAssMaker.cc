@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToTrackAssMaker.cc,v 1.4 2008/10/21 16:56:53 kalavase Exp $
+// $Id: ElToTrackAssMaker.cc,v 1.5 2008/11/06 14:11:15 kalavase Exp $
 //
 //
 
@@ -101,9 +101,9 @@ void ElToTrackAssMaker::produce(Event& iEvent, const EventSetup& iSetup)
 	 pair<int,float> elCtfPair = getCTFTrackIndex(gsfTkRef,*trks_coll);
 	 
 	 els_trkidx         ->push_back(elCtfPair.first                             );
-	 els_trkshFrac      ->push_back(elCtfPair.first>0 ? elCtfPair.second : 999 );
+	 els_trkshFrac      ->push_back(elCtfPair.first>=0 ? elCtfPair.second : 999 );
 	 double dR = 999;
-	 if(elCtfPair.first > -5) 
+	 if(elCtfPair.first >=0) 
 	   dR = deltaR(gsfTkRef->eta(), gsfTkRef->phi(),
 		       trks_p4_h->at(elCtfPair.first).eta(),
 		       trks_p4_h->at(elCtfPair.first).phi());
