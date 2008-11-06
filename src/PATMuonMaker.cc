@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.1 2008/10/21 07:26:34 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.2 2008/11/06 17:42:08 kalavase Exp $
 //
 //
 
@@ -111,10 +111,10 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::IsoDeposit *hcalIsoDep = patmu_it->hcalIsoDeposit();
     
     mus_pat_trackIso    ->push_back( patmu_it->trackIso()   );
-    mus_pat_vetoDep     ->push_back( ecalIsoDep->depositWithin(ecalIsoDep->veto().dR)
-				     + hcalIsoDep->depositWithin(hcalIsoDep->veto().dR) );
-    mus_pat_ecalvetoDep ->push_back( ecalIsoDep->depositWithin(ecalIsoDep->veto().dR)   );
-    mus_pat_hcalvetoDep ->push_back( hcalIsoDep->depositWithin(hcalIsoDep->veto().dR)   );
+    mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy()
+				     + hcalIsoDep->candEnergy() );
+    mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
+    mus_pat_hcalvetoDep ->push_back( hcalIsoDep->candEnergy()   );
     mus_pat_caloIso     ->push_back( patmu_it->caloIso()    );
     mus_pat_leptonID    ->push_back( patmu_it->leptonID()   );
     mus_pat_genID       ->push_back( gen.pdgId()            );

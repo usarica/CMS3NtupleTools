@@ -14,7 +14,7 @@ Description: copy additional PAT met variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.cc,v 1.1 2008/10/31 23:14:18 kalavase Exp $
+// $Id: PATMETMaker.cc,v 1.2 2008/11/06 17:42:17 kalavase Exp $
 //
 //
 
@@ -86,9 +86,15 @@ PATMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
   // get jet collection
-  edm::Handle<pat::MET> patMETHandle;
-  iEvent.getByLabel(patMETInputTag, patMETHandle);
+  //edm::Handle<pat::MET> patMETHandle;
+  //iEvent.getByLabel(patMETInputTag, patMETHandle);
+  edm::Handle<edm::View<pat::MET> > patMETView;
+  iEvent.getByLabel(patMETInputTag, patMETView);
+  //edm::View<pat::MET> met = *patMETView;
+  const pat::MET met = (*patMETView).at(0);
   
+  
+    
   // create containers
   auto_ptr<float> met_pat_metCor(new float);   //MET with all corrections
   auto_ptr<float> met_pat_metPhiCor(new float);   //MET with all corrections
@@ -98,33 +104,32 @@ PATMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<float> met_pat_metPhiUncorJES(new float); //MET with no JES corrections
   auto_ptr<float> met_pat_metUncorMuon(new float); //MET with no muon correction
   auto_ptr<float> met_pat_metPhiUncorMuon(new float); //MET with no muon correction
-  
-  *met_pat_metCor    = patMETHandle->pt();
-  *met_pat_metPhiCor = patMETHandle->phi();
-  
-  *met_pat_metUncor    = patMETHandle->corSumEt(pat::MET::uncorrALL);
-  *met_pat_metPhiUncor = (patMETHandle->corEx(pat::MET::uncorrALL)==0 && patMETHandle->corEy(pat::MET::uncorrALL)==0) 
-    ? 0 : atan2(patMETHandle->corEy(pat::MET::uncorrALL), patMETHandle->corEx(pat::MET::uncorrALL) );
-  
-  *met_pat_metUncorJES    = patMETHandle->corSumEt(pat::MET::uncorrJES);
-  *met_pat_metPhiUncorJES = (patMETHandle->corEx(pat::MET::uncorrJES)==0 && patMETHandle->corEy(pat::MET::uncorrJES)==0) 
-    ? 0 : atan2(patMETHandle->corEy(pat::MET::uncorrJES), patMETHandle->corEx(pat::MET::uncorrJES) );
-  
-  *met_pat_metUncorMuon = patMETHandle->corSumEt(pat::MET::uncorrMUON);
-  *met_pat_metPhiUncorMuon = (patMETHandle->corEx(pat::MET::uncorrMUON)==0 && patMETHandle->corEy(pat::MET::uncorrMUON)==0) 
-    ? 0 : atan2(patMETHandle->corEy(pat::MET::uncorrMUON), patMETHandle->corEx(pat::MET::uncorrMUON) );
 
+
+
+  *met_pat_metCor    = met.pt();
+  *met_pat_metPhiCor = met.phi();
+  
+  *met_pat_metUncor    = met.uncorrectedPt();
+  *met_pat_metPhiUncor = met.uncorrectedPhi();
+  
+  *met_pat_metUncorJES    = met.uncorrectedPt(pat::MET::uncorrJES);
+  *met_pat_metPhiUncorJES = met.uncorrectedPhi(pat::MET::uncorrJES);
+  
+  *met_pat_metUncorMuon = met.uncorrectedPt(pat::MET::uncorrMUON);
+  *met_pat_metPhiUncorMuon = met.uncorrectedPhi(pat::MET::uncorrMUON);
+  
  
   
   // put containers into event
-  iEvent.put(met_pat_metCor,"met_pat_metCor");
-  iEvent.put(met_pat_metPhiCor,"met_pat_metPhiCor");
-  iEvent.put(met_pat_metUncor, "met_pat_metUncor");
-  iEvent.put(met_pat_metPhiUncor, "met_pat_metPhiUncor");
-  iEvent.put(met_pat_metUncorJES,"met_pat_metUncorJES");
-  iEvent.put(met_pat_metPhiUncorJES,"met_pat_metPhiUncorJES");
-  iEvent.put(met_pat_metUncorMuon,"met_pat_metUncorMuon");
-  iEvent.put(met_pat_metPhiUncorMuon,"met_pat_metPhiUncorMuon");
+  iEvent.put(met_pat_metCor,"metpatmetCor");
+  iEvent.put(met_pat_metPhiCor,"metpatmetPhiCor");
+  iEvent.put(met_pat_metUncor, "metpatmetUncor");
+  iEvent.put(met_pat_metPhiUncor, "metpatmetPhiUncor");
+  iEvent.put(met_pat_metUncorJES,"metpatmetUncorJES");
+  iEvent.put(met_pat_metPhiUncorJES,"metpatmetPhiUncorJES");
+  iEvent.put(met_pat_metUncorMuon,"metpatmetUncorMuon");
+  iEvent.put(met_pat_metPhiUncorMuon,"metpatmetPhiUncorMuon");
 
 
 }
