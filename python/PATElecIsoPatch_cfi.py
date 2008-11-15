@@ -52,10 +52,10 @@ patLayer0PatchElectronIsolations = cms.EDFilter("CandManyValueMapsSkimmerIsoDepo
 )
 
 #now we need a sequence to actually run
-#patLayer0PatchIsolSequence = cms.Sequence(eleIsoDepositEcalFromHits*eleIsoDepositHcalFromTowersDepth1*
-#                                         eleIsoDepositHcalFromTowersDepth2)
-patchIsolSequence = cms.Sequence(eleIsoDepositHcalFromTowersDepth1*
+patchIsolSequence = cms.Sequence(eleIsoDepositEcalFromHits*eleIsoDepositHcalFromTowersDepth1*
                                          eleIsoDepositHcalFromTowersDepth2)
+#patchIsolSequence = cms.Sequence(eleIsoDepositHcalFromTowersDepth1*
+#                                         eleIsoDepositHcalFromTowersDepth2)
 
 patLayer0PatchIsolSequence = cms.Sequence(patchIsolSequence*
                                          patPatchElectronIsolationMaps*
