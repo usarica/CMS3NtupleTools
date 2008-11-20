@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.6 $'),
+        version = cms.untracked.string('$Revision: 1.7 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -154,6 +154,6 @@ process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker
 process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
-process.p = cms.Path(process.JetCorrection*process.pat*process.cms2*process.theFilter)
-process.outpath = cms.EndPath(process.outMod)
+process.p = cms.Path(process.JetCorrection*process.pat*process.cms2)
+process.outpath = cms.EndPath(process.theFilter*process.outMod)
 
