@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.2 2008/11/06 17:42:08 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.3 2008/12/08 22:38:17 kalavase Exp $
 //
 //
 
@@ -116,6 +116,8 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
     mus_pat_hcalvetoDep ->push_back( hcalIsoDep->candEnergy()   );
     mus_pat_caloIso     ->push_back( patmu_it->caloIso()    );
+    mus_pat_ecalIso     ->push_back( patmu_it->ecalIso()    );
+    mus_pat_hcalIso     ->push_back( patmu_it->hcalIso()    );
     mus_pat_leptonID    ->push_back( patmu_it->leptonID()   );
     mus_pat_genID       ->push_back( gen.pdgId()            );
     mus_pat_genMotherID ->push_back( gen_mom->pdgId()       );
@@ -132,6 +134,8 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(mus_pat_ecalvetoDep,  "muspatecalvetoDep"     );
   iEvent.put(mus_pat_hcalvetoDep,  "muspathcalvetoDep"     );
   iEvent.put(mus_pat_caloIso,      "muspatcaloIso"         );
+  iEvent.put(mus_pat_ecalIso,      "muspatecalIso"         );
+  iEvent.put(mus_pat_hcalIso,      "muspathcalIso"         );
   iEvent.put(mus_pat_leptonID,     "muspatleptonID"        );
   iEvent.put(mus_pat_genID,        "muspatgenID"           );
   iEvent.put(mus_pat_genMotherID,  "muspatgenMotherID"     );
