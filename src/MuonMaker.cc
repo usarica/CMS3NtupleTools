@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.12 2008/10/21 16:27:55 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.13 2008/12/08 22:46:54 kalavase Exp $
 //
 //
 
@@ -108,6 +108,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >	     ("muspidTM2DCompatibilityLoose").setBranchAlias("mus_pid_TM2DCompatibilityLoose");
   // tight tracker muon likelihood identification based on muon matches and calo depositions
   produces<vector<int> >	     ("muspidTM2DCompatibilityTight").setBranchAlias("mus_pid_TM2DCompatibilityTight"); 
+  //calo compatibility variable
+  produces<vector<float> >           ("muscaloCompatibility").setBranchAlias("mus_caloCompatibility");
 
   muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
@@ -168,6 +170,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int> );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int> );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight (new vector<int> );
+  auto_ptr<vector<float> >         vector_mus_caloCompatibility          (new vector<float> );
 
   // get muons
   Handle<edm::View<Muon> > muon_h;
@@ -259,6 +262,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationTight)     : -999	);
     vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityLoose)	: -999	);
     vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityTight)	: -999	);
+    vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
 
   }
      
@@ -308,10 +312,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );
   iEvent.put(vector_mus_gfit_outerPos   , "musgfitouterPos"      );
-  iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"     );
-  iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"     );
+  iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"             );
+  iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"             );
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
+  iEvent.put(vector_mus_caloCompatibility               , "muscaloCompatibility"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
