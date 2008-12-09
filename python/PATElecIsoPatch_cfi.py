@@ -54,8 +54,6 @@ patLayer0PatchElectronIsolations = cms.EDFilter("CandManyValueMapsSkimmerIsoDepo
 #now we need a sequence to actually run
 patchIsolSequence = cms.Sequence(eleIsoDepositEcalFromHits*eleIsoDepositHcalFromTowersDepth1*
                                          eleIsoDepositHcalFromTowersDepth2)
-#patchIsolSequence = cms.Sequence(eleIsoDepositHcalFromTowersDepth1*
-#                                         eleIsoDepositHcalFromTowersDepth2)
 
 patLayer0PatchIsolSequence = cms.Sequence(patchIsolSequence*
                                          patPatchElectronIsolationMaps*
@@ -95,8 +93,10 @@ allLayer1Electrons.isolation = cms.PSet(
     # source IsoDeposit
     src = cms.InputTag("patLayer0PatchElectronIsolations","eleIsoDepositEcalFromHits"),
     # parameters to compute isolation (Egamma POG defaults)
-    deltaR = cms.double(0.42),
-    vetos = cms.vstring('EcalBarrel:0.040', 'EcalBarrel:RectangularEtaPhiVeto(-0.01,0.01,-0.5,0.5)',  # Barrel (|eta| < 1.479)
+    deltaR = cms.double(0.4),
+    vetos = cms.vstring('EcalBarrel:0.045', 'EcalBarrel:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)',  # Barrel (|eta| < 1.479)
+                        'EcalBarrel:ThresholdFromTransverse(0.08)',
+                        'EcalEndcaps:ThresholdFromTransverse(0.3)',
                         'EcalEndcaps:0.070','EcalEndcaps:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)'),
     skipDefaultVeto = cms.bool(True),
     ),
@@ -105,27 +105,26 @@ allLayer1Electrons.isolation = cms.PSet(
     src = cms.InputTag("layer0ElectronIsolations","eleIsoDepositHcalFromTowers"),
     # parameters to compute isolation (Egamma POG defaults)
     deltaR = cms.double(0.4),
-    vetos = cms.vstring('0.1'),
-    skipDefaultVeto = cms.bool(True),
-    ),
-    user = cms.VPSet(
-    cms.PSet(
-    src = cms.InputTag("patLayer0PatchElectronIsolations","eleIsoDepositHcalFromTowersDepth1"),
-    # parameters to compute isolation (Egamma POG defaults)
-    deltaR = cms.double(0.4),
-    vetos = cms.vstring('0.1'),
-    skipDefaultVeto = cms.bool(True),
-    ),
-
-    cms.PSet(
-    src = cms.InputTag("patLayer0PatchElectronIsolations","eleIsoDepositHcalFromTowersDepth2"),
-    # parameters to compute isolation (Egamma POG defaults)
-    deltaR = cms.double(0.4),
-    vetos = cms.vstring(),
+    vetos = cms.vstring('0.0'),
     skipDefaultVeto = cms.bool(True),
     )
+##    user = cms.VPSet(
+##    cms.PSet(
+##    src = cms.InputTag("patLayer0PatchElectronIsolations","eleIsoDepositHcalFromTowersDepth1"),
+##    # parameters to compute isolation (Egamma POG defaults)
+##    deltaR = cms.double(0.4),
+##    vetos = cms.vstring('0.1'),
+##    skipDefaultVeto = cms.bool(True),
+##    ),
+##    cms.PSet(
+##    src = cms.InputTag("patLayer0PatchElectronIsolations","eleIsoDepositHcalFromTowersDepth2"),
+##    # parameters to compute isolation (Egamma POG defaults)
+##    deltaR = cms.double(0.4),
+##    vetos = cms.vstring(),
+##    skipDefaultVeto = cms.bool(True),
+##    )
     
-    )#end user VPSet
+##    )#end user VPSet
 )
 
 
