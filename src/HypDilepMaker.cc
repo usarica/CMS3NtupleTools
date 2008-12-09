@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.9 2008/10/21 16:39:35 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.10 2008/12/09 00:11:43 kalavase Exp $
 //
 //
 
@@ -211,7 +211,7 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   produces<vector<vector<LorentzVector> > >  ("hypotherjetspatgenPartonMotherp4"  ).setBranchAlias("hyp_other_jets_pat_genPartonMother_p4");
   
   if(usingPATJets) {
-    produces<vector<vector<int> > >           ("hypjetspatgenPartonid"           ).setBranchAlias("hyp_jets_pat_genParton_id"             );
+    produces<vector<vector<int> > >            ("hypjetspatgenPartonid"           ).setBranchAlias("hyp_jets_pat_genParton_id"             );
     produces<vector<vector<int> > >            ("hypjetspatgenPartonMotherid"     ).setBranchAlias("hyp_jets_pat_genPartonMother_id"       );
     produces<vector<vector<int> > >            ("hypjetspatpartonFlavour"         ).setBranchAlias("hyp_jets_pat_partonFlavour"            );
     produces<vector<vector<float> > >          ("hypjetspatnoCorrF"               ).setBranchAlias("hyp_jets_pat_noCorrF"                  );
@@ -222,7 +222,7 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
     produces<vector<vector<float> > >          ("hypjetspatjetCharge"             ).setBranchAlias("hyp_jets_pat_jetCharge"                );
     produces<vector<vector<int> > >            ("hypotherjetspatgenPartonid"      ).setBranchAlias("hyp_other_jets_pat_genParton_id"       );
     produces<vector<vector<int> > >            ("hypotherjetspatgenPartonMotherid").setBranchAlias("hyp_other_jets_pat_genPartonMother_id" );
-    produces<vector<vector<int> > >            ("hypotherjetspatpartonFlavour"     ).setBranchAlias("hyp_other_jets_pat_partonFlavour"      );
+    produces<vector<vector<int> > >            ("hypotherjetspatpartonFlavour"    ).setBranchAlias("hyp_other_jets_pat_partonFlavour"      );
     produces<vector<vector<float> > >          ("hypotherjetspatnoCorrF"          ).setBranchAlias("hyp_other_jets_pat_noCorrF"            );
     produces<vector<vector<float> > >          ("hypotherjetspatudsCorrF"         ).setBranchAlias("hyp_other_jets_pat_udsCorrF"           );
     produces<vector<vector<float> > >          ("hypotherjetspatgluCorrF"         ).setBranchAlias("hyp_other_jets_pat_gluCorrF"           );
@@ -231,7 +231,7 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
     produces<vector<vector<float> > >          ("hypotherjetspatjetCharge"        ).setBranchAlias("hyp_other_jets_pat_jetCharge"          );
     produces<vector<vector<LorentzVector> > >  ("hypjetspatgenPartonp4"           ).setBranchAlias("hyp_jets_pat_genParton_p4"             );
     produces<vector<vector<LorentzVector> > >  ("hypjetspatgenPartonMotherp4"     ).setBranchAlias("hyp_jets_pat_genPartonMother_p4"       );
-    produces<vector<vector<LorentzVector> > >  ("hypjetspatgenJetp4"              ).setBranchAlias("hyp_jets_pat_p4"                       );
+    produces<vector<vector<LorentzVector> > >  ("hypjetspatgenJetp4"              ).setBranchAlias("hyp_jets_pat_genJet_p4"                );
     produces<vector<vector<LorentzVector> > >  ("hypjetspatjetp4"                 ).setBranchAlias("hyp_jets_pat_jet_p4"                   );
     produces<vector<vector<LorentzVector> > >  ("hypotherjetspatgenJetp4"         ).setBranchAlias("hyp_other_jets_pat_genJet_p4"          );
     produces<vector<vector<LorentzVector> > >  ("hypotherjetspatjetp4"            ).setBranchAlias("hyp_other_jets_pat_jet_p4"             );
@@ -2485,21 +2485,33 @@ iEvent.put(hyp_other_jets_mc_gp_p4      ,"hypotherjetsmcgpp4"          );
 
 
 if(usingPATJets) {
-  iEvent.put(hyp_jets_pat_genParton_id             ,"hypjetspatgenPartonid"              );    //ok            
-  iEvent.put(hyp_jets_pat_genPartonMother_id       ,"hypjetspatgenPartonMotherid"        );    //ok      
-  iEvent.put(hyp_jets_pat_partonFlavour            ,"hypjetspatpartonFlavour"             );   //ok            
-  iEvent.put(hyp_other_jets_pat_genParton_id       ,"hypotherjetspatgenPartonid"        );     //ok      
-  iEvent.put(hyp_other_jets_pat_genPartonMother_id ,"hypotherjetspatgenPartonMotherid"  );    
-  iEvent.put(hyp_other_jets_pat_partonFlavour      ,"hypotherjetspatpartonFlavour"       );         
+  iEvent.put(hyp_jets_pat_genParton_id             ,"hypjetspatgenPartonid"               );    //ok            
+  iEvent.put(hyp_jets_pat_genPartonMother_id       ,"hypjetspatgenPartonMotherid"         );    //ok      
+  iEvent.put(hyp_jets_pat_partonFlavour            ,"hypjetspatpartonFlavour"             );   //ok  
+  iEvent.put(hyp_jets_pat_noCorrF                  ,"hypjetspatnoCorrF"                   );
+  iEvent.put(hyp_jets_pat_udsCorrF                 ,"hypjetspatudsCorrF"                  );
+  iEvent.put(hyp_jets_pat_gluCorrF                 ,"hypjetspatgluCorrF"                  );
+  iEvent.put(hyp_jets_pat_cCorrF                   ,"hypjetspatcCorrF"                    );
+  iEvent.put(hyp_jets_pat_bCorrF                   ,"hypjetspatbCorrF"                    );
+  iEvent.put(hyp_jets_pat_jetCharge                ,"hypjetspatjetCharge"                 );
+  iEvent.put(hyp_other_jets_pat_genParton_id       ,"hypotherjetspatgenPartonid"          );     //ok      
+  iEvent.put(hyp_other_jets_pat_genPartonMother_id ,"hypotherjetspatgenPartonMotherid"    );    
+  iEvent.put(hyp_other_jets_pat_partonFlavour      ,"hypotherjetspatpartonFlavour"        );      
+  iEvent.put(hyp_other_jets_pat_noCorrF            ,"hypotherjetspatnoCorrF"              );
+  iEvent.put(hyp_other_jets_pat_udsCorrF           ,"hypotherjetspatudsCorrF"             );
+  iEvent.put(hyp_other_jets_pat_gluCorrF           ,"hypotherjetspatgluCorrF"             );
+  iEvent.put(hyp_other_jets_pat_cCorrF             ,"hypotherjetspatcCorrF"               );
+  iEvent.put(hyp_other_jets_pat_bCorrF             ,"hypotherjetspatbCorrF"               );
+  iEvent.put(hyp_other_jets_pat_jetCharge          ,"hypotherjetspatjetCharge"            );
   
-  iEvent.put(hyp_jets_pat_genParton_p4             ,"hypjetspatgenPartonp4"              );      
-  iEvent.put(hyp_jets_pat_genPartonMother_p4       ,"hypjetspatgenPartonMotherp4"        );
-  iEvent.put(hyp_jets_pat_genJet_p4                ,"hypjetspatgenJetp4"                 );         
-  iEvent.put(hyp_jets_pat_jet_p4                   ,"hypjetspatjetp4"                    );            
-  iEvent.put(hyp_other_jets_pat_genParton_p4       ,"hypotherjetspatgenPartonp4"        );
-  iEvent.put(hyp_other_jets_pat_genPartonMother_p4 ,"hypotherjetspatgenPartonMotherp4"  );
-  iEvent.put(hyp_other_jets_pat_genJet_p4          ,"hypotherjetspatgenJetp4"           );   
-  iEvent.put(hyp_other_jets_pat_jet_p4             ,"hypotherjetspatjetp4"              );      
+  iEvent.put(hyp_jets_pat_genParton_p4             ,"hypjetspatgenPartonp4"               );      
+  iEvent.put(hyp_jets_pat_genPartonMother_p4       ,"hypjetspatgenPartonMotherp4"         );
+  iEvent.put(hyp_jets_pat_genJet_p4                ,"hypjetspatgenJetp4"                  );         
+  iEvent.put(hyp_jets_pat_jet_p4                   ,"hypjetspatjetp4"                     );            
+  iEvent.put(hyp_other_jets_pat_genParton_p4       ,"hypotherjetspatgenPartonp4"          );
+  iEvent.put(hyp_other_jets_pat_genPartonMother_p4 ,"hypotherjetspatgenPartonMotherp4"    );
+  iEvent.put(hyp_other_jets_pat_genJet_p4          ,"hypotherjetspatgenJetp4"             );   
+  iEvent.put(hyp_other_jets_pat_jet_p4             ,"hypotherjetspatjetp4"                );      
  }  
 
   
