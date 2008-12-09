@@ -103,7 +103,8 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
 
 //----------------------------------------------------------------------------------------------
 const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, 
-							const std::vector<reco::GenParticle>* genParticles, int& genidx) {
+							const std::vector<reco::GenParticle>* genParticles, 
+							int& genidx, int status) {
 
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
@@ -112,7 +113,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != 3 ) {
+    if ( itPart->status() != status ) continue;
 
       const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
@@ -122,7 +123,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
 	output = &(*itPart);
 	genidx = i;
       }
-    }
+    
   }
 
   return output;
@@ -131,7 +132,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
 //----------------------------------------------------------------------------------------------
 const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track, 
 							const std::vector<reco::GenParticle>* genParticles, 
-							int& genidx) {
+							int& genidx, int status) {
 
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
@@ -141,7 +142,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
       itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != 3 ) {
+    if ( itPart->status() != status ) continue;
 
       const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
@@ -154,7 +155,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
 	output = &(*itPart);
 	genidx = i;
       }//END find minimum delta R loop
-    }//END loop over status != 3 particles
+  
   }//END loop over genParticles
 
   return output;
@@ -165,7 +166,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
 //----------------------------------------------------------------------------------------------
 const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
 							const std::vector<reco::GenParticle>* genParticles, 
-							int& genidx) {
+							int& genidx, int status) {
 
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
@@ -174,7 +175,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != 3 ) {
+    if ( itPart->status() != status ) continue;
 
       const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
@@ -185,7 +186,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
 	output = &(*itPart);
 	genidx = i;
       }//END find minimum delta R loop
-    }//END loop over status != 3 particles
+  
   }//END loop over genParticles
 
   return output;
