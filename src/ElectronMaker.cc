@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.10 2008/10/21 16:08:44 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.11 2008/12/13 00:00:57 kalavase Exp $
 //
 //
 
@@ -29,8 +29,6 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/ElectronMaker.h"
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
@@ -46,7 +44,6 @@ Implementation:
 
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 //#include "CMS2/ExternalDataFormats/interface/EcalCluster.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "Math/VectorUtil.h"
@@ -222,10 +219,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					   edm::InputTag("reducedEcalRecHitsEB"), 
 					   edm::InputTag("reducedEcalRecHitsEE"));
   
-  // get MC particle collection
-  edm::Handle<reco::GenParticleCollection> genParticlesHandle;
-  iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
-
   edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbs");
   edm::Handle<math::XYZPoint> beamSpotH;
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
@@ -309,16 +302,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     double phi_pout = el->superCluster()->seed()->position().phi()
       - el->deltaPhiSeedClusterTrackAtCalo();
 
-
-    //MC matching stuff
-    const reco::GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*el,genParticlesHandle.product());
-    int mcid = -999, mom_mcid = -999;
-    LorentzVector mc_p4(0,0,0,0);
-    if(matchedGenParticle != 0) {
-      mcid = matchedGenParticle->pdgId();
-      mc_p4 = matchedGenParticle->p4();
-      mom_mcid = MCUtilities::motherID(*matchedGenParticle)->pdgId();
-    }
       
     //for dPhiOutEcalHit
     //  for (EcalSuperClusterCollection::const_iterator i_barrel = barrelExtraShapes->begin();
