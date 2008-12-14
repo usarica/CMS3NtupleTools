@@ -13,13 +13,14 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.5 2008/10/21 16:30:48 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.6 2008/12/14 21:51:39 gutsche Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include "Math/VectorUtil.h"
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -45,7 +46,6 @@
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
-
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -78,9 +78,19 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("trkscharge"	).setBranchAlias("trks_charge"    );	// charge						
      produces<vector<float> >		("trksouterPhi"	).setBranchAlias("trks_outerPhi"  );	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("trksouterEta"	).setBranchAlias("trks_outerEta"  );	// eta angle of the outermost point in tracker		
+     produces<vector<float> >		("trksouterEt"	).setBranchAlias("trks_outerEta"  );	// eta angle of the outermost point in tracker		
+     produces<vector<float> >		("trkstkIso"	).setBranchAlias("trks_tkIso"     );	// track isolation like els_tkIso
 
      tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
      beamSpotTag = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+
+     dRConeMin_   = iConfig.getParameter<double>("trkIsolationdRConeMin");
+     dRConeMax_   = iConfig.getParameter<double>("trkIsolationdRConeMax");
+     vtxDiffZMax_ = iConfig.getParameter<double>("trkIsolationVtxDiffZMax");
+     tkVtxDMax_   = iConfig.getParameter<double>("trkIsolationTkVtxDMax");
+     ptMin_       = iConfig.getParameter<double>("trkIsolationPtMin");
+     nHits_       = iConfig.getParameter<int>("trkIsolationNHits");
+
 }
 
 void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -106,11 +116,12 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<int> >		vector_trks_charge	(new vector<int>		);        
      std::auto_ptr<vector<float> >		vector_trks_outerPhi	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_outerEta	(new vector<float>		);      
-
+     std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
 
      // get tracks
      Handle<edm::View<reco::Track> > track_h;
      iEvent.getByLabel(tracksInputTag, track_h);      // change this in the future
+     // const edm::View<reco::Track> *tracks = track_h->product();
      edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
      // get magnetic field
      edm::ESHandle<MagneticField> theMagField;
@@ -142,6 +153,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  vector_trks_etaErr       ->push_back(	i->etaError()                                       );
 	  vector_trks_phiErr       ->push_back(	i->phiError()                                       );
 	  vector_trks_charge       ->push_back(	i->charge()                                         );
+	  vector_trks_tkIso        ->push_back(	calculateTrkIsolation(track_h.product(), *i)        );
+	  
 	  
 	  GlobalPoint  tpVertex ( i->vx(), i->vy(), i->vz() );
 	  GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
@@ -202,6 +215,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_trks_charge       , "trkscharge"            );
      iEvent.put(vector_trks_outerPhi     , "trksouterPhi"          );
      iEvent.put(vector_trks_outerEta     , "trksouterEta"          );
+     iEvent.put(vector_trks_tkIso        , "trkstkIso"             );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -213,6 +227,42 @@ TrackMaker::beginJob(const edm::EventSetup&)
 // ------------ method called once each job just after ending the event loop  ------------
 void 
 TrackMaker::endJob() {
+}
+
+double 
+TrackMaker::calculateTrkIsolation(const edm::View<reco::Track> *tracks, const reco::Track &input) {
+  //
+  // calculate track isolation following electron isolation definition in ElectronMaker.cc
+  //
+  // sum up all track.pt around track if track fulfills:
+  // dR < 0.3
+  // dR > 0.01
+  // d0 < 0.1
+  // dZ < 0.5
+  // pT >= 1.0
+  // nHits > 7
+
+  double sumPt = 0;
+  edm::View<reco::Track>::const_iterator tracks_end = tracks->end();
+
+  for ( edm::View<reco::Track>::const_iterator i = tracks->begin(); 
+	i != tracks_end; 
+	++i) {
+    if ( i->dz() > tkVtxDMax_ ) continue;
+    double pt = i->pt();
+    if (  pt < ptMin_ ) continue;
+    if ( i->numberOfValidHits() <= nHits_ ) continue;
+    LorentzVector loopTrack( i->px(), i->py(), i->pz(), i->p() );
+    LorentzVector inputTrack( input.px(), input.py(), input.pz(), input.p() );
+    double dR = ROOT::Math::VectorUtil::DeltaR(loopTrack, inputTrack);
+    if (dR < dRConeMin_) continue;
+    if ( dR > dRConeMax_ ) continue;
+    double dZ = fabs(i->dz() - input.dz());
+    if ( dZ >= vtxDiffZMax_) continue;
+    sumPt += pt;
+  }
+  
+  return sumPt;
 }
 
 //define this as a plug-in

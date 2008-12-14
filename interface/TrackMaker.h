@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.4 2008/10/21 16:29:24 kalavase Exp $
+// $Id: TrackMaker.h,v 1.5 2008/12/14 21:51:39 gutsche Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -27,6 +27,7 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/TrackReco/interface/Track.h"
 
 //
 // class declaration
@@ -35,7 +36,8 @@
 class TrackMaker : public edm::EDProducer {
 public:
      explicit TrackMaker (const edm::ParameterSet&);
-
+  double calculateTrkIsolation(const edm::View<reco::Track> *tracks, const reco::Track &track);
+  
 private:
      virtual void beginJob(const edm::EventSetup&) ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
@@ -44,6 +46,14 @@ private:
       // ----------member data ---------------------------
   edm::InputTag tracksInputTag;
   edm::InputTag beamSpotTag;
+
+  float dRConeMin_;
+  float dRConeMax_;
+  float vtxDiffZMax_;
+  float tkVtxDMax_;
+  float ptMin_;
+  int   nHits_;
+
 };
 
 

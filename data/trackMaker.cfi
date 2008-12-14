@@ -3,4 +3,11 @@ module trackMaker = TrackMaker {
   # track collection
   InputTag tracksInputTag = ctfWithMaterialTracks
 
+  float trkIsolationdRConeMin = 0.01
+  float trkIsolationdRConeMax = 0.3
+  float trkIsolationVtxDiffZMax = 0.5
+  float trkIsolationTkVtxDMax = 0.1
+  float trkIsolationPtMin = 1.0
+  int32 trkIsolationNHits = 7
+
 }
