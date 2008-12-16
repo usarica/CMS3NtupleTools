@@ -13,11 +13,11 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToGenAssMaker.h,v 1.1 2008/07/02 03:32:38 jmuelmen Exp $
+// $Id: TrackToGenAssMaker.h,v 1.2 2008/12/16 03:48:22 slava77 Exp $
 //
 //
-#ifndef CMS2_MUTOELASSMAKER_H
-#define CMS2_MUTOELASSMAKER_H
+#ifndef CMS2_TrackToGenAssMaker_H
+#define CMS2_TrackToGenAssMaker_H
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"

@@ -13,11 +13,11 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.2 2008/07/25 00:25:15 fgolf Exp $
+// $Id: GenMaker.h,v 1.3 2008/12/16 03:48:22 slava77 Exp $
 //
 //
-#ifndef NTUPLEMAKER_EVENTMAKER_H
-#define NTUPLEMAKER_EVENTMAKER_H
+#ifndef NTUPLEMAKER_GenMaker_H
+#define NTUPLEMAKER_GenMaker_H
 
 // system include files
 #include <memory>
