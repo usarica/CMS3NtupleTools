@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Slava Krutelyov
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TriggerEventMaker.cc,v 1.1 2008/12/16 03:47:09 slava77 Exp $
+// $Id: TriggerEventMaker.cc,v 1.2 2008/12/16 22:19:46 slava77 Exp $
 //
 //
 
@@ -49,6 +49,29 @@ TriggerEventMaker::TriggerEventMaker(const edm::ParameterSet& iConfig) {
   // from the last filter on a path
 
   /*
+    68  HLT_L1Mu = cms.Path( HLTBeginSequence + hltL1sL1Mu + hltPreL1Mu + hltMuLevel1PathL1Filtered + HLTEndSequence )
+    Here hltL1sL1Mu combines L1s (of good quality, I suppose) with L1_SingleMu7 OR L1_DoubleMu3
+    In summer 08 MC samples this trigger is not prescaled. 
+  */
+  // HLT_L1Mu objects from hltMuLevel1PathL1Filtered
+  produces<vector<int> >            ("hltl1mutid"         ).setBranchAlias("hltl1mu_tid"          );
+  produces<vector<int> >            ("hltl1muid"          ).setBranchAlias("hltl1mu_id"          );
+  produces<vector<LorentzVector> >  ("hltl1mup4"          ).setBranchAlias("hltl1mu_p4"          );
+  
+
+  /*
+    70  HLT_L2Mu9 = cms.Path( HLTBeginSequence + hltL1sSingleMuNoIso + hltPreL2Mu9 + hltSingleMuNoIsoL1Filtered 
+         + HLTL2muonrecoSequence
+         + hltSingleMuLevel2NoIsoL2PreFiltered + HLTEndSequence )
+    Similarly to L1Mu, this is a source of L2 muons (seeded out of L1_SingleMu7)
+    Not prescaled in Summer-08 (supposedly prescaled in general)
+  */
+  // HLT_L2Mu9 objects from hltSingleMuLevel2NoIsoL2PreFiltered
+  produces<vector<int> >            ("hltl2mu9tid"         ).setBranchAlias("hltl2mu9_tid"          );
+  produces<vector<int> >            ("hltl2mu9id"          ).setBranchAlias("hltl2mu9_id"          );
+  produces<vector<LorentzVector> >  ("hltl2mu9p4"          ).setBranchAlias("hltl2mu9_p4"          );
+
+  /*
     78  HLT_Mu9 = cms.Path( HLTBeginSequence + hltL1sSingleMuNoIso + hltPreMu9 + hltSingleMuNoIsoL1Filtered 
          + HLTL2muonrecoSequence + hltSingleMuNoIsoL2PreFiltered7 + HLTL3muonrecoSequence 
          + hltSingleMuNoIsoL3PreFiltered9 + HLTEndSequence )
@@ -78,6 +101,7 @@ TriggerEventMaker::TriggerEventMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("hlt2mu3id"          ).setBranchAlias("hlt2mu3_id"          );
   produces<vector<LorentzVector> >  ("hlt2mu3p4"          ).setBranchAlias("hlt2mu3_p4"          );
 
+  //No L1 (decodable) primitives for egamma
 
   /*
     41  HLT_IsoEle18_L1R = cms.Path( HLTBeginSequence + hltL1sRelaxedSingleEgamma + hltPreIsoEle18L1R 
@@ -135,6 +159,47 @@ TriggerEventMaker::TriggerEventMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("hlt2ele10LWRid"          ).setBranchAlias("hlt2ele10LWR_id"          );
   produces<vector<LorentzVector> >  ("hlt2ele10LWRp4"          ).setBranchAlias("hlt2ele10LWR_p4"          );
   
+
+  /*
+     2  HLT_L1Jet15 = cms.Path( HLTBeginSequence + hltL1sL1Jet15 + hltPreL1Jet15 + HLTEndSequence )
+  */
+  // This is not prescaled in Summer08, supposed to be prescaled in data
+  // Can't use it as a source of trig objects in data
+  // HLT_L1Jet15 objects from hltL1sL1Jet15 (L1_SingleJet15)
+  produces<vector<int> >            ("hltl1jet15tid"          ).setBranchAlias("hltl1jet15_tid"          );
+  produces<vector<int> >            ("hltl1jet15id"          ).setBranchAlias("hltl1jet15_id"          );
+  produces<vector<LorentzVector> >  ("hltl1jet15p4"          ).setBranchAlias("hltl1jet15_p4"          );
+  
+  /*
+     3  HLT_Jet30 = cms.Path( HLTBeginSequence + hltL1sJet30 + hltPreJet30 + HLTRecoJetMETSequence + hlt1jet30 + HLTEndSequence )
+  */
+  // This is not prescaled in Summer08, supposed to be prescaled in data
+  // Can't use it as a source of trig objects in data
+  // HLT_Jet30 objects from hlt1jet30
+  produces<vector<int> >            ("hltjet30tid"          ).setBranchAlias("hltjet30_tid"          );
+  produces<vector<int> >            ("hltjet30id"          ).setBranchAlias("hltjet30_id"          );
+  produces<vector<LorentzVector> >  ("hltjet30p4"          ).setBranchAlias("hltjet30_p4"          );
+
+  /*
+    23  HLT_L1MET20 = cms.Path( HLTBeginSequence + hltL1sL1MET20 + hltPreL1MET20 + HLTEndSequence )
+  */
+  // This is not prescaled in Summer08, supposed to be prescaled in data
+  // Can't use it as a source of trig objects in data
+  // HLT_L1MET20 objects from hltL1sL1MET20 (L1_ETM20)
+  produces<vector<int> >            ("hltl1met20tid"          ).setBranchAlias("hltl1met20_tid"          );
+  produces<vector<int> >            ("hltl1met20id"          ).setBranchAlias("hltl1met20_id"          );
+  produces<vector<LorentzVector> >  ("hltl1met20p4"          ).setBranchAlias("hltl1met20_p4"          );
+
+  /*
+    24  HLT_MET25 = cms.Path( HLTBeginSequence + hltL1sMET25 + hltPreMET25 + HLTRecoJetMETSequence + hlt1MET25 + HLTEndSequence )
+  */
+  // This is not prescaled in Summer08, supposed to be prescaled in data
+  // Can't use it as a source of trig objects in data
+  // HLT_MET25 objects from hlt1MET25
+  produces<vector<int> >            ("hltmet25tid"          ).setBranchAlias("hltmet25_tid"          );
+  produces<vector<int> >            ("hltmet25id"          ).setBranchAlias("hltmet25_id"          );
+  produces<vector<LorentzVector> >  ("hltmet25p4"          ).setBranchAlias("hltmet25_p4"          );
+
 }
 
 
@@ -151,6 +216,14 @@ void TriggerEventMaker::endJob() {
 void TriggerEventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
 
+  // HLT_L1Mu objects from hltMuLevel1PathL1Filtered
+  auto_ptr<vector<int> >            hltl1mu_tid         (new vector<int>             );
+  auto_ptr<vector<int> >            hltl1mu_id         (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltl1mu_p4         (new vector<LorentzVector>   );
+  // HLT_L2Mu9 objects from hltSingleMuLevel2NoIsoL2PreFiltered
+  auto_ptr<vector<int> >            hltl2mu9_tid         (new vector<int>             );
+  auto_ptr<vector<int> >            hltl2mu9_id         (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltl2mu9_p4         (new vector<LorentzVector>   );
   // HLT_Mu9 objects from hltSingleMuNoIsoL3PreFiltered9
   auto_ptr<vector<int> >            hltmu9_tid         (new vector<int>             );
   auto_ptr<vector<int> >            hltmu9_id         (new vector<int>             );
@@ -175,6 +248,22 @@ void TriggerEventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<int> >            hlt2ele10LWR_tid   (new vector<int>             );
   auto_ptr<vector<int> >            hlt2ele10LWR_id   (new vector<int>             );
   auto_ptr<vector<LorentzVector> >  hlt2ele10LWR_p4   (new vector<LorentzVector>   );
+  // HLT_L1Jet15 objects from hltL1sL1Jet15 (L1_SingleJet15)
+  auto_ptr<vector<int> >            hltl1jet15_tid   (new vector<int>             );
+  auto_ptr<vector<int> >            hltl1jet15_id   (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltl1jet15_p4   (new vector<LorentzVector>   );
+  // HLT_Jet30 objects from hlt1jet30
+  auto_ptr<vector<int> >            hltjet30_tid   (new vector<int>             );
+  auto_ptr<vector<int> >            hltjet30_id   (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltjet30_p4   (new vector<LorentzVector>   );
+  // HLT_L1MET20 objects from hltL1sL1MET20 (L1_ETM20)
+  auto_ptr<vector<int> >            hltl1met20_tid   (new vector<int>             );
+  auto_ptr<vector<int> >            hltl1met20_id   (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltl1met20_p4   (new vector<LorentzVector>   );
+  // HLT_MET25 objects from hlt1MET25
+  auto_ptr<vector<int> >            hltmet25_tid   (new vector<int>             );
+  auto_ptr<vector<int> >            hltmet25_id   (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  hltmet25_p4   (new vector<LorentzVector>   );
 
 
    // get the trigger event
@@ -188,6 +277,14 @@ void TriggerEventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   if ( nFilters == 0 ) {
     LogDebug( "TriggerEventMaker" ) << "PATTrigProducer: The TriggerEvent of this event contains no filter information at all!";
   } else {
+    {
+      edm::InputTag fName("hltMuLevel1PathL1Filtered", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltl1mu_tid, hltl1mu_id, hltl1mu_p4);
+    }
+    {
+      edm::InputTag fName("hltSingleMuLevel2NoIsoL2PreFiltered", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltl2mu9_tid, hltl2mu9_id, hltl2mu9_p4);
+    }
     {
       edm::InputTag fName("hltSingleMuNoIsoL3PreFiltered9", "", "HLT");
       fillFilterInfo(tevCP, fName, hltmu9_tid, hltmu9_id, hltmu9_p4);
@@ -212,9 +309,31 @@ void TriggerEventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       edm::InputTag fName("hltL1NonIsoHLTNonIsoDoubleElectronLWonlyPMEt10PixelMatchFilter", "", "HLT");
       fillFilterInfo(tevCP, fName, hlt2ele10LWR_tid, hlt2ele10LWR_id, hlt2ele10LWR_p4);
     }
+    {
+      edm::InputTag fName("hltL1sL1Jet15", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltl1jet15_tid, hltl1jet15_id, hltl1jet15_p4);
+    }
+    {
+      edm::InputTag fName("hlt1jet30", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltjet30_tid, hltjet30_id, hltjet30_p4);
+    }
+    {
+      edm::InputTag fName("hltL1sL1MET20", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltl1met20_tid, hltl1met20_id, hltl1met20_p4);
+    }
+    {
+      edm::InputTag fName("hlt1MET25", "", "HLT");
+      fillFilterInfo(tevCP, fName, hltmet25_tid, hltmet25_id, hltmet25_p4);
+    }
   }
   
 
+  iEvent.put(hltl1mu_tid            ,"hltl1mutid"   );
+  iEvent.put(hltl1mu_id            ,"hltl1muid"   );
+  iEvent.put(hltl1mu_p4            ,"hltl1mup4"   );
+  iEvent.put(hltl2mu9_tid            ,"hltl2mu9tid"   );
+  iEvent.put(hltl2mu9_id            ,"hltl2mu9id"   );
+  iEvent.put(hltl2mu9_p4            ,"hltl2mu9p4"   );
   iEvent.put(hltmu9_tid            ,"hltmu9tid"   );
   iEvent.put(hltmu9_id            ,"hltmu9id"   );
   iEvent.put(hltmu9_p4            ,"hltmu9p4"   );
@@ -233,6 +352,18 @@ void TriggerEventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(hlt2ele10LWR_tid      ,"hlt2ele10LWRtid"   );
   iEvent.put(hlt2ele10LWR_id      ,"hlt2ele10LWRid"   );
   iEvent.put(hlt2ele10LWR_p4      ,"hlt2ele10LWRp4"   );
+  iEvent.put(hltl1jet15_tid      ,"hltl1jet15tid"   );
+  iEvent.put(hltl1jet15_id      ,"hltl1jet15id"   );
+  iEvent.put(hltl1jet15_p4      ,"hltl1jet15p4"   );
+  iEvent.put(hltjet30_tid      ,"hltjet30tid"   );
+  iEvent.put(hltjet30_id      ,"hltjet30id"   );
+  iEvent.put(hltjet30_p4      ,"hltjet30p4"   );
+  iEvent.put(hltl1met20_tid      ,"hltl1met20tid"   );
+  iEvent.put(hltl1met20_id      ,"hltl1met20id"   );
+  iEvent.put(hltl1met20_p4      ,"hltl1met20p4"   );
+  iEvent.put(hltmet25_tid      ,"hltmet25tid"   );
+  iEvent.put(hltmet25_id      ,"hltmet25id"   );
+  iEvent.put(hltmet25_p4      ,"hltmet25p4"   );
 
 }
 
