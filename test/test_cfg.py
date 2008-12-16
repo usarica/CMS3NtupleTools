@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.7 $'),
+        version = cms.untracked.string('$Revision: 1.8 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -80,7 +80,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(-1)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -88,7 +88,7 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0005/A2C11692-3BA1-DD11-B5E7-00304865C492.root')
+    fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
    #secondaryFileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/D4CD0886-BA9E-DD11-8B40-003048770C6C.root',
    #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/7EC5CAC6-1A9F-DD11-9811-003048770BAA.root',
    #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0032/8A31B75C-F29F-DD11-A96E-0002B3E92671.root',
@@ -139,11 +139,13 @@ process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 process.outMod = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *',
         'keep *_*Maker_*_CMS2'), 
-    fileName = cms.untracked.string('ntuple_ttbar_3.root'),
+    fileName = cms.untracked.string('ntuple_ttbar_nofilter.root'),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('USER')
     )
 )
+
+process.triggerEventMaker = cms.EDProducer("TriggerEventMaker")
 
 process.JetCorrectionsExtra = cms.Sequence(process.L4EMFJetCorJetIcone5*process.MCJetCorJetIcone5)
 process.JetCorrection = cms.Sequence(process.JetCorrectionsExtra)
@@ -151,9 +153,11 @@ process.pat = cms.Sequence(process.patchPATSequence)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
+process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
 process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
-process.cms2 = cms.Sequence(process.generalmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
+process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
 process.p = cms.Path(process.JetCorrection*process.pat*process.cms2)
-process.outpath = cms.EndPath(process.theFilter*process.outMod)
+#process.outpath = cms.EndPath(process.theFilter*process.outMod)
+process.outpath = cms.EndPath(process.outMod)
 
