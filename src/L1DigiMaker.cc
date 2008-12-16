@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.5 2008/10/23 21:58:30 kalavase Exp $
+// $Id: L1DigiMaker.cc,v 1.6 2008/12/16 22:17:15 slava77 Exp $
 //
 //
 
@@ -155,37 +155,37 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
 
   Handle<vector<l1extra::L1MuonParticle> > l1mus_h;
-  iEvent.getByLabel("l1extraParticles", l1mus_h);
+  iEvent.getByLabel("hltL1extraParticles", l1mus_h);
   const vector<l1extra::L1MuonParticle> *l1mus_coll = l1mus_h.product();
   *evt_nl1mus = l1mus_coll->size();
   
   Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
-  iEvent.getByLabel("l1extraParticles", "Isolated", l1emiso_h);
+  iEvent.getByLabel("hltL1extraParticles", "Isolated", l1emiso_h);
   const vector<l1extra::L1EmParticle> *l1emiso_coll = l1emiso_h.product();
   *evt_nl1emiso = l1emiso_coll->size();
   
   Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
-  iEvent.getByLabel("l1extraParticles", "NonIsolated", l1emnoiso_h);
+  iEvent.getByLabel("hltL1extraParticles", "NonIsolated", l1emnoiso_h);
   const vector<l1extra::L1EmParticle> *l1emnoiso_coll = l1emnoiso_h.product();
   *evt_nl1emnoiso = l1emnoiso_coll->size();
   
   Handle<vector<l1extra::L1JetParticle> > l1jetsc_h;
-  iEvent.getByLabel("l1extraParticles", "Central", l1jetsc_h);
+  iEvent.getByLabel("hltL1extraParticles", "Central", l1jetsc_h);
   const vector<l1extra::L1JetParticle> *l1jetsc_coll = l1jetsc_h.product();
   *evt_nl1jetsc = l1jetsc_coll->size();
   
   Handle<vector<l1extra::L1JetParticle> > l1jetsf_h;
-  iEvent.getByLabel("l1extraParticles", "Forward", l1jetsf_h);
+  iEvent.getByLabel("hltL1extraParticles", "Forward", l1jetsf_h);
   const vector<l1extra::L1JetParticle> *l1jetsf_coll = l1jetsf_h.product();
   *evt_nl1jetsf = l1jetsf_coll->size();
 
   Handle<vector<l1extra::L1JetParticle> > l1jetst_h;
-  iEvent.getByLabel("l1extraParticles", "Tau", l1jetst_h);
+  iEvent.getByLabel("hltL1extraParticles", "Tau", l1jetst_h);
   const vector<l1extra::L1JetParticle> *l1jetst_coll = l1jetst_h.product();
   *evt_nl1jetst = l1jetst_h.product()->size();
 
   Handle<l1extra::L1EtMissParticleCollection> l1mets_h;
-  iEvent.getByLabel("l1extraParticles", l1mets_h);
+  iEvent.getByLabel("hltL1extraParticles", l1mets_h);
   const l1extra::L1EtMissParticleCollection *l1mets = l1mets_h.product();
   
 
