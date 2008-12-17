@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.6 2008/12/14 21:51:39 gutsche Exp $
+// $Id: TrackMaker.cc,v 1.7 2008/12/17 09:27:42 kalavase Exp $
 //
 //
 
@@ -140,7 +140,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
           vector_trks_trk_p4       ->push_back(	LorentzVector( i->px(), i->py(), i->pz(), i->p() )  );
 	  vector_trks_d0           ->push_back( i->d0()                                             );
 	  vector_trks_z0           ->push_back(	i->dz()                                             );
-	  vector_trks_d0corr       ->push_back( beamSpotH.isValid() ? i->dxy(beamSpot) : i->d0()    );
+	  vector_trks_d0corr       ->push_back( beamSpotH.isValid() ? -1*(i->dxy(beamSpot)) : i->d0()    );
 	  vector_trks_z0corr       ->push_back( beamSpotH.isValid() ? i->dz(beamSpot)  : i->dz()    );
 	  vector_trks_vertexphi    ->push_back( atan2( i->vy(), i->vx() )                           );
 	  vector_trks_chi2         ->push_back(	i->chi2()                                           );
