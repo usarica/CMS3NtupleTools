@@ -13,11 +13,11 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.3 2008/12/16 03:48:22 slava77 Exp $
+// $Id: GenMaker.h,v 1.4 2008/12/17 08:35:45 kalavase Exp $
 //
 //
-#ifndef NTUPLEMAKER_GenMaker_H
-#define NTUPLEMAKER_GenMaker_H
+#ifndef NTUPLEMAKER_GENMAKER_H
+#define NTUPLEMAKER_GENMAKER_H
 
 // system include files
 #include <memory>
