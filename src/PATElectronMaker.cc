@@ -7,14 +7,14 @@
 
 Description: copy additional PAT jet variables in simple data structures into the EDM event tree
 
- Implementation:
-     - take PAT jets
-     - extract and fill variables
+Implementation:
+- take PAT jets
+- extract and fill variables
 */
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.2 2008/10/24 00:35:05 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.3 2008/12/17 09:20:05 kalavase Exp $
 //
 //
 
@@ -62,16 +62,21 @@ PATElectronMaker::PATElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>          >   ("elspatcaloIso"             ).setBranchAlias("els_pat_caloIso"          );
   produces<vector<float>          >   ("elspatecalIso"             ).setBranchAlias("els_pat_ecalIso"          );
   produces<vector<float>          >   ("elspathcalIso"             ).setBranchAlias("els_pat_hcalIso"          );
-  // produces<vector<float>          >   ("elspatleptonID"            ).setBranchAlias("els_pat_leptonID"       );
-//   produces<vector<float>          >   ("elspatrobustId"            ).setBranchAlias("els_pat_robustId" );
-//   produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId" );
-//   produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId" );
   produces<vector<float>          >   ("elspatrobustLooseId"       ).setBranchAlias("els_pat_robustLooseId"    );
   produces<vector<float>          >   ("elspatrobustTightId"       ).setBranchAlias("els_pat_robustTightId"    );
   produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId"          );
   produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId"          );
+  produces<vector<float>          >   ("elspatrobustHighEnergy"    ).setBranchAlias("els_pat_robustHighEnergy" );
   produces<vector<LorentzVector>  >   ("elspatgenP4"               ).setBranchAlias("els_pat_genP4"            );
   produces<vector<LorentzVector>  >   ("elspatgenMotherP4"         ).setBranchAlias("els_pat_genMotherP4"      );
+  produces<vector<float>          >   ("elspatsigmaEtaEta"         ).setBranchAlias("els_pat_sigmaEtaEta"      );
+  produces<vector<float>          >   ("elspatsigmaIEtaIEta"       ).setBranchAlias("els_pat_sigmaIEtaIEta"    );
+  produces<vector<float>          >   ("elspatscE1x5"              ).setBranchAlias("els_pat_scE1x5"           );
+  produces<vector<float>          >   ("elspatscE2x5Max"           ).setBranchAlias("els_pat_scE2x5Max"        );
+  produces<vector<float>          >   ("elspatscE5x5"              ).setBranchAlias("els_pat_scE5x5"           );
+
+  
+  
   
 
   // parameters from configuration
@@ -100,11 +105,17 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<float>          >   els_pat_hcalIso          (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_robustLooseId    (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_robustTightId    (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_robustHighEnergy (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_looseId          (new vector<float>             );
   auto_ptr<vector<float>          >   els_pat_tightId          (new vector<float>             );
   auto_ptr<vector<LorentzVector>  >   els_pat_genP4            (new vector<LorentzVector>     );
   auto_ptr<vector<LorentzVector>  >   els_pat_genMotherP4      (new vector<LorentzVector>     );
-
+  auto_ptr<vector<float>          >   els_pat_sigmaEtaEta      (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_sigmaIEtaIEta    (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_scE1x5           (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_scE2x5Max        (new vector<float>             );
+  auto_ptr<vector<float>          >   els_pat_scE5x5           (new vector<float>             );
+ 
   // loop over top electrons and fill containers
   for ( std::vector<pat::Electron>::const_iterator patel_it = patElectronHandle->begin();
 	patel_it != patElectronHandle->end();
@@ -121,12 +132,19 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     els_pat_caloIso           ->push_back( patel_it->caloIso()             );
     els_pat_ecalIso           ->push_back( patel_it->ecalIso()             );
     els_pat_hcalIso           ->push_back( patel_it->hcalIso()             );
-    els_pat_robustLooseId     ->push_back( patel_it->leptonID("eidRobustLoose")    );
-    els_pat_robustTightId     ->push_back( patel_it->leptonID("eidRobustTight")    );
-    els_pat_looseId           ->push_back( patel_it->leptonID("eidLoose")    );
-    els_pat_tightId           ->push_back( patel_it->leptonID("eidTight")    );
+    els_pat_robustLooseId     ->push_back( patel_it->electronID("eidRobustLoose")    );
+    els_pat_robustTightId     ->push_back( patel_it->electronID("eidRobustTight")    );
+    els_pat_looseId           ->push_back( patel_it->electronID("eidLoose")    );
+    els_pat_tightId           ->push_back( patel_it->electronID("eidTight")    );
+    els_pat_robustHighEnergy  ->push_back( patel_it->electronID("eidRobustHighEnergy") );
     els_pat_genP4             ->push_back( gen.p4()                        );
     els_pat_genMotherP4       ->push_back( gen_mom->p4()                   );
+    els_pat_sigmaEtaEta       ->push_back( patel_it->scSigmaEtaEta()       );
+    els_pat_sigmaIEtaIEta     ->push_back( patel_it->scSigmaIEtaIEta()     );
+    els_pat_scE1x5            ->push_back( patel_it->scE1x5()              );
+    els_pat_scE2x5Max         ->push_back( patel_it->scE2x5Max()           );
+    els_pat_scE5x5            ->push_back( patel_it->scE5x5()              );
+    
     
   }
 
@@ -144,6 +162,12 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.put(els_pat_tightId,           "elspattightId"              );
   iEvent.put(els_pat_genP4,             "elspatgenP4"                );
   iEvent.put(els_pat_genMotherP4,       "elspatgenMotherP4"          );
+  iEvent.put(els_pat_sigmaEtaEta,       "elspatsigmaEtaEta"          );
+  iEvent.put(els_pat_sigmaIEtaIEta,     "elspatsigmaIEtaIEta"        );
+  iEvent.put(els_pat_scE1x5,            "elspatscE1x5"               );
+  iEvent.put(els_pat_scE2x5Max,         "elspatscE2x5Max"            );
+  iEvent.put(els_pat_scE5x5,            "elspatscE5x5"               );
+  
 }
 
 // ------------ method called once each job just before starting event loop  ------------
