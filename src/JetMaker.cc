@@ -14,7 +14,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.8 2008/10/23 21:57:09 kalavase Exp $
+// $Id: JetMaker.cc,v 1.9 2008/12/17 08:43:10 kalavase Exp $
 //
 //
 
@@ -60,13 +60,11 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<LorentzVector> >	("jetsp4").setBranchAlias("jets_p4"); // p4 of the jet
   produces<std::vector<float> >	        ("jetsemFrac").setBranchAlias("jets_emFrac"); // electromagnetic energy fraction
   produces<std::vector<float> >	        ("jetschFrac").setBranchAlias("jets_chFrac"); // charged track energy fraction 
- produces<std::vector<float> >	        ("jetscor").setBranchAlias("jets_cor"); // energy scale correction
-produces<std::vector<float> >	        ("jetsEMFcor").setBranchAlias("jets_EMFcor"); // energy scale corrections including electromagnetic fraction of jet
+  produces<std::vector<float> >	        ("jetscor").setBranchAlias("jets_cor"); // energy scale correction
+  produces<std::vector<float> >	        ("jetsEMFcor").setBranchAlias("jets_EMFcor"); // energy scale corrections including electromagnetic fraction of jet
 
   // parameters from configuration
   jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
-  genJetsInputTag = iConfig.getParameter<edm::InputTag>("genJetsInputTag");
-  genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag");
   mcJetCorrectionInputTag = iConfig.getParameter<edm::InputTag>("mcJetCorrectionInputTag");
   emfJetCorrectionInputTag = iConfig.getParameter<edm::InputTag>("emfJetCorrectionInputTag");
 
@@ -91,14 +89,6 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // get jet collection
   edm::Handle<edm::View<reco::Jet> > jetsHandle;
   iEvent.getByLabel(jetsInputTag, jetsHandle);
-
-  // get generator jet collection
-  edm::Handle<reco::GenJetCollection> genJetsHandle;
-  iEvent.getByLabel(genJetsInputTag, genJetsHandle);
-
-  // get MC particle collection
-  edm::Handle<reco::GenParticleCollection> genParticlesHandle;
-  iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
   //get the MC corrected Jets
   edm::Handle<edm::View<reco::CaloJet> > mccorJetsHandle;
@@ -163,8 +153,8 @@ JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       
       LorentzVector injetP4 = jet->p4();
       if (injetP4.e() < 0) injetP4 *= -1;
-//       double injet_eta = jet->eta();
-//       double injet_phi = jet->phi();
+      //double injet_eta = jet->eta();
+      //double injet_phi = jet->phi();
       double injet_et = jet->et();
 
       LorentzVector corJetP4 = jetsCorIt->p4();
