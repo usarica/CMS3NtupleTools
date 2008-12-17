@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.11 2008/12/13 00:00:57 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.12 2008/12/17 08:06:30 kalavase Exp $
 //
 //
 
@@ -29,6 +29,8 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/ElectronMaker.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
@@ -44,11 +46,15 @@ Implementation:
 
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 //#include "CMS2/ExternalDataFormats/interface/EcalCluster.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
 #include "Math/VectorUtil.h"
 
 #include "CMS2/NtupleMaker/interface/ElUtilities.h"
+#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -207,8 +213,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   //Get required collections ->have to be made configurable, hard wired for now
-  vector<const GsfElectron*> electron_coll = ElUtilities::getElectrons(iEvent, electronsInputTag);
-  ElUtilities::removeElectrons(&electron_coll);
+  //vector<const GsfElectron*> electron_coll = ElUtilities::getElectrons(iEvent, electronsInputTag);
+  //ElUtilities::removeElectrons(&electron_coll);
+
+
+  Handle<View<pat::Electron> > els_h;
+  iEvent.getByLabel(electronsInputTag, els_h);
+  //const View<pat::Electron> *electron_coll = els_h.product();
 
   Handle<View<Track> > tk_h;
   iEvent.getByLabel(tracksInputTag, tk_h);
@@ -219,44 +230,50 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					   edm::InputTag("reducedEcalRecHitsEB"), 
 					   edm::InputTag("reducedEcalRecHitsEE"));
   
+  // get MC particle collection
+  edm::Handle<reco::GenParticleCollection> genParticlesHandle;
+  iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
+
   edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbs");
   edm::Handle<math::XYZPoint> beamSpotH;
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? *(beamSpotH.product()) : Point(0,0,0);
 
   //fill number of electrons variable
-  *evt_nels = electron_coll.size();
+  *evt_nels = els_h->size();
   
   //loop over electron collection
-  for(vector<const GsfElectron*>::const_iterator el_it = electron_coll.begin();
-      el_it != electron_coll.end(); el_it++) {
+  for(View<pat::Electron>::const_iterator el = els_h->begin();
+      el != els_h->end(); el++) {
 
-    const GsfElectron *el = *el_it;
-    const reco::Track *el_track = (const reco::Track*)(*el_it)->gsfTrack().get();
+    const reco::Track *el_track = el->gsfTrack().get();
+    const reco::GsfElectron *gsfEl = dynamic_cast<const GsfElectron*>(el->originalObject());
 
     //get Cluster info
     //const EcalSuperClusterCollection *barrelExtraShapes, *endcapExtraShapes;
     float esc, e3x3, e5x5, see, spp;
-    const reco::BasicCluster& clRef= *(*el_it)->superCluster()->seed();
+    const reco::BasicCluster& clRef= *(el->superCluster()->seed());
     esc = clusterTools_->eMax(clRef);
     e3x3 = clusterTools_->e3x3(clRef);
     e5x5 = clusterTools_->e5x5(clRef);
     const std::vector<float>& covs = clusterTools_->covariances(clRef);
     spp = sqrt(covs[2]);
     see = sqrt(covs[0]);
-    
+	 
     /* fill Electron Id array
        robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
        oldlooseId = 4, oldtightId = 5, simpleIdPlus = 6
     */
-    int id[7];
+    int id[7] = {0};
+    
+    //commented out for PAT tuple - clusterTools can't be made 
     for(int i=0; i<7; ++i) {
-      if (identify(el, i))
-        id[i] = 1;
+      if (identify(gsfEl, i))
+	id[i] = 1;
       else
-        id[i] = 0;
+	id[i] = 0;
     }
-
+    
     //stuff for track pterr
     float pt = el_track->pt();
     float p = el_track->p();
@@ -269,7 +286,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //variables to get fbrem
     float pin  = el->trackMomentumAtVtx().R();
     float pout = el->trackMomentumOut().R();
-
+    
     
     //electron track p4
     LorentzVector trk_p4( el_track->px(), el_track->py(), 
@@ -287,7 +304,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     p4Out.SetXYZT(  p3Out.x(), p3Out.y(), p3Out.z(), sqrt(mass*mass+p3Out.R()*p3Out.R()));
 
     
-    float tkIso = trackRelIsolation(el->momentum(), el->vertex(), track_coll,
+    float tkIso = trackRelIsolation(el->momentum(), el->vertex(), beamSpot,
+				    track_coll,
 				    0.3,     //! dR < 0.3
 				    0.01,    //! dR > 0.01
 				    0.1,     //! |d0_tk| < 0.1 cm
@@ -295,14 +313,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				    0.5,     //! |z0_el - z0_track| < 0.5
 				    1.0,     //! min pt
 				    7);      //! min nHits
-
+    
     //variables need to fill dPhiInPhiOut
     double phi_pin = el->caloPosition().phi() -
       el->deltaPhiSuperClusterTrackAtVtx();
     double phi_pout = el->superCluster()->seed()->position().phi()
       - el->deltaPhiSeedClusterTrackAtCalo();
+    
 
-      
     //for dPhiOutEcalHit
     //  for (EcalSuperClusterCollection::const_iterator i_barrel = barrelExtraShapes->begin();
     // 	 i_barrel != barrelExtraShapes->end(); ++i_barrel) {
@@ -329,10 +347,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_validHits             ->push_back( el_track->numberOfValidHits()                   );
     els_lostHits              ->push_back( el_track->numberOfLostHits()                    );
     els_charge                ->push_back( el->charge()                                    );
-    els_nSeed                 ->push_back( el->numberOfClusters() - 1                      );                             
-    els_class                 ->push_back( el->classification()                            );
-    els_category              ->push_back( classify(el)                                    );
-    els_categoryold           ->push_back( classify_old(el)                                );
+    els_nSeed                 ->push_back( el->numberOfClusters() - 1                      );      
+    els_class                 ->push_back( el->classification()                            ); 
+    els_category              ->push_back( classify(gsfEl)                                    );
+    els_categoryold           ->push_back( classify_old(gsfEl)                                );
     els_robustId              ->push_back( id[0]                                           );
     els_looseId               ->push_back( id[1]                                           );
     els_tightId               ->push_back( id[2]                                           );
@@ -342,7 +360,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_simpleIdPlus          ->push_back( id[6]                                           );
     els_d0                    ->push_back( el_track->d0()                                  );
     els_z0                    ->push_back( el_track->dz()                                  );
-    els_d0corr                ->push_back( el_track->dxy(beamSpot)                         );
+    els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))                      );
     els_z0corr                ->push_back( el_track->dz(beamSpot)                          );
     els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )         );
     els_chi2                  ->push_back( el_track->chi2()                                );
@@ -358,7 +376,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                        );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                      );
     els_fBrem                 ->push_back( (pin-pout)/pin                                  );
-    els_dEtaIn                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()            );
     els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()            );
     els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()            );
     els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()            );
@@ -756,6 +773,7 @@ int ElectronMaker::classify(const reco::GsfElectron* electron) {
 //---------------------------------------------------------------------------
 double ElectronMaker::trackRelIsolation(const math::XYZVector momentum,
 					const math::XYZPoint vertex,
+					const Point beamSpot,
 					const  edm::View<reco::Track>* tracks,
 					double dRConeMax, double dRConeMin,
 					double tkVtxDMax,
@@ -775,12 +793,12 @@ double ElectronMaker::trackRelIsolation(const math::XYZVector momentum,
     //exclude tks in veto cone (set it to small number to
     //exclude this track
     double dZ = fabs(vertex.z() - iTk->vz());
-    double d0 = sqrt(iTk->vertex().perp2());
+    double d0corr = fabs(iTk->dxy(beamSpot));
     double dD0 = sqrt((iTk->vertex() - vertex).perp2());
     if (dR < dRConeMin) continue;
     if ( dR < dRConeMax
 	 && dZ < vtxDiffZMax
-	 && d0 < tkVtxDMax
+	 && d0corr < tkVtxDMax
 	 && dD0 < vtxDiffDMax
 	 && iTk->pt() >= ptMin
 	 && iTk->found() > nHits){
@@ -792,6 +810,7 @@ double ElectronMaker::trackRelIsolation(const math::XYZVector momentum,
   return isoResult;
 
 }
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronMaker);
