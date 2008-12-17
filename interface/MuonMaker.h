@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.6 2008/10/21 16:19:27 kalavase Exp $
+// $Id: MuonMaker.h,v 1.7 2008/12/17 08:04:01 kalavase Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -47,6 +47,7 @@ private:
      virtual void endJob() ;
   double trackRelIsolation(const math::XYZVector momentum,
                            const math::XYZPoint vertex,
+			   const math::XYZPoint beamSpot,
                            const edm::View<reco::Track>* tracks = 0,
                            double dRConeMax = 0.3, double dRConeMin = 0.01,
                            double tkVtxDMax = 0.1,

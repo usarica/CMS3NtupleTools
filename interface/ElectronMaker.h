@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.4 2008/10/21 16:09:07 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.5 2008/12/17 08:03:39 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -63,12 +63,13 @@ private:
   int classify_old(const reco::GsfElectron*);
   double trackRelIsolation(const math::XYZVector momentum,
 			   const math::XYZPoint vertex,
+			   const math::XYZPoint beamSpot,
 			   const edm::View<reco::Track>* tracks = 0,
 			   double dRConeMax = 0.3, double dRConeMin = 0.01,
 			   double tkVtxDMax = 0.1,
 			   double vtxDiffDMax = 999.9, double vtxDiffZMax = 0.5,
 			   double ptMin = 1.0, unsigned int nHits = 7);
-
+ 
    edm::InputTag electronsInputTag;
    edm::InputTag tracksInputTag;
    edm::InputTag genParticlesInputTag;
