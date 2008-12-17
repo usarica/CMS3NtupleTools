@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.1 2008/10/21 07:26:20 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.2 2008/12/17 09:25:06 kalavase Exp $
 //
 //
 
@@ -44,6 +44,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 
@@ -73,6 +74,7 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<LorentzVector> > ("jetspatgenPartonMotherp4").setBranchAlias("jets_pat_genPartonMother_p4"); // PAT gen parton mother p4
   produces<std::vector<LorentzVector> > ("jetspatgenJetp4").setBranchAlias("jets_pat_genJet_p4"); // PAT gen jet p4
   produces<std::vector<LorentzVector> > ("jetspatjetp4").setBranchAlias("jets_pat_jet_p4"); // PAT jet p4
+  produces<std::vector<LorentzVector> > ("jetspatjetuncorp4").setBranchAlias("jets_pat_jet_uncorp4"); // PAT jet p4
 
   // parameters from configuration
   patJetsInputTag = iConfig.getParameter<edm::InputTag>("patJetsInputTag");
@@ -95,6 +97,8 @@ void
 PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
+  using namespace std;
+
   // get jet collection
   edm::Handle<std::vector<pat::Jet> > patJetsHandle;
   iEvent.getByLabel(patJetsInputTag, patJetsHandle);
@@ -116,6 +120,7 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_genPartonMother_p4(new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_genJet_p4(new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_jet_p4(new std::vector<LorentzVector>);
+  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_jet_uncorp4(new std::vector<LorentzVector>);
 
   // loop over jets and fill containers
   std::vector<pat::Jet>::const_iterator patJetsEnd = patJetsHandle->end(); 
@@ -133,21 +138,40 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_jets_pat_partonFlavour->push_back(patJet->partonFlavour());
     vector_jets_pat_flag->push_back(patJet->status());
 
-    vector_jets_pat_noCorrF->push_back(patJet->correctionFactor(pat::Jet::NoCorrection));
-    vector_jets_pat_udsCorrF->push_back(patJet->correctionFactor(pat::Jet::udsCorrection));
-    vector_jets_pat_gluCorrF->push_back(patJet->correctionFactor(pat::Jet::gCorrection));
-    vector_jets_pat_cCorrF->push_back(patJet->correctionFactor(pat::Jet::cCorrection));
-    vector_jets_pat_bCorrF->push_back(patJet->correctionFactor(pat::Jet::bCorrection));
+    
+    float jetCorF  = patJet->p4().pt()/patJet->originalObject()->p4().pt(); 
+    float udsCorrF = -999.;
+    float gluCorrF = -999.;
+    float cCorrF   = -999.;
+    float bCorrF   = -999.;
+    if (patJet->hasJetCorrFactors()) {
+      const pat::JetCorrFactors cor = patJet->jetCorrFactors();
+      
+      if(cor.hasCorrection(pat::JetCorrFactors::L7uds) )
+	udsCorrF  = cor.correction(pat::JetCorrFactors::L7uds);
+      if(cor.hasCorrection(pat::JetCorrFactors::L7g) )
+	 gluCorrF = cor.correction(pat::JetCorrFactors::L7g);
+      if(cor.hasCorrection(pat::JetCorrFactors::L7c) )
+	cCorrF    = cor.correction(pat::JetCorrFactors::L7c);
+      if(cor.hasCorrection(pat::JetCorrFactors::L7b) )
+	bCorrF    = cor.correction(pat::JetCorrFactors::L7b);
+    }
+       
+    vector_jets_pat_noCorrF->push_back(1/jetCorF); 
+    vector_jets_pat_udsCorrF->push_back(udsCorrF);
+    vector_jets_pat_gluCorrF->push_back(gluCorrF);
+    vector_jets_pat_cCorrF->push_back(cCorrF);
+    vector_jets_pat_bCorrF->push_back(bCorrF);
     vector_jets_pat_jetCharge->push_back(patJet->jetCharge());
 
+    
     vector_jets_pat_genParton_p4->push_back(genParton.p4());
     vector_jets_pat_genPartonMother_p4->push_back(mother ? mother->p4() : LorentzVector(0,0,0,0) );
     LorentzVector genJetP4 = patJet->genJet() ? patJet->genJet()->p4() : LorentzVector(0, 0, 0, 0);
     vector_jets_pat_genJet_p4->push_back(genJetP4);
     vector_jets_pat_jet_p4->push_back(patJet->p4());
-  }
-
-  // put containers into event
+    vector_jets_pat_jet_uncorp4->push_back(patJet->originalObject()->p4());
+}
   iEvent.put(vector_jets_pat_genParton_id, "jetspatgenPartonid");
   iEvent.put(vector_jets_pat_genPartonMother_id, "jetspatgenPartonMotherid");
   iEvent.put(vector_jets_pat_partonFlavour, "jetspatpartonFlavour");
@@ -163,6 +187,8 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_jets_pat_genPartonMother_p4, "jetspatgenPartonMotherp4");
   iEvent.put(vector_jets_pat_genJet_p4, "jetspatgenJetp4");
   iEvent.put(vector_jets_pat_jet_p4, "jetspatjetp4");
+  iEvent.put(vector_jets_pat_jet_uncorp4, "jetspatjetuncorp4");
+
 }
 
 // ------------ method called once each job just before starting event loop  ------------
