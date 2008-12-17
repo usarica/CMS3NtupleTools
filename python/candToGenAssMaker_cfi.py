@@ -1,10 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 candToGenAssMaker = cms.EDFilter("CandToGenAssMaker",
-    #GenJets Input Tag (RECO)
-    #InputTag genJetsInputTag =  midPointCone5GenJets
-    #GenJets Input Tag (AOD)
-    genJetsInputTag = cms.InputTag("iterativeCone5GenJets"),
+    #GenJets Input Tag 
+    genJetsInputTag = cms.InputTag("sisCone5GenJets"),
     #electrons InputTag
     electronsInputTag = cms.InputTag("electronMaker"),
     #jets Input Tag
@@ -14,7 +12,10 @@ candToGenAssMaker = cms.EDFilter("CandToGenAssMaker",
     # MC particles
     genParticlesInputTag = cms.InputTag("genParticles"),
     #jets Input Tag
-    tracksInputTag = cms.InputTag("trackMaker")
+    tracksInputTag = cms.InputTag("trackMaker"),
+    #PIDs of particles to not match to
+    #12,14,16->nus, 18->4th gen nu, 1000022->LSP                             
+    vPIDsToExclude = cms.untracked.vint32(12,14,16,18,1000022)
 )
 
 
