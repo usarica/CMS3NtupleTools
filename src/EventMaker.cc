@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.11 2008/11/06 17:41:53 kalavase Exp $
+// $Id: EventMaker.cc,v 1.12 2008/12/17 08:33:32 kalavase Exp $
 //
 //
 
@@ -29,6 +29,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/TriggerNames.h"
 #include "CMS2/NtupleMaker/interface/EventMaker.h"
 
 
@@ -46,8 +47,11 @@ Implementation:
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 
+#include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
+
 
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -81,6 +85,9 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
   produces<float>  ("evtkfactor"           ).setBranchAlias("evt_kfactor"              );
+  produces<vector<char> > ("evtL1trigNames"   ).setBranchAlias("evt_L1_trigNames"      );    
+  produces<vector<char> > ("evtHLTtrigNames"  ).setBranchAlias("evt_HLT_trigNames"     );
+  
   
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
@@ -95,13 +102,12 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 EventMaker::~EventMaker() {}
 
 void  EventMaker::beginJob(const edm::EventSetup&) {
-
-
+      
 }
 
 void EventMaker::endJob() {
+  
 }
-
 
 // ------------ method called to produce the data  ------------
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -125,7 +131,9 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>    evt_xsec_incl         (new float);
   auto_ptr<float>    evt_xsec_excl         (new float);
   auto_ptr<float>    evt_kfactor           (new float);
-    
+  auto_ptr<vector<char> >      evt_HLT_trigNames        (new vector<char>);
+  auto_ptr<vector<char> >      evt_L1_trigNames         (new vector<char>);    
+  
   *evt_run   = iEvent.id().run();
   *evt_event = iEvent.id().event();
 
@@ -144,10 +152,24 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int *l12        = new int;
     int *l13        = new int;
     int *l14        = new int;
-    
-    fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, hlt6, hlt7, hlt8);
-    fillL1Info(iEvent, l11, l12, l13, l14);
+    string *hltnames = new string;
+    string *l1names  = new string;
 
+    fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, 
+		hlt6, hlt7, hlt8, hltnames);
+    vector<char> v_hlt(hltnames->begin(), hltnames->end() );
+    *evt_HLT_trigNames = v_hlt;
+ 
+    
+    edm::ESHandle<L1GtTriggerMenu> menuRcd;
+    iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
+    const L1GtTriggerMenu* menu = menuRcd.product();
+    fillL1Info(iEvent, l11, l12, l13, l14, l1names, menu);
+    vector<char> v_l1(l1names->begin(), l1names->end() );
+    *evt_L1_trigNames = v_l1;
+    
+   
+    
     *evt_HLT1 = *hlt1;
     *evt_HLT2 = *hlt2;
     *evt_HLT3 = *hlt3;
@@ -230,6 +252,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_xsec_incl        ,"evtxsecincl"        );
   iEvent.put(evt_xsec_excl        ,"evtxsecexcl"        );
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
+  iEvent.put(evt_HLT_trigNames    ,"evtHLTtrigNames"    );
+  iEvent.put(evt_L1_trigNames     ,"evtL1trigNames"     );
   
 }
 
@@ -239,10 +263,13 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 // fill HLT info
 //-----------------------------------------------------------------------
 void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int *h4,
-			     int *h5, int *h6, int *h7, int *h8) {
+			     int *h5, int *h6, int *h7, int *h8, std::string *hltnames) {
+			     
 
+  string tmpnames;  
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
+  edm::TriggerNames triggerNames(*triggerResults);
   *h1=0;
   *h2=0;
   *h3=0;
@@ -251,12 +278,21 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
   *h6=0;
   *h7=0;
   *h8=0;
-
+  
+  //trigger index, trigger string and L1 accept
+  
+  
   unsigned int ntriggers = triggerResults->size();
   if(ntriggers > 255)
     throw cms::Exception("EventMaker: Number of HLT trigger variables must be increased!");
   for (unsigned int i = 0; i < ntriggers; i++) {
     
+    if(i==0) { 
+        tmpnames = triggerNames.triggerName(i);
+     } else {
+      tmpnames = tmpnames + " " + triggerNames.triggerName(i);
+    } 
+   
     if(i<=31) {
       unsigned int bitmask = 1;
       if(triggerResults->accept(i)) {
@@ -323,18 +359,38 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
        }
 
      }
+  *hltnames = tmpnames;
   
 }
 
 //----------------------------------------------------------
 //fill L1 info
 //---------------------------------------------------------
-void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2, int* l1_3, int* l1_4) {
+void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
+			    int* l1_3, int* l1_4, string *l1names,
+			    const L1GtTriggerMenu* menu) {
   
   edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
   iEvent.getByLabel("gtDigis", gtRecord);
   //if(L1PMC.isValid()) {
   const DecisionWord dWord = gtRecord->decisionWord();
+
+  string tmpnames;
+  for(AlgorithmMap::const_iterator algo = menu->gtAlgorithmMap().begin();
+      algo != menu->gtAlgorithmMap().end(); algo++) {
+    if(algo->first != algo->second.algoName()) {
+       cout << "The name of the L1 Trigger bit in the Algorithm map is not" 
+	    << " the same as the name from the L1GtAlgorithm object."
+	    << "Something is wrong!!!!" << endl;
+    }
+    
+    if(algo==menu->gtAlgorithmMap().begin())
+      tmpnames = algo->second.algoName();
+    else 
+      tmpnames = tmpnames + " " + algo->second.algoName();
+
+  }
+	
 
    *l1_1=0;
    *l1_2=0;
