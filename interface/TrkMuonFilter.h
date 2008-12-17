@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.h,v 1.1 2008/08/19 14:23:33 spadhi Exp $
+// $Id: TrkMuonFilter.h,v 1.2 2008/12/17 11:00:48 spadhi Exp $
 //
 //
 
@@ -49,6 +49,7 @@ class TrkMuonFilter : public edm::EDProducer {
   // Functions
   bool selectmuon(const reco::Track* muon);
   bool muonisolation(reco::Muon muon);
+  bool muonID(reco::Muon muon);
   bool trackquality(const reco::Track* track);
 
   // ----------member data ---------------------------

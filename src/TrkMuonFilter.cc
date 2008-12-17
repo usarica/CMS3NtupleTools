@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.2 2008/10/21 18:30:53 kalavase Exp $
+// $Id: TrkMuonFilter.cc,v 1.3 2008/12/17 10:59:46 spadhi Exp $
 //
 
 // system include files
@@ -86,7 +86,7 @@ TrkMuonFilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (trackquality(& * track)) usedTrack = false;
     if ( muons.isValid() && subMuon) {
       for ( reco::MuonCollection::const_iterator muon = muons->begin(); muon != muons->end(); ++muon ) {
-	if ( muon->track().get() == &*track && muonisolation(* muon) && selectmuon(& * track)) {
+	if ( muon->track().get() == &*track && muonisolation(* muon) && selectmuon(& * track) && muonID(* muon)) {
 	  usedTrack = true;
 	}
       }
@@ -122,14 +122,24 @@ bool TrkMuonFilter::muonisolation(reco::Muon muon)
   const reco::TrackRef mu = muon.globalTrack();
   double pt = mu->pt();
   if ( pt/(pt+sum) < muIsoFrac) return false;
-  else if (mu->chi2()/mu->ndof() > muChi2N) return false;
   else return true;
 }
 
+bool TrkMuonFilter::muonID(reco::Muon muon)
+{
+
+  const reco::TrackRef mu = muon.globalTrack();
+  double pt = mu->pt();
+  if (mu->chi2()/mu->ndof() > muChi2N) return false;
+  else return true;
+}
+
+
 bool TrkMuonFilter::trackquality(const reco::Track* track)
 {
-  if (track->numberOfValidHits() < 7) return false;
-  else if (fabs(track->d0()) > 0.25) return false;
+  if (track->numberOfValidHits() < 6) return false;
+  else if (fabs(track->d0()) > 0.05) return false;
+  else if ((track->chi2()/track->ndof()) > 5) return false;
   else return true;
 }
 
