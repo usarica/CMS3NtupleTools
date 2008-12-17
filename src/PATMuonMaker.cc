@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.4 2008/12/08 23:20:38 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.5 2008/12/17 09:57:12 kalavase Exp $
 //
 //
 
@@ -61,7 +61,6 @@ PATMuonMaker::PATMuonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>          >   ("muspatvetoDep"     ).setBranchAlias("mus_pat_vetoDep"     );
   produces<vector<float>          >   ("muspatecalvetoDep" ).setBranchAlias("mus_pat_ecalvetoDep" );
   produces<vector<float>          >   ("muspathcalvetoDep" ).setBranchAlias("mus_pat_hcalvetoDep" );
-  produces<vector<float>          >   ("muspatleptonID"    ).setBranchAlias("mus_pat_leptonID"    );
   produces<vector<int>            >   ("muspatgenID"       ).setBranchAlias("mus_pat_genID"       );
   produces<vector<int>            >   ("muspatgenMotherID" ).setBranchAlias("mus_pat_genMotherID" );
   produces<vector<uint32_t>       >   ("muspatflag"        ).setBranchAlias("mus_pat_flag"        );
@@ -89,7 +88,6 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float>             >   mus_pat_vetoDep     ( new vector<float>             );
   auto_ptr<vector<float>             >   mus_pat_ecalvetoDep ( new vector<float>             );
   auto_ptr<vector<float>             >   mus_pat_hcalvetoDep ( new vector<float>             );
-  auto_ptr<vector<float>             >   mus_pat_leptonID    ( new vector<float>             );
   auto_ptr<vector<int>               >   mus_pat_genID       ( new vector<int>               );
   auto_ptr<vector<int>               >   mus_pat_genMotherID ( new vector<int>               ); 
   auto_ptr<vector<uint32_t>          >   mus_pat_flag        ( new vector<uint32_t>          ); 
@@ -115,10 +113,9 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				     + hcalIsoDep->candEnergy() );
     mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
     mus_pat_hcalvetoDep ->push_back( hcalIsoDep->candEnergy()   );
-    mus_pat_caloIso     ->push_back( patmu_it->caloIso()    );
-    mus_pat_ecalIso     ->push_back( patmu_it->ecalIso()    );
-    mus_pat_hcalIso     ->push_back( patmu_it->hcalIso()    );
-    mus_pat_leptonID    ->push_back( patmu_it->leptonID()   );
+    mus_pat_ecalIso     ->push_back( patmu_it->ecalIso()        );
+    mus_pat_hcalIso     ->push_back( patmu_it->hcalIso()        );
+    mus_pat_caloIso     ->push_back( patmu_it->caloIso()        );
     mus_pat_genID       ->push_back( gen.pdgId()            );
     mus_pat_genMotherID ->push_back( gen_mom->pdgId()       );
     mus_pat_flag        ->push_back( patmu_it->status()     );
@@ -131,13 +128,12 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // put containers into event
   iEvent.put(mus_pat_trackIso,     "muspattrackIso"        );
-  iEvent.put(mus_pat_vetoDep,      "muspatvetoDep"         );
   iEvent.put(mus_pat_ecalvetoDep,  "muspatecalvetoDep"     );
   iEvent.put(mus_pat_hcalvetoDep,  "muspathcalvetoDep"     );
   iEvent.put(mus_pat_caloIso,      "muspatcaloIso"         );
   iEvent.put(mus_pat_ecalIso,      "muspatecalIso"         );
   iEvent.put(mus_pat_hcalIso,      "muspathcalIso"         );
-  iEvent.put(mus_pat_leptonID,     "muspatleptonID"        );
+  
   iEvent.put(mus_pat_genID,        "muspatgenID"           );
   iEvent.put(mus_pat_genMotherID,  "muspatgenMotherID"     );
   iEvent.put(mus_pat_flag,         "muspatflag"            );
