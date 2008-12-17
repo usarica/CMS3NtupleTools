@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.3 2008/12/17 10:59:46 spadhi Exp $
+// $Id: TrkMuonFilter.cc,v 1.4 2008/12/17 21:02:34 spadhi Exp $
 //
 
 // system include files
@@ -86,6 +86,7 @@ TrkMuonFilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if (trackquality(& * track)) usedTrack = false;
     if ( muons.isValid() && subMuon) {
       for ( reco::MuonCollection::const_iterator muon = muons->begin(); muon != muons->end(); ++muon ) {
+//        const reco::Track* muonTrack = (*muon).get<reco::TrackRef>().get(); 
 	if ( muon->track().get() == &*track && muonisolation(* muon) && selectmuon(& * track) && muonID(* muon)) {
 	  usedTrack = true;
 	}
@@ -113,25 +114,26 @@ bool TrkMuonFilter::selectmuon(const reco::Track* muon)
   else return false;
 }
 
-bool TrkMuonFilter::muonisolation(reco::Muon muon)
+bool TrkMuonFilter::muonisolation(const reco::Muon& muon)
 {
   if(!muon.isIsolationValid())
     {cout<<"Invalid Isolation!"; return false;}
   const reco::MuonIsolation miso= muon.isolationR03();
   double sum = miso.sumPt + miso.emEt + miso.hadEt;
-  const reco::TrackRef mu = muon.globalTrack();
-  double pt = mu->pt();
+//  const reco::TrackRef mu = muon.globalTrack();
+//  double pt = mu->pt();
+  double pt = muon.pt();
   if ( pt/(pt+sum) < muIsoFrac) return false;
   else return true;
 }
 
-bool TrkMuonFilter::muonID(reco::Muon muon)
+bool TrkMuonFilter::muonID(const reco::Muon& muon)
 {
 
-  const reco::TrackRef mu = muon.globalTrack();
-  double pt = mu->pt();
-  if (mu->chi2()/mu->ndof() > muChi2N) return false;
-  else return true;
+//  const reco::TrackRef mu = muon.globalTrack();
+//  if (mu->chi2()/mu->ndof() > muChi2N) return false;
+  if (muon.isGlobalMuon() && muon.globalTrack()->normalizedChi2() < muChi2N) return true;
+  else return false;
 }
 
 
