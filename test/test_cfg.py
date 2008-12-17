@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.8 $'),
+        version = cms.untracked.string('$Revision: 1.9 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -15,6 +15,7 @@ process.configurationMetadata = cms.untracked.PSet(
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load("RecoMET.METProducers.TCMET_cfi")
 #process.load("L1Trigger.L1ExtraFromDigis.l1extraParticles_cff")
 #process.l1extraParticles.muonSource = cms.InputTag("gtDigis")
 
@@ -77,6 +78,8 @@ process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 
 process.load("CMS2.NtupleMaker.theFilter_cfi")
 
+process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
+
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
@@ -138,8 +141,8 @@ process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
 process.outMod = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring('drop *',
-        'keep *_*Maker_*_CMS2'), 
-    fileName = cms.untracked.string('ntuple_ttbar_nofilter.root'),
+        'keep *_*Maker_*_CMS2'),
+    fileName = cms.untracked.string('validate_tcmet.root'),
     dataset = cms.untracked.PSet(
         dataTier = cms.untracked.string('USER')
     )
@@ -147,6 +150,7 @@ process.outMod = cms.OutputModule("PoolOutputModule",
 
 process.triggerEventMaker = cms.EDProducer("TriggerEventMaker")
 
+process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrectionsExtra = cms.Sequence(process.L4EMFJetCorJetIcone5*process.MCJetCorJetIcone5)
 process.JetCorrection = cms.Sequence(process.JetCorrectionsExtra)
 process.pat = cms.Sequence(process.patchPATSequence)
@@ -157,7 +161,7 @@ process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMa
 process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker)
-process.p = cms.Path(process.JetCorrection*process.pat*process.cms2)
+process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.pat*process.cms2)
 #process.outpath = cms.EndPath(process.theFilter*process.outMod)
 process.outpath = cms.EndPath(process.outMod)
 
