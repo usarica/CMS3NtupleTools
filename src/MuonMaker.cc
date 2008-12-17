@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.13 2008/12/08 22:46:54 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.14 2008/12/17 08:17:03 kalavase Exp $
 //
 //
 
@@ -39,6 +39,7 @@ Implementation:
 //#include "RecoMuon/MuonIdentification/interface/IdGlobalFunctions.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -189,8 +190,15 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   for (edm::View<Muon>::const_iterator muon = muon_h->begin(); 
        muon != muons_end; ++muon) {
-       
-    float tempIso = trackRelIsolation(muon->momentum(), muon->vertex(), track_coll,
+    
+    const pat::Muon *patMuon = dynamic_cast<const pat::Muon*>(&*muon);    
+    
+    const TrackRef siTrack     = patMuon != NULL ? patMuon->innerTrack() : muon->innerTrack();
+    const TrackRef globalTrack = patMuon != NULL ? patMuon->globalTrack() : muon->globalTrack();
+
+
+    float tempIso = trackRelIsolation(muon->momentum(), muon->vertex(), beamSpot,
+				      track_coll,
 				      0.3,     //! dR < 0.3
 				      0.01,    //! dR > 0.01
 				      0.1,     //! |d0_tk| < 0.1 cm
@@ -198,19 +206,32 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				      0.5,     //! |z0_el - z0_track| < 0.5
 				      1.0,     //! min pt
 				      7);      //! min nHits
-
-       
+    
     // fill vectors
     vector_mus_type         ->push_back(muon->type());
     int goodMask = 0;
+    
     for (int iG = 0; iG < 16; ++iG){ //overkill here
+      if(patMuon != NULL) {
+	//iG!=6 because the globalTrack() accessor is not virtual in the reco::Muon
+	//and the isGood() fcn when iG = 6 is the reco::Muon::GlobalMuonPromptTight
+	//case, and the globalTrack is accessed
+	if (iG !=6) {
+	  if(patMuon->isGood((Muon::SelectionType)iG) ) goodMask |= (1 << iG);
+      } else {
+	//have to re-implement this one case here, otherwise the code barfs. Ugly!
+	if(patMuon->isGlobalMuon() && globalTrack->normalizedChi2() < 10.)
+	    goodMask |= (1 << iG);
+      }
+    } else {
       if (muon->isGood((Muon::SelectionType)iG) ) goodMask |= 
 	(1 << iG);
+      }
     }
     
-    const TrackRef siTrack     = muon->innerTrack();
-    const TrackRef globalTrack = muon->globalTrack();
-
+    
+        
+    
     vector_mus_goodmask      ->push_back(goodMask);
     vector_mus_p4            ->push_back(muon ->p4());
     vector_mus_trk_p4        ->push_back(siTrack.isNonnull() ? 
@@ -219,7 +240,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				  : LorentzVector(0, 0, 0, 0));
     vector_mus_d0            ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -999        );
     vector_mus_z0            ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -999        );
-    vector_mus_d0corr        ->push_back(siTrack.isNonnull() ? siTrack->dxy(beamSpot)                   :  -999        );
+    vector_mus_d0corr        ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))                   :  -999        );
     vector_mus_z0corr        ->push_back(siTrack.isNonnull() ? siTrack->dxy(beamSpot)                   :  -999        );
     vector_mus_vertexphi     ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -999        );
     vector_mus_chi2          ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -999        );
@@ -254,10 +275,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_iso05_hadEt   ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	          :  -999       );
     vector_mus_iso05_hoEt    ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	          :  -999       );
     vector_mus_iso05_ntrk    ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks         :  -999       );
-    vector_mus_gfit_chi2     ->push_back(globalTrack.isNonnull() ? muon->globalTrack()->chi2()	  :  -999       );
-    vector_mus_gfit_ndof     ->push_back(globalTrack.isNonnull() ? muon->globalTrack()->ndof()	  :  -999       );
-    vector_mus_gfit_validHits->push_back(globalTrack.isNonnull() ? muon->globalTrack()->numberOfValidHits() 	: -999	);
-    vector_mus_gfit_outerPos ->push_back(globalTrack.isNonnull() ? muon->globalTrack()->outerPosition() :  Point(0,0,0));
+    vector_mus_gfit_chi2     ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	  :  -999       );
+    vector_mus_gfit_ndof     ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	  :  -999       );
+    vector_mus_gfit_validHits->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	: -999	);
+    //This don't work in AOD :(
+    //vector_mus_gfit_outerPos ->push_back(globalTrack.isNonnull() ?  globalTrack->outerPosition() :  Point(0,0,0));
     vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationLoose)     : -999	);
     vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationTight)     : -999	);
     vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityLoose)	: -999	);
@@ -312,11 +334,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );
   iEvent.put(vector_mus_gfit_outerPos   , "musgfitouterPos"      );
-  iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"             );
-  iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"             );
+  iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"     );
+  iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"     );
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
-  iEvent.put(vector_mus_caloCompatibility               , "muscaloCompatibility"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -334,6 +355,7 @@ MuonMaker::endJob() {
 //---------------------------------------------------------------------------
 double MuonMaker::trackRelIsolation(const math::XYZVector momentum,
 				    const math::XYZPoint vertex,
+				    const math::XYZPoint beamSpot,
 				    const  edm::View<Track>* tracks,
 				    double dRConeMax, double dRConeMin,
 				    double tkVtxDMax,
@@ -353,12 +375,12 @@ double MuonMaker::trackRelIsolation(const math::XYZVector momentum,
     //exclude tks in veto cone (set it to small number to
     //exclude this track
     double dZ = fabs(vertex.z() - iTk->vz());
-    double d0 = sqrt(iTk->vertex().perp2());
+    double d0corr = fabs(iTk->dxy(beamSpot));
     double dD0 = sqrt((iTk->vertex() - vertex).perp2());
     if (dR < dRConeMin) continue;
     if ( dR < dRConeMax
          && dZ < vtxDiffZMax
-         && d0 < tkVtxDMax
+         && d0corr < tkVtxDMax
          && dD0 < vtxDiffDMax
          && iTk->pt() >= ptMin
          && iTk->found() > nHits){
