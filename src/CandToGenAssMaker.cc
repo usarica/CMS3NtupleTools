@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.5 2008/12/13 01:12:22 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.6 2008/12/17 05:09:57 kalavase Exp $
 //
 //
 
@@ -106,7 +106,7 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   electronsInputTag    = iConfig.getParameter<edm::InputTag>("electronsInputTag"   );
   jetsInputTag         = iConfig.getParameter<edm::InputTag>("jetsInputTag"        );
   tracksInputTag       = iConfig.getParameter<edm::InputTag>("tracksInputTag"      );
-    
+  vPIDsToExclude       = iConfig.getUntrackedParameter<std::vector<int> >("vPIDsToExclude"   );
 }
 
 void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -174,6 +174,19 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   Handle<GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
+  //also make a MC particle collection that does not contain any particle 
+  //whose PID is equal to the exclude list
+  //vector<GenParticle> v_temp;
+  vector<GenParticle> *genParticlesPruned = new vector<GenParticle>;
+  for(vector<GenParticle>::const_iterator itPart=genParticlesHandle->begin(); 
+      itPart!=genParticlesHandle->end(); ++itPart) {
+    if( find(vPIDsToExclude.begin(), vPIDsToExclude.end(), abs(itPart->pdgId()) ) 
+	!= vPIDsToExclude.end() ) continue; 
+    GenParticle temp = (*itPart);
+    //v_temp.push_back(temp);
+    genParticlesPruned->push_back(temp);
+  }
+  //const vector<GenParticle> *genParticlesPruned = &v_temp;
   //get MC Jets
   Handle<GenJetCollection> genJetsHandle;
   iEvent.getByLabel(genJetsInputTag, genJetsHandle);
@@ -228,8 +241,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     LorentzVector mc_p4(0,0,0,0);
     float dR = -9999;
 
-    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*elsp4_it, genParticlesHandle.product(), genidx, 1);
     
+    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*elsp4_it, 
+     									   genParticlesPruned,
+ 									   genidx, 1);
 
     if(matchedGenParticle != 0) {
       mcid                = matchedGenParticle->pdgId();
@@ -244,6 +259,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_els_mcidx      ->push_back(genidx  );
     vector_els_mcp4       ->push_back(mc_p4   );
     vector_els_mcdr       ->push_back( dR     );
+
     
 
     mcid = -999;
@@ -251,7 +267,9 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     genidx = -999;
     mc_p4 = LorentzVector(0,0,0,0);
     dR = -9999;
-    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*elsp4_it, genParticlesHandle.product(), genidx, 3);
+    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*elsp4_it, 
+									      genParticlesPruned,
+									      genidx, 3);
     //now do the status==3 particles
     if(matchedGenParticleDoc != 0 ) {
       mcid                = matchedGenParticleDoc->pdgId();
@@ -279,8 +297,9 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     LorentzVector mc_p4(0,0,0,0);
     float dR = -9999;
     
-    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*musp4_it, genParticlesHandle.product(), genidx, 1);
-    
+    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*musp4_it,
+									   genParticlesPruned,
+									   genidx, 1);
 
     if(matchedGenParticle != 0) {
       mcid                = matchedGenParticle->pdgId();
@@ -295,14 +314,16 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_mus_mcidx      ->push_back(genidx  );
     vector_mus_mcp4       ->push_back(mc_p4   );
     vector_mus_mcdr       ->push_back( dR     );
-    
+
     mcid = -999;
     mom_mcid = -999;
     genidx = -999;
     mc_p4 = LorentzVector(0,0,0,0);
     dR = -9999;
     
-    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*musp4_it, genParticlesHandle.product(), genidx, 3);
+    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*musp4_it, 
+									      genParticlesPruned,
+									      genidx, 3);
     if(matchedGenParticleDoc != 0) {
       mcid                = matchedGenParticleDoc->pdgId();
       mc_p4               = matchedGenParticleDoc->p4();
@@ -316,6 +337,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_mus_mc3idx      ->push_back(genidx  );
     vector_mus_mc3p4       ->push_back(mc_p4   );
     vector_mus_mc3dr       ->push_back( dR     );
+
   }
 
   
@@ -340,8 +362,12 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       vector_jets_mc_otherEnergy->push_back(-999.);
       vector_jets_mcdr->push_back(-9999);
     }
+
     int temp;
-    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*jetsp4_it, genParticlesHandle.product(), temp, 1);
+    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*jetsp4_it, 
+									   genParticlesPruned,
+									   temp, 1);
+
     if ( matchedGenParticle != 0 ) {
       vector_jets_mc_gp_p4->push_back(matchedGenParticle->p4());
       vector_jets_mc_id->push_back(matchedGenParticle->pdgId());
@@ -351,7 +377,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       vector_jets_mc_id->push_back(-999);
       vector_jets_mc_gpdr->push_back(-9999);
     }
-    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*jetsp4_it, genParticlesHandle.product(), temp, 3);
+
+    const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*jetsp4_it, 
+									      genParticlesPruned,
+									      temp, 3);
 	if ( matchedGenParticleDoc != 0 ) {
       vector_jets_mc3_gp_p4->push_back(matchedGenParticleDoc->p4());
       vector_jets_mc3_id->push_back(matchedGenParticleDoc->pdgId());
@@ -376,7 +405,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     LorentzVector mc_p4(0,0,0,0);
     float dR = -9999;
     
-    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*track, genParticlesHandle.product(), genidx, 1);
+
+    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
+									   genidx, 1);
+
     
     if(matchedGenParticle != 0) {
       mcid                = matchedGenParticle->pdgId();
@@ -391,7 +423,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      vector_trk_mcp4       ->push_back(mc_p4   );
      vector_trk_mcdr       ->push_back( dR );
      
-     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, genParticlesHandle.product(), genidx, 3);
+     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
+									       genidx, 3);
      mcid = -999;
      mom_mcid = -999;
      genidx = -999;
@@ -407,8 +440,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      vector_trk_mc3idx      ->push_back(genidx  );
      vector_trk_mc3p4       ->push_back(mc_p4   );
      vector_trk_mc3dr       ->push_back( dR );
-
-
 
   }
 
@@ -460,7 +491,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_trk_mc3idx          ,"trkmc3idx"        );
   iEvent.put(vector_trk_mc3p4           ,"trkmc3p4"         );
   iEvent.put(vector_trk_mc3dr           ,"trkmc3dr"         );
-
   
   
 }
