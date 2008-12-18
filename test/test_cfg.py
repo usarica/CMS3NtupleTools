@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.15 $'),
+        version = cms.untracked.string('$Revision: 1.16 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -65,6 +65,7 @@ process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
+process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
@@ -77,9 +78,9 @@ process.options = cms.untracked.PSet(
 ##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-#    fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
-    fileNames = cms.untracked.vstring('file:///store/disk01/data/spadhi/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
-    #fileNames = cms.untracked.vstring('file:/uscms/home/kalavase/scratch/MadGraphSummer08_preproduction/249ACBCC-37BF-DD11-A191-00144F2031D4.root')
+    fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
+#    fileNames = cms.untracked.vstring('file:///store/disk01/data/spadhi/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
+#    fileNames = cms.untracked.vstring('file:/uscms/home/kalavase/scratch/MadGraphSummer08_preproduction/249ACBCC-37BF-DD11-A191-00144F2031D4.root')
    #secondaryFileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/D4CD0886-BA9E-DD11-8B40-003048770C6C.root',
    #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/7EC5CAC6-1A9F-DD11-9811-003048770BAA.root',
    #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0032/8A31B75C-F29F-DD11-A96E-0002B3E92671.root',
@@ -172,6 +173,12 @@ switchJetCollection(process,
                     )
 
 #-------------------------------------------------
+# load tcMET producer
+#-------------------------------------------------
+
+process.load("RecoMET.METProducers.TCMET_cfi")
+
+#-------------------------------------------------
 # process output; first the event selection is
 # defined: only those events that have passed the
 # full production path are selected and written
@@ -228,6 +235,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 #process.triggerEventMaker = cms.EDProducer("TriggerEventMaker")
 
+process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
@@ -238,7 +246,7 @@ process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*pro
 process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.genjetmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
 #process.p = cms.Path(process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
-process.p = cms.Path(process.JetCorrection*process.patTuple*process.cms2)
+process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2)
 process.outpath = cms.EndPath(process.out)
 
 
