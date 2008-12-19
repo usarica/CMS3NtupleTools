@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.3 2008/12/17 09:20:05 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.4 2008/12/19 21:34:35 kalavase Exp $
 //
 //
 
@@ -160,6 +160,8 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.put(els_pat_robustTightId,     "elspatrobustTightId"        );
   iEvent.put(els_pat_looseId,           "elspatlooseId"              );
   iEvent.put(els_pat_tightId,           "elspattightId"              );
+
+  iEvent.put(els_pat_robustHighEnergy,  "elspatrobustHighEnergy"     );
   iEvent.put(els_pat_genP4,             "elspatgenP4"                );
   iEvent.put(els_pat_genMotherP4,       "elspatgenMotherP4"          );
   iEvent.put(els_pat_sigmaEtaEta,       "elspatsigmaEtaEta"          );
