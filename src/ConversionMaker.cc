@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.1 2008/12/17 19:15:19 kalavase Exp $
+// $Id: ConversionMaker.cc,v 1.2 2009/01/04 23:59:07 kalavase Exp $
 //
 //
 
@@ -170,17 +170,13 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
     trks_conv_dcot     ->push_back(p_tkConvInfo.second         );
   }//tk1 loop
 
-
-
-
-
-
-
   // store vectors
   iEvent.put(els_conv_tkidx,        "elsconvtkidx"   );
   iEvent.put(els_conv_dcot,         "elsconvdcot"    );
-  iEvent.put(els_conv_dist,         "elsconvdist" );
-
+  iEvent.put(els_conv_dist,         "elsconvdist"    );
+  iEvent.put(trks_conv_tkidx,       "trksconvtkidx"  );
+  iEvent.put(trks_conv_dist,        "trksconvdist"   );
+  iEvent.put(trks_conv_dcot,        "trksconvdcot"   );
 
 }
 		     
