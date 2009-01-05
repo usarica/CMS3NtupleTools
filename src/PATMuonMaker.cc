@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.5 2008/12/17 09:57:12 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.6 2009/01/05 00:21:16 kalavase Exp $
 //
 //
 
@@ -128,6 +128,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // put containers into event
   iEvent.put(mus_pat_trackIso,     "muspattrackIso"        );
+  iEvent.put(mus_pat_vetoDep,      "muspatvetoDep"         );
   iEvent.put(mus_pat_ecalvetoDep,  "muspatecalvetoDep"     );
   iEvent.put(mus_pat_hcalvetoDep,  "muspathcalvetoDep"     );
   iEvent.put(mus_pat_caloIso,      "muspatcaloIso"         );
