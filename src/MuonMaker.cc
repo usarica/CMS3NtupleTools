@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.14 2008/12/17 08:17:03 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.15 2009/01/05 00:19:07 kalavase Exp $
 //
 //
 
@@ -338,6 +338,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"     );
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
+  iEvent.put(vector_mus_caloCompatibility       , "muscaloCompatibility"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
