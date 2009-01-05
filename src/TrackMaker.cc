@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.7 2008/12/17 09:27:42 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.8 2009/01/05 22:22:02 kalavase Exp $
 //
 //
 
@@ -116,6 +116,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<int> >		vector_trks_charge	(new vector<int>		);        
      std::auto_ptr<vector<float> >		vector_trks_outerPhi	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_outerEta	(new vector<float>		);      
+     std::auto_ptr<vector<float> >              vector_trks_outerEt     (new vector<float>              );
      std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
 
      // get tracks
@@ -174,9 +175,15 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  Cylinder::CylinderPointer barrel = Cylinder::build( Cylinder::PositionType (0, 0, 0), Cylinder::RotationType (), radius);
 
 	  AnalyticalPropagator myAP (bf, alongMomentum, 2*M_PI);
-
+	  
 	  TrajectoryStateOnSurface tsos;
-
+	  
+	  /*
+	    Trajectory State is at intersection of cylinder and track, 
+	    not state at the last hit on the track fit. Shouldn't matter that much.
+	    Not sure what happens for loopers. Caveat emptor!
+	  */
+	  
 	  if( i->eta() < -corner ) {
 	    tsos = myAP.propagate( fts, *lendcap);
 	  }
@@ -190,10 +197,14 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if(tsos.isValid()) {
 	    vector_trks_outerPhi->push_back( tsos.globalPosition().phi() );
 	    vector_trks_outerEta->push_back( tsos.globalPosition().eta() );
+	    vector_trks_outerEt ->push_back( sqrt(pow(tsos.globalMomentum().x(),2) + 
+						  pow(tsos.globalMomentum().y(),2) ) );
 	  }
 	  else {
 	    vector_trks_outerPhi->push_back( -999. );
 	    vector_trks_outerEta->push_back( -999. );
+	    vector_trks_outerEt ->push_back( -999. );
+		    
 	  }
      }
      // store vectors
@@ -215,6 +226,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_trks_charge       , "trkscharge"            );
      iEvent.put(vector_trks_outerPhi     , "trksouterPhi"          );
      iEvent.put(vector_trks_outerEta     , "trksouterEta"          );
+     iEvent.put(vector_trks_outerEt      , "trksouterEt"           );
      iEvent.put(vector_trks_tkIso        , "trkstkIso"             );
 }
 
