@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.12 2008/12/17 08:06:30 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.13 2009/01/05 23:53:21 kalavase Exp $
 //
 //
 
@@ -246,7 +246,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   for(View<pat::Electron>::const_iterator el = els_h->begin();
       el != els_h->end(); el++) {
 
-    const reco::Track *el_track = el->gsfTrack().get();
+    const reco::Track *el_track = (const reco::Track*)(el->gsfTrack().get());
     const reco::GsfElectron *gsfEl = dynamic_cast<const GsfElectron*>(el->originalObject());
 
     //get Cluster info
