@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.12 2008/12/17 08:33:32 kalavase Exp $
+// $Id: EventMaker.cc,v 1.13 2009/01/05 00:11:51 kalavase Exp $
 //
 //
 
@@ -68,6 +68,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   
   produces<unsigned int>   ("evtrun"               ).setBranchAlias("evt_run"                  );
   produces<unsigned int>   ("evtevent"             ).setBranchAlias("evt_event"                );
+  produces<unsigned int>   ("evtlumiBlock"         ).setBranchAlias("evt_lumiBlock"            );
   produces<int>    ("evtHLT1"              ).setBranchAlias("evt_HLT1"                 );
   produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
   produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
@@ -114,6 +115,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<unsigned int>      evt_run               (new unsigned int);
   auto_ptr<unsigned int>      evt_event             (new unsigned int);
+  auto_ptr<unsigned int>      evt_lumiBlock         (new unsigned int);
   auto_ptr<int>      evt_HLT1              (new int);
   auto_ptr<int>      evt_HLT2              (new int);
   auto_ptr<int>      evt_HLT3              (new int);
@@ -136,7 +138,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   *evt_run   = iEvent.id().run();
   *evt_event = iEvent.id().event();
-
+  *evt_lumiBlock = iEvent.luminosityBlock();
   
   //fill HLT info
   if(haveTriggerInfo_) {
