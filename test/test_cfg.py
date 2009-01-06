@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.19 $'),
+        version = cms.untracked.string('$Revision: 1.20 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -40,7 +40,8 @@ process.load("CMS2.NtupleMaker.patJetMaker_cfi")
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
 process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
 process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
-process.load("CMS2.NtupleMaker.metMaker_cfi")
+#process.load("CMS2.NtupleMaker.metMaker_cfi")
+process.load("CMS2.NtupleMaker.metSequence_cff")
 process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
@@ -215,7 +216,8 @@ process.CMS2 = cms.PSet(
     ##'keep *_selectedLayer1METs_*_*',
     ##'keep patPFParticles_*_*_*',
     ##'keep *_selectedLayer1Hemispheres_*_*',
-    'keep *_*Maker_*_CMS2'
+    'keep *_*Maker_*_CMS2',
+    'keep recoCaloMET*_*_*_*'
   )
 )
 
@@ -242,9 +244,10 @@ process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.el
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
-process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker*process.genjetmaker)
+#process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker*process.genjetmaker)
+process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
-process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.elCaloIsoMaker)
+process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.genjetmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
 
 ##includes filter
