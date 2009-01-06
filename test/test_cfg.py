@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.18 $'),
+        version = cms.untracked.string('$Revision: 1.19 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -59,7 +59,7 @@ process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
 process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
 process.load("CMS2.NtupleMaker.theFilter_cfi")
-process.load("CMS2.NtupleMaker.elCaloIsoMaker_cfi")
+process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
@@ -79,12 +79,6 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
-#    fileNames = cms.untracked.vstring('file:///store/disk01/data/spadhi/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
-#    fileNames = cms.untracked.vstring('file:/uscms/home/kalavase/scratch/MadGraphSummer08_preproduction/249ACBCC-37BF-DD11-A191-00144F2031D4.root')
-   #secondaryFileNames = cms.untracked.vstring('/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/D4CD0886-BA9E-DD11-8B40-003048770C6C.root',
-   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/7EC5CAC6-1A9F-DD11-9811-003048770BAA.root',
-   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0032/8A31B75C-F29F-DD11-A96E-0002B3E92671.root',
-   #                                           '/store/mc/Summer08/WJets-madgraph/GEN-SIM-RAW/IDEAL_V9_v1/0030/0C79D330-169F-DD11-8585-003048770DBE.root')
 )
 
 
@@ -98,13 +92,6 @@ process.load("TopQuarkAnalysis.TopObjectProducers.patTuple_cff")
 ## necessary fixes to run 2.2.X on 2.1.X data
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
 run22XonSummer08AODSIM(process)
-
-## switch from clusters to rec hits in electron isolation
-from PhysicsTools.PatAlgos.recoLayer0.electronIsolation_cff import useElectronRecHitIsolation
-useElectronRecHitIsolation(process)
-
-
-
 
 
 #-------------------------------------------------
@@ -149,16 +136,6 @@ process.L2L3L4CorJet = cms.EDProducer("CaloJetCorrectionProducer",
 process.prefer("L2L3L4JetCorrector") 
 
 
-#-------------------------------------------------
-# pat tuple event content; first ALL objects
-# are dropped in this process; then patTuple
-# content is added
-#-------------------------------------------------
-
-## define pat tuple event content
-#from TopQuarkAnalysis.TopObjectProducers.patTuple_EventContent_cff import *
-#makePatTupleEventContent(process)
-
 ## change jet collection
 from PhysicsTools.PatAlgos.tools.jetTools import *
 
@@ -193,6 +170,9 @@ process.EventSelection = cms.PSet(
     )
 )
 
+
+##default Jurassic Isolation values
+##should be the same as in the PAT, but just being safe
 process.allLayer1Electrons.isolation.ecal.vetos = cms.vstring(
     'EcalBarrel:0.045',
     'EcalBarrel:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)',
@@ -264,11 +244,16 @@ process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker
 process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
 process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker*process.genjetmaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
-# process.othermakers = cms.Sequence(process.egammaBasicClusterMerger*process.elCaloIsoMaker*process.conversionMaker)
-process.othermakers = cms.Sequence(process.egammaBasicClusterMerger*process.elCaloIsoMaker)
+process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.elCaloIsoMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.genjetmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
-#process.p = cms.Path(process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
+
+##includes filter
+#process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
+
+##no filter
 process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2)
+
+##output
 process.outpath = cms.EndPath(process.out)
 
 
