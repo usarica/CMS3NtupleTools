@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.17 $'),
+        version = cms.untracked.string('$Revision: 1.18 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -69,7 +69,7 @@ process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(20)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -156,8 +156,8 @@ process.prefer("L2L3L4JetCorrector")
 #-------------------------------------------------
 
 ## define pat tuple event content
-from TopQuarkAnalysis.TopObjectProducers.patTuple_EventContent_cff import *
-makePatTupleEventContent(process)
+#from TopQuarkAnalysis.TopObjectProducers.patTuple_EventContent_cff import *
+#makePatTupleEventContent(process)
 
 ## change jet collection
 from PhysicsTools.PatAlgos.tools.jetTools import *
@@ -215,14 +215,35 @@ process.allLayer0Electrons.isolation.ecal.vetos = cms.vstring(
 process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
 process.CMS2 = cms.PSet(
-               outputCommands = cms.untracked.vstring('drop *','keep *_*Maker_*_CMS2')
+    outputCommands = cms.untracked.vstring(
+    'drop *',
+    ##'keep recoGenParticles_genParticles_*_*',
+    ##'keep *_genEventScale_*_*',
+    ##'keep *_genEventWeight_*_*',
+    ##'keep *_genEventPdfInfo_*_*',
+    ##'keep edmTriggerResults_TriggerResults_*_HLT', 
+    ##'keep *_hltTriggerSummaryAOD_*_*',
+    ##'keep *_offlineBeamSpot_*_*',
+    ##'keep *_offlinePrimaryVertices_*_*',
+    ##'keep recoTracks_generalTracks_*_*', 
+    ##'keep *_towerMaker_*_*',
+    ##'keep *_selectedLayer1Photons_*_*', 
+    'keep *_selectedLayer1Electrons_*_*', 
+    ##'keep *_selectedLayer1Muons_*_*', 
+    ##'keep *_selectedLayer1Taus_*_*', 
+    ##'keep *_selectedLayer1Jets_*_*', 
+    ##'keep *_selectedLayer1METs_*_*',
+    ##'keep patPFParticles_*_*_*',
+    ##'keep *_selectedLayer1Hemispheres_*_*',
+    'keep *_*Maker_*_CMS2'
+  )
 )
-process.patTupleEventContent.outputCommands.extend(process.CMS2.outputCommands)
 
 ## configure output module
 process.out = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
-    process.patTupleEventContent,
+    process.CMS2,
+    ##process.patTupleEventContent,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),                           
     fileName = cms.untracked.string('test_1.root')
