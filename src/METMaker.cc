@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.3 2008/10/23 22:00:16 kalavase Exp $
+// $Id: METMaker.cc,v 1.4 2009/01/06 23:52:45 kalavase Exp $
 //
 //
 
@@ -82,9 +82,10 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetOptNoHFHOPhi" ).setBranchAlias("evt_metOptNoHFHOPhi" );
   produces<float> ("evtmetOptNoHFHOSig" ).setBranchAlias("evt_metOptNoHFHOSig" );
 
-
-  //produces<float> ("evtmetjetcorr"   ).setBranchAlias("evt_met_jetcorr"  );
-  //produces<float> ("metphijetcorr"   ).setBranchAlias("metphi_jetcorr"   );
+  //raw CaloMET corrected for Muons
+  produces<float> ("evtmetMuonCorr"     ).setBranchAlias("evt_metMuonCorr"     );
+  produces<float> ("evtmetMuonCorrPhi"  ).setBranchAlias("evt_metMuonCorrPhi"  );
+  produces<float> ("evtmetMuonCorrSig"  ).setBranchAlias("evt_metMuonCorrSig"  );
 
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
 }
@@ -128,9 +129,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_metOptNoHFHOPhi     (new float     );
   auto_ptr<float>   evt_metOptNoHFHOSig     (new float     );
 
-  //auto_ptr<float>   evt_met_jetcorr      (new float     );
-  //auto_ptr<float>   metphi_jetcorr       (new float     );
-
+  auto_ptr<float>   evt_metMuonCorr         (new float     );
+  auto_ptr<float>   evt_metMuonCorrPhi      (new float     );
+  auto_ptr<float>   evt_metMuonCorrSig      (new float     );
+  
   Handle< View<CaloMET> > met_h;
   Handle< View<CaloMET> > metHO_h;
   Handle< View<CaloMET> > metNoHF_h;
@@ -140,7 +142,9 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   Handle< View<CaloMET> > metOptHO_h;
   Handle< View<CaloMET> > metOptNoHF_h;
   Handle< View<CaloMET> > metOptNoHFHO_h;
-    
+  
+  Handle< View<CaloMET> > metMuonCorr_h;
+  
   iEvent.getByLabel("met",       met_h       );
   iEvent.getByLabel("metHO",     metHO_h     );
   iEvent.getByLabel("metNoHF",   metNoHF_h   );
@@ -151,10 +155,9 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel("metOptNoHF",   metOptNoHF_h   );
   iEvent.getByLabel("metOptNoHFHO", metOptNoHFHO_h );
   
-  //const View<CaloMET> *met_coll = met_h.product();
-  //const CaloMET *metobj = &(met_coll->front());
+  iEvent.getByLabel("corMetGlobalMuons", metMuonCorr_h );
   
-   // get MC particle collection
+  // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
   
@@ -185,10 +188,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_metOptNoHFHOPhi = (metOptNoHFHO_h->front()).phi();
   *evt_metOptNoHFHOSig = (metOptNoHFHO_h->front()).mEtSig();
 
-  //*evt_met_jetcorr = 0; 
-  //*metphi_jetcorr  = 0;
-  
-  
+  *evt_metMuonCorr     =  (metMuonCorr_h->front()).et();
+  *evt_metMuonCorrPhi  =  (metMuonCorr_h->front()).phi();
+  *evt_metMuonCorrSig  =  (metMuonCorr_h->front()).mEtSig();
+
   iEvent.put(evt_met            ,"evtmet"           );
   iEvent.put(evt_metPhi         ,"evtmetPhi"        );
   iEvent.put(evt_metSig         ,"evtmetSig"        );
@@ -215,6 +218,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_metOptNoHFHOPhi   ,"evtmetOptNoHFHOPhi"  );
   iEvent.put(evt_metOptNoHFHOSig   ,"evtmetOptNoHFHOSig"  );
   
+  iEvent.put(evt_metMuonCorr       ,"evtmetMuonCorr"      );
+  iEvent.put(evt_metMuonCorrPhi    ,"evtmetMuonCorrPhi"   );
+  iEvent.put(evt_metMuonCorrSig    ,"evtmetMuonCorrSig"   );
+
 }
 
 //define this as a plug-in
