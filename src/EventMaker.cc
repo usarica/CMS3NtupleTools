@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.13 2009/01/05 00:11:51 kalavase Exp $
+// $Id: EventMaker.cc,v 1.14 2009/01/12 06:19:22 kalavase Exp $
 //
 //
 
@@ -86,6 +86,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
   produces<float>  ("evtkfactor"           ).setBranchAlias("evt_kfactor"              );
+  //produces<string>  ("evttemp"           ).setBranchAlias("evt_temp"              );
   produces<vector<char> > ("evtL1trigNames"   ).setBranchAlias("evt_L1_trigNames"      );    
   produces<vector<char> > ("evtHLTtrigNames"  ).setBranchAlias("evt_HLT_trigNames"     );
   
@@ -133,6 +134,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>    evt_xsec_incl         (new float);
   auto_ptr<float>    evt_xsec_excl         (new float);
   auto_ptr<float>    evt_kfactor           (new float);
+  //auto_ptr<string>   evt_temp              (new string);
   auto_ptr<vector<char> >      evt_HLT_trigNames        (new vector<char>);
   auto_ptr<vector<char> >      evt_L1_trigNames         (new vector<char>);    
   
@@ -161,7 +163,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		hlt6, hlt7, hlt8, hltnames);
     vector<char> v_hlt(hltnames->begin(), hltnames->end() );
     *evt_HLT_trigNames = v_hlt;
- 
+    //*evt_temp = *hltnames; 
     
     edm::ESHandle<L1GtTriggerMenu> menuRcd;
     iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
@@ -256,7 +258,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
   iEvent.put(evt_HLT_trigNames    ,"evtHLTtrigNames"    );
   iEvent.put(evt_L1_trigNames     ,"evtL1trigNames"     );
-  
+  //iEvent.put(evt_temp,"evttemp");
+
 }
 
 
@@ -393,7 +396,6 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
 
   }
 	
-
    *l1_1=0;
    *l1_2=0;
    *l1_3=0;
@@ -434,8 +436,8 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        }
      }
    }
-   
 
+  *l1names = tmpnames;
 
 }
 
