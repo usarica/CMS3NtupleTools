@@ -26,7 +26,7 @@ hypDilepMaker = cms.EDFilter("HypDilepMaker",
     #patjets collection
     patJetsInputTag = cms.InputTag("patJetMaker"),
     #loose lepton pt cut
-    LooseLepton_PtCut = cms.double(5.0),
+    LooseLepton_PtCut = cms.double(10.0),
     # muons collection
     muonsInputTag = cms.InputTag("muonMaker")
 )
