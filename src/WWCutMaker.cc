@@ -24,7 +24,7 @@ of the selection code, which would get out of sync sooner or later
 //
 // Original Author:  Johannes Muelmenstaedt 
 //		     (but just calls functions in selection.C)
-// $Id: WWCutMaker.cc,v 1.6 2009/01/14 06:00:38 jmuelmen Exp $
+// $Id: WWCutMaker.cc,v 1.7 2009/01/14 18:57:10 kalavase Exp $
 //
 //
 
@@ -228,7 +228,6 @@ int getDrellYanType() {
       if (abs(cms2.genps_id().at(jj+1)) == 15) return 2;  //DY->tautau
     }
   }
-  std::cout << "Does not look like a DY event" << std::endl;
   return 999;
 }
 
