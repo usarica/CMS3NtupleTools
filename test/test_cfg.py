@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("CMS2")
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.20 $'),
+        version = cms.untracked.string('$Revision: 1.21 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -67,6 +67,7 @@ process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
+process.load("CMS2.NtupleMaker.wwCutMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
@@ -247,7 +248,7 @@ process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMa
 #process.generalmakers = cms.Sequence(process.eventMaker*process.metMaker*process.genMaker*process.genjetmaker)
 process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
-process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker)
+process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker * process.wwCutMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.genjetmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
 
 ##includes filter
