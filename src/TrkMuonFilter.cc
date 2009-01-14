@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.4 2008/12/17 21:02:34 spadhi Exp $
+// $Id: TrkMuonFilter.cc,v 1.5 2009/01/14 22:41:42 spadhi Exp $
 //
 
 // system include files
@@ -87,7 +87,8 @@ TrkMuonFilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if ( muons.isValid() && subMuon) {
       for ( reco::MuonCollection::const_iterator muon = muons->begin(); muon != muons->end(); ++muon ) {
 //        const reco::Track* muonTrack = (*muon).get<reco::TrackRef>().get(); 
-	if ( muon->track().get() == &*track && muonisolation(* muon) && selectmuon(& * track) && muonID(* muon)) {
+//	if ( muon->track().get() == &*track && muonisolation(* muon) && selectmuon(& * track) && muonID(* muon)) {
+	if ( muon->track().get() == &*track && selectmuon(& * track) && muonID(* muon)) {
 	  usedTrack = true;
 	}
       }

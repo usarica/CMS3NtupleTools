@@ -9,7 +9,7 @@ localTrkColl = cms.EDProducer("TrkMuonFilter",
                 subMuon = cms.bool(True),
                 muIsoFrac = cms.double(0.92),
                 muChi2N  = cms.double(5),
-                muMinPt = cms.double(7),
+                muMinPt = cms.double(0),
                 muMaxEta = cms.double(2.5)
 )
 
