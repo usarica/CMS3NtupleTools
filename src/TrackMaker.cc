@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.8 2009/01/05 22:22:02 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.9 2009/01/15 19:12:55 kalavase Exp $
 //
 //
 
@@ -61,6 +61,9 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
 {
      // stream mu track quantities
      produces<vector<LorentzVector> >	("trkstrkp4"	).setBranchAlias("trks_trk_p4"    );	// track p4						
+     //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
+     //the 4th co-ordinate is 0
+     produces<vector<LorentzVector> >	("trksvertexp4"	).setBranchAlias("trks_vertex_p4" );	// track p4						
      produces<vector<float> >		("trksd0"	).setBranchAlias("trks_d0"        );	// impact parameter at the point of closest approach	
      produces<vector<float> >		("trksd0corr"	).setBranchAlias("trks_d0corr"    );	// impact parameter at the point of closest approach corrected for the beamSpot
      produces<vector<float> >		("trksz0"	).setBranchAlias("trks_z0"        );	// z position of the point of closest approach		
@@ -97,8 +100,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
      using namespace edm;
      // make vectors to hold the information
-     std::auto_ptr<vector<LorentzVector> >	vector_trks_p4		(new vector<LorentzVector>	);
      std::auto_ptr<vector<LorentzVector> >	vector_trks_trk_p4	(new vector<LorentzVector>	);
+     std::auto_ptr<vector<LorentzVector> >	vector_trks_vertex_p4	(new vector<LorentzVector>	);
      std::auto_ptr<vector<float> >		vector_trks_d0		(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_d0corr      (new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_z0		(new vector<float>		);      
@@ -139,6 +142,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  i != tracks_end; ++i) {
 	  // fill vectors
           vector_trks_trk_p4       ->push_back(	LorentzVector( i->px(), i->py(), i->pz(), i->p() )  );
+	  vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)         );
 	  vector_trks_d0           ->push_back( i->d0()                                             );
 	  vector_trks_z0           ->push_back(	i->dz()                                             );
 	  vector_trks_d0corr       ->push_back( beamSpotH.isValid() ? -1*(i->dxy(beamSpot)) : i->d0()    );
@@ -209,6 +213,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
      // store vectors
      iEvent.put(vector_trks_trk_p4       , "trkstrkp4"             );
+     iEvent.put(vector_trks_vertex_p4    , "trksvertexp4"          );
      iEvent.put(vector_trks_d0           , "trksd0"                );
      iEvent.put(vector_trks_d0corr       , "trksd0corr"            );
      iEvent.put(vector_trks_z0           , "trksz0"                );
