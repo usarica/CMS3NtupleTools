@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.15 2009/01/05 00:19:07 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.16 2009/01/15 19:16:43 kalavase Exp $
 //
 //
 
@@ -44,6 +44,8 @@ Implementation:
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "Math/VectorUtil.h"
+
+#include "DataFormats/Math/interface/Point3D.h"
 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -100,7 +102,6 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	     ("musgfitchi2"     ).setBranchAlias("mus_gfit_chi2"     ); // chi2 of the global muon fit                                                               
   produces<vector<float> >	     ("musgfitndof"	).setBranchAlias("mus_gfit_ndof"     ); // number of degree of freedom of the global muon fit                                        
   produces<vector<int> >	     ("musgfitvalidHits").setBranchAlias("mus_gfit_validHits"); // number of valid hits of the global muon fit                
-  produces<vector<Point> >            ("musgfitouterPos" ).setBranchAlias("mus_gfit_outerPos" ); //position of outermost hit
   // loose tracker muon identification based on muon/hadron penetration depth difference       
   produces<vector<int> >	     ("muspidTMLastStationLoose"    ).setBranchAlias("mus_pid_TMLastStationLoose"    ); 
   // tight tracker muon identification based on muon/hadron penetration depth difference       
@@ -111,7 +112,10 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >	     ("muspidTM2DCompatibilityTight").setBranchAlias("mus_pid_TM2DCompatibilityTight"); 
   //calo compatibility variable
   produces<vector<float> >           ("muscaloCompatibility").setBranchAlias("mus_caloCompatibility");
-
+  //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
+  //the 4th co-ordinate is 0
+  produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" );
+  
   muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotInputTag = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -166,13 +170,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >	   vector_mus_gfit_chi2      (new vector<float>	   );
   auto_ptr<vector<float> >	   vector_mus_gfit_ndof      (new vector<float>	   );
   auto_ptr<vector<int> >           vector_mus_gfit_validHits (new vector<int>  	   );
-  auto_ptr<vector<Point> >         vector_mus_gfit_outerPos  (new vector<Point>           );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationLoose     (new vector<int> );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int> );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int> );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight (new vector<int> );
   auto_ptr<vector<float> >         vector_mus_caloCompatibility          (new vector<float> );
-
+  auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                  (new vector<LorentzVector> );
+  
   // get muons
   Handle<edm::View<Muon> > muon_h;
   iEvent.getByLabel(muonsInputTag, muon_h);      // change this in the future
@@ -278,13 +282,18 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_gfit_chi2     ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	  :  -999       );
     vector_mus_gfit_ndof     ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	  :  -999       );
     vector_mus_gfit_validHits->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	: -999	);
-    //This don't work in AOD :(
-    //vector_mus_gfit_outerPos ->push_back(globalTrack.isNonnull() ?  globalTrack->outerPosition() :  Point(0,0,0));
     vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationLoose)     : -999	);
     vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationTight)     : -999	);
     vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityLoose)	: -999	);
     vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityTight)	: -999	);
     vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
+
+    vector_mus_vertex_p4                  ->push_back(siTrack.isNonnull() ? 
+						      LorentzVector(siTrack->vx(),
+								    siTrack->vy(),
+								    siTrack->vz(), 0) 
+						      : LorentzVector(-999,-999,-999,-999) );
+    
 
   }
      
@@ -314,9 +323,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_trkrefkey       , "mustrkrefkey"         );
   iEvent.put(vector_mus_nmatches        , "musnmatches"          );
   iEvent.put(vector_mus_e_em            , "museem"               );
-  iEvent.put(vector_mus_e_had		 , "musehad"              );
+  iEvent.put(vector_mus_e_had           , "musehad"              );
   iEvent.put(vector_mus_e_ho            , "museho"               );
-  iEvent.put(vector_mus_e_emS9		 , "museemS9"             );
+  iEvent.put(vector_mus_e_emS9		, "museemS9"             );
   iEvent.put(vector_mus_e_hadS9         , "musehadS9"            );
   iEvent.put(vector_mus_e_hoS9          , "musehoS9"             );
   iEvent.put(vector_mus_iso             , "musiso"               );
@@ -333,13 +342,15 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_gfit_chi2       , "musgfitchi2"          );
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );
-  iEvent.put(vector_mus_gfit_outerPos   , "musgfitouterPos"      );
   iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"     );
   iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"     );
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
   iEvent.put(vector_mus_caloCompatibility       , "muscaloCompatibility"         );
+  iEvent.put(vector_mus_vertex_p4       , "musvertexp4"          );
+
 }
+
 
 // ------------ method called once each job just before starting event loop  ------------
 void 

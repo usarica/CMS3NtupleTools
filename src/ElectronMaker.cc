@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.13 2009/01/05 23:53:21 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.14 2009/01/15 19:17:59 kalavase Exp $
 //
 //
 
@@ -127,8 +127,11 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   //produces<vector<float> >	    ("elsdPhiOutEcalHit"   ).setBranchAlias("els_dPhiOutEcalHit"   );
   produces<vector<LorentzVector> >  ("elsp4"               ).setBranchAlias("els_p4"               );
   produces<vector<LorentzVector> >  ("elstrkp4"            ).setBranchAlias("els_trk_p4"           );
-  produces<vector<LorentzVector> >  ("elsp4In"             ).setBranchAlias("els_p4In"            );
-  produces<vector<LorentzVector> >  ("elsp4Out"            ).setBranchAlias("els_p4Out"           );
+  produces<vector<LorentzVector> >  ("elsp4In"             ).setBranchAlias("els_p4In"             );
+  produces<vector<LorentzVector> >  ("elsp4Out"            ).setBranchAlias("els_p4Out"            );
+  //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
+  //the 4th co-ordinate is 0
+  produces<vector<LorentzVector> >  ("elsvertexp4"         ).setBranchAlias("els_vertex_p4"        );
 
 
  //get setup parameters
@@ -210,6 +213,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > els_trk_p4               (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4In                 (new vector<LorentzVector>) ;
   auto_ptr<vector<LorentzVector> > els_p4Out                (new vector<LorentzVector>) ;
+  //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
+  //the 4th co-ordinate is 0
+  auto_ptr<vector<LorentzVector> > els_vertex_p4            (new vector<LorentzVector>) ;
 
 
   //Get required collections ->have to be made configurable, hard wired for now
@@ -393,6 +399,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_trk_p4                ->push_back( trk_p4                                          );
     els_p4In                  ->push_back( p4In                                            );
     els_p4Out                 ->push_back( p4Out                                           );
+    els_vertex_p4             ->push_back( LorentzVector(el->vx(), el->vy(), el->vz(), 0.) );
   
   }
   
@@ -447,6 +454,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_trk_p4                       ,"elstrkp4"           );
   iEvent.put(els_p4In                         ,"elsp4In"            );
   iEvent.put(els_p4Out                        ,"elsp4Out"           );
+  iEvent.put(els_vertex_p4                    ,"elsvertexp4"        );
 
 }
 

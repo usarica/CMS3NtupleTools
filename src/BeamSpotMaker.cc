@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.2 2008/10/30 14:18:28 kalavase Exp $
+// $Id: BeamSpotMaker.cc,v 1.3 2009/01/15 19:19:54 kalavase Exp $
 //
 //
 
@@ -31,9 +31,8 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/BeamSpotMaker.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
-#include "DataFormats/Math/interface/Point3D.h"
-#include "Math/Point3D.h"
 
+typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;
@@ -45,18 +44,19 @@ using namespace std;
 
 BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
 
-  
-  produces<Point>  ("evtbs"           ).setBranchAlias("evt_bs"              );
-  produces<float>  ("evtbsxErr"       ).setBranchAlias("evt_bs_xErr"         );
-  produces<float>  ("evtbsyErr"       ).setBranchAlias("evt_bs_yErr"         );
-  produces<float>  ("evtbszErr"       ).setBranchAlias("evt_bs_zErr"         );
-  produces<float>  ("evtbssigmaZ"     ).setBranchAlias("evt_bs_sigmaZ"       );
-  produces<float>  ("evtbssigmaZErr"  ).setBranchAlias("evt_bs_sigmaZErr"    );
-  produces<float>  ("evtbsdxdz"       ).setBranchAlias("evt_bs_dxdz"         );
-  produces<float>  ("evtbsdxdzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
-  produces<float>  ("evtbsdydz"       ).setBranchAlias("evt_bs_dydz"         );
-  produces<float>  ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dydzErr"      );
-  produces<float>  ("evtbswidthErr"   ).setBranchAlias("evt_bs_widthErr"     );
+  //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
+  //the 4th co-ordinate is 0
+  produces<LorentzVector>("evtbsp4"         ).setBranchAlias("evt_bsp4"            );
+  produces<float>        ("evtbsxErr"       ).setBranchAlias("evt_bs_xErr"         );
+  produces<float>        ("evtbsyErr"       ).setBranchAlias("evt_bs_yErr"         );
+  produces<float>        ("evtbszErr"       ).setBranchAlias("evt_bs_zErr"         );
+  produces<float>        ("evtbssigmaZ"     ).setBranchAlias("evt_bs_sigmaZ"       );
+  produces<float>        ("evtbssigmaZErr"  ).setBranchAlias("evt_bs_sigmaZErr"    );
+  produces<float>        ("evtbsdxdz"       ).setBranchAlias("evt_bs_dxdz"         );
+  produces<float>        ("evtbsdxdzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
+  produces<float>        ("evtbsdydz"       ).setBranchAlias("evt_bs_dydz"         );
+  produces<float>        ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dydzErr"      );
+  produces<float>        ("evtbswidthErr"   ).setBranchAlias("evt_bs_widthErr"     );
   
   beamSpotInputTag = iConfig.getParameter<InputTag>("beamSpotInputTag");
   
@@ -75,17 +75,17 @@ void BeamSpotMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<Point>   evt_bs            (new Point);
-  auto_ptr<float>   evt_bs_xErr       (new float);
-  auto_ptr<float>   evt_bs_yErr       (new float);
-  auto_ptr<float>   evt_bs_zErr       (new float);
-  auto_ptr<float>   evt_bs_sigmaZ     (new float);
-  auto_ptr<float>   evt_bs_sigmaZErr  (new float);
-  auto_ptr<float>   evt_bs_dxdz       (new float);
-  auto_ptr<float>   evt_bs_dxdzErr    (new float);
-  auto_ptr<float>   evt_bs_dydz       (new float);
-  auto_ptr<float>   evt_bs_dydzErr    (new float);
-  auto_ptr<float>   evt_bs_widthErr   (new float);
+  auto_ptr<LorentzVector>evt_bs_p4            (new LorentzVector);
+  auto_ptr<float>        evt_bs_xErr       (new float);
+  auto_ptr<float>        evt_bs_yErr       (new float);
+  auto_ptr<float>        evt_bs_zErr       (new float);
+  auto_ptr<float>        evt_bs_sigmaZ     (new float);
+  auto_ptr<float>        evt_bs_sigmaZErr  (new float);
+  auto_ptr<float>        evt_bs_dxdz       (new float);
+  auto_ptr<float>        evt_bs_dxdzErr    (new float);
+  auto_ptr<float>        evt_bs_dydz       (new float);
+  auto_ptr<float>        evt_bs_dydzErr    (new float);
+  auto_ptr<float>        evt_bs_widthErr   (new float);
   
   
   Handle<BeamSpot> beamSpotH;
@@ -94,7 +94,11 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if(!beamSpotH.isValid() )
     haveBeamSpot = false;
   
-  *evt_bs            = haveBeamSpot ? beamSpotH->position()       : Point(0,0,0);
+  *evt_bs_p4         = haveBeamSpot ? LorentzVector(beamSpotH->position().x(), 
+						    beamSpotH->position().y(),
+						    beamSpotH->position().z(), 
+						    0) : LorentzVector(0,0,0,0);
+
   *evt_bs_xErr       = haveBeamSpot ? beamSpotH->x0Error()        : 0.0;
   *evt_bs_yErr       = haveBeamSpot ? beamSpotH->y0Error()        : 0.0;
   *evt_bs_zErr       = haveBeamSpot ? beamSpotH->z0Error()        : 0.0;
@@ -106,7 +110,7 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_bs_dydzErr    = haveBeamSpot ? beamSpotH->dydzError()      : 0.0;
   *evt_bs_widthErr   = haveBeamSpot ? beamSpotH->BeamWidthError() : 0.0;
   
-  iEvent.put(evt_bs            ,"evtbs"      );
+  iEvent.put(evt_bs_p4           ,"evtbsp4"      );
   if(haveBeamSpot) {
     iEvent.put(evt_bs_xErr       ,"evtbsxErr"  );
     iEvent.put(evt_bs_yErr       ,"evtbsyErr");
