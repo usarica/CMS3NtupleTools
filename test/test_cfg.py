@@ -6,8 +6,10 @@ import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("CMS2")
 
+from Configuration.EventContent.EventContent_cff import *
+
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.22 $'),
+        version = cms.untracked.string('$Revision: 1.23 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -71,7 +73,7 @@ process.load("CMS2.NtupleMaker.wwCutMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(20)
+    input = cms.untracked.int32(-1)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -82,7 +84,6 @@ process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
 )
-
 
 #-------------------------------------------------
 # patTuple configuration
@@ -197,28 +198,28 @@ process.allLayer0Electrons.isolation.ecal.vetos = cms.vstring(
 process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
 process.CMS2 = cms.PSet(
-    outputCommands = cms.untracked.vstring(
-    'drop *',
-    ##'keep recoGenParticles_genParticles_*_*',
-    ##'keep *_genEventScale_*_*',
-    ##'keep *_genEventWeight_*_*',
-    ##'keep *_genEventPdfInfo_*_*',
-    ##'keep edmTriggerResults_TriggerResults_*_HLT', 
-    ##'keep *_hltTriggerSummaryAOD_*_*',
-    ##'keep *_offlineBeamSpot_*_*',
-    ##'keep *_offlinePrimaryVertices_*_*',
-    ##'keep recoTracks_generalTracks_*_*', 
-    ##'keep *_towerMaker_*_*',
-    ##'keep *_selectedLayer1Photons_*_*', 
-    'keep *_selectedLayer1Electrons_*_*', 
-    ##'keep *_selectedLayer1Muons_*_*', 
-    ##'keep *_selectedLayer1Taus_*_*', 
-    ##'keep *_selectedLayer1Jets_*_*', 
-    ##'keep *_selectedLayer1METs_*_*',
-    ##'keep patPFParticles_*_*_*',
-    ##'keep *_selectedLayer1Hemispheres_*_*',
-    'keep *_*Maker_*_CMS2',
-  )
+#    outputCommands = cms.untracked.vstring(
+#    'drop *',
+#    ##'keep recoGenParticles_genParticles_*_*',
+#    ##'keep *_genEventScale_*_*',
+#    ##'keep *_genEventWeight_*_*',
+#    ##'keep *_genEventPdfInfo_*_*',
+#    ##'keep edmTriggerResults_TriggerResults_*_HLT', 
+#    ##'keep *_hltTriggerSummaryAOD_*_*',
+#    ##'keep *_offlineBeamSpot_*_*',
+#    ##'keep *_offlinePrimaryVertices_*_*',
+#    ##'keep recoTracks_generalTracks_*_*', 
+#    ##'keep *_towerMaker_*_*',
+#    ##'keep *_selectedLayer1Photons_*_*', 
+#    'keep *_selectedLayer1Electrons_*_*', 
+#    ##'keep *_selectedLayer1Muons_*_*', 
+#    ##'keep *_selectedLayer1Taus_*_*', 
+#    ##'keep *_selectedLayer1Jets_*_*', 
+#    ##'keep *_selectedLayer1METs_*_*',
+#    ##'keep patPFParticles_*_*_*',
+#    ##'keep *_selectedLayer1Hemispheres_*_*',
+#    'keep *_*Maker_*_CMS2',
+#  )
 )
 
 ## configure output module
@@ -227,8 +228,8 @@ process.out = cms.OutputModule("PoolOutputModule",
     process.CMS2,
     ##process.patTupleEventContent,
     verbose = cms.untracked.bool(True),
-    dropMetaDataForDroppedData = cms.untracked.bool(True),                           
-    fileName = cms.untracked.string('test_1.root')
+    dropMetaDataForDroppedData = cms.untracked.bool(True),
+    fileName = cms.untracked.string('/tmp/test_1.root')
 )
 
 
@@ -259,4 +260,12 @@ process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTupl
 ##output
 process.outpath = cms.EndPath(process.out)
 
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(AODSIMEventContent.outputCommands)
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep edmHepMCProduct_source_*_*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep recoTrackExtras_*_*_*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep TrackingRecHitsOwned_*_*_*'))
+
+# print process.dumpPython()
 
