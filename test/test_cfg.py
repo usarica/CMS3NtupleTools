@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.23 $'),
+        version = cms.untracked.string('$Revision: 1.24 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -249,7 +249,7 @@ process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMa
 process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker*process.wwCutMaker)
-process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.genjetmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
+process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
 
 ##includes filter
 #process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
