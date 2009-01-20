@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.24 $'),
+        version = cms.untracked.string('$Revision: 1.25 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -21,6 +21,13 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 ## configure conditions
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.GlobalTag.globaltag = "IDEAL_V9::All"
+
+# include stuff for JPT (not sure if all of this is needed yet)
+process.load("Configuration.StandardSequences.Services_cff")
+process.load("Configuration.StandardSequences.Reconstruction_cff")
+process.load("Configuration.StandardSequences.Simulation_cff")
+process.load("Configuration.StandardSequences.MixingNoPileUp_cff")
+process.load("Configuration.StandardSequences.VtxSmearedGauss_cff")
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -70,6 +77,7 @@ process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 process.load("CMS2.NtupleMaker.wwCutMaker_cfi")
+process.load("CMS2.NtupleMaker.jptMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
@@ -83,6 +91,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
+#    fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
 )
 
 #-------------------------------------------------
@@ -157,6 +166,13 @@ switchJetCollection(process,
 #-------------------------------------------------
 
 process.load("RecoMET.METProducers.TCMET_cfi")
+
+#-------------------------------------------------
+# load JPT producer
+#-------------------------------------------------
+
+process.load("JetMETCorrections.Configuration.JetPlusTrackCorrections_cff")
+process.load("JetMETCorrections.Configuration.ZSPJetCorrections219_cff")
 
 #-------------------------------------------------
 # process output; first the event selection is
@@ -241,6 +257,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
+process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
@@ -255,7 +272,7 @@ process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process
 #process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
 
 ##no filter
-process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2)
+process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.patTuple*process.cms2)
 
 ##output
 process.outpath = cms.EndPath(process.out)
