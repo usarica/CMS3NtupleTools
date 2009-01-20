@@ -1,0 +1,7 @@
+module jptMaker = JPTMaker {
+  # jpt collection
+  InputTag jptInputTag = JetPlusTrackZSPCorJetIcone5 
+
+  # ic5jets collection
+  InputTag ic5jetInputTag = iterativeCone5CaloJets
+}
