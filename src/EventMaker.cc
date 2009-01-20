@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.14 2009/01/12 06:19:22 kalavase Exp $
+// $Id: EventMaker.cc,v 1.15 2009/01/20 04:47:10 dmytro Exp $
 //
 //
 
@@ -51,7 +51,7 @@ Implementation:
 
 
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
-
+#include "TString.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -69,6 +69,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<unsigned int>   ("evtrun"               ).setBranchAlias("evt_run"                  );
   produces<unsigned int>   ("evtevent"             ).setBranchAlias("evt_event"                );
   produces<unsigned int>   ("evtlumiBlock"         ).setBranchAlias("evt_lumiBlock"            );
+  produces<TString>        ("evtdataset"           ).setBranchAlias("evt_dataset"              );
   produces<int>    ("evtHLT1"              ).setBranchAlias("evt_HLT1"                 );
   produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
   produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
@@ -86,14 +87,14 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
   produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
   produces<float>  ("evtkfactor"           ).setBranchAlias("evt_kfactor"              );
-  //produces<string>  ("evttemp"           ).setBranchAlias("evt_temp"              );
-  produces<vector<char> > ("evtL1trigNames"   ).setBranchAlias("evt_L1_trigNames"      );    
-  produces<vector<char> > ("evtHLTtrigNames"  ).setBranchAlias("evt_HLT_trigNames"     );
+  produces<std::vector<TString> > ("evtL1trigNames"   ).setBranchAlias("evt_L1_trigNames"      );    
+  produces<std::vector<TString> > ("evtHLTtrigNames"  ).setBranchAlias("evt_HLT_trigNames"     );
   
   
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
   kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
+  datasetName_ = iConfig.getParameter<std::string>("datasetName");
   
   // info
   haveTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveTriggerInfo");
@@ -117,6 +118,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<unsigned int>      evt_run               (new unsigned int);
   auto_ptr<unsigned int>      evt_event             (new unsigned int);
   auto_ptr<unsigned int>      evt_lumiBlock         (new unsigned int);
+  auto_ptr<TString>           evt_dataset           (new TString(datasetName_.c_str()));
   auto_ptr<int>      evt_HLT1              (new int);
   auto_ptr<int>      evt_HLT2              (new int);
   auto_ptr<int>      evt_HLT3              (new int);
@@ -135,8 +137,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>    evt_xsec_excl         (new float);
   auto_ptr<float>    evt_kfactor           (new float);
   //auto_ptr<string>   evt_temp              (new string);
-  auto_ptr<vector<char> >      evt_HLT_trigNames        (new vector<char>);
-  auto_ptr<vector<char> >      evt_L1_trigNames         (new vector<char>);    
+  auto_ptr<vector<TString> >      evt_HLT_trigNames        (new vector<TString>);
+  auto_ptr<vector<TString> >      evt_L1_trigNames         (new vector<TString>);
   
   *evt_run   = iEvent.id().run();
   *evt_event = iEvent.id().event();
@@ -156,23 +158,15 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int *l12        = new int;
     int *l13        = new int;
     int *l14        = new int;
-    string *hltnames = new string;
     string *l1names  = new string;
 
     fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, 
-		hlt6, hlt7, hlt8, hltnames);
-    vector<char> v_hlt(hltnames->begin(), hltnames->end() );
-    *evt_HLT_trigNames = v_hlt;
-    //*evt_temp = *hltnames; 
+		hlt6, hlt7, hlt8, *evt_HLT_trigNames);
     
     edm::ESHandle<L1GtTriggerMenu> menuRcd;
     iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
     const L1GtTriggerMenu* menu = menuRcd.product();
-    fillL1Info(iEvent, l11, l12, l13, l14, l1names, menu);
-    vector<char> v_l1(l1names->begin(), l1names->end() );
-    *evt_L1_trigNames = v_l1;
-    
-   
+    fillL1Info(iEvent, l11, l12, l13, l14, *evt_L1_trigNames, menu);
     
     *evt_HLT1 = *hlt1;
     *evt_HLT2 = *hlt2;
@@ -239,6 +233,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       
   iEvent.put(evt_run              ,"evtrun"             );
   iEvent.put(evt_event            ,"evtevent"           );
+  iEvent.put(evt_lumiBlock        ,"evtlumiBlock"       );
+  iEvent.put(evt_dataset          ,"evtdataset"         );
   iEvent.put(evt_HLT1             ,"evtHLT1"            );
   iEvent.put(evt_HLT2             ,"evtHLT2"            );
   iEvent.put(evt_HLT3             ,"evtHLT3"            );
@@ -258,7 +254,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
   iEvent.put(evt_HLT_trigNames    ,"evtHLTtrigNames"    );
   iEvent.put(evt_L1_trigNames     ,"evtL1trigNames"     );
-  //iEvent.put(evt_temp,"evttemp");
+
 
 }
 
@@ -268,10 +264,9 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 // fill HLT info
 //-----------------------------------------------------------------------
 void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int *h4,
-			     int *h5, int *h6, int *h7, int *h8, std::string *hltnames) {
+			     int *h5, int *h6, int *h7, int *h8, std::vector<TString>& hltnames) {
 			     
 
-  string tmpnames;  
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
   edm::TriggerNames triggerNames(*triggerResults);
@@ -292,11 +287,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
     throw cms::Exception("EventMaker: Number of HLT trigger variables must be increased!");
   for (unsigned int i = 0; i < ntriggers; i++) {
     
-    if(i==0) { 
-        tmpnames = triggerNames.triggerName(i);
-     } else {
-      tmpnames = tmpnames + " " + triggerNames.triggerName(i);
-    } 
+     hltnames.push_back(triggerNames.triggerName(i).c_str());
    
     if(i<=31) {
       unsigned int bitmask = 1;
@@ -364,15 +355,13 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
        }
 
      }
-  *hltnames = tmpnames;
-  
 }
 
 //----------------------------------------------------------
 //fill L1 info
 //---------------------------------------------------------
 void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
-			    int* l1_3, int* l1_4, string *l1names,
+			    int* l1_3, int* l1_4, std::vector<TString>& l1names,
 			    const L1GtTriggerMenu* menu) {
   
   edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
@@ -380,7 +369,6 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
   //if(L1PMC.isValid()) {
   const DecisionWord dWord = gtRecord->decisionWord();
 
-  string tmpnames;
   for(AlgorithmMap::const_iterator algo = menu->gtAlgorithmMap().begin();
       algo != menu->gtAlgorithmMap().end(); algo++) {
     if(algo->first != algo->second.algoName()) {
@@ -389,11 +377,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
 	    << "Something is wrong!!!!" << endl;
     }
     
-    if(algo==menu->gtAlgorithmMap().begin())
-      tmpnames = algo->second.algoName();
-    else 
-      tmpnames = tmpnames + " " + algo->second.algoName();
-
+     l1names.push_back( algo->second.algoName().c_str() );
   }
 	
    *l1_1=0;
@@ -436,9 +420,6 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        }
      }
    }
-
-  *l1names = tmpnames;
-
 }
 
 //define this as a plug-in

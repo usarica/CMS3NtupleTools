@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.7 2008/12/17 08:24:26 kalavase Exp $
+// $Id: EventMaker.h,v 1.8 2009/01/20 04:47:10 dmytro Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -32,7 +32,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenuFwd.h"
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
-
+#include "TString.h"
 //
 // class decleration
 //
@@ -56,16 +56,16 @@ private:
   void fillHLTInfo(const edm::Event&, 
 		   int*, int*,int*, int*,
 		   int*, int*,int*, int*, 
-		   std::string*);
+		   std::vector<TString>&);
   void fillL1Info(const edm::Event&, int*, 
-		  int*, int*, int*, std::string*,
+		  int*, int*, int*, std::vector<TString>&,
 		  const L1GtTriggerMenu* menu);
   
   double inclusiveCrossSectionValue;
   double exclusiveCrossSectionValue;
   double kfactorValue;
   bool haveTriggerInfo_;
- 
+  std::string datasetName_;
 };
 
 
