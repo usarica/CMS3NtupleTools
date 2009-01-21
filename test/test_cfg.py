@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.25 $'),
+        version = cms.untracked.string('$Revision: 1.26 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -90,7 +90,7 @@ process.options = cms.untracked.PSet(
 ##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('file:///uscms_data/d1/slava77/tauola-16AAC418-218A-DD11-AC33-001F2908F0E4.root')
+    fileNames = cms.untracked.vstring('/store/mc/Fall08/QCD250to500-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0014/02F453D2-5FE0-DD11-AB9A-00163691DC0A.root')
 #    fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
 )
 
@@ -100,6 +100,13 @@ process.source = cms.Source("PoolSource",
 
 ## std sequence for tqaf layer1
 process.load("TopQuarkAnalysis.TopObjectProducers.patTuple_cff")
+
+#modified patTuple sequence from above cff file. This is because
+#MadGraph samples don't have genEventRunInfo in them
+process.patTuple = cms.Sequence(process.genEventProcID +             ## needs HepMCProduct in the event content
+                                process.patLayer0_patTuple *         ## to be used from PhysicsTools/PatAlgos 
+                                process.patLayer1# *                 ## V04-14-03 onwards                 
+                               )
 
 ## necessary fixes to run 2.2.X on 2.1.X data
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
