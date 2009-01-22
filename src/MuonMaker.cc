@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.16 2009/01/15 19:16:43 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.17 2009/01/22 08:59:15 kalavase Exp $
 //
 //
 
@@ -187,10 +187,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   const edm::View<Track> *track_coll = tk_h.product();
      
   //get BeamSpot from BeamSpotMaker
-  edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbs");
-  edm::Handle<math::XYZPoint> beamSpotH;
+  edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbsp4");
+  edm::Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
-  const Point beamSpot = beamSpotH.isValid() ? *(beamSpotH.product()) : Point(0,0,0);
+  const Point beamSpot = beamSpotH.isValid() ?
+                         Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
   for (edm::View<Muon>::const_iterator muon = muon_h->begin(); 
        muon != muons_end; ++muon) {

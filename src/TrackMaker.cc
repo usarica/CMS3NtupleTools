@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.9 2009/01/15 19:12:55 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.10 2009/01/22 08:58:24 kalavase Exp $
 //
 //
 
@@ -133,10 +133,11 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      const MagneticField* bf = theMagField.product();
 
      //get BeamSpot from BeamSpotMaker
-     edm::InputTag beamSpot_tag(beamSpotTag.label(),"evtbs");
-     edm::Handle<math::XYZPoint> beamSpotH;
+     edm::InputTag beamSpot_tag(beamSpotTag.label(),"evtbsp4");
+     edm::Handle<LorentzVector> beamSpotH;
      iEvent.getByLabel(beamSpot_tag, beamSpotH);
-     const Point beamSpot = beamSpotH.isValid() ? *(beamSpotH.product()) : Point(0,0,0);
+     const Point beamSpot = beamSpotH.isValid() ?
+                         Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
      for (edm::View<reco::Track>::const_iterator i = track_h->begin(); 
 	  i != tracks_end; ++i) {

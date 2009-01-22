@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.14 2009/01/15 19:17:59 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.15 2009/01/22 08:58:16 kalavase Exp $
 //
 //
 
@@ -240,12 +240,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<reco::GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
 
-  edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbs");
-  edm::Handle<math::XYZPoint> beamSpotH;
+  edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbsp4");
+  edm::Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
-  const Point beamSpot = beamSpotH.isValid() ? *(beamSpotH.product()) : Point(0,0,0);
+  const Point beamSpot = beamSpotH.isValid() ?
+                         Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
-  //fill number of electrons variable
+
+  //fill number of eqlectrons variable
   *evt_nels = els_h->size();
   
   //loop over electron collection
@@ -367,6 +369,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_d0                    ->push_back( el_track->d0()                                  );
     els_z0                    ->push_back( el_track->dz()                                  );
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))                      );
+    cout << el_track->d0() << -1*(el_track->dxy(beamSpot)) << endl;
     els_z0corr                ->push_back( el_track->dz(beamSpot)                          );
     els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )         );
     els_chi2                  ->push_back( el_track->chi2()                                );
