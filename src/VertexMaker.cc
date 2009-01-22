@@ -42,21 +42,27 @@ typedef math::XYZPoint Point;
 VertexMaker::VertexMaker(const edm::ParameterSet& iConfig)
 {
 
+     // counter of vertexs in the event
      produces<unsigned int>("evtnvtxs").setBranchAlias("evt_nvtxs");
 
+     // position and position error
      produces<std::vector<Point> >("vtxsposition").setBranchAlias("vtxs_position");
      produces<std::vector<float> >("vtxsxerror").setBranchAlias("vtxs_xError");
      produces<std::vector<float> >("vtxsyerror").setBranchAlias("vtxs_yError");
      produces<std::vector<float> >("vtxszerror").setBranchAlias("vtxs_zError");
 
+     // chi2 and ndof. Tracks apparently can contribute with a weight so
+     // ndof may be non integral
      produces<std::vector<float> >("vtxschi2").setBranchAlias("vtxs_chi2");
      produces<std::vector<float> >("vtxsndof").setBranchAlias("vtxs_ndof");
 
+     // track / general information
      produces<std::vector<int> >("vtxshasrefittedtracks").setBranchAlias("vtxs_hasRefittedTracks");
      produces<std::vector<int> >("vtxsisfake").setBranchAlias("vtxs_isFake");
      produces<std::vector<int> >("vtxsisvalid").setBranchAlias("vtxs_isValid");
      produces<std::vector<int> >("vtxstrackssize").setBranchAlias("vtxs_tracksSize");
 
+     // vertex collection input tag
      primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
 
 }
@@ -75,15 +81,12 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
      std::auto_ptr<unsigned int> evt_nvtxs (new unsigned int);
-
      std::auto_ptr<std::vector<Point> > vector_vtxs_position (new std::vector<Point>);
      std::auto_ptr<std::vector<float> > vector_vtxs_xError (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_vtxs_yError (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_vtxs_zError (new std::vector<float>);
-
      std::auto_ptr<std::vector<float> > vector_vtxs_chi2 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_vtxs_ndof (new std::vector<float>);
-
      std::auto_ptr<std::vector<int> > vector_vtxs_hasRefittedTracks (new std::vector<int>);
      std::auto_ptr<std::vector<int> > vector_vtxs_isFake (new std::vector<int>);
      std::auto_ptr<std::vector<int> > vector_vtxs_isValid (new std::vector<int>);
@@ -97,10 +100,8 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     vector_vtxs_xError->push_back( vtx->xError() );
              vector_vtxs_yError->push_back( vtx->yError() );
              vector_vtxs_zError->push_back( vtx->zError() );
-
              vector_vtxs_chi2->push_back( vtx->chi2() );
              vector_vtxs_ndof->push_back( vtx->ndof() );
-
              vector_vtxs_hasRefittedTracks->push_back( vtx->hasRefittedTracks() );
              vector_vtxs_isFake->push_back( vtx->isFake() );
              vector_vtxs_isValid->push_back( vtx->isValid() );
@@ -108,17 +109,14 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      } // end loop on vertexs
 
+     // store into the event
      iEvent.put(evt_nvtxs, "evtnvtxs");
-
-     // store vectors
      iEvent.put(vector_vtxs_position, "vtxsposition");
      iEvent.put(vector_vtxs_xError, "vtxsxerror");
      iEvent.put(vector_vtxs_yError, "vtxsyerror");
      iEvent.put(vector_vtxs_zError, "vtxszerror");
-
      iEvent.put(vector_vtxs_chi2, "vtxschi2");
      iEvent.put(vector_vtxs_ndof, "vtxsndof");
-
      iEvent.put(vector_vtxs_hasRefittedTracks, "vtxshasrefittedtracks");
      iEvent.put(vector_vtxs_isFake, "vtxsisfake");
      iEvent.put(vector_vtxs_isValid, "vtxsisvalid");

@@ -26,6 +26,7 @@
 
 #include "CMS2/NtupleMaker/interface/SCMaker.h"
 
+#include "DataFormats/CaloRecHit/interface/CaloID.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -45,24 +46,31 @@ typedef math::XYZPoint Point;
 SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 {
 
+     // number of superclusters in the event
      produces<unsigned int>("evtnscs").setBranchAlias("evt_nscs");
 
-     //produces<std::vector<int> >("scscaloid").setBranchAlias("scs_caloID");
-
+     // number of basicclusters and crystals
      produces<std::vector<float> >("scsclusterssize").setBranchAlias("scs_clustersSize");
      produces<std::vector<float> >("scscrystalssize").setBranchAlias("scs_crystalsSize");
 
+     // energies
      produces<std::vector<float> >("scsenergy").setBranchAlias("scs_energy");
      produces<std::vector<float> >("scsrawenergy").setBranchAlias("scs_rawEnergy"); 
      produces<std::vector<float> >("scspreshowerenergy").setBranchAlias("scs_preshowerEnergy");
 
+     // positions
      produces<std::vector<LorentzVector> >("scsp4").setBranchAlias("scs_p4");
      produces<std::vector<Point> >("scspos").setBranchAlias("scs_pos");
      produces<std::vector<float> >("scseta").setBranchAlias("scs_eta");
      produces<std::vector<float> >("scsphi").setBranchAlias("scs_phi");
 
+     // longitudinal shower shape
      produces<std::vector<float> >("scshoe").setBranchAlias("scs_hoe");
 
+     // shape variables for seed basiccluster
+     // see
+     // RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h
+     // revision=1.7
      produces<std::vector<float> >("scse1x3").setBranchAlias("scs_e1x3");
      produces<std::vector<float> >("scse3x1").setBranchAlias("scs_e3x1"); 
      produces<std::vector<float> >("scse1x5").setBranchAlias("scs_e1x5");
@@ -72,6 +80,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
      produces<std::vector<float> >("scse4x4").setBranchAlias("scs_e4x4"); 
      produces<std::vector<float> >("scse5x5").setBranchAlias("scs_e5x5"); 
 
+     // covariances
      produces<std::vector<float> >("scscovetaeta").setBranchAlias("scs_covEtaEta");
      produces<std::vector<float> >("scscovetaphi").setBranchAlias("scs_covEtaPhi");
      produces<std::vector<float> >("scscovphiphi").setBranchAlias("scs_covPhiPhi");
@@ -79,13 +88,17 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
      produces<std::vector<float> >("scscovietaiphi").setBranchAlias("scs_covIEtaIPhi");
      produces<std::vector<float> >("scscoviphiiphi").setBranchAlias("scs_covIPhiIPhi");
 
+     // add superclusters to the ntuple if they have ET > scEtMin_
      scEtMin_ = iConfig.getParameter<double>("scEtMin");
+
+     // input tags for superclusters
      scInputTag_EE_ = iConfig.getParameter<edm::InputTag>("scInputTag_EE");
      scInputTag_EB_ = iConfig.getParameter<edm::InputTag>("scInputTag_EB");
      scInputTags_.clear();
      scInputTags_.push_back(scInputTag_EE_);
      scInputTags_.push_back(scInputTag_EB_);
 
+     // other input tags
      hcalRecHitsInputTag_HBHE_ = iConfig.getParameter<edm::InputTag>("hcalRecHitsInputTag_HBHE");
      ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
      ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
@@ -138,32 +151,17 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      EcalClusterLazyTools lazyTools(iEvent, iSetup,
         ecalRecHitsInputTag_EB_, ecalRecHitsInputTag_EE_);
 
-     // counter of superclusters in event
      std::auto_ptr<unsigned int> evt_nscs (new unsigned int);
-
-     // location flag
-     //std::auto_ptr<std::vector<int> > vector_scs_caloID (new std::vector<int>);
-
-     // estimated p4
      std::auto_ptr<std::vector<LorentzVector> > vector_scs_p4 (new std::vector<LorentzVector>);
      std::auto_ptr<std::vector<Point> > vector_scs_pos (new std::vector<Point>);
      std::auto_ptr<std::vector<float> > vector_scs_eta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_phi (new std::vector<float>);
-
      std::auto_ptr<std::vector<float> > vector_scs_clustersSize (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_crystalsSize (new std::vector<float>);
-
-     // supercluster energy
      std::auto_ptr<std::vector<float> > vector_scs_energy (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_preshowerEnergy (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_rawEnergy (new std::vector<float>);
-
-     // longidudinal shower shape
      std::auto_ptr<std::vector<float> > vector_scs_hoe (new std::vector<float>);
-
-     // see
-     // RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h
-     // revision=1.7
      std::auto_ptr<std::vector<float> > vector_scs_e1x3 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e3x1 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e1x5 (new std::vector<float>);
@@ -172,17 +170,16 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<std::vector<float> > vector_scs_e3x3 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e4x4 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e5x5 (new std::vector<float>);
-
-     // covariances
      std::auto_ptr<std::vector<float> > vector_scs_covEtaEta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covEtaPhi(new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covPhiPhi(new std::vector<float>);
-     // covariences in terms of crystal indices
      std::auto_ptr<std::vector<float> > vector_scs_covIEtaIEta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covIEtaIPhi(new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covIPhiIPhi(new std::vector<float>);
  
      *evt_nscs = 0;
+     // there are multiple supercluster collections. In the ntuple
+     // these will become concatonated
      for (unsigned int i = 0; i < scInputTags_.size(); ++i)
      {
 
@@ -203,20 +200,15 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     // do ET cut
              if ( (sc->energy()/cosh(sc->eta())) < scEtMin_) continue;
 
-             //vector_scs_caloID->push_back( sc->caloID().detectors() );
-
              LorentzVector p4 = initP4(pv, *sc);
 	     vector_scs_p4->push_back( p4 );
              vector_scs_pos->push_back( sc->position() );
 	     vector_scs_eta->push_back( sc->eta() );
              vector_scs_phi->push_back( sc->phi() );
-
              vector_scs_energy->push_back( sc->energy() );
              vector_scs_rawEnergy->push_back( sc->rawEnergy() );
              vector_scs_preshowerEnergy->push_back( sc->preshowerEnergy() );
-
              vector_scs_hoe->push_back( hoeCalc(&(*sc), mhbhe) );
-
              vector_scs_e1x3->push_back( lazyTools.e1x3(*(sc->seed())) );
              vector_scs_e3x1->push_back( lazyTools.e3x1(*(sc->seed())) );
              vector_scs_e1x5->push_back( lazyTools.e1x5(*(sc->seed())) );
@@ -225,19 +217,15 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
              vector_scs_e3x3->push_back( lazyTools.e3x3(*(sc->seed())) );
              vector_scs_e4x4->push_back( lazyTools.e4x4(*(sc->seed())) );
              vector_scs_e5x5->push_back( lazyTools.e5x5(*(sc->seed())) );
-
 	     std::vector<float> covariances = lazyTools.covariances(*(sc->seed()));
 	     vector_scs_covEtaEta->push_back( covariances[0] );
              vector_scs_covEtaPhi->push_back( covariances[1] );
              vector_scs_covPhiPhi->push_back( covariances[2] );
-
              std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
              vector_scs_covIEtaIEta->push_back( localCovariances[0] );
              vector_scs_covIEtaIPhi->push_back( localCovariances[1] );
              vector_scs_covIPhiIPhi->push_back( localCovariances[2] );
-
 	     vector_scs_clustersSize->push_back( sc->clustersSize() );
-
 	     std::vector<DetId> detIds = sc->getHitsByDetId();
 	     vector_scs_crystalsSize->push_back( detIds.size() );
 
@@ -245,22 +233,16 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      } // end loop on sc input tags
 
+     // put results into the event
      iEvent.put(evt_nscs, "evtnscs");
-
-     // store vectors
-     //iEvent.put(vector_scs_caloID, "scscaloid");
-
      iEvent.put(vector_scs_energy, "scsenergy");
      iEvent.put(vector_scs_rawEnergy, "scsrawenergy");
      iEvent.put(vector_scs_preshowerEnergy, "scspreshowerenergy");
-
      iEvent.put(vector_scs_p4, "scsp4");
      iEvent.put(vector_scs_pos, "scspos");
      iEvent.put(vector_scs_eta, "scseta");
      iEvent.put(vector_scs_phi, "scsphi");
-
      iEvent.put(vector_scs_hoe, "scshoe");
-
      iEvent.put(vector_scs_e1x3, "scse1x3");
      iEvent.put(vector_scs_e3x1, "scse3x1");
      iEvent.put(vector_scs_e1x5, "scse1x5");
@@ -269,17 +251,14 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_scs_e3x3, "scse3x3");
      iEvent.put(vector_scs_e4x4, "scse4x4");
      iEvent.put(vector_scs_e5x5, "scse5x5");
-
      iEvent.put(vector_scs_covEtaEta, "scscovetaeta");
      iEvent.put(vector_scs_covEtaPhi, "scscovetaphi");
      iEvent.put(vector_scs_covPhiPhi, "scscovphiphi");
      iEvent.put(vector_scs_covIEtaIEta, "scscovietaieta");
      iEvent.put(vector_scs_covIEtaIPhi, "scscovietaiphi");
      iEvent.put(vector_scs_covIPhiIPhi, "scscoviphiiphi");
-
      iEvent.put(vector_scs_clustersSize, "scsclusterssize");
      iEvent.put(vector_scs_crystalsSize, "scscrystalssize");
-
 
      delete mhbhe;
 
