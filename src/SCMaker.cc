@@ -30,6 +30,7 @@
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/DetId/interface/DetId.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -44,7 +45,12 @@ typedef math::XYZPoint Point;
 SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 {
 
+     produces<unsigned int>("evtnscs").setBranchAlias("evt_nscs");
+
      //produces<std::vector<int> >("scscaloid").setBranchAlias("scs_caloID");
+
+     produces<std::vector<float> >("scsclusterssize").setBranchAlias("scs_clustersSize");
+     produces<std::vector<float> >("scscrystalssize").setBranchAlias("scs_crystalsSize");
 
      produces<std::vector<float> >("scsenergy").setBranchAlias("scs_energy");
      produces<std::vector<float> >("scsrawenergy").setBranchAlias("scs_rawEnergy"); 
@@ -132,6 +138,9 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      EcalClusterLazyTools lazyTools(iEvent, iSetup,
         ecalRecHitsInputTag_EB_, ecalRecHitsInputTag_EE_);
 
+     // counter of superclusters in event
+     std::auto_ptr<unsigned int> evt_nscs (new unsigned int);
+
      // location flag
      //std::auto_ptr<std::vector<int> > vector_scs_caloID (new std::vector<int>);
 
@@ -141,6 +150,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<std::vector<float> > vector_scs_eta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_phi (new std::vector<float>);
 
+     std::auto_ptr<std::vector<float> > vector_scs_clustersSize (new std::vector<float>);
+     std::auto_ptr<std::vector<float> > vector_scs_crystalsSize (new std::vector<float>);
 
      // supercluster energy
      std::auto_ptr<std::vector<float> > vector_scs_energy (new std::vector<float>);
@@ -170,7 +181,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<std::vector<float> > vector_scs_covIEtaIEta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covIEtaIPhi(new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covIPhiIPhi(new std::vector<float>);
-
+ 
+     *evt_nscs = 0;
      for (unsigned int i = 0; i < scInputTags_.size(); ++i)
      {
 
@@ -184,6 +196,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         }
         const reco::SuperClusterCollection *scCollection = scHandle.product();
 
+        *evt_nscs += scCollection->size();
         for (reco::SuperClusterCollection::const_iterator sc = scCollection->begin();
                    sc != scCollection->end(); ++sc) {
 
@@ -223,9 +236,16 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
              vector_scs_covIEtaIPhi->push_back( localCovariances[1] );
              vector_scs_covIPhiIPhi->push_back( localCovariances[2] );
 
+	     vector_scs_clustersSize->push_back( sc->clustersSize() );
+
+	     std::vector<DetId> detIds = sc->getHitsByDetId();
+	     vector_scs_crystalsSize->push_back( detIds.size() );
+
         } // end loop on scs
 
      } // end loop on sc input tags
+
+     iEvent.put(evt_nscs, "evtnscs");
 
      // store vectors
      //iEvent.put(vector_scs_caloID, "scscaloid");
@@ -256,6 +276,10 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_scs_covIEtaIEta, "scscovietaieta");
      iEvent.put(vector_scs_covIEtaIPhi, "scscovietaiphi");
      iEvent.put(vector_scs_covIPhiIPhi, "scscoviphiiphi");
+
+     iEvent.put(vector_scs_clustersSize, "scsclusterssize");
+     iEvent.put(vector_scs_crystalsSize, "scscrystalssize");
+
 
      delete mhbhe;
 
