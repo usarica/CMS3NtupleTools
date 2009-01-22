@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.26 $'),
+        version = cms.untracked.string('$Revision: 1.27 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -78,10 +78,11 @@ process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 process.load("CMS2.NtupleMaker.wwCutMaker_cfi")
 process.load("CMS2.NtupleMaker.jptMaker_cfi")
+process.load("CMS2.NtupleMaker.scMaker_cfi")
 #process.Timing = cms.Service("Timing")
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -90,8 +91,9 @@ process.options = cms.untracked.PSet(
 ##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('/store/mc/Fall08/QCD250to500-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0014/02F453D2-5FE0-DD11-AB9A-00163691DC0A.root')
+#    fileNames = cms.untracked.vstring('/store/mc/Fall08/QCD250to500-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0014/02F453D2-5FE0-DD11-AB9A-00163691DC0A.root')
 #    fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
+    fileNames = cms.untracked.vstring('/store/mc/Fall08/ZJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0005/002C9C26-66CB-DD11-A2B7-001CC4A6DC88.root')
 )
 
 #-------------------------------------------------
@@ -252,7 +254,7 @@ process.out = cms.OutputModule("PoolOutputModule",
     ##process.patTupleEventContent,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('/tmp/test_1.root')
+    fileName = cms.untracked.string('/tmp/dle_test_2.root')
 )
 
 
@@ -265,7 +267,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
 process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
-process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker)
+process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker*process.scMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)

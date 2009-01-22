@@ -17,6 +17,7 @@
 <use name=RecoMuon/MuonIsolation>
 <use name=RecoMuon/MuonIdentification>
 <use name=RecoEcal/EgammaCoreTools>
+<use name=RecoEgamma/EgammaTools>
 <use name=PhysicsTools/HepMCCandAlgos>
 <use name=SimDataFormats/HepMCProduct>
 <use name=CondFormats/L1TObjects>
