@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.4 2009/01/06 23:52:45 kalavase Exp $
+// $Id: METMaker.cc,v 1.5 2009/01/22 18:42:07 fgolf Exp $
 //
 //
 
@@ -87,6 +87,17 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetMuonCorrPhi"  ).setBranchAlias("evt_metMuonCorrPhi"  );
   produces<float> ("evtmetMuonCorrSig"  ).setBranchAlias("evt_metMuonCorrSig"  );
 
+  // sumet
+  produces<float> ("evtsumet"               ).setBranchAlias("evt_sumet"                );  
+  produces<float> ("evtsumetHO"             ).setBranchAlias("evt_sumetHO"              );
+  produces<float> ("evtsumetNoHF"           ).setBranchAlias("evt_sumetNoHF"            );
+  produces<float> ("evtsumetNoHFHO"         ).setBranchAlias("evt_sumetNoHFHO"          );  
+  produces<float> ("evtsumetOpt"            ).setBranchAlias("evt_sumetOpt"             );
+  produces<float> ("evtsumetOptHO"          ).setBranchAlias("evt_sumetOptHO"           );
+  produces<float> ("evtsumetOptNoHF"        ).setBranchAlias("evt_sumetOptNoHF"         );
+  produces<float> ("evtsumetOptNoHFHO"      ).setBranchAlias("evt_sumetOptNoHFHO"       );  
+  produces<float> ("evtsumetMuonCorr"       ).setBranchAlias("evt_sumetMuonCorr"        );
+
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
 }
 
@@ -132,6 +143,16 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_metMuonCorr         (new float     );
   auto_ptr<float>   evt_metMuonCorrPhi      (new float     );
   auto_ptr<float>   evt_metMuonCorrSig      (new float     );
+
+  auto_ptr<float>   evt_sumet          (new float    );
+  auto_ptr<float>   evt_sumetHO	       (new float    );
+  auto_ptr<float>   evt_sumetNoHF      (new float    );
+  auto_ptr<float>   evt_sumetNoHFHO    (new float    );
+  auto_ptr<float>   evt_sumetOpt       (new float    );
+  auto_ptr<float>   evt_sumetOptHO     (new float    );
+  auto_ptr<float>   evt_sumetOptNoHF   (new float    );
+  auto_ptr<float>   evt_sumetOptNoHFHO (new float    );
+  auto_ptr<float>   evt_sumetMuonCorr  (new float    );
   
   Handle< View<CaloMET> > met_h;
   Handle< View<CaloMET> > metHO_h;
@@ -192,6 +213,16 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_metMuonCorrPhi  =  (metMuonCorr_h->front()).phi();
   *evt_metMuonCorrSig  =  (metMuonCorr_h->front()).mEtSig();
 
+  *evt_sumet           = (met_h->front()).sumEt();     
+  *evt_sumetHO         = (metHO_h->front()).sumEt();   
+  *evt_sumetNoHF       = (metNoHF_h->front()).sumEt();
+  *evt_sumetNoHFHO     = (metNoHFHO_h->front()).sumEt();
+  *evt_sumetOpt        = (metOpt_h->front()).sumEt();      
+  *evt_sumetOptHO      = (metOptHO_h->front()).sumEt();    
+  *evt_sumetOptNoHF    = (metOptNoHF_h->front()).sumEt();  
+  *evt_sumetOptNoHFHO  = (metOptNoHFHO_h->front()).sumEt();
+  *evt_sumetMuonCorr   = (metMuonCorr_h->front()).sumEt();
+
   iEvent.put(evt_met            ,"evtmet"           );
   iEvent.put(evt_metPhi         ,"evtmetPhi"        );
   iEvent.put(evt_metSig         ,"evtmetSig"        );
@@ -221,6 +252,16 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_metMuonCorr       ,"evtmetMuonCorr"      );
   iEvent.put(evt_metMuonCorrPhi    ,"evtmetMuonCorrPhi"   );
   iEvent.put(evt_metMuonCorrSig    ,"evtmetMuonCorrSig"   );
+
+  iEvent.put(evt_sumet          ,"evtsumet"             );  
+  iEvent.put(evt_sumetHO        ,"evtsumetHO"		);
+  iEvent.put(evt_sumetNoHF      ,"evtsumetNoHF"      	);
+  iEvent.put(evt_sumetNoHFHO    ,"evtsumetNoHFHO"    	);
+  iEvent.put(evt_sumetOpt       ,"evtsumetOpt"       	);
+  iEvent.put(evt_sumetOptHO     ,"evtsumetOptHO"     	);
+  iEvent.put(evt_sumetOptNoHF   ,"evtsumetOptNoHF"   	);
+  iEvent.put(evt_sumetOptNoHFHO ,"evtsumetOptNoHFHO" 	);
+  iEvent.put(evt_sumetMuonCorr  ,"evtsumetMuonCorr"     );
 
 }
 
