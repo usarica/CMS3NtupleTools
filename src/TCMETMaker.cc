@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.1 2008/12/17 10:29:20 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.2 2009/01/22 04:22:40 fgolf Exp $
 //
 //
 
@@ -48,6 +48,7 @@ TCMETMaker::TCMETMaker(const edm::ParameterSet& iConfig) {
 
   produces<float> ("evttcmet"          ).setBranchAlias("evt_tcmet"          );
   produces<float> ("evttcmetPhi"       ).setBranchAlias("evt_tcmetPhi"       );
+  produces<float>("evttcsumet"         ).setBranchAlias("evt_tcsumet"        );
 }
 
 
@@ -65,6 +66,7 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<float>   evt_tcmet                 (new float     );
   auto_ptr<float>   evt_tcmetPhi              (new float     );
+  auto_ptr<float>   evt_tcsummet              (new float     );
 
   Handle< View<MET> > tcmet_h;
     
@@ -72,11 +74,11 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   *evt_tcmet          = (tcmet_h->front()).et();
   *evt_tcmetPhi       = (tcmet_h->front()).phi();
-  
-  
+  *evt_tcmet          = (tcmet_h->front()).sumet();
+
   iEvent.put(evt_tcmet            ,"evttcmet"           );
   iEvent.put(evt_tcmetPhi         ,"evttcmetPhi"        );
-  
+  iEvent.put(evt_tcsummet         ,"evttcsumet"         ); 
 }
 
 //define this as a plug-in
