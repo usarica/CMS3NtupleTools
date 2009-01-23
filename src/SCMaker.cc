@@ -80,7 +80,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
      produces<std::vector<float> >("scse3x3").setBranchAlias("scs_e3x3"); 
      produces<std::vector<float> >("scse4x4").setBranchAlias("scs_e4x4"); 
      produces<std::vector<float> >("scse5x5").setBranchAlias("scs_e5x5"); 
-
+     produces<std::vector<float> >("scse2x5max").setBranchAlias("scs_e2x5Max");
      // covariances
      produces<std::vector<float> >("scscovetaeta").setBranchAlias("scs_covEtaEta");
      produces<std::vector<float> >("scscovetaphi").setBranchAlias("scs_covEtaPhi");
@@ -172,6 +172,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<std::vector<float> > vector_scs_e3x3 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e4x4 (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_e5x5 (new std::vector<float>);
+     std::auto_ptr<std::vector<float> > vector_scs_e2x5Max (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covEtaEta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covEtaPhi(new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_covPhiPhi(new std::vector<float>);
@@ -220,6 +221,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
              vector_scs_e3x3->push_back( lazyTools.e3x3(*(sc->seed())) );
              vector_scs_e4x4->push_back( lazyTools.e4x4(*(sc->seed())) );
              vector_scs_e5x5->push_back( lazyTools.e5x5(*(sc->seed())) );
+             vector_scs_e2x5Max->push_back( lazyTools.e2x5Max(*(sc->seed())) );
 	     std::vector<float> covariances = lazyTools.covariances(*(sc->seed()));
 	     vector_scs_covEtaEta->push_back( covariances[0] );
              vector_scs_covEtaPhi->push_back( covariances[1] );
@@ -255,6 +257,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_scs_e3x3, "scse3x3");
      iEvent.put(vector_scs_e4x4, "scse4x4");
      iEvent.put(vector_scs_e5x5, "scse5x5");
+     iEvent.put(vector_scs_e2x5Max, "scse2x5max");
      iEvent.put(vector_scs_covEtaEta, "scscovetaeta");
      iEvent.put(vector_scs_covEtaPhi, "scscovetaphi");
      iEvent.put(vector_scs_covPhiPhi, "scscovphiphi");
