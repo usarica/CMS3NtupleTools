@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.28 $'),
+        version = cms.untracked.string('$Revision: 1.29 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -92,9 +92,8 @@ process.options = cms.untracked.PSet(
 ##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-#    fileNames = cms.untracked.vstring('/store/mc/Fall08/QCD250to500-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0014/02F453D2-5FE0-DD11-AB9A-00163691DC0A.root')
-#    fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
-    fileNames = cms.untracked.vstring('/store/mc/Fall08/ZJets-madgraph/GEN-SIM-RECO/IDEAL_V9_v1/0005/002C9C26-66CB-DD11-A2B7-001CC4A6DC88.root')
+    #fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
+     fileNames = cms.untracked.vstring('/store/mc/Summer08/TauolaTTbar/GEN-SIM-RECO/IDEAL_V9_v1/0004/16AAC418-218A-DD11-AC33-001F2908F0E4.root')
 )
 
 #-------------------------------------------------
@@ -223,40 +222,34 @@ process.allLayer0Electrons.isolation.ecal.vetos = cms.vstring(
 
 process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
-process.CMS2 = cms.PSet(
-#    outputCommands = cms.untracked.vstring(
-#    'drop *',
-#    ##'keep recoGenParticles_genParticles_*_*',
-#    ##'keep *_genEventScale_*_*',
-#    ##'keep *_genEventWeight_*_*',
-#    ##'keep *_genEventPdfInfo_*_*',
-#    ##'keep edmTriggerResults_TriggerResults_*_HLT', 
-#    ##'keep *_hltTriggerSummaryAOD_*_*',
-#    ##'keep *_offlineBeamSpot_*_*',
-#    ##'keep *_offlinePrimaryVertices_*_*',
-#    ##'keep recoTracks_generalTracks_*_*', 
-#    ##'keep *_towerMaker_*_*',
-#    ##'keep *_selectedLayer1Photons_*_*', 
-#    'keep *_selectedLayer1Electrons_*_*', 
-#    ##'keep *_selectedLayer1Muons_*_*', 
-#    ##'keep *_selectedLayer1Taus_*_*', 
-#    ##'keep *_selectedLayer1Jets_*_*', 
-#    ##'keep *_selectedLayer1METs_*_*',
-#    ##'keep patPFParticles_*_*_*',
-#    ##'keep *_selectedLayer1Hemispheres_*_*',
-#    'keep *_*Maker_*_CMS2',
-#  )
-)
 
-## configure output module
-process.out = cms.OutputModule("PoolOutputModule",
+## configure output module for AOD like ntuples
+process.out_CMS2AOD = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
-    process.CMS2,
-    ##process.patTupleEventContent,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('/tmp/dle_test_2.root')
+    fileName = cms.untracked.string('CMS2AOD.root')
 )
+
+
+## configure output module for AOD like ntuples
+process.out_CMS2 = cms.OutputModule("PoolOutputModule",
+    process.EventSelection,
+    verbose = cms.untracked.bool(True),
+    dropMetaDataForDroppedData = cms.untracked.bool(True),
+    fileName = cms.untracked.string('CMS2.root')
+)
+
+process.out_CMS2AOD.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out_CMS2AOD.outputCommands.extend(AODSIMEventContent.outputCommands)
+process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
+process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep edmHepMCProduct_source_*_*'))
+process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep recoTrackExtras_*_*_*'))
+process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep TrackingRecHitsOwned_*_*_*'))
+
+process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
+
 
 
 #-------------------------------------------------
@@ -285,14 +278,8 @@ process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process
 process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.patTuple*process.cms2)
 
 ##output
-process.outpath = cms.EndPath(process.out)
+process.outpath = cms.EndPath(process.out_CMS2AOD*process.out_CMS2)
 
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(AODSIMEventContent.outputCommands)
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
-process.out.outputCommands.extend(cms.untracked.vstring('keep edmHepMCProduct_source_*_*'))
-process.out.outputCommands.extend(cms.untracked.vstring('keep recoTrackExtras_*_*_*'))
-process.out.outputCommands.extend(cms.untracked.vstring('keep TrackingRecHitsOwned_*_*_*'))
 
 # print process.dumpPython()
 
