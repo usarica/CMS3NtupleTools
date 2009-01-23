@@ -33,9 +33,9 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/DetId/interface/DetId.h"
 
-#include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaTowerIsolation.h"
-#include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
-#include "DataFormats/CaloTowers/interface/CaloTower.h"
+//#include "RecoEgamma/EgammaIsolationAlgos/interface/EgammaTowerIsolation.h"
+//#include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
+//#include "DataFormats/CaloTowers/interface/CaloTower.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
