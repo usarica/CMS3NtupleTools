@@ -9,7 +9,7 @@ scMaker = cms.EDFilter("SCMaker",
     ecalRecHitsInputTag_EB = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
     primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
 
-    scEtMin = cms.double(5.0)
+    scEtMin = cms.double(10.0)
 
 )
 
