@@ -60,6 +60,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 
      // positions
      produces<std::vector<LorentzVector> >("scsp4").setBranchAlias("scs_p4");
+     produces<std::vector<Point> >("scsvtx").setBranchAlias("scs_vtx");
      produces<std::vector<Point> >("scspos").setBranchAlias("scs_pos");
      produces<std::vector<float> >("scseta").setBranchAlias("scs_eta");
      produces<std::vector<float> >("scsphi").setBranchAlias("scs_phi");
@@ -154,6 +155,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<unsigned int> evt_nscs (new unsigned int);
      std::auto_ptr<std::vector<LorentzVector> > vector_scs_p4 (new std::vector<LorentzVector>);
      std::auto_ptr<std::vector<Point> > vector_scs_pos (new std::vector<Point>);
+     std::auto_ptr<std::vector<Point> > vector_scs_vtx (new std::vector<Point>);
      std::auto_ptr<std::vector<float> > vector_scs_eta (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_phi (new std::vector<float>);
      std::auto_ptr<std::vector<float> > vector_scs_clustersSize (new std::vector<float>);
@@ -202,6 +204,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
              LorentzVector p4 = initP4(pv, *sc);
 	     vector_scs_p4->push_back( p4 );
+	     vector_scs_vtx->push_back( pv );
              vector_scs_pos->push_back( sc->position() );
 	     vector_scs_eta->push_back( sc->eta() );
              vector_scs_phi->push_back( sc->phi() );
@@ -239,6 +242,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_scs_rawEnergy, "scsrawenergy");
      iEvent.put(vector_scs_preshowerEnergy, "scspreshowerenergy");
      iEvent.put(vector_scs_p4, "scsp4");
+     iEvent.put(vector_scs_vtx, "scsvtx");
      iEvent.put(vector_scs_pos, "scspos");
      iEvent.put(vector_scs_eta, "scseta");
      iEvent.put(vector_scs_phi, "scsphi");
