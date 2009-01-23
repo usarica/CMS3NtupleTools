@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.h,v 1.1 2008/08/22 07:49:35 spadhi Exp $
+// $Id: GenJetMaker.h,v 1.2 2009/01/23 22:12:27 fgolf Exp $
 //
 //
 
@@ -45,5 +45,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag genJetsInputTag;
+
+  double genJetMinPtCut;
 };
 #endif

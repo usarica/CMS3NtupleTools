@@ -36,7 +36,10 @@ sisCone5StGenJets = cms.EDProducer("SISConeJetProducer",
                                    
 
 genJetMaker = cms.EDProducer("GenJetMaker", 
-   genJetsInputTag =  cms.InputTag("sisCone5StGenJets")
+   genJetsInputTag =  cms.InputTag("sisCone5StGenJets"),
+
+   # gen jet minimum pt cut
+   genJetMinPtCut = cms.double(10.0)
 )
 
 genjetmaker = cms.Sequence(genParticlesAllStables+sisCone5StGenJets+genJetMaker)

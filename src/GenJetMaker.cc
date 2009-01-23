@@ -12,7 +12,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.cc,v 1.1 2008/08/22 07:49:35 spadhi Exp $
+// $Id: GenJetMaker.cc,v 1.2 2009/01/23 22:12:27 fgolf Exp $
 //
 //
 
@@ -43,6 +43,7 @@ GenJetMaker::GenJetMaker(const edm::ParameterSet& iConfig)
 
   // parameters from configuration
   genJetsInputTag = iConfig.getParameter<edm::InputTag>("genJetsInputTag");
+  genJetMinPtCut = iConfig.getParameter<double> ("genJetMinPtCut");
 }
 
 
@@ -68,6 +69,7 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   for ( edm::View<reco::GenJet>::const_iterator jet = genJets->begin();
         jet != jetsEnd;
         ++jet) {
+    if( jet->et() < genJetMinPtCut ) continue;
     vector_genjets_p4->push_back(jet->p4());
   }
 

@@ -41,4 +41,7 @@ module iterativeCone5StGenJets = IterativeConeJetProducer {
 
 module genJetMaker = GenJetMaker {
    InputTag genJetsInputTag = iterativeCone5StGenJets
+
+   # minimum pt cut on gen jets
+   double genJetMinPtCut = 10
 }
