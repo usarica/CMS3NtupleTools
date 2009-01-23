@@ -4,6 +4,3 @@ elToJetAssMaker = cms.EDFilter("ElToJetAssMaker",
     # min DR
     minDR = cms.double(0.1)
 )
-
-
-q
