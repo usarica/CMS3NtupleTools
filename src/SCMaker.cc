@@ -248,7 +248,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     std::vector<float> covariances = lazyTools.covariances(*(sc->seed()));
              // if seed basic cluster is in the endcap then correct sigma eta eta
              // according to the super cluster eta
-	     if(abs(sc->seed()->eta()) > 1.479) {
+	     if(fabs(sc->seed()->eta()) > 1.479) {
               covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
              }
 	     vector_scs_sigmaEtaEta->push_back( sqrt(covariances[0]) );
