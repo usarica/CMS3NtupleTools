@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.16 2009/01/22 22:46:25 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.17 2009/01/30 00:36:46 dlevans Exp $
 //
 //
 
@@ -115,13 +115,18 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	    ("elsdEtaOut"          ).setBranchAlias("els_dEtaOut"          );
   produces<vector<float> >	    ("elsdPhiIn"           ).setBranchAlias("els_dPhiIn"           );
   produces<vector<float> >	    ("elsdPhiOut"          ).setBranchAlias("els_dPhiOut"          );
-  produces<vector<float> >	    ("elsESc"              ).setBranchAlias("els_ESc"              );
-  produces<vector<float> >	    ("elsEScraw"           ).setBranchAlias("els_ESc_raw"          );
+  produces<vector<float> >	    ("elseSC"              ).setBranchAlias("els_eSC"              );
+  produces<vector<float> >	    ("elseSCRaw"           ).setBranchAlias("els_eSCRaw"           );
+  produces<vector<float> >          ("elseSCPresh"         ).setBranchAlias("els_eSCPresh"         );
   produces<vector<float> >	    ("else3x3"             ).setBranchAlias("els_e3x3"             );
   produces<vector<float> >	    ("else5x5"             ).setBranchAlias("els_e5x5"             );
-  produces<vector<float> >	    ("elsESeed"            ).setBranchAlias("els_ESeed"            );
+  produces<vector<float> >          ("else2x5Max"          ).setBranchAlias("els_e2x5Max"          );
+  produces<vector<float> >          ("elseMax"             ).setBranchAlias("els_eMax"             );
+  produces<vector<float> >	    ("elseSeed"            ).setBranchAlias("els_eSeed"            );
   produces<vector<float> >	    ("elssigmaPhiPhi"      ).setBranchAlias("els_sigmaPhiPhi"      );
+  produces<vector<float> >          ("elssigmaIPhiIPhi"    ).setBranchAlias("els_sigmaIPhiIPhi"    );
   produces<vector<float> >	    ("elssigmaEtaEta"      ).setBranchAlias("els_sigmaEtaEta"      );
+  produces<vector<float> >          ("elssigmaIEtaIEta"    ).setBranchAlias("els_sigmaIEtaIEta"    );
   produces<vector<float> >	    ("elstkIso"            ).setBranchAlias("els_tkIso"            );
   produces<vector<float> >	    ("elsdPhiInPhiOut"     ).setBranchAlias("els_dPhiInPhiOut"     );
   //produces<vector<float> >	    ("elsdPhiOutEcalHit"   ).setBranchAlias("els_dPhiOutEcalHit"   );
@@ -199,13 +204,18 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	   els_dEtaOut              (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_dPhiIn               (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_dPhiOut              (new vector<float>        ) ;
-  auto_ptr<vector<float> >	   els_ESc                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	   els_EScraw               (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_eSC                  (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_eSCRaw               (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_eSCPresh             (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_e3x3                 (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_e5x5                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >	   els_ESeed                (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_e2x5Max              (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_eMax                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >	   els_eSeed                (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_sigmaPhiPhi          (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_sigmaIPhiIPhi        (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_sigmaEtaEta          (new vector<float>        ) ;
+  auto_ptr<vector<float> >         els_sigmaIEtaIEta        (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_tkIso                (new vector<float>        ) ;
   auto_ptr<vector<float> >         els_dPhiInPhiOut         (new vector<float>        ) ;
   //auto_ptr<vector<float> >	   els_dPhiOutEcalHit       (new vector<float>        ) ;
@@ -259,14 +269,18 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     //get Cluster info
     //const EcalSuperClusterCollection *barrelExtraShapes, *endcapExtraShapes;
-    float esc, e3x3, e5x5, see, spp;
+    float eMax, e3x3, e5x5, e2x5Max, see, spp, sieie, sipip;
     const reco::BasicCluster& clRef= *(el->superCluster()->seed());
-    esc = clusterTools_->eMax(clRef);
+    eMax = clusterTools_->eMax(clRef);
     e3x3 = clusterTools_->e3x3(clRef);
     e5x5 = clusterTools_->e5x5(clRef);
+    e2x5Max = clusterTools_->e2x5Max(clRef);
     const std::vector<float>& covs = clusterTools_->covariances(clRef);
     spp = sqrt(covs[2]);
     see = sqrt(covs[0]);
+    const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
+    sipip = sqrt(lcovs[2]);
+    sieie = sqrt(lcovs[0]);
 	 
     /* fill Electron Id array
        robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
@@ -357,8 +371,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_charge                ->push_back( el->charge()                                    );
     els_nSeed                 ->push_back( el->numberOfClusters() - 1                      );      
     els_class                 ->push_back( el->classification()                            ); 
-    els_category              ->push_back( classify(gsfEl)                                    );
-    els_categoryold           ->push_back( classify_old(gsfEl)                                );
+    els_category              ->push_back( classify(gsfEl)                                 );
+    els_categoryold           ->push_back( classify_old(gsfEl)                             );
     els_robustId              ->push_back( id[0]                                           );
     els_looseId               ->push_back( id[1]                                           );
     els_tightId               ->push_back( id[2]                                           );
@@ -368,7 +382,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_simpleIdPlus          ->push_back( id[6]                                           );
     els_d0                    ->push_back( el_track->d0()                                  );
     els_z0                    ->push_back( el_track->dz()                                  );
-    els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))                      );
+    els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))                    );
     els_z0corr                ->push_back( el_track->dz(beamSpot)                          );
     els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )         );
     els_chi2                  ->push_back( el_track->chi2()                                );
@@ -384,19 +398,25 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                        );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                      );
     els_fBrem                 ->push_back( (pin-pout)/pin                                  );
+    els_dEtaIn		      ->push_back( el->deltaEtaSuperClusterTrackAtVtx()		   );
     els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()            );
     els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()            );
     els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()            );
-    els_ESc                   ->push_back( esc                                             );
-    els_EScraw                ->push_back( el->superCluster()->rawEnergy()                 );
+    els_eSC                   ->push_back( el->superCluster()->energy()                    );
+    els_eSCRaw                ->push_back( el->superCluster()->rawEnergy()                 );
+    els_eSCPresh              ->push_back( el->superCluster()->preshowerEnergy()           );
     els_e3x3                  ->push_back( e3x3                                            );
     els_e5x5                  ->push_back( e5x5                                            );
-    els_ESeed                 ->push_back( el->superCluster()->seed()->energy()            );
+    els_e2x5Max               ->push_back( e2x5Max                                         );
+    els_eMax                  ->push_back( eMax                                            );
+    els_eSeed                 ->push_back( el->superCluster()->seed()->energy()            );
     els_sigmaPhiPhi           ->push_back( spp                                             );
+    els_sigmaIPhiIPhi         ->push_back( sipip                                           );  
     els_sigmaEtaEta           ->push_back( see                                             );
+    els_sigmaIEtaIEta         ->push_back( sieie                                           );  
     els_tkIso                 ->push_back( tkIso                                           );
     els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                              );
-    //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                                  );
+    //els_dPhiOutEcalHit        ->push_back( dPhiOutEcalHit                                );
     els_p4                    ->push_back( el->p4()                                        );
     els_trk_p4                ->push_back( trk_p4                                          );
     els_p4In                  ->push_back( p4In                                            );
@@ -442,16 +462,21 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_dEtaOut                      ,"elsdEtaOut"         );
   iEvent.put(els_dPhiIn                       ,"elsdPhiIn"          );
   iEvent.put(els_dPhiOut                      ,"elsdPhiOut"         );
-  iEvent.put(els_ESc                          ,"elsESc"             );
-  iEvent.put(els_EScraw                       ,"elsEScraw"          );
+  iEvent.put(els_eSC                          ,"elseSC"             );
+  iEvent.put(els_eSCRaw                       ,"elseSCRaw"          );
+  iEvent.put(els_eSCPresh                     ,"elseSCPresh"        );
   iEvent.put(els_e3x3                         ,"else3x3"            );
   iEvent.put(els_e5x5                         ,"else5x5"            );
-  iEvent.put(els_ESeed                        ,"elsESeed"           );
+  iEvent.put(els_e2x5Max                      ,"else2x5Max"         );
+  iEvent.put(els_eMax                         ,"elseMax"            );
+  iEvent.put(els_eSeed                        ,"elseSeed"           );
   iEvent.put(els_sigmaPhiPhi                  ,"elssigmaPhiPhi"     );
+  iEvent.put(els_sigmaIPhiIPhi                ,"elssigmaIPhiIPhi"   );
   iEvent.put(els_sigmaEtaEta                  ,"elssigmaEtaEta"     );
+  iEvent.put(els_sigmaIEtaIEta                ,"elssigmaIEtaIEta"   );
   iEvent.put(els_tkIso                        ,"elstkIso"           );
   iEvent.put(els_dPhiInPhiOut                 ,"elsdPhiInPhiOut"    );
-  //iEvent.put(els_dPhiOutEcalHit               ,"elsdPhiOutEcalHit"  );
+  //iEvent.put(els_dPhiOutEcalHit               ,"elsdPhiOutEcalHit");
   iEvent.put(els_p4                           ,"elsp4"              );
   iEvent.put(els_trk_p4                       ,"elstrkp4"           );
   iEvent.put(els_p4In                         ,"elsp4In"            );
