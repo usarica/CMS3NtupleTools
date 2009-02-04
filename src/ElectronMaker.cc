@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.17 2009/01/30 00:36:46 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.18 2009/02/04 06:37:52 dlevans Exp $
 //
 //
 
@@ -87,12 +87,13 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   // and are the SAME as the els_pat_*id branches made by PATElectronMaker
   produces<vector<int> >  	    ("elsrobustId"         ).setBranchAlias("els_robustId"         );
   produces<vector<int> >  	    ("elslooseId"          ).setBranchAlias("els_looseId"          );
-  produces<vector<int> >  	    ("elstightId"          ).setBranchAlias("els_tightId"          );
-  
+  produces<vector<int> >  	    ("elstightId"          ).setBranchAlias("els_tightId"          );  
   produces<vector<int> >  	    ("elspass3simpleId"    ).setBranchAlias("els_pass3simpleId"    );
   produces<vector<int> >	    ("elspass3looseId"     ).setBranchAlias("els_pass3looseId"     );
   produces<vector<int> >	    ("elspass3tightId"     ).setBranchAlias("els_pass3tightId"     );
   produces<vector<int> >	    ("elssimpleIdPlus"     ).setBranchAlias("els_simpleIdPlus"     );
+  produces<vector<int> >            ("elstightId22XMinMatteo"     ).setBranchAlias("els_tightId22XMinMatteo"     );
+  produces<vector<int> >            ("elstightId22XMaxMatteo"     ).setBranchAlias("els_tightId22XMaxMatteo"     );
   produces<vector<float> >	    ("elsd0"               ).setBranchAlias("els_d0"               );
   produces<vector<float> >	    ("elsz0"               ).setBranchAlias("els_z0"               );
   produces<vector<float> >	    ("elsd0corr"           ).setBranchAlias("els_d0corr"           );
@@ -182,6 +183,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	   els_pass3looseId         (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_pass3tightId         (new vector<int>          ) ;
   auto_ptr<vector<int> >	   els_simpleIdPlus         (new vector<int>          ) ;
+  auto_ptr<vector<int> >           els_tightId22XMinMatteo (new vector<int>          ) ;
+  auto_ptr<vector<int> >           els_tightId22XMaxMatteo (new vector<int>          ) ;
   auto_ptr<vector<float> >	   els_d0                   (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_z0                   (new vector<float>        ) ;
   auto_ptr<vector<float> >	   els_d0corr               (new vector<float>        ) ;
@@ -285,11 +288,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     /* fill Electron Id array
        robustId = 0, looseId = 1, tightId = 2, simpleId = 3,
        oldlooseId = 4, oldtightId = 5, simpleIdPlus = 6
+       NEW 7  Matteo Sani for 2_2_X only updated H/E and SigmaEtaEta
+       NEW 8  Matteo Sani for 2_2_X... updated H/E, SigmaEtaEta, dPhi, dEta and Eseed/Pin (all)
     */
-    int id[7] = {0};
+    int id[9] = {0};
     
     //commented out for PAT tuple - clusterTools can't be made 
-    for(int i=0; i<7; ++i) {
+    for(int i=0; i<9; ++i) {
       if (identify(gsfEl, i))
 	id[i] = 1;
       else
@@ -380,6 +385,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_pass3looseId          ->push_back( id[4]                                           );
     els_pass3tightId          ->push_back( id[5]                                           );
     els_simpleIdPlus          ->push_back( id[6]                                           );
+
+    // NEW - update only H/E and sigmaEtaEta to new values from M.S. for 2_2_X
+    // everything else is as id type == 2
+    els_tightId22XMinMatteo ->push_back( id[7]					           );
+    // NEW - update all new values provided by M.S. for 2_2_X
+    // including a new cut on upper as well as lower eSeed/Pin
+    els_tightId22XMaxMatteo ->push_back( id[8]		                 		   );
+
     els_d0                    ->push_back( el_track->d0()                                  );
     els_z0                    ->push_back( el_track->dz()                                  );
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))                    );
@@ -440,6 +453,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_pass3looseId                 ,"elspass3looseId"    );
   iEvent.put(els_pass3tightId                 ,"elspass3tightId"    );
   iEvent.put(els_simpleIdPlus                 ,"elssimpleIdPlus"    );
+  iEvent.put(els_tightId22XMinMatteo         ,"elstightId22XMinMatteo" );
+  iEvent.put(els_tightId22XMaxMatteo         ,"elstightId22XMaxMatteo" );
   iEvent.put(els_d0                           ,"elsd0"              );
   iEvent.put(els_z0                           ,"elsz0"              );
   iEvent.put(els_d0corr                       ,"elsd0corr"          );
@@ -555,7 +570,117 @@ bool ElectronMaker::identify(const reco::GsfElectron* electron,
     eb = 1; 
     sigmaeecor = sigmaee - 0.02*(fabs(eta) - 2.3);   //correct sigmaetaeta dependence on eta in endcap
   }
-  
+
+  // Matteo Sani update for 2_2_X
+  // ... where only the changs to hoe and sigmaEtaEta are made 
+  if (type == 7) {
+
+//    float cuthoe[]  = {0.05,    0.042,  0.045,  0.,
+//                       0.055,   0.037,  0.050,  0.};
+//    float cutsee[]  = {0.0125,  0.011,  0.01,   0.,
+//                       0.0265,  0.0252, 0.026,  0.};
+// new
+    float cuthoe[] = {0.041,   0.028,   0.025,  0.,
+                  0.034,   0.012,   0.016,  0.};
+// new
+    float cutsee[] = {0.0118,  0.0112,  0.0104, 0.,
+                  0.0271,  0.0263,  0.0256, 0.};
+// not new...
+    float cutdphi[] = {0.032,   0.016,  0.0525, 0.09,
+                       0.025,   0.035,  0.065,  0.092};
+// not new...
+    float cutdeta[] = {0.0055,  0.0030, 0.0065, 0.,
+                       0.0060,  0.0055, 0.0075, 0.};
+// not new...
+    float cuteop2[] = {0.24,    0.94,   0.11,   0.,
+                       0.32,    0.83,   0.,     0.};
+
+    int cat = classify(electron);
+
+    // TIGHT Selection
+    if ((eOverP < 0.8) && (fBrem < 0.2))
+      return false;
+
+    if (eOverP < 0.9*(1-fBrem))
+      return false;
+
+    if (hOverE > cuthoe[cat+eb*4])
+      return false;
+
+    if (sigmaeecor > cutsee[cat+4*eb])
+      return false;
+
+    if (eOverP < 1.5) {
+      if (fabs(deltaPhiIn) > cutdphi[cat+4*eb])
+        return false;
+    } else {
+      if (fabs(deltaPhiIn) > cutdphi[3+4*eb])
+        return false;
+    }
+
+    if (fabs(deltaEtaIn) > cutdeta[cat+4*eb])
+      return false;
+
+    if (eSeedOverPin < cuteop2[cat+4*eb])
+      return false;
+
+    return true;
+  }
+
+
+  // Matteo Sani update for 2_2_X
+  // ... where the full new Matteo Sani ID is computed
+  if (type == 8) {
+
+    float cuthoe[] = {0.041,   0.028,   0.025,  0.,                             
+		  0.034,   0.012,   0.016,  0.};
+    float cutsee[] = {0.0118,  0.0112,  0.0104, 0.,
+                  0.0271,  0.0263,  0.0256, 0.};
+    // sigma iEtaiEta not used by us right now...
+    //float cutsieie[] = {0.0106,  0.0107,  0.0102, 0.,
+    //                0.0271,  0.0263,  0.0256, 0.};
+    float cutdphi[] = {0.032,   0.021,   0.032,  0.09,
+                   0.025,   0.0137,  0.022,  0.092};
+    float cutdeta[] = {0.0043,  0.0024,  0.0035, 0.,
+                   0.0079,  0.0053,  0.0045, 0.};
+    float cuteopinmin[] = {0.27,    0.931,   0.20,   0.,                                      
+		       0.20,    0.90,    0.0,    0.};
+    float cuteopinmax[] = {99999.,  1.35,    9999.,  99999.,                                       
+		       99999.,  1.46,    9999.,  99999.};
+
+    int cat = classify(electron);
+
+    if ((eOverP < 0.8) && (fBrem < 0.2))
+      return false;
+
+    if (eOverP < 0.9*(1-fBrem))
+      return false;
+
+    if (hOverE > cuthoe[cat+eb*4])
+      return false;
+
+    if (sigmaeecor > cutsee[cat+4*eb])
+      return false;
+
+    if (eOverP < 1.5) {
+      if (fabs(deltaPhiIn) > cutdphi[cat+4*eb])
+        return false;
+    } else {
+      if (fabs(deltaPhiIn) > cutdphi[3+4*eb])
+        return false;
+    }
+
+    if (fabs(deltaEtaIn) > cutdeta[cat+4*eb])
+      return false;
+
+    // note new upper cut as well as lower
+    if ((eSeedOverPin < cuteopinmin[cat+4*eb]) 
+	|| (eSeedOverPin > cuteopinmax[cat+4*eb]) )
+      return false;
+
+    return true;
+  }
+
   if (type == 2) { 
     
     float cuthoe[]  = {0.05,    0.042,  0.045,  0.,  
