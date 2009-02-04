@@ -24,7 +24,7 @@ of the selection code, which would get out of sync sooner or later
 //
 // Original Author:  Johannes Muelmenstaedt 
 //		     (but just calls functions in selection.C)
-// $Id: WWCutMaker.cc,v 1.7 2009/01/14 18:57:10 kalavase Exp $
+// $Id: WWCutMaker.cc,v 1.8 2009/02/04 06:38:13 dlevans Exp $
 //
 //
 
@@ -385,7 +385,7 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      const vector<int> *els_closestMuon = els_closestMuon_h.product();
 
      //electron d0
-     InputTag els_d0_tag(electronsInputTag.label(),"elsd0");
+     InputTag els_d0_tag(electronsInputTag.label(),"elsd0corr");
      Handle<vector<float> > els_d0_h;
      iEvent.getByLabel(els_d0_tag, els_d0_h);
      const vector<float> *els_d0 = els_d0_h.product();
@@ -516,8 +516,8 @@ void WWCutMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.getByLabel(mus_validHits_tag, mus_validHits_h);
      const vector<int> *mus_validHits = mus_validHits_h.product();
 
-     //muond0
-     InputTag mus_d0_tag(muonsInputTag.label(),"musd0");
+     //muon d0
+     InputTag mus_d0_tag(muonsInputTag.label(),"musd0corr");
      Handle<vector<float> > mus_d0_h;
      iEvent.getByLabel(mus_d0_tag, mus_d0_h);
      const vector<float> *mus_d0 = mus_d0_h.product();
