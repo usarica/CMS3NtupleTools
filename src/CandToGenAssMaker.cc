@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.6 2008/12/17 05:09:57 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.7 2009/02/04 05:20:28 fgolf Exp $
 //
 //
 
@@ -492,7 +492,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_trk_mc3p4           ,"trkmc3p4"         );
   iEvent.put(vector_trk_mc3dr           ,"trkmc3dr"         );
   
-  
+  delete genParticlesPruned;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
