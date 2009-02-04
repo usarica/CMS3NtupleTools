@@ -117,6 +117,9 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
      primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
      //caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
 
+     // initialise this
+     cachedCaloGeometryID_ = 0;
+
 }
 
 void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
