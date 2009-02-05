@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.31 $'),
+        version = cms.untracked.string('$Revision: 1.32 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -100,8 +100,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring('file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/90225699-6CCB-DD11-BA42-001CC47D8D40.root',
-                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root')
-
+                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root'
 )
 
 #-------------------------------------------------
@@ -246,7 +245,8 @@ process.out_CMS2 = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('CMS2.root')
+    #fileName = cms.untracked.string('CMS2.root')
+    fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2AOD.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -283,7 +283,8 @@ process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process
 #process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
 
 ##no filter
-process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.patTuple*process.cms2)
+#process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.patTuple*process.cms2)
+process.p = cms.Path(process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.MetCorrection*process.patTuple*process.cms2*process.theFilter)
 
 ##output for AOD+CMS2 ntuple
 #process.outpath = cms.EndPath(process.out_CMS2AOD)
