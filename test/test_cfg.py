@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.32 $'),
+        version = cms.untracked.string('$Revision: 1.33 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -100,7 +100,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring('file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/90225699-6CCB-DD11-BA42-001CC47D8D40.root',
-                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root'
+                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root')
 )
 
 #-------------------------------------------------
