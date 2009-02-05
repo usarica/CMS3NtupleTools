@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.30 $'),
+        version = cms.untracked.string('$Revision: 1.31 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -49,8 +49,15 @@ process.load("CMS2.NtupleMaker.patJetMaker_cfi")
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
 process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
 process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
-#process.load("CMS2.NtupleMaker.metMaker_cfi")
+process.load("CMS2.NtupleMaker.goodMusForMETCorrProducer_cfi")
 process.load("CMS2.NtupleMaker.metSequence_cff")
+
+#the line below solves the horrible electron track ref problem
+process.goodMuonsforMETCorrection.cut = cms.string('isGlobalMuon=1 & pt > 10.0 & abs(eta)<2.5')
+#the line below substitutes our own muon collection in for the one created by the
+#bad MuonSelector
+process.corMetGlobalMuons.muonsInputTag = cms.InputTag("goodMusForMETCorr")
+
 process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
@@ -92,8 +99,9 @@ process.options = cms.untracked.PSet(
 ##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    #fileNames = cms.untracked.vstring('/store/mc/Summer08/DYmumuM1000/GEN-SIM-RECO/IDEAL_V9_v1/0000/56C11BC4-C58B-DD11-B3F1-0030487CAA07.root')
-     fileNames = cms.untracked.vstring('/store/mc/Summer08/TauolaTTbar/GEN-SIM-RECO/IDEAL_V9_v1/0004/16AAC418-218A-DD11-AC33-001F2908F0E4.root')
+    fileNames = cms.untracked.vstring('file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/90225699-6CCB-DD11-BA42-001CC47D8D40.root',
+                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root')
+
 )
 
 #-------------------------------------------------
@@ -102,7 +110,8 @@ process.source = cms.Source("PoolSource",
 
 ## std sequence for tqaf layer1
 process.load("TopQuarkAnalysis.TopObjectProducers.patTuple_cff")
-
+#replace the input muon collection with what we have produced ourselves 
+process.corMetType1Icone5Muons.muonsInputTag = cms.InputTag("goodMusForMETCorr")
 #modified patTuple sequence from above cff file. This is because
 #MadGraph samples don't have genEventRunInfo in them
 process.patTuple = cms.Sequence(process.genEventProcID +             ## needs HepMCProduct in the event content
@@ -257,11 +266,11 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 #-------------------------------------------------
 
 #process.triggerEventMaker = cms.EDProducer("TriggerEventMaker")
-
+process.metCorSequence = cms.Sequence(process.goodMusForMETCorr*process.corMetGlobalMuons)
 process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
 process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
-process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker*process.scMaker*process.vertexMaker)
+process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker*process.scMaker*process.vertexMaker*process.metMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.elToJetAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
@@ -274,7 +283,7 @@ process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process
 #process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
 
 ##no filter
-process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.patTuple*process.cms2)
+process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.patTuple*process.cms2)
 
 ##output for AOD+CMS2 ntuple
 #process.outpath = cms.EndPath(process.out_CMS2AOD)
