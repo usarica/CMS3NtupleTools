@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 tcmetMaker = cms.EDFilter("TCMETMaker",
-     metInputTag = cms.InputTag("tcMet")
+#     metInputTag = cms.InputTag("tcMet")
+     metInputTag = cms.InputTag("TCMET")
 )
 
 
