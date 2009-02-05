@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -76,7 +76,7 @@ process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
 process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
-process.load("CMS2.NtupleMaker.theFilter_cfi")
+process.load("CMS2.NtupleMaker.aSkimFilter_cfi")
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
