@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.2 2008/12/17 09:25:06 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.3 2009/02/05 05:30:53 kalavase Exp $
 //
 //
 
@@ -57,24 +57,41 @@ typedef math::XYZTLorentzVector LorentzVector;
 //
 PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
 {
-  // product of this EDProducer
-  produces<std::vector<int> > ("jetspatgenPartonid").setBranchAlias("jets_pat_genParton_id"); // PAT gen parton ID
-  produces<std::vector<int> > ("jetspatgenPartonMotherid").setBranchAlias("jets_pat_genPartonMother_id"); // PAT gen parton mother ID
-  produces<std::vector<int> > ("jetspatpartonFlavour").setBranchAlias("jets_pat_partonFlavour"); // PAT parton flavour
-  produces<std::vector<uint32_t> >("jetspatflag").setBranchAlias("jets_pat_flag"); //PAT flag
+  using namespace std;
+  // product of this EDProducer 
+  produces<vector<int> >     ("jetspatgenPartonid"      ).setBranchAlias("jets_pat_genParton_id"); // PAT gen parton ID
+				   
+  produces<vector<int> >     ("jetspatgenPartonMotherid").setBranchAlias("jets_pat_genPartonMother_id"); // PAT gen parton mother ID
+  produces<vector<int> >     ("jetspatpartonFlavour"    ).setBranchAlias("jets_pat_partonFlavour"); // PAT parton flavour
+  produces<vector<uint32_t> >("jetspatflag"             ).setBranchAlias("jets_pat_flag"); //PAT flag
+  
+  produces<vector<float> >   ("jetspatnoCorrF"          ).setBranchAlias("jets_pat_noCorrF"); // PAT corr for corrjet->nocorr
+  produces<vector<float> >   ("jetspatudsCorrF"         ).setBranchAlias("jets_pat_udsCorrF"); // PAT light quark flavor corr
+  produces<vector<float> >   ("jetspatgluCorrF"         ).setBranchAlias("jets_pat_gluCorrF"); // PAT gluon  corr
+  produces<vector<float> >   ("jetspatcCorrF"           ).setBranchAlias("jets_pat_cCorrF"); // PAT c quark flavor corr
+  produces<vector<float> >   ("jetspatbCorrF"           ).setBranchAlias("jets_pat_bCorrF"); // PAT b quark flavor corr
+  produces<vector<float> >   ("jetspatjetCharge"        ).setBranchAlias("jets_pat_jetCharge"); // PAT jet charge
 
-  produces<std::vector<float> > ("jetspatnoCorrF").setBranchAlias("jets_pat_noCorrF"); // PAT corr for corrjet->nocorr
-  produces<std::vector<float> > ("jetspatudsCorrF").setBranchAlias("jets_pat_udsCorrF"); // PAT light quark flavor corr
-  produces<std::vector<float> > ("jetspatgluCorrF").setBranchAlias("jets_pat_gluCorrF"); // PAT gluon  corr
-  produces<std::vector<float> > ("jetspatcCorrF").setBranchAlias("jets_pat_cCorrF"); // PAT c quark flavor corr
-  produces<std::vector<float> > ("jetspatbCorrF").setBranchAlias("jets_pat_bCorrF"); // PAT b quark flavor corr
-  produces<std::vector<float> > ("jetspatjetCharge").setBranchAlias("jets_pat_jetCharge"); // PAT jet charge
+  //btagging info
+  produces<vector<float> >   ("jetspatcombinedSecondaryVertexBJetTag"   ).setBranchAlias("jets_pat_combinedSecondaryVertexBJetTag");
+  produces<vector<float> >   ("jetspatcombinedSecondaryVertexMVABJetTag").setBranchAlias("jets_pat_combinedSecondaryVertexMVABJetTag");
+  produces<vector<float> >   ("jetspatconeIsolationTauJetTag"           ).setBranchAlias("jets_pat_coneIsolationTauJetTag");
+  produces<vector<float> >   ("jetspatimpactParameterMVABJetTag"        ).setBranchAlias("jets_pat_impactParameterMVABJetTag");
+  produces<vector<float> >   ("jetspatjetBProbabilityBJetTag"           ).setBranchAlias("jets_pat_jetBProbabilityBJetTag");
+  produces<vector<float> >   ("jetspatjetProbabilityBJetTag"            ).setBranchAlias("jets_pat_jetProbabilityBJetTag");
+  produces<vector<float> >   ("jetspatsimpleSecondaryVertexBJetTag"     ).setBranchAlias("jets_pat_simpleSecondaryVertexBJetTag");
+  produces<vector<float> >   ("jetspatsoftElectronBJetTag"              ).setBranchAlias("jets_pat_softElectronBJetTag");
+  produces<vector<float> >   ("jetspatsoftMuonBJetTag"                  ).setBranchAlias("jets_pat_softMuonBJetTag");
+  produces<vector<float> >   ("jetspatsoftMuonNoIPBJetTag"              ).setBranchAlias("jets_pat_softMuonNoIPBJetTag");
+  produces<vector<float> >   ("jetspattrackCountingHighEffBJetTag"      ).setBranchAlias("jets_pat_trackCountingHighEffBJetTag");
+  produces<vector<float> >   ("jetspattrackCountingHighPurBJetTag"      ).setBranchAlias("jets_pat_trackCountingHighPurBJetTag");
+  
 
-  produces<std::vector<LorentzVector> > ("jetspatgenPartonp4").setBranchAlias("jets_pat_genParton_p4"); // PAT gen parton p4
-  produces<std::vector<LorentzVector> > ("jetspatgenPartonMotherp4").setBranchAlias("jets_pat_genPartonMother_p4"); // PAT gen parton mother p4
-  produces<std::vector<LorentzVector> > ("jetspatgenJetp4").setBranchAlias("jets_pat_genJet_p4"); // PAT gen jet p4
-  produces<std::vector<LorentzVector> > ("jetspatjetp4").setBranchAlias("jets_pat_jet_p4"); // PAT jet p4
-  produces<std::vector<LorentzVector> > ("jetspatjetuncorp4").setBranchAlias("jets_pat_jet_uncorp4"); // PAT jet p4
+  produces<vector<LorentzVector> > ("jetspatgenPartonp4"      ).setBranchAlias("jets_pat_genParton_p4"); // PAT gen parton p4
+  produces<vector<LorentzVector> > ("jetspatgenPartonMotherp4").setBranchAlias("jets_pat_genPartonMother_p4"); // PAT gen parton mother p4
+  produces<vector<LorentzVector> > ("jetspatgenJetp4"         ).setBranchAlias("jets_pat_genJet_p4"); // PAT gen jet p4
+  produces<vector<LorentzVector> > ("jetspatjetp4"            ).setBranchAlias("jets_pat_jet_p4"); // PAT jet p4
+  produces<vector<LorentzVector> > ("jetspatjetuncorp4"       ).setBranchAlias("jets_pat_jet_uncorp4"); // PAT jet p4
 
   // parameters from configuration
   patJetsInputTag = iConfig.getParameter<edm::InputTag>("patJetsInputTag");
@@ -100,31 +117,47 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace std;
 
   // get jet collection
-  edm::Handle<std::vector<pat::Jet> > patJetsHandle;
+  edm::Handle<vector<pat::Jet> > patJetsHandle;
   iEvent.getByLabel(patJetsInputTag, patJetsHandle);
 
   // create containers
-  std::auto_ptr<std::vector<int> > vector_jets_pat_genParton_id(new std::vector<int>);
-  std::auto_ptr<std::vector<int> > vector_jets_pat_genPartonMother_id(new std::vector<int>);
-  std::auto_ptr<std::vector<int> > vector_jets_pat_partonFlavour(new std::vector<int>);
-  std::auto_ptr<std::vector<uint32_t> > vector_jets_pat_flag(new std::vector<uint32_t>);
+  auto_ptr<vector<int> >       jets_patgenParton_id(new vector<int>);
+  auto_ptr<vector<int> >       jets_patgenPartonMother_id(new vector<int>);
+  auto_ptr<vector<int> >       jets_patpartonFlavour(new vector<int>);
+  auto_ptr<vector<uint32_t> >  jets_patflag(new vector<uint32_t>);
 
-  std::auto_ptr<std::vector<float> > vector_jets_pat_noCorrF(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_jets_pat_udsCorrF(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_jets_pat_gluCorrF(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_jets_pat_cCorrF(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_jets_pat_bCorrF(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_jets_pat_jetCharge(new std::vector<float>);
+  auto_ptr<vector<float> >     jets_patnoCorrF(new vector<float>);
+  auto_ptr<vector<float> >     jets_patudsCorrF(new vector<float>);
+  auto_ptr<vector<float> >     jets_patgluCorrF(new vector<float>);
+  auto_ptr<vector<float> >     jets_patcCorrF(new vector<float>);
+  auto_ptr<vector<float> >     jets_patbCorrF(new vector<float>);
+  auto_ptr<vector<float> >     jets_patjetCharge(new vector<float>);
 
-  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_genParton_p4(new std::vector<LorentzVector>);
-  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_genPartonMother_p4(new std::vector<LorentzVector>);
-  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_genJet_p4(new std::vector<LorentzVector>);
-  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_jet_p4(new std::vector<LorentzVector>);
-  std::auto_ptr<std::vector<LorentzVector> > vector_jets_pat_jet_uncorp4(new std::vector<LorentzVector>);
+  //b tagging
+  auto_ptr<vector<float> >     jets_pat_combinedSecondaryVertexBJetTag    (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_combinedSecondaryVertexMVABJetTag (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_coneIsolationTauJetTag            (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_impactParameterMVABJetTag         (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_jetBProbabilityBJetTag            (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_jetProbabilityBJetTag             (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_simpleSecondaryVertexBJetTag      (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_softElectronBJetTag               (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_softMuonBJetTag                   (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_softMuonNoIPBJetTag               (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_trackCountingHighEffBJetTag       (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_trackCountingHighPurBJetTag       (new vector<float>);
+  
+
+
+  auto_ptr<vector<LorentzVector> > jets_patgenParton_p4(new vector<LorentzVector>);
+  auto_ptr<vector<LorentzVector> > jets_patgenPartonMother_p4(new vector<LorentzVector>);
+  auto_ptr<vector<LorentzVector> > jets_patgenJet_p4(new vector<LorentzVector>);
+  auto_ptr<vector<LorentzVector> > jets_patjet_p4(new vector<LorentzVector>);
+  auto_ptr<vector<LorentzVector> > jets_patjet_uncorp4(new vector<LorentzVector>);
 
   // loop over jets and fill containers
-  std::vector<pat::Jet>::const_iterator patJetsEnd = patJetsHandle->end(); 
-  for ( std::vector<pat::Jet>::const_iterator patJet = patJetsHandle->begin();
+  vector<pat::Jet>::const_iterator patJetsEnd = patJetsHandle->end(); 
+  for ( vector<pat::Jet>::const_iterator patJet = patJetsHandle->begin();
 	patJet != patJetsEnd; 
 	++patJet) {
 
@@ -133,10 +166,11 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     const reco::GenParticle *mother = MCUtilities::motherID(genParton);
 
-    vector_jets_pat_genParton_id->push_back(genParton.pdgId());
-    vector_jets_pat_genPartonMother_id->push_back(mother ? mother->pdgId() : 0);
-    vector_jets_pat_partonFlavour->push_back(patJet->partonFlavour());
-    vector_jets_pat_flag->push_back(patJet->status());
+    
+    jets_patgenParton_id->push_back(genParton.pdgId());
+    jets_patgenPartonMother_id->push_back(mother ? mother->pdgId() : 0);
+    jets_patpartonFlavour->push_back(patJet->partonFlavour());
+    jets_patflag->push_back(patJet->status());
 
     
     float jetCorF  = patJet->p4().pt()/patJet->originalObject()->p4().pt(); 
@@ -157,37 +191,67 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	bCorrF    = cor.correction(pat::JetCorrFactors::L7b);
     }
        
-    vector_jets_pat_noCorrF->push_back(1/jetCorF); 
-    vector_jets_pat_udsCorrF->push_back(udsCorrF);
-    vector_jets_pat_gluCorrF->push_back(gluCorrF);
-    vector_jets_pat_cCorrF->push_back(cCorrF);
-    vector_jets_pat_bCorrF->push_back(bCorrF);
-    vector_jets_pat_jetCharge->push_back(patJet->jetCharge());
+    jets_patnoCorrF->push_back(1/jetCorF); 
+    jets_patudsCorrF->push_back(udsCorrF);
+    jets_patgluCorrF->push_back(gluCorrF);
+    jets_patcCorrF->push_back(cCorrF);
+    jets_patbCorrF->push_back(bCorrF);
+    jets_patjetCharge->push_back(patJet->jetCharge());
+    
+
+    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
+    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
+    jets_pat_coneIsolationTauJetTag            ->push_back(patJet->bDiscriminator("coneIsolationTauJetTags"));
+    jets_pat_impactParameterMVABJetTag         ->push_back(patJet->bDiscriminator("impactParameterMVABJetTags"));
+    jets_pat_jetBProbabilityBJetTag            ->push_back(patJet->bDiscriminator("jetBProbabilityBJetTags"));
+    jets_pat_jetProbabilityBJetTag             ->push_back(patJet->bDiscriminator("jetProbabilityBJetTags"));
+    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
+    jets_pat_softElectronBJetTag               ->push_back(patJet->bDiscriminator("softElectronBJetTags"));
+    jets_pat_softMuonBJetTag                   ->push_back(patJet->bDiscriminator("softMuonBJetTags"));
+    jets_pat_softMuonNoIPBJetTag               ->push_back(patJet->bDiscriminator("softMuonNoIPBJetTags"));
+    jets_pat_trackCountingHighEffBJetTag       ->push_back(patJet->bDiscriminator("trackCountingHighEffBJetTags"));
+    jets_pat_trackCountingHighPurBJetTag       ->push_back(patJet->bDiscriminator("trackCountingHighPurBJetTags"));
+    
 
     
-    vector_jets_pat_genParton_p4->push_back(genParton.p4());
-    vector_jets_pat_genPartonMother_p4->push_back(mother ? mother->p4() : LorentzVector(0,0,0,0) );
+    
+    jets_patgenParton_p4->push_back(genParton.p4());
+    jets_patgenPartonMother_p4->push_back(mother ? mother->p4() : LorentzVector(0,0,0,0) );
     LorentzVector genJetP4 = patJet->genJet() ? patJet->genJet()->p4() : LorentzVector(0, 0, 0, 0);
-    vector_jets_pat_genJet_p4->push_back(genJetP4);
-    vector_jets_pat_jet_p4->push_back(patJet->p4());
-    vector_jets_pat_jet_uncorp4->push_back(patJet->originalObject()->p4());
+    jets_patgenJet_p4->push_back(genJetP4);
+    jets_patjet_p4->push_back(patJet->p4());
+    jets_patjet_uncorp4->push_back(patJet->originalObject()->p4());
 }
-  iEvent.put(vector_jets_pat_genParton_id, "jetspatgenPartonid");
-  iEvent.put(vector_jets_pat_genPartonMother_id, "jetspatgenPartonMotherid");
-  iEvent.put(vector_jets_pat_partonFlavour, "jetspatpartonFlavour");
-  iEvent.put(vector_jets_pat_flag, "jetspatflag");     
-  iEvent.put(vector_jets_pat_noCorrF, "jetspatnoCorrF");
-  iEvent.put(vector_jets_pat_udsCorrF, "jetspatudsCorrF");
-  iEvent.put(vector_jets_pat_gluCorrF, "jetspatgluCorrF");
-  iEvent.put(vector_jets_pat_cCorrF, "jetspatcCorrF");
-  iEvent.put(vector_jets_pat_bCorrF, "jetspatbCorrF");
-  iEvent.put(vector_jets_pat_jetCharge, "jetspatjetCharge");
+  iEvent.put(jets_patgenParton_id, "jetspatgenPartonid");
+  iEvent.put(jets_patgenPartonMother_id, "jetspatgenPartonMotherid");
+  iEvent.put(jets_patpartonFlavour, "jetspatpartonFlavour");
+  iEvent.put(jets_patflag, "jetspatflag");     
+  iEvent.put(jets_patnoCorrF, "jetspatnoCorrF");
+  iEvent.put(jets_patudsCorrF, "jetspatudsCorrF");
+  iEvent.put(jets_patgluCorrF, "jetspatgluCorrF");
+  iEvent.put(jets_patcCorrF, "jetspatcCorrF");
+  iEvent.put(jets_patbCorrF, "jetspatbCorrF");
+  iEvent.put(jets_patjetCharge, "jetspatjetCharge");
 
-  iEvent.put(vector_jets_pat_genParton_p4, "jetspatgenPartonp4");
-  iEvent.put(vector_jets_pat_genPartonMother_p4, "jetspatgenPartonMotherp4");
-  iEvent.put(vector_jets_pat_genJet_p4, "jetspatgenJetp4");
-  iEvent.put(vector_jets_pat_jet_p4, "jetspatjetp4");
-  iEvent.put(vector_jets_pat_jet_uncorp4, "jetspatjetuncorp4");
+  iEvent.put(jets_pat_combinedSecondaryVertexBJetTag,    "jetspatcombinedSecondaryVertexBJetTag");
+  iEvent.put(jets_pat_combinedSecondaryVertexMVABJetTag, "jetspatcombinedSecondaryVertexMVABJetTag");
+  iEvent.put(jets_pat_coneIsolationTauJetTag,            "jetspatconeIsolationTauJetTag");
+  iEvent.put(jets_pat_impactParameterMVABJetTag,         "jetspatimpactParameterMVABJetTag");
+  iEvent.put(jets_pat_jetBProbabilityBJetTag,            "jetspatjetBProbabilityBJetTag");
+  iEvent.put(jets_pat_jetProbabilityBJetTag,             "jetspatjetProbabilityBJetTag");
+  iEvent.put(jets_pat_simpleSecondaryVertexBJetTag,      "jetspatsimpleSecondaryVertexBJetTag");
+  iEvent.put(jets_pat_softElectronBJetTag,               "jetspatsoftElectronBJetTag");
+  iEvent.put(jets_pat_softMuonBJetTag,                   "jetspatsoftMuonBJetTag");
+  iEvent.put(jets_pat_softMuonNoIPBJetTag,               "jetspatsoftMuonNoIPBJetTag");
+  iEvent.put(jets_pat_trackCountingHighEffBJetTag,       "jetspattrackCountingHighEffBJetTag");
+  iEvent.put(jets_pat_trackCountingHighPurBJetTag,       "jetspattrackCountingHighPurBJetTag");
+  
+
+  iEvent.put(jets_patgenParton_p4, "jetspatgenPartonp4");
+  iEvent.put(jets_patgenPartonMother_p4, "jetspatgenPartonMotherp4");
+  iEvent.put(jets_patgenJet_p4, "jetspatgenJetp4");
+  iEvent.put(jets_patjet_p4, "jetspatjetp4");
+  iEvent.put(jets_patjet_uncorp4, "jetspatjetuncorp4");
 
 }
 
