@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.3 2009/02/12 22:00:06 ibloch Exp $
+// $Id: GenMaker.cc,v 1.4 2009/02/12 22:54:11 ibloch Exp $
 //
 //
 
@@ -90,9 +90,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // get the ptHat scale variable
   edm::Handle<double> genEventScale;
   iEvent.getByLabel(genEventScaleInputTag,genEventScale);
-  double ptHat = *genEventScale;
-  *genps_pthat = ptHat;
-
+  if( genEventScale.isValid() ) {
+    double ptHat = *genEventScale;
+    *genps_pthat = ptHat;
+  }
+  else {
+    // if handle is not valid, set genEventScale to -1
+    double ptHat = -1;
+    *genps_pthat = ptHat;
+  }
+  
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin();
       genps_it != genps_coll->end(); genps_it++) {
     
