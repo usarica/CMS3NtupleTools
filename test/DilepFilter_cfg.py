@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -190,6 +190,8 @@ process.load("RecoMET.METProducers.TCMET_cfi")
 
 process.load("JetMETCorrections.Configuration.JetPlusTrackCorrections_cff")
 process.load("JetMETCorrections.Configuration.ZSPJetCorrections219_cff")
+
+process.ZSPJetCorJetIcone5.src = cms.InputTag("sisCone5CaloJets")
 
 #-------------------------------------------------
 # process output; first the event selection is
