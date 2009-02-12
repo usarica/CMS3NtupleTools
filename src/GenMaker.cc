@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.2 2008/07/25 00:25:04 fgolf Exp $
+// $Id: GenMaker.cc,v 1.3 2009/02/12 22:00:06 ibloch Exp $
 //
 //
 
@@ -52,8 +52,10 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> >  ("genpsprodvtx"     ).setBranchAlias("genps_prod_vtx"    );
   produces<vector<int> >            ("genpsstatus"      ).setBranchAlias("genps_status"      );
   
+  produces< double >                ("genpspthat"       ).setBranchAlias("genps_pthat"       );
 
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
+  genEventScaleInputTag= iConfig.getParameter<InputTag>("genEventScaleInputTag");
   ntupleOnlyStatus3    = iConfig.getParameter<bool>("ntupleOnlyStatus3");
 
 }
@@ -78,11 +80,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> >  genps_prod_vtx    (new vector<LorentzVector>   );
   auto_ptr<vector<int> >            genps_status      (new vector<int>             );
 
+  auto_ptr< double >                genps_pthat       (new double                  );
+
    // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
   iEvent.getByLabel(genParticlesInputTag, genpsHandle);
   const vector<GenParticle>* genps_coll = genpsHandle.product();
 
+  // get the ptHat scale variable
+  edm::Handle<double> genEventScale;
+  iEvent.getByLabel(genEventScaleInputTag,genEventScale);
+  double ptHat = *genEventScale;
+  *genps_pthat = ptHat;
 
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin();
       genps_it != genps_coll->end(); genps_it++) {
@@ -122,6 +131,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_p4           ,"genpsp4"         );
   iEvent.put(genps_prod_vtx     ,"genpsprodvtx"    );
   iEvent.put(genps_status       ,"genpsstatus"     );
+  iEvent.put(genps_pthat        ,"genpspthat"      );
 
 }
 

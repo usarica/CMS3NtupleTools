@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.4 2008/12/17 08:35:45 kalavase Exp $
+// $Id: GenMaker.h,v 1.5 2009/02/12 22:00:06 ibloch Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -47,6 +47,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag genParticlesInputTag;
+  edm::InputTag genEventScaleInputTag;
   bool ntupleOnlyStatus3;
 };
 
