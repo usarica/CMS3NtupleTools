@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.17 2009/01/22 08:59:15 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.18 2009/02/18 23:37:08 kalavase Exp $
 //
 //
 
@@ -75,7 +75,12 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	     ("musetaErr"	).setBranchAlias("mus_etaErr"        ); // track eta error					
   produces<vector<float> >	     ("musphiErr"	).setBranchAlias("mus_phiErr"        ); // track phi error					
   produces<vector<int> >	     ("muscharge"	).setBranchAlias("mus_charge"        ); // charge						
-  produces<vector<int> >	     ("mustrkcharge"	).setBranchAlias("mus_trk_charge"    ); // track charge						
+  produces<vector<int> >	     ("mustrkcharge"	).setBranchAlias("mus_trk_charge"    ); // track charge
+  
+  produces<vector<float> >           ("musqoverp"       ).setBranchAlias("mus_qoverp"        );
+  
+  produces<vector<float> >           ("musqoverpError"  ).setBranchAlias("mus_qoverpError"   );
+  
   produces<vector<float> >	     ("musouterPhi"	).setBranchAlias("mus_outerPhi"      ); // phi angle of the outermost point in tracker		
   produces<vector<float> >	     ("musouterEta"	).setBranchAlias("mus_outerEta"      ); // eta angle of the outermost point in tracker		
   produces<vector<int> >             ("mustrkrefkey"    ).setBranchAlias("mus_trkrefkey"     ); // index of track from track ref stored in muon collection
@@ -126,55 +131,57 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   using namespace edm;
   // make vectors to hold the information
-  auto_ptr<vector<int> >	   vector_mus_type    	      (new vector<int>	           );        
-  auto_ptr<vector<int> >	   vector_mus_goodmask       (new vector<int>             );        
-  auto_ptr<vector<LorentzVector> > vector_mus_p4             (new vector<LorentzVector>   );
-  auto_ptr<vector<LorentzVector> > vector_mus_trk_p4	      (new vector<LorentzVector>   );
-  auto_ptr<vector<float> >	   vector_mus_d0	      (new vector<float>           );      
-  auto_ptr<vector<float> >	   vector_mus_z0	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_d0corr	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_z0corr	      (new vector<float>           );      
-  auto_ptr<vector<float> >         vector_mus_vertexphi      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_chi2	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_ndof	      (new vector<float>	   );      
-  auto_ptr<vector<int> >	   vector_mus_validHits      (new vector<int>             );        
-  auto_ptr<vector<int> >	   vector_mus_lostHits	      (new vector<int>             );        
-  auto_ptr<vector<float> >	   vector_mus_d0Err	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_z0Err	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_ptErr	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_etaErr	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_phiErr	      (new vector<float>	   );      
-  auto_ptr<vector<int> >	   vector_mus_charge	      (new vector<int>             );        
-  auto_ptr<vector<int> >	   vector_mus_trk_charge     (new vector<int>             );        
-  auto_ptr<vector<float> >	   vector_mus_outerPhi	      (new vector<float>	   );      
-  auto_ptr<vector<float> >	   vector_mus_outerEta	      (new vector<float>	   );      
-  auto_ptr<vector<int> >           vector_mus_trkrefkey      (new vector<int>             );
-  auto_ptr<vector<int> >	   vector_mus_nmatches	      (new vector<int>             );
-  auto_ptr<vector<float> >	   vector_mus_e_em	      (new vector<float>           );
-  auto_ptr<vector<float> >	   vector_mus_e_had	      (new vector<float>           );
-  auto_ptr<vector<float> >	   vector_mus_e_ho	      (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_e_emS9	      (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_e_hadS9	      (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_e_hoS9	      (new vector<float>	   );
-  auto_ptr<vector<float> >         vector_mus_iso            (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso03_sumPt    (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso03_emEt     (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso03_hadEt    (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso03_hoEt     (new vector<float>	   );
-  auto_ptr<vector<int> >	   vector_mus_iso03_ntrk     (new vector<int>  	   );
-  auto_ptr<vector<float> >	   vector_mus_iso05_sumPt    (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso05_emEt     (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso05_hadEt    (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_iso05_hoEt     (new vector<float>	   );
-  auto_ptr<vector<int> >	   vector_mus_iso05_ntrk     (new vector<int>  	   );
-  auto_ptr<vector<float> >	   vector_mus_gfit_chi2      (new vector<float>	   );
-  auto_ptr<vector<float> >	   vector_mus_gfit_ndof      (new vector<float>	   );
-  auto_ptr<vector<int> >           vector_mus_gfit_validHits (new vector<int>  	   );
-  auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationLoose     (new vector<int> );
-  auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int> );
-  auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int> );
-  auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight (new vector<int> );
-  auto_ptr<vector<float> >         vector_mus_caloCompatibility          (new vector<float> );
+  auto_ptr<vector<int> >	   vector_mus_type    	        (new vector<int>	     );        
+  auto_ptr<vector<int> >	   vector_mus_goodmask          (new vector<int>             );        
+  auto_ptr<vector<LorentzVector> > vector_mus_p4                (new vector<LorentzVector>   );
+  auto_ptr<vector<LorentzVector> > vector_mus_trk_p4	        (new vector<LorentzVector>   );
+  auto_ptr<vector<float> >	   vector_mus_d0	        (new vector<float>           );      
+  auto_ptr<vector<float> >	   vector_mus_z0	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_d0corr	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_z0corr	        (new vector<float>           );      
+  auto_ptr<vector<float> >         vector_mus_vertexphi         (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_chi2	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_ndof	        (new vector<float>	     );      
+  auto_ptr<vector<int> >	   vector_mus_validHits         (new vector<int>             );        
+  auto_ptr<vector<int> >	   vector_mus_lostHits	        (new vector<int>             );        
+  auto_ptr<vector<float> >	   vector_mus_d0Err	        (new vector<float>           );      
+  auto_ptr<vector<float> >	   vector_mus_z0Err	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_ptErr	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_etaErr	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_phiErr	        (new vector<float>	     );      
+  auto_ptr<vector<int> >	   vector_mus_charge	        (new vector<int>             );        
+  auto_ptr<vector<int> >	   vector_mus_trk_charge        (new vector<int>             );   
+  auto_ptr<vector<float> >         vector_mus_qoverp            (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_qoverpError       (new vector<float>           );
+  auto_ptr<vector<float> >	   vector_mus_outerPhi	        (new vector<float>	     );      
+  auto_ptr<vector<float> >	   vector_mus_outerEta	        (new vector<float>	     );      
+  auto_ptr<vector<int> >           vector_mus_trkrefkey         (new vector<int>             );
+  auto_ptr<vector<int> >	   vector_mus_nmatches	        (new vector<int>             );
+  auto_ptr<vector<float> >	   vector_mus_e_em	        (new vector<float>           );
+  auto_ptr<vector<float> >	   vector_mus_e_had   	        (new vector<float>           );
+  auto_ptr<vector<float> >	   vector_mus_e_ho	        (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_e_emS9	        (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_e_hadS9	        (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_e_hoS9	        (new vector<float>	     );
+  auto_ptr<vector<float> >         vector_mus_iso               (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso03_sumPt       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso03_emEt        (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso03_hadEt       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso03_hoEt        (new vector<float>	     );
+  auto_ptr<vector<int> >	   vector_mus_iso03_ntrk        (new vector<int>  	     );
+  auto_ptr<vector<float> >	   vector_mus_iso05_sumPt       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso05_emEt        (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso05_hadEt       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_iso05_hoEt        (new vector<float>	     );
+  auto_ptr<vector<int> >	   vector_mus_iso05_ntrk        (new vector<int>  	     );
+  auto_ptr<vector<float> >	   vector_mus_gfit_chi2         (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_gfit_ndof         (new vector<float>	     );
+  auto_ptr<vector<int> >           vector_mus_gfit_validHits    (new vector<int>  	     );
+  auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationLoose     (new vector<int>    );
+  auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int>    );
+  auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int>    );
+  auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight (new vector<int>    );
+  auto_ptr<vector<float> >         vector_mus_caloCompatibility          (new vector<float>  );
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                  (new vector<LorentzVector> );
   
   // get muons
@@ -259,6 +266,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_phiErr        ->push_back(siTrack.isNonnull() ? siTrack->phiError()                      :  -999        );
     vector_mus_charge        ->push_back(muon->charge()                                                                );
     vector_mus_trk_charge    ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -999        );
+    vector_mus_qoverp        ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -999        );
+    vector_mus_qoverpError   ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -999        );
+ 
     vector_mus_outerPhi      ->push_back(-999                                                                          );
     vector_mus_outerEta      ->push_back(-999                                                                          );
     vector_mus_trkrefkey     ->push_back(siTrack.isNonnull() ? (int)siTrack.index()                     :  -999        );
@@ -319,6 +329,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_phiErr          , "musphiErr"            );
   iEvent.put(vector_mus_charge          , "muscharge"            );
   iEvent.put(vector_mus_trk_charge      , "mustrkcharge"         );
+  iEvent.put(vector_mus_qoverp          , "musqoverp"            );
+  iEvent.put(vector_mus_qoverpError     , "musqoverpError"       );
   iEvent.put(vector_mus_outerPhi        , "musouterPhi"          );
   iEvent.put(vector_mus_outerEta        , "musouterEta"          );
   iEvent.put(vector_mus_trkrefkey       , "mustrkrefkey"         );
