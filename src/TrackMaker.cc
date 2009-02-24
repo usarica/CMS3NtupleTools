@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.10 2009/01/22 08:58:24 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.11 2009/02/24 02:32:50 fgolf Exp $
 //
 //
 
@@ -66,6 +66,7 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
      produces<vector<LorentzVector> >	("trksvertexp4"	).setBranchAlias("trks_vertex_p4" );	// track p4						
      produces<vector<float> >		("trksd0"	).setBranchAlias("trks_d0"        );	// impact parameter at the point of closest approach	
      produces<vector<float> >		("trksd0corr"	).setBranchAlias("trks_d0corr"    );	// impact parameter at the point of closest approach corrected for the beamSpot
+     produces<vector<float> >		("trksd0corrPhi").setBranchAlias("trks_d0corrPhi" );	// angle of impact parameter corrected for beamSpot
      produces<vector<float> >		("trksz0"	).setBranchAlias("trks_z0"        );	// z position of the point of closest approach		
      produces<vector<float> >		("trksz0corr"	).setBranchAlias("trks_z0corr"    );	// z position of the point of closest approach corrected for the the beamSpot
      produces<vector<float> >		("trksvertexphi").setBranchAlias("trks_vertexphi" );	// phi angle of the point of closest approach		
@@ -104,6 +105,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<LorentzVector> >	vector_trks_vertex_p4	(new vector<LorentzVector>	);
      std::auto_ptr<vector<float> >		vector_trks_d0		(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_d0corr      (new vector<float>		);      
+     std::auto_ptr<vector<float> >		vector_trks_d0corrPhi   (new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_z0		(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_z0corr	(new vector<float>		);      
      std::auto_ptr<vector<float> >		vector_trks_vertexphi	(new vector<float>		);      
@@ -142,24 +144,25 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      for (edm::View<reco::Track>::const_iterator i = track_h->begin(); 
 	  i != tracks_end; ++i) {
 	  // fill vectors
-          vector_trks_trk_p4       ->push_back(	LorentzVector( i->px(), i->py(), i->pz(), i->p() )  );
-	  vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)         );
-	  vector_trks_d0           ->push_back( i->d0()                                             );
-	  vector_trks_z0           ->push_back(	i->dz()                                             );
-	  vector_trks_d0corr       ->push_back( beamSpotH.isValid() ? -1*(i->dxy(beamSpot)) : i->d0()    );
-	  vector_trks_z0corr       ->push_back( beamSpotH.isValid() ? i->dz(beamSpot)  : i->dz()    );
-	  vector_trks_vertexphi    ->push_back( atan2( i->vy(), i->vx() )                           );
-	  vector_trks_chi2         ->push_back(	i->chi2()                                           );
-	  vector_trks_ndof         ->push_back(	i->ndof()                                           );
-	  vector_trks_validHits    ->push_back(	i->numberOfValidHits()                              );
-	  vector_trks_lostHits     ->push_back(	i->numberOfLostHits()                               );
-	  vector_trks_d0Err        ->push_back(	i->d0Error()                                        );
-	  vector_trks_z0Err        ->push_back(	i->dzError()                                        );
-	  vector_trks_ptErr        ->push_back(	i->ptError()                                        );
-	  vector_trks_etaErr       ->push_back(	i->etaError()                                       );
-	  vector_trks_phiErr       ->push_back(	i->phiError()                                       );
-	  vector_trks_charge       ->push_back(	i->charge()                                         );
-	  vector_trks_tkIso        ->push_back(	calculateTrkIsolation(track_h.product(), *i)        );
+          vector_trks_trk_p4       ->push_back(	LorentzVector( i->px(), i->py(), i->pz(), i->p() )   );
+	  vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)          );
+	  vector_trks_d0           ->push_back( i->d0()                                              );
+	  vector_trks_z0           ->push_back(	i->dz()                                              );
+	  vector_trks_d0corr       ->push_back( beamSpotH.isValid() ? -1*(i->dxy(beamSpot)) : i->d0());
+	  vector_trks_d0corrPhi    ->push_back( atan( -1 * (1/tan( i->phi() ) ) )                    );
+	  vector_trks_z0corr       ->push_back( beamSpotH.isValid() ? i->dz(beamSpot)  : i->dz()     );
+	  vector_trks_vertexphi    ->push_back( atan2( i->vy(), i->vx() )                            );
+	  vector_trks_chi2         ->push_back(	i->chi2()                                            );
+	  vector_trks_ndof         ->push_back(	i->ndof()                                            );
+	  vector_trks_validHits    ->push_back(	i->numberOfValidHits()                               );
+	  vector_trks_lostHits     ->push_back(	i->numberOfLostHits()                                );
+	  vector_trks_d0Err        ->push_back(	i->d0Error()                                         );
+	  vector_trks_z0Err        ->push_back(	i->dzError()                                         );
+	  vector_trks_ptErr        ->push_back(	i->ptError()                                         );
+	  vector_trks_etaErr       ->push_back(	i->etaError()                                        );
+	  vector_trks_phiErr       ->push_back(	i->phiError()                                        );
+	  vector_trks_charge       ->push_back(	i->charge()                                          );
+	  vector_trks_tkIso        ->push_back(	calculateTrkIsolation(track_h.product(), *i)         );
 	  
 	  
 	  GlobalPoint  tpVertex ( i->vx(), i->vy(), i->vz() );
@@ -217,6 +220,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(vector_trks_vertex_p4    , "trksvertexp4"          );
      iEvent.put(vector_trks_d0           , "trksd0"                );
      iEvent.put(vector_trks_d0corr       , "trksd0corr"            );
+     iEvent.put(vector_trks_d0corrPhi    , "trksd0corrPhi"         );
      iEvent.put(vector_trks_z0           , "trksz0"                );
      iEvent.put(vector_trks_z0corr       , "trksz0corr"            );
      iEvent.put(vector_trks_vertexphi    , "trksvertexphi"         );
