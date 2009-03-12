@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      GenMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
 
  Description: <one line class summary>
 
@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.5 2009/02/12 22:00:06 ibloch Exp $
+// $Id: GenMaker.h,v 1.6 2009/03/12 22:52:13 warren Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -47,8 +47,8 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag genParticlesInputTag;
-  edm::InputTag genEventScaleInputTag;
   bool ntupleOnlyStatus3;
+  bool ntupleDaughters;
 };
 
 
