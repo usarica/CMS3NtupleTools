@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.33 $'),
+        version = cms.untracked.string('$Revision: 1.34 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -59,6 +59,7 @@ process.goodMuonsforMETCorrection.cut = cms.string('isGlobalMuon=1 & pt > 10.0 &
 process.corMetGlobalMuons.muonsInputTag = cms.InputTag("goodMusForMETCorr")
 
 process.load("CMS2.NtupleMaker.genMaker_cfi")
+process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
@@ -274,7 +275,7 @@ process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.el
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.elToJetAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
 process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
-process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker)
+process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker*process.pdfinfoMaker)
 process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
 process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker*process.wwCutMaker)
 process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
