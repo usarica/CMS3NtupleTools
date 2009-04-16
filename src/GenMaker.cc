@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.5 2009/03/12 22:53:50 warren Exp $
+// $Id: GenMaker.cc,v 1.6 2009/04/16 22:53:29 dlevans Exp $
 //
 //
 
@@ -55,7 +55,10 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >           ("genpslepdaughteridx").setBranchAlias("genps_lepdaughter_idx");
   produces<vector<LorentzVector> > ("genpslepdaughterp4").setBranchAlias("genps_lepdaughter_p4");
   
+  produces< double >                ("genpspthat"       ).setBranchAlias("genps_pthat"       );
+
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
+  genEventScaleInputTag= iConfig.getParameter<InputTag>("genEventScaleInputTag");
   ntupleOnlyStatus3    = iConfig.getParameter<bool>("ntupleOnlyStatus3");
   ntupleDaughters      = iConfig.getParameter<bool>("ntupleDaughters");
 
@@ -84,10 +87,32 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > genps_lepdaughter_p4(new vector<LorentzVector> );
   
   // get MC particle collection
+  auto_ptr<vector<int> >            genps_id          (new vector<int>             );
+  auto_ptr<vector<int> >            genps_id_mother   (new vector<int>             );
+  auto_ptr<vector<LorentzVector> >  genps_p4          (new vector<LorentzVector>   );
+  auto_ptr<vector<LorentzVector> >  genps_prod_vtx    (new vector<LorentzVector>   );
+  auto_ptr<vector<int> >            genps_status      (new vector<int>             );
+
+  auto_ptr< double >                genps_pthat       (new double                  );
+
+   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
   iEvent.getByLabel(genParticlesInputTag, genpsHandle);
   const vector<GenParticle>* genps_coll = genpsHandle.product();
 
+  // get the ptHat scale variable
+  edm::Handle<double> genEventScale;
+  iEvent.getByLabel(genEventScaleInputTag,genEventScale);
+  if( genEventScale.isValid() ) {
+    double ptHat = *genEventScale;
+    *genps_pthat = ptHat;
+  }
+  else {
+    // if handle is not valid, set genEventScale to -1
+    double ptHat = -1;
+    *genps_pthat = ptHat;
+  }
+  
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin();
       genps_it != genps_coll->end(); genps_it++) {
 
@@ -139,14 +164,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_lepdaughter_id,"genpslepdaughterid");
   iEvent.put(genps_lepdaughter_idx,"genpslepdaughteridx");
   iEvent.put(genps_lepdaughter_p4,"genpslepdaughterp4");
+  iEvent.put(genps_pthat        ,"genpspthat"      );
 
 }
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(GenMaker);
 
-
-
-
-
-  
