@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.6 2009/04/16 22:53:29 dlevans Exp $
+// $Id: GenMaker.cc,v 1.7 2009/04/16 22:56:06 dlevans Exp $
 //
 //
 
@@ -87,12 +87,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > genps_lepdaughter_p4(new vector<LorentzVector> );
   
   // get MC particle collection
-  auto_ptr<vector<int> >            genps_id          (new vector<int>             );
-  auto_ptr<vector<int> >            genps_id_mother   (new vector<int>             );
-  auto_ptr<vector<LorentzVector> >  genps_p4          (new vector<LorentzVector>   );
-  auto_ptr<vector<LorentzVector> >  genps_prod_vtx    (new vector<LorentzVector>   );
-  auto_ptr<vector<int> >            genps_status      (new vector<int>             );
-
   auto_ptr< double >                genps_pthat       (new double                  );
 
    // get MC particle collection
