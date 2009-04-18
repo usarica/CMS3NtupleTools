@@ -9,7 +9,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.34 $'),
+        version = cms.untracked.string('$Revision: 1.35 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -188,9 +188,10 @@ process.load("RecoMET.METProducers.TCMET_cfi")
 #-------------------------------------------------
 # load JPT producer
 #-------------------------------------------------
-
-process.load("JetMETCorrections.Configuration.JetPlusTrackCorrections_cff")
-process.load("JetMETCorrections.Configuration.ZSPJetCorrections219_cff")
+process.load("CMS2.NtupleMaker.JetPlusTrackCorrectionsSisCone_cff")
+process.load("CMS2.NtupleMaker.ZSPJetCorrections219SisCone_cff")
+#process.load("JetMETCorrections.Configuration.JetPlusTrackCorrections_cff")
+#process.load("JetMETCorrections.Configuration.ZSPJetCorrections219_cff")
 
 #-------------------------------------------------
 # process output; first the event selection is
@@ -270,7 +271,11 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 process.metCorSequence = cms.Sequence(process.goodMusForMETCorr*process.corMetGlobalMuons)
 process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
 process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
-process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
+
+# process for JPT
+#process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
+process.JPTCorrection = cms.Sequence(process.ZSPJetCorrectionsSisCone*process.JetPlusTrackCorrectionsSisCone*process.jptMaker)
+
 process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker*process.scMaker*process.vertexMaker*process.metMaker)
 process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
 process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.elToJetAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
