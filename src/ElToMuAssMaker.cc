@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.4 2008/09/13 08:07:22 jmuelmen Exp $
+// $Id: ElToMuAssMaker.cc,v 1.5 2009/04/29 18:45:48 kalavase Exp $
 //
 //
 
@@ -55,6 +55,9 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
      iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
+     //get the muon type
+     Handle<vector<float> > mus_type_h;
+     iEvent.getByLabel("muonMaker", "mustype", mus_type_h);
      // get track p4's
      Handle<vector<LorentzVector> > els_p4_h;
      iEvent.getByLabel("electronMaker", "elsp4", els_p4_h);
@@ -75,6 +78,11 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin();
 	   mus_it != mus_p4_h->end(); mus_it++, i++) {
 	 
+	 //don't consider this muon if its not a global muon and 
+	 //or a tracker muon
+	 if(mus_type_h->at(i) == 8)
+	   continue;
+
 	 double mu_eta = mus_it->Eta();
 	 double mu_phi = mus_it->Phi();
 
