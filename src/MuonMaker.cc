@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.18 2009/02/18 23:37:08 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.19 2009/04/29 18:19:31 kalavase Exp $
 //
 //
 
@@ -120,8 +120,9 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
   //the 4th co-ordinate is 0
   produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" );
+  produces<vector<LorentzVector> >   ("musgfitouterPosp4"     ).setBranchAlias("mus_gfit_outerPos_p4");
   
-  muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
+    muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotInputTag = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
   
@@ -183,6 +184,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight (new vector<int>    );
   auto_ptr<vector<float> >         vector_mus_caloCompatibility          (new vector<float>  );
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                  (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4           (new vector<LorentzVector> );
   
   // get muons
   Handle<edm::View<Muon> > muon_h;
@@ -304,6 +306,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 								    siTrack->vy(),
 								    siTrack->vz(), 0) 
 						      : LorentzVector(-999,-999,-999,-999) );
+    vector_mus_gfit_outerPos_p4          ->push_back(globalTrack.isNonnull() ?
+						     LorentzVector(globalTrack->outerPosition().x(),
+								   globalTrack->outerPosition().y(),
+								   globalTrack->outerPosition().z(),0 )
+						     : LorentzVector(-999,-999,-999,-999) );
     
 
   }
@@ -355,12 +362,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_gfit_chi2       , "musgfitchi2"          );
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );
-  iEvent.put(vector_mus_pid_TMLastStationLoose	, "muspidTMLastStationLoose"     );
-  iEvent.put(vector_mus_pid_TMLastStationTight	, "muspidTMLastStationTight"     );
+  iEvent.put(vector_mus_pid_TMLastStationLoose	        , "muspidTMLastStationLoose"     );
+  iEvent.put(vector_mus_pid_TMLastStationTight	        , "muspidTMLastStationTight"     );
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
-  iEvent.put(vector_mus_caloCompatibility       , "muscaloCompatibility"         );
-  iEvent.put(vector_mus_vertex_p4       , "musvertexp4"          );
+  iEvent.put(vector_mus_caloCompatibility               , "muscaloCompatibility"         );
+  iEvent.put(vector_mus_vertex_p4                       , "musvertexp4"                  );
+  iEvent.put(vector_mus_gfit_outerPos_p4                , "musgfitouterPosp4"            );
 
 }
 
