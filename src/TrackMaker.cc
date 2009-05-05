@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.12 2009/02/24 07:21:01 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.13 2009/05/05 17:11:20 kalavase Exp $
 //
 //
 
@@ -82,7 +82,7 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
      produces<vector<int> >		("trkscharge"	).setBranchAlias("trks_charge"    );	// charge						
      produces<vector<float> >		("trksouterPhi"	).setBranchAlias("trks_outerPhi"  );	// phi angle of the outermost point in tracker		
      produces<vector<float> >		("trksouterEta"	).setBranchAlias("trks_outerEta"  );	// eta angle of the outermost point in tracker		
-     produces<vector<float> >		("trksouterEt"	).setBranchAlias("trks_outerEta"  );	// eta angle of the outermost point in tracker		
+     produces<vector<float> >		("trksouterEt"	).setBranchAlias("trks_outerEt"  );	// eta angle of the outermost point in tracker		
      produces<vector<float> >		("trkstkIso"	).setBranchAlias("trks_tkIso"     );	// track isolation like els_tkIso
 
      tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
