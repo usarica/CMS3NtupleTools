@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.5 2009/04/29 18:45:48 kalavase Exp $
+// $Id: ElToMuAssMaker.cc,v 1.6 2009/05/05 19:18:56 kalavase Exp $
 //
 //
 
@@ -56,7 +56,7 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      Handle<vector<LorentzVector> > mus_p4_h;
      iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
      //get the muon type
-     Handle<vector<float> > mus_type_h;
+     Handle<vector<int> > mus_type_h;
      iEvent.getByLabel("muonMaker", "mustype", mus_type_h);
      // get track p4's
      Handle<vector<LorentzVector> > els_p4_h;
