@@ -12,17 +12,15 @@ hypDilepMaker = cms.EDFilter("HypDilepMaker",
     muToGenInputTag = cms.InputTag("muToGenAssMaker"),
     # electrons collection
     electronsInputTag = cms.InputTag("electronMaker"),
-    hypJetMaxEtaCut = cms.double(3.0),
+    hypJetMaxEtaCut = cms.double(2.4),
     #jet collection
     jetsInputTag = cms.InputTag("jetMaker"),
-    hypJetMinPtCut = cms.double(15.0), ##this is an uncorrected pt cut!
+    hypJetMinPtCut = cms.double(30.0), ##this is a corrected pt cut!
 
     #tight lepton pt cut
     TightLepton_PtCut = cms.double(10.0),
     #tracks collection
     trksInputTag = cms.InputTag("trackMaker"),
-    #cuts on the hyp jets
-    hypJetMinEtaCut = cms.double(-3.0),
     #patjets collection
     patJetsInputTag = cms.InputTag("patJetMaker"),
     #loose lepton pt cut
