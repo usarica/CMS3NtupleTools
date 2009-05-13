@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.11 2009/05/12 19:48:43 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.12 2009/05/13 18:56:25 kalavase Exp $
 //
 //
 
@@ -564,7 +564,12 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   Handle<vector<float> > mus_e_hoS9_h;
   iEvent.getByLabel(mus_e_hoS9_tag, mus_e_hoS9_h);
   const vector<float> *mus_e_hoS9 = mus_e_hoS9_h.product();  
-
+  
+  //muon type
+  InputTag mus_type_tag(muonsInputTag.label(), "mustype");
+  Handle<vector<int> > mus_type_h;
+  iEvent.getByLabel(mus_type_tag, mus_type_h);
+  const vector<int> *mus_type = mus_type_h.product();
 
 
   //-----------------------------------------------------------
@@ -939,6 +944,10 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
       if(mus_index_1 == mus_index_2) continue;
       if(mus_index_2 < mus_index_1)  continue;  //avoid double counting
+
+      //don't look at standalone muons
+      if(mus_type->at(mus_index_1) == 8) continue;
+      if(mus_type->at(mus_index_2) == 8) continue;
       
       float mu_pt1 = mus_p4->at(mus_index_1).Pt();
       float mu_pt2 = mus_p4->at(mus_index_2).Pt();
@@ -1778,6 +1787,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 
   for(unsigned int els_index = 0; els_index < nels; els_index++) {
     for(unsigned int mus_index = 0; mus_index < nmus; mus_index++) {
+
+      if(mus_type->at(mus_index) == 8) continue;
 
       float el_pt = els_p4->at(els_index).Pt();
       float mu_pt = mus_p4->at(mus_index).Pt();
