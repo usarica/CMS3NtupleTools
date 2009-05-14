@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.8 2009/04/29 07:48:45 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.9 2009/05/14 18:36:58 warren Exp $
 //
 //
 
@@ -45,11 +45,6 @@ using std::vector;
 
 CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
 {
-  
-  //gen level met info
-  produces<float>                 ("genmet"             ).setBranchAlias("gen_met"            );
-  produces<float>                 ("genmetPhi"          ).setBranchAlias("gen_metPhi"         );
-
   // electron matched to gen particle
   produces<vector<int>           >("elsmcid"            ).setBranchAlias("els_mc_id"          ); 
   produces<vector<int>           >("elsmcmotherid"      ).setBranchAlias("els_mc_motherid"    );
@@ -120,8 +115,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   using namespace std;
   using namespace reco;
 
-  auto_ptr<float>                  gen_met                   (new float                );
-  auto_ptr<float>                  gen_metPhi                (new float                );
 
   auto_ptr<vector<int>           > vector_els_mc_motherid    (new vector<int>          );
   auto_ptr<vector<int>           > vector_els_mcidx          (new vector<int>          );
@@ -218,26 +211,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   InputTag trks_p4_tag(tracksInputTag.label(), "trkstrkp4");
   Handle<vector<LorentzVector> > trksHandle;
   iEvent.getByLabel(trks_p4_tag, trksHandle);
-
-
-  //fill MET information
-  LorentzVector tempvect(0,0,0,0);
-  for(vector<GenParticle>::const_iterator it=genParticlesHandle->begin();
-      it!=genParticlesHandle->end(); ++it) {
-    int part_id = abs( it->pdgId() );
-    //12 = nuE, 14=nuMu, 16=nuTau,
-    if( it->status() != 3) {
-      if( part_id == 12 || part_id == 14 || part_id == 16) {
-	tempvect = tempvect+LorentzVector( it->p4().x(),
-					   it->p4().y(),
-					   it->p4().z(),
-					   it->p4().e() );
-      }
-    }
-  }
-  
-  *gen_met    =   tempvect.Pt();
-  *gen_metPhi =   tempvect.Phi();
 
 
   //fill electrons
@@ -466,9 +439,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   }
 
-  
-  iEvent.put(gen_met                   ,"genmet"           );
-  iEvent.put(gen_metPhi                ,"genmetPhi"        );
 
   iEvent.put(vector_els_mc_id          ,"elsmcid"          );
   iEvent.put(vector_els_mc_motherid    ,"elsmcmotherid"    );
