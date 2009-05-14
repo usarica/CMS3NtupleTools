@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.7 2009/04/16 22:56:06 dlevans Exp $
+// $Id: GenMaker.cc,v 1.8 2009/05/14 18:41:44 warren Exp $
 //
 //
 
@@ -54,14 +54,19 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >           ("genpslepdaughterid").setBranchAlias("genps_lepdaughter_id");
   produces<vector<int> >           ("genpslepdaughteridx").setBranchAlias("genps_lepdaughter_idx");
   produces<vector<LorentzVector> > ("genpslepdaughterp4").setBranchAlias("genps_lepdaughter_p4");
-  
+
+  //genmet was previously in CandToGenAssMaker, but makes more sense here
+  produces<float>                  ("genmet"             ).setBranchAlias("gen_met"            );
+  produces<float>                  ("genmetPhi"          ).setBranchAlias("gen_metPhi"         );
+
   produces< double >                ("genpspthat"       ).setBranchAlias("genps_pthat"       );
 
   genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
   genEventScaleInputTag= iConfig.getParameter<InputTag>("genEventScaleInputTag");
   ntupleOnlyStatus3    = iConfig.getParameter<bool>("ntupleOnlyStatus3");
   ntupleDaughters      = iConfig.getParameter<bool>("ntupleDaughters");
-
+  vmetPIDs             = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs");
+  
 }
 
 
@@ -85,9 +90,11 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >           genps_lepdaughter_id(new vector<int> );
   auto_ptr<vector<int> >           genps_lepdaughter_idx(new vector<int> );
   auto_ptr<vector<LorentzVector> > genps_lepdaughter_p4(new vector<LorentzVector> );
+
+  auto_ptr<float>                  gen_met           (new float                );
+  auto_ptr<float>                  gen_metPhi        (new float                );
   
-  // get MC particle collection
-  auto_ptr< double >                genps_pthat       (new double                  );
+  auto_ptr< double >               genps_pthat       (new double                  );
 
    // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -106,13 +113,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     double ptHat = -1;
     *genps_pthat = ptHat;
   }
-  
+
+  LorentzVector tempvect(0,0,0,0);
+
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin();
       genps_it != genps_coll->end(); genps_it++) {
 
+	int id = genps_it->pdgId();
+
 	//fill daughter branches
 	if(ntupleDaughters) { //check flag from cfi
-	  int id = genps_it->pdgId();
 	  if((TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15)
 		 && genps_it->status() == 3 ) {
 		//genps_it->numberOfDaughters() > 1 //if want to ignore e->e
@@ -120,7 +130,24 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  }
 	}
 
-    //look 
+	//fill MET information
+	//12 = nuE, 14=nuMu, 16=nuTau, appear at both status 1 and 3
+	if((TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16)
+	   && genps_it->status() != 3 ) {
+	  tempvect = tempvect+LorentzVector( genps_it->p4().x(),
+										 genps_it->p4().y(),
+										 genps_it->p4().z(),
+										 genps_it->p4().e() );
+	}
+	else if( find( vmetPIDs.begin(), vmetPIDs.end(), TMath::Abs(id) ) != vmetPIDs.end()
+			 && genps_it->status() == 3 ) { //LSP only exists at stat 3
+	  tempvect = tempvect+LorentzVector( genps_it->p4().x(),
+										 genps_it->p4().y(),
+										 genps_it->p4().z(),
+										 genps_it->p4().e() );
+	}
+  
+	//look 
     if(ntupleOnlyStatus3 && (genps_it->status() !=3)) continue;
 
     genps_status    ->push_back(genps_it->status());
@@ -149,7 +176,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   }
 
-  
+  *gen_met    =   tempvect.Pt();
+  *gen_metPhi =   tempvect.Phi();
+
   iEvent.put(genps_id           ,"genpsid"         );
   iEvent.put(genps_id_mother    ,"genpsidmother"   );
   iEvent.put(genps_p4           ,"genpsp4"         );
@@ -158,6 +187,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_lepdaughter_id,"genpslepdaughterid");
   iEvent.put(genps_lepdaughter_idx,"genpslepdaughteridx");
   iEvent.put(genps_lepdaughter_p4,"genpslepdaughterp4");
+  iEvent.put(gen_met            ,"genmet"           );
+  iEvent.put(gen_metPhi         ,"genmetPhi"        );
   iEvent.put(genps_pthat        ,"genpspthat"      );
 
 }
