@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.7 2009/04/16 22:53:30 dlevans Exp $
+// $Id: GenMaker.h,v 1.8 2009/05/14 18:47:46 warren Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -50,6 +50,7 @@ private:
   edm::InputTag genEventScaleInputTag;
   bool ntupleOnlyStatus3;
   bool ntupleDaughters;
+  std::vector<int> vmetPIDs;
 };
 
 #endif
