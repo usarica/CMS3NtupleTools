@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.4 2009/05/14 01:48:41 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.5 2009/05/16 00:34:02 fgolf Exp $
 //
 //
 
@@ -30,7 +30,6 @@
 
 #include "CMS2/NtupleMaker/interface/TCMETMaker.h"
 
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/METReco/interface/CaloMET.h"
 #include "DataFormats/METReco/interface/MET.h"
 #include "DataFormats/METReco/interface/METFwd.h"
@@ -38,7 +37,7 @@
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
 
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "DataFormats/Common/interface/ValueMap.h" 
 
 using namespace reco;
 using namespace edm;
