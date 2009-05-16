@@ -13,13 +13,14 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.5 2009/01/22 18:42:07 fgolf Exp $
+// $Id: METMaker.cc,v 1.6 2009/05/16 00:35:40 fgolf Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <vector>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -30,10 +31,14 @@ Implementation:
 
 #include "CMS2/NtupleMaker/interface/METMaker.h"
 
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/METReco/interface/CaloMET.h"
+#include "DataFormats/METReco/interface/MET.h"
 
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
+
+#include "DataFormats/Common/interface/ValueMap.h" 
 
 typedef math::XYZTLorentzVector LorentzVector;
 using namespace reco;
@@ -98,7 +103,25 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtsumetOptNoHFHO"      ).setBranchAlias("evt_sumetOptNoHFHO"       );  
   produces<float> ("evtsumetMuonCorr"       ).setBranchAlias("evt_sumetMuonCorr"        );
 
-  genParticlesInputTag = iConfig.getParameter<InputTag>("genParticlesInputTag");
+  // store muon value map quantities
+  produces<vector<int> >   ("musmetflag"   ).setBranchAlias("mus_met_flag"   );
+  produces<vector<float> > ("musmetdeltax" ).setBranchAlias("mus_met_deltax" );
+  produces<vector<float> > ("musmetdeltay" ).setBranchAlias("mus_met_deltay" );
+
+  met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
+  metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
+  metNoHF_tag           = iConfig.getParameter<edm::InputTag>("metNoHF_tag_"           );   
+  metNoHFHO_tag         = iConfig.getParameter<edm::InputTag>("metNoHFHO_tag_"         ); 
+
+  metOpt_tag            = iConfig.getParameter<edm::InputTag>("metOpt_tag_"            );       
+  metOptHO_tag          = iConfig.getParameter<edm::InputTag>("metOptHO_tag_"          );     
+  metOptNoHF_tag        = iConfig.getParameter<edm::InputTag>("metOptNoHF_tag_"        );   
+  metOptNoHFHO_tag      = iConfig.getParameter<edm::InputTag>("metOptNoHFHO_tag_"      ); 
+
+  corMetGlobalMuons_tag = iConfig.getParameter<edm::InputTag>("corMetGlobalMuons_tag_" );
+
+  muon_vm_tag = iConfig.getParameter<edm::InputTag>("muon_vm_tag_");
+  muon_tag    = iConfig.getParameter<edm::InputTag>("muon_tag_"   );
 }
 
 
@@ -153,36 +176,41 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_sumetOptNoHF   (new float    );
   auto_ptr<float>   evt_sumetOptNoHFHO (new float    );
   auto_ptr<float>   evt_sumetMuonCorr  (new float    );
-  
-  Handle< View<CaloMET> > met_h;
-  Handle< View<CaloMET> > metHO_h;
-  Handle< View<CaloMET> > metNoHF_h;
-  Handle< View<CaloMET> > metNoHFHO_h;
-  
-  Handle< View<CaloMET> > metOpt_h;
-  Handle< View<CaloMET> > metOptHO_h;
-  Handle< View<CaloMET> > metOptNoHF_h;
-  Handle< View<CaloMET> > metOptNoHFHO_h;
-  
-  Handle< View<CaloMET> > metMuonCorr_h;
-  
-  iEvent.getByLabel("met",       met_h       );
-  iEvent.getByLabel("metHO",     metHO_h     );
-  iEvent.getByLabel("metNoHF",   metNoHF_h   );
-  iEvent.getByLabel("metNoHFHO", metNoHFHO_h );
 
-  iEvent.getByLabel("metOpt",       metOpt_h       );
-  iEvent.getByLabel("metOptHO",     metOptHO_h     );
-  iEvent.getByLabel("metOptNoHF",   metOptNoHF_h   );
-  iEvent.getByLabel("metOptNoHFHO", metOptNoHFHO_h );
+  auto_ptr<vector<int>   > mus_met_flag   ( new vector<int>   );
+  auto_ptr<vector<float> > mus_met_deltax ( new vector<float> );
+  auto_ptr<vector<float> > mus_met_deltay ( new vector<float> );
   
-  iEvent.getByLabel("corMetGlobalMuons", metMuonCorr_h );
+  edm::Handle< edm::View<reco::CaloMET> > met_h;
+  edm::Handle< edm::View<reco::CaloMET> > metHO_h;
+  edm::Handle< edm::View<reco::CaloMET> > metNoHF_h;
+  edm::Handle< edm::View<reco::CaloMET> > metNoHFHO_h;
+
+  edm::Handle< edm::View<reco::CaloMET> > metOpt_h;
+  edm::Handle< edm::View<reco::CaloMET> > metOptHO_h;
+  edm::Handle< edm::View<reco::CaloMET> > metOptNoHF_h;
+  edm::Handle< edm::View<reco::CaloMET> > metOptNoHFHO_h;
+
+  edm::Handle< edm::View<reco::CaloMET> > metMuonCorr_h;
+
+  edm::Handle< edm::ValueMap<reco::MuonMETCorrectionData> > muon_vm_h;
+  edm::Handle< reco::MuonCollection > muon_h;
   
-  // get MC particle collection
-  edm::Handle<reco::GenParticleCollection> genParticlesHandle;
-  iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
+  iEvent.getByLabel(met_tag      , met_h       );
+  iEvent.getByLabel(metHO_tag    , metHO_h     );
+  iEvent.getByLabel(metNoHF_tag  , metNoHF_h   );
+  iEvent.getByLabel(metNoHFHO_tag, metNoHFHO_h );
+
+  iEvent.getByLabel(metOpt_tag      , metOpt_h       );
+  iEvent.getByLabel(metOptHO_tag    , metOptHO_h     );
+  iEvent.getByLabel(metOptNoHF_tag  , metOptNoHF_h   );
+  iEvent.getByLabel(metOptNoHFHO_tag, metOptNoHFHO_h );
   
-  
+  iEvent.getByLabel(corMetGlobalMuons_tag, metMuonCorr_h );
+
+  iEvent.getByLabel(muon_vm_tag, muon_vm_h );
+  iEvent.getByLabel(muon_tag   , muon_h    );
+    
   *evt_met          = (met_h->front()).et();
   *evt_metPhi       = (met_h->front()).phi();
   *evt_metSig       = (met_h->front()).mEtSig();
@@ -222,6 +250,21 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_sumetOptNoHF    = (metOptNoHF_h->front()).sumEt();  
   *evt_sumetOptNoHFHO  = (metOptNoHFHO_h->front()).sumEt();
   *evt_sumetMuonCorr   = (metMuonCorr_h->front()).sumEt();
+
+  edm::ValueMap<reco::MuonMETCorrectionData> muon_data = *muon_vm_h;
+
+  const unsigned int nMuons = muon_h->size();
+
+  // loop over muons and extract quantities from ValueMap
+  for( unsigned int mus = 0; mus < nMuons; mus++ ) {
+
+    reco::MuonRef muref( muon_h, mus);
+    reco::MuonMETCorrectionData muCorrData = (muon_data)[muref];
+
+    mus_met_flag->push_back(muCorrData.type());
+    mus_met_deltax->push_back(muCorrData.corrX());
+    mus_met_deltay->push_back(muCorrData.corrY());
+  }
 
   iEvent.put(evt_met            ,"evtmet"           );
   iEvent.put(evt_metPhi         ,"evtmetPhi"        );
@@ -263,6 +306,9 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_sumetOptNoHFHO ,"evtsumetOptNoHFHO" 	);
   iEvent.put(evt_sumetMuonCorr  ,"evtsumetMuonCorr"     );
 
+  iEvent.put(mus_met_flag  , "musmetflag"   );
+  iEvent.put(mus_met_deltax, "musmetdeltax" );
+  iEvent.put(mus_met_deltay, "musmetdeltay" );  
 }
 
 //define this as a plug-in

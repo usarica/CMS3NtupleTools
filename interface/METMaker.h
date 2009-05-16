@@ -5,15 +5,15 @@
 // 
 /**\class METMaker.cc CMS2/NtupleMaker/src/METMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.h,v 1.1 2008/06/19 20:04:29 kalavase Exp $
+// $Id: METMaker.h,v 1.2 2009/05/16 00:35:39 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_METMAKER_H
@@ -37,18 +37,26 @@
 
 class METMaker : public edm::EDProducer {
 public:
-     explicit METMaker (const edm::ParameterSet&);
-      ~METMaker();
+  explicit METMaker (const edm::ParameterSet&);
+  ~METMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
-  edm::InputTag genParticlesInputTag;
-      // ----------member data ---------------------------
-  
+  // ----------member data ---------------------------  
+  edm::InputTag met_tag;       
+  edm::InputTag metHO_tag;     
+  edm::InputTag metNoHF_tag;   
+  edm::InputTag metNoHFHO_tag; 
+  edm::InputTag metOpt_tag;       
+  edm::InputTag metOptHO_tag;     
+  edm::InputTag metOptNoHF_tag;   
+  edm::InputTag metOptNoHFHO_tag; 
+  edm::InputTag corMetGlobalMuons_tag;
+  edm::InputTag muon_vm_tag;
+  edm::InputTag muon_tag;
 };
-
 
 #endif
