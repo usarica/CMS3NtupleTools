@@ -1,5 +1,6 @@
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "FWCore/Utilities/interface/Exception.h"
 
 typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
 
@@ -216,4 +217,20 @@ const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenParticle& p
 
   return output;
 }
+
 //----------------------------------------------------------------------------------------------
+
+const void MatchUtilities::alignRecoPatJetCollections(const std::vector<reco::CaloJet>& v_ref,
+						      std::vector<pat::Jet>& v_toAllign) {
+  alignCollections(v_ref, v_toAllign);
+}
+//----------------------------------------------------------------------------------------------
+const void MatchUtilities::alignRecoPatElectronCollections(const std::vector<reco::GsfElectron>& v_ref,
+						  std::vector<pat::Electron>& v_toAllign) {
+  alignCollections(v_ref, v_toAllign);
+}
+//----------------------------------------------------------------------------------------------
+const void MatchUtilities::alignRecoPatMuonCollections(const std::vector<reco::Muon>& v_ref,
+					      std::vector<pat::Muon>& v_toAllign) {
+  alignCollections(v_ref, v_toAllign);
+}
