@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.3 2008/07/08 16:58:42 kalavase Exp $
+// $Id: JetMaker.h,v 1.4 2009/05/17 19:40:56 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -33,6 +33,7 @@ Implementation:
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/InputTag.h"
+#include "DataFormats/JetReco/interface/CaloJet.h"
 
 //
 // class decleration
@@ -42,18 +43,17 @@ class JetMaker : public edm::EDProducer {
 public:
   explicit JetMaker (const edm::ParameterSet&);
   ~JetMaker();
+    
 
 private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-      
+  
   // ----------member data ---------------------------
-  edm::InputTag jetsInputTag;
-  edm::InputTag genJetsInputTag;
-  edm::InputTag genParticlesInputTag;
-  edm::InputTag mcJetCorrectionInputTag;
-  edm::InputTag emfJetCorrectionInputTag;
+  edm::InputTag uncorJetsInputTag_;
+  edm::InputTag L2L3corJetsInputTag_;
+  edm::InputTag L2L3L4corJetsInputTag_;
 
 };
 
