@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.h,v 1.1 2008/10/21 07:23:46 kalavase Exp $
+// $Id: PATJetMaker.h,v 1.2 2009/05/17 22:37:13 kalavase Exp $
 //
 //
 #ifndef CMS2_PATJETMAKER_H
@@ -50,7 +50,8 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag patJetsInputTag;
+  edm::InputTag patJetsInputTag_;
+  edm::InputTag uncorRecoJetsTag_;
 
 };
 
