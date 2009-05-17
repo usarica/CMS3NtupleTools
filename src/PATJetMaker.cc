@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.3 2009/02/05 05:30:53 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.4 2009/05/17 22:44:15 kalavase Exp $
 //
 //
 
@@ -94,7 +94,8 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> > ("jetspatjetuncorp4"       ).setBranchAlias("jets_pat_jet_uncorp4"); // PAT jet p4
 
   // parameters from configuration
-  patJetsInputTag = iConfig.getParameter<edm::InputTag>("patJetsInputTag");
+  patJetsInputTag_   = iConfig.getParameter<edm::InputTag>("patJetsInputTag"   );
+  uncorRecoJetsTag_  = iConfig.getParameter<edm::InputTag>("uncorRecoJetsTag"  );
 
 }
 
@@ -110,15 +111,21 @@ PATJetMaker::~PATJetMaker()
 //
 
 // ------------ method called to produce the data  ------------
-void
-PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   using namespace std;
 
   // get jet collection
   edm::Handle<vector<pat::Jet> > patJetsHandle;
-  iEvent.getByLabel(patJetsInputTag, patJetsHandle);
+  iEvent.getByLabel(patJetsInputTag_, patJetsHandle);
+  vector<pat::Jet> v_patJets = *(patJetsHandle.product());
+
+  edm::Handle<vector<reco::CaloJet> > uncorRecoJetsHandle;
+  iEvent.getByLabel(uncorRecoJetsTag_, uncorRecoJetsHandle);
+  vector<reco::CaloJet> v_uncorRecoJets = *(uncorRecoJetsHandle.product());
+
+  MatchUtilities::alignRecoPatJetCollections(v_uncorRecoJets, v_patJets);
 
   // create containers
   auto_ptr<vector<int> >       jets_patgenParton_id(new vector<int>);
@@ -155,9 +162,12 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<LorentzVector> > jets_patjet_p4(new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > jets_patjet_uncorp4(new vector<LorentzVector>);
 
+
+  
+
   // loop over jets and fill containers
-  vector<pat::Jet>::const_iterator patJetsEnd = patJetsHandle->end(); 
-  for ( vector<pat::Jet>::const_iterator patJet = patJetsHandle->begin();
+  vector<pat::Jet>::const_iterator patJetsEnd = v_patJets.end(); 
+  for ( vector<pat::Jet>::const_iterator patJet = v_patJets.begin();
 	patJet != patJetsEnd; 
 	++patJet) {
 
@@ -178,17 +188,14 @@ PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     float gluCorrF = -999.;
     float cCorrF   = -999.;
     float bCorrF   = -999.;
-    if (patJet->hasJetCorrFactors()) {
-      const pat::JetCorrFactors cor = patJet->jetCorrFactors();
+    if (patJet->hasCorrFactors()) {
+
+      //  const pat::JetCorrFactors cor = patJet->jetCorrFactors();
       
-      if(cor.hasCorrection(pat::JetCorrFactors::L7uds) )
-	udsCorrF  = cor.correction(pat::JetCorrFactors::L7uds);
-      if(cor.hasCorrection(pat::JetCorrFactors::L7g) )
-	 gluCorrF = cor.correction(pat::JetCorrFactors::L7g);
-      if(cor.hasCorrection(pat::JetCorrFactors::L7c) )
-	cCorrF    = cor.correction(pat::JetCorrFactors::L7c);
-      if(cor.hasCorrection(pat::JetCorrFactors::L7b) )
-	bCorrF    = cor.correction(pat::JetCorrFactors::L7b);
+//       udsCorrF  = cor.correction(pat::JetCorrFactors::L7uds);
+//       gluCorrF = cor.correction(pat::JetCorrFactors::L7g);
+//       cCorrF    = cor.correction(pat::JetCorrFactors::L7c);
+//       bCorrF    = cor.correction(pat::JetCorrFactors::L7b);
     }
        
     jets_patnoCorrF->push_back(1/jetCorF); 
