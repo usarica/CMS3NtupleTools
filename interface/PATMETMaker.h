@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.h,v 1.1 2008/10/31 23:13:10 kalavase Exp $
+// $Id: PATMETMaker.h,v 1.2 2009/05/18 22:43:05 fgolf Exp $
 //
 //
 #ifndef CMS2_PATMETMAKER_H
@@ -51,7 +51,6 @@ private:
       
   // ----------member data ---------------------------
   edm::InputTag patMETInputTag;
-
 };
 
 

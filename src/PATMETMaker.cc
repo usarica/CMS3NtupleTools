@@ -14,7 +14,7 @@ Description: copy additional PAT met variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.cc,v 1.2 2008/11/06 17:42:17 kalavase Exp $
+// $Id: PATMETMaker.cc,v 1.3 2009/05/18 22:43:06 fgolf Exp $
 //
 //
 
@@ -57,14 +57,14 @@ using namespace std;
 PATMETMaker::PATMETMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
-  produces<float> ("metpatmetCor").setBranchAlias("met_pat_metCor"); // fully corrected MET
-  produces<float> ("metpatmetPhiCor").setBranchAlias("met_pat_metPhiCor"); // fully corrected METPhi
-  produces<float> ("metpatmetUncor").setBranchAlias("met_pat_metUncor"); // MET with no corrections 
-  produces<float> ("metpatmetPhiUncor").setBranchAlias("met_pat_metPhiUncor"); // MET with no corrections 
-  produces<float> ("metpatmetUncorJES").setBranchAlias("met_pat_metUncorJES"); // PAT gen parton ID
-  produces<float> ("metpatmetPhiUncorJES").setBranchAlias("met_pat_metPhiUncorJES"); // PAT gen parton ID
-  produces<float> ("metpatmetUncorMuon").setBranchAlias("met_pat_metUncorMuon"); // PAT gen parton ID
-  produces<float> ("metpatmetPhiUncorMuon").setBranchAlias("met_pat_metPhiUncorMuon"); // PAT gen parton ID
+  produces<float> ("metpatmetCor"         ).setBranchAlias("met_pat_metCor"         ); // MET corrected for muons+JES
+  produces<float> ("metpatmetPhiCor"      ).setBranchAlias("met_pat_metPhiCor"      ); // phi of MET corrected for muons+JES
+  produces<float> ("metpatmetUncor"       ).setBranchAlias("met_pat_metUncor"       ); // MET with no corrections 
+  produces<float> ("metpatmetPhiUncor"    ).setBranchAlias("met_pat_metPhiUncor"    ); // phi of MET with no corrections 
+  produces<float> ("metpatmetUncorJES"    ).setBranchAlias("met_pat_metUncorJES"    ); // MET corrected for muons only
+  produces<float> ("metpatmetPhiUncorJES" ).setBranchAlias("met_pat_metPhiUncorJES" ); // phi of MET corrected for muons only
+  produces<float> ("metpatmetUncorMuon"   ).setBranchAlias("met_pat_metUncorMuon"   ); // MET corrected for JES only
+  produces<float> ("metpatmetPhiUncorMuon").setBranchAlias("met_pat_metPhiUncorMuon"); // phi of MET corrected for JES only
   
    // parameters from configuration
   patMETInputTag = iConfig.getParameter<edm::InputTag>("patMETsInputTag");
@@ -85,53 +85,43 @@ void
 PATMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
-  // get jet collection
-  //edm::Handle<pat::MET> patMETHandle;
-  //iEvent.getByLabel(patMETInputTag, patMETHandle);
   edm::Handle<edm::View<pat::MET> > patMETView;
   iEvent.getByLabel(patMETInputTag, patMETView);
-  //edm::View<pat::MET> met = *patMETView;
-  const pat::MET met = (*patMETView).at(0);
-  
-  
+  const pat::MET met = (*patMETView).at(0);  
     
   // create containers
-  auto_ptr<float> met_pat_metCor(new float);   //MET with all corrections
-  auto_ptr<float> met_pat_metPhiCor(new float);   //MET with all corrections
-  auto_ptr<float> met_pat_metUncor(new float); // MET with no corrections 
-  auto_ptr<float> met_pat_metPhiUncor(new float); // MET with no corrections 
-  auto_ptr<float> met_pat_metUncorJES(new float); //MET with no JES corrections
-  auto_ptr<float> met_pat_metPhiUncorJES(new float); //MET with no JES corrections
-  auto_ptr<float> met_pat_metUncorMuon(new float); //MET with no muon correction
-  auto_ptr<float> met_pat_metPhiUncorMuon(new float); //MET with no muon correction
+  auto_ptr<float> met_pat_metCor         (new float);
+  auto_ptr<float> met_pat_metPhiCor      (new float);
+  auto_ptr<float> met_pat_metUncor       (new float);
+  auto_ptr<float> met_pat_metPhiUncor    (new float);
+  auto_ptr<float> met_pat_metUncorJES    (new float);
+  auto_ptr<float> met_pat_metPhiUncorJES (new float);
+  auto_ptr<float> met_pat_metUncorMuon   (new float);
+  auto_ptr<float> met_pat_metPhiUncorMuon(new float);
 
 
-
-  *met_pat_metCor    = met.pt();
-  *met_pat_metPhiCor = met.phi();
+  *met_pat_metCor          = met.pt();
+  *met_pat_metPhiCor       = met.phi();
   
-  *met_pat_metUncor    = met.uncorrectedPt();
-  *met_pat_metPhiUncor = met.uncorrectedPhi();
+  *met_pat_metUncor        = met.uncorrectedPt();
+  *met_pat_metPhiUncor     = met.uncorrectedPhi();
   
-  *met_pat_metUncorJES    = met.uncorrectedPt(pat::MET::uncorrJES);
-  *met_pat_metPhiUncorJES = met.uncorrectedPhi(pat::MET::uncorrJES);
+  *met_pat_metUncorJES     = met.uncorrectedPt (pat::MET::uncorrJES);
+  *met_pat_metPhiUncorJES  = met.uncorrectedPhi(pat::MET::uncorrJES);
   
-  *met_pat_metUncorMuon = met.uncorrectedPt(pat::MET::uncorrMUON);
+  *met_pat_metUncorMuon    = met.uncorrectedPt (pat::MET::uncorrMUON);
   *met_pat_metPhiUncorMuon = met.uncorrectedPhi(pat::MET::uncorrMUON);
   
- 
   
   // put containers into event
-  iEvent.put(met_pat_metCor,"metpatmetCor");
-  iEvent.put(met_pat_metPhiCor,"metpatmetPhiCor");
-  iEvent.put(met_pat_metUncor, "metpatmetUncor");
-  iEvent.put(met_pat_metPhiUncor, "metpatmetPhiUncor");
-  iEvent.put(met_pat_metUncorJES,"metpatmetUncorJES");
-  iEvent.put(met_pat_metPhiUncorJES,"metpatmetPhiUncorJES");
-  iEvent.put(met_pat_metUncorMuon,"metpatmetUncorMuon");
-  iEvent.put(met_pat_metPhiUncorMuon,"metpatmetPhiUncorMuon");
-
-
+  iEvent.put(met_pat_metCor         , "metpatmetCor"          );
+  iEvent.put(met_pat_metPhiCor      , "metpatmetPhiCor"       );
+  iEvent.put(met_pat_metUncor       , "metpatmetUncor"        );
+  iEvent.put(met_pat_metPhiUncor    , "metpatmetPhiUncor"     );
+  iEvent.put(met_pat_metUncorJES    , "metpatmetUncorJES"     );
+  iEvent.put(met_pat_metPhiUncorJES , "metpatmetPhiUncorJES"  );
+  iEvent.put(met_pat_metUncorMuon   , "metpatmetUncorMuon"    );
+  iEvent.put(met_pat_metPhiUncorMuon, "metpatmetPhiUncorMuon" );
 }
 // ------------ method called once each job just before starting event loop  ------------
 void 
