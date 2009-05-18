@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.h,v 1.1 2008/10/21 07:24:03 kalavase Exp $
+// $Id: PATMuonMaker.h,v 1.2 2009/05/18 18:18:00 kalavase Exp $
 //
 //
 #ifndef CMS2_PATMUONMAKER_H
@@ -50,8 +50,8 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag patMuonsInputTag;
-
+  edm::InputTag patMuonsInputTag_;
+  edm::InputTag recoMuonsInputTag_;
 };
 
 
