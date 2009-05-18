@@ -234,3 +234,8 @@ const void MatchUtilities::alignRecoPatMuonCollections(const std::vector<reco::M
 					      std::vector<pat::Muon>& v_toAllign) {
   alignCollections(v_ref, v_toAllign);
 }
+//----------------------------------------------------------------------------------------------
+const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::CaloJet>& v_ref,
+						       std::vector<reco::CaloJet>& v_toAllign) {
+  alignCollections(v_ref, v_toAllign);
+}

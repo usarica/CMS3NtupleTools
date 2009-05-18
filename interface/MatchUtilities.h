@@ -11,7 +11,7 @@ Description: utilities to match objects
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.6 2009/05/17 19:37:41 kalavase Exp $
+// $Id: MatchUtilities.h,v 1.7 2009/05/18 21:59:35 fgolf Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -58,6 +58,9 @@ public:
 					     std::vector<pat::Electron>&);
   static const void alignRecoPatMuonCollections(const std::vector<reco::Muon>&,
 					     std::vector<pat::Muon>&);
+
+  static const void alignJPTcaloJetCollections(const std::vector<reco::CaloJet>&,
+					       std::vector<reco::CaloJet>&);
   
   template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref,
 							    std::vector<T2>& v_toAllign) {
