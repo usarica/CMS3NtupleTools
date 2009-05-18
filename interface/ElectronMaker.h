@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.5 2008/12/17 08:03:39 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.6 2009/05/18 16:19:06 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -32,9 +32,11 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/Math/interface/Point3D.h"
@@ -45,38 +47,29 @@
 //
 
 class ElectronMaker : public edm::EDProducer {
-public:
-     explicit ElectronMaker (const edm::ParameterSet&);
-      ~ElectronMaker();
+	public:
+     		explicit ElectronMaker (const edm::ParameterSet&);
+      		~ElectronMaker();
 
-private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+	private:
+     		virtual void beginJob(const edm::EventSetup&) ;
+     		virtual void produce(edm::Event&, const edm::EventSetup&);
+     		virtual void endJob() ;
 
-  void R9_25(const reco::BasicClusterShapeAssociationCollection*,
-             const reco::BasicClusterShapeAssociationCollection*,
-             const reco::GsfElectron*,
-             float&, float&, float&, float&, float&);
-  bool identify(const reco::GsfElectron*, int);
-  int classify(const reco::GsfElectron*);
-  int classify_old(const reco::GsfElectron*);
-  double trackRelIsolation(const math::XYZVector momentum,
-			   const math::XYZPoint vertex,
-			   const math::XYZPoint beamSpot,
-			   const edm::View<reco::Track>* tracks = 0,
-			   double dRConeMax = 0.3, double dRConeMin = 0.01,
-			   double tkVtxDMax = 0.1,
-			   double vtxDiffDMax = 999.9, double vtxDiffZMax = 0.5,
-			   double ptMin = 1.0, unsigned int nHits = 7);
- 
-   edm::InputTag electronsInputTag;
-   edm::InputTag tracksInputTag;
-   edm::InputTag genParticlesInputTag;
-  edm::InputTag beamSpotInputTag;
-      // ----------member data ---------------------------
-  EcalClusterLazyTools* clusterTools_;
+  		bool identify(const edm::RefToBase<reco::GsfElectron> &, int);
+  		int classify(const edm::RefToBase<reco::GsfElectron> &);
+  		int classify_old(const edm::RefToBase<reco::GsfElectron> &);
+		const edm::ValueMap<double>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
+
+      		// ----------member data ---------------------------
+   		edm::InputTag electronsInputTag_;
+  		edm::InputTag beamSpotInputTag_;
+        	edm::InputTag ecalIsoTag_;
+		edm::InputTag hcalIsoTag_;
+		edm::InputTag tkIsoTag_;
+
+ 		EcalClusterLazyTools* clusterTools_;
 };
 
-
 #endif
+
