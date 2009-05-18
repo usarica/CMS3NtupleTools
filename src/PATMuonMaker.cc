@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.6 2009/01/05 00:21:16 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.7 2009/05/18 19:05:28 kalavase Exp $
 //
 //
 
@@ -34,6 +34,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 #include "CMS2/NtupleMaker/interface/PATMuonMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Flags.h"
@@ -68,7 +69,8 @@ PATMuonMaker::PATMuonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector>  >   ("muspatgenMotherP4" ).setBranchAlias("mus_pat_genMotherP4" );
 
   // parameters from configuration
-  patMuonsInputTag = iConfig.getParameter<edm::InputTag>("patMuonsInputTag");
+  patMuonsInputTag_  = iConfig.getParameter<edm::InputTag>("patMuonsInputTag"  );
+  recoMuonsInputTag_ = iConfig.getParameter<edm::InputTag>("recoMuonsInputTag" );
 }
 
 PATMuonMaker::~PATMuonMaker() {}
@@ -77,8 +79,16 @@ PATMuonMaker::~PATMuonMaker() {}
 void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get jet collection
-  edm::Handle<std::vector<pat::Muon> > patMuonHandle;
-  iEvent.getByLabel(patMuonsInputTag, patMuonHandle);
+  edm::Handle<vector<pat::Muon> > patMuonHandle;
+  iEvent.getByLabel(patMuonsInputTag_, patMuonHandle);
+  vector<pat::Muon> v_patMuons = *(patMuonHandle.product());
+
+  edm::Handle<vector<reco::Muon> > recoMuonHandle;
+  iEvent.getByLabel(recoMuonsInputTag_, recoMuonHandle);
+  vector<reco::Muon> v_recoMuons = *(recoMuonHandle.product());
+  
+  //make sure that the PAT and recoMuon collections are indeed aligned 
+  MatchUtilities::alignRecoPatMuonCollections(v_recoMuons, v_patMuons);
 
   // create containers
   auto_ptr<vector<float>             >   mus_pat_trackIso    ( new vector<float>             );
@@ -95,8 +105,8 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector>     >   mus_pat_genMotherP4 ( new vector<LorentzVector>     );
   
   // loop over top muons and fill containers
-  for ( std::vector<pat::Muon>::const_iterator patmu_it = patMuonHandle->begin(),
-	patmu_end = patMuonHandle->end();
+  for ( std::vector<pat::Muon>::const_iterator patmu_it = v_patMuons.begin(),
+	patmu_end = v_patMuons.end();
 	patmu_it != patmu_end; patmu_it++) {
     
     GenParticle gen(patmu_it->genLepton() ? *patmu_it->genLepton() : 
