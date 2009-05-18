@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.2 2009/04/17 03:27:13 kalavase Exp $
+// $Id: JPTMaker.h,v 1.3 2009/05/18 21:58:46 fgolf Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -50,7 +50,7 @@ private:
       
   // ----------member data ---------------------------
   edm::InputTag jptsInputTag;
-  edm::InputTag calojetsInputTag;
+  edm::InputTag caloJetsInputTag;
 };
 
 
