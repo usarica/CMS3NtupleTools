@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.h,v 1.1 2008/10/21 07:23:29 kalavase Exp $
+// $Id: PATElectronMaker.h,v 1.2 2009/05/18 18:17:34 kalavase Exp $
 //
 //
 #ifndef CMS2_PATElECTRONMAKER_H
@@ -50,8 +50,8 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag patElectronsInputTag;
-
+  edm::InputTag patElectronsInputTag_;
+  edm::InputTag recoElectronsInputTag_;
 };
 
 #endif
