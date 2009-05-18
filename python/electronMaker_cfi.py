@@ -1,8 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 electronMaker = cms.EDFilter("ElectronMaker",
-    # Jet collection
-    electronsInputTag = cms.InputTag("pixelMatchGsfElectrons"),
+    # Electron collection
+    electronsInputTag = cms.InputTag("uniqueElectrons"),
     # Beamspot
     beamSpotInputTag = cms.InputTag("beamSpotMaker"),
     # Isolation
