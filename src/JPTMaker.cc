@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.4 2009/05/19 00:59:23 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.5 2009/05/19 06:37:19 kalavase Exp $
 //
 //
 
@@ -61,7 +61,7 @@ JPTMaker::JPTMaker(const edm::ParameterSet& iConfig)
   // parameters from configuration
   jptsInputTag     = iConfig.getParameter<edm::InputTag>("jptInputTag"     );
   L2L3jptsInputTag = iConfig.getParameter<edm::InputTag>("L2L3jptInputTag" );
-  caloJetsInputTag = iConfig.getParameter<edm::InputTag>("caloJetInputTag" );
+  caloJetsInputTag = iConfig.getParameter<edm::InputTag>("caloJetsInputTag" );
 }
 
 JPTMaker::~JPTMaker()
