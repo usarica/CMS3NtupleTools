@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToElAssMaker.cc,v 1.3 2009/05/19 18:25:15 fgolf Exp $
+// $Id: JetToElAssMaker.cc,v 1.4 2009/05/19 19:50:06 fgolf Exp $
 //
 //
 
@@ -41,7 +41,7 @@ JetToElAssMaker::JetToElAssMaker(const edm::ParameterSet& iConfig)
      produces<std::vector<int>    >("jetsclosestElectron"  ).setBranchAlias("jets_closestElectron"   );
      produces<std::vector<double> >("jetsclosestElectronDR").setBranchAlias("jets_closestElectron_DR");
 
-     m_minDR     = iConfig.getParameter<double>("minDRa");
+     m_minDR     = iConfig.getParameter<double>("minDR");
      jetInputTag = iConfig.getParameter<edm::InputTag>("jetInputTag_");
      elInputTag  = iConfig.getParameter<edm::InputTag>("elInputTag_" );
 }
