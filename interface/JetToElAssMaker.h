@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToElAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
+// $Id: JetToElAssMaker.h,v 1.3 2009/05/19 18:25:14 fgolf Exp $
 //
 //
 #ifndef CMS2_JETTOELASSMAKER_H
@@ -38,7 +38,8 @@ private:
       
   // ----------member data ---------------------------
   double m_minDR;
-  
+  edm::InputTag jetInputTag;
+  edm::InputTag elInputTag;
 };
 
 #endif
