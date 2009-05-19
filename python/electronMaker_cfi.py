@@ -6,9 +6,8 @@ electronMaker = cms.EDFilter("ElectronMaker",
     # Beamspot
     beamSpotInputTag = cms.InputTag("beamSpotMaker"),
     # Isolation
-    ecalIsoTag = cms.InputTag("eleIsoFromDepsEcalFromHits"),
-    hcalIsoTag = cms.InputTag("eleIsoFromDepsHcalFromHits"),
-    tkIsoTag = cms.InputTag("eleIsoFromDepsTk")
-
+    ecalIsoTag = cms.InputTag("eleIsoFromDepsEcalFromHitsCMS2"),
+    hcalIsoTag = cms.InputTag("eleIsoFromDepsHcalFromTowersCMS2"),
+    tkIsoTag = cms.InputTag("eleIsoFromDepsTkCMS2")
 )
 
