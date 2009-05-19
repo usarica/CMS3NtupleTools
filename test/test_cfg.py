@@ -1,7 +1,3 @@
-# The following comments couldn't be translated into the new config version:
-
-# -*-sh-*-
-
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("CMS2")
@@ -9,31 +5,25 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.35 $'),
+        version = cms.untracked.string('$Revision: 1.36 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
 
-## configure geometry
-process.load("Configuration.StandardSequences.Geometry_cff")
-## configure B field
-process.load("Configuration.StandardSequences.MagneticField_cff")
-## configure conditions
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = "IDEAL_V9::All"
-
-# include stuff for JPT (not sure if all of this is needed yet)
+# load event level configurations
 process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Reconstruction_cff")
-process.load("Configuration.StandardSequences.Simulation_cff")
 process.load("Configuration.StandardSequences.MixingNoPileUp_cff")
 process.load("Configuration.StandardSequences.VtxSmearedGauss_cff")
+process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.StandardSequences.MagneticField_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.GlobalTag.globaltag = "IDEAL_V11::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
-## add message logger
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
 
@@ -41,30 +31,28 @@ process.MessageLogger.cerr.threshold = ''
 #CMS2 includes
 #----------------------------------------------------
 process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
+process.load("CMS2.NtupleMaker.vertexMaker_cfi")
 process.load("CMS2.NtupleMaker.eventMaker_cfi")
-process.load("CMS2.NtupleMaker.jetMaker_cfi")
-process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
-process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
-process.load("CMS2.NtupleMaker.patJetMaker_cfi")
-process.load("CMS2.NtupleMaker.electronMaker_cfi")
-process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
-process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
-process.load("CMS2.NtupleMaker.goodMusForMETCorrProducer_cfi")
-process.load("CMS2.NtupleMaker.metSequence_cff")
+process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
 
-#the line below solves the horrible electron track ref problem
-process.goodMuonsforMETCorrection.cut = cms.string('isGlobalMuon=1 & pt > 10.0 & abs(eta)<2.5')
-#the line below substitutes our own muon collection in for the one created by the
-#bad MuonSelector
-process.corMetGlobalMuons.muonsInputTag = cms.InputTag("goodMusForMETCorr")
+process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
+process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
 
 process.load("CMS2.NtupleMaker.genMaker_cfi")
-process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
-process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
+process.load("CMS2.NtupleMaker.genJetMaker_cfi")
+
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
+process.load("CMS2.NtupleMaker.jetMaker_cfi")
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
-process.load("CMS2.NtupleMaker.patMETMaker_cfi")
-process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
+process.load("CMS2.NtupleMaker.scMaker_cfi")
+process.load("CMS2.NtupleMaker.electronSequence_cfi")
+process.load("CMS2.NtupleMaker.jptSequence_cff")
+process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
+process.load("CMS2.NtupleMaker.metSequence_cff")
+
+process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
+process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
+process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muToElsAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muToJetAssMaker_cfi")
 process.load("CMS2.NtupleMaker.muToTrackAssMaker_cfi")
@@ -73,22 +61,25 @@ process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToMuonAssMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToElsAssMaker_cfi")
+
 process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
+process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
-process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
-process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
-process.load("CMS2.NtupleMaker.theFilter_cfi")
+
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
-process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
-process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
-process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
-process.load("CMS2.NtupleMaker.wwCutMaker_cfi")
-process.load("CMS2.NtupleMaker.jptMaker_cfi")
-process.load("CMS2.NtupleMaker.scMaker_cfi")
-process.load("CMS2.NtupleMaker.vertexMaker_cfi")
-#process.Timing = cms.Service("Timing")
+
+process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
+process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
+process.load("CMS2.NtupleMaker.patJetMaker_cfi")
+process.load("CMS2.NtupleMaker.patMETMaker_cfi")
+
+process.load("CMS2.NtupleMaker.theFilter_cfi")
+
+#-----------------------------------------------------------
+# configure input data files and number of event to process
+#-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100)
@@ -97,101 +88,77 @@ process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
-##source 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/90225699-6CCB-DD11-BA42-001CC47D8D40.root',
-                                      'file:/home/users/kalavase/temp/CMSSW_2_2_3/src/CMS2/NtupleMaker/test/025079C9-65CB-DD11-A521-001CC4A6CC32.root')
+    fileNames = cms.untracked.vstring('file:/home/users/fgolf/tmp/B493FB91-EA00-DE11-B852-00E081791899.root')
 )
-
-#-------------------------------------------------
-# patTuple configuration
-#-------------------------------------------------
-
-## std sequence for tqaf layer1
-process.load("TopQuarkAnalysis.TopObjectProducers.patTuple_cff")
-#replace the input muon collection with what we have produced ourselves 
-process.corMetType1Icone5Muons.muonsInputTag = cms.InputTag("goodMusForMETCorr")
-#modified patTuple sequence from above cff file. This is because
-#MadGraph samples don't have genEventRunInfo in them
-process.patTuple = cms.Sequence(process.genEventProcID +             ## needs HepMCProduct in the event content
-                                process.patLayer0_patTuple *         ## to be used from PhysicsTools/PatAlgos 
-                                process.patLayer1# *                 ## V04-14-03 onwards                 
-                               )
-
-## necessary fixes to run 2.2.X on 2.1.X data
-from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
-run22XonSummer08AODSIM(process)
-
 
 #-------------------------------------------------
 # JEC
 #-------------------------------------------------
+
 #############   Define the L2 correction service #####
 process.L2RelativeJetCorrector = cms.ESSource("L2RelativeCorrectionService", 
-    tagName = cms.string('Summer08_L2Relative_SC5Calo'),
-    label = cms.string('L2RelativeJetCorrector')
+     tagName = cms.string('Summer08Redigi_L2Relative_SC5Calo'),
+     label = cms.string('L2RelativeJetCorrector')
 )
+
 #############   Define the L3 correction service #####
 process.L3AbsoluteJetCorrector = cms.ESSource("L3AbsoluteCorrectionService", 
-    tagName = cms.string('Summer08_L3Absolute_SC5Calo'),
-    label = cms.string('L3AbsoluteJetCorrector')
+     tagName = cms.string('Summer08Redigi_L3Absolute_SC5Calo'),
+     label = cms.string('L3AbsoluteJetCorrector')
 )
+
+#############   Define another L2 correction service #####
+process.L2RelativeJetCorrector2 = cms.ESSource("L2RelativeCorrectionService", 
+     tagName = cms.string('Summer08Redigi_L2Relative_SC5Calo'),
+     label = cms.string('L2RelativeJetCorrector2')
+)
+
+#############   Define another L3 correction service #####
+process.L3AbsoluteJetCorrector2 = cms.ESSource("L3AbsoluteCorrectionService", 
+     tagName = cms.string('Summer08Redigi_L3Absolute_SC5Calo'),
+     label = cms.string('L3AbsoluteJetCorrector2')
+)
+
 #############   Define the EMF correction service ####
-process.L4JetCorrector = cms.ESSource("L4EMFCorrectionService", 
+process.L4EMFJetCorrector = cms.ESSource("L4EMFCorrectionService", 
     tagName = cms.string('CMSSW_152_L4EMF'),
     label = cms.string('L4EMFJetCorrector')
 )
+
 #############   Define the chain corrector service - L2L3 ###
 process.L2L3JetCorrector = cms.ESSource("JetCorrectionServiceChain",  
     correctors = cms.vstring('L2RelativeJetCorrector','L3AbsoluteJetCorrector'),
     label = cms.string('L2L3JetCorrector')
 )
+
 #############   Define the chain corrector service - L2L3L4 ###
 process.L2L3L4JetCorrector = cms.ESSource("JetCorrectionServiceChain",  
-    correctors = cms.vstring('L4EMFJetCorrector'),
+    correctors = cms.vstring('L2RelativeJetCorrector2','L3AbsoluteJetCorrector2','L4EMFJetCorrector'),
     label = cms.string('L2L3L4JetCorrector')
 )
-#############   Define the chain corrector module - L2L3L4####
-process.L2L3CorJet = cms.EDProducer("CaloJetCorrectionProducer",
-    src = cms.InputTag("sisCone5CaloJets"),
-    correctors = cms.vstring('L2L3JetCorrector')
-)
-#############   Define the chain corrector module - L2L3L4####
-process.L2L3L4CorJet = cms.EDProducer("CaloJetCorrectionProducer",
-    src = cms.InputTag("L2L3CorJet"), ##don't want to rerun L2L3 for L2L3L4 -> take L2L3 as input
-    correctors = cms.vstring('L2L3L4JetCorrector')
-)
+
 # set the record's IOV. Must be defined once. Choose ANY correction service. #
 process.prefer("L2L3L4JetCorrector") 
 
+#-------------------------------------------------
+# PAT configuration
+#-------------------------------------------------
 
-## change jet collection
+## change jet collection# PAT Layer 0+1
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+process.patDefaultSequence = cms.Sequence(
+    process.beforeLayer1Objects *    # using '*', as the order is fixed.
+    process.allLayer1Objects *
+    process.selectedLayer1Objects
+)
+
 from PhysicsTools.PatAlgos.tools.jetTools import *
+switchJetCollection(process, 'sisCone5CaloJets', doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
 
-switchJetCollection(process, 
-                    'sisCone5CaloJets',             # jet collection; must be already in the event when patLayer0 sequence is executed
-                    layers       = [0,1],           # if you're not running patLayer1, set 'layers=[0]' 
-                    runCleaner   = "CaloJet",       # =None if not to clean
-                    doJTA        = True,            # run jet-track association & JetCharge
-                    doBTagging   = True,            # run b-tagging
-                    jetCorrLabel = ('SC5', 'Calo'), # example jet correction name; set to None for no JEC
-                    doType1MET   = True             # recompute Type1 MET using these jets
-                    )
-
-#-------------------------------------------------
-# load tcMET producer
-#-------------------------------------------------
-
-process.load("RecoMET.METProducers.TCMET_cfi")
-
-#-------------------------------------------------
-# load JPT producer
-#-------------------------------------------------
-process.load("CMS2.NtupleMaker.JetPlusTrackCorrectionsSisCone_cff")
-process.load("CMS2.NtupleMaker.ZSPJetCorrections219SisCone_cff")
-#process.load("JetMETCorrections.Configuration.JetPlusTrackCorrections_cff")
-#process.load("JetMETCorrections.Configuration.ZSPJetCorrections219_cff")
+#new Flavor shit
+process.load("PhysicsTools.HepMCCandAlgos.flavorHistoryPaths_cfi")
 
 #-------------------------------------------------
 # process output; first the event selection is
@@ -208,96 +175,39 @@ process.EventSelection = cms.PSet(
     )
 )
 
-
-##default Jurassic Isolation values
-##should be the same as in the PAT, but just being safe
-process.allLayer1Electrons.isolation.ecal.vetos = cms.vstring(
-    'EcalBarrel:0.045',
-    'EcalBarrel:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)',
-    'EcalBarrel:ThresholdFromTransverse(0.08)',
-    'EcalEndcaps:ThresholdFromTransverse(0.3)',
-    'EcalEndcaps:0.070',
-    'EcalEndcaps:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)'
-)
-
-process.allLayer0Electrons.isolation.ecal.vetos = cms.vstring(
-    'EcalBarrel:0.045',
-    'EcalBarrel:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)',
-    'EcalBarrel:ThresholdFromTransverse(0.08)',
-    'EcalEndcaps:ThresholdFromTransverse(0.3)',
-    'EcalEndcaps:0.070',
-    'EcalEndcaps:RectangularEtaPhiVeto(-0.02,0.02,-0.5,0.5)'
-)
-
-
 process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
-
-## configure output module for AOD like ntuples
-process.out_CMS2AOD = cms.OutputModule("PoolOutputModule",
-    process.EventSelection,
-    verbose = cms.untracked.bool(True),
-    dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('CMS2AOD.root')
-)
-
-
-## configure output module for AOD like ntuples
 process.out_CMS2 = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
     #fileName = cms.untracked.string('CMS2.root')
-    fileName = cms.untracked.string('ntuple.root')
+    fileName = cms.untracked.string('ntupleTTbar.root')
 )
 
-process.out_CMS2AOD.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out_CMS2AOD.outputCommands.extend(AODSIMEventContent.outputCommands)
-process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
-process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep edmHepMCProduct_source_*_*'))
-process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep recoTrackExtras_*_*_*'))
-process.out_CMS2AOD.outputCommands.extend(cms.untracked.vstring('keep TrackingRecHitsOwned_*_*_*'))
-
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep pat*_*_*_CMS2*'))
 process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
-
-
 
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
 
-#process.triggerEventMaker = cms.EDProducer("TriggerEventMaker")
-process.metCorSequence = cms.Sequence(process.goodMusForMETCorr*process.corMetGlobalMuons)
-process.MetCorrection = cms.Sequence(process.tcMet*process.tcmetMaker)
-process.JetCorrection = cms.Sequence(process.L2L3CorJet*process.L2L3L4CorJet)
+process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
+process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
+process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
+process.makers        = cms.Sequence(process.muonMaker * process.jetMaker * process.trackMaker * process.scMaker * process.electronSequence * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metCorSequence)
+process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
+                                     process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
+#process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
+process.flavorHistory = cms.Sequence(process.bFlavorHistoryProducer * process.cFlavorHistoryProducer)
+process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker)
+process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
-# process for JPT
-#process.JPTCorrection = cms.Sequence(process.ZSPJetCorrections*process.JetPlusTrackCorrections*process.jptMaker)
-process.JPTCorrection = cms.Sequence(process.ZSPJetCorrectionsSisCone*process.JetPlusTrackCorrectionsSisCone*process.jptMaker)
+#process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.hypmakers * process.flavorHistory * process.othermakers)
+process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.flavorHistory * process.othermakers)
 
-process.makers = cms.Sequence(process.beamSpotMaker*process.muonMaker*process.electronMaker*process.jetMaker*process.trackMaker*process.scMaker*process.vertexMaker*process.metMaker)
-process.patmakers = cms.Sequence(process.patMuonMaker*process.patElectronMaker*process.patJetMaker*process.patMETMaker)
-process.assmakers = cms.Sequence(process.jetToMuAssMaker*process.jetToElAssMaker*process.muToElsAssMaker*process.candToGenAssMaker*process.muToJetAssMaker*process.muToTrackAssMaker*process.elToTrackAssMaker*process.elToMuAssMaker*process.elToJetAssMaker*process.trackToMuonAssMaker*process.trackToElsAssMaker)
-process.trigprimmakers = cms.Sequence(process.l1DigiMaker*process.triggerEventMaker)
-process.generalmakers = cms.Sequence(process.eventMaker*process.metCorSequence*process.genMaker*process.genjetmaker*process.pdfinfoMaker)
-process.hypmaker = cms.Sequence(process.hypTrilepMaker*process.hypDilepMaker*process.hypQuadlepMaker)
-process.othermakers = cms.Sequence(process.elCaloIsoSequence*process.conversionMaker*process.wwCutMaker)
-process.cms2 = cms.Sequence(process.generalmakers*process.trigprimmakers*process.makers*process.patmakers*process.assmakers*process.hypmaker*process.trkmuonfilter*process.trkjetmaker*process.othermakers)
+process.p             = cms.Path(process.cms2 * process.patDefaultSequence * process.patmakers)
 
-##includes filter
-#process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.patTuple*process.cms2*process.theFilter)
-
-##no filter
-#process.p = cms.Path(process.MetCorrection*process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.patTuple*process.cms2)
-process.p = cms.Path(process.JetCorrection*process.JPTCorrection*process.metCorSequence*process.MetCorrection*process.patTuple*process.cms2*process.theFilter)
-
-##output for AOD+CMS2 ntuple
-#process.outpath = cms.EndPath(process.out_CMS2AOD)
-
-##output for AOD+CMS2 ntuple
-process.outpath = cms.EndPath(process.out_CMS2)
-
-
-# print process.dumpPython()
+process.outpath       = cms.EndPath(process.out_CMS2)
 
