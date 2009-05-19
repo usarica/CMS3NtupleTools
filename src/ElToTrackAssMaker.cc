@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToTrackAssMaker.cc,v 1.6 2009/01/05 07:43:36 kalavase Exp $
+// $Id: ElToTrackAssMaker.cc,v 1.7 2009/05/19 13:54:52 dlevans Exp $
 //
 //
 
@@ -76,7 +76,7 @@ void ElToTrackAssMaker::produce(Event& iEvent, const EventSetup& iSetup)
   //vector<const GsfElectron*> els_coll = ElUtilities::getElectrons(iEvent, electronsInputTag_);
   //ElUtilities::removeElectrons(&els_coll);
      
-  Handle<View<pat::Electron> > els_h;
+  Handle<View<reco::GsfElectron> > els_h;
   iEvent.getByLabel(electronsInputTag_, els_h);
   
   //get the reco track collection
@@ -94,7 +94,7 @@ void ElToTrackAssMaker::produce(Event& iEvent, const EventSetup& iSetup)
           
      
   if(haveHits_) {
-    for(View<pat::Electron>::const_iterator els_it = els_h->begin();
+    for(View<reco::GsfElectron>::const_iterator els_it = els_h->begin();
 	els_it != els_h->end(); els_it++) {
       
       GsfTrackRef gsfTkRef = els_it->gsfTrack();
