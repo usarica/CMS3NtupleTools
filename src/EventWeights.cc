@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventWeights.cc,v 1.2 2008/08/05 01:24:16 jmuelmen Exp $
+// $Id: EventWeights.cc,v 1.3 2009/05/19 18:58:52 warren Exp $
 //
 //
 
@@ -80,7 +80,7 @@ void EventWeights::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   auto_ptr<float> evt_scale1fb (new float);
 
-  float scale1fb;
+  float scale1fb = 0;
   const float* evt_CSA07Weight;
   const float* evt_weight;
 
