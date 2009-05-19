@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.19 2009/05/18 16:19:06 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.20 2009/05/19 01:36:46 yanjuntu Exp $
 //
 //
 
@@ -52,6 +52,15 @@ Implementation:
 
 #include "CMS2/NtupleMaker/interface/ElUtilities.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+
+
+#include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
+#include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
+#include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
+#include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -157,6 +166,21 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 	//
   	produces<vector<LorentzVector> >  ("elsvertexp4"        ).setBranchAlias("els_vertex_p4"        );
   	produces<vector<float> >          ("elsvertexphi"       ).setBranchAlias("els_vertexphi"        );
+
+	//Hit Pattern information
+	produces<vector<int> >            ("elslayer1layer"     ).setBranchAlias("els_layer1_layer"     ); 
+	produces<vector<double> >         ("elsinnerpositionx"  ).setBranchAlias("els_inner_positionx"  );
+	produces<vector<double> >         ("elsinnerpositiony"  ).setBranchAlias("els_inner_positiony"  );
+	produces<vector<double> >         ("elsinnerpositionz"  ).setBranchAlias("els_inner_positionz"  );
+	produces<vector<int> >            ("elsvalidpixelhits"  ).setBranchAlias("els_valid_pixelhits"  );
+	produces<vector<int> >            ("elslostpixelhits"   ).setBranchAlias("els_lost_pixelhits"   );
+	produces<vector<int> >            ("elslayer1sizerphi"  ).setBranchAlias("els_layer1_sizerphi"  ); 
+	produces<vector<int> >            ("elslayer1sizerz"    ).setBranchAlias("els_layer1_sizerz"    ); 
+	produces<vector<float> >          ("elslayer1charge"    ).setBranchAlias("els_layer1_charge"    ); 
+ 	produces<vector<int> >            ("elslayer1det"       ).setBranchAlias("els_layer1_det"       ); 
+ // 	produces<vector<int> >            ("elsninnerlayers"    ).setBranchAlias("els_n_inner_layers"   );
+// 	produces<vector<int> >            ("elsnouterlayers"    ).setBranchAlias("els_n_outer_layers"   );  
+  
 
 
   	//get setup parameters
@@ -274,6 +298,22 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	auto_ptr<vector<LorentzVector> >els_vertex_p4            (new vector<LorentzVector>) ;
 	auto_ptr<vector<float> >	els_vertexphi            (new vector<float>        ) ;
 
+	//HitPattern information
+        //
+         auto_ptr<vector<double> >	vector_els_inner_positionx (new vector<double>		); 
+	 auto_ptr<vector<double> >	vector_els_inner_positiony (new vector<double>		); 
+	 auto_ptr<vector<double> >	vector_els_inner_positionz (new vector<double>		); 
+	 auto_ptr<vector<int> >		vector_els_layer1_layer    (new vector<int>		);
+	 auto_ptr<vector<int> >		vector_els_valid_pixelhits (new vector<int>		); 
+	 auto_ptr<vector<int> >		vector_els_lost_pixelhits  (new vector<int>		); 
+	 auto_ptr<vector<int> >		vector_els_layer1_sizerphi (new vector<int>		); 
+	 auto_ptr<vector<int> >		vector_els_layer1_sizerz   (new vector<int>		); 
+	 auto_ptr<vector<float> >	vector_els_layer1_charge   (new vector<float>		);
+	 auto_ptr<vector<int> >		vector_els_layer1_det      (new vector<int>		);
+        //  auto_ptr<vector<int> >		vector_els_n_inner_layers  (new vector<int>		); 
+        //   auto_ptr<vector<int> >		vector_els_n_outer_layers  (new vector<int>		); 
+
+	 
 	// Get products from the reco
 	//
 	
@@ -453,13 +493,119 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()            	);		
 		els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                              	);
 		els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()            	);
-		els_pin			->push_back( pin );
-		els_pout		->push_back( pout);
+		els_pin			  ->push_back( pin );
+		els_pout		  ->push_back( pout);
 	
 		// Vertex
 		//
 		els_vertexphi             ->push_back( atan2( el_track->vy(), el_track->vx() )         );
 		els_vertex_p4             ->push_back( LorentzVector(el->vx(), el->vy(), el->vz(), 0.) );
+
+
+		//Hit Pattern 
+
+		vector_els_inner_positionx  ->push_back(el_track->innerPosition().x()                          );
+		vector_els_inner_positiony  ->push_back(el_track->innerPosition().y()                          );
+		vector_els_inner_positionz  ->push_back(el_track->innerPosition().z()                          );
+   
+		const reco::HitPattern& pattern = el_track->hitPattern();
+		
+		bool valid_hit      = false;
+		uint32_t hit_pattern; 
+		int i_layer       = 1;
+		int side = -1;
+		bool pixel_hit   = false;
+		bool strip_hit   = false;
+		
+		int pixel_size;
+		int pixel_sizeX;
+		int pixel_sizeY;
+		float pixel_charge;
+		int det;
+		int layer;
+    
+		typedef edm::Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
+		typedef edm::Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
+	
+    
+		for(trackingRecHit_iterator ihit = el_track->recHitsBegin(); 
+		    ihit != el_track->recHitsBegin(); ++ihit){
+		  if(i_layer > 1) break;
+		  int k = ihit-el_track->recHitsBegin();
+		  hit_pattern = pattern.getHitPattern(k);
+		  valid_hit = pattern.validHitFilter(hit_pattern);
+		  pixel_hit = pattern.pixelHitFilter(hit_pattern);
+		  strip_hit = pattern.stripHitFilter(hit_pattern);
+		  side      = (int)pattern.getSide(hit_pattern);
+		  det       = (int)pattern.getSubStructure(hit_pattern);
+		  layer     = (int)pattern.getLayer(hit_pattern);
+		  
+		  if(!valid_hit) continue;
+		  if(pixel_hit){
+		    
+		    const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
+		    assert(pixel_hit_cast != 0);
+		    pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
+		    
+		    pixel_size   = (int)pixel_cluster->size(); 
+		    pixel_sizeX  = (int)pixel_cluster->sizeX(); 
+		    pixel_sizeY  = (int)pixel_cluster->sizeY(); 
+		    pixel_charge = (float)pixel_cluster->charge();
+		    
+		    if(i_layer == 1){
+		      vector_els_layer1_sizerphi ->push_back(pixel_sizeX);
+		      vector_els_layer1_sizerz   ->push_back(pixel_sizeY);
+		      vector_els_layer1_charge   ->push_back(pixel_charge);
+		      vector_els_layer1_det      ->push_back(det);
+		      vector_els_layer1_layer    ->push_back(layer);
+		      i_layer++;
+	  
+		    }
+		    
+		  }
+		 
+		  else if (strip_hit){
+		    const SiStripRecHit2D *strip_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+		    ClusterRef const& cluster = strip_hit_cast->cluster();
+		    
+		    int cluster_size   = (int)cluster->amplitudes().size();
+		    int cluster_charge = 0;
+		    double   cluster_weight_size = 0.0;
+		    int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
+		    
+		    for(int istrip = 0; istrip < cluster_size; istrip++){
+		      cluster_charge += (int)cluster->amplitudes().at(istrip);
+		      cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
+		    }
+		    cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
+		    
+		    if(i_layer == 1){
+		      if(side==0) 
+			{
+			  vector_els_layer1_sizerphi ->push_back(cluster_size);
+			  vector_els_layer1_sizerz   ->push_back(0);
+			}
+		      
+		      else
+			{
+			  vector_els_layer1_sizerphi ->push_back(0);
+			  vector_els_layer1_sizerz   ->push_back(cluster_size);
+			} 
+		      
+		      vector_els_layer1_charge   ->push_back(cluster_charge);
+		      vector_els_layer1_det      ->push_back(det);
+		      vector_els_layer1_layer    ->push_back(layer);
+		      i_layer++;
+		    }
+		  }
+		  
+		}
+		
+		vector_els_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
+		vector_els_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
+		  
+       
+    //*****************************************************
 
 	}
  
@@ -551,6 +697,20 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         iEvent.put(els_ecalIso                  ,"elsecalIso"           	);
         iEvent.put(els_hcalIso            	,"elshcalIso"           	);
 
+	//Hit Pattern Information
+	
+	iEvent.put(vector_els_inner_positionx , "elsinnerpositionx" );
+	iEvent.put(vector_els_inner_positiony , "elsinnerpositiony" );
+	iEvent.put(vector_els_inner_positionz , "elsinnerpositionz" );
+	iEvent.put(vector_els_layer1_layer    , "elslayer1layer"    );
+	iEvent.put(vector_els_valid_pixelhits , "elsvalidpixelhits" );
+	iEvent.put(vector_els_lost_pixelhits  , "elslostpixelhits"  );
+	iEvent.put(vector_els_layer1_sizerphi , "elslayer1sizerphi" );
+	iEvent.put(vector_els_layer1_sizerz   , "elslayer1sizerz"   );
+	iEvent.put(vector_els_layer1_charge   , "elslayer1charge"   );
+	iEvent.put(vector_els_layer1_det      , "elslayer1det"      );
+	// iEvent.put(vector_els_n_inner_layers  , "elsninnerlayers" );
+	// iEvent.put(vector_els_n_outer_layers  , "elsnouterlayers" );
 }
 
 //-------------------------------------------------------------------------------------------------
