@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.20 2009/05/19 01:36:46 yanjuntu Exp $
+// $Id: ElectronMaker.cc,v 1.21 2009/05/19 06:14:06 kalavase Exp $
 //
 //
 
@@ -321,6 +321,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	//
 	Handle<View<reco::GsfElectron> > els_h;
 	iEvent.getByLabel(electronsInputTag_, els_h);
+	View<reco::GsfElectron> gsfElColl = *(els_h.product());
 
 	// Get tools to get cluster shape information
 	//
@@ -341,23 +342,21 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	const edm::ValueMap<double>&  ecalIsoMap = getValueMap(iEvent, ecalIsoTag_);
         const edm::ValueMap<double>&  tkIsoMap = getValueMap(iEvent, tkIsoTag_);
         const edm::ValueMap<double>&  hcalIsoMap = getValueMap(iEvent, hcalIsoTag_);
-
-
+	
 	//fill number of eqlectrons variable
 	//
 	*evt_nels = els_h->size();
 
 	//loop over electron collection
 	//
-	size_t i = 0;
+	size_t elsIndex = 0;
 	View<reco::GsfElectron>::const_iterator el;
-	for(el = els_h->begin(); el != els_h->end(); el++) {
+	for(el = els_h->begin(); el != els_h->end(); el++, elsIndex++) {
 
 		// Get electron and track objects
 		const reco::Track *el_track = (const reco::Track*)(el->gsfTrack().get());
-                const edm::RefToBase<reco::GsfElectron> gsfElRef = els_h->refAt(i);
-                ++i;
-
+                const edm::RefToBase<reco::GsfElectron> gsfElRef = els_h->refAt(elsIndex);
+		
 		// Get cluster info
 		//
 		float eMax, e1x5, e3x3, e5x5, e2x5Max, see, spp, sieie, sipip;
@@ -470,6 +469,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		float ecalIso = ecalIsoMap[gsfElRef];
 		float hcalIso = hcalIsoMap[gsfElRef];
 		float tkIso = tkIsoMap[gsfElRef];
+		
 		els_ecalIso->push_back(ecalIso);
 		els_hcalIso->push_back(hcalIso);	
 		els_tkIso->push_back(tkIso);
