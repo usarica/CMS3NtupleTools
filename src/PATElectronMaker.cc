@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.4 2008/12/19 21:34:35 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.5 2009/05/19 06:57:06 kalavase Exp $
 //
 //
 
@@ -75,12 +75,9 @@ PATElectronMaker::PATElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>          >   ("elspatscE2x5Max"           ).setBranchAlias("els_pat_scE2x5Max"        );
   produces<vector<float>          >   ("elspatscE5x5"              ).setBranchAlias("els_pat_scE5x5"           );
 
-  
-  
-  
-
   // parameters from configuration
-  patElectronsInputTag = iConfig.getParameter<edm::InputTag>("patElectronsInputTag");
+  patElectronsInputTag_  = iConfig.getParameter<edm::InputTag>("patElectronsInputTag");
+  recoElectronsInputTag_ = iConfig.getParameter<edm::InputTag>("recoElectronsInputTag");
 
 }
 
@@ -92,8 +89,15 @@ PATElectronMaker::~PATElectronMaker() {}
 void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get jet collection
-  edm::Handle<std::vector<pat::Electron> > patElectronHandle;
-  iEvent.getByLabel(patElectronsInputTag, patElectronHandle);
+  edm::Handle<vector<pat::Electron> > patElectronsHandle;
+  iEvent.getByLabel(patElectronsInputTag_, patElectronsHandle);
+  vector<pat::Electron> v_patElectrons = *(patElectronsHandle.product());
+
+  edm::Handle<vector<reco::GsfElectron> > recoElectronsHandle;
+  iEvent.getByLabel(recoElectronsInputTag_, recoElectronsHandle);
+  vector<reco::GsfElectron> v_recoElectrons = *(recoElectronsHandle.product());
+
+  MatchUtilities::alignRecoPatElectronCollections(v_recoElectrons, v_patElectrons);
 
   // create containers
   auto_ptr<vector<int>            >   els_pat_genID            (new vector<int>               );
@@ -117,8 +121,8 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<float>          >   els_pat_scE5x5           (new vector<float>             );
  
   // loop over top electrons and fill containers
-  for ( std::vector<pat::Electron>::const_iterator patel_it = patElectronHandle->begin();
-	patel_it != patElectronHandle->end();
+  for ( vector<pat::Electron>::const_iterator patel_it = patElectronsHandle->begin();
+	patel_it != patElectronsHandle->end();
 	patel_it++) {
     
 
