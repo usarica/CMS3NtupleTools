@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.36 $'),
+        version = cms.untracked.string('$Revision: 1.37 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -69,6 +69,8 @@ process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
+
+process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
 
 process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
 process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
@@ -202,12 +204,13 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 #process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
 process.flavorHistory = cms.Sequence(process.bFlavorHistoryProducer * process.cFlavorHistoryProducer)
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker)
+process.pflowmakers   = cms.Sequence(process.pfmetMaker)
 process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
 #process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.hypmakers * process.flavorHistory * process.othermakers)
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.flavorHistory * process.othermakers)
 
-process.p             = cms.Path(process.cms2 * process.patDefaultSequence * process.patmakers)
+process.p             = cms.Path(process.cms2 * process.pflowmakers * process.patDefaultSequence * process.patmakers)
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
