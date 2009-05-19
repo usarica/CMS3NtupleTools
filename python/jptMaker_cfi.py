@@ -44,9 +44,15 @@ ZSPrecoJetAssociations = cms.Sequence(ZSPSisCone5JetTracksAssociatorAtVertex*ZSP
 
 JetPlusTrackCorrections = cms.Sequence(ZSPrecoJetAssociations*JetPlusTrackZSPCorJetSisCone5)
 
-jptMaker = cms.EDFilter("JPTMaker",
-                        jptInputTag      = cms.InputTag("JetPlusTrackZSPCorJetSisCone5"),
-                        caloJetsInputTag = cms.InputTag("sisCone5CaloJets"             )
+L2L3CorJetSC5JPT = cms.EDProducer("CaloJetCorrectionProducer"                                ,
+                                  src        = cms.InputTag("JetPlusTrackZSPCorJetSisCone5" ),
+                                  correctors = cms.vstring('L2L3JetCorrectorSC5JPT'         )
 )
 
-JPTCorrections = cms.Sequence( JetPlusTrackCorrections * jptMaker )
+jptMaker = cms.EDFilter("JPTMaker",
+                        jptInputTag      = cms.InputTag("JetPlusTrackZSPCorJetSisCone5"),
+                        L2L3jptInputTag  = cms.InputTag("L2L3CorJetIC5JPT"             ),
+                        caloJetsInputTag = cms.InputTag("L2L3CorJet"                   )
+)
+
+JPTCorrections = cms.Sequence( JetPlusTrackCorrections * L2L3CorJetSC5JPT * jptMaker )
