@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.2 2009/01/04 23:59:07 kalavase Exp $
+// $Id: ConversionMaker.cc,v 1.3 2009/05/19 19:03:03 warren Exp $
 //
 //
 
@@ -119,7 +119,7 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
       if(els_charge_h->at(elIndex) + trks_charge_h->at(tkIndex) != 0) continue;
       //don't include the electron's track
       
-      if(els_trkidx_h->at(elIndex) == tkIndex) continue;
+      if(els_trkidx_h->at(elIndex) == (int)tkIndex) continue;
       //look only in cone of 0.5, which is probably a little big, but whatever
       if(ROOT::Math::VectorUtil::DeltaR(els_trk_p4_h->at(elIndex), trks_p4_h->at(tkIndex)) > 0.5) 
 	continue;
