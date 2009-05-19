@@ -74,16 +74,30 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
    // get MC particle collection
   edm::Handle<edm::HepMCProduct> hepmcHandle;
+
   iEvent.getByType( hepmcHandle ); //not getByLabel
+  try {
+     iEvent.getByType( hepmcHandle ); //not getByLabel
+  }
+  catch ( cms::Exception& ex ) {
+     edm::LogError("PDFInfoMakerError") << "Error! can't get the gen product";
+  }
+
   const HepMC::GenEvent* evt = hepmcHandle->GetEvent();
+  const HepMC::PdfInfo* pdfInfo = 0;
+  pdfInfo = evt->pdf_info();
+
+  if (pdfInfo == 0) {
+     edm::LogError("PDFInfoMakerError") << "Error! No PDF Info";
+     return;
+  }
 
   //assign
-  *pdfinfo_x1 = evt->pdf_info()->x1();
-  *pdfinfo_x2 = evt->pdf_info()->x2();
-  *pdfinfo_scale = evt->pdf_info()->scalePDF();
-  *pdfinfo_id1 = evt->pdf_info()->id1();
-  *pdfinfo_id2 = evt->pdf_info()->id2();
-  
+  *pdfinfo_x1 = pdfInfo->x1();
+  *pdfinfo_x2 = pdfInfo->x2();
+  *pdfinfo_scale = pdfInfo->scalePDF();
+  *pdfinfo_id1 = pdfInfo->id1();
+  *pdfinfo_id2 = pdfInfo->id2();
   
   iEvent.put(pdfinfo_x1 ,"pdfinfox1" );
   iEvent.put(pdfinfo_x2 ,"pdfinfox2" );
