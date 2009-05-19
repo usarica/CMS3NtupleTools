@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.15 2009/01/20 04:47:10 dmytro Exp $
+// $Id: EventMaker.cc,v 1.16 2009/05/19 19:02:03 warren Exp $
 //
 //
 
@@ -158,7 +158,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int *l12        = new int;
     int *l13        = new int;
     int *l14        = new int;
-    string *l1names  = new string;
+    //string *l1names  = new string; //got warning 'unused variable'
 
     fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, 
 		hlt6, hlt7, hlt8, *evt_HLT_trigNames);
