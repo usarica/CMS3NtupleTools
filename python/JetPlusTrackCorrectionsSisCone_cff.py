@@ -11,6 +11,9 @@ import FWCore.ParameterSet.Config as cms
 from JetMETCorrections.Configuration.JetCorrectionsRecord_cfi import *
 from RecoJets.Configuration.RecoJetAssociations_cff import *
 
+##replace SISCone5 jets with the jets that CMS2 makes
+sisCone5JetTracksAssociatorAtCaloFace.jets = cms.InputTag("prunedUncorrectedCMS2Jets")
+
 JetPlusTrackZSPCorrectorSisCone = cms.ESSource("JetPlusTrackCorrectionService",
     JetTrackCollectionAtCalo = cms.InputTag("ZSPsisConeJetTracksAssociatorAtCaloFace"),
     respalgo = cms.int32(5),
