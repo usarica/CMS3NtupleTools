@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToTrackAssMaker.cc,v 1.7 2009/05/19 13:54:52 dlevans Exp $
+// $Id: ElToTrackAssMaker.cc,v 1.8 2009/05/20 01:55:17 warren Exp $
 //
 //
 
@@ -37,7 +37,6 @@ Implementation:
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "CMS2/NtupleMaker/interface/ElUtilities.h"
-#include "DataFormats/PatCandidates/interface/Electron.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 using namespace std;
