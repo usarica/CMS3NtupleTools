@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.3 2008/10/21 16:49:55 kalavase Exp $
+// $Id: TrackToElAssMaker.cc,v 1.4 2009/05/20 01:05:56 warren Exp $
 //
 //
 
@@ -73,7 +73,7 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
    //get the reco electron collection 
   vector<const GsfElectron*> els_coll = ElUtilities::getElectrons(iEvent, 
 								  electronsInputTag_);
-  ElUtilities::removeElectrons(&els_coll);
+  //ElUtilities::removeElectrons(&els_coll);
   
   //get the reco track collection
   Handle<TrackCollection> trks_h;
