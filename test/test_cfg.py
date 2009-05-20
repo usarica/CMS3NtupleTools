@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.37 $'),
+        version = cms.untracked.string('$Revision: 1.38 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -42,7 +42,7 @@ process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
-process.load("CMS2.NtupleMaker.jetMaker_cfi")
+process.load("CMS2.NtupleMaker.jetSequence_cff")
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
 process.load("CMS2.NtupleMaker.scMaker_cfi")
 process.load("CMS2.NtupleMaker.electronSequence_cfi")
@@ -157,7 +157,7 @@ process.patDefaultSequence = cms.Sequence(
 )
 
 from PhysicsTools.PatAlgos.tools.jetTools import *
-switchJetCollection(process, 'sisCone5CaloJets', doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
+switchJetCollection(process, 'prunedUncorrectedCMS2Jets', doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
 
 #new Flavor shit
 process.load("PhysicsTools.HepMCCandAlgos.flavorHistoryPaths_cfi")
@@ -183,7 +183,6 @@ process.out_CMS2 = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    #fileName = cms.untracked.string('CMS2.root')
     fileName = cms.untracked.string('ntupleTTbar.root')
 )
 
@@ -198,7 +197,7 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
 process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
-process.makers        = cms.Sequence(process.muonMaker * process.jetMaker * process.trackMaker * process.scMaker * process.electronSequence * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metCorSequence)
+process.makers        = cms.Sequence(process.muonMaker * process.cms2CaloJetSequence * process.trackMaker * process.scMaker * process.electronSequence * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metCorSequence)
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
                                      process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 #process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
