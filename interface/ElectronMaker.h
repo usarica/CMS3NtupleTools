@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.6 2009/05/18 16:19:06 dlevans Exp $
+// $Id: ElectronMaker.h,v 1.7 2009/05/20 12:36:06 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -59,7 +59,7 @@ class ElectronMaker : public edm::EDProducer {
   		bool identify(const edm::RefToBase<reco::GsfElectron> &, int);
   		int classify(const edm::RefToBase<reco::GsfElectron> &);
   		int classify_old(const edm::RefToBase<reco::GsfElectron> &);
-		const edm::ValueMap<double>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
+		template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
 
       		// ----------member data ---------------------------
    		edm::InputTag electronsInputTag_;
@@ -67,6 +67,11 @@ class ElectronMaker : public edm::EDProducer {
         	edm::InputTag ecalIsoTag_;
 		edm::InputTag hcalIsoTag_;
 		edm::InputTag tkIsoTag_;
+        	edm::InputTag eidRobustLooseTag_;
+        	edm::InputTag eidRobustTightTag_;
+        	edm::InputTag eidRobustHighEnergyTag_;
+        	edm::InputTag eidLooseTag_;
+        	edm::InputTag eidTightTag_;
 
  		EcalClusterLazyTools* clusterTools_;
 };

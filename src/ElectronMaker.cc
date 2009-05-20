@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.21 2009/05/19 06:14:06 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.22 2009/05/20 12:36:06 dlevans Exp $
 //
 //
 
@@ -130,6 +130,12 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   	produces<vector<int> >            ("elstightId22XMinMatteo").setBranchAlias("els_tightId22XMinMatteo");
   	produces<vector<int> >            ("elstightId22XMaxMatteo").setBranchAlias("els_tightId22XMaxMatteo");
 
+  	produces<vector<float> >   	  ("elsegammarobustLooseId"   ).setBranchAlias("els_egamma_robustLooseId"    );
+ 	produces<vector<float> >   	  ("elsegammarobustTightId"   ).setBranchAlias("els_egamma_robustTightId"    );
+  	produces<vector<float> >   	  ("elsegammalooseId"         ).setBranchAlias("els_egamma_looseId"          );
+  	produces<vector<float> >   	  ("elsegammatightId"         ).setBranchAlias("els_egamma_tightId"          );
+  	produces<vector<float> >   	  ("elsegammarobustHighEnergy").setBranchAlias("els_egamma_robustHighEnergy" );
+
 	// isolation variables
 	//
   	produces<vector<float> >	  ("elstkIso"       	).setBranchAlias("els_tkIso"        	);
@@ -181,19 +187,21 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
  // 	produces<vector<int> >            ("elsninnerlayers"    ).setBranchAlias("els_n_inner_layers"   );
 // 	produces<vector<int> >            ("elsnouterlayers"    ).setBranchAlias("els_n_outer_layers"   );  
   
-
-
   	//get setup parameters
-  	electronsInputTag_    	= iConfig.getParameter<InputTag>("electronsInputTag");
+  	electronsInputTag_    	= iConfig.getParameter<edm::InputTag>("electronsInputTag");
   	beamSpotInputTag_ 	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
-	ecalIsoTag_    		= iConfig.getParameter<InputTag>("ecalIsoTag");
-        hcalIsoTag_    		= iConfig.getParameter<InputTag>("hcalIsoTag");
-        tkIsoTag_      		= iConfig.getParameter<InputTag>("tkIsoTag");
+	ecalIsoTag_    		= iConfig.getParameter<edm::InputTag>("ecalIsoTag");
+        hcalIsoTag_    		= iConfig.getParameter<edm::InputTag>("hcalIsoTag");
+        tkIsoTag_      		= iConfig.getParameter<edm::InputTag>("tkIsoTag");
+        eidRobustLooseTag_	= iConfig.getParameter<edm::InputTag>("eidRobustLooseTag");
+        eidRobustTightTag_	= iConfig.getParameter<edm::InputTag>("eidRobustTightTag");
+        eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag");
+        eidLooseTag_		= iConfig.getParameter<edm::InputTag>("eidLooseTag");
+        eidTightTag_		= iConfig.getParameter<edm::InputTag>("eidTightTag");
 
   	clusterTools_ = 0;
 
 }
-
 
 ElectronMaker::~ElectronMaker()
 {
@@ -260,6 +268,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	auto_ptr<vector<int> >	   	els_simpleIdPlus         (new vector<int>          ) ;
 	auto_ptr<vector<int> >     	els_tightId22XMinMatteo  (new vector<int>          ) ;
 	auto_ptr<vector<int> >     	els_tightId22XMaxMatteo  (new vector<int>          ) ;
+
+        auto_ptr<vector<float> >   	els_egamma_robustLooseId    (new vector<float>     ) ;
+        auto_ptr<vector<float> >   	els_egamma_robustTightId    (new vector<float>     ) ;
+        auto_ptr<vector<float> >   	els_egamma_robustHighEnergy (new vector<float>     ) ;
+        auto_ptr<vector<float> >   	els_egamma_looseId          (new vector<float>     ) ;
+        auto_ptr<vector<float> > 	els_egamma_tightId          (new vector<float>     ) ;
 	
 	// isolation variables
 	//
@@ -339,10 +353,18 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
                          Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
 	// Get value maps for isolation variables
-	const edm::ValueMap<double>&  ecalIsoMap = getValueMap(iEvent, ecalIsoTag_);
-        const edm::ValueMap<double>&  tkIsoMap = getValueMap(iEvent, tkIsoTag_);
-        const edm::ValueMap<double>&  hcalIsoMap = getValueMap(iEvent, hcalIsoTag_);
+	const edm::ValueMap<double>&  ecalIsoMap 	= getValueMap<double>(iEvent, ecalIsoTag_);
+        const edm::ValueMap<double>&  tkIsoMap 		= getValueMap<double>(iEvent, tkIsoTag_);
+        const edm::ValueMap<double>&  hcalIsoMap 	= getValueMap<double>(iEvent, hcalIsoTag_);
 	
+	// Get the value maps for the Egamma electron ID decisions
+
+        const edm::ValueMap<float>&  eidRobustLooseMap          = getValueMap<float>(iEvent, eidRobustLooseTag_);
+        const edm::ValueMap<float>&  eidRobustTightMap          = getValueMap<float>(iEvent, eidRobustTightTag_);
+        const edm::ValueMap<float>&  eidRobustHighEnergyMap     = getValueMap<float>(iEvent, eidRobustHighEnergyTag_);
+        const edm::ValueMap<float>&  eidLooseMap                = getValueMap<float>(iEvent, eidLooseTag_);
+      	const edm::ValueMap<float>&  eidTightMap                = getValueMap<float>(iEvent, eidTightTag_);
+
 	//fill number of eqlectrons variable
 	//
 	*evt_nels = els_h->size();
@@ -419,6 +441,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		els_simpleIdPlus          ->push_back( id[6]				);		
 		els_tightId22XMinMatteo	  ->push_back( id[7]				);
 		els_tightId22XMaxMatteo   ->push_back( id[8]				);		
+
+		// Now get those from the "official" Egamma sequences
+
+    		els_egamma_robustLooseId     ->push_back( eidRobustLooseMap[gsfElRef]		);
+    		els_egamma_robustTightId     ->push_back( eidRobustTightMap[gsfElRef]		);
+    		els_egamma_looseId           ->push_back( eidLooseMap[gsfElRef]  		);
+    		els_egamma_tightId           ->push_back( eidTightMap[gsfElRef]    		);
+    		els_egamma_robustHighEnergy  ->push_back( eidRobustHighEnergyMap[gsfElRef] 	);
 
 		// Track parameters
 		//
@@ -627,6 +657,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	iEvent.put(els_simpleIdPlus           	,"elssimpleIdPlus"    		);
 	iEvent.put(els_tightId22XMinMatteo	,"elstightId22XMinMatteo" 	);
 	iEvent.put(els_tightId22XMaxMatteo     	,"elstightId22XMaxMatteo" 	);
+
+        iEvent.put(els_egamma_robustHighEnergy  ,"elsegammarobustHighEnergy"       );
+  	iEvent.put(els_egamma_robustLooseId     ,"elsegammarobustLooseId"       );
+  	iEvent.put(els_egamma_robustTightId     ,"elsegammarobustTightId"       );
+  	iEvent.put(els_egamma_looseId           ,"elsegammalooseId"             );
+  	iEvent.put(els_egamma_tightId           ,"elsegammatightId"             );
 
 	// Track parameters
 	//
@@ -1110,9 +1146,9 @@ int ElectronMaker::classify(const edm::RefToBase<reco::GsfElectron> &electron) {
 }
 
 //little labour saving function to get the reference to the ValueMap
-const edm::ValueMap<double>& ElectronMaker::getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag)
+template<typename T> const edm::ValueMap<T>& ElectronMaker::getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag)
 {
-  edm::Handle<edm::ValueMap<double> > handle;
+  edm::Handle<edm::ValueMap<T> > handle;
   iEvent.getByLabel(inputTag,handle);
   return *(handle.product());
 }

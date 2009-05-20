@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.38 $'),
+        version = cms.untracked.string('$Revision: 1.39 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -90,10 +90,21 @@ process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
+#process.source = cms.Source("PoolSource",
+#    skipEvents = cms.untracked.uint32(0),
+#    fileNames = cms.untracked.vstring('file:/home/users/fgolf/tmp/B493FB91-EA00-DE11-B852-00E081791899.root')
+#)
+
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('file:/home/users/fgolf/tmp/B493FB91-EA00-DE11-B852-00E081791899.root')
+    fileNames = cms.untracked.vstring(
+        #'file:/home/users/fgolf/tmp/B493FB91-EA00-DE11-B852-00E081791899.root')
+        '/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/BEEC9B81-CE3D-DE11-A78E-001D09F28D4A.root',
+        '/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/AA5310E8-043E-DE11-9732-001D09F252F3.root',
+        '/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/1C10E82C-CE3D-DE11-8A8B-001D09F25041.root',
+        '/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/04A528F1-CE3D-DE11-B599-001D09F2437B.root')
 )
+
 
 #-------------------------------------------------
 # JEC
