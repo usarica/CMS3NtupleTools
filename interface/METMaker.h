@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.h,v 1.3 2009/05/20 22:55:23 kalavase Exp $
+// $Id: METMaker.h,v 1.4 2009/05/21 23:25:14 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_METMAKER_H
@@ -55,7 +55,7 @@ private:
   edm::InputTag metOptNoHF_tag;   
   edm::InputTag metOptNoHFHO_tag; 
   edm::InputTag corMetGlobalMuons_tag;
-  edm::InputTag JEScorMET_tag;
+  edm::InputTag MuonJEScorMET_tag;
   edm::InputTag muon_vm_tag;
   edm::InputTag muon_tag;
 };
