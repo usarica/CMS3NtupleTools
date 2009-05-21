@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.8 2008/10/21 16:42:01 kalavase Exp $
+// $Id: HypTrilepMaker.cc,v 1.9 2009/05/21 01:09:14 fgolf Exp $
 //
 //
 
@@ -79,11 +79,8 @@ HypTrilepMaker::HypTrilepMaker(const edm::ParameterSet& iConfig)
   // parameters from configuration
   muonsInputTag = iConfig.getParameter<edm::InputTag>("muonsInputTag");
   electronsInputTag = iConfig.getParameter<edm::InputTag>("electronsInputTag");
-  metInputTag = iConfig.getParameter<edm::InputTag>("metInputTag");
   jetsInputTag = iConfig.getParameter<edm::InputTag>("jetsInputTag");
   trksInputTag = iConfig.getParameter<edm::InputTag>("trksInputTag");
-  patJetsInputTag = iConfig.getParameter<edm::InputTag>("patJetsInputTag");
-  usingPATJets = iConfig.getParameter<bool>("usingPATJets");
   hypJetMinEtaCut = iConfig.getParameter<double>("hypJetMinEtaCut");
   hypJetMaxEtaCut = iConfig.getParameter<double>("hypJetMaxEtaCut");
   hypJetMinPtCut = iConfig.getParameter<double>("hypJetMinPtCut");
@@ -101,10 +98,6 @@ HypTrilepMaker::HypTrilepMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<unsigned int> >                ("hyptrilepsecondindex").setBranchAlias("hyp_trilep_second_index"); // index of second lepton in lepton collection
   produces<std::vector<int> >                         ("hyptrilepthirdtype").setBranchAlias("hyp_trilep_third_type");     // type of the third lepton in the trilepton hypothesis (1: muon, 2: electron)
   produces<std::vector<unsigned int> >                ("hyptrilepthirdindex").setBranchAlias("hyp_trilep_third_index");   // index of third lepton in lepton collection
-  produces<std::vector<float> >                       ("hyptrilepmet").setBranchAlias("hyp_trilep_met");
-  produces<std::vector<float> >                       ("hyptrilepmetAll").setBranchAlias("hyp_trilep_metAll");
-  produces<std::vector<std::vector<int> > >  ("hyptrilepjetsindex").setBranchAlias("hyp_trilep_jets_index");
-
 }
 
 
@@ -131,11 +124,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_second_index(new std::vector<unsigned int>);
   std::auto_ptr<std::vector<int> > vector_hyp_trilep_third_type(new std::vector<int>);
   std::auto_ptr<std::vector<unsigned int> > vector_hyp_trilep_third_index(new std::vector<unsigned int>);
-  std::auto_ptr<std::vector<float> > vector_hyp_trilep_met(new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_hyp_trilep_metAll(new std::vector<float>);
-  std::auto_ptr<std::vector<std::vector<int> > > vector_hyp_trilep_jets_index(new std::vector<std::vector<int> > );
-
-  //input collections
 
   // muon charge
   edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
@@ -149,30 +137,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(mus_p4_tag, mus_p4_h);
   const std::vector<LorentzVector> *mus_p4 = mus_p4_h.product();
 
-  //energy deposited in EM cal
-  edm::InputTag mus_e_em_tag(muonsInputTag.label(), "museem");
-  edm::Handle<std::vector<float> > mus_e_em_h;
-  iEvent.getByLabel(mus_e_em_tag, mus_e_em_h);
-  const std::vector<float> *mus_e_em = mus_e_em_h.product();
-
-  //energy deposited in HAD cal
-  edm::InputTag mus_e_had_tag(muonsInputTag.label(), "musehad");
-  edm::Handle<std::vector<float> > mus_e_had_h;
-  iEvent.getByLabel(mus_e_had_tag, mus_e_had_h);
-  const std::vector<float> *mus_e_had = mus_e_had_h.product();
-  
-  //energy deposited in HO cal
-  edm::InputTag mus_e_ho_tag(muonsInputTag.label(), "museho");
-  edm::Handle<std::vector<float> > mus_e_ho_h;
-  iEvent.getByLabel(mus_e_ho_tag, mus_e_ho_h);
-  const std::vector<float> *mus_e_ho = mus_e_ho_h.product();
-
-  //muon track P4
-  edm::InputTag mus_trk_p4_tag(muonsInputTag.label(),"mustrkp4");
-  edm::Handle<std::vector<LorentzVector> > mus_trk_p4_h;
-  iEvent.getByLabel(mus_trk_p4_tag, mus_trk_p4_h);
-  const std::vector<LorentzVector> *mus_trk_p4 = mus_trk_p4_h.product();
-
   // electron charge
   edm::InputTag els_charge_tag(electronsInputTag.label(),"elscharge");
   edm::Handle<std::vector<int> > els_charge_h;
@@ -184,31 +148,13 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<std::vector<LorentzVector> > els_p4_h;
   iEvent.getByLabel(els_p4_tag, els_p4_h);
   const std::vector<LorentzVector> *els_p4 = els_p4_h.product();
-  
-  //event met - this is uncorrected
-  edm::InputTag met_tag(metInputTag.label(), "evtmet");
-  edm::Handle<float> met_tag_h;
-  iEvent.getByLabel(met_tag, met_tag_h);
-  const float* evt_met = met_tag_h.product();
-
-  //event metPhi
-  edm::InputTag metphi_tag(metInputTag.label(), "evtmetPhi");
-  edm::Handle<float> metphi_tag_h;
-  iEvent.getByLabel(metphi_tag, metphi_tag_h);
-  const float* evt_metphi = metphi_tag_h.product();
 
   //jet p4
-  edm::InputTag jets_p4_tag(jetsInputTag.label(), "jetsp4");
+  edm::InputTag jets_p4_tag(jetsInputTag.label(), "jptsp4");
   edm::Handle<std::vector<LorentzVector> > jets_p4_h;
   iEvent.getByLabel(jets_p4_tag, jets_p4_h);
   const std::vector<LorentzVector> *jets_p4 = jets_p4_h.product();
 
-  //correction factor
-  edm::InputTag jets_pat_noCorrF_tag(patJetsInputTag.label(), "jetspatnoCorrF");
-  edm::Handle<std::vector<float> > jets_pat_noCorrF_h;
-  if ( usingPATJets ) {
-    iEvent.getByLabel(jets_pat_noCorrF_tag, jets_pat_noCorrF_h);
-  }
 
   // number of electrons
   unsigned int evt_nels = els_charge->size();
@@ -228,9 +174,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
     iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
     iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
-    iEvent.put(vector_hyp_trilep_met,"hyptrilepmet");
-    iEvent.put(vector_hyp_trilep_metAll,"hyptrilepmetAll");
-    iEvent.put(vector_hyp_trilep_jets_index,"hyptrilepjetsindex");
     return;
   } else if ( evt_nmus > 99 ) {
     edm::LogWarning("HypTrilepMaker") << "more than 99 muons, skipping event!!!";
@@ -242,29 +185,9 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
     iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
     iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
-    iEvent.put(vector_hyp_trilep_met,"hyptrilepmet");
-    iEvent.put(vector_hyp_trilep_metAll,"hyptrilepmetAll");
-    iEvent.put(vector_hyp_trilep_jets_index,"hyptrilepjetsindex");
     return;
   }
 
-  // MET variables
-  double hypmet = *evt_met;
-  double hypmetPhi = *evt_metphi;
-  double metAll           = *evt_met;
-  double metPhiAll        = *evt_metphi;
-
-  // correct MET for all muons
-  // should be moved to EventMaker
-  for(unsigned int i = 0; i < mus_p4->size(); ++i) {
-    std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(i),
-								       mus_trk_p4->at(i) );
-    METUtilities::correctMETmuons_crossedE(muon_pair, metAll, metPhiAll,
-					   mus_e_em->at(i), mus_e_had->at(i),  mus_e_ho->at(i) );
-  }
-
-  // processed trilepton candidates 
-  // ordered: first by type (1st muon, 2nd electron), then by index number
   std::vector<unsigned int> cand;
 
   // array for sorts
@@ -315,24 +238,12 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mmm : charge combination could not be identified!!!";
 	  }
-	  
-	  // correct MET for muons in hypothesis
-	  for ( unsigned int i = 0; i < 3; ++i ) {
-	    std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
-									       mus_trk_p4->at(sorter[i]) );
-	    METUtilities::correctMETmuons_crossedE(muon_pair,
-						   hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
-						   mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
-	  }
 
 	  // store jet indices which pass cuts
 	  std::vector<int>  jets_index;
 	  for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	    // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	    double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	    if ( usingPATJets ) {
-	      hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
-	    }
 
 	    if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
 	    if ( jets_p4->at(i).eta() <= hypJetMinEtaCut ) continue;
@@ -346,9 +257,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  vector_hyp_trilep_second_index->push_back(sorter[1]);
 	  vector_hyp_trilep_third_type->push_back(mus_charge->at(sorter[2]));
 	  vector_hyp_trilep_third_index->push_back(sorter[2]);
-	  vector_hyp_trilep_met->push_back(hypmet);
-	  vector_hyp_trilep_metAll->push_back(metAll);
-	  vector_hyp_trilep_jets_index->push_back(jets_index);
 	}
       }
       // e
@@ -405,23 +313,11 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mme: charge combination could not be identified!!!";
 	  }
 
-	  // correct MET for muons in hypothesis
-	  for ( unsigned int i = 0; i < 2; ++i ) {
-	    std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
-									       mus_trk_p4->at(sorter[i]) );
-	    METUtilities::correctMETmuons_crossedE(muon_pair,
-						   hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
-					     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
-	  }
-
 	  // store jet indices which pass cuts
 	  std::vector<int>  jets_index;
 	  for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	    // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	    double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	    if ( usingPATJets ) {
-	      hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
-	    }
 
 	    // jet pre-selection
 	    if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
@@ -440,9 +336,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  vector_hyp_trilep_second_index->push_back(sorter[1]);
 	  vector_hyp_trilep_third_type->push_back(els_charge->at(sorter[2])*2);
 	  vector_hyp_trilep_third_index->push_back(sorter[2]);
-	  vector_hyp_trilep_met->push_back(hypmet);
-	  vector_hyp_trilep_metAll->push_back(metAll);
-	  vector_hyp_trilep_jets_index->push_back(jets_index);
 	}
       }
     }
@@ -508,14 +401,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  } else {
 	    edm::LogError("HypTrilepMaker") << "combineTriLeptons mee: charge combination could not be identified!!!";
 	  }
-
-	  // correct MET for muons in hypothesis
-	  for ( unsigned int i = 0; i < 1; ++i ) {
-	    std::pair<LorentzVector, LorentzVector> muon_pair = std::make_pair(mus_p4->at(sorter[i]),
-									       mus_trk_p4->at(sorter[i]) );
-	    METUtilities::correctMETmuons_crossedE(muon_pair,
-						   hypmet, hypmetPhi, mus_e_em->at(sorter[i]), 
-					     mus_e_had->at(sorter[i]),  mus_e_ho->at(sorter[i]) );
 	  }
 
 	  // store jet indices which pass cuts
@@ -523,9 +408,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	    // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	    double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	    if ( usingPATJets ) {
-	      hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
-	    }
 
 	    // jet pre-selection
 	    if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
@@ -545,16 +427,13 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  vector_hyp_trilep_second_index->push_back(sorter[1]);
 	  vector_hyp_trilep_third_type->push_back(els_charge->at(sorter[2])*2);
 	  vector_hyp_trilep_third_index->push_back(sorter[2]);
-	  vector_hyp_trilep_met->push_back(hypmet);
-	  vector_hyp_trilep_metAll->push_back(metAll);
-	  vector_hyp_trilep_jets_index->push_back(jets_index);
-	}
       }
     }
   }
+
   
   // e
-  for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) {
+for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) {
     // e
     for (unsigned int secondElectron = firstElectron+1; secondElectron < evt_nels; ++secondElectron) {
       if ( secondElectron == firstElectron ) continue;
@@ -605,9 +484,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  for(unsigned int i = 0; i<jets_p4->size(); ++i) {
 	    // jet pt cut, if jets corrected, anti-correct cut value as cut is on uncorrected jets
 	    double hypJetMinPtCutAdapted = hypJetMinPtCut;
-	    if ( usingPATJets ) {
-	      hypJetMinPtCutAdapted =  hypJetMinPtCutAdapted / jets_pat_noCorrF_h.product()->at(i);
-	    }
 
 	    // jet pre-selection
 	    if ( jets_p4->at(i).eta() >= hypJetMaxEtaCut ) continue;
@@ -628,9 +504,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  vector_hyp_trilep_second_index->push_back(sorter[1]);
 	  vector_hyp_trilep_third_type->push_back(els_charge->at(sorter[2])*2);
 	  vector_hyp_trilep_third_index->push_back(sorter[2]);
-	  vector_hyp_trilep_met->push_back(hypmet);
-	  vector_hyp_trilep_metAll->push_back(metAll);
-	  vector_hyp_trilep_jets_index->push_back(jets_index);
 	}
       }
     }
@@ -644,9 +517,6 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
   iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
   iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
-  iEvent.put(vector_hyp_trilep_met,"hyptrilepmet");
-  iEvent.put(vector_hyp_trilep_metAll,"hyptrilepmetAll");
-  iEvent.put(vector_hyp_trilep_jets_index,"hyptrilepjetsindex");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

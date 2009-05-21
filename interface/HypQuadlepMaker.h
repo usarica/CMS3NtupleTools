@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.h,v 1.4 2008/10/21 16:41:44 kalavase Exp $
+// $Id: HypQuadlepMaker.h,v 1.5 2009/05/21 01:09:14 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPQUADLEPMAKER_H
@@ -61,11 +61,8 @@ private:
   // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
   edm::InputTag electronsInputTag;
-  edm::InputTag metInputTag;
   edm::InputTag jetsInputTag;
   edm::InputTag trksInputTag;
-  edm::InputTag patJetsInputTag;
-  bool          usingPATJets;
   double        hypJetMinEtaCut;
   double        hypJetMaxEtaCut;
   double        hypJetMinPtCut;
