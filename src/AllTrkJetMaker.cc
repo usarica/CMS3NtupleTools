@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: AllTrkJetMaker.cc,v 1.1 2008/09/05 00:22:16 fkw Exp $
+// $Id: AllTrkJetMaker.cc,v 1.2 2009/05/24 21:44:17 kalavase Exp $
 //
 
 
@@ -43,8 +43,8 @@ typedef math::XYZTLorentzVector LorentzVector;
 AllTrkJetMaker::AllTrkJetMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
-  produces<unsigned int> ("evtntrkjets").setBranchAlias("evt_nalltrkjets"); // number of jets
-  produces<std::vector<LorentzVector> > ("trkjetsp4").setBranchAlias("alltrkjets_p4"); // p4 of the jet
+  produces<unsigned int> ("evtnalltrkjets").setBranchAlias("evt_nalltrkjets"); // number of jets
+  produces<std::vector<LorentzVector> > ("alltrkjetsp4").setBranchAlias("alltrkjets_p4"); // p4 of the jet
 
   // parameters from configuration
   trkJetsInputTag = iConfig.getParameter<edm::InputTag>("trkJetsInputTag");
@@ -65,20 +65,20 @@ AllTrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(trkJetsInputTag, trkJets);
   
   // create containers
-  std::auto_ptr<unsigned int> evt_ntrkjets(new unsigned int(trkJets->size()));
-  std::auto_ptr<std::vector<LorentzVector> > vector_trkjets_p4(new std::vector<LorentzVector>);
+  std::auto_ptr<unsigned int> evt_nalltrkjets(new unsigned int(trkJets->size()));
+  std::auto_ptr<std::vector<LorentzVector> > vector_alltrkjets_p4(new std::vector<LorentzVector>);
   
   // loop over jets and fill containers
   edm::View<reco::BasicJet>::const_iterator jetsEnd = trkJets->end();
   for ( edm::View<reco::BasicJet>::const_iterator jet = trkJets->begin();
         jet != jetsEnd;
         ++jet) {
-    vector_trkjets_p4->push_back(jet->p4());
+    vector_alltrkjets_p4->push_back(jet->p4());
   }
 
   // put containers into event
-  iEvent.put(evt_ntrkjets, "evtntrkjets");
-  iEvent.put(vector_trkjets_p4, "trkjetsp4");
+  iEvent.put(evt_nalltrkjets, "evtnalltrkjets");
+  iEvent.put(vector_alltrkjets_p4, "alltrkjetsp4");
 
 }
 
