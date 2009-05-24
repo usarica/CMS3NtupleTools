@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.7 2009/05/18 19:05:28 kalavase Exp $
+// $Id: PATMuonMaker.cc,v 1.8 2009/05/24 19:36:51 kalavase Exp $
 //
 //
 
@@ -54,6 +54,7 @@ using namespace edm;
 PATMuonMaker::PATMuonMaker(const edm::ParameterSet& iConfig) {
 
   // product of this EDProducer
+  produces<vector<LorentzVector>  >   ("muspatp4"          ).setBranchAlias("mus_pat_p4"          );
   produces<vector<float>          >   ("muspattrackIso"    ).setBranchAlias("mus_pat_trackIso"    );
   produces<vector<float>          >   ("muspatcaloIso"     ).setBranchAlias("mus_pat_caloIso"     );
   produces<vector<float>          >   ("muspatecalIso"     ).setBranchAlias("mus_pat_ecalIso"     );
@@ -91,6 +92,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   MatchUtilities::alignRecoPatMuonCollections(v_recoMuons, v_patMuons);
 
   // create containers
+  auto_ptr<vector<LorentzVector>     >   mus_pat_p4          ( new vector<LorentzVector>     );
   auto_ptr<vector<float>             >   mus_pat_trackIso    ( new vector<float>             );
   auto_ptr<vector<float>             >   mus_pat_caloIso     ( new vector<float>             );
   auto_ptr<vector<float>             >   mus_pat_ecalIso     ( new vector<float>             );
@@ -118,7 +120,8 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::IsoDeposit *ecalIsoDep = patmu_it->ecalIsoDeposit();
     const reco::IsoDeposit *hcalIsoDep = patmu_it->hcalIsoDeposit();
     
-    mus_pat_trackIso    ->push_back( patmu_it->trackIso()   );
+    mus_pat_p4          ->push_back( patmu_it->p4()             );
+    mus_pat_trackIso    ->push_back( patmu_it->trackIso()       );
     mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy()
 				     + hcalIsoDep->candEnergy() );
     mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
@@ -137,6 +140,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
 
   // put containers into event
+  iEvent.put(mus_pat_p4,           "muspatp4"              );
   iEvent.put(mus_pat_trackIso,     "muspattrackIso"        );
   iEvent.put(mus_pat_vetoDep,      "muspatvetoDep"         );
   iEvent.put(mus_pat_ecalvetoDep,  "muspatecalvetoDep"     );
