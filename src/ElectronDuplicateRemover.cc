@@ -31,6 +31,14 @@
 //
 // constructors and destructor
 //
+
+bool sortElectronsByPt(reco::GsfElectron el1,
+                  reco::GsfElectron el2) {
+  return el1.pt() > el2.pt();
+}
+
+
+
 ElectronDuplicateRemover::ElectronDuplicateRemover(const edm::ParameterSet& iConfig)
 {
 
@@ -79,7 +87,7 @@ void ElectronDuplicateRemover::produce(edm::Event& iEvent, const edm::EventSetup
           }
           cleanedCollection->push_back(*e1);
      }
-
+     std::sort(cleanedCollection->begin(), cleanedCollection->end(), sortElectronsByPt);
      // put the cleaned collection in the event
      iEvent.put(cleanedCollection);
 
