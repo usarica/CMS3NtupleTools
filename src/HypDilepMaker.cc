@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.13 2009/05/21 01:10:40 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.14 2009/05/24 21:44:43 kalavase Exp $
 //
 //
 
@@ -1350,9 +1350,28 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(hyp_ll_p4                    ,"hypllp4"                     );
   iEvent.put(hyp_ll_trk_p4                ,"hyplltrkp4"                  );
   iEvent.put(hyp_ll_mc_p4                 ,"hypllmcp4"                   );
+
+
+  iEvent.put(hyp_lt_dPhi_unCorrMet        ,"hypltdPhiunCorrMet"          );
+  iEvent.put(hyp_ll_dPhi_unCorrMet        ,"hyplldPhiunCorrMet"          );
+  iEvent.put(hyp_lt_dPhi_muCorrMet        ,"hypltdPhimuCorrMet"          );
+  iEvent.put(hyp_ll_dPhi_muCorrMet        ,"hyplldPhimuCorrMet"          );
+  iEvent.put(hyp_lt_dPhi_tcMet            ,"hypltdPhitcMet"              );
+  iEvent.put(hyp_ll_dPhi_tcMet            ,"hyplldPhitcMet"              );
+  iEvent.put(hyp_lt_dPhi_type1Met         ,"hypltdPhitype1Met"           );
+  iEvent.put(hyp_ll_dPhi_type1Met         ,"hyplldPhitype1Met"           );
   
-  iEvent.put(hyp_jets_idx, "hypjetsidx");
-  iEvent.put(hyp_other_jets_idx, "hypotherjetsidx");
+  iEvent.put(hyp_dPhi_nJet_unCorrMet      ,"hypdPhinJetunCorrMet"        );
+  iEvent.put(hyp_dPhi_nJet_muCorrMet      ,"hypdPhinJetmuCorrMet"        );
+  iEvent.put(hyp_dPhi_nJet_tcMet          ,"hypdPhinJettcMet"            );
+  iEvent.put(hyp_dPhi_nJet_type1Met       ,"hypdPhinJettype1Met"         );
+  
+  iEvent.put(hyp_sumJetPt                 ,"hypsumJetPt"                 );
+  iEvent.put(hyp_Ht                       ,"hypHt"                       );
+  
+  
+  iEvent.put(hyp_jets_idx                 ,"hypjetsidx"                  );
+  iEvent.put(hyp_other_jets_idx           ,"hypotherjetsidx"             );
   iEvent.put(hyp_jets_p4                  ,"hypjetsp4"                   );         
   iEvent.put(hyp_other_jets_p4            ,"hypotherjetsp4"              );       
 }
