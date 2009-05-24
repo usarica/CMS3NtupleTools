@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.8 2009/05/21 01:21:41 kalavase Exp $
+// $Id: METMaker.cc,v 1.9 2009/05/24 21:45:24 kalavase Exp $
 //
 //
 
@@ -68,7 +68,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetHOSig"     ).setBranchAlias("evt_metHOSig"     );
   produces<float> ("evtmetNoHF"      ).setBranchAlias("evt_metNoHF"      );
   produces<float> ("evtmetNoHFPhi"   ).setBranchAlias("evt_metNoHFPhi"   );
-  produces<float> ("evtmetNoHFSig"   ).setBranchAlias("evt_metSig"       );
+  produces<float> ("evtmetNoHFSig"   ).setBranchAlias("evt_metNoHFSig"   );
   produces<float> ("evtmetNoHFHO"    ).setBranchAlias("evt_metNoHFHO"    );
   produces<float> ("evtmetNoHFHOPhi" ).setBranchAlias("evt_metNoHFHOPhi" );
   produces<float> ("evtmetNoHFHOSig" ).setBranchAlias("evt_metNoHFHOSig" );
@@ -82,7 +82,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetOptHOSig"     ).setBranchAlias("evt_metOptHOSig"     );
   produces<float> ("evtmetOptNoHF"      ).setBranchAlias("evt_metOptNoHF"      );
   produces<float> ("evtmetOptNoHFPhi"   ).setBranchAlias("evt_metOptNoHFPhi"   );
-  produces<float> ("evtmetOptNoHFSig"   ).setBranchAlias("evt_metOptSig"       );
+  produces<float> ("evtmetOptNoHFSig"   ).setBranchAlias("evt_metOptNoHFSig"   );
   produces<float> ("evtmetOptNoHFHO"    ).setBranchAlias("evt_metOptNoHFHO"    );
   produces<float> ("evtmetOptNoHFHOPhi" ).setBranchAlias("evt_metOptNoHFHOPhi" );
   produces<float> ("evtmetOptNoHFHOSig" ).setBranchAlias("evt_metOptNoHFHOSig" );
