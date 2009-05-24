@@ -43,24 +43,24 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig)
 {
 
      // counter of vertexs in the event
-     produces<unsigned int>("evtnvtxs").setBranchAlias("evt_nvtxs");
+     produces<unsigned int>       ("evtnvtxs"              ).setBranchAlias("evt_nvtxs"              );
 
      // position and position error
-     produces<std::vector<Point> >("vtxsposition").setBranchAlias("vtxs_position");
-     produces<std::vector<float> >("vtxsxerror").setBranchAlias("vtxs_xError");
-     produces<std::vector<float> >("vtxsyerror").setBranchAlias("vtxs_yError");
-     produces<std::vector<float> >("vtxszerror").setBranchAlias("vtxs_zError");
+     produces<std::vector<Point> >("vtxsposition"          ).setBranchAlias("vtxs_position"          );
+     produces<std::vector<float> >("vtxsxError"            ).setBranchAlias("vtxs_xError"            );
+     produces<std::vector<float> >("vtxsyError"            ).setBranchAlias("vtxs_yError"            );
+     produces<std::vector<float> >("vtxszError"            ).setBranchAlias("vtxs_zError"            );
 
      // chi2 and ndof. Tracks apparently can contribute with a weight so
      // ndof may be non integral
-     produces<std::vector<float> >("vtxschi2").setBranchAlias("vtxs_chi2");
-     produces<std::vector<float> >("vtxsndof").setBranchAlias("vtxs_ndof");
+     produces<std::vector<float> >("vtxschi2"              ).setBranchAlias("vtxs_chi2"              );
+     produces<std::vector<float> >("vtxsndof"              ).setBranchAlias("vtxs_ndof"              );
 
      // track / general information
-     produces<std::vector<int> >("vtxshasrefittedtracks").setBranchAlias("vtxs_hasRefittedTracks");
-     produces<std::vector<int> >("vtxsisfake").setBranchAlias("vtxs_isFake");
-     produces<std::vector<int> >("vtxsisvalid").setBranchAlias("vtxs_isValid");
-     produces<std::vector<int> >("vtxstrackssize").setBranchAlias("vtxs_tracksSize");
+     produces<std::vector<int>   >("vtxshasRefittedTracks" ).setBranchAlias("vtxs_hasRefittedTracks" );
+     produces<std::vector<int>   >("vtxsisFake"            ).setBranchAlias("vtxs_isFake"            );
+     produces<std::vector<int>   >("vtxsisValid"           ).setBranchAlias("vtxs_isValid"           );
+     produces<std::vector<int>   >("vtxstracksSize"        ).setBranchAlias("vtxs_tracksSize"        );
 
      // vertex collection input tag
      primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
@@ -80,18 +80,18 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
      const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
-     std::auto_ptr<unsigned int> evt_nvtxs (new unsigned int);
-     std::auto_ptr<std::vector<Point> > vector_vtxs_position (new std::vector<Point>);
-     std::auto_ptr<std::vector<float> > vector_vtxs_xError (new std::vector<float>);
-     std::auto_ptr<std::vector<float> > vector_vtxs_yError (new std::vector<float>);
-     std::auto_ptr<std::vector<float> > vector_vtxs_zError (new std::vector<float>);
-     std::auto_ptr<std::vector<float> > vector_vtxs_chi2 (new std::vector<float>);
-     std::auto_ptr<std::vector<float> > vector_vtxs_ndof (new std::vector<float>);
-     std::auto_ptr<std::vector<int> > vector_vtxs_hasRefittedTracks (new std::vector<int>);
-     std::auto_ptr<std::vector<int> > vector_vtxs_isFake (new std::vector<int>);
-     std::auto_ptr<std::vector<int> > vector_vtxs_isValid (new std::vector<int>);
-     std::auto_ptr<std::vector<int> > vector_vtxs_tracksSize (new std::vector<int>);
-
+     std::auto_ptr<unsigned int>        evt_nvtxs                     (new unsigned int         );
+     std::auto_ptr<std::vector<Point> > vector_vtxs_position          (new std::vector<Point>   );
+     std::auto_ptr<std::vector<float> > vector_vtxs_xError            (new std::vector<float>   );
+     std::auto_ptr<std::vector<float> > vector_vtxs_yError            (new std::vector<float>   );
+     std::auto_ptr<std::vector<float> > vector_vtxs_zError            (new std::vector<float>   );
+     std::auto_ptr<std::vector<float> > vector_vtxs_chi2              (new std::vector<float>   );
+     std::auto_ptr<std::vector<float> > vector_vtxs_ndof              (new std::vector<float>   );
+     std::auto_ptr<std::vector<int>   > vector_vtxs_hasRefittedTracks (new std::vector<int>     );
+     std::auto_ptr<std::vector<int>   > vector_vtxs_isFake            (new std::vector<int>     );
+     std::auto_ptr<std::vector<int>   > vector_vtxs_isValid           (new std::vector<int>     );
+     std::auto_ptr<std::vector<int>   > vector_vtxs_tracksSize        (new std::vector<int>     );
+     
      *evt_nvtxs = vertexCollection->size();
      for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin();
 		vtx != vertexCollection->end(); ++vtx)
@@ -110,17 +110,17 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      } // end loop on vertexs
 
      // store into the event
-     iEvent.put(evt_nvtxs, "evtnvtxs");
-     iEvent.put(vector_vtxs_position, "vtxsposition");
-     iEvent.put(vector_vtxs_xError, "vtxsxerror");
-     iEvent.put(vector_vtxs_yError, "vtxsyerror");
-     iEvent.put(vector_vtxs_zError, "vtxszerror");
-     iEvent.put(vector_vtxs_chi2, "vtxschi2");
-     iEvent.put(vector_vtxs_ndof, "vtxsndof");
-     iEvent.put(vector_vtxs_hasRefittedTracks, "vtxshasrefittedtracks");
-     iEvent.put(vector_vtxs_isFake, "vtxsisfake");
-     iEvent.put(vector_vtxs_isValid, "vtxsisvalid");
-     iEvent.put(vector_vtxs_tracksSize, "vtxstrackssize");
+     iEvent.put(evt_nvtxs,                     "evtnvtxs"              );
+     iEvent.put(vector_vtxs_position,          "vtxsposition"          );
+     iEvent.put(vector_vtxs_xError,            "vtxsxError"            );
+     iEvent.put(vector_vtxs_yError,            "vtxsyError"            );
+     iEvent.put(vector_vtxs_zError,            "vtxszError"            );
+     iEvent.put(vector_vtxs_chi2,              "vtxschi2"              );
+     iEvent.put(vector_vtxs_ndof,              "vtxsndof"              );
+     iEvent.put(vector_vtxs_hasRefittedTracks, "vtxshasRefittedTracks" );
+     iEvent.put(vector_vtxs_isFake,            "vtxsisFake"            );
+     iEvent.put(vector_vtxs_isValid,           "vtxsisValid"           );
+     iEvent.put(vector_vtxs_tracksSize,        "vtxstracksSize"        );
 
 }
 
