@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.5 2009/05/19 06:57:06 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.6 2009/05/24 19:36:13 kalavase Exp $
 //
 //
 
@@ -55,6 +55,7 @@ using namespace edm;
 PATElectronMaker::PATElectronMaker(const edm::ParameterSet& iConfig) {
 
   // product of this EDProducer
+  produces<vector<LorentzVector>  >   ("elspatp4").setBranchAlias("els_pat_p4");
   produces<vector<int>            >   ("elspatgenID"               ).setBranchAlias("els_pat_genID"            );
   produces<vector<int>            >   ("elspatgenMotherID"         ).setBranchAlias("els_pat_genMotherID"      );
   produces<vector<uint32_t>       >   ("elspatflag"                ).setBranchAlias("els_pat_flag"             );
@@ -100,6 +101,7 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   MatchUtilities::alignRecoPatElectronCollections(v_recoElectrons, v_patElectrons);
 
   // create containers
+  auto_ptr<vector<LorentzVector>  >   els_pat_p4               (new vector<LorentzVector>     );
   auto_ptr<vector<int>            >   els_pat_genID            (new vector<int>               );
   auto_ptr<vector<int>            >   els_pat_genMotherID      (new vector<int>               );
   auto_ptr<vector<uint32_t>       >   els_pat_flag             (new vector<uint32_t>          );
@@ -121,10 +123,11 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<float>          >   els_pat_scE5x5           (new vector<float>             );
  
   // loop over top electrons and fill containers
-  for ( vector<pat::Electron>::const_iterator patel_it = patElectronsHandle->begin();
-	patel_it != patElectronsHandle->end();
+  for ( vector<pat::Electron>::const_iterator patel_it = v_patElectrons.begin();
+	patel_it != v_patElectrons.end();
 	patel_it++) {
     
+    els_pat_p4->push_back( patel_it->p4() );
 
     GenParticle gen(patel_it->genLepton() ? *patel_it->genLepton() : 
 		    reco::GenParticle(0, reco::Particle::LorentzVector(0, 0, 0, 0), reco::Particle::Point(0,0,0), 0, 0, true));
@@ -153,6 +156,7 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   }
 
   // put containers into event
+  iEvent.put(els_pat_p4,                    "elspatp4"                      );
   iEvent.put(els_pat_genID,             "elspatgenID"                );
   iEvent.put(els_pat_genMotherID,       "elspatgenMotherID"          );
   iEvent.put(els_pat_flag,              "elspatflag"                 );
