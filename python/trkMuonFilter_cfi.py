@@ -35,5 +35,5 @@ trkColl = cms.EDProducer("ConcreteChargedCandidateProducer",
         particleType = cms.string('pi+')
 )
 
-trkmuonfilter = cms.Sequence(localTrkColl+mTrkColl+subTrkColl+trkColl)
+trkmuonfilter = cms.Sequence(localTrkColl+subTrkColl)
 
