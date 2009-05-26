@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.42 $'),
+        version = cms.untracked.string('$Revision: 1.43 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -52,6 +52,7 @@ process.load("CMS2.NtupleMaker.jptSequence_cff")
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.metSequence_cff")
 process.load("CMS2.NtupleMaker.calotauMaker_cfi")
+process.load("CMS2.NtupleMaker.pftauMaker_cfi")
 
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
@@ -222,7 +223,7 @@ process.CMS2Reco      = cms.Sequence(process.electronSequence * process.cms2Calo
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
 process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
-process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker* process.calotauMaker * process.CMS2TrkBtagging)
+process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker* process.calotauMaker*process.pftauMaker* process.CMS2TrkBtagging)
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
                                      process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
