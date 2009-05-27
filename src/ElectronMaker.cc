@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.22 2009/05/20 12:36:06 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.23 2009/05/27 10:37:27 dlevans Exp $
 //
 //
 
@@ -83,6 +83,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 	// ECAL related (superCluster) variables
   	produces<vector<int> >  	  ("elsnSeed"           ).setBranchAlias("els_nSeed"            );
   	produces<vector<float> >	  ("elseSC"             ).setBranchAlias("els_eSC"              );
+        produces<vector<float> >          ("elsetaSC"             ).setBranchAlias("els_etaSC"          );
+        produces<vector<float> >          ("elsphiSC"             ).setBranchAlias("els_phiSC"          );
   	produces<vector<float> >	  ("elseSCRaw"          ).setBranchAlias("els_eSCRaw"           );
   	produces<vector<float> >          ("elseSCPresh"        ).setBranchAlias("els_eSCPresh"         );
 
@@ -225,6 +227,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
 	// ECAL related (superCluster) variables
 	auto_ptr<vector<int> >		els_nSeed               (new vector<int>          ) ;
+        auto_ptr<vector<float> >        els_etaSC                 (new vector<float>        ) ;
+        auto_ptr<vector<float> >        els_phiSC                 (new vector<float>        ) ;
 	auto_ptr<vector<float> >	els_eSC                 (new vector<float>        ) ;
 	auto_ptr<vector<float> >	els_eSCRaw              (new vector<float>        ) ;
 	auto_ptr<vector<float> >    	els_eSCPresh            (new vector<float>        ) ;
@@ -397,6 +401,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 		// Fill cluster info
 		//
+		els_etaSC		  ->push_back( el->superCluster()->eta()			);
+		els_phiSC		  ->push_back( el->superCluster()->phi()			);
 		els_eSC                   ->push_back( el->superCluster()->energy()                    );
 		els_eSCRaw                ->push_back( el->superCluster()->rawEnergy()                 );
 		els_eSCPresh              ->push_back( el->superCluster()->preshowerEnergy()           );
@@ -686,6 +692,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	// Supercluster parameters
 	//
 	iEvent.put(els_nSeed                    ,"elsnSeed"           		);
+        iEvent.put(els_etaSC                      ,"elsetaSC"                   );
+        iEvent.put(els_phiSC                      ,"elsphiSC"                   );
 	iEvent.put(els_eSC                      ,"elseSC"             		);
 	iEvent.put(els_eSCRaw                   ,"elseSCRaw"          		);
 	iEvent.put(els_eSCPresh                 ,"elseSCPresh"        		);
