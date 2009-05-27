@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.6 2009/05/19 08:44:08 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.7 2009/05/27 02:28:29 warren Exp $
 //
 //
 
@@ -81,12 +81,10 @@ JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<std::vector<reco::CaloJet> > jptsHandle;
   edm::Handle<std::vector<reco::CaloJet> > L2L3jptsHandle;
   edm::Handle<std::vector<reco::CaloJet> > uncorJetsHandle;
-  edm::Handle<std::vector<LorentzVector> > caloJetsHandle;
 
   iEvent.getByLabel(jptsInputTag     , jptsHandle      );
   iEvent.getByLabel(L2L3jptsInputTag , L2L3jptsHandle  );
   iEvent.getByLabel(uncorJetsInputTag, uncorJetsHandle );
-  iEvent.getByLabel(caloJetsInputTag , caloJetsHandle  );
 
   std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int(jptsHandle->size()) );
   std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector>       );
@@ -97,12 +95,11 @@ JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<reco::CaloJet> v_jpts      = *( jptsHandle.product()      );
   std::vector<reco::CaloJet> v_L2L3jpts  = *( L2L3jptsHandle.product()  );
   std::vector<reco::CaloJet> v_uncorjets = *( uncorJetsHandle.product() );
-  std::vector<LorentzVector> v_jets      = *( caloJetsHandle.product()  );
 
   MatchUtilities::alignJPTcaloJetCollections( v_uncorjets, v_jpts     );
   MatchUtilities::alignJPTcaloJetCollections( v_uncorjets, v_L2L3jpts );
 
-  std::vector<LorentzVector>::const_iterator jet = v_jets.begin();
+  std::vector<reco::CaloJet>::const_iterator jet = v_uncorjets.begin();
   std::vector<reco::CaloJet>::const_iterator jpt = v_jpts.begin();
 
   for ( std::vector<reco::CaloJet>::const_iterator jptcor = v_L2L3jpts.begin(); jptcor != v_L2L3jpts.end(); ++jptcor, ++jet, ++jpt ) {
@@ -110,7 +107,7 @@ JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_jpts_p4->push_back( jptcor->p4() );
     vector_jpts_emFrac->push_back( jpt->emEnergyFraction() );
     vector_jpts_cor->push_back( jptcor->p4().Et() / jpt->p4().Et() );
-    vector_jpts_jet_cor->push_back( jptcor->p4().Et() / jet->Et() );
+    vector_jpts_jet_cor->push_back( jptcor->p4().Et() / jet->et() );
   }
 
   // put containers into event
