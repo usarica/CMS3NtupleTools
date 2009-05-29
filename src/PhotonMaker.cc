@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.1 2009/05/20 18:47:27 jmuelmen Exp $
+// $Id: PhotonMaker.cc,v 1.2 2009/05/29 22:25:02 jmuelmen Exp $
 //
 //
 
@@ -199,6 +199,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      size_t photonsIndex = 0;
      View<reco::Photon>::const_iterator photon;
      for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
+	  // throw out photons below 10 GeV
+	  if (photon->et() < 10)
+	       continue;
+
 	  // Get photon and track objects
 	  const edm::RefToBase<reco::Photon> photonRef = photons_h->refAt(photonsIndex);
 		
@@ -239,15 +243,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  //
 	  photons_p4                    ->push_back( photon->p4()                                        );
 		
-	  // Isolation related
+	  // Isolation 
 	  //
-// 		float ecalIso = ecalIsoMap[photonRef];
-// 		float hcalIso = hcalIsoMap[photonRef];
-// 		float tkIso = tkIsoMap[photonRef];
-		
-// 		photons_ecalIso->push_back(ecalIso);
-// 		photons_hcalIso->push_back(hcalIso);	
-// 		photons_tkIso->push_back(tkIso);
+	  float ecalIso = ecalIsoMap[photonRef];
+	  float hcalIso = hcalIsoMap[photonRef];
+	  float tkIso = tkIsoMap[photonRef];
+	  
+	  photons_ecalIso->push_back(ecalIso);
+	  photons_hcalIso->push_back(hcalIso);	
+	  photons_tkIso->push_back(tkIso);
 		
      }
  
