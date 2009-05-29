@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.1 2009/05/26 23:24:06 yanjuntu Exp $
+// $Id: PFTauMaker.cc,v 1.2 2009/05/29 22:20:14 yanjuntu Exp $
 //
 //
 
@@ -164,9 +164,9 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
  
    taus_pf_lead_chargecand_p4               ->push_back( tau_pf->leadPFChargedHadrCand().get()->p4()        );
-   if(tau_pf->leadPFNeutralCand().isNonnull())
-   taus_pf_lead_neutrcand_p4                ->push_back( tau_pf->leadPFNeutralCand().get()->p4()            );
-    taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
+   
+   taus_pf_lead_neutrcand_p4                ->push_back( tau_pf->leadPFNeutralCand().isNonnull()? tau_pf->leadPFNeutralCand().get()->p4() :  LorentzVector(0, 0, 0, 0)  );
+   taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
    taus_pf_isolationchargecandPtSum         ->push_back( tau_pf->isolationPFChargedHadrCandsPtSum() ); 
    taus_pf_isolationgammacandEtSum          ->push_back( tau_pf->isolationPFGammaCandsEtSum()       ); 
    taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()       ); 
@@ -197,15 +197,26 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    }
   
    const TrackRef leadTrack = tau_pf->leadTrack()  ;
-   taus_pf_leadtrk_p4                    ->push_back( LorentzVector( leadTrack.get()->px(), leadTrack.get()->py(),
-						leadTrack.get()->pz(), leadTrack.get()->p())                );
-   taus_pf_leadtrk_d0                    ->push_back( leadTrack->d0()                                       );
-   taus_pf_leadtrk_z0                    ->push_back( leadTrack->dz()                                       );
-   taus_pf_leadtrk_chi2                  ->push_back( leadTrack->chi2()                                     );
-   taus_pf_leadtrk_ndof                  ->push_back( leadTrack->ndof()                                     );
-   taus_pf_leadtrk_validHits             ->push_back( leadTrack->numberOfValidHits()                        );
-   taus_pf_leadtrk_lostHits              ->push_back( leadTrack->numberOfLostHits()                         );
-  
+   if(leadTrack.isNonnull()){
+     taus_pf_leadtrk_p4                    ->push_back( LorentzVector( leadTrack.get()->px(), leadTrack.get()->py(),
+								       leadTrack.get()->pz(), leadTrack.get()->p())                );
+     taus_pf_leadtrk_d0                    ->push_back( leadTrack->d0()                                       );
+     taus_pf_leadtrk_z0                    ->push_back( leadTrack->dz()                                       );
+     taus_pf_leadtrk_chi2                  ->push_back( leadTrack->chi2()                                     );
+     taus_pf_leadtrk_ndof                  ->push_back( leadTrack->ndof()                                     );
+     taus_pf_leadtrk_validHits             ->push_back( leadTrack->numberOfValidHits()                        );
+     taus_pf_leadtrk_lostHits              ->push_back( leadTrack->numberOfLostHits()                         );
+   }
+   else {
+     taus_pf_leadtrk_p4                    ->push_back( LorentzVector( 0, 0,0,0 )                             );
+     taus_pf_leadtrk_d0                    ->push_back( -999.                                                 );
+     taus_pf_leadtrk_z0                    ->push_back( -999.                                                 );
+     taus_pf_leadtrk_chi2                  ->push_back( -999.                                                 );
+     taus_pf_leadtrk_ndof                  ->push_back( -999.                                                 );
+     taus_pf_leadtrk_validHits             ->push_back( -999.                                                 );
+     taus_pf_leadtrk_lostHits              ->push_back( -999.                                                 );
+     
+   }
    
  }
 
