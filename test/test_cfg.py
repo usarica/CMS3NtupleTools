@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.43 $'),
+        version = cms.untracked.string('$Revision: 1.44 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -53,6 +53,8 @@ process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.metSequence_cff")
 process.load("CMS2.NtupleMaker.calotauMaker_cfi")
 process.load("CMS2.NtupleMaker.pftauMaker_cfi")
+process.load("CMS2.NtupleMaker.gammaSequence_cfi")
+process.load("CMS2.NtupleMaker.photonMaker_cfi")
 
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
@@ -109,13 +111,13 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        'file:/store/disk03/spadhi/CE8A693E-A03D-DE11-B0D4-000423D6CA42.root')
-        #'/store/mc/Summer08/Ztautau_M20/GEN-SIM-RECO/IDEAL_V11_redigi_v1/0218/FCA511D6-D5E8-DD11-8C39-001EC9D29963.root',
+        #'file:/store/disk03/spadhi/CE8A693E-A03D-DE11-B0D4-000423D6CA42.root')
+        '/store/mc/Summer08/Ztautau_M20/GEN-SIM-RECO/IDEAL_V11_redigi_v1/0218/FCA511D6-D5E8-DD11-8C39-001EC9D29963.root',
         #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/BEEC9B81-CE3D-DE11-A78E-001D09F28D4A.root',
         #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/AA5310E8-043E-DE11-9732-001D09F252F3.root',
         #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/1C10E82C-CE3D-DE11-8A8B-001D09F25041.root',
         #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/04A528F1-CE3D-DE11-B599-001D09F2437B.root')
-                           
+        )                   
 )
 
 
@@ -218,12 +220,12 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 # process paths;
 #-------------------------------------------------
 
-process.CMS2Reco      = cms.Sequence(process.electronSequence * process.cms2CaloJetSequence * process.CMS2Btagging * process.metCorSequence)
+process.CMS2Reco      = cms.Sequence(process.electronSequence * process.gammaSequence * process.cms2CaloJetSequence * process.CMS2Btagging * process.metCorSequence)
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
 process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
-process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker* process.calotauMaker*process.pftauMaker* process.CMS2TrkBtagging)
+process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker* process.calotauMaker*process.pftauMaker* process.CMS2TrkBtagging * process.photonMaker)
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
                                      process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
