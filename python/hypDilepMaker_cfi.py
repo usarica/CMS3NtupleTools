@@ -19,7 +19,7 @@ hypDilepMaker = cms.EDFilter("HypDilepMaker",
     hypJetMinPtCut = cms.double(30.0), ##this is a corrected pt cut!
 
     #tight lepton pt cut
-    TightLepton_PtCut = cms.double(10.0),
+    TightLepton_PtCut = cms.double(20.0),
     #tracks collection
     trksInputTag = cms.InputTag("trackMaker"),
     #loose lepton pt cut
