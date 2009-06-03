@@ -4,7 +4,7 @@ from JetMETCorrections.Type1MET.MuonMETValueMapProducer_cff import *
 from JetMETCorrections.Type1MET.MetMuonCorrections_cff import *
 from JetMETCorrections.Type1MET.MuonMETValueMapProducer_cff import *
 from JetMETCorrections.Type1MET.MuonTCMETValueMapProducer_cff import *
-from JetMETCorrections.Configuration.L2L3Corrections_Summer08_cff import *
+from JetMETCorrections.Configuration.L2L3Corrections_Summer08Redigi_cff import *
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import corMetType1Icone5
 from RecoMET.METProducers.TCMET_cfi import *
 
