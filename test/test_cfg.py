@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.44 $'),
+        version = cms.untracked.string('$Revision: 1.45 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -97,27 +97,15 @@ process.load("CMS2.NtupleMaker.bTagMaker_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
-#process.source = cms.Source("PoolSource",
-#    skipEvents = cms.untracked.uint32(0),
-#    fileNames = cms.untracked.vstring('file:/home/users/fgolf/tmp/B493FB91-EA00-DE11-B852-00E081791899.root')
-#)
-
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring(
-        #'file:/store/disk03/spadhi/CE8A693E-A03D-DE11-B0D4-000423D6CA42.root')
-        '/store/mc/Summer08/Ztautau_M20/GEN-SIM-RECO/IDEAL_V11_redigi_v1/0218/FCA511D6-D5E8-DD11-8C39-001EC9D29963.root',
-        #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/BEEC9B81-CE3D-DE11-A78E-001D09F28D4A.root',
-        #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/AA5310E8-043E-DE11-9732-001D09F252F3.root',
-        #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/1C10E82C-CE3D-DE11-8A8B-001D09F25041.root',
-        #'/store/relval/CMSSW_2_2_10/RelValZEE/GEN-SIM-RECO/STARTUP_V11_v1/0003/04A528F1-CE3D-DE11-B599-001D09F2437B.root')
-        )                   
+     fileNames = cms.untracked.vstring('file:/data/tmp/fgolf/1466166A-32CB-DD11-9779-001A92810AE2.root')
 )
 
 
@@ -209,11 +197,10 @@ process.out_CMS2 = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('ntupleTTbar.root')
+    fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep pat*_*_*_CMS2*'))
 process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CMS2*'))
 
 #-------------------------------------------------
@@ -229,12 +216,12 @@ process.makers        = cms.Sequence(process.electronMaker * process.muonMaker *
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
                                      process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
-process.flavorHistory = cms.Sequence(process.bFlavorHistoryProducer * process.cFlavorHistoryProducer)
+#process.flavorHistory = cms.Sequence(process.bFlavorHistoryProducer * process.cFlavorHistoryProducer)
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker)
 process.pflowmakers   = cms.Sequence(process.pfmetMaker)
 process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
-process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.flavorHistory * process.othermakers * process.hypmakers)
+process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.othermakers * process.hypmakers)
 
 process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.pflowmakers * process.patDefaultSequence * process.patmakers)
 
