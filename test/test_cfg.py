@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.45 $'),
+        version = cms.untracked.string('$Revision: 1.46 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -31,66 +31,66 @@ process.MessageLogger.cerr.threshold = ''
 #CMS2 includes
 #----------------------------------------------------
 process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
-process.load("CMS2.NtupleMaker.vertexMaker_cfi")
-process.load("CMS2.NtupleMaker.eventMaker_cfi")
-process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
-
-process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
-process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
-
-process.load("CMS2.NtupleMaker.genMaker_cfi")
-process.load("CMS2.NtupleMaker.genJetMaker_cfi")
-
-process.load("CMS2.NtupleMaker.muonMaker_cfi")
-process.load("CMS2.NtupleMaker.jetSequence_cff")
-process.load("CMS2.NtupleMaker.jetMaker_cfi")
-process.load("CMS2.NtupleMaker.trackMaker_cfi")
-process.load("CMS2.NtupleMaker.scMaker_cfi")
-process.load("CMS2.NtupleMaker.electronSequence_cfi")
-process.load("CMS2.NtupleMaker.electronMaker_cfi")
-process.load("CMS2.NtupleMaker.jptSequence_cff")
-process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
-process.load("CMS2.NtupleMaker.metSequence_cff")
+#CMS2Btagging
+process.load("CMS2.NtupleMaker.bTaggingSequence_cfi")
+#CMS2TrkBtagging
+process.load("CMS2.NtupleMaker.bTaggingTrkSequence_cfi")
+process.load("CMS2.NtupleMaker.bTagMaker_cfi")
 process.load("CMS2.NtupleMaker.calotauMaker_cfi")
-process.load("CMS2.NtupleMaker.pftauMaker_cfi")
-process.load("CMS2.NtupleMaker.gammaSequence_cfi")
-process.load("CMS2.NtupleMaker.photonMaker_cfi")
-
-process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
-process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
-process.load("CMS2.NtupleMaker.muToElsAssMaker_cfi")
-process.load("CMS2.NtupleMaker.muToJetAssMaker_cfi")
-process.load("CMS2.NtupleMaker.muToTrackAssMaker_cfi")
-process.load("CMS2.NtupleMaker.elToTrackAssMaker_cfi")
-process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
+process.load("CMS2.NtupleMaker.conversionMaker_cfi")
+#elCaloIsoSequence = cms.Sequence(egammaBasicClusterMerger*elCaloIsoMaker)
+process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
+process.load("CMS2.NtupleMaker.electronMaker_cfi")
+#electronSequence = cms.Sequence(uniqueElectrons*egammaIsolationSequenceCMS2*egammaElectronIDCMS2)
+process.load("CMS2.NtupleMaker.electronSequence_cfi")
 process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
-process.load("CMS2.NtupleMaker.trackToMuonAssMaker_cfi")
-process.load("CMS2.NtupleMaker.trackToElsAssMaker_cfi")
-
+process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
+process.load("CMS2.NtupleMaker.elToTrackAssMaker_cfi")
+process.load("CMS2.NtupleMaker.eventMaker_cfi")
+#gammaSequence = cms.Sequence(gamIsoDepositsCMS2 + gamIsoFromDepositsCMS2)
+process.load("CMS2.NtupleMaker.gammaSequence_cfi") 
+process.load("CMS2.NtupleMaker.genJetMaker_cfi")
+process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
-
-process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
-process.load("CMS2.NtupleMaker.conversionMaker_cfi")
-process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
-
-process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
-process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
+process.load("CMS2.NtupleMaker.jetMaker_cfi")
+#cms2CaloJetSequence = cms.Sequence(prunedUncorrectedCMS2Jets)
+process.load("CMS2.NtupleMaker.jetSequence_cff")
+process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
+process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
+#JPTCorrections = cms.Sequence(JetPlusTrackCorrections * L2L3CorJetSC5JPT * jptMaker)
+process.load("CMS2.NtupleMaker.jptSequence_cff")
+process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
 process.load("CMS2.NtupleMaker.metMaker_cfi")
-
-
-process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
+#metCorSequence
+process.load("CMS2.NtupleMaker.metSequence_cff")
+process.load("CMS2.NtupleMaker.muonMaker_cfi")
+process.load("CMS2.NtupleMaker.muToElsAssMaker_cfi")
+process.load("CMS2.NtupleMaker.muToJetAssMaker_cfi")
+process.load("CMS2.NtupleMaker.muToTrackAssMaker_cfi")
 process.load("CMS2.NtupleMaker.patElectronMaker_cfi")
 process.load("CMS2.NtupleMaker.patJetMaker_cfi")
 process.load("CMS2.NtupleMaker.patMETMaker_cfi")
-process.load("CMS2.NtupleMaker.bTaggingSequence_cfi")
-process.load("CMS2.NtupleMaker.bTaggingTrkSequence_cfi")
+process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
+process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
+process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
+process.load("CMS2.NtupleMaker.pftauMaker_cfi")
+process.load("CMS2.NtupleMaker.photonMaker_cfi")
+process.load("CMS2.NtupleMaker.scMaker_cfi")
+process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
+process.load("CMS2.NtupleMaker.trackMaker_cfi")
+process.load("CMS2.NtupleMaker.trackToElsAssMaker_cfi")
+process.load("CMS2.NtupleMaker.trackToMuonAssMaker_cfi")
+process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
+process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
+process.load("CMS2.NtupleMaker.trkMuonFilter_cfi")
+process.load("CMS2.NtupleMaker.vertexMaker_cfi")
 
 
+###Dilepton Filter
 process.load("CMS2.NtupleMaker.theFilter_cfi")
-process.load("CMS2.NtupleMaker.bTagMaker_cfi")
 
 #-----------------------------------------------------------
 # configure input data files and number of event to process
@@ -191,7 +191,6 @@ process.EventSelection = cms.PSet(
     )
 )
 
-process.l1DigiMaker = cms.EDFilter("L1DigiMaker")
 
 process.out_CMS2 = cms.OutputModule("PoolOutputModule",
     process.EventSelection,
