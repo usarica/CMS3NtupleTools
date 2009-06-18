@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.8 2009/01/20 04:47:10 dmytro Exp $
+// $Id: EventMaker.h,v 1.9 2009/06/18 09:06:17 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -66,6 +66,7 @@ private:
   double kfactorValue;
   bool haveTriggerInfo_;
   std::string datasetName_;
+  std::string CMS2tag_;
 };
 
 

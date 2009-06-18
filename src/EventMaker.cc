@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.16 2009/05/19 19:02:03 warren Exp $
+// $Id: EventMaker.cc,v 1.17 2009/06/18 09:06:26 kalavase Exp $
 //
 //
 
@@ -50,7 +50,7 @@ Implementation:
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
 
 
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "TString.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -66,35 +66,37 @@ using namespace std;
 EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
   
-  produces<unsigned int>   ("evtrun"               ).setBranchAlias("evt_run"                  );
-  produces<unsigned int>   ("evtevent"             ).setBranchAlias("evt_event"                );
-  produces<unsigned int>   ("evtlumiBlock"         ).setBranchAlias("evt_lumiBlock"            );
-  produces<TString>        ("evtdataset"           ).setBranchAlias("evt_dataset"              );
-  produces<int>    ("evtHLT1"              ).setBranchAlias("evt_HLT1"                 );
-  produces<int>    ("evtHLT2"              ).setBranchAlias("evt_HLT2"                 );
-  produces<int>    ("evtHLT3"              ).setBranchAlias("evt_HLT3"                 );
-  produces<int>    ("evtHLT4"              ).setBranchAlias("evt_HLT4"                 );
-  produces<int>    ("evtHLT5"              ).setBranchAlias("evt_HLT5"                 );
-  produces<int>    ("evtHLT6"              ).setBranchAlias("evt_HLT6"                 );
-  produces<int>    ("evtHLT7"              ).setBranchAlias("evt_HLT7"                 );
-  produces<int>    ("evtHLT8"              ).setBranchAlias("evt_HLT8"                 );
-  produces<int>    ("evtL11"               ).setBranchAlias("evt_L1_1"                 );
-  produces<int>    ("evtL12"               ).setBranchAlias("evt_L1_2"                 );
-  produces<int>    ("evtL13"               ).setBranchAlias("evt_L1_3"                 );
-  produces<int>    ("evtL14"               ).setBranchAlias("evt_L1_4"                 );
-  produces<float>  ("evtbField"            ).setBranchAlias("evt_bField"               );
-  produces<float>  ("evtweight"            ).setBranchAlias("evt_weight"               );
-  produces<float>  ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"            );
-  produces<float>  ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"            );
-  produces<float>  ("evtkfactor"           ).setBranchAlias("evt_kfactor"              );
-  produces<std::vector<TString> > ("evtL1trigNames"   ).setBranchAlias("evt_L1_trigNames"      );    
-  produces<std::vector<TString> > ("evtHLTtrigNames"  ).setBranchAlias("evt_HLT_trigNames"     );
+  produces<unsigned int>     ("evtrun"            ).setBranchAlias("evt_run"           );
+  produces<unsigned int>     ("evtevent"          ).setBranchAlias("evt_event"         );
+  produces<unsigned int>     ("evtlumiBlock"      ).setBranchAlias("evt_lumiBlock"     );
+  produces<TString>          ("evtdataset"        ).setBranchAlias("evt_dataset"       );
+  produces<TString>          ("evtCMS2tag"        ).setBranchAlias("evt_CMS2tag"       );
+  produces<int>              ("evtHLT1"           ).setBranchAlias("evt_HLT1"          );
+  produces<int>              ("evtHLT2"           ).setBranchAlias("evt_HLT2"          );
+  produces<int>              ("evtHLT3"           ).setBranchAlias("evt_HLT3"          );
+  produces<int>              ("evtHLT4"           ).setBranchAlias("evt_HLT4"          );
+  produces<int>              ("evtHLT5"           ).setBranchAlias("evt_HLT5"          );
+  produces<int>              ("evtHLT6"           ).setBranchAlias("evt_HLT6"          );
+  produces<int>              ("evtHLT7"           ).setBranchAlias("evt_HLT7"          );
+  produces<int>              ("evtHLT8"           ).setBranchAlias("evt_HLT8"          );
+  produces<int>              ("evtL11"            ).setBranchAlias("evt_L1_1"          );
+  produces<int>              ("evtL12"            ).setBranchAlias("evt_L1_2"          );
+  produces<int>              ("evtL13"            ).setBranchAlias("evt_L1_3"          );
+  produces<int>              ("evtL14"            ).setBranchAlias("evt_L1_4"          );
+  produces<float>            ("evtbField"         ).setBranchAlias("evt_bField"        );
+  produces<float>            ("evtweight"         ).setBranchAlias("evt_weight"        );
+  produces<float>            ("evtxsecincl"       ).setBranchAlias("evt_xsec_incl"     );
+  produces<float>            ("evtxsecexcl"       ).setBranchAlias("evt_xsec_excl"     );
+  produces<float>            ("evtkfactor"        ).setBranchAlias("evt_kfactor"       );
+  produces<vector<TString> > ("evtL1trigNames"    ).setBranchAlias("evt_L1_trigNames"  );    
+  produces<vector<TString> > ("evtHLTtrigNames"   ).setBranchAlias("evt_HLT_trigNames" );
   
   
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
   kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
   datasetName_ = iConfig.getParameter<std::string>("datasetName");
+  CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
   
   // info
   haveTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveTriggerInfo");
@@ -115,30 +117,30 @@ void EventMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-  auto_ptr<unsigned int>      evt_run               (new unsigned int);
-  auto_ptr<unsigned int>      evt_event             (new unsigned int);
-  auto_ptr<unsigned int>      evt_lumiBlock         (new unsigned int);
-  auto_ptr<TString>           evt_dataset           (new TString(datasetName_.c_str()));
-  auto_ptr<int>      evt_HLT1              (new int);
-  auto_ptr<int>      evt_HLT2              (new int);
-  auto_ptr<int>      evt_HLT3              (new int);
-  auto_ptr<int>      evt_HLT4              (new int);
-  auto_ptr<int>      evt_HLT5              (new int);
-  auto_ptr<int>      evt_HLT6              (new int);
-  auto_ptr<int>      evt_HLT7              (new int);
-  auto_ptr<int>      evt_HLT8              (new int);
-  auto_ptr<int>      evt_L11               (new int);
-  auto_ptr<int>      evt_L12               (new int);
-  auto_ptr<int>      evt_L13               (new int);
-  auto_ptr<int>      evt_L14               (new int);
-  auto_ptr<float>    evt_bField            (new float);
-  auto_ptr<float>    evt_weight            (new float);
-  auto_ptr<float>    evt_xsec_incl         (new float);
-  auto_ptr<float>    evt_xsec_excl         (new float);
-  auto_ptr<float>    evt_kfactor           (new float);
-  //auto_ptr<string>   evt_temp              (new string);
-  auto_ptr<vector<TString> >      evt_HLT_trigNames        (new vector<TString>);
-  auto_ptr<vector<TString> >      evt_L1_trigNames         (new vector<TString>);
+  auto_ptr<unsigned int>     evt_run             (new unsigned int);
+  auto_ptr<unsigned int>     evt_event           (new unsigned int);
+  auto_ptr<unsigned int>     evt_lumiBlock       (new unsigned int);
+  auto_ptr<TString>          evt_dataset         (new TString(datasetName_.c_str()));
+  auto_ptr<TString>          evt_CMS2tag         (new TString(CMS2tag_.c_str()));
+  auto_ptr<int>              evt_HLT1            (new int);
+  auto_ptr<int>              evt_HLT2            (new int);
+  auto_ptr<int>              evt_HLT3            (new int);
+  auto_ptr<int>              evt_HLT4            (new int);
+  auto_ptr<int>              evt_HLT5            (new int);
+  auto_ptr<int>              evt_HLT6            (new int);
+  auto_ptr<int>              evt_HLT7            (new int);
+  auto_ptr<int>              evt_HLT8            (new int);
+  auto_ptr<int>              evt_L11             (new int);
+  auto_ptr<int>              evt_L12             (new int);
+  auto_ptr<int>              evt_L13             (new int);
+  auto_ptr<int>              evt_L14             (new int);
+  auto_ptr<float>            evt_bField          (new float);
+  auto_ptr<float>            evt_weight          (new float);
+  auto_ptr<float>            evt_xsec_incl       (new float);
+  auto_ptr<float>            evt_xsec_excl       (new float);
+  auto_ptr<float>            evt_kfactor         (new float);
+  auto_ptr<vector<TString> > evt_HLT_trigNames   (new vector<TString>);
+  auto_ptr<vector<TString> > evt_L1_trigNames    (new vector<TString>);
   
   *evt_run   = iEvent.id().run();
   *evt_event = iEvent.id().event();
@@ -235,6 +237,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_event            ,"evtevent"           );
   iEvent.put(evt_lumiBlock        ,"evtlumiBlock"       );
   iEvent.put(evt_dataset          ,"evtdataset"         );
+  iEvent.put(evt_CMS2tag          ,"evtCMS2tag"         );
   iEvent.put(evt_HLT1             ,"evtHLT1"            );
   iEvent.put(evt_HLT2             ,"evtHLT2"            );
   iEvent.put(evt_HLT3             ,"evtHLT3"            );
