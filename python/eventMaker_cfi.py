@@ -5,7 +5,8 @@ eventMaker = cms.EDFilter("EventMaker",
     kfactor = cms.untracked.double(1.0),
     inclusiveCrossSection = cms.untracked.double(0.0),
     haveTriggerInfo = cms.untracked.bool(True),
-    datasetName = cms.string("undefined")
+    datasetName = cms.string("undefined"),
+    CMS2tag = cms.string("undefined")
 )
 
 
