@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.23 2009/05/27 10:37:27 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.24 2009/07/02 15:15:34 yanjuntu Exp $
 //
 //
 
@@ -565,7 +565,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
     
 		for(trackingRecHit_iterator ihit = el_track->recHitsBegin(); 
-		    ihit != el_track->recHitsBegin(); ++ihit){
+		    ihit != el_track->recHitsEnd(); ++ihit){
 		  if(i_layer > 1) break;
 		  int k = ihit-el_track->recHitsBegin();
 		  hit_pattern = pattern.getHitPattern(k);
