@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.9 2009/05/14 18:36:58 warren Exp $
+// $Id: CandToGenAssMaker.cc,v 1.10 2009/07/06 00:19:48 kalavase Exp $
 //
 //
 
@@ -74,29 +74,38 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<float>         >("musmc3dr"           ).setBranchAlias("mus_mc3dr"          );
 
 
-  //jet matched to gen particle
-  produces<vector<int>           >("jetsmcid"           ).setBranchAlias("jets_mc_id"         );
+  //info of matched genJet
+  produces<vector<float>         >("jetsmcdr"           ).setBranchAlias("jets_mcdr"          );
+  produces<vector<int>           >("jetsmcidx"          ).setBranchAlias("jets_mcidx"         );
   produces<vector<float>         >("jetsmcemEnergy"     ).setBranchAlias("jets_mc_emEnergy"   ); // energy of electromagnetic particles of the matched GenJet
   produces<vector<float>         >("jetsmchadEnergy"    ).setBranchAlias("jets_mc_hadEnergy"  ); // energy of hadronic particles of the matched GenJet
   produces<vector<float>         >("jetsmcinvEnergy"    ).setBranchAlias("jets_mc_invEnergy"  ); // invisible energy of the matched GenJet
   produces<vector<float>         >("jetsmcotherEnergy"  ).setBranchAlias("jets_mc_otherEnergy"); // other energy (undecayed Sigmas etc.) of the matched GenJet
   produces<vector<LorentzVector> >("jetsmcp4"           ).setBranchAlias("jets_mc_p4"         ); // p4 of the matched GenJet
-  produces<vector<LorentzVector> >("jetsmcgpp4"         ).setBranchAlias("jets_mc_gp_p4"      ); // p4 of the matched MC particle
-  produces<vector<float>         >("jetsmcdr"           ).setBranchAlias("jets_mcdr"          );
+  //info of matched gen particle
   produces<vector<float>         >("jetsmcgpdr"         ).setBranchAlias("jets_mc_gpdr"       );
-
+  produces<vector<int>           >("jetsmcgpidx"        ).setBranchAlias("jets_mc_gpidx"       ); // index of matched status==3 particle
+  produces<vector<LorentzVector> >("jetsmcgpp4"         ).setBranchAlias("jets_mc_gp_p4"      ); // p4 of the matched MC particle
+  produces<vector<int>           >("jetsmcid"           ).setBranchAlias("jets_mc_id"         );
+  //info of matched status 3 particle
+  produces<vector<float>         >("jetsmc3dr"          ).setBranchAlias("jets_mc3dr"         ); // index of matched status==3 particle
+  produces<vector<int>           >("jetsmc3idx"         ).setBranchAlias("jets_mc3idx"        ); // index of matched status==3 particle
+  produces<vector<LorentzVector> >("jetsmc3p4"          ).setBranchAlias("jets_mc3_p4"        ); // p4 of the matched status==3 particle
+  produces<vector<int>           >("jetsmc3id"          ).setBranchAlias("jets_mc3_id"        ); // id of matched status ==3 particle
+  
+  
+ 
   // track matched to gen particle
-  produces<vector<int>           >("trkmcid"      ).setBranchAlias("trk_mc_id"      ); // track matched to gen particle
-  produces<vector<int>           >("trkmcmotherid").setBranchAlias("trk_mc_motherid");
-  produces<vector<int>           >("trkmcidx"     ).setBranchAlias("trk_mcidx"      );
-  produces<vector<LorentzVector> >("trkmcp4"      ).setBranchAlias("trk_mcp4"       );
-  produces<vector<float>        >("trkmcdr"      ).setBranchAlias("trk_mcdr"       );
-  produces<vector<int>           >("trkmc3id"      ).setBranchAlias("trk_mc3_id"      ); // track matched to gen particle
-  produces<vector<int>           >("trkmc3motherid").setBranchAlias("trk_mc3_motherid");
-  produces<vector<int>           >("trkmc3idx"     ).setBranchAlias("trk_mc3idx"      );
-  produces<vector<LorentzVector> >("trkmc3p4"      ).setBranchAlias("trk_mc3p4"       );
-  produces<vector<float>        >("trkmc3dr"      ).setBranchAlias("trk_mc3dr"       );
-
+  produces<vector<int>           >("trkmcid"            ).setBranchAlias("trk_mc_id"          ); // track matched to gen particle
+  produces<vector<int>           >("trkmcmotherid"      ).setBranchAlias("trk_mc_motherid"    );
+  produces<vector<int>           >("trkmcidx"           ).setBranchAlias("trk_mcidx"          );
+  produces<vector<LorentzVector> >("trkmcp4"            ).setBranchAlias("trk_mcp4"           );
+  produces<vector<float>         >("trkmcdr"            ).setBranchAlias("trk_mcdr"           );
+  produces<vector<int>           >("trkmc3id"           ).setBranchAlias("trk_mc3_id"         ); // track matched to gen particle
+  produces<vector<int>           >("trkmc3motherid"     ).setBranchAlias("trk_mc3_motherid"   );
+  produces<vector<int>           >("trkmc3idx"          ).setBranchAlias("trk_mc3idx"         );
+  produces<vector<LorentzVector> >("trkmc3p4"           ).setBranchAlias("trk_mc3p4"          );
+  produces<vector<float>         >("trkmc3dr"           ).setBranchAlias("trk_mc3dr"          );
   
   
   genParticlesInputTag = iConfig.getParameter<edm::InputTag>("genParticlesInputTag");
@@ -142,22 +151,26 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<LorentzVector> > vector_mus_mc3_motherp4   (new vector<LorentzVector>);
   auto_ptr<vector<float>         > vector_mus_mc3dr          (new vector<float>        );
 
-  
-  auto_ptr<vector<int>           > vector_jets_mc_id         (new vector<int>          );
+  //info of matched genJet
+  auto_ptr<vector<float>         > vector_jets_mcdr          (new vector<float>        );
+  auto_ptr<vector<int>           > vector_jets_mcidx         (new vector<int>          );
   auto_ptr<vector<float>         > vector_jets_mc_emEnergy   (new vector<float>        ); 
   auto_ptr<vector<float>         > vector_jets_mc_hadEnergy  (new vector<float>        ); 
   auto_ptr<vector<float>         > vector_jets_mc_invEnergy  (new vector<float>        ); 
   auto_ptr<vector<float>         > vector_jets_mc_otherEnergy(new vector<float>        ); 
   auto_ptr<vector<LorentzVector> > vector_jets_mc_p4         (new vector<LorentzVector>); 
-  auto_ptr<vector<LorentzVector> > vector_jets_mc_gp_p4      (new vector<LorentzVector>); 
-  auto_ptr<vector<float>         > vector_jets_mcdr          (new vector<float>        );
+  //info of matched gen particle
   auto_ptr<vector<float>         > vector_jets_mc_gpdr       (new vector<float>        );
-  auto_ptr<vector<int>           > vector_jets_mc3_id        (new vector<int>          );
-  auto_ptr<vector<LorentzVector> > vector_jets_mc3_gp_p4     (new vector<LorentzVector>); 
-  auto_ptr<vector<float>         > vector_jets_mc3_gpdr      (new vector<float>        );
+  auto_ptr<vector<int>           > vector_jets_mc_gpidx      (new vector<int>          );
+  auto_ptr<vector<LorentzVector> > vector_jets_mc_gp_p4      (new vector<LorentzVector>); 
+  auto_ptr<vector<int>           > vector_jets_mc_id       (new vector<int>          );
+  //info of matched status 3 particle
+  auto_ptr<vector<float>         > vector_jets_mc3dr         (new vector<float>        );
+  auto_ptr<vector<int>           > vector_jets_mc3idx        (new vector<int>          );
+  auto_ptr<vector<LorentzVector> > vector_jets_mc3_p4        (new vector<LorentzVector>);
+  auto_ptr<vector<int>           > vector_jets_mc3_id        (new vector<int>          );  
   
-  
-
+  //track matched to gen particle
   auto_ptr<vector<int>           > vector_trk_mc_id        (new vector<int>              );
   auto_ptr<vector<int>           > vector_trk_mc_motherid  (new vector<int>              );
   auto_ptr<vector<int>           > vector_trk_mcidx        (new vector<int>              );
@@ -342,21 +355,25 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       jetsp4_it != jetsHandle->end();
       jetsp4_it++) {
 
-    const GenJet* matchedGenJet = MatchUtilities::matchCandToGenJet(*jetsp4_it,genJetsHandle.product());
+    int idx = -999;
+    const GenJet* matchedGenJet = MatchUtilities::matchCandToGenJet(*jetsp4_it,genJetsHandle.product(), idx);
+    
     if ( matchedGenJet != 0 ) {
-      vector_jets_mc_p4->push_back(matchedGenJet->p4());
-      vector_jets_mc_emEnergy->push_back(matchedGenJet->emEnergy());
-      vector_jets_mc_hadEnergy->push_back(matchedGenJet->hadEnergy());
-      vector_jets_mc_invEnergy->push_back(matchedGenJet->invisibleEnergy());
+      vector_jets_mcdr          ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenJet).p4() ));
+      vector_jets_mcidx         ->push_back(idx);
+      vector_jets_mc_emEnergy   ->push_back(matchedGenJet->emEnergy());
+      vector_jets_mc_hadEnergy  ->push_back(matchedGenJet->hadEnergy());
+      vector_jets_mc_invEnergy  ->push_back(matchedGenJet->invisibleEnergy());
       vector_jets_mc_otherEnergy->push_back(matchedGenJet->auxiliaryEnergy());
-      vector_jets_mcdr->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenJet).p4() ));
+      vector_jets_mc_p4         ->push_back(matchedGenJet->p4());
     } else {
-      vector_jets_mc_p4->push_back(LorentzVector(0,0,0,0));
-      vector_jets_mc_emEnergy->push_back(-999.);
-      vector_jets_mc_hadEnergy->push_back(-999.);
-      vector_jets_mc_invEnergy->push_back(-999.);
-      vector_jets_mc_otherEnergy->push_back(-999.);
-      vector_jets_mcdr->push_back(-9999);
+      vector_jets_mcdr           ->push_back(-9999  );
+      vector_jets_mcidx          ->push_back(idx    );
+      vector_jets_mc_emEnergy    ->push_back(-999.  );
+      vector_jets_mc_hadEnergy   ->push_back(-999.  );
+      vector_jets_mc_invEnergy   ->push_back(-999.  );
+      vector_jets_mc_otherEnergy ->push_back(-999.  );
+      vector_jets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
     }
 
     int temp;
@@ -365,28 +382,32 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 									   temp, 1);
 
     if ( matchedGenParticle != 0 ) {
-      vector_jets_mc_gp_p4->push_back(matchedGenParticle->p4());
-      vector_jets_mc_id->push_back(matchedGenParticle->pdgId());
-      vector_jets_mc_gpdr->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticle).p4() ));
+      vector_jets_mc_gpdr   ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticle).p4() ));
+      vector_jets_mc_gpidx  ->push_back(temp);
+      vector_jets_mc_gp_p4  ->push_back(matchedGenParticle->p4());
+      vector_jets_mc_id     ->push_back(matchedGenParticle->pdgId());
     } else {
-      vector_jets_mc_gp_p4->push_back(LorentzVector(0,0,0,0));
-      vector_jets_mc_id->push_back(-999);
-      vector_jets_mc_gpdr->push_back(-9999);
+      vector_jets_mc_gpdr   ->push_back(-9999);
+      vector_jets_mc_gpidx  ->push_back(-999);
+      vector_jets_mc_gp_p4  ->push_back(LorentzVector(0,0,0,0));
+      vector_jets_mc_id  ->push_back(-999);
+      
     }
 
     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*jetsp4_it, 
 									      genParticlesPruned,
 									      temp, 3);
-	if ( matchedGenParticleDoc != 0 ) {
-      vector_jets_mc3_gp_p4->push_back(matchedGenParticleDoc->p4());
-      vector_jets_mc3_id->push_back(matchedGenParticleDoc->pdgId());
-      vector_jets_mc3_gpdr->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticleDoc).p4() ));
+    if ( matchedGenParticleDoc != 0 ) {
+      vector_jets_mc3dr    ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticleDoc).p4() ));
+      vector_jets_mc3idx   ->push_back(temp);
+      vector_jets_mc3_p4   ->push_back(matchedGenParticleDoc->p4());
+      vector_jets_mc3_id   ->push_back(matchedGenParticleDoc->pdgId());
     } else {
-      vector_jets_mc3_gp_p4->push_back(LorentzVector(0,0,0,0));
-      vector_jets_mc3_id->push_back(-999);
-      vector_jets_mc3_gpdr->push_back(-9999);
+      vector_jets_mc3dr    ->push_back(-9999);
+      vector_jets_mc3idx   ->push_back(-999);
+      vector_jets_mc3_p4   ->push_back(LorentzVector(0,0,0,0));
+      vector_jets_mc3_id   ->push_back(-999);
     }
-
     
   }
 
@@ -467,16 +488,23 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_mus_mc3_motherp4   ,"musmc3motherp4"   );
   iEvent.put(vector_mus_mc3dr          ,"musmc3dr"         );
 
-
-  iEvent.put(vector_jets_mc_id         ,"jetsmcid"         );
+  iEvent.put(vector_jets_mcdr          ,"jetsmcdr"         );
+  iEvent.put(vector_jets_mcidx         ,"jetsmcidx"        );
   iEvent.put(vector_jets_mc_emEnergy   ,"jetsmcemEnergy"   );
   iEvent.put(vector_jets_mc_hadEnergy  ,"jetsmchadEnergy"  );
   iEvent.put(vector_jets_mc_invEnergy  ,"jetsmcinvEnergy"  );
   iEvent.put(vector_jets_mc_otherEnergy,"jetsmcotherEnergy");
   iEvent.put(vector_jets_mc_p4         ,"jetsmcp4"         );
-  iEvent.put(vector_jets_mc_gp_p4      ,"jetsmcgpp4"       );
-  iEvent.put(vector_jets_mcdr          ,"jetsmcdr"         );
   iEvent.put(vector_jets_mc_gpdr       ,"jetsmcgpdr"       );
+  iEvent.put(vector_jets_mc_gpidx      ,"jetsmcgpidx"      );
+  iEvent.put(vector_jets_mc_gp_p4      ,"jetsmcgpp4"       );
+  iEvent.put(vector_jets_mc_id         ,"jetsmcid"         );
+  iEvent.put(vector_jets_mc3dr         ,"jetsmc3dr"        );
+  iEvent.put(vector_jets_mc3idx        ,"jetsmc3idx"       );
+  iEvent.put(vector_jets_mc3_p4        ,"jetsmc3p4"        );
+  iEvent.put(vector_jets_mc3_id        ,"jetsmc3id"      ); // id of matched status ==3 particle
+
+  
 
   iEvent.put(vector_trk_mc_id          ,"trkmcid"          );
   iEvent.put(vector_trk_mc_motherid    ,"trkmcmotherid"    );

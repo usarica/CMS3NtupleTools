@@ -11,7 +11,7 @@ Description: utilities to match objects
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.7 2009/05/18 21:59:35 fgolf Exp $
+// $Id: MatchUtilities.h,v 1.8 2009/07/06 00:15:35 kalavase Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -45,7 +45,8 @@ public:
 						 const std::vector<reco::GenParticle>* genParticles, int& genidx, int status);
   static const reco::GenJet* matchCandToGenJet(const reco::Candidate& jet,  const std::vector<reco::GenJet>* genJets);
   static const reco::GenJet* matchCandToGenJet(const ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >& genJetp4, 
-					       const std::vector<reco::GenJet>* genJets);
+					       const std::vector<reco::GenJet>* genJets,
+					       int& genidx);
   
   static const reco::Candidate* matchGenToCand(const reco::GenParticle&, std::vector<const reco::Candidate*> cand);
   static const reco::Candidate* matchGenToCand(const reco::GenJet&, std::vector<const reco::Candidate*> cand);
@@ -61,6 +62,7 @@ public:
 
   static const void alignJPTcaloJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<reco::CaloJet>&);
+					       
   
   template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref,
 							    std::vector<T2>& v_toAllign) {

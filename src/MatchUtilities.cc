@@ -58,13 +58,16 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const reco::Candidate& jet
 }
 //----------------------------------------------------------------------------------------------
 const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4, 
-						      const std::vector<reco::GenJet>* genJets) { 
+						      const std::vector<reco::GenJet>* genJets,
+						      int &genidx) { 
   
   const reco::GenJet* output = 0;
   double dRmin = 0.25;
+  int i = 0;
+  genidx = -999;
   
   std::vector<reco::GenJet>::const_iterator itJetEnd = genJets->end();
-  for(std::vector<reco::GenJet>::const_iterator itJet=genJets->begin(); itJet!=itJetEnd; ++itJet) {
+  for(std::vector<reco::GenJet>::const_iterator itJet=genJets->begin(); itJet!=itJetEnd; ++itJet, ++i) {
 
     const math::XYZVector v1(itJet->momentum().x(), itJet->momentum().y(), itJet->momentum().z());
 
@@ -72,14 +75,14 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4
     if (dR < dRmin) {
       dRmin = dR;
       output = &(*itJet);
+      genidx = i;
     }
   }
 
   return output;
 }
 //----------------------------------------------------------------------------------------------
-const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, 
-							const std::vector<reco::GenParticle>* genParticles) {
+const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, const std::vector<reco::GenParticle>* genParticles) {
 
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
@@ -110,7 +113,8 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
   unsigned int i = 0;
-
+  genidx = -999;
+  
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
@@ -138,6 +142,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
   unsigned int i = 0;
+  genidx = -999;
   
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
@@ -172,6 +177,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
   const reco::GenParticle* output = 0;
   double dRmin = 0.1;
   unsigned int i = 0;
+  genidx = -999;
   
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
