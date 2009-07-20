@@ -12,7 +12,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.cc,v 1.2 2009/01/23 22:12:27 fgolf Exp $
+// $Id: GenJetMaker.cc,v 1.3 2009/07/20 08:39:10 kalavase Exp $
 //
 //
 
@@ -69,7 +69,7 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   for ( edm::View<reco::GenJet>::const_iterator jet = genJets->begin();
         jet != jetsEnd;
         ++jet) {
-    if( jet->et() < genJetMinPtCut ) continue;
+    if( jet->pt() < genJetMinPtCut ) continue;
     vector_genjets_p4->push_back(jet->p4());
   }
 
