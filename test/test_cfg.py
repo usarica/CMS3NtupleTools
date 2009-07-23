@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.48 $'),
+        version = cms.untracked.string('$Revision: 1.49 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -26,7 +26,7 @@ process.options = cms.untracked.PSet(
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 
 #----------------------------------------------------
@@ -99,7 +99,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -107,7 +107,7 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-     fileNames = cms.untracked.vstring('file:/data/tmp/fgolf/1466166A-32CB-DD11-9779-001A92810AE2.root')
+    fileNames = cms.untracked.vstring('file:/home/users/wandrews/tmp/WJets-madgraph_ideal_v11_redigi_v1/2EBE9812-45DF-DD11-919D-003048679214.root')
 )
 
 
@@ -175,9 +175,6 @@ process.patDefaultSequence = cms.Sequence(
 from PhysicsTools.PatAlgos.tools.jetTools import *
 switchJetCollection(process, 'prunedUncorrectedCMS2Jets', doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
 
-#new Flavor shit
-process.load("PhysicsTools.HepMCCandAlgos.flavorHistoryPaths_cfi")
-
 #-------------------------------------------------
 # process output; first the event selection is
 # defined: only those events that have passed the
@@ -211,15 +208,21 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 process.CMS2Reco      = cms.Sequence(process.electronSequence * process.gammaSequence * process.cms2CaloJetSequence * process.CMS2Btagging * process.metCorSequence)
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
+
 process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
+
 process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
-process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker* process.calotauMaker*process.pftauMaker* process.CMS2TrkBtagging * process.photonMaker)
-process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker *
-                                     process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
+
+process.makers        = cms.Sequence(process.electronMaker * process.muonMaker * process.trackMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkmuonfilter * process.trkjetmaker * process.metMaker * process.tcmetMaker * process.calotauMaker * process.CMS2TrkBtagging * process.photonMaker)
+
+process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker * process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
+
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
-#process.flavorHistory = cms.Sequence(process.bFlavorHistoryProducer * process.cFlavorHistoryProducer)
+
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker)
-process.pflowmakers   = cms.Sequence(process.pfmetMaker)
+
+process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pftauMaker)
+
 process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.othermakers * process.hypmakers)
