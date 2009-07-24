@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.19 2009/04/29 18:19:31 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.20 2009/07/24 09:54:17 warren Exp $
 //
 //
 
@@ -77,36 +77,39 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >	     ("muscharge"	).setBranchAlias("mus_charge"        ); // charge						
   produces<vector<int> >	     ("mustrkcharge"	).setBranchAlias("mus_trk_charge"    ); // track charge
   
-  produces<vector<float> >           ("musqoverp"       ).setBranchAlias("mus_qoverp"        );
+  produces<vector<float> >       ("musqoverp"       ).setBranchAlias("mus_qoverp"        );
   
-  produces<vector<float> >           ("musqoverpError"  ).setBranchAlias("mus_qoverpError"   );
-  
-  produces<vector<float> >	     ("musouterPhi"	).setBranchAlias("mus_outerPhi"      ); // phi angle of the outermost point in tracker		
-  produces<vector<float> >	     ("musouterEta"	).setBranchAlias("mus_outerEta"      ); // eta angle of the outermost point in tracker		
-  produces<vector<int> >             ("mustrkrefkey"    ).setBranchAlias("mus_trkrefkey"     ); // index of track from track ref stored in muon collection
+  produces<vector<float> >       ("musqoverpError"  ).setBranchAlias("mus_qoverpError"   );
+ 
+  produces<vector<float> >	     ("musouterPhi"	).setBranchAlias("mus_outerPhi"      ); // phi angle of the outermost point in tracker 
+  produces<vector<float> >	     ("musouterEta"	).setBranchAlias("mus_outerEta"      ); // eta angle of the outermost point in tracker 
+  produces<vector<int> >         ("mustrkrefkey"    ).setBranchAlias("mus_trkrefkey"     ); // index of track from track ref stored in muon collection
   // muon quantities
-  produces<vector<int> >             ("musnmatches"	).setBranchAlias("mus_nmatches"      ); // number of stations with matched segments                                                  
-  produces<vector<float> >	     ("museem"		).setBranchAlias("mus_e_em"          ); // energy in crossed ECAL crystalls                                                          
-  produces<vector<float> >	     ("musehad"		).setBranchAlias("mus_e_had"         ); // energy in crossed HCAL towers                                                             
-  produces<vector<float> >	     ("museho"		).setBranchAlias("mus_e_ho"          ); // energy in crossed HO towers                                                               
-  produces<vector<float> >	     ("museemS9"	).setBranchAlias("mus_e_emS9"        ); // energy in 3x3 ECAL crystall shape                                                         
-  produces<vector<float> >	     ("musehadS9"	).setBranchAlias("mus_e_hadS9"       ); //energy in 3x3 HCAL towers                                                                 
-  produces<vector<float> >	     ("musehoS9"	).setBranchAlias("mus_e_hoS9"        ); // energy in 3x3 HO towers                                                                   
-  produces<vector<float> >           ("musiso"          ).setBranchAlias("mus_iso"           ); //mirrors the isolation in CMS1 (home grown trackIsolatio()
-  produces<vector<float> >	     ("musiso03sumPt"	).setBranchAlias("mus_iso03_sumPt"   ); // sum of track Pt for cone of 0.3                                                           
-  produces<vector<float> >	     ("musiso03emEt"	).setBranchAlias("mus_iso03_emEt"    ); // sum of ecal Et for cone of 0.3                                                            
-  produces<vector<float> >	     ("musiso03hadEt"	).setBranchAlias("mus_iso03_hadEt"   ); // sum of hcal Et for cone of 0.3                                                            
-  produces<vector<float> >	     ("musiso03hoEt"	).setBranchAlias("mus_iso03_hoEt"    ); // sum of ho Et for cone of 0.3                                                              
-  produces<vector<int> >	     ("musiso03ntrk"	).setBranchAlias("mus_iso03_ntrk"    ); // number of tracks in the cone of 0.3                                                       
-  produces<vector<float> >	     ("musiso05sumPt"	).setBranchAlias("mus_iso05_sumPt"   ); // sum of track Pt for cone of 0.5                                                           
-  produces<vector<float> >	     ("musiso05emEt"    ).setBranchAlias("mus_iso05_emEt"    ); // sum of ecal Et for cone of 0.5                                                            
-  produces<vector<float> >	     ("musiso05hadEt"	).setBranchAlias("mus_iso05_hadEt"   ); // sum of hcal Et for cone of 0.5                                                            
-  produces<vector<float> >	     ("musiso05hoEt"	).setBranchAlias("mus_iso05_hoEt"    ); // sum of ho Et for cone of 0.5                                                              
-  produces<vector<int> >	     ("musiso05ntrk"	).setBranchAlias("mus_iso05_ntrk"    ); // number of tracks in the cone of 0.5                                                       
-        
-  produces<vector<float> >	     ("musgfitchi2"     ).setBranchAlias("mus_gfit_chi2"     ); // chi2 of the global muon fit                                                               
-  produces<vector<float> >	     ("musgfitndof"	).setBranchAlias("mus_gfit_ndof"     ); // number of degree of freedom of the global muon fit                                        
-  produces<vector<int> >	     ("musgfitvalidHits").setBranchAlias("mus_gfit_validHits"); // number of valid hits of the global muon fit                
+  produces<vector<int> >         ("musnmatches"	).setBranchAlias("mus_nmatches"      ); // number of stations with matched segments 
+  produces<vector<float> >	     ("museem"		).setBranchAlias("mus_e_em"          ); // energy in crossed ECAL crystalls 
+  produces<vector<float> >	     ("musehad"		).setBranchAlias("mus_e_had"         ); // energy in crossed HCAL towers 
+  produces<vector<float> >	     ("museho"		).setBranchAlias("mus_e_ho"          ); // energy in crossed HO towers 
+  produces<vector<float> >	     ("museemS9"	).setBranchAlias("mus_e_emS9"        ); // energy in 3x3 ECAL crystall shape 
+  produces<vector<float> >	     ("musehadS9"	).setBranchAlias("mus_e_hadS9"       ); //energy in 3x3 HCAL towers 
+  produces<vector<float> >	     ("musehoS9"	).setBranchAlias("mus_e_hoS9"        ); // energy in 3x3 HO towers 
+  produces<vector<float> >       ("musiso"          ).setBranchAlias("mus_iso"           ); //mirrors the isolation in CMS1 (home grown trackIsolatio()
+  produces<vector<float> >	     ("musiso03sumPt"	).setBranchAlias("mus_iso03_sumPt"   ); // sum of track Pt for cone of 0.3 
+  produces<vector<float> >	     ("musiso03emEt"	).setBranchAlias("mus_iso03_emEt"    ); // sum of ecal Et for cone of 0.3 
+  produces<vector<float> >	     ("musiso03hadEt"	).setBranchAlias("mus_iso03_hadEt"   ); // sum of hcal Et for cone of 0.3 
+  produces<vector<float> >	     ("musiso03hoEt"	).setBranchAlias("mus_iso03_hoEt"    ); // sum of ho Et for cone of 0.3 
+  produces<vector<int> >	     ("musiso03ntrk"	).setBranchAlias("mus_iso03_ntrk"    ); // number of tracks in the cone of 0.3 
+  produces<vector<float> >	     ("musiso05sumPt"	).setBranchAlias("mus_iso05_sumPt"   ); // sum of track Pt for cone of 0.5 
+  produces<vector<float> >	     ("musiso05emEt"    ).setBranchAlias("mus_iso05_emEt"    ); // sum of ecal Et for cone of 0.5 
+  produces<vector<float> >	     ("musiso05hadEt"	).setBranchAlias("mus_iso05_hadEt"   ); // sum of hcal Et for cone of 0.5 
+  produces<vector<float> >	     ("musiso05hoEt"	).setBranchAlias("mus_iso05_hoEt"    ); // sum of ho Et for cone of 0.5 
+  produces<vector<int> >	     ("musiso05ntrk"	).setBranchAlias("mus_iso05_ntrk"    ); // number of tracks in the cone of 0.5 
+  produces<vector<float> >       ("mustrckvetoDep"  ).setBranchAlias("mus_trckvetoDep"   ); // pt in track veto cone (reproduce mus_pat_vetoDep)
+  produces<vector<float> >       ("musecalvetoDep"  ).setBranchAlias("mus_ecalvetoDep"   ); // et in ecal veto cone (reproduce mus_pat_ecalvetoDep)
+  produces<vector<float> >       ("mushcalvetoDep"  ).setBranchAlias("mus_hcalvetoDep"   ); // et in hcal veto cone (reproduce mus_pat_hcalvetoDep)
+
+  produces<vector<float> >	     ("musgfitchi2"     ).setBranchAlias("mus_gfit_chi2"     ); // chi2 of the global muon fit 
+  produces<vector<float> >	     ("musgfitndof"	    ).setBranchAlias("mus_gfit_ndof"     ); // number of degree of freedom of the global muon fit 
+  produces<vector<int> >	     ("musgfitvalidHits").setBranchAlias("mus_gfit_validHits"); // number of valid hits of the global muon fit 
   // loose tracker muon identification based on muon/hadron penetration depth difference       
   produces<vector<int> >	     ("muspidTMLastStationLoose"    ).setBranchAlias("mus_pid_TMLastStationLoose"    ); 
   // tight tracker muon identification based on muon/hadron penetration depth difference       
@@ -122,10 +125,12 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" );
   produces<vector<LorentzVector> >   ("musgfitouterPosp4"     ).setBranchAlias("mus_gfit_outerPos_p4");
   
-    muonsInputTag  = iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
-  tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
-  beamSpotInputTag = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
-  
+  muonsInputTag  		= iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
+  tracksInputTag 		= iConfig.getParameter<edm::InputTag>("tracksInputTag");
+  beamSpotInputTag 		= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+  isoDepTrackInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepTrackInputTag");
+  isoDepEcalInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepEcalInputTag");
+  isoDepHcalInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepHcalInputTag");
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -175,9 +180,12 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >	   vector_mus_iso05_hadEt       (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_iso05_hoEt        (new vector<float>	     );
   auto_ptr<vector<int> >	   vector_mus_iso05_ntrk        (new vector<int>  	     );
+  auto_ptr<vector<float> >	   vector_mus_trckvetoDep       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_ecalvetoDep       (new vector<float>	     );
+  auto_ptr<vector<float> >	   vector_mus_hcalvetoDep       (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_gfit_chi2         (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_gfit_ndof         (new vector<float>	     );
-  auto_ptr<vector<int> >           vector_mus_gfit_validHits    (new vector<int>  	     );
+  auto_ptr<vector<int> >       vector_mus_gfit_validHits    (new vector<int>  	     );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationLoose     (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int>    );
@@ -201,6 +209,17 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ?
                          Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
+
+  //get muon iso deposits
+  edm::Handle<edm::ValueMap<IsoDeposit> > trckIsoDep_h;
+  iEvent.getByLabel(isoDepTrackInputTag, trckIsoDep_h);
+
+  edm::Handle<edm::ValueMap<IsoDeposit> > ecalIsoDep_h;
+  iEvent.getByLabel(isoDepEcalInputTag, ecalIsoDep_h);
+
+  edm::Handle<edm::ValueMap<IsoDeposit> > hcalIsoDep_h;
+  iEvent.getByLabel(isoDepHcalInputTag, hcalIsoDep_h);
+
 
   for (edm::View<Muon>::const_iterator muon = muon_h->begin(); 
        muon != muons_end; ++muon) {
@@ -292,6 +311,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_iso05_hadEt   ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	          :  -999       );
     vector_mus_iso05_hoEt    ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	          :  -999       );
     vector_mus_iso05_ntrk    ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks         :  -999       );
+	unsigned int idx = muon - muon_h->begin();
+	vector_mus_trckvetoDep   ->push_back( (*trckIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
+	vector_mus_ecalvetoDep   ->push_back( (*ecalIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
+	vector_mus_hcalvetoDep   ->push_back( (*hcalIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
+										  
     vector_mus_gfit_chi2     ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	  :  -999       );
     vector_mus_gfit_ndof     ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	  :  -999       );
     vector_mus_gfit_validHits->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	: -999	);
@@ -345,7 +369,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_e_em            , "museem"               );
   iEvent.put(vector_mus_e_had           , "musehad"              );
   iEvent.put(vector_mus_e_ho            , "museho"               );
-  iEvent.put(vector_mus_e_emS9		, "museemS9"             );
+  iEvent.put(vector_mus_e_emS9          , "museemS9"             );
   iEvent.put(vector_mus_e_hadS9         , "musehadS9"            );
   iEvent.put(vector_mus_e_hoS9          , "musehoS9"             );
   iEvent.put(vector_mus_iso             , "musiso"               );
@@ -359,6 +383,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_iso05_hadEt     , "musiso05hadEt"        );
   iEvent.put(vector_mus_iso05_hoEt      , "musiso05hoEt"         );
   iEvent.put(vector_mus_iso05_ntrk      , "musiso05ntrk"         );
+  iEvent.put(vector_mus_trckvetoDep     , "mustrckvetoDep"       );
+  iEvent.put(vector_mus_ecalvetoDep     , "musecalvetoDep"       );
+  iEvent.put(vector_mus_hcalvetoDep     , "mushcalvetoDep"       );
   iEvent.put(vector_mus_gfit_chi2       , "musgfitchi2"          );
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );

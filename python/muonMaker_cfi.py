@@ -6,7 +6,11 @@ muonMaker = cms.EDFilter("MuonMaker",
     #track collection
     tracksInputTag = cms.InputTag("generalTracks"),
     #beamSpot (from CMS2)
-    beamSpotInputTag = cms.InputTag("beamSpotMaker")
+    beamSpotInputTag = cms.InputTag("beamSpotMaker"),
+    #isoDeposits tags						 
+    isoDepTrackInputTag = cms.InputTag("muIsoDepositTk"),
+	isoDepEcalInputTag  = cms.InputTag("muIsoDepositCalByAssociatorTowers","ecal"),
+	isoDepHcalInputTag  = cms.InputTag("muIsoDepositCalByAssociatorTowers","hcal"),
 )
 
 

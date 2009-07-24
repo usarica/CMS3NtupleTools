@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.7 2008/12/17 08:04:01 kalavase Exp $
+// $Id: MuonMaker.h,v 1.8 2009/07/24 09:54:17 warren Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -59,6 +59,9 @@ private:
   edm::InputTag muonsInputTag;
   edm::InputTag tracksInputTag;
   edm::InputTag beamSpotInputTag;
+  edm::InputTag isoDepTrackInputTag;
+  edm::InputTag isoDepEcalInputTag;
+  edm::InputTag isoDepHcalInputTag;
 };
 
 
