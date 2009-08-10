@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.8 2009/05/14 18:41:44 warren Exp $
+// $Id: GenMaker.cc,v 1.9 2009/08/10 13:31:28 dlevans Exp $
 //
 //
 
@@ -32,8 +32,8 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "TMath.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 using namespace reco;
