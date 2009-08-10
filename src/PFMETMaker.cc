@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.cc,v 1.1 2009/05/19 23:20:03 fgolf Exp $
+// $Id: PFMETMaker.cc,v 1.2 2009/08/10 13:38:46 dlevans Exp $
 //
 //
 
@@ -31,8 +31,6 @@ Implementation:
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/METReco/interface/PFMET.h"
-
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 
