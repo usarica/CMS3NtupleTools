@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.17 2009/06/18 09:06:26 kalavase Exp $
+// $Id: EventMaker.cc,v 1.18 2009/08/17 09:44:35 dlevans Exp $
 //
 //
 
@@ -50,7 +50,11 @@ Implementation:
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
 
 
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+// location for 3_X_Y
+//#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+// location for 2_X_Y
+#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+
 #include "TString.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
