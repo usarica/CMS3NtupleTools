@@ -1,14 +1,11 @@
 #include <vector>
 #include <functional>
-//#include <math.h>
-//#include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"
 #include "TMath.h"
 #include "CMS2/NtupleMaker/interface/HypIsoMaker.h"
 // Framework
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-//#include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
@@ -92,7 +89,6 @@ HypIsoMaker::HypIsoMaker(const edm::ParameterSet& iConfig)
   muonparameters_.loadParameters( parameters );
 
   //register your products
-  produces<vector<float> >         ("elsnewiso"                ).setBranchAlias("els_newiso"); //will eliminate
   produces<vector<float> >         ("hypltecaliso"             ).setBranchAlias("hyp_lt_ecaliso");
   produces<vector<float> >         ("hypllecaliso"             ).setBranchAlias("hyp_ll_ecaliso");
   produces<vector<float> >         ("hyplttrkiso"              ).setBranchAlias("hyp_lt_trkiso");
@@ -114,30 +110,6 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle< edm::View<reco::Muon> > muonHandle;
   iEvent.getByLabel(muonsInputTag_, muonHandle);
-
-  //take these collections out once i remove the 'elsnewiso' branch--only for those now
-  // Next get Ecal hits barrel
-  edm::Handle<EcalRecHitCollection> ecalBarrelRecHitHandle;
-  iEvent.getByLabel(ecalBarrelRecHitProducer_.label(),ecalBarrelRecHitCollection_.label(), ecalBarrelRecHitHandle);
-
-  // Next get Ecal hits endcap
-  edm::Handle<EcalRecHitCollection> ecalEndcapRecHitHandle;
-  iEvent.getByLabel(ecalEndcapRecHitProducer_.label(), ecalEndcapRecHitCollection_.label(),ecalEndcapRecHitHandle);
-  
-  //create the meta hit collections inorder that we can pass them into the isolation objects
-  EcalRecHitMetaCollection ecalBarrelHits(*ecalBarrelRecHitHandle);
-  EcalRecHitMetaCollection ecalEndcapHits(*ecalEndcapRecHitHandle);
-
-  //Get Calo Geometry
-  edm::ESHandle<CaloGeometry> pG;
-  iSetup.get<CaloGeometryRecord>().get(pG);
-  const CaloGeometry* caloGeom = pG.product();
-	 
-  //set up the geometry and selector
-  const CaloSubdetectorGeometry* subdet[2]; // barrel+endcap
-  subdet[0] = caloGeom->getSubdetectorGeometry(DetId::Ecal,EcalBarrel);
-  subdet[1] = caloGeom->getSubdetectorGeometry(DetId::Ecal,EcalEndcap);
-
 
   //get CMS2 branches
 
@@ -200,19 +172,6 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<std::vector<int> > hyp_ll_index_h;
   iEvent.getByLabel(hyp_ll_index_tag, hyp_ll_index_h);
   const vector<int> *hyp_ll_index = hyp_ll_index_h.product();
-
-  //just for comparison to results i make--remove later
-  //hyp_lt_tkIso
-  //edm::InputTag hyp_lt_tkIso_tag(hypInputTag_.label(),"hyplttkIso");
-  //edm::Handle<std::vector<float> > hyp_lt_tkIso_h;
-  //iEvent.getByLabel(hyp_lt_tkIso_tag, hyp_lt_tkIso_h);
-  //const vector<float> *hyp_lt_tkIso = hyp_lt_tkIso_h.product();
-  //
-  ////hyp_ll_tkIso
-  //edm::InputTag hyp_ll_tkIso_tag(hypInputTag_.label(),"hyplltkIso");
-  //edm::Handle<std::vector<float> > hyp_ll_tkIso_h;
-  //iEvent.getByLabel(hyp_ll_tkIso_tag, hyp_ll_tkIso_h);
-  //const vector<float> *hyp_ll_tkIso = hyp_ll_tkIso_h.product();
 
   // electrons
   edm::InputTag els_ecalIso_tag(cms2elsInputTag_.label(), "elsecalIso");
@@ -377,17 +336,11 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	excidx.push_back(hyp_ll_index->at(i));
 	double isoValue = 0;
 
-	double dr = ROOT::Math::VectorUtil::DeltaR( hyp_lt_p4->at(i), hyp_ll_p4->at(i) ); //debugging
-	if( hyp_lt_p4->size() > 7 || dr < 0.5 ) { //my event is the only one with so many hyps of the 100 i loop on
-	  cout << i << "  " << hyp_lt_p4->at(i).pt() << "  " << hyp_ll_p4->at(i).pt() << "  " << hyp_lt_id->at(i) << "  " << hyp_ll_id->at(i) << "  " << dr << endl;
-	}
+	//double dr = ROOT::Math::VectorUtil::DeltaR( hyp_lt_p4->at(i), hyp_ll_p4->at(i) ); //debugging
+	//if( hyp_lt_p4->size() > 7 || dr < 0.5 ) { //my event is the only one with so many hyps of the 100 i loop on
+	//  cout << i << "  " << hyp_lt_p4->at(i).pt() << "  " << hyp_ll_p4->at(i).pt() << "  " << hyp_lt_id->at(i) << "  " << hyp_ll_id->at(i) << "  " << dr << endl;
+	//}
 
-	
-	//if(useIsolEt_) isoValue = getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, caloGeom, subdet, &ecalBarrelHits, iEvent, iSetup )
-	//				 + getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, caloGeom, subdet, &ecalEndcapHits, iEvent, iSetup);
- 	//else           isoValue = getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, caloGeom, subdet, &ecalBarrelHits, iEvent, iSetup )
-	//				 + getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, caloGeom, subdet, &ecalEndcapHits, iEvent, iSetup);
-	
 	if(useIsolEt_) isoValue = getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, iEvent, iSetup );
 	
  	else           isoValue = getHypSum( hyp_lt_id->at(i), hyp_lt_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, iEvent, iSetup );
@@ -418,11 +371,6 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	//  cout << i << "  " << hyp_lt_p4->at(i).pt() << "  " << hyp_ll_p4->at(i).pt() << "  " << hyp_lt_id->at(i) << "  " << hyp_ll_id->at(i) << "  " << dr << endl;
 	//}
 	
-	//if(useIsolEt_) isoValue = getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, caloGeom, subdet, &ecalBarrelHits, iEvent, iSetup )
-	//				 + getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, caloGeom, subdet, &ecalEndcapHits, iEvent, iSetup);
- 	//else           isoValue = getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, caloGeom, subdet, &ecalBarrelHits, iEvent, iSetup )
-	//				 + getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, caloGeom, subdet, &ecalEndcapHits, iEvent, iSetup);
-	
 	if(useIsolEt_) isoValue = getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, true, emObjectHandle, muonHandle, iEvent, iSetup );
 	
  	else           isoValue = getHypSum( hyp_ll_id->at(i), hyp_ll_index->at(i), excid, excidx, false, emObjectHandle, muonHandle, iEvent, iSetup );
@@ -440,21 +388,7 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
   }
 
-  //old egamma function modified slightly....remove for final
-  std::vector<const reco::Candidate*> isoEls;
-  for( size_t i = 0 ; i < emObjectHandle->size(); ++i) {
-    double isoValue = 0.;
 
-	if(useIsolEt_) isoValue = getSum( &(emObjectHandle->at(i)), isoEls, true, caloGeom, &ecalBarrelHits )
-					 + getSum(&(emObjectHandle->at(i)), isoEls, true, caloGeom, &ecalEndcapHits);
-	else           isoValue = getSum( &(emObjectHandle->at(i)), isoEls, false, caloGeom, &ecalBarrelHits )
-					 + getSum( &(emObjectHandle->at(i)), isoEls, false, caloGeom, &ecalEndcapHits );	
-
-	els_newiso->push_back( isoValue );
-  }//end of loop over em objects
-
-
-  iEvent.put(els_newiso ,"elsnewiso" );
   iEvent.put(hyp_lt_ecaliso, "hypltecaliso");
   iEvent.put(hyp_ll_ecaliso, "hypllecaliso");
   iEvent.put(hyp_lt_trkiso, "hyplttrkiso");
@@ -462,114 +396,7 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 }
 
-
-double HypIsoMaker::getSum(const reco::Candidate* emObject, const std::vector<const reco::Candidate*> exclObjects, bool returnEt, edm::ESHandle<CaloGeometry> theCaloGeom, CaloRecHitMetaCollectionV* caloHits) const
-{
-  //set up the geometry and selector
-  const CaloGeometry* caloGeom = theCaloGeom.product();
-  const CaloSubdetectorGeometry* subdet[2]; // barrel+endcap
-  subdet[0] = caloGeom->getSubdetectorGeometry(DetId::Ecal,EcalBarrel);
-  subdet[1] = caloGeom->getSubdetectorGeometry(DetId::Ecal,EcalEndcap);
-
-  //get hyp index to els block, els block is aligned with uniquie electons, so get sc ref.
-  double energySum = 0.;
-  int nhits = 0;
-  if (caloHits){
-	double extRadius = elsEcalExtCone_;
-    //Take the SC position
-    reco::SuperClusterRef sc = emObject->get<reco::SuperClusterRef>();
-    math::XYZPoint theCaloPosition = sc.get()->position();
-    GlobalPoint pclu (theCaloPosition.x () ,
-					  theCaloPosition.y () ,
-					  theCaloPosition.z () );
-    double etaclus = pclu.eta(); //should be able to replace these els_etaSC, els_phiSC from electron block
-    double phiclus = pclu.phi();
-
-    for(int subdetnr=0; subdetnr<=1 ; subdetnr++){  // look in barrel and endcap
-	  double intRadius = 0;
-	  double etLow = 0;
-	  double eLow = 0;
-	  if( subdetnr == 0 ) { //barrel
-		intRadius = elsEcalVetoRadBarrel_;
-		etLow = elsEtMinBarrel_;		
-		eLow = elsEMinBarrel_;			
-	  } 
-	  else if( subdetnr == 1 ) { //endcap 
-		intRadius = elsEcalVetoRadEndcap_;
-		etLow = elsEtMinEndcap_;
-		eLow = elsEMinEndcap_;
-	  }
-	  double r2 = intRadius*intRadius;
-
-	  //CaloSubdetectorGeometry::DetIdSet chosen = subdet[subdetnr]->getCells(pclu,extRadius_);// select cells around cluster
-	  //CaloSubdetectorGeometry::DetIdSet chosen = subdet[subdetnr]->getCells(pclu,IsoConeSizeOut_);// select cells around cluster
-	  CaloSubdetectorGeometry::DetIdSet chosen = subdet[subdetnr]->getCells(pclu, extRadius); //select cells around cluster
-      CaloRecHitMetaCollectionV::const_iterator j=caloHits->end();
-
-	  //bool anyexclude = false; //debugging var
-      for (CaloSubdetectorGeometry::DetIdSet::const_iterator  i = chosen.begin ();i!= chosen.end ();++i){//loop selected cells
-
-		j=caloHits->find(*i); // find selected cell among rechits
-		if( j!=caloHits->end()){ // add rechit only if available
-		  const  GlobalPoint & position = theCaloGeom.product()->getPosition(*i);
-		  double eta = position.eta();
-          double phi = position.phi();
-          double etaDiff = eta - etaclus;
-          double phiDiff= deltaPhi(phi,phiclus);
-          double energy = j->energy();
-	  
-		  //NEW: loop on other (exclusion) els
-		  bool exclude = false;
-		  //i'm using 0 excl objects now
-		  for( unsigned int k=0; k<exclObjects.size(); k++ ) {
-			//Take the SC position for exclusion els
-			reco::SuperClusterRef scx = exclObjects[k]->get<reco::SuperClusterRef>();
-			//reco::SuperClusterRef scx = exclObjects[0].get<reco::SuperClusterRef>();
-			math::XYZPoint theCaloPositionx = scx.get()->position();
-			GlobalPoint pclux (theCaloPositionx.x(), theCaloPositionx.y(), theCaloPositionx.z() );
-			//double etaclusx = pclux.eta();
-			//double phiclusx = pclux.phi();
-			//double etadiffx = etaclusx - eta;
-			double etadiffx = pclux.eta() - eta;
-			//double phidiffx = phiclusx - phi;
-			double phidiffx = pclux.phi() - phi;
-			double drx = sqrt( etadiffx*etadiffx + phidiffx*phidiffx );
-
-			//cout << "\t\t" << drx << endl;
-			if( drx < elsEcalExtCone_ && ( fabs(etadiffx) < IsoJurassicWidth_ || drx < intRadius ) ) {
-			  exclude = true;
-			  //anyexclude = true;
-			  break;
-			}
-		  }
-		  if( exclude ) continue;
-		  
-		  //back to original exclusion region
-		  if( fabs(etaDiff) < IsoJurassicWidth_ ) continue;  // jurassic strip cut
-		  if( etaDiff*etaDiff + phiDiff*phiDiff < r2 ) continue; // jurassic exclusion cone cut
-		  
-		  double et = energy*position.perp()/position.mag();
-		  if ( et > etLow && energy > eLow){
-			nhits++;
-			if(returnEt) energySum+=et;
-			else energySum+=energy;
-		  }
-		}
-	
-      } //end loop cells == crystals
-    } //end subdetnr loop
-  }
-
-  //cout << "\t" << energySum << "\t" << etaclusx << "\t" << phiclusx << endl;
-  //cout << "\t" << energySum << endl;
-  //cout << "oldfn nhits " << nhits << endl;
-  return energySum;
-}
-
-
-//made to work on hyp
-
-//double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<int> excidx, bool returnEt, edm::Handle< edm::View<reco::Candidate> > emObjectHandle, edm::Handle< edm::View<reco::Muon> > muonHandle, edm::ESHandle<CaloGeometry> theCaloGeom, const CaloSubdetectorGeometry* subdet[], CaloRecHitMetaCollectionV* caloHits, edm::Event& iEvent, const edm::EventSetup& iSetup) const
+//Ecal isolation for electrons and muons which excludes second hyp
 double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<int> excidx, bool returnEt, edm::Handle< edm::View<reco::Candidate> > emObjectHandle, edm::Handle< edm::View<reco::Muon> > muonHandle, edm::Event& iEvent, const edm::EventSetup& iSetup) const
 {
 
@@ -621,7 +448,6 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	edm::ESHandle<CaloGeometry> pG;
 	iSetup.get<CaloGeometryRecord>().get(pG);
 	const CaloGeometry* caloGeom = pG.product();
-	//edm::ESHandle<CaloGeometry> theCaloGeom
 	
 	//set up the geometry and selector
 	const CaloSubdetectorGeometry* subdet[2]; // barrel+endcap
@@ -651,21 +477,16 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	  }
 
 	  CaloSubdetectorGeometry::DetIdSet chosen = subdet[subdetnr]->getCells(pclu, extRadius);// select cells around cluster
-	  //CaloRecHitMetaCollectionV::const_iterator j=caloHits->end();
 	  CaloRecHitMetaCollectionV::const_iterator bhits = ecalBarrelHits.end();
 	  CaloRecHitMetaCollectionV::const_iterator ehits = ecalEndcapHits.end();
 	  for (CaloSubdetectorGeometry::DetIdSet::const_iterator i = chosen.begin ();i!= chosen.end ();++i){//loop selected cells
 
-		//j=caloHits->find(*i); // find selected cell among rechits
 		bhits = ecalBarrelHits.find(*i); // find selected cell among rechits
 		ehits = ecalEndcapHits.find(*i); // find selected cell among rechits
 		
-		//if( j!=caloHits->end() ){ // add rechit only if available
 		if( bhits != ecalBarrelHits.end() ) { //check if the detid (cell) in question has a hit
 			  
-		  //const GlobalPoint & position = theCaloGeom.product()->getPosition(*i);
 		  const GlobalPoint & position = caloGeom->getPosition(*i);
-		  //double energy = j->energy();
 		  double energy = bhits->energy();
 		  double et = energy*position.perp()/position.mag();
 		  if( et == 0. && energy == 0. ) cout << "zero energy in cell " << endl; //debug
@@ -673,10 +494,6 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 
 		  energypos.push_back( position );
 		  energyval.push_back( energy );
-		  //double eta = position.eta();
-		  //double phi = position.phi();
-		  //double etaDiff = eta - etaclus;
-		  //double phiDiff= deltaPhi(phi,phiclus);
 		}
 		else if( ehits != ecalEndcapHits.end() ) { // add rechit only if available
 		  const GlobalPoint & position = caloGeom->getPosition(*i);
@@ -693,10 +510,9 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	//cout << "newfn nhits " << energypos.size() << "  " << energyval.size() << endl;
   }
   else if( abs( objid ) == 13 ) { //muon
-	extRadius = musEcalExtCone_ ;
 	//const reco::Muon* muon = &(muonHandle->at(objidx)); //get the muon which corresponds to obj
 	//const reco::TrackRef& track = muon->innerTrack(); //get its innerTrack
-	const reco::TrackRef& track = muonHandle->at(objidx).innerTrack(); //get its innerTrack of muon obj
+	const reco::TrackRef& track = muonHandle->at(objidx).innerTrack(); //get innerTrack of muon obj
 	TrackDetectorAssociator trackAssociator_;
 	trackAssociator_.useDefaultPropagator();
 	TrackDetMatchInfo info = trackAssociator_.associate(iEvent, iSetup, *(track.get()), muonparameters_);
@@ -705,10 +521,13 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	etaclus = pclu.eta();
 	phiclus = pclu.phi();
 
+	extRadius = musEcalExtCone_ ;
 	if( TMath::Abs( etaclus ) <= 1.479 )
 	  intRadius = musEcalVetoRadBarrel_;
 	else
 	  intRadius = musEcalVetoRadEndcap_;
+	//debugging
+	//cout << "muon " << muonHandle->at(objidx).p4().pt() << "  eta " << muonHandle->at(objidx).p4().eta() << endl;
 
 	//set position vector--use towers for muons
 	edm::Handle<CaloTowerCollection> caloTowers;
@@ -731,6 +550,12 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	  
 	  energypos.push_back( position );
 	  energyval.push_back( tower->emEnergy() );
+	  //debugging
+	  //double energy = tower->emEnergy();
+	  //double et = energy*position.perp()/position.mag();
+	  //cout << "tower " << et << "  dr " << sqrt(etadiff*etadiff + phidiff*phidiff) << endl;
+	  //if( abs(et - tower->emEt()) > 0.01 )
+	  //cout << "et disagreement: from pos " << et << "  from tower " << tower->emEt() << endl;
 	}
   } 
   else {
@@ -762,17 +587,16 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	  GlobalPoint pclux(0,0,0);
 	  //Take the SC position for exclusion els
 	  if( TMath::Abs(excid.at(k)) == 11 ) { //exclusion electrons
-		excoutRadius = elsEcalExtCone_;
 		//get gsf electron from uniqueElectrons which corresponds to exc el
 		const reco::Candidate* emObjectx = &(emObjectHandle->at(excidx.at(k))); 
 		reco::SuperClusterRef scx = emObjectx->get<reco::SuperClusterRef>();
 		math::XYZPoint theCaloPositionx = scx.get()->position();
 		pclux = GlobalPoint( theCaloPositionx.x(), theCaloPositionx.y(), theCaloPositionx.z() );
+		excoutRadius = elsEcalExtCone_;
 		if( TMath::Abs(pclux.eta()) <= 1.479 ) excintRadius = elsEcalVetoRadBarrel_; //barrel
 		else excintRadius = elsEcalVetoRadEndcap_; //endcap
 	  }
 	  else if( TMath::Abs(excid.at(k)) == 13 ) { //exclusion muons
-		excoutRadius = musEcalExtCone_;
 		//get innerTrack of muon obj, then get its position at ecal
 		const reco::TrackRef& track = muonHandle->at(excidx.at(k)).innerTrack();
 		TrackDetectorAssociator trackAssociator_;
@@ -780,6 +604,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 		TrackDetMatchInfo info = trackAssociator_.associate(iEvent, iSetup, *(track.get()), muonparameters_);
 		math::XYZPoint point = info.trkGlobPosAtEcal;
 		pclux = GlobalPoint( point.x(), point.y(), point.z() ); //and finally, we have the point
+		excoutRadius = musEcalExtCone_;
 		if( TMath::Abs(pclux.eta()) <= 1.479 ) excintRadius = musEcalVetoRadBarrel_; //barrel
 		else excintRadius = musEcalVetoRadEndcap_; //endcap
 	  }
@@ -794,7 +619,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 
 	  if( drx < excoutRadius && ( ( TMath::Abs(excid.at(k)) == 11 && TMath::Abs(etadiffx) < IsoJurassicWidth_ )
 								  || drx < excintRadius ) ) {
-		cout << "excluding " << et << "  dr " << drx << "  etadiff " << etadiffx << endl;
+		//cout << "excluding " << et << "  dr " << drx << "  etadiff " << etadiffx << endl;
 		exclude = true;
 		break;
 	  }
@@ -803,7 +628,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	//original exclusion region
 	if( TMath::Abs(objid) == 11 && TMath::Abs(etaDiff) < IsoJurassicWidth_ ) continue;  // jurassic strip cut for els only
 
-	if( sqrt( etaDiff*etaDiff + phiDiff*phiDiff ) < intRadius ) continue; // jurassic exclusion cone cut
+	if( sqrt( etaDiff*etaDiff + phiDiff*phiDiff ) < intRadius ) continue; // exclusion cone cut
 
 	//check second hyp veto--only add to vetoSum if wasn't vetoed by primary hyp
 	if( exclude ) {
@@ -854,7 +679,6 @@ double HypIsoMaker::track_iso(LorentzVector prip4, float pri_d0, float pri_z0, i
 	  else if( abs(excid.at(j)) == 13 ) exc_mindr = trackIsoMusInRadius_;
 	  else cout << "HypIsoMaker: bad hyp_lx_id\n\n";
   
-
 	  if( dR2 < exc_mindr && dR1 < trackIsoExtRadius_ ) { //exclude this track because of second hyp
 		exclude = true;
 		break;

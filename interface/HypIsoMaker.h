@@ -32,25 +32,12 @@ class HypIsoMaker : public edm::EDProducer {
   explicit HypIsoMaker(const edm::ParameterSet&);
   ~HypIsoMaker();
 
-
   virtual void produce(edm::Event&, const edm::EventSetup&);
-
-  //double getHypSum( LorentzVector isop4, vector<LorentzVector> exclp4, bool returnEt, edm::ESHandle<CaloGeometry> theCaloGeom, CaloRecHitMetaCollectionV* caloHits ) const;
-  
-  //double getHypSum( int objid, int objidx, vector<int> excid, vector<int> excidx, bool returnEt, edm::Handle< edm::View<reco::Candidate> > emObjectHandle, edm::Handle< edm::View<reco::Muon> > muonHandle, edm::ESHandle<CaloGeometry> theCaloGeom, const CaloSubdetectorGeometry* subdet[], CaloRecHitMetaCollectionV* caloHits, edm::Event& iEvent, const edm::EventSetup& iSetup) const;
 
   double getHypSum( int objid, int objidx, vector<int> excid, vector<int> excidx, bool returnEt, edm::Handle< edm::View<reco::Candidate> > emObjectHandle, edm::Handle< edm::View<reco::Muon> > muonHandle, edm::Event& iEvent, const edm::EventSetup& iSetup) const;
   
-  double getSum(const reco::Candidate * emobject, const std::vector<const reco::Candidate*> exclObjects,
-				 bool returnEt, edm::ESHandle<CaloGeometry> theCaloGeom, CaloRecHitMetaCollectionV* caloHits ) const;
-
-  //double track_iso(LorentzVector *prip4, float *pri_d0, float *pri_z0, int *priid, vector<LorentzVector> *excp4, int *excid,
-  //				   vector<LorentzVector> *trks_trk_p4, vector<float> *trks_d0, vector<float> *trks_z0) ;
-  //double track_iso(LorentzVector prip4, float pri_d0, float pri_z0, int priid, vector<LorentzVector> excp4, int excid,
-  //vector<LorentzVector> trks_trk_p4, vector<float> trks_d0, vector<float> trks_z0) ;
   double track_iso(LorentzVector prip4, float pri_d0, float pri_z0, int priid, vector<LorentzVector> excp4, vector<int> excid,
 				   const vector<LorentzVector> *trksp4, const vector<float> *trks_d0, const vector<float> *trks_z0) ;
-
 
  private:
   // ----------member data ---------------------------

@@ -7,8 +7,6 @@ hypIsoMaker = cms.EDProducer(
 
 	#This is whether to use the egamma/muon isolations and subtract the isolation veto of the
 	#other hypothesis (False), or recompute the isolation variable from hits (True)
-	#recomputeEcalIso = cms.bool(False),
-	#recomputeTrckIso = cms.bool(False),
 	recomputeEcalIso = cms.bool(True),
 	recomputeTrckIso = cms.bool(True),
 	
@@ -64,6 +62,4 @@ hypIsoMaker = cms.EDProducer(
 	trackIsoMind0       = cms.double(0.1), #mu defaults
 	trackIsoMinz0       = cms.double(0.2),
 	#el defaults are same--see RecoEgamma/EgammaIsolationAlgos/python/eleTrackExtractorBlocks_cff.py
-	#trackIsoMind0       = cms.double(999.0), #my results are worse for no d0 than 0.1 d0... don't know why
-	#trackIsoMinz0       = cms.double(999.0),
 )
