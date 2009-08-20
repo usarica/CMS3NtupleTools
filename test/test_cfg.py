@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.49 $'),
+        version = cms.untracked.string('$Revision: 1.50 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -57,6 +57,8 @@ process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
+process.load("CMS2.NtupleMaker.hypIsoMaker_cfi")
+
 process.load("CMS2.NtupleMaker.jetMaker_cfi")
 #cms2CaloJetSequence = cms.Sequence(prunedUncorrectedCMS2Jets)
 process.load("CMS2.NtupleMaker.jetSequence_cff")
@@ -107,7 +109,9 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring('file:/home/users/wandrews/tmp/WJets-madgraph_ideal_v11_redigi_v1/2EBE9812-45DF-DD11-919D-003048679214.root')
+    fileNames = cms.untracked.vstring(
+	'file:/home/users/wandrews/tmp/WJets-madgraph_ideal_v11_redigi_v1/2EBE9812-45DF-DD11-919D-003048679214.root'
+	)	
 )
 
 
@@ -175,6 +179,11 @@ process.patDefaultSequence = cms.Sequence(
 from PhysicsTools.PatAlgos.tools.jetTools import *
 switchJetCollection(process, 'prunedUncorrectedCMS2Jets', doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
 
+## necessary fixes to run 2.2.X on 2.1.X data
+#from PhysicsTools.PatAlgos.tools.cmsswVersionTools import run22XonSummer08AODSIM
+#run22XonSummer08AODSIM(process)
+
+
 #-------------------------------------------------
 # process output; first the event selection is
 # defined: only those events that have passed the
@@ -191,11 +200,12 @@ process.EventSelection = cms.PSet(
 )
 
 
-process.out_CMS2 = cms.OutputModule("PoolOutputModule",
+process.out_CMS2 = cms.OutputModule(
+	"PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaDataForDroppedData = cms.untracked.bool(True),
-    fileName = cms.untracked.string('ntuple.root')
+	fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -217,7 +227,7 @@ process.makers        = cms.Sequence(process.electronMaker * process.muonMaker *
 
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.candToGenAssMaker * process.muToJetAssMaker * process.muToTrackAssMaker * process.elToTrackAssMaker * process.elToMuAssMaker * process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 
-process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker)
+process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker)
 
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker)
 
