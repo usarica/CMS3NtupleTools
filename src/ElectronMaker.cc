@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.24 2009/07/02 15:15:34 yanjuntu Exp $
+// $Id: ElectronMaker.cc,v 1.25 2009/08/21 10:22:02 dlevans Exp $
 //
 //
 
@@ -140,9 +140,12 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 
 	// isolation variables
 	//
-  	produces<vector<float> >	  ("elstkIso"       	).setBranchAlias("els_tkIso"        	);
-  	produces<vector<float> >          ("elsecalIso"        	).setBranchAlias("els_ecalIso"      	);
-  	produces<vector<float> >          ("elshcalIso"       	).setBranchAlias("els_hcalIso"      	);
+        produces<vector<float> >          ("elstkIso"                 ).setBranchAlias("els_tkIso"              );
+        produces<vector<float> >          ("elsecalIso"             ).setBranchAlias("els_ecalIso"              );
+        produces<vector<float> >          ("elshcalIso"             ).setBranchAlias("els_hcalIso"              );
+        produces<vector<float> >          ("elstkIso04"               ).setBranchAlias("els_tkIso04"            );
+        produces<vector<float> >          ("elsecalIso04"             ).setBranchAlias("els_ecalIso04"          );
+        produces<vector<float> >          ("elshcalIso04"             ).setBranchAlias("els_hcalIso04"          );
 
 	// track variables
 	//
@@ -281,9 +284,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
 	// isolation variables
 	//
-	auto_ptr<vector<float> >	els_tkIso                (new vector<float>        ) ;
+        auto_ptr<vector<float> >        els_tkIso                (new vector<float>        ) ;
         auto_ptr<vector<float> >        els_ecalIso              (new vector<float>        ) ;
         auto_ptr<vector<float> >        els_hcalIso              (new vector<float>        ) ;
+        auto_ptr<vector<float> >        els_tkIso04                (new vector<float>        ) ;
+        auto_ptr<vector<float> >        els_ecalIso04              (new vector<float>        ) ;
+        auto_ptr<vector<float> >        els_hcalIso04              (new vector<float>        ) ;
 	
 	// track variables
 	//
@@ -356,11 +362,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	const Point beamSpot = beamSpotH.isValid() ?
                          Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
-	// Get value maps for isolation variables
-	const edm::ValueMap<double>&  ecalIsoMap 	= getValueMap<double>(iEvent, ecalIsoTag_);
-        const edm::ValueMap<double>&  tkIsoMap 		= getValueMap<double>(iEvent, tkIsoTag_);
-        const edm::ValueMap<double>&  hcalIsoMap 	= getValueMap<double>(iEvent, hcalIsoTag_);
-	
 	// Get the value maps for the Egamma electron ID decisions
 
         const edm::ValueMap<float>&  eidRobustLooseMap          = getValueMap<float>(iEvent, eidRobustLooseTag_);
@@ -406,7 +407,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		els_eSC                   ->push_back( el->superCluster()->energy()                    );
 		els_eSCRaw                ->push_back( el->superCluster()->rawEnergy()                 );
 		els_eSCPresh              ->push_back( el->superCluster()->preshowerEnergy()           );
-		els_nSeed                 ->push_back( el->numberOfClusters() - 1                      );      
+		els_nSeed                 ->push_back( el->basicClustersSize() - 1                      );      
 		els_e1x5		  ->push_back( e1x5					       );
 		els_e3x3                  ->push_back( e3x3                                            );
 		els_e5x5                  ->push_back( e5x5                                            );
@@ -502,14 +503,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 		// Isolation related
 		//
-		float ecalIso = ecalIsoMap[gsfElRef];
-		float hcalIso = hcalIsoMap[gsfElRef];
-		float tkIso = tkIsoMap[gsfElRef];
-		
-		els_ecalIso->push_back(ecalIso);
-		els_hcalIso->push_back(hcalIso);	
-		els_tkIso->push_back(tkIso);
-		
+                els_ecalIso ->push_back(el->dr03EcalRecHitSumEt()  );
+                els_hcalIso ->push_back(el->dr03HcalTowerSumEt()   );
+                els_tkIso   ->push_back(el->dr03TkSumPt()            );
+                els_ecalIso04 ->push_back(el->dr04EcalRecHitSumEt()  );
+                els_hcalIso04 ->push_back(el->dr04HcalTowerSumEt()   );
+                els_tkIso04   ->push_back(el->dr04TkSumPt()            );
+	
 		// Electron ID variables
 		//
 		float pin  = el->trackMomentumAtVtx().R();
