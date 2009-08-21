@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.6 2008/12/16 22:17:15 slava77 Exp $
+// $Id: L1DigiMaker.cc,v 1.7 2009/08/21 10:08:25 dlevans Exp $
 //
 //
 
@@ -31,8 +31,6 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/L1DigiMaker.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
-
 
 #include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
 #include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h"
