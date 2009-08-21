@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.9 2009/06/18 09:06:17 kalavase Exp $
+// $Id: EventMaker.h,v 1.10 2009/08/21 10:04:12 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -54,17 +54,19 @@ private:
   
   
   void fillHLTInfo(const edm::Event&, 
-		   int*, int*,int*, int*,
-		   int*, int*,int*, int*, 
+		   int&, int&, int&, int&,
+		   int&, int&, int&, int&, 
 		   std::vector<TString>&);
-  void fillL1Info(const edm::Event&, int*, 
-		  int*, int*, int*, std::vector<TString>&,
+  void fillL1Info(const edm::Event&, int&, 
+		  int&, int&, int&, std::vector<TString>&,
 		  const L1GtTriggerMenu* menu);
   
   double inclusiveCrossSectionValue;
   double exclusiveCrossSectionValue;
   double kfactorValue;
-  bool haveTriggerInfo_;
+  bool haveL1TriggerInfo_;
+  bool haveHLTriggerInfo_;
+
   std::string datasetName_;
   std::string CMS2tag_;
 };

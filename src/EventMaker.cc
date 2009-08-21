@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.18 2009/08/17 09:44:35 dlevans Exp $
+// $Id: EventMaker.cc,v 1.19 2009/08/21 10:04:09 dlevans Exp $
 //
 //
 
@@ -46,14 +46,8 @@ Implementation:
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
-
-
-// location for 3_X_Y
-//#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-// location for 2_X_Y
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 #include "TString.h"
 
@@ -103,7 +97,9 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
   
   // info
-  haveTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveTriggerInfo");
+  haveL1TriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveL1TriggerInfo");
+  haveHLTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveHLTriggerInfo");
+
 
 }
 
@@ -151,43 +147,23 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_lumiBlock = iEvent.luminosityBlock();
   
   //fill HLT info
-  if(haveTriggerInfo_) {
-    int *hlt1       = new int;
-    int *hlt2       = new int;
-    int *hlt3       = new int;
-    int *hlt4       = new int;
-    int *hlt5       = new int;
-    int *hlt6       = new int;
-    int *hlt7       = new int;
-    int *hlt8       = new int;
-    int *l11        = new int;
-    int *l12        = new int;
-    int *l13        = new int;
-    int *l14        = new int;
-    //string *l1names  = new string; //got warning 'unused variable'
+  if(haveHLTriggerInfo_) {
+    int hlt1, hlt2, hlt3, hlt4, hlt5, hlt6, hlt7, hlt8;
 
     fillHLTInfo(iEvent, hlt1, hlt2, hlt3, hlt4, hlt5, 
 		hlt6, hlt7, hlt8, *evt_HLT_trigNames);
     
-    edm::ESHandle<L1GtTriggerMenu> menuRcd;
-    iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
-    const L1GtTriggerMenu* menu = menuRcd.product();
-    fillL1Info(iEvent, l11, l12, l13, l14, *evt_L1_trigNames, menu);
-    
-    *evt_HLT1 = *hlt1;
-    *evt_HLT2 = *hlt2;
-    *evt_HLT3 = *hlt3;
-    *evt_HLT4 = *hlt4;
-    *evt_HLT5 = *hlt5;
-    *evt_HLT6 = *hlt6;
-    *evt_HLT7 = *hlt7;
-    *evt_HLT8 = *hlt8;
-    *evt_L11  = *l11;
-    *evt_L12  = *l12;
-    *evt_L13  = *l13;
-    *evt_L14  = *l14;
+    *evt_HLT1 = hlt1;
+    *evt_HLT2 = hlt2;
+    *evt_HLT3 = hlt3;
+    *evt_HLT4 = hlt4;
+    *evt_HLT5 = hlt5;
+    *evt_HLT6 = hlt6;
+    *evt_HLT7 = hlt7;
+    *evt_HLT8 = hlt8;
     
   } else {
+
     *evt_HLT1 = -999;
     *evt_HLT2 = -999;
     *evt_HLT3 = -999;
@@ -196,11 +172,30 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_HLT6 = -999;
     *evt_HLT7 = -999;
     *evt_HLT8 = -999;
+   }
+
+
+  // L1 Trigger
+  //
+  if(haveL1TriggerInfo_) {
+
+    int l11, l12, l13, l14;
+
+    edm::ESHandle<L1GtTriggerMenu> menuRcd;
+    iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
+    const L1GtTriggerMenu* menu = menuRcd.product();
+    fillL1Info(iEvent, l11, l12, l13, l14, *evt_L1_trigNames, menu);
+
+    *evt_L11  = l11;
+    *evt_L12  = l12;
+    *evt_L13  = l13;
+    *evt_L14  = l14;
+  }
+  else {
     *evt_L11  = -999;
     *evt_L12  = -999;
     *evt_L13  = -999;
     *evt_L14  = -999;
-   
   }
 
  //need the magnetic field
@@ -224,13 +219,16 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      if(wc.size() == 0) weight = -999.;
      *evt_weight = weight;
   } else {
-    try {
-      Handle<double> evtwt;
-      iEvent.getByLabel("genEventWeight", evtwt);
-      *evt_weight = (float)*evtwt;
-    } catch (edm::Exception const& x) {
+  //  try {
+  //    Handle<double> evtwt;
+  //    iEvent.getByLabel("genEventWeight", evtwt);
+  //    *evt_weight = (float)*evtwt;
+  //  } catch (edm::Exception const& x) {
+  //    *evt_weight = 1.;
+  //  }
+
       *evt_weight = 1.;
-    }
+
   }   
 
   *evt_xsec_incl = inclusiveCrossSectionValue;
@@ -270,21 +268,21 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //-----------------------------------------------------------------------
 // fill HLT info
 //-----------------------------------------------------------------------
-void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int *h4,
-			     int *h5, int *h6, int *h7, int *h8, std::vector<TString>& hltnames) {
+void EventMaker::fillHLTInfo(const Event& iEvent, int& h1, int& h2, int& h3, int& h4,
+			     int& h5, int& h6, int& h7, int& h8, std::vector<TString>& hltnames) {
 			     
 
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), triggerResults);
   edm::TriggerNames triggerNames(*triggerResults);
-  *h1=0;
-  *h2=0;
-  *h3=0;
-  *h4=0;
-  *h5=0;
-  *h6=0;
-  *h7=0;
-  *h8=0;
+  h1=0;
+  h2=0;
+  h3=0;
+  h4=0;
+  h5=0;
+  h6=0;
+  h7=0;
+  h8=0;
   
   //trigger index, trigger string and L1 accept
   
@@ -300,7 +298,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
       unsigned int bitmask = 1;
       if(triggerResults->accept(i)) {
 	bitmask <<=i;
-	*h1 |= bitmask;
+	h1 |= bitmask;
       }
        }
     
@@ -309,7 +307,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
       unsigned int bitmask = 1;
       if(triggerResults->accept(i)) {
 	bitmask <<=(i-32);
-	*h2 |= bitmask;
+	h2 |= bitmask;
       }
     }
     
@@ -317,7 +315,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-64);
-           *h3 |= bitmask;
+           h3 |= bitmask;
          }
        }
 
@@ -325,7 +323,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-96);
-           *h4 |= bitmask;
+           h4 |= bitmask;
          }
        }
 
@@ -333,7 +331,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-128);
-           *h5 |= bitmask;
+           h5 |= bitmask;
          }
        }
 
@@ -341,7 +339,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-160);
-           *h6 |= bitmask;
+           h6 |= bitmask;
          }
        }
 
@@ -349,7 +347,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-192);
-           *h7 |= bitmask;
+           h7 |= bitmask;
          }
        }
 
@@ -357,7 +355,7 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
          unsigned int bitmask = 1;
          if(triggerResults->accept(i)) {
            bitmask <<=(i-224);
-           *h8 |= bitmask;
+           h8 |= bitmask;
          }
        }
 
@@ -367,8 +365,8 @@ void EventMaker::fillHLTInfo(const Event& iEvent, int *h1, int *h2, int *h3, int
 //----------------------------------------------------------
 //fill L1 info
 //---------------------------------------------------------
-void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
-			    int* l1_3, int* l1_4, std::vector<TString>& l1names,
+void EventMaker::fillL1Info(const Event& iEvent, int& l1_1, int& l1_2,
+			    int& l1_3, int& l1_4, std::vector<TString>& l1names,
 			    const L1GtTriggerMenu* menu) {
   
   edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
@@ -387,10 +385,10 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
      l1names.push_back( algo->second.algoName().c_str() );
   }
 	
-   *l1_1=0;
-   *l1_2=0;
-   *l1_3=0;
-   *l1_4=0;
+   l1_1=0;
+   l1_2=0;
+   l1_3=0;
+   l1_4=0;
    unsigned int ntriggers = dWord.size();
    if(ntriggers > 128)
      throw cms::Exception("EventMaker: Number of HLT trigger variables must be increased!");
@@ -399,7 +397,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        unsigned int bitmask = 1;
        if(dWord.at(i)) {
          bitmask <<=i;
-         *l1_1 |= bitmask;
+         l1_1 |= bitmask;
        }
      }
      
@@ -407,7 +405,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        unsigned int bitmask = 1;
        if(dWord.at(i)) {
          bitmask <<=(i-32);
-         *l1_2 |= bitmask;
+         l1_2 |= bitmask;
        }
      }
      
@@ -415,7 +413,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        unsigned int bitmask = 1;
        if(dWord.at(i)) {
          bitmask <<=(i-64);
-         *l1_3 |= bitmask;
+         l1_3 |= bitmask;
        }
      }
      
@@ -423,7 +421,7 @@ void EventMaker::fillL1Info(const Event& iEvent, int* l1_1, int* l1_2,
        unsigned int bitmask = 1;
        if(dWord.at(i)) {
          bitmask <<=(i-96);
-         *l1_4 |= bitmask;
+         l1_4 |= bitmask;
        }
      }
    }
