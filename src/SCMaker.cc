@@ -258,7 +258,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	vector_scs_sigmaIEtaIPhi->push_back( sqrt(localCovariances[1]) );
 	vector_scs_sigmaIPhiIPhi->push_back( sqrt(localCovariances[2]) );
 	vector_scs_clustersSize->push_back( sc->clustersSize() );
-	std::vector<DetId> detIds = sc->getHitsByDetId();
+        const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
 	vector_scs_crystalsSize->push_back( detIds.size() );
 
       } // end loop on scs
