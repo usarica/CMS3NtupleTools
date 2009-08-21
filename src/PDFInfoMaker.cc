@@ -34,7 +34,7 @@ id2 = pdg id of second parton (index 5)
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/PDFInfoMaker.h"
-#include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 using namespace edm;
 using namespace std;
