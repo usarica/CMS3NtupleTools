@@ -13,10 +13,9 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.5 2009/05/16 00:34:02 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.6 2009/08/27 17:02:36 fgolf Exp $
 //
 //
-
 
 // system include files
 #include <memory>
@@ -36,7 +35,6 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
-
 #include "DataFormats/Common/interface/ValueMap.h" 
 
 using namespace reco;
@@ -63,14 +61,17 @@ TCMETMaker::TCMETMaker(const edm::ParameterSet& iConfig) {
 }
 
 
-TCMETMaker::~TCMETMaker() {}
-
-void  TCMETMaker::beginJob(const edm::EventSetup&) {
+TCMETMaker::~TCMETMaker()
+{
 }
 
-void TCMETMaker::endJob() {
+void  TCMETMaker::beginJob(const edm::EventSetup&)
+{
 }
 
+void TCMETMaker::endJob()
+{
+}
 
 // ------------ method called to produce the data  ------------
 void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -86,7 +87,6 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<reco::MuonCollection> muon_h;
   edm::Handle<reco::METCollection>  tcmet_h;
   edm::Handle<edm::ValueMap<reco::MuonMETCorrectionData> > tcmet_vm_h;
-
 
   // get collections
   iEvent.getByLabel(muon_tag    , muon_h    );

@@ -5,10 +5,10 @@
 // 
 /**\class PDFInfoMaker PDFInfoMaker.cc CMS2/NtupleMaker/src/PDFInfoMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-see CMS2/src/PDFInfoMaker.cc
+   Implementation:
+   see CMS2/src/PDFInfoMaker.cc
 
 */
 //
@@ -25,10 +25,8 @@ see CMS2/src/PDFInfoMaker.cc
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //
@@ -37,18 +35,16 @@ see CMS2/src/PDFInfoMaker.cc
 
 class PDFInfoMaker : public edm::EDProducer {
 public:
-     explicit PDFInfoMaker (const edm::ParameterSet&);
-      ~PDFInfoMaker();
+  explicit PDFInfoMaker (const edm::ParameterSet&);
+  ~PDFInfoMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
   // ----------member data ---------------------------
 
-
 };
-
 
 #endif
