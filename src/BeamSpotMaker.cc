@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.4 2009/02/14 06:49:59 kalavase Exp $
+// $Id: BeamSpotMaker.cc,v 1.5 2009/08/27 16:24:17 fgolf Exp $
 //
 //
 
@@ -56,8 +56,10 @@ BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
   produces<float>        ("evtbsdxdzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
   produces<float>        ("evtbsdydz"       ).setBranchAlias("evt_bs_dydz"         );
   produces<float>        ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dydzErr"      );
-  produces<float>        ("evtbswidth"      ).setBranchAlias("evt_bs_width"        );
-  produces<float>        ("evtbswidthErr"   ).setBranchAlias("evt_bs_widthErr"     );
+  produces<float>        ("evtbsXwidth"     ).setBranchAlias("evt_bs_Xwidth"       );
+  produces<float>        ("evtbsYwidth"     ).setBranchAlias("evt_bs_Ywidth"       );
+  produces<float>        ("evtbsXwidthErr"  ).setBranchAlias("evt_bs_XwidthErr"    );
+  produces<float>        ("evtbsYwidthErr"  ).setBranchAlias("evt_bs_YwidthErr"    );
   
   beamSpotInputTag = iConfig.getParameter<InputTag>("beamSpotInputTag");
   
@@ -76,29 +78,31 @@ void BeamSpotMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<LorentzVector>evt_bs_p4            (new LorentzVector);
-  auto_ptr<float>        evt_bs_xErr       (new float);
-  auto_ptr<float>        evt_bs_yErr       (new float);
-  auto_ptr<float>        evt_bs_zErr       (new float);
-  auto_ptr<float>        evt_bs_sigmaZ     (new float);
-  auto_ptr<float>        evt_bs_sigmaZErr  (new float);
-  auto_ptr<float>        evt_bs_dxdz       (new float);
-  auto_ptr<float>        evt_bs_dxdzErr    (new float);
-  auto_ptr<float>        evt_bs_dydz       (new float);
-  auto_ptr<float>        evt_bs_dydzErr    (new float);
-  auto_ptr<float>        evt_bs_width      (new float);
-  auto_ptr<float>        evt_bs_widthErr   (new float);
-  
+  auto_ptr<LorentzVector> evt_bs_p4          (new LorentzVector);
+  auto_ptr<float>         evt_bs_xErr        (new float);
+  auto_ptr<float>         evt_bs_yErr        (new float);
+  auto_ptr<float>         evt_bs_zErr        (new float);
+  auto_ptr<float>         evt_bs_sigmaZ      (new float);
+  auto_ptr<float>         evt_bs_sigmaZErr   (new float);
+  auto_ptr<float>         evt_bs_dxdz        (new float);
+  auto_ptr<float>         evt_bs_dxdzErr     (new float);
+  auto_ptr<float>         evt_bs_dydz        (new float);
+  auto_ptr<float>         evt_bs_dydzErr     (new float);
+  auto_ptr<float>         evt_bs_Xwidth      (new float);
+  auto_ptr<float>         evt_bs_Ywidth      (new float);
+  auto_ptr<float>         evt_bs_XwidthErr   (new float);
+  auto_ptr<float>         evt_bs_YwidthErr   (new float);
   
   Handle<BeamSpot> beamSpotH;
   iEvent.getByLabel(beamSpotInputTag, beamSpotH);
+
   bool haveBeamSpot = true;
   if(!beamSpotH.isValid() )
     haveBeamSpot = false;
   
-  *evt_bs_p4         = haveBeamSpot ? LorentzVector(beamSpotH->position().x(), 
+  *evt_bs_p4         = haveBeamSpot ? LorentzVector(beamSpotH->position().x(),
 						    beamSpotH->position().y(),
-						    beamSpotH->position().z(), 
+						    beamSpotH->position().z(),
 						    0) : LorentzVector(0,0,0,0);
 
   *evt_bs_xErr       = haveBeamSpot ? beamSpotH->x0Error()        : 0.0;
@@ -110,22 +114,27 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_bs_dxdzErr    = haveBeamSpot ? beamSpotH->dxdzError()      : 0.0;
   *evt_bs_dydz       = haveBeamSpot ? beamSpotH->dydz()           : 0.0;	
   *evt_bs_dydzErr    = haveBeamSpot ? beamSpotH->dydzError()      : 0.0;
-  *evt_bs_width      = haveBeamSpot ? beamSpotH->BeamWidth()      : 0.0;
-  *evt_bs_widthErr   = haveBeamSpot ? beamSpotH->BeamWidthError() : 0.0;
+  *evt_bs_Xwidth     = haveBeamSpot ? beamSpotH->BeamWidthX()     : 0.0;
+  *evt_bs_Ywidth     = haveBeamSpot ? beamSpotH->BeamWidthY()     : 0.0;
+  *evt_bs_XwidthErr  = haveBeamSpot ? beamSpotH->BeamWidthXError(): 0.0;
+  *evt_bs_YwidthErr  = haveBeamSpot ? beamSpotH->BeamWidthYError(): 0.0;
   
   iEvent.put(evt_bs_p4           ,"evtbsp4"           );
+
   if(haveBeamSpot) {
-    iEvent.put(evt_bs_xErr       ,"evtbsxErr"         );
-    iEvent.put(evt_bs_yErr       ,"evtbsyErr"         );
-    iEvent.put(evt_bs_zErr       ,"evtbszErr"         );
-    iEvent.put(evt_bs_sigmaZ     ,"evtbssigmaZ"       );
-    iEvent.put(evt_bs_sigmaZErr  ,"evtbssigmaZErr"    );
-    iEvent.put(evt_bs_dxdz       ,"evtbsdxdz"         );
-    iEvent.put(evt_bs_dxdzErr    ,"evtbsdxdzErr"      );
-    iEvent.put(evt_bs_dydz       ,"evtbsdydz"         );
-    iEvent.put(evt_bs_dydzErr    ,"evtbsdydzErr"      );
-    iEvent.put(evt_bs_width      ,"evtbswidth"        );
-    iEvent.put(evt_bs_widthErr   ,"evtbswidthErr"     );
+    iEvent.put(evt_bs_xErr       , "evtbsxErr"      );
+    iEvent.put(evt_bs_yErr       , "evtbsyErr"      );
+    iEvent.put(evt_bs_zErr       , "evtbszErr"      );
+    iEvent.put(evt_bs_sigmaZ     , "evtbssigmaZ"    );
+    iEvent.put(evt_bs_sigmaZErr  , "evtbssigmaZErr" );
+    iEvent.put(evt_bs_dxdz       , "evtbsdxdz"      );
+    iEvent.put(evt_bs_dxdzErr    , "evtbsdxdzErr"   );
+    iEvent.put(evt_bs_dydz       , "evtbsdydz"      );
+    iEvent.put(evt_bs_dydzErr    , "evtbsdydzErr"   );
+    iEvent.put(evt_bs_Xwidth     , "evtbsXwidth"    );
+    iEvent.put(evt_bs_Ywidth     , "evtbsYwidth"    );
+    iEvent.put(evt_bs_XwidthErr  , "evtbsXwidthErr" );
+    iEvent.put(evt_bs_YwidthErr  , "evtbsYwidthErr" );
   }
   
 }
