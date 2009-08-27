@@ -5,16 +5,16 @@
 // 
 /**\class JetMaker JetMaker.h CMS2/NtupleMaker/interface/JetMaker.h
 
-Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
+   Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
-Implementation:
-- take TQAF jets
-- extract and fill variables
+   Implementation:
+   - take TQAF jets
+   - extract and fill variables
 */
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.4 2009/05/17 19:40:56 kalavase Exp $
+// $Id: JetMaker.h,v 1.5 2009/08/27 16:30:40 fgolf Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -56,6 +56,5 @@ private:
   edm::InputTag L2L3L4corJetsInputTag_;
 
 };
-
 
 #endif

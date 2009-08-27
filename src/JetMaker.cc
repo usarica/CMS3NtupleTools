@@ -5,19 +5,18 @@
 // 
 /**\class JetMaker JetMaker.cc CMS2/NtupleMaker/src/JetMaker.cc
 
-Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
+   Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
- Implementation:
-     - take  jets
-     - extract and fill variables
+   Implementation:
+   - take  jets
+   - extract and fill variables
 */
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.11 2009/08/27 14:59:28 kalavase Exp $
+// $Id: JetMaker.cc,v 1.12 2009/08/27 16:30:47 fgolf Exp $
 //
 //
-
 
 // system include files
 #include <memory>
@@ -26,24 +25,19 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include "CMS2/NtupleMaker/interface/JetMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
-
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
 
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
-
 
 typedef math::XYZTLorentzVector LorentzVector;
 
@@ -59,9 +53,6 @@ bool sortByPt(reco::Jet jet1, reco::Jet jet2) {
 // constructors and destructor
 //
 
-
-
-
 JetMaker::JetMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
@@ -76,19 +67,15 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   L2L3corJetsInputTag_    = iConfig.getParameter<edm::InputTag>("L2L3corJetsInputTag"     );
   L2L3L4corJetsInputTag_  = iConfig.getParameter<edm::InputTag>("L2L3L4corJetsInputTag"   );
-  
 }
-
 
 JetMaker::~JetMaker()
 {
- 
 }
 
 // ------------ method called to produce the data  ------------
 void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-
   using namespace std;
   using namespace edm;
   
@@ -100,32 +87,26 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >         vector_jets_cor    (new vector<float>         );
   auto_ptr<vector<float> >         vector_jets_EMFcor (new vector<float>         );
 
-
-
-  
-  //get reference uncorrected jets
-  Handle<View<reco::CaloJet> > uncorJetsHandle;
+  Handle< View<reco::CaloJet> > uncorJetsHandle;
   iEvent.getByLabel(uncorJetsInputTag_, uncorJetsHandle);
-  vector<reco::CaloJet> v_uncorJets;
-  for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin();
-      it != uncorJetsHandle->end(); it++)
-    v_uncorJets.push_back(*it);
-  
-  //get the correctors
-  const JetCorrector* L2L3corrector = JetCorrector::getJetCorrector("L2L3JetCorrector", iSetup);
-  const JetCorrector* L2L3L4corrector = JetCorrector::getJetCorrector("L2L3L4JetCorrector", iSetup);
 
   *evt_njets = uncorJetsHandle->size();
 
-  for(unsigned int i = 0; i < v_uncorJets.size(); i++) {
+  //get the correctors
+  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector("L2L3JetCorrector"  , iSetup);
+  const JetCorrector* L2L3L4corrector = JetCorrector::getJetCorrector("L2L3L4JetCorrector", iSetup);
+
+  for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
     
-    reco::CaloJet uncorJet   = v_uncorJets.at(i);
+    reco::CaloJet uncorJet   =  *it;
     reco::CaloJet L2L3Jet    =  uncorJet;
     reco::CaloJet L2L3L4Jet  =  uncorJet;
-    double L2L3Jetscale = L2L3corrector->correction(uncorJet.p4());
-    L2L3Jet.scaleEnergy(L2L3Jetscale);
-    double L2L3L4Jetscale = L2L3L4corrector->correction(uncorJet);
-    L2L3L4Jet.scaleEnergy(L2L3L4Jetscale);
+
+    double L2L3Jetscale = L2L3corrector->correction( uncorJet.p4() );
+    L2L3Jet.scaleEnergy( L2L3Jetscale );
+
+    double L2L3L4Jetscale = L2L3L4corrector->correction( uncorJet );
+    L2L3L4Jet.scaleEnergy( L2L3L4Jetscale );
     
     vector_jets_p4          ->push_back(L2L3Jet.p4()                   );
     vector_jets_emFrac      ->push_back(L2L3Jet.emEnergyFraction()     );
