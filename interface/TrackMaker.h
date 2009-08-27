@@ -5,15 +5,15 @@
 // 
 /**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.5 2008/12/14 21:51:39 gutsche Exp $
+// $Id: TrackMaker.h,v 1.6 2009/08/27 17:03:14 fgolf Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -28,6 +28,9 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/Math/interface/Point3D.h"
+
+typedef math::XYZPoint Point;
 
 //
 // class declaration
@@ -35,15 +38,15 @@
 
 class TrackMaker : public edm::EDProducer {
 public:
-     explicit TrackMaker (const edm::ParameterSet&);
-  double calculateTrkIsolation(const edm::View<reco::Track> *tracks, const reco::Track &track);
+  explicit TrackMaker (const edm::ParameterSet&);
+  double calculateTrkIsolation(const edm::View<reco::Track>*, const reco::Track&, const Point&);
   
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
       
-      // ----------member data ---------------------------
+  // ----------member data ---------------------------
   edm::InputTag tracksInputTag;
   edm::InputTag beamSpotTag;
 
@@ -53,8 +56,6 @@ private:
   float tkVtxDMax_;
   float ptMin_;
   int   nHits_;
-
 };
-
 
 #endif
