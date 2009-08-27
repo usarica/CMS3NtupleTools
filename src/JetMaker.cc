@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.12 2009/08/27 16:30:47 fgolf Exp $
+// $Id: JetMaker.cc,v 1.13 2009/08/27 19:44:15 warren Exp $
 //
 //
 
@@ -34,8 +34,6 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/JetReco/interface/GenJet.h"
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
