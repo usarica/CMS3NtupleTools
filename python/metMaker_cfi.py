@@ -10,7 +10,7 @@ metMaker = cms.EDFilter("METMaker",
                         metOptNoHF_tag_        = cms.InputTag("metOptNoHF"           ),        
                         metOptNoHFHO_tag_      = cms.InputTag("metOptNoHFHO"         ),     
                         corMetGlobalMuons_tag_ = cms.InputTag("corMetGlobalMuons"    ),
-                        MuonJEScorMET_tag_         = cms.InputTag("metMuonJESCorSC5CMS2" ),
+                        MuonJEScorMET_tag_     = cms.InputTag("metMuonJESCorSC5CMS2" ),
                         muon_tag_              = cms.InputTag("muons"                ),
                         muon_vm_tag_           = cms.InputTag("muonMETValueMapProducer", "muCorrData")
 )                                                              

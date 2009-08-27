@@ -5,17 +5,18 @@
 // 
 /**\class METMaker.cc CMS2/NtupleMaker/src/METMaker.cc
 
-   Description: <one line class summary>
+Description: <one line class summary>
 
-   Implementation:
-   <Notes on implementation>
+Implementation:
+<Notes on implementation>
 */
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.h,v 1.4 2009/05/21 23:25:14 kalavase Exp $
+// $Id: METMaker.h,v 1.5 2009/08/27 16:32:03 fgolf Exp $
 //
 //
+
 #ifndef NTUPLEMAKER_METMAKER_H
 #define NTUPLEMAKER_METMAKER_H
 
@@ -25,10 +26,8 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //

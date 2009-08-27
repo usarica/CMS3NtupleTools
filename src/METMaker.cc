@@ -13,10 +13,9 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.9 2009/05/24 21:45:24 kalavase Exp $
+// $Id: METMaker.cc,v 1.10 2009/08/27 16:32:09 fgolf Exp $
 //
 //
-
 
 // system include files
 #include <memory>
@@ -33,11 +32,9 @@ Implementation:
 
 #include "DataFormats/METReco/interface/CaloMET.h"
 #include "DataFormats/METReco/interface/MET.h"
-
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
-
 #include "DataFormats/Common/interface/ValueMap.h" 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -87,11 +84,11 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtmetOptNoHFHOPhi" ).setBranchAlias("evt_metOptNoHFHOPhi" );
   produces<float> ("evtmetOptNoHFHOSig" ).setBranchAlias("evt_metOptNoHFHOSig" );
 
-
   //raw CaloMET corrected for Muons
   produces<float> ("evtmetMuonCorr"     ).setBranchAlias("evt_metMuonCorr"     );
   produces<float> ("evtmetMuonCorrPhi"  ).setBranchAlias("evt_metMuonCorrPhi"  );
   produces<float> ("evtmetMuonCorrSig"  ).setBranchAlias("evt_metMuonCorrSig"  );
+
   //raw CaloMET corrected for JES (L2L3) and Muons
   produces<float> ("evtmetMuonJESCorr"      ).setBranchAlias("evt_metMuonJESCorr"      );
   produces<float> ("evtmetMuonJESCorrPhi"   ).setBranchAlias("evt_metMuonJESCorrPhi"   );
@@ -130,15 +127,17 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   muon_tag    = iConfig.getParameter<edm::InputTag>("muon_tag_"   );
 }
 
-
-METMaker::~METMaker() {}
-
-void  METMaker::beginJob(const edm::EventSetup&) {
+METMaker::~METMaker()
+{
 }
 
-void METMaker::endJob() {
+void  METMaker::beginJob(const edm::EventSetup&)
+{
 }
 
+void METMaker::endJob()
+{
+}
 
 // ------------ method called to produce the data  ------------
 void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -168,7 +167,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_metOptNoHFHO        (new float     );
   auto_ptr<float>   evt_metOptNoHFHOPhi     (new float     );
   auto_ptr<float>   evt_metOptNoHFHOSig     (new float     );
-
   
   auto_ptr<float>   evt_metMuonCorr         (new float     );
   auto_ptr<float>   evt_metMuonCorrPhi      (new float     );
@@ -223,48 +221,48 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(muon_vm_tag, muon_vm_h );
   iEvent.getByLabel(muon_tag   , muon_h    );
     
-  *evt_met          = (met_h->front()).et();
-  *evt_metPhi       = (met_h->front()).phi();
-  *evt_metSig       = (met_h->front()).mEtSig();
-  *evt_metHO        = (metHO_h->front()).et();
-  *evt_metHOPhi     = (metHO_h->front()).phi();
-  *evt_metHOSig     = (metHO_h->front()).mEtSig();
-  *evt_metNoHF      = (metNoHF_h->front()).et();
-  *evt_metNoHFPhi   = (metNoHF_h->front()).phi();
-  *evt_metNoHFSig   = (metNoHF_h->front()).mEtSig();
-  *evt_metNoHFHO    = (metNoHFHO_h->front()).et();
-  *evt_metNoHFHOPhi = (metNoHFHO_h->front()).phi();
-  *evt_metNoHFHOSig = (metNoHFHO_h->front()).mEtSig();
+  *evt_met          = ( met_h->front()       ).et();
+  *evt_metPhi       = ( met_h->front()       ).phi();
+  *evt_metSig       = ( met_h->front()       ).mEtSig();
+  *evt_metHO        = ( metHO_h->front()     ).et();
+  *evt_metHOPhi     = ( metHO_h->front()     ).phi();
+  *evt_metHOSig     = ( metHO_h->front()     ).mEtSig();
+  *evt_metNoHF      = ( metNoHF_h->front()   ).et();
+  *evt_metNoHFPhi   = ( metNoHF_h->front()   ).phi();
+  *evt_metNoHFSig   = ( metNoHF_h->front()   ).mEtSig();
+  *evt_metNoHFHO    = ( metNoHFHO_h->front() ).et();
+  *evt_metNoHFHOPhi = ( metNoHFHO_h->front() ).phi();
+  *evt_metNoHFHOSig = ( metNoHFHO_h->front() ).mEtSig();
 
-  *evt_metOpt          = (metOpt_h->front()).et();
-  *evt_metOptPhi       = (metOpt_h->front()).phi();
-  *evt_metOptSig       = (metOpt_h->front()).mEtSig();
-  *evt_metOptHO        = (metOptHO_h->front()).et();
-  *evt_metOptHOPhi     = (metOptHO_h->front()).phi();
-  *evt_metOptHOSig     = (metOptHO_h->front()).mEtSig();
-  *evt_metOptNoHF      = (metOptNoHF_h->front()).et();
-  *evt_metOptNoHFPhi   = (metOptNoHF_h->front()).phi();
-  *evt_metOptNoHFSig   = (metOptNoHF_h->front()).mEtSig();
-  *evt_metOptNoHFHO    = (metOptNoHFHO_h->front()).et();
-  *evt_metOptNoHFHOPhi = (metOptNoHFHO_h->front()).phi();
-  *evt_metOptNoHFHOSig = (metOptNoHFHO_h->front()).mEtSig();
+  *evt_metOpt          = ( metOpt_h->front()       ).et();
+  *evt_metOptPhi       = ( metOpt_h->front()       ).phi();
+  *evt_metOptSig       = ( metOpt_h->front()       ).mEtSig();
+  *evt_metOptHO        = ( metOptHO_h->front()     ).et();
+  *evt_metOptHOPhi     = ( metOptHO_h->front()     ).phi();
+  *evt_metOptHOSig     = ( metOptHO_h->front()     ).mEtSig();
+  *evt_metOptNoHF      = ( metOptNoHF_h->front()   ).et();
+  *evt_metOptNoHFPhi   = ( metOptNoHF_h->front()   ).phi();
+  *evt_metOptNoHFSig   = ( metOptNoHF_h->front()   ).mEtSig();
+  *evt_metOptNoHFHO    = ( metOptNoHFHO_h->front() ).et();
+  *evt_metOptNoHFHOPhi = ( metOptNoHFHO_h->front() ).phi();
+  *evt_metOptNoHFHOSig = ( metOptNoHFHO_h->front() ).mEtSig();
 
-  *evt_metMuonCorr         =  (metMuonCorr_h->front()).et();
-  *evt_metMuonCorrPhi      =  (metMuonCorr_h->front()).phi();
-  *evt_metMuonCorrSig      =  (metMuonCorr_h->front()).mEtSig();
-  *evt_metMuonJESCorr      =  (metMuonJESCorr_h->front()).et();
-  *evt_metMuonJESCorrPhi   =  (metMuonJESCorr_h->front()).phi();
-  *evt_metMuonJESCorrSig   =  (metMuonJESCorr_h->front()).mEtSig();
+  *evt_metMuonCorr         =  ( metMuonCorr_h->front()    ).et();
+  *evt_metMuonCorrPhi      =  ( metMuonCorr_h->front()    ).phi();
+  *evt_metMuonCorrSig      =  ( metMuonCorr_h->front()    ).mEtSig();
+  *evt_metMuonJESCorr      =  ( metMuonJESCorr_h->front() ).et();
+  *evt_metMuonJESCorrPhi   =  ( metMuonJESCorr_h->front() ).phi();
+  *evt_metMuonJESCorrSig   =  ( metMuonJESCorr_h->front() ).mEtSig();
 
-  *evt_sumet           = (met_h->front()).sumEt();     
-  *evt_sumetHO         = (metHO_h->front()).sumEt();   
-  *evt_sumetNoHF       = (metNoHF_h->front()).sumEt();
-  *evt_sumetNoHFHO     = (metNoHFHO_h->front()).sumEt();
-  *evt_sumetOpt        = (metOpt_h->front()).sumEt();      
-  *evt_sumetOptHO      = (metOptHO_h->front()).sumEt();    
-  *evt_sumetOptNoHF    = (metOptNoHF_h->front()).sumEt();  
-  *evt_sumetOptNoHFHO  = (metOptNoHFHO_h->front()).sumEt();
-  *evt_sumetMuonCorr   = (metMuonCorr_h->front()).sumEt();
+  *evt_sumet           = ( met_h->front()          ).sumEt();     
+  *evt_sumetHO         = ( metHO_h->front()        ).sumEt();   
+  *evt_sumetNoHF       = ( metNoHF_h->front()      ).sumEt();
+  *evt_sumetNoHFHO     = ( metNoHFHO_h->front()    ).sumEt();
+  *evt_sumetOpt        = ( metOpt_h->front()       ).sumEt();      
+  *evt_sumetOptHO      = ( metOptHO_h->front()     ).sumEt();    
+  *evt_sumetOptNoHF    = ( metOptNoHF_h->front()   ).sumEt();  
+  *evt_sumetOptNoHFHO  = ( metOptNoHFHO_h->front() ).sumEt();
+  *evt_sumetMuonCorr   = ( metMuonCorr_h->front()  ).sumEt();
 
   edm::ValueMap<reco::MuonMETCorrectionData> muon_data = *muon_vm_h;
 
@@ -276,9 +274,9 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     reco::MuonRef muref( muon_h, mus);
     reco::MuonMETCorrectionData muCorrData = (muon_data)[muref];
 
-    mus_met_flag->push_back(muCorrData.type());
-    mus_met_deltax->push_back(muCorrData.corrX());
-    mus_met_deltay->push_back(muCorrData.corrY());
+    mus_met_flag  ->push_back( muCorrData.type()  );
+    mus_met_deltax->push_back( muCorrData.corrX() );
+    mus_met_deltay->push_back( muCorrData.corrY() );
   }
 
   iEvent.put(evt_met            ,"evtmet"           );
@@ -331,7 +329,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(METMaker);
-
 
 
 
