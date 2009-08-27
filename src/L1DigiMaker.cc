@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1DigiMaker.cc,v 1.7 2009/08/21 10:08:25 dlevans Exp $
+// $Id: L1DigiMaker.cc,v 1.8 2009/08/27 19:48:17 warren Exp $
 //
 //
 
@@ -30,7 +30,7 @@ Implementation:
 
 #include "CMS2/NtupleMaker/interface/L1DigiMaker.h"
 
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
 #include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h"
@@ -321,7 +321,8 @@ void L1DigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
   l1extra::L1EtMissParticleCollection::const_iterator l1met = l1mets->begin();
   *l1met_met     = l1met->etMiss();
-  *l1met_etHad   = l1met->etHad();
+  //*l1met_etHad   = l1met->etHad();
+  *l1met_etHad   = l1met->gctEtHad()->et();
   *l1met_etTot   = l1met->etTotal();
   *l1met_p4      = LorentzVector(l1met->px(), 
 				 l1met->py(),
