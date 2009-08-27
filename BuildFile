@@ -20,7 +20,6 @@
 <use name=RecoEcal/EgammaCoreTools>
 <use name=RecoEgamma/EgammaTools>
 <use name=PhysicsTools/HepMCCandAlgos>
-<use name=SimDataFormats/HepMCProduct>
 <use name=CondFormats/L1TObjects>
 <use name=CondFormats/DataRecord>
 <use name=JetMETCorrections/Objects>
