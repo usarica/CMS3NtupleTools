@@ -5,10 +5,10 @@
 // 
 /**\class JetCollectionPruner JetCollectionPruner.cc CMS2/NtupleMaker/src/JetCollectionPruner.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 //
@@ -30,7 +30,7 @@
 
 class JetCollectionPruner : public edm::EDProducer {
 public:
-     explicit JetCollectionPruner (const edm::ParameterSet&);
+  explicit JetCollectionPruner (const edm::ParameterSet&);
   
 private:
   virtual void beginJob(const edm::EventSetup&) ;
@@ -43,4 +43,3 @@ private:
 };
 
 #endif
-
