@@ -14,7 +14,7 @@ Description: copy reco::CaloJet variables in simple data structures into the EDM
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.10 2009/05/17 19:43:52 kalavase Exp $
+// $Id: JetMaker.cc,v 1.11 2009/08/27 14:59:28 kalavase Exp $
 //
 //
 
@@ -68,7 +68,7 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>                ("evtnjets"   ).setBranchAlias("evt_njets"        ); // number of jets
   produces<std::vector<LorentzVector> >	("jetsp4"     ).setBranchAlias("jets_p4"          ); // L2L3 corrected p4 of the jet
   produces<std::vector<float> >	        ("jetsemFrac" ).setBranchAlias("jets_emFrac"      ); // electromagnetic energy fraction
-  produces<std::vector<float> >	        ("jetschFrac" ).setBranchAlias("jets_chFrac"      ); // charged track energy fraction 
+  //produces<std::vector<float> >	        ("jetschFrac" ).setBranchAlias("jets_chFrac"      ); // charged track energy fraction 
   produces<std::vector<float> >	        ("jetscor"    ).setBranchAlias("jets_cor"         ); // energy scale correction -> only L2 and L3
   produces<std::vector<float> >	        ("jetsEMFcor" ).setBranchAlias("jets_EMFcor"      ); // energy scale corrections including electromagnetic fraction of jet
 
@@ -96,7 +96,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<unsigned int>           evt_njets          (new unsigned int          );
   auto_ptr<vector<LorentzVector> > vector_jets_p4     (new vector<LorentzVector> );
   auto_ptr<vector<float> >         vector_jets_emFrac (new vector<float>         );
-  auto_ptr<vector<float> >         vector_jets_chFrac (new vector<float>         );
+  //auto_ptr<vector<float> >         vector_jets_chFrac (new vector<float>         );
   auto_ptr<vector<float> >         vector_jets_cor    (new vector<float>         );
   auto_ptr<vector<float> >         vector_jets_EMFcor (new vector<float>         );
 
@@ -129,7 +129,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     vector_jets_p4          ->push_back(L2L3Jet.p4()                   );
     vector_jets_emFrac      ->push_back(L2L3Jet.emEnergyFraction()     );
-    vector_jets_chFrac      ->push_back( -999                          );
+    //vector_jets_chFrac      ->push_back( -999                          );
     vector_jets_cor         ->push_back(L2L3Jetscale                   );
     vector_jets_EMFcor      ->push_back(L2L3L4Jetscale                 );
   }
@@ -138,7 +138,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(evt_njets,            "evtnjets"     );
   iEvent.put(vector_jets_p4,       "jetsp4"       );
   iEvent.put(vector_jets_emFrac,   "jetsemFrac"   );
-  iEvent.put(vector_jets_chFrac,   "jetschFrac"   );
+  //  iEvent.put(vector_jets_chFrac,   "jetschFrac"   );
   iEvent.put(vector_jets_cor,      "jetscor"      );
   iEvent.put(vector_jets_EMFcor,   "jetsEMFcor"   );
   
