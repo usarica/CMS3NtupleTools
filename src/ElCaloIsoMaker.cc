@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.cc,v 1.3 2008/10/21 18:19:01 kalavase Exp $
+// $Id: ElCaloIsoMaker.cc,v 1.4 2009/08/27 22:08:29 warren Exp $
 
 // system include files
 #include <memory>
@@ -52,13 +52,13 @@ ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
    
-   edm::Handle<edm::View<reco::PixelMatchGsfElectron> > electron_h;
+   edm::Handle<edm::View<reco::GsfElectron> > electron_h;
    iEvent.getByLabel(m_electronsInputTag, electron_h);
    
    edm::Handle<reco::BasicClusterCollection> basicClusterHandle;
    iEvent.getByLabel(m_basicClusterInputTag, basicClusterHandle);
    
-   for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
+   for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
       math::XYZPoint positionAtEcal = electron->caloPosition();
       double juraIso(0);
@@ -83,13 +83,13 @@ ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
 {
    std::auto_ptr<std::vector<float> >  els_hcalIso( new std::vector<float> ) ;
    
-   edm::Handle<edm::View<reco::PixelMatchGsfElectron> > electron_h;
+   edm::Handle<edm::View<reco::GsfElectron> > electron_h;
    iEvent.getByLabel(m_electronsInputTag, electron_h);
    
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
    
-   for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
+   for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
       math::XYZPoint positionAtEcal = electron->caloPosition();
       double hcalIso(0);
@@ -112,13 +112,13 @@ ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& i
 {
    std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
    
-   edm::Handle<edm::View<reco::PixelMatchGsfElectron> > electron_h;
+   edm::Handle<edm::View<reco::GsfElectron> > electron_h;
    iEvent.getByLabel(m_electronsInputTag, electron_h);
    
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
    
-   for(edm::View<reco::PixelMatchGsfElectron>::const_iterator electron = electron_h->begin(); 
+   for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
       math::XYZPoint positionAtEcal = electron->caloPosition();
       double juraIso(0);
