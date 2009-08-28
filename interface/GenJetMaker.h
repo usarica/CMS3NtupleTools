@@ -5,16 +5,16 @@
 //
 /**\class GenJetMaker GenJetMaker.h CMS2/NtupleMaker/interface/GenJetMaker.h
 
-Description:  GenJet Collection
+   Description:  GenJet Collection
 
-Implementation:
+   Implementation:
 */
 //
 //
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.h,v 1.2 2009/01/23 22:12:27 fgolf Exp $
+// $Id: GenJetMaker.h,v 1.3 2009/08/28 12:23:48 fgolf Exp $
 //
 //
 
