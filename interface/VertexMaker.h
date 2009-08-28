@@ -5,10 +5,10 @@
 // 
 /**\class VertexMaker VertexMaker.cc CMS2/NtupleMaker/src/VertexMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 //
@@ -22,6 +22,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/EventSetup.h"
+
 #include "DataFormats/Common/interface/Handle.h"
 
 //
@@ -30,19 +31,16 @@
 
 class VertexMaker : public edm::EDProducer {
 public:
-     explicit VertexMaker (const edm::ParameterSet&);
+  explicit VertexMaker (const edm::ParameterSet&);
   
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
-     // ----------member data ---------------------------
-
-     // primary vertex collection
-     edm::InputTag primaryVertexInputTag_;
+  // ----------member data ---------------------------
+  edm::InputTag primaryVertexInputTag_;
 
 };
 
 #endif
-
