@@ -5,15 +5,15 @@
 // 
 /**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.8 2009/05/14 18:47:46 warren Exp $
+// $Id: GenMaker.h,v 1.9 2009/08/28 10:10:20 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -25,10 +25,8 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //
@@ -37,13 +35,13 @@
 
 class GenMaker : public edm::EDProducer {
 public:
-     explicit GenMaker (const edm::ParameterSet&);
-      ~GenMaker();
+  explicit GenMaker (const edm::ParameterSet&);
+  ~GenMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
   // ----------member data ---------------------------
   edm::InputTag genParticlesInputTag;
