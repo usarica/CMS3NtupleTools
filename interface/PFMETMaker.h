@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.h,v 1.1 2009/05/19 23:20:02 fgolf Exp $
+// $Id: PFMETMaker.h,v 1.2 2009/08/28 11:02:35 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFMETMAKER_H
@@ -25,10 +25,8 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //
