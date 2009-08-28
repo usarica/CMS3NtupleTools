@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.13 2009/08/27 19:44:15 warren Exp $
+// $Id: JetMaker.cc,v 1.14 2009/08/28 13:36:43 kalavase Exp $
 //
 //
 
@@ -54,12 +54,13 @@ bool sortByPt(reco::Jet jet1, reco::Jet jet2) {
 JetMaker::JetMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
-  produces<unsigned int>                ("evtnjets"   ).setBranchAlias("evt_njets"        ); // number of jets
-  produces<std::vector<LorentzVector> >	("jetsp4"     ).setBranchAlias("jets_p4"          ); // L2L3 corrected p4 of the jet
-  produces<std::vector<float> >	        ("jetsemFrac" ).setBranchAlias("jets_emFrac"      ); // electromagnetic energy fraction
+  produces<unsigned int>                ("evtnjets"     ).setBranchAlias("evt_njets"        ); // number of jets
+  produces<std::vector<LorentzVector> >	("jetsp4"       ).setBranchAlias("jets_p4"          ); // L2L3 corrected p4 of the jet
+  produces<std::vector<LorentzVector> > ("jetsvertexp4" ).setBranchAlias("jets_vertex_p4"   );
+  produces<std::vector<float> >	        ("jetsemFrac"   ).setBranchAlias("jets_emFrac"      ); // electromagnetic energy fraction
   //produces<std::vector<float> >	        ("jetschFrac" ).setBranchAlias("jets_chFrac"      ); // charged track energy fraction 
-  produces<std::vector<float> >	        ("jetscor"    ).setBranchAlias("jets_cor"         ); // energy scale correction -> only L2 and L3
-  produces<std::vector<float> >	        ("jetsEMFcor" ).setBranchAlias("jets_EMFcor"      ); // energy scale corrections including electromagnetic fraction of jet
+  produces<std::vector<float> >	        ("jetscor"      ).setBranchAlias("jets_cor"         ); // energy scale correction -> only L2 and L3
+  produces<std::vector<float> >	        ("jetsEMFcor"   ).setBranchAlias("jets_EMFcor"      ); // energy scale corrections including electromagnetic fraction of jet
 
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
@@ -78,12 +79,13 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace edm;
   
   // create containers
-  auto_ptr<unsigned int>           evt_njets          (new unsigned int          );
-  auto_ptr<vector<LorentzVector> > vector_jets_p4     (new vector<LorentzVector> );
-  auto_ptr<vector<float> >         vector_jets_emFrac (new vector<float>         );
-  //auto_ptr<vector<float> >         vector_jets_chFrac (new vector<float>         );
-  auto_ptr<vector<float> >         vector_jets_cor    (new vector<float>         );
-  auto_ptr<vector<float> >         vector_jets_EMFcor (new vector<float>         );
+  auto_ptr<unsigned int>             evt_njets            (new unsigned int          );
+  auto_ptr<vector<LorentzVector> >   vector_jets_p4       (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> >   vector_jets_vertex_p4(new vector<LorentzVector> );
+  auto_ptr<vector<float> >           vector_jets_emFrac   (new vector<float>         );
+  //auto_ptr<vector<float> >         vector_jets_chFrac   (new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_cor      (new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_EMFcor   (new vector<float>         );
 
   Handle< View<reco::CaloJet> > uncorJetsHandle;
   iEvent.getByLabel(uncorJetsInputTag_, uncorJetsHandle);
@@ -107,6 +109,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     L2L3L4Jet.scaleEnergy( L2L3L4Jetscale );
     
     vector_jets_p4          ->push_back(L2L3Jet.p4()                   );
+    vector_jets_vertex_p4   ->push_back(LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.) );
     vector_jets_emFrac      ->push_back(L2L3Jet.emEnergyFraction()     );
     //vector_jets_chFrac      ->push_back( -999                          );
     vector_jets_cor         ->push_back(L2L3Jetscale                   );
@@ -116,6 +119,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // put containers into event
   iEvent.put(evt_njets,            "evtnjets"     );
   iEvent.put(vector_jets_p4,       "jetsp4"       );
+  iEvent.put(vector_jets_vertex_p4,"jetsvertexp4" );
   iEvent.put(vector_jets_emFrac,   "jetsemFrac"   );
   //  iEvent.put(vector_jets_chFrac,   "jetschFrac"   );
   iEvent.put(vector_jets_cor,      "jetscor"      );
