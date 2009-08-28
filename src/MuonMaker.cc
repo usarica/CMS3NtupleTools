@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.20 2009/07/24 09:54:17 warren Exp $
+// $Id: MuonMaker.cc,v 1.21 2009/08/28 12:48:24 kalavase Exp $
 //
 //
 
@@ -36,10 +36,8 @@ Implementation:
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/TrackReco/interface/Track.h"
-//#include "RecoMuon/MuonIdentification/interface/IdGlobalFunctions.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/PatCandidates/interface/Muon.h"
 
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -56,60 +54,60 @@ using namespace reco;
 MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
 {
   // mu track quantities
-  produces<vector<int> >	     ("mustype"		).setBranchAlias("mus_type"          );	// type
-  produces<vector<int> >	     ("musgoodmask"	).setBranchAlias("mus_goodmask"      ); // good mask
-  produces<vector<LorentzVector> >   ("musp4"		).setBranchAlias("mus_p4"            ); // candidate p4						
-  produces<vector<LorentzVector> >   ("mustrkp4"	).setBranchAlias("mus_trk_p4"        ); // track p4						
-  produces<vector<float> >	     ("musd0"		).setBranchAlias("mus_d0"            ); // impact parameter at the point of closest approach	
-  produces<vector<float> >	     ("musz0"		).setBranchAlias("mus_z0"            ); // z position of the point of closest approach		
-  produces<vector<float> >	     ("musd0corr"	).setBranchAlias("mus_d0corr"        ); // corrected impact parameter at the point of closest approach	
-  produces<vector<float> >	     ("musz0corr"	).setBranchAlias("mus_z0corr"        ); // corrected z position of the point of closest approach		
-  produces<vector<float> >	     ("musvertexphi"	).setBranchAlias("mus_vertexphi"     ); // phi angle of the point of closest approach		
-  produces<vector<float> >	     ("muschi2"		).setBranchAlias("mus_chi2"          ); // chi2 of the silicon tracker fit			
-  produces<vector<float> >	     ("musndof"		).setBranchAlias("mus_ndof"          ); // number of degrees of freedom of the fit		
-  produces<vector<int> >	     ("musvalidHits"	).setBranchAlias("mus_validHits"     ); // number of used hits in the fit			
-  produces<vector<int> >	     ("muslostHits"	).setBranchAlias("mus_lostHits"      ); // number of lost hits in the fit			
-  produces<vector<float> >	     ("musd0Err"	).setBranchAlias("mus_d0Err"         ); // error on the impact parameter			
-  produces<vector<float> >	     ("musz0Err"	).setBranchAlias("mus_z0Err"         ); // error on z position of the point of closest approach	
-  produces<vector<float> >	     ("musptErr"	).setBranchAlias("mus_ptErr"         ); // track Pt error					
-  produces<vector<float> >	     ("musetaErr"	).setBranchAlias("mus_etaErr"        ); // track eta error					
-  produces<vector<float> >	     ("musphiErr"	).setBranchAlias("mus_phiErr"        ); // track phi error					
-  produces<vector<int> >	     ("muscharge"	).setBranchAlias("mus_charge"        ); // charge						
-  produces<vector<int> >	     ("mustrkcharge"	).setBranchAlias("mus_trk_charge"    ); // track charge
+  produces<vector<int> >	     ("mustype"		   ).setBranchAlias("mus_type"              );	// type
+  produces<vector<int> >	     ("musgoodmask"	   ).setBranchAlias("mus_goodmask"          ); // good mask
+  produces<vector<LorentzVector> >   ("musp4"		   ).setBranchAlias("mus_p4"                ); // candidate p4						
+  produces<vector<LorentzVector> >   ("mustrkp4"	   ).setBranchAlias("mus_trk_p4"            ); // track p4						
+  produces<vector<float> >	     ("musd0"		   ).setBranchAlias("mus_d0"                ); // impact parameter at the point of closest approach	
+  produces<vector<float> >	     ("musz0"		   ).setBranchAlias("mus_z0"                ); // z position of the point of closest approach		
+  produces<vector<float> >	     ("musd0corr"	   ).setBranchAlias("mus_d0corr"            ); // corrected impact parameter at the point of closest approach	
+  produces<vector<float> >	     ("musz0corr"	   ).setBranchAlias("mus_z0corr"            ); // corrected z position of the point of closest approach		
+  produces<vector<float> >	     ("musvertexphi"	   ).setBranchAlias("mus_vertexphi"         ); // phi angle of the point of closest approach		
+  produces<vector<float> >	     ("muschi2"		   ).setBranchAlias("mus_chi2"              ); // chi2 of the silicon tracker fit			
+  produces<vector<float> >	     ("musndof"		   ).setBranchAlias("mus_ndof"              ); // number of degrees of freedom of the fit		
+  produces<vector<int> >	     ("musvalidHits"	   ).setBranchAlias("mus_validHits"         ); // number of used hits in the fit			
+  produces<vector<int> >	     ("muslostHits"	   ).setBranchAlias("mus_lostHits"          ); // number of lost hits in the fit			
+  produces<vector<float> >	     ("musd0Err"	   ).setBranchAlias("mus_d0Err"             ); // error on the impact parameter			
+  produces<vector<float> >	     ("musz0Err"	   ).setBranchAlias("mus_z0Err"             ); // error on z position of the point of closest approach	
+  produces<vector<float> >	     ("musptErr"	   ).setBranchAlias("mus_ptErr"             ); // track Pt error					
+  produces<vector<float> >	     ("musetaErr"	   ).setBranchAlias("mus_etaErr"            ); // track eta error					
+  produces<vector<float> >	     ("musphiErr"	   ).setBranchAlias("mus_phiErr"            ); // track phi error					
+  produces<vector<int> >	     ("muscharge"	   ).setBranchAlias("mus_charge"            ); // charge						
+  produces<vector<int> >	     ("mustrkcharge"	   ).setBranchAlias("mus_trk_charge"        ); // track charge
   
-  produces<vector<float> >       ("musqoverp"       ).setBranchAlias("mus_qoverp"        );
+  produces<vector<float> >           ("musqoverp"          ).setBranchAlias("mus_qoverp"            );
   
-  produces<vector<float> >       ("musqoverpError"  ).setBranchAlias("mus_qoverpError"   );
+  produces<vector<float> >           ("musqoverpError"     ).setBranchAlias("mus_qoverpError"       );
  
-  produces<vector<float> >	     ("musouterPhi"	).setBranchAlias("mus_outerPhi"      ); // phi angle of the outermost point in tracker 
-  produces<vector<float> >	     ("musouterEta"	).setBranchAlias("mus_outerEta"      ); // eta angle of the outermost point in tracker 
-  produces<vector<int> >         ("mustrkrefkey"    ).setBranchAlias("mus_trkrefkey"     ); // index of track from track ref stored in muon collection
+  produces<vector<float> >	     ("musouterPhi"	   ).setBranchAlias("mus_outerPhi"          ); // phi angle of the outermost point in tracker 
+  produces<vector<float> >	     ("musouterEta"	   ).setBranchAlias("mus_outerEta"          ); // eta angle of the outermost point in tracker 
+  produces<vector<int> >             ("mustrkrefkey"       ).setBranchAlias("mus_trkrefkey"         ); // index of track from track ref stored in muon collection
   // muon quantities
-  produces<vector<int> >         ("musnmatches"	).setBranchAlias("mus_nmatches"      ); // number of stations with matched segments 
-  produces<vector<float> >	     ("museem"		).setBranchAlias("mus_e_em"          ); // energy in crossed ECAL crystalls 
-  produces<vector<float> >	     ("musehad"		).setBranchAlias("mus_e_had"         ); // energy in crossed HCAL towers 
-  produces<vector<float> >	     ("museho"		).setBranchAlias("mus_e_ho"          ); // energy in crossed HO towers 
-  produces<vector<float> >	     ("museemS9"	).setBranchAlias("mus_e_emS9"        ); // energy in 3x3 ECAL crystall shape 
-  produces<vector<float> >	     ("musehadS9"	).setBranchAlias("mus_e_hadS9"       ); //energy in 3x3 HCAL towers 
-  produces<vector<float> >	     ("musehoS9"	).setBranchAlias("mus_e_hoS9"        ); // energy in 3x3 HO towers 
-  produces<vector<float> >       ("musiso"          ).setBranchAlias("mus_iso"           ); //mirrors the isolation in CMS1 (home grown trackIsolatio()
-  produces<vector<float> >	     ("musiso03sumPt"	).setBranchAlias("mus_iso03_sumPt"   ); // sum of track Pt for cone of 0.3 
-  produces<vector<float> >	     ("musiso03emEt"	).setBranchAlias("mus_iso03_emEt"    ); // sum of ecal Et for cone of 0.3 
-  produces<vector<float> >	     ("musiso03hadEt"	).setBranchAlias("mus_iso03_hadEt"   ); // sum of hcal Et for cone of 0.3 
-  produces<vector<float> >	     ("musiso03hoEt"	).setBranchAlias("mus_iso03_hoEt"    ); // sum of ho Et for cone of 0.3 
-  produces<vector<int> >	     ("musiso03ntrk"	).setBranchAlias("mus_iso03_ntrk"    ); // number of tracks in the cone of 0.3 
-  produces<vector<float> >	     ("musiso05sumPt"	).setBranchAlias("mus_iso05_sumPt"   ); // sum of track Pt for cone of 0.5 
-  produces<vector<float> >	     ("musiso05emEt"    ).setBranchAlias("mus_iso05_emEt"    ); // sum of ecal Et for cone of 0.5 
-  produces<vector<float> >	     ("musiso05hadEt"	).setBranchAlias("mus_iso05_hadEt"   ); // sum of hcal Et for cone of 0.5 
-  produces<vector<float> >	     ("musiso05hoEt"	).setBranchAlias("mus_iso05_hoEt"    ); // sum of ho Et for cone of 0.5 
-  produces<vector<int> >	     ("musiso05ntrk"	).setBranchAlias("mus_iso05_ntrk"    ); // number of tracks in the cone of 0.5 
-  produces<vector<float> >       ("mustrckvetoDep"  ).setBranchAlias("mus_trckvetoDep"   ); // pt in track veto cone (reproduce mus_pat_vetoDep)
-  produces<vector<float> >       ("musecalvetoDep"  ).setBranchAlias("mus_ecalvetoDep"   ); // et in ecal veto cone (reproduce mus_pat_ecalvetoDep)
-  produces<vector<float> >       ("mushcalvetoDep"  ).setBranchAlias("mus_hcalvetoDep"   ); // et in hcal veto cone (reproduce mus_pat_hcalvetoDep)
-
-  produces<vector<float> >	     ("musgfitchi2"     ).setBranchAlias("mus_gfit_chi2"     ); // chi2 of the global muon fit 
-  produces<vector<float> >	     ("musgfitndof"	    ).setBranchAlias("mus_gfit_ndof"     ); // number of degree of freedom of the global muon fit 
-  produces<vector<int> >	     ("musgfitvalidHits").setBranchAlias("mus_gfit_validHits"); // number of valid hits of the global muon fit 
+  produces<vector<int> >             ("musnmatches"	   ).setBranchAlias("mus_nmatches"          ); // number of stations with matched segments 
+  produces<vector<float> >	     ("museem"		   ).setBranchAlias("mus_e_em"              ); // energy in crossed ECAL crystalls 
+  produces<vector<float> >	     ("musehad"		   ).setBranchAlias("mus_e_had"             ); // energy in crossed HCAL towers 
+  produces<vector<float> >	     ("museho"		   ).setBranchAlias("mus_e_ho"              ); // energy in crossed HO towers 
+  produces<vector<float> >	     ("museemS9"	   ).setBranchAlias("mus_e_emS9"            ); // energy in 3x3 ECAL crystall shape 
+  produces<vector<float> >	     ("musehadS9"	   ).setBranchAlias("mus_e_hadS9"           ); //energy in 3x3 HCAL towers 
+  produces<vector<float> >	     ("musehoS9"	   ).setBranchAlias("mus_e_hoS9"            ); // energy in 3x3 HO towers 
+  produces<vector<float> >           ("musisotrckvetoDep"  ).setBranchAlias("mus_iso_trckvetoDep"   );//sumPt in the veto cone, tracker
+  produces<vector<float> >           ("musisoecalvetoDep"  ).setBranchAlias("mus_iso_ecalvetoDep"   );//sumEt in the veto cone, ecal
+  produces<vector<float> >           ("musisohcalvetoDep"  ).setBranchAlias("mus_iso_hcalvetoDep"   );//sumPt in the veto cone, hcal
+  produces<vector<float> >           ("musisohovetoDep"    ).setBranchAlias("mus_iso_hovetoDep"     );//sumPt in the veto cone, ho
+  produces<vector<float> >	     ("musiso03sumPt"	   ).setBranchAlias("mus_iso03_sumPt"       ); // sum of track Pt for cone of 0.3 
+  produces<vector<float> >	     ("musiso03emEt"	   ).setBranchAlias("mus_iso03_emEt"        ); // sum of ecal Et for cone of 0.3 
+  produces<vector<float> >	     ("musiso03hadEt"	   ).setBranchAlias("mus_iso03_hadEt"       ); // sum of hcal Et for cone of 0.3 
+  produces<vector<float> >	     ("musiso03hoEt"	   ).setBranchAlias("mus_iso03_hoEt"        ); // sum of ho Et for cone of 0.3 
+  produces<vector<int> >	     ("musiso03ntrk"	   ).setBranchAlias("mus_iso03_ntrk"        ); // number of tracks in the cone of 0.3 
+  produces<vector<float> >	     ("musiso05sumPt"	   ).setBranchAlias("mus_iso05_sumPt"       ); // sum of track Pt for cone of 0.5 
+  produces<vector<float> >	     ("musiso05emEt"       ).setBranchAlias("mus_iso05_emEt"        ); // sum of ecal Et for cone of 0.5 
+  produces<vector<float> >	     ("musiso05hadEt"	   ).setBranchAlias("mus_iso05_hadEt"       ); // sum of hcal Et for cone of 0.5 
+  produces<vector<float> >	     ("musiso05hoEt"	   ).setBranchAlias("mus_iso05_hoEt"        ); // sum of ho Et for cone of 0.5 
+  produces<vector<int> >	     ("musiso05ntrk"	   ).setBranchAlias("mus_iso05_ntrk"        ); // number of tracks in the cone of 0.5 
+  
+  produces<vector<float> >	     ("musgfitchi2"        ).setBranchAlias("mus_gfit_chi2"         ); // chi2 of the global muon fit 
+  produces<vector<float> >	     ("musgfitndof"	   ).setBranchAlias("mus_gfit_ndof"         ); // number of degree of freedom of the global muon fit 
+  produces<vector<int> >	     ("musgfitvalidHits").setBranchAlias("mus_gfit_validHits"       ); // number of valid hits of the global muon fit 
   // loose tracker muon identification based on muon/hadron penetration depth difference       
   produces<vector<int> >	     ("muspidTMLastStationLoose"    ).setBranchAlias("mus_pid_TMLastStationLoose"    ); 
   // tight tracker muon identification based on muon/hadron penetration depth difference       
@@ -126,11 +124,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> >   ("musgfitouterPosp4"     ).setBranchAlias("mus_gfit_outerPos_p4");
   
   muonsInputTag  		= iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
-  tracksInputTag 		= iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotInputTag 		= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
-  isoDepTrackInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepTrackInputTag");
-  isoDepEcalInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepEcalInputTag");
-  isoDepHcalInputTag 	= iConfig.getParameter<edm::InputTag>("isoDepHcalInputTag");
+
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -169,7 +164,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >	   vector_mus_e_emS9	        (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_e_hadS9	        (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_e_hoS9	        (new vector<float>	     );
-  auto_ptr<vector<float> >         vector_mus_iso               (new vector<float>	     );
+  auto_ptr<vector<float> >         vector_mus_iso_trckvetoDep  (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_iso_ecalvetoDep   (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_iso_hcalvetoDep   (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_iso_hovetoDep   (new vector<float>           );
   auto_ptr<vector<float> >	   vector_mus_iso03_sumPt       (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_iso03_emEt        (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_iso03_hadEt       (new vector<float>	     );
@@ -180,12 +178,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >	   vector_mus_iso05_hadEt       (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_iso05_hoEt        (new vector<float>	     );
   auto_ptr<vector<int> >	   vector_mus_iso05_ntrk        (new vector<int>  	     );
-  auto_ptr<vector<float> >	   vector_mus_trckvetoDep       (new vector<float>	     );
-  auto_ptr<vector<float> >	   vector_mus_ecalvetoDep       (new vector<float>	     );
-  auto_ptr<vector<float> >	   vector_mus_hcalvetoDep       (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_gfit_chi2         (new vector<float>	     );
   auto_ptr<vector<float> >	   vector_mus_gfit_ndof         (new vector<float>	     );
-  auto_ptr<vector<int> >       vector_mus_gfit_validHits    (new vector<int>  	     );
+  auto_ptr<vector<int> >           vector_mus_gfit_validHits    (new vector<int>  	     );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationLoose     (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TMLastStationTight     (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose (new vector<int>    );
@@ -199,10 +194,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(muonsInputTag, muon_h);      // change this in the future
   edm::View<Muon>::const_iterator muons_end = muon_h->end();
 
-  Handle<edm::View<Track> > tk_h;
-  iEvent.getByLabel(tracksInputTag, tk_h);
-  const edm::View<Track> *track_coll = tk_h.product();
-     
   //get BeamSpot from BeamSpotMaker
   edm::InputTag beamSpot_tag(beamSpotInputTag.label(),"evtbsp4");
   edm::Handle<LorentzVector> beamSpotH;
@@ -210,119 +201,81 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   const Point beamSpot = beamSpotH.isValid() ?
                          Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
-  //get muon iso deposits
-  edm::Handle<edm::ValueMap<IsoDeposit> > trckIsoDep_h;
-  iEvent.getByLabel(isoDepTrackInputTag, trckIsoDep_h);
-
-  edm::Handle<edm::ValueMap<IsoDeposit> > ecalIsoDep_h;
-  iEvent.getByLabel(isoDepEcalInputTag, ecalIsoDep_h);
-
-  edm::Handle<edm::ValueMap<IsoDeposit> > hcalIsoDep_h;
-  iEvent.getByLabel(isoDepHcalInputTag, hcalIsoDep_h);
-
-
+  
   for (edm::View<Muon>::const_iterator muon = muon_h->begin(); 
        muon != muons_end; ++muon) {
     
-    const pat::Muon *patMuon = dynamic_cast<const pat::Muon*>(&*muon);    
-    
-    const TrackRef siTrack     = patMuon != NULL ? patMuon->innerTrack() : muon->innerTrack();
-    const TrackRef globalTrack = patMuon != NULL ? patMuon->globalTrack() : muon->globalTrack();
+    const TrackRef siTrack     = muon->innerTrack();
+    const TrackRef globalTrack = muon->globalTrack();
 
-
-    float tempIso = trackRelIsolation(muon->momentum(), muon->vertex(), beamSpot,
-				      track_coll,
-				      0.3,     //! dR < 0.3
-				      0.01,    //! dR > 0.01
-				      0.1,     //! |d0_tk| < 0.1 cm
-				      999.9,   //! |el_2D - tk_2D| < 999
-				      0.5,     //! |z0_el - z0_track| < 0.5
-				      1.0,     //! min pt
-				      7);      //! min nHits
-    
     // fill vectors
     vector_mus_type         ->push_back(muon->type());
     int goodMask = 0;
     
     for (int iG = 0; iG < 16; ++iG){ //overkill here
-      if(patMuon != NULL) {
-	//iG!=6 because the globalTrack() accessor is not virtual in the reco::Muon
-	//and the isGood() fcn when iG = 6 is the reco::Muon::GlobalMuonPromptTight
-	//case, and the globalTrack is accessed
-	if (iG !=6) {
-	  if(patMuon->isGood((Muon::SelectionType)iG) ) goodMask |= (1 << iG);
-      } else {
-	//have to re-implement this one case here, otherwise the code barfs. Ugly!
-	if(patMuon->isGlobalMuon() && globalTrack->normalizedChi2() < 10.)
-	    goodMask |= (1 << iG);
-      }
-    } else {
-      if (muon->isGood((Muon::SelectionType)iG) ) goodMask |= 
-	(1 << iG);
-      }
+      if (isGoodMuon(*muon,(muon::SelectionType)iG) ) goodMask |=   (1 << iG);
     }
     
     
-        
     
-    vector_mus_goodmask      ->push_back(goodMask);
-    vector_mus_p4            ->push_back(muon ->p4());
-    vector_mus_trk_p4        ->push_back(siTrack.isNonnull() ? 
+    
+    vector_mus_goodmask        ->push_back(goodMask);
+    vector_mus_p4              ->push_back(muon   ->p4());
+    vector_mus_trk_p4          ->push_back(siTrack.isNonnull() ? 
 				 LorentzVector( siTrack.get()->px(), siTrack.get()->py(),
 						siTrack.get()->pz(), siTrack.get()->p() )
 				  : LorentzVector(0, 0, 0, 0));
-    vector_mus_d0            ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -999        );
-    vector_mus_z0            ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -999        );
-    vector_mus_d0corr        ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))                   :  -999        );
-    vector_mus_z0corr        ->push_back(siTrack.isNonnull() ? siTrack->dxy(beamSpot)                   :  -999        );
-    vector_mus_vertexphi     ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -999        );
-    vector_mus_chi2          ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -999        );
-    vector_mus_ndof          ->push_back(siTrack.isNonnull() ? siTrack->ndof()                          :  -999        );
-    vector_mus_validHits     ->push_back(siTrack.isNonnull() ? siTrack->numberOfValidHits()             :  -999        );
-    vector_mus_lostHits      ->push_back(siTrack.isNonnull() ? siTrack->numberOfLostHits()              :  -999        );
-    vector_mus_d0Err         ->push_back(siTrack.isNonnull() ? siTrack->d0Error()                       :  -999        );
-    vector_mus_z0Err         ->push_back(siTrack.isNonnull() ? siTrack->dzError()                       :  -999        );
-    vector_mus_ptErr         ->push_back(siTrack.isNonnull() ? siTrack->ptError()                       :  -999        );
-    vector_mus_etaErr        ->push_back(siTrack.isNonnull() ? siTrack->etaError()                      :  -999        );
-    vector_mus_phiErr        ->push_back(siTrack.isNonnull() ? siTrack->phiError()                      :  -999        );
-    vector_mus_charge        ->push_back(muon->charge()                                                                );
-    vector_mus_trk_charge    ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -999        );
-    vector_mus_qoverp        ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -999        );
-    vector_mus_qoverpError   ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -999        );
+    vector_mus_d0              ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -999        );
+    vector_mus_z0              ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -999        );
+    vector_mus_d0corr          ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))              :  -999        );
+    vector_mus_z0corr          ->push_back(siTrack.isNonnull() ? siTrack->dxy(beamSpot)                   :  -999        );
+    vector_mus_vertexphi       ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -999        );
+    vector_mus_chi2            ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -999        );
+    vector_mus_ndof            ->push_back(siTrack.isNonnull() ? siTrack->ndof()                          :  -999        );
+    vector_mus_validHits       ->push_back(siTrack.isNonnull() ? siTrack->numberOfValidHits()             :  -999        );
+    vector_mus_lostHits        ->push_back(siTrack.isNonnull() ? siTrack->numberOfLostHits()              :  -999        );
+    vector_mus_d0Err           ->push_back(siTrack.isNonnull() ? siTrack->d0Error()                       :  -999        );
+    vector_mus_z0Err           ->push_back(siTrack.isNonnull() ? siTrack->dzError()                       :  -999        );
+    vector_mus_ptErr           ->push_back(siTrack.isNonnull() ? siTrack->ptError()                       :  -999        );
+    vector_mus_etaErr          ->push_back(siTrack.isNonnull() ? siTrack->etaError()                      :  -999        );
+    vector_mus_phiErr          ->push_back(siTrack.isNonnull() ? siTrack->phiError()                      :  -999        );
+    vector_mus_charge          ->push_back(muon->charge()                                                                );
+    vector_mus_trk_charge      ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -999        );
+    vector_mus_qoverp          ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -999        );
+    vector_mus_qoverpError     ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -999        );
  
-    vector_mus_outerPhi      ->push_back(-999                                                                          );
-    vector_mus_outerEta      ->push_back(-999                                                                          );
-    vector_mus_trkrefkey     ->push_back(siTrack.isNonnull() ? (int)siTrack.index()                     :  -999        );
-    vector_mus_nmatches      ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()	         :  -999        );
-    vector_mus_e_em          ->push_back(muon->isEnergyValid() ? muon->calEnergy().em   	         :  -999        );
-    vector_mus_e_had         ->push_back(muon->isEnergyValid() ? muon->calEnergy().had		         :  -999        );
-    vector_mus_e_ho          ->push_back(muon->isEnergyValid() ? muon->calEnergy().ho		         :  -999        );
-    vector_mus_e_emS9        ->push_back(muon->isEnergyValid() ? muon->calEnergy().emS9		 :  -999        );
-    vector_mus_e_hadS9       ->push_back(muon->isEnergyValid() ? muon->calEnergy().hadS9	         :  -999        );
-    vector_mus_e_hoS9        ->push_back(muon->isEnergyValid() ? muon->calEnergy().hoS9                 :  -999        );
-    vector_mus_iso           ->push_back(tempIso                                                                       );
-    vector_mus_iso03_sumPt   ->push_back(muon->isIsolationValid() ? muon->isolationR03().sumPt           :  -999       );
-    vector_mus_iso03_emEt    ->push_back(muon->isIsolationValid() ? muon->isolationR03().emEt	          :  -999       );
-    vector_mus_iso03_hadEt   ->push_back(muon->isIsolationValid() ? muon->isolationR03().hadEt	          :  -999       );
-    vector_mus_iso03_hoEt    ->push_back(muon->isIsolationValid() ? muon->isolationR03().hoEt	          :  -999       );
-    vector_mus_iso03_ntrk    ->push_back(muon->isIsolationValid() ? muon->isolationR03().nTracks         :  -999       );
-    vector_mus_iso05_sumPt   ->push_back(muon->isIsolationValid() ? muon->isolationR05().sumPt	          :  -999       );
-    vector_mus_iso05_emEt    ->push_back(muon->isIsolationValid() ? muon->isolationR05().emEt	          :  -999       );
-    vector_mus_iso05_hadEt   ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	          :  -999       );
-    vector_mus_iso05_hoEt    ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	          :  -999       );
-    vector_mus_iso05_ntrk    ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks         :  -999       );
-	unsigned int idx = muon - muon_h->begin();
-	vector_mus_trckvetoDep   ->push_back( (*trckIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
-	vector_mus_ecalvetoDep   ->push_back( (*ecalIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
-	vector_mus_hcalvetoDep   ->push_back( (*hcalIsoDep_h)[muon_h->refAt(idx)].candEnergy() );
-										  
-    vector_mus_gfit_chi2     ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	  :  -999       );
-    vector_mus_gfit_ndof     ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	  :  -999       );
-    vector_mus_gfit_validHits->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	: -999	);
-    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationLoose)     : -999	);
-    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TMLastStationTight)     : -999	);
-    vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityLoose)	: -999	);
-    vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,Muon::TM2DCompatibilityTight)	: -999	);
+    vector_mus_outerPhi        ->push_back(-999                                                                          );
+    vector_mus_outerEta        ->push_back(-999                                                                          );
+    vector_mus_trkrefkey       ->push_back(siTrack.isNonnull() ? (int)siTrack.index()                     :  -999        );
+    vector_mus_nmatches        ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()               :  -999        );
+    vector_mus_e_em            ->push_back(muon->isEnergyValid() ? muon->calEnergy().em   	          :  -999        );
+    vector_mus_e_had           ->push_back(muon->isEnergyValid() ? muon->calEnergy().had		  :  -999        );
+    vector_mus_e_ho            ->push_back(muon->isEnergyValid() ? muon->calEnergy().ho		          :  -999        );
+    vector_mus_e_emS9          ->push_back(muon->isEnergyValid() ? muon->calEnergy().emS9		  :  -999        );
+    vector_mus_e_hadS9         ->push_back(muon->isEnergyValid() ? muon->calEnergy().hadS9	          :  -999        );
+    vector_mus_e_hoS9          ->push_back(muon->isEnergyValid() ? muon->calEnergy().hoS9                 :  -999        );
+    vector_mus_iso_trckvetoDep ->push_back(muon->isEnergyValid() ? muon->isolationR03().trackerVetoPt     :  -999        );
+    vector_mus_iso_ecalvetoDep ->push_back(muon->isEnergyValid() ? muon->isolationR03().emVetoEt          :  -999        );      
+    vector_mus_iso_hcalvetoDep ->push_back(muon->isEnergyValid() ? muon->isolationR03().hadVetoEt         :  -999        );      
+    vector_mus_iso_hovetoDep   ->push_back(muon->isEnergyValid() ? muon->isolationR03().hoVetoEt          :  -999        );      
+    
+    vector_mus_iso03_sumPt     ->push_back(muon->isIsolationValid() ? muon->isolationR03().sumPt          :  -999        );
+    vector_mus_iso03_emEt      ->push_back(muon->isIsolationValid() ? muon->isolationR03().emEt	          :  -999        );
+    vector_mus_iso03_hadEt     ->push_back(muon->isIsolationValid() ? muon->isolationR03().hadEt	  :  -999        );
+    vector_mus_iso03_hoEt      ->push_back(muon->isIsolationValid() ? muon->isolationR03().hoEt	          :  -999        );
+    vector_mus_iso03_ntrk      ->push_back(muon->isIsolationValid() ? muon->isolationR03().nTracks        :  -999        );
+    vector_mus_iso05_sumPt     ->push_back(muon->isIsolationValid() ? muon->isolationR05().sumPt	  :  -999        );
+    vector_mus_iso05_emEt      ->push_back(muon->isIsolationValid() ? muon->isolationR05().emEt	          :  -999        );
+    vector_mus_iso05_hadEt     ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	  :  -999        );
+    vector_mus_iso05_hoEt      ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	          :  -999        );
+    vector_mus_iso05_ntrk      ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks        :  -999        );
+    vector_mus_gfit_chi2       ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	          :  -999        );
+    vector_mus_gfit_ndof       ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	          :  -999        );
+    vector_mus_gfit_validHits  ->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	  :  -999	 );
+    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationLoose)     : -999	);
+    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationTight)     : -999	);
+    vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityLoose)	: -999	);
+    vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityTight)	: -999	);
     vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
 
     vector_mus_vertex_p4                  ->push_back(siTrack.isNonnull() ? 
@@ -372,7 +325,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_e_emS9          , "museemS9"             );
   iEvent.put(vector_mus_e_hadS9         , "musehadS9"            );
   iEvent.put(vector_mus_e_hoS9          , "musehoS9"             );
-  iEvent.put(vector_mus_iso             , "musiso"               );
+  iEvent.put(vector_mus_iso_trckvetoDep , "musisotrckvetoDep"    );
+  iEvent.put(vector_mus_iso_ecalvetoDep , "musisoecalvetoDep"    );
+  iEvent.put(vector_mus_iso_hcalvetoDep , "musisohcalvetoDep"    );
+  iEvent.put(vector_mus_iso_hovetoDep   , "musisohovetoDep"      );
   iEvent.put(vector_mus_iso03_sumPt     , "musiso03sumPt"        );
   iEvent.put(vector_mus_iso03_emEt      , "musiso03emEt"         );
   iEvent.put(vector_mus_iso03_hadEt     , "musiso03hadEt"        );
@@ -383,9 +339,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_iso05_hadEt     , "musiso05hadEt"        );
   iEvent.put(vector_mus_iso05_hoEt      , "musiso05hoEt"         );
   iEvent.put(vector_mus_iso05_ntrk      , "musiso05ntrk"         );
-  iEvent.put(vector_mus_trckvetoDep     , "mustrckvetoDep"       );
-  iEvent.put(vector_mus_ecalvetoDep     , "musecalvetoDep"       );
-  iEvent.put(vector_mus_hcalvetoDep     , "mushcalvetoDep"       );
   iEvent.put(vector_mus_gfit_chi2       , "musgfitchi2"          );
   iEvent.put(vector_mus_gfit_ndof       , "musgfitndof"          );
   iEvent.put(vector_mus_gfit_validHits  , "musgfitvalidHits"     );
