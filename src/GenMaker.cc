@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.10 2009/08/28 10:10:35 fgolf Exp $
+// $Id: GenMaker.cc,v 1.11 2009/08/29 11:36:03 kalavase Exp $
 //
 //
 
@@ -32,6 +32,7 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
 #include "TMath.h"
 
@@ -56,7 +57,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> > ("genpslepdaughterp4" ).setBranchAlias("genps_lepdaughter_p4" );
   produces<float>                  ("genmet"             ).setBranchAlias("gen_met"              );
   produces<float>                  ("genmetPhi"          ).setBranchAlias("gen_metPhi"           );
-  produces<double>                 ("genpspthat"         ).setBranchAlias("genps_pthat"          );
+  produces<float>                  ("genpspthat"         ).setBranchAlias("genps_pthat"          );
+  produces<float>                  ("genpsweight"        ).setBranchAlias("genps_weight"          );
 
   genParticlesInputTag  = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
   genEventScaleInputTag = iConfig.getParameter<InputTag>                  ("genEventScaleInputTag");
@@ -90,7 +92,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > genps_lepdaughter_p4 (new vector<LorentzVector>   );
   auto_ptr<float>                  gen_met              (new float                   );
   auto_ptr<float>                  gen_metPhi           (new float                   );  
-  auto_ptr<double>                 genps_pthat          (new double                  );
+  auto_ptr<float>                  genps_pthat          (new float                   );
+  auto_ptr<float>                  genps_weight         (new float                   );
 
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -116,6 +119,24 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *genps_pthat = ptHat;
   }
 
+  //get the MC event weights
+  //if weights do not exist (Pythia), default is weight of 1
+  vector< Handle<HepMCProduct> > hepmc_vect;
+  iEvent.getManyByType(hepmc_vect);
+  HepMC::WeightContainer wc;
+  if(hepmc_vect.size() != 0) { //found HepMC branch
+    const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
+    wc = genEvt->weights();
+    float weight = -999.;
+    if(wc.size() > 0 ) {
+      weight = (float)wc[0];
+    } 
+    if(wc.size() == 0) weight = -999.;
+    *genps_weight = weight;
+  } else {
+    *genps_weight = 1.;
+  }   
+  
   LorentzVector tempvect(0,0,0,0);
 
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
@@ -173,6 +194,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(gen_met              , "genmet"             );
   iEvent.put(gen_metPhi           , "genmetPhi"          );
   iEvent.put(genps_pthat          , "genpspthat"         );
+  iEvent.put(genps_weight         , "genpsweight"        );
 }
 
 //define this as a plug-in
