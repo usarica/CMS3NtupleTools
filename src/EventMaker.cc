@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.19 2009/08/21 10:04:09 dlevans Exp $
+// $Id: EventMaker.cc,v 1.20 2009/08/29 11:35:22 kalavase Exp $
 //
 //
 
@@ -47,7 +47,7 @@ Implementation:
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+
 
 #include "TString.h"
 
@@ -82,7 +82,6 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>              ("evtL13"            ).setBranchAlias("evt_L1_3"          );
   produces<int>              ("evtL14"            ).setBranchAlias("evt_L1_4"          );
   produces<float>            ("evtbField"         ).setBranchAlias("evt_bField"        );
-  produces<float>            ("evtweight"         ).setBranchAlias("evt_weight"        );
   produces<float>            ("evtxsecincl"       ).setBranchAlias("evt_xsec_incl"     );
   produces<float>            ("evtxsecexcl"       ).setBranchAlias("evt_xsec_excl"     );
   produces<float>            ("evtkfactor"        ).setBranchAlias("evt_kfactor"       );
@@ -135,7 +134,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>              evt_L13             (new int);
   auto_ptr<int>              evt_L14             (new int);
   auto_ptr<float>            evt_bField          (new float);
-  auto_ptr<float>            evt_weight          (new float);
   auto_ptr<float>            evt_xsec_incl       (new float);
   auto_ptr<float>            evt_xsec_excl       (new float);
   auto_ptr<float>            evt_kfactor         (new float);
@@ -204,33 +202,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
  
   
-   //get the MC event weights
-   //if weights do not exist (Pythia), default is weight of 1
-  vector< Handle<HepMCProduct> > hepmc_vect;
-  iEvent.getManyByType(hepmc_vect);
-  HepMC::WeightContainer wc;
-  if(hepmc_vect.size() != 0) { //found HepMC branch
-    const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
-     wc = genEvt->weights();
-     float weight = -999.;
-     if(wc.size() > 0 ) {
-	weight = (float)wc[0];
-	} 
-     if(wc.size() == 0) weight = -999.;
-     *evt_weight = weight;
-  } else {
-  //  try {
-  //    Handle<double> evtwt;
-  //    iEvent.getByLabel("genEventWeight", evtwt);
-  //    *evt_weight = (float)*evtwt;
-  //  } catch (edm::Exception const& x) {
-  //    *evt_weight = 1.;
-  //  }
-
-      *evt_weight = 1.;
-
-  }   
-
   *evt_xsec_incl = inclusiveCrossSectionValue;
   *evt_xsec_excl = exclusiveCrossSectionValue;
   *evt_kfactor   = kfactorValue;
@@ -253,7 +224,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_L13              ,"evtL13"             );
   iEvent.put(evt_L14              ,"evtL14"             );
   iEvent.put(evt_bField           ,"evtbField"          );
-  iEvent.put(evt_weight           ,"evtweight"          );
   iEvent.put(evt_xsec_incl        ,"evtxsecincl"        );
   iEvent.put(evt_xsec_excl        ,"evtxsecexcl"        );
   iEvent.put(evt_kfactor          ,"evtkfactor"         );
