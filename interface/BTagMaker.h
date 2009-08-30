@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BTagMaker.h,v 1.1 2009/05/22 02:12:01 kalavase Exp $
+// $Id: BTagMaker.h,v 1.2 2009/08/30 16:35:52 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_BTAGMAKER_H
@@ -47,23 +47,22 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag uncorRecoJetsTag_;
-  
+  std::string   aliasprefix_;
   edm::InputTag combinedSecondaryVertexBJetTags_   ;
   edm::InputTag combinedSecondaryVertexMVABJetTags_;
-  edm::InputTag impactParameterMVABJetTags_        ;
   edm::InputTag jetBProbabilityBJetTags_           ;
   edm::InputTag jetProbabilityBJetTags_            ;
   edm::InputTag simpleSecondaryVertexBJetTags_     ;
-  edm::InputTag softElectronBJetTags_              ;
+  //new for 312
+  edm::InputTag softElectronByIP3dBJetTags_        ;
+  edm::InputTag softElectronByPtBJetTags_          ;
   edm::InputTag softMuonBJetTags_                  ;
+  edm::InputTag softMuonByIP3dBJetTags_            ;
+  edm::InputTag softMuonByPtBJetTags_              ;
   edm::InputTag softMuonNoIPBJetTags_              ;
   edm::InputTag trackCountingHighEffBJetTags_      ;
   edm::InputTag trackCountingHighPurBJetTags_      ; 
 
-
-  //bool ntupleOnlyStatus3;
-  //bool ntupleDaughters;
-  //std::vector<int> vmetPIDs;
 };
 
 #endif
