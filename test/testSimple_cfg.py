@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.4 $'),
+        version = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -49,7 +49,7 @@ process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
 #process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
 #process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
 #process.load("CMS2.NtupleMaker.elToTrackAssMaker_cfi")
-#process.load("CMS2.NtupleMaker.eventMaker_cfi")
+process.load("CMS2.NtupleMaker.eventMaker_cfi")
 #gammaSequence = cms.Sequence(gamIsoDepositsCMS2 + gamIsoFromDepositsCMS2)
 #process.load("CMS2.NtupleMaker.gammaSequence_cfi") 
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
@@ -217,8 +217,7 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*JetPlusTra
 #process.CMS2Reco      = cms.Sequence(process.electronSequence * process.gammaSequence * process.cms2CaloJetSequence)
 process.CMS2Reco = cms.Sequence(process.cms2CaloJetSequence * process.metCorSequence)
 
-#process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
-process.eventmakers = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.pdfinfoMaker)
+process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 
 #process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
 
