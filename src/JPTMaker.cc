@@ -5,16 +5,16 @@
 // 
 /**\class JPTMaker JPTMaker.cc CMS2/NtupleMaker/src/JPTMaker.cc
 
-Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
+   Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
 
-Implementation:
-- take JPT jets
-- extract and fill variables
+   Implementation:
+   - take JPT jets
+   - extract and fill variables
 */
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.7 2009/05/27 02:28:29 warren Exp $
+// $Id: JPTMaker.cc,v 1.8 2009/08/30 13:21:01 fgolf Exp $
 //
 //
 
@@ -26,19 +26,16 @@ Implementation:
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/JPTMaker.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
+#include "CMS2/NtupleMaker/interface/JPTMaker.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 
@@ -49,6 +46,7 @@ typedef math::XYZTLorentzVector LorentzVector;
 //
 // constructors and destructor
 //
+
 JPTMaker::JPTMaker(const edm::ParameterSet& iConfig)
 {
   // product of this EDProducer
@@ -62,7 +60,7 @@ JPTMaker::JPTMaker(const edm::ParameterSet& iConfig)
   jptsInputTag      = iConfig.getParameter<edm::InputTag>("jptInputTag"       );
   L2L3jptsInputTag  = iConfig.getParameter<edm::InputTag>("L2L3jptInputTag"   );
   uncorJetsInputTag = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag" );
-  caloJetsInputTag  = iConfig.getParameter<edm::InputTag>("caloJetInputTag"   );
+
 }
 
 JPTMaker::~JPTMaker()
@@ -74,23 +72,42 @@ JPTMaker::~JPTMaker()
 //
 
 // ------------ method called to produce the data  ------------
-void
-JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+  std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int               );
+  std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector> );
+  std::auto_ptr<std::vector<float> >         vector_jpts_emFrac (new std::vector<float>         );
+  std::auto_ptr<std::vector<float> >         vector_jpts_cor    (new std::vector<float>         );
+  std::auto_ptr<std::vector<float> >         vector_jpts_jet_cor(new std::vector<float>         );
 
   edm::Handle<std::vector<reco::CaloJet> > jptsHandle;
+  iEvent.getByLabel(jptsInputTag, jptsHandle); 
+
+  if( !jptsHandle.isValid() ) {
+    edm::LogInfo("OutputInfo") << " failed to retrieve JPT collection";
+    edm::LogInfo("OutputInfo") << " JPTMaker cannot continue...!";
+    return;
+  }
+
   edm::Handle<std::vector<reco::CaloJet> > L2L3jptsHandle;
+  iEvent.getByLabel(L2L3jptsInputTag , L2L3jptsHandle);
+
+  if( !L2L3jptsHandle.isValid() ) {
+    edm::LogInfo("OutputInfo") << " failed to retrieve L2L3 corrected JPT collection";
+    edm::LogInfo("OutputInfo") << " JPTMaker cannot continue...!";
+    return;
+  }
+
   edm::Handle<std::vector<reco::CaloJet> > uncorJetsHandle;
+  iEvent.getByLabel(uncorJetsInputTag, uncorJetsHandle);
 
-  iEvent.getByLabel(jptsInputTag     , jptsHandle      );
-  iEvent.getByLabel(L2L3jptsInputTag , L2L3jptsHandle  );
-  iEvent.getByLabel(uncorJetsInputTag, uncorJetsHandle );
+  if( !L2L3jptsHandle.isValid() ) {
+    edm::LogInfo("OutputInfo") << " failed to retrieve L2L3 corrected JPT collection";
+    edm::LogInfo("OutputInfo") << " JPTMaker cannot continue...!";
+    return;
+  }
 
-  std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int(jptsHandle->size()) );
-  std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector>       );
-  std::auto_ptr<std::vector<float> >         vector_jpts_emFrac (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >         vector_jpts_cor    (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >         vector_jpts_jet_cor(new std::vector<float>               );
+  *evt_njpts = jptsHandle->size();
 
   std::vector<reco::CaloJet> v_jpts      = *( jptsHandle.product()      );
   std::vector<reco::CaloJet> v_L2L3jpts  = *( L2L3jptsHandle.product()  );
@@ -104,10 +121,10 @@ JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   for ( std::vector<reco::CaloJet>::const_iterator jptcor = v_L2L3jpts.begin(); jptcor != v_L2L3jpts.end(); ++jptcor, ++jet, ++jpt ) {
 
-    vector_jpts_p4->push_back( jptcor->p4() );
-    vector_jpts_emFrac->push_back( jpt->emEnergyFraction() );
-    vector_jpts_cor->push_back( jptcor->p4().Et() / jpt->p4().Et() );
-    vector_jpts_jet_cor->push_back( jptcor->p4().Et() / jet->et() );
+    vector_jpts_p4     ->push_back( jptcor->p4()                       );
+    vector_jpts_emFrac ->push_back( jpt->emEnergyFraction()            );
+    vector_jpts_cor    ->push_back( jptcor->p4().Et() / jpt->p4().Et() );
+    vector_jpts_jet_cor->push_back( jptcor->p4().Et() / jet->et()      );
   }
 
   // put containers into event
@@ -119,15 +136,11 @@ JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-JPTMaker::beginJob(const edm::EventSetup&)
-{
+void JPTMaker::beginJob(const edm::EventSetup&) {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-JPTMaker::endJob()
-{
+void JPTMaker::endJob() {
 }
 
 //define this as a plug-in

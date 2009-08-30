@@ -5,16 +5,16 @@
 // 
 /**\class JPTMaker JPTMaker.h CMS2/NtupleMaker/interface/JPTMaker.h
 
-Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
+   Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
 
-Implementation:
-- take JPT jets
-- extract and fill variables
+   Implementation:
+   - take JPT jets
+   - extract and fill variables
 */
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.5 2009/05/19 08:44:07 fgolf Exp $
+// $Id: JPTMaker.h,v 1.6 2009/08/30 13:20:57 fgolf Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -27,10 +27,8 @@ Implementation:
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/InputTag.h"
 
@@ -52,7 +50,6 @@ private:
   edm::InputTag jptsInputTag;
   edm::InputTag L2L3jptsInputTag;
   edm::InputTag uncorJetsInputTag;
-  edm::InputTag caloJetsInputTag;
 };
 
 
