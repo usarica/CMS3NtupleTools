@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 from RecoJets.JetAssociationProducers.ic5JetTracksAssociatorAtVertex_cfi import *
 from RecoBTag.Configuration.RecoBTag_cff import *
 
-# create a CMS2Trk jets and tracks association
+# create a CMS2 jets and tracks association
 CMS2TrkJetTracksAssociatorAtVertex = ic5JetTracksAssociatorAtVertex.clone()
 CMS2TrkJetTracksAssociatorAtVertex.jets = "SISCone5TrkJets"
 CMS2TrkJetTracksAssociatorAtVertex.tracks = "generalTracks"
@@ -25,8 +25,9 @@ CMS2TrkJetProbabilityBJetTags = jetProbabilityBJetTags.clone()
 CMS2TrkJetProbabilityBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkImpactParameterTagInfos") )
 CMS2TrkJetBProbabilityBJetTags = jetBProbabilityBJetTags.clone()
 CMS2TrkJetBProbabilityBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkImpactParameterTagInfos") )
-CMS2TrkImpactParameterMVABJetTags = impactParameterMVABJetTags.clone()
-CMS2TrkImpactParameterMVABJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2TrkImpactParameterTagInfos"))
+#removed for 312
+#CMS2TrkImpactParameterMVABJetTags = impactParameterMVABJetTags.clone()
+#CMS2TrkImpactParameterMVABJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2TrkImpactParameterTagInfos"))
 
 
 #Then the secondary vertex-based b-tag. Note that these producers inherit the jets and tracks they use from the impact parameter modules:
@@ -46,8 +47,14 @@ CMS2TrkCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag
 # soft electron b-tag
 CMS2TrkSoftElectronTagInfos = softElectronTagInfos.clone()
 CMS2TrkSoftElectronTagInfos.jets = "SISCone5TrkJets"
-CMS2TrkSoftElectronBJetTags = softElectronBJetTags.clone()
-CMS2TrkSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+#removed for 312
+#CMS2TrkSoftElectronBJetTags = softElectronBJetTags.clone()
+#CMS2TrkSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+###########################################new
+CMS2TrkSoftElectronByPtBJetTags = softElectronByPtBJetTags.clone()
+CMS2TrkSoftElectronByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+CMS2TrkSoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
+CMS2TrkSoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
 
 # soft muon b-tag
 CMS2TrkSoftMuonTagInfos = softMuonTagInfos.clone()
@@ -70,8 +77,8 @@ CMS2TrkJetBtaggingIP = cms.Sequence(
         CMS2TrkTrackCountingHighEffBJetTags +
         CMS2TrkTrackCountingHighPurBJetTags +
         CMS2TrkJetProbabilityBJetTags +
-        CMS2TrkJetBProbabilityBJetTags +
-        CMS2TrkImpactParameterMVABJetTags
+        CMS2TrkJetBProbabilityBJetTags
+        #CMS2TrkImpactParameterMVABJetTags
     )
 )
 
@@ -85,9 +92,12 @@ CMS2TrkJetBtaggingSV = cms.Sequence(
 )
 
 CMS2TrkJetBtaggingEle = cms.Sequence(
-    btagSoftElectrons *
-    CMS2TrkSoftElectronTagInfos *
-    CMS2TrkSoftElectronBJetTags
+    #btagSoftElectrons *
+    CMS2TrkSoftElectronTagInfos * (
+    #CMS2TrkSoftElectronBJetTags
+    CMS2TrkSoftElectronByIP3dBJetTags +
+    CMS2TrkSoftElectronByPtBJetTags
+    )
 )
 
 CMS2TrkJetBtaggingMu = cms.Sequence(
@@ -95,7 +105,7 @@ CMS2TrkJetBtaggingMu = cms.Sequence(
         CMS2TrkSoftMuonBJetTags +
         CMS2TrkSoftMuonByIP3dBJetTags +
         CMS2TrkSoftMuonByPtBJetTags +
-        CMS2TrkSoftMuonNoIPBJetTags
+        CMS2TrkSoftMuonNoIPBJetTags #this isn't even in the official reco sequence for 312, but it runs. WTF?
     )
 )
 
