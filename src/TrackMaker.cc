@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.14 2009/08/27 17:03:18 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.15 2009/08/30 16:29:47 fgolf Exp $
 //
 //
 
@@ -59,36 +59,37 @@ using std::vector;
 //
 TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
 {
-  produces<vector<LorentzVector> >	("trkstrkp4"	).setBranchAlias("trks_trk_p4"    );	// track p4						
-  produces<vector<LorentzVector> >	("trksvertexp4"	).setBranchAlias("trks_vertex_p4" );	// track p4
-  produces<vector<LorentzVector> >      ("trksouterp4"  ).setBranchAlias("trks_outer_p4"  );    // p4 at the outermost point of the tracker
-  produces<vector<float> >		("trksd0"	).setBranchAlias("trks_d0"        );	// impact parameter at the point of closest approach	
-  produces<vector<float> >		("trksd0corr"	).setBranchAlias("trks_d0corr"    );	// impact parameter at the point of closest approach corrected for the beamSpot
-  produces<vector<float> >		("trksd0corrPhi").setBranchAlias("trks_d0corrPhi" );	// angle of impact parameter corrected for beamSpot
-  produces<vector<float> >		("trksz0"	).setBranchAlias("trks_z0"        );	// z position of the point of closest approach		
-  produces<vector<float> >		("trksz0corr"	).setBranchAlias("trks_z0corr"    );	// z position of the point of closest approach corrected for the the beamSpot
-  produces<vector<float> >		("trksvertexphi").setBranchAlias("trks_vertexphi" );	// phi angle of the point of closest approach		
-  produces<vector<float> >		("trkschi2"	).setBranchAlias("trks_chi2"      );	// chi2 of the silicon tracker fit			
-  produces<vector<float> >		("trksndof"	).setBranchAlias("trks_ndof"      );	// number of degrees of freedom of the fit		
-  produces<vector<int> >		("trksvalidHits").setBranchAlias("trks_validHits" );	// number of used hits in the fit			
-  produces<vector<int> >		("trkslostHits"	).setBranchAlias("trks_lostHits"  );	// number of lost hits in the fit			
-  produces<vector<float> >		("trksd0Err"	).setBranchAlias("trks_d0Err"     );	// error on the impact parameter			
-  produces<vector<float> >		("trksz0Err"	).setBranchAlias("trks_z0Err"     );	// error on z position of the point of closest approach	
-  produces<vector<float> >		("trksptErr"	).setBranchAlias("trks_ptErr"     );	// track Pt error					
-  produces<vector<float> >		("trksetaErr"	).setBranchAlias("trks_etaErr"    );	// track eta error					
-  produces<vector<float> >		("trksphiErr"	).setBranchAlias("trks_phiErr"    );	// track phi error					
-  produces<vector<int> >		("trkscharge"	).setBranchAlias("trks_charge"    );	// charge						
-  produces<vector<float> >		("trkstkIso"	).setBranchAlias("trks_tkIso"     );	// track isolation like els_tkIso
+  produces<vector<LorentzVector> >	("trkstrkp4"	  ).setBranchAlias("trks_trk_p4"     );	// track p4						
+  produces<vector<LorentzVector> >	("trksvertexp4"	  ).setBranchAlias("trks_vertex_p4"  );	// track p4
+  produces<vector<LorentzVector> >      ("trksouterp4"    ).setBranchAlias("trks_outer_p4"   );    // p4 at the outermost point of the tracker
+  produces<vector<float> >		("trksd0"	  ).setBranchAlias("trks_d0"         );	// impact parameter at the point of closest approach	
+  produces<vector<float> >		("trksd0corr"	  ).setBranchAlias("trks_d0corr"     );	// impact parameter at the point of closest approach corrected for the beamSpot
+  produces<vector<float> >		("trksd0corrPhi"  ).setBranchAlias("trks_d0corrPhi"  );	// angle of impact parameter corrected for beamSpot
+  produces<vector<float> >		("trksz0"	  ).setBranchAlias("trks_z0"         );	// z position of the point of closest approach		
+  produces<vector<float> >		("trksz0corr"	  ).setBranchAlias("trks_z0corr"     );	// z position of the point of closest approach corrected for the the beamSpot
+  produces<vector<float> >		("trksvertexphi"  ).setBranchAlias("trks_vertexphi"  );	// phi angle of the point of closest approach		
+  produces<vector<float> >		("trkschi2"	  ).setBranchAlias("trks_chi2"       );	// chi2 of the silicon tracker fit			
+  produces<vector<float> >		("trksndof"	  ).setBranchAlias("trks_ndof"       );	// number of degrees of freedom of the fit		
+  produces<vector<int> >		("trksvalidHits"  ).setBranchAlias("trks_validHits"  );	// number of used hits in the fit			
+  produces<vector<int> >		("trkslostHits"	  ).setBranchAlias("trks_lostHits"   );	// number of lost hits in the fit			
+  produces<vector<float> >		("trksd0Err"	  ).setBranchAlias("trks_d0Err"      );	// error on the impact parameter			
+  produces<vector<float> >		("trksz0Err"	  ).setBranchAlias("trks_z0Err"      );	// error on z position of the point of closest approach	
+  produces<vector<float> >		("trksptErr"	  ).setBranchAlias("trks_ptErr"      );	// track Pt error					
+  produces<vector<float> >		("trksetaErr"	  ).setBranchAlias("trks_etaErr"     );	// track eta error					
+  produces<vector<float> >		("trksphiErr"	  ).setBranchAlias("trks_phiErr"     );	// track phi error					
+  produces<vector<int> >		("trkscharge"	  ).setBranchAlias("trks_charge"     );	// charge						
+  produces<vector<float> >		("trkstkIso"	  ).setBranchAlias("trks_tkIso"      );	// track isolation like els_tkIso
+  produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
 
-  dRConeMin_   = iConfig.getParameter<double>("trkIsolationdRConeMin");
-  dRConeMax_   = iConfig.getParameter<double>("trkIsolationdRConeMax");
+  dRConeMin_   = iConfig.getParameter<double>("trkIsolationdRConeMin"  );
+  dRConeMax_   = iConfig.getParameter<double>("trkIsolationdRConeMax"  );
   vtxDiffZMax_ = iConfig.getParameter<double>("trkIsolationVtxDiffZMax");
-  tkVtxDMax_   = iConfig.getParameter<double>("trkIsolationTkVtxDMax");
-  ptMin_       = iConfig.getParameter<double>("trkIsolationPtMin");
-  nHits_       = iConfig.getParameter<int>("trkIsolationNHits");
+  tkVtxDMax_   = iConfig.getParameter<double>("trkIsolationTkVtxDMax"  );
+  ptMin_       = iConfig.getParameter<double>("trkIsolationPtMin"      );
+  nHits_       = iConfig.getParameter<int>   ("trkIsolationNHits"      );
 
 }
 
@@ -119,6 +120,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<float> >		vector_trks_outerEta	(new vector<float>		);      
   std::auto_ptr<vector<float> >         vector_trks_outerPt     (new vector<float>              );
   std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
+  std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
 
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
@@ -176,6 +178,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_phiErr       ->push_back( i->phiError()                                            );
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_tkIso        ->push_back( calculateTrkIsolation(track_h.product(), *i, beamSpot)   );
+    vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
 	  
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
@@ -247,6 +250,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_phiErr       , "trksphiErr"            );
   iEvent.put(vector_trks_charge       , "trkscharge"            );
   iEvent.put(vector_trks_tkIso        , "trkstkIso"             );
+  iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
