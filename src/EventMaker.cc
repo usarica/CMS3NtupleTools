@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.20 2009/08/29 11:35:22 kalavase Exp $
+// $Id: EventMaker.cc,v 1.21 2009/08/30 15:28:22 fgolf Exp $
 //
 //
 
@@ -30,8 +30,6 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/TriggerNames.h"
-#include "CMS2/NtupleMaker/interface/EventMaker.h"
-
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
@@ -45,9 +43,11 @@ Implementation:
 
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
+
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
 
+#include "CMS2/NtupleMaker/interface/EventMaker.h"
 
 #include "TString.h"
 
@@ -63,7 +63,6 @@ using namespace std;
 
 EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
-  
   produces<unsigned int>     ("evtrun"            ).setBranchAlias("evt_run"           );
   produces<unsigned int>     ("evtevent"          ).setBranchAlias("evt_event"         );
   produces<unsigned int>     ("evtlumiBlock"      ).setBranchAlias("evt_lumiBlock"     );
@@ -82,35 +81,24 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
   produces<int>              ("evtL13"            ).setBranchAlias("evt_L1_3"          );
   produces<int>              ("evtL14"            ).setBranchAlias("evt_L1_4"          );
   produces<float>            ("evtbField"         ).setBranchAlias("evt_bField"        );
-  produces<float>            ("evtxsecincl"       ).setBranchAlias("evt_xsec_incl"     );
-  produces<float>            ("evtxsecexcl"       ).setBranchAlias("evt_xsec_excl"     );
-  produces<float>            ("evtkfactor"        ).setBranchAlias("evt_kfactor"       );
   produces<vector<TString> > ("evtL1trigNames"    ).setBranchAlias("evt_L1_trigNames"  );    
   produces<vector<TString> > ("evtHLTtrigNames"   ).setBranchAlias("evt_HLT_trigNames" );
   
-  
-  inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("inclusiveCrossSection");
-  exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>("exclusiveCrossSection");
-  kfactorValue = iConfig.getUntrackedParameter<double>("kfactor");
   datasetName_ = iConfig.getParameter<std::string>("datasetName");
   CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
   
   // info
   haveL1TriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveL1TriggerInfo");
   haveHLTriggerInfo_ = iConfig.getUntrackedParameter<bool>("haveHLTriggerInfo");
-
-
 }
 
 
 EventMaker::~EventMaker() {}
 
-void  EventMaker::beginJob(const edm::EventSetup&) {
-      
+void EventMaker::beginJob(const edm::EventSetup&) {  
 }
 
 void EventMaker::endJob() {
-  
 }
 
 // ------------ method called to produce the data  ------------
@@ -134,9 +122,6 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<int>              evt_L13             (new int);
   auto_ptr<int>              evt_L14             (new int);
   auto_ptr<float>            evt_bField          (new float);
-  auto_ptr<float>            evt_xsec_incl       (new float);
-  auto_ptr<float>            evt_xsec_excl       (new float);
-  auto_ptr<float>            evt_kfactor         (new float);
   auto_ptr<vector<TString> > evt_HLT_trigNames   (new vector<TString>);
   auto_ptr<vector<TString> > evt_L1_trigNames    (new vector<TString>);
   
@@ -200,12 +185,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ESHandle<MagneticField> magneticField;
   iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
   *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
- 
-  
-  *evt_xsec_incl = inclusiveCrossSectionValue;
-  *evt_xsec_excl = exclusiveCrossSectionValue;
-  *evt_kfactor   = kfactorValue;
-      
+       
   iEvent.put(evt_run              ,"evtrun"             );
   iEvent.put(evt_event            ,"evtevent"           );
   iEvent.put(evt_lumiBlock        ,"evtlumiBlock"       );
@@ -224,16 +204,9 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_L13              ,"evtL13"             );
   iEvent.put(evt_L14              ,"evtL14"             );
   iEvent.put(evt_bField           ,"evtbField"          );
-  iEvent.put(evt_xsec_incl        ,"evtxsecincl"        );
-  iEvent.put(evt_xsec_excl        ,"evtxsecexcl"        );
-  iEvent.put(evt_kfactor          ,"evtkfactor"         );
   iEvent.put(evt_HLT_trigNames    ,"evtHLTtrigNames"    );
   iEvent.put(evt_L1_trigNames     ,"evtL1trigNames"     );
-
-
 }
-
-
 
 //-----------------------------------------------------------------------
 // fill HLT info

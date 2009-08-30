@@ -5,15 +5,15 @@
 // 
 /**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/EventMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.10 2009/08/21 10:04:12 dlevans Exp $
+// $Id: EventMaker.h,v 1.11 2009/08/30 15:28:18 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -25,13 +25,13 @@
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
-
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenuFwd.h"
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
+
 #include "TString.h"
 //
 // class decleration
@@ -39,31 +39,28 @@
 
 class EventMaker : public edm::EDProducer {
 public:
-     explicit EventMaker (const edm::ParameterSet&);
-      ~EventMaker();
+  explicit EventMaker (const edm::ParameterSet&);
+  ~EventMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
-   edm::InputTag electronsInputTag;
-   edm::InputTag tracksInputTag;
-   edm::InputTag genParticlesInputTag;
-      // ----------member data ---------------------------
-  
-  
+  edm::InputTag electronsInputTag;
+  edm::InputTag tracksInputTag;
+  edm::InputTag genParticlesInputTag;
+
+  // ----------member data ---------------------------
   void fillHLTInfo(const edm::Event&, 
 		   int&, int&, int&, int&,
 		   int&, int&, int&, int&, 
 		   std::vector<TString>&);
+
   void fillL1Info(const edm::Event&, int&, 
 		  int&, int&, int&, std::vector<TString>&,
 		  const L1GtTriggerMenu* menu);
   
-  double inclusiveCrossSectionValue;
-  double exclusiveCrossSectionValue;
-  double kfactorValue;
   bool haveL1TriggerInfo_;
   bool haveHLTriggerInfo_;
 
