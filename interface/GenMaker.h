@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.9 2009/08/28 10:10:20 fgolf Exp $
+// $Id: GenMaker.h,v 1.10 2009/08/30 15:29:05 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -46,9 +46,16 @@ private:
   // ----------member data ---------------------------
   edm::InputTag genParticlesInputTag;
   edm::InputTag genEventScaleInputTag;
+  
   bool ntupleOnlyStatus3;
   bool ntupleDaughters;
+ 
   std::vector<int> vmetPIDs;
+
+  double inclusiveCrossSectionValue;
+  double exclusiveCrossSectionValue;
+  double kfactorValue;
+
 };
 
 #endif

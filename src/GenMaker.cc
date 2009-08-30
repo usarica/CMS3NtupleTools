@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.11 2009/08/29 11:36:03 kalavase Exp $
+// $Id: GenMaker.cc,v 1.12 2009/08/30 15:29:09 fgolf Exp $
 //
 //
 
@@ -58,13 +58,23 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<float>                  ("genmet"             ).setBranchAlias("gen_met"              );
   produces<float>                  ("genmetPhi"          ).setBranchAlias("gen_metPhi"           );
   produces<float>                  ("genpspthat"         ).setBranchAlias("genps_pthat"          );
-  produces<float>                  ("genpsweight"        ).setBranchAlias("genps_weight"          );
+  produces<float>                  ("genpsweight"        ).setBranchAlias("genps_weight"         );
 
-  genParticlesInputTag  = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  genEventScaleInputTag = iConfig.getParameter<InputTag>                  ("genEventScaleInputTag");
-  ntupleOnlyStatus3     = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
-  ntupleDaughters       = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
-  vmetPIDs              = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
+  produces<float>                  ("evtscale1fb"        ).setBranchAlias("evt_scale1fb"         );
+  produces<float>                  ("evtxsecincl"        ).setBranchAlias("evt_xsec_incl"        );
+  produces<float>                  ("evtxsecexcl"        ).setBranchAlias("evt_xsec_excl"        );
+  produces<float>                  ("evtkfactor"         ).setBranchAlias("evt_kfactor"          );
+
+
+  genParticlesInputTag       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
+  genEventScaleInputTag      = iConfig.getParameter<InputTag>                  ("genEventScaleInputTag");
+  ntupleOnlyStatus3          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
+  ntupleDaughters            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
+  vmetPIDs                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
+  inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("inclusiveCrossSection");
+  exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("exclusiveCrossSection");
+  kfactorValue               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
+
 }
 
 GenMaker::~GenMaker()
@@ -95,6 +105,12 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>                  genps_pthat          (new float                   );
   auto_ptr<float>                  genps_weight         (new float                   );
 
+  auto_ptr<float>                  evt_scale1fb         (new float                   );
+  auto_ptr<float>                  evt_xsec_incl        (new float                   );
+  auto_ptr<float>                  evt_xsec_excl        (new float                   );
+  auto_ptr<float>                  evt_kfactor          (new float                   );
+
+
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
   iEvent.getByLabel(genParticlesInputTag, genpsHandle);
@@ -110,6 +126,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // get the ptHat scale variable
   edm::Handle<double> genEventScale;
   iEvent.getByLabel(genEventScaleInputTag, genEventScale);
+
   if( genEventScale.isValid() ) {
     double ptHat = *genEventScale;
     *genps_pthat = ptHat;
@@ -123,19 +140,28 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //if weights do not exist (Pythia), default is weight of 1
   vector< Handle<HepMCProduct> > hepmc_vect;
   iEvent.getManyByType(hepmc_vect);
+
   HepMC::WeightContainer wc;
+
   if(hepmc_vect.size() != 0) { //found HepMC branch
     const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
     wc = genEvt->weights();
+
     float weight = -999.;
-    if(wc.size() > 0 ) {
+
+    if(wc.size() > 0 )
       weight = (float)wc[0];
-    } 
-    if(wc.size() == 0) weight = -999.;
+
     *genps_weight = weight;
-  } else {
+  } 
+  else
     *genps_weight = 1.;
-  }   
+
+  *evt_scale1fb  = 1.; // this value is a placeholder; it will be filled during post-processing
+  *evt_xsec_incl = inclusiveCrossSectionValue;
+  *evt_xsec_excl = exclusiveCrossSectionValue;
+  *evt_kfactor   = kfactorValue;
+
   
   LorentzVector tempvect(0,0,0,0);
 
@@ -195,6 +221,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(gen_metPhi           , "genmetPhi"          );
   iEvent.put(genps_pthat          , "genpspthat"         );
   iEvent.put(genps_weight         , "genpsweight"        );
+
+  iEvent.put(evt_scale1fb         , "evtscale1fb"        );
 }
 
 //define this as a plug-in
