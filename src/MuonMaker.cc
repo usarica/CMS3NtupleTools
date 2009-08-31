@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.23 2009/08/31 13:52:07 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.24 2009/08/31 19:02:51 kalavase Exp $
 //
 //
 
@@ -132,7 +132,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >	   vector_mus_goodmask          (new vector<int>             );        
   auto_ptr<vector<LorentzVector> > vector_mus_p4                (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > vector_mus_trk_p4	        (new vector<LorentzVector>   );
-  auto_ptr<vector<int>   >         vector_mus_trkidx           (new vector<int>             );
+  auto_ptr<vector<int>   >         vector_mus_trkidx            (new vector<int>             );
   auto_ptr<vector<float> >	   vector_mus_d0	        (new vector<float>           );      
   auto_ptr<vector<float> >	   vector_mus_z0	        (new vector<float>	     );      
   auto_ptr<vector<float> >	   vector_mus_d0corr	        (new vector<float>	     );      
@@ -265,8 +265,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_gfit_chi2       ->push_back(globalTrack.isNonnull() ?  globalTrack->chi2()	          :  -999        );
     vector_mus_gfit_ndof       ->push_back(globalTrack.isNonnull() ?  globalTrack->ndof()	          :  -999        );
     vector_mus_gfit_validHits  ->push_back(globalTrack.isNonnull() ?  globalTrack->numberOfValidHits() 	  :  -999	 );
-    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationLoose)     : -999	);
-    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationTight)     : -999	);
+    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationLoose)         : -999	);
+    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationTight)         : -999	);
     vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityLoose)	: -999	);
     vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityTight)	: -999	);
     vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
@@ -356,48 +356,7 @@ MuonMaker::beginJob(const edm::EventSetup&)
 void 
 MuonMaker::endJob() {
 }
-//---------------------------------------------------------------------------
-//Track Isolation
-//---------------------------------------------------------------------------
-double MuonMaker::trackRelIsolation(const math::XYZVector momentum,
-				    const math::XYZPoint vertex,
-				    const math::XYZPoint beamSpot,
-				    const  edm::View<Track>* tracks,
-				    double dRConeMax, double dRConeMin,
-				    double tkVtxDMax,
-				    double vtxDiffDMax, double vtxDiffZMax, double ptMin, unsigned int nHits)
-{
-  double isoResult = -10.;
-  if ( tracks == 0 ) {
-    cout << "Configuration Error: track collection is not set!" <<endl;
-    return isoResult;
-  }
 
-  double sumPt = 0;
-
-  edm::View<Track>::const_iterator iTk = tracks->begin();
-  for (; iTk != tracks->end(); ++iTk){
-    double dR = ROOT::Math::VectorUtil::DeltaR(momentum, iTk->momentum());
-    //exclude tks in veto cone (set it to small number to
-    //exclude this track
-    double dZ = fabs(vertex.z() - iTk->vz());
-    double d0corr = fabs(iTk->dxy(beamSpot));
-    double dD0 = sqrt((iTk->vertex() - vertex).perp2());
-    if (dR < dRConeMin) continue;
-    if ( dR < dRConeMax
-         && dZ < vtxDiffZMax
-         && d0corr < tkVtxDMax
-         && dD0 < vtxDiffDMax
-         && iTk->pt() >= ptMin
-         && iTk->found() > nHits){
-      sumPt += iTk->pt();
-    }
-  }
-
-  isoResult = sumPt;
-  return isoResult;
-
-}
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(MuonMaker);
