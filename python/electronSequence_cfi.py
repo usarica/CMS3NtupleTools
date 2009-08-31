@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 #from RecoEgamma.EgammaIsolationAlgos.egammaIsolationSequence_cff import *
-from CMS2.NtupleMaker.electronDuplicateRemover_cfi import *
+#from CMS2.NtupleMaker.electronDuplicateRemover_cfi import *
 from RecoEgamma.ElectronIdentification.electronIdCutBasedExt_cfi import *
 
 ###

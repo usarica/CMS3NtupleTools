@@ -5,13 +5,13 @@
 // 
 /**\class MatchUtilities MatchUtilities.h CMS2/NtupleMaker/interface/MatchUtilities.h
 
-Description: utilities to match objects
+   Description: utilities to match objects
 
 */
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.8 2009/07/06 00:15:35 kalavase Exp $
+// $Id: MatchUtilities.h,v 1.9 2009/08/31 13:51:22 fgolf Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -21,7 +21,6 @@ Description: utilities to match objects
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
 #include "DataFormats/TrackReco/interface/Track.h"
-#include <Math/VectorUtil.h>
 #include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
@@ -29,7 +28,7 @@ Description: utilities to match objects
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 
-
+#include <Math/VectorUtil.h>
 
 class MatchUtilities {
 public:
@@ -56,19 +55,19 @@ public:
   static const void alignRecoPatJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<pat::Jet>&);
   static const void alignRecoPatElectronCollections(const std::vector<reco::GsfElectron>&,
-					     std::vector<pat::Electron>&);
+						    std::vector<pat::Electron>&);
   static const void alignRecoPatMuonCollections(const std::vector<reco::Muon>&,
-					     std::vector<pat::Muon>&);
+						std::vector<pat::Muon>&);
 
   static const void alignJPTcaloJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<reco::CaloJet>&);
 					       
   
-  template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref,
-							    std::vector<T2>& v_toAllign) {
+  template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref, std::vector<T2>& v_toAllign) {
+
     typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
     
-    if(v_ref.size() != v_toAllign.size())
+    if( v_ref.size() != v_toAllign.size() )
       throw cms::Exception("MatchUtilities") 
 	<< "The two collections you're trying to allign do not have the same number of entries!!!" 
 	<< " Exiting. It's probably the PAT's fault. Trust me.";
@@ -76,34 +75,33 @@ public:
     std::vector<T2> v_temp = v_toAllign;
     v_toAllign.clear();
   
-
     //loop over the Reference Collection
     for(unsigned int i = 0; i < v_ref.size(); i++) {
 
-      double dR = 0.05;
+      double dR             = 0.05;
       unsigned int matchIdx = 9999;
-      LorentzVector ref_p4 = v_ref.at(i).p4();
+      LorentzVector ref_p4  = v_ref.at(i).p4();
 
       //now loop over the collection to allign
       for(unsigned int j = 0; j < v_temp.size(); j++) {
+
 	LorentzVector temp_p4 = v_temp.at(j).p4();
+
 	double newdR = ROOT::Math::VectorUtil::DeltaR(ref_p4, temp_p4);
       
 	if(newdR < dR) {
 	  dR = newdR;
 	  matchIdx = j;
 	}
-      }//vector to allign loop
+      }
+
       if(matchIdx == 9999) {
 	std::cout << "Object not found in collection!!!!" << std::endl;
       }
+
       v_toAllign.push_back(v_temp.at(matchIdx) );
-    }//loop over the reference collection
-    
+    }
   }
-
-
-
 };
 
 #endif

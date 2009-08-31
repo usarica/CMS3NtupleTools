@@ -120,14 +120,14 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
 
     if ( itPart->status() != status ) continue;
 
-      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
-      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
-      if (dR < dRmin) {
-	dRmin = dR;
-	output = &(*itPart);
-	genidx = i;
-      }
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }
     
   }
 
@@ -150,17 +150,17 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
 
     if ( itPart->status() != status ) continue;
 
-      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
-      LorentzVector cand( track.px(), track.py(), track.pz(), track.p() );
+    LorentzVector cand( track.px(), track.py(), track.pz(), track.p() );
 
-      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand);
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand);
 
-      if (dR < dRmin) {
-	dRmin = dR;
-	output = &(*itPart);
-	genidx = i;
-      }//END find minimum delta R loop
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
   
   }//END loop over genParticles
 
@@ -184,15 +184,15 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
 
     if ( itPart->status() != status ) continue;
 
-      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
-      double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
 
-      if (dR < dRmin) {
-	dRmin = dR;
-	output = &(*itPart);
-	genidx = i;
-      }//END find minimum delta R loop
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
   
   }//END loop over genParticles
 
@@ -232,16 +232,16 @@ const void MatchUtilities::alignRecoPatJetCollections(const std::vector<reco::Ca
 }
 //----------------------------------------------------------------------------------------------
 const void MatchUtilities::alignRecoPatElectronCollections(const std::vector<reco::GsfElectron>& v_ref,
-						  std::vector<pat::Electron>& v_toAllign) {
+							   std::vector<pat::Electron>& v_toAllign) {
   alignCollections(v_ref, v_toAllign);
 }
 //----------------------------------------------------------------------------------------------
 const void MatchUtilities::alignRecoPatMuonCollections(const std::vector<reco::Muon>& v_ref,
-					      std::vector<pat::Muon>& v_toAllign) {
+						       std::vector<pat::Muon>& v_toAllign) {
   alignCollections(v_ref, v_toAllign);
 }
 //----------------------------------------------------------------------------------------------
 const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::CaloJet>& v_ref,
-						       std::vector<reco::CaloJet>& v_toAllign) {
+						      std::vector<reco::CaloJet>& v_toAllign) {
   alignCollections(v_ref, v_toAllign);
 }

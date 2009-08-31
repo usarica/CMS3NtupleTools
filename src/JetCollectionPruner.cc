@@ -32,7 +32,6 @@ bool sortJetsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
   return jet1.pt() > jet2.pt();
 }
 
-
 //
 // constructors and destructor
 //

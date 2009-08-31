@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.14 2009/08/28 13:36:43 kalavase Exp $
+// $Id: JetMaker.cc,v 1.15 2009/08/31 13:52:07 fgolf Exp $
 //
 //
 
@@ -38,10 +38,6 @@
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
-
-bool sortByPt(reco::Jet jet1, reco::Jet jet2) {
-  return jet1.pt() > jet2.pt();
-}
 
 //
 // class decleration
