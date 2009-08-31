@@ -4,8 +4,6 @@ hypDilepMaker = cms.EDFilter("HypDilepMaker",
     #are we using pat jets in the JetMaker?
     #need to know if the jets were corrected
     usingCorrectedJets = cms.bool(True),
-    #Candidate to Generator association maker
-    candToGenAssTag = cms.InputTag("candToGenAssMaker"),
     # met collection
     tcmetInputTag = cms.InputTag("tcmetMaker"),
     metInputTag = cms.InputTag("metMaker"),
