@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.16 2009/08/31 21:38:12 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.17 2009/08/31 21:44:11 kalavase Exp $
 //
 //
 
@@ -68,7 +68,6 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   metInputTag              = iConfig.getParameter<InputTag>("metInputTag"                                          );
   jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"                                         );
   trksInputTag             = iConfig.getParameter<InputTag>("trksInputTag"                                         );
-  candToGenAssTag          = iConfig.getParameter<InputTag>("candToGenAssTag"                                      );  
   hypJetMaxEtaCut          = iConfig.getParameter<double>  ("hypJetMaxEtaCut"                                      );
   hypJetMinPtCut           = iConfig.getParameter<double>  ("hypJetMinPtCut"                                       );
   tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut"                                    );
