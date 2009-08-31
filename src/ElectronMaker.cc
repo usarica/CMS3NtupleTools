@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.26 2009/08/30 18:50:12 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.27 2009/08/31 13:08:16 kalavase Exp $
 //
 //
 
@@ -180,12 +180,14 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >          ("elslayer1charge"    ).setBranchAlias("els_layer1_charge"    ); 
   produces<vector<int> >            ("elslayer1det"       ).setBranchAlias("els_layer1_det"       ); 
   
+  //CTF track matching stuff
+  produces<vector<int>    >         ("elstrkidx"         ).setBranchAlias("els_trkidx"            );// track index matched to electron
+  produces<vector<float>  >         ("elstrkshFrac"      ).setBranchAlias("els_trkshFrac"         );
+  produces<vector<float>  >         ("elstrkdr"          ).setBranchAlias("els_trkdr"             );
+  
   //get setup parameters
   electronsInputTag_    	= iConfig.getParameter<edm::InputTag>("electronsInputTag"     );
   beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"      );
-  ecalIsoTag_    		= iConfig.getParameter<edm::InputTag>("ecalIsoTag"            );
-  hcalIsoTag_    		= iConfig.getParameter<edm::InputTag>("hcalIsoTag"            );
-  tkIsoTag_      		= iConfig.getParameter<edm::InputTag>("tkIsoTag"              );
   eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"     );
   eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"     );
   eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag");
@@ -306,17 +308,23 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //HitPattern information
   //
-  auto_ptr<vector<double> >	vector_els_inner_positionx (new vector<double>		); 
-  auto_ptr<vector<double> >	vector_els_inner_positiony (new vector<double>		); 
-  auto_ptr<vector<double> >	vector_els_inner_positionz (new vector<double>		); 
-  auto_ptr<vector<int> >		vector_els_layer1_layer    (new vector<int>		);
-  auto_ptr<vector<int> >		vector_els_valid_pixelhits (new vector<int>		); 
-  auto_ptr<vector<int> >		vector_els_lost_pixelhits  (new vector<int>		); 
-  auto_ptr<vector<int> >		vector_els_layer1_sizerphi (new vector<int>		); 
-  auto_ptr<vector<int> >		vector_els_layer1_sizerz   (new vector<int>		); 
-  auto_ptr<vector<float> >	vector_els_layer1_charge   (new vector<float>		);
-  auto_ptr<vector<int> >		vector_els_layer1_det      (new vector<int>		);
+  auto_ptr<vector<double> >	els_inner_positionx (new vector<double>		); 
+  auto_ptr<vector<double> >	els_inner_positiony (new vector<double>		); 
+  auto_ptr<vector<double> >	els_inner_positionz (new vector<double>		); 
+  auto_ptr<vector<int> >		els_layer1_layer    (new vector<int>		);
+  auto_ptr<vector<int> >		els_valid_pixelhits (new vector<int>		); 
+  auto_ptr<vector<int> >		els_lost_pixelhits  (new vector<int>		); 
+  auto_ptr<vector<int> >		els_layer1_sizerphi (new vector<int>		); 
+  auto_ptr<vector<int> >		els_layer1_sizerz   (new vector<int>		); 
+  auto_ptr<vector<float> >	els_layer1_charge   (new vector<float>		);
+  auto_ptr<vector<int> >		els_layer1_det      (new vector<int>		);
 	 
+
+  auto_ptr<vector<int>     > els_trkidx    (new vector<int>     );
+  auto_ptr<vector<float>   > els_trkshFrac (new vector<float>   );
+  auto_ptr<vector<float>   > els_trkdr     (new vector<float>   );
+
+
   // Get products from the reco
   //
 	
@@ -516,9 +524,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     //Hit Pattern 
 
-    vector_els_inner_positionx  ->push_back(el_track->innerPosition().x()                          );
-    vector_els_inner_positiony  ->push_back(el_track->innerPosition().y()                          );
-    vector_els_inner_positionz  ->push_back(el_track->innerPosition().z()                          );
+    els_inner_positionx  ->push_back(el_track->innerPosition().x()                          );
+    els_inner_positiony  ->push_back(el_track->innerPosition().y()                          );
+    els_inner_positionz  ->push_back(el_track->innerPosition().z()                          );
    
     const reco::HitPattern& pattern = el_track->hitPattern();
 		
@@ -565,11 +573,11 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	pixel_charge = (float)pixel_cluster->charge();
 		    
 	if(i_layer == 1){
-	  vector_els_layer1_sizerphi ->push_back(pixel_sizeX);
-	  vector_els_layer1_sizerz   ->push_back(pixel_sizeY);
-	  vector_els_layer1_charge   ->push_back(pixel_charge);
-	  vector_els_layer1_det      ->push_back(det);
-	  vector_els_layer1_layer    ->push_back(layer);
+	  els_layer1_sizerphi ->push_back(pixel_sizeX);
+	  els_layer1_sizerz   ->push_back(pixel_sizeY);
+	  els_layer1_charge   ->push_back(pixel_charge);
+	  els_layer1_det      ->push_back(det);
+	  els_layer1_layer    ->push_back(layer);
 	  i_layer++;
 	  
 	}
@@ -594,30 +602,47 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	if(i_layer == 1){
 	  if(side==0) 
 	    {
-	      vector_els_layer1_sizerphi ->push_back(cluster_size);
-	      vector_els_layer1_sizerz   ->push_back(0);
+	      els_layer1_sizerphi ->push_back(cluster_size);
+	      els_layer1_sizerz   ->push_back(0);
 	    }
 		      
 	  else
 	    {
-	      vector_els_layer1_sizerphi ->push_back(0);
-	      vector_els_layer1_sizerz   ->push_back(cluster_size);
+	      els_layer1_sizerphi ->push_back(0);
+	      els_layer1_sizerz   ->push_back(cluster_size);
 	    } 
 		      
-	  vector_els_layer1_charge   ->push_back(cluster_charge);
-	  vector_els_layer1_det      ->push_back(det);
-	  vector_els_layer1_layer    ->push_back(layer);
+	  els_layer1_charge   ->push_back(cluster_charge);
+	  els_layer1_det      ->push_back(det);
+	  els_layer1_layer    ->push_back(layer);
 	  i_layer++;
 	}
       }
 		  
     }
 		
-    vector_els_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
-    vector_els_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
+    els_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
+    els_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
 		  
        
-    //*****************************************************
+    // *****************************************************
+    
+    TrackRef ctfTkRef    = el->closestCtfTrackRef();
+    GsfTrackRef gsfTkRef = el->gsfTrack();
+    
+    double dR = -999;
+    if(ctfTkRef.isNonnull() ) {
+      els_trkidx       ->push_back(static_cast<int>(ctfTkRef.key())            );
+      els_trkshFrac    ->push_back(static_cast<int>(el->shFracInnerHits())     );
+      dR = deltaR(gsfTkRef->eta(), gsfTkRef->phi(),
+		  ctfTkRef->eta(), ctfTkRef->phi()                             );
+    } else {
+      els_trkidx       ->push_back(-999                                        );
+      els_trkshFrac    ->push_back(-999.                                       );
+    }
+    
+    els_trkdr          ->push_back(dR                                          );
+
 
   }
  
@@ -712,22 +737,28 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //
   iEvent.put(els_tkIso                    ,"elstkIso"           		);
   iEvent.put(els_ecalIso                  ,"elsecalIso"           	);
-  iEvent.put(els_hcalIso            	,"elshcalIso"           	);
+  iEvent.put(els_hcalIso                  ,"elshcalIso"           	);
 
   //Hit Pattern Information
 	
-  iEvent.put(vector_els_inner_positionx , "elsinnerpositionx" );
-  iEvent.put(vector_els_inner_positiony , "elsinnerpositiony" );
-  iEvent.put(vector_els_inner_positionz , "elsinnerpositionz" );
-  iEvent.put(vector_els_layer1_layer    , "elslayer1layer"    );
-  iEvent.put(vector_els_valid_pixelhits , "elsvalidpixelhits" );
-  iEvent.put(vector_els_lost_pixelhits  , "elslostpixelhits"  );
-  iEvent.put(vector_els_layer1_sizerphi , "elslayer1sizerphi" );
-  iEvent.put(vector_els_layer1_sizerz   , "elslayer1sizerz"   );
-  iEvent.put(vector_els_layer1_charge   , "elslayer1charge"   );
-  iEvent.put(vector_els_layer1_det      , "elslayer1det"      );
-  // iEvent.put(vector_els_n_inner_layers  , "elsninnerlayers" );
-  // iEvent.put(vector_els_n_outer_layers  , "elsnouterlayers" );
+  iEvent.put(els_inner_positionx , "elsinnerpositionx" );
+  iEvent.put(els_inner_positiony , "elsinnerpositiony" );
+  iEvent.put(els_inner_positionz , "elsinnerpositionz" );
+  iEvent.put(els_layer1_layer    , "elslayer1layer"    );
+  iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
+  iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
+  iEvent.put(els_layer1_sizerphi , "elslayer1sizerphi" );
+  iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
+  iEvent.put(els_layer1_charge   , "elslayer1charge"   );
+  iEvent.put(els_layer1_det      , "elslayer1det"      );
+  // iEvent.put(els_n_inner_layers  , "elsninnerlayers" );
+  // iEvent.put(els_n_outer_layers  , "elsnouterlayers" );
+
+  //CTF track info
+  //
+  iEvent.put(els_trkidx,      "elstrkidx"     );
+  iEvent.put(els_trkdr ,      "elstrkdr"      );
+  iEvent.put(els_trkshFrac,   "elstrkshFrac"  );
 }
 
 //-------------------------------------------------------------------------------------------------
