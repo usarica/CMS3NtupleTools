@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.13 2009/08/31 19:13:51 kalavase Exp $
+// $Id: GenMaker.cc,v 1.14 2009/08/31 19:17:52 kalavase Exp $
 //
 //
 
@@ -223,6 +223,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_weight         , "genpsweight"        );
   iEvent.put(evt_xsec_incl        , "evtxsecincl"        );
   iEvent.put(evt_xsec_excl        , "evtxsecexcl"        );
+  iEvent.put(evt_kfactor          , "evtkfactor"         );
   iEvent.put(evt_scale1fb         , "evtscale1fb"        );
 }
 
