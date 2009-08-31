@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.h,v 1.3 2008/10/21 16:49:45 kalavase Exp $
+// $Id: TrackToElAssMaker.h,v 1.4 2009/08/31 11:39:27 kalavase Exp $
 //
 //
 #ifndef CMS2_TRACKTOELASSMAKER_H
@@ -43,15 +43,12 @@ private:
      virtual void beginJob(const edm::EventSetup&) ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
-     std::pair<int,float> getElectronIndex(const reco::Track&,
-					   std::vector<const reco::GsfElectron*>);
+  void getMatchedElInfo(const reco::Track&,
+			std::vector<const reco::GsfElectron*>, 
+			int&, float&, float&);
   
       
       // ----------member data ---------------------------
-  double m_minDR;
-  //false if we are using AOD. Matching is then done
-  //by dR 
-  bool haveHits_; 
   edm::InputTag electronsInputTag_;
   edm::InputTag tracksInputTag_;
 
