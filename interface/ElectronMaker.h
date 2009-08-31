@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.9 2009/08/30 18:50:03 fgolf Exp $
+// $Id: ElectronMaker.h,v 1.10 2009/08/31 13:07:13 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -63,9 +63,6 @@ private:
   // ----------member data ---------------------------
   edm::InputTag electronsInputTag_;
   edm::InputTag beamSpotInputTag_;
-  edm::InputTag ecalIsoTag_;
-  edm::InputTag hcalIsoTag_;
-  edm::InputTag tkIsoTag_;
   edm::InputTag eidRobustLooseTag_;
   edm::InputTag eidRobustTightTag_;
   edm::InputTag eidRobustHighEnergyTag_;
@@ -73,6 +70,7 @@ private:
   edm::InputTag eidTightTag_;
 
   EcalClusterLazyTools* clusterTools_;
+  
 };
 
 #endif

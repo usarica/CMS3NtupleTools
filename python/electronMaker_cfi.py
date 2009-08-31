@@ -6,10 +6,6 @@ electronMaker = cms.EDFilter(
     electronsInputTag = cms.InputTag("gsfElectrons"),
     # Beamspot
     beamSpotInputTag = cms.InputTag("beamSpotMaker"),
-    # Isolation
-    ecalIsoTag = cms.InputTag("eleIsoFromDepsEcalFromHitsCMS2"),
-    hcalIsoTag = cms.InputTag("eleIsoFromDepsHcalFromTowersCMS2"),
-    tkIsoTag = cms.InputTag("eleIsoFromDepsTkCMS2"),
     # egamma ID
     eidRobustLooseTag = cms.InputTag("eidRobustLooseCMS2"),
     eidRobustTightTag = cms.InputTag("eidRobustTightCMS2"),
