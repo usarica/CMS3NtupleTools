@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.15 2009/08/31 13:52:07 fgolf Exp $
+// $Id: JetMaker.cc,v 1.16 2009/09/01 08:24:39 fgolf Exp $
 //
 //
 
@@ -104,12 +104,12 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     double L2L3L4Jetscale = L2L3L4corrector->correction( uncorJet );
     L2L3L4Jet.scaleEnergy( L2L3L4Jetscale );
     
-    vector_jets_p4          ->push_back(L2L3Jet.p4()                   );
-    vector_jets_vertex_p4   ->push_back(LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.) );
-    vector_jets_emFrac      ->push_back(L2L3Jet.emEnergyFraction()     );
+    vector_jets_p4          ->push_back( L2L3Jet.p4()                   );
+    vector_jets_vertex_p4   ->push_back( LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.) );
+    vector_jets_emFrac      ->push_back( L2L3Jet.emEnergyFraction()     );
     //vector_jets_chFrac      ->push_back( -999                          );
-    vector_jets_cor         ->push_back(L2L3Jetscale                   );
-    vector_jets_EMFcor      ->push_back(L2L3L4Jetscale                 );
+    vector_jets_cor         ->push_back( 1/L2L3Jetscale                 );
+    vector_jets_EMFcor      ->push_back( L2L3L4Jetscale/L2L3Jetscale    );
   }
   
   // put containers into event
