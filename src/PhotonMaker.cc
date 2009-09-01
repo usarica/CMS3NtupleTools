@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.2 2009/05/29 22:25:02 jmuelmen Exp $
+// $Id: PhotonMaker.cc,v 1.3 2009/09/01 09:17:28 dlevans Exp $
 //
 //
 
@@ -61,6 +61,7 @@
 #include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
+#include "CMS2/NtupleMaker/interface/EgammaFiduciality.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -83,6 +84,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >	  ("photonseSC"             ).setBranchAlias("photons_eSC"              );
      produces<vector<float> >	  ("photonseSCRaw"          ).setBranchAlias("photons_eSCRaw"           );
      produces<vector<float> >          ("photonseSCPresh"        ).setBranchAlias("photons_eSCPresh"         );
+     produces<vector<int> >          ("photonsFiduciality"        ).setBranchAlias("photons_fiduciality"         );
 
      // ID variables
      //
@@ -100,7 +102,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
 
      // isolation variables
      //
-     produces<vector<float> >	  ("photonstkIso"       	).setBranchAlias("photons_tkIso"        	);
+     produces<vector<float> >	  ("photonstkIsoHollow"       	).setBranchAlias("photons_tkIsoHollow"        	);
+     produces<vector<float> >     ("photonstkIsoSolid"         ).setBranchAlias("photons_tkIsoSolid"          );
      produces<vector<float> >          ("photonsecalIso"        	).setBranchAlias("photons_ecalIso"      	);
      produces<vector<float> >          ("photonshcalIso"       	).setBranchAlias("photons_hcalIso"      	);
 
@@ -110,14 +113,10 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
 
      //get setup parameters
      photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
-     ecalIsoTag_    		= iConfig.getParameter<InputTag>("ecalIsoTag");
-     hcalIsoTag_    		= iConfig.getParameter<InputTag>("hcalIsoTag");
-     tkIsoTag_      		= iConfig.getParameter<InputTag>("tkIsoTag");
 
      clusterTools_ = 0;
 
 }
-
 
 PhotonMaker::~PhotonMaker()
 {
@@ -142,7 +141,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      // ECAL related (superCluster) variables
      auto_ptr<vector<float> >	photons_eSC                 (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_eSCRaw              (new vector<float>        ) ;
-     auto_ptr<vector<float> >    	photons_eSCPresh            (new vector<float>        ) ;
+     auto_ptr<vector<float> >   photons_eSCPresh            (new vector<float>        ) ;
+     auto_ptr<vector<int> >     photons_fiduciality         (new vector<int>        ) ;
 	
      // ID variables
      //
@@ -160,7 +160,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
      // isolation variables
      //
-     auto_ptr<vector<float> >	photons_tkIso                (new vector<float>        ) ;
+     auto_ptr<vector<float> >	photons_tkIsoHollow                (new vector<float>        ) ;
+     auto_ptr<vector<float> >   photons_tkIsoSolid                (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_ecalIso              (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_hcalIso              (new vector<float>        ) ;
 	
@@ -184,12 +185,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
 					      edm::InputTag("reducedEcalRecHitsEB"), 
 					      edm::InputTag("reducedEcalRecHitsEE"));
-  
-     // Get value maps for isolation variables
-     const edm::ValueMap<double>&  ecalIsoMap = getValueMap(iEvent, ecalIsoTag_);
-     const edm::ValueMap<double>&  tkIsoMap = getValueMap(iEvent, tkIsoTag_);
-     const edm::ValueMap<double>&  hcalIsoMap = getValueMap(iEvent, hcalIsoTag_);
-	
+
      //fill number of eqlectrons variable
      //
      *evt_nphotons = photons_h->size();
@@ -208,51 +204,50 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 	  // Get cluster info
 	  //
-	  float eMax, e1x5, e3x3, e5x5, e2x5Max, see, spp, sieie, sipip;
+	  float spp, sipip;
 	  const reco::BasicCluster& clRef= *(photon->superCluster()->seed());
-	  e1x5 = clusterTools_->e1x5(clRef);
-	  eMax = clusterTools_->eMax(clRef);
-	  e3x3 = clusterTools_->e3x3(clRef);
-	  e5x5 = clusterTools_->e5x5(clRef);
-	  e2x5Max = clusterTools_->e2x5Max(clRef);
 	  const std::vector<float>& covs = clusterTools_->covariances(clRef);
 	  spp = sqrt(covs[2]);
-	  see = sqrt(covs[0]);
 	  const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
 	  sipip = sqrt(lcovs[2]);
-	  sieie = sqrt(lcovs[0]);
 		
 	  // Fill cluster info
 	  //
-	  photons_eSC                   ->push_back( photon->superCluster()->energy()                    );
-	  photons_eSCRaw                ->push_back( photon->superCluster()->rawEnergy()                 );
-	  photons_eSCPresh              ->push_back( photon->superCluster()->preshowerEnergy()           );
-	  photons_hOverE                ->push_back( photon->hadronicOverEm()                   	       );
-	  photons_e1x5		  ->push_back( e1x5					       );
-	  photons_e3x3                  ->push_back( e3x3                                            );
-	  photons_e5x5                  ->push_back( e5x5                                            );
-	  photons_e2x5Max               ->push_back( e2x5Max                                         );
-	  photons_eMax                  ->push_back( eMax                                            );
-	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()            );		
-	  photons_sigmaPhiPhi           ->push_back( spp                                             );
-	  photons_sigmaIPhiIPhi         ->push_back( sipip                                           );  
-	  photons_sigmaEtaEta           ->push_back( see                                             );
-	  photons_sigmaIEtaIEta         ->push_back( sieie                                           );  		
-		
+	  photons_eSC                   ->push_back( photon->superCluster()->energy()                   );
+	  photons_eSCRaw                ->push_back( photon->superCluster()->rawEnergy()                );
+	  photons_eSCPresh              ->push_back( photon->superCluster()->preshowerEnergy()          );
+	  photons_hOverE                ->push_back( photon->hadronicOverEm()                   	);
+	  photons_e1x5		  	->push_back( photon->e1x5()					);
+	  photons_e3x3                  ->push_back( photon->e3x3()                                     );
+	  photons_e5x5                  ->push_back( photon->e5x5()                                     );
+	  photons_e2x5Max               ->push_back( photon->e2x5()                                     );
+	  photons_eMax                  ->push_back( photon->maxEnergyXtal()    			);
+	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );		
+	  photons_sigmaPhiPhi           ->push_back( spp                                             	);
+	  photons_sigmaIPhiIPhi         ->push_back( sipip                                           	);  
+	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
+	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
+	
+	// set the mask that describes the egamma fiduciality flags
+	// the enum is in interface/EgammaFiduciality.h
+	int fiducialityMask = 0;
+	if (photon->isEB()) 	fiducialityMask |= 1 << ISEB;
+	if (photon->isEBEEGap())fiducialityMask |= 1 << ISEBEEGAP;
+        if (photon->isEE())     fiducialityMask |= 1 << ISEE;
+        if (photon->isEEGap())  fiducialityMask |= 1 << ISEEGAP;
+	photons_fiduciality->push_back( fiducialityMask );
+	
 	  // Lorentz Vectors	
 	  //
 	  photons_p4                    ->push_back( photon->p4()                                        );
 		
-	  // Isolation 
+	  // Isolation  (all 0.3 cone size)
 	  //
-	  float ecalIso = ecalIsoMap[photonRef];
-	  float hcalIso = hcalIsoMap[photonRef];
-	  float tkIso = tkIsoMap[photonRef];
-	  
-	  photons_ecalIso->push_back(ecalIso);
-	  photons_hcalIso->push_back(hcalIso);	
-	  photons_tkIso->push_back(tkIso);
-		
+	  photons_ecalIso->push_back(		photon->ecalRecHitSumEtConeDR03()	);
+	  photons_hcalIso->push_back(		photon->hcalTowerSumEtConeDR03()	);	
+	  photons_tkIsoHollow->push_back(	photon->nTrkHollowConeDR03()		);
+          photons_tkIsoSolid->push_back(	photon->nTrkSolidConeDR03()		);
+
      }
  
      // Put the results into the event
@@ -270,6 +265,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_e2x5Max                  ,"photonse2x5Max"         		);
      iEvent.put(photons_eMax                     ,"photonseMax"      	      	);
      iEvent.put(photons_eSeed                    ,"photonseSeed" 	          	);
+     iEvent.put(photons_fiduciality		,"photonsFiduciality"			);
 	
      // Photon ID
      //
@@ -285,18 +281,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
      // Isolation
      //
-     iEvent.put(photons_tkIso                    ,"photonstkIso"           		);
+     iEvent.put(photons_tkIsoHollow  		,"photonstkIsoHollow"           );
+     iEvent.put(photons_tkIsoSolid  	      	,"photonstkIsoSolid"           );      
      iEvent.put(photons_ecalIso                  ,"photonsecalIso"           	);
      iEvent.put(photons_hcalIso            	,"photonshcalIso"           	);
-}
-
-
-//little labour saving function to get the reference to the ValueMap
-const edm::ValueMap<double>& PhotonMaker::getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag)
-{
-     edm::Handle<edm::ValueMap<double> > handle;
-     iEvent.getByLabel(inputTag,handle);
-     return *(handle.product());
 }
 
 //define this as a plug-in
