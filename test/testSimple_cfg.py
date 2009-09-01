@@ -5,16 +5,12 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.11 $'),
+        version = cms.untracked.string('$Revision: 1.12 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
 
 # load event level configurations
-#process.load("Configuration.StandardSequences.Services_cff")
-#process.load("Configuration.StandardSequences.Reconstruction_cff")
-#process.load("Configuration.StandardSequences.MixingNoPileUp_cff")
-#process.load("Configuration.StandardSequences.VtxSmearedGauss_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
@@ -46,8 +42,8 @@ process.load("CMS2.NtupleMaker.electronSequence_cfi")
 process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
 process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.eventMaker_cfi")
-#gammaSequence = cms.Sequence(gamIsoDepositsCMS2 + gamIsoFromDepositsCMS2)
-#process.load("CMS2.NtupleMaker.gammaSequence_cfi") 
+process.load("CMS2.NtupleMaker.flavorHistoryMaker_cfi")
+process.load("CMS2.NtupleMaker.flavorHistorySequence_cfi")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.genMaker_cfi")
 #process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
@@ -205,8 +201,7 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker_*_CM
 # process paths;
 #-------------------------------------------------
 
-#process.CMS2Reco      = cms.Sequence(process.electronSequence * process.gammaSequence * process.cms2CaloJetSequence * process.CMS2Btagging * process.
-process.CMS2Reco = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
+process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 
@@ -221,17 +216,17 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 
 #process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker)
 
-process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker)
+process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker * process.CMS2FlavorHistorySequence * process.flavorHistoryMaker)
 
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pftauMaker)
 
 process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
 #process.cms2          = cms.Sequence(process.eventmakers * process.trigmmakers * process.genmakers * process.makers * process.assmakers * process.othermakers * process.hypmakers)
-process.cms2 = cms.Sequence(process.eventmakers * process.genmakers * process.makers * process.assmakers * process.othermakers)
+process.cms2          = cms.Sequence(process.eventmakers * process.genmakers * process.makers * process.assmakers * process.othermakers)
 
 #process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.pflowmakers * process.patDefaultSequence * process.patmakers * process.theFilter)
-process.p = cms.Path(process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers)
+process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers)
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
