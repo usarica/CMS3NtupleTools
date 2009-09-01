@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.2 2009/09/01 06:13:44 yanjuntu Exp $
+// $Id: CaloTauMaker.cc,v 1.3 2009/09/01 07:58:43 kalavase Exp $
 //
 //
 
@@ -28,7 +28,7 @@ Implementation:
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "CMS2/NtupleMaker/interface/CaloTauMaker.h"
-#include "DataFormats/TauReco/interface/CaloTau.h"
+
 #include "DataFormats/TauReco/interface/CaloTauFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoTauTag/RecoTau/interface/CaloRecoTauAlgorithm.h"
@@ -257,7 +257,7 @@ bool CaloTauMaker::identify(const edm::RefToBase<reco::CaloTau> &tau_calo, const
     return false;
   }
  
-  return ret;
+  return true;
 }
 
 //define this as a plug-in
