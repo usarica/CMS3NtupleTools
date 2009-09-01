@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.10 2009/08/31 13:07:13 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.11 2009/09/01 10:45:32 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -55,9 +55,7 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
-  bool identify(const edm::RefToBase<reco::GsfElectron> &, int);
   int classify(const edm::RefToBase<reco::GsfElectron> &);
-  int classify_old(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
 
   // ----------member data ---------------------------
