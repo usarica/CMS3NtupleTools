@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.h,v 1.1 2009/05/26 23:23:19 yanjuntu Exp $
+// $Id: PFTauMaker.h,v 1.2 2009/09/01 07:56:47 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFTAUMAKER_H
@@ -28,7 +28,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
+#include "DataFormats/TauReco/interface/PFTau.h"
 //
 // class decleration
 //
@@ -44,8 +44,9 @@ private:
      virtual void endJob() ;
 
       // ----------member data ---------------------------
+  bool identify(const edm::RefToBase<reco::PFTau> &tau_pf);
   edm::InputTag pftausInputTag;
- 
+  
 };
 
 

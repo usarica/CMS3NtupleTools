@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.h,v 1.1 2009/05/22 18:35:31 yanjuntu Exp $
+// $Id: CaloTauMaker.h,v 1.2 2009/09/01 07:56:39 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_CALOTAUMAKER_H
@@ -28,6 +28,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/TauReco/interface/CaloTau.h"
 
 //
 // class decleration
@@ -43,8 +44,8 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 
-      // ----------member data ---------------------------
- 
+     // ----------member data ---------------------------
+  bool identify(const edm::RefToBase<reco::CaloTau> &tau_calo, const edm::EventSetup& iSetup);
   edm::InputTag calotausInputTag;
 };
 
