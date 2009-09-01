@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.28 2009/09/01 10:45:32 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.29 2009/09/01 11:00:54 dlevans Exp $
 //
 //
 
@@ -116,21 +116,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 	// http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
 	produces<vector<int> >            ("elsclass"               ).setBranchAlias("els_class"            );
 	// for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
+        // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
 	produces<vector<int> >            ("elscategory"            ).setBranchAlias("els_category"         );
-	produces<vector<int> >            ("elscategoryold"         ).setBranchAlias("els_categoryold"      );
-	// These ids are hardwired (see functions below). They are the category based cuts,
-	// and are the SAME as the els_pat_*id branches made by PATElectronMaker
-	// FIXME - is this really true?
-	produces<vector<int> >            ("elsrobustId"              ).setBranchAlias("els_robustId"                );
-	produces<vector<int> >            ("elslooseId"               ).setBranchAlias("els_looseId"                 );
-	produces<vector<int> >            ("elstightId"               ).setBranchAlias("els_tightId"                 );
-	produces<vector<int> >            ("elspass3simpleId"         ).setBranchAlias("els_pass3simpleId"           );
-	produces<vector<int> >            ("elspass3looseId"          ).setBranchAlias("els_pass3looseId"            );
-	produces<vector<int> >            ("elspass3tightId"          ).setBranchAlias("els_pass3tightId"            );
-	produces<vector<int> >            ("elssimpleIdPlus"          ).setBranchAlias("els_simpleIdPlus"            );
-	produces<vector<int> >            ("elstightId22XMinMatteo"   ).setBranchAlias("els_tightId22XMinMatteo"     );
-	produces<vector<int> >            ("elstightId22XMaxMatteo"   ).setBranchAlias("els_tightId22XMaxMatteo"     );
-
 	produces<vector<float> >   	    ("elsegammarobustLooseId"   ).setBranchAlias("els_egamma_robustLooseId"    );
 	produces<vector<float> >   	    ("elsegammarobustTightId"   ).setBranchAlias("els_egamma_robustTightId"    );
 	produces<vector<float> >   	    ("elsegammalooseId"         ).setBranchAlias("els_egamma_looseId"          );
@@ -430,6 +417,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		if (el->isTrackerDriven())		electronTypeMask |= 1 << ISTRACKERDRIVEN;
 		if (el->isEcalDriven())			electronTypeMask |= 1 << ISECALDRIVEN; 
 		els_type->push_back( electronTypeMask);
+
+		// energy corrections and uncertainties
+		els_ecalEnergy->push_back(		el->ecalEnergy()		);
+		els_ecalEnergyError->push_back(		el->ecalEnergyError()		);
+		els_trackMomentumError->push_back(	el->trackMomentumError()	);
+		els_electronMomentumError->push_back(	el->electronMomentumError()	);
 
 		// Fill predifined electron ID decisions
 		//
