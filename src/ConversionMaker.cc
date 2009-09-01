@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.3 2009/05/19 19:03:03 warren Exp $
+// $Id: ConversionMaker.cc,v 1.4 2009/09/01 07:58:43 fgolf Exp $
 //
 //
 
@@ -88,7 +88,8 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
      
   //get the electron to track association 
   Handle<vector<int> > els_trkidx_h;
-  iEvent.getByLabel("elToTrackAssMaker", "elstrkidx", els_trkidx_h);
+  //  iEvent.getByLabel("elToTrackAssMaker", "elstrkidx", els_trkidx_h);
+  iEvent.getByLabel("electronMaker", "elstrkidx", els_trkidx_h);
      
   //now get the Track quantities
   Handle<vector<LorentzVector> > trks_p4_h;
