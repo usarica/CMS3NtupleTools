@@ -10,7 +10,8 @@ hypIsoMaker = cms.EDProducer(
 	recomputeEcalIso = cms.bool(True),
 	recomputeTrckIso = cms.bool(True),
 	
-	emObjectProducer = cms.InputTag("uniqueElectrons"),
+	#emObjectProducer = cms.InputTag("uniqueElectrons"),
+	emObjectProducer = cms.InputTag("gsfElectrons"),
     muonsInputTag = cms.InputTag("muons"),
 	#cms2 collections
 	cms2elsInputTag = cms.InputTag("electronMaker"),

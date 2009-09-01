@@ -489,7 +489,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 		  const GlobalPoint & position = caloGeom->getPosition(*i);
 		  double energy = bhits->energy();
 		  double et = energy*position.perp()/position.mag();
-		  if( et == 0. && energy == 0. ) cout << "zero energy in cell " << endl; //debug
+		  //if( et == 0. && energy == 0. ) cout << "zero energy in cell " << endl; //debug
 		  if( et < etLow || energy < eLow ) continue; //thresholds on e/et of cells
 
 		  energypos.push_back( position );
@@ -499,7 +499,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 		  const GlobalPoint & position = caloGeom->getPosition(*i);
 		  double energy = ehits->energy();
 		  double et = energy*position.perp()/position.mag();
-		  if( et == 0. && energy == 0. ) cout << "zero energy in cell " << endl; //debug
+		  //if( et == 0. && energy == 0. ) cout << "zero energy in cell " << endl; //debug
 		  if( et < etLow || energy < eLow ) continue; //thresholds on e/et of cells
 
 		  energypos.push_back( position );
