@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.4 2009/09/01 06:49:28 kalavase Exp $
+// $Id: PFTauMaker.cc,v 1.5 2009/09/01 07:57:58 kalavase Exp $
 //
 //
 
@@ -27,7 +27,6 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/PFTauMaker.h"
-#include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
