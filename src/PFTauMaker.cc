@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.3 2009/09/01 00:44:20 yanjuntu Exp $
+// $Id: PFTauMaker.cc,v 1.4 2009/09/01 06:49:28 kalavase Exp $
 //
 //
 
@@ -55,10 +55,10 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 //   produces<vector<int> >            ("tauspfisongammacand"                 ).setBranchAlias("taus_pf_iso_ngamma_cand"                );
 
   produces<vector<vector <LorentzVector> > >  ("tauspfisochargecandp4"     ).setBranchAlias("taus_pf_isochargecand_p4"               );
-  produces<vector<vector <LorentzVector> > >  ("tauspfisoneutrcandp4"      ).setBranchAlias("taus_pf_isoneutr_p4"                    );
+  produces<vector<vector <LorentzVector> > >  ("tauspfisoneutrcandp4"      ).setBranchAlias("taus_pf_isoneutrcand_p4"                );
   produces<vector<vector <LorentzVector> > >  ("tauspfisogammacandp4"      ).setBranchAlias("taus_pf_isogammacand_p4"                );
   produces<vector<vector <LorentzVector> > >  ("tauspfsigchargecandp4"     ).setBranchAlias("taus_pf_sigchargecand_p4"               );
-  produces<vector<vector <LorentzVector> > >  ("tauspfsigneutrcandp4"      ).setBranchAlias("taus_pf_signeutr_p4"                    );
+  produces<vector<vector <LorentzVector> > >  ("tauspfsigneutrcandp4"      ).setBranchAlias("taus_pf_signeutrcand_p4"                );
   produces<vector<vector <LorentzVector> > >  ("tauspfsiggammacandp4"      ).setBranchAlias("taus_pf_siggammacand_p4"                );
 
   
@@ -121,8 +121,8 @@ void PFTauMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-  auto_ptr<vector<LorentzVector> > taus_pf_p4                              (new vector<LorentzVector>) ;
-  auto_ptr<vector<int> >           taus_pf_charge                          (new vector<int>) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_p4                              (new vector<LorentzVector>            ) ;
+  auto_ptr<vector<int> >           taus_pf_charge                          (new vector<int>                      ) ;
 
 //   auto_ptr<vector<int> >           taus_pf_sig_ncharge_cand                (new vector<int>) ;
 //   auto_ptr<vector<int> >           taus_pf_iso_ncharge_cand                (new vector<int>) ;
@@ -130,44 +130,44 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //   auto_ptr<vector<int> >           taus_pf_iso_nneutr_cand                 (new vector<int>) ;
 //   auto_ptr<vector<int> >           taus_pf_sig_ngamma_cand                 (new vector<int>) ;
 //   auto_ptr<vector<int> >           taus_pf_iso_ngamma_cand                 (new vector<int>) ;
-  auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>) ;
-  auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;
   
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isochargecand_p4       (new vector<vector<LorentzVector> >) ;
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isoneutrcand_p4        (new vector<vector<LorentzVector> >) ;
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isogammacand_p4        (new vector<vector<LorentzVector> >) ;
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_sigchargecand_p4       (new vector<vector<LorentzVector> >) ;
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_signeutrcand_p4        (new vector<vector<LorentzVector> >) ;
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_siggammacand_p4        (new vector<vector<LorentzVector> >) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isochargecand_p4       (new vector<vector<LorentzVector> >   ) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isoneutrcand_p4        (new vector<vector<LorentzVector> >   ) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isogammacand_p4        (new vector<vector<LorentzVector> >   ) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_sigchargecand_p4       (new vector<vector<LorentzVector> >   ) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_signeutrcand_p4        (new vector<vector<LorentzVector> >   ) ;
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_siggammacand_p4        (new vector<vector<LorentzVector> >   ) ;
  
-  auto_ptr<vector<float> >         taus_pf_lead_chargecand_Signed_Sipt     (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_isolationchargecandPtSum        (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_isolationgammacandEtSum         (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_maximumHCALPFClusterEt          (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_emf                             (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_hcalTotOverPLead                (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_hcalMaxOverPLead                (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_hcal3x3OverPLead                (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_ecalStripSumEOverPLead          (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_bremsRecoveryEOverPLead         (new vector<float>) ;
- 
-  auto_ptr<vector<int> >           taus_pf_electronPreID                   (new vector<int>) ;
-  auto_ptr<vector<float> >         taus_pf_electronPreIDOutput             (new vector<float>) ;
-  auto_ptr<vector<int> >           taus_pf_muonPreID                       (new vector<int>) ;
-  auto_ptr<vector<int> >           taus_pf_hasMuonReference                (new vector<int>) ;
-  auto_ptr<vector<float> >         taus_pf_caloComp                        (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_segComp                         (new vector<float>) ;
-  auto_ptr<vector<int> >           taus_pf_nmuonmatch                      (new vector<int>) ;
+  auto_ptr<vector<float> >         taus_pf_lead_chargecand_Signed_Sipt     (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_isolationchargecandPtSum        (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_isolationgammacandEtSum         (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_maximumHCALPFClusterEt          (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_emf                             (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_hcalTotOverPLead                (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_hcalMaxOverPLead                (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_hcal3x3OverPLead                (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_ecalStripSumEOverPLead          (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_bremsRecoveryEOverPLead         (new vector<float>                    ) ;
+  
+  auto_ptr<vector<int> >           taus_pf_electronPreID                   (new vector<int>                      ) ;
+  auto_ptr<vector<float> >         taus_pf_electronPreIDOutput             (new vector<float>                    ) ;
+  auto_ptr<vector<int> >           taus_pf_muonPreID                       (new vector<int>                      ) ;
+  auto_ptr<vector<int> >           taus_pf_hasMuonReference                (new vector<int>                      ) ;
+  auto_ptr<vector<float> >         taus_pf_caloComp                        (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_segComp                         (new vector<float>                    ) ;
+  auto_ptr<vector<int> >           taus_pf_nmuonmatch                      (new vector<int>                      ) ;
 
-  auto_ptr<vector<int> >           taus_pf_tightId                         (new vector<int>) ;
+  auto_ptr<vector<int> >           taus_pf_tightId                         (new vector<int>                      ) ;
  
-  auto_ptr<vector<LorentzVector> > taus_pf_leadtrk_p4                      (new vector<LorentzVector>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_d0                      (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_z0                      (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_chi2                    (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_ndof                    (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_validHits               (new vector<float>) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_lostHits                (new vector<float>) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_leadtrk_p4                      (new vector<LorentzVector>            ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_d0                      (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_z0                      (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_chi2                    (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_ndof                    (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_validHits               (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_leadtrk_lostHits                (new vector<float>                    ) ;
  
 
  
@@ -285,7 +285,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
    taus_pf_isolationchargecandPtSum         ->push_back( tau_pf->isolationPFChargedHadrCandsPtSum() ); 
    taus_pf_isolationgammacandEtSum          ->push_back( tau_pf->isolationPFGammaCandsEtSum()       ); 
-   taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()       ); 
+   taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()           ); 
    taus_pf_emf                              ->push_back( tau_pf->emFraction()                       ); 
    taus_pf_hcalTotOverPLead                 ->push_back( tau_pf->hcalTotOverPLead()                 ); 
    taus_pf_hcalMaxOverPLead                 ->push_back( tau_pf->hcalMaxOverPLead()                 ); 
@@ -374,13 +374,13 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  iEvent.put(taus_pf_ecalStripSumEOverPLead               ,"tauspfecalStripSumEOverPLead"                   );
  iEvent.put(taus_pf_bremsRecoveryEOverPLead              ,"tauspfbremsRecoveryEOverPLead"                  );
  iEvent.put(taus_pf_electronPreID                        ,"tauspfelectronPreID"                            );
- iEvent.put(taus_pf_electronPreIDOutput                  ,"tauspfelectronPreIDOutput"                            );
+ iEvent.put(taus_pf_electronPreIDOutput                  ,"tauspfelectronPreIDOutput"                      );
  
  iEvent.put(taus_pf_muonPreID                            ,"tauspfmuonPreID"                                );
  iEvent.put(taus_pf_hasMuonReference                     ,"tauspfhasMuonReference"                         );
  iEvent.put(taus_pf_caloComp                             ,"tauspfcaloComp"                                 );
  iEvent.put(taus_pf_segComp                              ,"tauspfsegComp"                                  );
- iEvent.put(taus_pf_nmuonmatch                            ,"tauspfnmuonmatch"                                );
+ iEvent.put(taus_pf_nmuonmatch                            ,"tauspfnmuonmatch"                              );
 
  iEvent.put(taus_pf_tightId                              ,"tauspftightId"                                  );
  
