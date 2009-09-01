@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.h,v 1.1 2009/05/20 18:47:27 jmuelmen Exp $
+// $Id: PhotonMaker.h,v 1.2 2009/09/01 09:23:21 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_PHOTONMAKER_H
@@ -32,7 +32,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
-#include "DataFormats/Common/interface/ValueMap.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
@@ -49,15 +48,11 @@ private:
      virtual void beginJob(const edm::EventSetup&) ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
-     const edm::ValueMap<double>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
 
      // ----------member data ---------------------------
      edm::InputTag photonsInputTag_;
-     edm::InputTag ecalIsoTag_;
-     edm::InputTag hcalIsoTag_;
-     edm::InputTag tkIsoTag_;
-     
      EcalClusterLazyTools* clusterTools_;
+     
 };
 
 #endif
