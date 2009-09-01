@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.h,v 1.1 2008/08/19 14:23:33 spadhi Exp $
+// $Id: TrkJetMaker.h,v 1.2 2009/09/01 11:48:50 fgolf Exp $
 //
 //
 
@@ -44,6 +44,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag trkJetsInputTag;
+  double trkJetPtCut_;
 
 };
 
