@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.11 2009/08/30 15:28:18 fgolf Exp $
+// $Id: EventMaker.h,v 1.12 2009/09/02 15:01:59 jribnik Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -29,9 +29,6 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CondFormats/L1TObjects/interface/L1GtTriggerMenuFwd.h"
-#include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
-
 #include "TString.h"
 //
 // class decleration
@@ -46,23 +43,6 @@ private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-
-  edm::InputTag electronsInputTag;
-  edm::InputTag tracksInputTag;
-  edm::InputTag genParticlesInputTag;
-
-  // ----------member data ---------------------------
-  void fillHLTInfo(const edm::Event&, 
-		   int&, int&, int&, int&,
-		   int&, int&, int&, int&, 
-		   std::vector<TString>&);
-
-  void fillL1Info(const edm::Event&, int&, 
-		  int&, int&, int&, std::vector<TString>&,
-		  const L1GtTriggerMenu* menu);
-  
-  bool haveL1TriggerInfo_;
-  bool haveHLTriggerInfo_;
 
   std::string datasetName_;
   std::string CMS2tag_;
