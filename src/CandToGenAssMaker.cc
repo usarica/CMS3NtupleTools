@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.10 2009/07/06 00:19:48 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.11 2009/09/02 19:23:14 fgolf Exp $
 //
 //
 
@@ -55,7 +55,6 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<int>           >("elsmc3id"           ).setBranchAlias("els_mc3_id"         ); 
   produces<vector<int>           >("elsmc3motherid"     ).setBranchAlias("els_mc3_motherid"   );
   produces<vector<int>           >("elsmc3idx"          ).setBranchAlias("els_mc3idx"         );
-  produces<vector<LorentzVector> >("elsmc3p4"           ).setBranchAlias("els_mc3_p4"         );
   produces<vector<LorentzVector> >("elsmc3motherp4"     ).setBranchAlias("els_mc3_motherp4"   );
   produces<vector<float>         >("elsmc3dr"           ).setBranchAlias("els_mc3dr"          );
 
@@ -69,7 +68,6 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<int>           >("musmc3id"           ).setBranchAlias("mus_mc3_id"         );
   produces<vector<int>           >("musmc3motherid"     ).setBranchAlias("mus_mc3_motherid"   );
   produces<vector<int>           >("musmc3idx"          ).setBranchAlias("mus_mc3idx"         );
-  produces<vector<LorentzVector> >("musmc3p4"           ).setBranchAlias("mus_mc3_p4"         );
   produces<vector<LorentzVector> >("musmc3motherp4"     ).setBranchAlias("mus_mc3_motherp4"   );
   produces<vector<float>         >("musmc3dr"           ).setBranchAlias("mus_mc3dr"          );
 
@@ -90,7 +88,6 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   //info of matched status 3 particle
   produces<vector<float>         >("jetsmc3dr"          ).setBranchAlias("jets_mc3dr"         ); // index of matched status==3 particle
   produces<vector<int>           >("jetsmc3idx"         ).setBranchAlias("jets_mc3idx"        ); // index of matched status==3 particle
-  produces<vector<LorentzVector> >("jetsmc3p4"          ).setBranchAlias("jets_mc3_p4"        ); // p4 of the matched status==3 particle
   produces<vector<int>           >("jetsmc3id"          ).setBranchAlias("jets_mc3_id"        ); // id of matched status ==3 particle
   
   
@@ -104,7 +101,6 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<int>           >("trkmc3id"           ).setBranchAlias("trk_mc3_id"         ); // track matched to gen particle
   produces<vector<int>           >("trkmc3motherid"     ).setBranchAlias("trk_mc3_motherid"   );
   produces<vector<int>           >("trkmc3idx"          ).setBranchAlias("trk_mc3idx"         );
-  produces<vector<LorentzVector> >("trkmc3p4"           ).setBranchAlias("trk_mc3p4"          );
   produces<vector<float>         >("trkmc3dr"           ).setBranchAlias("trk_mc3dr"          );
   
   
@@ -134,7 +130,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<int>           > vector_els_mc3_motherid   (new vector<int>          ); //matched status 3 part only
   auto_ptr<vector<int>           > vector_els_mc3idx         (new vector<int>          ); //matched status 3 part only
   auto_ptr<vector<int>           > vector_els_mc3_id         (new vector<int>          ); //matched status 3 part only
-  auto_ptr<vector<LorentzVector> > vector_els_mc3p4          (new vector<LorentzVector>); //matched status 3 part only
   auto_ptr<vector<LorentzVector> > vector_els_mc3_motherp4   (new vector<LorentzVector>); //matched status 3 part only
   auto_ptr<vector<float>         > vector_els_mc3dr          (new vector<float>        ); //matched status 3 part only
 
@@ -147,7 +142,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<int>           > vector_mus_mc3_id         (new vector<int>          );
   auto_ptr<vector<int>           > vector_mus_mc3_motherid   (new vector<int>          );
   auto_ptr<vector<int>           > vector_mus_mc3idx         (new vector<int>          );
-  auto_ptr<vector<LorentzVector> > vector_mus_mc3p4          (new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > vector_mus_mc3_motherp4   (new vector<LorentzVector>);
   auto_ptr<vector<float>         > vector_mus_mc3dr          (new vector<float>        );
 
@@ -167,7 +161,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   //info of matched status 3 particle
   auto_ptr<vector<float>         > vector_jets_mc3dr         (new vector<float>        );
   auto_ptr<vector<int>           > vector_jets_mc3idx        (new vector<int>          );
-  auto_ptr<vector<LorentzVector> > vector_jets_mc3_p4        (new vector<LorentzVector>);
   auto_ptr<vector<int>           > vector_jets_mc3_id        (new vector<int>          );  
   
   //track matched to gen particle
@@ -179,7 +172,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<int>           > vector_trk_mc3_id       (new vector<int>              );
   auto_ptr<vector<int>           > vector_trk_mc3_motherid (new vector<int>              );
   auto_ptr<vector<int>           > vector_trk_mc3idx       (new vector<int>              );
-  auto_ptr<vector<LorentzVector> > vector_trk_mc3p4        (new vector<LorentzVector>    );
   auto_ptr<vector<float>         > vector_trk_mc3dr        (new vector<float>            );
 
   
@@ -281,7 +273,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_els_mc3_id      ->push_back(mcid        );
     vector_els_mc3_motherid->push_back(mom_mcid    );
     vector_els_mc3idx      ->push_back(genidx      );
-    vector_els_mc3p4       ->push_back(mc_p4       );
     vector_els_mc3_motherp4->push_back(mc_motherp4 );
     vector_els_mc3dr       ->push_back( dR         );
 
@@ -343,7 +334,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     vector_mus_mc3_id      ->push_back(mcid        );
     vector_mus_mc3_motherid->push_back(mom_mcid    );
     vector_mus_mc3idx      ->push_back(genidx      );
-    vector_mus_mc3p4       ->push_back(mc_p4       );
     vector_mus_mc3_motherp4->push_back(mc_motherp4 );
     vector_mus_mc3dr       ->push_back( dR         );
 
@@ -400,12 +390,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     if ( matchedGenParticleDoc != 0 ) {
       vector_jets_mc3dr    ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticleDoc).p4() ));
       vector_jets_mc3idx   ->push_back(temp);
-      vector_jets_mc3_p4   ->push_back(matchedGenParticleDoc->p4());
       vector_jets_mc3_id   ->push_back(matchedGenParticleDoc->pdgId());
     } else {
       vector_jets_mc3dr    ->push_back(-9999);
       vector_jets_mc3idx   ->push_back(-999);
-      vector_jets_mc3_p4   ->push_back(LorentzVector(0,0,0,0));
       vector_jets_mc3_id   ->push_back(-999);
     }
     
@@ -455,7 +443,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      vector_trk_mc3_id      ->push_back(mcid    );
      vector_trk_mc3_motherid->push_back(mom_mcid);
      vector_trk_mc3idx      ->push_back(genidx  );
-     vector_trk_mc3p4       ->push_back(mc_p4   );
      vector_trk_mc3dr       ->push_back( dR );
 
   }
@@ -470,7 +457,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_els_mc3_id         ,"elsmc3id"         );
   iEvent.put(vector_els_mc3_motherid   ,"elsmc3motherid"   );
   iEvent.put(vector_els_mc3idx         ,"elsmc3idx"        );
-  iEvent.put(vector_els_mc3p4          ,"elsmc3p4"         );
   iEvent.put(vector_els_mc3_motherp4   ,"elsmc3motherp4"   );
   iEvent.put(vector_els_mc3dr          ,"elsmc3dr"         );
 
@@ -484,7 +470,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_mus_mc3_id         ,"musmc3id"         );
   iEvent.put(vector_mus_mc3_motherid   ,"musmc3motherid"   );
   iEvent.put(vector_mus_mc3idx         ,"musmc3idx"        );
-  iEvent.put(vector_mus_mc3p4          ,"musmc3p4"         );
   iEvent.put(vector_mus_mc3_motherp4   ,"musmc3motherp4"   );
   iEvent.put(vector_mus_mc3dr          ,"musmc3dr"         );
 
@@ -501,7 +486,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_jets_mc_id         ,"jetsmcid"         );
   iEvent.put(vector_jets_mc3dr         ,"jetsmc3dr"        );
   iEvent.put(vector_jets_mc3idx        ,"jetsmc3idx"       );
-  iEvent.put(vector_jets_mc3_p4        ,"jetsmc3p4"        );
   iEvent.put(vector_jets_mc3_id        ,"jetsmc3id"      ); // id of matched status ==3 particle
 
   
@@ -514,7 +498,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_trk_mc3_id          ,"trkmc3id"         );
   iEvent.put(vector_trk_mc3_motherid    ,"trkmc3motherid"   );
   iEvent.put(vector_trk_mc3idx          ,"trkmc3idx"        );
-  iEvent.put(vector_trk_mc3p4           ,"trkmc3p4"         );
   iEvent.put(vector_trk_mc3dr           ,"trkmc3dr"         );
   
   delete genParticlesPruned;
