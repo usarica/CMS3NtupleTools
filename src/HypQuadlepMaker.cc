@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.9 2009/05/21 01:09:14 fgolf Exp $
+// $Id: HypQuadlepMaker.cc,v 1.10 2009/09/02 20:05:45 fgolf Exp $
 //
 //
 
@@ -78,7 +78,6 @@ e-e-e-e-: 34
 #include "CMS2/NtupleMaker/interface/HypQuadlepMaker.h"
 
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/METUtilities.h"
 #include "CMS2/NtupleMaker/interface/JetUtilities.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"

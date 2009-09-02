@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.9 2009/05/21 01:09:14 fgolf Exp $
+// $Id: HypTrilepMaker.cc,v 1.10 2009/09/02 20:05:41 fgolf Exp $
 //
 //
 
@@ -62,7 +62,6 @@ e-e-e-: 19
 #include "CMS2/NtupleMaker/interface/HypTrilepMaker.h"
 
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/METUtilities.h"
 #include "CMS2/NtupleMaker/interface/JetUtilities.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
