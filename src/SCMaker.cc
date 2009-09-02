@@ -32,6 +32,8 @@ Implementation:
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
+#include "DataFormats/Common/interface/Ref.h"
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
@@ -91,6 +93,9 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<float> >("scssigmaIEtaIPhi").setBranchAlias("scs_sigmaIEtaIPhi");
   produces<std::vector<float> >("scssigmaIPhiIPhi").setBranchAlias("scs_sigmaIPhiIPhi");
 
+  // match to electrons
+  produces<std::vector<int> >("scselsidx").setBranchAlias("scs_elsidx");
+
   // add superclusters to the ntuple if they have ET > scEtMin_
   scEtMin_ = iConfig.getParameter<double>("scEtMin");
 
@@ -111,6 +116,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
   ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
   ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
   primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
+  electronsInputTag_ = iConfig.getParameter<edm::InputTag>("electronsInputTag");
   //caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
 
   // initialise this
@@ -156,6 +162,16 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     pv = vertexCollection->at(0).position();
   }
 
+  // get the electrons (for matching)
+  edm::Handle<reco::GsfElectronCollection> electronsHandle;
+  try {
+    iEvent.getByLabel(electronsInputTag_, electronsHandle);
+  }
+  catch ( cms::Exception& ex ) {
+    edm::LogError("SCMakerError") << "Error! can't get the electrons";
+  }
+  const reco::GsfElectronCollection *electronsCollection = electronsHandle.product();
+
   // get hoe variable
   HoECalculator hoeCalc(caloGeometry_);
 
@@ -199,6 +215,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIEta (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIPhi(new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIPhiIPhi(new std::vector<float>);
+  std::auto_ptr<std::vector<int> > vector_scs_elsidx(new std::vector<int>);
  
   *evt_nscs = 0;
   // there are multiple supercluster collections. In the ntuple
@@ -217,8 +234,9 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       const reco::SuperClusterCollection *scCollection = scHandle.product();
 
       *evt_nscs += scCollection->size();
+      size_t scIndex = 0;
       for (reco::SuperClusterCollection::const_iterator sc = scCollection->begin();
-	   sc != scCollection->end(); ++sc) {
+	   sc != scCollection->end(); ++sc, ++scIndex) {
 
 	// do ET cut
 	if ( (sc->energy()/cosh(sc->eta())) < scEtMin_) continue;
@@ -261,6 +279,18 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
 	vector_scs_crystalsSize->push_back( detIds.size() );
 
+	// do match to electrons
+        const edm::Ref<reco::SuperClusterCollection> scRef(scHandle, scIndex);
+        int electronIndex = -999;
+        for (size_t i = 0; i < electronsCollection->size(); ++i)
+        {
+	   if ((*electronsCollection)[i].superCluster() == scRef) {
+              electronIndex = i;
+              break;
+           }
+        }	
+        vector_scs_elsidx->push_back(electronIndex);
+
       } // end loop on scs
 
     } // end loop on sc input tags
@@ -295,6 +325,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_scs_sigmaIPhiIPhi, "scssigmaIPhiIPhi");
   iEvent.put(vector_scs_clustersSize, "scsclustersSize");
   iEvent.put(vector_scs_crystalsSize, "scscrystalsSize");
+  iEvent.put(vector_scs_elsidx, "scselsidx");
 
   delete mhbhe;
 

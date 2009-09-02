@@ -65,6 +65,9 @@ private:
      // primary vertex collection
      edm::InputTag primaryVertexInputTag_;
 
+     // electrons
+     edm::InputTag electronsInputTag_;
+
      // access to geometry
      unsigned long long cachedCaloGeometryID_;
      edm::ESHandle<CaloGeometry> caloGeometry_;
