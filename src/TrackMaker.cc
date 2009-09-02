@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.15 2009/08/30 16:29:47 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.16 2009/09/02 01:11:31 yanjuntu Exp $
 //
 //
 
@@ -46,6 +46,13 @@
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "Geometry/CommonDetUnit/interface/GeomDet.h"
+#include "CondFormats/AlignmentRecord/interface/GlobalPositionRcd.h"
+
+#include "DataFormats/TrackReco/interface/HitPattern.h"
+
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
 using std::vector;
@@ -59,6 +66,7 @@ using std::vector;
 //
 TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
 {
+       
   produces<vector<LorentzVector> >	("trkstrkp4"	  ).setBranchAlias("trks_trk_p4"     );	// track p4						
   produces<vector<LorentzVector> >	("trksvertexp4"	  ).setBranchAlias("trks_vertex_p4"  );	// track p4
   produces<vector<LorentzVector> >      ("trksouterp4"    ).setBranchAlias("trks_outer_p4"   );    // p4 at the outermost point of the tracker
@@ -80,6 +88,11 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >		("trkscharge"	  ).setBranchAlias("trks_charge"     );	// charge						
   produces<vector<float> >		("trkstkIso"	  ).setBranchAlias("trks_tkIso"      );	// track isolation like els_tkIso
   produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
+  
+  produces<vector<vector<int> > >       ("trkshittype"    ).setBranchAlias("trks_hit_type"         ); // hitType                                            
+  produces<vector<vector<float> > >     ("trksresidualX"  ).setBranchAlias("trks_residualX"        ); // residualX                                          
+  produces<vector<vector<float> > >     ("trksresidualY"  ).setBranchAlias("trks_residualY"        ); // residualY
+  produces<vector<vector<int> > >       ("trkshitsubstructure"    ).setBranchAlias("trks_hit_substructure"         ); // substructure       
 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -121,7 +134,10 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<float> >         vector_trks_outerPt     (new vector<float>              );
   std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
   std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
-
+  std::auto_ptr<vector<vector<float> > >     vector_trks_residualX       (new vector<vector<float> >    );
+  std::auto_ptr<vector<vector<float> > >     vector_trks_residualY       (new vector<vector<float> >    );
+  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_type        (new vector<vector<int> >      );
+  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_substructure (new vector<vector<int> >      );
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
   iEvent.getByLabel(tracksInputTag, track_h);
@@ -147,6 +163,11 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel(beamSpotTag, beamSpotH);
 
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
+
+  //get tracker geometry                                                                                                                                                                   
+  edm::ESHandle<TrackerGeometry> theG;
+  iSetup.get<TrackerDigiGeometryRecord>().get(theG);
+
 
   edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
 
@@ -227,6 +248,48 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_trks_outer_p4->push_back( LorentzVector( -999., -999., -999., -999.) );
 
     }
+    //residual information
+    vector <float> residualX_cms2;
+    vector <float> residualY_cms2;
+    vector <int>   hit_type_cms2;
+    vector <int>   hit_substructure_cms2;
+    bool valid_hit = false;
+    int sign = 1 ;
+    const reco::HitPattern& p = i->hitPattern();
+     for(trackingRecHit_iterator ihit = i->recHitsBegin();
+                    ihit != i->recHitsEnd(); ++ihit){
+       int k = ihit-i->recHitsBegin();
+       Point2DBase<float, LocalTag> localpoint_1(0.0,0.0);
+       Point2DBase<float, LocalTag> localpoint_2(i->residualX(k),0);
+       GlobalPoint gpos_1 = theG->idToDet((*ihit)->geographicalId())->surface().toGlobal(localpoint_1);
+       GlobalPoint gpos_2 = theG->idToDet((*ihit)->geographicalId())->surface().toGlobal(localpoint_2);
+       if (gpos_2.barePhi()>= gpos_1.barePhi()) sign = 1;
+       else sign = -1;
+       uint32_t hit_pattern = p.getHitPattern(k);
+       valid_hit = p.validHitFilter(hit_pattern);
+       
+       hit_type_cms2.push_back( p.getHitType(hit_pattern));
+       hit_substructure_cms2.push_back( p.getSubStructure(hit_pattern));
+       if(valid_hit){
+	 
+	 residualX_cms2.push_back(fabs(i->residualX(k))*sign );
+	 residualY_cms2.push_back(i->residualY(k));
+	 
+       }
+       else{
+	 
+	 residualX_cms2.push_back( -999.);
+	 residualY_cms2.push_back( -999.);
+
+       }
+       
+     }
+
+     vector_trks_hit_type           ->push_back(hit_type_cms2                 );
+     vector_trks_hit_substructure   ->push_back(hit_substructure_cms2          );
+     vector_trks_residualX          ->push_back(residualX_cms2                );                                                                               vector_trks_residualY          ->push_back(residualY_cms2                );
+
+
   }
 
   // store vectors
@@ -251,6 +314,11 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_charge       , "trkscharge"            );
   iEvent.put(vector_trks_tkIso        , "trkstkIso"             );
   iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
+  iEvent.put(vector_trks_residualX ,    "trksresidualX"         );
+  iEvent.put(vector_trks_residualY ,    "trksresidualY"         );
+  iEvent.put(vector_trks_hit_type ,     "trkshittype"           );
+  iEvent.put(vector_trks_hit_substructure ,     "trkshitsubstructure"           );
+  
 }
 
 // ------------ method called once each job just before starting event loop  ------------
