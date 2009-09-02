@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.15 $'),
+        version = cms.untracked.string('$Revision: 1.16 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -22,7 +22,7 @@ process.options = cms.untracked.PSet(
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 
 #----------------------------------------------------
@@ -73,7 +73,7 @@ process.load("CMS2.NtupleMaker.patJetMaker_cfi")
 process.load("CMS2.NtupleMaker.patMETMaker_cfi")
 process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
 process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
-process.load("CMS2.NtupleMaker.pfjetMaker_cfi")
+process.load("CMS2.NtupleMaker.pfJetMaker_cfi")
 process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
 process.load("CMS2.NtupleMaker.pftauMaker_cfi")
 process.load("CMS2.NtupleMaker.photonMaker_cfi")
@@ -94,7 +94,7 @@ process.load("CMS2.NtupleMaker.vertexMaker_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -222,7 +222,7 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker * process.CMS2FlavorHistorySequence * process.flavorHistoryMaker)
 
-process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfjetMaker * process.pftauMaker)
+process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 
 process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
