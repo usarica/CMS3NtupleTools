@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.6 2009/08/30 13:20:57 fgolf Exp $
+// $Id: JPTMaker.h,v 1.7 2009/09/02 10:06:09 fgolf Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -49,7 +49,7 @@ private:
   // ----------member data ---------------------------
   edm::InputTag jptsInputTag;
   edm::InputTag L2L3jptsInputTag;
-  edm::InputTag uncorJetsInputTag;
+
 };
 
 
