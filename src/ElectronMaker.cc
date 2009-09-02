@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.30 2009/09/02 07:48:58 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.31 2009/09/02 15:26:00 kalavase Exp $
 //
 //
 
@@ -149,9 +149,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >     ("elsptErr"                   ).setBranchAlias("els_ptErr"                  );
   produces<vector<float> >     ("elsetaErr"                  ).setBranchAlias("els_etaErr"                 );
   produces<vector<float> >     ("elsphiErr"                  ).setBranchAlias("els_phiErr"                 );
-  produces<vector<float> >     ("elsouterPhi"                ).setBranchAlias("els_outerPhi"               );
-  produces<vector<float> >     ("elsouterEta"                ).setBranchAlias("els_outerEta"               );
-
+  
   // LorentzVectors
   //
   produces<vector<LorentzVector> >  ("elsp4"                 ).setBranchAlias("els_p4"                     );
@@ -463,9 +461,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_z0                    ->push_back( el_track->dz()                            );		
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
     els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
-    els_outerPhi              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
-    els_outerEta              ->push_back( -9999.                                    );  //PLACEHOLDER!!!!!
-
+    
     // Lorentz Vectors	
     //
     LorentzVector trk_p4( el_track->px(), el_track->py(), 
@@ -666,8 +662,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_ptErr                   	,"elsptErr"           		);
   iEvent.put(els_etaErr                  	,"elsetaErr"        		);
   iEvent.put(els_phiErr                  	,"elsphiErr"        		);
-  iEvent.put(els_outerPhi                	,"elsouterPhi"        		);
-  iEvent.put(els_outerEta                	,"elsouterEta"        		);
   iEvent.put(els_validHits               	,"elsvalidHits"       		);
   iEvent.put(els_lostHits                	,"elslostHits"        		);
   iEvent.put(els_charge                  	,"elscharge"          		);
