@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.1 2009/09/02 07:31:21 kalavase Exp $
+// $Id: PFJetMaker.h,v 1.2 2009/09/02 10:15:00 kalavase Exp $
 //
 //
 
@@ -47,6 +47,6 @@ class PFJetMaker : public edm::EDProducer {
       
       // ----------member data ---------------------------
   edm::InputTag pfJetsInputTag_;
-
+  double         pfJetPtCut_;
 
 };

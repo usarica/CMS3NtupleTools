@@ -46,8 +46,10 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig)
 
 
   pfJetsInputTag_    = iConfig.getParameter<InputTag>("pfJetsInputTag");
-  
+  pfJetPtCut_        = iConfig.getParameter<double>  ("pfJetPtCut"    );
+
 }
+
 
 PFJetMaker::~PFJetMaker()
 {
@@ -86,6 +88,9 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin();
       pfjet_it != pfJetsHandle->end(); pfjet_it++) {
+
+    if(pfjet_it->p4().Pt() < 5.)
+      continue;
     
     pfjets_p4                    ->push_back(pfjet_it->p4()                   );
     pfjets_chargedHadronE        ->push_back(pfjet_it->chargedHadronEnergy()  );
