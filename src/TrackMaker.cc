@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.16 2009/09/02 01:11:31 yanjuntu Exp $
+// $Id: TrackMaker.cc,v 1.17 2009/09/02 11:07:54 fgolf Exp $
 //
 //
 
@@ -88,6 +88,7 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >		("trkscharge"	  ).setBranchAlias("trks_charge"     );	// charge						
   produces<vector<float> >		("trkstkIso"	  ).setBranchAlias("trks_tkIso"      );	// track isolation like els_tkIso
   produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
+  produces<vector<int> >                ("trksalgo"       ).setBranchAlias("trks_algo"       );
   
   produces<vector<vector<int> > >       ("trkshittype"    ).setBranchAlias("trks_hit_type"         ); // hitType                                            
   produces<vector<vector<float> > >     ("trksresidualX"  ).setBranchAlias("trks_residualX"        ); // residualX                                          
@@ -134,10 +135,13 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<float> >         vector_trks_outerPt     (new vector<float>              );
   std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
   std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
+  std::auto_ptr<vector<int> >           vector_trks_algo        (new vector<int>                );
+
   std::auto_ptr<vector<vector<float> > >     vector_trks_residualX       (new vector<vector<float> >    );
   std::auto_ptr<vector<vector<float> > >     vector_trks_residualY       (new vector<vector<float> >    );
   std::auto_ptr<vector<vector<int> > >       vector_trks_hit_type        (new vector<vector<int> >      );
-  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_substructure (new vector<vector<int> >      );
+  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_substructure (new vector<vector<int> >     );
+
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
   iEvent.getByLabel(tracksInputTag, track_h);
@@ -200,6 +204,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_tkIso        ->push_back( calculateTrkIsolation(track_h.product(), *i, beamSpot)   );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
+    vector_trks_algo         ->push_back( i->algo()                                                );
 	  
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
@@ -286,8 +291,9 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      vector_trks_hit_type           ->push_back(hit_type_cms2                 );
-     vector_trks_hit_substructure   ->push_back(hit_substructure_cms2          );
-     vector_trks_residualX          ->push_back(residualX_cms2                );                                                                               vector_trks_residualY          ->push_back(residualY_cms2                );
+     vector_trks_hit_substructure   ->push_back(hit_substructure_cms2         );
+     vector_trks_residualX          ->push_back(residualX_cms2                );
+     vector_trks_residualY          ->push_back(residualY_cms2                );
 
 
   }
@@ -313,6 +319,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_phiErr       , "trksphiErr"            );
   iEvent.put(vector_trks_charge       , "trkscharge"            );
   iEvent.put(vector_trks_tkIso        , "trkstkIso"             );
+  iEvent.put(vector_trks_algo         , "trksalgo"              );
+
   iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
   iEvent.put(vector_trks_residualX ,    "trksresidualX"         );
   iEvent.put(vector_trks_residualY ,    "trksresidualY"         );
