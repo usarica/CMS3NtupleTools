@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.2 2009/09/01 11:49:00 fgolf Exp $
+// $Id: TrkJetMaker.cc,v 1.3 2009/09/02 09:47:36 fgolf Exp $
 //
 
 
@@ -36,7 +36,7 @@ Implementation:
 
 typedef math::XYZTLorentzVector LorentzVector;
 
-bool sortJetsByPt(LorentzVector jet1, LorentzVector jet2) {
+bool sortTrkJetsByPt(LorentzVector jet1, LorentzVector jet2) {
   return jet1.pt() > jet2.pt();
 }
 
@@ -80,7 +80,7 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trkjets_p4->push_back(jet->p4());
   }
 
-  std::sort( vector_trkjets_p4->begin(), vector_trkjets_p4->end(), sortJetsByPt );
+  std::sort( vector_trkjets_p4->begin(), vector_trkjets_p4->end(), sortTrkJetsByPt );
 
   // put containers into event
   iEvent.put(evt_ntrkjets, "evtntrkjets");
