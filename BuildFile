@@ -24,6 +24,7 @@
 <use name=CondFormats/DataRecord>
 <use name=JetMETCorrections/Objects>
 <use name=TrackingTools/TrackAssociator>
+<use name=HLTrigger/HLTcore>
 <use name=CMS2/Dictionaries>
 <use name=root>
 <use name=clhep>
