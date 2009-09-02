@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.25 2009/09/02 09:12:04 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.26 2009/09/02 15:24:33 fgolf Exp $
 //
 //
 
@@ -77,8 +77,6 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >	     ("mustrkcharge"	      ).setBranchAlias("mus_trk_charge"         ); // track charge
   produces<vector<float> >           ("musqoverp"             ).setBranchAlias("mus_qoverp"             );
   produces<vector<float> >           ("musqoverpError"        ).setBranchAlias("mus_qoverpError"        );
-  produces<vector<float> >	     ("musouterPhi"	      ).setBranchAlias("mus_outerPhi"           ); // phi angle of the outermost point in tracker 
-  produces<vector<float> >	     ("musouterEta"	      ).setBranchAlias("mus_outerEta"           ); // eta angle of the outermost point in tracker 
     // muon quantities
   produces<vector<int> >             ("musnmatches"	      ).setBranchAlias("mus_nmatches"           ); // number of stations with matched segments 
   produces<vector<float> >	     ("museem"		      ).setBranchAlias("mus_e_em"               ); // energy in crossed ECAL crystalls 
@@ -165,8 +163,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >	   vector_mus_trk_charge          (new vector<int>             );   
   auto_ptr<vector<float> >         vector_mus_qoverp              (new vector<float>           );
   auto_ptr<vector<float> >         vector_mus_qoverpError         (new vector<float>           );
-  auto_ptr<vector<float> >	   vector_mus_outerPhi	          (new vector<float>	       );      
-  auto_ptr<vector<float> >	   vector_mus_outerEta	          (new vector<float>	       );      
   auto_ptr<vector<int> >	   vector_mus_nmatches	          (new vector<int>             );
   auto_ptr<vector<float> >	   vector_mus_e_em	          (new vector<float>           );
   auto_ptr<vector<float> >	   vector_mus_e_had   	          (new vector<float>           );
@@ -259,8 +255,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_trk_charge         ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -999        );
     vector_mus_qoverp             ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -999        );
     vector_mus_qoverpError        ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -999        );
-    vector_mus_outerPhi           ->push_back(-999                                                                          );
-    vector_mus_outerEta           ->push_back(-999                                                                          );
     vector_mus_nmatches           ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()               :  -999        );
     vector_mus_e_em               ->push_back(muon->isEnergyValid() ? muon->calEnergy().em                   :  -999        );
     vector_mus_e_had              ->push_back(muon->isEnergyValid() ? muon->calEnergy().had		     :  -999        );
@@ -337,8 +331,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_trk_charge         , "mustrkcharge"          );
   iEvent.put(vector_mus_qoverp             , "musqoverp"             );
   iEvent.put(vector_mus_qoverpError        , "musqoverpError"        );
-  iEvent.put(vector_mus_outerPhi           , "musouterPhi"           );
-  iEvent.put(vector_mus_outerEta           , "musouterEta"           );
   iEvent.put(vector_mus_nmatches           , "musnmatches"           );
   iEvent.put(vector_mus_e_em               , "museem"                );
   iEvent.put(vector_mus_e_had              , "musehad"               );
