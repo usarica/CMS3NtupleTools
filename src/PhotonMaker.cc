@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.3 2009/09/01 09:17:28 dlevans Exp $
+// $Id: PhotonMaker.cc,v 1.4 2009/09/02 12:50:33 fgolf Exp $
 //
 //
 
@@ -84,7 +84,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
      produces<vector<float> >	  ("photonseSC"             ).setBranchAlias("photons_eSC"              );
      produces<vector<float> >	  ("photonseSCRaw"          ).setBranchAlias("photons_eSCRaw"           );
      produces<vector<float> >          ("photonseSCPresh"        ).setBranchAlias("photons_eSCPresh"         );
-     produces<vector<int> >          ("photonsFiduciality"        ).setBranchAlias("photons_fiduciality"         );
+     produces<vector<int> >          ("photonsfiduciality"        ).setBranchAlias("photons_fiduciality"         );
 
      // ID variables
      //
@@ -265,7 +265,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_e2x5Max                  ,"photonse2x5Max"         		);
      iEvent.put(photons_eMax                     ,"photonseMax"      	      	);
      iEvent.put(photons_eSeed                    ,"photonseSeed" 	          	);
-     iEvent.put(photons_fiduciality		,"photonsFiduciality"			);
+     iEvent.put(photons_fiduciality		,"photonsfiduciality"			);
 	
      // Photon ID
      //

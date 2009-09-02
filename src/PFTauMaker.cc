@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.5 2009/09/01 07:57:58 kalavase Exp $
+// $Id: PFTauMaker.cc,v 1.6 2009/09/02 12:50:28 fgolf Exp $
 //
 //
 
@@ -46,13 +46,6 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> >  ("tauspfp4"                            ).setBranchAlias("taus_pf_p4"                             );
   produces<vector<int> >            ("tauspfcharge"                        ).setBranchAlias("taus_pf_charge"                         );
 
-//   produces<vector<int> >            ("tauspfsignchargecand"                ).setBranchAlias("taus_pf_sig_ncharge_cand"               );
-//   produces<vector<int> >            ("tauspfisonchargecand"                ).setBranchAlias("taus_pf_iso_ncharge_cand"               );
-//   produces<vector<int> >            ("tauspfsignneutrcand"                 ).setBranchAlias("taus_pf_sig_nneutr_cand"                );
-//   produces<vector<int> >            ("tauspfisonneutrcand"                 ).setBranchAlias("taus_pf_iso_nneutr_cand"                );
-//   produces<vector<int> >            ("tauspfsigngammacand"                 ).setBranchAlias("taus_pf_sig_ngamma_cand"                );
-//   produces<vector<int> >            ("tauspfisongammacand"                 ).setBranchAlias("taus_pf_iso_ngamma_cand"                );
-
   produces<vector<vector <LorentzVector> > >  ("tauspfisochargecandp4"     ).setBranchAlias("taus_pf_isochargecand_p4"               );
   produces<vector<vector <LorentzVector> > >  ("tauspfisoneutrcandp4"      ).setBranchAlias("taus_pf_isoneutrcand_p4"                );
   produces<vector<vector <LorentzVector> > >  ("tauspfisogammacandp4"      ).setBranchAlias("taus_pf_isogammacand_p4"                );
@@ -64,7 +57,7 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 
   produces<vector<LorentzVector> >  ("tauspfleadchargecandp4"              ).setBranchAlias("taus_pf_lead_chargecand_p4"             );
   produces<vector<LorentzVector> >  ("tauspfleadneutrcandp4"               ).setBranchAlias("taus_pf_lead_neutrcand_p4"              );
-  produces<vector<float> >          ("tauspfleadchargecanSignedSipt"       ).setBranchAlias("taus_pf_lead_chargecand_Signed_Sipt"    );
+  produces<vector<float> >          ("tauspfleadchargecandSignedSipt"      ).setBranchAlias("taus_pf_lead_chargecand_Signed_Sipt"    );
   produces<vector<float> >          ("tauspfisolationchargecandPtSum"      ).setBranchAlias("taus_pf_isolationchargecandPtSum"       ); 
   produces<vector<float> >          ("tauspfisolationgammacandEtSum"       ).setBranchAlias("taus_pf_isolationgammacandEtSum"        ); 
   produces<vector<float> >          ("tauspfmaximumHCALPFClusterEt"        ).setBranchAlias("taus_pf_maximumHCALPFClusterEt"         ); 
@@ -96,11 +89,6 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >          ("tauspfleadtrkvalidHits"              ).setBranchAlias("taus_pf_leadtrk_validHits"              ); 
   produces<vector<float> >          ("tauspfleadtrklostHits"               ).setBranchAlias("taus_pf_leadtrk_lostHits"               ); 
 
-  
- 
-  
-  
-    
    
 //get setup parameters
   pftausInputTag      = iConfig.getParameter<InputTag>("pftausInputTag");
@@ -123,12 +111,6 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > taus_pf_p4                              (new vector<LorentzVector>            ) ;
   auto_ptr<vector<int> >           taus_pf_charge                          (new vector<int>                      ) ;
 
-//   auto_ptr<vector<int> >           taus_pf_sig_ncharge_cand                (new vector<int>) ;
-//   auto_ptr<vector<int> >           taus_pf_iso_ncharge_cand                (new vector<int>) ;
-//   auto_ptr<vector<int> >           taus_pf_sig_nneutr_cand                 (new vector<int>) ;
-//   auto_ptr<vector<int> >           taus_pf_iso_nneutr_cand                 (new vector<int>) ;
-//   auto_ptr<vector<int> >           taus_pf_sig_ngamma_cand                 (new vector<int>) ;
-//   auto_ptr<vector<int> >           taus_pf_iso_ngamma_cand                 (new vector<int>) ;
   auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
   auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;
   
@@ -352,15 +334,9 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  
  iEvent.put(taus_pf_p4                                   ,"tauspfp4"                                       );  
  iEvent.put(taus_pf_charge                               ,"tauspfcharge"                                   );  
-//  iEvent.put(taus_pf_sig_ncharge_cand                     ,"tauspfsignchargecand"                           );  
-//  iEvent.put(taus_pf_iso_ncharge_cand                     ,"tauspfisonchargecand"                           ); 
-//  iEvent.put(taus_pf_sig_nneutr_cand                      ,"tauspfsignneutrcand"                            ); 
-//  iEvent.put(taus_pf_iso_nneutr_cand                      ,"tauspfisonneutrcand"                            ); 
-//  iEvent.put(taus_pf_sig_ngamma_cand                      ,"tauspfsigngammacand"                            ); 
-//  iEvent.put(taus_pf_iso_ngamma_cand                      ,"tauspfisongammacand"                            ); 
  iEvent.put(taus_pf_lead_chargecand_p4                   ,"tauspfleadchargecandp4"                         ); 
  iEvent.put(taus_pf_lead_neutrcand_p4                    ,"tauspfleadneutrcandp4"                          ); 
- iEvent.put(taus_pf_lead_chargecand_Signed_Sipt          ,"tauspfleadchargecanSignedSipt"                  ); 
+ iEvent.put(taus_pf_lead_chargecand_Signed_Sipt          ,"tauspfleadchargecandSignedSipt"                 ); 
  iEvent.put(taus_pf_isolationchargecandPtSum             ,"tauspfisolationchargecandPtSum"                 );
  iEvent.put(taus_pf_isolationgammacandEtSum              ,"tauspfisolationgammacandEtSum"                  );
  iEvent.put(taus_pf_maximumHCALPFClusterEt               ,"tauspfmaximumHCALPFClusterEt"                   );
