@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.14 $'),
+        version = cms.untracked.string('$Revision: 1.15 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -46,6 +46,7 @@ process.load("CMS2.NtupleMaker.flavorHistoryMaker_cfi")
 process.load("CMS2.NtupleMaker.flavorHistorySequence_cfi")
 process.load("CMS2.NtupleMaker.genJetMaker_cfi")
 process.load("CMS2.NtupleMaker.genMaker_cfi")
+process.load("CMS2.NtupleMaker.hltMaker_cff")
 #process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
 #process.load("CMS2.NtupleMaker.hypGenMaker_cfi")
 #process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
@@ -56,7 +57,8 @@ process.load("CMS2.NtupleMaker.jetMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jptSequence_cff")
-#process.load("CMS2.NtupleMaker.l1DigiMaker_cfi")
+process.load("CMS2.NtupleMaker.l1Maker_cfi")
+process.l1Maker.fillL1Particles = cms.untracked.bool(False)
 process.load("CMS2.NtupleMaker.metSequence_cff")
 process.load("CMS2.NtupleMaker.metMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
@@ -80,7 +82,6 @@ process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToElsAssMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToMuonAssMaker_cfi")
-#process.load("CMS2.NtupleMaker.triggerEventMaker_cfi")
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
 process.load("CMS2.NtupleMaker.trkJetSequence_cfi")
 process.load("CMS2.NtupleMaker.vertexMaker_cfi")
@@ -208,7 +209,7 @@ process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
 
-#process.trigmmakers   = cms.Sequence(process.l1DigiMaker * process.triggerEventMaker)
+#process.trigmmakers   = cms.Sequence(process.l1Maker * process.hltMakerSequence)
 
 process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker)
 
