@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.17 2009/09/02 09:48:07 fgolf Exp $
+// $Id: JetMaker.cc,v 1.18 2009/09/02 11:07:29 fgolf Exp $
 //
 //
 
@@ -64,8 +64,6 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
 
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
-  L2L3corJetsInputTag_    = iConfig.getParameter<edm::InputTag>("L2L3corJetsInputTag"     );
-  L2L3L4corJetsInputTag_  = iConfig.getParameter<edm::InputTag>("L2L3L4corJetsInputTag"   );
 }
 
 JetMaker::~JetMaker()

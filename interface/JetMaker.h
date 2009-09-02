@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.5 2009/08/27 16:30:40 fgolf Exp $
+// $Id: JetMaker.h,v 1.6 2009/09/02 11:07:15 fgolf Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -52,8 +52,6 @@ private:
   
   // ----------member data ---------------------------
   edm::InputTag uncorJetsInputTag_;
-  edm::InputTag L2L3corJetsInputTag_;
-  edm::InputTag L2L3L4corJetsInputTag_;
 
 };
 
