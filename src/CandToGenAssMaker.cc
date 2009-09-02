@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.11 2009/09/02 19:23:14 fgolf Exp $
+// $Id: CandToGenAssMaker.cc,v 1.12 2009/09/02 19:32:16 kalavase Exp $
 //
 //
 
@@ -427,13 +427,16 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      vector_trk_mcidx      ->push_back(genidx  );
      vector_trk_mcp4       ->push_back(mc_p4   );
      vector_trk_mcdr       ->push_back( dR );
-     
-     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
-									       genidx, 3);
+
+
      mcid = -999;
      mom_mcid = -999;
      genidx = -999;
      mc_p4 = LorentzVector(0,0,0,0);
+     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
+									       genidx, 3);
+
+     
      if(matchedGenParticleDoc != 0) {
        mcid                = matchedGenParticleDoc->pdgId();
        mc_p4               = matchedGenParticleDoc->p4();
@@ -443,7 +446,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      vector_trk_mc3_id      ->push_back(mcid    );
      vector_trk_mc3_motherid->push_back(mom_mcid);
      vector_trk_mc3idx      ->push_back(genidx  );
-     vector_trk_mc3dr       ->push_back( dR );
+     vector_trk_mc3dr       ->push_back( dR     );
 
   }
 
