@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.16 $'),
+        version = cms.untracked.string('$Revision: 1.17 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -194,8 +194,9 @@ process.out_CMS2 = cms.OutputModule(
 	"PoolOutputModule",
     process.EventSelection,
     verbose = cms.untracked.bool(True),
-    dropMetaDataForDroppedData = cms.untracked.bool(True),
-	fileName = cms.untracked.string('ntuple.root')
+    dropMetaData = cms.untracked.string("NONE"),
+    #dropMetaData = cms.untracked.string("ALL"), #if you want to drop the metadata completely
+    fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
