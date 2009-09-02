@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.17 2009/09/02 11:07:54 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.18 2009/09/02 19:23:29 fgolf Exp $
 //
 //
 
@@ -130,9 +130,6 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<float> >		vector_trks_etaErr	(new vector<float>		);      
   std::auto_ptr<vector<float> >		vector_trks_phiErr	(new vector<float>		);      
   std::auto_ptr<vector<int> >		vector_trks_charge	(new vector<int>		);        
-  std::auto_ptr<vector<float> >		vector_trks_outerPhi	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_outerEta	(new vector<float>		);      
-  std::auto_ptr<vector<float> >         vector_trks_outerPt     (new vector<float>              );
   std::auto_ptr<vector<float> >		vector_trks_tkIso	(new vector<float>		);
   std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
   std::auto_ptr<vector<int> >           vector_trks_algo        (new vector<int>                );
