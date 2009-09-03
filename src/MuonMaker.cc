@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.27 2009/09/03 00:15:20 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.28 2009/09/03 12:28:37 kalavase Exp $
 //
 //
 
@@ -130,10 +130,10 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   //the 4th co-ordinate is 0
   produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" );
   produces<vector<LorentzVector> >   ("musgfitouterPosp4"     ).setBranchAlias("mus_gfit_outerPos_p4");
-  produces<vector<LorentzVector> >   ("musfitdefault" ).setBranchAlias("mus_fitdefault" );
-  produces<vector<LorentzVector> >   ("musfitfirsthit").setBranchAlias("mus_fitfirsthit");
-  produces<vector<LorentzVector> >   ("musfitpicky"   ).setBranchAlias("mus_fitpicky"	 );
-  produces<vector<LorentzVector> >   ("musfittev"     ).setBranchAlias("mus_fittev"     );
+  produces<vector<LorentzVector> >   ("musfitdefaultp4" ).setBranchAlias("mus_fitdefault_p4" );
+  produces<vector<LorentzVector> >   ("musfitfirsthitp4").setBranchAlias("mus_fitfirsthit_p4");
+  produces<vector<LorentzVector> >   ("musfitpickyp4"   ).setBranchAlias("mus_fitpicky_p4"	 );
+  produces<vector<LorentzVector> >   ("musfittevp4"     ).setBranchAlias("mus_fittev_p4"     );
   
   muonsInputTag  		= iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   beamSpotInputTag 		= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -205,10 +205,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >         vector_mus_caloCompatibility            (new vector<float>  );
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                    (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4             (new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fitdefault                 (new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fitfirsthit                (new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fitpicky                   (new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fittev                     (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_fitdefault_p4                 (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_fitfirsthit_p4                (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_fitpicky_p4                   (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_fittev_p4                     (new vector<LorentzVector> );
     
   // get muons
   Handle<edm::View<Muon> > muon_h;
@@ -321,10 +321,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 						     : LorentzVector(-999,-999,-999,-999) );
 
     if( !muon->isGlobalMuon() ) {
-      vector_mus_fitdefault ->push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fitfirsthit->push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fitpicky   ->push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fittev     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      vector_mus_fitfirsthit_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      vector_mus_fitpicky_p4   ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      vector_mus_fittev_p4     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
     }
     else {
 
@@ -336,32 +336,32 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       fittmp = (*trackMapDefault).find(muon->combinedMuon());
 
       if( fittmp != trackMapDefault->end()  )
-	vector_mus_fitdefault->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
+	vector_mus_fitdefault_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
-	vector_mus_fitdefault ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+	vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
 
       fittmp = (*trackMapDefault).find(muon->combinedMuon());
 
       if( fittmp != trackMapFirstHit->end()  )
-	vector_mus_fitfirsthit->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
+	vector_mus_fitfirsthit_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
-	vector_mus_fitfirsthit->push_back( LorentzVector( 0, 0, 0, 0 ) );
+	vector_mus_fitfirsthit_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
 
       fittmp = (*trackMapPicky).find(muon->combinedMuon());
 
       if( fittmp != trackMapPicky->end()  )
-	vector_mus_fitpicky->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
+	vector_mus_fitpicky_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
-	vector_mus_fitpicky->push_back( LorentzVector( 0, 0, 0, 0 ) );
+	vector_mus_fitpicky_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
       
       TrackRef fittmpref;
 
       fittmpref = muon::tevOptimized(*muon, *trackMapDefault, *trackMapFirstHit, *trackMapPicky);
 
       if( fittmpref.isAvailable() )
-	vector_mus_fittev->push_back( LorentzVector( fittmpref->px(), fittmpref->py(), fittmpref->pz(), fittmpref->p() ) );
+	vector_mus_fittev_p4->push_back( LorentzVector( fittmpref->px(), fittmpref->py(), fittmpref->pz(), fittmpref->p() ) );
       else
-	vector_mus_fittev     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+	vector_mus_fittev_p4     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
     }
   }
      
@@ -426,10 +426,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_caloCompatibility               , "muscaloCompatibility"         );
   iEvent.put(vector_mus_vertex_p4                       , "musvertexp4"                  );
   iEvent.put(vector_mus_gfit_outerPos_p4                , "musgfitouterPosp4"            );
-  iEvent.put(vector_mus_fitdefault      , "musfitdefault" );
-  iEvent.put(vector_mus_fitfirsthit     , "musfitfirsthit");
-  iEvent.put(vector_mus_fitpicky        , "musfitpicky"   );
-  iEvent.put(vector_mus_fittev          , "musfittev"     );
+  iEvent.put(vector_mus_fitdefault_p4      , "musfitdefaultp4" );
+  iEvent.put(vector_mus_fitfirsthit_p4     , "musfitfirsthitp4");
+  iEvent.put(vector_mus_fitpicky_p4        , "musfitpickyp4"   );
+  iEvent.put(vector_mus_fittev_p4          , "musfittevp4"     );
 
 }
 
