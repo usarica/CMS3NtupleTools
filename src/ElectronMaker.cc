@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.31 2009/09/02 15:26:00 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.32 2009/09/03 12:27:05 kalavase Exp $
 //
 //
 
@@ -622,7 +622,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     double dR = -999;
     if(ctfTkRef.isNonnull() ) {
       els_trkidx       ->push_back(static_cast<int>(ctfTkRef.key())            );
-      els_trkshFrac    ->push_back(static_cast<int>(el->shFracInnerHits())     );
+      els_trkshFrac    ->push_back(static_cast<float>(el->shFracInnerHits())     );
       dR = deltaR(gsfTkRef->eta(), gsfTkRef->phi(),
 		  ctfTkRef->eta(), ctfTkRef->phi()                             );
     } else {
