@@ -56,6 +56,7 @@ class TriggerFilter : public edm::EDFilter {
 
 		// ----------member data ---------------------------
 		std::vector<std::string> filterExpressions_;
+		TString menu_;
 		bool hlt_;
 
 };

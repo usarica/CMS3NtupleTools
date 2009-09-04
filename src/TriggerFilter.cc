@@ -32,6 +32,8 @@ using namespace std;
 TriggerFilter::TriggerFilter(const edm::ParameterSet& iConfig) {
 
 	filterExpressions_ = iConfig.getParameter<std::vector<std::string> >("filterExpressions");
+	menu_ = TString(iConfig.getParameter<std::string>("menu"));
+	menu_.ToLower();
 	hlt_ = iConfig.getParameter<bool>("hlt");
 }
 
@@ -72,7 +74,7 @@ bool TriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 bool TriggerFilter::passHLTTrigger(edm::Event& iEvent, TString trigName) {
 
 	edm::Handle<std::vector<TString> > trigNamesHandle;
-	iEvent.getByLabel("eventMaker", "evtHLTtrigNames", trigNamesHandle);
+	iEvent.getByLabel("hltMaker", Form("%strigNames", menu_.Data()), trigNamesHandle);
 	const std::vector<TString> *evt_HLT_trigNames = trigNamesHandle.product();
 
 	int trigIndx;
@@ -89,42 +91,42 @@ bool TriggerFilter::passHLTTrigger(edm::Event& iEvent, TString trigName) {
 	if(trigIndx <= 31) {
 		unsigned int bitmask = 1;
 		bitmask <<= trigIndx;
-		return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT1")) & bitmask;
+		return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 32 && trigIndx <= 63) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 32);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT2")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 64 && trigIndx <= 95) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 64);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT3")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 96 && trigIndx <= 127) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 96);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT4")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 128 && trigIndx <= 159) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 128);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT5")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 160 && trigIndx <= 191) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 160);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT6")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 192 && trigIndx <= 223) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 192);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT7")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	if(trigIndx >= 224 && trigIndx <= 255) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 224);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtHLT8")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("hltMaker", Form("%sbits", menu_.Data()))) & bitmask;
 	}
 	return 0;
 }
@@ -132,7 +134,7 @@ bool TriggerFilter::passHLTTrigger(edm::Event& iEvent, TString trigName) {
 bool TriggerFilter::passL1Trigger(edm::Event& iEvent, TString trigName) {
 
         edm::Handle<std::vector<TString> > trigNamesHandle;
-        iEvent.getByLabel("eventMaker", "evtL1trigNames", trigNamesHandle);
+        iEvent.getByLabel("l1Maker", "l1bitstrigNames", trigNamesHandle);
         const std::vector<TString> *evt_L1_trigNames = trigNamesHandle.product();
 
 	int trigIndx;
@@ -149,22 +151,22 @@ bool TriggerFilter::passL1Trigger(edm::Event& iEvent, TString trigName) {
 	if(trigIndx <= 31) { 
 		unsigned int bitmask = 1;
 		bitmask <<= trigIndx;
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtL11")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("l1Maker", "l1bits1")) & bitmask;
 	}
 	if(trigIndx >= 32 && trigIndx <= 63) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 32);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtL12")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("l1Maker", "l1bits2")) & bitmask;
 	}
 	if(trigIndx >= 64 && trigIndx <= 95) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 64);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtL13")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("l1Maker", "l1bits3")) & bitmask;
 	}
 	if(trigIndx >= 96 && trigIndx <= 127) {
 		unsigned int bitmask = 1;
 		bitmask <<= (trigIndx - 96);
-                return getTriggerBit(iEvent, edm::InputTag("eventMaker", "evtL14")) & bitmask;
+                return getTriggerBit(iEvent, edm::InputTag("l1Maker", "l1bits4")) & bitmask;
 	}
 	return 0;
 }
