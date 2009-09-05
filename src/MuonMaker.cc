@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.28 2009/09/03 12:28:37 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.29 2009/09/05 13:08:28 dlevans Exp $
 //
 //
 
@@ -319,13 +319,15 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 								   globalTrack->outerPosition().y(),
 								   globalTrack->outerPosition().z(),0 )
 						     : LorentzVector(-999,-999,-999,-999) );
-
+	// if muon is not global
     if( !muon->isGlobalMuon() ) {
       vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
       vector_mus_fitfirsthit_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
       vector_mus_fitpicky_p4   ->push_back( LorentzVector( 0, 0, 0, 0 ) );
       vector_mus_fittev_p4     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
     }
+
+	// if muon is global
     else {
 
       reco::TrackToTrackMap::const_iterator fittmp;
@@ -334,21 +336,18 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::cout << "WTF" << std::endl;
 
       fittmp = (*trackMapDefault).find(muon->combinedMuon());
-
       if( fittmp != trackMapDefault->end()  )
 	vector_mus_fitdefault_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
 	vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
 
-      fittmp = (*trackMapDefault).find(muon->combinedMuon());
-
+      fittmp = (*trackMapFirstHit).find(muon->combinedMuon());
       if( fittmp != trackMapFirstHit->end()  )
 	vector_mus_fitfirsthit_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
 	vector_mus_fitfirsthit_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
 
       fittmp = (*trackMapPicky).find(muon->combinedMuon());
-
       if( fittmp != trackMapPicky->end()  )
 	vector_mus_fitpicky_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
       else
