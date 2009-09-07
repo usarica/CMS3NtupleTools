@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.4 2009/09/02 12:50:33 fgolf Exp $
+// $Id: PhotonMaker.cc,v 1.5 2009/09/07 09:27:37 dlevans Exp $
 //
 //
 
@@ -204,9 +204,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 	  // Get cluster info
 	  //
-	  float spp, sipip;
+	  float spp, sipip, eMax;
 	  const reco::BasicCluster& clRef= *(photon->superCluster()->seed());
 	  const std::vector<float>& covs = clusterTools_->covariances(clRef);
+	  eMax = clusterTools_->eMax(clRef);
 	  spp = sqrt(covs[2]);
 	  const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
 	  sipip = sqrt(lcovs[2]);
@@ -221,9 +222,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_e3x3                  ->push_back( photon->e3x3()                                     );
 	  photons_e5x5                  ->push_back( photon->e5x5()                                     );
 	  photons_e2x5Max               ->push_back( photon->e2x5()                                     );
-	  photons_eMax                  ->push_back( photon->maxEnergyXtal()    			);
-	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );		
-	  photons_sigmaPhiPhi           ->push_back( spp                                             	);
+	  photons_eMax                  ->push_back( eMax    			);
+	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );		       photons_sigmaPhiPhi           ->push_back( spp                                             	);
 	  photons_sigmaIPhiIPhi         ->push_back( sipip                                           	);  
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
 	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
