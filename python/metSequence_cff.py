@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-from JetMETCorrections.Configuration.L2L3Corrections_Summer08Redigi_cff import *
+from JetMETCorrections.Configuration.L2L3Corrections_Summer09_cff import *
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import metJESCorIC5CaloJet
 
 metMuonJESCorSC5CMS2                     = metJESCorIC5CaloJet.clone()
