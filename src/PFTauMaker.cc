@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.6 2009/09/02 12:50:28 fgolf Exp $
+// $Id: PFTauMaker.cc,v 1.7 2009/09/08 17:57:34 yanjuntu Exp $
 //
 //
 
@@ -27,6 +27,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/PFTauMaker.h"
+#include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
 
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -67,7 +68,7 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >          ("tauspfhcalMaxOverPLead"              ).setBranchAlias("taus_pf_hcalMaxOverPLead"               ); 
   produces<vector<float> >          ("tauspfhcal3x3OverPLead"              ).setBranchAlias("taus_pf_hcal3x3OverPLead"               ); 
   produces<vector<float> >          ("tauspfecalStripSumEOverPLead"        ).setBranchAlias("taus_pf_ecalStripSumEOverPLead"         ); 
-  produces<vector<float> >          ("tauspfbremsRecoveryEOverPLead"       ).setBranchAlias("taus_pf_bremsRecoveryEOverPLead"        ); 
+  // produces<vector<float> >          ("tauspfbremsRecoveryEOverPLead"       ).setBranchAlias("taus_pf_bremsRecoveryEOverPLead"        ); 
   produces<vector<int> >            ("tauspfelectronPreID"                 ).setBranchAlias("taus_pf_electronPreID"                  ); 
   produces<vector<float> >          ("tauspfelectronPreIDOutput"           ).setBranchAlias("taus_pf_electronPreIDOutput"            ); 
   //muon rejection
@@ -80,15 +81,8 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   //tau preID
   produces<vector<int> >            ("tauspftightId"                       ).setBranchAlias("taus_pf_tightId"                        );
 
-  
-  produces<vector<LorentzVector> >  ("tauspfleadtrkp4"                     ).setBranchAlias("taus_pf_leadtrk_p4"                     );
-  produces<vector<float> >          ("tauspfleadtrkd0"                     ).setBranchAlias("taus_pf_leadtrk_d0"                     );  
-  produces<vector<float> >          ("tauspfleadtrkz0"                     ).setBranchAlias("taus_pf_leadtrk_z0"                     ); 
-  produces<vector<float> >          ("tauspfleadtrkchi2"                   ).setBranchAlias("taus_pf_leadtrk_chi2"                   ); 
-  produces<vector<float> >          ("tauspfleadtrkndof"                   ).setBranchAlias("taus_pf_leadtrk_ndof"                   ); 
-  produces<vector<float> >          ("tauspfleadtrkvalidHits"              ).setBranchAlias("taus_pf_leadtrk_validHits"              ); 
-  produces<vector<float> >          ("tauspfleadtrklostHits"               ).setBranchAlias("taus_pf_leadtrk_lostHits"               ); 
-
+  produces<vector<int> >            ("tauspfleadtrkidx"                    ).setBranchAlias("taus_pf_leadtrk_idx"                    );
+    
    
 //get setup parameters
   pftausInputTag      = iConfig.getParameter<InputTag>("pftausInputTag");
@@ -130,8 +124,8 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         taus_pf_hcalMaxOverPLead                (new vector<float>                    ) ;
   auto_ptr<vector<float> >         taus_pf_hcal3x3OverPLead                (new vector<float>                    ) ;
   auto_ptr<vector<float> >         taus_pf_ecalStripSumEOverPLead          (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_bremsRecoveryEOverPLead         (new vector<float>                    ) ;
-  
+  //auto_ptr<vector<float> >         taus_pf_bremsRecoveryEOverPLead         (new vector<float>) ;
+ 
   auto_ptr<vector<int> >           taus_pf_electronPreID                   (new vector<int>                      ) ;
   auto_ptr<vector<float> >         taus_pf_electronPreIDOutput             (new vector<float>                    ) ;
   auto_ptr<vector<int> >           taus_pf_muonPreID                       (new vector<int>                      ) ;
@@ -142,14 +136,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   auto_ptr<vector<int> >           taus_pf_tightId                         (new vector<int>                      ) ;
  
-  auto_ptr<vector<LorentzVector> > taus_pf_leadtrk_p4                      (new vector<LorentzVector>            ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_d0                      (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_z0                      (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_chi2                    (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_ndof                    (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_validHits               (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_leadtrk_lostHits                (new vector<float>                    ) ;
- 
+  auto_ptr<vector<int> >           taus_pf_leadtrk_idx                     (new vector<int>                      ) ;
 
  
   
@@ -167,12 +154,6 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
    taus_pf_p4                               ->push_back( tau_pf->p4()                                       );
    taus_pf_charge                           ->push_back( tau_pf->charge()                                   );
-//    taus_pf_sig_ncharge_cand                 ->push_back( tau_pf->signalPFChargedHadrCands().size()          ); 
-//    taus_pf_iso_ncharge_cand                 ->push_back( tau_pf->isolationPFChargedHadrCands().size()       );                                                                            
-//    taus_pf_sig_nneutr_cand                  ->push_back( tau_pf->signalPFNeutrHadrCands().size()            ); 
-//    taus_pf_iso_nneutr_cand                  ->push_back( tau_pf->isolationPFNeutrHadrCands().size()         ); 
-//    taus_pf_sig_ngamma_cand                  ->push_back( tau_pf->signalPFGammaCands().size()                ); 
-//    taus_pf_iso_ngamma_cand                  ->push_back( tau_pf->isolationPFGammaCands().size()             ); 
 
    vector<LorentzVector>  IsoChargedCands_p4;
    vector<LorentzVector>  IsoNeutrCands_p4;
@@ -266,13 +247,13 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
    taus_pf_isolationchargecandPtSum         ->push_back( tau_pf->isolationPFChargedHadrCandsPtSum() ); 
    taus_pf_isolationgammacandEtSum          ->push_back( tau_pf->isolationPFGammaCandsEtSum()       ); 
-   taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()           ); 
+   taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()       ); 
    taus_pf_emf                              ->push_back( tau_pf->emFraction()                       ); 
    taus_pf_hcalTotOverPLead                 ->push_back( tau_pf->hcalTotOverPLead()                 ); 
    taus_pf_hcalMaxOverPLead                 ->push_back( tau_pf->hcalMaxOverPLead()                 ); 
    taus_pf_hcal3x3OverPLead                 ->push_back( tau_pf->hcal3x3OverPLead()                 ); 
    taus_pf_ecalStripSumEOverPLead           ->push_back( tau_pf->ecalStripSumEOverPLead()           ); 
-   taus_pf_bremsRecoveryEOverPLead          ->push_back( tau_pf->bremsRecoveryEOverPLead()          ); 
+   //taus_pf_bremsRecoveryEOverPLead          ->push_back( tau_pf->bremsRecoveryEOverPLead()          ); 
  
   
    if(tau_pf->electronPreIDDecision()) taus_pf_electronPreID      ->push_back(1);
@@ -303,24 +284,11 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    
    const TrackRef leadTrack = tau_pf->leadTrack()  ;
    if(leadTrack.isNonnull()){
-     taus_pf_leadtrk_p4                    ->push_back( LorentzVector( leadTrack.get()->px(), leadTrack.get()->py(),
-								       leadTrack.get()->pz(), leadTrack.get()->p())                );
-     taus_pf_leadtrk_d0                    ->push_back( leadTrack->d0()                                       );
-     taus_pf_leadtrk_z0                    ->push_back( leadTrack->dz()                                       );
-     taus_pf_leadtrk_chi2                  ->push_back( leadTrack->chi2()                                     );
-     taus_pf_leadtrk_ndof                  ->push_back( leadTrack->ndof()                                     );
-     taus_pf_leadtrk_validHits             ->push_back( leadTrack->numberOfValidHits()                        );
-     taus_pf_leadtrk_lostHits              ->push_back( leadTrack->numberOfLostHits()                         );
+     taus_pf_leadtrk_idx                    ->push_back( static_cast<int>(leadTrack.key())                      );
    }
    else {
-     taus_pf_leadtrk_p4                    ->push_back( LorentzVector( 0, 0,0,0 )                             );
-     taus_pf_leadtrk_d0                    ->push_back( -999.                                                 );
-     taus_pf_leadtrk_z0                    ->push_back( -999.                                                 );
-     taus_pf_leadtrk_chi2                  ->push_back( -999.                                                 );
-     taus_pf_leadtrk_ndof                  ->push_back( -999.                                                 );
-     taus_pf_leadtrk_validHits             ->push_back( -999.                                                 );
-     taus_pf_leadtrk_lostHits              ->push_back( -999.                                                 );
-     
+         taus_pf_leadtrk_idx                    ->push_back( -999                                               );
+      
    }
   
  }
@@ -347,7 +315,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  
  
  iEvent.put(taus_pf_ecalStripSumEOverPLead               ,"tauspfecalStripSumEOverPLead"                   );
- iEvent.put(taus_pf_bremsRecoveryEOverPLead              ,"tauspfbremsRecoveryEOverPLead"                  );
+ //iEvent.put(taus_pf_bremsRecoveryEOverPLead              ,"tauspfbremsRecoveryEOverPLead"                  );
  iEvent.put(taus_pf_electronPreID                        ,"tauspfelectronPreID"                            );
  iEvent.put(taus_pf_electronPreIDOutput                  ,"tauspfelectronPreIDOutput"                      );
  
@@ -355,21 +323,13 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  iEvent.put(taus_pf_hasMuonReference                     ,"tauspfhasMuonReference"                         );
  iEvent.put(taus_pf_caloComp                             ,"tauspfcaloComp"                                 );
  iEvent.put(taus_pf_segComp                              ,"tauspfsegComp"                                  );
- iEvent.put(taus_pf_nmuonmatch                            ,"tauspfnmuonmatch"                              );
+ iEvent.put(taus_pf_nmuonmatch                           ,"tauspfnmuonmatch"                               );
 
  iEvent.put(taus_pf_tightId                              ,"tauspftightId"                                  );
- 
+ iEvent.put(taus_pf_leadtrk_idx                          ,"tauspfleadtrkidx"                               ); 
 
- 
 
- iEvent.put(taus_pf_leadtrk_p4                           ,"tauspfleadtrkp4"                                ); 
- iEvent.put(taus_pf_leadtrk_d0                           ,"tauspfleadtrkd0"                                );
- iEvent.put(taus_pf_leadtrk_z0                           ,"tauspfleadtrkz0"                                );
- iEvent.put(taus_pf_leadtrk_chi2                         ,"tauspfleadtrkchi2"                              );
- iEvent.put(taus_pf_leadtrk_ndof                         ,"tauspfleadtrkndof"                              );
- iEvent.put(taus_pf_leadtrk_validHits                    ,"tauspfleadtrkvalidHits"                         );
- iEvent.put(taus_pf_leadtrk_lostHits                     ,"tauspfleadtrklostHits"                          );
- 
+  
  
 }
 
