@@ -5,4 +5,4 @@ trkJetMaker = cms.EDProducer("TrkJetMaker",
                              trkJetPtCut     = cms.double(3.0)
 )
 
-trkjetmaker = cms.Sequence(trkJetMaker)
+
