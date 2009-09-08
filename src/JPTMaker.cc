@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.10 2009/09/02 10:06:50 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.11 2009/09/08 16:10:53 fgolf Exp $
 //
 //
 
@@ -57,11 +57,9 @@ JPTMaker::JPTMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>                ("evtnjpts"      ).setBranchAlias("evt_njpts"      );
   produces<std::vector<LorentzVector> >	("jptsp4"        ).setBranchAlias("jpts_p4"        );
   produces<std::vector<float> >	        ("jptsemFrac"    ).setBranchAlias("jpts_emFrac"    );
-  produces<std::vector<float> >	        ("jptscor"       ).setBranchAlias("jpts_cor"       ); // ratio of L2L3 corrected JPT jet to uncorrected JPT jet
 
   // parameters from configuration
   jptsInputTag      = iConfig.getParameter<edm::InputTag>("jptInputTag"       );
-  L2L3jptsInputTag  = iConfig.getParameter<edm::InputTag>("L2L3jptInputTag"   );
 
 }
 
@@ -79,9 +77,6 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int               );
   std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector> );
   std::auto_ptr<std::vector<float> >         vector_jpts_emFrac (new std::vector<float>         );
-  std::auto_ptr<std::vector<float> >         vector_jpts_cor    (new std::vector<float>         );
-
-  std::map<float, float> L2L3corJPT;
 
   edm::Handle<std::vector<reco::CaloJet> > jptsHandle;
   iEvent.getByLabel(jptsInputTag, jptsHandle); 
@@ -92,40 +87,23 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     return;
   }
 
-  edm::Handle<std::vector<reco::CaloJet> > L2L3jptsHandle;
-  iEvent.getByLabel(L2L3jptsInputTag , L2L3jptsHandle);
-
-  if( !L2L3jptsHandle.isValid() ) {
-    edm::LogInfo("OutputInfo") << " failed to retrieve L2L3 corrected JPT collection";
-    edm::LogInfo("OutputInfo") << " JPTMaker cannot continue...!";
-    return;
-  }
-
   *evt_njpts = jptsHandle->size();
 
   std::vector<reco::CaloJet> v_jpts      = *( jptsHandle.product()      );
-  std::vector<reco::CaloJet> v_L2L3jpts  = *( L2L3jptsHandle.product()  );
 
   std::sort( v_jpts.begin(), v_jpts.end(), sortJptsByPt );
 
-  std::vector<reco::CaloJet>::const_iterator jptcor = v_L2L3jpts.begin();
-
-  for ( std::vector<reco::CaloJet>::const_iterator jpt = v_jpts.begin(); jpt != v_jpts.end(); ++jpt, ++jptcor ) {
+  for ( std::vector<reco::CaloJet>::const_iterator jpt = v_jpts.begin(); jpt != v_jpts.end(); ++jpt ) {
 
     vector_jpts_p4     ->push_back( jpt->p4()                           );
     vector_jpts_emFrac ->push_back( jpt->emEnergyFraction()             );
-    L2L3corJPT[ jpt->p4().pt() ] = ( jptcor->p4().Et() / jpt->p4().Et() );
-  }
-
-  for( std::map<float, float>::const_iterator iter = L2L3corJPT.begin(); iter != L2L3corJPT.end(); ++iter ) {
-    vector_jpts_cor->push_back( iter->second );
   }
 
   // put containers into event
   iEvent.put(evt_njpts          , "evtnjpts"  );
   iEvent.put(vector_jpts_p4     , "jptsp4"    );
   iEvent.put(vector_jpts_emFrac , "jptsemFrac");
-  iEvent.put(vector_jpts_cor    , "jptscor"   );
+
 }
 
 // ------------ method called once each job just before starting event loop  ------------
