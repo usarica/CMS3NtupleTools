@@ -74,10 +74,6 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     trigObjsid->reserve(nTriggers);
     trigObjsp4->reserve(nTriggers);
 
-    vector<string>::iterator beginPrunedTriggerNameIT = prunedTriggerNames_.begin();
-    vector<string>::iterator endPrunedTriggerNameIT = prunedTriggerNames_.end();
-    vector<string>::iterator prunedTriggerNameIT;
-
     for(unsigned int i = 0; i < nTriggers; ++i)
     {
         // Create now because must exist regardless
@@ -127,11 +123,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
 
             // Collect desired trigger objects 
-            if (fillTriggerObjects_) {
-                prunedTriggerNameIT = find(beginPrunedTriggerNameIT, endPrunedTriggerNameIT, name);
-                if (prunedTriggerNameIT != endPrunedTriggerNameIT)
-                    fillTriggerObjectInfo(i, idV, p4V);
-            }
+            if (fillTriggerObjects_ && doPruneTriggerName(name))
+                fillTriggerObjectInfo(i, idV, p4V);
         }
 
         trigObjsid->push_back(idV);
@@ -149,6 +142,19 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(trigNames , Form("%strigNames" , processNamePrefix_.Data()));
     iEvent.put(trigObjsid, Form("%strigObjsid", processNamePrefix_.Data()));
     iEvent.put(trigObjsp4, Form("%strigObjsp4", processNamePrefix_.Data()));
+}
+
+bool HLTMaker::doPruneTriggerName(const string& name) const
+{
+    for(unsigned int i = 0; i < prunedTriggerNames_.size(); ++i) {
+        // uses wildcard matching like on the command line, not
+        // straight up regexp
+        TRegexp reg(Form("%s", prunedTriggerNames_[i].c_str()), true);
+        TString sname(name);
+        if (sname.Index(reg) >= 0)
+            return true;
+    }
+    return false;
 }
 
 void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex,
