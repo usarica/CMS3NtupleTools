@@ -20,6 +20,7 @@
 #include <Math/VectorUtil.h>
 #include <iostream>
 #include <limits>
+#include "TMath.h"
 
 namespace CommonUtils {
   template<typename T> inline bool isinf(T value)
