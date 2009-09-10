@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.30 2009/09/10 10:51:43 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.31 2009/09/10 13:16:13 fgolf Exp $
 //
 //
 
@@ -256,7 +256,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_d0                 ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -999        );
     vector_mus_z0                 ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -999        );
     vector_mus_d0corr             ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))              :  -999        );
-    vector_mus_z0corr             ->push_back(siTrack.isNonnull() ? siTrack->dxy(beamSpot)                   :  -999        );
+    vector_mus_z0corr             ->push_back(siTrack.isNonnull() ? siTrack->dz(beamSpot)                    :  -999        );
     vector_mus_vertexphi          ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -999        );
     vector_mus_chi2               ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -999        );
     vector_mus_ndof               ->push_back(siTrack.isNonnull() ? siTrack->ndof()                          :  -999        );
