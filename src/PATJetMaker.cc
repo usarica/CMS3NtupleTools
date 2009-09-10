@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.7 2009/09/10 14:28:22 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.8 2009/09/10 17:12:13 kalavase Exp $
 //
 //
 
@@ -182,23 +182,32 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     jets_patnoCorrF->push_back(1/jetCorF); 
     jets_patjetCharge->push_back(patJet->jetCharge());
     
-    cout << patJet->bDiscriminator("softElectronByIP3dBJetTags") << endl;
-    if(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags")))
-       cout << "Works!!!!" << endl;
-
-    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"))    ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
-    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags")) ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
-    jets_pat_coneIsolationTauJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("coneIsolationTauJetTags"))            ? -9999. : patJet->bDiscriminator("coneIsolationTauJetTags"));
-    jets_pat_impactParameterMVABJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("impactParameterMVABJetTags"))         ? -9999. : patJet->bDiscriminator("impactParameterMVABJetTags"));
-    jets_pat_jetBProbabilityBJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetBProbabilityBJetTags"))            ? -9999. : patJet->bDiscriminator("jetBProbabilityBJetTags"));
-    jets_pat_jetProbabilityBJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetProbabilityBJetTags"))             ? -9999. : patJet->bDiscriminator("jetProbabilityBJetTags"));
-    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"))      ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
-    jets_pat_softElectronByIP3dBJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags"))         ? -9999. : patJet->bDiscriminator("softElectronByIP3dBJetTags"));
-    jets_pat_softElectronByPtBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByPtBJetTag"))            ? -9999. : patJet->bDiscriminator("softElectronByPtBJetTag"));
-    jets_pat_softMuonBJetTag                   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonBJetTags"))                   ? -9999. : patJet->bDiscriminator("softMuonBJetTags"));
-    jets_pat_softMuonNoIPBJetTag               ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonNoIPBJetTags"))               ? -9999. : patJet->bDiscriminator("softMuonNoIPBJetTags"));
-    jets_pat_trackCountingHighEffBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighEffBJetTags"))       ? -9999. : patJet->bDiscriminator("trackCountingHighEffBJetTags"));
-    jets_pat_trackCountingHighPurBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighPurBJetTags"))       ? -9999. : patJet->bDiscriminator("trackCountingHighPurBJetTags"));
+    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"))    
+							   ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
+    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags")) 
+							   ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
+    jets_pat_coneIsolationTauJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("coneIsolationTauJetTags"))            
+							   ? -9999. : patJet->bDiscriminator("coneIsolationTauJetTags"));
+    jets_pat_impactParameterMVABJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("impactParameterMVABJetTags"))         
+							   ? -9999. : patJet->bDiscriminator("impactParameterMVABJetTags"));
+    jets_pat_jetBProbabilityBJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetBProbabilityBJetTags"))            
+							   ? -9999. : patJet->bDiscriminator("jetBProbabilityBJetTags"));
+    jets_pat_jetProbabilityBJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetProbabilityBJetTags"))             
+							   ? -9999. : patJet->bDiscriminator("jetProbabilityBJetTags"));
+    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"))      
+							   ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
+    jets_pat_softElectronByIP3dBJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags"))         
+							   ? -9999. : patJet->bDiscriminator("softElectronByIP3dBJetTags"));
+    jets_pat_softElectronByPtBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByPtBJetTag"))            
+							   ? -9999. : patJet->bDiscriminator("softElectronByPtBJetTag"));
+    jets_pat_softMuonBJetTag                   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonBJetTags"))                   
+							   ? -9999. : patJet->bDiscriminator("softMuonBJetTags"));
+    jets_pat_softMuonNoIPBJetTag               ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonNoIPBJetTags"))               
+							   ? -9999. : patJet->bDiscriminator("softMuonNoIPBJetTags"));
+    jets_pat_trackCountingHighEffBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighEffBJetTags"))       
+							   ? -9999. : patJet->bDiscriminator("trackCountingHighEffBJetTags"));
+    jets_pat_trackCountingHighPurBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighPurBJetTags"))       
+							   ? -9999. : patJet->bDiscriminator("trackCountingHighPurBJetTags"));
     
 
     
