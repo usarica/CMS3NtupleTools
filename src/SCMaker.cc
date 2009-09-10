@@ -35,7 +35,7 @@ Implementation:
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/Common/interface/Ref.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
 //
@@ -331,7 +331,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 }
 
-math::XYZTLorentzVector SCMaker::initP4(const math::XYZPoint &pvPos, 
+math::XYZTLorentzVectorF SCMaker::initP4(const math::XYZPoint &pvPos, 
                                         const reco::SuperCluster &sc)
 {
 
@@ -339,7 +339,7 @@ math::XYZTLorentzVector SCMaker::initP4(const math::XYZPoint &pvPos,
   math::XYZVector pvPosVec(pvPos.x(), pvPos.y(), pvPos.z());
   math::XYZVector objPosition = scPos - pvPosVec;
   double scale = sc.energy() / objPosition.R();
-  return math::XYZTLorentzVector(objPosition.x() * scale, 
+  return math::XYZTLorentzVectorF(objPosition.x() * scale, 
 				 objPosition.y() * scale, 
 				 objPosition.z() * scale, 
 				 sc.energy());

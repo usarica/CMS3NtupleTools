@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.6 2009/05/05 19:18:56 kalavase Exp $
+// $Id: ElToMuAssMaker.cc,v 1.7 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -36,7 +36,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig)

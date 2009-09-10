@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.cc,v 1.2 2008/09/13 08:07:23 jmuelmen Exp $
+// $Id: MuToElsAssMaker.cc,v 1.3 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -36,7 +36,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 MuToElsAssMaker::MuToElsAssMaker(const edm::ParameterSet& iConfig)

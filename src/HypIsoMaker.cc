@@ -31,7 +31,7 @@
 #include "RecoCaloTools/MetaCollections/interface/CaloRecHitMetaCollections.h"
 #include "TrackingTools/TrackAssociator/interface/TrackDetectorAssociator.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace edm;
 

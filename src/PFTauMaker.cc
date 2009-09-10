@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.7 2009/09/08 17:57:34 yanjuntu Exp $
+// $Id: PFTauMaker.cc,v 1.8 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -33,7 +33,7 @@ Implementation:
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -152,8 +152,8 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
    //printf("%s  \n", "PFTau  ");
 
-   taus_pf_p4                               ->push_back( tau_pf->p4()                                       );
-   taus_pf_charge                           ->push_back( tau_pf->charge()                                   );
+   taus_pf_p4                               ->push_back( LorentzVector( tau_pf->p4() ) );
+   taus_pf_charge                           ->push_back( tau_pf->charge()              );
 
    vector<LorentzVector>  IsoChargedCands_p4;
    vector<LorentzVector>  IsoNeutrCands_p4;
@@ -173,7 +173,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iIsoCand = 0; iIsoCand < pfIsoChargedCands.size(); ++iIsoCand)
        {
 	 
-	 IsoChargedCands_p4.push_back( pfIsoChargedCands[iIsoCand]->p4()) ;
+	 IsoChargedCands_p4.push_back( LorentzVector( pfIsoChargedCands[iIsoCand]->p4() ) );
 	 
        }
    }
@@ -184,7 +184,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iIsoCand = 0; iIsoCand < pfIsoNeutrCands.size(); ++iIsoCand)
        {
 	 
-	 IsoNeutrCands_p4.push_back( pfIsoNeutrCands[iIsoCand]->p4()) ;
+	 IsoNeutrCands_p4.push_back( LorentzVector( pfIsoNeutrCands[iIsoCand]->p4() ) );
 	 
        }
    }
@@ -194,7 +194,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iIsoCand = 0; iIsoCand < pfIsoGammaCands.size(); ++iIsoCand)
        {
 	 
-	 IsoGammaCands_p4.push_back( pfIsoGammaCands[iIsoCand]->p4()) ;
+	 IsoGammaCands_p4.push_back( LorentzVector( pfIsoGammaCands[iIsoCand]->p4() ) );
 	 
        }
    }
@@ -205,7 +205,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iSigCand = 0; iSigCand < pfSigChargedCands.size(); ++iSigCand)
        {
 	 
-	 SigChargedCands_p4.push_back( pfSigChargedCands[iSigCand]->p4()) ;
+	 SigChargedCands_p4.push_back( LorentzVector( pfSigChargedCands[iSigCand]->p4() ) );
 	 
        }
    }
@@ -216,7 +216,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iSigCand = 0; iSigCand < pfSigNeutrCands.size(); ++iSigCand)
        {
 	 
-	 SigNeutrCands_p4.push_back( pfSigNeutrCands[iSigCand]->p4()) ;
+	 SigNeutrCands_p4.push_back( LorentzVector( pfSigNeutrCands[iSigCand]->p4() ) );
 	 
        }
    }
@@ -226,7 +226,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      for(size_t iSigCand = 0; iSigCand < pfSigGammaCands.size(); ++iSigCand)
        {
 	 
-	 SigGammaCands_p4.push_back( pfSigGammaCands[iSigCand]->p4()) ;
+	 SigGammaCands_p4.push_back( LorentzVector( pfSigGammaCands[iSigCand]->p4() ) );
 	 
        }
    }
@@ -241,9 +241,9 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    taus_pf_signeutrcand_p4 -> push_back( SigNeutrCands_p4 );
    taus_pf_siggammacand_p4 -> push_back( SigGammaCands_p4 );
    
-   taus_pf_lead_chargecand_p4               ->push_back( tau_pf->leadPFChargedHadrCand().get()->p4()        );
+   taus_pf_lead_chargecand_p4               ->push_back( LorentzVector( tau_pf->leadPFChargedHadrCand().get()->p4() ) );
    
-   taus_pf_lead_neutrcand_p4                ->push_back( tau_pf->leadPFNeutralCand().isNonnull()? tau_pf->leadPFNeutralCand().get()->p4() :  LorentzVector(0, 0, 0, 0)  );
+   taus_pf_lead_neutrcand_p4                ->push_back( tau_pf->leadPFNeutralCand().isNonnull()? LorentzVector( tau_pf->leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
    taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
    taus_pf_isolationchargecandPtSum         ->push_back( tau_pf->isolationPFChargedHadrCandsPtSum() ); 
    taus_pf_isolationgammacandEtSum          ->push_back( tau_pf->isolationPFGammaCandsEtSum()       ); 

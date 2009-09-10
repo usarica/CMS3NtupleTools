@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.9 2009/08/31 13:51:22 fgolf Exp $
+// $Id: MatchUtilities.h,v 1.10 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -30,6 +30,8 @@
 
 #include <Math/VectorUtil.h>
 
+typedef math::XYZTLorentzVectorF LorentzVector;
+
 class MatchUtilities {
 public:
   MatchUtilities();
@@ -40,10 +42,10 @@ public:
 						 int& genidx, int status);
   static const reco::GenParticle* matchCandToGen(const reco::Track&, const std::vector<reco::GenParticle>* genParticles, 
 						 int& genidx, int status);
-  static const reco::GenParticle* matchCandToGen(const ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >& candp4, 
+  static const reco::GenParticle* matchCandToGen(const LorentzVector& candp4, 
 						 const std::vector<reco::GenParticle>* genParticles, int& genidx, int status);
   static const reco::GenJet* matchCandToGenJet(const reco::Candidate& jet,  const std::vector<reco::GenJet>* genJets);
-  static const reco::GenJet* matchCandToGenJet(const ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >& genJetp4, 
+  static const reco::GenJet* matchCandToGenJet(const LorentzVector& genJetp4, 
 					       const std::vector<reco::GenJet>* genJets,
 					       int& genidx);
   
@@ -64,9 +66,9 @@ public:
 					       
   
   template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref, std::vector<T2>& v_toAllign) {
-
-    typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
     
+    typedef math::XYZTLorentzVectorF LorentzVector;
+ 
     if( v_ref.size() != v_toAllign.size() )
       throw cms::Exception("MatchUtilities") 
 	<< "The two collections you're trying to allign do not have the same number of entries!!!" 
@@ -80,12 +82,12 @@ public:
 
       double dR             = 0.05;
       unsigned int matchIdx = 9999;
-      LorentzVector ref_p4  = v_ref.at(i).p4();
+      LorentzVector ref_p4  = LorentzVector( v_ref.at(i).p4() );
 
       //now loop over the collection to allign
       for(unsigned int j = 0; j < v_temp.size(); j++) {
 
-	LorentzVector temp_p4 = v_temp.at(j).p4();
+	LorentzVector temp_p4 = LorentzVector (v_temp.at(j).p4() );
 
 	double newdR = ROOT::Math::VectorUtil::DeltaR(ref_p4, temp_p4);
       

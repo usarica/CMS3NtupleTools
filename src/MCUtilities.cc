@@ -1,7 +1,7 @@
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace std;
 

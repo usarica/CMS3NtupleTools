@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.9 2009/07/24 09:57:23 warren Exp $
+// $Id: PATMuonMaker.cc,v 1.10 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -46,7 +46,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace reco;
 using namespace edm;
@@ -123,7 +123,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::IsoDeposit *ecalIsoDep = patmu_it->ecalIsoDeposit();
     const reco::IsoDeposit *hcalIsoDep = patmu_it->hcalIsoDeposit();
     
-    mus_pat_p4          ->push_back( patmu_it->p4()             );
+    mus_pat_p4          ->push_back( LorentzVector( patmu_it->p4() ) );
     mus_pat_trackIso    ->push_back( patmu_it->trackIso()       );
     mus_pat_trckvetoDep ->push_back( trckIsoDep->candEnergy()   );
     mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy()
@@ -136,8 +136,8 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     mus_pat_genID       ->push_back( gen.pdgId()            );
     mus_pat_genMotherID ->push_back( gen_mom->pdgId()       );
     mus_pat_flag        ->push_back( patmu_it->status()     );
-    mus_pat_genP4       ->push_back( gen.p4()               );
-    mus_pat_genMotherP4 ->push_back( gen_mom->p4()          );
+    mus_pat_genP4       ->push_back( LorentzVector( gen.p4() )     );
+    mus_pat_genMotherP4 ->push_back( LorentzVector( gen_mom->p4() ) );
     
 
   }

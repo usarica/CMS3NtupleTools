@@ -11,13 +11,13 @@ Description: Jet utilities
 //
 // Original Author:  Oliver Gutsche
 // Tue Jul 22 22:41:55 UTC 2008
-// $Id: JetUtilities.cc,v 1.1 2008/07/23 18:54:42 gutsche Exp $
+// $Id: JetUtilities.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 #include "CMS2/NtupleMaker/interface/JetUtilities.h"
 #include "TMath.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 JetUtilities::JetUtilities() {
 }

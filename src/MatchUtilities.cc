@@ -2,8 +2,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
-typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
-
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 MatchUtilities::MatchUtilities() {
 }

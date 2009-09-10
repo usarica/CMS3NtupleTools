@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.cc,v 1.4 2009/08/28 11:02:39 fgolf Exp $
+// $Id: PFMETMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -31,7 +31,7 @@
 
 #include "DataFormats/METReco/interface/PFMET.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // constructors and destructor

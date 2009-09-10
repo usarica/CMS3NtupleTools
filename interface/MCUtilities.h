@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: MCUtilities.h,v 1.3 2009/08/28 10:10:25 fgolf Exp $
+// $Id: MCUtilities.h,v 1.4 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef CMS2_MCUTILITIES_H
@@ -23,7 +23,7 @@
 
 #include <vector>
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 class MCUtilities {
 public:

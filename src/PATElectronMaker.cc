@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.6 2009/05/24 19:36:13 kalavase Exp $
+// $Id: PATElectronMaker.cc,v 1.7 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -45,7 +45,7 @@ Implementation:
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace reco;
 using namespace edm;
@@ -127,7 +127,7 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	patel_it != v_patElectrons.end();
 	patel_it++) {
     
-    els_pat_p4->push_back( patel_it->p4() );
+    els_pat_p4->push_back( LorentzVector( patel_it->p4() ) );
 
     GenParticle gen(patel_it->genLepton() ? *patel_it->genLepton() : 
 		    reco::GenParticle(0, reco::Particle::LorentzVector(0, 0, 0, 0), reco::Particle::Point(0,0,0), 0, 0, true));
@@ -144,8 +144,8 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     els_pat_looseId           ->push_back( patel_it->electronID("eidLoose")    );
     els_pat_tightId           ->push_back( patel_it->electronID("eidTight")    );
     els_pat_robustHighEnergy  ->push_back( patel_it->electronID("eidRobustHighEnergy") );
-    els_pat_genP4             ->push_back( gen.p4()                        );
-    els_pat_genMotherP4       ->push_back( gen_mom->p4()                   );
+    els_pat_genP4             ->push_back( LorentzVector( gen.p4() )       );
+    els_pat_genMotherP4       ->push_back( LorentzVector( gen_mom->p4() )  );
     els_pat_sigmaEtaEta       ->push_back( patel_it->scSigmaEtaEta()       );
     els_pat_sigmaIEtaIEta     ->push_back( patel_it->scSigmaIEtaIEta()     );
     els_pat_scE1x5            ->push_back( patel_it->scE1x5()              );

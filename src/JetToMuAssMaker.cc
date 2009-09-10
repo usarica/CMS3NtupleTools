@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.cc,v 1.3 2008/09/13 09:26:04 jmuelmen Exp $
+// $Id: JetToMuAssMaker.cc,v 1.4 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -34,7 +34,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 JetToMuAssMaker::JetToMuAssMaker(const edm::ParameterSet& iConfig)

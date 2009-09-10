@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.29 2009/09/05 13:08:28 dlevans Exp $
+// $Id: MuonMaker.cc,v 1.30 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -46,7 +46,7 @@ Implementation:
 #include "DataFormats/Math/interface/Point3D.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace std;
 using namespace reco;
@@ -246,7 +246,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
      
     vector_mus_goodmask           ->push_back(goodMask);
-    vector_mus_p4                 ->push_back(muon   ->p4());
+    vector_mus_p4                 ->push_back( LorentzVector( muon   ->p4() ) );
     vector_mus_trk_p4             ->push_back(siTrack.isNonnull() ? 
 				 LorentzVector( siTrack.get()->px(), siTrack.get()->py(),
 						siTrack.get()->pz(), siTrack.get()->p() )

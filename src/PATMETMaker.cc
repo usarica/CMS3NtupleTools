@@ -14,7 +14,7 @@ Description: copy additional PAT met variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.cc,v 1.3 2009/05/18 22:43:06 fgolf Exp $
+// $Id: PATMETMaker.cc,v 1.4 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -45,7 +45,7 @@ Description: copy additional PAT met variables in simple data structures into th
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 //
 // class decleration

@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.10 2009/08/27 16:32:09 fgolf Exp $
+// $Id: METMaker.cc,v 1.11 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -37,7 +37,7 @@ Implementation:
 #include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
 #include "DataFormats/Common/interface/ValueMap.h" 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;

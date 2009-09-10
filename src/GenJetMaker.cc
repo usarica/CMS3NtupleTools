@@ -12,7 +12,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.cc,v 1.4 2009/08/28 12:23:52 fgolf Exp $
+// $Id: GenJetMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -33,7 +33,7 @@
 
 #include "CMS2/NtupleMaker/interface/GenJetMaker.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 bool sortByPt(LorentzVector jet1, LorentzVector jet2) {
   return jet1.pt() > jet2.pt();
@@ -82,7 +82,7 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if( jet->pt() < genJetMinPtCut ) continue;
 
-    vector_genjets_p4->push_back( jet->p4() );
+    vector_genjets_p4->push_back( LorentzVector( jet->p4() ) );
   }
 
   // sort gen jets by pt

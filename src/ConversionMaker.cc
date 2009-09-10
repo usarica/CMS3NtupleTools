@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.4 2009/09/01 07:58:43 fgolf Exp $
+// $Id: ConversionMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -36,7 +36,7 @@ Description: make associations between jets and muons
 #include "Math/Point3D.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace std;
 using namespace edm;
@@ -187,9 +187,9 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
 //Function that does the work of finding the dist and dcot theta 
 //--------------------------
 
-pair<float, float> ConversionMaker::getConversionInfo(math::XYZTLorentzVector trk1_p4, 
+pair<float, float> ConversionMaker::getConversionInfo(math::XYZTLorentzVectorF trk1_p4, 
 						      int trk1_q, float trk1_d0, 
-						      math::XYZTLorentzVector trk2_p4,
+						      math::XYZTLorentzVectorF trk2_p4,
 						      int trk2_q, float trk2_d0,
 						      float bField) {
   

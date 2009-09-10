@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.5 2009/08/31 11:49:50 kalavase Exp $
+// $Id: TrackToElAssMaker.cc,v 1.6 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -38,7 +38,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace reco;
 using namespace edm;

@@ -16,7 +16,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.4 2009/08/28 14:18:55 fgolf Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -37,7 +37,7 @@
 
 #include "Math/VectorUtil.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 TrackToMuonAssMaker::TrackToMuonAssMaker(const edm::ParameterSet& iConfig)

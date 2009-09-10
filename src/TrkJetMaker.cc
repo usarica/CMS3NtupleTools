@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.3 2009/09/02 09:47:36 fgolf Exp $
+// $Id: TrkJetMaker.cc,v 1.4 2009/09/10 10:51:43 fgolf Exp $
 //
 
 
@@ -34,7 +34,7 @@ Implementation:
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 bool sortTrkJetsByPt(LorentzVector jet1, LorentzVector jet2) {
   return jet1.pt() > jet2.pt();
@@ -77,7 +77,7 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if( jet->p4().pt() < trkJetPtCut_ ) continue;
 
-    vector_trkjets_p4->push_back(jet->p4());
+    vector_trkjets_p4->push_back( LorentzVector( jet->p4() ) );
   }
 
   std::sort( vector_trkjets_p4->begin(), vector_trkjets_p4->end(), sortTrkJetsByPt );

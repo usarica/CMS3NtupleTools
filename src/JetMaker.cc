@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.19 2009/09/08 10:49:34 kalavase Exp $
+// $Id: JetMaker.cc,v 1.20 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -38,7 +38,7 @@
 
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 bool sortJetsByPt(LorentzVector jet1, LorentzVector jet2) {
   return jet1.pt() > jet2.pt();
@@ -118,7 +118,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     emFracJets[ L2L3Jet.p4().pt() ] = L2L3Jet.emEnergyFraction();
     vertexJets[ L2L3Jet.p4().pt() ] = LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.);
     
-    L2L3corJets.push_back( L2L3Jet.p4() );
+    L2L3corJets.push_back( LorentzVector( L2L3Jet.p4() ) );
   }
 
   std::sort( L2L3corJets.begin(), L2L3corJets.end(), sortJetsByPt );

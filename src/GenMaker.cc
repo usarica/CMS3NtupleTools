@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.14 2009/08/31 19:17:52 kalavase Exp $
+// $Id: GenMaker.cc,v 1.15 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -36,7 +36,7 @@
 
 #include "TMath.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;

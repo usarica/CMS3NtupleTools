@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.22 2009/09/02 15:01:59 jribnik Exp $
+// $Id: EventMaker.cc,v 1.23 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -35,7 +35,7 @@ Implementation:
 
 #include "CMS2/NtupleMaker/interface/EventMaker.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace edm;
 using namespace std;

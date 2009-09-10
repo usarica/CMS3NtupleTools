@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.5 2009/09/07 09:27:37 dlevans Exp $
+// $Id: PhotonMaker.cc,v 1.6 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -63,7 +63,7 @@
 
 #include "CMS2/NtupleMaker/interface/EgammaFiduciality.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;
@@ -239,7 +239,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
 	  // Lorentz Vectors	
 	  //
-	  photons_p4                    ->push_back( photon->p4()                                        );
+	photons_p4                    ->push_back( LorentzVector( photon->p4() )        );
 		
 	  // Isolation  (all 0.3 cone size)
 	  //

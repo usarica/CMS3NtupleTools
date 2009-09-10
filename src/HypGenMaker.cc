@@ -19,7 +19,7 @@
 
 //#include "TMath.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;

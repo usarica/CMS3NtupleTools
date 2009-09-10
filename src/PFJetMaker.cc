@@ -24,7 +24,7 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 //
 // constructors and destructor
 //
@@ -92,7 +92,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     if(pfjet_it->p4().Pt() < 5.)
       continue;
     
-    pfjets_p4                    ->push_back(pfjet_it->p4()                   );
+    pfjets_p4                    ->push_back( LorentzVector( pfjet_it->p4() ) );
     pfjets_chargedHadronE        ->push_back(pfjet_it->chargedHadronEnergy()  );
     pfjets_neutralHadronE        ->push_back(pfjet_it->neutralHadronEnergy()  );
     pfjets_chargedEmE            ->push_back(pfjet_it->chargedEmEnergy()      );

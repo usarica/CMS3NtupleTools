@@ -9,7 +9,7 @@
 
 #include "CMS2/NtupleMaker/interface/L1Maker.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
 using namespace reco;
 using namespace std;
@@ -180,7 +180,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             l1mus_qual           ->push_back(l1mus_it->gmtMuonCand().quality()   );
             l1mus_qualFlags      ->push_back(qualflag                            );
             l1mus_flags          ->push_back(flag                                );
-            l1mus_p4             ->push_back(l1mus_it->p4()                      );
+            l1mus_p4             ->push_back( LorentzVector( l1mus_it->p4() )    );
         }			 
 
         for(vector<l1extra::L1EmParticle>::const_iterator l1emiso_it = l1emiso_coll->begin();
@@ -188,7 +188,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1emiso_it++ )
         {
             l1emiso_type         ->push_back(l1emiso_it->type()                  );
-            l1emiso_p4           ->push_back(l1emiso_it->p4()                    );
+            l1emiso_p4           ->push_back( LorentzVector( l1emiso_it->p4() )  );
 
             if (l1emiso_it->gctEmCandRef().isNonnull() && 
                     l1emiso_it->gctEmCandRef().isAvailable()
@@ -209,7 +209,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1emnoiso_it++ )
         {
             l1emnoiso_type       ->push_back(l1emnoiso_it->type()                );
-            l1emnoiso_p4         ->push_back(l1emnoiso_it->p4()                  );
+            l1emnoiso_p4         ->push_back( LorentzVector( l1emnoiso_it->p4() ) );
 
             if (l1emnoiso_it->gctEmCandRef().isNonnull() && 
                     l1emnoiso_it->gctEmCandRef().isAvailable() &&
@@ -229,7 +229,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetsc_it != l1jetsc_coll->end(); l1jetsc_it++)
         {
             l1jetsc_type         ->push_back(l1jetsc_it->type()                  );
-            l1jetsc_p4           ->push_back(l1jetsc_it->p4()                    );
+            l1jetsc_p4           ->push_back( LorentzVector( l1jetsc_it->p4() )  );
 
             if (l1jetsc_it->gctJetCandRef().isNonnull() &&
                     l1jetsc_it->gctJetCandRef().isAvailable() &&
@@ -249,7 +249,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetsf_it != l1jetsf_coll->end(); l1jetsf_it++)
         {
             l1jetsf_type         ->push_back(l1jetsf_it->type()                  );
-            l1jetsf_p4           ->push_back(l1jetsf_it->p4()                    );
+            l1jetsf_p4           ->push_back( LorentzVector( l1jetsf_it->p4() )  );
 
             if (l1jetsf_it->gctJetCandRef().isNonnull() && 
                     l1jetsf_it->gctJetCandRef().isAvailable() &&
@@ -269,7 +269,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetst_it != l1jetst_coll->end(); l1jetst_it++)
         {
             l1jetst_type         ->push_back(l1jetst_it->type()                  );
-            l1jetst_p4           ->push_back(l1jetst_it->p4()                    );
+            l1jetst_p4           ->push_back( LorentzVector( l1jetst_it->p4() )  );
 
             if (l1jetst_it->gctJetCandRef().isNonnull() && 
                     l1jetst_it->gctJetCandRef().isAvailable() &&

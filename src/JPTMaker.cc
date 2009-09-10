@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.11 2009/09/08 16:10:53 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.12 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -37,7 +37,7 @@
 
 #include "CMS2/NtupleMaker/interface/JPTMaker.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 bool sortJptsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
   return jet1.pt() > jet2.pt();
@@ -95,7 +95,7 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   for ( std::vector<reco::CaloJet>::const_iterator jpt = v_jpts.begin(); jpt != v_jpts.end(); ++jpt ) {
 
-    vector_jpts_p4     ->push_back( jpt->p4()                           );
+    vector_jpts_p4     ->push_back( LorentzVector( jpt->p4() )          );
     vector_jpts_emFrac ->push_back( jpt->emEnergyFraction()             );
   }
 

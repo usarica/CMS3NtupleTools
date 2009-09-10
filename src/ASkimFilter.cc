@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ASkimFilter.cc,v 1.1 2008/10/03 21:35:48 ibloch Exp $
+// $Id: ASkimFilter.cc,v 1.2 2009/09/10 10:51:42 fgolf Exp $
 //
 //
 
@@ -33,7 +33,7 @@ see header file
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 
 //

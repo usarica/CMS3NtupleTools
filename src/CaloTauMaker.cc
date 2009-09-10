@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.4 2009/09/08 17:38:13 yanjuntu Exp $
+// $Id: CaloTauMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -36,7 +36,7 @@ Implementation:
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -161,7 +161,7 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    }
    taus_calo_isotrk_idx                     ->push_back( IsoTrk_idx                                           );
    taus_calo_sigtrk_idx                     ->push_back( SigTrk_idx                                           );
-   taus_calo_p4                             ->push_back( tau_calo->p4()                                       );
+   taus_calo_p4                             ->push_back( LorentzVector( tau_calo->p4() )                      );
    taus_calo_charge                        ->push_back( tau_calo->charge()                                    );
    taus_calo_leadtrk_validHits             ->push_back( leadTrack->numberOfValidHits()                        );
    taus_calo_leadtrk_lostHits              ->push_back( leadTrack->numberOfLostHits()                         );

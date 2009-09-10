@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.2 2009/09/09 16:18:16 jribnik Exp $
+// $Id: HLTMaker.h,v 1.3 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_HLTMAKER_H
@@ -53,7 +53,7 @@ class HLTMaker : public edm::EDProducer {
 
         void fillTriggerObjectInfo(unsigned int,
                 std::vector<int>&,
-                std::vector<math::XYZTLorentzVector>&) const;
+                std::vector<math::XYZTLorentzVectorF>&) const;
         bool doPruneTriggerName(const std::string&) const;
 
         edm::Handle<edm::TriggerResults> triggerResultsH_;

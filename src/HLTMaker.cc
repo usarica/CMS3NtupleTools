@@ -1,6 +1,6 @@
 #include "CMS2/NtupleMaker/interface/HLTMaker.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
 using namespace reco;
 using namespace std;
@@ -186,7 +186,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex,
 
         for(unsigned int j = 0; j < triggerKeys.size(); ++j) {
             const trigger::TriggerObject& triggerObject = triggerObjects[triggerKeys[j]];
-            p4V.push_back(triggerObject.particle().p4());
+            p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
             idV.push_back(triggerObject.id());
         }
     }

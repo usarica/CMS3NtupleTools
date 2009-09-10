@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.12 2009/09/02 19:32:16 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.13 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -40,7 +40,7 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
@@ -355,7 +355,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       vector_jets_mc_hadEnergy  ->push_back(matchedGenJet->hadEnergy());
       vector_jets_mc_invEnergy  ->push_back(matchedGenJet->invisibleEnergy());
       vector_jets_mc_otherEnergy->push_back(matchedGenJet->auxiliaryEnergy());
-      vector_jets_mc_p4         ->push_back(matchedGenJet->p4());
+      vector_jets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
     } else {
       vector_jets_mcdr           ->push_back(-9999  );
       vector_jets_mcidx          ->push_back(idx    );
@@ -374,7 +374,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     if ( matchedGenParticle != 0 ) {
       vector_jets_mc_gpdr   ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticle).p4() ));
       vector_jets_mc_gpidx  ->push_back(temp);
-      vector_jets_mc_gp_p4  ->push_back(matchedGenParticle->p4());
+      vector_jets_mc_gp_p4  ->push_back( LorentzVector( matchedGenParticle->p4() ) );
       vector_jets_mc_id     ->push_back(matchedGenParticle->pdgId());
     } else {
       vector_jets_mc_gpdr   ->push_back(-9999);

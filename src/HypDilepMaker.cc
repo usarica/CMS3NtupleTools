@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.18 2009/09/02 20:05:37 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.19 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -53,7 +53,7 @@ ee:3
 #include "TMath.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;

@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.cc,v 1.1 2008/09/13 08:07:22 jmuelmen Exp $
+// $Id: ElToJetAssMaker.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -34,7 +34,7 @@
 #include "DataFormats/Math/interface/deltaR.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig)

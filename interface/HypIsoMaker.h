@@ -24,7 +24,7 @@
 #include "Geometry/CaloGeometry/interface/CaloSubdetectorGeometry.h"
 #include "TrackingTools/TrackAssociator/interface/TrackAssociatorParameters.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 
 class HypIsoMaker : public edm::EDProducer {

@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.4 2009/05/17 22:44:15 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -46,7 +46,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // class decleration
@@ -222,12 +222,12 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     
     
-    jets_patgenParton_p4->push_back(genParton.p4());
-    jets_patgenPartonMother_p4->push_back(mother ? mother->p4() : LorentzVector(0,0,0,0) );
-    LorentzVector genJetP4 = patJet->genJet() ? patJet->genJet()->p4() : LorentzVector(0, 0, 0, 0);
+    jets_patgenParton_p4->push_back( LorentzVector( genParton.p4() ) );
+    jets_patgenPartonMother_p4->push_back(mother ? LorentzVector( mother->p4() ) : LorentzVector(0,0,0,0) );
+    LorentzVector genJetP4 = patJet->genJet() ? LorentzVector( patJet->genJet()->p4() ) : LorentzVector(0, 0, 0, 0);
     jets_patgenJet_p4->push_back(genJetP4);
-    jets_patjet_p4->push_back(patJet->p4());
-    jets_patjet_uncorp4->push_back(patJet->originalObject()->p4());
+    jets_patjet_p4->push_back( LorentzVector( patJet->p4() ) );
+    jets_patjet_uncorp4->push_back( LorentzVector( patJet->originalObject()->p4() ) );
 }
   iEvent.put(jets_patgenParton_id, "jetspatgenPartonid");
   iEvent.put(jets_patgenPartonMother_id, "jetspatgenPartonMotherid");

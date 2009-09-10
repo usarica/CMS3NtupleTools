@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.5 2009/08/27 16:24:17 fgolf Exp $
+// $Id: BeamSpotMaker.cc,v 1.6 2009/09/10 10:51:42 fgolf Exp $
 //
 //
 
@@ -32,7 +32,7 @@ Implementation:
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;

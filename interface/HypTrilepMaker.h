@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.7 2009/05/21 01:09:14 fgolf Exp $
+// $Id: HypTrilepMaker.h,v 1.8 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -37,7 +37,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // class decleration

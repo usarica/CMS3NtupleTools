@@ -44,7 +44,7 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 
-     math::XYZTLorentzVector initP4(const math::XYZPoint &pvPos,                 
+     math::XYZTLorentzVectorF initP4(const math::XYZPoint &pvPos,                 
                                     const reco::SuperCluster &sc);
 
      // ----------member data ---------------------------

@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.9 2009/08/31 21:42:30 kalavase Exp $
+// $Id: HypDilepMaker.h,v 1.10 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPDILEPMAKER_H
@@ -54,8 +54,8 @@ private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-  bool testJetForLeptons(const math::XYZTLorentzVector& jetP4, const math::XYZTLorentzVector& lepP4);
-  double mT2_bisect(const math::XYZTLorentzVector lep1_p4, const math::XYZTLorentzVector lep2_p4,
+  bool testJetForLeptons(const math::XYZTLorentzVectorF& jetP4, const math::XYZTLorentzVectorF& lepP4);
+  double mT2_bisect(const math::XYZTLorentzVectorF lep1_p4, const math::XYZTLorentzVectorF lep2_p4,
 		    const double met, const double metPhi);
    
   // ----------member data ---------------------------

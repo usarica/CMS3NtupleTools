@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Warren Andrews
 //         Created:  
-// $Id: BTagMaker.cc,v 1.2 2009/08/30 16:36:55 kalavase Exp $
+// $Id: BTagMaker.cc,v 1.3 2009/09/10 10:51:42 fgolf Exp $
 //
 //
 
@@ -35,7 +35,7 @@ Implementation:
 #include "DataFormats/JetReco/interface/JetFloatAssociation.h"
 
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;

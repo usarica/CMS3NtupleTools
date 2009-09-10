@@ -11,7 +11,7 @@ Description: Jet utilities
 //
 // Original Author:  Oliver Gutsche
 // Tue Jul 22 22:41:55 UTC 2008
-// $Id: JetUtilities.h,v 1.1 2008/07/23 18:54:42 gutsche Exp $
+// $Id: JetUtilities.h,v 1.2 2009/09/10 10:51:37 fgolf Exp $
 //
 //
 #ifndef CMS2_JETUTILITIES_H
@@ -29,7 +29,7 @@ public:
   JetUtilities();
   ~JetUtilities();
 
-  static bool testJetForElectrons(const math::XYZTLorentzVector& jetP4, const math::XYZTLorentzVector& elP4);
+  static bool testJetForElectrons(const math::XYZTLorentzVectorF& jetP4, const math::XYZTLorentzVectorF& elP4);
 
 private:
 

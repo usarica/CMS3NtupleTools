@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.32 2009/09/03 12:27:05 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.33 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -55,7 +55,7 @@ Implementation:
 #include "Math/VectorUtil.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace reco;
 using namespace edm;
@@ -474,7 +474,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     math::XYZVector p3Out = el->trackMomentumOut();
     p4Out.SetXYZT(  p3Out.x(), p3Out.y(), p3Out.z(), sqrt(mass*mass+p3Out.R()*p3Out.R()));
 
-    els_p4                    ->push_back( el->p4()                                  );
+    els_p4                    ->push_back( LorentzVector( el->p4() )                 );
     els_trk_p4                ->push_back( trk_p4                                    );
     els_p4In                  ->push_back( p4In                                      );
     els_p4Out                 ->push_back( p4Out                                     );

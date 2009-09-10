@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  1 11:07:38 PDT 2009
-// $Id: DilepGenFilter.cc,v 1.1 2009/06/03 00:21:30 kalavase Exp $
+// $Id: DilepGenFilter.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
 //
 //
 
@@ -33,7 +33,7 @@ see header file
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-typedef math::XYZTLorentzVector LorentzVector;
+typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 
 //
