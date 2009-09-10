@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PATJetMaker.cc,v 1.6 2009/09/10 12:14:58 kalavase Exp $
 //
 //
 
@@ -66,10 +66,6 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<uint32_t> >("jetspatflag"             ).setBranchAlias("jets_pat_flag"); //PAT flag
   
   produces<vector<float> >   ("jetspatnoCorrF"          ).setBranchAlias("jets_pat_noCorrF"); // PAT corr for corrjet->nocorr
-  produces<vector<float> >   ("jetspatudsCorrF"         ).setBranchAlias("jets_pat_udsCorrF"); // PAT light quark flavor corr
-  produces<vector<float> >   ("jetspatgluCorrF"         ).setBranchAlias("jets_pat_gluCorrF"); // PAT gluon  corr
-  produces<vector<float> >   ("jetspatcCorrF"           ).setBranchAlias("jets_pat_cCorrF"); // PAT c quark flavor corr
-  produces<vector<float> >   ("jetspatbCorrF"           ).setBranchAlias("jets_pat_bCorrF"); // PAT b quark flavor corr
   produces<vector<float> >   ("jetspatjetCharge"        ).setBranchAlias("jets_pat_jetCharge"); // PAT jet charge
 
   //btagging info
@@ -134,10 +130,6 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<uint32_t> >  jets_patflag(new vector<uint32_t>);
 
   auto_ptr<vector<float> >     jets_patnoCorrF(new vector<float>);
-  auto_ptr<vector<float> >     jets_patudsCorrF(new vector<float>);
-  auto_ptr<vector<float> >     jets_patgluCorrF(new vector<float>);
-  auto_ptr<vector<float> >     jets_patcCorrF(new vector<float>);
-  auto_ptr<vector<float> >     jets_patbCorrF(new vector<float>);
   auto_ptr<vector<float> >     jets_patjetCharge(new vector<float>);
 
   //b tagging
@@ -184,25 +176,8 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     
     float jetCorF  = patJet->p4().pt()/patJet->originalObject()->p4().pt(); 
-    float udsCorrF = -999.;
-    float gluCorrF = -999.;
-    float cCorrF   = -999.;
-    float bCorrF   = -999.;
-    if (patJet->hasCorrFactors()) {
-
-      //  const pat::JetCorrFactors cor = patJet->jetCorrFactors();
-      
-//       udsCorrF  = cor.correction(pat::JetCorrFactors::L7uds);
-//       gluCorrF = cor.correction(pat::JetCorrFactors::L7g);
-//       cCorrF    = cor.correction(pat::JetCorrFactors::L7c);
-//       bCorrF    = cor.correction(pat::JetCorrFactors::L7b);
-    }
-       
+           
     jets_patnoCorrF->push_back(1/jetCorF); 
-    jets_patudsCorrF->push_back(udsCorrF);
-    jets_patgluCorrF->push_back(gluCorrF);
-    jets_patcCorrF->push_back(cCorrF);
-    jets_patbCorrF->push_back(bCorrF);
     jets_patjetCharge->push_back(patJet->jetCharge());
     
 
@@ -234,10 +209,6 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(jets_patpartonFlavour, "jetspatpartonFlavour");
   iEvent.put(jets_patflag, "jetspatflag");     
   iEvent.put(jets_patnoCorrF, "jetspatnoCorrF");
-  iEvent.put(jets_patudsCorrF, "jetspatudsCorrF");
-  iEvent.put(jets_patgluCorrF, "jetspatgluCorrF");
-  iEvent.put(jets_patcCorrF, "jetspatcCorrF");
-  iEvent.put(jets_patbCorrF, "jetspatbCorrF");
   iEvent.put(jets_patjetCharge, "jetspatjetCharge");
 
   iEvent.put(jets_pat_combinedSecondaryVertexBJetTag,    "jetspatcombinedSecondaryVertexBJetTag");
