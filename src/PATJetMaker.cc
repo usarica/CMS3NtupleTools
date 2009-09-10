@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.6 2009/09/10 12:14:58 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.7 2009/09/10 14:28:22 kalavase Exp $
 //
 //
 
@@ -45,7 +45,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
-
+#include "CMS2/NtupleMaker/interface/CommonUtils.h"
 typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
@@ -76,7 +76,8 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >   ("jetspatjetBProbabilityBJetTag"           ).setBranchAlias("jets_pat_jetBProbabilityBJetTag");
   produces<vector<float> >   ("jetspatjetProbabilityBJetTag"            ).setBranchAlias("jets_pat_jetProbabilityBJetTag");
   produces<vector<float> >   ("jetspatsimpleSecondaryVertexBJetTag"     ).setBranchAlias("jets_pat_simpleSecondaryVertexBJetTag");
-  produces<vector<float> >   ("jetspatsoftElectronBJetTag"              ).setBranchAlias("jets_pat_softElectronBJetTag");
+  produces<vector<float> >   ("jetspatsoftElectronByIP3dBJetTag"        ).setBranchAlias("jets_pat_softElectronByIP3dBJetTag");
+  produces<vector<float> >   ("jetspatsoftElectronByPtBJetTag"          ).setBranchAlias("jets_pat_softElectronByPtBJetTag");
   produces<vector<float> >   ("jetspatsoftMuonBJetTag"                  ).setBranchAlias("jets_pat_softMuonBJetTag");
   produces<vector<float> >   ("jetspatsoftMuonNoIPBJetTag"              ).setBranchAlias("jets_pat_softMuonNoIPBJetTag");
   produces<vector<float> >   ("jetspattrackCountingHighEffBJetTag"      ).setBranchAlias("jets_pat_trackCountingHighEffBJetTag");
@@ -140,7 +141,8 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >     jets_pat_jetBProbabilityBJetTag            (new vector<float>);
   auto_ptr<vector<float> >     jets_pat_jetProbabilityBJetTag             (new vector<float>);
   auto_ptr<vector<float> >     jets_pat_simpleSecondaryVertexBJetTag      (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_softElectronBJetTag               (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_softElectronByIP3dBJetTag         (new vector<float>);
+  auto_ptr<vector<float> >     jets_pat_softElectronByPtBJetTag           (new vector<float>);
   auto_ptr<vector<float> >     jets_pat_softMuonBJetTag                   (new vector<float>);
   auto_ptr<vector<float> >     jets_pat_softMuonNoIPBJetTag               (new vector<float>);
   auto_ptr<vector<float> >     jets_pat_trackCountingHighEffBJetTag       (new vector<float>);
@@ -180,19 +182,23 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     jets_patnoCorrF->push_back(1/jetCorF); 
     jets_patjetCharge->push_back(patJet->jetCharge());
     
+    cout << patJet->bDiscriminator("softElectronByIP3dBJetTags") << endl;
+    if(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags")))
+       cout << "Works!!!!" << endl;
 
-    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
-    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
-    jets_pat_coneIsolationTauJetTag            ->push_back(patJet->bDiscriminator("coneIsolationTauJetTags"));
-    jets_pat_impactParameterMVABJetTag         ->push_back(patJet->bDiscriminator("impactParameterMVABJetTags"));
-    jets_pat_jetBProbabilityBJetTag            ->push_back(patJet->bDiscriminator("jetBProbabilityBJetTags"));
-    jets_pat_jetProbabilityBJetTag             ->push_back(patJet->bDiscriminator("jetProbabilityBJetTags"));
-    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
-    jets_pat_softElectronBJetTag               ->push_back(patJet->bDiscriminator("softElectronBJetTags"));
-    jets_pat_softMuonBJetTag                   ->push_back(patJet->bDiscriminator("softMuonBJetTags"));
-    jets_pat_softMuonNoIPBJetTag               ->push_back(patJet->bDiscriminator("softMuonNoIPBJetTags"));
-    jets_pat_trackCountingHighEffBJetTag       ->push_back(patJet->bDiscriminator("trackCountingHighEffBJetTags"));
-    jets_pat_trackCountingHighPurBJetTag       ->push_back(patJet->bDiscriminator("trackCountingHighPurBJetTags"));
+    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"))    ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
+    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags")) ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
+    jets_pat_coneIsolationTauJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("coneIsolationTauJetTags"))            ? -9999. : patJet->bDiscriminator("coneIsolationTauJetTags"));
+    jets_pat_impactParameterMVABJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("impactParameterMVABJetTags"))         ? -9999. : patJet->bDiscriminator("impactParameterMVABJetTags"));
+    jets_pat_jetBProbabilityBJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetBProbabilityBJetTags"))            ? -9999. : patJet->bDiscriminator("jetBProbabilityBJetTags"));
+    jets_pat_jetProbabilityBJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetProbabilityBJetTags"))             ? -9999. : patJet->bDiscriminator("jetProbabilityBJetTags"));
+    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"))      ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
+    jets_pat_softElectronByIP3dBJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags"))         ? -9999. : patJet->bDiscriminator("softElectronByIP3dBJetTags"));
+    jets_pat_softElectronByPtBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByPtBJetTag"))            ? -9999. : patJet->bDiscriminator("softElectronByPtBJetTag"));
+    jets_pat_softMuonBJetTag                   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonBJetTags"))                   ? -9999. : patJet->bDiscriminator("softMuonBJetTags"));
+    jets_pat_softMuonNoIPBJetTag               ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonNoIPBJetTags"))               ? -9999. : patJet->bDiscriminator("softMuonNoIPBJetTags"));
+    jets_pat_trackCountingHighEffBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighEffBJetTags"))       ? -9999. : patJet->bDiscriminator("trackCountingHighEffBJetTags"));
+    jets_pat_trackCountingHighPurBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighPurBJetTags"))       ? -9999. : patJet->bDiscriminator("trackCountingHighPurBJetTags"));
     
 
     
@@ -218,7 +224,8 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(jets_pat_jetBProbabilityBJetTag,            "jetspatjetBProbabilityBJetTag");
   iEvent.put(jets_pat_jetProbabilityBJetTag,             "jetspatjetProbabilityBJetTag");
   iEvent.put(jets_pat_simpleSecondaryVertexBJetTag,      "jetspatsimpleSecondaryVertexBJetTag");
-  iEvent.put(jets_pat_softElectronBJetTag,               "jetspatsoftElectronBJetTag");
+  iEvent.put(jets_pat_softElectronByIP3dBJetTag,         "jetspatsoftElectronByIP3dBJetTag");
+  iEvent.put(jets_pat_softElectronByPtBJetTag,           "jetspatsoftElectronByPtBJetTag");
   iEvent.put(jets_pat_softMuonBJetTag,                   "jetspatsoftMuonBJetTag");
   iEvent.put(jets_pat_softMuonNoIPBJetTag,               "jetspatsoftMuonNoIPBJetTag");
   iEvent.put(jets_pat_trackCountingHighEffBJetTag,       "jetspattrackCountingHighEffBJetTag");
