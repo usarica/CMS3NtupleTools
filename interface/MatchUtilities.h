@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.10 2009/09/10 10:51:37 fgolf Exp $
+// $Id: MatchUtilities.h,v 1.11 2009/09/11 09:56:39 kalavase Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -53,7 +53,11 @@ public:
   static const reco::Candidate* matchGenToCand(const reco::GenJet&, std::vector<const reco::Candidate*> cand);
   
   static const bool isStableGenPart(reco::GenParticle);
-
+  
+  static const int  getMatchedGenIndex(const reco::GenParticle&, 
+				       const std::vector<reco::GenParticle>* genParticles, 
+				       int status);
+  
   static const void alignRecoPatJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<pat::Jet>&);
   static const void alignRecoPatElectronCollections(const std::vector<reco::GsfElectron>&,
@@ -63,6 +67,7 @@ public:
 
   static const void alignJPTcaloJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<reco::CaloJet>&);
+  
 					       
   
   template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref, std::vector<T2>& v_toAllign) {

@@ -167,7 +167,6 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
 }
 
 
-
 //----------------------------------------------------------------------------------------------
 const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
 							const std::vector<reco::GenParticle>* genParticles, 
@@ -222,6 +221,31 @@ const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenParticle& p
 
   return output;
 }
+//----------------------------------------------------------------------------------------------
+
+const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const std::vector<reco::GenParticle>* genParticles, int status) {
+
+  double dRmin = 0.2; 
+  std::vector<reco::GenParticle>::const_iterator itCand;
+  int idx = -999;
+  int temp = 0;
+  math::XYZVector v1(p.momentum().x(), p.momentum().y(), p.momentum().z());
+  for(itCand = genParticles->begin(); itCand != genParticles->end(); itCand++, temp++) {
+    
+    if(itCand->status() != status)
+      continue;
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1, itCand->p4());
+    
+    if(dR < dRmin) {
+      idx = temp;
+      dRmin = dR;
+    }
+  }
+
+  return idx;
+}
+
 
 //----------------------------------------------------------------------------------------------
 
@@ -244,3 +268,5 @@ const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::Ca
 						      std::vector<reco::CaloJet>& v_toAllign) {
   alignCollections(v_ref, v_toAllign);
 }
+
+  
