@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.19 $'),
+        version = cms.untracked.string('$Revision: 1.20 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -28,6 +28,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #----------------------------------------------------
 #CMS2 includes
 #----------------------------------------------------
+process.load("CMS2.NtupleMaker.aSkimFilter_cfi")
 process.load("CMS2.NtupleMaker.beamSpotMaker_cfi")
 process.load("CMS2.NtupleMaker.bTaggingSequence_cfi")
 process.load("CMS2.NtupleMaker.bTaggingTrkSequence_cfi")
@@ -43,7 +44,7 @@ process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
 process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.eventMaker_cfi")
 process.load("CMS2.NtupleMaker.flavorHistorySequence_cfi")
-process.load("CMS2.NtupleMaker.genJetMaker_cfi")
+process.load("CMS2.NtupleMaker.genJetSequence_cff")
 process.load("CMS2.NtupleMaker.genMaker_cfi")
 process.load("CMS2.NtupleMaker.hltMaker_cff")
 process.load("CMS2.NtupleMaker.hypDilepMaker_cfi")
@@ -180,17 +181,17 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_C
 
 process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
 
-process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker * process.pdfinfoMaker)
+process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker )
 
 process.trigmakers   = cms.Sequence(process.l1Maker * process.hltMakerSequence)
 
-process.genmakers     = cms.Sequence(process.genMaker * process.genjetmaker * process.CMS2FlavorHistorySequence * process.candToGenAssMaker)
+process.genmakers     = cms.Sequence(process.genMaker * process.pdfinfoMaker * process.genJetSequence * process.CMS2FlavorHistorySequence * process.candToGenAssMaker)
 
 process.makers        = cms.Sequence(process.trackMaker * process.muonMaker * process.electronMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkJetMaker * process.metMaker * process.tcmetMaker * process.calotauMaker * process.photonMaker)
 
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.muToJetAssMaker * process.elToMuAssMaker * process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 
-process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker * process.hypGenMaker)
+process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker  * process.hypGenMaker)
 
 process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
 
