@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  1 11:07:38 PDT 2009
-// $Id: DilepGenFilter.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
+// $Id: DilepGenFilter.cc,v 1.3 2009/09/14 21:59:18 kalavase Exp $
 //
 //
 
@@ -70,9 +70,9 @@ bool DilepGenFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   const vector<int> *v_genstatus = genstatus_h.product();
 
   InputTag genlepdaughterid_tag("genMaker", "genpslepdaughterid");
-  Handle<vector<int> > genlepdaughterid_h;
+  Handle<vector<vector<int> > > genlepdaughterid_h;
   iEvent.getByLabel(genlepdaughterid_tag, genlepdaughterid_h);
-  const vector<int> *v_genlepdaughterid = genlepdaughterid_h.product();
+  const vector<vector<int> > *v_genlepdaughterid = genlepdaughterid_h.product();
   
 
   int nGenLeps = 0;
@@ -90,8 +90,8 @@ bool DilepGenFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     //if a tau whose daughter is a e/mu, sum
     if(pid == 15) {
-      for(unsigned int daughter = 0; daughter < v_genlepdaughterid->size(); daughter++) {
-	int daughterid = abs(v_genlepdaughterid->at(daughter));
+      for(unsigned int daughter = 0; daughter < v_genlepdaughterid->at(idx).size(); daughter++) {
+	int daughterid = abs(v_genlepdaughterid->at(idx).at(daughter));
 	
 	if(daughterid == 11 || daughterid == 13)
 	  nGenLeps++;
@@ -101,7 +101,7 @@ bool DilepGenFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   }//genid loop
 
-  cout << nGenLeps << endl;
+  cout << "******Number of GenLeptons:" << nGenLeps << endl;
   if(nGenLeps < 2)
     return false;
 
