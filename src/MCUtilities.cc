@@ -31,17 +31,17 @@ const reco::GenParticle* MCUtilities::motherID(const reco::GenParticle& gp) {
   return mom;
 }
 
-void MCUtilities::writeDaughter( const reco::GenParticle& gp, int idx, auto_ptr<vector<int> > &genps_ld_id,
-				 auto_ptr<vector<int> > &genps_ld_idx, auto_ptr<vector<LorentzVector> > &genps_ld_p4) {
+void MCUtilities::writeDaughter( const reco::GenParticle& gp, int idx, vector<int>& genps_ld_id,
+				 vector<int>& genps_ld_idx, vector<LorentzVector>& genps_ld_p4) {
   //call this for the status 3 particles to add all of their status 1 (not 2) daughters ( and grand daughters and great grand daughters ... )
 
   for( unsigned int i = 0; i < gp.numberOfDaughters(); i++ ) {
 
     if( gp.daughter(i)->status() == 1 ) {
 
-      genps_ld_id ->push_back( gp.daughter(i)->pdgId() );
-      genps_ld_idx->push_back( idx                     );
-      genps_ld_p4 ->push_back( LorentzVector(gp.daughter(i)->p4().px(),
+      genps_ld_id.push_back( gp.daughter(i)->pdgId() );
+      genps_ld_idx.push_back( idx                     );
+      genps_ld_p4.push_back( LorentzVector(gp.daughter(i)->p4().px(),
 					     gp.daughter(i)->p4().py(),
 					     gp.daughter(i)->p4().pz(),
 					     gp.daughter(i)->p4().e() ) );

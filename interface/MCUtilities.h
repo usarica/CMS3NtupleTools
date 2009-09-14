@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: MCUtilities.h,v 1.4 2009/09/10 10:51:37 fgolf Exp $
+// $Id: MCUtilities.h,v 1.5 2009/09/14 21:52:10 kalavase Exp $
 //
 //
 #ifndef CMS2_MCUTILITIES_H
@@ -31,8 +31,8 @@ public:
   ~MCUtilities();
 
   static const reco::GenParticle* motherID(const reco::GenParticle& gp);
-  static void writeDaughter(const reco::GenParticle& gp, int idx, std::auto_ptr<std::vector<int> > &genps_ld_id,
-			    std::auto_ptr<std::vector<int> > &genps_ld_idx, std::auto_ptr<std::vector<LorentzVector> > &genps_ld_p4 );
+  static void writeDaughter(const reco::GenParticle& gp, int idx, std::vector<int>& genps_ld_id,
+			    std::vector<int>& genps_ld_idx, std::vector<LorentzVector>& genps_ld_p4 );
 
 private:
 
