@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.11 2009/09/01 10:45:32 dlevans Exp $
+// $Id: ElectronMaker.h,v 1.12 2009/09/14 15:54:11 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -34,10 +34,19 @@
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/Math/interface/Point3D.h"
+#include "DataFormats/EgammaReco/interface/SuperCluster.h"
+#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+
+#include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
+
+
 
 #include "Math/VectorUtil.h"
 
@@ -50,13 +59,32 @@ public:
   explicit ElectronMaker (const edm::ParameterSet&);
   ~ElectronMaker();
 
+  //struct just for 312 to compute the SC charge and the results of the Egamma charge 
+  // Complementary struct. From DataFormats/EgammaCandidates/interface/GsfElectron.h
+  // rev 1.32
+  struct ChargeInfo
+  {
+    int scPixCharge ;
+    bool isGsfCtfScPixConsistent ;
+    bool isGsfScPixConsistent ;
+    bool isGsfCtfConsistent ;
+    ChargeInfo()
+      : scPixCharge(0), isGsfCtfScPixConsistent(false),
+	isGsfScPixConsistent(false), isGsfCtfConsistent(false)
+    {}
+  } ;
+  
+
 private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-
+  
   int classify(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
+  void computeCharge(  const reco::GsfTrack& gsftk, const reco::TrackRef ctf, 
+		       const reco::SuperClusterRef sc, const math::XYZPoint & bs, 
+		       int & charge, ChargeInfo & info );
 
   // ----------member data ---------------------------
   edm::InputTag electronsInputTag_;
@@ -66,8 +94,9 @@ private:
   edm::InputTag eidRobustHighEnergyTag_;
   edm::InputTag eidLooseTag_;
   edm::InputTag eidTightTag_;
-
+  
   EcalClusterLazyTools* clusterTools_;
+  MultiTrajectoryStateTransform *mtsTransform_;
   
 };
 

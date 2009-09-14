@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.33 2009/09/10 10:51:43 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.34 2009/09/14 15:54:28 kalavase Exp $
 //
 //
 
@@ -26,6 +26,7 @@ Implementation:
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 
 #include "CMS2/NtupleMaker/interface/ElectronMaker.h"
 #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
@@ -33,14 +34,12 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/EgammaReco/interface/SuperCluster.h"
-#include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
+
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterFwd.h"
 #include "DataFormats/EgammaReco/interface/ClusterShape.h"
 #include "DataFormats/EgammaReco/interface/ClusterShapeFwd.h"
-#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
-#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -53,7 +52,16 @@ Implementation:
 #include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 #include "Math/VectorUtil.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
+
+
+#include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
+#include "Geometry/CommonDetUnit/interface/TrackingGeometry.h"
+#include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+#include "MagneticField/Engine/interface/MagneticField.h"
+#include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
+
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -136,6 +144,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
   // track variables
   //
   produces<vector<int> >       ("elscharge"                  ).setBranchAlias("els_charge"                 ); //candidate charge
+  produces<vector<int> >       ("elssccharge"                ).setBranchAlias("els_sccharge"               );
   produces<vector<float> >     ("elschi2"                    ).setBranchAlias("els_chi2"                   );
   produces<vector<float> >     ("elsndof"                    ).setBranchAlias("els_ndof"                   );
   produces<vector<int> >       ("elsvalidHits"               ).setBranchAlias("els_validHits"              ); //number of used hits in fit
@@ -193,9 +202,19 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
 ElectronMaker::~ElectronMaker()
 {
   if (clusterTools_) delete clusterTools_;
+  if (mtsTransform_) delete mtsTransform_;
 }
 
-void  ElectronMaker::beginJob(const edm::EventSetup&) {
+void  ElectronMaker::beginJob(const edm::EventSetup& es) {
+  
+  edm::ESHandle<TrackerGeometry>              trackerGeometryHandle;
+  edm::ESHandle<MagneticField>                magFieldHandle;
+  
+  es.get<TrackerDigiGeometryRecord>().get(trackerGeometryHandle);
+  es.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  mtsTransform_ = new MultiTrajectoryStateTransform(trackerGeometryHandle.product(), magFieldHandle.product());
+   
+
 }
 
 void ElectronMaker::endJob() {
@@ -273,6 +292,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // track variables
   //
   auto_ptr<vector<int> >	  els_charge                  (new vector<int>          ) ;
+  auto_ptr<vector<int> >          els_sccharge                (new vector<int>          ) ;
   auto_ptr<vector<float> >	  els_chi2                    (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_ndof                    (new vector<float>        ) ;
   auto_ptr<vector<int> >          els_validHits               (new vector<int>          ) ;
@@ -446,7 +466,11 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
 						    +2*pt*p/q*pz*(el_track->covariance(0,1))
 						    + pz*pz*(el_track->covariance(1,1) ) ) : -999.;
-
+    int defaultCharge;
+    ChargeInfo chargeinfo;
+    computeCharge(*(el->gsfTrack().get()), el->closestCtfTrackRef(), el->superCluster(),
+		  beamSpot, defaultCharge, chargeinfo);
+    
     els_chi2                  ->push_back( el_track->chi2()                          );
     els_ndof                  ->push_back( el_track->ndof()                          );
     els_d0Err                 ->push_back( el_track->d0Error()                       );
@@ -457,6 +481,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );		
     els_charge                ->push_back( el->charge()                              );
+    els_sccharge              ->push_back( chargeinfo.scPixCharge                    );
     els_d0                    ->push_back( el_track->d0()                            );
     els_z0                    ->push_back( el_track->dz()                            );		
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
@@ -665,6 +690,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_validHits               	,"elsvalidHits"       		);
   iEvent.put(els_lostHits                	,"elslostHits"        		);
   iEvent.put(els_charge                  	,"elscharge"          		);
+  iEvent.put(els_sccharge                       ,"elssccharge"                  );
 
   // Supercluster parameters
   //
@@ -779,6 +805,42 @@ template<typename T> const edm::ValueMap<T>& ElectronMaker::getValueMap(const ed
   iEvent.getByLabel(inputTag,handle);
   return *(handle.product());
 }
+
+
+//method to compute the charge. Ported from 33X. Copy-paste from 
+//RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc rev 1.78
+void ElectronMaker::computeCharge( const reco::GsfTrack& gsftk, const reco::TrackRef  ctf, 
+				   const reco::SuperClusterRef  sc, const Point& bs,
+				   int & charge, ChargeInfo & info ) {
+  // determine charge from SC
+  GlobalPoint orig(bs.x(), bs.y(), bs.z()) ;
+  GlobalPoint scpos(sc->position().x(), sc->position().y(), sc->position().z()) ;
+  GlobalVector scvect(scpos-orig) ;
+  TrajectoryStateOnSurface innTSOS = mtsTransform_->innerStateOnSurface(gsftk);
+  GlobalPoint inntkpos = innTSOS.globalPosition() ;
+  GlobalVector inntkvect = GlobalVector(inntkpos-orig) ;
+  
+  float dPhiInnEle=scvect.phi()-inntkvect.phi();
+  if (fabs(dPhiInnEle)>TMath::Pi()) 
+    (dPhiInnEle<0?2.0*TMath::Pi()+dPhiInnEle:dPhiInnEle-2*TMath::Pi()) ;
+  
+
+
+  if(dPhiInnEle>0) info.scPixCharge = -1 ;
+  else info.scPixCharge = 1 ;
+
+  // flags
+  int chargeGsf = gsftk.charge() ;
+  info.isGsfScPixConsistent = ((chargeGsf*info.scPixCharge)>0) ;
+  info.isGsfCtfConsistent = (ctf.isNonnull()&&((chargeGsf*ctf->charge())>0)) ;
+  info.isGsfCtfScPixConsistent = (info.isGsfScPixConsistent&&info.isGsfCtfConsistent) ;
+
+  // default charge
+  if (info.isGsfScPixConsistent||ctf.isNull())
+   { charge = info.scPixCharge ; }
+  else
+   { charge = ctf->charge() ; }
+ }
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronMaker);
