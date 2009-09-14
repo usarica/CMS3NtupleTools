@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.20 $'),
+        version = cms.untracked.string('$Revision: 1.21 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -37,6 +37,7 @@ process.load("CMS2.NtupleMaker.bTagTrkMaker_cfi")
 process.load("CMS2.NtupleMaker.calotauMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
+process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
 process.load("CMS2.NtupleMaker.electronSequence_cfi")
@@ -94,7 +95,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -201,7 +202,7 @@ process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronM
 
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.genmakers * process.assmakers * process.othermakers * process.hypmakers)
 
-process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers * process.theFilter)
+process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers * process.theFilter + process.dilepGenFilter)
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
