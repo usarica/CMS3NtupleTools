@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.16 2009/09/14 21:54:27 kalavase Exp $
+// $Id: GenMaker.cc,v 1.17 2009/09/14 22:08:32 kalavase Exp $
 //
 //
 
@@ -183,9 +183,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       v_temp_p4.clear();
       if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ) 
 	MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
-	genps_lepdaughter_id ->push_back(v_temp_id  );
-	genps_lepdaughter_idx->push_back(v_temp_idx );
-	genps_lepdaughter_p4 ->push_back(v_temp_p4  );
+      genps_lepdaughter_id ->push_back(v_temp_id  );
+      genps_lepdaughter_idx->push_back(v_temp_idx );
+      genps_lepdaughter_p4 ->push_back(v_temp_p4  );
     }
 
     //12 = nuE, 14=nuMu, 16=nuTau, appear at both status 1 and 3
