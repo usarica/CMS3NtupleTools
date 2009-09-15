@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-hltMaker8e29 = cms.EDProducer("HLTMaker",
+hlt8e29Maker = cms.EDProducer("HLTMaker",
     processName = cms.untracked.string("HLT8E29"),
     fillTriggerObjects = cms.untracked.bool(True),
     prunedTriggerNames = cms.untracked.vstring(
@@ -41,7 +41,7 @@ hltMaker8e29 = cms.EDProducer("HLTMaker",
     )
 )
 
-hltMaker1e31 = cms.EDProducer("HLTMaker",
+hltMaker = cms.EDProducer("HLTMaker",
     processName = cms.untracked.string("HLT"),
     fillTriggerObjects = cms.untracked.bool(True),
     prunedTriggerNames = cms.untracked.vstring(
