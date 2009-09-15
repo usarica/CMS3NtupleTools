@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.17 2009/09/14 22:08:32 kalavase Exp $
+// $Id: GenMaker.cc,v 1.18 2009/09/15 05:42:32 kalavase Exp $
 //
 //
 
@@ -227,9 +227,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_p4             , "genpsp4"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"       );
   iEvent.put(genps_status         , "genpsstatus"        );
-  iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
-  iEvent.put(genps_lepdaughter_idx, "genpslepdaughteridx");
-  iEvent.put(genps_lepdaughter_p4 , "genpslepdaughterp4" );
   iEvent.put(gen_met              , "genmet"             );
   iEvent.put(gen_metPhi           , "genmetPhi"          );
   iEvent.put(genps_pthat          , "genpspthat"         );
@@ -238,6 +235,13 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_xsec_excl        , "evtxsecexcl"        );
   iEvent.put(evt_kfactor          , "evtkfactor"         );
   iEvent.put(evt_scale1fb         , "evtscale1fb"        );
+
+  if(ntupleDaughters) {
+    iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
+    iEvent.put(genps_lepdaughter_idx, "genpslepdaughteridx");
+    iEvent.put(genps_lepdaughter_p4 , "genpslepdaughterp4" );
+  }
+
 }
 
 //define this as a plug-in
