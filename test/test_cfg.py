@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.52 $'),
+        version = cms.untracked.string('$Revision: 1.53 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -104,10 +104,11 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-	'file:/store/disk02/fgolf/E01614FB-6C89-DE11-8089-003048C57816.root',
-	'file:/store/disk02/fgolf/B826FAFB-378B-DE11-A935-0018FEFAA390.root',
-	'file:/store/disk02/fgolf/C62CBBB6-EB88-DE11-B14E-0019BBEBB54A.root',
-	'file:/store/disk02/fgolf/DEC94FF2-1D8B-DE11-A686-003048C5750A.root'
+	'file:/home/users/wandrews/tmp/3_1_ttbar/E01614FB-6C89-DE11-8089-003048C57816.root'
+	#'file:/store/disk02/fgolf/E01614FB-6C89-DE11-8089-003048C57816.root',
+	#'file:/store/disk02/fgolf/B826FAFB-378B-DE11-A935-0018FEFAA390.root',
+	#'file:/store/disk02/fgolf/C62CBBB6-EB88-DE11-B14E-0019BBEBB54A.root',
+	#'file:/store/disk02/fgolf/DEC94FF2-1D8B-DE11-A686-003048C5750A.root'
 	)
 )
 
@@ -161,7 +162,7 @@ switchJetCollection(process, cms.InputTag('prunedUncorrectedCMS2Jets'), doJTA = 
 ## define event selection
 process.EventSelection = cms.PSet(
     SelectEvents = cms.untracked.PSet(
-        SelectEvents = cms.vstring('p')
+        SelectEvents = cms.vstring('p1', 'p2')
     )
 )
 
@@ -202,7 +203,11 @@ process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronM
 
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.genmakers * process.assmakers * process.othermakers * process.hypmakers)
 
-process.p             = cms.Path(process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers * process.theFilter + process.dilepGenFilter)
+process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
+
+process.p1            = cms.Path( process.all * process.theFilter )
+
+process.p2            = cms.Path( process.all * process.dilepGenFilter)
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
