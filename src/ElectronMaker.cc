@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.34 2009/09/14 15:54:28 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.35 2009/10/03 01:46:09 slava77 Exp $
 //
 //
 
@@ -76,7 +76,7 @@ using namespace std;
 //
 // constructors and destructor
 //
-ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig)
+ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),mtsTransform_(0)
 {
   produces<unsigned int>       ("evtnels"                    ).setBranchAlias("evt_nels"                   ); //number of electrons in event
 
