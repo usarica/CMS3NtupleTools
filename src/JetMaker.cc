@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.21 2009/09/10 17:11:57 kalavase Exp $
+// $Id: JetMaker.cc,v 1.22 2009/10/04 20:28:55 slava77 Exp $
 //
 //
 
@@ -65,6 +65,7 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
   jetIDHelper_            = reco::helper::JetIDHelper(iConfig.getParameter<edm::ParameterSet>("jetIDInputTag"       ));
+  nameL2L3JetCorrector_   = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
   if(runningOnReco_) {
     produces<std::vector<float> >     ("jetsfHPD"           ).setBranchAlias("jets_fHPD"            );
     produces<std::vector<float> >     ("jetsfRBX"           ).setBranchAlias("jets_fRBX"            );
@@ -130,7 +131,8 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //get the correctors
   //the corrector is the the process from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Configuration/python/
   //for 312: L2L3Corrections_Summer09_cff.py
-  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector("L2L3JetCorrectorSC5Calo"  , iSetup);
+  //  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector("L2L3JetCorrectorSC5Calo"  , iSetup);
+  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector(nameL2L3JetCorrector_  , iSetup);
   
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
     
@@ -140,22 +142,22 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     double L2L3Jetscale = L2L3corrector->correction( uncorJet.p4() );
     L2L3Jet.scaleEnergy( L2L3Jetscale );
     float jetPt = L2L3Jet.p4().pt();
-    m_uncorJets[ jetPt ] = ( 1 / L2L3Jetscale );
-    m_emFracJets[ jetPt ] = L2L3Jet.emEnergyFraction();
-    m_vertexJets[ jetPt ] = LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.);
+    m_uncorJets[ -jetPt ] = ( 1 / L2L3Jetscale );
+    m_emFracJets[ -jetPt ] = L2L3Jet.emEnergyFraction();
+    m_vertexJets[ -jetPt ] = LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.);
 
     if(runningOnReco_) {
       jetIDHelper_.calculate( iEvent, uncorJet);
-      m_fHPD[ jetPt ]            = jetIDHelper_.fHPD();
-      m_fRBX[ jetPt ]            = jetIDHelper_.fRBX();
-      m_n90Hits[ jetPt ]         = jetIDHelper_.n90Hits();
-      m_fSubDetector1[ jetPt ]   = jetIDHelper_.fSubDetector1();
-      m_fSubDetector2[ jetPt ]   = jetIDHelper_.fSubDetector2();
-      m_fSubDetector3[ jetPt ]   = jetIDHelper_.fSubDetector3();
-      m_fSubDetector4[ jetPt ]   = jetIDHelper_.fSubDetector4();
-      m_restrictedEMF[ jetPt ]   = jetIDHelper_.restrictedEMF();
-      m_nHCALTowers[ jetPt ]     = jetIDHelper_.nHCALTowers();
-      m_nECALTowers[ jetPt ]     = jetIDHelper_.nECALTowers();
+      m_fHPD[ -jetPt ]            = jetIDHelper_.fHPD();
+      m_fRBX[ -jetPt ]            = jetIDHelper_.fRBX();
+      m_n90Hits[ -jetPt ]         = jetIDHelper_.n90Hits();
+      m_fSubDetector1[ -jetPt ]   = jetIDHelper_.fSubDetector1();
+      m_fSubDetector2[ -jetPt ]   = jetIDHelper_.fSubDetector2();
+      m_fSubDetector3[ -jetPt ]   = jetIDHelper_.fSubDetector3();
+      m_fSubDetector4[ -jetPt ]   = jetIDHelper_.fSubDetector4();
+      m_restrictedEMF[ -jetPt ]   = jetIDHelper_.restrictedEMF();
+      m_nHCALTowers[ -jetPt ]     = jetIDHelper_.nHCALTowers();
+      m_nECALTowers[ -jetPt ]     = jetIDHelper_.nECALTowers();
     }
 
     v_L2L3corJets.push_back( LorentzVector( L2L3Jet.p4() ) );

@@ -9,7 +9,8 @@ jetMaker = cms.EDFilter("JetMaker",
                  hfRecHitsColl   = cms.InputTag("hfreco"),
                  ebRecHitsColl   = cms.InputTag("ecalRecHit", "EcalRecHitsEB"),
                  eeRecHitsColl   = cms.InputTag("ecalRecHit", "EcalRecHitsEE")
-    )
+                 ),
+           L2L3JetCorrectorName = cms.string("L2L3JetCorrectorSC5Calo")
 )
 
 

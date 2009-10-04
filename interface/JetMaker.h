@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.7 2009/09/10 17:10:32 kalavase Exp $
+// $Id: JetMaker.h,v 1.8 2009/10/04 20:28:55 slava77 Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -54,6 +54,7 @@ private:
   edm::InputTag uncorJetsInputTag_;
   reco::helper::JetIDHelper jetIDHelper_;
   bool runningOnReco_;
+  std::string nameL2L3JetCorrector_;
 
 };
 
