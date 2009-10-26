@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.33 2009/09/15 14:33:01 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.34 2009/10/26 22:38:12 fgolf Exp $
 //
 //
 
@@ -358,10 +358,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 								    siTrack->vy(),
 								    siTrack->vz(), 0) 
 						      : LorentzVector(-999,-999,-999,-999) );
-    vector_mus_gfit_p4                    ->push_back(globalTrack.isNonnull() ? LorentzVector(globalTrack->vx(),
-											      globalTrack->vy(),
-											      globalTrack->vz(), 0.) 
-						      : LorentzVector(-999, -999, -999, -999) );
     vector_mus_gfit_outerPos_p4          ->push_back(globalTrack.isNonnull() ?
 						     LorentzVector(globalTrack->outerPosition().x(),
 								   globalTrack->outerPosition().y(),
