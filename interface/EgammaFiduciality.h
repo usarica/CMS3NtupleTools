@@ -6,7 +6,7 @@
 
 // Fiduciality in the calorimeter
 
-#ifndef EgammaFiduciality
+#ifndef EgammaFiduciality_h
 #define EgammaFiduciality_h
 
 enum EgammaFiduciality {
