@@ -6,6 +6,9 @@
 
 // Fiduciality in the calorimeter
 
+#ifndef EgammaFiduciality
+#define EgammaFiduciality_h
+
 enum EgammaFiduciality {
 	// used by photons and electrons
 	ISEB,
@@ -28,4 +31,6 @@ enum EgammaElectronType {
 	ISECALDRIVEN,
 	ISTRACKERDRIVEN
 };
+
+#endif
 
