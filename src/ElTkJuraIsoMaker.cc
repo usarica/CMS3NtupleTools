@@ -71,7 +71,6 @@ void ElTkJuraIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	for (size_t j = 0; j < els_trk_p4->size(); ++j) 
 	{
 
-		std::cout << std::endl;
 		isoSum = 0.0;
 		for (size_t i = 0; i < trks_trk_p4->size(); ++i)
 		{
