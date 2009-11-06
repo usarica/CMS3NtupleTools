@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.53 $'),
+        version = cms.untracked.string('$Revision: 1.54 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -39,6 +39,7 @@ process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
+process.load("CMS2.NtupleMaker.elTkJuraIsoMaker_cfi")
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
 process.load("CMS2.NtupleMaker.electronSequence_cfi")
 process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
@@ -195,7 +196,7 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker  * process.hypGenMaker)
 
-process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
+process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJuraIsoMaker * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
 
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 

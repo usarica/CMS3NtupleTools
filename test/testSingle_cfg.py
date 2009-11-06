@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -38,9 +38,11 @@ process.load("CMS2.NtupleMaker.calotauMaker_cfi")
 process.load("CMS2.NtupleMaker.candToGenAssMaker_cfi")
 process.load("CMS2.NtupleMaker.conversionMaker_cfi")
 process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")
+process.load("CMS2.NtupleMaker.monolepGenFilter_cfi")
 process.load("CMS2.NtupleMaker.elCaloIsoSequence_cff")
 process.load("CMS2.NtupleMaker.electronMaker_cfi")
 process.load("CMS2.NtupleMaker.electronSequence_cfi")
+process.load("CMS2.NtupleMaker.elTkJuraIsoMaker_cfi")
 process.load("CMS2.NtupleMaker.elToJetAssMaker_cfi")
 process.load("CMS2.NtupleMaker.elToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.eventMaker_cfi")
@@ -104,8 +106,14 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
+	# zee
+	'file:/hadoop/cms/phedex/store/mc/Summer09/Zee/GEN-SIM-RECO/MC_31X_V3-v1/0018/14F7D69B-4C87-DE11-92A3-00E0814002A7.root',
+
+	#qcd
+	#'file:/hadoop/cms/phedex/store/mc/Summer09/QCD_Pt80/GEN-SIM-RECO/MC_31X_V3-v1/0018/14783849-A585-DE11-BD8F-001F29C96530.root',
+	#ttbar
 	#'file:/home/users/wandrews/tmp/3_1_ttbar/E01614FB-6C89-DE11-8089-003048C57816.root'
-	'file:/store/disk02/fgolf/E01614FB-6C89-DE11-8089-003048C57816.root',
+	#'file:/store/disk02/fgolf/E01614FB-6C89-DE11-8089-003048C57816.root',
 	#'file:/store/disk02/fgolf/B826FAFB-378B-DE11-A935-0018FEFAA390.root',
 	#'file:/store/disk02/fgolf/C62CBBB6-EB88-DE11-B14E-0019BBEBB54A.root',
 	#'file:/store/disk02/fgolf/DEC94FF2-1D8B-DE11-A686-003048C5750A.root'
@@ -162,7 +170,7 @@ switchJetCollection(process, cms.InputTag('prunedUncorrectedCMS2Jets'), doJTA = 
 ## define event selection
 process.EventSelection = cms.PSet(
     SelectEvents = cms.untracked.PSet(
-        SelectEvents = cms.vstring('p1')
+    	SelectEvents = cms.vstring('p1', 'p2')
     )
 )
 
@@ -195,7 +203,7 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker  * process.hypGenMaker)
 
-process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
+process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJuraIsoMaker * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
 
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 
@@ -204,7 +212,14 @@ process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronM
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.genmakers * process.assmakers * process.othermakers * process.hypmakers)
 
 process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
+
 process.p1            = cms.Path( process.all * process.aSkimFilter )
+process.p2            = cms.Path( process.all * process.monolepGenFilter)
+
+process.options = cms.untracked.PSet(
+    wantSummary = cms.untracked.bool( True )
+)
+
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
