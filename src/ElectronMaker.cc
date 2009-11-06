@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.35 2009/10/03 01:46:09 slava77 Exp $
+// $Id: ElectronMaker.cc,v 1.36 2009/11/06 03:05:36 dlevans Exp $
 //
 //
 
@@ -101,15 +101,22 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   //
   produces<vector<float> >     ("elsdEtaIn"                  ).setBranchAlias("els_dEtaIn"                 );
   produces<vector<float> >     ("elsdEtaOut"                 ).setBranchAlias("els_dEtaOut"                );
+  produces<vector<float> >     ("elsdeltaEtaEleClusterTrackAtCalo").setBranchAlias("els_deltaEtaEleClusterTrackAtCalo");
   produces<vector<float> >     ("elsdPhiIn"                  ).setBranchAlias("els_dPhiIn"                 );
   produces<vector<float> >     ("elsdPhiOut"                 ).setBranchAlias("els_dPhiOut"                );
+  produces<vector<float> >     ("elsdeltaPhiEleClusterTrackAtCalo").setBranchAlias("els_deltaPhiEleClusterTrackAtCalo");
   produces<vector<float> >     ("elsdPhiInPhiOut"            ).setBranchAlias("els_dPhiInPhiOut"           );
-  produces<vector<float> >     ("elsfBrem"                   ).setBranchAlias("els_fBrem"                  );
+  produces<vector<float> >     ("elsfbrem"                   ).setBranchAlias("els_fbrem"                  );
   produces<vector<float> >     ("elseSeed"                   ).setBranchAlias("els_eSeed"                  );
   produces<vector<float> >     ("elseOverPIn"                ).setBranchAlias("els_eOverPIn"               );
   produces<vector<float> >     ("elseSeedOverPOut"           ).setBranchAlias("els_eSeedOverPOut"          );
   produces<vector<float> >     ("elseSeedOverPIn"            ).setBranchAlias("els_eSeedOverPIn"           );
+  produces<vector<float> >     ("elseOverPOut"            ).setBranchAlias("els_eOverPOut"           );
+
   produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
+  produces<vector<float> >     ("elsHcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
+  produces<vector<float> >     ("elsHcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
+
   produces<vector<float> >     ("elssigmaPhiPhi"             ).setBranchAlias("els_sigmaPhiPhi"            );
   produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
   produces<vector<float> >     ("elssigmaEtaEta"             ).setBranchAlias("els_sigmaEtaEta"            );
@@ -137,9 +144,14 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float> >     ("elstkIso"                   ).setBranchAlias("els_tkIso"                  );
   produces<vector<float> >     ("elsecalIso"                 ).setBranchAlias("els_ecalIso"                );
   produces<vector<float> >     ("elshcalIso"                 ).setBranchAlias("els_hcalIso"                );
+  produces<vector<float> >     ("elsHcalDepth1TowerSumEt"      ).setBranchAlias("els_hcalDepth1TowerSumEt"     );
+  produces<vector<float> >     ("elsHcalDepth2TowerSumEt"      ).setBranchAlias("els_hcalDepth2TowerSumEt"     );
+
   produces<vector<float> >     ("elstkIso04"                 ).setBranchAlias("els_tkIso04"                );
   produces<vector<float> >     ("elsecalIso04"               ).setBranchAlias("els_ecalIso04"              );
   produces<vector<float> >     ("elshcalIso04"               ).setBranchAlias("els_hcalIso04"              );
+  produces<vector<float> >     ("elsHcalDepth1TowerSumEt04"      ).setBranchAlias("els_hcalDepth1TowerSumEt04"     );
+  produces<vector<float> >     ("elsHcalDepth2TowerSumEt04"      ).setBranchAlias("els_hcalDepth2TowerSumEt04"     );
 
   // track variables
   //
@@ -254,12 +266,19 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	  els_dPhiIn                  (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_dPhiOut                 (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_dPhiInPhiOut            (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_fBrem                   (new vector<float>        ) ;
+  auto_ptr<vector<float> >	  els_fbrem                   (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_eSeed                   (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_eOverPIn                (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_eSeedOverPOut           (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_eSeedOverPIn            (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_eOverPOut		      (new vector<float>	) ;
+  auto_ptr<vector<float> >        els_deltaEtaEleClusterTrackAtCalo (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_deltaPhiEleClusterTrackAtCalo (new vector<float>        ) ;
+
   auto_ptr<vector<float> >	  els_hOverE                  (new vector<float>        ) ;
+  auto_ptr<vector<float> > 	  els_hcalDepth1OverEcal      (new vector<float>	) ;
+  auto_ptr<vector<float> >        els_hcalDepth2OverEcal      (new vector<float>        ) ;
+
   auto_ptr<vector<float> >	  els_sigmaPhiPhi             (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_sigmaIPhiIPhi           (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_sigmaEtaEta             (new vector<float>        ) ;
@@ -285,9 +304,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >        els_tkIso                   (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_ecalIso                 (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_hcalIso                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_hcalDepth1TowerSumEt                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_hcalDepth2TowerSumEt                 (new vector<float>        ) ;
+
   auto_ptr<vector<float> >        els_tkIso04                 (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_ecalIso04               (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_hcalIso04               (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_hcalDepth1TowerSumEt04                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_hcalDepth2TowerSumEt04                 (new vector<float>        ) ;
 
   // track variables
   //
@@ -508,29 +532,40 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //
     els_ecalIso               ->push_back(el->dr03EcalRecHitSumEt()                  );
     els_hcalIso               ->push_back(el->dr03HcalTowerSumEt()                   );
+    els_hcalDepth1TowerSumEt  ->push_back(el->dr03HcalDepth1TowerSumEt()	     );
+    els_hcalDepth2TowerSumEt  ->push_back(el->dr03HcalDepth2TowerSumEt()             );
     els_tkIso                 ->push_back(el->dr03TkSumPt()                          );
+
     els_ecalIso04             ->push_back(el->dr04EcalRecHitSumEt()                  );
     els_hcalIso04             ->push_back(el->dr04HcalTowerSumEt()                   );
+    els_hcalDepth1TowerSumEt04->push_back(el->dr04HcalDepth1TowerSumEt()             );
+    els_hcalDepth2TowerSumEt04->push_back(el->dr04HcalDepth2TowerSumEt()             );
     els_tkIso04               ->push_back(el->dr04TkSumPt()                          );
 
     // Electron ID variables
     //
-    float pin  = el->trackMomentumAtVtx().R();
-    float pout = el->trackMomentumOut().R();		
     double phi_pin = el->caloPosition().phi() -
       el->deltaPhiSuperClusterTrackAtVtx();
     double phi_pout = el->superCluster()->seed()->position().phi()
       - el->deltaPhiSeedClusterTrackAtCalo();
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
+    els_hcalDepth1OverEcal    ->push_back( el->hcalDepth1OverEcal()		     );
+    els_hcalDepth2OverEcal    ->push_back( el->hcalDepth2OverEcal()                  );
+
     els_eOverPIn              ->push_back( el->eSuperClusterOverP()                  );
     els_eSeedOverPOut         ->push_back( el->eSeedClusterOverPout()                );
-    els_eSeedOverPIn          ->push_back( el->superCluster()->seed()->energy() / pin);
-    els_fBrem                 ->push_back( (pin-pout)/pin                            );
+    els_eSeedOverPIn          ->push_back( el->eSeedClusterOverP()		     );
+    els_eOverPOut  	      ->push_back( el->eEleClusterOverPout()		     );
+
+    els_fbrem                 ->push_back( el->fbrem()                            );
+
     els_dEtaIn	          ->push_back( el->deltaEtaSuperClusterTrackAtVtx()	 );
     els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()      );
+    els_deltaEtaEleClusterTrackAtCalo ->push_back(el->deltaEtaEleClusterTrackAtCalo() );
     els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()      );		
     els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                        );
     els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()      );
+    els_deltaPhiEleClusterTrackAtCalo ->push_back( el->deltaPhiEleClusterTrackAtCalo() );
 
     // Vertex
     //
@@ -724,14 +759,20 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_sigmaIEtaIEta            ,"elssigmaIEtaIEta"   		);
   iEvent.put(els_dPhiInPhiOut             ,"elsdPhiInPhiOut"    		);
   iEvent.put(els_hOverE                   ,"elshOverE"          		);
+  iEvent.put(els_hcalDepth1OverEcal       ,"elsHcalDepth1OverEcal"              );
+  iEvent.put(els_hcalDepth2OverEcal       ,"elsHcalDepth2OverEcal"              );
+
   iEvent.put(els_eOverPIn                 ,"elseOverPIn"        		);
   iEvent.put(els_eSeedOverPOut            ,"elseSeedOverPOut"   		);
   iEvent.put(els_eSeedOverPIn             ,"elseSeedOverPIn"   		);
-  iEvent.put(els_fBrem                    ,"elsfBrem"           		);
+  iEvent.put(els_eOverPOut              ,"elseOverPOut"                        );
+  iEvent.put(els_fbrem                    ,"elsfbrem"           		);
   iEvent.put(els_dEtaIn                   ,"elsdEtaIn"          		);
   iEvent.put(els_dEtaOut                  ,"elsdEtaOut"         		);
+  iEvent.put(els_deltaEtaEleClusterTrackAtCalo, "elsdeltaEtaEleClusterTrackAtCalo");
   iEvent.put(els_dPhiIn                   ,"elsdPhiIn"          		);
   iEvent.put(els_dPhiOut                  ,"elsdPhiOut"         		);
+  iEvent.put(els_deltaPhiEleClusterTrackAtCalo, "elsdeltaPhiEleClusterTrackAtCalo");
 
   // Lorentz vectors
   //
@@ -749,10 +790,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_tkIso                    ,"elstkIso"           		);
   iEvent.put(els_ecalIso                  ,"elsecalIso"           	);
   iEvent.put(els_hcalIso                  ,"elshcalIso"           	);
+  iEvent.put(els_hcalDepth1TowerSumEt     ,"elsHcalDepth1TowerSumEt"    );
+  iEvent.put(els_hcalDepth2TowerSumEt     ,"elsHcalDepth2TowerSumEt"    );
+
   iEvent.put(els_tkIso04                  ,"elstkIso04"                 );
   iEvent.put(els_ecalIso04                ,"elsecalIso04"               );
   iEvent.put(els_hcalIso04                ,"elshcalIso04"               );
-  
+  iEvent.put(els_hcalDepth1TowerSumEt04   ,"elsHcalDepth1TowerSumEt04"  );
+  iEvent.put(els_hcalDepth2TowerSumEt04   ,"elsHcalDepth2TowerSumEt04"  );
 
   //Hit Pattern Information
   //
@@ -782,12 +827,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 int ElectronMaker::classify(const edm::RefToBase<reco::GsfElectron> &electron) {
 
   double eOverP = electron->eSuperClusterOverP();
-  double pin  = electron->trackMomentumAtVtx().R(); 
-  double pout = electron->trackMomentumOut().R(); 
-  double fBrem = (pin-pout)/pin;
+  double fbrem = electron->fbrem();
   
   int cat;
-  if((electron->isEB() && fBrem<0.06) || (electron->isEE() && fBrem<0.1)) 
+  if((electron->isEB() && fbrem<0.06) || (electron->isEE() && fbrem<0.1)) 
     cat=1;
   else if (eOverP < 1.2 && eOverP > 0.8) 
     cat=0;
