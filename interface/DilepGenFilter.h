@@ -15,11 +15,11 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: DilepGenFilter.h,v 1.1 2009/06/03 00:13:45 kalavase Exp $
+// $Id: DilepGenFilter.h,v 1.2 2009/11/07 02:47:17 dlevans Exp $
 //
 //
-#ifndef CMS2_ASKIMFILTER_H
-#define CMS2_ASKIMFILTER_H
+#ifndef CMS2_DILEPGENFILTER_H
+#define CMS2_DILEPGENFILTER_H
 
 // system include files
 #include <memory>
