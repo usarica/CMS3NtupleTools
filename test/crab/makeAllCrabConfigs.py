@@ -14,7 +14,7 @@ if options.file == None:
 
 datasets = open(options.file, "r")
 tag = "V02-00-12"
-config = "testSingle_cfg.py"
+config = "../testSingle_cfg.py"
 
 for dataset in datasets:
 	print "doing... ", dataset.rstrip("\n")
