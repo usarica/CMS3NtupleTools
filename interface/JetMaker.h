@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.8 2009/10/04 20:28:55 slava77 Exp $
+// $Id: JetMaker.h,v 1.9 2009/11/09 22:16:22 fgolf Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -41,21 +41,21 @@
 
 class JetMaker : public edm::EDProducer {
 public:
-  explicit JetMaker (const edm::ParameterSet&);
-  ~JetMaker();
+     explicit JetMaker (const edm::ParameterSet&);
+     ~JetMaker();
     
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void produce(edm::Event&, const edm::EventSetup&);
+     virtual void endJob() ;
   
-  // ----------member data ---------------------------
-  edm::InputTag uncorJetsInputTag_;
-  reco::helper::JetIDHelper jetIDHelper_;
-  bool runningOnReco_;
-  std::string nameL2L3JetCorrector_;
-
+     // ----------member data ---------------------------
+     edm::InputTag uncorJetsInputTag_;
+     reco::helper::JetIDHelper jetIDHelper_;
+     bool runningOnReco_;
+     std::string nameL2L3JetCorrector_;
+     std::string aliasprefix_;
 };
 
 #endif

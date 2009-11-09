@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.22 2009/10/04 20:28:55 slava77 Exp $
+// $Id: JetMaker.cc,v 1.23 2009/11/09 22:16:31 fgolf Exp $
 //
 //
 
@@ -53,30 +53,32 @@ bool sortJetsByPt(LorentzVector jet1, LorentzVector jet2) {
 //
 
 JetMaker::JetMaker(const edm::ParameterSet& iConfig)
-{
-  // product of this EDProducer
-  produces<unsigned int>                ("evtnjets"     ).setBranchAlias("evt_njets"        ); // number of jets
-  produces<std::vector<LorentzVector> >	("jetsp4"       ).setBranchAlias("jets_p4"          ); // L2L3 corrected p4 of the jet
-  produces<std::vector<LorentzVector> > ("jetsvertexp4" ).setBranchAlias("jets_vertex_p4"   );
-  produces<std::vector<float> >	        ("jetsemFrac"   ).setBranchAlias("jets_emFrac"      ); // electromagnetic energy fraction
-  produces<std::vector<float> >	        ("jetscor"      ).setBranchAlias("jets_cor"         ); // energy scale correction -> only L2 and L3
-  
+{  
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
   jetIDHelper_            = reco::helper::JetIDHelper(iConfig.getParameter<edm::ParameterSet>("jetIDInputTag"       ));
   nameL2L3JetCorrector_   = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
+  aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix");
+
+  // product of this EDProducer
+  produces<unsigned int>                ("evtn"+aliasprefix_     ).setBranchAlias("evt_n"+aliasprefix_        ); // number of jets
+  produces<std::vector<LorentzVector> >	(aliasprefix_+"p4"       ).setBranchAlias(aliasprefix_+"_p4"          ); // L2L3 corrected p4 of the jet
+  produces<std::vector<LorentzVector> > (aliasprefix_+"vertexp4" ).setBranchAlias(aliasprefix_+"_vertex_p4"   );
+  produces<std::vector<float> >	        (aliasprefix_+"emFrac"   ).setBranchAlias(aliasprefix_+"_emFrac"      ); // electromagnetic energy fraction
+  produces<std::vector<float> >	        (aliasprefix_+"cor"      ).setBranchAlias(aliasprefix_+"_cor"         ); // energy scale correction -> only L2 and L3
+
   if(runningOnReco_) {
-    produces<std::vector<float> >     ("jetsfHPD"           ).setBranchAlias("jets_fHPD"            );
-    produces<std::vector<float> >     ("jetsfRBX"           ).setBranchAlias("jets_fRBX"            );
-    produces<std::vector<float> >     ("jetsn90Hits"        ).setBranchAlias("jets_n90Hits"         );
-    produces<std::vector<float> >     ("jetsfSubDetector1"  ).setBranchAlias("jets_fSubDetector1"   );
-    produces<std::vector<float> >     ("jetsfSubDetector2"  ).setBranchAlias("jets_fSubDetector2"   );
-    produces<std::vector<float> >     ("jetsfSubDetector3"  ).setBranchAlias("jets_fSubDetector3"   );
-    produces<std::vector<float> >     ("jetsfSubDetector4"  ).setBranchAlias("jets_fSubDetector4"   );
-    produces<std::vector<float> >     ("jetsrestrictedEMF"  ).setBranchAlias("jets_restrictedEMF"   );
-    produces<std::vector<float> >     ("jetsnHCALTowers"    ).setBranchAlias("jets_nHCALTowers"     );
-    produces<std::vector<float> >     ("jetsnECALTowers"    ).setBranchAlias("jets_nECALTowers"     );
+    produces<std::vector<float> >     (aliasprefix_+"fHPD"           ).setBranchAlias(aliasprefix_+"_fHPD"            );
+    produces<std::vector<float> >     (aliasprefix_+"fRBX"           ).setBranchAlias(aliasprefix_+"_fRBX"            );
+    produces<std::vector<float> >     (aliasprefix_+"n90Hits"        ).setBranchAlias(aliasprefix_+"_n90Hits"         );
+    produces<std::vector<float> >     (aliasprefix_+"fSubDetector1"  ).setBranchAlias(aliasprefix_+"_fSubDetector1"   );
+    produces<std::vector<float> >     (aliasprefix_+"fSubDetector2"  ).setBranchAlias(aliasprefix_+"_fSubDetector2"   );
+    produces<std::vector<float> >     (aliasprefix_+"fSubDetector3"  ).setBranchAlias(aliasprefix_+"_fSubDetector3"   );
+    produces<std::vector<float> >     (aliasprefix_+"fSubDetector4"  ).setBranchAlias(aliasprefix_+"_fSubDetector4"   );
+    produces<std::vector<float> >     (aliasprefix_+"restrictedEMF"  ).setBranchAlias(aliasprefix_+"_restrictedEMF"   );
+    produces<std::vector<float> >     (aliasprefix_+"nHCALTowers"    ).setBranchAlias(aliasprefix_+"_nHCALTowers"     );
+    produces<std::vector<float> >     (aliasprefix_+"nECALTowers"    ).setBranchAlias(aliasprefix_+"_nECALTowers"     );
   }
 }
 
@@ -209,21 +211,21 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   // put containers into event
-  iEvent.put(evt_njets,            "evtnjets"     );
-  iEvent.put(vector_jets_p4,       "jetsp4"       );
-  iEvent.put(vector_jets_vertex_p4,"jetsvertexp4" );
-  iEvent.put(vector_jets_emFrac,   "jetsemFrac"   );
-  iEvent.put(vector_jets_cor,      "jetscor"      );
-  iEvent.put(vector_jets_fHPD,     "jetsfHPD"     );
-  iEvent.put(vector_jets_fRBX,     "jetsfRBX"     );
-  iEvent.put(vector_jets_n90Hits,     "jetsn90Hits"     );
-  iEvent.put(vector_jets_fSubDetector1,     "jetsfSubDetector1"     );
-  iEvent.put(vector_jets_fSubDetector2,     "jetsfSubDetector2"     );
-  iEvent.put(vector_jets_fSubDetector3,     "jetsfSubDetector3"     );
-  iEvent.put(vector_jets_fSubDetector4,     "jetsfSubDetector4"     );
-  iEvent.put(vector_jets_restrictedEMF,     "jetsrestrictedEMF"     );
-  iEvent.put(vector_jets_nHCALTowers,     "jetsnHCALTowers"     );
-  iEvent.put(vector_jets_nECALTowers,     "jetsnECALTowers"     );
+  iEvent.put(evt_njets,                   "evtn"+aliasprefix_     );
+  iEvent.put(vector_jets_p4,              aliasprefix_+"p4"       );
+  iEvent.put(vector_jets_vertex_p4,       aliasprefix_+"vertexp4" );
+  iEvent.put(vector_jets_emFrac,          aliasprefix_+"emFrac"   );
+  iEvent.put(vector_jets_cor,             aliasprefix_+"cor"      );
+  iEvent.put(vector_jets_fHPD,            aliasprefix_+"fHPD"     );
+  iEvent.put(vector_jets_fRBX,            aliasprefix_+"fRBX"     );
+  iEvent.put(vector_jets_n90Hits,         aliasprefix_+"n90Hits"     );
+  iEvent.put(vector_jets_fSubDetector1,   aliasprefix_+"fSubDetector1"     );
+  iEvent.put(vector_jets_fSubDetector2,   aliasprefix_+"fSubDetector2"     );
+  iEvent.put(vector_jets_fSubDetector3,   aliasprefix_+"fSubDetector3"     );
+  iEvent.put(vector_jets_fSubDetector4,   aliasprefix_+"fSubDetector4"     );
+  iEvent.put(vector_jets_restrictedEMF,   aliasprefix_+"restrictedEMF"     );
+  iEvent.put(vector_jets_nHCALTowers,     aliasprefix_+"nHCALTowers"     );
+  iEvent.put(vector_jets_nECALTowers,     aliasprefix_+"nECALTowers"     );
   
   
 }
