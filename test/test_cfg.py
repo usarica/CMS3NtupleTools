@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.54 $'),
+        version = cms.untracked.string('$Revision: 1.55 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -55,7 +55,9 @@ process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypIsoMaker_cfi")
 process.load("CMS2.NtupleMaker.jetSequence_cff")
+process.load("CMS2.NtupleMaker.scjetSequence_cff")
 process.load("CMS2.NtupleMaker.jetMaker_cfi")
+process.load("CMS2.NtupleMaker.scjetMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jptSequence_cff")
@@ -96,7 +98,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -182,7 +184,7 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_C
 # process paths;
 #-------------------------------------------------
 
-process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
+process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2scCaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker )
 
@@ -190,7 +192,7 @@ process.trigmakers   = cms.Sequence(process.l1Maker * process.hltMakerSequence)
 
 process.genmakers     = cms.Sequence(process.genMaker * process.pdfinfoMaker * process.genJetSequence * process.CMS2FlavorHistorySequence * process.candToGenAssMaker)
 
-process.makers        = cms.Sequence(process.trackMaker * process.muonMaker * process.electronMaker * process.scMaker * process.jetMaker * process.JPTCorrections * process.trkJetMaker * process.metMaker * process.tcmetMaker * process.calotauMaker * process.photonMaker)
+process.makers        = cms.Sequence(process.trackMaker * process.muonMaker * process.electronMaker * process.scMaker * process.jetMaker * process.scjetMaker * process.JPTCorrections * process.trkJetMaker * process.metMaker * process.tcmetMaker * process.calotauMaker * process.photonMaker)
 
 process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAssMaker * process.muToElsAssMaker * process.muToJetAssMaker * process.elToMuAssMaker * process.elToJetAssMaker * process.trackToMuonAssMaker * process.trackToElsAssMaker)
 
