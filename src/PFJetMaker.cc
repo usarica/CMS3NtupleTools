@@ -23,6 +23,7 @@ Implementation:
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "CMS2/NtupleMaker/interface/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 //
@@ -43,11 +44,12 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<int>   >         ("pfjetschargedMultiplicity" ).setBranchAlias("pfjets_chargedMultiplicity" );
   produces<vector<int>   >         ("pfjetsneutralMultiplicity" ).setBranchAlias("pfjets_neutralMultiplicity" );
   produces<vector<int>   >         ("pfjetsmuonMultiplicity"    ).setBranchAlias("pfjets_muonMultiplicity"    );
+  produces<vector<float> >         ("pfjetscor"                 ).setBranchAlias("pfjets_cor"                 );
 
 
-  pfJetsInputTag_    = iConfig.getParameter<InputTag>("pfJetsInputTag");
-  pfJetPtCut_        = iConfig.getParameter<double>  ("pfJetPtCut"    );
-
+  pfJetsInputTag_       = iConfig.getParameter<InputTag>("pfJetsInputTag");
+  pfJetPtCut_           = iConfig.getParameter<double>  ("pfJetPtCut"    );
+  nameL2L3JetCorrector_ = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
 }
 
 
@@ -81,13 +83,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int>   >         pfjets_chargedMultiplicity  (new vector<int>            );
   auto_ptr<vector<int>   >         pfjets_neutralMultiplicity  (new vector<int>            );
   auto_ptr<vector<int>   >         pfjets_muonMultiplicity     (new vector<int>            );
+  auto_ptr<vector<float> >         pfjets_cor                  (new vector<float>          );
 
   Handle<View<PFJet> > pfJetsHandle;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
 
+  const JetCorrector* L2L3corrector = JetCorrector::getJetCorrector(nameL2L3JetCorrector_, iSetup);
 
-  for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin();
-      pfjet_it != pfJetsHandle->end(); pfjet_it++) {
+  for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
     if(pfjet_it->p4().Pt() < 5.)
       continue;
@@ -101,6 +104,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     pfjets_neutralMultiplicity   ->push_back(pfjet_it->neutralMultiplicity()  );
     pfjets_muonMultiplicity      ->push_back(pfjet_it->muonMultiplicity()     );
 
+    reco::PFJet uncorJet = *pfjet_it;
+
+    float L2L3JetScale = L2L3corrector->correction( uncorJet.p4() );
+    
+    pfjets_cor->push_back( L2L3JetScale );
   }
 
   
@@ -112,7 +120,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(pfjets_chargedMultiplicity,  "pfjetschargedMultiplicity"   );
   iEvent.put(pfjets_neutralMultiplicity,  "pfjetsneutralMultiplicity"   );
   iEvent.put(pfjets_muonMultiplicity,     "pfjetsmuonMultiplicity"      );
-  
+  iEvent.put(pfjets_cor,                  "pfjetscor"                   );
    
 }
 
