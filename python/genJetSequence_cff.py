@@ -3,9 +3,9 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.HepMCCandAlgos.genParticleCandidatesFast_cfi import *
 from SimGeneral.HepPDTESSource.pythiapdt_cfi import *
 from RecoJets.Configuration.GenJetParticles_cff import *
-from RecoJets.JetProducers.SISConeJetParameters_cfi import *
+from RecoJets.JetProducers.AntiKtJetParameters_cfi import *
 from CMS2.NtupleMaker.genJetMaker_cfi import *
-
+from RecoJets.JetProducers.antikt5GenJets_cff import *
 genParticlesAllStables =  cms.EDProducer("InputGenJetsParticleSelector",
           src                      = cms.InputTag("genParticles"),
           partonicFinalState       = cms.bool(False),
@@ -19,19 +19,12 @@ genParticlesAllStables =  cms.EDProducer("InputGenJetsParticleSelector",
             9900016, 39, 12, 13, 14, 16)
 )
 
-sisCone5StGenJets = cms.EDProducer("SISConeJetProducer",
-                                   SISConeJetParameters,                                
-                                   alias          = cms.untracked.string('SISCone05StGenJets'),
-                                   inputEtMin     = cms.double(0.),
-                                   inputEMin      = cms.double(0.),
-                                   jetPtMin       = cms.double(0.),
-                                   UE_Subtraction = cms.string('no'), 
-                                   src            = cms.InputTag("genParticlesAllStables"),
-                                   verbose        = cms.untracked.bool(False),
-                                   jetType        = cms.untracked.string('GenJet'),
-                                   coneRadius     = cms.double(0.5)
-)                                   
+
+cms2antikt5GenJets = antikt5GenJets.clone()
+cms2antikt5GenJets.src = cms.InputTag("genParticlesAllStables")
+cms2antikt5GenJets.jetPtMin = cms.double(0.)
+cms2antikt5GenJets.alias = "CMS2ANTIKT5GenJet"
 
 
-genJetSequence = cms.Sequence( genParticlesAllStables + sisCone5StGenJets + genJetMaker )
+genJetSequence = cms.Sequence( genParticlesAllStables + cms2antikt5GenJets + genJetMaker )
 

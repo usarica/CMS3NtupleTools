@@ -7,8 +7,8 @@ from CMS2.NtupleMaker.flavorHistoryMaker_cfi import *
 
 
 #needs the gen jets thats produced by the genJetMaker
-cFlavorHistoryProducer.matchedSrc = cms.InputTag("sisCone5StGenJets")
-bFlavorHistoryProducer.matchedSrc = cms.InputTag("sisCone5StGenJets")
+cFlavorHistoryProducer.matchedSrc = cms.InputTag("cms2antikt5GenJets")
+bFlavorHistoryProducer.matchedSrc = cms.InputTag("cms2antikt5GenJets")
 
 
 CMS2FlavorHistorySequence = cms.Sequence(bFlavorHistoryProducer * cFlavorHistoryProducer * flavorHistoryFilter * flavorHistoryMaker)
