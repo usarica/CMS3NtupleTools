@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
-from RecoJets.JetProducers.SISConeJetParameters_cfi import *
+from RecoJets.JetProducers.CaloJetParameters_cfi import *
 from RecoJets.JetProducers.FastjetParameters_cfi import *
+from RecoJets.JetProducers.AntiKtJetParameters_cfi import *
 
 selectTracks = cms.EDFilter("TrackSelector",
     src = cms.InputTag("generalTracks"),
@@ -11,19 +12,19 @@ trackCandidates = cms.EDProducer("ConcreteChargedCandidateProducer",
     src = cms.InputTag("selectTracks"),
     particleType = cms.string('pi+')
 )
-scTrackJetParameters = cms.PSet(
-    SISConeJetParameters,FastjetNoPU, 
-    jetType = cms.untracked.string('BasicJet'),
-    src = cms.InputTag("trackCandidates"),
-    jetPtMin = cms.double( 0.0 ),
-    inputEtMin = cms.double(0.3),
-    inputEMin = cms.double(0.0)
-)
-SISCone5TrkJets = cms.EDProducer("SISConeJetProducer",
-    scTrackJetParameters,
-    alias = cms.untracked.string('SISCone5TrkJets'),
-    coneRadius = cms.double(0.5)
-)
 
 
-cms2TrkJetSequence = cms.Sequence( selectTracks * trackCandidates * SISCone5TrkJets)
+
+ak5TrackJets = cms.EDProducer("AntiKtJetProducer",
+            FastjetNoPU,
+            AntiKtJetParameters,
+            CaloJetParameters,
+            alias = cms.untracked.string('ANTIKT5TrkJet'),
+            FJ_ktRParam = cms.double(0.5)
+)
+ak5TrackJets.jetPtMin = 1.0
+ak5TrackJets.inputEtMin = 0.3
+ak5TrackJets.src = cms.InputTag("trackCandidates")
+ak5TrackJets.jetType = cms.untracked.string('BasicJet')
+
+cms2TrkJetSequence = cms.Sequence( selectTracks * trackCandidates * ak5TrackJets)

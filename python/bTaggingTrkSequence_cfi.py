@@ -9,7 +9,7 @@ from RecoBTag.Configuration.RecoBTag_cff import *
 
 # create a CMS2 jets and tracks association
 CMS2TrkJetTracksAssociatorAtVertex = ic5JetTracksAssociatorAtVertex.clone()
-CMS2TrkJetTracksAssociatorAtVertex.jets = "SISCone5TrkJets"
+CMS2TrkJetTracksAssociatorAtVertex.jets = "ak5TrackJets"
 CMS2TrkJetTracksAssociatorAtVertex.tracks = "generalTracks"
 
 #The one needs to clone the b-tag producers and instruct them to use this new collection. First the impact parameter-based b-tag:
@@ -46,7 +46,7 @@ CMS2TrkCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag
 
 # soft electron b-tag
 CMS2TrkSoftElectronTagInfos = softElectronTagInfos.clone()
-CMS2TrkSoftElectronTagInfos.jets = "SISCone5TrkJets"
+CMS2TrkSoftElectronTagInfos.jets = "ak5TrackJets"
 #removed for 312
 #CMS2TrkSoftElectronBJetTags = softElectronBJetTags.clone()
 #CMS2TrkSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
@@ -58,7 +58,7 @@ CMS2TrkSoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2Tr
 
 # soft muon b-tag
 CMS2TrkSoftMuonTagInfos = softMuonTagInfos.clone()
-CMS2TrkSoftMuonTagInfos.jets = "SISCone5TrkJets"
+CMS2TrkSoftMuonTagInfos.jets = "ak5TrackJets"
 CMS2TrkSoftMuonBJetTags = softMuonBJetTags.clone()
 CMS2TrkSoftMuonBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
 CMS2TrkSoftMuonByIP3dBJetTags = softMuonByIP3dBJetTags.clone()

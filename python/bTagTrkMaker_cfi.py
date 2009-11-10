@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 bTagTrkMaker = cms.EDFilter(
         "BTagMaker",
         AliasPrefix                        = cms.string("trkjets"),
-        uncorRecoJetsTag                   = cms.InputTag("SISCone5TrkJets"),
+        uncorRecoJetsTag                   = cms.InputTag("ak5TrackJets"),
         combinedSecondaryVertexBJetTags    = cms.InputTag("CMS2TrkCombinedSecondaryVertexBJetTags"),
 	combinedSecondaryVertexMVABJetTags = cms.InputTag("CMS2TrkCombinedSecondaryVertexMVABJetTags"),
         jetBProbabilityBJetTags            = cms.InputTag("CMS2TrkJetBProbabilityBJetTags"),
