@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.10 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PATMuonMaker.cc,v 1.11 2009/11/13 16:55:43 gutsche Exp $
 //
 //
 
@@ -119,13 +119,14 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
     //the veto cone size is 0.07 in the ecal and 0.1 in the hcal 
-	const reco::IsoDeposit *trckIsoDep = patmu_it->trackerIsoDeposit();
+    // const reco::IsoDeposit *trckIsoDep = patmu_it->isolationR03().trackerVetoPt;
+    float trckIsoDep = patmu_it->isolationR03().trackerVetoPt;
     const reco::IsoDeposit *ecalIsoDep = patmu_it->ecalIsoDeposit();
     const reco::IsoDeposit *hcalIsoDep = patmu_it->hcalIsoDeposit();
     
     mus_pat_p4          ->push_back( LorentzVector( patmu_it->p4() ) );
     mus_pat_trackIso    ->push_back( patmu_it->trackIso()       );
-    mus_pat_trckvetoDep ->push_back( trckIsoDep->candEnergy()   );
+    mus_pat_trckvetoDep ->push_back( trckIsoDep   );
     mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy()
 									 + hcalIsoDep->candEnergy() );
     mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
