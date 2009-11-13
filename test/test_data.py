@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -55,6 +55,8 @@ process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypIsoMaker_cfi")
 process.load("CMS2.NtupleMaker.jetSequence_cff")
+# fix for 32X data
+process.prunedUncorrectedCMS2Jets.inputUncorrectedJetCollection = cms.InputTag("antikt5CaloJets")
 process.load("CMS2.NtupleMaker.jetMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
@@ -76,6 +78,8 @@ process.load("CMS2.NtupleMaker.patMETMaker_cfi")
 process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
 process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
 process.load("CMS2.NtupleMaker.pfJetMaker_cfi")
+# fix for 32X data
+process.pfJetMaker.pfJetsInputTag = cms.InputTag("antikt5PFJets")
 process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
 process.load("CMS2.NtupleMaker.pftauMaker_cfi")
 process.load("CMS2.NtupleMaker.photonMaker_cfi")
@@ -96,7 +100,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -105,12 +109,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-	'file:data.root'
-	#'file:/home/users/wandrews/tmp/3_1_ttbar/E01614FB-6C89-DE11-8089-003048C57816.root'
-	#'file:/store/disk02/fgolf/E01614FB-6C89-DE11-8089-003048C57816.root',
-	#'file:/store/disk02/fgolf/B826FAFB-378B-DE11-A935-0018FEFAA390.root',
-	#'file:/store/disk02/fgolf/C62CBBB6-EB88-DE11-B14E-0019BBEBB54A.root',
-	#'file:/store/disk02/fgolf/DEC94FF2-1D8B-DE11-A686-003048C5750A.root'
+        '/store/data/CRAFT09/Cosmics/RECO/CRAFT09_R_V4_CollisionSeq_v1/0045/FEEE8AE2-4BBF-DE11-B146-001EC9D8A8D0.root'
 	),
     inputCommands = cms.untracked.vstring(
     'keep *',
@@ -131,31 +130,6 @@ process.source = cms.Source("PoolSource",
     'drop *_sisCone7GenJets_*_*'
     )
 )
-
-#-------------------------------------------------
-# JEC
-#-------------------------------------------------
-
-#############   Define the L2 correction service #####
-process.L2RelativeJetCorrector = cms.ESSource("L2RelativeCorrectionService", 
-     tagName = cms.string('Summer08Redigi_L2Relative_SC5Calo'),
-     label = cms.string('L2RelativeJetCorrector')
-)
-
-#############   Define the L3 correction service #####
-process.L3AbsoluteJetCorrector = cms.ESSource("L3AbsoluteCorrectionService", 
-     tagName = cms.string('Summer08Redigi_L3Absolute_SC5Calo'),
-     label = cms.string('L3AbsoluteJetCorrector')
-)
-
-#############   Define the chain corrector service - L2L3 ###
-process.L2L3JetCorrector = cms.ESSource("JetCorrectionServiceChain",  
-    correctors = cms.vstring('L2RelativeJetCorrector','L3AbsoluteJetCorrector'),
-    label = cms.string('L2L3JetCorrector')
-)
-
-# set the record's IOV. Must be defined once. Choose ANY correction service. #
-process.prefer("L2L3JetCorrector") 
 
 #-------------------------------------------------
 # PAT configuration
@@ -185,11 +159,10 @@ removeMCMatching(process, 'All')
 
 ## define event selection
 process.EventSelection = cms.PSet(
-    SelectEvents = cms.untracked.PSet(
+    # SelectEvents = cms.untracked.PSet(
     # deactivate everything having to do with generator information, comment out p2
     #    SelectEvents = cms.vstring('p1', 'p2')
-    SelectEvents = cms.vstring('p1')
-        )
+    #    )
     )
 
 process.out_CMS2 = cms.OutputModule(
@@ -207,7 +180,7 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_C
 # process paths;
 #-------------------------------------------------
 
-process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging * process.metCorSequence)
+process.CMS2Reco      = cms.Sequence(process.egammaElectronIDCMS2 * process.cms2CaloJetSequence * process.cms2TrkJetSequence * process.metCorSequence * process.CMS2Btagging * process.CMS2TrkBtagging)
 
 process.eventmakers   = cms.Sequence(process.beamSpotMaker * process.vertexMaker * process.eventMaker )
 
@@ -227,13 +200,16 @@ process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJur
 
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 
-process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
+# deactivate PAT
+#process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
 # deactivate everything having to do with generator information, remove process.genmakers
 # process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.genmakers * process.assmakers * process.othermakers * process.hypmakers)
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.assmakers * process.othermakers * process.hypmakers)
 
-process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
+# deactivate PAT
+#process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
+process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.pflowmakers )
 
 process.p1            = cms.Path( process.all * process.theFilter )
 
