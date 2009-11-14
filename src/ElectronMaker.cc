@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.36 2009/11/06 03:05:36 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.37 2009/11/14 01:38:29 yanjuntu Exp $
 //
 //
 
@@ -192,7 +192,9 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<int> >       ("elslayer1sizerphi"          ).setBranchAlias("els_layer1_sizerphi"        ); 
   produces<vector<int> >       ("elslayer1sizerz"            ).setBranchAlias("els_layer1_sizerz"          ); 
   produces<vector<float> >     ("elslayer1charge"            ).setBranchAlias("els_layer1_charge"          ); 
-  produces<vector<int> >       ("elslayer1det"               ).setBranchAlias("els_layer1_det"             ); 
+  produces<vector<int> >       ("elslayer1det"               ).setBranchAlias("els_layer1_det"             );
+  produces<vector<int> >       ("elsninnerlayers"            ).setBranchAlias("els_n_inner_layers"         );
+  produces<vector<int> >       ("elsnouterlayers"            ).setBranchAlias("els_n_outer_layers"         );   
 	
   //CTF track matching stuff
   produces<vector<int>    >    ("elstrkidx"                  ).setBranchAlias("els_trkidx"                  );// track index matched to electron
@@ -356,6 +358,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	  els_layer1_sizerz           (new vector<int>	        ); 
   auto_ptr<vector<float> >	  els_layer1_charge           (new vector<float>	);
   auto_ptr<vector<int> >	  els_layer1_det              (new vector<int>	        );
+  auto_ptr<vector<int> >	  els_n_inner_layers          (new vector<int>		); 
+  auto_ptr<vector<int> >	  els_n_outer_layers          (new vector<int>		); 
 
   auto_ptr<vector<int>     >      els_trkidx                  (new vector<int>          );
   auto_ptr<vector<float>   >      els_trkshFrac               (new vector<float>        );
@@ -578,7 +582,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_inner_positionz  ->push_back(el_track->innerPosition().z()                   );
 
     const reco::HitPattern& pattern = el_track->hitPattern();
-
+    const reco::HitPattern& p_inner = el_track->trackerExpectedHitsInner();
+    const reco::HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
+    els_n_inner_layers    -> push_back(p_inner.numberOfHits());
+    els_n_outer_layers    -> push_back(p_outer.numberOfHits());
     bool valid_hit      = false;
     uint32_t hit_pattern; 
     int i_layer       = 1;
@@ -811,8 +818,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
   iEvent.put(els_layer1_charge   , "elslayer1charge"   );
   iEvent.put(els_layer1_det      , "elslayer1det"      );
-  // iEvent.put(els_n_inner_layers  , "elsninnerlayers" );
-  // iEvent.put(els_n_outer_layers  , "elsnouterlayers" );
+  iEvent.put(els_n_inner_layers  , "elsninnerlayers"   );
+  iEvent.put(els_n_outer_layers  , "elsnouterlayers"   );
 
   //CTF track info
   //
