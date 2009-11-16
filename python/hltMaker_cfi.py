@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 hlt8e29Maker = cms.EDProducer("HLTMaker",
-    processName = cms.untracked.string("HLT"),
+    processName = cms.untracked.string("HLT8E29"),
     fillTriggerObjects = cms.untracked.bool(True),
     prunedTriggerNames = cms.untracked.vstring(
         # wildcards
