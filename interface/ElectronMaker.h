@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.12 2009/09/14 15:54:11 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.13 2009/11/18 21:40:49 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -97,7 +97,10 @@ private:
   
   EcalClusterLazyTools* clusterTools_;
   MultiTrajectoryStateTransform *mtsTransform_;
-  
+
+  double minAbsDist_;
+  double minAbsDcot_;
+  double minSharedFractionOfHits_;
 };
 
 #endif
