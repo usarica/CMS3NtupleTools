@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.37 2009/11/14 01:38:29 yanjuntu Exp $
+// $Id: ElectronMaker.cc,v 1.38 2009/11/18 21:46:10 kalavase Exp $
 //
 //
 
@@ -61,6 +61,10 @@ Implementation:
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
 
+//conversion
+#include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -144,19 +148,20 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float> >     ("elstkIso"                   ).setBranchAlias("els_tkIso"                  );
   produces<vector<float> >     ("elsecalIso"                 ).setBranchAlias("els_ecalIso"                );
   produces<vector<float> >     ("elshcalIso"                 ).setBranchAlias("els_hcalIso"                );
-  produces<vector<float> >     ("elsHcalDepth1TowerSumEt"      ).setBranchAlias("els_hcalDepth1TowerSumEt"     );
-  produces<vector<float> >     ("elsHcalDepth2TowerSumEt"      ).setBranchAlias("els_hcalDepth2TowerSumEt"     );
+  produces<vector<float> >     ("elsHcalDepth1TowerSumEt"    ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
+  produces<vector<float> >     ("elsHcalDepth2TowerSumEt"    ).setBranchAlias("els_hcalDepth2TowerSumEt"   );
 
   produces<vector<float> >     ("elstkIso04"                 ).setBranchAlias("els_tkIso04"                );
   produces<vector<float> >     ("elsecalIso04"               ).setBranchAlias("els_ecalIso04"              );
   produces<vector<float> >     ("elshcalIso04"               ).setBranchAlias("els_hcalIso04"              );
-  produces<vector<float> >     ("elsHcalDepth1TowerSumEt04"      ).setBranchAlias("els_hcalDepth1TowerSumEt04"     );
-  produces<vector<float> >     ("elsHcalDepth2TowerSumEt04"      ).setBranchAlias("els_hcalDepth2TowerSumEt04"     );
+  produces<vector<float> >     ("elsHcalDepth1TowerSumEt04"  ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
+  produces<vector<float> >     ("elsHcalDepth2TowerSumEt04"  ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
 
   // track variables
   //
   produces<vector<int> >       ("elscharge"                  ).setBranchAlias("els_charge"                 ); //candidate charge
   produces<vector<int> >       ("elssccharge"                ).setBranchAlias("els_sccharge"               );
+  produces<vector<int> >       ("elstrkcharge"               ).setBranchAlias("els_trk_charge"             );
   produces<vector<float> >     ("elschi2"                    ).setBranchAlias("els_chi2"                   );
   produces<vector<float> >     ("elsndof"                    ).setBranchAlias("els_ndof"                   );
   produces<vector<int> >       ("elsvalidHits"               ).setBranchAlias("els_validHits"              ); //number of used hits in fit
@@ -197,18 +202,28 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<int> >       ("elsnouterlayers"            ).setBranchAlias("els_n_outer_layers"         );   
 	
   //CTF track matching stuff
-  produces<vector<int>    >    ("elstrkidx"                  ).setBranchAlias("els_trkidx"                  );// track index matched to electron
-  produces<vector<float>  >    ("elstrkshFrac"               ).setBranchAlias("els_trkshFrac"               );
-  produces<vector<float>  >    ("elstrkdr"                   ).setBranchAlias("els_trkdr"                   );
+  produces<vector<int>    >    ("elstrkidx"                  ).setBranchAlias("els_trkidx"                 );// track index matched to electron
+  produces<vector<float>  >    ("elstrkshFrac"               ).setBranchAlias("els_trkshFrac"              );
+  produces<vector<float>  >    ("elstrkdr"                   ).setBranchAlias("els_trkdr"                  );
+
+  //conversion stuff
+  produces<vector<float>    >    ("elsconvdist"              ).setBranchAlias("els_conv_dist"              );
+  produces<vector<float>    >    ("elsconvdcot"              ).setBranchAlias("els_conv_dcot"              );
+  produces<vector<int>      >    ("elsconvtkidx"             ).setBranchAlias("els_conv_tkidx"             );
 
   //get setup parameters
-  electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                   );
-  beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                    );
-  eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                   );
-  eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                   );
-  eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"              );
-  eidLooseTag_		        = iConfig.getParameter<edm::InputTag>("eidLooseTag"                         );
-  eidTightTag_		        = iConfig.getParameter<edm::InputTag>("eidTightTag"                         );
+  electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
+  beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
+  eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
+  eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
+  eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
+  eidLooseTag_		        = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
+  eidTightTag_		        = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
+  
+  minAbsDist_                   = iConfig.getParameter<double>("minAbsDist"                         );
+  minAbsDcot_                   = iConfig.getParameter<double>("minAbsDcot"                         );
+  minSharedFractionOfHits_      = iConfig.getParameter<double>("minSharedFractionOfHits"            );
+  
 
   clusterTools_ = 0;
 }
@@ -318,6 +333,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // track variables
   //
   auto_ptr<vector<int> >	  els_charge                  (new vector<int>          ) ;
+  auto_ptr<vector<int> >          els_trk_charge              (new vector<int>          ) ;
   auto_ptr<vector<int> >          els_sccharge                (new vector<int>          ) ;
   auto_ptr<vector<float> >	  els_chi2                    (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_ndof                    (new vector<float>        ) ;
@@ -365,6 +381,20 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float>   >      els_trkshFrac               (new vector<float>        );
   auto_ptr<vector<float>   >      els_trkdr                   (new vector<float>        );
 
+  //conversions
+  auto_ptr<vector<float>    >    els_conv_dist                (new vector<float>        );
+  auto_ptr<vector<float>    >    els_conv_dcot                (new vector<float>        );
+  auto_ptr<vector<int>      >    els_conv_tkidx               (new vector<int>          );
+  
+
+  //conversions
+  Handle<reco::TrackCollection> tracks_h;
+  iEvent.getByLabel("generalTracks", tracks_h);
+
+  Handle<float> evt_bField_h;
+  iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
+  float evt_bField = *evt_bField_h.product();
+  
   // Get products from the reco
   //
 
@@ -410,6 +440,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // Get electron and track objects
     const reco::Track *el_track = (const reco::Track*)(el->gsfTrack().get());
     const edm::RefToBase<reco::GsfElectron> gsfElRef = els_h->refAt(elsIndex);
+    
 
     // Get cluster info that is not stored in the object
     //
@@ -454,7 +485,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     if (el->isEERingGap())	fiducialityMask |= 1 << ISEERINGGAP;
     if (el->isGap())	fiducialityMask |= 1 << ISGAP;
     els_fiduciality->push_back( fiducialityMask );
-
+			    
     // what corrections have been applied
     // and how is the electron seeding driven
     int electronTypeMask = 0;
@@ -493,7 +524,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     float pz = el_track->pz();
     float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
 						    +2*pt*p/q*pz*(el_track->covariance(0,1))
-						    + pz*pz*(el_track->covariance(1,1) ) ) : -999.;
+						    + pz*pz*(el_track->covariance(1,1) ) ) : -9999.;
     int defaultCharge;
     ChargeInfo chargeinfo;
     computeCharge(*(el->gsfTrack().get()), el->closestCtfTrackRef(), el->superCluster(),
@@ -507,8 +538,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_etaErr                ->push_back( el_track->etaError()                      );
     els_phiErr                ->push_back( el_track->phiError()                      );  		
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
-    els_lostHits              ->push_back( el_track->numberOfLostHits()              );		
+    els_lostHits              ->push_back( el_track->numberOfLostHits()              );
+    
     els_charge                ->push_back( el->charge()                              );
+    els_trk_charge            ->push_back( el_track->charge()                        );
     els_sccharge              ->push_back( chargeinfo.scPixCharge                    );
     els_d0                    ->push_back( el_track->d0()                            );
     els_z0                    ->push_back( el_track->dz()                            );		
@@ -686,21 +719,61 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     TrackRef ctfTkRef    = el->closestCtfTrackRef();
     GsfTrackRef gsfTkRef = el->gsfTrack();
 
-    double dR = -999;
+    double dR = -9999.;
     if(ctfTkRef.isNonnull() ) {
       els_trkidx       ->push_back(static_cast<int>(ctfTkRef.key())            );
       els_trkshFrac    ->push_back(static_cast<float>(el->shFracInnerHits())     );
       dR = deltaR(gsfTkRef->eta(), gsfTkRef->phi(),
 		  ctfTkRef->eta(), ctfTkRef->phi()                             );
     } else {
-      els_trkidx       ->push_back(-999                                        );
-      els_trkshFrac    ->push_back(-999.                                       );
+      els_trkidx       ->push_back(-9999                                        );
+      els_trkshFrac    ->push_back(-9999.                                       );
     }
 
     els_trkdr          ->push_back(dR                                          );
 
 
-  }
+
+    //conversion stuff
+    //first see if there is candidate that passes our conversion cuts
+    reco::TrackRef convTk = ConversionFinder::getConversionPartnerTrack(*el, tracks_h, evt_bField,
+									minAbsDist_, minAbsDcot_, minSharedFractionOfHits_);
+    //either CTF or GSF track made by the electron used to calculate the dist and dcot
+    const reco::Track *el_tk = ConversionFinder::getElectronTrack(*el, minSharedFractionOfHits_);
+    std::pair<float, float> p_convInfo = make_pair(-9999., -9999.);
+    if(convTk.isNonnull()) {
+      math::XYZTLorentzVector convTk_p4 = math::XYZTLorentzVector(convTk->px(), convTk->py(), convTk->pz(), convTk->p());
+      p_convInfo =  ConversionFinder::getConversionInfo(math::XYZTLorentzVector(el_tk->px(), el_tk->py(), el_tk->pz(), el_tk->p()),
+						     el_tk->charge(), el_tk->d0(), convTk_p4, convTk->charge(), convTk->d0(),
+						     evt_bField);
+      
+      els_conv_dist   ->push_back(p_convInfo.first               );
+      els_conv_dcot   ->push_back(p_convInfo.second              );
+      els_conv_tkidx  ->push_back(static_cast<int>(convTk.key()) );
+	
+    } else { //don't cut on any dist of dcot value....get the dist and dcot for the nearest track in dR to the electron's track
+      convTk = ConversionFinder::getConversionPartnerTrack(*el, tracks_h, evt_bField,
+							 999999., 999999., minSharedFractionOfHits_);
+      if(convTk.isNonnull()) {
+	
+	math::XYZTLorentzVector convTk_p4 = math::XYZTLorentzVector(convTk->px(), convTk->py(), convTk->pz(), convTk->p());
+	p_convInfo =  ConversionFinder::getConversionInfo(math::XYZTLorentzVector(el_tk->px(), el_tk->py(), el_tk->pz(), el_tk->p()),
+						       el_tk->charge(), el_tk->d0(), convTk_p4, convTk->charge(), convTk->d0(),
+						       evt_bField);
+	
+	els_conv_dist   ->push_back(p_convInfo.first               );
+	els_conv_dcot   ->push_back(p_convInfo.second              );
+	els_conv_tkidx  ->push_back(static_cast<int>(convTk.key()) );
+	
+      } else { //if there is no track in the dR cone that isn't made by the electron
+	els_conv_dist   ->push_back(-9999.);
+	els_conv_dcot   ->push_back(-9999.);
+	els_conv_tkidx  ->push_back(-9999 );
+      }// if convTk.isNonnull()
+    }//else 
+    
+  }//electron loop
+
 
   // Put the results into the event
   //
@@ -732,6 +805,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_validHits               	,"elsvalidHits"       		);
   iEvent.put(els_lostHits                	,"elslostHits"        		);
   iEvent.put(els_charge                  	,"elscharge"          		);
+  iEvent.put(els_trk_charge                     ,"elstrkcharge"                 );
   iEvent.put(els_sccharge                       ,"elssccharge"                  );
 
   // Supercluster parameters
@@ -826,6 +900,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_trkidx,      "elstrkidx"     );
   iEvent.put(els_trkdr ,      "elstrkdr"      );
   iEvent.put(els_trkshFrac,   "elstrkshFrac"  );
+
+  //conversion
+  iEvent.put(els_conv_dist,   "elsconvdist"   );
+  iEvent.put(els_conv_dcot,   "elsconvdcot"   );
+  iEvent.put(els_conv_tkidx,  "elsconvtkidx"  );
+
 }
 
 //----------------------------------------------------------------------------
