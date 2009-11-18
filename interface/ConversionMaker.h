@@ -11,7 +11,7 @@ Description: Vetos electrons from Conversions
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Oct 14 2:28:31 UTC 2008
-// $Id: ConversionMaker.h,v 1.2 2009/09/10 10:51:37 fgolf Exp $
+// $Id: ConversionMaker.h,v 1.3 2009/11/18 21:39:23 kalavase Exp $
 //
 //
 #ifndef CMS2_COVERSIONMAKER_H
@@ -38,17 +38,13 @@ private:
   virtual void beginJob(const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-  //returns the dcot theta and the dist of the closest track (in eta)
-  std::pair<float, float> getConversionInfo(math::XYZTLorentzVectorF trk1_p4, 
-				       int trk1_q, float trk1_d0, 
-				       math::XYZTLorentzVectorF trk2_p4,
-				       int trk2_q, float trk2_d0,
-				       float bField);
       
   // ----------member data ---------------------------
   edm::InputTag electronMakerInputTag_;
   edm::InputTag tracksMakerInputTag_;
   edm::InputTag bFieldInputTag_;
+
+  float minFracShHits_;
 };
 
 #endif
