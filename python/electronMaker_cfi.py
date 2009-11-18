@@ -11,7 +11,10 @@ electronMaker = cms.EDFilter(
     eidRobustTightTag = cms.InputTag("eidRobustTightCMS2"),
     eidRobustHighEnergyTag = cms.InputTag("eidRobustHighEnergyCMS2"),
     eidLooseTag = cms.InputTag("eidLooseCMS2"),
-    eidTightTag = cms.InputTag("eidTightCMS2")
-
+    eidTightTag = cms.InputTag("eidTightCMS2"),
+    #conversion stuff    
+    minAbsDist  = cms.double(0.02),        
+    minAbsDcot  = cms.double(0.02),
+    minSharedFractionOfHits = cms.double(0.45)    
 )
 
