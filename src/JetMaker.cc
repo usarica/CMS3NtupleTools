@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.23 2009/11/09 22:16:31 fgolf Exp $
+// $Id: JetMaker.cc,v 1.24 2009/11/18 03:49:01 kalavase Exp $
 //
 //
 
@@ -35,8 +35,10 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
-
+//new JetID
+#include "DataFormats/JetReco/interface/JetID.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -57,9 +59,9 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
-  jetIDHelper_            = reco::helper::JetIDHelper(iConfig.getParameter<edm::ParameterSet>("jetIDInputTag"       ));
   nameL2L3JetCorrector_   = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
   aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix");
+  jetIDIputTag_       = iConfig.getParameter<edm::InputTag>("jetIDIputTag");
 
   // product of this EDProducer
   produces<unsigned int>                ("evtn"+aliasprefix_     ).setBranchAlias("evt_n"+aliasprefix_        ); // number of jets
@@ -113,7 +115,6 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   map<float, float>         m_uncorJets;
   map<float, float>         m_emFracJets;
   map<float, LorentzVector> m_vertexJets;
-  vector<LorentzVector>     v_L2L3corJets;
   map<float, float>         m_fHPD;
   map<float, float>         m_fRBX;
   map<float, float>         m_n90Hits;
@@ -130,102 +131,60 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   *evt_njets = uncorJetsHandle->size();
 
-  //get the correctors
-  //the corrector is the the process from http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/JetMETCorrections/Configuration/python/
-  //for 312: L2L3Corrections_Summer09_cff.py
-  //  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector("L2L3JetCorrectorSC5Calo"  , iSetup);
+
+  //jetID
+  edm::Handle<reco::JetIDValueMap> h_JetIDMap;
+  iEvent.getByLabel(jetIDIputTag_, h_JetIDMap);
+
   const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector(nameL2L3JetCorrector_  , iSetup);
   
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
     
-    reco::CaloJet uncorJet   =  *it;
-    reco::CaloJet L2L3Jet    =  uncorJet;
-    
-    double L2L3Jetscale = L2L3corrector->correction( uncorJet.p4() );
-    L2L3Jet.scaleEnergy( L2L3Jetscale );
-    float jetPt = L2L3Jet.p4().pt();
-    m_uncorJets[ -jetPt ] = ( 1 / L2L3Jetscale );
-    m_emFracJets[ -jetPt ] = L2L3Jet.emEnergyFraction();
-    m_vertexJets[ -jetPt ] = LorentzVector(L2L3Jet.vx(), L2L3Jet.vy(), L2L3Jet.vz(), 0.);
+    double L2L3Jetscale = L2L3corrector->correction( it->p4() );
+    vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
+    vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
+    vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
+    vector_jets_cor            ->push_back( L2L3Jetscale                                    );
 
     if(runningOnReco_) {
-      jetIDHelper_.calculate( iEvent, uncorJet);
-      m_fHPD[ -jetPt ]            = jetIDHelper_.fHPD();
-      m_fRBX[ -jetPt ]            = jetIDHelper_.fRBX();
-      m_n90Hits[ -jetPt ]         = jetIDHelper_.n90Hits();
-      m_fSubDetector1[ -jetPt ]   = jetIDHelper_.fSubDetector1();
-      m_fSubDetector2[ -jetPt ]   = jetIDHelper_.fSubDetector2();
-      m_fSubDetector3[ -jetPt ]   = jetIDHelper_.fSubDetector3();
-      m_fSubDetector4[ -jetPt ]   = jetIDHelper_.fSubDetector4();
-      m_restrictedEMF[ -jetPt ]   = jetIDHelper_.restrictedEMF();
-      m_nHCALTowers[ -jetPt ]     = jetIDHelper_.nHCALTowers();
-      m_nECALTowers[ -jetPt ]     = jetIDHelper_.nECALTowers();
-    }
 
-    v_L2L3corJets.push_back( LorentzVector( L2L3Jet.p4() ) );
-  }
+      unsigned int idx = it - uncorJetsHandle->begin();
+      edm::RefToBase<reco::CaloJet> jetRef = uncorJetsHandle->refAt(idx);
+      reco::JetID jetID = (*h_JetIDMap)[jetRef];
 
-  sort( v_L2L3corJets.begin(), v_L2L3corJets.end(), sortJetsByPt );
-
-  for( vector<LorentzVector>::const_iterator iter = v_L2L3corJets.begin(); iter != v_L2L3corJets.end(); iter++ ) {
-    vector_jets_p4->push_back( *iter );
-  }
-
-  map<float, float>::const_iterator         uncorIter         = m_uncorJets.begin();
-  map<float, float>::const_iterator         emFracIter        = m_emFracJets.begin();
-  map<float, LorentzVector>::const_iterator vertexIter        = m_vertexJets.begin();
-  map<float, float>::const_iterator         fHPDIter          = m_fHPD.begin();
-  map<float, float>::const_iterator         fRBXIter          = m_fRBX.begin();
-  map<float, float>::const_iterator         n90HitsIter       = m_n90Hits.begin();
-  map<float, float>::const_iterator         fSubDetector1Iter = m_fSubDetector1.begin();
-  map<float, float>::const_iterator         fSubDetector2Iter = m_fSubDetector2.begin();
-  map<float, float>::const_iterator         fSubDetector3Iter = m_fSubDetector3.begin();
-  map<float, float>::const_iterator         fSubDetector4Iter = m_fSubDetector4.begin();
-  map<float, float>::const_iterator         restrictedEMFIter = m_restrictedEMF.begin();
-  map<float, float>::const_iterator         nHCALTowersIter   = m_nHCALTowers.begin();
-  map<float, float>::const_iterator         nECALTowersIter   = m_nECALTowers.begin();
-  
-
-  for( ; uncorIter != m_uncorJets.end(); uncorIter++, emFracIter++, vertexIter++) {
-	 
-    vector_jets_cor      ->push_back( uncorIter         ->second );
-    vector_jets_emFrac   ->push_back( emFracIter        ->second );
-    vector_jets_vertex_p4->push_back( vertexIter        ->second );
-  }
-  
-  if(runningOnReco_) {
-    for( ; fHPDIter != m_fHPD.end(); fHPDIter++, fRBXIter++, n90HitsIter++, 
-	   fSubDetector1Iter++, fSubDetector2Iter++, fSubDetector3Iter++, 
-	   fSubDetector4Iter++, restrictedEMFIter++, nHCALTowersIter++, nECALTowersIter++) {
-      vector_jets_fHPD          ->push_back( fHPDIter          ->second );
-      vector_jets_fRBX          ->push_back( fRBXIter          ->second );
-      vector_jets_n90Hits       ->push_back( n90HitsIter       ->second );
-      vector_jets_fSubDetector1 ->push_back( fSubDetector1Iter ->second );
-      vector_jets_fSubDetector2 ->push_back( fSubDetector2Iter ->second );
-      vector_jets_fSubDetector3 ->push_back( fSubDetector3Iter ->second );
-      vector_jets_fSubDetector4 ->push_back( fSubDetector4Iter ->second );
-      vector_jets_restrictedEMF ->push_back( restrictedEMFIter ->second );
-      vector_jets_nHCALTowers   ->push_back( nHCALTowersIter   ->second );
-      vector_jets_nECALTowers   ->push_back( nECALTowersIter   ->second );
+      vector_jets_fHPD          ->push_back( jetID.fHPD                                      );
+      vector_jets_fRBX          ->push_back( jetID.fRBX                                      );
+      vector_jets_n90Hits       ->push_back( jetID.n90Hits                                   );
+      vector_jets_fSubDetector1 ->push_back( jetID.fSubDetector1                             );
+      vector_jets_fSubDetector2 ->push_back( jetID.fSubDetector2                             );
+      vector_jets_fSubDetector3 ->push_back( jetID.fSubDetector3                             );
+      vector_jets_fSubDetector4 ->push_back( jetID.fSubDetector4                             );
+      vector_jets_restrictedEMF ->push_back( jetID.restrictedEMF                             );
+      vector_jets_nHCALTowers   ->push_back( jetID.nHCALTowers                               );
+      vector_jets_nECALTowers   ->push_back( jetID.nECALTowers                               );
+      
     }
   }
-
+  
   // put containers into event
   iEvent.put(evt_njets,                   "evtn"+aliasprefix_     );
   iEvent.put(vector_jets_p4,              aliasprefix_+"p4"       );
   iEvent.put(vector_jets_vertex_p4,       aliasprefix_+"vertexp4" );
   iEvent.put(vector_jets_emFrac,          aliasprefix_+"emFrac"   );
   iEvent.put(vector_jets_cor,             aliasprefix_+"cor"      );
-  iEvent.put(vector_jets_fHPD,            aliasprefix_+"fHPD"     );
-  iEvent.put(vector_jets_fRBX,            aliasprefix_+"fRBX"     );
-  iEvent.put(vector_jets_n90Hits,         aliasprefix_+"n90Hits"     );
-  iEvent.put(vector_jets_fSubDetector1,   aliasprefix_+"fSubDetector1"     );
-  iEvent.put(vector_jets_fSubDetector2,   aliasprefix_+"fSubDetector2"     );
-  iEvent.put(vector_jets_fSubDetector3,   aliasprefix_+"fSubDetector3"     );
-  iEvent.put(vector_jets_fSubDetector4,   aliasprefix_+"fSubDetector4"     );
-  iEvent.put(vector_jets_restrictedEMF,   aliasprefix_+"restrictedEMF"     );
-  iEvent.put(vector_jets_nHCALTowers,     aliasprefix_+"nHCALTowers"     );
-  iEvent.put(vector_jets_nECALTowers,     aliasprefix_+"nECALTowers"     );
+
+  if(runningOnReco_) {
+    iEvent.put(vector_jets_fHPD,            aliasprefix_+"fHPD"              );
+    iEvent.put(vector_jets_fRBX,            aliasprefix_+"fRBX"              );
+    iEvent.put(vector_jets_n90Hits,         aliasprefix_+"n90Hits"           );
+    iEvent.put(vector_jets_fSubDetector1,   aliasprefix_+"fSubDetector1"     );
+    iEvent.put(vector_jets_fSubDetector2,   aliasprefix_+"fSubDetector2"     );
+    iEvent.put(vector_jets_fSubDetector3,   aliasprefix_+"fSubDetector3"     );
+    iEvent.put(vector_jets_fSubDetector4,   aliasprefix_+"fSubDetector4"     );
+    iEvent.put(vector_jets_restrictedEMF,   aliasprefix_+"restrictedEMF"     );
+    iEvent.put(vector_jets_nHCALTowers,     aliasprefix_+"nHCALTowers"       );
+    iEvent.put(vector_jets_nECALTowers,     aliasprefix_+"nECALTowers"       );
+  }
   
   
 }
