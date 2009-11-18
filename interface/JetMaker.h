@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.9 2009/11/09 22:16:22 fgolf Exp $
+// $Id: JetMaker.h,v 1.10 2009/11/18 03:49:30 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -34,7 +34,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/InputTag.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
-#include "RecoJets/JetAlgorithms/interface/JetIDHelper.h"
 //
 // class decleration
 //
@@ -52,10 +51,10 @@ private:
   
      // ----------member data ---------------------------
      edm::InputTag uncorJetsInputTag_;
-     reco::helper::JetIDHelper jetIDHelper_;
      bool runningOnReco_;
      std::string nameL2L3JetCorrector_;
      std::string aliasprefix_;
+     edm::InputTag jetIDIputTag_;
 };
 
 #endif
