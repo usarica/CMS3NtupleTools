@@ -281,7 +281,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	// do match to electrons
         const edm::Ref<reco::SuperClusterCollection> scRef(scHandle, scIndex);
-        int electronIndex = -999;
+        int electronIndex = -9999;
         for (size_t i = 0; i < electronsCollection->size(); ++i)
         {
 	   if ((*electronsCollection)[i].superCluster() == scRef) {

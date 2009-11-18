@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
+// $Id: ElToJetAssMaker.cc,v 1.3 2009/11/18 21:46:07 kalavase Exp $
 //
 //
 
@@ -69,7 +69,7 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        
        double minDR = m_minDR;
        unsigned int i = 0;
-       int index      = -999; 
+       int index      = -9999; 
 
        for(vector<LorentzVector>::const_iterator jets_it = jets_p4_h->begin(),
 	   jets_end = jets_p4_h->end();

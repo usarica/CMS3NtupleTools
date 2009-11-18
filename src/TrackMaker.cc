@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.19 2009/09/10 10:51:43 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.20 2009/11/18 21:46:35 kalavase Exp $
 //
 //
 
@@ -247,7 +247,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 						      tsos.globalMomentum().mag() ) );
     }
     else {
-      vector_trks_outer_p4->push_back( LorentzVector( -999., -999., -999., -999.) );
+      vector_trks_outer_p4->push_back( LorentzVector( -9999., -9999., -9999., -9999.) );
 
     }
     //residual information
@@ -280,8 +280,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
        else{
 	 
-	 residualX_cms2.push_back( -999.);
-	 residualY_cms2.push_back( -999.);
+	 residualX_cms2.push_back( -9999.);
+	 residualY_cms2.push_back( -9999.);
 
        }
        

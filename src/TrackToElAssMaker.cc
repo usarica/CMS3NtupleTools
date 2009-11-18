@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.6 2009/09/10 10:51:43 fgolf Exp $
+// $Id: TrackToElAssMaker.cc,v 1.7 2009/11/18 21:46:38 kalavase Exp $
 //
 //
 
@@ -84,9 +84,9 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   for(vector<Track>::const_iterator trks_it = trks_coll->begin();
 	trks_it != trks_coll->end(); trks_it++) {
     
-    int elidx    = -999 ;
-    float shFrac = -999.;
-    float dR     = -999.;
+    int elidx    = -9999 ;
+    float shFrac = -9999.;
+    float dR     = -9999.;
     
     getMatchedElInfo(*trks_it, els_coll, elidx, shFrac, dR);
     trks_elsidx          ->push_back(elidx   );
@@ -112,9 +112,9 @@ void TrackToElAssMaker::getMatchedElInfo(const Track& ctfTk,
 
   double mindR = 0.1;
   
-  idx         = -999;
-  shFrac      = -999.;
-  dR          = -999.;
+  idx         = -9999;
+  shFrac      = -9999.;
+  dR          = -9999.;
   int counter = 0;
   for(std::vector<const GsfElectron*>::const_iterator gsfIter = gsfElectrons.begin();
       gsfIter != gsfElectrons.end(); gsfIter++, counter++) {

@@ -198,9 +198,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1emiso_ieta     ->push_back(emGct->regionId().ieta()            );
                 l1emiso_iphi     ->push_back(emGct->regionId().iphi()            );
             } else {
-                l1emiso_rawId    ->push_back(-999                                );
-                l1emiso_ieta     ->push_back(-999                                );
-                l1emiso_iphi     ->push_back(-999                                );
+                l1emiso_rawId    ->push_back(-9999                                );
+                l1emiso_ieta     ->push_back(-9999                                );
+                l1emiso_iphi     ->push_back(-9999                                );
             }
         }
 
@@ -219,9 +219,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1emnoiso_ieta   ->push_back(emGct->regionId().ieta()            );
                 l1emnoiso_iphi   ->push_back(emGct->regionId().iphi()            );
             } else {
-                l1emnoiso_rawId  ->push_back(-999                                );
-                l1emnoiso_ieta   ->push_back(-999                                );
-                l1emnoiso_iphi   ->push_back(-999                                );
+                l1emnoiso_rawId  ->push_back(-9999                                );
+                l1emnoiso_ieta   ->push_back(-9999                                );
+                l1emnoiso_iphi   ->push_back(-9999                                );
             }
         }
 
@@ -239,9 +239,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetsc_ieta     ->push_back(jetGct->regionId().ieta()           );
                 l1jetsc_iphi     ->push_back(jetGct->regionId().iphi()           );
             } else {
-                l1jetsc_rawId    ->push_back(-999                                );
-                l1jetsc_ieta     ->push_back(-999                                );
-                l1jetsc_iphi     ->push_back(-999                                );
+                l1jetsc_rawId    ->push_back(-9999                                );
+                l1jetsc_ieta     ->push_back(-9999                                );
+                l1jetsc_iphi     ->push_back(-9999                                );
             }
         }
 
@@ -259,9 +259,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetsf_ieta     ->push_back(jetGct->regionId().ieta()           );
                 l1jetsf_iphi     ->push_back(jetGct->regionId().iphi()           );
             } else {
-                l1jetsf_rawId    ->push_back(-999                                );
-                l1jetsf_ieta     ->push_back(-999                                );
-                l1jetsf_iphi     ->push_back(-999                                );
+                l1jetsf_rawId    ->push_back(-9999                                );
+                l1jetsf_ieta     ->push_back(-9999                                );
+                l1jetsf_iphi     ->push_back(-9999                                );
             }
         }
 
@@ -279,9 +279,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 l1jetst_ieta     ->push_back(jetGct->regionId().ieta()           );
                 l1jetst_iphi     ->push_back(jetGct->regionId().iphi()           );
             } else {
-                l1jetst_rawId    ->push_back(-999                                );
-                l1jetst_ieta     ->push_back(-999                                );
-                l1jetst_iphi     ->push_back(-999                                );
+                l1jetst_rawId    ->push_back(-9999                                );
+                l1jetst_ieta     ->push_back(-9999                                );
+                l1jetst_iphi     ->push_back(-9999                                );
             }
         }
 

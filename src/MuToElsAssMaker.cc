@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.cc,v 1.3 2009/09/10 10:51:43 fgolf Exp $
+// $Id: MuToElsAssMaker.cc,v 1.4 2009/11/18 21:46:23 kalavase Exp $
 //
 //
 
@@ -71,7 +71,7 @@ void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        
        double minDR = m_minDR;
        unsigned int i = 0;
-       int index      = -999;
+       int index      = -9999;
  
        for(vector<LorentzVector>::const_iterator els_it = els_p4_h->begin(),
 	   els_end = els_p4_h->end();

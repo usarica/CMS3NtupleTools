@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.7 2009/09/15 14:16:22 fgolf Exp $
+// $Id: BeamSpotMaker.cc,v 1.8 2009/11/18 21:44:00 kalavase Exp $
 //
 //
 
@@ -109,7 +109,7 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 						    beamSpotH->position().z(),
 						    0) : LorentzVector(0,0,0,0);
 
-  *evt_bsType        = haveBeamSpot ? beamSpotH->type()           : -999;
+  *evt_bsType        = haveBeamSpot ? beamSpotH->type()           : -9999;
   *evt_bs_xErr       = haveBeamSpot ? beamSpotH->x0Error()        : 0.0;
   *evt_bs_yErr       = haveBeamSpot ? beamSpotH->y0Error()        : 0.0;
   *evt_bs_zErr       = haveBeamSpot ? beamSpotH->z0Error()        : 0.0;

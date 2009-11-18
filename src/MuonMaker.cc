@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.34 2009/10/26 22:38:12 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.35 2009/11/18 21:46:27 kalavase Exp $
 //
 //
 
@@ -285,84 +285,84 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 							     globalTrack->pz(), globalTrack->p()) 
 					       : LorentzVector(0, 0, 0, 0) );
 					       
-    vector_mus_trkidx             ->push_back(siTrack.isNonnull() ? static_cast<int>(siTrack.key())          :  -999        );
-    vector_mus_d0                 ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -999.       );
-    vector_mus_z0                 ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -999.       );
-    vector_mus_d0corr             ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))              :  -999.       );
-    vector_mus_z0corr             ->push_back(siTrack.isNonnull() ? siTrack->dz(beamSpot)                    :  -999.       );
-    vector_mus_vertexphi          ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -999.       );
-    vector_mus_chi2               ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -999.       );
-    vector_mus_ndof               ->push_back(siTrack.isNonnull() ? siTrack->ndof()                          :  -999.       );
-    vector_mus_validHits          ->push_back(siTrack.isNonnull() ? siTrack->numberOfValidHits()             :  -999        );
-    vector_mus_lostHits           ->push_back(siTrack.isNonnull() ? siTrack->numberOfLostHits()              :  -999        );
-    vector_mus_gfit_validSTAHits  ->push_back(globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidMuonHits()   : -999 );
-    vector_mus_gfit_validSiHits  ->push_back(globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidTrackerHits(): -999 );
-    vector_mus_d0Err              ->push_back(siTrack.isNonnull() ? siTrack->d0Error()                       :  -999.        );
-    vector_mus_z0Err              ->push_back(siTrack.isNonnull() ? siTrack->dzError()                       :  -999.        );
-    vector_mus_ptErr              ->push_back(siTrack.isNonnull() ? siTrack->ptError()                       :  -999.        );
-    vector_mus_etaErr             ->push_back(siTrack.isNonnull() ? siTrack->etaError()                      :  -999.        );
-    vector_mus_phiErr             ->push_back(siTrack.isNonnull() ? siTrack->phiError()                      :  -999.        );
-    vector_mus_charge             ->push_back(muon->charge()                                                                 );
-    vector_mus_trk_charge         ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -999         );
-    vector_mus_qoverp             ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -999.        );
-    vector_mus_qoverpError        ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -999.        );
-    vector_mus_nmatches           ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()               :  -999         );
-    vector_mus_e_em               ->push_back(muon->isEnergyValid() ? muon->calEnergy().em                   :  -999.        );
-    vector_mus_e_had              ->push_back(muon->isEnergyValid() ? muon->calEnergy().had		     :  -999.        );
-    vector_mus_e_ho               ->push_back(muon->isEnergyValid() ? muon->calEnergy().ho		     :  -999.        );
-    vector_mus_e_emS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().emS9		     :  -999.        );
-    vector_mus_e_hadS9            ->push_back(muon->isEnergyValid() ? muon->calEnergy().hadS9	             :  -999.        );
-    vector_mus_e_hoS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().hoS9                 :  -999.        );
-    vector_mus_iso_trckvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().trackerVetoPt     :  -999.        );
-    vector_mus_iso_ecalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().emVetoEt          :  -999.        );      
-    vector_mus_iso_hcalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().hadVetoEt         :  -999.        );      
-    vector_mus_iso_hovetoDep      ->push_back(muon->isEnergyValid() ? muon->isolationR03().hoVetoEt          :  -999.        );      
+    vector_mus_trkidx             ->push_back(siTrack.isNonnull() ? static_cast<int>(siTrack.key())          :  -9999        );
+    vector_mus_d0                 ->push_back(siTrack.isNonnull() ? siTrack->d0()                            :  -9999.       );
+    vector_mus_z0                 ->push_back(siTrack.isNonnull() ? siTrack->dz()                            :  -9999.       );
+    vector_mus_d0corr             ->push_back(siTrack.isNonnull() ? -1*(siTrack->dxy(beamSpot))              :  -9999.       );
+    vector_mus_z0corr             ->push_back(siTrack.isNonnull() ? siTrack->dz(beamSpot)                    :  -9999.       );
+    vector_mus_vertexphi          ->push_back(siTrack.isNonnull() ? atan2( siTrack->vy(), siTrack->vx() )    :  -9999.       );
+    vector_mus_chi2               ->push_back(siTrack.isNonnull() ? siTrack->chi2()                          :  -9999.       );
+    vector_mus_ndof               ->push_back(siTrack.isNonnull() ? siTrack->ndof()                          :  -9999.       );
+    vector_mus_validHits          ->push_back(siTrack.isNonnull() ? siTrack->numberOfValidHits()             :  -9999        );
+    vector_mus_lostHits           ->push_back(siTrack.isNonnull() ? siTrack->numberOfLostHits()              :  -9999        );
+    vector_mus_gfit_validSTAHits  ->push_back(globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidMuonHits()   : -9999);
+    vector_mus_gfit_validSiHits  ->push_back(globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidTrackerHits(): -9999);
+    vector_mus_d0Err              ->push_back(siTrack.isNonnull() ? siTrack->d0Error()                       :  -9999.        );
+    vector_mus_z0Err              ->push_back(siTrack.isNonnull() ? siTrack->dzError()                       :  -9999.        );
+    vector_mus_ptErr              ->push_back(siTrack.isNonnull() ? siTrack->ptError()                       :  -9999.        );
+    vector_mus_etaErr             ->push_back(siTrack.isNonnull() ? siTrack->etaError()                      :  -9999.        );
+    vector_mus_phiErr             ->push_back(siTrack.isNonnull() ? siTrack->phiError()                      :  -9999.        );
+    vector_mus_charge             ->push_back(muon->charge()                                                                  );
+    vector_mus_trk_charge         ->push_back(siTrack.isNonnull() ? siTrack->charge()                        :  -9999         );
+    vector_mus_qoverp             ->push_back(siTrack.isNonnull() ? siTrack->qoverp()                        :  -9999.        );
+    vector_mus_qoverpError        ->push_back(siTrack.isNonnull() ? siTrack->qoverpError()                   :  -9999.        );
+    vector_mus_nmatches           ->push_back(muon->isMatchesValid() ? muon->numberOfMatches()               :  -9999         );
+    vector_mus_e_em               ->push_back(muon->isEnergyValid() ? muon->calEnergy().em                   :  -9999.        );
+    vector_mus_e_had              ->push_back(muon->isEnergyValid() ? muon->calEnergy().had		     :  -9999.        );
+    vector_mus_e_ho               ->push_back(muon->isEnergyValid() ? muon->calEnergy().ho		     :  -9999.        );
+    vector_mus_e_emS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().emS9		     :  -9999.        );
+    vector_mus_e_hadS9            ->push_back(muon->isEnergyValid() ? muon->calEnergy().hadS9	             :  -9999.        );
+    vector_mus_e_hoS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().hoS9                 :  -9999.        );
+    vector_mus_iso_trckvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().trackerVetoPt     :  -9999.        );
+    vector_mus_iso_ecalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().emVetoEt          :  -9999.        );      
+    vector_mus_iso_hcalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().hadVetoEt         :  -9999.        );      
+    vector_mus_iso_hovetoDep      ->push_back(muon->isEnergyValid() ? muon->isolationR03().hoVetoEt          :  -9999.        );      
     
-    vector_mus_iso03_sumPt        ->push_back(muon->isIsolationValid() ? muon->isolationR03().sumPt          :  -999.        );
-    vector_mus_iso03_emEt         ->push_back(muon->isIsolationValid() ? muon->isolationR03().emEt	     :  -999.        );
-    vector_mus_iso03_hadEt        ->push_back(muon->isIsolationValid() ? muon->isolationR03().hadEt	     :  -999.        );
-    vector_mus_iso03_hoEt         ->push_back(muon->isIsolationValid() ? muon->isolationR03().hoEt	     :  -999.        );
-    vector_mus_iso03_ntrk         ->push_back(muon->isIsolationValid() ? muon->isolationR03().nTracks        :  -999         );
-    vector_mus_iso05_sumPt        ->push_back(muon->isIsolationValid() ? muon->isolationR05().sumPt          :  -999.        );
-    vector_mus_iso05_emEt         ->push_back(muon->isIsolationValid() ? muon->isolationR05().emEt	     :  -999.        );
-    vector_mus_iso05_hadEt        ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	     :  -999.        );
-    vector_mus_iso05_hoEt         ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	     :  -999.        );
-    vector_mus_iso05_ntrk         ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks        :  -999         );
+    vector_mus_iso03_sumPt        ->push_back(muon->isIsolationValid() ? muon->isolationR03().sumPt          :  -9999.        );
+    vector_mus_iso03_emEt         ->push_back(muon->isIsolationValid() ? muon->isolationR03().emEt	     :  -9999.        );
+    vector_mus_iso03_hadEt        ->push_back(muon->isIsolationValid() ? muon->isolationR03().hadEt	     :  -9999.        );
+    vector_mus_iso03_hoEt         ->push_back(muon->isIsolationValid() ? muon->isolationR03().hoEt	     :  -9999.        );
+    vector_mus_iso03_ntrk         ->push_back(muon->isIsolationValid() ? muon->isolationR03().nTracks        :  -9999         );
+    vector_mus_iso05_sumPt        ->push_back(muon->isIsolationValid() ? muon->isolationR05().sumPt          :  -9999.        );
+    vector_mus_iso05_emEt         ->push_back(muon->isIsolationValid() ? muon->isolationR05().emEt	     :  -9999.        );
+    vector_mus_iso05_hadEt        ->push_back(muon->isIsolationValid() ? muon->isolationR05().hadEt	     :  -9999.        );
+    vector_mus_iso05_hoEt         ->push_back(muon->isIsolationValid() ? muon->isolationR05().hoEt	     :  -9999.        );
+    vector_mus_iso05_ntrk         ->push_back(muon->isIsolationValid() ? muon->isolationR05().nTracks        :  -9999         );
 
-    vector_mus_gfit_d0            ->push_back(globalTrack.isNonnull()  ? globalTrack->d0()                   :  -999.        );
-    vector_mus_gfit_z0            ->push_back(globalTrack.isNonnull()  ? globalTrack->dz()                   :  -999.        );
-    vector_mus_gfit_d0Err         ->push_back(globalTrack.isNonnull()  ? globalTrack->d0Error()              :  -999.        );
-    vector_mus_gfit_z0Err         ->push_back(globalTrack.isNonnull()  ? globalTrack->dzError()              :  -999.        );
-    vector_mus_gfit_d0corr        ->push_back(globalTrack.isNonnull()  ? -1*(globalTrack->dxy(beamSpot))     :  -999.        );
-    vector_mus_gfit_z0corr        ->push_back(globalTrack.isNonnull()  ? globalTrack->dz(beamSpot)           :  -999.        );
-    vector_mus_gfit_qoverp        ->push_back(globalTrack.isNonnull()  ? globalTrack->qoverp()               :  -999.        );
-    vector_mus_gfit_qoverpError   ->push_back(globalTrack.isNonnull()  ? globalTrack->qoverpError()          :  -999.        );
-    vector_mus_gfit_chi2          ->push_back(globalTrack.isNonnull()  ? globalTrack->chi2()	             :  -999.        );
-    vector_mus_gfit_ndof          ->push_back(globalTrack.isNonnull()  ? globalTrack->ndof()	             :  -999         );
-    vector_mus_gfit_validHits     ->push_back(globalTrack.isNonnull()  ? globalTrack->numberOfValidHits()    :  -999         );
+    vector_mus_gfit_d0            ->push_back(globalTrack.isNonnull()  ? globalTrack->d0()                   :  -9999.        );
+    vector_mus_gfit_z0            ->push_back(globalTrack.isNonnull()  ? globalTrack->dz()                   :  -9999.        );
+    vector_mus_gfit_d0Err         ->push_back(globalTrack.isNonnull()  ? globalTrack->d0Error()              :  -9999.        );
+    vector_mus_gfit_z0Err         ->push_back(globalTrack.isNonnull()  ? globalTrack->dzError()              :  -9999.        );
+    vector_mus_gfit_d0corr        ->push_back(globalTrack.isNonnull()  ? -1*(globalTrack->dxy(beamSpot))     :  -9999.        );
+    vector_mus_gfit_z0corr        ->push_back(globalTrack.isNonnull()  ? globalTrack->dz(beamSpot)           :  -9999.        );
+    vector_mus_gfit_qoverp        ->push_back(globalTrack.isNonnull()  ? globalTrack->qoverp()               :  -9999.        );
+    vector_mus_gfit_qoverpError   ->push_back(globalTrack.isNonnull()  ? globalTrack->qoverpError()          :  -9999.        );
+    vector_mus_gfit_chi2          ->push_back(globalTrack.isNonnull()  ? globalTrack->chi2()	             :  -9999.        );
+    vector_mus_gfit_ndof          ->push_back(globalTrack.isNonnull()  ? globalTrack->ndof()	             :  -9999         );
+    vector_mus_gfit_validHits     ->push_back(globalTrack.isNonnull()  ? globalTrack->numberOfValidHits()    :  -9999         );
     bool timeIsValid = muon->isTimeValid();
-    vector_mus_timeNumStationsUsed->push_back(timeIsValid              ?  muon->time().nDof                   :  -999         );
-    vector_mus_timeAtIpInOut      ->push_back(timeIsValid              ?  muon->time().timeAtIpInOut          :  -999.        );
-    vector_mus_timeAtIpInOutErr   ->push_back(timeIsValid              ?  muon->time().timeAtIpInOutErr       :  -999.        );
-    vector_mus_timeAtIpOutIn      ->push_back(timeIsValid              ?  muon->time().timeAtIpOutIn          :  -999.        );
-    vector_mus_timeAtIpOutInErr   ->push_back(timeIsValid              ?  muon->time().timeAtIpOutInErr       :  -999.        );
-    vector_mus_timeDirection      ->push_back(timeIsValid              ?  muon->time().direction()            :  -999         );
-    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationLoose)    : -999	);
-    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationTight)    : -999	);
-    vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityLoose): -999	);
-    vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityTight): -999	);
+    vector_mus_timeNumStationsUsed->push_back(timeIsValid              ?  muon->time().nDof                   :  -9999         );
+    vector_mus_timeAtIpInOut      ->push_back(timeIsValid              ?  muon->time().timeAtIpInOut          :  -9999.        );
+    vector_mus_timeAtIpInOutErr   ->push_back(timeIsValid              ?  muon->time().timeAtIpInOutErr       :  -9999.        );
+    vector_mus_timeAtIpOutIn      ->push_back(timeIsValid              ?  muon->time().timeAtIpOutIn          :  -9999.        );
+    vector_mus_timeAtIpOutInErr   ->push_back(timeIsValid              ?  muon->time().timeAtIpOutInErr       :  -9999.        );
+    vector_mus_timeDirection      ->push_back(timeIsValid              ?  muon->time().direction()            :  -9999         );
+    vector_mus_pid_TMLastStationLoose     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationLoose)    : -9999	);
+    vector_mus_pid_TMLastStationTight     ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TMLastStationTight)    : -9999	);
+    vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityLoose): -9999	);
+    vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityTight): -9999	);
     vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
 
     vector_mus_vertex_p4                  ->push_back(siTrack.isNonnull() ? 
 						      LorentzVector(siTrack->vx(),
 								    siTrack->vy(),
-								    siTrack->vz(), 0) 
-						      : LorentzVector(-999,-999,-999,-999) );
+								    siTrack->vz(), 0.) 
+						      : LorentzVector(-9999.,-9999.,-9999.,-9999.) );
     vector_mus_gfit_outerPos_p4          ->push_back(globalTrack.isNonnull() ?
 						     LorentzVector(globalTrack->outerPosition().x(),
 								   globalTrack->outerPosition().y(),
-								   globalTrack->outerPosition().z(),0 )
-						     : LorentzVector(-999,-999,-999,-999) );
+								   globalTrack->outerPosition().z(),0. )
+						     : LorentzVector(-9999.,-9999.,-9999.,-9999.) );
 	// if muon is not global
     if( !muon->isGlobalMuon() ) {
       vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );

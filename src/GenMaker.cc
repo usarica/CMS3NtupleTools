@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.18 2009/09/15 05:42:32 kalavase Exp $
+// $Id: GenMaker.cc,v 1.19 2009/11/18 21:46:13 kalavase Exp $
 //
 //
 
@@ -149,7 +149,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
     wc = genEvt->weights();
 
-    float weight = -999.;
+    float weight = -9999.;
 
     if(wc.size() > 0 )
       weight = (float)wc[0];

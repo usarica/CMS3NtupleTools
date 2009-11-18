@@ -63,7 +63,7 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4
   const reco::GenJet* output = 0;
   double dRmin = 0.2;
   int i = 0;
-  genidx = -999;
+  genidx = -9999;
   
   std::vector<reco::GenJet>::const_iterator itJetEnd = genJets->end();
   for(std::vector<reco::GenJet>::const_iterator itJet=genJets->begin(); itJet!=itJetEnd; ++itJet, ++i) {
@@ -112,7 +112,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   const reco::GenParticle* output = 0;
   double dRmin = 0.2;
   unsigned int i = 0;
-  genidx = -999;
+  genidx = -9999;
   
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
@@ -141,7 +141,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
   const reco::GenParticle* output = 0;
   double dRmin = 0.2;
   unsigned int i = 0;
-  genidx = -999;
+  genidx = -9999;
   
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
@@ -175,7 +175,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
   const reco::GenParticle* output = 0;
   double dRmin = 0.2;
   unsigned int i = 0;
-  genidx = -999;
+  genidx = -9999;
   
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
@@ -227,7 +227,7 @@ const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const s
 
   double dRmin = 0.2; 
   std::vector<reco::GenParticle>::const_iterator itCand;
-  int idx = -999;
+  int idx = -9999;
   int temp = 0;
   math::XYZVector v1(p.momentum().x(), p.momentum().y(), p.momentum().z());
   for(itCand = genParticles->begin(); itCand != genParticles->end(); itCand++, temp++) {

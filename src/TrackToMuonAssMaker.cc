@@ -16,7 +16,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.6 2009/11/18 21:46:40 kalavase Exp $
 //
 //
 
@@ -89,7 +89,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   for (vector<LorentzVector>::const_iterator track = trks_p4_h->begin(), trks_end = trks_p4_h->end(); track != trks_end; ++track) { 
 	  
     double minDR = m_minDR;
-    int trkidx   = -999;
+    int trkidx   = -9999;
     int i_track  = 0;
 
     for (vector<LorentzVector>::const_iterator muon = mus_trk_p4_h->begin(), muons_end = mus_trk_p4_h->end(); muon != muons_end; ++muon, ++i_track) {

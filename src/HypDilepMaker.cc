@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.20 2009/09/10 13:40:31 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.21 2009/11/18 21:46:16 kalavase Exp $
 //
 //
 
@@ -657,10 +657,10 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
       hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
 
-      float temp_dPhi_nJet_unCorrMet = 999;
-      float temp_dPhi_nJet_muCorrMet = 999;
-      float temp_dPhi_nJet_tcMet     = 999;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 999;
+      float temp_dPhi_nJet_unCorrMet = 9999.;
+      float temp_dPhi_nJet_muCorrMet = 9999.;
+      float temp_dPhi_nJet_tcMet     = 9999.;   
+      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
 
       float temp_sumJetPt = 0;
 
@@ -912,10 +912,10 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
       hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
       hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
 
-      float temp_dPhi_nJet_unCorrMet = 999;
-      float temp_dPhi_nJet_muCorrMet = 999;
-      float temp_dPhi_nJet_tcMet     = 999;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 999;
+      float temp_dPhi_nJet_unCorrMet = 9999.;
+      float temp_dPhi_nJet_muCorrMet = 9999.;
+      float temp_dPhi_nJet_tcMet     = 9999.;   
+      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
 
       float temp_sumJetPt = 0;
 
@@ -1235,10 +1235,10 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 	hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
       }
 
-      float temp_dPhi_nJet_unCorrMet = 999;
-      float temp_dPhi_nJet_muCorrMet = 999;
-      float temp_dPhi_nJet_tcMet     = 999;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 999;
+      float temp_dPhi_nJet_unCorrMet = 9999.;
+      float temp_dPhi_nJet_muCorrMet = 9999.;
+      float temp_dPhi_nJet_tcMet     = 9999.;   
+      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
 
       float temp_sumJetPt = 0;
 

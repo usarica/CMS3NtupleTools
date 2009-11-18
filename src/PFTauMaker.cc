@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.8 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PFTauMaker.cc,v 1.9 2009/11/18 21:46:30 kalavase Exp $
 //
 //
 
@@ -271,8 +271,8 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    }
    else {
                                       taus_pf_hasMuonReference   ->push_back(0);
-                                      taus_pf_caloComp           ->push_back(-999.);
-                                      taus_pf_segComp            ->push_back(-999.);
+                                      taus_pf_caloComp           ->push_back(-9999.);
+                                      taus_pf_segComp            ->push_back(-9999.);
 				      taus_pf_nmuonmatch         ->push_back(0);
 				     
    }
@@ -287,7 +287,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      taus_pf_leadtrk_idx                    ->push_back( static_cast<int>(leadTrack.key())                      );
    }
    else {
-         taus_pf_leadtrk_idx                    ->push_back( -999                                               );
+     taus_pf_leadtrk_idx                    ->push_back( -9999                                               );
       
    }
   

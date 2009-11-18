@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: CaloTauMaker.cc,v 1.6 2009/11/18 21:44:15 kalavase Exp $
 //
 //
 
@@ -138,7 +138,7 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 IsoTrk_idx.push_back( static_cast<int>(isoTrk.key())  );
        }
    }
-   else  IsoTrk_idx.push_back(-999);
+   else  IsoTrk_idx.push_back(-9999);
 
    const TrackRefVector& signalTracks = tau_calo->signalTracks();
    if( signalTracks.size()>0){
@@ -148,7 +148,7 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 SigTrk_idx.push_back( static_cast<int>(sigTrk.key())  );
        }
    }
-   else  SigTrk_idx.push_back(-999);
+   else  SigTrk_idx.push_back(-9999);
 
    
  
@@ -156,7 +156,7 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      taus_calo_leadtrk_idx                    ->push_back( static_cast<int>(leadTrack.key())                  );
    }
    else {
-         taus_calo_leadtrk_idx                ->push_back( -999                                               );
+         taus_calo_leadtrk_idx                ->push_back( -9999                                               );
       
    }
    taus_calo_isotrk_idx                     ->push_back( IsoTrk_idx                                           );
