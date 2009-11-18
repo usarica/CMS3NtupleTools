@@ -29,9 +29,7 @@
 <use name=TrackingTools/TrackAssociator>
 <use name=TrackingTools/TrajectoryState>
 <use name=HLTrigger/HLTcore>
-<use name=RecoJets/JetAlgorithms>	
 <use name=CMS2/Dictionaries>
-
 <use name=root>
 <use name=clhep>
 <lib name=EG>
