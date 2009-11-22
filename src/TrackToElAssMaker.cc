@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.7 2009/11/18 21:46:38 kalavase Exp $
+// $Id: TrackToElAssMaker.cc,v 1.8 2009/11/22 20:25:59 kalavase Exp $
 //
 //
 
@@ -50,8 +50,8 @@ TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig)
 
   // index in electron collection of track matched to electron
   produces<vector<int>   >("trkselsidx"     ).setBranchAlias("trks_elsidx"    );	
-  produces<vector<float> >("trkselsdr"      ).setBranchAlias("trks_elsdr"     );
-  produces<vector<float> >("trkselsshFrac"  ).setBranchAlias("trks_elsshFrac" );
+  //produces<vector<float> >("trkselsdr"      ).setBranchAlias("trks_elsdr"     );
+  //produces<vector<float> >("trkselsshFrac"  ).setBranchAlias("trks_elsshFrac" );
   
   electronsInputTag_ = iConfig.getParameter<InputTag>("electronsInputTag");
   tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
@@ -63,8 +63,8 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   using namespace edm;
   // make vectors to hold the information
   std::auto_ptr<vector<int>   > trks_elsidx     (new vector<int>    );
-  std::auto_ptr<vector<float> > trks_elsdr      (new vector<float>  );
-  std::auto_ptr<vector<float> > trks_elsshFrac  (new vector<float>  );
+  //std::auto_ptr<vector<float> > trks_elsdr      (new vector<float>  );
+  //std::auto_ptr<vector<float> > trks_elsshFrac  (new vector<float>  );
 
 
    //get the reco electron collection 
@@ -90,15 +90,15 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     
     getMatchedElInfo(*trks_it, els_coll, elidx, shFrac, dR);
     trks_elsidx          ->push_back(elidx   );
-    trks_elsdr           ->push_back(dR      );
-    trks_elsshFrac       ->push_back(shFrac  );
+    //trks_elsdr           ->push_back(dR      );
+    //trks_elsshFrac       ->push_back(shFrac  );
         
   }
   
   // store vectors
   iEvent.put(trks_elsidx,        "trkselsidx"    );
-  iEvent.put(trks_elsdr,         "trkselsdr"     );
-  iEvent.put(trks_elsshFrac,     "trkselsshFrac" );
+  //iEvent.put(trks_elsdr,         "trkselsdr"     );
+  //iEvent.put(trks_elsshFrac,     "trkselsshFrac" );
   
 }
 
