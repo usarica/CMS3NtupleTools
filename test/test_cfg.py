@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.57 $'),
+        version = cms.untracked.string('$Revision: 1.58 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -99,7 +99,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(2500)
+    input = cms.untracked.int32(25)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -158,7 +158,7 @@ process.out_CMS2 = cms.OutputModule(
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaData = cms.untracked.string("NONE"),
-    fileName = cms.untracked.string('TTbar_allModules_noExtraBranches.root')
+    fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -182,7 +182,7 @@ process.assmakers     = cms.Sequence(process.jetToMuAssMaker * process.jetToElAs
 
 process.hypmakers     = cms.Sequence(process.hypDilepMaker * process.hypTrilepMaker * process.hypQuadlepMaker * process.hypIsoMaker  * process.hypGenMaker)
 
-process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJuraIsoMaker * process.conversionMaker * process.bTagMaker * process.bTagTrkMaker )
+process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJuraIsoMaker * process.bTagMaker * process.bTagTrkMaker )
 
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 
