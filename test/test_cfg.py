@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.56 $'),
+        version = cms.untracked.string('$Revision: 1.57 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -20,6 +20,8 @@ process.GlobalTag.globaltag = "MC_31X_V3::All"
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
+
+
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
@@ -62,7 +64,6 @@ process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jptSequence_cff")
 process.load("CMS2.NtupleMaker.l1Maker_cfi")
-process.l1Maker.fillL1Particles = cms.untracked.bool(False)
 process.load("CMS2.NtupleMaker.metSequence_cff")
 process.load("CMS2.NtupleMaker.metMaker_cfi")
 process.load("CMS2.NtupleMaker.muonMaker_cfi")
@@ -98,7 +99,7 @@ process.load("CMS2.NtupleMaker.theFilter_cfi")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(2500)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -107,22 +108,34 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        '/store/user/gutsche/MinBias900GeV/332rereco-v1/fd4432ce30203a9f7d5626581d82e8ca/rereco_RAW2DIGI_L1Reco_RECO_151.root'
+        'file:TTbar_333_RelVal_1.root',
+        'file:TTbar_333_RelVal_2.root'
+        #'file:TTbar_333_RelVal_3.root'
     )
 )
 #-------------------------------------------------
 # PAT configuration
 #-------------------------------------------------
 
-## change jet collection# PAT Layer 0+1
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
 process.patDefaultSequence = cms.Sequence(
     process.allLayer1Objects *
     process.selectedLayer1Objects
 )
 
+
+#change JetID tag
 from PhysicsTools.PatAlgos.tools.jetTools import *
-switchJetCollection(process, cms.InputTag('prunedUncorrectedCMS2Jets'), doJTA = True, doBTagging = True, jetCorrLabel = ('SC5', 'Calo'), doType1MET = True, genJetCollection = cms.InputTag("sisCone5GenJets") )
+switchJetCollection(process, 
+                    cms.InputTag('prunedUncorrectedCMS2Jets'),   
+                    doJTA            = True,            
+                    doBTagging       = True,            
+                    jetCorrLabel     = ('AK5','Calo'),  
+                    doType1MET       = True,
+                    genJetCollection = cms.InputTag("cms2antikt5GenJets"),
+                    doJetID          = False,
+                    jetIdLabel       = "ak5"
+                    )
 
 #-------------------------------------------------
 # process output; first the event selection is
@@ -145,7 +158,7 @@ process.out_CMS2 = cms.OutputModule(
     process.EventSelection,
     verbose = cms.untracked.bool(True),
     dropMetaData = cms.untracked.string("NONE"),
-    fileName = cms.untracked.string('ntuple.root')
+    fileName = cms.untracked.string('TTbar_allModules_noExtraBranches.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -174,17 +187,14 @@ process.othermakers   = cms.Sequence(process.elCaloIsoSequence * process.elTkJur
 process.pflowmakers   = cms.Sequence(process.pfmetMaker * process.pfJetMaker * process.pftauMaker)
 
 # deactivate PAT
-# process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
+process.patmakers     = cms.Sequence(process.patMuonMaker * process.patElectronMaker * process.patJetMaker * process.patMETMaker)
 
 process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * process.makers * process.genmakers * process.assmakers * process.othermakers * process.hypmakers)
 
 # deactivate PAT
-# process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
-process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.pflowmakers )
+process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
 
-process.p1            = cms.Path( process.all * process.theFilter )
-
-process.p2            = cms.Path( process.all * process.dilepGenFilter)
+process.p             = cms.Path( process.all )
 
 process.outpath       = cms.EndPath(process.out_CMS2)
 
