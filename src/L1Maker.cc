@@ -54,15 +54,19 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig)
     produces<vector<int> >           ("l1jetstieta"   ).setBranchAlias("l1_jetst_ieta"   );
     produces<vector<int> >           ("l1jetstiphi"   ).setBranchAlias("l1_jetst_iphi"   );
     produces<float>                  ("l1metmet"      ).setBranchAlias("l1_met_met"      );
-    produces<float>                  ("l1metetHad"    ).setBranchAlias("l1_met_etHad"    );
     produces<float>                  ("l1metetTot"    ).setBranchAlias("l1_met_etTot"    );
-    produces<LorentzVector>          ("l1metp4"       ).setBranchAlias("l1_met_p4"       );
+    produces<float>                  ("l1mhtmht"      ).setBranchAlias("l1_mht_mht"      );
+    produces<float>                  ("l1mhthtTot"    ).setBranchAlias("l1_mht_htTot"    );
+        
     produces<vector<LorentzVector> > ("l1musp4"       ).setBranchAlias("l1_mus_p4"       );
     produces<vector<LorentzVector> > ("l1emisop4"     ).setBranchAlias("l1_emiso_p4"     );
     produces<vector<LorentzVector> > ("l1emnoisop4"   ).setBranchAlias("l1_emnoiso_p4"   );
     produces<vector<LorentzVector> > ("l1jetscp4"     ).setBranchAlias("l1_jetsc_p4"     );
     produces<vector<LorentzVector> > ("l1jetsfp4"     ).setBranchAlias("l1_jetsf_p4"     );
     produces<vector<LorentzVector> > ("l1jetstp4"     ).setBranchAlias("l1_jetst_p4"     );
+    produces<LorentzVector>          ("l1metp4"       ).setBranchAlias("l1_met_p4"       );
+    produces<LorentzVector>          ("l1mhtp4"       ).setBranchAlias("l1_mht_p4"       );
+
 }
 
 void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -102,16 +106,19 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >           l1jetst_rawId   (new vector<int>);
   auto_ptr<vector<int> >           l1jetst_ieta    (new vector<int>);
   auto_ptr<vector<int> >           l1jetst_iphi    (new vector<int>);
-  auto_ptr<float>                  l1met_met       (new float); *l1met_met = 0;
-  auto_ptr<float>                  l1met_etHad     (new float); *l1met_etHad = 0;
-  auto_ptr<float>                  l1met_etTot     (new float); *l1met_etTot = 0;
-  auto_ptr<LorentzVector>          l1met_p4        (new LorentzVector);
+  auto_ptr<float>                  l1met_met       (new float); *l1met_met   = 0.;
+  auto_ptr<float>                  l1met_etTot     (new float); *l1met_etTot = 0.;
+  auto_ptr<float>                  l1mht_mht       (new float); *l1mht_mht   = 0.;
+  auto_ptr<float>                  l1mht_htTot     (new float); *l1mht_htTot = 9.;
+    
   auto_ptr<vector<LorentzVector> > l1mus_p4        (new vector<LorentzVector>);        
   auto_ptr<vector<LorentzVector> > l1emiso_p4      (new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > l1emnoiso_p4    (new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > l1jetsc_p4      (new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > l1jetsf_p4      (new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > l1jetst_p4      (new vector<LorentzVector>);
+  auto_ptr<LorentzVector>          l1met_p4        (new LorentzVector        );
+  auto_ptr<LorentzVector>          l1mht_p4        (new LorentzVector        );
   
     // L1 trigger names and accepts
     edm::ESHandle<L1GtTriggerMenu> menuRcd;
@@ -128,38 +135,44 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // L1 particles
     if (fillL1Particles_) {
         Handle<vector<l1extra::L1MuonParticle> > l1mus_h;
-        iEvent.getByLabel("hltL1extraParticles", l1mus_h);
+        iEvent.getByLabel(edm::InputTag("l1extraParticles","","HLT"), l1mus_h);
         const vector<l1extra::L1MuonParticle> *l1mus_coll = l1mus_h.product();
         *l1nmus = l1mus_coll->size();
-
-        Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
-        iEvent.getByLabel("hltL1extraParticles", "Isolated", l1emiso_h);
+	
+	Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Isolated", "HLT"),l1emiso_h);
         const vector<l1extra::L1EmParticle> *l1emiso_coll = l1emiso_h.product();
         *l1nemiso = l1emiso_coll->size();
 
-        Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
-        iEvent.getByLabel("hltL1extraParticles", "NonIsolated", l1emnoiso_h);
+	Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "NonIsolated", "HLT"), l1emnoiso_h);
         const vector<l1extra::L1EmParticle> *l1emnoiso_coll = l1emnoiso_h.product();
         *l1nemnoiso = l1emnoiso_coll->size();
-
+	
+	
         Handle<vector<l1extra::L1JetParticle> > l1jetsc_h;
-        iEvent.getByLabel("hltL1extraParticles", "Central", l1jetsc_h);
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Central", "HLT"), l1jetsc_h);
         const vector<l1extra::L1JetParticle> *l1jetsc_coll = l1jetsc_h.product();
         *l1njetsc = l1jetsc_coll->size();
-
+	
         Handle<vector<l1extra::L1JetParticle> > l1jetsf_h;
-        iEvent.getByLabel("hltL1extraParticles", "Forward", l1jetsf_h);
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Forward", "HLT"),l1jetsf_h);
         const vector<l1extra::L1JetParticle> *l1jetsf_coll = l1jetsf_h.product();
         *l1njetsf = l1jetsf_coll->size();
-
+	
         Handle<vector<l1extra::L1JetParticle> > l1jetst_h;
-        iEvent.getByLabel("hltL1extraParticles", "Tau", l1jetst_h);
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Tau", "HLT"), l1jetst_h);
         const vector<l1extra::L1JetParticle> *l1jetst_coll = l1jetst_h.product();
         *l1njetst = l1jetst_h.product()->size();
-
+	
         Handle<l1extra::L1EtMissParticleCollection> l1mets_h;
-        iEvent.getByLabel("hltL1extraParticles", l1mets_h);
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "MET", "HLT"), l1mets_h);
         const l1extra::L1EtMissParticleCollection *l1mets = l1mets_h.product();
+
+	Handle<l1extra::L1EtMissParticleCollection> l1mhts_h;
+        iEvent.getByLabel(edm::InputTag("l1extraParticles", "MHT", "HLT"), l1mhts_h);
+        const l1extra::L1EtMissParticleCollection *l1mhts = l1mhts_h.product();
+
 
         for(vector<l1extra::L1MuonParticle>::const_iterator l1mus_it = l1mus_coll->begin();
                 l1mus_it != l1mus_coll->end(); l1mus_it++)
@@ -285,63 +298,70 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
         }
 
-        //const l1extra::L1EtMissParticle *l1met = l1met_h.product();
-        if (l1mets->size() > 1 ) {
+	if (l1mets->size() > 1 ) {
             throw cms::Exception("L1Maker: Read more than 1 L1-MET, expected one");
         }
         l1extra::L1EtMissParticleCollection::const_iterator l1met = l1mets->begin();
         *l1met_met     = l1met->etMiss();
-        //*l1met_etHad   = l1met->etHad();
-        *l1met_etHad   = l1met->gctEtHad()->et();
-        *l1met_etTot   = l1met->etTotal();
-        *l1met_p4      = LorentzVector(l1met->px(), l1met->py(), l1met->pz(), l1met->energy()); 
-    }
+	*l1met_etTot   = l1met->etTotal();
+	*l1met_p4      = LorentzVector(l1met->px(), l1met->py(), l1met->pz(), l1met->energy()); 
 
-    iEvent.put(l1bits1,        "l1bits1");
-    iEvent.put(l1bits2,        "l1bits2");
-    iEvent.put(l1bits3,        "l1bits3");
-    iEvent.put(l1bits4,        "l1bits4");
-    iEvent.put(l1trigNames,    "l1trigNames");
-    iEvent.put(l1nmus,         "l1nmus");
-    iEvent.put(l1nemiso,       "l1nemiso");
-    iEvent.put(l1nemnoiso,     "l1nemnoiso");
-    iEvent.put(l1njetsc,       "l1njetsc");
-    iEvent.put(l1njetsf,       "l1njetsf");
-    iEvent.put(l1njetst,       "l1njetst");
-    iEvent.put(l1mus_q,        "l1musq");
-    iEvent.put(l1mus_qual,     "l1musqual");
-    iEvent.put(l1mus_qualFlags,"l1musqualFlags");
-    iEvent.put(l1mus_flags,    "l1musflags");
-    iEvent.put(l1emiso_type,   "l1emisotype");
-    iEvent.put(l1emiso_rawId,  "l1emisorawId");
-    iEvent.put(l1emiso_ieta,   "l1emisoieta");
-    iEvent.put(l1emiso_iphi,   "l1emisoiphi");
-    iEvent.put(l1emnoiso_type, "l1emnoisotype");
-    iEvent.put(l1emnoiso_rawId,"l1emnoisorawId");
-    iEvent.put(l1emnoiso_ieta, "l1emnoisoieta");
-    iEvent.put(l1emnoiso_iphi, "l1emnoisoiphi");
-    iEvent.put(l1jetsc_type,   "l1jetsctype");
-    iEvent.put(l1jetsc_rawId,  "l1jetscrawId");
-    iEvent.put(l1jetsc_ieta,   "l1jetscieta");
-    iEvent.put(l1jetsc_iphi,   "l1jetsciphi");
-    iEvent.put(l1jetsf_type,   "l1jetsftype");
-    iEvent.put(l1jetsf_rawId,  "l1jetsfrawId");
-    iEvent.put(l1jetsf_ieta,   "l1jetsfieta");
-    iEvent.put(l1jetsf_iphi,   "l1jetsfiphi");
-    iEvent.put(l1jetst_type,   "l1jetsttype");
-    iEvent.put(l1jetst_rawId,  "l1jetstrawId");
-    iEvent.put(l1jetst_ieta,   "l1jetstieta");
-    iEvent.put(l1jetst_iphi,   "l1jetstiphi");
-    iEvent.put(l1met_met,      "l1metmet");
-    iEvent.put(l1met_etHad,    "l1metetHad");
-    iEvent.put(l1met_etTot,    "l1metetTot");
-    iEvent.put(l1met_p4,       "l1metp4");
-    iEvent.put(l1mus_p4,       "l1musp4");
-    iEvent.put(l1emiso_p4,     "l1emisop4");
-    iEvent.put(l1emnoiso_p4,   "l1emnoisop4");
-    iEvent.put(l1jetsc_p4,     "l1jetscp4");
-    iEvent.put(l1jetsf_p4,     "l1jetsfp4");
-    iEvent.put(l1jetst_p4,     "l1jetstp4");
+	if (l1mhts->size() > 1 ) {
+	  throw cms::Exception("L1Maker: Read more than 1 L1-MHT, expected one");
+        }
+	l1extra::L1EtMissParticleCollection::const_iterator l1mht = l1mhts->begin();
+	*l1mht_mht     = l1mht->etMiss();
+	*l1mht_htTot   = l1mht->etTotal(); //this isn't a type...etTotal returns ht for MHT
+	*l1mht_p4      = LorentzVector(l1mht->px(), l1mht->py(), l1mht->pz(), l1mht->energy());
+        
+    }
+    iEvent.put(l1bits1,        "l1bits1"         );
+    iEvent.put(l1bits2,        "l1bits2"         );
+    iEvent.put(l1bits3,        "l1bits3"         );
+    iEvent.put(l1bits4,        "l1bits4"         );
+    iEvent.put(l1trigNames,    "l1trigNames"     );
+    iEvent.put(l1nmus,         "l1nmus"          );
+    iEvent.put(l1nemiso,       "l1nemiso"        );
+    iEvent.put(l1nemnoiso,     "l1nemnoiso"      );
+    iEvent.put(l1njetsc,       "l1njetsc"        );
+    iEvent.put(l1njetsf,       "l1njetsf"        );
+    iEvent.put(l1njetst,       "l1njetst"        );
+    iEvent.put(l1mus_q,        "l1musq"          );
+    iEvent.put(l1mus_qual,     "l1musqual"       );
+    iEvent.put(l1mus_qualFlags,"l1musqualFlags"  );
+    iEvent.put(l1mus_flags,    "l1musflags"      );
+    iEvent.put(l1emiso_type,   "l1emisotype"     );
+    iEvent.put(l1emiso_rawId,  "l1emisorawId"    );
+    iEvent.put(l1emiso_ieta,   "l1emisoieta"     );
+    iEvent.put(l1emiso_iphi,   "l1emisoiphi"     );
+    iEvent.put(l1emnoiso_type, "l1emnoisotype"   );
+    iEvent.put(l1emnoiso_rawId,"l1emnoisorawId"  );
+    iEvent.put(l1emnoiso_ieta, "l1emnoisoieta"   );
+    iEvent.put(l1emnoiso_iphi, "l1emnoisoiphi"   );
+    iEvent.put(l1jetsc_type,   "l1jetsctype"     );
+    iEvent.put(l1jetsc_rawId,  "l1jetscrawId"    );
+    iEvent.put(l1jetsc_ieta,   "l1jetscieta"     );
+    iEvent.put(l1jetsc_iphi,   "l1jetsciphi"     );
+    iEvent.put(l1jetsf_type,   "l1jetsftype"     );
+    iEvent.put(l1jetsf_rawId,  "l1jetsfrawId"    );
+    iEvent.put(l1jetsf_ieta,   "l1jetsfieta"     );
+    iEvent.put(l1jetsf_iphi,   "l1jetsfiphi"     );
+    iEvent.put(l1jetst_type,   "l1jetsttype"     );
+    iEvent.put(l1jetst_rawId,  "l1jetstrawId"    );
+    iEvent.put(l1jetst_ieta,   "l1jetstieta"     );
+    iEvent.put(l1jetst_iphi,   "l1jetstiphi"     );
+    iEvent.put(l1met_met,      "l1metmet"        );
+    iEvent.put(l1met_etTot,    "l1metetTot"      );
+    iEvent.put(l1met_p4,       "l1metp4"         );
+    iEvent.put(l1mht_mht,      "l1mhtmht"        );
+    iEvent.put(l1mht_htTot,    "l1mhthtTot"      );
+    iEvent.put(l1mht_p4,       "l1mhtp4"         );
+    iEvent.put(l1mus_p4,       "l1musp4"         );
+    iEvent.put(l1emiso_p4,     "l1emisop4"       );
+    iEvent.put(l1emnoiso_p4,   "l1emnoisop4"     );
+    iEvent.put(l1jetsc_p4,     "l1jetscp4"       );
+    iEvent.put(l1jetsf_p4,     "l1jetsfp4"       );
+    iEvent.put(l1jetst_p4,     "l1jetstp4"       );
 }
 
 void L1Maker::fillL1Info(const Event& iEvent,
