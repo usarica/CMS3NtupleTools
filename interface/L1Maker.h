@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.1 2009/09/02 15:15:37 jribnik Exp $
+// $Id: L1Maker.h,v 1.2 2009/11/22 23:20:33 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -52,6 +52,7 @@ class L1Maker : public edm::EDProducer {
                 const L1GtTriggerMenu* menu);
 
         bool fillL1Particles_;
+        std::string l1ParticlesProcessName_;
 };
 
 #endif
