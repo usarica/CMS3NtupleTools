@@ -233,13 +233,14 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
       const reco::SuperClusterCollection *scCollection = scHandle.product();
 
-      *evt_nscs += scCollection->size();
       size_t scIndex = 0;
       for (reco::SuperClusterCollection::const_iterator sc = scCollection->begin();
 	   sc != scCollection->end(); ++sc, ++scIndex) {
 
 	// do ET cut
 	if ( (sc->energy()/cosh(sc->eta())) < scEtMin_) continue;
+
+	*evt_nscs ++;
 
 	LorentzVector p4 = initP4(pv, *sc);
 	vector_scs_p4->push_back( p4 );
