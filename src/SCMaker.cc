@@ -240,8 +240,6 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	// do ET cut
 	if ( (sc->energy()/cosh(sc->eta())) < scEtMin_) continue;
 
-	*evt_nscs ++;
-
 	LorentzVector p4 = initP4(pv, *sc);
 	vector_scs_p4->push_back( p4 );
 	vector_scs_vtx_p4->push_back( LorentzVector(pv.x(), pv.y(), pv.z(), 0.) );
@@ -295,6 +293,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       } // end loop on scs
 
     } // end loop on sc input tags
+
+  *evt_nscs = vector_scs_p4->size();
 
   // put results into the event
   iEvent.put(evt_nscs, "evtnscs");
