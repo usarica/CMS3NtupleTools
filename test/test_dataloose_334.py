@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.1 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -54,9 +54,10 @@ process.load("CMS2.NtupleMaker.hypGenMaker_cfi")
 process.load("CMS2.NtupleMaker.hypTrilepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypQuadlepMaker_cfi")
 process.load("CMS2.NtupleMaker.hypIsoMaker_cfi")
+
 process.load("CMS2.NtupleMaker.jetSequence_cff")
-# fix for 32X data
-#process.prunedUncorrectedCMS2Jets.inputUncorrectedJetCollection = cms.InputTag("antikt5CaloJets")
+process.prunedUncorrectedCMS2Jets.uncorrectedJetPtCut = cms.double(0.0) ##cut on the UNCORRECTED reco jets!!!!!
+
 process.load("CMS2.NtupleMaker.jetMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToElAssMaker_cfi")
 process.load("CMS2.NtupleMaker.jetToMuAssMaker_cfi")
@@ -78,22 +79,26 @@ process.load("CMS2.NtupleMaker.patMETMaker_cfi")
 process.load("CMS2.NtupleMaker.patMuonMaker_cfi")
 process.load("CMS2.NtupleMaker.pdfinfoMaker_cfi")
 process.load("CMS2.NtupleMaker.pfJetMaker_cfi")
-# fix for 32X data
-#process.pfJetMaker.pfJetsInputTag = cms.InputTag("antikt5PFJets")
 process.load("CMS2.NtupleMaker.pfmetMaker_cfi")
 process.load("CMS2.NtupleMaker.pftauMaker_cfi")
 process.load("CMS2.NtupleMaker.photonMaker_cfi")
+
 process.load("CMS2.NtupleMaker.scMaker_cfi")
+process.scMaker.scEtMin = cms.double(0.0)
+
 process.load("CMS2.NtupleMaker.tcmetMaker_cfi")
 process.load("CMS2.NtupleMaker.trackMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToElsAssMaker_cfi")
 process.load("CMS2.NtupleMaker.trackToMuonAssMaker_cfi")
+
 process.load("CMS2.NtupleMaker.trkJetMaker_cfi")
+process.trkJetMaker.trkJetPtCut = cms.double(0.0)
+
 process.load("CMS2.NtupleMaker.trkJetSequence_cfi")
 process.load("CMS2.NtupleMaker.vertexMaker_cfi")
 
 ###Dilepton Filter
-#process.load("CMS2.NtupleMaker.theFilter_cfi")
+process.load("CMS2.NtupleMaker.hypFilter_cfi")
 
 #-----------------------------------------------------------
 # configure input data files and number of event to process
@@ -110,7 +115,7 @@ process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
 #        '/store/data/CRAFT09/Cosmics/RECO/CRAFT09_R_V4_CollisionSeq_v1/0045/FEEE8AE2-4BBF-DE11-B146-001EC9D8A8D0.root'
-	'file:~/FirstEventMuons.root'
+        'file:/store/disk00/data/CMSSW_3_3_4_skims/FirstEventMuons.root'
 	),
     inputCommands = cms.untracked.vstring(
     'keep *',
@@ -212,8 +217,7 @@ process.cms2          = cms.Sequence(process.eventmakers * process.trigmakers * 
 #process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.patDefaultSequence * process.patmakers * process.pflowmakers )
 process.all           = cms.Sequence( process.CMS2Reco * process.cms2 * process.pflowmakers )
 
-process.p1            = cms.Path( process.all )
-# * process.theFilter )
+process.p1            = cms.Path( process.all  * process.hypFilter )
 
 # deactivate everything having to do with generator information, comment out p2
 # process.p2            = cms.Path( process.all * process.dilepGenFilter)
