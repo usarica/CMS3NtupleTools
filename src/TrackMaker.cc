@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.21 2009/11/22 20:25:43 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.22 2009/11/24 18:39:17 kalavase Exp $
 //
 //
 
@@ -69,6 +69,8 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
        
   produces<vector<LorentzVector> >	("trkstrkp4"	  ).setBranchAlias("trks_trk_p4"     );	// track p4						
   produces<vector<LorentzVector> >	("trksvertexp4"	  ).setBranchAlias("trks_vertex_p4"  );	// track p4
+  produces<vector<LorentzVector> >      ("trksouterp4"    ).setBranchAlias("trks_outer_p4"   );    // p4 at the outermost point of the tracker
+
   produces<vector<float> >		("trksd0"	  ).setBranchAlias("trks_d0"         );	// impact parameter at the point of closest approach	
   produces<vector<float> >		("trksd0corr"	  ).setBranchAlias("trks_d0corr"     );	// impact parameter at the point of closest approach corrected for the beamSpot
   produces<vector<float> >		("trksd0corrPhi"  ).setBranchAlias("trks_d0corrPhi"  );	// angle of impact parameter corrected for beamSpot
@@ -110,6 +112,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   std::auto_ptr<vector<LorentzVector> >	vector_trks_trk_p4	(new vector<LorentzVector>	);
   std::auto_ptr<vector<LorentzVector> >	vector_trks_vertex_p4	(new vector<LorentzVector>	);
+  std::auto_ptr<vector<LorentzVector> > vector_trks_outer_p4    (new vector<LorentzVector>      );
   std::auto_ptr<vector<float> >		vector_trks_d0		(new vector<float>		);      
   std::auto_ptr<vector<float> >		vector_trks_d0corr      (new vector<float>		);      
   std::auto_ptr<vector<float> >		vector_trks_d0corrPhi   (new vector<float>		);      
@@ -152,7 +155,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     return;
   }
 
-  //const MagneticField* bf = theMagField.product();
+  const MagneticField* bf = theMagField.product();
 
   edm::Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel(beamSpotTag, beamSpotH);
@@ -196,53 +199,53 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_algo         ->push_back( i->algo()                                                );
 	
 
-//       GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
-//       GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
-//       int tpCharge ( i->charge() );
-      
-//       FreeTrajectoryState fts ( tpVertex, tpMomentum, tpCharge, bf);
+    GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
+    GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
+    int tpCharge ( i->charge() );
+    
+    FreeTrajectoryState fts ( tpVertex, tpMomentum, tpCharge, bf);
+    
+    const float zdist = 314.;
+    
+    const float radius = 130.;
 
-//     const float zdist = 314.;
+    const float corner = 1.479;
 
-//     const float radius = 130.;
+    Plane::PlanePointer lendcap = Plane::build( Plane::PositionType (0, 0, -zdist), Plane::RotationType () );
+    Plane::PlanePointer rendcap = Plane::build( Plane::PositionType (0, 0,  zdist), Plane::RotationType () );
 
-//     const float corner = 1.479;
+    Cylinder::CylinderPointer barrel = Cylinder::build( Cylinder::PositionType (0, 0, 0), Cylinder::RotationType (), radius);
 
-//     Plane::PlanePointer lendcap = Plane::build( Plane::PositionType (0, 0, -zdist), Plane::RotationType () );
-//     Plane::PlanePointer rendcap = Plane::build( Plane::PositionType (0, 0,  zdist), Plane::RotationType () );
-
-//     Cylinder::CylinderPointer barrel = Cylinder::build( Cylinder::PositionType (0, 0, 0), Cylinder::RotationType (), radius);
-
-//     AnalyticalPropagator myAP (bf, alongMomentum, 2*M_PI);
+    AnalyticalPropagator myAP (bf, alongMomentum, 2*M_PI);
 	  
-//     TrajectoryStateOnSurface tsos;
+    TrajectoryStateOnSurface tsos;
 	  
-//     /*
-//     Trajectory State is at intersection of cylinder and track, 
-//       not state at the last hit on the track fit. Shouldn't matter that much.
-//       Not sure what happens for loopers. Caveat emptor!
-//     */
+    /*
+    Trajectory State is at intersection of cylinder and track, 
+      not state at the last hit on the track fit. Shouldn't matter that much.
+      Not sure what happens for loopers. Caveat emptor!
+    */
 	  
-//     if( i->eta() < -corner ) {
-//       tsos = myAP.propagate( fts, *lendcap);
-//     }
-//     else if( fabs(i->eta()) < corner ) {
-//       tsos = myAP.propagate( fts, *barrel);
-//     }
-//     else if( i->eta() > corner ) {
-//       tsos = myAP.propagate( fts, *rendcap);
-//     }
+    if( i->eta() < -corner ) {
+      tsos = myAP.propagate( fts, *lendcap);
+    }
+    else if( fabs(i->eta()) < corner ) {
+      tsos = myAP.propagate( fts, *barrel);
+    }
+    else if( i->eta() > corner ) {
+      tsos = myAP.propagate( fts, *rendcap);
+    }
 
-//     if(tsos.isValid()) {
-//       vector_trks_outer_p4->push_back( LorentzVector( tsos.globalMomentum().x(),
-// 						      tsos.globalMomentum().y(),
-// 						      tsos.globalMomentum().z(),
-// 						      tsos.globalMomentum().mag() ) );
-//     }
-//     else {
-//       vector_trks_outer_p4->push_back( LorentzVector( -9999., -9999., -9999., -9999.) );
+    if(tsos.isValid()) {
+      vector_trks_outer_p4->push_back( LorentzVector( tsos.globalMomentum().x(),
+						      tsos.globalMomentum().y(),
+						      tsos.globalMomentum().z(),
+						      tsos.globalMomentum().mag() ) );
+    }
+    else {
+      vector_trks_outer_p4->push_back( LorentzVector( -9999., -9999., -9999., -9999.) );
 
-//    }
+   }
     //residual information
     vector <float> residualX_cms2;
     vector <float> residualY_cms2;
@@ -291,6 +294,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // store vectors
   iEvent.put(vector_trks_trk_p4       , "trkstrkp4"             );
   iEvent.put(vector_trks_vertex_p4    , "trksvertexp4"          );
+  iEvent.put(vector_trks_outer_p4     , "trksouterp4"           );
   iEvent.put(vector_trks_d0           , "trksd0"                );
   iEvent.put(vector_trks_d0corr       , "trksd0corr"            );
   iEvent.put(vector_trks_d0corrPhi    , "trksd0corrPhi"         );
