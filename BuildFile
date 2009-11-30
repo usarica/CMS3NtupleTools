@@ -15,6 +15,7 @@
 <use name=DataFormats/Common>
 <use name=DataFormats/Math>
 <use name=DataFormats/PatCandidates>
+<use name=DataFormats/METReco>
 <use name=Geometry/Records>
 <use name=Geometry/CommonDetUnit>
 <use name=Geometry/TrackerGeometryBuilder>
