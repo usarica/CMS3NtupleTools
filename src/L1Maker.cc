@@ -24,6 +24,13 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig)
     produces<unsigned int>           ("l1bits3"       ).setBranchAlias("l1_bits3"        );
     produces<unsigned int>           ("l1bits4"       ).setBranchAlias("l1_bits4"        );
     produces<vector<TString> >       ("l1trigNames"   ).setBranchAlias("l1_trigNames"    );    
+
+    produces<unsigned int>           ("l1techbits1"       ).setBranchAlias("l1_techbits1"        );
+    produces<unsigned int>           ("l1techbits2"       ).setBranchAlias("l1_techbits2"        );
+    produces<unsigned int>           ("l1techbits3"       ).setBranchAlias("l1_techbits3"        );
+    produces<unsigned int>           ("l1techbits4"       ).setBranchAlias("l1_techbits4"        );
+    produces<vector<TString> >       ("l1techtrigNames"   ).setBranchAlias("l1_techtrigNames"    );
+
     produces<int>                    ("l1nmus"        ).setBranchAlias("l1_nmus"         );
     produces<int>                    ("l1nemiso"      ).setBranchAlias("l1_nemiso"       );
     produces<int>                    ("l1nemnoiso"    ).setBranchAlias("l1_nemnoiso"     );
@@ -76,7 +83,14 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<unsigned int>           l1bits2         (new unsigned int); *l1bits2 = 0;
   auto_ptr<unsigned int>           l1bits3         (new unsigned int); *l1bits3 = 0;
   auto_ptr<unsigned int>           l1bits4         (new unsigned int); *l1bits4 = 0;
-  auto_ptr<vector<TString> >       l1trigNames     (new vector<TString>); 
+  auto_ptr<vector<TString> >       l1trigNames     (new vector<TString>);
+
+  auto_ptr<unsigned int>           l1techbits1         (new unsigned int); *l1techbits1 = 0;
+  auto_ptr<unsigned int>           l1techbits2         (new unsigned int); *l1techbits2 = 0;
+  auto_ptr<unsigned int>           l1techbits3         (new unsigned int); *l1techbits3 = 0;
+  auto_ptr<unsigned int>           l1techbits4         (new unsigned int); *l1techbits4 = 0;
+  auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>);
+
   auto_ptr<int>                    l1nmus          (new int); *l1nmus = 0;
   auto_ptr<int>                    l1nemiso        (new int); *l1nemiso = 0;
   auto_ptr<int>                    l1nemnoiso      (new int); *l1nemnoiso = 0;
@@ -126,12 +140,23 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
     const L1GtTriggerMenu* menu = menuRcd.product();
 
+    edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
+    iEvent.getByLabel("gtDigis", gtRecord);
+    const DecisionWord &dWord = gtRecord->decisionWord();
+    const TechnicalTriggerWord &technicalTriggerWordBeforeMask = gtRecord->technicalTriggerWord();
+
     unsigned int l11, l12, l13, l14;
-    fillL1Info(iEvent, l11, l12, l13, l14, *l1trigNames, menu);
+    fillL1Info(iEvent, l11, l12, l13, l14, *l1trigNames, menu, dWord);
     *l1bits1  = l11;
     *l1bits2  = l12;
     *l1bits3  = l13;
     *l1bits4  = l14;
+
+    fillL1Info(iEvent, l11, l12, l13, l14, *l1techtrigNames, menu, technicalTriggerWordBeforeMask);
+    *l1techbits1  = l11;
+    *l1techbits2  = l12;
+    *l1techbits3  = l13;
+    *l1techbits4  = l14;
 
     // L1 particles
     if (fillL1Particles_) {
@@ -321,6 +346,13 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(l1bits3,        "l1bits3"         );
     iEvent.put(l1bits4,        "l1bits4"         );
     iEvent.put(l1trigNames,    "l1trigNames"     );
+
+    iEvent.put(l1techbits1,        "l1techbits1"         );
+    iEvent.put(l1techbits2,        "l1techbits2"         );
+    iEvent.put(l1techbits3,        "l1techbits3"         );
+    iEvent.put(l1techbits4,        "l1techbits4"         );
+    iEvent.put(l1techtrigNames,    "l1techtrigNames"     );
+
     iEvent.put(l1nmus,         "l1nmus"          );
     iEvent.put(l1nemiso,       "l1nemiso"        );
     iEvent.put(l1nemnoiso,     "l1nemnoiso"      );
@@ -368,11 +400,8 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 void L1Maker::fillL1Info(const Event& iEvent,
         unsigned int& l1_1, unsigned int& l1_2, unsigned int& l1_3, unsigned int& l1_4,
         std::vector<TString>& l1names,
-        const L1GtTriggerMenu* menu)
+        const L1GtTriggerMenu* menu, const DecisionWord &dWord)
 {
-    edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
-    iEvent.getByLabel("gtDigis", gtRecord);
-    const DecisionWord dWord = gtRecord->decisionWord();
 
     for(AlgorithmMap::const_iterator algo = menu->gtAlgorithmMap().begin();
             algo != menu->gtAlgorithmMap().end(); algo++)
