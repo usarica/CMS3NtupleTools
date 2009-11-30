@@ -33,7 +33,6 @@ from CMS2.NtupleMaker.metMaker_cfi import *
 from CMS2.NtupleMaker.muonMaker_cfi import *
 from CMS2.NtupleMaker.muToElsAssMaker_cfi import *
 from CMS2.NtupleMaker.muToJetAssMaker_cfi import *
-
 from CMS2.NtupleMaker.pfJetMaker_cfi import *
 from CMS2.NtupleMaker.pfmetMaker_cfi import *
 from CMS2.NtupleMaker.pftauMaker_cfi import *
@@ -46,10 +45,11 @@ from CMS2.NtupleMaker.trackToMuonAssMaker_cfi import *
 from CMS2.NtupleMaker.trkJetMaker_cfi import *
 from CMS2.NtupleMaker.trkJetSequence_cfi import *
 from CMS2.NtupleMaker.vertexMaker_cfi import *
+from CMS2.NtupleMaker.hcalNoiseSummaryMaker_cfi import *
 
 CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * cms2scCaloJetSequence * cms2TrkJetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging)
 
-eventmakers   = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker )
+eventmakers   = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNoiseSummaryMaker)
 
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
