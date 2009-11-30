@@ -118,16 +118,17 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 	scInputTags_.push_back(scInputTag_EB_);
 
         hitInputTags_.clear();
+        ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
+        ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
         hitInputTags_.push_back(ecalRecHitsInputTag_EE_);
         hitInputTags_.push_back(ecalRecHitsInputTag_EB_);
 
-	// other input tags
-	hcalRecHitsInputTag_HBHE_ = iConfig.getParameter<edm::InputTag>("hcalRecHitsInputTag_HBHE");
-	ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
-	ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
-	primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
-	electronsInputTag_ = iConfig.getParameter<edm::InputTag>("electronsInputTag");
-	//caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
+        // other input tags
+        hcalRecHitsInputTag_HBHE_ = iConfig.getParameter<edm::InputTag>("hcalRecHitsInputTag_HBHE");
+        primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
+        electronsInputTag_ = iConfig.getParameter<edm::InputTag>("electronsInputTag");
+        //caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
+
 
 	// initialise this
 	cachedCaloGeometryID_ = 0;
