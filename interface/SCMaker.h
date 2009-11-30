@@ -5,11 +5,11 @@
 // 
 /**\class SCMaker SCMaker.cc CMS2/NtupleMaker/src/SCMaker.cc
 
- Description: <one line class summary>
+Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
-*/
+Implementation:
+<Notes on implementation>
+ */
 //
 //
 #ifndef CMS2_SCMAKER_H
@@ -31,46 +31,55 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
 
+
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
+#include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+
+
 //
 // class declaration
 //
 
 class SCMaker : public edm::EDProducer {
-public:
-     explicit SCMaker (const edm::ParameterSet&);
-  
-private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+	public:
+		explicit SCMaker (const edm::ParameterSet&);
 
-     math::XYZTLorentzVectorF initP4(const math::XYZPoint &pvPos,                 
-                                    const reco::SuperCluster &sc);
+	private:
+		void beginRun( const edm::EventSetup & iSetup ) ;
+		virtual void beginJob(const edm::EventSetup&) ;
+		virtual void produce(edm::Event&, const edm::EventSetup&);
+		virtual void endJob() ;
 
-     // ----------member data ---------------------------
+		math::XYZTLorentzVectorF initP4(const math::XYZPoint &pvPos,                 
+				const reco::SuperCluster &sc);
 
-     // preselection cuts
-     double scEtMin_;
+		// ----------member data ---------------------------
 
-     // supercluster input collections
-     edm::InputTag scInputTag_EE_;
-     edm::InputTag scInputTag_EB_;
-     std::vector<edm::InputTag> scInputTags_;
+		// preselection cuts
+		double scEtMin_;
 
-     // rechit input collections
-     edm::InputTag hcalRecHitsInputTag_HBHE_;
-     edm::InputTag ecalRecHitsInputTag_EE_;
-     edm::InputTag ecalRecHitsInputTag_EB_;
+		// supercluster input collections
+		edm::InputTag scInputTag_EE_;
+		edm::InputTag scInputTag_EB_;
+		std::vector<edm::InputTag> scInputTags_;
+		std::vector<edm::InputTag> hitInputTags_;
 
-     // primary vertex collection
-     edm::InputTag primaryVertexInputTag_;
+		// rechit input collections
+		edm::InputTag hcalRecHitsInputTag_HBHE_;
+		edm::InputTag ecalRecHitsInputTag_EE_;
+		edm::InputTag ecalRecHitsInputTag_EB_;
 
-     // electrons
-     edm::InputTag electronsInputTag_;
+		// primary vertex collection
+		edm::InputTag primaryVertexInputTag_;
 
-     // access to geometry
-     unsigned long long cachedCaloGeometryID_;
-     edm::ESHandle<CaloGeometry> caloGeometry_;
+		// electrons
+		edm::InputTag electronsInputTag_;
+
+		// access to geometry
+		unsigned long long cachedCaloGeometryID_;
+		edm::ESHandle<CaloGeometry> caloGeometry_;
+		const   EcalChannelStatus *channelStatus_;
+
 
 };
 
