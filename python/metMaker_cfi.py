@@ -12,7 +12,9 @@ metMaker = cms.EDFilter("METMaker",
                         corMetGlobalMuons_tag_ = cms.InputTag("corMetGlobalMuons"    ),
                         MuonJEScorMET_tag_     = cms.InputTag("metMuonJESCorAK5CMS2" ),
                         muon_tag_              = cms.InputTag("muons"                ),
-                        muon_vm_tag_           = cms.InputTag("muonMETValueMapProducer", "muCorrData")
+                        muon_vm_tag_           = cms.InputTag("muonMETValueMapProducer", "muCorrData"),
+					    caloTower_tag_         = cms.InputTag("caloTowerMaker"),
+						useCaloTowers_         = cms.bool(True)
 )                                                              
 
 
