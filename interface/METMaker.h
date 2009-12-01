@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.h,v 1.6 2009/12/01 08:08:37 warren Exp $
+// $Id: METMaker.h,v 1.7 2009/12/01 15:41:57 kalavase Exp $
 //
 //
 
@@ -58,7 +58,8 @@ private:
   edm::InputTag muon_vm_tag;
   edm::InputTag muon_tag;
   edm::InputTag caloTowerInputTag;
-  bool useCaloTowers;
+  double towerEtThreshold;
+  
 };
 
 #endif
