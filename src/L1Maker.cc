@@ -27,8 +27,6 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig)
 
     produces<unsigned int>           ("l1techbits1"       ).setBranchAlias("l1_techbits1"        );
     produces<unsigned int>           ("l1techbits2"       ).setBranchAlias("l1_techbits2"        );
-    produces<unsigned int>           ("l1techbits3"       ).setBranchAlias("l1_techbits3"        );
-    produces<unsigned int>           ("l1techbits4"       ).setBranchAlias("l1_techbits4"        );
 
     produces<int>                    ("l1nmus"        ).setBranchAlias("l1_nmus"         );
     produces<int>                    ("l1nemiso"      ).setBranchAlias("l1_nemiso"       );
@@ -86,8 +84,6 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto_ptr<unsigned int>           l1techbits1         (new unsigned int); *l1techbits1 = 0;
   auto_ptr<unsigned int>           l1techbits2         (new unsigned int); *l1techbits2 = 0;
-  auto_ptr<unsigned int>           l1techbits3         (new unsigned int); *l1techbits3 = 0;
-  auto_ptr<unsigned int>           l1techbits4         (new unsigned int); *l1techbits4 = 0;
 
   auto_ptr<int>                    l1nmus          (new int); *l1nmus = 0;
   auto_ptr<int>                    l1nemiso        (new int); *l1nemiso = 0;
@@ -150,12 +146,11 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     *l1bits3  = l13;
     *l1bits4  = l14;
 
+	// note there are only 64 bits so only use two words
     std::vector<TString> l1techtrigNames;// = new std::vector<TString>; // this is a dummy and will not be put in the event
     fillL1Info(iEvent, l11, l12, l13, l14, l1techtrigNames, menu, technicalTriggerWordBeforeMask);
     *l1techbits1  = l11;
     *l1techbits2  = l12;
-    *l1techbits3  = l13;
-    *l1techbits4  = l14;
 
 //    delete l1techtrigNames;
 
@@ -350,8 +345,6 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     iEvent.put(l1techbits1,        "l1techbits1"         );
     iEvent.put(l1techbits2,        "l1techbits2"         );
-    iEvent.put(l1techbits3,        "l1techbits3"         );
-    iEvent.put(l1techbits4,        "l1techbits4"         );
 
     iEvent.put(l1nmus,         "l1nmus"          );
     iEvent.put(l1nemiso,       "l1nemiso"        );
