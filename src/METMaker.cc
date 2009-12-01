@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.13 2009/12/01 15:44:49 kalavase Exp $
+// $Id: METMaker.cc,v 1.14 2009/12/01 18:20:59 kalavase Exp $
 //
 //
 
@@ -224,35 +224,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > evt_ecalmet_etaslicePhi      (new vector<float>     );
   auto_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
 
-  // Calo Towers from CaloTowerMaker
- //  edm::InputTag twrs_eta_tag(caloTowerInputTag.label(),"twrseta");
-//   edm::Handle<std::vector<float> > twrs_eta_h;
-//   iEvent.getByLabel(twrs_eta_tag, twrs_eta_h);
-//   const vector<float> *twrs_eta = twrs_eta_h.product();
-
-//   edm::InputTag twrs_phi_tag(caloTowerInputTag.label(),"twrsphi");
-//   edm::Handle<std::vector<float> > twrs_phi_h;
-//   iEvent.getByLabel(twrs_phi_tag, twrs_phi_h);
-//   const vector<float> *twrs_phi = twrs_phi_h.product();
-
-//   edm::InputTag twrs_emEt_tag(caloTowerInputTag.label(),"twrsemEt");
-//   edm::Handle<std::vector<float> > twrs_emEt_h;
-//   iEvent.getByLabel(twrs_emEt_tag, twrs_emEt_h);
-//   const vector<float> *twrs_emEt = twrs_emEt_h.product();
-
-//   edm::InputTag twrs_hadEt_tag(caloTowerInputTag.label(),"twrshadEt");
-//   edm::Handle<std::vector<float> > twrs_hadEt_h;
-//   iEvent.getByLabel(twrs_hadEt_tag, twrs_hadEt_h);
-//   const vector<float> *twrs_hadEt = twrs_hadEt_h.product();
-
-//   //cout << "twrs_emEt.size = " << (*twrs_emEt).size() << endl;
-//   if( (*twrs_emEt).size() != (*twrs_phi).size() || //just to be sure...
-// 	  (*twrs_emEt).size() != (*twrs_eta).size() ||
-// 	  (*twrs_emEt).size() != (*twrs_hadEt).size() )
-// 	cout << "METMaker Error: vectors from CaloTowerMaker are not the same size" << endl;
-
-
-
   edm::Handle<CaloTowerCollection> h_caloTowers;
   iEvent.getByLabel("towerMaker", h_caloTowers);
 
@@ -347,7 +318,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
 
   //MET from Towers
-  //double twrmetx=0., twrmety=0.; //these are redundant with evt_met, but can be used for testing
   double ecalmetx=0., ecalmety=0.;
   double hcalmetx=0., hcalmety=0.;
   const unsigned int N = 84; //number eta slices: 41 on each side, plus overflow on each side (just in case)
@@ -407,49 +377,8 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     hcaletay[index] += hadEt*sin(phi);
   }	
 
-//   for( unsigned int i=0; i<(*twrs_emEt).size(); i++ ) {
-//     if( !useCaloTowers ) break; //just forget this loop if don't want this shit
-
-// 	//thresholds on towers
-// 	if( twrs_emEt->at(i) + twrs_hadEt->at(i) < 0.3 ) continue;
-	
-// 	//twrmetx  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-// 	//twrmety  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
-
-// 	ecalmetx += twrs_emEt->at(i)*cos(twrs_phi->at(i));
-// 	ecalmety += twrs_emEt->at(i)*sin(twrs_phi->at(i));
-
-// 	hcalmetx += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-// 	hcalmety += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
-
-// 	int index = -1;
-// 	for( unsigned int j=0; j<N-2; j++ ) { //see comments above, below
-// 	  if( twrs_eta->at(i) < etaranges[0] ) //overflow negative eta
-// 		index = 0;
-// 	  else if( twrs_eta->at(i) >= etaranges[j] && twrs_eta->at(i) < etaranges[j+1] )
-// 		index = j + 1;      //don't j++ here bc that changes j--see comment above
-// 	  else if( twrs_eta->at(i) > etaranges[N-2] ) //overflow positive eta--warning: uses N (another -1 bc of c++ convention of starting at 0)
-// 		index = N-1;        //warning: uses N
-// 	}
-
-// 	if( index == -1 ) { //to be safe
-// 	  cout << "METMaker: error in finding eta slice for tower " << i << endl;
-// 	  continue;
-// 	}
-// 	twretax[index]  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-// 	twretay[index]  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
-
-// 	ecaletax[index] += twrs_emEt->at(i)*cos(twrs_phi->at(i));
-// 	ecaletay[index] += twrs_emEt->at(i)*sin(twrs_phi->at(i));
-
-// 	hcaletax[index] += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-// 	hcaletay[index] += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
-//   }
-
-  //*evt_towermet = sqrt( twrmetx*twrmetx + twrmety*twrmety );
   *evt_ecalmet  = sqrt( ecalmetx*ecalmetx + ecalmety*ecalmety );
   *evt_hcalmet  = sqrt( hcalmetx*hcalmetx + hcalmety*hcalmety );
-  //*evt_towermetPhi = atan2( -twrmety, -twrmetx );
   *evt_ecalmetPhi  = atan2( -ecalmety, -ecalmetx );
   *evt_hcalmetPhi  = atan2( -hcalmety, -hcalmetx );
 
@@ -464,18 +393,18 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
 
-  iEvent.put(evt_met            ,"evtmet"           );
-  iEvent.put(evt_metPhi         ,"evtmetPhi"        );
-  iEvent.put(evt_metSig         ,"evtmetSig"        );
-  iEvent.put(evt_metHO          ,"evtmetHO"         );
-  iEvent.put(evt_metHOPhi       ,"evtmetHOPhi"      );
-  iEvent.put(evt_metHOSig       ,"evtmetHOSig"      );
-  iEvent.put(evt_metNoHF        ,"evtmetNoHF"       );
-  iEvent.put(evt_metNoHFPhi     ,"evtmetNoHFPhi"    );
-  iEvent.put(evt_metNoHFSig     ,"evtmetNoHFSig"    );
-  iEvent.put(evt_metNoHFHO      ,"evtmetNoHFHO"     );
-  iEvent.put(evt_metNoHFHOPhi   ,"evtmetNoHFHOPhi"  );
-  iEvent.put(evt_metNoHFHOSig   ,"evtmetNoHFHOSig"  );
+  iEvent.put(evt_met               ,"evtmet"              );
+  iEvent.put(evt_metPhi            ,"evtmetPhi"           );
+  iEvent.put(evt_metSig            ,"evtmetSig"           );
+  iEvent.put(evt_metHO             ,"evtmetHO"            );
+  iEvent.put(evt_metHOPhi          ,"evtmetHOPhi"         );
+  iEvent.put(evt_metHOSig          ,"evtmetHOSig"         );
+  iEvent.put(evt_metNoHF           ,"evtmetNoHF"          );
+  iEvent.put(evt_metNoHFPhi        ,"evtmetNoHFPhi"       );
+  iEvent.put(evt_metNoHFSig        ,"evtmetNoHFSig"       );
+  iEvent.put(evt_metNoHFHO         ,"evtmetNoHFHO"        );
+  iEvent.put(evt_metNoHFHOPhi      ,"evtmetNoHFHOPhi"     );
+  iEvent.put(evt_metNoHFHOSig      ,"evtmetNoHFHOSig"     );
 
   iEvent.put(evt_metOpt            ,"evtmetOpt"           );
   iEvent.put(evt_metOptPhi         ,"evtmetOptPhi"        );
@@ -497,28 +426,27 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_metMuonJESCorrPhi ,"evtmetMuonJESCorrPhi");
   iEvent.put(evt_metMuonJESCorrSig ,"evtmetMuonJESCorrSig");
 
-  iEvent.put(evt_sumet          ,"evtsumet"               );  
-  iEvent.put(evt_sumetHO        ,"evtsumetHO"		  );
-  iEvent.put(evt_sumetNoHF      ,"evtsumetNoHF"      	  );
-  iEvent.put(evt_sumetNoHFHO    ,"evtsumetNoHFHO"    	  );
-  iEvent.put(evt_sumetOpt       ,"evtsumetOpt"       	  );
-  iEvent.put(evt_sumetOptHO     ,"evtsumetOptHO"     	  );
-  iEvent.put(evt_sumetOptNoHF   ,"evtsumetOptNoHF"   	  );
-  iEvent.put(evt_sumetOptNoHFHO ,"evtsumetOptNoHFHO" 	  );
-  iEvent.put(evt_sumetMuonCorr  ,"evtsumetMuonCorr"       );
+  iEvent.put(evt_sumet             ,"evtsumet"            );  
+  iEvent.put(evt_sumetHO           ,"evtsumetHO"	  );
+  iEvent.put(evt_sumetNoHF         ,"evtsumetNoHF"        );
+  iEvent.put(evt_sumetNoHFHO       ,"evtsumetNoHFHO"      );
+  iEvent.put(evt_sumetOpt          ,"evtsumetOpt"         );
+  iEvent.put(evt_sumetOptHO        ,"evtsumetOptHO"       );
+  iEvent.put(evt_sumetOptNoHF      ,"evtsumetOptNoHF"     );
+  iEvent.put(evt_sumetOptNoHFHO    ,"evtsumetOptNoHFHO"   );
+  iEvent.put(evt_sumetMuonCorr     ,"evtsumetMuonCorr"    );
 
-  iEvent.put(mus_met_flag       ,"musmetflag"             );
-  iEvent.put(mus_met_deltax     ,"musmetdeltax"           );
-  iEvent.put(mus_met_deltay     ,"musmetdeltay"           );
+  iEvent.put(mus_met_flag          ,"musmetflag"          );
+  iEvent.put(mus_met_deltax        ,"musmetdeltax"        );
+  iEvent.put(mus_met_deltay        ,"musmetdeltay"        );
 
-  //iEvent.put(evt_towermet, "evttowermet"   );
-  iEvent.put(evt_ecalmet        ,"evtecalmet"             );
-  iEvent.put(evt_hcalmet        ,"evthcalmet"             );
-  iEvent.put(evt_ecalmetPhi     ,"evtecalmetPhi"          );
-  iEvent.put(evt_hcalmetPhi     ,"evthcalmetPhi"          );
-  iEvent.put(evt_towermet_etaslice, "evttowermetetaslice" );
-  iEvent.put(evt_ecalmet_etaslice,  "evtecalmetetaslice"  );
-  iEvent.put(evt_hcalmet_etaslice,  "evthcalmetetaslice"  );
+  iEvent.put(evt_ecalmet           ,"evtecalmet"          );
+  iEvent.put(evt_hcalmet           ,"evthcalmet"          );
+  iEvent.put(evt_ecalmetPhi        ,"evtecalmetPhi"       );
+  iEvent.put(evt_hcalmetPhi        ,"evthcalmetPhi"       );
+  iEvent.put(evt_towermet_etaslice ,"evttowermetetaslice" );
+  iEvent.put(evt_ecalmet_etaslice  ,"evtecalmetetaslice"  );
+  iEvent.put(evt_hcalmet_etaslice  ,"evthcalmetetaslice"  );
   iEvent.put(evt_towermet_etaslicePhi, "evttowermetetaslicePhi" );
   iEvent.put(evt_ecalmet_etaslicePhi,  "evtecalmetetaslicePhi"  );
   iEvent.put(evt_hcalmet_etaslicePhi,  "evthcalmetetaslicePhi"  );
