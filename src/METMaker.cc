@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.12 2009/12/01 08:08:37 warren Exp $
+// $Id: METMaker.cc,v 1.13 2009/12/01 15:44:49 kalavase Exp $
 //
 //
 
@@ -36,6 +36,8 @@ Implementation:
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/MuonReco/interface/MuonMETCorrectionData.h"
 #include "DataFormats/Common/interface/ValueMap.h" 
+
+#include "DataFormats/CaloTowers/interface/CaloTower.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
@@ -106,9 +108,23 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   produces<float> ("evtsumetMuonCorr"       ).setBranchAlias("evt_sumetMuonCorr"        );
 
   // store muon value map quantities
-  produces<vector<int> >   ("musmetflag"   ).setBranchAlias("mus_met_flag"   );
-  produces<vector<float> > ("musmetdeltax" ).setBranchAlias("mus_met_deltax" );
-  produces<vector<float> > ("musmetdeltay" ).setBranchAlias("mus_met_deltay" );
+  produces<vector<int> >   ("musmetflag"   ).setBranchAlias("mus_met_flag"              );
+  produces<vector<float> > ("musmetdeltax" ).setBranchAlias("mus_met_deltax"            );
+  produces<vector<float> > ("musmetdeltay" ).setBranchAlias("mus_met_deltay"            );
+
+
+  produces<float> ("evtecalmet"            ).setBranchAlias("evt_ecalmet"               );
+  produces<float> ("evthcalmet"            ).setBranchAlias("evt_hcalmet"               );
+  produces<float> ("evtecalmetPhi"         ).setBranchAlias("evt_ecalmetPhi"            );
+  produces<float> ("evthcalmetPhi"         ).setBranchAlias("evt_hcalmetPhi"            );
+  
+  produces<vector<float> > ("evttowermetetaslice"         ).setBranchAlias("evt_towermet_etaslice"         );
+  produces<vector<float> > ("evtecalmetetaslice"          ).setBranchAlias("evt_ecalmet_etaslice"          );
+  produces<vector<float> > ("evthcalmetetaslice"          ).setBranchAlias("evt_hcalmet_etaslice"          );
+  produces<vector<float> > ("evttowermetetaslicePhi"      ).setBranchAlias("evt_towermet_etaslicePhi"      );
+  produces<vector<float> > ("evtecalmetetaslicePhi"       ).setBranchAlias("evt_ecalmet_etaslicePhi"       );
+  produces<vector<float> > ("evthcalmetetaslicePhi"       ).setBranchAlias("evt_hcalmet_etaslicePhi"       );
+
 
   met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
   metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
@@ -127,23 +143,9 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   muon_tag              = iConfig.getParameter<edm::InputTag>("muon_tag_"   );
 
   caloTowerInputTag     = iConfig.getParameter<edm::InputTag>("caloTower_tag_");
-  useCaloTowers         = iConfig.getParameter<bool>("useCaloTowers_");
+  towerEtThreshold      = iConfig.getParameter<double>       ("towerEtThreshold_");
 
-  if( useCaloTowers ) {
-	//produces<float> ("evttowermet"         ).setBranchAlias("evt_towermet"         ); //duplicates evt_met
-	produces<float> ("evtecalmet"          ).setBranchAlias("evt_ecalmet"          );
-	produces<float> ("evthcalmet"          ).setBranchAlias("evt_hcalmet"          );
-	//produces<float> ("evttowermetPhi"         ).setBranchAlias("evt_towermetPhi"         );
-	produces<float> ("evtecalmetPhi"          ).setBranchAlias("evt_ecalmetPhi"          );
-	produces<float> ("evthcalmetPhi"          ).setBranchAlias("evt_hcalmetPhi"          );
-
-	produces<vector<float> > ("evttowermetetaslice"         ).setBranchAlias("evt_towermet_etaslice"         );
-	produces<vector<float> > ("evtecalmetetaslice"          ).setBranchAlias("evt_ecalmet_etaslice"          );
-	produces<vector<float> > ("evthcalmetetaslice"          ).setBranchAlias("evt_hcalmet_etaslice"          );
-	produces<vector<float> > ("evttowermetetaslicePhi"         ).setBranchAlias("evt_towermet_etaslicePhi"         );
-	produces<vector<float> > ("evtecalmetetaslicePhi"          ).setBranchAlias("evt_ecalmet_etaslicePhi"          );
-	produces<vector<float> > ("evthcalmetetaslicePhi"          ).setBranchAlias("evt_hcalmet_etaslicePhi"          );
-  }
+  
 }
 
 METMaker::~METMaker()
@@ -223,32 +225,36 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
 
   // Calo Towers from CaloTowerMaker
-  edm::InputTag twrs_eta_tag(caloTowerInputTag.label(),"twrseta");
-  edm::Handle<std::vector<float> > twrs_eta_h;
-  iEvent.getByLabel(twrs_eta_tag, twrs_eta_h);
-  const vector<float> *twrs_eta = twrs_eta_h.product();
+ //  edm::InputTag twrs_eta_tag(caloTowerInputTag.label(),"twrseta");
+//   edm::Handle<std::vector<float> > twrs_eta_h;
+//   iEvent.getByLabel(twrs_eta_tag, twrs_eta_h);
+//   const vector<float> *twrs_eta = twrs_eta_h.product();
 
-  edm::InputTag twrs_phi_tag(caloTowerInputTag.label(),"twrsphi");
-  edm::Handle<std::vector<float> > twrs_phi_h;
-  iEvent.getByLabel(twrs_phi_tag, twrs_phi_h);
-  const vector<float> *twrs_phi = twrs_phi_h.product();
+//   edm::InputTag twrs_phi_tag(caloTowerInputTag.label(),"twrsphi");
+//   edm::Handle<std::vector<float> > twrs_phi_h;
+//   iEvent.getByLabel(twrs_phi_tag, twrs_phi_h);
+//   const vector<float> *twrs_phi = twrs_phi_h.product();
 
-  edm::InputTag twrs_emEt_tag(caloTowerInputTag.label(),"twrsemEt");
-  edm::Handle<std::vector<float> > twrs_emEt_h;
-  iEvent.getByLabel(twrs_emEt_tag, twrs_emEt_h);
-  const vector<float> *twrs_emEt = twrs_emEt_h.product();
+//   edm::InputTag twrs_emEt_tag(caloTowerInputTag.label(),"twrsemEt");
+//   edm::Handle<std::vector<float> > twrs_emEt_h;
+//   iEvent.getByLabel(twrs_emEt_tag, twrs_emEt_h);
+//   const vector<float> *twrs_emEt = twrs_emEt_h.product();
 
-  edm::InputTag twrs_hadEt_tag(caloTowerInputTag.label(),"twrshadEt");
-  edm::Handle<std::vector<float> > twrs_hadEt_h;
-  iEvent.getByLabel(twrs_hadEt_tag, twrs_hadEt_h);
-  const vector<float> *twrs_hadEt = twrs_hadEt_h.product();
+//   edm::InputTag twrs_hadEt_tag(caloTowerInputTag.label(),"twrshadEt");
+//   edm::Handle<std::vector<float> > twrs_hadEt_h;
+//   iEvent.getByLabel(twrs_hadEt_tag, twrs_hadEt_h);
+//   const vector<float> *twrs_hadEt = twrs_hadEt_h.product();
 
-  //cout << "twrs_emEt.size = " << (*twrs_emEt).size() << endl;
-  if( (*twrs_emEt).size() != (*twrs_phi).size() || //just to be sure...
-	  (*twrs_emEt).size() != (*twrs_eta).size() ||
-	  (*twrs_emEt).size() != (*twrs_hadEt).size() )
-	cout << "METMaker Error: vectors from CaloTowerMaker are not the same size" << endl;
+//   //cout << "twrs_emEt.size = " << (*twrs_emEt).size() << endl;
+//   if( (*twrs_emEt).size() != (*twrs_phi).size() || //just to be sure...
+// 	  (*twrs_emEt).size() != (*twrs_eta).size() ||
+// 	  (*twrs_emEt).size() != (*twrs_hadEt).size() )
+// 	cout << "METMaker Error: vectors from CaloTowerMaker are not the same size" << endl;
 
+
+
+  edm::Handle<CaloTowerCollection> h_caloTowers;
+  iEvent.getByLabel("towerMaker", h_caloTowers);
 
   edm::Handle< edm::View<reco::CaloMET> > met_h;
   edm::Handle< edm::View<reco::CaloMET> > metHO_h;
@@ -361,44 +367,84 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //this array has 83 entries, making 82 bins. So offset is 1 entry from the arrays above
   double etaranges[] = {-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.5, -2.322, -2.172, -2.043, -1.93, -1.83, -1.74, -1.653, -1.566, -1.479, -1.392, -1.305, -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 0, 0.087, 0.174, 0.261, 0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.879, 0.957, 1.044, 1.131, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5, 2.650, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191};
 
-  for( unsigned int i=0; i<(*twrs_emEt).size(); i++ ) {
-	if( !useCaloTowers ) break; //just forget this loop if don't want this shit
 
-	//thresholds on towers
-	if( twrs_emEt->at(i) + twrs_hadEt->at(i) < 0.3 ) continue;
+  for(CaloTowerCollection::const_iterator it = h_caloTowers->begin();
+      it != h_caloTowers->end(); it++) {
+    
+    if(it->et() < towerEtThreshold)
+      continue;
+    double phi   = it->phi();
+    double eta   = it->eta();
+    double emEt  = it->emEt();
+    double hadEt = it->hadEt();
+    ecalmetx += emEt*cos(phi);
+    ecalmety += emEt*sin(phi);
+    
+    hcalmetx += it->hadEt()*cos(phi);
+    hcalmety += it->hadEt()*sin(phi);
+
+    int index = -1;
+    for( unsigned int j=0; j<N-2; j++ ) { //see comments above, below
+      if( eta < etaranges[0] ) //overflow negative eta
+	index = 0;
+      else if( eta >= etaranges[j] && eta < etaranges[j+1] )
+	index = j + 1;      //don't j++ here bc that changes j--see comment above
+      else if( eta > etaranges[N-2] ) //overflow positive eta--warning: uses N (another -1 bc of c++ convention of starting at 0)
+	index = N-1;        //warning: uses N
+    }
+    if( index == -1 ) { //to be safe
+      cout << "METMaker: error in finding eta slice for tower " << it - h_caloTowers->begin() << endl;
+      continue;
+    }
+    
+    twretax[index]  += emEt*cos(phi) + hadEt*cos(phi);
+    twretay[index]  += emEt*sin(phi) + hadEt*sin(phi);
+    
+    ecaletax[index] += emEt*cos(phi);
+    ecaletay[index] += emEt*sin(phi);
+
+    hcaletax[index] += hadEt*cos(phi);
+    hcaletay[index] += hadEt*sin(phi);
+  }	
+
+//   for( unsigned int i=0; i<(*twrs_emEt).size(); i++ ) {
+//     if( !useCaloTowers ) break; //just forget this loop if don't want this shit
+
+// 	//thresholds on towers
+// 	if( twrs_emEt->at(i) + twrs_hadEt->at(i) < 0.3 ) continue;
 	
-	//twrmetx  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-	//twrmety  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
+// 	//twrmetx  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
+// 	//twrmety  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
 
-	ecalmetx += twrs_emEt->at(i)*cos(twrs_phi->at(i));
-	ecalmety += twrs_emEt->at(i)*sin(twrs_phi->at(i));
+// 	ecalmetx += twrs_emEt->at(i)*cos(twrs_phi->at(i));
+// 	ecalmety += twrs_emEt->at(i)*sin(twrs_phi->at(i));
 
-	hcalmetx += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-	hcalmety += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
+// 	hcalmetx += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
+// 	hcalmety += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
 
-	int index = -1;
-	for( unsigned int j=0; j<N-2; j++ ) { //see comments above, below
-	  if( twrs_eta->at(i) < etaranges[0] ) //overflow negative eta
-		index = 0;
-	  else if( twrs_eta->at(i) >= etaranges[j] && twrs_eta->at(i) < etaranges[j+1] )
-		index = j + 1;      //don't j++ here bc that changes j--see comment above
-	  else if( twrs_eta->at(i) > etaranges[N-2] ) //overflow positive eta--warning: uses N (another -1 bc of c++ convention of starting at 0)
-		index = N-1;        //warning: uses N
-	}
+// 	int index = -1;
+// 	for( unsigned int j=0; j<N-2; j++ ) { //see comments above, below
+// 	  if( twrs_eta->at(i) < etaranges[0] ) //overflow negative eta
+// 		index = 0;
+// 	  else if( twrs_eta->at(i) >= etaranges[j] && twrs_eta->at(i) < etaranges[j+1] )
+// 		index = j + 1;      //don't j++ here bc that changes j--see comment above
+// 	  else if( twrs_eta->at(i) > etaranges[N-2] ) //overflow positive eta--warning: uses N (another -1 bc of c++ convention of starting at 0)
+// 		index = N-1;        //warning: uses N
+// 	}
 
-	if( index == -1 ) { //to be safe
-	  cout << "METMaker: error in finding eta slice for tower " << i << endl;
-	  continue;
-	}
-	twretax[index]  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-	twretay[index]  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
+// 	if( index == -1 ) { //to be safe
+// 	  cout << "METMaker: error in finding eta slice for tower " << i << endl;
+// 	  continue;
+// 	}
+// 	twretax[index]  += twrs_emEt->at(i)*cos(twrs_phi->at(i)) + twrs_hadEt->at(i)*cos(twrs_phi->at(i));
+// 	twretay[index]  += twrs_emEt->at(i)*sin(twrs_phi->at(i)) + twrs_hadEt->at(i)*sin(twrs_phi->at(i));
 
-	ecaletax[index] += twrs_emEt->at(i)*cos(twrs_phi->at(i));
-	ecaletay[index] += twrs_emEt->at(i)*sin(twrs_phi->at(i));
+// 	ecaletax[index] += twrs_emEt->at(i)*cos(twrs_phi->at(i));
+// 	ecaletay[index] += twrs_emEt->at(i)*sin(twrs_phi->at(i));
 
-	hcaletax[index] += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
-	hcaletay[index] += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
-  }
+// 	hcaletax[index] += twrs_hadEt->at(i)*cos(twrs_phi->at(i));
+// 	hcaletay[index] += twrs_hadEt->at(i)*sin(twrs_phi->at(i));
+//   }
 
   //*evt_towermet = sqrt( twrmetx*twrmetx + twrmety*twrmety );
   *evt_ecalmet  = sqrt( ecalmetx*ecalmetx + ecalmety*ecalmety );
@@ -408,39 +454,15 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_hcalmetPhi  = atan2( -hcalmety, -hcalmetx );
 
   for( unsigned int i=0; i<N; i++ ) { //put all eta slices in vector
-	if( !useCaloTowers ) break; //just forget this loop if don't want this shit
-	evt_towermet_etaslice->push_back( sqrt( twretax[i]*twretax[i]   + twretay[i]*twretay[i] ) );
-	evt_ecalmet_etaslice ->push_back( sqrt( ecaletax[i]*ecaletax[i] + ecaletay[i]*ecaletay[i] ) );
-	evt_hcalmet_etaslice ->push_back( sqrt( hcaletax[i]*hcaletax[i] + hcaletay[i]*hcaletay[i] ) );
-	evt_towermet_etaslicePhi->push_back( atan2( -twretay[i] , -twretax[i] ) );
-	evt_ecalmet_etaslicePhi ->push_back( atan2( -ecaletay[i], -ecaletax[i] ) );
-	evt_hcalmet_etaslicePhi ->push_back( atan2( -hcaletay[i], -hcaletax[i] ) );
+    evt_towermet_etaslice->push_back( sqrt( twretax[i]*twretax[i]   + twretay[i]*twretay[i] ) );
+    evt_ecalmet_etaslice ->push_back( sqrt( ecaletax[i]*ecaletax[i] + ecaletay[i]*ecaletay[i] ) );
+    evt_hcalmet_etaslice ->push_back( sqrt( hcaletax[i]*hcaletax[i] + hcaletay[i]*hcaletay[i] ) );
+    evt_towermet_etaslicePhi->push_back( atan2( -twretay[i] , -twretax[i] ) );
+    evt_ecalmet_etaslicePhi ->push_back( atan2( -ecaletay[i], -ecaletax[i] ) );
+    evt_hcalmet_etaslicePhi ->push_back( atan2( -hcaletay[i], -hcaletax[i] ) );
   }
 
-  /* //below is just testing
-  double test_metx1=0., test_mety1=0.;
-  double test_metx2=0., test_mety2=0.;
-  for( unsigned int i=0; i<(*evt_towermet_etaslice).size(); i++ ) { //put all eta slices in vector
-	test_metx1 += evt_towermet_etaslice->at(i)*cos(evt_towermet_etaslicePhi->at(i));
-	test_mety1 += evt_towermet_etaslice->at(i)*sin(evt_towermet_etaslicePhi->at(i));
-	test_metx2 += evt_ecalmet_etaslice->at(i)*cos(evt_ecalmet_etaslicePhi->at(i)) + evt_hcalmet_etaslice->at(i)*cos(evt_hcalmet_etaslicePhi->at(i));
-	test_mety2 += evt_ecalmet_etaslice->at(i)*sin(evt_ecalmet_etaslicePhi->at(i)) + evt_hcalmet_etaslice->at(i)*sin(evt_hcalmet_etaslicePhi->at(i));
-  }
 
-  double test3x = (*evt_ecalmet)*cos(*(evt_ecalmetPhi)) + (*evt_hcalmet)*cos(*(evt_hcalmetPhi));
-  double test3y = (*evt_ecalmet)*sin(*(evt_ecalmetPhi)) + (*evt_hcalmet)*sin(*(evt_hcalmetPhi));
-  double test_met3 = sqrt( test3x*test3x + test3y*test3y );
-  cout << "evt_met " << *evt_met << endl
-	   << "recalc1 " << *evt_towermet << endl
-	   << "recalc2 " << test_met3 << endl
-	   << "recalc3 " << sqrt( test_metx1*test_metx1 + test_mety1*test_mety1 ) << endl
-	   << "recalc4 " << sqrt( test_metx2*test_metx2 + test_mety2*test_mety2 ) << endl
-	   << "evt_metphi " << *evt_metPhi << endl
-	   << "recalcphi1 " << *evt_towermetPhi << endl
-	   << "recalcphi2 " << atan2(test3y, test3x) << endl
-	   << "recalcphi3 " << atan2(test_mety1, test_metx1) << endl
-	   << "recalcphi4 " << atan2(test_mety2, test_metx2) << endl;
-  */ //end test code
 
   iEvent.put(evt_met            ,"evtmet"           );
   iEvent.put(evt_metPhi         ,"evtmetPhi"        );
@@ -475,33 +497,32 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_metMuonJESCorrPhi ,"evtmetMuonJESCorrPhi");
   iEvent.put(evt_metMuonJESCorrSig ,"evtmetMuonJESCorrSig");
 
-  iEvent.put(evt_sumet          ,"evtsumet"             );  
-  iEvent.put(evt_sumetHO        ,"evtsumetHO"		);
-  iEvent.put(evt_sumetNoHF      ,"evtsumetNoHF"      	);
-  iEvent.put(evt_sumetNoHFHO    ,"evtsumetNoHFHO"    	);
-  iEvent.put(evt_sumetOpt       ,"evtsumetOpt"       	);
-  iEvent.put(evt_sumetOptHO     ,"evtsumetOptHO"     	);
-  iEvent.put(evt_sumetOptNoHF   ,"evtsumetOptNoHF"   	);
-  iEvent.put(evt_sumetOptNoHFHO ,"evtsumetOptNoHFHO" 	);
-  iEvent.put(evt_sumetMuonCorr  ,"evtsumetMuonCorr"     );
+  iEvent.put(evt_sumet          ,"evtsumet"               );  
+  iEvent.put(evt_sumetHO        ,"evtsumetHO"		  );
+  iEvent.put(evt_sumetNoHF      ,"evtsumetNoHF"      	  );
+  iEvent.put(evt_sumetNoHFHO    ,"evtsumetNoHFHO"    	  );
+  iEvent.put(evt_sumetOpt       ,"evtsumetOpt"       	  );
+  iEvent.put(evt_sumetOptHO     ,"evtsumetOptHO"     	  );
+  iEvent.put(evt_sumetOptNoHF   ,"evtsumetOptNoHF"   	  );
+  iEvent.put(evt_sumetOptNoHFHO ,"evtsumetOptNoHFHO" 	  );
+  iEvent.put(evt_sumetMuonCorr  ,"evtsumetMuonCorr"       );
 
-  iEvent.put(mus_met_flag  , "musmetflag"   );
-  iEvent.put(mus_met_deltax, "musmetdeltax" );
-  iEvent.put(mus_met_deltay, "musmetdeltay" );
+  iEvent.put(mus_met_flag       ,"musmetflag"             );
+  iEvent.put(mus_met_deltax     ,"musmetdeltax"           );
+  iEvent.put(mus_met_deltay     ,"musmetdeltay"           );
 
-  if( useCaloTowers ) {
-	//iEvent.put(evt_towermet, "evttowermet" );
-	iEvent.put(evt_ecalmet , "evtecalmet"  );
-	iEvent.put(evt_hcalmet , "evthcalmet"  );
-	iEvent.put(evt_ecalmetPhi , "evtecalmetPhi"  );
-	iEvent.put(evt_hcalmetPhi , "evthcalmetPhi"  );
-	iEvent.put(evt_towermet_etaslice, "evttowermetetaslice" );
-	iEvent.put(evt_ecalmet_etaslice,  "evtecalmetetaslice"  );
-	iEvent.put(evt_hcalmet_etaslice,  "evthcalmetetaslice"  );
-	iEvent.put(evt_towermet_etaslicePhi, "evttowermetetaslicePhi" );
-	iEvent.put(evt_ecalmet_etaslicePhi,  "evtecalmetetaslicePhi"  );
-	iEvent.put(evt_hcalmet_etaslicePhi,  "evthcalmetetaslicePhi"  );
-  }
+  //iEvent.put(evt_towermet, "evttowermet"   );
+  iEvent.put(evt_ecalmet        ,"evtecalmet"             );
+  iEvent.put(evt_hcalmet        ,"evthcalmet"             );
+  iEvent.put(evt_ecalmetPhi     ,"evtecalmetPhi"          );
+  iEvent.put(evt_hcalmetPhi     ,"evthcalmetPhi"          );
+  iEvent.put(evt_towermet_etaslice, "evttowermetetaslice" );
+  iEvent.put(evt_ecalmet_etaslice,  "evtecalmetetaslice"  );
+  iEvent.put(evt_hcalmet_etaslice,  "evthcalmetetaslice"  );
+  iEvent.put(evt_towermet_etaslicePhi, "evttowermetetaslicePhi" );
+  iEvent.put(evt_ecalmet_etaslicePhi,  "evtecalmetetaslicePhi"  );
+  iEvent.put(evt_hcalmet_etaslicePhi,  "evthcalmetetaslicePhi"  );
+  
 }
 
 //define this as a plug-in
