@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -62,7 +62,7 @@ removeMCMatching(process, 'All')
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(200)
+    input = cms.untracked.int32(1000)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -71,10 +71,8 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        #'file:TTbar_333_RelVal_1.root',
-        #'file:TTbar_333_RelVal_2.root'
-        #'file:TTbar_333_RelVal_3.root'
-	'file:/store/disk00/data/CMSSW_3_3_4_skims/bit40or41_BeamCommissioningSkim.root'
+         'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_1.root',
+        'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_2.root'
 
     ),
     #won't need this when running on actual data 
@@ -105,7 +103,7 @@ process.out_CMS2 = cms.OutputModule(
         "PoolOutputModule",
     verbose = cms.untracked.bool(True),
     dropMetaData = cms.untracked.string("NONE"),
-    fileName = cms.untracked.string('ntuple_AllModules_NoFilterLoose_data.root')
+    fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
