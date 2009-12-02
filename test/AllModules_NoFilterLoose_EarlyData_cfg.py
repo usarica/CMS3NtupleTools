@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -33,7 +33,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -42,9 +42,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:BeamCommissioning09_MinimumBias_0083_022E364E-28D9-DE11-985F-0026189438B4.root'
-    #'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_1.root',
-     #   'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_2.root'
+        '/store/data/BeamCommissioning09/MinimumBias/RECO/rereco_FIRSTCOLL_v1/0083/FE5EDBBC-7DD9-DE11-9589-001A92971B64.root'
     ),
     #won't need this when running on actual data 
     inputCommands = cms.untracked.vstring(
