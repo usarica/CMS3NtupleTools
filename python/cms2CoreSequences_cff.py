@@ -54,8 +54,7 @@ eventmakers   = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNois
 
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
-#makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * scMaker * jetMaker * scjetMaker * JPTCorrections * trkJetMaker * metMaker * tcmetMaker * calotauMaker * photonMaker)
-makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * jetMaker * JPTCorrections * trkJetMaker * caloTowerMaker * metMaker * tcmetMaker * calotauMaker * photonMaker)
+makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * scMaker * jetMaker * scjetMaker * JPTCorrections * trkJetMaker * metMaker * tcmetMaker * calotauMaker * photonMaker * caloTowerMaker)
 
 assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker)
 
