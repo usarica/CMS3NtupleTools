@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.15 2009/12/03 00:48:42 warren Exp $
+// $Id: METMaker.cc,v 1.16 2009/12/03 00:52:35 warren Exp $
 //
 //
 
@@ -363,17 +363,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  
   //ranges are symmetric about 0, last entry is upper edge of last tower.
   //this array has 83 entries, making 82 bins. So offset is 1 entry from the arrays above
-  double etaranges[] = {
-	-5.191, -4.889, -4.716, -4.538, -4.363, -4.191,	-4.013, -3.839, -3.664, -3.489,
-	-3.314, -3.139,	-2.964, -2.853, -2.650, -2.500, -2.322, -2.172, -2.043, -1.930,
-	-1.830, -1.740, -1.653, -1.566,	-1.479, -1.392, -1.305, -1.218, -1.131, -1.044,
-	-0.957, -0.879, -0.783, -0.696, -0.609, -0.522,	-0.435, -0.348, -0.261, -0.174,
-	-0.087,  0.000,  0.087,  0.174,  0.261,  0.348,  0.435,  0.522,	 0.609,  0.696,
-	 0.783,  0.879,  0.957,  1.044,  1.131,  1.218,  1.305,  1.392,  1.479,  1.566,
-	 1.653,  1.740,  1.830,  1.930,  2.043,  2.172,  2.322,  2.500,  2.650,  2.853,
-	 2.964,  3.139,	 3.314,  3.489,  3.664,  3.839,  4.013,  4.191,  4.363,  4.538,
-	 4.716,  4.889,  5.191};
-
+  double etaranges[] = {-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.5, -2.322, -2.172, -2.043, -1.93, -1.83, -1.74, -1.653, -1.566, -1.479, -1.392, -1.305, -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 0, 0.087, 0.174, 0.261, 0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.879, 0.957, 1.044, 1.131, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5, 2.650, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191};
 
   for(CaloTowerCollection::const_iterator it = h_caloTowers->begin();
       it != h_caloTowers->end(); it++) {
@@ -457,68 +447,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     evt_ecalmet_etaslicePhi ->push_back( atan2( -ecaletay[i], -ecaletax[i] ) );
     evt_hcalmet_etaslicePhi ->push_back( atan2( -hcaletay[i], -hcaletax[i] ) );
   }
-
-  //test--compare eta slices to endcap vars--all 12
-  double test_metpx=0., test_metpy=0.;
-  double test_metepx=0., test_metepy=0.;
-  double test_methpx=0., test_methpy=0.;
-  double test_metmx=0., test_metmy=0.;
-  double test_metemx=0., test_metemy=0.;
-  double test_methmx=0., test_methmy=0.;
-  //cout << 
-  for( unsigned int i=0; i<25; i++ ) { //put endcap m eta slices in vector
-	test_metmx += evt_towermet_etaslice->at(i)*cos(evt_towermet_etaslicePhi->at(i));
-	test_metmy += evt_towermet_etaslice->at(i)*sin(evt_towermet_etaslicePhi->at(i));
-	test_metemx += evt_ecalmet_etaslice->at(i)*cos(evt_ecalmet_etaslicePhi->at(i));
-	test_metemy += evt_ecalmet_etaslice->at(i)*sin(evt_ecalmet_etaslicePhi->at(i));
-	test_methmx += evt_hcalmet_etaslice->at(i)*cos(evt_hcalmet_etaslicePhi->at(i));
-	test_methmy += evt_hcalmet_etaslice->at(i)*sin(evt_hcalmet_etaslicePhi->at(i));
-  }
-  for( unsigned int i=59; i<84; i++ ) { //put endcap p eta slices in vector
-	test_metpx += evt_towermet_etaslice->at(i)*cos(evt_towermet_etaslicePhi->at(i));
-	test_metpy += evt_towermet_etaslice->at(i)*sin(evt_towermet_etaslicePhi->at(i));
-	test_metepx += evt_ecalmet_etaslice->at(i)*cos(evt_ecalmet_etaslicePhi->at(i));
-	test_metepy += evt_ecalmet_etaslice->at(i)*sin(evt_ecalmet_etaslicePhi->at(i));
-	test_methpx += evt_hcalmet_etaslice->at(i)*cos(evt_hcalmet_etaslicePhi->at(i));
-	test_methpy += evt_hcalmet_etaslice->at(i)*sin(evt_hcalmet_etaslicePhi->at(i));
-  }
-  cout << "met p " << *evt_endcapp_met << endl
-	   << "      " << sqrt( test_metpx*test_metpx + test_metpy*test_metpy ) << endl
-
-	   << "ecalp " << *evt_ecalendcapp_met << endl
-	   << "      " << sqrt( test_metepx*test_metepx + test_metepy*test_metepy ) << endl
-
-	   << "hcalp " << *evt_hcalendcapp_met << endl
-	   << "      " << sqrt( test_methpx*test_methpx + test_methpy*test_methpy ) << endl
-
-	   << "met m " << *evt_endcapm_met << endl
-	   << "      " << sqrt( test_metmx*test_metmx + test_metmy*test_metmy ) << endl
-
-	   << "ecalm " << *evt_ecalendcapm_met << endl
-	   << "      " << sqrt( test_metemx*test_metemx + test_metemy*test_metemy ) << endl
-
-	   << "hcalm " << *evt_hcalendcapm_met << endl
-	   << "      " << sqrt( test_methmx*test_methmx + test_methmy*test_methmy ) << endl
-
-	   << "metphi p " << *evt_endcapp_metPhi << endl
-	   << "         " << atan2( test_metpy, test_metpx ) << endl //no minus bc these were put in above
-
-	   << "ecalphi p " << *evt_ecalendcapp_metPhi << endl
-	   << "          " << atan2( test_metepy, test_metepx ) << endl
-
-	   << "hcalphi p " << *evt_hcalendcapp_metPhi << endl
-	   << "          " << atan2( test_methpy, test_methpx ) << endl
-
-	   << "metphi m " << *evt_endcapm_metPhi << endl
-	   << "         " << atan2( test_metmy, test_metmx ) << endl
-
-	   << "ecalphi m " << *evt_ecalendcapm_metPhi << endl
-	   << "          " << atan2( test_metemy, test_metemx ) << endl
-
-	   << "hcalphi m " << *evt_hcalendcapm_metPhi << endl
-	   << "          " << atan2( test_methmy, test_methmx ) << endl;
-
-  //end test
 
   iEvent.put(evt_met               ,"evtmet"              );
   iEvent.put(evt_metPhi            ,"evtmetPhi"           );
