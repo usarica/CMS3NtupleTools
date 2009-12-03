@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.23 2009/12/03 23:12:35 yanjuntu Exp $
+// $Id: TrackMaker.cc,v 1.24 2009/12/03 23:30:04 fgolf Exp $
 //
 //
 
@@ -95,6 +95,10 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
   produces<vector<int> >                ("trksalgo"       ).setBranchAlias("trks_algo"       );
   
+  produces<vector<int> >                ("trksnlayers"    ).setBranchAlias("trks_nlayers"    );
+  produces<vector<int> >                ("trksnlayers3D"  ).setBranchAlias("trks_nlayers3D"  );
+  produces<vector<int> >                ("trksnlayersLost").setBranchAlias("trks_nlayersLost");
+
    //Hit Pattern information
 
   produces<vector<LorentzVector> >  ("trksinnerposition"           ).setBranchAlias("trks_inner_position"         );
@@ -159,6 +163,10 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<int> >	       trks_layer1_layer            (new vector<int>            );
   std::auto_ptr<vector<int> >	       trks_exp_innerlayers         (new vector<int>		); 
   std::auto_ptr<vector<int> >	       trks_exp_outerlayers         (new vector<int>		); 
+
+  std::auto_ptr<vector<int> > vector_trks_nlayers     (new vector<int> );
+  std::auto_ptr<vector<int> > vector_trks_nlayers3D   (new vector<int> );
+  std::auto_ptr<vector<int> > vector_trks_nlayersLost (new vector<int> );
 
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
@@ -376,6 +384,9 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     // *****************************************************
 
+     vector_trks_nlayers    ->push_back( i->hitPattern().trackerLayersWithMeasurement() );
+     vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
+     vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement() );
 
   }
 
@@ -401,7 +412,10 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_algo         , "trksalgo"              );
 
   iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
- 
+
+  iEvent.put(vector_trks_nlayers    , "trksnlayers"    );
+  iEvent.put(vector_trks_nlayers3D  , "trksnlayers3D"  );
+  iEvent.put(vector_trks_nlayersLost, "trksnlayersLost");
 
   //Hit Pattern Information
 
