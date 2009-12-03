@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.16 2009/12/03 00:52:35 warren Exp $
+// $Id: METMaker.cc,v 1.17 2009/12/03 18:21:29 warren Exp $
 //
 //
 
@@ -397,6 +397,8 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  ephcaly += hadEt*sin(phi);
 	}
 
+	if( !make_eta_rings ) continue; //rest of loop is just eta rings, so skip if false
+
     int index = -1;
     for( unsigned int j=0; j<N-2; j++ ) { //see comments above, below
       if( eta < etaranges[0] ) //overflow negative eta
@@ -440,6 +442,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_hcalendcapm_metPhi = atan2( -emhcaly, -emhcalx ); 
 
   for( unsigned int i=0; i<N; i++ ) { //put all eta slices in vector
+	if( !make_eta_rings ) break; //no point pushing if not putting
     evt_towermet_etaslice->push_back( sqrt( twretax[i]*twretax[i]   + twretay[i]*twretay[i] ) );
     evt_ecalmet_etaslice ->push_back( sqrt( ecaletax[i]*ecaletax[i] + ecaletay[i]*ecaletay[i] ) );
     evt_hcalmet_etaslice ->push_back( sqrt( hcaletax[i]*hcaletax[i] + hcaletay[i]*hcaletay[i] ) );
