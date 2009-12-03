@@ -35,6 +35,8 @@ Implementation:
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+
 
 //
 // class declaration
@@ -50,10 +52,20 @@ class SCMaker : public edm::EDProducer {
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;
 
+		// used by mc debugging
+        	void closestMCParticle(const HepMC::GenEvent *genEvent, const reco::SuperCluster &sc,
+                                      double &dRClosest, double &energyClosest);
+	        float ecalEta(float EtaParticle , float Zvertex, float plane_Radius);
+		//
+
 		math::XYZTLorentzVectorF initP4(const math::XYZPoint &pvPos,                 
 				const reco::SuperCluster &sc);
 
 		// ----------member data ---------------------------
+
+		// mc debugging
+		bool debug_;
+	        edm::InputTag MCTruthCollection_;
 
 		// preselection cuts
 		double scEtMin_;

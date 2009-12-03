@@ -34,6 +34,7 @@ Implementation:
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/Common/interface/Ref.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -102,6 +103,12 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 	// match to electrons
 	produces<std::vector<int> >("scselsidx").setBranchAlias("scs_elsidx");
 
+	debug_ = iConfig.getParameter<bool>("debug");
+	if (debug_) {
+		produces<std::vector<float>         >("scsmcdr"            ).setBranchAlias("scs_mc_dr"           );
+		produces<std::vector<float>         >("scsmcenergy"           ).setBranchAlias("scs_mc_energy"          );
+	}
+
 	// add superclusters to the ntuple if they have ET > scEtMin_
 	scEtMin_ = iConfig.getParameter<double>("scEtMin");
 
@@ -117,18 +124,19 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 	scInputTags_.push_back(scInputTag_EE_);
 	scInputTags_.push_back(scInputTag_EB_);
 
-        hitInputTags_.clear();
-        ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
-        ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
-        hitInputTags_.push_back(ecalRecHitsInputTag_EE_);
-        hitInputTags_.push_back(ecalRecHitsInputTag_EB_);
+	hitInputTags_.clear();
+	ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
+	ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+	hitInputTags_.push_back(ecalRecHitsInputTag_EE_);
+	hitInputTags_.push_back(ecalRecHitsInputTag_EB_);
 
-        // other input tags
-        hcalRecHitsInputTag_HBHE_ = iConfig.getParameter<edm::InputTag>("hcalRecHitsInputTag_HBHE");
-        primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
-        electronsInputTag_ = iConfig.getParameter<edm::InputTag>("electronsInputTag");
-        //caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
+	// other input tags
+	hcalRecHitsInputTag_HBHE_ = iConfig.getParameter<edm::InputTag>("hcalRecHitsInputTag_HBHE");
+	primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
+	electronsInputTag_ = iConfig.getParameter<edm::InputTag>("electronsInputTag");
+	//caloTowersInputTag_ = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
 
+	MCTruthCollection_ = iConfig.getParameter<edm::InputTag>("MCTruthCollection");
 
 	// initialise this
 	cachedCaloGeometryID_ = 0;
@@ -137,10 +145,10 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 
 void SCMaker::beginRun( const edm::EventSetup & iSetup )
 {
-        edm::ESHandle<EcalChannelStatus> chStatus;
-        iSetup.get<EcalChannelStatusRcd>().get(chStatus);
-        // where const EcalChannelStatusCode * channelStatus;
-        channelStatus_ = chStatus.product();
+	edm::ESHandle<EcalChannelStatus> chStatus;
+	iSetup.get<EcalChannelStatusRcd>().get(chStatus);
+	// where const EcalChannelStatusCode * channelStatus;
+	channelStatus_ = chStatus.product();
 }
 
 void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -241,6 +249,10 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<float> > vector_scs_sigmaIPhiIPhi(new std::vector<float>);
 	std::auto_ptr<std::vector<int> > vector_scs_elsidx(new std::vector<int>);
 
+	// for debugging - will only be filled and put in event if debug_ == true
+	std::auto_ptr<std::vector<float> > vector_scs_mc_energy (new std::vector<float>); 
+	std::auto_ptr<std::vector<float> > vector_scs_mc_dr     (new std::vector<float>); 
+
 	*evt_nscs = 0;
 	// there are multiple supercluster collections. In the ntuple
 	// these will become concatonated
@@ -257,6 +269,13 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		}
 		const reco::SuperClusterCollection *scCollection = scHandle.product();
 
+		const HepMC::GenEvent* genEvent = 0;
+		if (debug_) {
+			edm::Handle<edm::HepMCProduct> pMCTruth ;
+			iEvent.getByLabel(MCTruthCollection_, pMCTruth);
+			genEvent = pMCTruth->GetEvent();
+		}
+
 		// get hits
 		edm::Handle<EcalRecHitCollection> rhcHandle;
 		iEvent.getByLabel(hitInputTags_[i], rhcHandle);
@@ -268,6 +287,16 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 			// do ET cut
 			if ( (sc->energy()/cosh(sc->eta())) < scEtMin_) continue;
+
+			if (debug_) {
+				// truth
+				double dRClosest = 999.9;
+				double energyClosest = 0;
+				closestMCParticle(genEvent, *sc, dRClosest, energyClosest);
+				// fill vector
+				vector_scs_mc_energy      ->push_back(energyClosest        );
+				vector_scs_mc_dr       ->push_back( dRClosest         );
+			}
 
 			LorentzVector p4 = initP4(pv, *sc);
 			vector_scs_p4->push_back( p4 );
@@ -282,8 +311,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 			//vector_scs_hd1->push_back(egammaIsoD1.getTowerEtSum(&(*sc)) );
 			//vector_scs_hd2->push_back(egammaIsoD2.getTowerEtSum(&(*sc)) );
 
-                        DetId seedId = sc->seed()->seed();
-                        EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
+			DetId seedId = sc->seed()->seed();
+			EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
 			vector_scs_eSeed->push_back( seedHit->energy() );
 			//      vector_scs_severitySeed->push_back ( EcalSeverityLevelAlgo::severityLevel(seedId, *recHits, *channelStatus_ ) );
 			vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
@@ -347,10 +376,10 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_scs_hoe, "scshoe");
 	//iEvent.put(vector_scs_hd1, "scshd1");
 	//iEvent.put(vector_scs_hd2, "scshd2");
-        iEvent.put(vector_scs_eSeed, "scseSeed");
-        iEvent.put(vector_scs_severitySeed, "scsseveritySeed");
-        iEvent.put(vector_scs_e2nd, "scse2nd");
-        iEvent.put(vector_scs_eMax, "scseMax");
+	iEvent.put(vector_scs_eSeed, "scseSeed");
+	iEvent.put(vector_scs_severitySeed, "scsseveritySeed");
+	iEvent.put(vector_scs_e2nd, "scse2nd");
+	iEvent.put(vector_scs_eMax, "scseMax");
 
 	iEvent.put(vector_scs_e1x3, "scse1x3");
 	iEvent.put(vector_scs_e3x1, "scse3x1");
@@ -370,6 +399,11 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_scs_clustersSize, "scsclustersSize");
 	iEvent.put(vector_scs_crystalsSize, "scscrystalsSize");
 	iEvent.put(vector_scs_elsidx, "scselsidx");
+
+	if (debug_) {
+		iEvent.put(vector_scs_mc_dr           ,"scsmcdr"          );
+		iEvent.put(vector_scs_mc_energy          ,"scsmcenergy"         );
+	}
 
 	delete mhbhe;
 
@@ -401,6 +435,87 @@ SCMaker::beginJob(const edm::EventSetup&)
 	void 
 SCMaker::endJob() 
 {
+}
+
+//
+// Closest MC Particle
+//
+void SCMaker::closestMCParticle(const HepMC::GenEvent *genEvent, const reco::SuperCluster &sc,
+		double &dRClosest, double &energyClosest)
+{
+
+	// SuperCluster eta, phi
+	double scEta = sc.eta();
+	double scPhi = sc.phi();
+
+	// initialize dRClosest to a large number
+	dRClosest = 999.9;
+
+	// loop over the MC truth particles to find the
+	// closest to the superCluster in dR space
+	for(HepMC::GenEvent::particle_const_iterator currentParticle = genEvent->particles_begin();
+			currentParticle != genEvent->particles_end(); currentParticle++ )
+	{
+		if((*currentParticle)->status() == 3 && abs((*currentParticle)->pdg_id()) == 11)
+		{
+			// need GenParticle in ECAL co-ordinates
+			HepMC::FourVector vtx = (*currentParticle)->production_vertex()->position();
+			double phiTrue = (*currentParticle)->momentum().phi();
+			double etaTrue = ecalEta((*currentParticle)->momentum().eta(), vtx.z()/10., vtx.perp()/10.);
+
+			double dPhi = reco::deltaPhi(phiTrue, scPhi);
+			double dEta = scEta - etaTrue;
+			double deltaR = std::sqrt(dPhi*dPhi + dEta*dEta);
+
+			if(deltaR < dRClosest)
+			{
+				dRClosest = deltaR;
+				energyClosest = (*currentParticle)->momentum().e();
+			}
+
+		} // end if stable particle     
+
+	} // end loop on get particles
+
+}
+
+//
+// Compute Eta in the ECAL co-ordinate system
+//
+float SCMaker::ecalEta(float EtaParticle , float Zvertex, float plane_Radius)
+{
+	const float R_ECAL           = 136.5;
+	const float Z_Endcap         = 328.0;
+	const float etaBarrelEndcap  = 1.479;
+
+	if(EtaParticle != 0.)
+	{
+		float Theta = 0.0  ;
+		float ZEcal = (R_ECAL-plane_Radius)*sinh(EtaParticle)+Zvertex;
+
+		if(ZEcal != 0.0) Theta = atan(R_ECAL/ZEcal);
+		if(Theta<0.0) Theta = Theta+Geom::pi() ;
+
+		float ETA = - log(tan(0.5*Theta));
+
+		if( fabs(ETA) > etaBarrelEndcap )
+		{
+			float Zend = Z_Endcap ;
+			if(EtaParticle<0.0 )  Zend = -Zend ;
+			float Zlen = Zend - Zvertex ;
+			float RR = Zlen/sinh(EtaParticle);
+			Theta = atan((RR+plane_Radius)/Zend);
+			if(Theta<0.0) Theta = Theta+Geom::pi() ;
+			ETA = - log(tan(0.5*Theta));
+		}
+
+		return ETA;
+	}
+	else
+	{
+		edm::LogWarning("")  << "[EgammaSuperClusters::ecalEta] Warning: Eta equals to zero, not correcting" ;
+		return EtaParticle;
+	}
 }
 
 //define this as a plug-in
