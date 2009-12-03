@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.22 2009/11/24 18:39:17 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.23 2009/12/03 23:12:35 yanjuntu Exp $
 //
 //
 
@@ -52,6 +52,12 @@
 #include "CondFormats/AlignmentRecord/interface/GlobalPositionRcd.h"
 
 #include "DataFormats/TrackReco/interface/HitPattern.h"
+#include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
+#include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
+#include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
+#include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -89,10 +95,19 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
   produces<vector<int> >                ("trksalgo"       ).setBranchAlias("trks_algo"       );
   
-  produces<vector<vector<int> > >       ("trkshittype"    ).setBranchAlias("trks_hit_type"         ); // hitType                                            
-  produces<vector<vector<float> > >     ("trksresidualX"  ).setBranchAlias("trks_residualX"        ); // residualX                                          
-  produces<vector<vector<float> > >     ("trksresidualY"  ).setBranchAlias("trks_residualY"        ); // residualY
-  produces<vector<vector<int> > >       ("trkshitsubstructure"    ).setBranchAlias("trks_hit_substructure"         ); // substructure       
+   //Hit Pattern information
+
+  produces<vector<LorentzVector> >  ("trksinnerposition"           ).setBranchAlias("trks_inner_position"         );
+  produces<vector<LorentzVector> >  ("trksouterposition"           ).setBranchAlias("trks_outer_position"         );
+  produces<vector<int> >            ("trksvalidpixelhits"          ).setBranchAlias("trks_valid_pixelhits"        );
+  produces<vector<int> >            ("trkslostpixelhits"           ).setBranchAlias("trks_lost_pixelhits"         );
+  produces<vector<int> >            ("trkslayer1sizerphi"          ).setBranchAlias("trks_layer1_sizerphi"        ); 
+  produces<vector<int> >            ("trkslayer1sizerz"            ).setBranchAlias("trks_layer1_sizerz"          ); 
+  produces<vector<float> >          ("trkslayer1charge"            ).setBranchAlias("trks_layer1_charge"          ); 
+  produces<vector<int> >            ("trkslayer1det"               ).setBranchAlias("trks_layer1_det"             );
+  produces<vector<int> >            ("trkslayer1layer"             ).setBranchAlias("trks_layer1_layer"           ); 
+  produces<vector<int> >            ("trksexpinnerlayers"          ).setBranchAlias("trks_exp_innerlayers"        );
+  produces<vector<int> >            ("trksexpouterlayers"          ).setBranchAlias("trks_exp_outerlayers"        );   
 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -131,10 +146,19 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
   std::auto_ptr<vector<int> >           vector_trks_algo        (new vector<int>                );
 
-  std::auto_ptr<vector<vector<float> > >     vector_trks_residualX       (new vector<vector<float> >    );
-  std::auto_ptr<vector<vector<float> > >     vector_trks_residualY       (new vector<vector<float> >    );
-  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_type        (new vector<vector<int> >      );
-  std::auto_ptr<vector<vector<int> > >       vector_trks_hit_substructure (new vector<vector<int> >     );
+   //HitPattern information
+  //
+  std::auto_ptr<vector<LorentzVector> >trks_inner_position          (new vector<LorentzVector>  );
+  std::auto_ptr<vector<LorentzVector> >trks_outer_position          (new vector<LorentzVector>  );
+  std::auto_ptr<vector<int> >	       trks_valid_pixelhits         (new vector<int>	        ); 
+  std::auto_ptr<vector<int> >	       trks_lost_pixelhits          (new vector<int>        	); 
+  std::auto_ptr<vector<int> >	       trks_layer1_sizerphi         (new vector<int>	        ); 
+  std::auto_ptr<vector<int> >	       trks_layer1_sizerz           (new vector<int>	        ); 
+  std::auto_ptr<vector<float> >	       trks_layer1_charge           (new vector<float>	        );
+  std::auto_ptr<vector<int> >	       trks_layer1_det              (new vector<int>	        );
+  std::auto_ptr<vector<int> >	       trks_layer1_layer            (new vector<int>            );
+  std::auto_ptr<vector<int> >	       trks_exp_innerlayers         (new vector<int>		); 
+  std::auto_ptr<vector<int> >	       trks_exp_outerlayers         (new vector<int>		); 
 
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
@@ -246,47 +270,111 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_trks_outer_p4->push_back( LorentzVector( -9999., -9999., -9999., -9999.) );
 
    }
-    //residual information
-    vector <float> residualX_cms2;
-    vector <float> residualY_cms2;
-    vector <int>   hit_type_cms2;
-    vector <int>   hit_substructure_cms2;
-    bool valid_hit = false;
-    int sign = 1 ;
-    const reco::HitPattern& p = i->hitPattern();
-     for(trackingRecHit_iterator ihit = i->recHitsBegin();
-                    ihit != i->recHitsEnd(); ++ihit){
-       int k = ihit-i->recHitsBegin();
-       Point2DBase<float, LocalTag> localpoint_1(0.0,0.0);
-       Point2DBase<float, LocalTag> localpoint_2(i->residualX(k),0);
-       GlobalPoint gpos_1 = theG->idToDet((*ihit)->geographicalId())->surface().toGlobal(localpoint_1);
-       GlobalPoint gpos_2 = theG->idToDet((*ihit)->geographicalId())->surface().toGlobal(localpoint_2);
-       if (gpos_2.barePhi()>= gpos_1.barePhi()) sign = 1;
-       else sign = -1;
-       uint32_t hit_pattern = p.getHitPattern(k);
-       valid_hit = p.validHitFilter(hit_pattern);
-       
-       hit_type_cms2.push_back( p.getHitType(hit_pattern));
-       hit_substructure_cms2.push_back( p.getSubStructure(hit_pattern));
-       if(valid_hit){
-	 
-	 residualX_cms2.push_back(fabs(i->residualX(k))*sign );
-	 residualY_cms2.push_back(i->residualY(k));
-	 
-       }
-       else{
-	 
-	 residualX_cms2.push_back( -9999.);
-	 residualY_cms2.push_back( -9999.);
 
-       }
-       
-     }
+    /////hit pattern
+    trks_inner_position ->push_back(LorentzVector(i->innerPosition().x(), i->innerPosition().y() , i->innerPosition().z(), 0 ));
+    trks_outer_position ->push_back(LorentzVector(i->outerPosition().x(), i->outerPosition().y() , i->outerPosition().z(), 0 ));
+    const reco::HitPattern& pattern = i->hitPattern();
+    const reco::HitPattern& p_inner = i->trackerExpectedHitsInner();
+    const reco::HitPattern& p_outer = i->trackerExpectedHitsOuter();
+    trks_exp_innerlayers    -> push_back(p_inner.numberOfHits());
+    trks_exp_outerlayers    -> push_back(p_outer.numberOfHits());
+    bool valid_hit      = false;
+    uint32_t hit_pattern; 
+    int i_layer       = 1;
+    int side = -1;
+    bool pixel_hit   = false;
+    bool strip_hit   = false;
 
-     vector_trks_hit_type           ->push_back(hit_type_cms2                 );
-     vector_trks_hit_substructure   ->push_back(hit_substructure_cms2         );
-     vector_trks_residualX          ->push_back(residualX_cms2                );
-     vector_trks_residualY          ->push_back(residualY_cms2                );
+    int pixel_size;
+    int pixel_sizeX;
+    int pixel_sizeY;
+    float pixel_charge;
+    int det;
+    int layer;
+
+    typedef edm::Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
+    typedef edm::Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
+
+
+    for(trackingRecHit_iterator ihit = i->recHitsBegin(); 
+	ihit != i->recHitsEnd(); ++ihit){
+      if(i_layer > 1) break;
+      int k = ihit-i->recHitsBegin();
+      hit_pattern = pattern.getHitPattern(k);
+      valid_hit = pattern.validHitFilter(hit_pattern);
+      pixel_hit = pattern.pixelHitFilter(hit_pattern);
+      strip_hit = pattern.stripHitFilter(hit_pattern);
+      side      = (int)pattern.getSide(hit_pattern);
+      det       = (int)pattern.getSubStructure(hit_pattern);
+      layer     = (int)pattern.getLayer(hit_pattern);
+
+      if(!valid_hit) continue;
+      if(pixel_hit){
+
+	const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
+	assert(pixel_hit_cast != 0);
+	pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
+
+	pixel_size   = (int)pixel_cluster->size(); 
+	pixel_sizeX  = (int)pixel_cluster->sizeX(); 
+	pixel_sizeY  = (int)pixel_cluster->sizeY(); 
+	pixel_charge = (float)pixel_cluster->charge();
+
+	if(i_layer == 1){
+	  trks_layer1_sizerphi ->push_back(pixel_sizeX);
+	  trks_layer1_sizerz   ->push_back(pixel_sizeY);
+	  trks_layer1_charge   ->push_back(pixel_charge);
+	  trks_layer1_det      ->push_back(det);
+	  trks_layer1_layer    ->push_back(layer);
+	  i_layer++;
+
+	}
+
+      }
+
+      else if (strip_hit){
+	const SiStripRecHit2D *strip_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+	ClusterRef const& cluster = strip_hit_cast->cluster();
+
+	int cluster_size   = (int)cluster->amplitudes().size();
+	int cluster_charge = 0;
+	double   cluster_weight_size = 0.0;
+	int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
+
+	for(int istrip = 0; istrip < cluster_size; istrip++){
+	  cluster_charge += (int)cluster->amplitudes().at(istrip);
+	  cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
+	}
+	cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
+
+	if(i_layer == 1){
+	  if(side==0) 
+	    {
+	      trks_layer1_sizerphi ->push_back(cluster_size);
+	      trks_layer1_sizerz   ->push_back(0);
+	    }
+
+	  else
+	    {
+	      trks_layer1_sizerphi ->push_back(0);
+	      trks_layer1_sizerz   ->push_back(cluster_size);
+	    } 
+
+	  trks_layer1_charge   ->push_back(cluster_charge);
+	  trks_layer1_det      ->push_back(det);
+	  trks_layer1_layer    ->push_back(layer);
+	  i_layer++;
+	}
+      }
+
+    }
+
+    trks_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
+    trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
+
+
+    // *****************************************************
 
 
   }
@@ -313,10 +401,21 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_algo         , "trksalgo"              );
 
   iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
-  iEvent.put(vector_trks_residualX ,    "trksresidualX"         );
-  iEvent.put(vector_trks_residualY ,    "trksresidualY"         );
-  iEvent.put(vector_trks_hit_type ,     "trkshittype"           );
-  iEvent.put(vector_trks_hit_substructure ,     "trkshitsubstructure"           );
+ 
+
+  //Hit Pattern Information
+
+  iEvent.put(trks_inner_position  , "trksinnerposition"  );
+  iEvent.put(trks_outer_position  , "trksouterposition"  );
+  iEvent.put(trks_valid_pixelhits , "trksvalidpixelhits" );
+  iEvent.put(trks_lost_pixelhits  , "trkslostpixelhits"  );
+  iEvent.put(trks_layer1_layer    , "trkslayer1layer"    );
+  iEvent.put(trks_layer1_sizerphi , "trkslayer1sizerphi" );
+  iEvent.put(trks_layer1_sizerz   , "trkslayer1sizerz"   );
+  iEvent.put(trks_layer1_charge   , "trkslayer1charge"   );
+  iEvent.put(trks_layer1_det      , "trkslayer1det"      );
+  iEvent.put(trks_exp_innerlayers , "trksexpinnerlayers" );
+  iEvent.put(trks_exp_outerlayers , "trksexpouterlayers" );
   
 }
 
