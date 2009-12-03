@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.38 2009/11/18 21:46:10 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.39 2009/12/03 23:10:55 yanjuntu Exp $
 //
 //
 
@@ -115,7 +115,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float> >     ("elseOverPIn"                ).setBranchAlias("els_eOverPIn"               );
   produces<vector<float> >     ("elseSeedOverPOut"           ).setBranchAlias("els_eSeedOverPOut"          );
   produces<vector<float> >     ("elseSeedOverPIn"            ).setBranchAlias("els_eSeedOverPIn"           );
-  produces<vector<float> >     ("elseOverPOut"            ).setBranchAlias("els_eOverPOut"           );
+  produces<vector<float> >     ("elseOverPOut"               ).setBranchAlias("els_eOverPOut"              );
 
   produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
   produces<vector<float> >     ("elsHcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
@@ -188,18 +188,18 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<LorentzVector> >  ("elsvertexp4"           ).setBranchAlias("els_vertex_p4"              );
 
   //Hit Pattern information
-  produces<vector<int> >       ("elslayer1layer"             ).setBranchAlias("els_layer1_layer"           ); 
-  produces<vector<double> >    ("elsinnerpositionx"          ).setBranchAlias("els_inner_positionx"        );
-  produces<vector<double> >    ("elsinnerpositiony"          ).setBranchAlias("els_inner_positiony"        );
-  produces<vector<double> >    ("elsinnerpositionz"          ).setBranchAlias("els_inner_positionz"        );
-  produces<vector<int> >       ("elsvalidpixelhits"          ).setBranchAlias("els_valid_pixelhits"        );
-  produces<vector<int> >       ("elslostpixelhits"           ).setBranchAlias("els_lost_pixelhits"         );
-  produces<vector<int> >       ("elslayer1sizerphi"          ).setBranchAlias("els_layer1_sizerphi"        ); 
-  produces<vector<int> >       ("elslayer1sizerz"            ).setBranchAlias("els_layer1_sizerz"          ); 
-  produces<vector<float> >     ("elslayer1charge"            ).setBranchAlias("els_layer1_charge"          ); 
-  produces<vector<int> >       ("elslayer1det"               ).setBranchAlias("els_layer1_det"             );
-  produces<vector<int> >       ("elsninnerlayers"            ).setBranchAlias("els_n_inner_layers"         );
-  produces<vector<int> >       ("elsnouterlayers"            ).setBranchAlias("els_n_outer_layers"         );   
+
+  produces<vector<LorentzVector> >  ("elsinnerposition"           ).setBranchAlias("els_inner_position"         );
+  produces<vector<LorentzVector> >  ("elsouterposition"           ).setBranchAlias("els_outer_position"         );
+  produces<vector<int> >            ("elsvalidpixelhits"          ).setBranchAlias("els_valid_pixelhits"        );
+  produces<vector<int> >            ("elslostpixelhits"           ).setBranchAlias("els_lost_pixelhits"         );
+  produces<vector<int> >            ("elslayer1sizerphi"          ).setBranchAlias("els_layer1_sizerphi"        ); 
+  produces<vector<int> >            ("elslayer1sizerz"            ).setBranchAlias("els_layer1_sizerz"          ); 
+  produces<vector<float> >          ("elslayer1charge"            ).setBranchAlias("els_layer1_charge"          ); 
+  produces<vector<int> >            ("elslayer1det"               ).setBranchAlias("els_layer1_det"             );
+  produces<vector<int> >            ("elslayer1layer"             ).setBranchAlias("els_layer1_layer"           ); 
+  produces<vector<int> >            ("elsexpinnerlayers"          ).setBranchAlias("els_exp_innerlayers"        );
+  produces<vector<int> >            ("elsexpouterlayers"          ).setBranchAlias("els_exp_outerlayers"        );   
 	
   //CTF track matching stuff
   produces<vector<int>    >    ("elstrkidx"                  ).setBranchAlias("els_trkidx"                 );// track index matched to electron
@@ -364,18 +364,17 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //HitPattern information
   //
-  auto_ptr<vector<double> >	  els_inner_positionx         (new vector<double>	); 
-  auto_ptr<vector<double> >	  els_inner_positiony         (new vector<double>	); 
-  auto_ptr<vector<double> >	  els_inner_positionz         (new vector<double>	); 
-  auto_ptr<vector<int> >	  els_layer1_layer            (new vector<int>          );
+  auto_ptr<vector<LorentzVector> >els_inner_position          (new vector<LorentzVector>);
+  auto_ptr<vector<LorentzVector> >els_outer_position          (new vector<LorentzVector>);
   auto_ptr<vector<int> >	  els_valid_pixelhits         (new vector<int>	        ); 
   auto_ptr<vector<int> >	  els_lost_pixelhits          (new vector<int>        	); 
   auto_ptr<vector<int> >	  els_layer1_sizerphi         (new vector<int>	        ); 
   auto_ptr<vector<int> >	  els_layer1_sizerz           (new vector<int>	        ); 
   auto_ptr<vector<float> >	  els_layer1_charge           (new vector<float>	);
   auto_ptr<vector<int> >	  els_layer1_det              (new vector<int>	        );
-  auto_ptr<vector<int> >	  els_n_inner_layers          (new vector<int>		); 
-  auto_ptr<vector<int> >	  els_n_outer_layers          (new vector<int>		); 
+  auto_ptr<vector<int> >	  els_layer1_layer            (new vector<int>          );
+  auto_ptr<vector<int> >	  els_exp_innerlayers         (new vector<int>		); 
+  auto_ptr<vector<int> >	  els_exp_outerlayers         (new vector<int>		); 
 
   auto_ptr<vector<int>     >      els_trkidx                  (new vector<int>          );
   auto_ptr<vector<float>   >      els_trkshFrac               (new vector<float>        );
@@ -610,15 +609,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     //Hit Pattern 
 
-    els_inner_positionx  ->push_back(el_track->innerPosition().x()                   );
-    els_inner_positiony  ->push_back(el_track->innerPosition().y()                   );
-    els_inner_positionz  ->push_back(el_track->innerPosition().z()                   );
-
+    els_inner_position ->push_back(LorentzVector(el_track->innerPosition().x(), el_track->innerPosition().y() , el_track->innerPosition().z(), 0 ));
+    els_outer_position ->push_back(LorentzVector(el_track->outerPosition().x(), el_track->outerPosition().y() , el_track->outerPosition().z(), 0 ));
     const reco::HitPattern& pattern = el_track->hitPattern();
     const reco::HitPattern& p_inner = el_track->trackerExpectedHitsInner();
     const reco::HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
-    els_n_inner_layers    -> push_back(p_inner.numberOfHits());
-    els_n_outer_layers    -> push_back(p_outer.numberOfHits());
+    els_exp_innerlayers    -> push_back(p_inner.numberOfHits());
+    els_exp_outerlayers    -> push_back(p_outer.numberOfHits());
     bool valid_hit      = false;
     uint32_t hit_pattern; 
     int i_layer       = 1;
@@ -881,19 +878,18 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_hcalDepth2TowerSumEt04   ,"elsHcalDepth2TowerSumEt04"  );
 
   //Hit Pattern Information
-  //
-  iEvent.put(els_inner_positionx , "elsinnerpositionx" );
-  iEvent.put(els_inner_positiony , "elsinnerpositiony" );
-  iEvent.put(els_inner_positionz , "elsinnerpositionz" );
-  iEvent.put(els_layer1_layer    , "elslayer1layer"    );
+
+  iEvent.put(els_inner_position  , "elsinnerposition"  );
+  iEvent.put(els_outer_position  , "elsouterposition"  );
   iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
   iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
+  iEvent.put(els_layer1_layer    , "elslayer1layer"    );
   iEvent.put(els_layer1_sizerphi , "elslayer1sizerphi" );
   iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
   iEvent.put(els_layer1_charge   , "elslayer1charge"   );
   iEvent.put(els_layer1_det      , "elslayer1det"      );
-  iEvent.put(els_n_inner_layers  , "elsninnerlayers"   );
-  iEvent.put(els_n_outer_layers  , "elsnouterlayers"   );
+  iEvent.put(els_exp_innerlayers , "elsexpinnerlayers" );
+  iEvent.put(els_exp_outerlayers , "elsexpouterlayers" );
 
   //CTF track info
   //
