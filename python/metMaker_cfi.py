@@ -14,7 +14,6 @@ metMaker = cms.EDFilter("METMaker",
                         muon_tag_              = cms.InputTag("muons"                ),
                         muon_vm_tag_           = cms.InputTag("muonMETValueMapProducer", "muCorrData"),
                         caloTower_tag_         = cms.InputTag("towerMaker"),
-                        towerEtThreshold_      = cms.double(0.3)
+                        towerEtThreshold_      = cms.double(0.3),
+						make_eta_rings_        = cms.bool(True)
 )                                                              
-
-
