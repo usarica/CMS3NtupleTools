@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.h,v 1.1 2009/12/02 20:28:55 fgolf Exp $
+// $Id: BeamHaloMaker.h,v 1.2 2009/12/04 10:12:25 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_BEAMSPOTMAKER_H
@@ -30,6 +30,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "TString.h"
 
 //
 // class decleration
@@ -44,6 +45,7 @@ private:
      virtual void beginJob(const edm::EventSetup&) ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
+     std::vector<TString> convertToVectorTString(const std::vector<char>);
 
    edm::InputTag beamHaloInputTag;
     
