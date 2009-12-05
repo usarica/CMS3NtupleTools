@@ -1,4 +1,4 @@
-//-*- C++ -*-
+C//-*- C++ -*-
 //
 // Package:    NtupleMaker
 // Class:      BeamHaloMaker
@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.cc,v 1.2 2009/12/04 10:12:32 kalavase Exp $
+// $Id: BeamHaloMaker.cc,v 1.3 2009/12/05 22:03:44 kalavase Exp $
 //
 //
 
@@ -58,11 +58,7 @@ BeamHaloMaker::BeamHaloMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >      ("evtecaliPhiSuspects"  ).setBranchAlias("evt_ecaliPhiSuspects"  );
   produces<vector<int> >      ("evthcaliPhiSuspects"  ).setBranchAlias("evt_hcaliPhiSuspects"  );
   produces<vector<int> >      ("evtglobaliPhiSuspects").setBranchAlias("evt_globaliPhiSuspects");
-  produces<vector<TString> >  ("evtecalHaloReport"    ).setBranchAlias("evt_ecalHaloReport"    );
-  produces<vector<TString> >  ("evthcalHaloReport"    ).setBranchAlias("evt_hcalHaloReport"    );
-  produces<vector<TString> >  ("evtcscHaloReport"     ).setBranchAlias("evt_cscHaloReport"     );
-  produces<vector<TString> >  ("evtglobalHaloReport"  ).setBranchAlias("evt_globalHaloReport"  );
-	  
+  	  
   beamHaloInputTag = iConfig.getParameter<InputTag>("beamHaloInputTag");
 }
 
@@ -92,10 +88,7 @@ void BeamHaloMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >       evt_ecaliPhiSuspects    (new vector<int>      );
   auto_ptr<vector<int> >       evt_hcaliPhiSuspects    (new vector<int>      );
   auto_ptr<vector<int> >       evt_globaliPhiSuspects  (new vector<int>      );
-  auto_ptr<vector<TString> >   evt_ecalHaloReport      (new vector<TString>  );
-  auto_ptr<vector<TString> >   evt_hcalHaloReport      (new vector<TString>  );
-  auto_ptr<vector<TString> >   evt_cscHaloReport       (new vector<TString>  );
-  auto_ptr<vector<TString> >   evt_globalHaloReport    (new vector<TString>  );
+  
      
   edm::Handle<reco::BeamHaloSummary> beamHalo_h;
   iEvent.getByLabel(beamHaloInputTag, beamHalo_h);
@@ -114,11 +107,7 @@ void BeamHaloMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_ecaliPhiSuspects   = beamHalo_h->GetEcaliPhiSuspects()  ;
   *evt_hcaliPhiSuspects   = beamHalo_h->GetHcaliPhiSuspects()  ;
   *evt_globaliPhiSuspects = beamHalo_h->GetGlobaliPhiSuspects();
-  *evt_ecalHaloReport     = convertToVectorTString(beamHalo_h->GetEcalHaloReport()  );
-  *evt_hcalHaloReport     = convertToVectorTString(beamHalo_h->GetHcalHaloReport()  );
-  *evt_cscHaloReport      = convertToVectorTString(beamHalo_h->GetCSCHaloReport()   );
-  *evt_globalHaloReport   = convertToVectorTString(beamHalo_h->GetGlobalHaloReport());
-
+  
   iEvent.put(evt_ecalLooseHaloId   , "evtecalLooseHaloId"   );
   iEvent.put(evt_ecalTightHaloId   , "evtecalTightHaloId"   );
   iEvent.put(evt_hcalLooseHaloId   , "evthcalLooseHaloId"   );
@@ -130,10 +119,6 @@ void BeamHaloMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_looseHaloId       , "evtlooseHaloId"       );
   iEvent.put(evt_tightHaloId       , "evttightHaloId"       );
   iEvent.put(evt_extremeTightHaloId, "evtextremeTightHaloId");
-  iEvent.put(evt_ecalHaloReport    , "evtecalHaloReport"    );
-  iEvent.put(evt_hcalHaloReport    , "evthcalHaloReport"    );
-  iEvent.put(evt_cscHaloReport     , "evtcscHaloReport"     );
-  iEvent.put(evt_globalHaloReport  , "evtglobalHaloReport"  );
   iEvent.put(evt_ecaliPhiSuspects  , "evtecaliPhiSuspects"  );
   iEvent.put(evt_hcaliPhiSuspects  , "evthcaliPhiSuspects"  );
   iEvent.put(evt_globaliPhiSuspects, "evtglobaliPhiSuspects");
