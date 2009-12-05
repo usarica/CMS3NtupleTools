@@ -1,4 +1,4 @@
-C//-*- C++ -*-
+//-*- C++ -*-
 //
 // Package:    NtupleMaker
 // Class:      BeamHaloMaker
@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.cc,v 1.3 2009/12/05 22:03:44 kalavase Exp $
+// $Id: BeamHaloMaker.cc,v 1.4 2009/12/05 23:53:08 kalavase Exp $
 //
 //
 
