@@ -27,6 +27,7 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig)
 
     produces<unsigned int>           ("l1techbits1"       ).setBranchAlias("l1_techbits1"        );
     produces<unsigned int>           ("l1techbits2"       ).setBranchAlias("l1_techbits2"        );
+    //produces<vector<TString> >       ("l1techtrigNames"   ).setBranchAlias("l1_techtrigNames"    );    
 
     produces<int>                    ("l1nmus"        ).setBranchAlias("l1_nmus"         );
     produces<int>                    ("l1nemiso"      ).setBranchAlias("l1_nemiso"       );
@@ -80,10 +81,11 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<unsigned int>           l1bits2         (new unsigned int); *l1bits2 = 0;
   auto_ptr<unsigned int>           l1bits3         (new unsigned int); *l1bits3 = 0;
   auto_ptr<unsigned int>           l1bits4         (new unsigned int); *l1bits4 = 0;
-  auto_ptr<vector<TString> >       l1trigNames     (new vector<TString>);
+  auto_ptr<vector<TString> >       l1trigNames     (new vector<TString>(128,""));
 
   auto_ptr<unsigned int>           l1techbits1         (new unsigned int); *l1techbits1 = 0;
   auto_ptr<unsigned int>           l1techbits2         (new unsigned int); *l1techbits2 = 0;
+  auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>(64,""));
 
   auto_ptr<int>                    l1nmus          (new int); *l1nmus = 0;
   auto_ptr<int>                    l1nemiso        (new int); *l1nemiso = 0;
@@ -136,23 +138,22 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
     iEvent.getByLabel("gtDigis", gtRecord);
-    const DecisionWord &dWord = gtRecord->decisionWord();
+
+    // note these are both std::vector<bool>
+    const DecisionWord &gtDecisionWordBeforeMask = gtRecord->decisionWord();
     const TechnicalTriggerWord &technicalTriggerWordBeforeMask = gtRecord->technicalTriggerWord();
 
     unsigned int l11, l12, l13, l14;
-    fillL1Info(iEvent, l11, l12, l13, l14, *l1trigNames, menu, dWord);
+    fillL1Info(l11, l12, l13, l14, *l1trigNames, menu, gtDecisionWordBeforeMask, menu->gtAlgorithmMap());
     *l1bits1  = l11;
     *l1bits2  = l12;
     *l1bits3  = l13;
     *l1bits4  = l14;
 
 	// note there are only 64 bits so only use two words
-    std::vector<TString> l1techtrigNames;// = new std::vector<TString>; // this is a dummy and will not be put in the event
-    fillL1Info(iEvent, l11, l12, l13, l14, l1techtrigNames, menu, technicalTriggerWordBeforeMask);
+    fillL1Info(l11, l12, l13, l14, *l1techtrigNames, menu, technicalTriggerWordBeforeMask, menu->gtTechnicalTriggerMap());
     *l1techbits1  = l11;
     *l1techbits2  = l12;
-
-//    delete l1techtrigNames;
 
     // L1 particles
     if (fillL1Particles_) {
@@ -345,6 +346,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     iEvent.put(l1techbits1,        "l1techbits1"         );
     iEvent.put(l1techbits2,        "l1techbits2"         );
+    //iEvent.put(l1techtrigNames,    "l1techtrigNames"     );
 
     iEvent.put(l1nmus,         "l1nmus"          );
     iEvent.put(l1nemiso,       "l1nemiso"        );
@@ -390,51 +392,33 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(l1jetst_p4,     "l1jetstp4"       );
 }
 
-void L1Maker::fillL1Info(const Event& iEvent,
+void L1Maker::fillL1Info(
         unsigned int& l1_1, unsigned int& l1_2, unsigned int& l1_3, unsigned int& l1_4,
         std::vector<TString>& l1names,
-        const L1GtTriggerMenu* menu, const DecisionWord &dWord)
+        const L1GtTriggerMenu* menu, const DecisionWord &dWord, const AlgorithmMap &algoMap)
 {
-
-    for(AlgorithmMap::const_iterator algo = menu->gtAlgorithmMap().begin();
-            algo != menu->gtAlgorithmMap().end(); algo++)
-    {
-        if (algo->first != algo->second.algoName()) {
-            cout << "The name of the L1 Trigger bit in the Algorithm map is not" 
-                << " the same as the name from the L1GtAlgorithm object."
-                << "Something is wrong!!!!" << endl;
-        }
-
-        l1names.push_back(algo->second.algoName());
-    }
-
     l1_1=0;
     l1_2=0;
     l1_3=0;
     l1_4=0;
-    unsigned int ntriggers = dWord.size();
-    if (ntriggers > 128)
-        throw cms::Exception("L1Maker::fillL1Info: Number of HLT trigger variables must be increased!");
-    for(unsigned int i = 0; i < ntriggers; ++i)
+    int bit = 0;
+
+    if (algoMap.size() > 128)
+        throw cms::Exception("L1Maker::fillL1Info: Number of L1 trigger variables must be increased!");
+
+    for(AlgorithmMap::const_iterator algo = algoMap.begin(); algo != algoMap.end(); ++algo)
     {
-        if (dWord.at(i)) {
-            unsigned int bitmask = 1;
-            if (i <= 31) {
-                bitmask <<=i;
-                l1_1 |= bitmask;
-            }
-            if(i >= 32 && i<= 63) {
-                bitmask <<=(i-32);
-                l1_2 |= bitmask;
-            }
-            if(i >= 64 && i<= 95) {
-                bitmask <<=(i-64);
-                l1_3 |= bitmask;
-            }
-            if(i >= 96 && i <= 127) {
-                bitmask <<=(i-96);
-                l1_4 |= bitmask;
-            }
+        if (algo->first != algo->second.algoName())
+            throw cms::Exception("L1Maker::fillL1Info: L1 algorithm name mismatch");
+
+        bit = algo->second.algoBitNumber();
+        l1names[bit] = algo->second.algoName();
+        if (dWord.at(bit))
+        {
+            if (bit <= 31              ) l1_1 |= (1 <<  bit      );
+            if (bit >= 32 && bit <= 63 ) l1_2 |= (1 << (bit - 32));
+            if (bit >= 64 && bit <= 95 ) l1_3 |= (1 << (bit - 64));
+            if (bit >= 96 && bit <= 127) l1_4 |= (1 << (bit - 96));
         }
     }
 }

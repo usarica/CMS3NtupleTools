@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.3 2009/11/30 22:40:25 dlevans Exp $
+// $Id: L1Maker.h,v 1.4 2009/12/05 12:56:40 jribnik Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -46,10 +46,10 @@ class L1Maker : public edm::EDProducer {
         virtual void produce(edm::Event&, const edm::EventSetup&);
         virtual void endJob() {}
 
-        void fillL1Info(const edm::Event&,
+        void fillL1Info(
                 unsigned int&, unsigned int&, unsigned int&, unsigned int&,
                 std::vector<TString>&,
-                const L1GtTriggerMenu* menu, const DecisionWord &dWord);
+                const L1GtTriggerMenu* menu, const DecisionWord &dWord, const AlgorithmMap &algoMap);
 
         bool fillL1Particles_;
         std::string l1ParticlesProcessName_;
