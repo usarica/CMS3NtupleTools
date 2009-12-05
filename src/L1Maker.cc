@@ -85,7 +85,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto_ptr<unsigned int>           l1techbits1         (new unsigned int); *l1techbits1 = 0;
   auto_ptr<unsigned int>           l1techbits2         (new unsigned int); *l1techbits2 = 0;
-  auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>(64,""));
+  //auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>(64,""));
 
   auto_ptr<int>                    l1nmus          (new int); *l1nmus = 0;
   auto_ptr<int>                    l1nemiso        (new int); *l1nemiso = 0;
@@ -139,19 +139,18 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
     iEvent.getByLabel("gtDigis", gtRecord);
 
-    // note these are both std::vector<bool>
+    // Note these are both std::vector<bool>
     const DecisionWord &gtDecisionWordBeforeMask = gtRecord->decisionWord();
     const TechnicalTriggerWord &technicalTriggerWordBeforeMask = gtRecord->technicalTriggerWord();
 
     unsigned int l11, l12, l13, l14;
-    fillL1Info(l11, l12, l13, l14, *l1trigNames, menu, gtDecisionWordBeforeMask, menu->gtAlgorithmMap());
+    fillL1Info(l11, l12, l13, l14, *l1trigNames, menu, gtDecisionWordBeforeMask);
     *l1bits1  = l11;
     *l1bits2  = l12;
     *l1bits3  = l13;
     *l1bits4  = l14;
 
-	// note there are only 64 bits so only use two words
-    fillL1Info(l11, l12, l13, l14, *l1techtrigNames, menu, technicalTriggerWordBeforeMask, menu->gtTechnicalTriggerMap());
+    fillL1TechnicalInfo(l11, l12, technicalTriggerWordBeforeMask);
     *l1techbits1  = l11;
     *l1techbits2  = l12;
 
@@ -395,7 +394,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 void L1Maker::fillL1Info(
         unsigned int& l1_1, unsigned int& l1_2, unsigned int& l1_3, unsigned int& l1_4,
         std::vector<TString>& l1names,
-        const L1GtTriggerMenu* menu, const DecisionWord &dWord, const AlgorithmMap &algoMap)
+        const L1GtTriggerMenu* menu, const DecisionWord &dWord)
 {
     l1_1=0;
     l1_2=0;
@@ -403,10 +402,11 @@ void L1Maker::fillL1Info(
     l1_4=0;
     int bit = 0;
 
-    if (algoMap.size() > 128)
+    if (menu->gtAlgorithmMap().size() > 128)
         throw cms::Exception("L1Maker::fillL1Info: Number of L1 trigger variables must be increased!");
 
-    for(AlgorithmMap::const_iterator algo = algoMap.begin(); algo != algoMap.end(); ++algo)
+    for(AlgorithmMap::const_iterator algo = menu->gtAlgorithmMap().begin();
+            algo != menu->gtAlgorithmMap().end(); ++algo)
     {
         if (algo->first != algo->second.algoName())
             throw cms::Exception("L1Maker::fillL1Info: L1 algorithm name mismatch");
@@ -419,6 +419,25 @@ void L1Maker::fillL1Info(
             if (bit >= 32 && bit <= 63 ) l1_2 |= (1 << (bit - 32));
             if (bit >= 64 && bit <= 95 ) l1_3 |= (1 << (bit - 64));
             if (bit >= 96 && bit <= 127) l1_4 |= (1 << (bit - 96));
+        }
+    }
+}
+
+void L1Maker::fillL1TechnicalInfo(unsigned int& l1_1, unsigned int& l1_2, const DecisionWord &dWord)
+{
+    l1_1=0;
+    l1_2=0;
+
+    unsigned int ntriggers = dWord.size();
+    // Note this should never happen as there are 64 possible technical triggers
+    if (ntriggers > 64)
+        throw cms::Exception("L1Maker::fillL1Info: Number of L1 technical trigger variables must be increased!");
+
+    for(unsigned int bit = 0; bit < ntriggers; ++bit)
+    {
+        if (dWord.at(bit)) {
+            if (bit <= 31              ) l1_1 |= (1 <<  bit      );
+            if (bit >= 32 && bit <= 63 ) l1_2 |= (1 << (bit - 32));
         }
     }
 }
