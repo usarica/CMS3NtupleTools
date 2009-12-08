@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.19 2009/11/18 21:46:13 kalavase Exp $
+// $Id: GenMaker.cc,v 1.20 2009/12/08 23:19:59 kalavase Exp $
 //
 //
 
@@ -33,6 +33,8 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+
 
 #include "TMath.h"
 
@@ -47,21 +49,6 @@ using namespace std;
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
-  produces<vector<int> >                    ("genpsid"            ).setBranchAlias("genps_id"             );
-  produces<vector<int> >                    ("genpsidmother"      ).setBranchAlias("genps_id_mother"      );
-  produces<vector<LorentzVector> >          ("genpsp4"            ).setBranchAlias("genps_p4"             );
-  produces<vector<LorentzVector> >          ("genpsprodvtx"       ).setBranchAlias("genps_prod_vtx"       );
-  produces<vector<int> >                    ("genpsstatus"        ).setBranchAlias("genps_status"         );
-  produces<float>                           ("genmet"             ).setBranchAlias("gen_met"              );
-  produces<float>                           ("genmetPhi"          ).setBranchAlias("gen_metPhi"           );
-  produces<float>                           ("genpspthat"         ).setBranchAlias("genps_pthat"          );
-  produces<float>                           ("genpsweight"        ).setBranchAlias("genps_weight"         );
-  produces<float>                           ("evtscale1fb"        ).setBranchAlias("evt_scale1fb"         );
-  produces<float>                           ("evtxsecincl"        ).setBranchAlias("evt_xsec_incl"        );
-  produces<float>                           ("evtxsecexcl"        ).setBranchAlias("evt_xsec_excl"        );
-  produces<float>                           ("evtkfactor"         ).setBranchAlias("evt_kfactor"          );
-
-
   genParticlesInputTag       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
   genEventScaleInputTag      = iConfig.getParameter<InputTag>                  ("genEventScaleInputTag");
   ntupleOnlyStatus3          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
@@ -70,6 +57,24 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("inclusiveCrossSection");
   exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("exclusiveCrossSection");
   kfactorValue               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
+
+  produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
+  produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"      );
+  produces<vector<LorentzVector> >          ("genpsp4"              ).setBranchAlias("genps_p4"             );
+  produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
+  produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
+  produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
+  produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
+  produces<float>                           ("genpspthat"           ).setBranchAlias("genps_pthat"          );
+  produces<float>                           ("genpsweight"          ).setBranchAlias("genps_weight"         );
+  produces<unsigned int>                    ("genpssignalProcessID" ).setBranchAlias("genps_signalProcessID");
+  produces<float>                           ("genpsqScale"          ).setBranchAlias("genps_qScale"         );
+  produces<float>                           ("genpsalphaQCD"        ).setBranchAlias("genps_alphaQCD"       );
+  produces<float>                           ("evtxsecincl"          ).setBranchAlias("evt_xsec_incl"        );
+  produces<float>                           ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"        );
+  produces<float>                           ("evtkfactor"           ).setBranchAlias("evt_kfactor"          );
+  produces<float>                           ("evtscale1fb"          ).setBranchAlias("evt_scale1fb"         );
+
   
   if(ntupleDaughters) {
      produces<vector<vector<int> > >           ("genpslepdaughterid" ).setBranchAlias("genps_lepdaughter_id" );
@@ -106,7 +111,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>                           gen_metPhi           (new float                         );  
   auto_ptr<float>                           genps_pthat          (new float                         );
   auto_ptr<float>                           genps_weight         (new float                         );
-
+  auto_ptr<unsigned int>                    genps_signalProcessID(new unsigned int                  );
+  auto_ptr<float>                           genps_qScale         (new float                         );
+  auto_ptr<float>                           genps_alphaQCD       (new float                         );
   auto_ptr<float>                           evt_scale1fb         (new float                         );
   auto_ptr<float>                           evt_xsec_incl        (new float                         );
   auto_ptr<float>                           evt_xsec_excl        (new float                         );
@@ -159,10 +166,21 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   else
     *genps_weight = 1.;
 
+
+  //get the signal processID
+  edm::Handle<GenEventInfoProduct> genEvtInfo;
+  iEvent.getByLabel("generator", genEvtInfo);
+  *genps_signalProcessID = genEvtInfo->signalProcessID();
+  *genps_qScale          = genEvtInfo->qScale();
+  *genps_alphaQCD        = genEvtInfo->alphaQCD();
+
   *evt_scale1fb  = 1.; // this value is a placeholder; it will be filled during post-processing
   *evt_xsec_incl = inclusiveCrossSectionValue;
   *evt_xsec_excl = exclusiveCrossSectionValue;
   *evt_kfactor   = kfactorValue;
+
+
+  
 
   
   LorentzVector tempvect(0,0,0,0);
@@ -222,19 +240,22 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *gen_met    =   tempvect.Pt();
   *gen_metPhi =   tempvect.Phi();
 
-  iEvent.put(genps_id             , "genpsid"            );
-  iEvent.put(genps_id_mother      , "genpsidmother"      );
-  iEvent.put(genps_p4             , "genpsp4"            );
-  iEvent.put(genps_prod_vtx       , "genpsprodvtx"       );
-  iEvent.put(genps_status         , "genpsstatus"        );
-  iEvent.put(gen_met              , "genmet"             );
-  iEvent.put(gen_metPhi           , "genmetPhi"          );
-  iEvent.put(genps_pthat          , "genpspthat"         );
-  iEvent.put(genps_weight         , "genpsweight"        );
-  iEvent.put(evt_xsec_incl        , "evtxsecincl"        );
-  iEvent.put(evt_xsec_excl        , "evtxsecexcl"        );
-  iEvent.put(evt_kfactor          , "evtkfactor"         );
-  iEvent.put(evt_scale1fb         , "evtscale1fb"        );
+  iEvent.put(genps_id             , "genpsid"              );
+  iEvent.put(genps_id_mother      , "genpsidmother"        );
+  iEvent.put(genps_p4             , "genpsp4"              );
+  iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
+  iEvent.put(genps_status         , "genpsstatus"          );
+  iEvent.put(gen_met              , "genmet"               );
+  iEvent.put(gen_metPhi           , "genmetPhi"            );
+  iEvent.put(genps_pthat          , "genpspthat"           );
+  iEvent.put(genps_weight         , "genpsweight"          );
+  iEvent.put(genps_signalProcessID, "genpssignalProcessID" );
+  iEvent.put(genps_qScale         , "genpsqScale"          );
+  iEvent.put(genps_alphaQCD       , "genpsalphaQCD"        );
+  iEvent.put(evt_xsec_incl        , "evtxsecincl"          );
+  iEvent.put(evt_xsec_excl        , "evtxsecexcl"          );
+  iEvent.put(evt_kfactor          , "evtkfactor"           );
+  iEvent.put(evt_scale1fb         , "evtscale1fb"          );
 
   if(ntupleDaughters) {
     iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
