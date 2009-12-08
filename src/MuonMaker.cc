@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.35 2009/11/18 21:46:27 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.36 2009/12/08 23:20:19 kalavase Exp $
 //
 //
 
@@ -59,6 +59,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> >   ("musp4"		      ).setBranchAlias("mus_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)						
   produces<vector<LorentzVector> >   ("mustrkp4"	      ).setBranchAlias("mus_trk_p4"             ); // track p4						
   produces<vector<LorentzVector> >   ("musgfitp4"             ).setBranchAlias("mus_gfit_p4"            ); // global fit p4, if global fit exists
+  produces<vector<LorentzVector> >   ("musstap4"              ).setBranchAlias("mus_sta_p4"             ); // global fit p4, if global fit exists
   produces<vector<int>   >           ("mustrkidx"             ).setBranchAlias("mus_trkidx"             );	// track index matched to muon
   produces<vector<float> >	     ("musd0"		      ).setBranchAlias("mus_d0"                 ); // impact parameter at the point of closest approach	using the tracker fit
   produces<vector<float> >	     ("musz0"		      ).setBranchAlias("mus_z0"                 ); // z position of the point of closest approach. From the si track		
@@ -116,6 +117,22 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >	     ("musgfitchi2"           ).setBranchAlias("mus_gfit_chi2"          ); // chi2 of the global muon fit 
   produces<vector<float> >	     ("musgfitndof"	      ).setBranchAlias("mus_gfit_ndof"          ); // number of degree of freedom of the global muon fit 
   produces<vector<int> >	     ("musgfitvalidHits"      ).setBranchAlias("mus_gfit_validHits"     ); // number of valid hits of the global muon fit 
+  //STA fit crap
+  produces<vector<float> >           ("musstad0"             ).setBranchAlias("mus_sta_d0"            ); // d0 from STA fit, if it exists
+  produces<vector<float> >           ("musstaz0"             ).setBranchAlias("mus_sta_z0"            ); // z0 from STA fit, if it exists
+  produces<vector<float> >           ("musstad0Err"          ).setBranchAlias("mus_sta_d0Err"         ); // d0Err from STA fit, if it exists
+  produces<vector<float> >           ("musstaz0Err"          ).setBranchAlias("mus_sta_z0Err"         ); // z0Err from STA fit, if it exists
+  produces<vector<float> >           ("musstad0corr"         ).setBranchAlias("mus_sta_d0corr"        ); // Beamspot corrected d0 from STA fit, if it exists
+  produces<vector<float> >           ("musstaz0corr"         ).setBranchAlias("mus_sta_z0corr"        ); // Beamspot corrected z0 from STA fit, if it exists
+  produces<vector<float> >           ("musstaqoverp"         ).setBranchAlias("mus_sta_qoverp"        ); // STA track qoverp
+  produces<vector<float> >           ("musstaqoverpError"    ).setBranchAlias("mus_sta_qoverpError"   ); // STA track qoverp error  
+  
+  produces<vector<float> >	     ("musstachi2"           ).setBranchAlias("mus_sta_chi2"          ); // chi2 of the STA muon fit 
+  produces<vector<float> >	     ("musstandof"	     ).setBranchAlias("mus_sta_ndof"          ); // number of degree of freedom of the STA muon fit 
+  produces<vector<int> >	     ("musstavalidHits"      ).setBranchAlias("mus_sta_validHits"     ); // number of valid hits of the STA muon fit 
+  
+
+  
   //Muon timing info -> http://cmslxr.fnal.gov/lxr/source/DataFormats/MuonReco/interface/MuonTime.h
   produces<vector<int> >             ("mustimeNumStationsUsed").setBranchAlias("mus_timeNumStationsUsed"); //number of muon stations used for timing info
   // time of arrival at the IP for the Beta=1 hypothesis -> particle moving from inside out
@@ -145,6 +162,7 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" ); // from the silicon fit
   produces<vector<LorentzVector> >   ("musgfitvertexp4"     ).setBranchAlias("mus_gfit_vertex_p4");
   produces<vector<LorentzVector> >   ("musgfitouterPosp4"   ).setBranchAlias("mus_gfit_outerPos_p4");
+  produces<vector<LorentzVector> >   ("musstavertexp4"      ).setBranchAlias("mus_sta_vertex_p4");
   produces<vector<LorentzVector> >   ("musfitdefaultp4" ).setBranchAlias("mus_fitdefault_p4" );
   produces<vector<LorentzVector> >   ("musfitfirsthitp4").setBranchAlias("mus_fitfirsthit_p4");
   produces<vector<LorentzVector> >   ("musfitpickyp4"   ).setBranchAlias("mus_fitpicky_p4"	 );
@@ -165,6 +183,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<LorentzVector> > vector_mus_p4                  (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > vector_mus_trk_p4	          (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_p4             (new vector<LorentzVector>   );
+  auto_ptr<vector<LorentzVector> > vector_mus_sta_p4              (new vector<LorentzVector>   );
   auto_ptr<vector<int>   >         vector_mus_trkidx              (new vector<int>             );
   auto_ptr<vector<float> >	   vector_mus_d0	          (new vector<float>           );      
   auto_ptr<vector<float> >	   vector_mus_z0	          (new vector<float>	       );      
@@ -207,19 +226,32 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >	   vector_mus_iso05_hadEt         (new vector<float>	       );
   auto_ptr<vector<float> >	   vector_mus_iso05_hoEt          (new vector<float>	       );
   auto_ptr<vector<int> >	   vector_mus_iso05_ntrk          (new vector<int>  	       );
-  
-  auto_ptr<vector<float> >         vector_mus_gfit_d0             (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_z0             (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_d0Err          (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_z0Err          (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_d0corr         (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_z0corr         (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_qoverp         (new vector<float>             );
-  auto_ptr<vector<float> >         vector_mus_gfit_qoverpError    (new vector<float>             );
-
+  //gfit
+  auto_ptr<vector<float> >         vector_mus_gfit_d0             (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_z0             (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_d0Err          (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_z0Err          (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_d0corr         (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_z0corr         (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_qoverp         (new vector<float>           );
+  auto_ptr<vector<float> >         vector_mus_gfit_qoverpError    (new vector<float>           );
   auto_ptr<vector<float> >	   vector_mus_gfit_chi2           (new vector<float>	       );
   auto_ptr<vector<float> >	   vector_mus_gfit_ndof           (new vector<float>	       );
   auto_ptr<vector<int> >           vector_mus_gfit_validHits      (new vector<int>  	       );
+  //sta
+  auto_ptr<vector<float> >         vector_mus_sta_d0             (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_z0             (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_d0Err          (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_z0Err          (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_d0corr         (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_z0corr         (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_qoverp         (new vector<float>            );
+  auto_ptr<vector<float> >         vector_mus_sta_qoverpError    (new vector<float>            );
+  auto_ptr<vector<float> >	   vector_mus_sta_chi2           (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_sta_ndof           (new vector<float>	       );
+  auto_ptr<vector<int> >           vector_mus_sta_validHits      (new vector<int>  	       );
+
+  
   auto_ptr<vector<int> >           vector_mus_timeNumStationsUsed (new vector<int>             );
   auto_ptr<vector<float> >         vector_mus_timeAtIpInOut       (new vector<float>           );
   auto_ptr<vector<float> >         vector_mus_timeAtIpInOutErr    (new vector<float>           );
@@ -231,9 +263,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose   (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight   (new vector<int>    );
   auto_ptr<vector<float> >         vector_mus_caloCompatibility            (new vector<float>  );
+
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                    (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_vertex_p4               (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4             (new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_sta_vertex_p4                (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitdefault_p4                (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitfirsthit_p4               (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitpicky_p4                  (new vector<LorentzVector> );
@@ -265,6 +299,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     const TrackRef siTrack     = muon->innerTrack();
     const TrackRef globalTrack = muon->globalTrack();
+    const TrackRef staTrack    = muon->outerTrack();
 
     // fill vectors
     vector_mus_type         ->push_back(muon->type());
@@ -283,6 +318,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_gfit_p4            ->push_back( globalTrack.isNonnull() ? 
 					       LorentzVector(globalTrack->px(), globalTrack->py(),
 							     globalTrack->pz(), globalTrack->p()) 
+					       : LorentzVector(0, 0, 0, 0) );
+    vector_mus_sta_p4             ->push_back( staTrack.isNonnull() ? 
+					       LorentzVector(staTrack->px(), staTrack->py(),
+							     staTrack->pz(), staTrack->p()) 
 					       : LorentzVector(0, 0, 0, 0) );
 					       
     vector_mus_trkidx             ->push_back(siTrack.isNonnull() ? static_cast<int>(siTrack.key())          :  -9999        );
@@ -340,6 +379,20 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_gfit_chi2          ->push_back(globalTrack.isNonnull()  ? globalTrack->chi2()	             :  -9999.        );
     vector_mus_gfit_ndof          ->push_back(globalTrack.isNonnull()  ? globalTrack->ndof()	             :  -9999         );
     vector_mus_gfit_validHits     ->push_back(globalTrack.isNonnull()  ? globalTrack->numberOfValidHits()    :  -9999         );
+
+    //STA crap
+    vector_mus_sta_d0            ->push_back(staTrack.isNonnull()  ? staTrack->d0()                   :  -9999.        );
+    vector_mus_sta_z0            ->push_back(staTrack.isNonnull()  ? staTrack->dz()                   :  -9999.        );
+    vector_mus_sta_d0Err         ->push_back(staTrack.isNonnull()  ? staTrack->d0Error()              :  -9999.        );
+    vector_mus_sta_z0Err         ->push_back(staTrack.isNonnull()  ? staTrack->dzError()              :  -9999.        );
+    vector_mus_sta_d0corr        ->push_back(staTrack.isNonnull()  ? -1*(staTrack->dxy(beamSpot))     :  -9999.        );
+    vector_mus_sta_z0corr        ->push_back(staTrack.isNonnull()  ? staTrack->dz(beamSpot)           :  -9999.        );
+    vector_mus_sta_qoverp        ->push_back(staTrack.isNonnull()  ? staTrack->qoverp()               :  -9999.        );
+    vector_mus_sta_qoverpError   ->push_back(staTrack.isNonnull()  ? staTrack->qoverpError()          :  -9999.        );
+    vector_mus_sta_chi2          ->push_back(staTrack.isNonnull()  ? staTrack->chi2()	            :  -9999.        );
+    vector_mus_sta_ndof          ->push_back(staTrack.isNonnull()  ? staTrack->ndof()	            :  -9999         );
+    vector_mus_sta_validHits     ->push_back(staTrack.isNonnull()  ? staTrack->numberOfValidHits()    :  -9999         );
+
     bool timeIsValid = muon->isTimeValid();
     vector_mus_timeNumStationsUsed->push_back(timeIsValid              ?  muon->time().nDof                   :  -9999         );
     vector_mus_timeAtIpInOut      ->push_back(timeIsValid              ?  muon->time().timeAtIpInOut          :  -9999.        );
@@ -358,11 +411,17 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 								    siTrack->vy(),
 								    siTrack->vz(), 0.) 
 						      : LorentzVector(-9999.,-9999.,-9999.,-9999.) );
+    vector_mus_gfit_vertex_p4             ->push_back(globalTrack.isNonnull() ? 
+						      LorentzVector(globalTrack->vx(),
+								    globalTrack->vy(),
+								    globalTrack->vz(), 0.) 
+						      : LorentzVector(-9999.,-9999.,-9999.,-9999.) );
     vector_mus_gfit_outerPos_p4          ->push_back(globalTrack.isNonnull() ?
 						     LorentzVector(globalTrack->outerPosition().x(),
 								   globalTrack->outerPosition().y(),
 								   globalTrack->outerPosition().z(),0. )
 						     : LorentzVector(-9999.,-9999.,-9999.,-9999.) );
+    
 	// if muon is not global
     if( !muon->isGlobalMuon() ) {
       vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
@@ -414,6 +473,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_p4                 , "musp4"                 );
   iEvent.put(vector_mus_trk_p4             , "mustrkp4"              );
   iEvent.put(vector_mus_gfit_p4            , "musgfitp4"             );
+  iEvent.put(vector_mus_sta_p4             , "musstap4"              );
   iEvent.put(vector_mus_trkidx             , "mustrkidx"             );
   iEvent.put(vector_mus_d0                 , "musd0"                 );
   iEvent.put(vector_mus_z0                 , "musz0"                 );
@@ -466,11 +526,23 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_gfit_z0corr        , "musgfitz0corr"         );
   iEvent.put(vector_mus_gfit_qoverp        , "musgfitqoverp"         );
   iEvent.put(vector_mus_gfit_qoverpError   , "musgfitqoverpError"    );
-  
-
   iEvent.put(vector_mus_gfit_chi2          , "musgfitchi2"           );
   iEvent.put(vector_mus_gfit_ndof          , "musgfitndof"           );
   iEvent.put(vector_mus_gfit_validHits     , "musgfitvalidHits"      );
+
+  iEvent.put(vector_mus_sta_d0             , "musstad0"              );
+  iEvent.put(vector_mus_sta_z0             , "musstaz0"              );
+  iEvent.put(vector_mus_sta_d0Err          , "musstad0Err"           );
+  iEvent.put(vector_mus_sta_z0Err          , "musstaz0Err"           );
+  iEvent.put(vector_mus_sta_d0corr         , "musstad0corr"          );
+  iEvent.put(vector_mus_sta_z0corr         , "musstaz0corr"          );
+  iEvent.put(vector_mus_sta_qoverp         , "musstaqoverp"          );
+  iEvent.put(vector_mus_sta_qoverpError    , "musstaqoverpError"     );
+  iEvent.put(vector_mus_sta_chi2           , "musstachi2"            );
+  iEvent.put(vector_mus_sta_ndof           , "musstandof"            );
+  iEvent.put(vector_mus_sta_validHits      , "musstavalidHits"       );
+
+  
   iEvent.put(vector_mus_timeNumStationsUsed, "mustimeNumStationsUsed"); 
   iEvent.put(vector_mus_timeAtIpInOut      , "mustimeAtIpInOut"      );
   iEvent.put(vector_mus_timeAtIpInOutErr   , "mustimeAtIpInOutErr"   );
@@ -485,6 +557,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_mus_vertex_p4                       , "musvertexp4"                  );
   iEvent.put(vector_mus_gfit_vertex_p4                  , "musgfitvertexp4"              );
   iEvent.put(vector_mus_gfit_outerPos_p4                , "musgfitouterPosp4"            );
+  iEvent.put(vector_mus_sta_vertex_p4                   , "musstavertexp4"               );
   iEvent.put(vector_mus_fitdefault_p4      , "musfitdefaultp4" );
   iEvent.put(vector_mus_fitfirsthit_p4     , "musfitfirsthitp4");
   iEvent.put(vector_mus_fitpicky_p4        , "musfitpickyp4"   );
