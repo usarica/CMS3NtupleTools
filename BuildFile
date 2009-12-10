@@ -46,4 +46,4 @@
 <export>
    <lib name=CMS2NtupleMaker>
 </export>
-<Flags CXXFLAGS="-g -O0">
+#<Flags CXXFLAGS="-g -O0">
