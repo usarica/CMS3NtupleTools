@@ -36,6 +36,7 @@ from CMS2.NtupleMaker.pfJetMaker_cfi import *
 from CMS2.NtupleMaker.pfmetMaker_cfi import *
 from CMS2.NtupleMaker.pftauMaker_cfi import *
 from CMS2.NtupleMaker.photonMaker_cfi import *
+from CMS2.NtupleMaker.pixelDigiMaker_cfi import *
 from CMS2.NtupleMaker.scMaker_cfi import *
 from CMS2.NtupleMaker.tcmetMaker_cfi import *
 from CMS2.NtupleMaker.trackMaker_cfi import *
@@ -59,7 +60,7 @@ makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * scMaker * 
 
 assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker)
 
-othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker)# * bTagMaker * bTagTrkMaker )
+othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * pixelDigiMaker )# * bTagMaker * bTagTrkMaker )
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker)# * pftauMaker)
 
