@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.17 2009/12/03 18:21:29 warren Exp $
+// $Id: METMaker.cc,v 1.18 2009/12/10 02:50:43 fgolf Exp $
 //
 //
 
@@ -285,36 +285,36 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   *evt_met          = ( met_h->front()       ).et();
   *evt_metPhi       = ( met_h->front()       ).phi();
-  *evt_metSig       = ( met_h->front()       ).mEtSig();
+  *evt_metSig       = ( met_h->front()       ).metSignificance();
   *evt_metHO        = ( metHO_h->front()     ).et();
   *evt_metHOPhi     = ( metHO_h->front()     ).phi();
-  *evt_metHOSig     = ( metHO_h->front()     ).mEtSig();
+  *evt_metHOSig     = ( metHO_h->front()     ).metSignificance();
   *evt_metNoHF      = ( metNoHF_h->front()   ).et();
   *evt_metNoHFPhi   = ( metNoHF_h->front()   ).phi();
-  *evt_metNoHFSig   = ( metNoHF_h->front()   ).mEtSig();
+  *evt_metNoHFSig   = ( metNoHF_h->front()   ).metSignificance();
   *evt_metNoHFHO    = ( metNoHFHO_h->front() ).et();
   *evt_metNoHFHOPhi = ( metNoHFHO_h->front() ).phi();
-  *evt_metNoHFHOSig = ( metNoHFHO_h->front() ).mEtSig();
+  *evt_metNoHFHOSig = ( metNoHFHO_h->front() ).metSignificance();
 
   *evt_metOpt          = ( metOpt_h->front()       ).et();
   *evt_metOptPhi       = ( metOpt_h->front()       ).phi();
-  *evt_metOptSig       = ( metOpt_h->front()       ).mEtSig();
+  *evt_metOptSig       = ( metOpt_h->front()       ).metSignificance();
   *evt_metOptHO        = ( metOptHO_h->front()     ).et();
   *evt_metOptHOPhi     = ( metOptHO_h->front()     ).phi();
-  *evt_metOptHOSig     = ( metOptHO_h->front()     ).mEtSig();
+  *evt_metOptHOSig     = ( metOptHO_h->front()     ).metSignificance();
   *evt_metOptNoHF      = ( metOptNoHF_h->front()   ).et();
   *evt_metOptNoHFPhi   = ( metOptNoHF_h->front()   ).phi();
-  *evt_metOptNoHFSig   = ( metOptNoHF_h->front()   ).mEtSig();
+  *evt_metOptNoHFSig   = ( metOptNoHF_h->front()   ).metSignificance();
   *evt_metOptNoHFHO    = ( metOptNoHFHO_h->front() ).et();
   *evt_metOptNoHFHOPhi = ( metOptNoHFHO_h->front() ).phi();
-  *evt_metOptNoHFHOSig = ( metOptNoHFHO_h->front() ).mEtSig();
+  *evt_metOptNoHFHOSig = ( metOptNoHFHO_h->front() ).metSignificance();
 
   *evt_metMuonCorr         =  ( metMuonCorr_h->front()    ).et();
   *evt_metMuonCorrPhi      =  ( metMuonCorr_h->front()    ).phi();
-  *evt_metMuonCorrSig      =  ( metMuonCorr_h->front()    ).mEtSig();
+  *evt_metMuonCorrSig      =  ( metMuonCorr_h->front()    ).metSignificance();
   *evt_metMuonJESCorr      =  ( metMuonJESCorr_h->front() ).et();
   *evt_metMuonJESCorrPhi   =  ( metMuonJESCorr_h->front() ).phi();
-  *evt_metMuonJESCorrSig   =  ( metMuonJESCorr_h->front() ).mEtSig();
+  *evt_metMuonJESCorrSig   =  ( metMuonJESCorr_h->front() ).metSignificance();
 
   *evt_sumet           = ( met_h->front()          ).sumEt();     
   *evt_sumetHO         = ( metHO_h->front()        ).sumEt();   
