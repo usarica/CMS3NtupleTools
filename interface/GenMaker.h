@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.10 2009/08/30 15:29:05 fgolf Exp $
+// $Id: GenMaker.h,v 1.11 2009/12/10 02:15:32 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -35,26 +35,27 @@
 
 class GenMaker : public edm::EDProducer {
 public:
-  explicit GenMaker (const edm::ParameterSet&);
-  ~GenMaker();
+     explicit GenMaker (const edm::ParameterSet&);
+     ~GenMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void produce(edm::Event&, const edm::EventSetup&);
+     virtual void endJob() ;
+     virtual void beginRun(edm::Run&, const edm::EventSetup&);
 
-  // ----------member data ---------------------------
-  edm::InputTag genParticlesInputTag;
-  edm::InputTag genEventScaleInputTag;
-  
-  bool ntupleOnlyStatus3;
-  bool ntupleDaughters;
+     // ----------member data ---------------------------
+     edm::InputTag genParticlesInputTag;
+     edm::InputTag genEventScaleInputTag;
+
+     bool ntupleOnlyStatus3;
+     bool ntupleDaughters;
  
-  std::vector<int> vmetPIDs;
+     std::vector<int> vmetPIDs;
 
-  double inclusiveCrossSectionValue;
-  double exclusiveCrossSectionValue;
-  double kfactorValue;
+     double inclusiveCrossSectionValue;
+     double exclusiveCrossSectionValue;
+     double kfactorValue;
 
 };
 

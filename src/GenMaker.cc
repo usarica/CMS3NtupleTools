@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.20 2009/12/08 23:19:59 kalavase Exp $
+// $Id: GenMaker.cc,v 1.21 2009/12/10 02:15:32 fgolf Exp $
 //
 //
 
@@ -34,7 +34,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-
+#include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
 #include "TMath.h"
 
@@ -54,8 +54,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   ntupleOnlyStatus3          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   vmetPIDs                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
-  inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("inclusiveCrossSection");
-  exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("exclusiveCrossSection");
+//  inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("inclusiveCrossSection");
+//  exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("exclusiveCrossSection");
   kfactorValue               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
@@ -94,6 +94,16 @@ void  GenMaker::beginJob(const edm::EventSetup&)
 
 void GenMaker::endJob()
 {
+}
+
+void GenMaker::beginRun( edm::Run& iRun, const edm::EventSetup& iSetup) {
+
+     edm::Handle<GenRunInfoProduct> genRunInfo;
+     iRun.getByLabel("generator", genRunInfo);
+
+     inclusiveCrossSectionValue = genRunInfo->internalXSec().value();
+     exclusiveCrossSectionValue = genRunInfo->externalXSecLO().value();
+
 }
 
 // ------------ method called to produce the data  ------------
