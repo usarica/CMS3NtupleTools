@@ -1,6 +1,5 @@
 #Contains the core CMS2 makers. Does not contain Gen or PAT makers
 import FWCore.ParameterSet.Config as cms
-
 from CMS2.NtupleMaker.aSkimFilter_cfi import *
 from CMS2.NtupleMaker.beamSpotMaker_cfi import *
 from CMS2.NtupleMaker.bTaggingSequence_cfi import *
@@ -48,6 +47,7 @@ from CMS2.NtupleMaker.vertexMaker_cfi import *
 from CMS2.NtupleMaker.caloTowerMaker_cfi import *
 from CMS2.NtupleMaker.hcalNoiseSummaryMaker_cfi import *
 from CMS2.NtupleMaker.beamHaloSequence_cff import *
+from CMS2.NtupleMaker.randomConeIsoMaker_cfi import *
 
 CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * cms2scCaloJetSequence * cms2TrkJetSequence * metCorSequence * cms2beamHaloSequence)
 
@@ -63,4 +63,7 @@ othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker)# * bTagMaker 
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker)# * pftauMaker)
 
-coreCMS2Sequence_EarlyData      = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * pflowmakers)
+randomConeIso = cms.Sequence(randomConeIsoMaker)
+coreCMS2Sequence_EarlyData      = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * pflowmakers* randomConeIso)
+
+
