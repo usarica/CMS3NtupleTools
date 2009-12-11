@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.39 2009/12/03 23:10:55 yanjuntu Exp $
+// $Id: ElectronMaker.cc,v 1.40 2009/12/11 01:11:37 kalavase Exp $
 //
 //
 
@@ -524,11 +524,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))
 						    +2*pt*p/q*pz*(el_track->covariance(0,1))
 						    + pz*pz*(el_track->covariance(1,1) ) ) : -9999.;
-    int defaultCharge;
-    ChargeInfo chargeinfo;
-    computeCharge(*(el->gsfTrack().get()), el->closestCtfTrackRef(), el->superCluster(),
-		  beamSpot, defaultCharge, chargeinfo);
-    
+            
     els_chi2                  ->push_back( el_track->chi2()                          );
     els_ndof                  ->push_back( el_track->ndof()                          );
     els_d0Err                 ->push_back( el_track->d0Error()                       );
@@ -541,7 +537,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
     els_charge                ->push_back( el->charge()                              );
     els_trk_charge            ->push_back( el_track->charge()                        );
-    els_sccharge              ->push_back( chargeinfo.scPixCharge                    );
+    els_sccharge              ->push_back( el->scPixCharge()                         );
     els_d0                    ->push_back( el_track->d0()                            );
     els_z0                    ->push_back( el_track->dz()                            );		
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
@@ -931,42 +927,6 @@ template<typename T> const edm::ValueMap<T>& ElectronMaker::getValueMap(const ed
   iEvent.getByLabel(inputTag,handle);
   return *(handle.product());
 }
-
-
-//method to compute the charge. Ported from 33X. Copy-paste from 
-//RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc rev 1.78
-void ElectronMaker::computeCharge( const reco::GsfTrack& gsftk, const reco::TrackRef  ctf, 
-				   const reco::SuperClusterRef  sc, const Point& bs,
-				   int & charge, ChargeInfo & info ) {
-  // determine charge from SC
-  GlobalPoint orig(bs.x(), bs.y(), bs.z()) ;
-  GlobalPoint scpos(sc->position().x(), sc->position().y(), sc->position().z()) ;
-  GlobalVector scvect(scpos-orig) ;
-  TrajectoryStateOnSurface innTSOS = mtsTransform_->innerStateOnSurface(gsftk);
-  GlobalPoint inntkpos = innTSOS.globalPosition() ;
-  GlobalVector inntkvect = GlobalVector(inntkpos-orig) ;
-  
-  float dPhiInnEle=scvect.phi()-inntkvect.phi();
-  if (fabs(dPhiInnEle)>TMath::Pi()) 
-    (dPhiInnEle<0?2.0*TMath::Pi()+dPhiInnEle:dPhiInnEle-2*TMath::Pi()) ;
-  
-
-
-  if(dPhiInnEle>0) info.scPixCharge = -1 ;
-  else info.scPixCharge = 1 ;
-
-  // flags
-  int chargeGsf = gsftk.charge() ;
-  info.isGsfScPixConsistent = ((chargeGsf*info.scPixCharge)>0) ;
-  info.isGsfCtfConsistent = (ctf.isNonnull()&&((chargeGsf*ctf->charge())>0)) ;
-  info.isGsfCtfScPixConsistent = (info.isGsfScPixConsistent&&info.isGsfCtfConsistent) ;
-
-  // default charge
-  if (info.isGsfScPixConsistent||ctf.isNull())
-   { charge = info.scPixCharge ; }
-  else
-   { charge = ctf->charge() ; }
- }
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronMaker);
