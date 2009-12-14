@@ -13,13 +13,14 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.18 2009/12/10 02:50:43 fgolf Exp $
+// $Id: METMaker.cc,v 1.19 2009/12/14 06:43:48 warren Exp $
 //
 //
 
 // system include files
 #include <memory>
 #include <vector>
+#include "TMath.h"
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -343,6 +344,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //MET from Towers
   const double etaborder = 1.479; //set where barrel ends in eta (+/- this)--this should be an entry in etaranges unless you want to mess up comparison with eta slices
+  const double hf_eta = 3.; //HF eta
   double ecalmetx=0., ecalmety=0.;
   double hcalmetx=0., hcalmety=0.;
   double epmetx=0., epmety=0., emmetx=0., emmety=0.; //endcap plus and minus eta--both ecal and hcal
@@ -375,6 +377,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     double eta   = it->eta();
     double emEt  = it->emEt();
     double hadEt = it->hadEt();
+	if( TMath::Abs(eta) > hf_eta ) { //no ecal in HF (fix broken method)
+	  emEt = 0.;
+	  hadEt = it->et();
+	}
 
     ecalmetx += emEt*cos(phi);
     ecalmety += emEt*sin(phi);
