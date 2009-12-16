@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.24 2009/12/03 23:30:04 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.25 2009/12/16 09:53:29 jmuelmen Exp $
 //
 //
 
@@ -62,6 +62,8 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using std::vector;
+using reco::Track;
+using reco::TrackBase;
 
 //
 // class decleration
@@ -91,6 +93,7 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >		("trksptErr"	  ).setBranchAlias("trks_ptErr"      );	// track Pt error					
   produces<vector<float> >		("trksetaErr"	  ).setBranchAlias("trks_etaErr"     );	// track eta error					
   produces<vector<float> >		("trksphiErr"	  ).setBranchAlias("trks_phiErr"     );	// track phi error					
+  produces<vector<float> >		("trksd0phiCov"	  ).setBranchAlias("trks_d0phiCov"   ); // track cov(d0, phi) 
   produces<vector<int> >		("trkscharge"	  ).setBranchAlias("trks_charge"     );	// charge						
   produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
   produces<vector<int> >                ("trksalgo"       ).setBranchAlias("trks_algo"       );
@@ -122,7 +125,6 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
   tkVtxDMax_   = iConfig.getParameter<double>("trkIsolationTkVtxDMax"  );
   ptMin_       = iConfig.getParameter<double>("trkIsolationPtMin"      );
   nHits_       = iConfig.getParameter<int>   ("trkIsolationNHits"      );
-
 }
 
 void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -146,6 +148,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<float> >		vector_trks_ptErr	(new vector<float>		);      
   std::auto_ptr<vector<float> >		vector_trks_etaErr	(new vector<float>		);      
   std::auto_ptr<vector<float> >		vector_trks_phiErr	(new vector<float>		);      
+  std::auto_ptr<vector<float> >		vector_trks_d0phiCov	(new vector<float>		);      
   std::auto_ptr<vector<int> >		vector_trks_charge	(new vector<int>		);        
   std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
   std::auto_ptr<vector<int> >           vector_trks_algo        (new vector<int>                );
@@ -226,6 +229,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_ptErr        ->push_back( i->ptError()                                             );
     vector_trks_etaErr       ->push_back( i->etaError()                                            );
     vector_trks_phiErr       ->push_back( i->phiError()                                            );
+    vector_trks_d0phiCov     ->push_back( -i->covariance(TrackBase::i_phi, TrackBase::i_dxy)	   );  // minus sign because we want cov(d0, phi) = cov(-dxy, phi)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
     vector_trks_algo         ->push_back( i->algo()                                                );
@@ -408,6 +412,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_trks_ptErr        , "trksptErr"             );
   iEvent.put(vector_trks_etaErr       , "trksetaErr"            );
   iEvent.put(vector_trks_phiErr       , "trksphiErr"            );
+  iEvent.put(vector_trks_d0phiCov     , "trksd0phiCov"          );
   iEvent.put(vector_trks_charge       , "trkscharge"            );
   iEvent.put(vector_trks_algo         , "trksalgo"              );
 
