@@ -49,6 +49,7 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<float> >               ("vtxszError"            ).setBranchAlias("vtxs_zError"            );
   produces<std::vector<float> >               ("vtxschi2"              ).setBranchAlias("vtxs_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
   produces<std::vector<float> >               ("vtxsndof"              ).setBranchAlias("vtxs_ndof"              );
+  produces<std::vector<float> >               ("vtxssumpt"             ).setBranchAlias("vtxs_sumpt"             );   // scalar pt sum of the tracks in the vertex
   produces<std::vector<int>   >               ("vtxsisFake"            ).setBranchAlias("vtxs_isFake"            );
   produces<std::vector<int>   >               ("vtxsisValid"           ).setBranchAlias("vtxs_isValid"           );
   produces<std::vector<int>   >               ("vtxstracksSize"        ).setBranchAlias("vtxs_tracksSize"        );
@@ -79,6 +80,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
+  std::auto_ptr<std::vector<float> >               vector_vtxs_sumpt             (new std::vector<float>               );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isValid           (new std::vector<int>                 );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_tracksSize        (new std::vector<int>                 );
@@ -99,7 +101,11 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_vtxs_isFake           ->push_back( vtx->isFake()            );
     vector_vtxs_isValid          ->push_back( vtx->isValid()           );
     vector_vtxs_tracksSize       ->push_back( vtx->tracksSize()        );
-
+    double sumpt = 0;
+    for (reco::Vertex::trackRef_iterator i = vtx->tracks_begin(); i != vtx->tracks_end(); ++i)
+	 sumpt += (*i)->pt();
+    vector_vtxs_sumpt		 ->push_back( sumpt		       );
+    
     std::vector<float> temp_vec;
     temp_vec.clear();
 
@@ -120,6 +126,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_vtxs_zError,            "vtxszError"            );
   iEvent.put(vector_vtxs_chi2,              "vtxschi2"              );
   iEvent.put(vector_vtxs_ndof,              "vtxsndof"              );
+  iEvent.put(vector_vtxs_sumpt,		    "vtxssumpt"		    );
   iEvent.put(vector_vtxs_isFake,            "vtxsisFake"            );
   iEvent.put(vector_vtxs_isValid,           "vtxsisValid"           );
   iEvent.put(vector_vtxs_tracksSize,        "vtxstracksSize"        );
