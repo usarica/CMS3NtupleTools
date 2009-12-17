@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.24 2009/11/18 03:49:01 kalavase Exp $
+// $Id: JetMaker.cc,v 1.25 2009/12/17 23:19:22 kalavase Exp $
 //
 //
 
@@ -38,6 +38,7 @@
 //new JetID
 #include "DataFormats/JetReco/interface/JetID.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
+
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -81,6 +82,10 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
     produces<std::vector<float> >     (aliasprefix_+"restrictedEMF"  ).setBranchAlias(aliasprefix_+"_restrictedEMF"   );
     produces<std::vector<float> >     (aliasprefix_+"nHCALTowers"    ).setBranchAlias(aliasprefix_+"_nHCALTowers"     );
     produces<std::vector<float> >     (aliasprefix_+"nECALTowers"    ).setBranchAlias(aliasprefix_+"_nECALTowers"     );
+    produces<std::vector<float> >     (aliasprefix_+"approximatefHPD").setBranchAlias(aliasprefix_+"_approximatefHPD" );
+    produces<std::vector<float> >     (aliasprefix_+"approximatefRBX").setBranchAlias(aliasprefix_+"_approximatefRBX" );
+    produces<std::vector<float> >     (aliasprefix_+"hitsInN90"      ).setBranchAlias(aliasprefix_+"_hitsInN90"       );
+  
   }
 }
 
@@ -110,21 +115,10 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<float> >           vector_jets_restrictedEMF  (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_nHCALTowers    (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_nECALTowers    (new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_approximatefHPD(new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_approximatefRBX(new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_hitsInN90      (new vector<float>         );
   
-  
-  map<float, float>         m_uncorJets;
-  map<float, float>         m_emFracJets;
-  map<float, LorentzVector> m_vertexJets;
-  map<float, float>         m_fHPD;
-  map<float, float>         m_fRBX;
-  map<float, float>         m_n90Hits;
-  map<float, float>         m_fSubDetector1;
-  map<float, float>         m_fSubDetector2;
-  map<float, float>         m_fSubDetector3;
-  map<float, float>         m_fSubDetector4;
-  map<float, float>         m_restrictedEMF;
-  map<float, float>         m_nHCALTowers;
-  map<float, float>         m_nECALTowers;
   
   Handle< View<reco::CaloJet> > uncorJetsHandle;
   iEvent.getByLabel(uncorJetsInputTag_, uncorJetsHandle);
@@ -152,17 +146,20 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       edm::RefToBase<reco::CaloJet> jetRef = uncorJetsHandle->refAt(idx);
       reco::JetID jetID = (*h_JetIDMap)[jetRef];
 
-      vector_jets_fHPD          ->push_back( jetID.fHPD                                      );
-      vector_jets_fRBX          ->push_back( jetID.fRBX                                      );
-      vector_jets_n90Hits       ->push_back( jetID.n90Hits                                   );
-      vector_jets_fSubDetector1 ->push_back( jetID.fSubDetector1                             );
-      vector_jets_fSubDetector2 ->push_back( jetID.fSubDetector2                             );
-      vector_jets_fSubDetector3 ->push_back( jetID.fSubDetector3                             );
-      vector_jets_fSubDetector4 ->push_back( jetID.fSubDetector4                             );
-      vector_jets_restrictedEMF ->push_back( jetID.restrictedEMF                             );
-      vector_jets_nHCALTowers   ->push_back( jetID.nHCALTowers                               );
-      vector_jets_nECALTowers   ->push_back( jetID.nECALTowers                               );
-      
+      vector_jets_fHPD            ->push_back( jetID.fHPD                                      );
+      vector_jets_fRBX            ->push_back( jetID.fRBX                                      );
+      vector_jets_n90Hits         ->push_back( jetID.n90Hits                                   );
+      vector_jets_fSubDetector1   ->push_back( jetID.fSubDetector1                             );
+      vector_jets_fSubDetector2   ->push_back( jetID.fSubDetector2                             );
+      vector_jets_fSubDetector3   ->push_back( jetID.fSubDetector3                             );
+      vector_jets_fSubDetector4   ->push_back( jetID.fSubDetector4                             );
+      vector_jets_restrictedEMF   ->push_back( jetID.restrictedEMF                             );
+      vector_jets_nHCALTowers     ->push_back( jetID.nHCALTowers                               );
+      vector_jets_nECALTowers     ->push_back( jetID.nECALTowers                               );
+      vector_jets_approximatefHPD ->push_back( jetID.approximatefHPD                           );
+      vector_jets_approximatefRBX ->push_back( jetID.approximatefRBX                           );
+      vector_jets_hitsInN90       ->push_back( jetID.hitsInN90                                 );
+
     }
   }
   
@@ -184,6 +181,9 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.put(vector_jets_restrictedEMF,   aliasprefix_+"restrictedEMF"     );
     iEvent.put(vector_jets_nHCALTowers,     aliasprefix_+"nHCALTowers"       );
     iEvent.put(vector_jets_nECALTowers,     aliasprefix_+"nECALTowers"       );
+    iEvent.put(vector_jets_approximatefHPD, aliasprefix_+"approximatefHPD"  );
+    iEvent.put(vector_jets_approximatefRBX, aliasprefix_+"approximatefRBX"  );
+    iEvent.put(vector_jets_hitsInN90,       aliasprefix_+"hitsInN90"        );
   }
   
   
