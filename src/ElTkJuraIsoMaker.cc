@@ -25,7 +25,7 @@ ElTkJuraIsoMaker::ElTkJuraIsoMaker(const edm::ParameterSet& iConfig)
 	trackIsoMinz0_        	= iConfig.getParameter<double>("trackIsoMinz0");
 
 	//register your products
-	produces<std::vector<float> >         ("elstkjuraiso").setBranchAlias("els_tkJuraIso");
+	produces<std::vector<float> >         ("elstkJuraIso").setBranchAlias("els_tkJuraIso");
 
 }
 
@@ -108,7 +108,7 @@ void ElTkJuraIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
 
 	// put results into event
-	iEvent.put(els_tkJuraIso, "elstkjuraiso");
+	iEvent.put(els_tkJuraIso, "elstkJuraIso");
 
 }
 
