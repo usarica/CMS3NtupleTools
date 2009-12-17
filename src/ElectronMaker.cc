@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.40 2009/12/11 01:11:37 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.41 2009/12/17 06:19:27 kalavase Exp $
 //
 //
 
@@ -118,8 +118,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float> >     ("elseOverPOut"               ).setBranchAlias("els_eOverPOut"              );
 
   produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
-  produces<vector<float> >     ("elsHcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
-  produces<vector<float> >     ("elsHcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
+  produces<vector<float> >     ("elshcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
+  produces<vector<float> >     ("elshcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
 
   produces<vector<float> >     ("elssigmaPhiPhi"             ).setBranchAlias("els_sigmaPhiPhi"            );
   produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
@@ -148,14 +148,14 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float> >     ("elstkIso"                   ).setBranchAlias("els_tkIso"                  );
   produces<vector<float> >     ("elsecalIso"                 ).setBranchAlias("els_ecalIso"                );
   produces<vector<float> >     ("elshcalIso"                 ).setBranchAlias("els_hcalIso"                );
-  produces<vector<float> >     ("elsHcalDepth1TowerSumEt"    ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
-  produces<vector<float> >     ("elsHcalDepth2TowerSumEt"    ).setBranchAlias("els_hcalDepth2TowerSumEt"   );
+  produces<vector<float> >     ("elshcalDepth1TowerSumEt"    ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
+  produces<vector<float> >     ("elshcalDepth2TowerSumEt"    ).setBranchAlias("els_hcalDepth2TowerSumEt"   );
 
   produces<vector<float> >     ("elstkIso04"                 ).setBranchAlias("els_tkIso04"                );
   produces<vector<float> >     ("elsecalIso04"               ).setBranchAlias("els_ecalIso04"              );
   produces<vector<float> >     ("elshcalIso04"               ).setBranchAlias("els_hcalIso04"              );
-  produces<vector<float> >     ("elsHcalDepth1TowerSumEt04"  ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
-  produces<vector<float> >     ("elsHcalDepth2TowerSumEt04"  ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
+  produces<vector<float> >     ("elshcalDepth1TowerSumEt04"  ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
+  produces<vector<float> >     ("elshcalDepth2TowerSumEt04"  ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
 
   // track variables
   //
@@ -833,8 +833,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_sigmaIEtaIEta            ,"elssigmaIEtaIEta"   		);
   iEvent.put(els_dPhiInPhiOut             ,"elsdPhiInPhiOut"    		);
   iEvent.put(els_hOverE                   ,"elshOverE"          		);
-  iEvent.put(els_hcalDepth1OverEcal       ,"elsHcalDepth1OverEcal"              );
-  iEvent.put(els_hcalDepth2OverEcal       ,"elsHcalDepth2OverEcal"              );
+  iEvent.put(els_hcalDepth1OverEcal       ,"elshcalDepth1OverEcal"              );
+  iEvent.put(els_hcalDepth2OverEcal       ,"elshcalDepth2OverEcal"              );
 
   iEvent.put(els_eOverPIn                 ,"elseOverPIn"        		);
   iEvent.put(els_eSeedOverPOut            ,"elseSeedOverPOut"   		);
@@ -864,14 +864,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_tkIso                    ,"elstkIso"           		);
   iEvent.put(els_ecalIso                  ,"elsecalIso"           	);
   iEvent.put(els_hcalIso                  ,"elshcalIso"           	);
-  iEvent.put(els_hcalDepth1TowerSumEt     ,"elsHcalDepth1TowerSumEt"    );
-  iEvent.put(els_hcalDepth2TowerSumEt     ,"elsHcalDepth2TowerSumEt"    );
+  iEvent.put(els_hcalDepth1TowerSumEt     ,"elshcalDepth1TowerSumEt"    );
+  iEvent.put(els_hcalDepth2TowerSumEt     ,"elshcalDepth2TowerSumEt"    );
 
   iEvent.put(els_tkIso04                  ,"elstkIso04"                 );
   iEvent.put(els_ecalIso04                ,"elsecalIso04"               );
   iEvent.put(els_hcalIso04                ,"elshcalIso04"               );
-  iEvent.put(els_hcalDepth1TowerSumEt04   ,"elsHcalDepth1TowerSumEt04"  );
-  iEvent.put(els_hcalDepth2TowerSumEt04   ,"elsHcalDepth2TowerSumEt04"  );
+  iEvent.put(els_hcalDepth1TowerSumEt04   ,"elshcalDepth1TowerSumEt04"  );
+  iEvent.put(els_hcalDepth2TowerSumEt04   ,"elshcalDepth2TowerSumEt04"  );
 
   //Hit Pattern Information
 
