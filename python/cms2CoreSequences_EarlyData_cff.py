@@ -16,6 +16,7 @@ from CMS2.NtupleMaker.elToMuAssMaker_cfi import *
 from CMS2.NtupleMaker.eventMaker_cfi import *
 from CMS2.NtupleMaker.hltMaker_cff import *
 from CMS2.NtupleMaker.hypDilepMaker_cfi import *
+from CMS2.NtupleMaker.hypDilepVertexMaker_cfi import *
 from CMS2.NtupleMaker.hypTrilepMaker_cfi import *
 from CMS2.NtupleMaker.hypQuadlepMaker_cfi import *
 from CMS2.NtupleMaker.hypIsoMaker_cfi import *

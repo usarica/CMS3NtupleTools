@@ -17,6 +17,7 @@ from CMS2.NtupleMaker.elToMuAssMaker_cfi import *
 from CMS2.NtupleMaker.eventMaker_cfi import *
 from CMS2.NtupleMaker.hltMaker_cff import *
 from CMS2.NtupleMaker.hypDilepMaker_cfi import *
+from CMS2.NtupleMaker.hypDilepVertexMaker_cfi import *
 from CMS2.NtupleMaker.hypTrilepMaker_cfi import *
 from CMS2.NtupleMaker.hypQuadlepMaker_cfi import *
 from CMS2.NtupleMaker.hypIsoMaker_cfi import *
@@ -58,7 +59,7 @@ makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * scMaker * 
 
 assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker)
 
-hypmakers     = cms.Sequence(hypDilepMaker * hypTrilepMaker * hypQuadlepMaker * hypIsoMaker)
+hypmakers     = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker * hypIsoMaker)
 
 othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker * bTagTrkMaker )
 
