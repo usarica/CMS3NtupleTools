@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.11 2009/09/11 09:56:39 kalavase Exp $
+// $Id: MatchUtilities.h,v 1.12 2009/12/18 16:55:33 slava77 Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -93,6 +93,44 @@ public:
       for(unsigned int j = 0; j < v_temp.size(); j++) {
 
 	LorentzVector temp_p4 = LorentzVector (v_temp.at(j).p4() );
+
+	double newdR = ROOT::Math::VectorUtil::DeltaR(ref_p4, temp_p4);
+      
+	if(newdR < dR) {
+	  dR = newdR;
+	  matchIdx = j;
+	}
+      }
+
+      if(matchIdx == 9999) {
+	std::cout << "Object not found in collection!!!!" << std::endl;
+      }
+
+      v_toAllign.push_back(v_temp.at(matchIdx) );
+    }
+  }
+  //how about no copy-pasting? 
+  template <class LV, class T> static const void alignToLVector(const std::vector<LV>& v_ref, std::vector<T>& v_toAllign) {
+    
+    if( v_ref.size() != v_toAllign.size() )
+      throw cms::Exception("MatchUtilities") 
+	<< "The two collections you're trying to allign do not have the same number of entries!!!" 
+	<< " Exiting. It's probably the PAT's fault. Trust me.";
+  
+    std::vector<T> v_temp = v_toAllign;
+    v_toAllign.clear();
+  
+    //loop over the Reference Collection
+    for(unsigned int i = 0; i < v_ref.size(); i++) {
+
+      double dR             = 0.05;
+      unsigned int matchIdx = 9999;
+      LV ref_p4  =  v_ref.at(i);
+
+      //now loop over the collection to allign
+      for(unsigned int j = 0; j < v_temp.size(); j++) {
+
+	LV temp_p4 = LV (v_temp.at(j).p4() );
 
 	double newdR = ROOT::Math::VectorUtil::DeltaR(ref_p4, temp_p4);
       
