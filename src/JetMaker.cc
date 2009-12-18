@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.25 2009/12/17 23:19:22 kalavase Exp $
+// $Id: JetMaker.cc,v 1.26 2009/12/18 18:59:04 kalavase Exp $
 //
 //
 
@@ -60,7 +60,8 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
-  nameL2L3JetCorrector_   = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
+  correctionLevels_       = iConfig.getParameter<std::string>("correctionLevels");
+  correctionTags_         = iConfig.getParameter<std::string>("correctionTags");
   aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix");
   jetIDIputTag_       = iConfig.getParameter<edm::InputTag>("jetIDIputTag");
 
@@ -130,16 +131,16 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::JetIDValueMap> h_JetIDMap;
   iEvent.getByLabel(jetIDIputTag_, h_JetIDMap);
 
-  const JetCorrector* L2L3corrector   = JetCorrector::getJetCorrector(nameL2L3JetCorrector_  , iSetup);
+  jetcor = new CombinedJetCorrector(correctionLevels_,correctionTags_);
   
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
     
-    double L2L3Jetscale = L2L3corrector->correction( it->p4() );
+    double cor = jetcor->getCorrection(it->pt(), it->eta(), it->energy());
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
-    vector_jets_cor            ->push_back( L2L3Jetscale                                    );
-
+    vector_jets_cor            ->push_back( cor                                             );
+    
     if(runningOnReco_) {
 
       unsigned int idx = it - uncorJetsHandle->begin();
