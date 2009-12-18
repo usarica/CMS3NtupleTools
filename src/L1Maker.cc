@@ -324,17 +324,29 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
             throw cms::Exception("L1Maker: Read more than 1 L1-MET, expected one");
         }
         l1extra::L1EtMissParticleCollection::const_iterator l1met = l1mets->begin();
-        *l1met_met     = l1met->etMiss();
-	*l1met_etTot   = l1met->etTotal();
-	*l1met_p4      = LorentzVector(l1met->px(), l1met->py(), l1met->pz(), l1met->energy()); 
+	if (&*l1met!=0){
+	  *l1met_met     = l1met->etMiss();
+	  *l1met_etTot   = l1met->etTotal();
+	  *l1met_p4      = LorentzVector(l1met->px(), l1met->py(), l1met->pz(), l1met->energy()); 
+	} else {
+	  *l1met_met     = -9999;
+	  *l1met_etTot   = -9999;
+	  *l1met_p4      = LorentzVector(-9999,-9999,-9999,9999);
+	}
 
 	if (l1mhts->size() > 1 ) {
 	  throw cms::Exception("L1Maker: Read more than 1 L1-MHT, expected one");
         }
 	l1extra::L1EtMissParticleCollection::const_iterator l1mht = l1mhts->begin();
-	*l1mht_mht     = l1mht->etMiss();
-	*l1mht_htTot   = l1mht->etTotal(); //this isn't a type...etTotal returns ht for MHT
-	*l1mht_p4      = LorentzVector(l1mht->px(), l1mht->py(), l1mht->pz(), l1mht->energy());
+	if (&*l1mht!=0){
+	  *l1mht_mht     = l1mht->etMiss();
+	  *l1mht_htTot   = l1mht->etTotal(); //this isn't a type...etTotal returns ht for MHT
+	  *l1mht_p4      = LorentzVector(l1mht->px(), l1mht->py(), l1mht->pz(), l1mht->energy());
+	} else{
+	  *l1mht_mht     = -9999;
+	  *l1mht_htTot   = -9999;
+	  *l1mht_p4      = LorentzVector(-9999,-9999,-9999,9999);
+	}
         
     }
     iEvent.put(l1bits1,        "l1bits1"         );
