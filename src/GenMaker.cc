@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.21 2009/12/10 02:15:32 fgolf Exp $
+// $Id: GenMaker.cc,v 1.22 2009/12/18 16:57:43 slava77 Exp $
 //
 //
 
@@ -99,10 +99,15 @@ void GenMaker::endJob()
 void GenMaker::beginRun( edm::Run& iRun, const edm::EventSetup& iSetup) {
 
      edm::Handle<GenRunInfoProduct> genRunInfo;
-     iRun.getByLabel("generator", genRunInfo);
-
-     inclusiveCrossSectionValue = genRunInfo->internalXSec().value();
-     exclusiveCrossSectionValue = genRunInfo->externalXSecLO().value();
+     bool haveRunInfo = iRun.getByLabel("generator", genRunInfo);
+     if (haveRunInfo){
+       
+       inclusiveCrossSectionValue = genRunInfo->internalXSec().value();
+       exclusiveCrossSectionValue = genRunInfo->externalXSecLO().value();
+     } else {
+       inclusiveCrossSectionValue = 0;
+       exclusiveCrossSectionValue = 0;
+     }
 
 }
 
