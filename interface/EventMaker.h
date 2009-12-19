@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.12 2009/09/02 15:01:59 jribnik Exp $
+// $Id: EventMaker.h,v 1.13 2009/12/19 21:46:25 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -36,16 +36,18 @@
 
 class EventMaker : public edm::EDProducer {
 public:
-  explicit EventMaker (const edm::ParameterSet&);
-  ~EventMaker();
+     explicit EventMaker (const edm::ParameterSet&);
+     ~EventMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void produce(edm::Event&, const edm::EventSetup&);
+     virtual void endJob() ;
 
-  std::string datasetName_;
-  std::string CMS2tag_;
+     std::string datasetName_;
+     std::string CMS2tag_;
+
+     edm::InputTag dcsTag_;
 };
 
 
