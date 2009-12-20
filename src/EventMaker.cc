@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.25 2009/12/19 21:46:26 fgolf Exp $
+// $Id: EventMaker.cc,v 1.26 2009/12/20 00:00:04 warren Exp $
 //
 //
 
@@ -111,8 +111,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      edm::Handle<DcsStatusCollection> dcsHandle;
      iEvent.getByLabel(dcsTag_, dcsHandle);
 
-     if( dcsHandle.isValid() ) {
-	  *evt_detectorStatus = (*dcsHandle)[0].ready();
+     if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
+	   *evt_detectorStatus = (*dcsHandle)[0].ready();
 
 	  iEvent.put(evt_detectorStatus   ,"evtdetectorStatus"  );
      }
