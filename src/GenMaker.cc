@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.22 2009/12/18 16:57:43 slava77 Exp $
+// $Id: GenMaker.cc,v 1.23 2009/12/20 00:01:42 warren Exp $
 //
 //
 
@@ -65,6 +65,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
   produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
   produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
+  produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"            );
   produces<float>                           ("genpspthat"           ).setBranchAlias("genps_pthat"          );
   produces<float>                           ("genpsweight"          ).setBranchAlias("genps_weight"         );
   produces<unsigned int>                    ("genpssignalProcessID" ).setBranchAlias("genps_signalProcessID");
@@ -124,6 +125,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4 (new vector<vector<LorentzVector> >);
   auto_ptr<float>                           gen_met              (new float                         );
   auto_ptr<float>                           gen_metPhi           (new float                         );  
+  auto_ptr<float>                           gen_sumEt            (new float                         );
   auto_ptr<float>                           genps_pthat          (new float                         );
   auto_ptr<float>                           genps_weight         (new float                         );
   auto_ptr<unsigned int>                    genps_signalProcessID(new unsigned int                  );
@@ -197,7 +199,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   
 
-  
+  double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
 
   for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
@@ -234,6 +236,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				 genps_it->p4().z(),
 				 genps_it->p4().e() );
     }
+	else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
+			 find( vmetPIDs.begin(), vmetPIDs.end(), TMath::Abs(id) ) == vmetPIDs.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
+	  sumEt += genps_it->p4().pt();
+	}
   
     if( ntupleOnlyStatus3 && (genps_it->status() !=3) ) continue;
 
@@ -254,6 +260,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   *gen_met    =   tempvect.Pt();
   *gen_metPhi =   tempvect.Phi();
+  *gen_sumEt  =   sumEt;
 
   iEvent.put(genps_id             , "genpsid"              );
   iEvent.put(genps_id_mother      , "genpsidmother"        );
@@ -262,6 +269,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_status         , "genpsstatus"          );
   iEvent.put(gen_met              , "genmet"               );
   iEvent.put(gen_metPhi           , "genmetPhi"            );
+  iEvent.put(gen_sumEt            , "gensumEt"             );
   iEvent.put(genps_pthat          , "genpspthat"           );
   iEvent.put(genps_weight         , "genpsweight"          );
   iEvent.put(genps_signalProcessID, "genpssignalProcessID" );
