@@ -439,10 +439,10 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	EcalRecHitMetaCollection ecalBarrelHits(*ecalBarrelRecHitHandle);
 	EcalRecHitMetaCollection ecalEndcapHits(*ecalEndcapRecHitHandle);
 
-	if( !&ecalBarrelHits || !&ecalEndcapHits ) {
-	  cout << "HypIsoMaker : ERROR bad ecal hits collections\n\n";
-	  return 0; //check hits collection
-	}
+	//if( !&ecalBarrelHits || !&ecalEndcapHits ) { //this never worked, and it's probably not necessary
+	//  cout << "HypIsoMaker : ERROR bad ecal hits collections\n\n";
+	//  return 0; //check hits collection
+	//}
 
 	//Get Calo Geometry
 	edm::ESHandle<CaloGeometry> pG;
