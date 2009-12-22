@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.41 2009/12/17 06:19:27 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.42 2009/12/22 22:52:08 warren Exp $
 //
 //
 
@@ -490,8 +490,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int electronTypeMask = 0;
     if (el->isEcalEnergyCorrected()) 	electronTypeMask |= 1 << ISECALENERGYCORRECTED;
     if (el->isMomentumCorrected())		electronTypeMask |= 1 << ISMOMENTUMCORRECTED;
-    if (el->isTrackerDriven())		electronTypeMask |= 1 << ISTRACKERDRIVEN;
-    if (el->isEcalDriven())			electronTypeMask |= 1 << ISECALDRIVEN; 
+    //if (el->isTrackerDriven())		electronTypeMask |= 1 << ISTRACKERDRIVEN; //the 3_3 method name
+	if (el->trackerDrivenSeed())		electronTypeMask |= 1 << ISTRACKERDRIVEN; //the 3_4 method name
+    //if (el->isEcalDriven())			electronTypeMask |= 1 << ISECALDRIVEN;    //the 3_3 method name
+    if (el->ecalDrivenSeed())			electronTypeMask |= 1 << ISECALDRIVEN; 	  //the 3_4 method name (wtf?)
     els_type->push_back( electronTypeMask);
 
     // energy corrections and uncertainties
