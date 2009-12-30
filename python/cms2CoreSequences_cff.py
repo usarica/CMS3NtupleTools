@@ -45,6 +45,7 @@ from CMS2.NtupleMaker.trackToElsAssMaker_cfi import *
 from CMS2.NtupleMaker.trackToMuonAssMaker_cfi import *
 from CMS2.NtupleMaker.trkJetMaker_cfi import *
 from CMS2.NtupleMaker.trkJetSequence_cfi import *
+from CMS2.NtupleMaker.trkToVtxAssMaker_cfi import *
 from CMS2.NtupleMaker.vertexMaker_cfi import *
 from CMS2.NtupleMaker.caloTowerMaker_cfi import *
 from CMS2.NtupleMaker.hcalNoiseSummaryMaker_cfi import *
@@ -57,7 +58,7 @@ trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
 makers        = cms.Sequence(trackMaker * muonMaker * electronMaker * scMaker * jetMaker * scjetMaker * JPTCorrections * trkJetMaker * metMaker * tcmetMaker * calotauMaker * photonMaker * caloTowerMaker)
 
-assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker)
+assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker)
 
 hypmakers     = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker * hypIsoMaker)
 
