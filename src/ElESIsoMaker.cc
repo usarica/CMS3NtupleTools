@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElESIsoMaker.cc,v 1.1 2009/08/01 09:58:05 dlevans Exp $
+// $Id: ElESIsoMaker.cc,v 1.2 2009/12/31 01:00:42 kalavase Exp $
 
 // system include files
 #include <memory>
@@ -52,7 +52,7 @@ ElESIsoMaker::~ElESIsoMaker()
 void
 ElESIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-
+  
 	std::auto_ptr<std::vector<float> >  els_esJuraIso03( new std::vector<float> ) ;
         std::auto_ptr<std::vector<float> >  els_esJuraIso04( new std::vector<float> ) ;
         std::auto_ptr<std::vector<float> >  els_esJuraVeto( new std::vector<float> ) ;
@@ -74,7 +74,8 @@ ElESIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	// get the preshower topology (needed to make clusters)
         CaloSubdetectorTopology *topology_ = 0;
-        if (!topology_) topology_  = new EcalPreshowerTopology(pG);
+	/*
+	  if (!topology_) topology_  = new EcalPreshowerTopology(pG); //offending line
 
 	// make the ES clusters for this event
         std::vector<ESCluster> clusters;
@@ -134,11 +135,11 @@ ElESIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		
 
 	} // end loop on electrons
-
+	*/
 	iEvent.put(els_esJuraIso03, "elsesJuraIso03");
         iEvent.put(els_esJuraIso04, "elsesJuraIso04");
         iEvent.put(els_esJuraVeto, "elsesJuraVeto");
-
+ 
 }
 
 //define this as a plug-in
