@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.25 2009/12/16 09:53:29 jmuelmen Exp $
+// $Id: TrackMaker.cc,v 1.26 2009/12/31 01:12:14 kalavase Exp $
 //
 //
 
@@ -55,6 +55,8 @@
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit1D.h"
+
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
 #include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
@@ -191,35 +193,36 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   const MagneticField* bf = theMagField.product();
-
+  
   edm::Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel(beamSpotTag, beamSpotH);
-
+  
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
-
-  //get tracker geometry                                                                                                                                                                   
+  
+  //get tracker geometry   
+                                                                                                                                                                  
   edm::ESHandle<TrackerGeometry> theG;
   iSetup.get<TrackerDigiGeometryRecord>().get(theG);
-
+  
 
   edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
-
+  
   for (edm::View<reco::Track>::const_iterator i = track_h->begin(); i != tracks_end; ++i) {
 
     vector_trks_trk_p4       ->push_back( LorentzVector( i->px(), i->py(), i->pz(), i->p() )       );
     vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)              );
     vector_trks_d0           ->push_back( i->d0()                                                  );
     vector_trks_z0           ->push_back( i->dz()                                                  );
-											           
+    						           
     double corrd0 = beamSpotH.isValid() ? -1 * ( i->dxy(beamSpot) ) : i->d0();		           
     vector_trks_d0corr       ->push_back( corrd0                                                   );
-											           
+    						           
     double corrd0phi = atan2( -1 * corrd0 * sin( i->phi() ), corrd0 * cos( i->phi() ) );           
     vector_trks_d0corrPhi    ->push_back( corrd0phi                                                );
-											           
+    						           
     double corrz0 = beamSpotH.isValid() ? i->dz(beamSpot) : i->dz();			           
     vector_trks_z0corr       ->push_back( corrz0                                                   );
-											           
+    						           
     vector_trks_chi2         ->push_back( i->chi2()                                                );
     vector_trks_ndof         ->push_back( i->ndof()                                                );
     vector_trks_validHits    ->push_back( i->numberOfValidHits()                                   );
@@ -233,7 +236,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
     vector_trks_algo         ->push_back( i->algo()                                                );
-	
+    
 
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
@@ -255,7 +258,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     AnalyticalPropagator myAP (bf, alongMomentum, 2*M_PI);
 	  
     TrajectoryStateOnSurface tsos;
-	  
+    
     /*
     Trajectory State is at intersection of cylinder and track, 
       not state at the last hit on the track fit. Shouldn't matter that much.
@@ -271,7 +274,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     else if( i->eta() > corner ) {
       tsos = myAP.propagate( fts, *rendcap);
     }
-
+    
     if(tsos.isValid()) {
       vector_trks_outer_p4->push_back( LorentzVector( tsos.globalMomentum().x(),
 						      tsos.globalMomentum().y(),
@@ -320,19 +323,15 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       side      = (int)pattern.getSide(hit_pattern);
       det       = (int)pattern.getSubStructure(hit_pattern);
       layer     = (int)pattern.getLayer(hit_pattern);
-
       if(!valid_hit) continue;
       if(pixel_hit){
-
 	const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
 	assert(pixel_hit_cast != 0);
 	pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-
 	pixel_size   = (int)pixel_cluster->size(); 
 	pixel_sizeX  = (int)pixel_cluster->sizeX(); 
 	pixel_sizeY  = (int)pixel_cluster->sizeY(); 
 	pixel_charge = (float)pixel_cluster->charge();
-
 	if(i_layer == 1){
 	  trks_layer1_sizerphi ->push_back(pixel_sizeX);
 	  trks_layer1_sizerz   ->push_back(pixel_sizeY);
@@ -342,24 +341,24 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  i_layer++;
 
 	}
-
       }
-
       else if (strip_hit){
-	const SiStripRecHit2D *strip_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
-	ClusterRef const& cluster = strip_hit_cast->cluster();
-
+	const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
+	const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+	ClusterRef cluster;
+	if(strip_hit_cast == NULL)
+	  cluster = strip2d_hit_cast->cluster();
+	else 
+	  cluster = strip_hit_cast->cluster();
 	int cluster_size   = (int)cluster->amplitudes().size();
 	int cluster_charge = 0;
 	double   cluster_weight_size = 0.0;
 	int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
-
 	for(int istrip = 0; istrip < cluster_size; istrip++){
 	  cluster_charge += (int)cluster->amplitudes().at(istrip);
 	  cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
 	}
 	cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
-
 	if(i_layer == 1){
 	  if(side==0) 
 	    {
@@ -372,22 +371,18 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      trks_layer1_sizerphi ->push_back(0);
 	      trks_layer1_sizerz   ->push_back(cluster_size);
 	    } 
-
 	  trks_layer1_charge   ->push_back(cluster_charge);
 	  trks_layer1_det      ->push_back(det);
 	  trks_layer1_layer    ->push_back(layer);
 	  i_layer++;
 	}
       }
-
     }
-
     trks_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
     trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
-
-
+    
+    
     // *****************************************************
-
      vector_trks_nlayers    ->push_back( i->hitPattern().trackerLayersWithMeasurement() );
      vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
      vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement() );

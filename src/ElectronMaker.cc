@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.42 2009/12/22 22:52:08 warren Exp $
+// $Id: ElectronMaker.cc,v 1.43 2009/12/31 01:11:57 kalavase Exp $
 //
 //
 
@@ -48,6 +48,8 @@ Implementation:
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
 #include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit2D.h"
+#include "DataFormats/TrackerRecHit2D/interface/SiStripRecHit1D.h"
+
 #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHit.h"
 #include "DataFormats/SiStripCluster/interface/SiStripCluster.h"
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
@@ -490,10 +492,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int electronTypeMask = 0;
     if (el->isEcalEnergyCorrected()) 	electronTypeMask |= 1 << ISECALENERGYCORRECTED;
     if (el->isMomentumCorrected())		electronTypeMask |= 1 << ISMOMENTUMCORRECTED;
-    //if (el->isTrackerDriven())		electronTypeMask |= 1 << ISTRACKERDRIVEN; //the 3_3 method name
-	if (el->trackerDrivenSeed())		electronTypeMask |= 1 << ISTRACKERDRIVEN; //the 3_4 method name
-    //if (el->isEcalDriven())			electronTypeMask |= 1 << ISECALDRIVEN;    //the 3_3 method name
-    if (el->ecalDrivenSeed())			electronTypeMask |= 1 << ISECALDRIVEN; 	  //the 3_4 method name (wtf?)
+    if (el->trackerDrivenSeed())		electronTypeMask |= 1 << ISTRACKERDRIVEN;
+    if (el->ecalDrivenSeed())			electronTypeMask |= 1 << ISECALDRIVEN; 
     els_type->push_back( electronTypeMask);
 
     // energy corrections and uncertainties
@@ -669,8 +669,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       }
 
       else if (strip_hit){
-	const SiStripRecHit2D *strip_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
-	ClusterRef const& cluster = strip_hit_cast->cluster();
+	const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
+	const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+	ClusterRef cluster;
+	if(strip_hit_cast == NULL)
+	  cluster = strip2d_hit_cast->cluster();
+	else 
+	  cluster = strip_hit_cast->cluster();
 
 	int cluster_size   = (int)cluster->amplitudes().size();
 	int cluster_charge = 0;
