@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.4 2009/09/10 10:51:43 fgolf Exp $
+// $Id: TrkJetMaker.cc,v 1.5 2009/12/31 01:13:00 kalavase Exp $
 //
 
 
@@ -30,7 +30,7 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/TrkJetMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/JetReco/interface/BasicJetCollection.h"
+#include "DataFormats/JetReco/interface/TrackJetCollection.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
@@ -64,7 +64,7 @@ void
 TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   // get TrkJet collection
-  edm::Handle<edm::View<reco::BasicJet> > trkJets;
+  edm::Handle<edm::View<reco::TrackJet> > trkJets;
   iEvent.getByLabel(trkJetsInputTag, trkJets);
   
   // create containers
@@ -72,8 +72,8 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<LorentzVector> > vector_trkjets_p4(new std::vector<LorentzVector>);
   
   // loop over jets and fill containers
-  edm::View<reco::BasicJet>::const_iterator jetsEnd = trkJets->end();
-  for ( edm::View<reco::BasicJet>::const_iterator jet = trkJets->begin(); jet != jetsEnd; ++jet) {
+  edm::View<reco::TrackJet>::const_iterator jetsEnd = trkJets->end();
+  for ( edm::View<reco::TrackJet>::const_iterator jet = trkJets->begin(); jet != jetsEnd; ++jet) {
 
     if( jet->p4().pt() < trkJetPtCut_ ) continue;
 
