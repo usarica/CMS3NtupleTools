@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -17,7 +17,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff") 
-process.GlobalTag.globaltag = "MC_31X_V3::All"
+process.GlobalTag.globaltag = "MC_3XY_V14::All"
 
 process.options = cms.untracked.PSet(
    Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -46,10 +46,8 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-#        '/store/data/BeamCommissioning09/MinimumBias/RECO/rereco_FIRSTCOLL_v1/0083/FE5EDBBC-7DD9-DE11-9589-001A92971B64.root'
-'/store/data/BeamCommissioning09/MinimumBias/RECO/Dec9thReReco-v1/0002/1E41E0CE-C2E4-DE11-B1CE-0026189438D7.root'
-    ),
-    eventsToProcess = cms.untracked.VEventRange("123596:15707761-123596:MAX"),
+    'file:/data/tmp/kalavase/RelValTTbarCMSSW_3_4_1.root'    ),
+    #eventsToProcess = cms.untracked.VEventRange("123596:15707761-123596:MAX"),
     #won't need this when running on actual data 
     inputCommands = cms.untracked.vstring(
     'keep *',

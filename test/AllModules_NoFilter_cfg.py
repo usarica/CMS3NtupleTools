@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -15,7 +15,7 @@ process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
-process.GlobalTag.globaltag = "MC_31X_V3::All"
+process.GlobalTag.globaltag = "MC_3XY_V14::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -34,6 +34,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #-------------------------------------------------
 
 process.load("PhysicsTools.PatAlgos.patSequences_cff")
+#process.allLayer1Jets.jetIDMap = cms.InputTag("cms2ak5JetID")
 process.patDefaultSequence = cms.Sequence(
     process.allLayer1Objects *
     process.selectedLayer1Objects
@@ -49,8 +50,8 @@ switchJetCollection(process,
                     jetCorrLabel     = ('AK5','Calo'),  
                     doType1MET       = True,
                     genJetCollection = cms.InputTag("cms2antikt5GenJets"),
-                    doJetID          = False,
-                    jetIdLabel       = "ak5"
+                    doJetID          = True,
+                    jetIdLabel       = "cms2ak5"
                     )
 
 
@@ -68,8 +69,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_1.root',
-        'file:/home/users/kalavase/work/MinBiasData_900GeVRun/V03-00-07/CMSSW_3_3_3/src/CMS2/NtupleMaker/test/TTbar_333_RelVal_2.root'
+        'file:/data/tmp/kalavase/RelValTTbarCMSSW_3_4_1.root'
     )
 )
 

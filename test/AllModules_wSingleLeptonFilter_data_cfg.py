@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -49,8 +49,8 @@ switchJetCollection(process,
                     jetCorrLabel     = ('AK5','Calo'),  
                     doType1MET       = True,
                     genJetCollection = cms.InputTag("cms2antikt5GenJets"),
-                    doJetID          = False,
-                    jetIdLabel       = "ak5"
+                    doJetID          = True,
+                    jetIdLabel       = "cms2ak5"
                     )
 
 # add statement to prevent the PAT from using generator information
