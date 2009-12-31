@@ -1,10 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-from PhysicsTools.HepMCCandAlgos.genParticleCandidatesFast_cfi import *
-from SimGeneral.HepPDTESSource.pythiapdt_cfi import *
-from RecoJets.Configuration.GenJetParticles_cff import *
-# from RecoJets.JetProducers.AntiKtJetParameters_cfi import *
-from RecoJets.JetProducers.ak5GenJets_cfi import *
+from RecoJets.JetProducers.ak5GenJets_cfi import ak5GenJets
+
 genParticlesAllStables =  cms.EDProducer("InputGenJetsParticleSelector",
           src                      = cms.InputTag("genParticles"),
           partonicFinalState       = cms.bool(False),
@@ -19,11 +16,6 @@ genParticlesAllStables =  cms.EDProducer("InputGenJetsParticleSelector",
 )
 
 
-cms2antikt5GenJets = ak5GenJets.clone()
-cms2antikt5GenJets.src = cms.InputTag("genParticlesAllStables")
-cms2antikt5GenJets.jetPtMin = cms.double(0.)
-cms2antikt5GenJets.alias = cms.untracked.string("CMS2ANTIKT5GenJet")
-
-
+cms2antikt5GenJets = ak5GenJets.clone(src = cms.InputTag("genParticlesAllStables") )
 genJetSequence = cms.Sequence( genParticlesAllStables * cms2antikt5GenJets )
 
