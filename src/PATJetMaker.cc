@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.8 2009/09/10 17:12:13 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.9 2010/01/02 02:48:20 kalavase Exp $
 //
 //
 
@@ -46,6 +46,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 #include "CMS2/NtupleMaker/interface/CommonUtils.h"
+#include "PhysicsTools/PatUtils/interface/JetIDSelectionFunctor.h"
 typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
@@ -90,6 +91,11 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<LorentzVector> > ("jetspatjetp4"            ).setBranchAlias("jets_pat_jet_p4"); // PAT jet p4
   produces<vector<LorentzVector> > ("jetspatjetuncorp4"       ).setBranchAlias("jets_pat_jet_uncorp4"); // PAT jet p4
 
+  //jetID flags
+  produces<vector<int> > ("jetspatjetIDMinimal"     ).setBranchAlias("jets_pat_jetIDMinimal");
+  produces<vector<int> > ("jetspatjetIDLooseAOD"    ).setBranchAlias("jets_pat_jetIDLooseAOD");
+  produces<vector<int> > ("jetspatjetIDLoose"       ).setBranchAlias("jets_pat_jetIDLoose");
+  produces<vector<int> > ("jetspatjetIDTight"       ).setBranchAlias("jets_pat_jetIDTight");
   // parameters from configuration
   patJetsInputTag_   = iConfig.getParameter<edm::InputTag>("patJetsInputTag"   );
   uncorRecoJetsTag_  = iConfig.getParameter<edm::InputTag>("uncorRecoJetsTag"  );
@@ -156,7 +162,24 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<LorentzVector> > jets_patjet_p4(new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > jets_patjet_uncorp4(new vector<LorentzVector>);
 
+  auto_ptr<vector<int> > jets_pat_jetIDMinimal(new vector<int>);
+  auto_ptr<vector<int> > jets_pat_jetIDLooseAOD(new vector<int>);
+  auto_ptr<vector<int> > jets_pat_jetIDLoose(new vector<int>);
+  auto_ptr<vector<int> > jets_pat_jetIDTight(new vector<int>);
+    
 
+  JetIDSelectionFunctor jetIDMinimal( JetIDSelectionFunctor::CRAFT08,
+				      JetIDSelectionFunctor::MINIMAL );
+  
+  JetIDSelectionFunctor jetIDLooseAOD( JetIDSelectionFunctor::CRAFT08,
+				       JetIDSelectionFunctor::LOOSE_AOD );
+  
+  JetIDSelectionFunctor jetIDLoose( JetIDSelectionFunctor::CRAFT08,
+                                    JetIDSelectionFunctor::LOOSE );
+  
+  JetIDSelectionFunctor jetIDTight( JetIDSelectionFunctor::CRAFT08,
+                                    JetIDSelectionFunctor::TIGHT );
+  std::strbitset ret = jetIDLoose.getBitTemplate();
   
 
   // loop over jets and fill containers
@@ -218,7 +241,16 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     jets_patgenJet_p4->push_back(genJetP4);
     jets_patjet_p4->push_back( LorentzVector( patJet->p4() ) );
     jets_patjet_uncorp4->push_back( LorentzVector( patJet->originalObject()->p4() ) );
-}
+
+    ret.set(false);
+    jets_pat_jetIDMinimal->push_back(jetIDMinimal(*patJet, ret));
+    ret.set(false);
+    jets_pat_jetIDLooseAOD->push_back(jetIDLooseAOD(*patJet, ret));
+    ret.set(false);
+    jets_pat_jetIDLoose->push_back(jetIDLoose(*patJet, ret));
+    ret.set(false);
+    jets_pat_jetIDTight->push_back(jetIDTight(*patJet, ret));
+  }
   iEvent.put(jets_patgenParton_id, "jetspatgenPartonid");
   iEvent.put(jets_patgenPartonMother_id, "jetspatgenPartonMotherid");
   iEvent.put(jets_patpartonFlavour, "jetspatpartonFlavour");
@@ -246,6 +278,12 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(jets_patgenJet_p4, "jetspatgenJetp4");
   iEvent.put(jets_patjet_p4, "jetspatjetp4");
   iEvent.put(jets_patjet_uncorp4, "jetspatjetuncorp4");
+
+  iEvent.put(jets_pat_jetIDMinimal, "jetspatjetIDMinimal");
+  iEvent.put(jets_pat_jetIDLooseAOD, "jetspatjetIDLooseAOD");
+  iEvent.put(jets_pat_jetIDLoose, "jetspatjetIDLoose");
+  iEvent.put(jets_pat_jetIDTight, "jetspatjetIDTight");
+  
 
 }
 
