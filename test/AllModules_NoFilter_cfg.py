@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -15,7 +15,14 @@ process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+<<<<<<< AllModules_NoFilter_cfg.py
+process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
+process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
+
+process.GlobalTag.globaltag = "MC_31X_V3::All"
+=======
 process.GlobalTag.globaltag = "MC_3XY_V14::All"
+>>>>>>> 1.3
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -89,6 +96,15 @@ process.out_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_C
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
+
+#
+# set up random seeds
+#
+
+process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'),
+                                                                            initialSeedSet = cms.untracked.vuint32(4126))
+
+
 
 #-------------------------------------------------
 # process paths;
