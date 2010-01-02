@@ -49,6 +49,7 @@ from CMS2.NtupleMaker.trkToVtxAssMaker_cfi import *
 from CMS2.NtupleMaker.vertexMaker_cfi import *
 from CMS2.NtupleMaker.caloTowerMaker_cfi import *
 from CMS2.NtupleMaker.hcalNoiseSummaryMaker_cfi import *
+from CMS2.NtupleMaker.randomConeIsoMaker_cfi import *
 
 CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * cms2scCaloJetSequence * cms2TrkJetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging)
 
@@ -66,4 +67,6 @@ othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker * 
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker * pftauMaker)
 
-coreCMS2Sequence      = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * pflowmakers)
+randomConeIso = cms.Sequence(randomConeIsoMaker)
+
+coreCMS2Sequence      = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * pflowmakers* randomConeIso)
