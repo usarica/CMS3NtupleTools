@@ -25,15 +25,14 @@
 #include "DataFormats/Common/interface/Handle.h"
 
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
-// #include "RecoEgamma/EgammaTools/interface/HoECalculator.h"
-// #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-// #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
 
 //
 // class declaration
 //
+
+class CaloTopology;
 
 class CaloTowerMaker : public edm::EDProducer {
 public:
@@ -57,6 +56,13 @@ private:
 
      // Calo Tower collection
      edm::InputTag caloTowersInputTag_;
+
+     // rechit input collections
+     edm::InputTag ecalRecHitsInputTag_EE_;
+     edm::InputTag ecalRecHitsInputTag_EB_;
+
+     // topology
+     const CaloTopology *topology_;
 
 //      // access to geometry
 //      unsigned long long cachedCaloGeometryID_;
