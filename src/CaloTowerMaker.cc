@@ -214,6 +214,8 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<float> >("twrsem3x3").setBranchAlias("twrs_em3x3");
   // as above for 5x5 crystals
   produces<std::vector<float> >("twrsem5x5").setBranchAlias("twrs_em5x5");
+  //number of crystals 
+  produces<std::vector<int> >("twrsnumCrystals").setBranchAlias("twrs_numCrystals");
   
   // add superclusters to the ntuple if they have ET > scEtMin_
   //   scEtMin_ = iConfig.getParameter<double>("scEtMin");
@@ -311,9 +313,10 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<unsigned int> > vector_twrs_numRecoveredHcalCells (new std::vector<unsigned int>);
   std::auto_ptr<std::vector<unsigned int> > vector_twrs_numProblematicHcalCells (new std::vector<unsigned int>);
 
-  std::auto_ptr<std::vector<float> > vector_twrs_emMax (new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_twrs_em3x3 (new std::vector<float>);
-  std::auto_ptr<std::vector<float> > vector_twrs_em5x5 (new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_twrs_emMax      (new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_twrs_em3x3      (new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
+  std::auto_ptr<std::vector<int>   > vector_twrs_numCrystals(new std::vector<int>);
 
   *evt_ntwrs = 0;
 
@@ -394,7 +397,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_twrs_emMax->push_back(emMax);
     vector_twrs_em3x3->push_back(em3x3);
     vector_twrs_em5x5->push_back(em5x5);
-
+    vector_twrs_numCrystals->push_back(j->numCrystals());
+    
   }
 
 // 	vector_scs_sigmaEtaEta->push_back( sqrt(covariances[0]) );
@@ -431,6 +435,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_twrs_emMax, "twrsemMax");
   iEvent.put(vector_twrs_em3x3, "twrsem3x3");
   iEvent.put(vector_twrs_em5x5, "twrsem5x5");
+  iEvent.put(vector_twrs_numCrystals, "twrsnumCrystals");
 
 }
 
