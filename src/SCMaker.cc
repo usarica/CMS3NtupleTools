@@ -316,8 +316,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 			vector_scs_eSeed->push_back( seedHit->energy() );
 			//      vector_scs_severitySeed->push_back ( EcalSeverityLevelAlgo::severityLevel(seedId, *recHits, *channelStatus_ ) );
 			vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
-			vector_scs_eMax->push_back( lazyTools.eMax(*(sc)) );
-			vector_scs_e2nd->push_back( lazyTools.e2nd(*(sc)) );
+			vector_scs_eMax->push_back( lazyTools.eMax(*(sc->seed())) );
+			vector_scs_e2nd->push_back( lazyTools.e2nd(*(sc->seed())) );
 
 			vector_scs_e1x3->push_back( lazyTools.e1x3(*(sc->seed())) );
 			vector_scs_e3x1->push_back( lazyTools.e3x1(*(sc->seed())) );
