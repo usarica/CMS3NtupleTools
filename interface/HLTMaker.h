@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.3 2009/09/10 10:51:37 fgolf Exp $
+// $Id: HLTMaker.h,v 1.4 2010/01/05 21:44:33 jribnik Exp $
 //
 //
 #ifndef NTUPLEMAKER_HLTMAKER_H
@@ -46,8 +46,6 @@ class HLTMaker : public edm::EDProducer {
         ~HLTMaker() {}
 
     private:
-        virtual void beginJob(const edm::EventSetup&) {}
-        virtual void beginRun(edm::Run&, const edm::EventSetup&);
         virtual void produce(edm::Event&, const edm::EventSetup&);
         virtual void endJob() {}
 
