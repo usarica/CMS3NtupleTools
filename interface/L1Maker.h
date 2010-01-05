@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.5 2009/12/05 20:38:11 jribnik Exp $
+// $Id: L1Maker.h,v 1.6 2010/01/05 21:45:31 jribnik Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -42,7 +42,6 @@ class L1Maker : public edm::EDProducer {
         ~L1Maker() {}
 
     private:
-        virtual void beginJob(const edm::EventSetup&) {}
         virtual void produce(edm::Event&, const edm::EventSetup&);
         virtual void endJob() {}
 
