@@ -149,6 +149,7 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
 
   produces<std::vector<float> >("twrseta").setBranchAlias("twrs_eta");
   produces<std::vector<float> >("twrsphi").setBranchAlias("twrs_phi");
+  produces<std::vector<uint32_t> >("twrsdetid").setBranchAlias("twrs_detid");
 
   // energy contributions from different detectors
   // energy in HO ("outerEnergy")is not included in "hadEnergy"
@@ -287,6 +288,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   std::auto_ptr<std::vector<float> > vector_twrs_eta (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_twrs_phi (new std::vector<float>);
+  std::auto_ptr<std::vector<uint32_t> > vector_twrs_detid (new std::vector<uint32_t>);
 
   std::auto_ptr<std::vector<float> > vector_twrs_emEnergy (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_twrs_hadEnergy (new std::vector<float>);
@@ -330,6 +332,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     vector_twrs_eta->push_back(j->eta());
     vector_twrs_phi->push_back(j->phi());
+    vector_twrs_detid->push_back(j->id().rawId());
 
     vector_twrs_emEnergy->push_back(j->emEnergy());
     vector_twrs_hadEnergy->push_back(j->hadEnergy());
@@ -407,6 +410,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(evt_ntwrs, "evtntwrs");
   iEvent.put(vector_twrs_eta, "twrseta");
   iEvent.put(vector_twrs_phi, "twrsphi");
+  iEvent.put(vector_twrs_detid, "twrsdetid");
   iEvent.put(vector_twrs_emEnergy, "twrsemEnergy");
   iEvent.put(vector_twrs_hadEnergy, "twrshadEnergy");
   iEvent.put(vector_twrs_outerEnergy, "twrsouterEnergy");
