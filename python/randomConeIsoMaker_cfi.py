@@ -4,7 +4,7 @@ from RecoMuon.MuonIsolationProducers.trackExtractorBlocks_cff import *
 from RecoMuon.MuonIsolationProducers.jetExtractorBlock_cff import *
 
 randomConeIsoMaker = cms.EDFilter("RandomConeIsoMaker",
-
+    primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
     ecalBarrelRecHitProducer = cms.InputTag("ecalRecHit"),
     ecalBarrelRecHitCollection = cms.InputTag("EcalRecHitsEB"),
     ecalEndcapRecHitProducer = cms.InputTag("ecalRecHit"),

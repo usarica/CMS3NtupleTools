@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.1 2009/12/10 05:03:49 yanjuntu Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.2 2010/01/08 01:11:24 yanjuntu Exp $
 //
 //
 
@@ -77,6 +77,8 @@ Implementation:
 #include "DataFormats/EcalDigi/interface/EBSrFlag.h"
 #include "DataFormats/EcalDigi/interface/EESrFlag.h"
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 // root
 #include "Math/VectorUtil.h"
@@ -140,6 +142,8 @@ RandomConeIsoMaker::RandomConeIsoMaker(const edm::ParameterSet& iConfig)
     throw cms::Exception("Configuration") << "RandomNumberGeneratorService not present\n";
   std::cout << "[EgammaIsolationAnalyzer::EgammaIsolationAnalyzer] seed: " << rng->mySeed() << std::endl;
   jamesRandom_ = new CLHEP::HepJamesRandom(rng->mySeed());
+  
+  primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
   
   
   ecalBarrelRecHitProducer_       = iConfig.getParameter<edm::InputTag>("ecalBarrelRecHitProducer");
@@ -254,6 +258,16 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   std::auto_ptr<std::vector<LorentzVector> > ran_trksecalp4        (new  std::vector<LorentzVector>      );
 
 
+    // get the primary vertices
+  edm::Handle<reco::VertexCollection> vertexHandle;
+  try {
+    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+  }
+  catch ( cms::Exception& ex ) {
+    edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
+  }
+
+  const reco::VertexCollection *vertexCollection = vertexHandle.product();
   //
   // get products
   //
@@ -342,11 +356,21 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   // in construction of objects to transform from one co-ordinate system
   // to another
   //
-  
+ 
+  GlobalPoint vertex(0.0, 0.0, 0.0);
+  for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx) {
+    if(!vtx->isFake()){
+      GlobalPoint vertex_tmp( vtx ->position().x(), vtx->position().y(),vtx->position().z());
+      vertex = vertex_tmp;
+    }
+  }
+
+   
   double mass = 0.000511;
   double pt = 20.0;
   int charge = 1;
-  GlobalPoint vertex(0.0, 0.0, 0.0);
+  
+ 
   
   //
   // make a direction in eta-phi at random
