@@ -209,6 +209,8 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
   //  uint numProblematicHcalCells() const { return ((twrStatusWord_ >> 21) & 0x7); }
   produces<std::vector<unsigned int> >("twrsnumProblematicHcalCells").setBranchAlias("twrs_numProblematicHcalCells");
 
+  // the recoflag of the max energy crystal in the tower
+  produces<std::vector<int> >("twrsemMaxRecoFlag").setBranchAlias("twrs_emMaxRecoFlag");
   // the energy of the max energy crystal in the tower
   produces<std::vector<float> >("twrsemMax").setBranchAlias("twrs_emMax");
   // the energy in 3x3 crystals centred on the max energy crystal
@@ -315,6 +317,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<unsigned int> > vector_twrs_numRecoveredHcalCells (new std::vector<unsigned int>);
   std::auto_ptr<std::vector<unsigned int> > vector_twrs_numProblematicHcalCells (new std::vector<unsigned int>);
 
+  std::auto_ptr<std::vector<int> > vector_twrs_emMaxRecoFlag      (new std::vector<int>);
   std::auto_ptr<std::vector<float> > vector_twrs_emMax      (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_twrs_em3x3      (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
@@ -364,18 +367,27 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     float emMax = 0.0;
     float emE = 0.0;
     DetId emMaxId(0);
+    int recoFlag = -1;
+    EcalRecHitCollection::const_iterator emHit;
 
     // loop on detids in the tower
     for (size_t i = 0; i < towerDetIds.size(); ++i) {
 
       // find the energy of this detId if it is in the ecal
-      if (towerDetIds[i].subdetId() == EcalEndcap)
+      if (towerDetIds[i].subdetId() == EcalEndcap) {
+	 emHit = recHitsEE->find(towerDetIds[i]);
          emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEE);
-      if (towerDetIds[i].subdetId() == EcalBarrel) 
+      }
+      if (towerDetIds[i].subdetId() == EcalBarrel) { 
+	 emHit = recHitsEB->find(towerDetIds[i]);
          emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEB);
-
+      }
       // compare with previous highest energy
       if (emE > emMax) {
+	   if ((emHit != recHitsEE->end() && towerDetIds[i].subdetId() == EcalEndcap) ||
+		(emHit != recHitsEB->end() && towerDetIds[i].subdetId() == EcalBarrel)) {
+	    		recoFlag = emHit->recoFlag();
+	   }
            emMax = emE; 
 	   emMaxId = towerDetIds[i];
         }
@@ -397,6 +409,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
         em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -2, 2, -2, 2);
     }
 
+    vector_twrs_emMaxRecoFlag->push_back(recoFlag);
     vector_twrs_emMax->push_back(emMax);
     vector_twrs_em3x3->push_back(em3x3);
     vector_twrs_em5x5->push_back(em5x5);
@@ -436,6 +449,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_twrs_numRecoveredHcalCells, "twrsnumRecoveredHcalCells");
   iEvent.put(vector_twrs_numProblematicHcalCells, "twrsnumProblematicHcalCells");
 
+  iEvent.put(vector_twrs_emMaxRecoFlag, "twrsemMaxRecoFlag");
   iEvent.put(vector_twrs_emMax, "twrsemMax");
   iEvent.put(vector_twrs_em3x3, "twrsem3x3");
   iEvent.put(vector_twrs_em5x5, "twrsem5x5");
