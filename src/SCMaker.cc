@@ -78,8 +78,9 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 	// RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h
 	// revision=1.7
 
-        produces<std::vector<int> >("scsdetIdSeed").setBranchAlias("scs_detIdSeed");
+	produces<std::vector<int> >("scsdetIdSeed").setBranchAlias("scs_detIdSeed");
 	produces<std::vector<int> >("scsseveritySeed").setBranchAlias("scs_severitySeed");
+	produces<std::vector<float> >("scstimeSeed").setBranchAlias("scs_timeSeed");
 	produces<std::vector<float> >("scseSeed").setBranchAlias("scs_eSeed");
 	produces<std::vector<float> >("scseMax").setBranchAlias("scs_eMax");
 	produces<std::vector<float> >("scse2nd").setBranchAlias("scs_e2nd");
@@ -232,7 +233,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<float> > vector_scs_e2nd (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_scs_eSeed (new std::vector<float>);
 	std::auto_ptr<std::vector<int> > vector_scs_severitySeed (new std::vector<int>);
-        std::auto_ptr<std::vector<int> > vector_scs_detIdSeed (new std::vector<int>);
+	std::auto_ptr<std::vector<int> > vector_scs_detIdSeed (new std::vector<int>);
+	std::auto_ptr<std::vector<float> > vector_scs_timeSeed (new std::vector<float>);
 
 	std::auto_ptr<std::vector<float> > vector_scs_e1x3 (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_scs_e3x1 (new std::vector<float>);
@@ -315,10 +317,18 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 			DetId seedId = sc->seed()->seed();
 			EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
-			vector_scs_eSeed->push_back( seedHit->energy() );
-			//      vector_scs_severitySeed->push_back ( EcalSeverityLevelAlgo::severityLevel(seedId, *recHits, *channelStatus_ ) );
-			vector_scs_detIdSeed->push_back(seedHit->id().rawId());
-			vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
+			if (seedHit != recHits->end()) {
+				vector_scs_eSeed->push_back( seedHit->energy() );
+				vector_scs_detIdSeed->push_back(seedHit->id().rawId());
+				vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
+				vector_scs_timeSeed->push_back (seedHit->time() );
+			} else {
+				vector_scs_eSeed->push_back(0.0);
+				vector_scs_detIdSeed->push_back(-1);
+				vector_scs_severitySeed->push_back (-1);
+				vector_scs_timeSeed->push_back (-9999.99);
+			}
+
 			vector_scs_eMax->push_back( lazyTools.eMax(*(sc->seed())) );
 			vector_scs_e2nd->push_back( lazyTools.e2nd(*(sc->seed())) );
 
@@ -382,6 +392,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_scs_eSeed, "scseSeed");
 	iEvent.put(vector_scs_detIdSeed, "scsdetIdSeed");
 	iEvent.put(vector_scs_severitySeed, "scsseveritySeed");
+	iEvent.put(vector_scs_timeSeed, "scstimeSeed");
 	iEvent.put(vector_scs_e2nd, "scse2nd");
 	iEvent.put(vector_scs_eMax, "scseMax");
 
