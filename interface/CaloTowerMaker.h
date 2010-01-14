@@ -5,11 +5,11 @@
 // 
 /**\class CaloTowerMaker CaloTowerMaker.cc CMS2/NtupleMaker/src/CaloTowerMaker.cc
 
- Description: <one line class summary>
+Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
-*/
+Implementation:
+<Notes on implementation>
+ */
 //
 //
 #ifndef CMS2_CALOTOWERMAKER_H
@@ -28,6 +28,11 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
 
+#include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/EcalDigi/interface/EcalDataFrame.h" 
+#include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 //
 // class declaration
 //
@@ -35,38 +40,37 @@
 class CaloTopology;
 
 class CaloTowerMaker : public edm::EDProducer {
-public:
-     explicit CaloTowerMaker (const edm::ParameterSet&);
-  
-private:
-     virtual void beginJob(const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+	public:
+		explicit CaloTowerMaker (const edm::ParameterSet&);
 
-//      math::XYZTLorentzVector initP4(const math::XYZPoint &pvPos,                 
-//                                     const reco::SuperCluster &sc);
+	private:
+		virtual void beginJob(const edm::EventSetup&) ;
+		virtual void produce(edm::Event&, const edm::EventSetup&);
+		virtual void endJob() ;
 
-     // ----------member data ---------------------------
+		float recHitTime(DetId emMaxId, const EcalRecHitCollection *recHits);
+		int recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHits);
+		void recHitSamples(DetId emMaxId, const EcalDigiCollection *digis, std::vector<int> &samples);
 
-//      // preselection cuts
-//      double scEtMin_;
+		// ----------member data ---------------------------
 
-     // primary vertex collection
-     edm::InputTag primaryVertexInputTag_;
+		// primary vertex collection
+		edm::InputTag primaryVertexInputTag_;
 
-     // Calo Tower collection
-     edm::InputTag caloTowersInputTag_;
+		// Calo Tower collection
+		edm::InputTag caloTowersInputTag_;
 
-     // rechit input collections
-     edm::InputTag ecalRecHitsInputTag_EE_;
-     edm::InputTag ecalRecHitsInputTag_EB_;
+		// rechit input collections
+		bool digi_;
+		edm::InputTag ecalRecHitsInputTag_EE_;
+		edm::InputTag ecalRecHitsInputTag_EB_;
 
-     // topology
-     const CaloTopology *topology_;
+                // digis
+                edm::InputTag ecalDigiProducerEE_;
+                edm::InputTag ecalDigiProducerEB_;
 
-//      // access to geometry
-//      unsigned long long cachedCaloGeometryID_;
-//      edm::ESHandle<CaloGeometry> caloGeometry_;
+		// topology
+		const CaloTopology *topology_;
 
 };
 
