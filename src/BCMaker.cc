@@ -46,8 +46,7 @@ typedef math::XYZPoint Point;
 //
 // constructors and destructor
 //
-BCMaker::BCMaker(const edm::ParameterSet& iConfig)
-{
+BCMaker::BCMaker(const edm::ParameterSet& iConfig) {
 
 	// number of superclusters in the event
 	produces<unsigned int>("evtnbcs").setBranchAlias("evt_nbcs");
