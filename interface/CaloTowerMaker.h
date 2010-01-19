@@ -48,6 +48,7 @@ class CaloTowerMaker : public edm::EDProducer {
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;
 
+		float recHitChi2Prob(DetId emMaxId, const EcalRecHitCollection *recHits);
 		float recHitTime(DetId emMaxId, const EcalRecHitCollection *recHits);
 		int recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHits);
 		void recHitSamples(DetId emMaxId, const EcalDigiCollection *digis, std::vector<int> &samples);
