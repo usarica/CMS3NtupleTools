@@ -112,6 +112,8 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
 	//  uint numProblematicHcalCells() const { return ((twrStatusWord_ >> 21) & 0x7); }
 	produces<std::vector<unsigned int> >("twrsnumProblematicHcalCells").setBranchAlias("twrs_numProblematicHcalCells");
 
+	// chi2 prob
+        produces<std::vector<float> >("twrsemMaxChi2Prob").setBranchAlias("twrs_emMaxChi2Prob");
 	// vector of 10 samples per max crystal in the calo tower
 	produces<std::vector<std::vector<int> > >("twrsemMaxEcalMGPASampleADC").setBranchAlias("twrs_emMaxEcalMGPASampleADC");
 	// time of crystal with highest em energy
@@ -124,6 +126,8 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
 	produces<std::vector<float> >("twrsem3x3").setBranchAlias("twrs_em3x3");
 	// as above for 5x5 crystals
 	produces<std::vector<float> >("twrsem5x5").setBranchAlias("twrs_em5x5");
+	// swiss cross
+	produces<std::vector<float> >("twrsemSwiss").setBranchAlias("twrs_emSwiss");
 	//number of crystals 
 	produces<std::vector<int> >("twrsnumCrystals").setBranchAlias("twrs_numCrystals");
 
@@ -241,12 +245,14 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numRecoveredHcalCells (new std::vector<unsigned int>);
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numProblematicHcalCells (new std::vector<unsigned int>);
 
+	std::auto_ptr<std::vector<float> > vector_twrs_emMaxChi2Prob (new std::vector<float>);
 	std::auto_ptr<std::vector<std::vector<int> > > vector_twrs_emMaxEcalMGPASampleADC (new std::vector<std::vector<int> >);
 	std::auto_ptr<std::vector<float> > vector_twrs_emMaxTime      (new std::vector<float>);
 	std::auto_ptr<std::vector<int> > vector_twrs_emMaxRecoFlag      (new std::vector<int>);
 	std::auto_ptr<std::vector<float> > vector_twrs_emMax      (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_em3x3      (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
+        std::auto_ptr<std::vector<float> > vector_twrs_emSwiss	(new std::vector<float>);	
 	std::auto_ptr<std::vector<int>   > vector_twrs_numCrystals(new std::vector<int>);
 
 	*evt_ntwrs = 0;
@@ -296,6 +302,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		float emMax = 0.0;
 		float em3x3 = 0.0;
 		float em5x5 = 0.0;
+		float emSwiss = 0.0;
+		float chi2Prob = -9999.99;
 		float emMaxTime = -9999.99;
 		DetId emMaxId(0);
 		int recoFlag = -1;
@@ -319,28 +327,43 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		if (emMaxId != DetId(0)) {
 			reco::BasicCluster dummyCluster;
 			if (emMaxId.subdetId() == EcalEndcap) {
+				chi2Prob = recHitChi2Prob(emMaxId, recHitsEE);
 				emMaxTime = recHitTime(emMaxId, recHitsEE);
 				recoFlag = recHitFlag(emMaxId, recHitsEE);
 				recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
 				em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, -1, 1);
 				em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -2, 2, -2, 2);
+
+				// make the swiss cross
+				emSwiss = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, 0, 0, -1, 1);
+				emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, 0, 0);
+				emSwiss -= emMax;
 			}
 
 			if (emMaxId.subdetId() == EcalBarrel) { 
+                                chi2Prob = recHitChi2Prob(emMaxId, recHitsEB);
 				emMaxTime = recHitTime(emMaxId, recHitsEB);
 				recoFlag = recHitFlag(emMaxId, recHitsEB);
 				recHitSamples(emMaxId, ebDigis, ecalMGPASampleADC);
 				em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, -1, 1);
 				em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -2, 2, -2, 2);
+
+                                // make the swiss cross
+                                emSwiss = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, 0, 0, -1, 1);
+                                emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, 0, 0);
+                                emSwiss -= emMax;
+
 			}
 		}
 
+		vector_twrs_emMaxChi2Prob->push_back(chi2Prob);
 		vector_twrs_emMaxEcalMGPASampleADC->push_back(ecalMGPASampleADC);
 		vector_twrs_emMaxTime->push_back(emMaxTime);
 		vector_twrs_emMaxRecoFlag->push_back(recoFlag);
 		vector_twrs_emMax->push_back(emMax);
 		vector_twrs_em3x3->push_back(em3x3);
 		vector_twrs_em5x5->push_back(em5x5);
+		vector_twrs_emSwiss->push_back(emSwiss);
 		vector_twrs_numCrystals->push_back(j->numCrystals());
 
 	}
@@ -375,14 +398,23 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_twrs_numRecoveredHcalCells, "twrsnumRecoveredHcalCells");
 	iEvent.put(vector_twrs_numProblematicHcalCells, "twrsnumProblematicHcalCells");
 
+	iEvent.put(vector_twrs_emMaxChi2Prob, "twrsemMaxChi2Prob");
 	iEvent.put(vector_twrs_emMaxEcalMGPASampleADC, "twrsemMaxEcalMGPASampleADC");
 	iEvent.put(vector_twrs_emMaxTime, "twrsemMaxTime");
 	iEvent.put(vector_twrs_emMaxRecoFlag, "twrsemMaxRecoFlag");
 	iEvent.put(vector_twrs_emMax, "twrsemMax");
 	iEvent.put(vector_twrs_em3x3, "twrsem3x3");
 	iEvent.put(vector_twrs_em5x5, "twrsem5x5");
+	iEvent.put(vector_twrs_emSwiss, "twrsemSwiss");
 	iEvent.put(vector_twrs_numCrystals, "twrsnumCrystals");
 
+}
+
+float CaloTowerMaker::recHitChi2Prob(DetId emMaxId, const EcalRecHitCollection *recHits)
+{               
+        EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
+        if (it != recHits->end()) return it->chi2Prob();
+        return -9999.99;
 }
 
 float CaloTowerMaker::recHitTime(DetId emMaxId, const EcalRecHitCollection *recHits)
