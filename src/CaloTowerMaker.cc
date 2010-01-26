@@ -83,6 +83,9 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
 	produces<std::vector<float> >("twrshadEtcorr").setBranchAlias("twrs_hadEtcorr");
 	//   double outerEt(Point v) const { return (id_.ietaAbs()<16)? outerE_ * sin(p4(v).theta()) : 0.0; }
 	produces<std::vector<float> >("twrsouterEtcorr").setBranchAlias("twrs_outerEtcorr");
+	produces<std::vector<float> >("twrsetacorr").setBranchAlias("twrs_etacorr");
+	produces<std::vector<float> >("twrsphicorr").setBranchAlias("twrs_phicorr");
+
 
 	//    // the reference poins in ECAL and HCAL for direction determination
 	//    // algorithm and parameters for selecting these points are set in the CaloTowersCreator
@@ -233,6 +236,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<float> > vector_twrs_emEtcorr (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_hadEtcorr (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_outerEtcorr (new std::vector<float>);
+	std::auto_ptr<std::vector<float> > vector_twrs_etacorr (new std::vector<float>);
+	std::auto_ptr<std::vector<float> > vector_twrs_phicorr (new std::vector<float>);
 
 	std::auto_ptr<std::vector<float> > vector_twrs_ecalTime (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_hcalTime (new std::vector<float>);
@@ -252,7 +257,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<float> > vector_twrs_emMax      (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_em3x3      (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
-        std::auto_ptr<std::vector<float> > vector_twrs_emSwiss	(new std::vector<float>);	
+	std::auto_ptr<std::vector<float> > vector_twrs_emSwiss	(new std::vector<float>);	
 	std::auto_ptr<std::vector<int>   > vector_twrs_numCrystals(new std::vector<int>);
 
 	*evt_ntwrs = 0;
@@ -282,6 +287,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		vector_twrs_emEtcorr->push_back(j->emEt(pv));
 		vector_twrs_hadEtcorr->push_back(j->hadEt(pv));
 		vector_twrs_outerEtcorr->push_back(j->outerEt(pv));
+		vector_twrs_etacorr->push_back(j->p4(pv).eta());
+		vector_twrs_phicorr->push_back(j->p4(pv).phi());
 
 		vector_twrs_ecalTime->push_back(j->ecalTime());
 		vector_twrs_hcalTime->push_back(j->hcalTime());
@@ -386,6 +393,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_twrs_emEtcorr, "twrsemEtcorr");
 	iEvent.put(vector_twrs_hadEtcorr, "twrshadEtcorr");
 	iEvent.put(vector_twrs_outerEtcorr, "twrsouterEtcorr");
+	iEvent.put(vector_twrs_etacorr, "twrsetacorr");
+	iEvent.put(vector_twrs_phicorr, "twrsphicorr");
 
 	iEvent.put(vector_twrs_ecalTime, "twrsecalTime");
 	iEvent.put(vector_twrs_hcalTime, "twrshcalTime");
