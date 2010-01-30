@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.23 2009/12/20 00:01:42 warren Exp $
+// $Id: GenMaker.cc,v 1.24 2010/01/30 00:07:33 ibloch Exp $
 //
 //
 
@@ -50,7 +50,6 @@ using namespace std;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesInputTag       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  genEventScaleInputTag      = iConfig.getParameter<InputTag>                  ("genEventScaleInputTag");
   ntupleOnlyStatus3          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   vmetPIDs                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
@@ -149,19 +148,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   const vector<GenParticle>* genps_coll = genpsHandle.product();
 
-  // get the ptHat scale variable
-  edm::Handle<double> genEventScale;
-  iEvent.getByLabel(genEventScaleInputTag, genEventScale);
-
-  if( genEventScale.isValid() ) {
-    double ptHat = *genEventScale;
-    *genps_pthat = ptHat;
-  }
-  else {
-    double ptHat = -1;
-    *genps_pthat = ptHat;
-  }
-
   //get the MC event weights
   //if weights do not exist (Pythia), default is weight of 1
   vector< Handle<HepMCProduct> > hepmc_vect;
@@ -170,7 +156,17 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   HepMC::WeightContainer wc;
 
   if(hepmc_vect.size() != 0) { //found HepMC branch
+    
+    if(hepmc_vect.size() > 1 ) {
+      edm::LogInfo("OutputInfo") << "GenMaker blindly using first entry in HepMC vector with size larger than 1. BAD? Size is: "<<hepmc_vect.size();
+    }    
+
     const HepMC::GenEvent *genEvt = hepmc_vect.at(0)->GetEvent();
+
+    // set the event scale / ptHat:
+    double ptHat = genEvt->event_scale();
+    *genps_pthat = ptHat;
+    
     wc = genEvt->weights();
 
     float weight = -9999.;
@@ -179,10 +175,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       weight = (float)wc[0];
 
     *genps_weight = weight;
+
   } 
   else
     *genps_weight = 1.;
-
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -195,9 +191,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_xsec_incl = inclusiveCrossSectionValue;
   *evt_xsec_excl = exclusiveCrossSectionValue;
   *evt_kfactor   = kfactorValue;
-
-
-  
 
   double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
