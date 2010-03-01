@@ -347,7 +347,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 			if(fabs(sc->seed()->eta()) > 1.479) {
 				covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
 			}
-			vector_scs_sigmaEtaEta->push_back( sqrt( covariances[0] > 0 ? sqrt(covariances[0]) : -1 * sqrt(-1 * covariances[0]) );
+			vector_scs_sigmaEtaEta->push_back( sqrt( covariances[0] > 0 ? sqrt(covariances[0]) : -1 * sqrt(-1 * covariances[0]) ) );
 			vector_scs_sigmaEtaPhi->push_back( sqrt(covariances[1]) );
 			vector_scs_sigmaPhiPhi->push_back( sqrt(covariances[2]) );
 			std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
