@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.cc,v 1.4 2009/11/18 21:46:25 kalavase Exp $
+// $Id: MuToJetAssMaker.cc,v 1.5 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -97,7 +97,7 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-MuToJetAssMaker::beginJob(const edm::EventSetup&)
+MuToJetAssMaker::beginJob()
 {
 }
 

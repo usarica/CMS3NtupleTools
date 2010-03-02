@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.21 2009/11/18 21:46:16 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.22 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -1443,7 +1443,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void HypDilepMaker::beginJob(const edm::EventSetup&)
+void HypDilepMaker::beginJob()
 {
 }
 

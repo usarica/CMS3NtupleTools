@@ -39,7 +39,7 @@ TriggerFilter::TriggerFilter(const edm::ParameterSet& iConfig) {
 
 TriggerFilter::~TriggerFilter() {}
 
-void  TriggerFilter::beginJob(const edm::EventSetup&) {
+void  TriggerFilter::beginJob() {
 }
 
 void TriggerFilter::endJob() {

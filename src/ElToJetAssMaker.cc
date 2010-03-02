@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.cc,v 1.3 2009/11/18 21:46:07 kalavase Exp $
+// $Id: ElToJetAssMaker.cc,v 1.4 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -97,7 +97,7 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-ElToJetAssMaker::beginJob(const edm::EventSetup&)
+ElToJetAssMaker::beginJob()
 {
 }
 

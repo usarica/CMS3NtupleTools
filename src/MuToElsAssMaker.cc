@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.cc,v 1.4 2009/11/18 21:46:23 kalavase Exp $
+// $Id: MuToElsAssMaker.cc,v 1.5 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -99,7 +99,7 @@ void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-MuToElsAssMaker::beginJob(const edm::EventSetup&)
+MuToElsAssMaker::beginJob()
 {
 }
 

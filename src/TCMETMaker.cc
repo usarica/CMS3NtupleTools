@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.7 2009/08/28 11:34:13 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.8 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -66,7 +66,7 @@ TCMETMaker::~TCMETMaker()
 {
 }
 
-void  TCMETMaker::beginJob(const edm::EventSetup&)
+void  TCMETMaker::beginJob()
 {
 }
 

@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.12 2009/09/10 10:51:43 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.13 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -107,7 +107,7 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void JPTMaker::beginJob(const edm::EventSetup&) {
+void JPTMaker::beginJob() {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

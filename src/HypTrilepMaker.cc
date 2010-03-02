@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.10 2009/09/02 20:05:41 fgolf Exp $
+// $Id: HypTrilepMaker.cc,v 1.11 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -520,7 +520,7 @@ for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) 
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-HypTrilepMaker::beginJob(const edm::EventSetup&)
+HypTrilepMaker::beginJob()
 {
 }
 

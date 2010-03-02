@@ -14,7 +14,7 @@ Description: copy additional PAT met variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.cc,v 1.4 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PATMETMaker.cc,v 1.5 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -125,7 +125,7 @@ PATMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 // ------------ method called once each job just before starting event loop  ------------
 void 
-PATMETMaker::beginJob(const edm::EventSetup&)
+PATMETMaker::beginJob()
 {
 }
 

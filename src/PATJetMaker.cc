@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.9 2010/01/02 02:48:20 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.10 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -289,7 +289,7 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-PATJetMaker::beginJob(const edm::EventSetup&)
+PATJetMaker::beginJob()
 {
 }
 

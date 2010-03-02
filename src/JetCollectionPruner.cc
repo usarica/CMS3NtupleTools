@@ -76,7 +76,7 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void JetCollectionPruner::beginJob(const edm::EventSetup&)
+void JetCollectionPruner::beginJob()
 {
 }
 

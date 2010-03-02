@@ -16,7 +16,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.6 2009/11/18 21:46:40 kalavase Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.7 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -113,7 +113,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void TrackToMuonAssMaker::beginJob(const edm::EventSetup&) {
+void TrackToMuonAssMaker::beginJob() {
 }
 
 // ------------ method called once each job just after ending the event loop  ------------

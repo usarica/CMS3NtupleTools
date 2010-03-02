@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.36 2009/12/08 23:20:19 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.37 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -568,7 +568,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-MuonMaker::beginJob(const edm::EventSetup&)
+MuonMaker::beginJob()
 {
 }
 

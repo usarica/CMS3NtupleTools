@@ -557,7 +557,7 @@ double HypIsoMaker::getHypSum( int objid, int objidx, vector<int> excid, vector<
 	  //if( abs(et - tower->emEt()) > 0.01 )
 	  //cout << "et disagreement: from pos " << et << "  from tower " << tower->emEt() << endl;
 	}
-  } 
+	}
   else {
 	cout << "HypIsoMaker : ERROR bad hyp_lx_id--not abs = 11 || 13\n\n";
 	return 0;

@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.7 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PATElectronMaker.cc,v 1.8 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -182,7 +182,7 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-PATElectronMaker::beginJob(const edm::EventSetup&)
+PATElectronMaker::beginJob()
 {
 }
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.26 2009/12/20 00:00:04 warren Exp $
+// $Id: EventMaker.cc,v 1.27 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -70,7 +70,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
 EventMaker::~EventMaker() {}
 
-void EventMaker::beginJob(const edm::EventSetup&) {  
+void EventMaker::beginJob() {  
 }
 
 void EventMaker::endJob() {

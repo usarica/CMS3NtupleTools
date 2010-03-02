@@ -59,7 +59,7 @@ PFJetMaker::~PFJetMaker()
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void PFJetMaker::beginJob(const edm::EventSetup&) {
+void PFJetMaker::beginJob() {
 
 }
 

@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  1 11:07:38 PDT 2009
-// $Id: DilepGenFilter.cc,v 1.4 2009/09/15 14:32:25 kalavase Exp $
+// $Id: DilepGenFilter.cc,v 1.5 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -46,7 +46,7 @@ DilepGenFilter::DilepGenFilter(const edm::ParameterSet& iConfig) {
 
 DilepGenFilter::~DilepGenFilter() {}
 
-void  DilepGenFilter::beginJob(const edm::EventSetup&) {
+void  DilepGenFilter::beginJob() {
 }
 
 void DilepGenFilter::endJob() {

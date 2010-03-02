@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrkToVtxAssMaker.cc,v 1.1 2009/12/16 09:52:03 jmuelmen Exp $
+// $Id: TrkToVtxAssMaker.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -137,7 +137,7 @@ void TrkToVtxAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-TrkToVtxAssMaker::beginJob(const edm::EventSetup&)
+TrkToVtxAssMaker::beginJob()
 {
 }
 

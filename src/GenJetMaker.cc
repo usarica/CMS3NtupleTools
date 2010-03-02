@@ -12,7 +12,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: GenJetMaker.cc,v 1.6 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -93,7 +93,7 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_genjets_p4, "genjetsp4"   );
 }
 
-void GenJetMaker::beginJob(const edm::EventSetup&)
+void GenJetMaker::beginJob()
 {
 }
 

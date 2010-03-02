@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.5 2009/12/31 01:13:00 kalavase Exp $
+// $Id: TrkJetMaker.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
 //
 
 
@@ -90,7 +90,7 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
 void
-TrkJetMaker::beginJob(const edm::EventSetup&)
+TrkJetMaker::beginJob()
 {
 }
 

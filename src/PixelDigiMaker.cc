@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PixelDigiMaker.cc,v 1.1 2009/12/10 09:54:48 warren Exp $
+// $Id: PixelDigiMaker.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -120,7 +120,7 @@ void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-PixelDigiMaker::beginJob(const edm::EventSetup&)
+PixelDigiMaker::beginJob()
 {
 }
 

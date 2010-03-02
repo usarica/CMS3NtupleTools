@@ -50,7 +50,7 @@ HypGenMaker::~HypGenMaker()
 {
 }
 
-void  HypGenMaker::beginJob(const edm::EventSetup&)
+void  HypGenMaker::beginJob()
 {
 }
 

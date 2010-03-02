@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.24 2010/01/30 00:07:33 ibloch Exp $
+// $Id: GenMaker.cc,v 1.25 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -88,7 +88,7 @@ GenMaker::~GenMaker()
 {
 }
 
-void  GenMaker::beginJob(const edm::EventSetup&)
+void  GenMaker::beginJob()
 {
 }
 

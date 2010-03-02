@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Warren Andrews
 //         Created:  
-// $Id: BTagMaker.cc,v 1.4 2009/09/10 17:12:05 kalavase Exp $
+// $Id: BTagMaker.cc,v 1.5 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -88,7 +88,7 @@ BTagMaker::BTagMaker(const edm::ParameterSet& iConfig) {
 
 BTagMaker::~BTagMaker() {}
 
-void  BTagMaker::beginJob(const edm::EventSetup&) {
+void  BTagMaker::beginJob() {
 }
 
 void BTagMaker::endJob() {

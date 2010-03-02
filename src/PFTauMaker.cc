@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.9 2009/11/18 21:46:30 kalavase Exp $
+// $Id: PFTauMaker.cc,v 1.10 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -92,7 +92,7 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 
 PFTauMaker::~PFTauMaker() {}
 
-void  PFTauMaker::beginJob(const edm::EventSetup&) {
+void  PFTauMaker::beginJob() {
 }
 
 void PFTauMaker::endJob() {

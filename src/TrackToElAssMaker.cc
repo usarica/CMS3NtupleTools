@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.8 2009/11/22 20:25:59 kalavase Exp $
+// $Id: TrackToElAssMaker.cc,v 1.9 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -141,7 +141,7 @@ void TrackToElAssMaker::getMatchedElInfo(const Track& ctfTk,
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-TrackToElAssMaker::beginJob(const edm::EventSetup&)
+TrackToElAssMaker::beginJob()
 {
 }
 

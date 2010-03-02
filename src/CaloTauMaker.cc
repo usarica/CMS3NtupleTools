@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.6 2009/11/18 21:44:15 kalavase Exp $
+// $Id: CaloTauMaker.cc,v 1.7 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -82,7 +82,7 @@ CaloTauMaker::CaloTauMaker(const edm::ParameterSet& iConfig) {
 
 CaloTauMaker::~CaloTauMaker() {}
 
-void  CaloTauMaker::beginJob(const edm::EventSetup&) {
+void  CaloTauMaker::beginJob() {
 }
 
 void CaloTauMaker::endJob() {

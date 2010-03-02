@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.2 2010/01/08 01:11:24 yanjuntu Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.3 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -225,7 +225,7 @@ RandomConeIsoMaker::RandomConeIsoMaker(const edm::ParameterSet& iConfig)
 
 RandomConeIsoMaker::~RandomConeIsoMaker() {}
 
-void RandomConeIsoMaker::beginJob(const edm::EventSetup&) {  
+void RandomConeIsoMaker::beginJob() {  
 }
 
 void RandomConeIsoMaker::endJob() {

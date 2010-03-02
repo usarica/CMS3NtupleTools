@@ -36,6 +36,8 @@ Implementation:
 #include "DataFormats/Common/interface/Ref.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
+#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
+
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
@@ -442,7 +444,7 @@ math::XYZTLorentzVectorF SCMaker::initP4(const math::XYZPoint &pvPos,
 
 // ------------ method called once each job just before starting event loop  ------------
 	void 
-SCMaker::beginJob(const edm::EventSetup&)
+SCMaker::beginJob()
 {
 }
 

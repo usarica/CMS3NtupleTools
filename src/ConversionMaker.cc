@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.7 2009/11/18 21:53:03 kalavase Exp $
+// $Id: ConversionMaker.cc,v 1.8 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -127,7 +127,7 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void ConversionMaker::beginJob(const EventSetup& es)
+void ConversionMaker::beginJob()
 {
   
 }

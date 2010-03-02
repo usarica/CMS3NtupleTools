@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.8 2009/11/18 21:44:00 kalavase Exp $
+// $Id: BeamSpotMaker.cc,v 1.9 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -70,7 +70,7 @@ BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
 
 BeamSpotMaker::~BeamSpotMaker() {}
 
-void  BeamSpotMaker::beginJob(const edm::EventSetup&) {
+void  BeamSpotMaker::beginJob() {
 }
 
 void BeamSpotMaker::endJob() {

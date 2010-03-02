@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tues Sep  1 11:07:38 CDT 2009
-// $Id: FlavorHistoryMaker.cc,v 1.1 2009/09/01 09:04:50 kalavase Exp $
+// $Id: FlavorHistoryMaker.cc,v 1.2 2010/03/02 19:36:07 fgolf Exp $
 //
 
 // system include files
@@ -48,7 +48,7 @@ FlavorHistoryMaker::~FlavorHistoryMaker()
 {
 }
 
-void  FlavorHistoryMaker::beginJob(const edm::EventSetup&)
+void  FlavorHistoryMaker::beginJob()
 {
 }
 

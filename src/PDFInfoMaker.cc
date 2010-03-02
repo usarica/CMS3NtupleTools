@@ -56,7 +56,7 @@ PDFInfoMaker::~PDFInfoMaker()
 {
 }
 
-void  PDFInfoMaker::beginJob(const edm::EventSetup&)
+void  PDFInfoMaker::beginJob()
 {
 }
 

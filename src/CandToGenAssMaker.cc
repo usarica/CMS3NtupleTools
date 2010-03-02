@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.15 2009/11/18 21:46:05 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.16 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -514,7 +514,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-CandToGenAssMaker::beginJob(const edm::EventSetup&)
+CandToGenAssMaker::beginJob()
 {
 }
 

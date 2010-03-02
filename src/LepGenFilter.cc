@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  1 11:07:38 PDT 2009
-// $Id: LepGenFilter.cc,v 1.1 2009/11/06 01:45:03 dlevans Exp $
+// $Id: LepGenFilter.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -46,7 +46,7 @@ LepGenFilter::LepGenFilter(const edm::ParameterSet& iConfig) {
 
 LepGenFilter::~LepGenFilter() {}
 
-void  LepGenFilter::beginJob(const edm::EventSetup&) {
+void  LepGenFilter::beginJob() {
 }
 
 void LepGenFilter::endJob() {

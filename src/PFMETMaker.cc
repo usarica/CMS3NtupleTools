@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PFMETMaker.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -50,7 +50,7 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
 
 PFMETMaker::~PFMETMaker() {}
 
-void  PFMETMaker::beginJob(const edm::EventSetup&) {
+void  PFMETMaker::beginJob() {
 }
 
 void PFMETMaker::endJob() {

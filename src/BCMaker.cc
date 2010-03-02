@@ -36,6 +36,8 @@ Implementation:
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/Common/interface/Ref.h"
 
+#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
+
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
@@ -317,7 +319,7 @@ math::XYZTLorentzVectorF BCMaker::initP4(const math::XYZPoint &pvPos,
 
 // ------------ method called once each job just before starting event loop  ------------
 	void 
-BCMaker::beginJob(const edm::EventSetup&)
+BCMaker::beginJob()
 {
 }
 

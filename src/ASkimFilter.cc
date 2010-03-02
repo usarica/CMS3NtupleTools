@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ASkimFilter.cc,v 1.2 2009/09/10 10:51:42 fgolf Exp $
+// $Id: ASkimFilter.cc,v 1.3 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -48,7 +48,7 @@ ASkimFilter::ASkimFilter(const edm::ParameterSet& iConfig) {
 
 ASkimFilter::~ASkimFilter() {}
 
-void  ASkimFilter::beginJob(const edm::EventSetup&) {
+void  ASkimFilter::beginJob() {
 }
 
 void ASkimFilter::endJob() {

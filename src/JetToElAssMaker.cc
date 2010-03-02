@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToElAssMaker.cc,v 1.5 2009/09/10 10:51:43 fgolf Exp $
+// $Id: JetToElAssMaker.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -90,7 +90,7 @@ void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-JetToElAssMaker::beginJob(const edm::EventSetup&)
+JetToElAssMaker::beginJob()
 {
 }
 

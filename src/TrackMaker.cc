@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.26 2009/12/31 01:12:14 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.27 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -434,7 +434,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void TrackMaker::beginJob(const edm::EventSetup&)
+void TrackMaker::beginJob()
 {
 }
 

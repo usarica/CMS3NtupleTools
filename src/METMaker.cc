@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.19 2009/12/14 06:43:48 warren Exp $
+// $Id: METMaker.cc,v 1.20 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -166,7 +166,7 @@ METMaker::~METMaker()
 {
 }
 
-void  METMaker::beginJob(const edm::EventSetup&)
+void  METMaker::beginJob()
 {
 }
 

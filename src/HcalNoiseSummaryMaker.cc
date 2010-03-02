@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HcalNoiseSummaryMaker.cc,v 1.1 2009/11/30 22:04:36 kalavase Exp $
+// $Id: HcalNoiseSummaryMaker.cc,v 1.2 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -88,7 +88,7 @@ HcalNoiseSummaryMaker::HcalNoiseSummaryMaker(const edm::ParameterSet& iConfig) {
 
 HcalNoiseSummaryMaker::~HcalNoiseSummaryMaker() {}
 
-void HcalNoiseSummaryMaker::beginJob(const edm::EventSetup&) {  
+void HcalNoiseSummaryMaker::beginJob() {  
 }
 
 void HcalNoiseSummaryMaker::endJob() {

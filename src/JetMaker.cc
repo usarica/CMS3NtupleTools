@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.26 2009/12/18 18:59:04 kalavase Exp $
+// $Id: JetMaker.cc,v 1.27 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -192,7 +192,7 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-JetMaker::beginJob(const edm::EventSetup&)
+JetMaker::beginJob()
 {
 }
 

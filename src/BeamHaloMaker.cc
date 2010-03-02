@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.cc,v 1.4 2009/12/05 23:53:08 kalavase Exp $
+// $Id: BeamHaloMaker.cc,v 1.5 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -64,7 +64,7 @@ BeamHaloMaker::BeamHaloMaker(const edm::ParameterSet& iConfig) {
 
 BeamHaloMaker::~BeamHaloMaker() {}
 
-void  BeamHaloMaker::beginJob(const edm::EventSetup&) {
+void  BeamHaloMaker::beginJob() {
 }
 
 void BeamHaloMaker::endJob() {

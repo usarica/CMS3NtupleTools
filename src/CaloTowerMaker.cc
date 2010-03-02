@@ -461,7 +461,7 @@ void CaloTowerMaker::recHitSamples(DetId emMaxId, const EcalDigiCollection *digi
 
 // ------------ method called once each job just before starting event loop  ------------
 	void 
-CaloTowerMaker::beginJob(const edm::EventSetup&)
+CaloTowerMaker::beginJob()
 {
 }
 

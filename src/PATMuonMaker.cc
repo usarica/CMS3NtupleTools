@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.11 2009/11/13 16:55:43 gutsche Exp $
+// $Id: PATMuonMaker.cc,v 1.12 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -117,7 +117,6 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		    reco::GenParticle(0, reco::Particle::LorentzVector(0, 0, 0, 0), reco::Particle::Point(0,0,0), 0, 0, true));
     const GenParticle *gen_mom = MCUtilities::motherID(gen);
 
-
     //the veto cone size is 0.07 in the ecal and 0.1 in the hcal 
     // const reco::IsoDeposit *trckIsoDep = patmu_it->isolationR03().trackerVetoPt;
     float trckIsoDep = patmu_it->isolationR03().trackerVetoPt;
@@ -127,8 +126,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     mus_pat_p4          ->push_back( LorentzVector( patmu_it->p4() ) );
     mus_pat_trackIso    ->push_back( patmu_it->trackIso()       );
     mus_pat_trckvetoDep ->push_back( trckIsoDep   );
-    mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy()
-									 + hcalIsoDep->candEnergy() );
+    mus_pat_vetoDep     ->push_back( ecalIsoDep->candEnergy() + hcalIsoDep->candEnergy() );
     mus_pat_ecalvetoDep ->push_back( ecalIsoDep->candEnergy()   );
     mus_pat_hcalvetoDep ->push_back( hcalIsoDep->candEnergy()   );
     mus_pat_ecalIso     ->push_back( patmu_it->ecalIso()        );
@@ -164,7 +162,7 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-PATMuonMaker::beginJob(const edm::EventSetup&)
+PATMuonMaker::beginJob()
 {
 }
 

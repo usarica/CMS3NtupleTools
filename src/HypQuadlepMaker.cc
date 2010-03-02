@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.10 2009/09/02 20:05:45 fgolf Exp $
+// $Id: HypQuadlepMaker.cc,v 1.11 2010/03/02 19:36:07 fgolf Exp $
 //
 //
 
@@ -720,7 +720,7 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 // ------------ method called once each job just before starting event loop  ------------
 void 
-HypQuadlepMaker::beginJob(const edm::EventSetup&)
+HypQuadlepMaker::beginJob()
 {
 }
 

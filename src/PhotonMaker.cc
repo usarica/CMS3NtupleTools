@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.6 2009/09/10 10:51:43 fgolf Exp $
+// $Id: PhotonMaker.cc,v 1.7 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -123,7 +123,7 @@ PhotonMaker::~PhotonMaker()
      if (clusterTools_) delete clusterTools_;
 }
 
-void  PhotonMaker::beginJob(const edm::EventSetup&)
+void  PhotonMaker::beginJob()
 {
 }
 

@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.5 2009/01/14 22:41:42 spadhi Exp $
+// $Id: TrkMuonFilter.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
 //
 
 // system include files
@@ -101,7 +101,7 @@ TrkMuonFilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 void
-TrkMuonFilter::beginJob(const edm::EventSetup&)
+TrkMuonFilter::beginJob()
 {
 }
 

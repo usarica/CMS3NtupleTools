@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Frank Wuerthwein
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TheFilter.cc,v 1.1 2008/07/25 00:04:34 fkw Exp $
+// $Id: TheFilter.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
 //
 //
 
@@ -44,7 +44,7 @@ TheFilter::TheFilter(const edm::ParameterSet& iConfig) {
 
 TheFilter::~TheFilter() {}
 
-void  TheFilter::beginJob(const edm::EventSetup&) {
+void  TheFilter::beginJob() {
 }
 
 void TheFilter::endJob() {
