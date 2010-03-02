@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.43 2009/12/31 01:11:57 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.44 2010/03/02 19:35:10 fgolf Exp $
 //
 //
 
@@ -235,8 +235,8 @@ ElectronMaker::~ElectronMaker()
   if (clusterTools_) delete clusterTools_;
   if (mtsTransform_) delete mtsTransform_;
 }
-
-void  ElectronMaker::beginJob(const edm::EventSetup& es) {
+/*
+void  ElectronMaker::beginJob() {
   
   edm::ESHandle<TrackerGeometry>              trackerGeometryHandle;
   edm::ESHandle<MagneticField>                magFieldHandle;
@@ -246,6 +246,22 @@ void  ElectronMaker::beginJob(const edm::EventSetup& es) {
   mtsTransform_ = new MultiTrajectoryStateTransform(trackerGeometryHandle.product(), magFieldHandle.product());
    
 
+}
+*/
+
+void  ElectronMaker::beginRun(edm::Run&, const edm::EventSetup& es) {
+  
+  edm::ESHandle<TrackerGeometry>              trackerGeometryHandle;
+  edm::ESHandle<MagneticField>                magFieldHandle;
+  
+  es.get<TrackerDigiGeometryRecord>().get(trackerGeometryHandle);
+  es.get<IdealMagneticFieldRecord>().get(magFieldHandle);
+  mtsTransform_ = new MultiTrajectoryStateTransform(trackerGeometryHandle.product(), magFieldHandle.product());
+   
+
+}
+
+void ElectronMaker::beginJob() {
 }
 
 void ElectronMaker::endJob() {
