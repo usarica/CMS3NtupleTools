@@ -3,6 +3,7 @@
 <use name=FWCore/ParameterSet>
 <use name=FWCore/Utilities>		
 <use name=CondFormats/JetMETObjects>
+<use name=CondFormats/EcalObjects>
 <use name=DataFormats/TauReco>	
 <use name=DataFormats/MuonReco>
 <use name=DataFormats/JetReco>
@@ -21,6 +22,7 @@
 <use name=Geometry/Records>
 <use name=Geometry/CommonDetUnit>
 <use name=Geometry/TrackerGeometryBuilder>
+<use name=Geometry/EcalAlgo>
 <use name=RecoMuon/MuonIsolation>
 <use name=RecoMuon/MuonIdentification>
 <use name=RecoEcal/EgammaCoreTools>
