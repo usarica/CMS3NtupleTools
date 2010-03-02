@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tues Sep  1 11:07:38 CDT 2009
-// $Id: FlavorHistoryMaker.h,v 1.1 2009/09/01 09:04:30 kalavase Exp $
+// $Id: FlavorHistoryMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_FLAVORHISTORYPRODUCER_H
@@ -39,7 +39,7 @@ public:
   ~FlavorHistoryMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

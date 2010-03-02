@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: ASkimFilter.h,v 1.1 2008/10/03 21:35:47 ibloch Exp $
+// $Id: ASkimFilter.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -50,7 +50,7 @@ public:
   ~ASkimFilter();
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
    

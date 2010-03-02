@@ -11,7 +11,7 @@ Description: make associations between muons and jets
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
+// $Id: MuToJetAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_MUTOJETASSMAKER_H
@@ -32,7 +32,7 @@ public:
   explicit MuToJetAssMaker (const edm::ParameterSet&);
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.6 2009/08/27 17:03:14 fgolf Exp $
+// $Id: TrackMaker.h,v 1.7 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -42,7 +42,7 @@ public:
   double calculateTrkIsolation(const edm::View<reco::Track>*, const reco::Track&, const Point&);
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

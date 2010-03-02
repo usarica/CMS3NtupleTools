@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: DilepGenFilter.h,v 1.2 2009/11/07 02:47:17 dlevans Exp $
+// $Id: DilepGenFilter.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_DILEPGENFILTER_H
@@ -50,7 +50,7 @@ public:
   ~DilepGenFilter();
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
    

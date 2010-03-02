@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.8 2009/09/10 10:51:37 fgolf Exp $
+// $Id: HypTrilepMaker.h,v 1.9 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -53,7 +53,7 @@ public:
 					unsigned int third);
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

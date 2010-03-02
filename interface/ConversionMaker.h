@@ -11,7 +11,7 @@ Description: Vetos electrons from Conversions
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Oct 14 2:28:31 UTC 2008
-// $Id: ConversionMaker.h,v 1.3 2009/11/18 21:39:23 kalavase Exp $
+// $Id: ConversionMaker.h,v 1.4 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_COVERSIONMAKER_H
@@ -35,7 +35,7 @@ public:
   explicit ConversionMaker (const edm::ParameterSet&);
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

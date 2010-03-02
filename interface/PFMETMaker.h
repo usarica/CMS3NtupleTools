@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.h,v 1.2 2009/08/28 11:02:35 fgolf Exp $
+// $Id: PFMETMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFMETMAKER_H
@@ -39,7 +39,7 @@ public:
   ~PFMETMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

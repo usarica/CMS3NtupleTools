@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.h,v 1.2 2009/05/18 18:18:00 kalavase Exp $
+// $Id: PATMuonMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_PATMUONMAKER_H
@@ -45,7 +45,7 @@ public:
   ~PATMuonMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

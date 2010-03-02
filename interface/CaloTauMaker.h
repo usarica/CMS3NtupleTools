@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.h,v 1.2 2009/09/01 07:56:39 kalavase Exp $
+// $Id: CaloTauMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_CALOTAUMAKER_H
@@ -40,7 +40,7 @@ public:
       ~CaloTauMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 

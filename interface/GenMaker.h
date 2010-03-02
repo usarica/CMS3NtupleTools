@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.12 2010/01/30 00:07:32 ibloch Exp $
+// $Id: GenMaker.h,v 1.13 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -39,7 +39,7 @@ public:
      ~GenMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
      virtual void beginRun(edm::Run&, const edm::EventSetup&);

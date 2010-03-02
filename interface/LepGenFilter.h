@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: LepGenFilter.h,v 1.1 2009/11/06 01:45:04 dlevans Exp $
+// $Id: LepGenFilter.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_LEPGENFILTER_H
@@ -47,7 +47,7 @@ public:
   ~LepGenFilter();
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   int nGenLepsRequired_;

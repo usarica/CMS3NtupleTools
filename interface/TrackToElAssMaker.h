@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.h,v 1.4 2009/08/31 11:39:27 kalavase Exp $
+// $Id: TrackToElAssMaker.h,v 1.5 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 #ifndef CMS2_TRACKTOELASSMAKER_H
@@ -40,7 +40,7 @@ public:
      explicit TrackToElAssMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
   void getMatchedElInfo(const reco::Track&,

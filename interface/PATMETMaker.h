@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATMETMaker.h,v 1.2 2009/05/18 22:43:05 fgolf Exp $
+// $Id: PATMETMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_PATMETMAKER_H
@@ -45,7 +45,7 @@ public:
   ~PATMETMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

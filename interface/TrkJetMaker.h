@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.h,v 1.2 2009/09/01 11:48:50 fgolf Exp $
+// $Id: TrkJetMaker.h,v 1.3 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 
@@ -38,7 +38,7 @@ public:
   ~TrkJetMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

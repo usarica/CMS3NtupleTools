@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.3 2009/11/09 22:19:29 fgolf Exp $
+// $Id: PFJetMaker.h,v 1.4 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 
@@ -41,7 +41,7 @@ public:
      ~PFJetMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
       

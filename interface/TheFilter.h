@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Frank Wuerthwein
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: TheFilter.h,v 1.1 2008/07/25 00:03:27 fkw Exp $
+// $Id: TheFilter.h,v 1.2 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 #ifndef CMS2_THEFILTER_H
@@ -50,7 +50,7 @@ public:
   ~TheFilter();
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
    

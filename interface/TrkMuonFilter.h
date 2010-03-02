@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.h,v 1.3 2008/12/17 21:02:34 spadhi Exp $
+// $Id: TrkMuonFilter.h,v 1.4 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 
@@ -42,7 +42,7 @@ class TrkMuonFilter : public edm::EDProducer {
   ~TrkMuonFilter();
 
  private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

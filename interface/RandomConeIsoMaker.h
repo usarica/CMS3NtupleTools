@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.h,v 1.2 2010/01/08 01:11:07 yanjuntu Exp $
+// $Id: RandomConeIsoMaker.h,v 1.3 2010/03/02 19:24:12 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -40,7 +40,7 @@ public:
   ~RandomConeIsoMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

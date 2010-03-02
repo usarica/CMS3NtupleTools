@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.h,v 1.2 2008/12/17 03:20:40 kalavase Exp $
+// $Id: CandToGenAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_CANDTOGENMAKER_H
@@ -34,7 +34,7 @@ public:
      explicit CandToGenAssMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
       

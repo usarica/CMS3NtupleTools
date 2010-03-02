@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.h,v 1.2 2009/12/04 10:12:25 kalavase Exp $
+// $Id: BeamHaloMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_BEAMSPOTMAKER_H
@@ -42,7 +42,7 @@ public:
       ~BeamHaloMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
      std::vector<TString> convertToVectorTString(const std::vector<char>);

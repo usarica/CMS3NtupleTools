@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.12 2009/09/03 00:15:15 fgolf Exp $
+// $Id: MuonMaker.h,v 1.13 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -42,7 +42,7 @@ public:
      explicit MuonMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
   

@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.h,v 1.2 2009/09/01 07:56:47 kalavase Exp $
+// $Id: PFTauMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFTAUMAKER_H
@@ -39,7 +39,7 @@ public:
       ~PFTauMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PixelDigiMaker.h,v 1.1 2009/12/10 09:54:49 warren Exp $
+// $Id: PixelDigiMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_PIXELDIGIMAKER_H
@@ -34,7 +34,7 @@ public:
      explicit PixelDigiMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
       

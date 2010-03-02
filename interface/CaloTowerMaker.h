@@ -44,7 +44,7 @@ class CaloTowerMaker : public edm::EDProducer {
 		explicit CaloTowerMaker (const edm::ParameterSet&);
 
 	private:
-		virtual void beginJob(const edm::EventSetup&) ;
+		virtual void beginJob() ;
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;
 

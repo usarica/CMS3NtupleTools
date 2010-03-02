@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.14 2009/12/11 01:10:48 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.15 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -60,7 +60,9 @@ public:
   ~ElectronMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+//  virtual void beginJob() ;
+  virtual void beginJob() ;
+  virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   

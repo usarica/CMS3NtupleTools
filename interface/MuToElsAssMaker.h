@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.h,v 1.2 2008/09/13 08:07:22 jmuelmen Exp $
+// $Id: MuToElsAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_MUTOELASSMAKER_H
@@ -34,7 +34,7 @@ public:
      explicit MuToElsAssMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
       

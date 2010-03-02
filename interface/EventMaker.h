@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.13 2009/12/19 21:46:25 fgolf Exp $
+// $Id: EventMaker.h,v 1.14 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -40,7 +40,7 @@ public:
      ~EventMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 

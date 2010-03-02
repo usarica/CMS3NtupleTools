@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.h,v 1.1 2008/10/21 17:41:54 kalavase Exp $
+// $Id: BeamSpotMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_BEAMSPOTMAKER_H
@@ -41,7 +41,7 @@ public:
       ~BeamSpotMaker();
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 

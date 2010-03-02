@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.h,v 1.8 2009/12/03 00:48:42 warren Exp $
+// $Id: METMaker.h,v 1.9 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 
@@ -40,7 +40,7 @@ public:
   ~METMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

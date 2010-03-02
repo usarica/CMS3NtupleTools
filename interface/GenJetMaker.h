@@ -14,7 +14,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.h,v 1.3 2009/08/28 12:23:48 fgolf Exp $
+// $Id: GenJetMaker.h,v 1.4 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 
@@ -39,7 +39,7 @@ public:
   ~GenJetMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 

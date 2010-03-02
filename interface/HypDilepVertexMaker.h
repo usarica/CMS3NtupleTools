@@ -11,7 +11,7 @@
 //
 // Original Author:  slava77
 //         Created:  Thu Dec  17 11:07:38 CDT 2009
-// $Id: HypDilepVertexMaker.h,v 1.1 2009/12/18 16:54:48 slava77 Exp $
+// $Id: HypDilepVertexMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPDILEPVERTEXMAKER_H
@@ -32,7 +32,7 @@ class HypDilepVertexMaker : public edm::EDProducer {
   explicit HypDilepVertexMaker (const edm::ParameterSet&);
 
  private:
-  //  virtual void beginJob(const edm::EventSetup&);
+  //  virtual void beginJob();
   virtual void produce(edm::Event&, const edm::EventSetup&);
   //  virtual void endJob();
 

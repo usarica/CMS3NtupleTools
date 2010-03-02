@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.h,v 1.2 2009/09/01 09:23:21 dlevans Exp $
+// $Id: PhotonMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_PHOTONMAKER_H
@@ -45,7 +45,7 @@ public:
      ~PhotonMaker();
      
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 

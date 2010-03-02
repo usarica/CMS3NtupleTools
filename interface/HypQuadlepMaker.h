@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.h,v 1.6 2009/09/10 10:51:37 fgolf Exp $
+// $Id: HypQuadlepMaker.h,v 1.7 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPQUADLEPMAKER_H
@@ -54,7 +54,7 @@ public:
 					 unsigned int fourth);
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

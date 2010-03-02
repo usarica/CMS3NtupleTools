@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.8 2009/09/08 16:10:49 fgolf Exp $
+// $Id: JPTMaker.h,v 1.9 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -42,7 +42,7 @@ public:
   ~JPTMaker();
 
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
       

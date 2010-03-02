@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.10 2009/09/10 10:51:37 fgolf Exp $
+// $Id: HypDilepMaker.h,v 1.11 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPDILEPMAKER_H
@@ -51,7 +51,7 @@ public:
   ~HypDilepMaker();
   
 private:
-  virtual void beginJob(const edm::EventSetup&) ;
+  virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   bool testJetForLeptons(const math::XYZTLorentzVectorF& jetP4, const math::XYZTLorentzVectorF& lepP4);

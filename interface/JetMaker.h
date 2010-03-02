@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.11 2009/12/18 19:02:15 kalavase Exp $
+// $Id: JetMaker.h,v 1.12 2010/03/02 19:24:11 fgolf Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -46,7 +46,7 @@ public:
     
 
 private:
-     virtual void beginJob(const edm::EventSetup&) ;
+     virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
   
