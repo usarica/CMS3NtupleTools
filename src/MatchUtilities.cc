@@ -10,6 +10,107 @@ MatchUtilities::MatchUtilities() {
 MatchUtilities::~MatchUtilities() {
 }
 
+
+
+//----------------------------------------------------------------------------------------------
+const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, 
+							const std::vector<reco::GenParticle>* genParticles, 
+							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
+
+  const reco::GenParticle* output = 0;
+  double dRmin = 0.2;
+  unsigned int i = 0;
+  genidx = -9999;
+  
+  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != status ) continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+      continue;
+
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }
+    
+  }
+
+  return output;
+}
+
+//----------------------------------------------------------------------------------------------
+const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track, 
+							const std::vector<reco::GenParticle>* genParticles, 
+							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
+
+  const reco::GenParticle* output = 0;
+  double dRmin = 0.2;
+  unsigned int i = 0;
+  genidx = -9999;
+  
+  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
+      itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != status ) continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+      continue;
+
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+    LorentzVector cand( track.px(), track.py(), track.pz(), track.p() );
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand);
+
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
+  
+  }//END loop over genParticles
+
+  return output;
+}
+
+
+//----------------------------------------------------------------------------------------------
+const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
+							const std::vector<reco::GenParticle>* genParticles, 
+							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
+
+  const reco::GenParticle* output = 0;
+  double dRmin = 0.2;
+  unsigned int i = 0;
+  genidx = -9999;
+  
+  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != status ) continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+      continue;
+
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
+  
+  }//END loop over genParticles
+
+  return output;
+}
+
 //----------------------------------------------------------------------------------------------
 const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenJet& genJet,
 						      std::vector<const reco::Candidate*> cand) {
@@ -80,122 +181,6 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4
 
   return output;
 }
-//----------------------------------------------------------------------------------------------
-const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, const std::vector<reco::GenParticle>* genParticles) {
-
-  const reco::GenParticle* output = 0;
-  double dRmin = 0.2;
-  
-  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
-  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart) {
-
-    if ( itPart->status() != 3 ) {
-
-      const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
-
-      double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
-      if (dR < dRmin) {
-	dRmin = dR;
-	output = &(*itPart);
-      }
-    }
-  }
-
-  return output;
-}
-
-//----------------------------------------------------------------------------------------------
-const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& cand, 
-							const std::vector<reco::GenParticle>* genParticles, 
-							int& genidx, int status) {
-
-  const reco::GenParticle* output = 0;
-  double dRmin = 0.2;
-  unsigned int i = 0;
-  genidx = -9999;
-  
-  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
-  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
-
-    if ( itPart->status() != status ) continue;
-
-    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
-
-    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand.p4());
-    if (dR < dRmin) {
-      dRmin = dR;
-      output = &(*itPart);
-      genidx = i;
-    }
-    
-  }
-
-  return output;
-}
-
-//----------------------------------------------------------------------------------------------
-const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track, 
-							const std::vector<reco::GenParticle>* genParticles, 
-							int& genidx, int status) {
-
-  const reco::GenParticle* output = 0;
-  double dRmin = 0.2;
-  unsigned int i = 0;
-  genidx = -9999;
-  
-  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
-  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
-      itPart!=itPartEnd; ++itPart, ++i) {
-
-    if ( itPart->status() != status ) continue;
-
-    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
-
-    LorentzVector cand( track.px(), track.py(), track.pz(), track.p() );
-
-    double dR = ROOT::Math::VectorUtil::DeltaR(v1,cand);
-
-    if (dR < dRmin) {
-      dRmin = dR;
-      output = &(*itPart);
-      genidx = i;
-    }//END find minimum delta R loop
-  
-  }//END loop over genParticles
-
-  return output;
-}
-
-
-//----------------------------------------------------------------------------------------------
-const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
-							const std::vector<reco::GenParticle>* genParticles, 
-							int& genidx, int status) {
-
-  const reco::GenParticle* output = 0;
-  double dRmin = 0.2;
-  unsigned int i = 0;
-  genidx = -9999;
-  
-  std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
-  for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
-
-    if ( itPart->status() != status ) continue;
-
-    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
-
-    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
-
-    if (dR < dRmin) {
-      dRmin = dR;
-      output = &(*itPart);
-      genidx = i;
-    }//END find minimum delta R loop
-  
-  }//END loop over genParticles
-
-  return output;
-}
 
 
 
@@ -223,7 +208,8 @@ const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenParticle& p
 }
 //----------------------------------------------------------------------------------------------
 
-const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const std::vector<reco::GenParticle>* genParticles, int status) {
+const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const std::vector<reco::GenParticle>* genParticles, 
+					     int status, const std::vector<int> v_PIDsToExclude) {
 
   double dRmin = 0.2; 
   std::vector<reco::GenParticle>::const_iterator itCand;
@@ -233,6 +219,8 @@ const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const s
   for(itCand = genParticles->begin(); itCand != genParticles->end(); itCand++, temp++) {
     
     if(itCand->status() != status)
+      continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itCand->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
     double dR = ROOT::Math::VectorUtil::DeltaR(v1, itCand->p4());

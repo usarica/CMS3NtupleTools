@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.17 2010/03/03 04:23:42 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.18 2010/03/03 20:33:36 kalavase Exp $
 //
 //
 
@@ -181,19 +181,20 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   // get MC particle collection
   Handle<GenParticleCollection> genParticlesHandle;
   iEvent.getByLabel(genParticlesInputTag, genParticlesHandle);
-
+  const vector<GenParticle> *v_genParticles = genParticlesHandle.product();
   //also make a MC particle collection that does not contain any particle 
   //whose PID is equal to the exclude list
-  //vector<GenParticle> v_temp;
-  vector<GenParticle> *genParticlesPruned = new vector<GenParticle>;
-  for(vector<GenParticle>::const_iterator itPart=genParticlesHandle->begin(); 
-      itPart!=genParticlesHandle->end(); ++itPart) {
-    if( find(vPIDsToExclude.begin(), vPIDsToExclude.end(), abs(itPart->pdgId()) ) 
-	!= vPIDsToExclude.end() ) continue; 
-    GenParticle temp = (*itPart);
-    //v_temp.push_back(temp);
-    genParticlesPruned->push_back(temp);
-  }
+
+
+  //vector<GenParticle> *genParticlesPruned = new vector<GenParticle>;
+  //for(vector<GenParticle>::const_iterator itPart=genParticlesHandle->begin(); 
+  //itPart!=genParticlesHandle->end(); ++itPart) {
+  //if( find(vPIDsToExclude.begin(), vPIDsToExclude.end(), abs(itPart->pdgId()) ) 
+  //!= vPIDsToExclude.end() ) continue; 
+  //GenParticle temp = (*itPart);
+  //v_temp.push_back(temp);
+  //genParticlesPruned->push_back(temp);
+  //}
 
   //get MC Jets
   Handle<GenJetCollection> genJetsHandle;
@@ -218,7 +219,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   InputTag trks_p4_tag(tracksInputTag);
   Handle<vector<LorentzVector> > trksHandle;
   iEvent.getByLabel(trks_p4_tag, trksHandle);
-
+  
 
   //fill electrons
   for (vector<LorentzVector>::const_iterator elsp4_it = electronHandle->begin();
@@ -232,8 +233,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     
     const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*elsp4_it, 
-     									   genParticlesPruned,
- 									   genidx, 1);
+     									   v_genParticles,
+ 									   genidx, 1, vPIDsToExclude);
     if(matchedGenParticle != 0) {
       const GenParticle* matchedMotherParticle = MCUtilities::motherID(*matchedGenParticle);
       mcid                = matchedGenParticle->pdgId();
@@ -261,15 +262,15 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     mc3_motheridx = -9999;
     dR = -9999;
     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*elsp4_it, 
-									      genParticlesPruned,
-									      genidx, 3);
+									      v_genParticles,
+									      genidx, 3, vPIDsToExclude);
     //now do the status==3 particles
     if(matchedGenParticleDoc != 0 ) {
       const GenParticle* matchedMotherParticle = MCUtilities::motherID(*matchedGenParticleDoc);
       mcid                = matchedGenParticleDoc->pdgId();
       mc_p4               = matchedGenParticleDoc->p4();
       mom_mcid            = matchedMotherParticle->pdgId();
-      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, genParticlesPruned, 3);
+      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticles, 3, vPIDsToExclude);
       dR                  = ROOT::Math::VectorUtil::DeltaR(mc_p4, *elsp4_it);      
     }
     
@@ -294,8 +295,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     float dR = -9999;
     
     const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*musp4_it,
-									   genParticlesPruned,
-									   genidx, 1);
+									   v_genParticles,
+									   genidx, 1, vPIDsToExclude);
 
     if(matchedGenParticle != 0) {
       const GenParticle* matchedMotherParticle = MCUtilities::motherID(*matchedGenParticle);
@@ -322,14 +323,14 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     dR = -9999;
     
     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*musp4_it, 
-									      genParticlesPruned,
-									      genidx, 3);
+									      v_genParticles,
+									      genidx, 3, vPIDsToExclude);
     if(matchedGenParticleDoc != 0) {
       const GenParticle* matchedMotherParticle = MCUtilities::motherID(*matchedGenParticleDoc);
       mcid                = matchedGenParticleDoc->pdgId();
       mc_p4               = matchedGenParticleDoc->p4();
       mom_mcid            = matchedMotherParticle->pdgId();
-      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, genParticlesPruned, 3);
+      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticles, 3, vPIDsToExclude);
       dR                  = ROOT::Math::VectorUtil::DeltaR(mc_p4, *musp4_it);
     }
 
@@ -371,8 +372,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     int temp;
     const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*jetsp4_it, 
-									   genParticlesPruned,
-									   temp, 1);
+									   v_genParticles,
+									   temp, 1, vPIDsToExclude);
 
     if ( matchedGenParticle != 0 ) {
       vector_jets_mc_gpdr   ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticle).p4() ));
@@ -388,8 +389,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     }
 
     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*jetsp4_it, 
-									      genParticlesPruned,
-									      temp, 3);
+									      v_genParticles,
+									      temp, 3, vPIDsToExclude);
     if ( matchedGenParticleDoc != 0 ) {
       vector_jets_mc3dr    ->push_back(ROOT::Math::VectorUtil::DeltaR(*jetsp4_it, (*matchedGenParticleDoc).p4() ));
       vector_jets_mc3idx   ->push_back(temp);
@@ -414,8 +415,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     float dR = -9999;
     
 
-    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
-									   genidx, 1);
+    const GenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*track, v_genParticles,
+									   genidx, 1, vPIDsToExclude);
 
     
     if(matchedGenParticle != 0) {
@@ -436,8 +437,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
      mom_mcid = -9999;
      genidx = -9999;
      mc_p4 = LorentzVector(0,0,0,0);
-     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, genParticlesPruned,
-									       genidx, 3);
+     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*track, v_genParticles,
+									       genidx, 3, vPIDsToExclude);
 
      
      if(matchedGenParticleDoc != 0) {
@@ -445,7 +446,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
        mcid                = matchedGenParticleDoc->pdgId();
        mc_p4               = matchedGenParticleDoc->p4();
        mom_mcid            = matchedMotherParticle->pdgId();
-       mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, genParticlesPruned, 3);
+       mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticles, 3, vPIDsToExclude);
        dR = ROOT::Math::VectorUtil::DeltaR(mc_p4, *track);
      }
      vector_trk_mc3_id      ->push_back(mcid    );
@@ -509,7 +510,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_trk_mc3_motheridx  ,"trkmc3motheridx"  );
   iEvent.put(vector_trk_mc3dr          ,"trkmc3dr"         );
   
-  delete genParticlesPruned;
 }
 
 // ------------ method called once each job just before starting event loop  ------------

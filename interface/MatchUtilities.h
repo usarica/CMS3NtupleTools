@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Wed Jun 11 17:20:33 CDT 2008
-// $Id: MatchUtilities.h,v 1.12 2009/12/18 16:55:33 slava77 Exp $
+// $Id: MatchUtilities.h,v 1.13 2010/03/03 20:33:18 kalavase Exp $
 //
 //
 #ifndef CMS2_MATCHUTILITIES_H
@@ -37,13 +37,12 @@ public:
   MatchUtilities();
   ~MatchUtilities();
 
-  static const reco::GenParticle* matchCandToGen(const reco::Candidate&, const std::vector<reco::GenParticle>* genParticles);
   static const reco::GenParticle* matchCandToGen(const reco::Candidate&, const std::vector<reco::GenParticle>* genParticles,
-						 int& genidx, int status);
+						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
   static const reco::GenParticle* matchCandToGen(const reco::Track&, const std::vector<reco::GenParticle>* genParticles, 
-						 int& genidx, int status);
-  static const reco::GenParticle* matchCandToGen(const LorentzVector& candp4, 
-						 const std::vector<reco::GenParticle>* genParticles, int& genidx, int status);
+						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
+  static const reco::GenParticle* matchCandToGen(const LorentzVector& candp4, const std::vector<reco::GenParticle>* genParticles, 
+						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
   static const reco::GenJet* matchCandToGenJet(const reco::Candidate& jet,  const std::vector<reco::GenJet>* genJets);
   static const reco::GenJet* matchCandToGenJet(const LorentzVector& genJetp4, 
 					       const std::vector<reco::GenJet>* genJets,
@@ -56,7 +55,7 @@ public:
   
   static const int  getMatchedGenIndex(const reco::GenParticle&, 
 				       const std::vector<reco::GenParticle>* genParticles, 
-				       int status);
+				       int status, const std::vector<int> v_PIDsToExclude = std::vector<int>());
   
   static const void alignRecoPatJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<pat::Jet>&);
