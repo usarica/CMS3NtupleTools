@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.13 2010/03/02 19:24:11 fgolf Exp $
+// $Id: GenMaker.h,v 1.14 2010/03/03 04:19:35 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -45,16 +45,16 @@ private:
      virtual void beginRun(edm::Run&, const edm::EventSetup&);
 
      // ----------member data ---------------------------
-     edm::InputTag genParticlesInputTag;
-
-     bool ntupleOnlyStatus3;
-     bool ntupleDaughters;
+     edm::InputTag genParticlesInputTag_;
+  edm::InputTag genRunInfoInputTag_;
+     bool ntupleOnlyStatus3_;
+     bool ntupleDaughters_;
  
-     std::vector<int> vmetPIDs;
+     std::vector<int> vmetPIDs_;
 
-     double inclusiveCrossSectionValue;
-     double exclusiveCrossSectionValue;
-     double kfactorValue;
+     double inclusiveCrossSectionValue_;
+     double exclusiveCrossSectionValue_;
+     double kfactorValue_;
 
 };
 

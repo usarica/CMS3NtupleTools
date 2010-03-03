@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.13 2010/03/02 19:24:11 fgolf Exp $
+// $Id: MuonMaker.h,v 1.14 2010/03/03 04:20:08 kalavase Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -51,6 +51,7 @@ private:
   edm::InputTag beamSpotInputTag;
   std::string tevMuonsName;
 
+	std::string aliasprefix_;
 };
 
 

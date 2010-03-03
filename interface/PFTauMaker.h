@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PFTauMaker.h,v 1.4 2010/03/03 04:20:24 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFTAUMAKER_H
@@ -47,6 +47,7 @@ private:
   bool identify(const edm::RefToBase<reco::PFTau> &tau_pf);
   edm::InputTag pftausInputTag;
   
+	std::string aliasprefix_;
 };
 
 

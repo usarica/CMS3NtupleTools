@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: MuToElsAssMaker.h,v 1.4 2010/03/03 04:20:03 kalavase Exp $
 //
 //
 #ifndef CMS2_MUTOELASSMAKER_H
@@ -40,6 +40,9 @@ private:
       
       // ----------member data ---------------------------
      double m_minDR;
+     std::string aliasprefix_;
+     edm::InputTag musInputTag_;
+     edm::InputTag elsInputTag_;
 };
 
 

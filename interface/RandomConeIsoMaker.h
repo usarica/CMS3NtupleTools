@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.h,v 1.3 2010/03/02 19:24:12 fgolf Exp $
+// $Id: RandomConeIsoMaker.h,v 1.4 2010/03/03 04:20:30 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -97,6 +97,7 @@ private:
   
   // std::string datasetName_;
 //   std::string CMS2tag_;
+	std::string aliasprefix_;
 };
 
 

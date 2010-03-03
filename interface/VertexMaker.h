@@ -41,6 +41,7 @@ private:
   // ----------member data ---------------------------
   edm::InputTag primaryVertexInputTag_;
 
+	std::string aliasprefix_;
 };
 
 #endif

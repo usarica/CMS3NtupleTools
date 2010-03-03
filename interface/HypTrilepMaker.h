@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.9 2010/03/02 19:24:11 fgolf Exp $
+// $Id: HypTrilepMaker.h,v 1.10 2010/03/03 04:19:51 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -68,6 +68,7 @@ private:
   double        tightptcut;
   double        looseptcut;
 
+	std::string aliasprefix_;
 };
 
 

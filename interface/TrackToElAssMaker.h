@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.h,v 1.5 2010/03/02 19:24:12 fgolf Exp $
+// $Id: TrackToElAssMaker.h,v 1.6 2010/03/03 04:20:38 kalavase Exp $
 //
 //
 #ifndef CMS2_TRACKTOELASSMAKER_H
@@ -51,6 +51,7 @@ private:
       // ----------member data ---------------------------
   edm::InputTag electronsInputTag_;
   edm::InputTag tracksInputTag_;
+  std::string aliasprefix_;
 
 };
 

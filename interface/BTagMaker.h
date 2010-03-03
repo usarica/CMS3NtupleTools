@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BTagMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: BTagMaker.h,v 1.4 2010/03/03 04:19:05 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_BTAGMAKER_H
@@ -62,7 +62,8 @@ private:
   edm::InputTag softMuonNoIPBJetTags_              ;
   edm::InputTag trackCountingHighEffBJetTags_      ;
   edm::InputTag trackCountingHighPurBJetTags_      ; 
-
+  
+  
 };
 
 #endif

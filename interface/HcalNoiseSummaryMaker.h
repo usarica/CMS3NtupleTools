@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HcalNoiseSummaryMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: HcalNoiseSummaryMaker.h,v 1.3 2010/03/03 04:19:39 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -46,6 +46,7 @@ private:
 
   edm::InputTag hcalNoiseSummaryTag_;
 
+	std::string aliasprefix_;
 };
 
 

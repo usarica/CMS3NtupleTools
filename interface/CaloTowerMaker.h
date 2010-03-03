@@ -73,6 +73,7 @@ class CaloTowerMaker : public edm::EDProducer {
 		// topology
 		const CaloTopology *topology_;
 
+	std::string aliasprefix_;
 };
 
 #endif

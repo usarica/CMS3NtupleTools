@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: CaloTauMaker.h,v 1.4 2010/03/03 04:19:09 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_CALOTAUMAKER_H
@@ -47,6 +47,7 @@ private:
      // ----------member data ---------------------------
   bool identify(const edm::RefToBase<reco::CaloTau> &tau_calo, const edm::EventSetup& iSetup);
   edm::InputTag calotausInputTag;
+	std::string aliasprefix_;
 };
 
 

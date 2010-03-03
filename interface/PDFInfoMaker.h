@@ -45,6 +45,7 @@ private:
 
   // ----------member data ---------------------------
 
+	std::string aliasprefix_;
 };
 
 #endif

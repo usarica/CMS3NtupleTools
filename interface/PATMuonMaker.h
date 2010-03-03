@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PATMuonMaker.h,v 1.4 2010/03/03 04:20:16 kalavase Exp $
 //
 //
 #ifndef CMS2_PATMUONMAKER_H
@@ -52,6 +52,7 @@ private:
   // ----------member data ---------------------------
   edm::InputTag patMuonsInputTag_;
   edm::InputTag recoMuonsInputTag_;
+	std::string aliasprefix_;
 };
 
 

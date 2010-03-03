@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.11 2010/03/02 19:24:11 fgolf Exp $
+// $Id: HypDilepMaker.h,v 1.12 2010/03/03 04:19:41 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPDILEPMAKER_H
@@ -71,6 +71,7 @@ private:
   double        tightptcut;
   double        looseptcut;
     
+	std::string aliasprefix_;
 };
 
 

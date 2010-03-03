@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: JetToMuAssMaker.h,v 1.4 2010/03/03 04:19:57 kalavase Exp $
 //
 //
 #ifndef CMS2_JETTOMUASSMAKER_H
@@ -37,8 +37,10 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  double m_minDR;
-  
+  double m_minDR_;
+  edm::InputTag jetsInputTag_;
+  edm::InputTag musInputTag_;
+  std::string aliasprefix_;
 };
 
 #endif

@@ -11,7 +11,7 @@ Description: Vetos electrons from Conversions
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Oct 14 2:28:31 UTC 2008
-// $Id: ConversionMaker.h,v 1.4 2010/03/02 19:24:11 fgolf Exp $
+// $Id: ConversionMaker.h,v 1.5 2010/03/03 04:19:15 kalavase Exp $
 //
 //
 #ifndef CMS2_COVERSIONMAKER_H
@@ -45,6 +45,7 @@ private:
   edm::InputTag bFieldInputTag_;
 
   float minFracShHits_;
+	std::string aliasprefix_;
 };
 
 #endif

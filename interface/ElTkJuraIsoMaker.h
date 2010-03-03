@@ -39,6 +39,7 @@ class ElTkJuraIsoMaker : public edm::EDProducer {
 		double trackIsoMind0_;
 		double trackIsoMinz0_;
 
+	std::string aliasprefix_;
 };
 
 #endif

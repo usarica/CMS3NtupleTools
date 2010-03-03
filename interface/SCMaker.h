@@ -93,6 +93,7 @@ class SCMaker : public edm::EDProducer {
 		const   EcalChannelStatus *channelStatus_;
 
 
+	std::string aliasprefix_;
 };
 
 #endif

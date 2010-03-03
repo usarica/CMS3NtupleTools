@@ -34,6 +34,7 @@ private:
   edm::InputTag candToGenAssTag;
   edm::InputTag hypInputTag;
 
+	std::string aliasprefix_;
 };
 
 #endif

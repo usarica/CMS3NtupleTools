@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.h,v 1.4 2010/03/02 19:24:12 fgolf Exp $
+// $Id: TrackToMuonAssMaker.h,v 1.5 2010/03/03 04:20:40 kalavase Exp $
 //
 //
 #ifndef CMS2_TRACKTOMUONASSMAKER_H
@@ -39,8 +39,10 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  double m_minDR;
-
+  double        m_minDR_;
+  std::string   aliasprefix_;
+  edm::InputTag musInputTag_;
+  edm::InputTag trksInputTag_;
 };
 
 #endif

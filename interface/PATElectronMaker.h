@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PATElectronMaker.h,v 1.4 2010/03/03 04:20:10 kalavase Exp $
 //
 //
 #ifndef CMS2_PATElECTRONMAKER_H
@@ -52,6 +52,7 @@ private:
   // ----------member data ---------------------------
   edm::InputTag patElectronsInputTag_;
   edm::InputTag recoElectronsInputTag_;
+	std::string aliasprefix_;
 };
 
 #endif

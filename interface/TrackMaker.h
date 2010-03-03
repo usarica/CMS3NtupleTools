@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.7 2010/03/02 19:24:12 fgolf Exp $
+// $Id: TrackMaker.h,v 1.8 2010/03/03 04:20:36 kalavase Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -56,6 +56,7 @@ private:
   float tkVtxDMax_;
   float ptMin_;
   int   nHits_;
+	std::string aliasprefix_;
 };
 
 #endif

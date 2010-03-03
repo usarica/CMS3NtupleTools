@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PATJetMaker.h,v 1.4 2010/03/03 04:20:12 kalavase Exp $
 //
 //
 #ifndef CMS2_PATJETMAKER_H
@@ -53,6 +53,7 @@ private:
   edm::InputTag patJetsInputTag_;
   edm::InputTag uncorRecoJetsTag_;
 
+	std::string aliasprefix_;
 };
 
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tues Sep  1 11:07:38 CDT 2009
-// $Id: FlavorHistoryMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: FlavorHistoryMaker.h,v 1.3 2010/03/03 04:19:31 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_FLAVORHISTORYPRODUCER_H
@@ -46,6 +46,7 @@ private:
   // ----------member data ---------------------------
   edm::InputTag flavorHistoryFilterTag_;
 
+	std::string aliasprefix_;
 };
 
 #endif

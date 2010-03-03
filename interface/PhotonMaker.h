@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PhotonMaker.h,v 1.4 2010/03/03 04:20:26 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_PHOTONMAKER_H
@@ -53,6 +53,7 @@ private:
      edm::InputTag photonsInputTag_;
      EcalClusterLazyTools* clusterTools_;
      
+	std::string aliasprefix_;
 };
 
 #endif

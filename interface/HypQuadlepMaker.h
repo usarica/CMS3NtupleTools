@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.h,v 1.7 2010/03/02 19:24:11 fgolf Exp $
+// $Id: HypQuadlepMaker.h,v 1.8 2010/03/03 04:19:49 kalavase Exp $
 //
 //
 #ifndef CMS2_HYPQUADLEPMAKER_H
@@ -69,6 +69,7 @@ private:
   double        tightptcut;
   double        looseptcut;
 
+	std::string aliasprefix_;
 };
 
 

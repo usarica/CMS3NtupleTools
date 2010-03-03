@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PFMETMaker.h,v 1.4 2010/03/03 04:20:22 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFMETMAKER_H
@@ -45,6 +45,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag pfMetInputTag;
+	std::string aliasprefix_;
 };
 
 

@@ -87,6 +87,7 @@ class HypIsoMaker : public edm::EDProducer {
 
   TrackAssociatorParameters muonparameters_;
 
+	std::string aliasprefix_;
 };
 
 #endif

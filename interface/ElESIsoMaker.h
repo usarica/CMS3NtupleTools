@@ -1,7 +1,7 @@
 #ifndef NTUPLEMAKER_ElESIsoMaker_H
 #define NTUPLEMAKER_ElESIsoMaker_H
 // -*- C++ -*-
-// $Id: ElESIsoMaker.h,v 1.1 2009/08/01 09:57:47 dlevans Exp $
+// $Id: ElESIsoMaker.h,v 1.2 2010/03/03 04:19:19 kalavase Exp $
 
 // system include files
 #include <memory>
@@ -35,6 +35,7 @@ class ElESIsoMaker : public edm::EDProducer {
         ESClusterAlgo *clusterAlgo_;
         EcalPreshowerTopology *topology_;
 
+	std::string aliasprefix_;
 };
 
 #endif

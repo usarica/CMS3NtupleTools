@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: CandToGenAssMaker.h,v 1.4 2010/03/03 04:19:13 kalavase Exp $
 //
 //
 #ifndef CMS2_CANDTOGENMAKER_H
@@ -46,6 +46,7 @@ private:
   edm::InputTag jetsInputTag;
   edm::InputTag tracksInputTag;
   std::vector<int> vPIDsToExclude;
+	std::string aliasprefix_;
 };
 
 

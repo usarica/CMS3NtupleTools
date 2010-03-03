@@ -1,7 +1,7 @@
 #ifndef NTUPLEMAKER_ElCaloIsoMaker_H
 #define NTUPLEMAKER_ElCaloIsoMaker_H
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.h,v 1.2 2008/09/04 06:06:48 dmytro Exp $
+// $Id: ElCaloIsoMaker.h,v 1.3 2010/03/03 04:19:17 kalavase Exp $
 
 
 // system include files
@@ -32,6 +32,7 @@ class ElCaloIsoMaker : public edm::EDProducer {
    double m_maxDR;
    double m_minDR;
    double m_minDEta;
+	std::string aliasprefix_;
 };
 
 #endif

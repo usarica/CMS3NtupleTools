@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrkToVtxAssMaker.h,v 1.2 2010/03/02 19:24:12 fgolf Exp $
+// $Id: TrkToVtxAssMaker.h,v 1.3 2010/03/03 04:20:44 kalavase Exp $
 //
 //
 #ifndef CMS2_TRKTOVTXASSMAKER_H
@@ -41,6 +41,7 @@ private:
      // ----------member data ---------------------------
      edm::InputTag m_vtxInputTag;
      edm::InputTag m_trksInputTag;
+	std::string aliasprefix_;
 };
 
 #endif

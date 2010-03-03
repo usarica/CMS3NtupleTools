@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PixelDigiMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PixelDigiMaker.h,v 1.3 2010/03/03 04:20:28 kalavase Exp $
 //
 //
 #ifndef CMS2_PIXELDIGIMAKER_H
@@ -34,12 +34,13 @@ public:
      explicit PixelDigiMaker (const edm::ParameterSet&);
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
-      
-     // ----------member data ---------------------------
-  edm::InputTag pixelsInputTag;
+  virtual void beginJob() ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+  
+  // ----------member data ---------------------------
+  edm::InputTag pixelsInputTag_;
+  std::string aliasprefix_;
 };
 
 

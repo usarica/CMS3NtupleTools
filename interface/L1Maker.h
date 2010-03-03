@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.6 2010/01/05 21:45:31 jribnik Exp $
+// $Id: L1Maker.h,v 1.7 2010/03/03 04:19:59 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -53,6 +53,9 @@ class L1Maker : public edm::EDProducer {
 
         bool fillL1Particles_;
         std::string l1ParticlesProcessName_;
+	std::string aliasprefix_;
+        edm::InputTag l1GlobalTriggerReadoutRecordInputTag_;
+        edm::InputTag l1extraParticlesInputTag_;
 };
 
 #endif

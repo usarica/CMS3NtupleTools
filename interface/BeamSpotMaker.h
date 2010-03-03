@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: BeamSpotMaker.h,v 1.3 2010/03/03 04:19:07 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_BEAMSPOTMAKER_H
@@ -47,6 +47,7 @@ private:
 
    edm::InputTag beamSpotInputTag;
     
+	std::string aliasprefix_;
 };
 
 

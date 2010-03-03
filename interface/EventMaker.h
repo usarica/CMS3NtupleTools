@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.h,v 1.14 2010/03/02 19:24:11 fgolf Exp $
+// $Id: EventMaker.h,v 1.15 2010/03/03 04:19:29 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_EVENTMAKER_H
@@ -48,6 +48,7 @@ private:
      std::string CMS2tag_;
 
      edm::InputTag dcsTag_;
+	std::string aliasprefix_;
 };
 
 

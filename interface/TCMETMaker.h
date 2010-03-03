@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.h,v 1.4 2010/03/02 19:24:12 fgolf Exp $
+// $Id: TCMETMaker.h,v 1.5 2010/03/03 04:20:34 kalavase Exp $
 //
 //
 
@@ -48,6 +48,7 @@ private:
   edm::InputTag muon_tag;
   edm::InputTag tcmet_tag;
   edm::InputTag tcmet_vm_tag;  
+	std::string aliasprefix_;
 };
 
 

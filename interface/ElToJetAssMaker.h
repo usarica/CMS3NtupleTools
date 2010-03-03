@@ -11,7 +11,7 @@ Description: make associations between electrons and jets
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: ElToJetAssMaker.h,v 1.3 2010/03/03 04:19:23 kalavase Exp $
 //
 //
 #ifndef CMS2_ELTOJETASSMAKER_H
@@ -38,7 +38,9 @@ private:
       
   // ----------member data ---------------------------
   double m_minDR;
-  
+  edm::InputTag elsInputTag_;
+  edm::InputTag jetsInputTag_;
+  std::string aliasprefix_;
 };
 
 #endif

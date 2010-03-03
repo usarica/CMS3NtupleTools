@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.4 2010/03/02 19:24:11 fgolf Exp $
+// $Id: PFJetMaker.h,v 1.5 2010/03/03 04:20:20 kalavase Exp $
 //
 //
 
@@ -49,4 +49,5 @@ private:
      edm::InputTag pfJetsInputTag_;
      double         pfJetPtCut_;
      std::string nameL2L3JetCorrector_;
+	std::string aliasprefix_;
 };

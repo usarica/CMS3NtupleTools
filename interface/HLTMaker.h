@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.4 2010/01/05 21:44:33 jribnik Exp $
+// $Id: HLTMaker.h,v 1.5 2010/03/03 04:19:37 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_HLTMAKER_H
@@ -62,6 +62,7 @@ class HLTMaker : public edm::EDProducer {
         bool fillTriggerObjects_;
         std::vector<std::string> prunedTriggerNames_;
         TString processNamePrefix_;
+	std::string aliasprefix_;
 };
 
 #endif
