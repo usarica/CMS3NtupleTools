@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.cc,v 1.5 2010/03/02 19:36:08 fgolf Exp $
+// $Id: JetToMuAssMaker.cc,v 1.6 2010/03/03 04:23:54 kalavase Exp $
 //
 //
 
@@ -37,11 +37,14 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-JetToMuAssMaker::JetToMuAssMaker(const edm::ParameterSet& iConfig)
-     : m_minDR(iConfig.getParameter<double>("minDR"))
-{
+JetToMuAssMaker::JetToMuAssMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int> >("jetsclosestMuon").setBranchAlias("jets_closestMuon");	// muon closest to jet
      produces<vector<double> >("jetsclosestMuonDR").setBranchAlias("jets_closestMuon_DR");	// Delta R of muon closest to jet
+
+     m_minDR_       = iConfig.getParameter<double>("minDR"                 );
+     jetsInputTag_  = iConfig.getParameter<edm::InputTag>("jetsInputTag"   );
+     musInputTag_   = iConfig.getParameter<edm::InputTag>("musInputTag"    );
+     
 }
 
 void JetToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -52,10 +55,10 @@ void JetToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<vector<double> > vector_jets_closestMuon_DR(new vector<double>);        
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
-     iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
+     iEvent.getByLabel(musInputTag_, mus_p4_h);  
      // get track p4's
      Handle<vector<LorentzVector> > jets_p4_h;
-     iEvent.getByLabel("jetMaker", "jetsp4", jets_p4_h);
+     iEvent.getByLabel(jetsInputTag_, jets_p4_h);
 
      
      // loop over all jets
@@ -66,7 +69,7 @@ void JetToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double jet_eta = jets_it->Eta();
        double jet_phi = jets_it->Phi();
        
-       double minDR = m_minDR;
+       double minDR = m_minDR_;
        unsigned int i = 0;
        int index = -1; 
        for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin();

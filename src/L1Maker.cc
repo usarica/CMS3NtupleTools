@@ -16,8 +16,6 @@ using namespace std;
 
 L1Maker::L1Maker(const edm::ParameterSet& iConfig)
 {
-    fillL1Particles_ = iConfig.getUntrackedParameter<bool>("fillL1Particles");
-    l1ParticlesProcessName_ = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName");
 
     produces<unsigned int>           ("l1bits1"       ).setBranchAlias("l1_bits1"        );
     produces<unsigned int>           ("l1bits2"       ).setBranchAlias("l1_bits2"        );
@@ -72,6 +70,11 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig)
     produces<vector<LorentzVector> > ("l1jetstp4"     ).setBranchAlias("l1_jetst_p4"     );
     produces<LorentzVector>          ("l1metp4"       ).setBranchAlias("l1_met_p4"       );
     produces<LorentzVector>          ("l1mhtp4"       ).setBranchAlias("l1_mht_p4"       );
+
+    fillL1Particles_                      = iConfig.getUntrackedParameter<bool>("fillL1Particles"                      );
+    l1ParticlesProcessName_               = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName"             );
+    l1GlobalTriggerReadoutRecordInputTag_ = iConfig.getParameter<edm::InputTag>("l1GlobalTriggerReadoutRecordInputTag" );
+    l1extraParticlesInputTag_             = iConfig.getParameter<edm::InputTag>("l1extraParticlesInputTag"             );
 
 }
 
@@ -137,7 +140,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     const L1GtTriggerMenu* menu = menuRcd.product();
 
     edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
-    iEvent.getByLabel("gtDigis", gtRecord);
+    iEvent.getByLabel(l1GlobalTriggerReadoutRecordInputTag_, gtRecord);
 
     // Note these are both std::vector<bool>
     const DecisionWord &gtDecisionWordBeforeMask = gtRecord->decisionWord();
@@ -157,42 +160,42 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // L1 particles
     if (fillL1Particles_) {
         Handle<vector<l1extra::L1MuonParticle> > l1mus_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles","",l1ParticlesProcessName_), l1mus_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(),"",l1ParticlesProcessName_), l1mus_h);
         const vector<l1extra::L1MuonParticle> *l1mus_coll = l1mus_h.product();
         *l1nmus = l1mus_coll->size();
 	
 	Handle<vector<l1extra::L1EmParticle> > l1emiso_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Isolated", l1ParticlesProcessName_),l1emiso_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "Isolated", l1ParticlesProcessName_),l1emiso_h);
         const vector<l1extra::L1EmParticle> *l1emiso_coll = l1emiso_h.product();
         *l1nemiso = l1emiso_coll->size();
 
 	Handle<vector<l1extra::L1EmParticle> > l1emnoiso_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "NonIsolated", l1ParticlesProcessName_), l1emnoiso_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "NonIsolated", l1ParticlesProcessName_), l1emnoiso_h);
         const vector<l1extra::L1EmParticle> *l1emnoiso_coll = l1emnoiso_h.product();
         *l1nemnoiso = l1emnoiso_coll->size();
 	
 	
         Handle<vector<l1extra::L1JetParticle> > l1jetsc_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Central", l1ParticlesProcessName_), l1jetsc_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "Central", l1ParticlesProcessName_), l1jetsc_h);
         const vector<l1extra::L1JetParticle> *l1jetsc_coll = l1jetsc_h.product();
         *l1njetsc = l1jetsc_coll->size();
 	
         Handle<vector<l1extra::L1JetParticle> > l1jetsf_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Forward", l1ParticlesProcessName_),l1jetsf_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "Forward", l1ParticlesProcessName_),l1jetsf_h);
         const vector<l1extra::L1JetParticle> *l1jetsf_coll = l1jetsf_h.product();
         *l1njetsf = l1jetsf_coll->size();
 	
         Handle<vector<l1extra::L1JetParticle> > l1jetst_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "Tau", l1ParticlesProcessName_), l1jetst_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "Tau", l1ParticlesProcessName_), l1jetst_h);
         const vector<l1extra::L1JetParticle> *l1jetst_coll = l1jetst_h.product();
         *l1njetst = l1jetst_h.product()->size();
 	
         Handle<l1extra::L1EtMissParticleCollection> l1mets_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "MET", l1ParticlesProcessName_), l1mets_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "MET", l1ParticlesProcessName_), l1mets_h);
         const l1extra::L1EtMissParticleCollection *l1mets = l1mets_h.product();
 
 	Handle<l1extra::L1EtMissParticleCollection> l1mhts_h;
-        iEvent.getByLabel(edm::InputTag("l1extraParticles", "MHT", l1ParticlesProcessName_), l1mhts_h);
+        iEvent.getByLabel(edm::InputTag(l1extraParticlesInputTag_.label(), "MHT", l1ParticlesProcessName_), l1mhts_h);
         const l1extra::L1EtMissParticleCollection *l1mhts = l1mhts_h.product();
 
 

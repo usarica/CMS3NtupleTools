@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.cc,v 1.5 2010/03/02 19:36:08 fgolf Exp $
+// $Id: MuToJetAssMaker.cc,v 1.6 2010/03/03 04:24:00 kalavase Exp $
 //
 //
 
@@ -37,11 +37,14 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-MuToJetAssMaker::MuToJetAssMaker(const edm::ParameterSet& iConfig)
-     : m_minDR(iConfig.getParameter<double>("minDR"))
-{
+MuToJetAssMaker::MuToJetAssMaker(const edm::ParameterSet& iConfig) {
+
      produces<vector<int>   >("musclosestJet").setBranchAlias("mus_closestJet");	// muon closest to jet
      produces<vector<float> >("musjetdr"     ).setBranchAlias("mus_jetdr"     );     
+     
+     m_minDR_      = iConfig.getParameter<double>("minDR");
+     musInputTag_  = iConfig.getParameter<edm::InputTag>("musInputTag");
+     jetsInputTag_ = iConfig.getParameter<edm::InputTag>("jetsInputTag");
 }
 
 void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -53,11 +56,11 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
-     iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
+     iEvent.getByLabel(musInputTag_.label(), "musp4", mus_p4_h);  
 
      // get jet p4's
      Handle<vector<LorentzVector> > jets_p4_h;
-     iEvent.getByLabel("jetMaker", "jetsp4", jets_p4_h);
+     iEvent.getByLabel(jetsInputTag_.label(), "jetsp4", jets_p4_h);
      
      // loop over all muons
      for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin(),
@@ -67,7 +70,7 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double mu_eta = mus_it->Eta();
        double mu_phi = mus_it->Phi();
        
-       double minDR = m_minDR;
+       double minDR = m_minDR_;
        unsigned int i = 0;
        int index      = -9999; 
 

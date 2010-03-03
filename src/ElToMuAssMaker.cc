@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.8 2010/03/02 19:36:07 fgolf Exp $
+// $Id: ElToMuAssMaker.cc,v 1.9 2010/03/03 04:23:47 kalavase Exp $
 //
 //
 
@@ -44,6 +44,9 @@ ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig)
 {
      produces<vector<int>   >("elsclosestMuon").setBranchAlias("els_closestMuon");	// track index matched to muon
      produces<vector<float> >("elsmusdr"      ).setBranchAlias("els_musdr"      );
+     
+     elsInputTag_ = iConfig.getParameter<edm::InputTag>("elsInputTag");
+     musInputTag_ = iConfig.getParameter<edm::InputTag>("musInputTag");
 }
 
 void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -52,15 +55,18 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      // make vectors to hold the information
      std::auto_ptr<vector<int>    > vector_els_closestMuon(new vector<int>   );
      std::auto_ptr<vector<float> > vector_els_musdr      (new vector<float>);
+     
+
+
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
-     iEvent.getByLabel("muonMaker", "musp4", mus_p4_h);  
+     iEvent.getByLabel(musInputTag_.label(),"musp4", mus_p4_h);  
      //get the muon type
      Handle<vector<int> > mus_type_h;
-     iEvent.getByLabel("muonMaker", "mustype", mus_type_h);
+     iEvent.getByLabel(musInputTag_.label(), "mustype", mus_type_h);
      // get track p4's
      Handle<vector<LorentzVector> > els_p4_h;
-     iEvent.getByLabel("electronMaker", "elsp4", els_p4_h);
+     iEvent.getByLabel(elsInputTag_.label(), "elsp4", els_p4_h);
 
      
      //loop over electrons and find the closest 

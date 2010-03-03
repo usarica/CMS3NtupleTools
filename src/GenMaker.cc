@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.25 2010/03/02 19:36:07 fgolf Exp $
+// $Id: GenMaker.cc,v 1.26 2010/03/03 04:23:52 kalavase Exp $
 //
 //
 
@@ -49,13 +49,12 @@ using namespace std;
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
-  genParticlesInputTag       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  ntupleOnlyStatus3          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
-  ntupleDaughters            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
-  vmetPIDs                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
-//  inclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("inclusiveCrossSection");
-//  exclusiveCrossSectionValue = iConfig.getUntrackedParameter<double>           ("exclusiveCrossSection");
-  kfactorValue               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
+  genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
+  genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
+  ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
+  ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
+  vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
+  kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"      );
@@ -76,7 +75,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<float>                           ("evtscale1fb"          ).setBranchAlias("evt_scale1fb"         );
 
   
-  if(ntupleDaughters) {
+  if(ntupleDaughters_) {
      produces<vector<vector<int> > >           ("genpslepdaughterid" ).setBranchAlias("genps_lepdaughter_id" );
      produces<vector<vector<int> > >           ("genpslepdaughteridx").setBranchAlias("genps_lepdaughter_idx");
      produces<vector<vector<LorentzVector> > > ("genpslepdaughterp4" ).setBranchAlias("genps_lepdaughter_p4" );
@@ -99,14 +98,14 @@ void GenMaker::endJob()
 void GenMaker::beginRun( edm::Run& iRun, const edm::EventSetup& iSetup) {
 
      edm::Handle<GenRunInfoProduct> genRunInfo;
-     bool haveRunInfo = iRun.getByLabel("generator", genRunInfo);
+     bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);
      if (haveRunInfo){
        
-       inclusiveCrossSectionValue = genRunInfo->internalXSec().value();
-       exclusiveCrossSectionValue = genRunInfo->externalXSecLO().value();
+       inclusiveCrossSectionValue_ = genRunInfo->internalXSec().value();
+       exclusiveCrossSectionValue_ = genRunInfo->externalXSecLO().value();
      } else {
-       inclusiveCrossSectionValue = 0;
-       exclusiveCrossSectionValue = 0;
+       inclusiveCrossSectionValue_ = 0;
+       exclusiveCrossSectionValue_ = 0;
      }
 
 }
@@ -138,7 +137,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
-  iEvent.getByLabel(genParticlesInputTag, genpsHandle);
+  iEvent.getByLabel(genParticlesInputTag_, genpsHandle);
 
   if( !genpsHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen particle collection";
@@ -188,9 +187,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *genps_alphaQCD        = genEvtInfo->alphaQCD();
 
   *evt_scale1fb  = 1.; // this value is a placeholder; it will be filled during post-processing
-  *evt_xsec_incl = inclusiveCrossSectionValue;
-  *evt_xsec_excl = exclusiveCrossSectionValue;
-  *evt_kfactor   = kfactorValue;
+  *evt_xsec_incl = inclusiveCrossSectionValue_;
+  *evt_xsec_excl = exclusiveCrossSectionValue_;
+  *evt_kfactor   = kfactorValue_;
 
   double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
@@ -201,7 +200,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
     
     //fill daughter branches
-    if( ntupleDaughters ) { 
+    if( ntupleDaughters_ ) { 
       vector<int> v_temp_id;
       vector<int> v_temp_idx;
       vector<LorentzVector> v_temp_p4;
@@ -223,18 +222,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				 genps_it->p4().z(),
 				 genps_it->p4().e() );
     }
-    else if( find( vmetPIDs.begin(), vmetPIDs.end(), TMath::Abs(id) ) != vmetPIDs.end() && genps_it->status() == 3 ) { //LSP only exists at stat 3
+    else if( find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) != vmetPIDs_.end() && genps_it->status() == 3 ) { //LSP only exists at stat 3
       tempvect += LorentzVector( genps_it->p4().x(),
 				 genps_it->p4().y(),
 				 genps_it->p4().z(),
 				 genps_it->p4().e() );
     }
 	else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
-			 find( vmetPIDs.begin(), vmetPIDs.end(), TMath::Abs(id) ) == vmetPIDs.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
+			 find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) == vmetPIDs_.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
 	  sumEt += genps_it->p4().pt();
 	}
   
-    if( ntupleOnlyStatus3 && (genps_it->status() !=3) ) continue;
+    if( ntupleOnlyStatus3_ && (genps_it->status() !=3) ) continue;
 
     genps_status    ->push_back( genps_it->status()                        );
     genps_id        ->push_back( genps_it->pdgId()                         );
@@ -273,7 +272,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_kfactor          , "evtkfactor"           );
   iEvent.put(evt_scale1fb         , "evtscale1fb"          );
 
-  if(ntupleDaughters) {
+  if(ntupleDaughters_) {
     iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
     iEvent.put(genps_lepdaughter_idx, "genpslepdaughteridx");
     iEvent.put(genps_lepdaughter_p4 , "genpslepdaughterp4" );

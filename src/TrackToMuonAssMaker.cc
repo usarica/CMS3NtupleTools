@@ -16,7 +16,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.7 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.8 2010/03/03 04:24:06 kalavase Exp $
 //
 //
 
@@ -40,12 +40,14 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-TrackToMuonAssMaker::TrackToMuonAssMaker(const edm::ParameterSet& iConfig)
-  : m_minDR(iConfig.getParameter<double>("minDR"))
-{
+TrackToMuonAssMaker::TrackToMuonAssMaker(const edm::ParameterSet& iConfig) {
+
+
   produces<vector<int>   >("trkmusidx").setBranchAlias("trk_musidx");	// track index matched to muon
      
-  m_minDR = iConfig.getParameter<double>("minDR");
+  m_minDR_      = iConfig.getParameter<double>("minDR");
+  musInputTag_  = iConfig.getParameter<edm::InputTag>("musInputTag");
+  trksInputTag_ = iConfig.getParameter<edm::InputTag>("trksInputTag");
 }
 
 void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -56,7 +58,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // get muon track p4's
   Handle<vector<LorentzVector> > mus_trk_p4_h;
-  iEvent.getByLabel("muonMaker", "mustrkp4", mus_trk_p4_h);
+  iEvent.getByLabel(musInputTag_.label(), "mustrkp4", mus_trk_p4_h);
 
   if( !mus_trk_p4_h.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve mus_trk_p4";
@@ -66,7 +68,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   //get the muon type
   Handle<vector<int> > mus_type_h;
-  iEvent.getByLabel("muonMaker", "mustype", mus_type_h);
+  iEvent.getByLabel(musInputTag_.label(), "mustype", mus_type_h);
 
   if( !mus_type_h.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve mus_type";
@@ -78,7 +80,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
      
   // get track p4's
   Handle<vector<LorentzVector> > trks_p4_h;
-  iEvent.getByLabel("trackMaker", "trkstrkp4", trks_p4_h);  
+  iEvent.getByLabel(trksInputTag_.label(), "trkstrkp4", trks_p4_h);  
 
   if( !trks_p4_h.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve trks_p4";
@@ -88,7 +90,7 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
      
   for (vector<LorentzVector>::const_iterator track = trks_p4_h->begin(), trks_end = trks_p4_h->end(); track != trks_end; ++track) { 
 	  
-    double minDR = m_minDR;
+    double minDR = m_minDR_;
     int trkidx   = -9999;
     int i_track  = 0;
 

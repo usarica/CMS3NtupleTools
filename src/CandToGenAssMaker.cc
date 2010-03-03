@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.16 2010/03/02 19:36:07 fgolf Exp $
+// $Id: CandToGenAssMaker.cc,v 1.17 2010/03/03 04:23:42 kalavase Exp $
 //
 //
 
@@ -194,28 +194,28 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     //v_temp.push_back(temp);
     genParticlesPruned->push_back(temp);
   }
-  //const vector<GenParticle> *genParticlesPruned = &v_temp;
+
   //get MC Jets
   Handle<GenJetCollection> genJetsHandle;
   iEvent.getByLabel(genJetsInputTag, genJetsHandle);
 
   // get muons
-  InputTag mus_p4_tag(muonsInputTag.label(), "musp4");
+  InputTag mus_p4_tag(muonsInputTag);
   Handle<vector<LorentzVector> > muonHandle;
   iEvent.getByLabel(mus_p4_tag, muonHandle);     
 
   // get electrons
-  InputTag els_p4_tag(electronsInputTag.label(), "elsp4");
+  InputTag els_p4_tag(electronsInputTag);
   Handle<vector<LorentzVector> > electronHandle;
   iEvent.getByLabel(els_p4_tag, electronHandle);     
 
   // get jets
-  InputTag jets_p4_tag(jetsInputTag.label(), "jetsp4");
+  InputTag jets_p4_tag(jetsInputTag);
   Handle<vector<LorentzVector> > jetsHandle;
   iEvent.getByLabel(jets_p4_tag, jetsHandle);     
 
   //get the tracks
-  InputTag trks_p4_tag(tracksInputTag.label(), "trkstrkp4");
+  InputTag trks_p4_tag(tracksInputTag);
   Handle<vector<LorentzVector> > trksHandle;
   iEvent.getByLabel(trks_p4_tag, trksHandle);
 

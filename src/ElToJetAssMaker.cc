@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.cc,v 1.4 2010/03/02 19:36:07 fgolf Exp $
+// $Id: ElToJetAssMaker.cc,v 1.5 2010/03/03 04:23:45 kalavase Exp $
 //
 //
 
@@ -42,6 +42,9 @@ ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig)
 {
      produces<vector<int>   >("elsclosestJet").setBranchAlias("els_closestJet");	// electron closest to jet
      produces<vector<float> >("elsjetdr"     ).setBranchAlias("els_jetdr"     );     
+     
+     elsInputTag_  = iConfig.getParameter<edm::InputTag>("elsInputTag");
+     jetsInputTag_ = iConfig.getParameter<edm::InputTag>("jetsInputTag");
 }
 
 void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -53,11 +56,11 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      // get electrons
      Handle<vector<LorentzVector> > els_p4_h;
-     iEvent.getByLabel("electronMaker", "elsp4", els_p4_h);  
+     iEvent.getByLabel(elsInputTag_.label(), "elsp4", els_p4_h);  
 
      // get jet p4's
      Handle<vector<LorentzVector> > jets_p4_h;
-     iEvent.getByLabel("jetMaker", "jetsp4", jets_p4_h);
+     iEvent.getByLabel(jetsInputTag_.label(), "jetsp4", jets_p4_h);
      
      // loop over all electrons
      for(vector<LorentzVector>::const_iterator els_it = els_p4_h->begin(),

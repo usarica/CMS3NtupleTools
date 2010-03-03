@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PixelDigiMaker.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
+// $Id: PixelDigiMaker.cc,v 1.3 2010/03/03 04:24:02 kalavase Exp $
 //
 //
 
@@ -53,10 +53,12 @@ using namespace edm;
 
 PixelDigiMaker::PixelDigiMaker(const edm::ParameterSet& iConfig)
 {
-  pixelsInputTag = iConfig.getParameter<edm::InputTag>("pixelsInputTag");
-  
+    
   produces<vector<int>   >("pxlndigispxb").setBranchAlias("pxl_ndigis_pxb");	// number digis in each pixel barrel layer
   produces<vector<int>   >("pxlndigispxf").setBranchAlias("pxl_ndigis_pxf");	// number digis in each pixel forward layer
+
+  pixelsInputTag_          = iConfig.getParameter<edm::InputTag>("pixelsInputTag");
+  
 }
 
 void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es)
@@ -72,7 +74,7 @@ void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es)
   vector_pxl_ndigis_pxf->push_back(0);
 
   edm::Handle<SiPixelClusterCollectionNew> recHitColl;
-  iEvent.getByLabel( "siPixelClusters", recHitColl);
+  iEvent.getByLabel(pixelsInputTag_, recHitColl);
 
   edm::ESHandle<TrackerGeometry> pDD;
   es.get<TrackerDigiGeometryRecord> ().get (pDD);

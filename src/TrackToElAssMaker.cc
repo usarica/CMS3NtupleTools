@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.9 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TrackToElAssMaker.cc,v 1.10 2010/03/03 04:24:04 kalavase Exp $
 //
 //
 
@@ -50,8 +50,6 @@ TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig)
 
   // index in electron collection of track matched to electron
   produces<vector<int>   >("trkselsidx"     ).setBranchAlias("trks_elsidx"    );	
-  //produces<vector<float> >("trkselsdr"      ).setBranchAlias("trks_elsdr"     );
-  //produces<vector<float> >("trkselsshFrac"  ).setBranchAlias("trks_elsshFrac" );
   
   electronsInputTag_ = iConfig.getParameter<InputTag>("electronsInputTag");
   tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
@@ -77,10 +75,6 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.getByLabel(tracksInputTag_, trks_h);
   const TrackCollection *trks_coll = trks_h.product();
   
-  // get track p4's
-  Handle<vector<LorentzVector> > trks_p4_h;
-  iEvent.getByLabel("trackMaker", "trkstrkp4", trks_p4_h);
-
   for(vector<Track>::const_iterator trks_it = trks_coll->begin();
 	trks_it != trks_coll->end(); trks_it++) {
     
@@ -90,15 +84,11 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     
     getMatchedElInfo(*trks_it, els_coll, elidx, shFrac, dR);
     trks_elsidx          ->push_back(elidx   );
-    //trks_elsdr           ->push_back(dR      );
-    //trks_elsshFrac       ->push_back(shFrac  );
         
   }
   
   // store vectors
   iEvent.put(trks_elsidx,        "trkselsidx"    );
-  //iEvent.put(trks_elsdr,         "trkselsdr"     );
-  //iEvent.put(trks_elsshFrac,     "trkselsshFrac" );
   
 }
 

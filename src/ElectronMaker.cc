@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.44 2010/03/02 19:35:10 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.45 2010/03/03 04:23:49 kalavase Exp $
 //
 //
 
@@ -216,6 +216,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   //get setup parameters
   electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
   beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
+  trksInputTag_                 = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
   eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
   eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
   eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
@@ -406,7 +407,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //conversions
   Handle<reco::TrackCollection> tracks_h;
-  iEvent.getByLabel("generalTracks", tracks_h);
+  iEvent.getByLabel(trksInputTag_, tracks_h);
 
   Handle<float> evt_bField_h;
   iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
