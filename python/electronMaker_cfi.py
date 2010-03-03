@@ -5,7 +5,9 @@ electronMaker = cms.EDFilter(
     # Electron collection
     electronsInputTag = cms.InputTag("gsfElectrons"),
     # Beamspot
-    beamSpotInputTag = cms.InputTag("beamSpotMaker"),
+    beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
+    # reco Track collection
+    trksInputTag      = cms.InputTag("generalTracks"),
     # egamma ID
     eidRobustLooseTag = cms.InputTag("eidRobustLooseCMS2"),
     eidRobustTightTag = cms.InputTag("eidRobustTightCMS2"),
