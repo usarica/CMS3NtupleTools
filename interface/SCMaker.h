@@ -47,7 +47,7 @@ class SCMaker : public edm::EDProducer {
 		explicit SCMaker (const edm::ParameterSet&);
 
 	private:
-		void beginRun( const edm::EventSetup & iSetup ) ;
+		virtual void beginRun(edm::Run&, const edm::EventSetup&);
 		virtual void beginJob() ;
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;

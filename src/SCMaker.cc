@@ -147,12 +147,14 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig)
 
 }
 
-void SCMaker::beginRun( const edm::EventSetup & iSetup )
+void SCMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
 {
+    /*
 	edm::ESHandle<EcalChannelStatus> chStatus;
 	iSetup.get<EcalChannelStatusRcd>().get(chStatus);
 	// where const EcalChannelStatusCode * channelStatus;
 	channelStatus_ = chStatus.product();
+    */
 }
 
 void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
