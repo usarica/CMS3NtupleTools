@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.10 2010/03/02 19:36:08 fgolf Exp $
+// $Id: PFTauMaker.cc,v 1.11 2010/03/10 17:54:18 jribnik Exp $
 //
 //
 
@@ -264,7 +264,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    taus_pf_electronPreIDOutput      ->push_back(tau_pf->electronPreIDOutput());
    if(tau_pf->hasMuonReference()){
                                       taus_pf_hasMuonReference   ->push_back(1);
-                                      taus_pf_caloComp           ->push_back(tau_pf->caloComp());
+                                      taus_pf_caloComp           ->push_back(isnan(tau_pf->caloComp()) ? -9999. : tau_pf->caloComp());
                                       taus_pf_segComp            ->push_back(tau_pf->segComp());
 				      MuonRef muonref = tau_pf->leadPFChargedHadrCand()->muonRef();
 				      taus_pf_nmuonmatch         ->push_back(muonref ->numberOfMatches());
