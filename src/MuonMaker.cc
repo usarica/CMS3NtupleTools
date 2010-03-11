@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.37 2010/03/02 19:36:08 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.38 2010/03/11 13:05:45 jribnik Exp $
 //
 //
 
@@ -305,7 +305,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_mus_type         ->push_back(muon->type());
     int goodMask = 0;
     
-    for (int iG = 0; iG < 16; ++iG){ //overkill here
+    for (int iG = 0; iG < 24; ++iG){ //overkill here
       if (isGoodMuon(*muon,(muon::SelectionType)iG) ) goodMask |=   (1 << iG);
     }
      
