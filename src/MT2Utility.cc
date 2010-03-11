@@ -237,7 +237,7 @@ void mt2::mt2_massless()
       if(foundhigh==0) 
       {
        
-	cout<<"Deltasq_high not found at event " << nevt <<endl;
+	//cout<<"Deltasq_high not found at event " << nevt <<endl;
         
        
          mt2_b = (double)sqrt(Deltasq_low+mnsq);
@@ -247,9 +247,9 @@ void mt2::mt2_massless()
 
    if(nsols_high == nsols_low)
    { 
-      cout << "error: nsols_low=nsols_high=" << nsols_high << endl;
-      cout << "Deltasq_high=" << Deltasq_high << endl;
-      cout << "Deltasq_low= "<< Deltasq_low << endl;
+      //cout << "error: nsols_low=nsols_high=" << nsols_high << endl;
+      //cout << "Deltasq_high=" << Deltasq_high << endl;
+      //cout << "Deltasq_low= "<< Deltasq_low << endl;
     
       mt2_b = sqrt(mnsq + Deltasq_low);
       return;
@@ -456,7 +456,7 @@ void mt2::mt2_bisect()
       foundhigh = find_high(Deltasq_high);
       if(foundhigh == 0) 
       {
- 	 cout << "Deltasq_high not found at event " << nevt << endl;
+ 	 //cout << "Deltasq_high not found at event " << nevt << endl;
          mt2_b = sqrt( Deltasq_low + mnsq );
          return;
       }
@@ -536,7 +536,7 @@ int mt2::scan_high(double & Deltasq_high)
    double tempmass, maxmass;
    tempmass = mn + ma;
    maxmass  = sqrt(mnsq + Deltasq_high);
-   if (nevt == 32334) cout << "Deltasq_high = " << Deltasq_high << endl;
+   //if (nevt == 32334) cout << "Deltasq_high = " << Deltasq_high << endl;
    for(double mass = tempmass + SCANSTEP; mass < maxmass; mass += SCANSTEP)
    {
       Deltasq_high = mass*mass - mnsq;
