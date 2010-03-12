@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -66,7 +66,7 @@ switchJetCollection(process,
 # add statement to prevent the PAT from using generator information
 from PhysicsTools.PatAlgos.tools.coreTools import *
 #uncomment for data
-#removeMCMatching(process, 'All')
+#removeMCMatching(process, ['All'])
 
 #-----------------------------------------------------------
 # configure input data files and number of event to process
