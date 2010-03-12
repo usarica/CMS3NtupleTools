@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 hypDilepMaker = cms.EDFilter("HypDilepMaker",
+	aliasPrefix = cms.untracked.string("hyp"),
     #are we using pat jets in the JetMaker?
     #need to know if the jets were corrected
     usingCorrectedJets = cms.bool(True),

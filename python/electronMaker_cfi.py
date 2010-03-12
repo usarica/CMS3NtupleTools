@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 electronMaker = cms.EDFilter(
 	"ElectronMaker",
+	aliasPrefix = cms.untracked.string("els"),
     # Electron collection
     electronsInputTag = cms.InputTag("gsfElectrons"),
     # Beamspot

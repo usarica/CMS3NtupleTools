@@ -7,6 +7,7 @@ from TrackingTools.TrackAssociator.default_cfi import *
 
 elTkJuraIsoMaker = cms.EDProducer(
 	"ElTkJuraIsoMaker",
+	aliasPrefix = cms.untracked.string("els"),
 
 	# input collections
 	elsInputTag = cms.InputTag("electronMaker"),

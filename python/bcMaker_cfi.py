@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 bcMaker = cms.EDFilter("BCMaker",
+	aliasPrefix = cms.untracked.string("bcs"),
     # sc collection for EE and EB
 
 #    scInputTag_EE = cms.InputTag("multi5x5BasicClusters", "multi5x5EndcapBasicClusters"),

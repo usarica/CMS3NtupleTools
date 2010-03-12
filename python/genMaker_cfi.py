@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 genMaker = cms.EDFilter("GenMaker",
+	aliasPrefix = cms.untracked.string("genps"),
     ntupleOnlyStatus3     = cms.bool(True),
     ntupleDaughters       = cms.bool(True),
     genParticlesInputTag  = cms.InputTag("genParticles" ),

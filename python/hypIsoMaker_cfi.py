@@ -3,6 +3,7 @@ from TrackingTools.TrackAssociator.default_cfi import *
 
 hypIsoMaker = cms.EDProducer(
 	"HypIsoMaker",
+	aliasPrefix = cms.untracked.string("hyp"),
 	TrackAssociatorParameterBlock, #this is read as TrackAssociatorParameters (don't ask me why)
 
 	#This is whether to use the egamma/muon isolations and subtract the isolation veto of the

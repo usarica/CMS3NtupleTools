@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 elESIsoMaker = cms.EDProducer("ElESIsoMaker",
+	aliasPrefix = cms.untracked.string("els"),
 
   	electronsInputTag 	= cms.InputTag("gsfElectrons"),
         esHitsInputTag 		= cms.InputTag("ecalPreshowerRecHit:EcalRecHitsES"),
