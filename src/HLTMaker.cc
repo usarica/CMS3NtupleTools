@@ -25,14 +25,17 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
     produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
 }
 
-void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+void HLTMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
 {
-    // HLT config might change within runs ;)
+    // HLT config _should no longer_ change within runs :)
     bool changed(true);
-    if (hltConfig_.init(iEvent,processName_,changed)) {
+    if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
     } else 
         throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
+}
 
+void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
     iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
     if (! triggerResultsH_.isValid())
         throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
