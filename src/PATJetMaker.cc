@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.10 2010/03/02 19:36:08 fgolf Exp $
+// $Id: PATJetMaker.cc,v 1.11 2010/03/17 18:31:00 kalavase Exp $
 //
 //
 
@@ -46,7 +46,8 @@ Description: copy additional PAT jet variables in simple data structures into th
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 #include "CMS2/NtupleMaker/interface/CommonUtils.h"
-#include "PhysicsTools/PatUtils/interface/JetIDSelectionFunctor.h"
+//#include "PhysicsTools/PatUtils/interface/JetIDSelectionFunctor.h"
+#include "PhysicsTools/SelectorUtils/interface/JetIDSelectionFunctor.h"
 typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
