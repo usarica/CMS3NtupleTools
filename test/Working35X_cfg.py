@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -30,7 +30,7 @@ import string
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 
 
@@ -82,8 +82,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-#'/store/relval/CMSSW_3_5_2_patch2/RelValZMM/GEN-SIM-RECO/START3X_V24-v1/0005/12FB2008-A624-DF11-8E75-0030487A3232.root'
-'file:12FB2008-A624-DF11-8E75-0030487A3232.root'
+    'file:~/userdata/TTbar_Summer09-MC_3XY_V25_preproduction-v1_GEN-SIM-RECO/TTbar.root'
     ),
 )
 
@@ -93,16 +92,18 @@ process.EventSelectionSingleFilt = cms.PSet(
     SelectEvents = cms.vstring('pWithRecoLepton', 'pWithGenLepton')
                 )
         )
-process.outRecoOrGenSingleFilt_CMS2 = cms.OutputModule(
+
+
+process.out = cms.OutputModule(
         "PoolOutputModule",
-        process.EventSelectionSingleFilt,
+        #process.EventSelectionSingleFilt,
         verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
         fileName = cms.untracked.string('ntuple.root')
 )
 
-process.outRecoOrGenSingleFilt_CMS2.outputCommands = cms.untracked.vstring( 'drop *' )
-process.outRecoOrGenSingleFilt_CMS2.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 
 
 # load event level configurations
@@ -146,18 +147,19 @@ process.cms2WithEverything             = cms.Sequence( process.coreCMS2Sequence
                                                        * process.cms2GENSequence
                                                        * process.cms2beamHaloSequence
                                                        * process.pixelDigiMaker
-                                                       * process.patDefaultSequence * process.cms2PATSequence)
+                                                       )#* process.patDefaultSequence * process.cms2PATSequence)
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
-process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
+#process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("/RelValZMM/CMSSW_3_5_2_patch2-START3X_V24-v1/GEN-SIM-RECO")
 process.eventMaker.CMS2tag     = cms.string("blah")
-process.lepGenFilter = cms.EDFilter("LepGenFilter", nGenLepsRequired = cms.int32(1))
-process.pWithGenLepton  = cms.Path(process.cms2WithEverything * process.lepGenFilter  )
-process.eventMaker.datasetName = cms.string("/RelValZMM/CMSSW_3_5_2_patch2-START3X_V24-v1/GEN-SIM-RECO")
-process.eventMaker.CMS2tag     = cms.string("blah")
+#process.lepGenFilter = cms.EDFilter("LepGenFilter", nGenLepsRequired = cms.int32(1))
+#process.pWithGenLepton  = cms.Path(process.cms2WithEverything * process.lepGenFilter  )
 
-process.outpath         = cms.EndPath(process.outRecoOrGenSingleFilt_CMS2)
+
+process.p = cms.Path(process.cms2WithEverything)
+
+process.outpath         = cms.EndPath(process.out)
 
 
