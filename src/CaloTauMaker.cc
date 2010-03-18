@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.7 2010/03/02 19:36:07 fgolf Exp $
+// $Id: CaloTauMaker.cc,v 1.8 2010/03/18 02:11:50 kalavase Exp $
 //
 //
 
@@ -47,26 +47,29 @@ using namespace std;
 
 CaloTauMaker::CaloTauMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<vector<vector <int> > >  ("tauscaloisotrkidx"                     ).setBranchAlias("taus_calo_isotrk_idx"              );
-  produces<vector<vector <int> > >  ("tauscalosigtrkidx"                     ).setBranchAlias("taus_calo_sigtrk_idx"              );
-  produces<vector<int> >            ("tauscaloleadtrkidx"                    ).setBranchAlias("taus_calo_leadtrk_idx"             );
-  produces<vector<LorentzVector> >  ("tauscalop4"                            ).setBranchAlias("taus_calo_p4"                      );
+  produces<vector<vector <int> > >  (branchprefix+"isotrkidx"                     ).setBranchAlias(aliasprefix_+"_isotrk_idx"              );
+  produces<vector<vector <int> > >  (branchprefix+"sigtrkidx"                     ).setBranchAlias(aliasprefix_+"_sigtrk_idx"              );
+  produces<vector<int> >            (branchprefix+"leadtrkidx"                    ).setBranchAlias(aliasprefix_+"_leadtrk_idx"             );
+  produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                      );
 
-  produces<vector<int> >            ("tauscalocharge"                        ).setBranchAlias("taus_calo_charge"                  );
-  produces<vector<float> >          ("tauscaloleadtrkvalidHits"              ).setBranchAlias("taus_calo_leadtrk_validHits"       ); 
-  produces<vector<float> >          ("tauscaloleadtrklostHits"               ).setBranchAlias("taus_calo_leadtrk_lostHits"        ); 
-  produces<vector<float> >          ("tauscaloleadtrkSignedSipt"             ).setBranchAlias("taus_calo_leadtrk_Signed_Sipt"     );  
-  produces<vector<float> >          ("tauscaloleadtrkHCAL3x3hitsEtSum"       ).setBranchAlias("taus_calo_leadtrk_HCAL3x3hitsEtSum"); 
-  produces<vector<float> >          ("tauscaloleadtrkHCAL3x3hottesthitDEta"  ).setBranchAlias("taus_calo_leadtrk_HCAL3x3hottesthitDEta"); 
+  produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                  );
+  produces<vector<float> >          (branchprefix+"leadtrkvalidHits"              ).setBranchAlias(aliasprefix_+"_leadtrk_validHits"       ); 
+  produces<vector<float> >          (branchprefix+"leadtrklostHits"               ).setBranchAlias(aliasprefix_+"_leadtrk_lostHits"        ); 
+  produces<vector<float> >          (branchprefix+"leadtrkSignedSipt"             ).setBranchAlias(aliasprefix_+"_leadtrk_Signed_Sipt"     );  
+  produces<vector<float> >          (branchprefix+"leadtrkHCAL3x3hitsEtSum"       ).setBranchAlias(aliasprefix_+"_leadtrk_HCAL3x3hitsEtSum"); 
+  produces<vector<float> >          (branchprefix+"leadtrkHCAL3x3hottesthitDEta"  ).setBranchAlias(aliasprefix_+"_leadtrk_HCAL3x3hottesthitDEta"); 
   
-  produces<vector<float> >          ("tauscalosignaltrksInvariantMass"        ).setBranchAlias("taus_calo_signaltrksInvariantMass" ); 
-  produces<vector<float> >          ("tauscaloisolationtrksPtSum"             ).setBranchAlias("taus_calo_isolationtrksPtSum"      ); 
-  produces<vector<float> >          ("tauscaloisolationECALhitsEtSum"         ).setBranchAlias("taus_calo_isolationECALhitsEtSum"  ); 
-  produces<vector<float> >          ("tauscalomaximumHCALhitEt"               ).setBranchAlias("taus_calo_maximumHCALhitEt"        ); 
+  produces<vector<float> >          (branchprefix+"signaltrksInvariantMass"        ).setBranchAlias(aliasprefix_+"_signaltrksInvariantMass" ); 
+  produces<vector<float> >          (branchprefix+"isolationtrksPtSum"             ).setBranchAlias(aliasprefix_+"_isolationtrksPtSum"      ); 
+  produces<vector<float> >          (branchprefix+"isolationECALhitsEtSum"         ).setBranchAlias(aliasprefix_+"_isolationECALhitsEtSum"  ); 
+  produces<vector<float> >          (branchprefix+"maximumHCALhitEt"               ).setBranchAlias(aliasprefix_+"_maximumHCALhitEt"        ); 
   
   //tau preID
-  produces<vector<int> >            ("tauscalotightId"                        ).setBranchAlias("taus_calo_tightId"                 );
+  produces<vector<int> >            (branchprefix+"tightId"                        ).setBranchAlias(aliasprefix_+"_tightId"                 );
 
 
   //leadTrackECALSurfContactPoint, leadTrackavoidsECALcrack
@@ -176,22 +179,25 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
  }
   
- iEvent.put(taus_calo_sigtrk_idx                        ,"tauscalosigtrkidx"                      ); 
- iEvent.put(taus_calo_isotrk_idx                        ,"tauscaloisotrkidx"                      ); 
- iEvent.put(taus_calo_leadtrk_idx                       ,"tauscaloleadtrkidx"                     ); 
- iEvent.put(taus_calo_p4                                ,"tauscalop4"                             );  
- iEvent.put(taus_calo_charge                            ,"tauscalocharge"                         ); 
- iEvent.put(taus_calo_leadtrk_validHits                 ,"tauscaloleadtrkvalidHits"               );
- iEvent.put(taus_calo_leadtrk_lostHits                  ,"tauscaloleadtrklostHits"                );
- iEvent.put(taus_calo_leadtrk_Signed_Sipt               ,"tauscaloleadtrkSignedSipt"              );
- iEvent.put(taus_calo_leadtrk_HCAL3x3hitsEtSum          ,"tauscaloleadtrkHCAL3x3hitsEtSum"        );
- iEvent.put(taus_calo_leadtrk_HCAL3x3hottesthitDEta     ,"tauscaloleadtrkHCAL3x3hottesthitDEta"   );
- iEvent.put(taus_calo_signaltrksInvariantMass           ,"tauscalosignaltrksInvariantMass"        );
- iEvent.put(taus_calo_isolationtrksPtSum                ,"tauscaloisolationtrksPtSum"             );
- iEvent.put(taus_calo_isolationECALhitsEtSum            ,"tauscaloisolationECALhitsEtSum"         );
- iEvent.put(taus_calo_maximumHCALhitEt                  ,"tauscalomaximumHCALhitEt"               );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+ iEvent.put(taus_calo_sigtrk_idx                        ,branchprefix+"sigtrkidx"                      ); 
+ iEvent.put(taus_calo_isotrk_idx                        ,branchprefix+"isotrkidx"                      ); 
+ iEvent.put(taus_calo_leadtrk_idx                       ,branchprefix+"leadtrkidx"                     ); 
+ iEvent.put(taus_calo_p4                                ,branchprefix+"p4"                             );  
+ iEvent.put(taus_calo_charge                            ,branchprefix+"charge"                         ); 
+ iEvent.put(taus_calo_leadtrk_validHits                 ,branchprefix+"leadtrkvalidHits"               );
+ iEvent.put(taus_calo_leadtrk_lostHits                  ,branchprefix+"leadtrklostHits"                );
+ iEvent.put(taus_calo_leadtrk_Signed_Sipt               ,branchprefix+"leadtrkSignedSipt"              );
+ iEvent.put(taus_calo_leadtrk_HCAL3x3hitsEtSum          ,branchprefix+"leadtrkHCAL3x3hitsEtSum"        );
+ iEvent.put(taus_calo_leadtrk_HCAL3x3hottesthitDEta     ,branchprefix+"leadtrkHCAL3x3hottesthitDEta"   );
+ iEvent.put(taus_calo_signaltrksInvariantMass           ,branchprefix+"signaltrksInvariantMass"        );
+ iEvent.put(taus_calo_isolationtrksPtSum                ,branchprefix+"isolationtrksPtSum"             );
+ iEvent.put(taus_calo_isolationECALhitsEtSum            ,branchprefix+"isolationECALhitsEtSum"         );
+ iEvent.put(taus_calo_maximumHCALhitEt                  ,branchprefix+"maximumHCALhitEt"               );
  
- iEvent.put(taus_calo_tightId                           ,"tauscalotightId"                        );
+ iEvent.put(taus_calo_tightId                           ,branchprefix+"tightId"                        );
  
  }
 

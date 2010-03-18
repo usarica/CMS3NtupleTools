@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.27 2010/03/02 19:36:07 fgolf Exp $
+// $Id: EventMaker.cc,v 1.28 2010/03/18 02:12:09 kalavase Exp $
 //
 //
 
@@ -48,18 +48,22 @@ using namespace std;
 
 EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
-     produces<unsigned int>        ("evtrun"            ).setBranchAlias("evt_run"           );
-     produces<unsigned int>        ("evtevent"          ).setBranchAlias("evt_event"         );
-     produces<unsigned int>        ("evtlumiBlock"      ).setBranchAlias("evt_lumiBlock"     );
-     produces<int>                 ("evtbunchCrossing"  ).setBranchAlias("evt_bunchCrossing" );
-     produces<int>                 ("evtorbitNumber"    ).setBranchAlias("evt_orbitNumber"   );
-     produces<int>                 ("evtstoreNumber"    ).setBranchAlias("evt_storeNumber"   );
-     produces<int>                 ("evtexperimentType" ).setBranchAlias("evt_experimentType");
-     produces<unsigned long long>  ("evttimestamp"      ).setBranchAlias("evt_timestamp"     );
-     produces<TString>             ("evtdataset"        ).setBranchAlias("evt_dataset"       );
-     produces<TString>             ("evtCMS2tag"        ).setBranchAlias("evt_CMS2tag"       );
-     produces<float>               ("evtbField"         ).setBranchAlias("evt_bField"        );
-     produces<unsigned int>        ("evtdetectorStatus" ).setBranchAlias("evt_detectorStatus");
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     produces<unsigned int>        (branchprefix+"run"            ).setBranchAlias(aliasprefix_+"_run"           );
+     produces<unsigned int>        (branchprefix+"event"          ).setBranchAlias(aliasprefix_+"_event"         );
+     produces<unsigned int>        (branchprefix+"lumiBlock"      ).setBranchAlias(aliasprefix_+"_lumiBlock"     );
+     produces<int>                 (branchprefix+"bunchCrossing"  ).setBranchAlias(aliasprefix_+"_bunchCrossing" );
+     produces<int>                 (branchprefix+"orbitNumber"    ).setBranchAlias(aliasprefix_+"_orbitNumber"   );
+     produces<int>                 (branchprefix+"storeNumber"    ).setBranchAlias(aliasprefix_+"_storeNumber"   );
+     produces<int>                 (branchprefix+"experimentType" ).setBranchAlias(aliasprefix_+"_experimentType");
+     produces<unsigned long long>  (branchprefix+"timestamp"      ).setBranchAlias(aliasprefix_+"_timestamp"     );
+     produces<TString>             (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
+     produces<TString>             (branchprefix+"CMS2tag"        ).setBranchAlias(aliasprefix_+"_CMS2tag"       );
+     produces<float>               (branchprefix+"bField"         ).setBranchAlias(aliasprefix_+"_bField"        );
+     produces<unsigned int>        (branchprefix+"detectorStatus" ).setBranchAlias(aliasprefix_+"_detectorStatus");
   
      datasetName_ = iConfig.getParameter<std::string>("datasetName");
      CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
@@ -111,23 +115,26 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      edm::Handle<DcsStatusCollection> dcsHandle;
      iEvent.getByLabel(dcsTag_, dcsHandle);
 
-     if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
-	   *evt_detectorStatus = (*dcsHandle)[0].ready();
+     std::string branchprefix = aliasprefix_;
+     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-	  iEvent.put(evt_detectorStatus   ,"evtdetectorStatus"  );
+     if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
+       *evt_detectorStatus = (*dcsHandle)[0].ready();
+       
+       iEvent.put(evt_detectorStatus   ,branchprefix+"detectorStatus"  );
      }
 
-     iEvent.put(evt_run              ,"evtrun"             );
-     iEvent.put(evt_event            ,"evtevent"           );
-     iEvent.put(evt_lumiBlock        ,"evtlumiBlock"       );
-     iEvent.put(evt_bunchCrossing    ,"evtbunchCrossing"   );
-     iEvent.put(evt_orbitNumber      ,"evtorbitNumber"     );
-     iEvent.put(evt_storeNumber      ,"evtstoreNumber"     );
-     iEvent.put(evt_experimentType   ,"evtexperimentType"  );
-     iEvent.put(evt_timestamp        ,"evttimestamp"       );
-     iEvent.put(evt_dataset          ,"evtdataset"         );
-     iEvent.put(evt_CMS2tag          ,"evtCMS2tag"         );
-     iEvent.put(evt_bField           ,"evtbField"          );
+     iEvent.put(evt_run              ,branchprefix+"run"             );
+     iEvent.put(evt_event            ,branchprefix+"event"           );
+     iEvent.put(evt_lumiBlock        ,branchprefix+"lumiBlock"       );
+     iEvent.put(evt_bunchCrossing    ,branchprefix+"bunchCrossing"   );
+     iEvent.put(evt_orbitNumber      ,branchprefix+"orbitNumber"     );
+     iEvent.put(evt_storeNumber      ,branchprefix+"storeNumber"     );
+     iEvent.put(evt_experimentType   ,branchprefix+"experimentType"  );
+     iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );
+     iEvent.put(evt_dataset          ,branchprefix+"dataset"         );
+     iEvent.put(evt_CMS2tag          ,branchprefix+"CMS2tag"         );
+     iEvent.put(evt_bField           ,branchprefix+"bField"          );
 }
 
 //define this as a plug-in

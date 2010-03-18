@@ -16,7 +16,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToMuonAssMaker.cc,v 1.8 2010/03/03 04:24:06 kalavase Exp $
+// $Id: TrackToMuonAssMaker.cc,v 1.9 2010/03/18 02:13:39 kalavase Exp $
 //
 //
 
@@ -42,8 +42,12 @@ using std::vector;
 
 TrackToMuonAssMaker::TrackToMuonAssMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<vector<int>   >("trkmusidx").setBranchAlias("trk_musidx");	// track index matched to muon
+
+  produces<vector<int>   >(branchprefix+"musidx").setBranchAlias(aliasprefix_+"_musidx");	// track index matched to muon
      
   m_minDR_      = iConfig.getParameter<double>("minDR");
   musInputTag_  = iConfig.getParameter<edm::InputTag>("musInputTag");
@@ -111,7 +115,10 @@ void TrackToMuonAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   }
 
   // store vectors
-  iEvent.put(vector_trk_musidx, "trkmusidx" );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(vector_trk_musidx, branchprefix+"musidx" );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

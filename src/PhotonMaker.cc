@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.7 2010/03/02 19:36:08 fgolf Exp $
+// $Id: PhotonMaker.cc,v 1.8 2010/03/18 02:13:24 kalavase Exp $
 //
 //
 
@@ -76,40 +76,44 @@ using namespace std;
 //
 // constructors and destructor
 //
-PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
-{
+PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
      produces<unsigned int>            ("evtnphotons"        ).setBranchAlias("evt_nphotons"         ); //number of photons in event
 
      // ECAL related (superCluster) variables
-     produces<vector<float> >	  ("photonseSC"             ).setBranchAlias("photons_eSC"              );
-     produces<vector<float> >	  ("photonseSCRaw"          ).setBranchAlias("photons_eSCRaw"           );
-     produces<vector<float> >          ("photonseSCPresh"        ).setBranchAlias("photons_eSCPresh"         );
-     produces<vector<int> >          ("photonsfiduciality"        ).setBranchAlias("photons_fiduciality"         );
+     produces<vector<float> >	  (branchprefix+"eSC"             ).setBranchAlias(aliasprefix_+"_eSC"              );
+     produces<vector<float> >	  (branchprefix+"eSCRaw"          ).setBranchAlias(aliasprefix_+"_eSCRaw"           );
+     produces<vector<float> >          (branchprefix+"eSCPresh"        ).setBranchAlias(aliasprefix_+"_eSCPresh"         );
+     produces<vector<int> >          (branchprefix+"fiduciality"        ).setBranchAlias(aliasprefix_+"_fiduciality"         );
 
      // ID variables
      //
-     produces<vector<float> >          ("photonshOverE"          ).setBranchAlias("photons_hOverE"           );
-     produces<vector<float> >          ("photonssigmaPhiPhi"     ).setBranchAlias("photons_sigmaPhiPhi"      );
-     produces<vector<float> >          ("photonssigmaIPhiIPhi"   ).setBranchAlias("photons_sigmaIPhiIPhi"    );
-     produces<vector<float> >          ("photonssigmaEtaEta"     ).setBranchAlias("photons_sigmaEtaEta"      );
-     produces<vector<float> >          ("photonssigmaIEtaIEta"   ).setBranchAlias("photons_sigmaIEtaIEta"    );
-     produces<vector<float> >          ("photonse2x5Max"         ).setBranchAlias("photons_e2x5Max"          );
-     produces<vector<float> >          ("photonse1x5"          	).setBranchAlias("photons_e1x5"          	);
-     produces<vector<float> >          ("photonse5x5"            ).setBranchAlias("photons_e5x5"             );
-     produces<vector<float> >	  ("photonse3x3"            ).setBranchAlias("photons_e3x3"             );
-     produces<vector<float> >          ("photonseMax"            ).setBranchAlias("photons_eMax"             );
-     produces<vector<float> >          ("photonseSeed"            ).setBranchAlias("photons_eSeed"             );
+     produces<vector<float> >          (branchprefix+"hOverE"          ).setBranchAlias(aliasprefix_+"_hOverE"           );
+     produces<vector<float> >          (branchprefix+"sigmaPhiPhi"     ).setBranchAlias(aliasprefix_+"_sigmaPhiPhi"      );
+     produces<vector<float> >          (branchprefix+"sigmaIPhiIPhi"   ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi"    );
+     produces<vector<float> >          (branchprefix+"sigmaEtaEta"     ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"      );
+     produces<vector<float> >          (branchprefix+"sigmaIEtaIEta"   ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"    );
+     produces<vector<float> >          (branchprefix+"e2x5Max"         ).setBranchAlias(aliasprefix_+"_e2x5Max"          );
+     produces<vector<float> >          (branchprefix+"e1x5"          	).setBranchAlias(aliasprefix_+"_e1x5"          	);
+     produces<vector<float> >          (branchprefix+"e5x5"            ).setBranchAlias(aliasprefix_+"_e5x5"             );
+     produces<vector<float> >	  (branchprefix+"e3x3"            ).setBranchAlias(aliasprefix_+"_e3x3"             );
+     produces<vector<float> >          (branchprefix+"eMax"            ).setBranchAlias(aliasprefix_+"_eMax"             );
+     produces<vector<float> >          (branchprefix+"eSeed"            ).setBranchAlias(aliasprefix_+"_eSeed"             );
 
      // isolation variables
      //
-     produces<vector<float> >	  ("photonstkIsoHollow"       	).setBranchAlias("photons_tkIsoHollow"        	);
-     produces<vector<float> >     ("photonstkIsoSolid"         ).setBranchAlias("photons_tkIsoSolid"          );
-     produces<vector<float> >          ("photonsecalIso"        	).setBranchAlias("photons_ecalIso"      	);
-     produces<vector<float> >          ("photonshcalIso"       	).setBranchAlias("photons_hcalIso"      	);
+     produces<vector<float> >	  (branchprefix+"tkIsoHollow"       	).setBranchAlias(aliasprefix_+"_tkIsoHollow"        	);
+     produces<vector<float> >     (branchprefix+"tkIsoSolid"         ).setBranchAlias(aliasprefix_+"_tkIsoSolid"          );
+     produces<vector<float> >          (branchprefix+"ecalIso"        	).setBranchAlias(aliasprefix_+"_ecalIso"      	);
+     produces<vector<float> >          (branchprefix+"hcalIso"       	).setBranchAlias(aliasprefix_+"_hcalIso"      	);
 
      // LorentzVectors
      //
-     produces<vector<LorentzVector> >  ("photonsp4"              ).setBranchAlias("photons_p4"               );
+     produces<vector<LorentzVector> >  (branchprefix+"p4"              ).setBranchAlias(aliasprefix_+"_p4"               );
 
      //get setup parameters
      photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
@@ -118,17 +122,13 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig)
 
 }
 
-PhotonMaker::~PhotonMaker()
-{
+PhotonMaker::~PhotonMaker() {
      if (clusterTools_) delete clusterTools_;
 }
 
-void  PhotonMaker::beginJob()
-{
-}
+void  PhotonMaker::beginJob() {}
 
-void PhotonMaker::endJob() {
-}
+void PhotonMaker::endJob() {}
 
 
 // ------------ method called to produce the data  ------------
@@ -252,39 +252,42 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  
      // Put the results into the event
      //
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
      iEvent.put(evt_nphotons           	    	,"evtnphotons"            		);
 
      // Supercluster parameters
      //
-     iEvent.put(photons_eSC                      ,"photonseSC"             		);
-     iEvent.put(photons_eSCRaw                   ,"photonseSCRaw"          		);
-     iEvent.put(photons_eSCPresh                 ,"photonseSCPresh"        		);
-     iEvent.put(photons_e1x5                     ,"photonse1x5"            		);
-     iEvent.put(photons_e3x3                     ,"photonse3x3"            		);
-     iEvent.put(photons_e5x5                     ,"photonse5x5"            		);
-     iEvent.put(photons_e2x5Max                  ,"photonse2x5Max"         		);
-     iEvent.put(photons_eMax                     ,"photonseMax"      	      	);
-     iEvent.put(photons_eSeed                    ,"photonseSeed" 	          	);
-     iEvent.put(photons_fiduciality		,"photonsfiduciality"			);
+     iEvent.put(photons_eSC                      ,branchprefix+"eSC"             		);
+     iEvent.put(photons_eSCRaw                   ,branchprefix+"eSCRaw"          		);
+     iEvent.put(photons_eSCPresh                 ,branchprefix+"eSCPresh"        		);
+     iEvent.put(photons_e1x5                     ,branchprefix+"e1x5"            		);
+     iEvent.put(photons_e3x3                     ,branchprefix+"e3x3"            		);
+     iEvent.put(photons_e5x5                     ,branchprefix+"e5x5"            		);
+     iEvent.put(photons_e2x5Max                  ,branchprefix+"e2x5Max"         		);
+     iEvent.put(photons_eMax                     ,branchprefix+"eMax"      	      	);
+     iEvent.put(photons_eSeed                    ,branchprefix+"eSeed" 	          	);
+     iEvent.put(photons_fiduciality		,branchprefix+"fiduciality"			);
 	
      // Photon ID
      //
-     iEvent.put(photons_sigmaPhiPhi              ,"photonssigmaPhiPhi"     		);
-     iEvent.put(photons_sigmaIPhiIPhi            ,"photonssigmaIPhiIPhi"   		);
-     iEvent.put(photons_sigmaEtaEta              ,"photonssigmaEtaEta"     		);
-     iEvent.put(photons_sigmaIEtaIEta            ,"photonssigmaIEtaIEta"   		);
-     iEvent.put(photons_hOverE                   ,"photonshOverE"          		);
+     iEvent.put(photons_sigmaPhiPhi              ,branchprefix+"sigmaPhiPhi"     		);
+     iEvent.put(photons_sigmaIPhiIPhi            ,branchprefix+"sigmaIPhiIPhi"   		);
+     iEvent.put(photons_sigmaEtaEta              ,branchprefix+"sigmaEtaEta"     		);
+     iEvent.put(photons_sigmaIEtaIEta            ,branchprefix+"sigmaIEtaIEta"   		);
+     iEvent.put(photons_hOverE                   ,branchprefix+"hOverE"          		);
 	
      // Lorentz vectors
      //
-     iEvent.put(photons_p4                       ,"photonsp4"              		);
+     iEvent.put(photons_p4                       ,branchprefix+"p4"              		);
 
      // Isolation
      //
-     iEvent.put(photons_tkIsoHollow  		,"photonstkIsoHollow"           );
-     iEvent.put(photons_tkIsoSolid  	      	,"photonstkIsoSolid"           );      
-     iEvent.put(photons_ecalIso                  ,"photonsecalIso"           	);
-     iEvent.put(photons_hcalIso            	,"photonshcalIso"           	);
+     iEvent.put(photons_tkIsoHollow  		,branchprefix+"tkIsoHollow"           );
+     iEvent.put(photons_tkIsoSolid  	      	,branchprefix+"tkIsoSolid"           );      
+     iEvent.put(photons_ecalIso                  ,branchprefix+"ecalIso"           	);
+     iEvent.put(photons_hcalIso            	,branchprefix+"hcalIso"           	);
 }
 
 //define this as a plug-in

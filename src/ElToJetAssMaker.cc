@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: ElToJetAssMaker.cc,v 1.5 2010/03/03 04:23:45 kalavase Exp $
+// $Id: ElToJetAssMaker.cc,v 1.6 2010/03/18 02:12:02 kalavase Exp $
 //
 //
 
@@ -37,18 +37,23 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig)
-     : m_minDR(iConfig.getParameter<double>("minDR"))
-{
-     produces<vector<int>   >("elsclosestJet").setBranchAlias("els_closestJet");	// electron closest to jet
-     produces<vector<float> >("elsjetdr"     ).setBranchAlias("els_jetdr"     );     
+ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  
+     produces<vector<int>   >(branchprefix+"closestJet").setBranchAlias(aliasprefix_+"_closestJet");	// electron closest to jet
+     produces<vector<float> >(branchprefix+"jetdr"     ).setBranchAlias(aliasprefix_+"_jetdr"     );     
      
      elsInputTag_  = iConfig.getParameter<edm::InputTag>("elsInputTag");
      jetsInputTag_ = iConfig.getParameter<edm::InputTag>("jetsInputTag");
+     m_minDR_       = iConfig.getParameter<double>       ("minDR");
 }
 
-void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
      using namespace edm;
      // make vectors to hold the information
      std::auto_ptr<vector<int>   > vector_els_closestJet(new vector<int>  );
@@ -70,7 +75,7 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double el_eta = els_it->Eta();
        double el_phi = els_it->Phi();
        
-       double minDR = m_minDR;
+       double minDR = m_minDR_;
        unsigned int i = 0;
        int index      = -9999; 
 
@@ -94,19 +99,18 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      // store vectors
-     iEvent.put(vector_els_closestJet, "elsclosestJet");
-     iEvent.put(vector_els_jetdr     , "elsjetdr"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_els_closestJet, branchprefix+"closestJet");
+     iEvent.put(vector_els_jetdr     , branchprefix+"jetdr"     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-ElToJetAssMaker::beginJob()
-{
-}
+void ElToJetAssMaker::beginJob() {}
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-ElToJetAssMaker::endJob() {
+void ElToJetAssMaker::endJob() {
 }
 
 //define this as a plug-in

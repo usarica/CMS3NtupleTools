@@ -14,7 +14,7 @@ Description: copy additional PAT muon variables in simple data structures into t
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.cc,v 1.13 2010/03/11 17:11:35 jribnik Exp $
+// $Id: PATMuonMaker.cc,v 1.14 2010/03/18 02:13:17 kalavase Exp $
 //
 //
 
@@ -53,22 +53,26 @@ using namespace edm;
 
 PATMuonMaker::PATMuonMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // product of this EDProducer
-  produces<vector<LorentzVector>  >   ("muspatp4"          ).setBranchAlias("mus_pat_p4"          );
-  produces<vector<float>          >   ("muspattrackIso"    ).setBranchAlias("mus_pat_trackIso"    );
-  produces<vector<float>          >   ("muspatcaloIso"     ).setBranchAlias("mus_pat_caloIso"     );
-  produces<vector<float>          >   ("muspatecalIso"     ).setBranchAlias("mus_pat_ecalIso"     );
-  produces<vector<float>          >   ("muspathcalIso"     ).setBranchAlias("mus_pat_hcalIso"     );
+  produces<vector<LorentzVector>  >   (branchprefix+"p4"          ).setBranchAlias(aliasprefix_+"_p4"          );
+  produces<vector<float>          >   (branchprefix+"trackIso"    ).setBranchAlias(aliasprefix_+"_trackIso"    );
+  produces<vector<float>          >   (branchprefix+"caloIso"     ).setBranchAlias(aliasprefix_+"_caloIso"     );
+  produces<vector<float>          >   (branchprefix+"ecalIso"     ).setBranchAlias(aliasprefix_+"_ecalIso"     );
+  produces<vector<float>          >   (branchprefix+"hcalIso"     ).setBranchAlias(aliasprefix_+"_hcalIso"     );
   //deposit in the veto cone - gotten from the IsoDeposits
-  produces<vector<float>          >   ("muspattrckvetoDep" ).setBranchAlias("mus_pat_trckvetoDep" );
-  produces<vector<float>          >   ("muspatcalovetoDep" ).setBranchAlias("mus_pat_calovetoDep" );
-  produces<vector<float>          >   ("muspatecalvetoDep" ).setBranchAlias("mus_pat_ecalvetoDep" );
-  produces<vector<float>          >   ("muspathcalvetoDep" ).setBranchAlias("mus_pat_hcalvetoDep" );
-  produces<vector<int>            >   ("muspatgenID"       ).setBranchAlias("mus_pat_genID"       );
-  produces<vector<int>            >   ("muspatgenMotherID" ).setBranchAlias("mus_pat_genMotherID" );
-  produces<vector<uint32_t>       >   ("muspatflag"        ).setBranchAlias("mus_pat_flag"        );
-  produces<vector<LorentzVector>  >   ("muspatgenP4"       ).setBranchAlias("mus_pat_genP4"       );
-  produces<vector<LorentzVector>  >   ("muspatgenMotherP4" ).setBranchAlias("mus_pat_genMotherP4" );
+  produces<vector<float>          >   (branchprefix+"trckvetoDep" ).setBranchAlias(aliasprefix_+"_trckvetoDep" );
+  produces<vector<float>          >   (branchprefix+"calovetoDep" ).setBranchAlias(aliasprefix_+"_calovetoDep" );
+  produces<vector<float>          >   (branchprefix+"ecalvetoDep" ).setBranchAlias(aliasprefix_+"_ecalvetoDep" );
+  produces<vector<float>          >   (branchprefix+"hcalvetoDep" ).setBranchAlias(aliasprefix_+"_hcalvetoDep" );
+  produces<vector<int>            >   (branchprefix+"genID"       ).setBranchAlias(aliasprefix_+"_genID"       );
+  produces<vector<int>            >   (branchprefix+"genMotherID" ).setBranchAlias(aliasprefix_+"_genMotherID" );
+  produces<vector<uint32_t>       >   (branchprefix+"flag"        ).setBranchAlias(aliasprefix_+"_flag"        );
+  produces<vector<LorentzVector>  >   (branchprefix+"genP4"       ).setBranchAlias(aliasprefix_+"_genP4"       );
+  produces<vector<LorentzVector>  >   (branchprefix+"genMotherP4" ).setBranchAlias(aliasprefix_+"_genMotherP4" );
 
   // parameters from configuration
   patMuonsInputTag_  = iConfig.getParameter<edm::InputTag>("patMuonsInputTag"  );
@@ -143,21 +147,24 @@ void PATMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
 
   // put containers into event
-  iEvent.put(mus_pat_p4,           "muspatp4"              );
-  iEvent.put(mus_pat_trackIso,     "muspattrackIso"        );
-  iEvent.put(mus_pat_caloIso,      "muspatcaloIso"         );
-  iEvent.put(mus_pat_ecalIso,      "muspatecalIso"         );
-  iEvent.put(mus_pat_hcalIso,      "muspathcalIso"         );
-  iEvent.put(mus_pat_trckvetoDep,  "muspattrckvetoDep"     );
-  iEvent.put(mus_pat_calovetoDep,  "muspatcalovetoDep"     );
-  iEvent.put(mus_pat_ecalvetoDep,  "muspatecalvetoDep"     );
-  iEvent.put(mus_pat_hcalvetoDep,  "muspathcalvetoDep"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(mus_pat_p4,           branchprefix+"p4"              );
+  iEvent.put(mus_pat_trackIso,     branchprefix+"trackIso"        );
+  iEvent.put(mus_pat_caloIso,      branchprefix+"caloIso"         );
+  iEvent.put(mus_pat_ecalIso,      branchprefix+"ecalIso"         );
+  iEvent.put(mus_pat_hcalIso,      branchprefix+"hcalIso"         );
+  iEvent.put(mus_pat_trckvetoDep,  branchprefix+"trckvetoDep"     );
+  iEvent.put(mus_pat_calovetoDep,  branchprefix+"calovetoDep"     );
+  iEvent.put(mus_pat_ecalvetoDep,  branchprefix+"ecalvetoDep"     );
+  iEvent.put(mus_pat_hcalvetoDep,  branchprefix+"hcalvetoDep"     );
   
-  iEvent.put(mus_pat_genID,        "muspatgenID"           );
-  iEvent.put(mus_pat_genMotherID,  "muspatgenMotherID"     );
-  iEvent.put(mus_pat_flag,         "muspatflag"            );
-  iEvent.put(mus_pat_genP4,        "muspatgenP4"           );
-  iEvent.put(mus_pat_genMotherP4,  "muspatgenMotherP4"     );
+  iEvent.put(mus_pat_genID,        branchprefix+"genID"           );
+  iEvent.put(mus_pat_genMotherID,  branchprefix+"genMotherID"     );
+  iEvent.put(mus_pat_flag,         branchprefix+"flag"            );
+  iEvent.put(mus_pat_genP4,        branchprefix+"genP4"           );
+  iEvent.put(mus_pat_genMotherP4,  branchprefix+"genMotherP4"     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

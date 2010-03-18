@@ -14,7 +14,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATElectronMaker.cc,v 1.8 2010/03/02 19:36:08 fgolf Exp $
+// $Id: PATElectronMaker.cc,v 1.9 2010/03/18 02:13:15 kalavase Exp $
 //
 //
 
@@ -54,27 +54,31 @@ using namespace edm;
 
 PATElectronMaker::PATElectronMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // product of this EDProducer
-  produces<vector<LorentzVector>  >   ("elspatp4").setBranchAlias("els_pat_p4");
-  produces<vector<int>            >   ("elspatgenID"               ).setBranchAlias("els_pat_genID"            );
-  produces<vector<int>            >   ("elspatgenMotherID"         ).setBranchAlias("els_pat_genMotherID"      );
-  produces<vector<uint32_t>       >   ("elspatflag"                ).setBranchAlias("els_pat_flag"             );
-  produces<vector<float>          >   ("elspattrackIso"            ).setBranchAlias("els_pat_trackIso"         );
-  produces<vector<float>          >   ("elspatcaloIso"             ).setBranchAlias("els_pat_caloIso"          );
-  produces<vector<float>          >   ("elspatecalIso"             ).setBranchAlias("els_pat_ecalIso"          );
-  produces<vector<float>          >   ("elspathcalIso"             ).setBranchAlias("els_pat_hcalIso"          );
-  produces<vector<float>          >   ("elspatrobustLooseId"       ).setBranchAlias("els_pat_robustLooseId"    );
-  produces<vector<float>          >   ("elspatrobustTightId"       ).setBranchAlias("els_pat_robustTightId"    );
-  produces<vector<float>          >   ("elspatlooseId"             ).setBranchAlias("els_pat_looseId"          );
-  produces<vector<float>          >   ("elspattightId"             ).setBranchAlias("els_pat_tightId"          );
-  produces<vector<float>          >   ("elspatrobustHighEnergy"    ).setBranchAlias("els_pat_robustHighEnergy" );
-  produces<vector<LorentzVector>  >   ("elspatgenP4"               ).setBranchAlias("els_pat_genP4"            );
-  produces<vector<LorentzVector>  >   ("elspatgenMotherP4"         ).setBranchAlias("els_pat_genMotherP4"      );
-  produces<vector<float>          >   ("elspatsigmaEtaEta"         ).setBranchAlias("els_pat_sigmaEtaEta"      );
-  produces<vector<float>          >   ("elspatsigmaIEtaIEta"       ).setBranchAlias("els_pat_sigmaIEtaIEta"    );
-  produces<vector<float>          >   ("elspatscE1x5"              ).setBranchAlias("els_pat_scE1x5"           );
-  produces<vector<float>          >   ("elspatscE2x5Max"           ).setBranchAlias("els_pat_scE2x5Max"        );
-  produces<vector<float>          >   ("elspatscE5x5"              ).setBranchAlias("els_pat_scE5x5"           );
+  produces<vector<LorentzVector>  >   (branchprefix+"p4").setBranchAlias(aliasprefix_+"_p4");
+  produces<vector<int>            >   (branchprefix+"genID"               ).setBranchAlias(aliasprefix_+"_genID"            );
+  produces<vector<int>            >   (branchprefix+"genMotherID"         ).setBranchAlias(aliasprefix_+"_genMotherID"      );
+  produces<vector<uint32_t>       >   (branchprefix+"flag"                ).setBranchAlias(aliasprefix_+"_flag"             );
+  produces<vector<float>          >   (branchprefix+"trackIso"            ).setBranchAlias(aliasprefix_+"_trackIso"         );
+  produces<vector<float>          >   (branchprefix+"caloIso"             ).setBranchAlias(aliasprefix_+"_caloIso"          );
+  produces<vector<float>          >   (branchprefix+"ecalIso"             ).setBranchAlias(aliasprefix_+"_ecalIso"          );
+  produces<vector<float>          >   (branchprefix+"hcalIso"             ).setBranchAlias(aliasprefix_+"_hcalIso"          );
+  produces<vector<float>          >   (branchprefix+"robustLooseId"       ).setBranchAlias(aliasprefix_+"_robustLooseId"    );
+  produces<vector<float>          >   (branchprefix+"robustTightId"       ).setBranchAlias(aliasprefix_+"_robustTightId"    );
+  produces<vector<float>          >   (branchprefix+"looseId"             ).setBranchAlias(aliasprefix_+"_looseId"          );
+  produces<vector<float>          >   (branchprefix+"tightId"             ).setBranchAlias(aliasprefix_+"_tightId"          );
+  produces<vector<float>          >   (branchprefix+"robustHighEnergy"    ).setBranchAlias(aliasprefix_+"_robustHighEnergy" );
+  produces<vector<LorentzVector>  >   (branchprefix+"genP4"               ).setBranchAlias(aliasprefix_+"_genP4"            );
+  produces<vector<LorentzVector>  >   (branchprefix+"genMotherP4"         ).setBranchAlias(aliasprefix_+"_genMotherP4"      );
+  produces<vector<float>          >   (branchprefix+"sigmaEtaEta"         ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"      );
+  produces<vector<float>          >   (branchprefix+"sigmaIEtaIEta"       ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"    );
+  produces<vector<float>          >   (branchprefix+"scE1x5"              ).setBranchAlias(aliasprefix_+"_scE1x5"           );
+  produces<vector<float>          >   (branchprefix+"scE2x5Max"           ).setBranchAlias(aliasprefix_+"_scE2x5Max"        );
+  produces<vector<float>          >   (branchprefix+"scE5x5"              ).setBranchAlias(aliasprefix_+"_scE5x5"           );
 
   // parameters from configuration
   patElectronsInputTag_  = iConfig.getParameter<edm::InputTag>("patElectronsInputTag");
@@ -156,27 +160,30 @@ void PATElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   }
 
   // put containers into event
-  iEvent.put(els_pat_p4,                    "elspatp4"                      );
-  iEvent.put(els_pat_genID,             "elspatgenID"                );
-  iEvent.put(els_pat_genMotherID,       "elspatgenMotherID"          );
-  iEvent.put(els_pat_flag,              "elspatflag"                 );
-  iEvent.put(els_pat_trackIso,          "elspattrackIso"             );
-  iEvent.put(els_pat_caloIso,           "elspatcaloIso"              );
-  iEvent.put(els_pat_ecalIso,           "elspatecalIso"              );
-  iEvent.put(els_pat_hcalIso,           "elspathcalIso"              );
-  iEvent.put(els_pat_robustLooseId,     "elspatrobustLooseId"        );
-  iEvent.put(els_pat_robustTightId,     "elspatrobustTightId"        );
-  iEvent.put(els_pat_looseId,           "elspatlooseId"              );
-  iEvent.put(els_pat_tightId,           "elspattightId"              );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(els_pat_robustHighEnergy,  "elspatrobustHighEnergy"     );
-  iEvent.put(els_pat_genP4,             "elspatgenP4"                );
-  iEvent.put(els_pat_genMotherP4,       "elspatgenMotherP4"          );
-  iEvent.put(els_pat_sigmaEtaEta,       "elspatsigmaEtaEta"          );
-  iEvent.put(els_pat_sigmaIEtaIEta,     "elspatsigmaIEtaIEta"        );
-  iEvent.put(els_pat_scE1x5,            "elspatscE1x5"               );
-  iEvent.put(els_pat_scE2x5Max,         "elspatscE2x5Max"            );
-  iEvent.put(els_pat_scE5x5,            "elspatscE5x5"               );
+  iEvent.put(els_pat_p4,                    branchprefix+"p4"                      );
+  iEvent.put(els_pat_genID,             branchprefix+"genID"                );
+  iEvent.put(els_pat_genMotherID,       branchprefix+"genMotherID"          );
+  iEvent.put(els_pat_flag,              branchprefix+"flag"                 );
+  iEvent.put(els_pat_trackIso,          branchprefix+"trackIso"             );
+  iEvent.put(els_pat_caloIso,           branchprefix+"caloIso"              );
+  iEvent.put(els_pat_ecalIso,           branchprefix+"ecalIso"              );
+  iEvent.put(els_pat_hcalIso,           branchprefix+"hcalIso"              );
+  iEvent.put(els_pat_robustLooseId,     branchprefix+"robustLooseId"        );
+  iEvent.put(els_pat_robustTightId,     branchprefix+"robustTightId"        );
+  iEvent.put(els_pat_looseId,           branchprefix+"looseId"              );
+  iEvent.put(els_pat_tightId,           branchprefix+"tightId"              );
+
+  iEvent.put(els_pat_robustHighEnergy,  branchprefix+"robustHighEnergy"     );
+  iEvent.put(els_pat_genP4,             branchprefix+"genP4"                );
+  iEvent.put(els_pat_genMotherP4,       branchprefix+"genMotherP4"          );
+  iEvent.put(els_pat_sigmaEtaEta,       branchprefix+"sigmaEtaEta"          );
+  iEvent.put(els_pat_sigmaIEtaIEta,     branchprefix+"sigmaIEtaIEta"        );
+  iEvent.put(els_pat_scE1x5,            branchprefix+"scE1x5"               );
+  iEvent.put(els_pat_scE2x5Max,         branchprefix+"scE2x5Max"            );
+  iEvent.put(els_pat_scE5x5,            branchprefix+"scE5x5"               );
   
 }
 

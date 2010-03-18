@@ -48,69 +48,72 @@ typedef math::XYZPoint Point;
 //
 // constructors and destructor
 //
-SCMaker::SCMaker(const edm::ParameterSet& iConfig)
-{
+SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
 	// number of superclusters in the event
 	produces<unsigned int>("evtnscs").setBranchAlias("evt_nscs");
 
 	// number of basicclusters and crystals
-	produces<std::vector<float> >("scsclustersSize").setBranchAlias("scs_clustersSize");
-	produces<std::vector<float> >("scscrystalsSize").setBranchAlias("scs_crystalsSize");
+	produces<std::vector<float> >(branchprefix+"clustersSize").setBranchAlias(aliasprefix_+"_clustersSize");
+	produces<std::vector<float> >(branchprefix+"crystalsSize").setBranchAlias(aliasprefix_+"_crystalsSize");
 
 	// energies
-	produces<std::vector<float> >("scsenergy").setBranchAlias("scs_energy");
-	produces<std::vector<float> >("scsrawEnergy").setBranchAlias("scs_rawEnergy"); 
-	produces<std::vector<float> >("scspreshowerEnergy").setBranchAlias("scs_preshowerEnergy");
+	produces<std::vector<float> >(branchprefix+"energy").setBranchAlias(aliasprefix_+"_energy");
+	produces<std::vector<float> >(branchprefix+"rawEnergy").setBranchAlias(aliasprefix_+"_rawEnergy"); 
+	produces<std::vector<float> >(branchprefix+"preshowerEnergy").setBranchAlias(aliasprefix_+"_preshowerEnergy");
 
 	// positions
-	produces<std::vector<LorentzVector> >("scsp4").setBranchAlias("scs_p4");
-	produces<std::vector<LorentzVector> >("scsvtxp4").setBranchAlias("scs_vtx_p4");
-	produces<std::vector<LorentzVector> >("scsposp4").setBranchAlias("scs_pos_p4");
-	produces<std::vector<float> >("scseta").setBranchAlias("scs_eta");
-	produces<std::vector<float> >("scsphi").setBranchAlias("scs_phi");
+	produces<std::vector<LorentzVector> >(branchprefix+"p4").setBranchAlias(aliasprefix_+"_p4");
+	produces<std::vector<LorentzVector> >(branchprefix+"vtxp4").setBranchAlias(aliasprefix_+"_vtx_p4");
+	produces<std::vector<LorentzVector> >(branchprefix+"posp4").setBranchAlias(aliasprefix_+"_pos_p4");
+	produces<std::vector<float> >(branchprefix+"eta").setBranchAlias(aliasprefix_+"_eta");
+	produces<std::vector<float> >(branchprefix+"phi").setBranchAlias(aliasprefix_+"_phi");
 
 	// longitudinal shower shape and hcal isolations
-	produces<std::vector<float> >("scshoe").setBranchAlias("scs_hoe");
-	//produces<std::vector<float> >("scshd1").setBranchAlias("scs_hd1");
-	//produces<std::vector<float> >("scshd2").setBranchAlias("scs_hd2");
+	produces<std::vector<float> >(branchprefix+"hoe").setBranchAlias(aliasprefix_+"_hoe");
+	//produces<std::vector<float> >(branchprefix+"hd1").setBranchAlias(aliasprefix_+"_hd1");
+	//produces<std::vector<float> >(branchprefix+"hd2").setBranchAlias(aliasprefix_+"_hd2");
 
 	// shape variables for seed basiccluster
 	// see
 	// RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h
 	// revision=1.7
 
-	produces<std::vector<int> >("scsdetIdSeed").setBranchAlias("scs_detIdSeed");
-	produces<std::vector<int> >("scsseveritySeed").setBranchAlias("scs_severitySeed");
-	produces<std::vector<float> >("scstimeSeed").setBranchAlias("scs_timeSeed");
-	produces<std::vector<float> >("scseSeed").setBranchAlias("scs_eSeed");
-	produces<std::vector<float> >("scseMax").setBranchAlias("scs_eMax");
-	produces<std::vector<float> >("scse2nd").setBranchAlias("scs_e2nd");
+	produces<std::vector<int> >(branchprefix+"detIdSeed").setBranchAlias(aliasprefix_+"_detIdSeed");
+	produces<std::vector<int> >(branchprefix+"severitySeed").setBranchAlias(aliasprefix_+"_severitySeed");
+	produces<std::vector<float> >(branchprefix+"timeSeed").setBranchAlias(aliasprefix_+"_timeSeed");
+	produces<std::vector<float> >(branchprefix+"eSeed").setBranchAlias(aliasprefix_+"_eSeed");
+	produces<std::vector<float> >(branchprefix+"eMax").setBranchAlias(aliasprefix_+"_eMax");
+	produces<std::vector<float> >(branchprefix+"e2nd").setBranchAlias(aliasprefix_+"_e2nd");
 
-	produces<std::vector<float> >("scse1x3").setBranchAlias("scs_e1x3");
-	produces<std::vector<float> >("scse3x1").setBranchAlias("scs_e3x1"); 
-	produces<std::vector<float> >("scse1x5").setBranchAlias("scs_e1x5");
-	produces<std::vector<float> >("scse2x2").setBranchAlias("scs_e2x2"); 
-	produces<std::vector<float> >("scse3x2").setBranchAlias("scs_e3x2"); 
-	produces<std::vector<float> >("scse3x3").setBranchAlias("scs_e3x3"); 
-	produces<std::vector<float> >("scse4x4").setBranchAlias("scs_e4x4"); 
-	produces<std::vector<float> >("scse5x5").setBranchAlias("scs_e5x5"); 
-	produces<std::vector<float> >("scse2x5Max").setBranchAlias("scs_e2x5Max");
+	produces<std::vector<float> >(branchprefix+"e1x3").setBranchAlias(aliasprefix_+"_e1x3");
+	produces<std::vector<float> >(branchprefix+"e3x1").setBranchAlias(aliasprefix_+"_e3x1"); 
+	produces<std::vector<float> >(branchprefix+"e1x5").setBranchAlias(aliasprefix_+"_e1x5");
+	produces<std::vector<float> >(branchprefix+"e2x2").setBranchAlias(aliasprefix_+"_e2x2"); 
+	produces<std::vector<float> >(branchprefix+"e3x2").setBranchAlias(aliasprefix_+"_e3x2"); 
+	produces<std::vector<float> >(branchprefix+"e3x3").setBranchAlias(aliasprefix_+"_e3x3"); 
+	produces<std::vector<float> >(branchprefix+"e4x4").setBranchAlias(aliasprefix_+"_e4x4"); 
+	produces<std::vector<float> >(branchprefix+"e5x5").setBranchAlias(aliasprefix_+"_e5x5"); 
+	produces<std::vector<float> >(branchprefix+"e2x5Max").setBranchAlias(aliasprefix_+"_e2x5Max");
 	// covariances
-	produces<std::vector<float> >("scssigmaEtaEta").setBranchAlias("scs_sigmaEtaEta");
-	produces<std::vector<float> >("scssigmaEtaPhi").setBranchAlias("scs_sigmaEtaPhi");
-	produces<std::vector<float> >("scssigmaPhiPhi").setBranchAlias("scs_sigmaPhiPhi");
-	produces<std::vector<float> >("scssigmaIEtaIEta").setBranchAlias("scs_sigmaIEtaIEta");
-	produces<std::vector<float> >("scssigmaIEtaIPhi").setBranchAlias("scs_sigmaIEtaIPhi");
-	produces<std::vector<float> >("scssigmaIPhiIPhi").setBranchAlias("scs_sigmaIPhiIPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaEtaEta").setBranchAlias(aliasprefix_+"_sigmaEtaEta");
+	produces<std::vector<float> >(branchprefix+"sigmaEtaPhi").setBranchAlias(aliasprefix_+"_sigmaEtaPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaPhiPhi").setBranchAlias(aliasprefix_+"_sigmaPhiPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaIEtaIEta").setBranchAlias(aliasprefix_+"_sigmaIEtaIEta");
+	produces<std::vector<float> >(branchprefix+"sigmaIEtaIPhi").setBranchAlias(aliasprefix_+"_sigmaIEtaIPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaIPhiIPhi").setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi");
 
 	// match to electrons
-	produces<std::vector<int> >("scselsidx").setBranchAlias("scs_elsidx");
+	produces<std::vector<int> >(branchprefix+"elsidx").setBranchAlias(aliasprefix_+"_elsidx");
 
 	debug_ = iConfig.getParameter<bool>("debug");
 	if (debug_) {
-		produces<std::vector<float>         >("scsmcdr"            ).setBranchAlias("scs_mc_dr"           );
-		produces<std::vector<float>         >("scsmcenergy"           ).setBranchAlias("scs_mc_energy"          );
+		produces<std::vector<float>         >(branchprefix+"mcdr"            ).setBranchAlias(aliasprefix_+"_mc_dr"           );
+		produces<std::vector<float>         >(branchprefix+"mcenergy"           ).setBranchAlias(aliasprefix_+"_mc_energy"          );
 	}
 
 	// add superclusters to the ntuple if they have ET > scEtMin_
@@ -381,47 +384,50 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	*evt_nscs = vector_scs_p4->size();
 
 	// put results into the event
-	iEvent.put(evt_nscs, "evtnscs");
-	iEvent.put(vector_scs_energy, "scsenergy");
-	iEvent.put(vector_scs_rawEnergy, "scsrawEnergy");
-	iEvent.put(vector_scs_preshowerEnergy, "scspreshowerEnergy");
-	iEvent.put(vector_scs_p4, "scsp4");
-	iEvent.put(vector_scs_vtx_p4, "scsvtxp4");
-	iEvent.put(vector_scs_pos_p4, "scsposp4");
-	iEvent.put(vector_scs_eta, "scseta");
-	iEvent.put(vector_scs_phi, "scsphi");
-	iEvent.put(vector_scs_hoe, "scshoe");
-	//iEvent.put(vector_scs_hd1, "scshd1");
-	//iEvent.put(vector_scs_hd2, "scshd2");
-	iEvent.put(vector_scs_eSeed, "scseSeed");
-	iEvent.put(vector_scs_detIdSeed, "scsdetIdSeed");
-	iEvent.put(vector_scs_severitySeed, "scsseveritySeed");
-	iEvent.put(vector_scs_timeSeed, "scstimeSeed");
-	iEvent.put(vector_scs_e2nd, "scse2nd");
-	iEvent.put(vector_scs_eMax, "scseMax");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-	iEvent.put(vector_scs_e1x3, "scse1x3");
-	iEvent.put(vector_scs_e3x1, "scse3x1");
-	iEvent.put(vector_scs_e1x5, "scse1x5");
-	iEvent.put(vector_scs_e2x2, "scse2x2");
-	iEvent.put(vector_scs_e3x2, "scse3x2");
-	iEvent.put(vector_scs_e3x3, "scse3x3");
-	iEvent.put(vector_scs_e4x4, "scse4x4");
-	iEvent.put(vector_scs_e5x5, "scse5x5");
-	iEvent.put(vector_scs_e2x5Max, "scse2x5Max");
-	iEvent.put(vector_scs_sigmaEtaEta, "scssigmaEtaEta");
-	iEvent.put(vector_scs_sigmaEtaPhi, "scssigmaEtaPhi");
-	iEvent.put(vector_scs_sigmaPhiPhi, "scssigmaPhiPhi");
-	iEvent.put(vector_scs_sigmaIEtaIEta, "scssigmaIEtaIEta");
-	iEvent.put(vector_scs_sigmaIEtaIPhi, "scssigmaIEtaIPhi");
-	iEvent.put(vector_scs_sigmaIPhiIPhi, "scssigmaIPhiIPhi");
-	iEvent.put(vector_scs_clustersSize, "scsclustersSize");
-	iEvent.put(vector_scs_crystalsSize, "scscrystalsSize");
-	iEvent.put(vector_scs_elsidx, "scselsidx");
+	iEvent.put(evt_nscs, "evtnscs");
+	iEvent.put(vector_scs_energy, branchprefix+"energy");
+	iEvent.put(vector_scs_rawEnergy, branchprefix+"rawEnergy");
+	iEvent.put(vector_scs_preshowerEnergy, branchprefix+"preshowerEnergy");
+	iEvent.put(vector_scs_p4, branchprefix+"p4");
+	iEvent.put(vector_scs_vtx_p4, branchprefix+"vtxp4");
+	iEvent.put(vector_scs_pos_p4, branchprefix+"posp4");
+	iEvent.put(vector_scs_eta, branchprefix+"eta");
+	iEvent.put(vector_scs_phi, branchprefix+"phi");
+	iEvent.put(vector_scs_hoe, branchprefix+"hoe");
+	//iEvent.put(vector_scs_hd1, branchprefix+"hd1");
+	//iEvent.put(vector_scs_hd2, branchprefix+"hd2");
+	iEvent.put(vector_scs_eSeed, branchprefix+"eSeed");
+	iEvent.put(vector_scs_detIdSeed, branchprefix+"detIdSeed");
+	iEvent.put(vector_scs_severitySeed, branchprefix+"severitySeed");
+	iEvent.put(vector_scs_timeSeed, branchprefix+"timeSeed");
+	iEvent.put(vector_scs_e2nd, branchprefix+"e2nd");
+	iEvent.put(vector_scs_eMax, branchprefix+"eMax");
+
+	iEvent.put(vector_scs_e1x3, branchprefix+"e1x3");
+	iEvent.put(vector_scs_e3x1, branchprefix+"e3x1");
+	iEvent.put(vector_scs_e1x5, branchprefix+"e1x5");
+	iEvent.put(vector_scs_e2x2, branchprefix+"e2x2");
+	iEvent.put(vector_scs_e3x2, branchprefix+"e3x2");
+	iEvent.put(vector_scs_e3x3, branchprefix+"e3x3");
+	iEvent.put(vector_scs_e4x4, branchprefix+"e4x4");
+	iEvent.put(vector_scs_e5x5, branchprefix+"e5x5");
+	iEvent.put(vector_scs_e2x5Max, branchprefix+"e2x5Max");
+	iEvent.put(vector_scs_sigmaEtaEta, branchprefix+"sigmaEtaEta");
+	iEvent.put(vector_scs_sigmaEtaPhi, branchprefix+"sigmaEtaPhi");
+	iEvent.put(vector_scs_sigmaPhiPhi, branchprefix+"sigmaPhiPhi");
+	iEvent.put(vector_scs_sigmaIEtaIEta, branchprefix+"sigmaIEtaIEta");
+	iEvent.put(vector_scs_sigmaIEtaIPhi, branchprefix+"sigmaIEtaIPhi");
+	iEvent.put(vector_scs_sigmaIPhiIPhi, branchprefix+"sigmaIPhiIPhi");
+	iEvent.put(vector_scs_clustersSize, branchprefix+"clustersSize");
+	iEvent.put(vector_scs_crystalsSize, branchprefix+"crystalsSize");
+	iEvent.put(vector_scs_elsidx, branchprefix+"elsidx");
 
 	if (debug_) {
-		iEvent.put(vector_scs_mc_dr           ,"scsmcdr"          );
-		iEvent.put(vector_scs_mc_energy          ,"scsmcenergy"         );
+		iEvent.put(vector_scs_mc_dr           ,branchprefix+"mcdr"          );
+		iEvent.put(vector_scs_mc_energy          ,branchprefix+"mcenergy"         );
 	}
 
 	delete mhbhe;

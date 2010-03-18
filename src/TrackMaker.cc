@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.28 2010/03/10 00:57:50 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.29 2010/03/18 02:13:34 kalavase Exp $
 //
 //
 
@@ -74,9 +74,10 @@ using reco::TrackBase;
 //
 // constructors and destructor
 //
-TrackMaker::TrackMaker(const edm::ParameterSet& iConfig)
-{
+TrackMaker::TrackMaker(const edm::ParameterSet& iConfig) {
        
+  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+
   produces<vector<LorentzVector> >	("trkstrkp4"	  ).setBranchAlias("trks_trk_p4"     );	// track p4						
   produces<vector<LorentzVector> >	("trksvertexp4"	  ).setBranchAlias("trks_vertex_p4"  );	// track p4
   produces<vector<LorentzVector> >      ("trksouterp4"    ).setBranchAlias("trks_outer_p4"   );    // p4 at the outermost point of the tracker

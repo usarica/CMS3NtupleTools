@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackToElAssMaker.cc,v 1.10 2010/03/03 04:24:04 kalavase Exp $
+// $Id: TrackToElAssMaker.cc,v 1.11 2010/03/18 02:13:37 kalavase Exp $
 //
 //
 
@@ -45,11 +45,14 @@ using namespace edm;
 
 
 
-TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig)
-{
+TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   // index in electron collection of track matched to electron
-  produces<vector<int>   >("trkselsidx"     ).setBranchAlias("trks_elsidx"    );	
+  produces<vector<int>   >(branchprefix+"elsidx"     ).setBranchAlias(aliasprefix_+"_elsidx"    );	
   
   electronsInputTag_ = iConfig.getParameter<InputTag>("electronsInputTag");
   tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
@@ -88,7 +91,10 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   }
   
   // store vectors
-  iEvent.put(trks_elsidx,        "trkselsidx"    );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(trks_elsidx,        branchprefix+"elsidx"    );
   
 }
 

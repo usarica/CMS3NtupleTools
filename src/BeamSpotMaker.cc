@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamSpotMaker.cc,v 1.9 2010/03/02 19:36:07 fgolf Exp $
+// $Id: BeamSpotMaker.cc,v 1.10 2010/03/18 02:11:48 kalavase Exp $
 //
 //
 
@@ -44,24 +44,28 @@ using namespace std;
 
 BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
   //the 4th co-ordinate is 0
-  produces<LorentzVector>   ("evtbsp4"         ).setBranchAlias("evt_bsp4"            );
-  produces<int>             ("evtbsType"       ).setBranchAlias("evt_bsType"          );
-  produces<float>           ("evtbsxErr"       ).setBranchAlias("evt_bs_xErr"         );
-  produces<float>           ("evtbsyErr"       ).setBranchAlias("evt_bs_yErr"         );
-  produces<float>           ("evtbszErr"       ).setBranchAlias("evt_bs_zErr"         );
-  produces<float>           ("evtbssigmaZ"     ).setBranchAlias("evt_bs_sigmaZ"       );
-  produces<float>           ("evtbssigmaZErr"  ).setBranchAlias("evt_bs_sigmaZErr"    );
-  produces<float>           ("evtbsdxdz"       ).setBranchAlias("evt_bs_dxdz"         );
-  produces<float>           ("evtbsdxdzErr"    ).setBranchAlias("evt_bs_dxdzErr"      );
-  produces<float>           ("evtbsdydz"       ).setBranchAlias("evt_bs_dydz"         );
-  produces<float>           ("evtbsdydzErr"    ).setBranchAlias("evt_bs_dydzErr"      );
-  produces<float>           ("evtbsXwidth"     ).setBranchAlias("evt_bs_Xwidth"       );
-  produces<float>           ("evtbsYwidth"     ).setBranchAlias("evt_bs_Ywidth"       );
-  produces<float>           ("evtbsXwidthErr"  ).setBranchAlias("evt_bs_XwidthErr"    );
-  produces<float>           ("evtbsYwidthErr"  ).setBranchAlias("evt_bs_YwidthErr"    );
-  produces<vector <float> > ("evtcovMatrix"    ).setBranchAlias("evt_covMatrix"       ); 
+  produces<LorentzVector>   (branchprefix+"p4"         ).setBranchAlias(aliasprefix_+"p4"            );
+  produces<int>             (branchprefix+"Type"       ).setBranchAlias(aliasprefix_+"Type"          );
+  produces<float>           (branchprefix+"xErr"       ).setBranchAlias(aliasprefix_+"_xErr"         );
+  produces<float>           (branchprefix+"yErr"       ).setBranchAlias(aliasprefix_+"_yErr"         );
+  produces<float>           (branchprefix+"zErr"       ).setBranchAlias(aliasprefix_+"_zErr"         );
+  produces<float>           (branchprefix+"sigmaZ"     ).setBranchAlias(aliasprefix_+"_sigmaZ"       );
+  produces<float>           (branchprefix+"sigmaZErr"  ).setBranchAlias(aliasprefix_+"_sigmaZErr"    );
+  produces<float>           (branchprefix+"dxdz"       ).setBranchAlias(aliasprefix_+"_dxdz"         );
+  produces<float>           (branchprefix+"dxdzErr"    ).setBranchAlias(aliasprefix_+"_dxdzErr"      );
+  produces<float>           (branchprefix+"dydz"       ).setBranchAlias(aliasprefix_+"_dydz"         );
+  produces<float>           (branchprefix+"dydzErr"    ).setBranchAlias(aliasprefix_+"_dydzErr"      );
+  produces<float>           (branchprefix+"Xwidth"     ).setBranchAlias(aliasprefix_+"_Xwidth"       );
+  produces<float>           (branchprefix+"Ywidth"     ).setBranchAlias(aliasprefix_+"_Ywidth"       );
+  produces<float>           (branchprefix+"XwidthErr"  ).setBranchAlias(aliasprefix_+"_XwidthErr"    );
+  produces<float>           (branchprefix+"YwidthErr"  ).setBranchAlias(aliasprefix_+"_YwidthErr"    );
+  produces<vector <float> > (branchprefix+"covMatrix"  ).setBranchAlias(aliasprefix_+"_covMatrix"    ); 
   
   beamSpotInputTag = iConfig.getParameter<InputTag>("beamSpotInputTag");
   
@@ -133,24 +137,27 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }  
 
 
-  iEvent.put(evt_bs_p4           , "evtbsp4"        );
-  iEvent.put(evt_bsType          , "evtbsType"      );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(evt_bs_p4           , branchprefix+"p4"        );
+  iEvent.put(evt_bsType          , branchprefix+"Type"      );
 
   if(haveBeamSpot) {
-    iEvent.put(evt_bs_xErr       , "evtbsxErr"      );
-    iEvent.put(evt_bs_yErr       , "evtbsyErr"      );
-    iEvent.put(evt_bs_zErr       , "evtbszErr"      );
-    iEvent.put(evt_bs_sigmaZ     , "evtbssigmaZ"    );
-    iEvent.put(evt_bs_sigmaZErr  , "evtbssigmaZErr" );
-    iEvent.put(evt_bs_dxdz       , "evtbsdxdz"      );
-    iEvent.put(evt_bs_dxdzErr    , "evtbsdxdzErr"   );
-    iEvent.put(evt_bs_dydz       , "evtbsdydz"      );
-    iEvent.put(evt_bs_dydzErr    , "evtbsdydzErr"   );
-    iEvent.put(evt_bs_Xwidth     , "evtbsXwidth"    );
-    iEvent.put(evt_bs_Ywidth     , "evtbsYwidth"    );
-    iEvent.put(evt_bs_XwidthErr  , "evtbsXwidthErr" );
-    iEvent.put(evt_bs_YwidthErr  , "evtbsYwidthErr" );
-    iEvent.put(evt_bs_covMatrix  , "evtcovMatrix"   );
+    iEvent.put(evt_bs_xErr       , branchprefix+"xErr"      );
+    iEvent.put(evt_bs_yErr       , branchprefix+"yErr"      );
+    iEvent.put(evt_bs_zErr       , branchprefix+"zErr"      );
+    iEvent.put(evt_bs_sigmaZ     , branchprefix+"sigmaZ"    );
+    iEvent.put(evt_bs_sigmaZErr  , branchprefix+"sigmaZErr" );
+    iEvent.put(evt_bs_dxdz       , branchprefix+"dxdz"      );
+    iEvent.put(evt_bs_dxdzErr    , branchprefix+"dxdzErr"   );
+    iEvent.put(evt_bs_dydz       , branchprefix+"dydz"      );
+    iEvent.put(evt_bs_dydzErr    , branchprefix+"dydzErr"   );
+    iEvent.put(evt_bs_Xwidth     , branchprefix+"Xwidth"    );
+    iEvent.put(evt_bs_Ywidth     , branchprefix+"Ywidth"    );
+    iEvent.put(evt_bs_XwidthErr  , branchprefix+"XwidthErr" );
+    iEvent.put(evt_bs_YwidthErr  , branchprefix+"YwidthErr" );
+    iEvent.put(evt_bs_covMatrix  , branchprefix+"covMatrix" );
   }
   
 }

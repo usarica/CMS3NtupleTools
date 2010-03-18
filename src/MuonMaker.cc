@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.38 2010/03/11 13:05:45 jribnik Exp $
+// $Id: MuonMaker.cc,v 1.39 2010/03/18 02:13:12 kalavase Exp $
 //
 //
 
@@ -51,122 +51,126 @@ typedef math::XYZPoint Point;
 using namespace std;
 using namespace reco;
 
-MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
-{
+MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // mu track quantities
-  produces<vector<int> >	     ("mustype"		      ).setBranchAlias("mus_type"               );	// type
-  produces<vector<int> >	     ("musgoodmask"	      ).setBranchAlias("mus_goodmask"           ); // good mask
-  produces<vector<LorentzVector> >   ("musp4"		      ).setBranchAlias("mus_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)						
-  produces<vector<LorentzVector> >   ("mustrkp4"	      ).setBranchAlias("mus_trk_p4"             ); // track p4						
-  produces<vector<LorentzVector> >   ("musgfitp4"             ).setBranchAlias("mus_gfit_p4"            ); // global fit p4, if global fit exists
-  produces<vector<LorentzVector> >   ("musstap4"              ).setBranchAlias("mus_sta_p4"             ); // global fit p4, if global fit exists
-  produces<vector<int>   >           ("mustrkidx"             ).setBranchAlias("mus_trkidx"             );	// track index matched to muon
-  produces<vector<float> >	     ("musd0"		      ).setBranchAlias("mus_d0"                 ); // impact parameter at the point of closest approach	using the tracker fit
-  produces<vector<float> >	     ("musz0"		      ).setBranchAlias("mus_z0"                 ); // z position of the point of closest approach. From the si track		
-  produces<vector<float> >	     ("musd0corr"	      ).setBranchAlias("mus_d0corr"             ); // corrected impact parameter at the point of closest approach. From si track	
-  produces<vector<float> >	     ("musz0corr"	      ).setBranchAlias("mus_z0corr"             ); // corrected z position of the point of closest approach. From si track		
-  produces<vector<float> >	     ("musvertexphi"	      ).setBranchAlias("mus_vertexphi"          ); // phi angle of the point of closest approach. From si track		
-  produces<vector<float> >	     ("muschi2"		      ).setBranchAlias("mus_chi2"               ); // chi2 of the silicon tracker fit			
-  produces<vector<float> >	     ("musndof"		      ).setBranchAlias("mus_ndof"               ); // number of degrees of freedom of the si tracker fit		
-  produces<vector<int> >	     ("musvalidHits"	      ).setBranchAlias("mus_validHits"          ); // number of used hits in the sitracker fit			
-  produces<vector<int> >	     ("muslostHits"	      ).setBranchAlias("mus_lostHits"           ); // number of lost hits in the sitracker fit			
-  produces<vector<int> >             ("musgfitvalidSTAHits"   ).setBranchAlias("mus_gfit_validSTAHits"  ); // number of hits in the stand alone fit that made it into the gfit
-  produces<vector<int> >             ("musgfitvalidSiHits"    ).setBranchAlias("mus_gfit_validSiHits"   ); // number of hits in the Si fit that made it into the gfit
-  produces<vector<float> >	     ("musd0Err"	      ).setBranchAlias("mus_d0Err"              ); // error on the impact parameter, si track fit			
-  produces<vector<float> >	     ("musz0Err"	      ).setBranchAlias("mus_z0Err"              ); // error on z position of the point of closest approach, si track fit	
-  produces<vector<float> >	     ("musptErr"	      ).setBranchAlias("mus_ptErr"              ); // si track Pt error					
-  produces<vector<float> >	     ("musetaErr"	      ).setBranchAlias("mus_etaErr"             ); // si track eta error					
-  produces<vector<float> >	     ("musphiErr"	      ).setBranchAlias("mus_phiErr"             ); // si track phi error					
-  produces<vector<int> >	     ("muscharge"	      ).setBranchAlias("mus_charge"             ); // charge from muon object 						
-  produces<vector<int> >	     ("mustrkcharge"	      ).setBranchAlias("mus_trk_charge"         ); // si track charge
-  produces<vector<float> >           ("musqoverp"             ).setBranchAlias("mus_qoverp"             ); // si track qoverp
-  produces<vector<float> >           ("musqoverpError"        ).setBranchAlias("mus_qoverpError"        ); // si track qoverp error
+  produces<vector<int> >	     (branchprefix+"type"		      ).setBranchAlias(aliasprefix_+"_type"               );	// type
+  produces<vector<int> >	     (branchprefix+"goodmask"	      ).setBranchAlias(aliasprefix_+"_goodmask"           ); // good mask
+  produces<vector<LorentzVector> >   (branchprefix+"p4"		      ).setBranchAlias(aliasprefix_+"_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)						
+  produces<vector<LorentzVector> >   (branchprefix+"trkp4"	      ).setBranchAlias(aliasprefix_+"_trk_p4"             ); // track p4						
+  produces<vector<LorentzVector> >   (branchprefix+"gfitp4"             ).setBranchAlias(aliasprefix_+"_gfit_p4"            ); // global fit p4, if global fit exists
+  produces<vector<LorentzVector> >   (branchprefix+"stap4"              ).setBranchAlias(aliasprefix_+"_sta_p4"             ); // global fit p4, if global fit exists
+  produces<vector<int>   >           (branchprefix+"trkidx"             ).setBranchAlias(aliasprefix_+"_trkidx"             );	// track index matched to muon
+  produces<vector<float> >	     (branchprefix+"d0"		      ).setBranchAlias(aliasprefix_+"_d0"                 ); // impact parameter at the point of closest approach	using the tracker fit
+  produces<vector<float> >	     (branchprefix+"z0"		      ).setBranchAlias(aliasprefix_+"_z0"                 ); // z position of the point of closest approach. From the si track		
+  produces<vector<float> >	     (branchprefix+"d0corr"	      ).setBranchAlias(aliasprefix_+"_d0corr"             ); // corrected impact parameter at the point of closest approach. From si track	
+  produces<vector<float> >	     (branchprefix+"z0corr"	      ).setBranchAlias(aliasprefix_+"_z0corr"             ); // corrected z position of the point of closest approach. From si track		
+  produces<vector<float> >	     (branchprefix+"vertexphi"	      ).setBranchAlias(aliasprefix_+"_vertexphi"          ); // phi angle of the point of closest approach. From si track		
+  produces<vector<float> >	     (branchprefix+"chi2"		      ).setBranchAlias(aliasprefix_+"_chi2"               ); // chi2 of the silicon tracker fit			
+  produces<vector<float> >	     (branchprefix+"ndof"		      ).setBranchAlias(aliasprefix_+"_ndof"               ); // number of degrees of freedom of the si tracker fit		
+  produces<vector<int> >	     (branchprefix+"validHits"	      ).setBranchAlias(aliasprefix_+"_validHits"          ); // number of used hits in the sitracker fit			
+  produces<vector<int> >	     (branchprefix+"lostHits"	      ).setBranchAlias(aliasprefix_+"_lostHits"           ); // number of lost hits in the sitracker fit			
+  produces<vector<int> >             (branchprefix+"gfitvalidSTAHits"   ).setBranchAlias(aliasprefix_+"_gfit_validSTAHits"  ); // number of hits in the stand alone fit that made it into the gfit
+  produces<vector<int> >             (branchprefix+"gfitvalidSiHits"    ).setBranchAlias(aliasprefix_+"_gfit_validSiHits"   ); // number of hits in the Si fit that made it into the gfit
+  produces<vector<float> >	     (branchprefix+"d0Err"	      ).setBranchAlias(aliasprefix_+"_d0Err"              ); // error on the impact parameter, si track fit			
+  produces<vector<float> >	     (branchprefix+"z0Err"	      ).setBranchAlias(aliasprefix_+"_z0Err"              ); // error on z position of the point of closest approach, si track fit	
+  produces<vector<float> >	     (branchprefix+"ptErr"	      ).setBranchAlias(aliasprefix_+"_ptErr"              ); // si track Pt error					
+  produces<vector<float> >	     (branchprefix+"etaErr"	      ).setBranchAlias(aliasprefix_+"_etaErr"             ); // si track eta error					
+  produces<vector<float> >	     (branchprefix+"phiErr"	      ).setBranchAlias(aliasprefix_+"_phiErr"             ); // si track phi error					
+  produces<vector<int> >	     (branchprefix+"charge"	      ).setBranchAlias(aliasprefix_+"_charge"             ); // charge from muon object 						
+  produces<vector<int> >	     (branchprefix+"trkcharge"	      ).setBranchAlias(aliasprefix_+"_trk_charge"         ); // si track charge
+  produces<vector<float> >           (branchprefix+"qoverp"             ).setBranchAlias(aliasprefix_+"_qoverp"             ); // si track qoverp
+  produces<vector<float> >           (branchprefix+"qoverpError"        ).setBranchAlias(aliasprefix_+"_qoverpError"        ); // si track qoverp error
     // muon quantities
-  produces<vector<int> >             ("musnmatches"	      ).setBranchAlias("mus_nmatches"           ); // number of stations with matched segments 
-  produces<vector<float> >	     ("museem"		      ).setBranchAlias("mus_e_em"               ); // energy in crossed ECAL crystalls 
-  produces<vector<float> >	     ("musehad"		      ).setBranchAlias("mus_e_had"              ); // energy in crossed HCAL towers 
-  produces<vector<float> >	     ("museho"		      ).setBranchAlias("mus_e_ho"               ); // energy in crossed HO towers 
-  produces<vector<float> >	     ("museemS9"	      ).setBranchAlias("mus_e_emS9"             ); // energy in 3x3 ECAL crystall shape 
-  produces<vector<float> >	     ("musehadS9"	      ).setBranchAlias("mus_e_hadS9"            ); //energy in 3x3 HCAL towers 
-  produces<vector<float> >	     ("musehoS9"	      ).setBranchAlias("mus_e_hoS9"             ); // energy in 3x3 HO towers 
-  produces<vector<float> >           ("musisotrckvetoDep"     ).setBranchAlias("mus_iso_trckvetoDep"    );//sumPt in the veto cone, tracker
-  produces<vector<float> >           ("musisoecalvetoDep"     ).setBranchAlias("mus_iso_ecalvetoDep"    );//sumEt in the veto cone, ecal
-  produces<vector<float> >           ("musisohcalvetoDep"     ).setBranchAlias("mus_iso_hcalvetoDep"    );//sumPt in the veto cone, hcal
-  produces<vector<float> >           ("musisohovetoDep"       ).setBranchAlias("mus_iso_hovetoDep"      );//sumPt in the veto cone, ho
-  produces<vector<float> >	     ("musiso03sumPt"	      ).setBranchAlias("mus_iso03_sumPt"        ); // sum of track Pt for cone of 0.3 
-  produces<vector<float> >	     ("musiso03emEt"	      ).setBranchAlias("mus_iso03_emEt"         ); // sum of ecal Et for cone of 0.3 
-  produces<vector<float> >	     ("musiso03hadEt"	      ).setBranchAlias("mus_iso03_hadEt"        ); // sum of hcal Et for cone of 0.3 
-  produces<vector<float> >	     ("musiso03hoEt"	      ).setBranchAlias("mus_iso03_hoEt"         ); // sum of ho Et for cone of 0.3 
-  produces<vector<int> >	     ("musiso03ntrk"	      ).setBranchAlias("mus_iso03_ntrk"         ); // number of tracks in the cone of 0.3 
-  produces<vector<float> >	     ("musiso05sumPt"	      ).setBranchAlias("mus_iso05_sumPt"        ); // sum of track Pt for cone of 0.5 
-  produces<vector<float> >	     ("musiso05emEt"          ).setBranchAlias("mus_iso05_emEt"         ); // sum of ecal Et for cone of 0.5 
-  produces<vector<float> >	     ("musiso05hadEt"	      ).setBranchAlias("mus_iso05_hadEt"        ); // sum of hcal Et for cone of 0.5 
-  produces<vector<float> >	     ("musiso05hoEt"	      ).setBranchAlias("mus_iso05_hoEt"         ); // sum of ho Et for cone of 0.5 
-  produces<vector<int> >	     ("musiso05ntrk"	      ).setBranchAlias("mus_iso05_ntrk"         ); // number of tracks in the cone of 0.5 
+  produces<vector<int> >             (branchprefix+"nmatches"	      ).setBranchAlias(aliasprefix_+"_nmatches"           ); // number of stations with matched segments 
+  produces<vector<float> >	     (branchprefix+"eem"		      ).setBranchAlias(aliasprefix_+"_e_em"               ); // energy in crossed ECAL crystalls 
+  produces<vector<float> >	     (branchprefix+"ehad"		      ).setBranchAlias(aliasprefix_+"_e_had"              ); // energy in crossed HCAL towers 
+  produces<vector<float> >	     (branchprefix+"eho"		      ).setBranchAlias(aliasprefix_+"_e_ho"               ); // energy in crossed HO towers 
+  produces<vector<float> >	     (branchprefix+"eemS9"	      ).setBranchAlias(aliasprefix_+"_e_emS9"             ); // energy in 3x3 ECAL crystall shape 
+  produces<vector<float> >	     (branchprefix+"ehadS9"	      ).setBranchAlias(aliasprefix_+"_e_hadS9"            ); //energy in 3x3 HCAL towers 
+  produces<vector<float> >	     (branchprefix+"ehoS9"	      ).setBranchAlias(aliasprefix_+"_e_hoS9"             ); // energy in 3x3 HO towers 
+  produces<vector<float> >           (branchprefix+"isotrckvetoDep"     ).setBranchAlias(aliasprefix_+"_iso_trckvetoDep"    );//sumPt in the veto cone, tracker
+  produces<vector<float> >           (branchprefix+"isoecalvetoDep"     ).setBranchAlias(aliasprefix_+"_iso_ecalvetoDep"    );//sumEt in the veto cone, ecal
+  produces<vector<float> >           (branchprefix+"isohcalvetoDep"     ).setBranchAlias(aliasprefix_+"_iso_hcalvetoDep"    );//sumPt in the veto cone, hcal
+  produces<vector<float> >           (branchprefix+"isohovetoDep"       ).setBranchAlias(aliasprefix_+"_iso_hovetoDep"      );//sumPt in the veto cone, ho
+  produces<vector<float> >	     (branchprefix+"iso03sumPt"	      ).setBranchAlias(aliasprefix_+"_iso03_sumPt"        ); // sum of track Pt for cone of 0.3 
+  produces<vector<float> >	     (branchprefix+"iso03emEt"	      ).setBranchAlias(aliasprefix_+"_iso03_emEt"         ); // sum of ecal Et for cone of 0.3 
+  produces<vector<float> >	     (branchprefix+"iso03hadEt"	      ).setBranchAlias(aliasprefix_+"_iso03_hadEt"        ); // sum of hcal Et for cone of 0.3 
+  produces<vector<float> >	     (branchprefix+"iso03hoEt"	      ).setBranchAlias(aliasprefix_+"_iso03_hoEt"         ); // sum of ho Et for cone of 0.3 
+  produces<vector<int> >	     (branchprefix+"iso03ntrk"	      ).setBranchAlias(aliasprefix_+"_iso03_ntrk"         ); // number of tracks in the cone of 0.3 
+  produces<vector<float> >	     (branchprefix+"iso05sumPt"	      ).setBranchAlias(aliasprefix_+"_iso05_sumPt"        ); // sum of track Pt for cone of 0.5 
+  produces<vector<float> >	     (branchprefix+"iso05emEt"          ).setBranchAlias(aliasprefix_+"_iso05_emEt"         ); // sum of ecal Et for cone of 0.5 
+  produces<vector<float> >	     (branchprefix+"iso05hadEt"	      ).setBranchAlias(aliasprefix_+"_iso05_hadEt"        ); // sum of hcal Et for cone of 0.5 
+  produces<vector<float> >	     (branchprefix+"iso05hoEt"	      ).setBranchAlias(aliasprefix_+"_iso05_hoEt"         ); // sum of ho Et for cone of 0.5 
+  produces<vector<int> >	     (branchprefix+"iso05ntrk"	      ).setBranchAlias(aliasprefix_+"_iso05_ntrk"         ); // number of tracks in the cone of 0.5 
 
   //new
-  produces<vector<float> >           ("musgfitd0"             ).setBranchAlias("mus_gfit_d0"            ); // d0 from global fit, if it exists
-  produces<vector<float> >           ("musgfitz0"             ).setBranchAlias("mus_gfit_z0"            ); // z0 from global fit, if it exists
-  produces<vector<float> >           ("musgfitd0Err"          ).setBranchAlias("mus_gfit_d0Err"         ); // d0Err from global fit, if it exists
-  produces<vector<float> >           ("musgfitz0Err"          ).setBranchAlias("mus_gfit_z0Err"         ); // z0Err from global fit, if it exists
-  produces<vector<float> >           ("musgfitd0corr"         ).setBranchAlias("mus_gfit_d0corr"        ); // Beamspot corrected d0 from global fit, if it exists
-  produces<vector<float> >           ("musgfitz0corr"         ).setBranchAlias("mus_gfit_z0corr"        ); // Beamspot corrected z0 from global fit, if it exists
-  produces<vector<float> >           ("musgfitqoverp"         ).setBranchAlias("mus_gfit_qoverp"        ); // global track qoverp
-  produces<vector<float> >           ("musgfitqoverpError"    ).setBranchAlias("mus_gfit_qoverpError"   ); // global track qoverp error  
+  produces<vector<float> >           (branchprefix+"gfitd0"             ).setBranchAlias(aliasprefix_+"_gfit_d0"            ); // d0 from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitz0"             ).setBranchAlias(aliasprefix_+"_gfit_z0"            ); // z0 from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitd0Err"          ).setBranchAlias(aliasprefix_+"_gfit_d0Err"         ); // d0Err from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitz0Err"          ).setBranchAlias(aliasprefix_+"_gfit_z0Err"         ); // z0Err from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitd0corr"         ).setBranchAlias(aliasprefix_+"_gfit_d0corr"        ); // Beamspot corrected d0 from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitz0corr"         ).setBranchAlias(aliasprefix_+"_gfit_z0corr"        ); // Beamspot corrected z0 from global fit, if it exists
+  produces<vector<float> >           (branchprefix+"gfitqoverp"         ).setBranchAlias(aliasprefix_+"_gfit_qoverp"        ); // global track qoverp
+  produces<vector<float> >           (branchprefix+"gfitqoverpError"    ).setBranchAlias(aliasprefix_+"_gfit_qoverpError"   ); // global track qoverp error  
   
-  produces<vector<float> >	     ("musgfitchi2"           ).setBranchAlias("mus_gfit_chi2"          ); // chi2 of the global muon fit 
-  produces<vector<float> >	     ("musgfitndof"	      ).setBranchAlias("mus_gfit_ndof"          ); // number of degree of freedom of the global muon fit 
-  produces<vector<int> >	     ("musgfitvalidHits"      ).setBranchAlias("mus_gfit_validHits"     ); // number of valid hits of the global muon fit 
+  produces<vector<float> >	     (branchprefix+"gfitchi2"           ).setBranchAlias(aliasprefix_+"_gfit_chi2"          ); // chi2 of the global muon fit 
+  produces<vector<float> >	     (branchprefix+"gfitndof"	      ).setBranchAlias(aliasprefix_+"_gfit_ndof"          ); // number of degree of freedom of the global muon fit 
+  produces<vector<int> >	     (branchprefix+"gfitvalidHits"      ).setBranchAlias(aliasprefix_+"_gfit_validHits"     ); // number of valid hits of the global muon fit 
   //STA fit crap
-  produces<vector<float> >           ("musstad0"             ).setBranchAlias("mus_sta_d0"            ); // d0 from STA fit, if it exists
-  produces<vector<float> >           ("musstaz0"             ).setBranchAlias("mus_sta_z0"            ); // z0 from STA fit, if it exists
-  produces<vector<float> >           ("musstad0Err"          ).setBranchAlias("mus_sta_d0Err"         ); // d0Err from STA fit, if it exists
-  produces<vector<float> >           ("musstaz0Err"          ).setBranchAlias("mus_sta_z0Err"         ); // z0Err from STA fit, if it exists
-  produces<vector<float> >           ("musstad0corr"         ).setBranchAlias("mus_sta_d0corr"        ); // Beamspot corrected d0 from STA fit, if it exists
-  produces<vector<float> >           ("musstaz0corr"         ).setBranchAlias("mus_sta_z0corr"        ); // Beamspot corrected z0 from STA fit, if it exists
-  produces<vector<float> >           ("musstaqoverp"         ).setBranchAlias("mus_sta_qoverp"        ); // STA track qoverp
-  produces<vector<float> >           ("musstaqoverpError"    ).setBranchAlias("mus_sta_qoverpError"   ); // STA track qoverp error  
+  produces<vector<float> >           (branchprefix+"stad0"             ).setBranchAlias(aliasprefix_+"_sta_d0"            ); // d0 from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"staz0"             ).setBranchAlias(aliasprefix_+"_sta_z0"            ); // z0 from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"stad0Err"          ).setBranchAlias(aliasprefix_+"_sta_d0Err"         ); // d0Err from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"staz0Err"          ).setBranchAlias(aliasprefix_+"_sta_z0Err"         ); // z0Err from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"stad0corr"         ).setBranchAlias(aliasprefix_+"_sta_d0corr"        ); // Beamspot corrected d0 from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"staz0corr"         ).setBranchAlias(aliasprefix_+"_sta_z0corr"        ); // Beamspot corrected z0 from STA fit, if it exists
+  produces<vector<float> >           (branchprefix+"staqoverp"         ).setBranchAlias(aliasprefix_+"_sta_qoverp"        ); // STA track qoverp
+  produces<vector<float> >           (branchprefix+"staqoverpError"    ).setBranchAlias(aliasprefix_+"_sta_qoverpError"   ); // STA track qoverp error  
   
-  produces<vector<float> >	     ("musstachi2"           ).setBranchAlias("mus_sta_chi2"          ); // chi2 of the STA muon fit 
-  produces<vector<float> >	     ("musstandof"	     ).setBranchAlias("mus_sta_ndof"          ); // number of degree of freedom of the STA muon fit 
-  produces<vector<int> >	     ("musstavalidHits"      ).setBranchAlias("mus_sta_validHits"     ); // number of valid hits of the STA muon fit 
+  produces<vector<float> >	     (branchprefix+"stachi2"           ).setBranchAlias(aliasprefix_+"_sta_chi2"          ); // chi2 of the STA muon fit 
+  produces<vector<float> >	     (branchprefix+"standof"	     ).setBranchAlias(aliasprefix_+"_sta_ndof"          ); // number of degree of freedom of the STA muon fit 
+  produces<vector<int> >	     (branchprefix+"stavalidHits"      ).setBranchAlias(aliasprefix_+"_sta_validHits"     ); // number of valid hits of the STA muon fit 
   
 
   
   //Muon timing info -> http://cmslxr.fnal.gov/lxr/source/DataFormats/MuonReco/interface/MuonTime.h
-  produces<vector<int> >             ("mustimeNumStationsUsed").setBranchAlias("mus_timeNumStationsUsed"); //number of muon stations used for timing info
+  produces<vector<int> >             (branchprefix+"timeNumStationsUsed").setBranchAlias(aliasprefix_+"_timeNumStationsUsed"); //number of muon stations used for timing info
   // time of arrival at the IP for the Beta=1 hypothesis -> particle moving from inside out
-  produces<vector<float> >           ("mustimeAtIpInOut"      ).setBranchAlias("mus_timeAtIpInOut"      ); 
-  produces<vector<float> >           ("mustimeAtIpInOutErr"   ).setBranchAlias("mus_timeAtIpInOutErr"   );
+  produces<vector<float> >           (branchprefix+"timeAtIpInOut"      ).setBranchAlias(aliasprefix_+"_timeAtIpInOut"      ); 
+  produces<vector<float> >           (branchprefix+"timeAtIpInOutErr"   ).setBranchAlias(aliasprefix_+"_timeAtIpInOutErr"   );
   //particle moving from outside in
-  produces<vector<float> >           ("mustimeAtIpOutIn"      ).setBranchAlias("mus_timeAtIpOutIn"      );
-  produces<vector<float> >           ("mustimeAtIpOutInErr"   ).setBranchAlias("mus_timeAtIpOutInErr"   );
+  produces<vector<float> >           (branchprefix+"timeAtIpOutIn"      ).setBranchAlias(aliasprefix_+"_timeAtIpOutIn"      );
+  produces<vector<float> >           (branchprefix+"timeAtIpOutInErr"   ).setBranchAlias(aliasprefix_+"_timeAtIpOutInErr"   );
   //direction estimate based on time dispersion. Enum defn given in above header file. in 312: 
   //Direction { OutsideIn = -1, Undefined = 0, InsideOut = 1 };
-  produces<vector<int> >             ("mustimeDirection"      ).setBranchAlias("mus_timeDirection"      );
+  produces<vector<int> >             (branchprefix+"timeDirection"      ).setBranchAlias(aliasprefix_+"_timeDirection"      );
 
   
   
   // loose tracker muon identification based on muon/hadron penetration depth difference       
-  produces<vector<int> >	     ("muspidTMLastStationLoose"    ).setBranchAlias("mus_pid_TMLastStationLoose"    ); 
+  produces<vector<int> >	     (branchprefix+"pidTMLastStationLoose"    ).setBranchAlias(aliasprefix_+"_pid_TMLastStationLoose"    ); 
   // tight tracker muon identification based on muon/hadron penetration depth difference       
-  produces<vector<int> >	     ("muspidTMLastStationTight"    ).setBranchAlias("mus_pid_TMLastStationTight"    );
+  produces<vector<int> >	     (branchprefix+"pidTMLastStationTight"    ).setBranchAlias(aliasprefix_+"_pid_TMLastStationTight"    );
   // loose tracker muon likelihood identification based on muon matches and calo depositions   
-  produces<vector<int> >	     ("muspidTM2DCompatibilityLoose").setBranchAlias("mus_pid_TM2DCompatibilityLoose");
+  produces<vector<int> >	     (branchprefix+"pidTM2DCompatibilityLoose").setBranchAlias(aliasprefix_+"_pid_TM2DCompatibilityLoose");
   // tight tracker muon likelihood identification based on muon matches and calo depositions
-  produces<vector<int> >	     ("muspidTM2DCompatibilityTight").setBranchAlias("mus_pid_TM2DCompatibilityTight"); 
+  produces<vector<int> >	     (branchprefix+"pidTM2DCompatibilityTight").setBranchAlias(aliasprefix_+"_pid_TM2DCompatibilityTight"); 
   //calo compatibility variable
-  produces<vector<float> >           ("muscaloCompatibility").setBranchAlias("mus_caloCompatibility");
+  produces<vector<float> >           (branchprefix+"caloCompatibility").setBranchAlias(aliasprefix_+"_caloCompatibility");
   //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
   //the 4th co-ordinate is 0
-  produces<vector<LorentzVector> >   ("musvertexp4"         ).setBranchAlias("mus_vertex_p4" ); // from the silicon fit
-  produces<vector<LorentzVector> >   ("musgfitvertexp4"     ).setBranchAlias("mus_gfit_vertex_p4");
-  produces<vector<LorentzVector> >   ("musgfitouterPosp4"   ).setBranchAlias("mus_gfit_outerPos_p4");
-  produces<vector<LorentzVector> >   ("musstavertexp4"      ).setBranchAlias("mus_sta_vertex_p4");
-  produces<vector<LorentzVector> >   ("musfitdefaultp4" ).setBranchAlias("mus_fitdefault_p4" );
-  produces<vector<LorentzVector> >   ("musfitfirsthitp4").setBranchAlias("mus_fitfirsthit_p4");
-  produces<vector<LorentzVector> >   ("musfitpickyp4"   ).setBranchAlias("mus_fitpicky_p4"	 );
-  produces<vector<LorentzVector> >   ("musfittevp4"     ).setBranchAlias("mus_fittev_p4"     );
+  produces<vector<LorentzVector> >   (branchprefix+"vertexp4"         ).setBranchAlias(aliasprefix_+"_vertex_p4" ); // from the silicon fit
+  produces<vector<LorentzVector> >   (branchprefix+"gfitvertexp4"     ).setBranchAlias(aliasprefix_+"_gfit_vertex_p4");
+  produces<vector<LorentzVector> >   (branchprefix+"gfitouterPosp4"   ).setBranchAlias(aliasprefix_+"_gfit_outerPos_p4");
+  produces<vector<LorentzVector> >   (branchprefix+"stavertexp4"      ).setBranchAlias(aliasprefix_+"_sta_vertex_p4");
+  produces<vector<LorentzVector> >   (branchprefix+"fitdefaultp4" ).setBranchAlias(aliasprefix_+"_fitdefault_p4" );
+  produces<vector<LorentzVector> >   (branchprefix+"fitfirsthitp4").setBranchAlias(aliasprefix_+"_fitfirsthit_p4");
+  produces<vector<LorentzVector> >   (branchprefix+"fitpickyp4"   ).setBranchAlias(aliasprefix_+"_fitpicky_p4"	 );
+  produces<vector<LorentzVector> >   (branchprefix+"fittevp4"     ).setBranchAlias(aliasprefix_+"_fittev_p4"     );
   
   muonsInputTag  		= iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   beamSpotInputTag 		= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -174,8 +178,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig)
  
 }
 
-void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
   using namespace edm;
   // make vectors to hold the information
   auto_ptr<vector<int> >	   vector_mus_type    	          (new vector<int>	       );        
@@ -468,114 +472,112 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
      
   // store vectors
-  iEvent.put(vector_mus_type               , "mustype"               );
-  iEvent.put(vector_mus_goodmask           , "musgoodmask"           );
-  iEvent.put(vector_mus_p4                 , "musp4"                 );
-  iEvent.put(vector_mus_trk_p4             , "mustrkp4"              );
-  iEvent.put(vector_mus_gfit_p4            , "musgfitp4"             );
-  iEvent.put(vector_mus_sta_p4             , "musstap4"              );
-  iEvent.put(vector_mus_trkidx             , "mustrkidx"             );
-  iEvent.put(vector_mus_d0                 , "musd0"                 );
-  iEvent.put(vector_mus_z0                 , "musz0"                 );
-  iEvent.put(vector_mus_d0corr             , "musd0corr"             );
-  iEvent.put(vector_mus_z0corr             , "musz0corr"             );
-  iEvent.put(vector_mus_vertexphi          , "musvertexphi"          );
-  iEvent.put(vector_mus_chi2               , "muschi2"               );
-  iEvent.put(vector_mus_ndof               , "musndof"               );
-  iEvent.put(vector_mus_validHits          , "musvalidHits"          );
-  iEvent.put(vector_mus_lostHits           , "muslostHits"           );
-  iEvent.put(vector_mus_gfit_validSTAHits  , "musgfitvalidSTAHits"   );
-  iEvent.put(vector_mus_gfit_validSiHits   , "musgfitvalidSiHits"    );
-  iEvent.put(vector_mus_d0Err              , "musd0Err"              );
-  iEvent.put(vector_mus_z0Err              , "musz0Err"              );
-  iEvent.put(vector_mus_ptErr              , "musptErr"              );
-  iEvent.put(vector_mus_etaErr             , "musetaErr"             );
-  iEvent.put(vector_mus_phiErr             , "musphiErr"             );
-  iEvent.put(vector_mus_charge             , "muscharge"             );
-  iEvent.put(vector_mus_trk_charge         , "mustrkcharge"          );
-  iEvent.put(vector_mus_qoverp             , "musqoverp"             );
-  iEvent.put(vector_mus_qoverpError        , "musqoverpError"        );
-  iEvent.put(vector_mus_nmatches           , "musnmatches"           );
-  iEvent.put(vector_mus_e_em               , "museem"                );
-  iEvent.put(vector_mus_e_had              , "musehad"               );
-  iEvent.put(vector_mus_e_ho               , "museho"                );
-  iEvent.put(vector_mus_e_emS9             , "museemS9"              );
-  iEvent.put(vector_mus_e_hadS9            , "musehadS9"             );
-  iEvent.put(vector_mus_e_hoS9             , "musehoS9"              );
-  iEvent.put(vector_mus_iso_trckvetoDep    , "musisotrckvetoDep"     );
-  iEvent.put(vector_mus_iso_ecalvetoDep    , "musisoecalvetoDep"     );
-  iEvent.put(vector_mus_iso_hcalvetoDep    , "musisohcalvetoDep"     );
-  iEvent.put(vector_mus_iso_hovetoDep      , "musisohovetoDep"       );
-  iEvent.put(vector_mus_iso03_sumPt        , "musiso03sumPt"         );
-  iEvent.put(vector_mus_iso03_emEt         , "musiso03emEt"          );
-  iEvent.put(vector_mus_iso03_hadEt        , "musiso03hadEt"         );
-  iEvent.put(vector_mus_iso03_hoEt         , "musiso03hoEt"          );
-  iEvent.put(vector_mus_iso03_ntrk         , "musiso03ntrk"          );
-  iEvent.put(vector_mus_iso05_sumPt        , "musiso05sumPt"         );
-  iEvent.put(vector_mus_iso05_emEt         , "musiso05emEt"          );
-  iEvent.put(vector_mus_iso05_hadEt        , "musiso05hadEt"         );
-  iEvent.put(vector_mus_iso05_hoEt         , "musiso05hoEt"          );
-  iEvent.put(vector_mus_iso05_ntrk         , "musiso05ntrk"          );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(vector_mus_type               , branchprefix+"type"               );
+  iEvent.put(vector_mus_goodmask           , branchprefix+"goodmask"           );
+  iEvent.put(vector_mus_p4                 , branchprefix+"p4"                 );
+  iEvent.put(vector_mus_trk_p4             , branchprefix+"trkp4"              );
+  iEvent.put(vector_mus_gfit_p4            , branchprefix+"gfitp4"             );
+  iEvent.put(vector_mus_sta_p4             , branchprefix+"stap4"              );
+  iEvent.put(vector_mus_trkidx             , branchprefix+"trkidx"             );
+  iEvent.put(vector_mus_d0                 , branchprefix+"d0"                 );
+  iEvent.put(vector_mus_z0                 , branchprefix+"z0"                 );
+  iEvent.put(vector_mus_d0corr             , branchprefix+"d0corr"             );
+  iEvent.put(vector_mus_z0corr             , branchprefix+"z0corr"             );
+  iEvent.put(vector_mus_vertexphi          , branchprefix+"vertexphi"          );
+  iEvent.put(vector_mus_chi2               , branchprefix+"chi2"               );
+  iEvent.put(vector_mus_ndof               , branchprefix+"ndof"               );
+  iEvent.put(vector_mus_validHits          , branchprefix+"validHits"          );
+  iEvent.put(vector_mus_lostHits           , branchprefix+"lostHits"           );
+  iEvent.put(vector_mus_gfit_validSTAHits  , branchprefix+"gfitvalidSTAHits"   );
+  iEvent.put(vector_mus_gfit_validSiHits   , branchprefix+"gfitvalidSiHits"    );
+  iEvent.put(vector_mus_d0Err              , branchprefix+"d0Err"              );
+  iEvent.put(vector_mus_z0Err              , branchprefix+"z0Err"              );
+  iEvent.put(vector_mus_ptErr              , branchprefix+"ptErr"              );
+  iEvent.put(vector_mus_etaErr             , branchprefix+"etaErr"             );
+  iEvent.put(vector_mus_phiErr             , branchprefix+"phiErr"             );
+  iEvent.put(vector_mus_charge             , branchprefix+"charge"             );
+  iEvent.put(vector_mus_trk_charge         , branchprefix+"trkcharge"          );
+  iEvent.put(vector_mus_qoverp             , branchprefix+"qoverp"             );
+  iEvent.put(vector_mus_qoverpError        , branchprefix+"qoverpError"        );
+  iEvent.put(vector_mus_nmatches           , branchprefix+"nmatches"           );
+  iEvent.put(vector_mus_e_em               , branchprefix+"eem"                );
+  iEvent.put(vector_mus_e_had              , branchprefix+"ehad"               );
+  iEvent.put(vector_mus_e_ho               , branchprefix+"eho"                );
+  iEvent.put(vector_mus_e_emS9             , branchprefix+"eemS9"              );
+  iEvent.put(vector_mus_e_hadS9            , branchprefix+"ehadS9"             );
+  iEvent.put(vector_mus_e_hoS9             , branchprefix+"ehoS9"              );
+  iEvent.put(vector_mus_iso_trckvetoDep    , branchprefix+"isotrckvetoDep"     );
+  iEvent.put(vector_mus_iso_ecalvetoDep    , branchprefix+"isoecalvetoDep"     );
+  iEvent.put(vector_mus_iso_hcalvetoDep    , branchprefix+"isohcalvetoDep"     );
+  iEvent.put(vector_mus_iso_hovetoDep      , branchprefix+"isohovetoDep"       );
+  iEvent.put(vector_mus_iso03_sumPt        , branchprefix+"iso03sumPt"         );
+  iEvent.put(vector_mus_iso03_emEt         , branchprefix+"iso03emEt"          );
+  iEvent.put(vector_mus_iso03_hadEt        , branchprefix+"iso03hadEt"         );
+  iEvent.put(vector_mus_iso03_hoEt         , branchprefix+"iso03hoEt"          );
+  iEvent.put(vector_mus_iso03_ntrk         , branchprefix+"iso03ntrk"          );
+  iEvent.put(vector_mus_iso05_sumPt        , branchprefix+"iso05sumPt"         );
+  iEvent.put(vector_mus_iso05_emEt         , branchprefix+"iso05emEt"          );
+  iEvent.put(vector_mus_iso05_hadEt        , branchprefix+"iso05hadEt"         );
+  iEvent.put(vector_mus_iso05_hoEt         , branchprefix+"iso05hoEt"          );
+  iEvent.put(vector_mus_iso05_ntrk         , branchprefix+"iso05ntrk"          );
 
   
-  iEvent.put(vector_mus_gfit_d0            , "musgfitd0"             );
-  iEvent.put(vector_mus_gfit_z0            , "musgfitz0"             );
-  iEvent.put(vector_mus_gfit_d0Err         , "musgfitd0Err"          );
-  iEvent.put(vector_mus_gfit_z0Err         , "musgfitz0Err"          );
-  iEvent.put(vector_mus_gfit_d0corr        , "musgfitd0corr"         );
-  iEvent.put(vector_mus_gfit_z0corr        , "musgfitz0corr"         );
-  iEvent.put(vector_mus_gfit_qoverp        , "musgfitqoverp"         );
-  iEvent.put(vector_mus_gfit_qoverpError   , "musgfitqoverpError"    );
-  iEvent.put(vector_mus_gfit_chi2          , "musgfitchi2"           );
-  iEvent.put(vector_mus_gfit_ndof          , "musgfitndof"           );
-  iEvent.put(vector_mus_gfit_validHits     , "musgfitvalidHits"      );
+  iEvent.put(vector_mus_gfit_d0            , branchprefix+"gfitd0"             );
+  iEvent.put(vector_mus_gfit_z0            , branchprefix+"gfitz0"             );
+  iEvent.put(vector_mus_gfit_d0Err         , branchprefix+"gfitd0Err"          );
+  iEvent.put(vector_mus_gfit_z0Err         , branchprefix+"gfitz0Err"          );
+  iEvent.put(vector_mus_gfit_d0corr        , branchprefix+"gfitd0corr"         );
+  iEvent.put(vector_mus_gfit_z0corr        , branchprefix+"gfitz0corr"         );
+  iEvent.put(vector_mus_gfit_qoverp        , branchprefix+"gfitqoverp"         );
+  iEvent.put(vector_mus_gfit_qoverpError   , branchprefix+"gfitqoverpError"    );
+  iEvent.put(vector_mus_gfit_chi2          , branchprefix+"gfitchi2"           );
+  iEvent.put(vector_mus_gfit_ndof          , branchprefix+"gfitndof"           );
+  iEvent.put(vector_mus_gfit_validHits     , branchprefix+"gfitvalidHits"      );
 
-  iEvent.put(vector_mus_sta_d0             , "musstad0"              );
-  iEvent.put(vector_mus_sta_z0             , "musstaz0"              );
-  iEvent.put(vector_mus_sta_d0Err          , "musstad0Err"           );
-  iEvent.put(vector_mus_sta_z0Err          , "musstaz0Err"           );
-  iEvent.put(vector_mus_sta_d0corr         , "musstad0corr"          );
-  iEvent.put(vector_mus_sta_z0corr         , "musstaz0corr"          );
-  iEvent.put(vector_mus_sta_qoverp         , "musstaqoverp"          );
-  iEvent.put(vector_mus_sta_qoverpError    , "musstaqoverpError"     );
-  iEvent.put(vector_mus_sta_chi2           , "musstachi2"            );
-  iEvent.put(vector_mus_sta_ndof           , "musstandof"            );
-  iEvent.put(vector_mus_sta_validHits      , "musstavalidHits"       );
+  iEvent.put(vector_mus_sta_d0             , branchprefix+"stad0"              );
+  iEvent.put(vector_mus_sta_z0             , branchprefix+"staz0"              );
+  iEvent.put(vector_mus_sta_d0Err          , branchprefix+"stad0Err"           );
+  iEvent.put(vector_mus_sta_z0Err          , branchprefix+"staz0Err"           );
+  iEvent.put(vector_mus_sta_d0corr         , branchprefix+"stad0corr"          );
+  iEvent.put(vector_mus_sta_z0corr         , branchprefix+"staz0corr"          );
+  iEvent.put(vector_mus_sta_qoverp         , branchprefix+"staqoverp"          );
+  iEvent.put(vector_mus_sta_qoverpError    , branchprefix+"staqoverpError"     );
+  iEvent.put(vector_mus_sta_chi2           , branchprefix+"stachi2"            );
+  iEvent.put(vector_mus_sta_ndof           , branchprefix+"standof"            );
+  iEvent.put(vector_mus_sta_validHits      , branchprefix+"stavalidHits"       );
 
   
-  iEvent.put(vector_mus_timeNumStationsUsed, "mustimeNumStationsUsed"); 
-  iEvent.put(vector_mus_timeAtIpInOut      , "mustimeAtIpInOut"      );
-  iEvent.put(vector_mus_timeAtIpInOutErr   , "mustimeAtIpInOutErr"   );
-  iEvent.put(vector_mus_timeAtIpOutIn      , "mustimeAtIpOutIn"      );
-  iEvent.put(vector_mus_timeAtIpOutInErr   , "mustimeAtIpOutInErr"   );
-  iEvent.put(vector_mus_timeDirection      , "mustimeDirection"      );
-  iEvent.put(vector_mus_pid_TMLastStationLoose	        , "muspidTMLastStationLoose"     );
-  iEvent.put(vector_mus_pid_TMLastStationTight	        , "muspidTMLastStationTight"     );
-  iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, "muspidTM2DCompatibilityLoose" );
-  iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, "muspidTM2DCompatibilityTight" );
-  iEvent.put(vector_mus_caloCompatibility               , "muscaloCompatibility"         );
-  iEvent.put(vector_mus_vertex_p4                       , "musvertexp4"                  );
-  iEvent.put(vector_mus_gfit_vertex_p4                  , "musgfitvertexp4"              );
-  iEvent.put(vector_mus_gfit_outerPos_p4                , "musgfitouterPosp4"            );
-  iEvent.put(vector_mus_sta_vertex_p4                   , "musstavertexp4"               );
-  iEvent.put(vector_mus_fitdefault_p4      , "musfitdefaultp4" );
-  iEvent.put(vector_mus_fitfirsthit_p4     , "musfitfirsthitp4");
-  iEvent.put(vector_mus_fitpicky_p4        , "musfitpickyp4"   );
-  iEvent.put(vector_mus_fittev_p4          , "musfittevp4"     );
+  iEvent.put(vector_mus_timeNumStationsUsed, branchprefix+"timeNumStationsUsed"); 
+  iEvent.put(vector_mus_timeAtIpInOut      , branchprefix+"timeAtIpInOut"      );
+  iEvent.put(vector_mus_timeAtIpInOutErr   , branchprefix+"timeAtIpInOutErr"   );
+  iEvent.put(vector_mus_timeAtIpOutIn      , branchprefix+"timeAtIpOutIn"      );
+  iEvent.put(vector_mus_timeAtIpOutInErr   , branchprefix+"timeAtIpOutInErr"   );
+  iEvent.put(vector_mus_timeDirection      , branchprefix+"timeDirection"      );
+  iEvent.put(vector_mus_pid_TMLastStationLoose	        , branchprefix+"pidTMLastStationLoose"     );
+  iEvent.put(vector_mus_pid_TMLastStationTight	        , branchprefix+"pidTMLastStationTight"     );
+  iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, branchprefix+"pidTM2DCompatibilityLoose" );
+  iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, branchprefix+"pidTM2DCompatibilityTight" );
+  iEvent.put(vector_mus_caloCompatibility               , branchprefix+"caloCompatibility"         );
+  iEvent.put(vector_mus_vertex_p4                       , branchprefix+"vertexp4"                  );
+  iEvent.put(vector_mus_gfit_vertex_p4                  , branchprefix+"gfitvertexp4"              );
+  iEvent.put(vector_mus_gfit_outerPos_p4                , branchprefix+"gfitouterPosp4"            );
+  iEvent.put(vector_mus_sta_vertex_p4                   , branchprefix+"stavertexp4"               );
+  iEvent.put(vector_mus_fitdefault_p4      , branchprefix+"fitdefaultp4" );
+  iEvent.put(vector_mus_fitfirsthit_p4     , branchprefix+"fitfirsthitp4");
+  iEvent.put(vector_mus_fitpicky_p4        , branchprefix+"fitpickyp4"   );
+  iEvent.put(vector_mus_fittev_p4          , branchprefix+"fittevp4"     );
 
 }
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-MuonMaker::beginJob()
-{
-}
+void MuonMaker::beginJob() {}
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-MuonMaker::endJob() {
-}
+void MuonMaker::endJob() {}
 
 
 //define this as a plug-in

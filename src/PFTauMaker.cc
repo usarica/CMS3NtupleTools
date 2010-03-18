@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.11 2010/03/10 17:54:18 jribnik Exp $
+// $Id: PFTauMaker.cc,v 1.12 2010/03/18 02:13:21 kalavase Exp $
 //
 //
 
@@ -44,44 +44,48 @@ using namespace std;
 
 PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 
-  produces<vector<LorentzVector> >  ("tauspfp4"                            ).setBranchAlias("taus_pf_p4"                             );
-  produces<vector<int> >            ("tauspfcharge"                        ).setBranchAlias("taus_pf_charge"                         );
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<vector<vector <LorentzVector> > >  ("tauspfisochargecandp4"     ).setBranchAlias("taus_pf_isochargecand_p4"               );
-  produces<vector<vector <LorentzVector> > >  ("tauspfisoneutrcandp4"      ).setBranchAlias("taus_pf_isoneutrcand_p4"                );
-  produces<vector<vector <LorentzVector> > >  ("tauspfisogammacandp4"      ).setBranchAlias("taus_pf_isogammacand_p4"                );
-  produces<vector<vector <LorentzVector> > >  ("tauspfsigchargecandp4"     ).setBranchAlias("taus_pf_sigchargecand_p4"               );
-  produces<vector<vector <LorentzVector> > >  ("tauspfsigneutrcandp4"      ).setBranchAlias("taus_pf_signeutrcand_p4"                );
-  produces<vector<vector <LorentzVector> > >  ("tauspfsiggammacandp4"      ).setBranchAlias("taus_pf_siggammacand_p4"                );
+  produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
+  produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
+
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"isochargecandp4"     ).setBranchAlias(aliasprefix_+"_isochargecand_p4"               );
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"isoneutrcandp4"      ).setBranchAlias(aliasprefix_+"_isoneutrcand_p4"                );
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"isogammacandp4"      ).setBranchAlias(aliasprefix_+"_isogammacand_p4"                );
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"sigchargecandp4"     ).setBranchAlias(aliasprefix_+"_sigchargecand_p4"               );
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"signeutrcandp4"      ).setBranchAlias(aliasprefix_+"_signeutrcand_p4"                );
+  produces<vector<vector <LorentzVector> > >  (branchprefix+"siggammacandp4"      ).setBranchAlias(aliasprefix_+"_siggammacand_p4"                );
 
   
 
-  produces<vector<LorentzVector> >  ("tauspfleadchargecandp4"              ).setBranchAlias("taus_pf_lead_chargecand_p4"             );
-  produces<vector<LorentzVector> >  ("tauspfleadneutrcandp4"               ).setBranchAlias("taus_pf_lead_neutrcand_p4"              );
-  produces<vector<float> >          ("tauspfleadchargecandSignedSipt"      ).setBranchAlias("taus_pf_lead_chargecand_Signed_Sipt"    );
-  produces<vector<float> >          ("tauspfisolationchargecandPtSum"      ).setBranchAlias("taus_pf_isolationchargecandPtSum"       ); 
-  produces<vector<float> >          ("tauspfisolationgammacandEtSum"       ).setBranchAlias("taus_pf_isolationgammacandEtSum"        ); 
-  produces<vector<float> >          ("tauspfmaximumHCALPFClusterEt"        ).setBranchAlias("taus_pf_maximumHCALPFClusterEt"         ); 
+  produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
+  produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+  produces<vector<float> >          (branchprefix+"leadchargecandSignedSipt"      ).setBranchAlias(aliasprefix_+"_lead_chargecand_Signed_Sipt"    );
+  produces<vector<float> >          (branchprefix+"isolationchargecandPtSum"      ).setBranchAlias(aliasprefix_+"_isolationchargecandPtSum"       ); 
+  produces<vector<float> >          (branchprefix+"isolationgammacandEtSum"       ).setBranchAlias(aliasprefix_+"_isolationgammacandEtSum"        ); 
+  produces<vector<float> >          (branchprefix+"maximumHCALPFClusterEt"        ).setBranchAlias(aliasprefix_+"_maximumHCALPFClusterEt"         ); 
   //electron rejection
-  produces<vector<float> >          ("tauspfemf"                           ).setBranchAlias("taus_pf_emf"                            ); 
-  produces<vector<float> >          ("tauspfhcalTotOverPLead"              ).setBranchAlias("taus_pf_hcalTotOverPLead"               ); 
-  produces<vector<float> >          ("tauspfhcalMaxOverPLead"              ).setBranchAlias("taus_pf_hcalMaxOverPLead"               ); 
-  produces<vector<float> >          ("tauspfhcal3x3OverPLead"              ).setBranchAlias("taus_pf_hcal3x3OverPLead"               ); 
-  produces<vector<float> >          ("tauspfecalStripSumEOverPLead"        ).setBranchAlias("taus_pf_ecalStripSumEOverPLead"         ); 
-  // produces<vector<float> >          ("tauspfbremsRecoveryEOverPLead"       ).setBranchAlias("taus_pf_bremsRecoveryEOverPLead"        ); 
-  produces<vector<int> >            ("tauspfelectronPreID"                 ).setBranchAlias("taus_pf_electronPreID"                  ); 
-  produces<vector<float> >          ("tauspfelectronPreIDOutput"           ).setBranchAlias("taus_pf_electronPreIDOutput"            ); 
+  produces<vector<float> >          (branchprefix+"emf"                           ).setBranchAlias(aliasprefix_+"_emf"                            ); 
+  produces<vector<float> >          (branchprefix+"hcalTotOverPLead"              ).setBranchAlias(aliasprefix_+"_hcalTotOverPLead"               ); 
+  produces<vector<float> >          (branchprefix+"hcalMaxOverPLead"              ).setBranchAlias(aliasprefix_+"_hcalMaxOverPLead"               ); 
+  produces<vector<float> >          (branchprefix+"hcal3x3OverPLead"              ).setBranchAlias(aliasprefix_+"_hcal3x3OverPLead"               ); 
+  produces<vector<float> >          (branchprefix+"ecalStripSumEOverPLead"        ).setBranchAlias(aliasprefix_+"_ecalStripSumEOverPLead"         ); 
+  // produces<vector<float> >          (branchprefix+"bremsRecoveryEOverPLead"       ).setBranchAlias(aliasprefix_+"_bremsRecoveryEOverPLead"        ); 
+  produces<vector<int> >            (branchprefix+"electronPreID"                 ).setBranchAlias(aliasprefix_+"_electronPreID"                  ); 
+  produces<vector<float> >          (branchprefix+"electronPreIDOutput"           ).setBranchAlias(aliasprefix_+"_electronPreIDOutput"            ); 
   //muon rejection
-  produces<vector<int> >            ("tauspfmuonPreID"                     ).setBranchAlias("taus_pf_muonPreID"                      ); 
-  produces<vector<int> >            ("tauspfhasMuonReference"              ).setBranchAlias("taus_pf_hasMuonReference"               ); 
-  produces<vector<float> >          ("tauspfcaloComp"                      ).setBranchAlias("taus_pf_caloComp"                       ); 
-  produces<vector<float> >          ("tauspfsegComp"                       ).setBranchAlias("taus_pf_segComp"                        ); 
-  produces<vector<int> >            ("tauspfnmuonmatch"                    ).setBranchAlias("taus_pf_nmuonmatch"                     ); 
+  produces<vector<int> >            (branchprefix+"muonPreID"                     ).setBranchAlias(aliasprefix_+"_muonPreID"                      ); 
+  produces<vector<int> >            (branchprefix+"hasMuonReference"              ).setBranchAlias(aliasprefix_+"_hasMuonReference"               ); 
+  produces<vector<float> >          (branchprefix+"caloComp"                      ).setBranchAlias(aliasprefix_+"_caloComp"                       ); 
+  produces<vector<float> >          (branchprefix+"segComp"                       ).setBranchAlias(aliasprefix_+"_segComp"                        ); 
+  produces<vector<int> >            (branchprefix+"nmuonmatch"                    ).setBranchAlias(aliasprefix_+"_nmuonmatch"                     ); 
 
   //tau preID
-  produces<vector<int> >            ("tauspftightId"                       ).setBranchAlias("taus_pf_tightId"                        );
+  produces<vector<int> >            (branchprefix+"tightId"                       ).setBranchAlias(aliasprefix_+"_tightId"                        );
 
-  produces<vector<int> >            ("tauspfleadtrkidx"                    ).setBranchAlias("taus_pf_leadtrk_idx"                    );
+  produces<vector<int> >            (branchprefix+"leadtrkidx"                    ).setBranchAlias(aliasprefix_+"_leadtrk_idx"                    );
     
    
 //get setup parameters
@@ -261,6 +265,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    if(!tau_pf->muonDecision())         taus_pf_muonPreID          ->push_back(1);
    else                                taus_pf_muonPreID          ->push_back(0);
   
+   
    taus_pf_electronPreIDOutput      ->push_back(tau_pf->electronPreIDOutput());
    if(tau_pf->hasMuonReference()){
                                       taus_pf_hasMuonReference   ->push_back(1);
@@ -293,40 +298,44 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
  }
 
- iEvent.put(taus_pf_isochargecand_p4                    ,"tauspfisochargecandp4"                           );  
- iEvent.put(taus_pf_isoneutrcand_p4                     ,"tauspfisoneutrcandp4"                            );  
- iEvent.put(taus_pf_isogammacand_p4                     ,"tauspfisogammacandp4"                            );  
- iEvent.put(taus_pf_sigchargecand_p4                    ,"tauspfsigchargecandp4"                           );  
- iEvent.put(taus_pf_signeutrcand_p4                     ,"tauspfsigneutrcandp4"                            );  
- iEvent.put(taus_pf_siggammacand_p4                     ,"tauspfsiggammacandp4"                            );  
- 
- iEvent.put(taus_pf_p4                                   ,"tauspfp4"                                       );  
- iEvent.put(taus_pf_charge                               ,"tauspfcharge"                                   );  
- iEvent.put(taus_pf_lead_chargecand_p4                   ,"tauspfleadchargecandp4"                         ); 
- iEvent.put(taus_pf_lead_neutrcand_p4                    ,"tauspfleadneutrcandp4"                          ); 
- iEvent.put(taus_pf_lead_chargecand_Signed_Sipt          ,"tauspfleadchargecandSignedSipt"                 ); 
- iEvent.put(taus_pf_isolationchargecandPtSum             ,"tauspfisolationchargecandPtSum"                 );
- iEvent.put(taus_pf_isolationgammacandEtSum              ,"tauspfisolationgammacandEtSum"                  );
- iEvent.put(taus_pf_maximumHCALPFClusterEt               ,"tauspfmaximumHCALPFClusterEt"                   );
- iEvent.put(taus_pf_emf                                  ,"tauspfemf"                                      );
- iEvent.put(taus_pf_hcalTotOverPLead                     ,"tauspfhcalTotOverPLead"                         );
- iEvent.put(taus_pf_hcalMaxOverPLead                     ,"tauspfhcalMaxOverPLead"                         );
- iEvent.put(taus_pf_hcal3x3OverPLead                     ,"tauspfhcal3x3OverPLead"                         );
- 
- 
- iEvent.put(taus_pf_ecalStripSumEOverPLead               ,"tauspfecalStripSumEOverPLead"                   );
- //iEvent.put(taus_pf_bremsRecoveryEOverPLead              ,"tauspfbremsRecoveryEOverPLead"                  );
- iEvent.put(taus_pf_electronPreID                        ,"tauspfelectronPreID"                            );
- iEvent.put(taus_pf_electronPreIDOutput                  ,"tauspfelectronPreIDOutput"                      );
- 
- iEvent.put(taus_pf_muonPreID                            ,"tauspfmuonPreID"                                );
- iEvent.put(taus_pf_hasMuonReference                     ,"tauspfhasMuonReference"                         );
- iEvent.put(taus_pf_caloComp                             ,"tauspfcaloComp"                                 );
- iEvent.put(taus_pf_segComp                              ,"tauspfsegComp"                                  );
- iEvent.put(taus_pf_nmuonmatch                           ,"tauspfnmuonmatch"                               );
+ std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
- iEvent.put(taus_pf_tightId                              ,"tauspftightId"                                  );
- iEvent.put(taus_pf_leadtrk_idx                          ,"tauspfleadtrkidx"                               ); 
+
+ iEvent.put(taus_pf_isochargecand_p4                    ,branchprefix+"isochargecandp4"                           );  
+ iEvent.put(taus_pf_isoneutrcand_p4                     ,branchprefix+"isoneutrcandp4"                            );  
+ iEvent.put(taus_pf_isogammacand_p4                     ,branchprefix+"isogammacandp4"                            );  
+ iEvent.put(taus_pf_sigchargecand_p4                    ,branchprefix+"sigchargecandp4"                           );  
+ iEvent.put(taus_pf_signeutrcand_p4                     ,branchprefix+"signeutrcandp4"                            );  
+ iEvent.put(taus_pf_siggammacand_p4                     ,branchprefix+"siggammacandp4"                            );  
+ 
+ iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
+ iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
+ iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
+ iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
+ iEvent.put(taus_pf_lead_chargecand_Signed_Sipt          ,branchprefix+"leadchargecandSignedSipt"                 ); 
+ iEvent.put(taus_pf_isolationchargecandPtSum             ,branchprefix+"isolationchargecandPtSum"                 );
+ iEvent.put(taus_pf_isolationgammacandEtSum              ,branchprefix+"isolationgammacandEtSum"                  );
+ iEvent.put(taus_pf_maximumHCALPFClusterEt               ,branchprefix+"maximumHCALPFClusterEt"                   );
+ iEvent.put(taus_pf_emf                                  ,branchprefix+"emf"                                      );
+ iEvent.put(taus_pf_hcalTotOverPLead                     ,branchprefix+"hcalTotOverPLead"                         );
+ iEvent.put(taus_pf_hcalMaxOverPLead                     ,branchprefix+"hcalMaxOverPLead"                         );
+ iEvent.put(taus_pf_hcal3x3OverPLead                     ,branchprefix+"hcal3x3OverPLead"                         );
+ 
+ 
+ iEvent.put(taus_pf_ecalStripSumEOverPLead               ,branchprefix+"ecalStripSumEOverPLead"                   );
+ //iEvent.put(taus_pf_bremsRecoveryEOverPLead              ,branchprefix+"bremsRecoveryEOverPLead"                  );
+ iEvent.put(taus_pf_electronPreID                        ,branchprefix+"electronPreID"                            );
+ iEvent.put(taus_pf_electronPreIDOutput                  ,branchprefix+"electronPreIDOutput"                      );
+ 
+ iEvent.put(taus_pf_muonPreID                            ,branchprefix+"muonPreID"                                );
+ iEvent.put(taus_pf_hasMuonReference                     ,branchprefix+"hasMuonReference"                         );
+ iEvent.put(taus_pf_caloComp                             ,branchprefix+"caloComp"                                 );
+ iEvent.put(taus_pf_segComp                              ,branchprefix+"segComp"                                  );
+ iEvent.put(taus_pf_nmuonmatch                           ,branchprefix+"nmuonmatch"                               );
+
+ iEvent.put(taus_pf_tightId                              ,branchprefix+"tightId"                                  );
+ iEvent.put(taus_pf_leadtrk_idx                          ,branchprefix+"leadtrkidx"                               ); 
 
 
   

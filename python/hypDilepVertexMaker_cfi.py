@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 hypDilepVertexMaker = cms.EDFilter("HypDilepVertexMaker",
-	aliasPrefix = cms.untracked.string("hyp"),
+	aliasPrefix = cms.untracked.string("hyp_FVFit"),
                                    recomuonsInputTag = cms.InputTag("muons"),
                                    cms2muonsInputTag = cms.InputTag("muonMaker"),
                                    recoelectronsInputTag = cms.InputTag("gsfElectrons"),

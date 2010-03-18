@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.22 2010/03/02 19:36:07 fgolf Exp $
+// $Id: HypDilepMaker.cc,v 1.23 2010/03/18 02:12:15 kalavase Exp $
 //
 //
 
@@ -59,8 +59,11 @@ using namespace edm;
 using namespace std;
 
 
-HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
-{
+HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
   
   muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"                                        );
   electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"                                    );
@@ -73,85 +76,82 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig)
   tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut"                                    );
   looseptcut               = iConfig.getParameter<double>  ("LooseLepton_PtCut"                                    );
 
-  produces<vector<int> >           ("hyptype"                    ).setBranchAlias("hyp_type"                       );
-  produces<vector<int> >           ("hypnjets"                   ).setBranchAlias("hyp_njets"                      );
-  produces<vector<int> >           ("hypnojets"                  ).setBranchAlias("hyp_nojets"                     );  
-  produces<vector<LorentzVector> > ("hypp4"                      ).setBranchAlias("hyp_p4"                         );
+  produces<vector<int> >           (branchprefix+"type"                    ).setBranchAlias(aliasprefix_+"_type"                       );
+  produces<vector<int> >           (branchprefix+"njets"                   ).setBranchAlias(aliasprefix_+"_njets"                      );
+  produces<vector<int> >           (branchprefix+"nojets"                  ).setBranchAlias(aliasprefix_+"_nojets"                     );  
+  produces<vector<LorentzVector> > (branchprefix+"p4"                      ).setBranchAlias(aliasprefix_+"_p4"                         );
   
-  produces<vector<int> >           ("hypltvalidHits"             ).setBranchAlias("hyp_lt_validHits"               );
-  produces<vector<int> >           ("hypltlostHits"              ).setBranchAlias("hyp_lt_lostHits"                );
-  produces<vector<int> >           ("hypltcharge"                ).setBranchAlias("hyp_lt_charge"                  );
-  produces<vector<int> >           ("hypltindex"                 ).setBranchAlias("hyp_lt_index"                   );
-  produces<vector<int> >           ("hypltid"                    ).setBranchAlias("hyp_lt_id"                      );
-  produces<vector<float> >         ("hypltd0"                    ).setBranchAlias("hyp_lt_d0"                      );
-  produces<vector<float> >         ("hypltz0"                    ).setBranchAlias("hyp_lt_z0"                      );
-  produces<vector<float> >         ("hypltd0corr"                ).setBranchAlias("hyp_lt_d0corr"                  );
-  produces<vector<float> >         ("hypltz0corr"                ).setBranchAlias("hyp_lt_z0corr"                  );
-  produces<vector<float> >         ("hypltchi2"                  ).setBranchAlias("hyp_lt_chi2"                    );
-  produces<vector<float> >         ("hypltndof"                  ).setBranchAlias("hyp_lt_ndof"                    );
-  produces<vector<float> >         ("hypltd0Err"                 ).setBranchAlias("hyp_lt_d0Err"                   );
-  produces<vector<float> >         ("hypltz0Err"                 ).setBranchAlias("hyp_lt_z0Err"                   );
-  produces<vector<float> >         ("hypltptErr"                 ).setBranchAlias("hyp_lt_ptErr"                   );
-  produces<vector<float> >         ("hypltetaErr"                ).setBranchAlias("hyp_lt_etaErr"                  );
-  produces<vector<float> >         ("hypltphiErr"                ).setBranchAlias("hyp_lt_phiErr"                  );
-  produces<vector<LorentzVector > >("hypltp4"                    ).setBranchAlias("hyp_lt_p4"                      );
-  produces<vector<LorentzVector > >("hyplttrkp4"                 ).setBranchAlias("hyp_lt_trk_p4"                  );
+  produces<vector<int> >           (branchprefix+"ltvalidHits"             ).setBranchAlias(aliasprefix_+"_lt_validHits"               );
+  produces<vector<int> >           (branchprefix+"ltlostHits"              ).setBranchAlias(aliasprefix_+"_lt_lostHits"                );
+  produces<vector<int> >           (branchprefix+"ltcharge"                ).setBranchAlias(aliasprefix_+"_lt_charge"                  );
+  produces<vector<int> >           (branchprefix+"ltindex"                 ).setBranchAlias(aliasprefix_+"_lt_index"                   );
+  produces<vector<int> >           (branchprefix+"ltid"                    ).setBranchAlias(aliasprefix_+"_lt_id"                      );
+  produces<vector<float> >         (branchprefix+"ltd0"                    ).setBranchAlias(aliasprefix_+"_lt_d0"                      );
+  produces<vector<float> >         (branchprefix+"ltz0"                    ).setBranchAlias(aliasprefix_+"_lt_z0"                      );
+  produces<vector<float> >         (branchprefix+"ltd0corr"                ).setBranchAlias(aliasprefix_+"_lt_d0corr"                  );
+  produces<vector<float> >         (branchprefix+"ltz0corr"                ).setBranchAlias(aliasprefix_+"_lt_z0corr"                  );
+  produces<vector<float> >         (branchprefix+"ltchi2"                  ).setBranchAlias(aliasprefix_+"_lt_chi2"                    );
+  produces<vector<float> >         (branchprefix+"ltndof"                  ).setBranchAlias(aliasprefix_+"_lt_ndof"                    );
+  produces<vector<float> >         (branchprefix+"ltd0Err"                 ).setBranchAlias(aliasprefix_+"_lt_d0Err"                   );
+  produces<vector<float> >         (branchprefix+"ltz0Err"                 ).setBranchAlias(aliasprefix_+"_lt_z0Err"                   );
+  produces<vector<float> >         (branchprefix+"ltptErr"                 ).setBranchAlias(aliasprefix_+"_lt_ptErr"                   );
+  produces<vector<float> >         (branchprefix+"ltetaErr"                ).setBranchAlias(aliasprefix_+"_lt_etaErr"                  );
+  produces<vector<float> >         (branchprefix+"ltphiErr"                ).setBranchAlias(aliasprefix_+"_lt_phiErr"                  );
+  produces<vector<LorentzVector > >(branchprefix+"ltp4"                    ).setBranchAlias(aliasprefix_+"_lt_p4"                      );
+  produces<vector<LorentzVector > >(branchprefix+"lttrkp4"                 ).setBranchAlias(aliasprefix_+"_lt_trk_p4"                  );
   
-  produces<vector<int> >           ("hypllvalidHits"             ).setBranchAlias("hyp_ll_validHits"               );
-  produces<vector<int> >           ("hyplllostHits"              ).setBranchAlias("hyp_ll_lostHits"                );
-  produces<vector<int> >           ("hypllcharge"                ).setBranchAlias("hyp_ll_charge"                  );
-  produces<vector<int> >           ("hypllindex"                 ).setBranchAlias("hyp_ll_index"                   );
-  produces<vector<int> >           ("hypllid"                    ).setBranchAlias("hyp_ll_id"                      );
-  produces<vector<float> >         ("hyplld0"                    ).setBranchAlias("hyp_ll_d0"                      );
-  produces<vector<float> >         ("hypllz0"                    ).setBranchAlias("hyp_ll_z0"                      );
-  produces<vector<float> >         ("hyplld0corr"                ).setBranchAlias("hyp_ll_d0corr"                  );
-  produces<vector<float> >         ("hypllz0corr"                ).setBranchAlias("hyp_ll_z0corr"                  );
-  produces<vector<float> >         ("hypllchi2"                  ).setBranchAlias("hyp_ll_chi2"                    );
-  produces<vector<float> >         ("hypllndof"                  ).setBranchAlias("hyp_ll_ndof"                    );
-  produces<vector<float> >         ("hyplld0Err"                 ).setBranchAlias("hyp_ll_d0Err"                   );
-  produces<vector<float> >         ("hypllz0Err"                 ).setBranchAlias("hyp_ll_z0Err"                   );
-  produces<vector<float> >         ("hypllptErr"                 ).setBranchAlias("hyp_ll_ptErr"                   );
-  produces<vector<float> >         ("hyplletaErr"                ).setBranchAlias("hyp_ll_etaErr"                  );
-  produces<vector<float> >         ("hypllphiErr"                ).setBranchAlias("hyp_ll_phiErr"                  );
-  produces<vector<LorentzVector > >("hypllp4"                    ).setBranchAlias("hyp_ll_p4"                      );
-  produces<vector<LorentzVector > >("hyplltrkp4"                 ).setBranchAlias("hyp_ll_trk_p4"                  );
+  produces<vector<int> >           (branchprefix+"llvalidHits"             ).setBranchAlias(aliasprefix_+"_ll_validHits"               );
+  produces<vector<int> >           (branchprefix+"lllostHits"              ).setBranchAlias(aliasprefix_+"_ll_lostHits"                );
+  produces<vector<int> >           (branchprefix+"llcharge"                ).setBranchAlias(aliasprefix_+"_ll_charge"                  );
+  produces<vector<int> >           (branchprefix+"llindex"                 ).setBranchAlias(aliasprefix_+"_ll_index"                   );
+  produces<vector<int> >           (branchprefix+"llid"                    ).setBranchAlias(aliasprefix_+"_ll_id"                      );
+  produces<vector<float> >         (branchprefix+"lld0"                    ).setBranchAlias(aliasprefix_+"_ll_d0"                      );
+  produces<vector<float> >         (branchprefix+"llz0"                    ).setBranchAlias(aliasprefix_+"_ll_z0"                      );
+  produces<vector<float> >         (branchprefix+"lld0corr"                ).setBranchAlias(aliasprefix_+"_ll_d0corr"                  );
+  produces<vector<float> >         (branchprefix+"llz0corr"                ).setBranchAlias(aliasprefix_+"_ll_z0corr"                  );
+  produces<vector<float> >         (branchprefix+"llchi2"                  ).setBranchAlias(aliasprefix_+"_ll_chi2"                    );
+  produces<vector<float> >         (branchprefix+"llndof"                  ).setBranchAlias(aliasprefix_+"_ll_ndof"                    );
+  produces<vector<float> >         (branchprefix+"lld0Err"                 ).setBranchAlias(aliasprefix_+"_ll_d0Err"                   );
+  produces<vector<float> >         (branchprefix+"llz0Err"                 ).setBranchAlias(aliasprefix_+"_ll_z0Err"                   );
+  produces<vector<float> >         (branchprefix+"llptErr"                 ).setBranchAlias(aliasprefix_+"_ll_ptErr"                   );
+  produces<vector<float> >         (branchprefix+"lletaErr"                ).setBranchAlias(aliasprefix_+"_ll_etaErr"                  );
+  produces<vector<float> >         (branchprefix+"llphiErr"                ).setBranchAlias(aliasprefix_+"_ll_phiErr"                  );
+  produces<vector<LorentzVector > >(branchprefix+"llp4"                    ).setBranchAlias(aliasprefix_+"_ll_p4"                      );
+  produces<vector<LorentzVector > >(branchprefix+"lltrkp4"                 ).setBranchAlias(aliasprefix_+"_ll_trk_p4"                  );
   
-  produces<vector<float> >         ("hypltdPhiunCorrMet"         ).setBranchAlias("hyp_lt_dPhi_unCorrMet"          );
-  produces<vector<float> >         ("hyplldPhiunCorrMet"         ).setBranchAlias("hyp_ll_dPhi_unCorrMet"          );
-  produces<vector<float> >         ("hypltdPhimuCorrMet"         ).setBranchAlias("hyp_lt_dPhi_muCorrMet"          );
-  produces<vector<float> >         ("hyplldPhimuCorrMet"         ).setBranchAlias("hyp_ll_dPhi_muCorrMet"          );
-  produces<vector<float> >         ("hypltdPhitcMet"             ).setBranchAlias("hyp_lt_dPhi_tcMet"              );
-  produces<vector<float> >         ("hyplldPhitcMet"             ).setBranchAlias("hyp_ll_dPhi_tcMet"              );
-  produces<vector<float> >         ("hypltdPhimetMuonJESCorr"    ).setBranchAlias("hyp_lt_dPhi_metMuonJESCorr"     );
-  produces<vector<float> >         ("hyplldPhimetMuonJESCorr"    ).setBranchAlias("hyp_ll_dPhi_metMuonJESCorr"     );
+  produces<vector<float> >         (branchprefix+"ltdPhiunCorrMet"         ).setBranchAlias(aliasprefix_+"_lt_dPhi_unCorrMet"          );
+  produces<vector<float> >         (branchprefix+"lldPhiunCorrMet"         ).setBranchAlias(aliasprefix_+"_ll_dPhi_unCorrMet"          );
+  produces<vector<float> >         (branchprefix+"ltdPhimuCorrMet"         ).setBranchAlias(aliasprefix_+"_lt_dPhi_muCorrMet"          );
+  produces<vector<float> >         (branchprefix+"lldPhimuCorrMet"         ).setBranchAlias(aliasprefix_+"_ll_dPhi_muCorrMet"          );
+  produces<vector<float> >         (branchprefix+"ltdPhitcMet"             ).setBranchAlias(aliasprefix_+"_lt_dPhi_tcMet"              );
+  produces<vector<float> >         (branchprefix+"lldPhitcMet"             ).setBranchAlias(aliasprefix_+"_ll_dPhi_tcMet"              );
+  produces<vector<float> >         (branchprefix+"ltdPhimetMuonJESCorr"    ).setBranchAlias(aliasprefix_+"_lt_dPhi_metMuonJESCorr"     );
+  produces<vector<float> >         (branchprefix+"lldPhimetMuonJESCorr"    ).setBranchAlias(aliasprefix_+"_ll_dPhi_metMuonJESCorr"     );
   
-  produces<vector<float> >         ("hypdPhinJetunCorrMet"       ).setBranchAlias("hyp_dPhi_nJet_unCorrMet"        );
-  produces<vector<float> >         ("hypdPhinJetmuCorrMet"       ).setBranchAlias("hyp_dPhi_nJet_muCorrMet"        );
-  produces<vector<float> >         ("hypdPhinJettcMet"           ).setBranchAlias("hyp_dPhi_nJet_tcMet"            );
-  produces<vector<float> >         ("hypdPhinJetmetMuonJESCorr"  ).setBranchAlias("hyp_dPhi_nJet_metMuonJESCorr"   );
+  produces<vector<float> >         (branchprefix+"dPhinJetunCorrMet"       ).setBranchAlias(aliasprefix_+"_dPhi_nJet_unCorrMet"        );
+  produces<vector<float> >         (branchprefix+"dPhinJetmuCorrMet"       ).setBranchAlias(aliasprefix_+"_dPhi_nJet_muCorrMet"        );
+  produces<vector<float> >         (branchprefix+"dPhinJettcMet"           ).setBranchAlias(aliasprefix_+"_dPhi_nJet_tcMet"            );
+  produces<vector<float> >         (branchprefix+"dPhinJetmetMuonJESCorr"  ).setBranchAlias(aliasprefix_+"_dPhi_nJet_metMuonJESCorr"   );
   
-  produces<vector<float> >         ("hypsumJetPt"                ).setBranchAlias("hyp_sumJetPt"                   );
-  produces<vector<float> >         ("hypHt"                      ).setBranchAlias("hyp_Ht"                         );
+  produces<vector<float> >         (branchprefix+"sumJetPt"                ).setBranchAlias(aliasprefix_+"_sumJetPt"                   );
+  produces<vector<float> >         (branchprefix+"Ht"                      ).setBranchAlias(aliasprefix_+"_Ht"                         );
   
   //mt2
-  produces<vector<float> >         ("hypmt2tcMet"                ).setBranchAlias("hyp_mt2_tcMet"                  );
-  produces<vector<float> >         ("hypmt2muCorrMet"            ).setBranchAlias("hyp_mt2_muCorrMet"              );
-  produces<vector<float> >         ("hypmt2metMuonJESCorr"       ).setBranchAlias("hyp_mt2_metMuonJESCorr"         );
+  produces<vector<float> >         (branchprefix+"mt2tcMet"                ).setBranchAlias(aliasprefix_+"_mt2_tcMet"                  );
+  produces<vector<float> >         (branchprefix+"mt2muCorrMet"            ).setBranchAlias(aliasprefix_+"_mt2_muCorrMet"              );
+  produces<vector<float> >         (branchprefix+"mt2metMuonJESCorr"       ).setBranchAlias(aliasprefix_+"_mt2_metMuonJESCorr"         );
   
   
 
-  produces<vector<vector<int> > >  ("hypjetsidx"                 ).setBranchAlias("hyp_jets_idx"                   );
-  produces<vector<vector<int> > >  ("hypotherjetsidx"            ).setBranchAlias("hyp_other_jets_idx"             );
+  produces<vector<vector<int> > >  (branchprefix+"jetsidx"                 ).setBranchAlias(aliasprefix_+"_jets_idx"                   );
+  produces<vector<vector<int> > >  (branchprefix+"otherjetsidx"            ).setBranchAlias(aliasprefix_+"_other_jets_idx"             );
   
-  produces<vector<vector<LorentzVector> > >  ("hypjetsp4"       ).setBranchAlias("hyp_jets_p4"                     );
-  produces<vector<vector<LorentzVector> > >  ("hypotherjetsp4"  ).setBranchAlias("hyp_other_jets_p4"               );
+  produces<vector<vector<LorentzVector> > >  (branchprefix+"jetsp4"       ).setBranchAlias(aliasprefix_+"_jets_p4"                     );
+  produces<vector<vector<LorentzVector> > >  (branchprefix+"otherjetsp4"  ).setBranchAlias(aliasprefix_+"_other_jets_p4"               );
 }
 
 
-HypDilepMaker::~HypDilepMaker()
-{
- 
-}
+HypDilepMaker::~HypDilepMaker() {}
 
 
 //
@@ -159,8 +159,7 @@ HypDilepMaker::~HypDilepMaker()
 //
 
 // ------------ method called to produce the data  ------------
-void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
-{
+void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 
   // output collections
   auto_ptr<vector<int> >           hyp_type                    (new vector<int>             );
@@ -1371,75 +1370,78 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup)
     }
   }
 
-  iEvent.put(hyp_type                     ,"hyptype"                     );
-  iEvent.put(hyp_njets                    ,"hypnjets"                    );
-  iEvent.put(hyp_nojets                   ,"hypnojets"                   );
-  iEvent.put(hyp_p4                      ,"hypp4"                        );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(hyp_type                     ,branchprefix+"type"                     );
+  iEvent.put(hyp_njets                    ,branchprefix+"njets"                    );
+  iEvent.put(hyp_nojets                   ,branchprefix+"nojets"                   );
+  iEvent.put(hyp_p4                      ,branchprefix+"p4"                        );
  
-  iEvent.put(hyp_lt_validHits             ,"hypltvalidHits"              );
-  iEvent.put(hyp_lt_lostHits              ,"hypltlostHits"               );
-  iEvent.put(hyp_lt_charge                ,"hypltcharge"                 );
-  iEvent.put(hyp_lt_index                 ,"hypltindex"                  );
-  iEvent.put(hyp_lt_id                    ,"hypltid"                     );
-  iEvent.put(hyp_lt_d0                    ,"hypltd0"                     );
-  iEvent.put(hyp_lt_z0                    ,"hypltz0"                     );
-  iEvent.put(hyp_lt_d0corr                ,"hypltd0corr"                 );
-  iEvent.put(hyp_lt_z0corr                ,"hypltz0corr"                 );
-  iEvent.put(hyp_lt_chi2                  ,"hypltchi2"                   );
-  iEvent.put(hyp_lt_ndof                  ,"hypltndof"                   );
-  iEvent.put(hyp_lt_d0Err                 ,"hypltd0Err"                  );
-  iEvent.put(hyp_lt_z0Err                 ,"hypltz0Err"                  );
-  iEvent.put(hyp_lt_ptErr                 ,"hypltptErr"                  );
-  iEvent.put(hyp_lt_etaErr                ,"hypltetaErr"                 );
-  iEvent.put(hyp_lt_phiErr                ,"hypltphiErr"                 );
-  iEvent.put(hyp_lt_p4                    ,"hypltp4"                     );
-  iEvent.put(hyp_lt_trk_p4                ,"hyplttrkp4"                  );
+  iEvent.put(hyp_lt_validHits             ,branchprefix+"ltvalidHits"              );
+  iEvent.put(hyp_lt_lostHits              ,branchprefix+"ltlostHits"               );
+  iEvent.put(hyp_lt_charge                ,branchprefix+"ltcharge"                 );
+  iEvent.put(hyp_lt_index                 ,branchprefix+"ltindex"                  );
+  iEvent.put(hyp_lt_id                    ,branchprefix+"ltid"                     );
+  iEvent.put(hyp_lt_d0                    ,branchprefix+"ltd0"                     );
+  iEvent.put(hyp_lt_z0                    ,branchprefix+"ltz0"                     );
+  iEvent.put(hyp_lt_d0corr                ,branchprefix+"ltd0corr"                 );
+  iEvent.put(hyp_lt_z0corr                ,branchprefix+"ltz0corr"                 );
+  iEvent.put(hyp_lt_chi2                  ,branchprefix+"ltchi2"                   );
+  iEvent.put(hyp_lt_ndof                  ,branchprefix+"ltndof"                   );
+  iEvent.put(hyp_lt_d0Err                 ,branchprefix+"ltd0Err"                  );
+  iEvent.put(hyp_lt_z0Err                 ,branchprefix+"ltz0Err"                  );
+  iEvent.put(hyp_lt_ptErr                 ,branchprefix+"ltptErr"                  );
+  iEvent.put(hyp_lt_etaErr                ,branchprefix+"ltetaErr"                 );
+  iEvent.put(hyp_lt_phiErr                ,branchprefix+"ltphiErr"                 );
+  iEvent.put(hyp_lt_p4                    ,branchprefix+"ltp4"                     );
+  iEvent.put(hyp_lt_trk_p4                ,branchprefix+"lttrkp4"                  );
   
-  iEvent.put(hyp_ll_validHits             ,"hypllvalidHits"              );
-  iEvent.put(hyp_ll_lostHits              ,"hyplllostHits"               );
-  iEvent.put(hyp_ll_charge                ,"hypllcharge"                 );
-  iEvent.put(hyp_ll_index                 ,"hypllindex"                  );
-  iEvent.put(hyp_ll_id                    ,"hypllid"                     );
-  iEvent.put(hyp_ll_d0                    ,"hyplld0"                     );
-  iEvent.put(hyp_ll_z0                    ,"hypllz0"                     );
-  iEvent.put(hyp_ll_d0corr                ,"hyplld0corr"                 );
-  iEvent.put(hyp_ll_z0corr                ,"hypllz0corr"                 );
-  iEvent.put(hyp_ll_chi2                  ,"hypllchi2"                   );
-  iEvent.put(hyp_ll_ndof                  ,"hypllndof"                   );
-  iEvent.put(hyp_ll_d0Err                 ,"hyplld0Err"                  );
-  iEvent.put(hyp_ll_z0Err                 ,"hypllz0Err"                  );
-  iEvent.put(hyp_ll_ptErr                 ,"hypllptErr"                  );
-  iEvent.put(hyp_ll_etaErr                ,"hyplletaErr"                 );
-  iEvent.put(hyp_ll_phiErr                ,"hypllphiErr"                 );
-  iEvent.put(hyp_ll_p4                    ,"hypllp4"                     );
-  iEvent.put(hyp_ll_trk_p4                ,"hyplltrkp4"                  );
+  iEvent.put(hyp_ll_validHits             ,branchprefix+"llvalidHits"              );
+  iEvent.put(hyp_ll_lostHits              ,branchprefix+"lllostHits"               );
+  iEvent.put(hyp_ll_charge                ,branchprefix+"llcharge"                 );
+  iEvent.put(hyp_ll_index                 ,branchprefix+"llindex"                  );
+  iEvent.put(hyp_ll_id                    ,branchprefix+"llid"                     );
+  iEvent.put(hyp_ll_d0                    ,branchprefix+"lld0"                     );
+  iEvent.put(hyp_ll_z0                    ,branchprefix+"llz0"                     );
+  iEvent.put(hyp_ll_d0corr                ,branchprefix+"lld0corr"                 );
+  iEvent.put(hyp_ll_z0corr                ,branchprefix+"llz0corr"                 );
+  iEvent.put(hyp_ll_chi2                  ,branchprefix+"llchi2"                   );
+  iEvent.put(hyp_ll_ndof                  ,branchprefix+"llndof"                   );
+  iEvent.put(hyp_ll_d0Err                 ,branchprefix+"lld0Err"                  );
+  iEvent.put(hyp_ll_z0Err                 ,branchprefix+"llz0Err"                  );
+  iEvent.put(hyp_ll_ptErr                 ,branchprefix+"llptErr"                  );
+  iEvent.put(hyp_ll_etaErr                ,branchprefix+"lletaErr"                 );
+  iEvent.put(hyp_ll_phiErr                ,branchprefix+"llphiErr"                 );
+  iEvent.put(hyp_ll_p4                    ,branchprefix+"llp4"                     );
+  iEvent.put(hyp_ll_trk_p4                ,branchprefix+"lltrkp4"                  );
   
-  iEvent.put(hyp_lt_dPhi_unCorrMet        ,"hypltdPhiunCorrMet"          );
-  iEvent.put(hyp_ll_dPhi_unCorrMet        ,"hyplldPhiunCorrMet"          );
-  iEvent.put(hyp_lt_dPhi_muCorrMet        ,"hypltdPhimuCorrMet"          );
-  iEvent.put(hyp_ll_dPhi_muCorrMet        ,"hyplldPhimuCorrMet"          );
-  iEvent.put(hyp_lt_dPhi_tcMet            ,"hypltdPhitcMet"              );
-  iEvent.put(hyp_ll_dPhi_tcMet            ,"hyplldPhitcMet"              );
-  iEvent.put(hyp_lt_dPhi_metMuonJESCorr    ,"hypltdPhimetMuonJESCorr"    );
-  iEvent.put(hyp_ll_dPhi_metMuonJESCorr    ,"hyplldPhimetMuonJESCorr"    );
+  iEvent.put(hyp_lt_dPhi_unCorrMet        ,branchprefix+"ltdPhiunCorrMet"          );
+  iEvent.put(hyp_ll_dPhi_unCorrMet        ,branchprefix+"lldPhiunCorrMet"          );
+  iEvent.put(hyp_lt_dPhi_muCorrMet        ,branchprefix+"ltdPhimuCorrMet"          );
+  iEvent.put(hyp_ll_dPhi_muCorrMet        ,branchprefix+"lldPhimuCorrMet"          );
+  iEvent.put(hyp_lt_dPhi_tcMet            ,branchprefix+"ltdPhitcMet"              );
+  iEvent.put(hyp_ll_dPhi_tcMet            ,branchprefix+"lldPhitcMet"              );
+  iEvent.put(hyp_lt_dPhi_metMuonJESCorr    ,branchprefix+"ltdPhimetMuonJESCorr"    );
+  iEvent.put(hyp_ll_dPhi_metMuonJESCorr    ,branchprefix+"lldPhimetMuonJESCorr"    );
   
-  iEvent.put(hyp_dPhi_nJet_unCorrMet      ,"hypdPhinJetunCorrMet"        );
-  iEvent.put(hyp_dPhi_nJet_muCorrMet      ,"hypdPhinJetmuCorrMet"        );
-  iEvent.put(hyp_dPhi_nJet_tcMet          ,"hypdPhinJettcMet"            );
-  iEvent.put(hyp_dPhi_nJet_metMuonJESCorr ,"hypdPhinJetmetMuonJESCorr"   );
+  iEvent.put(hyp_dPhi_nJet_unCorrMet      ,branchprefix+"dPhinJetunCorrMet"        );
+  iEvent.put(hyp_dPhi_nJet_muCorrMet      ,branchprefix+"dPhinJetmuCorrMet"        );
+  iEvent.put(hyp_dPhi_nJet_tcMet          ,branchprefix+"dPhinJettcMet"            );
+  iEvent.put(hyp_dPhi_nJet_metMuonJESCorr ,branchprefix+"dPhinJetmetMuonJESCorr"   );
   
-  iEvent.put(hyp_sumJetPt                 ,"hypsumJetPt"                 );
-  iEvent.put(hyp_Ht                       ,"hypHt"                       );
+  iEvent.put(hyp_sumJetPt                 ,branchprefix+"sumJetPt"                 );
+  iEvent.put(hyp_Ht                       ,branchprefix+"Ht"                       );
 
-  iEvent.put(hyp_mt2_tcMet                ,"hypmt2tcMet"                 );
-  iEvent.put(hyp_mt2_muCorrMet            ,"hypmt2muCorrMet"             );
-  iEvent.put(hyp_mt2_metMuonJESCorr       ,"hypmt2metMuonJESCorr"        );
+  iEvent.put(hyp_mt2_tcMet                ,branchprefix+"mt2tcMet"                 );
+  iEvent.put(hyp_mt2_muCorrMet            ,branchprefix+"mt2muCorrMet"             );
+  iEvent.put(hyp_mt2_metMuonJESCorr       ,branchprefix+"mt2metMuonJESCorr"        );
 
   
-  iEvent.put(hyp_jets_idx                 ,"hypjetsidx"                  );
-  iEvent.put(hyp_other_jets_idx           ,"hypotherjetsidx"             );
-  iEvent.put(hyp_jets_p4                  ,"hypjetsp4"                   );         
-  iEvent.put(hyp_other_jets_p4            ,"hypotherjetsp4"              );       
+  iEvent.put(hyp_jets_idx                 ,branchprefix+"jetsidx"                  );
+  iEvent.put(hyp_other_jets_idx           ,branchprefix+"otherjetsidx"             );
+  iEvent.put(hyp_jets_p4                  ,branchprefix+"jetsp4"                   );         
+  iEvent.put(hyp_other_jets_p4            ,branchprefix+"otherjetsp4"              );       
 }
 
 // ------------ method called once each job just before starting event loop  ------------

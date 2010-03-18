@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.13 2010/03/02 19:36:08 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.14 2010/03/18 02:13:00 kalavase Exp $
 //
 //
 
@@ -51,29 +51,31 @@ bool sortJptsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
 // constructors and destructor
 //
 
-JPTMaker::JPTMaker(const edm::ParameterSet& iConfig)
-{
+JPTMaker::JPTMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // product of this EDProducer
   produces<unsigned int>                ("evtnjpts"      ).setBranchAlias("evt_njpts"      );
-  produces<std::vector<LorentzVector> >	("jptsp4"        ).setBranchAlias("jpts_p4"        );
-  produces<std::vector<float> >	        ("jptsemFrac"    ).setBranchAlias("jpts_emFrac"    );
+  produces<std::vector<LorentzVector> >	(branchprefix+"p4"        ).setBranchAlias(aliasprefix_+"_p4"        );
+  produces<std::vector<float> >	        (branchprefix+"emFrac"    ).setBranchAlias(aliasprefix_+"_emFrac"    );
 
   // parameters from configuration
   jptsInputTag      = iConfig.getParameter<edm::InputTag>("jptInputTag"       );
 
 }
 
-JPTMaker::~JPTMaker()
-{
-}
+JPTMaker::~JPTMaker() {}
 
 //
 // member functions
 //
 
 // ------------ method called to produce the data  ------------
-void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
   std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int               );
   std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector> );
   std::auto_ptr<std::vector<float> >         vector_jpts_emFrac (new std::vector<float>         );
@@ -100,9 +102,12 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   // put containers into event
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   iEvent.put(evt_njpts          , "evtnjpts"  );
-  iEvent.put(vector_jpts_p4     , "jptsp4"    );
-  iEvent.put(vector_jpts_emFrac , "jptsemFrac");
+  iEvent.put(vector_jpts_p4     , branchprefix+"p4"    );
+  iEvent.put(vector_jpts_emFrac , branchprefix+"emFrac");
 
 }
 

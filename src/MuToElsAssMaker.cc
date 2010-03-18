@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuToElsAssMaker.cc,v 1.6 2010/03/03 04:23:58 kalavase Exp $
+// $Id: MuToElsAssMaker.cc,v 1.7 2010/03/18 02:13:08 kalavase Exp $
 //
 //
 
@@ -40,8 +40,12 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 MuToElsAssMaker::MuToElsAssMaker(const edm::ParameterSet& iConfig) {
-     produces<vector<int>   >("musclosestEle").setBranchAlias("mus_closestEle");	// muon matched to electron
-     produces<vector<float> >("museledr"     ).setBranchAlias("mus_eledr"     );
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+     produces<vector<int>   >(branchprefix+"closestEle").setBranchAlias(aliasprefix_+"_closestEle");	// muon matched to electron
+     produces<vector<float> >(branchprefix+"eledr"     ).setBranchAlias(aliasprefix_+"_eledr"     );
      
      m_minDR       =  iConfig.getParameter<double>("minDR");
      musInputTag_  =  iConfig.getParameter<edm::InputTag>("musInputTag");
@@ -95,8 +99,11 @@ void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      // store vectors
-     iEvent.put(vector_mus_closestEle, "musclosestEle");
-     iEvent.put(vector_mus_eledr     , "museledr"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_mus_closestEle, branchprefix+"closestEle");
+     iEvent.put(vector_mus_eledr     , branchprefix+"eledr"     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

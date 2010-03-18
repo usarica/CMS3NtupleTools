@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.cc,v 1.4 2009/08/27 22:08:29 warren Exp $
+// $Id: ElCaloIsoMaker.cc,v 1.5 2010/03/18 02:11:56 kalavase Exp $
 
 // system include files
 #include <memory>
@@ -20,11 +20,15 @@
 #include "DataFormats/CaloTowers/interface/CaloTower.h"
 #include "CMS2/NtupleMaker/interface/ElCaloIsoMaker.h"
 
-ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig)
-{
-   produces<std::vector<float> >  ("elsecalJuraIso").setBranchAlias("els_ecalJuraIso");
-   produces<std::vector<float> >  ("elsecalJuraTowerIso").setBranchAlias("els_ecalJuraTowerIso");
-   produces<std::vector<float> >  ("elshcalConeIso").setBranchAlias("els_hcalConeIso");
+ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+   produces<std::vector<float> >  (branchprefix+"ecalJuraIso").setBranchAlias(aliasprefix_+"_ecalJuraIso");
+   produces<std::vector<float> >  (branchprefix+"ecalJuraTowerIso").setBranchAlias(aliasprefix_+"_ecalJuraTowerIso");
+   produces<std::vector<float> >  (branchprefix+"hcalConeIso").setBranchAlias(aliasprefix_+"_hcalConeIso");
    m_electronsInputTag =    iConfig.getParameter<edm::InputTag>("electronsInputTag");
    m_basicClusterInputTag = iConfig.getParameter<edm::InputTag>("basicClusterInputTag");
    m_caloTowersInputTag   = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
@@ -34,22 +38,17 @@ ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig)
 }
 
 
-ElCaloIsoMaker::~ElCaloIsoMaker()
-{
-}
+ElCaloIsoMaker::~ElCaloIsoMaker() {}
 
-void
-ElCaloIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElCaloIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
    produceEcalIso(iEvent,iSetup);
    produceEcalTowerIso(iEvent,iSetup);
    produceHcalIso(iEvent,iSetup);
 }
 
 
-void
-ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
    
    edm::Handle<edm::View<reco::GsfElectron> > electron_h;
@@ -58,6 +57,10 @@ ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
    edm::Handle<reco::BasicClusterCollection> basicClusterHandle;
    iEvent.getByLabel(m_basicClusterInputTag, basicClusterHandle);
    
+ std::string branchprefix = aliasprefix_;
+   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+   
+
    for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
       math::XYZPoint positionAtEcal = electron->caloPosition();
@@ -75,12 +78,12 @@ ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
       els_juraIso->push_back( juraIso );
    }
-   iEvent.put(els_juraIso, "elsecalJuraIso");
+   
+   iEvent.put(els_juraIso, branchprefix+"ecalJuraIso");
 }
 
-void
-ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
    std::auto_ptr<std::vector<float> >  els_hcalIso( new std::vector<float> ) ;
    
    edm::Handle<edm::View<reco::GsfElectron> > electron_h;
@@ -88,6 +91,9 @@ ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
    
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
+   
+   std::string branchprefix = aliasprefix_;
+   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
    
    for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
@@ -104,12 +110,10 @@ ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
       els_hcalIso->push_back( hcalIso );
    }
-   iEvent.put(els_hcalIso, "elshcalConeIso");
+   iEvent.put(els_hcalIso, branchprefix+"hcalConeIso");
 }
 
-void
-ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
    
    edm::Handle<edm::View<reco::GsfElectron> > electron_h;
@@ -118,6 +122,9 @@ ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& i
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
    
+   std::string branchprefix = aliasprefix_;
+   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
    for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
       math::XYZPoint positionAtEcal = electron->caloPosition();
@@ -135,7 +142,7 @@ ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& i
 	}
       els_juraIso->push_back( juraIso );
    }
-   iEvent.put(els_juraIso, "elsecalJuraTowerIso");
+   iEvent.put(els_juraIso, branchprefix+"ecalJuraTowerIso");
 }
 
 //define this as a plug-in

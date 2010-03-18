@@ -45,11 +45,15 @@ using namespace std;
 
 PDFInfoMaker::PDFInfoMaker(const edm::ParameterSet& iConfig) {
 
-  produces<float> ("pdfinfox1"    ).setBranchAlias("pdfinfo_x1"   );
-  produces<float> ("pdfinfox2"    ).setBranchAlias("pdfinfo_x2"   );
-  produces<float> ("pdfinfoscale" ).setBranchAlias("pdfinfo_scale");
-  produces<int>   ("pdfinfoid1"   ).setBranchAlias("pdfinfo_id1"  );
-  produces<int>   ("pdfinfoid2"   ).setBranchAlias("pdfinfo_id2"  );  
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  produces<float> (branchprefix+"x1"    ).setBranchAlias(aliasprefix_+"_x1"   );
+  produces<float> (branchprefix+"x2"    ).setBranchAlias(aliasprefix_+"_x2"   );
+  produces<float> (branchprefix+"scale" ).setBranchAlias(aliasprefix_+"_scale");
+  produces<int>   (branchprefix+"id1"   ).setBranchAlias(aliasprefix_+"_id1"  );
+  produces<int>   (branchprefix+"id2"   ).setBranchAlias(aliasprefix_+"_id2"  );  
 }
 
 PDFInfoMaker::~PDFInfoMaker()
@@ -99,11 +103,14 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *pdfinfo_id1   = pdfInfo->id1();
   *pdfinfo_id2   = pdfInfo->id2();
   
-  iEvent.put(pdfinfo_x1   ,"pdfinfox1"    );
-  iEvent.put(pdfinfo_x2   ,"pdfinfox2"    );
-  iEvent.put(pdfinfo_scale,"pdfinfoscale" );
-  iEvent.put(pdfinfo_id1  ,"pdfinfoid1"   );
-  iEvent.put(pdfinfo_id2  ,"pdfinfoid2"   );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(pdfinfo_x1   ,branchprefix+"x1"    );
+  iEvent.put(pdfinfo_x2   ,branchprefix+"x2"    );
+  iEvent.put(pdfinfo_scale,branchprefix+"scale" );
+  iEvent.put(pdfinfo_id1  ,branchprefix+"id1"   );
+  iEvent.put(pdfinfo_id2  ,branchprefix+"id2"   );
 
 }
 

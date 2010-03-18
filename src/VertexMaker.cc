@@ -39,21 +39,24 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 //
 // constructors and destructor
 //
-VertexMaker::VertexMaker(const edm::ParameterSet& iConfig)
-{
+VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   produces<unsigned int>                      ("evtnvtxs"              ).setBranchAlias("evt_nvtxs"              );  // number of vertices in event
-  produces<std::vector<LorentzVector> >       ("vtxsposition"          ).setBranchAlias("vtxs_position"          );  // position of vertices and associated errors
-  produces<std::vector<float> >               ("vtxsxError"            ).setBranchAlias("vtxs_xError"            );
-  produces<std::vector<float> >               ("vtxsyError"            ).setBranchAlias("vtxs_yError"            );
-  produces<std::vector<float> >               ("vtxszError"            ).setBranchAlias("vtxs_zError"            );
-  produces<std::vector<float> >               ("vtxschi2"              ).setBranchAlias("vtxs_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
-  produces<std::vector<float> >               ("vtxsndof"              ).setBranchAlias("vtxs_ndof"              );
-  produces<std::vector<float> >               ("vtxssumpt"             ).setBranchAlias("vtxs_sumpt"             );   // scalar pt sum of the tracks in the vertex
-  produces<std::vector<int>   >               ("vtxsisFake"            ).setBranchAlias("vtxs_isFake"            );
-  produces<std::vector<int>   >               ("vtxsisValid"           ).setBranchAlias("vtxs_isValid"           );
-  produces<std::vector<int>   >               ("vtxstracksSize"        ).setBranchAlias("vtxs_tracksSize"        );
-  produces<std::vector<std::vector<float > > >("vtxscovMatrix"         ).setBranchAlias("vtxs_covMatrix"         );
+  produces<std::vector<LorentzVector> >       (branchprefix+"position"          ).setBranchAlias(aliasprefix_+"_position"          );  // position of vertices and associated errors
+  produces<std::vector<float> >               (branchprefix+"xError"            ).setBranchAlias(aliasprefix_+"_xError"            );
+  produces<std::vector<float> >               (branchprefix+"yError"            ).setBranchAlias(aliasprefix_+"_yError"            );
+  produces<std::vector<float> >               (branchprefix+"zError"            ).setBranchAlias(aliasprefix_+"_zError"            );
+  produces<std::vector<float> >               (branchprefix+"chi2"              ).setBranchAlias(aliasprefix_+"_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
+  produces<std::vector<float> >               (branchprefix+"ndof"              ).setBranchAlias(aliasprefix_+"_ndof"              );
+  produces<std::vector<float> >               (branchprefix+"sumpt"             ).setBranchAlias(aliasprefix_+"_sumpt"             );   // scalar pt sum of the tracks in the vertex
+  produces<std::vector<int>   >               (branchprefix+"isFake"            ).setBranchAlias(aliasprefix_+"_isFake"            );
+  produces<std::vector<int>   >               (branchprefix+"isValid"           ).setBranchAlias(aliasprefix_+"_isValid"           );
+  produces<std::vector<int>   >               (branchprefix+"tracksSize"        ).setBranchAlias(aliasprefix_+"_tracksSize"        );
+  produces<std::vector<std::vector<float > > >(branchprefix+"covMatrix"         ).setBranchAlias(aliasprefix_+"_covMatrix"         );
 
   // vertex collection input tag
   primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
@@ -119,18 +122,21 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   // store into the event
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   iEvent.put(evt_nvtxs,                     "evtnvtxs"              );
-  iEvent.put(vector_vtxs_position,          "vtxsposition"          );
-  iEvent.put(vector_vtxs_xError,            "vtxsxError"            );
-  iEvent.put(vector_vtxs_yError,            "vtxsyError"            );
-  iEvent.put(vector_vtxs_zError,            "vtxszError"            );
-  iEvent.put(vector_vtxs_chi2,              "vtxschi2"              );
-  iEvent.put(vector_vtxs_ndof,              "vtxsndof"              );
-  iEvent.put(vector_vtxs_sumpt,		    "vtxssumpt"		    );
-  iEvent.put(vector_vtxs_isFake,            "vtxsisFake"            );
-  iEvent.put(vector_vtxs_isValid,           "vtxsisValid"           );
-  iEvent.put(vector_vtxs_tracksSize,        "vtxstracksSize"        );
-  iEvent.put(vector_vtxs_covMatrix,         "vtxscovMatrix"         );
+  iEvent.put(vector_vtxs_position,          branchprefix+"position"          );
+  iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
+  iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
+  iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
+  iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
+  iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
+  iEvent.put(vector_vtxs_sumpt,		    branchprefix+"sumpt"		    );
+  iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
+  iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );
+  iEvent.put(vector_vtxs_tracksSize,        branchprefix+"tracksSize"        );
+  iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

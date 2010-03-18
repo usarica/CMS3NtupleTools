@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToMuAssMaker.cc,v 1.6 2010/03/03 04:23:54 kalavase Exp $
+// $Id: JetToMuAssMaker.cc,v 1.7 2010/03/18 02:13:04 kalavase Exp $
 //
 //
 
@@ -38,8 +38,12 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 JetToMuAssMaker::JetToMuAssMaker(const edm::ParameterSet& iConfig) {
-     produces<vector<int> >("jetsclosestMuon").setBranchAlias("jets_closestMuon");	// muon closest to jet
-     produces<vector<double> >("jetsclosestMuonDR").setBranchAlias("jets_closestMuon_DR");	// Delta R of muon closest to jet
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+     produces<vector<int> >(branchprefix+"closestMuon").setBranchAlias(aliasprefix_+"_closestMuon");	// muon closest to jet
+     produces<vector<double> >(branchprefix+"closestMuonDR").setBranchAlias(aliasprefix_+"_closestMuon_DR");	// Delta R of muon closest to jet
 
      m_minDR_       = iConfig.getParameter<double>("minDR"                 );
      jetsInputTag_  = iConfig.getParameter<edm::InputTag>("jetsInputTag"   );
@@ -88,8 +92,11 @@ void JetToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        vector_jets_closestMuon_DR->push_back(minDR);
      }
      // store vectors
-     iEvent.put(vector_jets_closestMuon, "jetsclosestMuon");
-     iEvent.put(vector_jets_closestMuon_DR, "jetsclosestMuonDR");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_jets_closestMuon, branchprefix+"closestMuon");
+     iEvent.put(vector_jets_closestMuon_DR, branchprefix+"closestMuonDR");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

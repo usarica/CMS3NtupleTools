@@ -45,46 +45,50 @@ typedef math::XYZPoint Point;
 //
 // constructors and destructor
 //
-CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
-{
+CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
 	// number of towers in the event
 	produces<unsigned int>("evtntwrs").setBranchAlias("evt_ntwrs");
 
-	produces<std::vector<float> >("twrseta").setBranchAlias("twrs_eta");
-	produces<std::vector<float> >("twrsphi").setBranchAlias("twrs_phi");
-	produces<std::vector<uint32_t> >("twrsdetid").setBranchAlias("twrs_detid");
+	produces<std::vector<float> >(branchprefix+"eta").setBranchAlias(aliasprefix_+"_eta");
+	produces<std::vector<float> >(branchprefix+"phi").setBranchAlias(aliasprefix_+"_phi");
+	produces<std::vector<uint32_t> >(branchprefix+"detid").setBranchAlias(aliasprefix_+"_detid");
 
 	// energy contributions from different detectors
 	// energy in HO ("outerEnergy")is not included in "hadEnergy"
 	//   double emEnergy() const { return emE_ ; }
-	produces<std::vector<float> >("twrsemEnergy").setBranchAlias("twrs_emEnergy");
+	produces<std::vector<float> >(branchprefix+"emEnergy").setBranchAlias(aliasprefix_+"_emEnergy");
 	//   double hadEnergy() const { return hadE_ ; }
-	produces<std::vector<float> >("twrshadEnergy").setBranchAlias("twrs_hadEnergy");
+	produces<std::vector<float> >(branchprefix+"hadEnergy").setBranchAlias(aliasprefix_+"_hadEnergy");
 	//   double outerEnergy() const { return (id_.ietaAbs()<16)? outerE_ : 0.0; }
-	produces<std::vector<float> >("twrsouterEnergy").setBranchAlias("twrs_outerEnergy");
+	produces<std::vector<float> >(branchprefix+"outerEnergy").setBranchAlias(aliasprefix_+"_outerEnergy");
 
 	// transverse energies wrt to vtx (0,0,0)
 	//   double emEt() const { return emE_ * sin( theta() ); }
-	produces<std::vector<float> >("twrsemEt").setBranchAlias("twrs_emEt");
+	produces<std::vector<float> >(branchprefix+"emEt").setBranchAlias(aliasprefix_+"_emEt");
 	//   double hadEt() const { return hadE_ * sin( theta() ); }
-	produces<std::vector<float> >("twrshadEt").setBranchAlias("twrs_hadEt");
+	produces<std::vector<float> >(branchprefix+"hadEt").setBranchAlias(aliasprefix_+"_hadEt");
 	//   double outerEt() const { return (id_.ietaAbs()<16)? outerE_ * sin( theta() ) : 0.0; }
-	produces<std::vector<float> >("twrsouterEt").setBranchAlias("twrs_outerEt");
+	produces<std::vector<float> >(branchprefix+"outerEt").setBranchAlias(aliasprefix_+"_outerEt");
 
 	// recalculated wrt vertex provided as 3D point
 	//   math::PtEtaPhiMLorentzVector p4(Point v) const;
 	//   double p (Point v) const { return p4(v).P(); }
-	produces<std::vector<float> >("twrspcorr").setBranchAlias("twrs_pcorr");
+	produces<std::vector<float> >(branchprefix+"pcorr").setBranchAlias(aliasprefix_+"_pcorr");
 	//   double et(Point v) const { return p4(v).Et(); }
-	produces<std::vector<float> >("twrsetcorr").setBranchAlias("twrs_etcorr");
+	produces<std::vector<float> >(branchprefix+"etcorr").setBranchAlias(aliasprefix_+"_etcorr");
 	//   double emEt(Point v)  const { return  emE_ * sin(p4(v).theta()); }
-	produces<std::vector<float> >("twrsemEtcorr").setBranchAlias("twrs_emEtcorr");
+	produces<std::vector<float> >(branchprefix+"emEtcorr").setBranchAlias(aliasprefix_+"_emEtcorr");
 	//   double hadEt(Point v) const { return  hadE_ * sin(p4(v).theta()); }
-	produces<std::vector<float> >("twrshadEtcorr").setBranchAlias("twrs_hadEtcorr");
+	produces<std::vector<float> >(branchprefix+"hadEtcorr").setBranchAlias(aliasprefix_+"_hadEtcorr");
 	//   double outerEt(Point v) const { return (id_.ietaAbs()<16)? outerE_ * sin(p4(v).theta()) : 0.0; }
-	produces<std::vector<float> >("twrsouterEtcorr").setBranchAlias("twrs_outerEtcorr");
-	produces<std::vector<float> >("twrsetacorr").setBranchAlias("twrs_etacorr");
-	produces<std::vector<float> >("twrsphicorr").setBranchAlias("twrs_phicorr");
+	produces<std::vector<float> >(branchprefix+"outerEtcorr").setBranchAlias(aliasprefix_+"_outerEtcorr");
+	produces<std::vector<float> >(branchprefix+"etacorr").setBranchAlias(aliasprefix_+"_etacorr");
+	produces<std::vector<float> >(branchprefix+"phicorr").setBranchAlias(aliasprefix_+"_phicorr");
 
 
 	//    // the reference poins in ECAL and HCAL for direction determination
@@ -94,45 +98,45 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig)
 
 	// time (ns) in ECAL/HCAL components of the tower based on weigted sum of the times in the contributing RecHits
 	//   float ecalTime() const { return float(ecalTime_) * 0.01; }
-	produces<std::vector<float> >("twrsecalTime").setBranchAlias("twrs_ecalTime");
+	produces<std::vector<float> >(branchprefix+"ecalTime").setBranchAlias(aliasprefix_+"_ecalTime");
 	//   float hcalTime() const { return float(hcalTime_) * 0.01; }
-	produces<std::vector<float> >("twrshcalTime").setBranchAlias("twrs_hcalTime");
+	produces<std::vector<float> >(branchprefix+"hcalTime").setBranchAlias(aliasprefix_+"_hcalTime");
 
 	// methods to retrieve status information from the CaloTower:
 	// number of bad/recovered/problematic cells in the tower
 	// separately for ECAL and HCAL
 	//  uint numBadEcalCells() const { return (twrStatusWord_ & 0x1F); }
-	produces<std::vector<unsigned int> >("twrsnumBadEcalCells").setBranchAlias("twrs_numBadEcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numBadEcalCells").setBranchAlias(aliasprefix_+"_numBadEcalCells");
 	//  uint numRecoveredEcalCells() const { return ((twrStatusWord_ >> 5) & 0x1F); }
-	produces<std::vector<unsigned int> >("twrsnumRecoveredEcalCells").setBranchAlias("twrs_numRecoveredEcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numRecoveredEcalCells").setBranchAlias(aliasprefix_+"_numRecoveredEcalCells");
 	//  uint numProblematicEcalCells() const { return ((twrStatusWord_ >> 10) & 0x1F); }
-	produces<std::vector<unsigned int> >("twrsnumProblematicEcalCells").setBranchAlias("twrs_numProblematicEcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numProblematicEcalCells").setBranchAlias(aliasprefix_+"_numProblematicEcalCells");
 
 	//  uint numBadHcalCells() const { return ( (twrStatusWord_ >> 15)& 0x7); }
-	produces<std::vector<unsigned int> >("twrsnumBadHcalCells").setBranchAlias("twrs_numBadHcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numBadHcalCells").setBranchAlias(aliasprefix_+"_numBadHcalCells");
 	//  uint numRecoveredHcalCells() const { return ((twrStatusWord_ >> 18) & 0x7); }
-	produces<std::vector<unsigned int> >("twrsnumRecoveredHcalCells").setBranchAlias("twrs_numRecoveredHcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numRecoveredHcalCells").setBranchAlias(aliasprefix_+"_numRecoveredHcalCells");
 	//  uint numProblematicHcalCells() const { return ((twrStatusWord_ >> 21) & 0x7); }
-	produces<std::vector<unsigned int> >("twrsnumProblematicHcalCells").setBranchAlias("twrs_numProblematicHcalCells");
+	produces<std::vector<unsigned int> >(branchprefix+"numProblematicHcalCells").setBranchAlias(aliasprefix_+"_numProblematicHcalCells");
 
 	// chi2 prob
-        produces<std::vector<float> >("twrsemMaxChi2Prob").setBranchAlias("twrs_emMaxChi2Prob");
+        produces<std::vector<float> >(branchprefix+"emMaxChi2Prob").setBranchAlias(aliasprefix_+"_emMaxChi2Prob");
 	// vector of 10 samples per max crystal in the calo tower
-	produces<std::vector<std::vector<int> > >("twrsemMaxEcalMGPASampleADC").setBranchAlias("twrs_emMaxEcalMGPASampleADC");
+	produces<std::vector<std::vector<int> > >(branchprefix+"emMaxEcalMGPASampleADC").setBranchAlias(aliasprefix_+"_emMaxEcalMGPASampleADC");
 	// time of crystal with highest em energy
-	produces<std::vector<float> >("twrsemMaxTime").setBranchAlias("twrs_emMaxTime");
+	produces<std::vector<float> >(branchprefix+"emMaxTime").setBranchAlias(aliasprefix_+"_emMaxTime");
 	// the recoflag of the max energy crystal in the tower
-	produces<std::vector<int> >("twrsemMaxRecoFlag").setBranchAlias("twrs_emMaxRecoFlag");
+	produces<std::vector<int> >(branchprefix+"emMaxRecoFlag").setBranchAlias(aliasprefix_+"_emMaxRecoFlag");
 	// the energy of the max energy crystal in the tower
-	produces<std::vector<float> >("twrsemMax").setBranchAlias("twrs_emMax");
+	produces<std::vector<float> >(branchprefix+"emMax").setBranchAlias(aliasprefix_+"_emMax");
 	// the energy in 3x3 crystals centred on the max energy crystal
-	produces<std::vector<float> >("twrsem3x3").setBranchAlias("twrs_em3x3");
+	produces<std::vector<float> >(branchprefix+"em3x3").setBranchAlias(aliasprefix_+"_em3x3");
 	// as above for 5x5 crystals
-	produces<std::vector<float> >("twrsem5x5").setBranchAlias("twrs_em5x5");
+	produces<std::vector<float> >(branchprefix+"em5x5").setBranchAlias(aliasprefix_+"_em5x5");
 	// swiss cross
-	produces<std::vector<float> >("twrsemSwiss").setBranchAlias("twrs_emSwiss");
+	produces<std::vector<float> >(branchprefix+"emSwiss").setBranchAlias(aliasprefix_+"_emSwiss");
 	//number of crystals 
-	produces<std::vector<int> >("twrsnumCrystals").setBranchAlias("twrs_numCrystals");
+	produces<std::vector<int> >(branchprefix+"numCrystals").setBranchAlias(aliasprefix_+"_numCrystals");
 
 	// add superclusters to the ntuple if they have ET > scEtMin_
 	//   scEtMin_ = iConfig.getParameter<double>("scEtMin");
@@ -376,46 +380,49 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 
 	// put results into the event
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
 	iEvent.put(evt_ntwrs, "evtntwrs");
-	iEvent.put(vector_twrs_eta, "twrseta");
-	iEvent.put(vector_twrs_phi, "twrsphi");
-	iEvent.put(vector_twrs_detid, "twrsdetid");
-	iEvent.put(vector_twrs_emEnergy, "twrsemEnergy");
-	iEvent.put(vector_twrs_hadEnergy, "twrshadEnergy");
-	iEvent.put(vector_twrs_outerEnergy, "twrsouterEnergy");
+	iEvent.put(vector_twrs_eta, branchprefix+"eta");
+	iEvent.put(vector_twrs_phi, branchprefix+"phi");
+	iEvent.put(vector_twrs_detid, branchprefix+"detid");
+	iEvent.put(vector_twrs_emEnergy, branchprefix+"emEnergy");
+	iEvent.put(vector_twrs_hadEnergy, branchprefix+"hadEnergy");
+	iEvent.put(vector_twrs_outerEnergy, branchprefix+"outerEnergy");
 
-	iEvent.put(vector_twrs_emEt, "twrsemEt");
-	iEvent.put(vector_twrs_hadEt, "twrshadEt");
-	iEvent.put(vector_twrs_outerEt, "twrsouterEt");
+	iEvent.put(vector_twrs_emEt, branchprefix+"emEt");
+	iEvent.put(vector_twrs_hadEt, branchprefix+"hadEt");
+	iEvent.put(vector_twrs_outerEt, branchprefix+"outerEt");
 
-	iEvent.put(vector_twrs_pcorr, "twrspcorr");
-	iEvent.put(vector_twrs_etcorr, "twrsetcorr");
-	iEvent.put(vector_twrs_emEtcorr, "twrsemEtcorr");
-	iEvent.put(vector_twrs_hadEtcorr, "twrshadEtcorr");
-	iEvent.put(vector_twrs_outerEtcorr, "twrsouterEtcorr");
-	iEvent.put(vector_twrs_etacorr, "twrsetacorr");
-	iEvent.put(vector_twrs_phicorr, "twrsphicorr");
+	iEvent.put(vector_twrs_pcorr, branchprefix+"pcorr");
+	iEvent.put(vector_twrs_etcorr, branchprefix+"etcorr");
+	iEvent.put(vector_twrs_emEtcorr, branchprefix+"emEtcorr");
+	iEvent.put(vector_twrs_hadEtcorr, branchprefix+"hadEtcorr");
+	iEvent.put(vector_twrs_outerEtcorr, branchprefix+"outerEtcorr");
+	iEvent.put(vector_twrs_etacorr, branchprefix+"etacorr");
+	iEvent.put(vector_twrs_phicorr, branchprefix+"phicorr");
 
-	iEvent.put(vector_twrs_ecalTime, "twrsecalTime");
-	iEvent.put(vector_twrs_hcalTime, "twrshcalTime");
+	iEvent.put(vector_twrs_ecalTime, branchprefix+"ecalTime");
+	iEvent.put(vector_twrs_hcalTime, branchprefix+"hcalTime");
 
-	iEvent.put(vector_twrs_numBadEcalCells, "twrsnumBadEcalCells");
-	iEvent.put(vector_twrs_numRecoveredEcalCells, "twrsnumRecoveredEcalCells");
-	iEvent.put(vector_twrs_numProblematicEcalCells, "twrsnumProblematicEcalCells");
+	iEvent.put(vector_twrs_numBadEcalCells, branchprefix+"numBadEcalCells");
+	iEvent.put(vector_twrs_numRecoveredEcalCells, branchprefix+"numRecoveredEcalCells");
+	iEvent.put(vector_twrs_numProblematicEcalCells, branchprefix+"numProblematicEcalCells");
 
-	iEvent.put(vector_twrs_numBadHcalCells, "twrsnumBadHcalCells");
-	iEvent.put(vector_twrs_numRecoveredHcalCells, "twrsnumRecoveredHcalCells");
-	iEvent.put(vector_twrs_numProblematicHcalCells, "twrsnumProblematicHcalCells");
+	iEvent.put(vector_twrs_numBadHcalCells, branchprefix+"numBadHcalCells");
+	iEvent.put(vector_twrs_numRecoveredHcalCells, branchprefix+"numRecoveredHcalCells");
+	iEvent.put(vector_twrs_numProblematicHcalCells, branchprefix+"numProblematicHcalCells");
 
-	iEvent.put(vector_twrs_emMaxChi2Prob, "twrsemMaxChi2Prob");
-	iEvent.put(vector_twrs_emMaxEcalMGPASampleADC, "twrsemMaxEcalMGPASampleADC");
-	iEvent.put(vector_twrs_emMaxTime, "twrsemMaxTime");
-	iEvent.put(vector_twrs_emMaxRecoFlag, "twrsemMaxRecoFlag");
-	iEvent.put(vector_twrs_emMax, "twrsemMax");
-	iEvent.put(vector_twrs_em3x3, "twrsem3x3");
-	iEvent.put(vector_twrs_em5x5, "twrsem5x5");
-	iEvent.put(vector_twrs_emSwiss, "twrsemSwiss");
-	iEvent.put(vector_twrs_numCrystals, "twrsnumCrystals");
+	iEvent.put(vector_twrs_emMaxChi2Prob, branchprefix+"emMaxChi2Prob");
+	iEvent.put(vector_twrs_emMaxEcalMGPASampleADC, branchprefix+"emMaxEcalMGPASampleADC");
+	iEvent.put(vector_twrs_emMaxTime, branchprefix+"emMaxTime");
+	iEvent.put(vector_twrs_emMaxRecoFlag, branchprefix+"emMaxRecoFlag");
+	iEvent.put(vector_twrs_emMax, branchprefix+"emMax");
+	iEvent.put(vector_twrs_em3x3, branchprefix+"em3x3");
+	iEvent.put(vector_twrs_em5x5, branchprefix+"em5x5");
+	iEvent.put(vector_twrs_emSwiss, branchprefix+"emSwiss");
+	iEvent.put(vector_twrs_numCrystals, branchprefix+"numCrystals");
 
 }
 

@@ -57,7 +57,7 @@ e-e-e-e-: 34
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Sat Jul 19 00:16:28 UTC 2008
-// $Id: HypQuadlepMaker.cc,v 1.11 2010/03/02 19:36:07 fgolf Exp $
+// $Id: HypQuadlepMaker.cc,v 1.12 2010/03/18 02:12:54 kalavase Exp $
 //
 //
 
@@ -89,8 +89,12 @@ e-e-e-e-: 34
 //
 // constructors and destructor
 //
-HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
-{
+HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // parameters from configuration
   muonsInputTag = iConfig.getParameter<edm::InputTag>("muonsInputTag");
   electronsInputTag = iConfig.getParameter<edm::InputTag>("electronsInputTag");
@@ -106,15 +110,15 @@ HypQuadlepMaker::HypQuadlepMaker(const edm::ParameterSet& iConfig)
   // 
   // quadlepton hyptothesis
   //
-  produces<std::vector<unsigned int> > ("hypquadlepbucket").setBranchAlias("hyp_quadlep_bucket");            // quadlepton bucket
-  produces<std::vector<int> >          ("hypquadlepfirsttype").setBranchAlias("hyp_quadlep_first_type");     // type of the first lepton in the quadlepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> > ("hypquadlepfirstindex").setBranchAlias("hyp_quadlep_first_index");   // index of first lepton in lepton collection
-  produces<std::vector<int> >          ("hypquadlepsecondtype").setBranchAlias("hyp_quadlep_second_type");   // type of the second lepton in the quadlepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> > ("hypquadlepsecondindex").setBranchAlias("hyp_quadlep_second_index"); // index of second lepton in lepton collection
-  produces<std::vector<int> >          ("hypquadlepthirdtype").setBranchAlias("hyp_quadlep_third_type");     // type of the third lepton in the quadlepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> > ("hypquadlepthirdindex").setBranchAlias("hyp_quadlep_third_index");   // index of third lepton in lepton collection
-  produces<std::vector<int> >          ("hypquadlepfourthtype").setBranchAlias("hyp_quadlep_fourth_type");   // type of the fourth lepton in the quadlepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> > ("hypquadlepfourthindex").setBranchAlias("hyp_quadlep_fourth_index"); // index of fourth lepton in lepton collection
+  produces<std::vector<unsigned int> > (branchprefix+"bucket").setBranchAlias(aliasprefix_+"_bucket");            // quadlepton bucket
+  produces<std::vector<int> >          (branchprefix+"firsttype").setBranchAlias(aliasprefix_+"_first_type");     // type of the first lepton in the quadlepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> > (branchprefix+"firstindex").setBranchAlias(aliasprefix_+"_first_index");   // index of first lepton in lepton collection
+  produces<std::vector<int> >          (branchprefix+"secondtype").setBranchAlias(aliasprefix_+"_second_type");   // type of the second lepton in the quadlepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> > (branchprefix+"secondindex").setBranchAlias(aliasprefix_+"_second_index"); // index of second lepton in lepton collection
+  produces<std::vector<int> >          (branchprefix+"thirdtype").setBranchAlias(aliasprefix_+"_third_type");     // type of the third lepton in the quadlepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> > (branchprefix+"thirdindex").setBranchAlias(aliasprefix_+"_third_index");   // index of third lepton in lepton collection
+  produces<std::vector<int> >          (branchprefix+"fourthtype").setBranchAlias(aliasprefix_+"_fourth_type");   // type of the fourth lepton in the quadlepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> > (branchprefix+"fourthindex").setBranchAlias(aliasprefix_+"_fourth_index"); // index of fourth lepton in lepton collection
 }
 
 
@@ -182,33 +186,38 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // number of electrons
   unsigned int evt_nmus = mus_charge->size();
 
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // check for numbers of electrons/muons
   // if more than 99 electrons of 99 muons, skip event and fill empty vectors
   if ( evt_nels > 99 ) {
     edm::LogWarning("HypQuadlepMaker") << "more than 99 electrons, skipping event!!!";
     // put empty containers into event
-    iEvent.put(vector_hyp_quadlep_bucket,"hypquadlepbucket");
-    iEvent.put(vector_hyp_quadlep_first_type,"hypquadlepfirsttype");
-    iEvent.put(vector_hyp_quadlep_first_index,"hypquadlepfirstindex");
-    iEvent.put(vector_hyp_quadlep_second_type,"hypquadlepsecondtype");
-    iEvent.put(vector_hyp_quadlep_second_index,"hypquadlepsecondindex");
-    iEvent.put(vector_hyp_quadlep_third_type,"hypquadlepthirdtype");
-    iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
-    iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
-    iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    
+
+    iEvent.put(vector_hyp_quadlep_bucket,branchprefix+"bucket");
+    iEvent.put(vector_hyp_quadlep_first_type,branchprefix+"firsttype");
+    iEvent.put(vector_hyp_quadlep_first_index,branchprefix+"firstindex");
+    iEvent.put(vector_hyp_quadlep_second_type,branchprefix+"secondtype");
+    iEvent.put(vector_hyp_quadlep_second_index,branchprefix+"secondindex");
+    iEvent.put(vector_hyp_quadlep_third_type,branchprefix+"thirdtype");
+    iEvent.put(vector_hyp_quadlep_third_index,branchprefix+"thirdindex");
+    iEvent.put(vector_hyp_quadlep_fourth_type,branchprefix+"fourthtype");
+    iEvent.put(vector_hyp_quadlep_fourth_index,branchprefix+"fourthindex");
     return;
   } else if ( evt_nmus > 99 ) {
     edm::LogWarning("HypQuadlepMaker") << "more than 99 muons, skipping event!!!";
     // put empty containers into event
-    iEvent.put(vector_hyp_quadlep_bucket,"hypquadlepbucket");
-    iEvent.put(vector_hyp_quadlep_first_type,"hypquadlepfirsttype");
-    iEvent.put(vector_hyp_quadlep_first_index,"hypquadlepfirstindex");
-    iEvent.put(vector_hyp_quadlep_second_type,"hypquadlepsecondtype");
-    iEvent.put(vector_hyp_quadlep_second_index,"hypquadlepsecondindex");
-    iEvent.put(vector_hyp_quadlep_third_type,"hypquadlepthirdtype");
-    iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
-    iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
-    iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+    iEvent.put(vector_hyp_quadlep_bucket,branchprefix+"bucket");
+    iEvent.put(vector_hyp_quadlep_first_type,branchprefix+"firsttype");
+    iEvent.put(vector_hyp_quadlep_first_index,branchprefix+"firstindex");
+    iEvent.put(vector_hyp_quadlep_second_type,branchprefix+"secondtype");
+    iEvent.put(vector_hyp_quadlep_second_index,branchprefix+"secondindex");
+    iEvent.put(vector_hyp_quadlep_third_type,branchprefix+"thirdtype");
+    iEvent.put(vector_hyp_quadlep_third_index,branchprefix+"thirdindex");
+    iEvent.put(vector_hyp_quadlep_fourth_type,branchprefix+"fourthtype");
+    iEvent.put(vector_hyp_quadlep_fourth_index,branchprefix+"fourthindex");
     return;
   }
 
@@ -707,15 +716,15 @@ HypQuadlepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
   // put containers into event
-  iEvent.put(vector_hyp_quadlep_bucket,"hypquadlepbucket");
-  iEvent.put(vector_hyp_quadlep_first_type,"hypquadlepfirsttype");
-  iEvent.put(vector_hyp_quadlep_first_index,"hypquadlepfirstindex");
-  iEvent.put(vector_hyp_quadlep_second_type,"hypquadlepsecondtype");
-  iEvent.put(vector_hyp_quadlep_second_index,"hypquadlepsecondindex");
-  iEvent.put(vector_hyp_quadlep_third_type,"hypquadlepthirdtype");
-  iEvent.put(vector_hyp_quadlep_third_index,"hypquadlepthirdindex");
-  iEvent.put(vector_hyp_quadlep_fourth_type,"hypquadlepfourthtype");
-  iEvent.put(vector_hyp_quadlep_fourth_index,"hypquadlepfourthindex");
+  iEvent.put(vector_hyp_quadlep_bucket,branchprefix+"bucket");
+  iEvent.put(vector_hyp_quadlep_first_type,branchprefix+"firsttype");
+  iEvent.put(vector_hyp_quadlep_first_index,branchprefix+"firstindex");
+  iEvent.put(vector_hyp_quadlep_second_type,branchprefix+"secondtype");
+  iEvent.put(vector_hyp_quadlep_second_index,branchprefix+"secondindex");
+  iEvent.put(vector_hyp_quadlep_third_type,branchprefix+"thirdtype");
+  iEvent.put(vector_hyp_quadlep_third_index,branchprefix+"thirdindex");
+  iEvent.put(vector_hyp_quadlep_fourth_type,branchprefix+"fourthtype");
+  iEvent.put(vector_hyp_quadlep_fourth_index,branchprefix+"fourthindex");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

@@ -30,6 +30,8 @@ using namespace std;
 
 HypGenMaker::HypGenMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+
   //muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"             );
   //electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"         );
   candToGenAssTag          = iConfig.getParameter<InputTag>("candToGenAssTag");  

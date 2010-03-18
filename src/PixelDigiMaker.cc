@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PixelDigiMaker.cc,v 1.3 2010/03/03 04:24:02 kalavase Exp $
+// $Id: PixelDigiMaker.cc,v 1.4 2010/03/18 02:13:27 kalavase Exp $
 //
 //
 
@@ -51,18 +51,21 @@
 using namespace std;
 using namespace edm;
 
-PixelDigiMaker::PixelDigiMaker(const edm::ParameterSet& iConfig)
-{
+PixelDigiMaker::PixelDigiMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
     
-  produces<vector<int>   >("pxlndigispxb").setBranchAlias("pxl_ndigis_pxb");	// number digis in each pixel barrel layer
-  produces<vector<int>   >("pxlndigispxf").setBranchAlias("pxl_ndigis_pxf");	// number digis in each pixel forward layer
+  produces<vector<int>   >(branchprefix+"ndigispxb").setBranchAlias(aliasprefix_+"_ndigis_pxb");	// number digis in each pixel barrel layer
+  produces<vector<int>   >(branchprefix+"ndigispxf").setBranchAlias(aliasprefix_+"_ndigis_pxf");	// number digis in each pixel forward layer
 
   pixelsInputTag_          = iConfig.getParameter<edm::InputTag>("pixelsInputTag");
   
 }
 
-void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es)
-{
+void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es) {
+
   std::auto_ptr<vector<int> > vector_pxl_ndigis_pxb(new vector<int>   );
   std::auto_ptr<vector<int> > vector_pxl_ndigis_pxf(new vector<int>);
 
@@ -115,8 +118,11 @@ void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es)
 	}
   }
 
-  iEvent.put(vector_pxl_ndigis_pxb, "pxlndigispxb");
-  iEvent.put(vector_pxl_ndigis_pxf,	"pxlndigispxf");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(vector_pxl_ndigis_pxb, branchprefix+"ndigispxb");
+  iEvent.put(vector_pxl_ndigis_pxf,	branchprefix+"ndigispxf");
 
 }
 

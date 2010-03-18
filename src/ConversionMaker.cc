@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.8 2010/03/02 19:36:07 fgolf Exp $
+// $Id: ConversionMaker.cc,v 1.9 2010/03/18 02:11:54 kalavase Exp $
 //
 //
 
@@ -43,18 +43,22 @@ typedef math::XYZPoint Point;
 using namespace std;
 using namespace edm;
 
-ConversionMaker::ConversionMaker(const ParameterSet& iConfig)
-{ 
-  produces<vector<int>   >   ("trksconvtkidx"   ).setBranchAlias("trks_conv_tkidx" );
-  produces<vector<float> >   ("trksconvdcot"    ).setBranchAlias("trks_conv_dcot"  );
-  produces<vector<float> >   ("trksconvdist"    ).setBranchAlias("trks_conv_dist"  );
+ConversionMaker::ConversionMaker(const ParameterSet& iConfig) { 
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  produces<vector<int>   >   (branchprefix+"convtkidx"   ).setBranchAlias(aliasprefix_+"_conv_tkidx" );
+  produces<vector<float> >   (branchprefix+"convdcot"    ).setBranchAlias(aliasprefix_+"_conv_dcot"  );
+  produces<vector<float> >   (branchprefix+"convdist"    ).setBranchAlias(aliasprefix_+"_conv_dist"  );
 
   minFracShHits_ = iConfig.getParameter<double>("minFracSharedHits");
      
 }
 
-void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
-{
+void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)  {
+
   using namespace edm;
   using namespace std;
   
@@ -118,23 +122,24 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)
   }//tk1 loop
 
   // store vectors
-  iEvent.put(trks_conv_tkidx,       "trksconvtkidx"  );
-  iEvent.put(trks_conv_dist,        "trksconvdist"   );
-  iEvent.put(trks_conv_dcot,        "trksconvdcot"   );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(trks_conv_tkidx,       branchprefix+"convtkidx"  );
+  iEvent.put(trks_conv_dist,        branchprefix+"convdist"   );
+  iEvent.put(trks_conv_dcot,        branchprefix+"convdcot"   );
 
 }
 		     
 
 
 // ------------ method called once each job just before starting event loop  ------------
-void ConversionMaker::beginJob()
-{
+void ConversionMaker::beginJob() {
   
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-ConversionMaker::endJob() {
+void ConversionMaker::endJob() {
 }
 
 //define this as a plug-in

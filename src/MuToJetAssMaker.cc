@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 //         Created:  Wed Jun 25 18:32:24 UTC 2008
-// $Id: MuToJetAssMaker.cc,v 1.6 2010/03/03 04:24:00 kalavase Exp $
+// $Id: MuToJetAssMaker.cc,v 1.7 2010/03/18 02:13:10 kalavase Exp $
 //
 //
 
@@ -39,8 +39,12 @@ using std::vector;
 
 MuToJetAssMaker::MuToJetAssMaker(const edm::ParameterSet& iConfig) {
 
-     produces<vector<int>   >("musclosestJet").setBranchAlias("mus_closestJet");	// muon closest to jet
-     produces<vector<float> >("musjetdr"     ).setBranchAlias("mus_jetdr"     );     
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     produces<vector<int>   >(branchprefix+"closestJet").setBranchAlias(aliasprefix_+"_closestJet");	// muon closest to jet
+     produces<vector<float> >(branchprefix+"jetdr"     ).setBranchAlias(aliasprefix_+"_jetdr"     );     
      
      m_minDR_      = iConfig.getParameter<double>("minDR");
      musInputTag_  = iConfig.getParameter<edm::InputTag>("musInputTag");
@@ -94,8 +98,11 @@ void MuToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
      // store vectors
-     iEvent.put(vector_mus_closestJet, "musclosestJet");
-     iEvent.put(vector_mus_jetdr     , "musjetdr"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_mus_closestJet, branchprefix+"closestJet");
+     iEvent.put(vector_mus_jetdr     , branchprefix+"jetdr"     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

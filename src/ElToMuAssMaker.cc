@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.9 2010/03/03 04:23:47 kalavase Exp $
+// $Id: ElToMuAssMaker.cc,v 1.10 2010/03/18 02:12:04 kalavase Exp $
 //
 //
 
@@ -39,18 +39,22 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig)
-     : m_minDR(iConfig.getParameter<double>("minDR"))
-{
-     produces<vector<int>   >("elsclosestMuon").setBranchAlias("els_closestMuon");	// track index matched to muon
-     produces<vector<float> >("elsmusdr"      ).setBranchAlias("els_musdr"      );
+ElToMuAssMaker::ElToMuAssMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     produces<vector<int>   >(branchprefix+"closestMuon").setBranchAlias(aliasprefix_+"_closestMuon");	// track index matched to muon
+     produces<vector<float> >(branchprefix+"musdr"      ).setBranchAlias(aliasprefix_+"_musdr"      );
      
      elsInputTag_ = iConfig.getParameter<edm::InputTag>("elsInputTag");
      musInputTag_ = iConfig.getParameter<edm::InputTag>("musInputTag");
+     m_minDR_     = iConfig.getParameter<double>       ("minDR");
 }
 
-void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
      using namespace edm;
      // make vectors to hold the information
      std::auto_ptr<vector<int>    > vector_els_closestMuon(new vector<int>   );
@@ -77,7 +81,7 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        double el_eta = els_it->Eta();
        double el_phi = els_it->Phi();
        
-       double minDR = m_minDR;
+       double minDR = m_minDR_;
        unsigned int i = 0;
        int index = -1; 
 
@@ -104,20 +108,19 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        vector_els_musdr      ->push_back(minDR);
      }
      // store vectors
-     iEvent.put(vector_els_closestMuon, "elsclosestMuon");
-     iEvent.put(vector_els_musdr      , "elsmusdr"      );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_els_closestMuon, branchprefix+"closestMuon");
+     iEvent.put(vector_els_musdr      , branchprefix+"musdr"      );
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-ElToMuAssMaker::beginJob()
-{
-}
+void ElToMuAssMaker::beginJob() {}
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-ElToMuAssMaker::endJob() {
-}
+void ElToMuAssMaker::endJob() {}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElToMuAssMaker);

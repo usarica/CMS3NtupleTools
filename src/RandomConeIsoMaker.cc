@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.3 2010/03/02 19:36:08 fgolf Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.4 2010/03/18 02:13:29 kalavase Exp $
 //
 //
 
@@ -105,30 +105,32 @@ using namespace std;
 // constructors and destructor
 //
 
-RandomConeIsoMaker::RandomConeIsoMaker(const edm::ParameterSet& iConfig) 
-: jamesRandom_(0)
- {
+RandomConeIsoMaker::RandomConeIsoMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
 
-  produces<std::vector<float> >               ("ranecalIso03egamma"         ).setBranchAlias("ran_ecalIso03_egamma"        );
-  produces<std::vector<float> >               ("ranhcalIso03egamma"         ).setBranchAlias("ran_hcalIso03_egamma"        );
-  produces<std::vector<float> >               ("ranhcalD1Iso03egamma"       ).setBranchAlias("ran_hcalD1Iso03_egamma"      );
-  produces<std::vector<float> >               ("ranhcalD2Iso03egamma"       ).setBranchAlias("ran_hcalD2Iso03_egamma"      );
-  produces<std::vector<float> >               ("rantrkIso03egamma"          ).setBranchAlias("ran_trkIso03_egamma"         );
+  produces<std::vector<float> >               (branchprefix+"ecalIso03egamma"         ).setBranchAlias(aliasprefix_+"_ecalIso03_egamma"        );
+  produces<std::vector<float> >               (branchprefix+"hcalIso03egamma"         ).setBranchAlias(aliasprefix_+"_hcalIso03_egamma"        );
+  produces<std::vector<float> >               (branchprefix+"hcalD1Iso03egamma"       ).setBranchAlias(aliasprefix_+"_hcalD1Iso03_egamma"      );
+  produces<std::vector<float> >               (branchprefix+"hcalD2Iso03egamma"       ).setBranchAlias(aliasprefix_+"_hcalD2Iso03_egamma"      );
+  produces<std::vector<float> >               (branchprefix+"trkIso03egamma"          ).setBranchAlias(aliasprefix_+"_trkIso03_egamma"         );
   
-  produces<std::vector<float> >               ("ranecalIso03mu"             ).setBranchAlias("ran_ecalIso03_mu"            );
-  produces<std::vector<float> >               ("ranhcalIso03mu"             ).setBranchAlias("ran_hcalIso03_mu"            );
-  produces<std::vector<float> >               ("ranhoIso03mu"               ).setBranchAlias("ran_hoIso03_mu"              );
-  produces<std::vector<float> >               ("rantrkIso03mu"              ).setBranchAlias("ran_trkIso03_mu"             );
+  produces<std::vector<float> >               (branchprefix+"ecalIso03mu"             ).setBranchAlias(aliasprefix_+"_ecalIso03_mu"            );
+  produces<std::vector<float> >               (branchprefix+"hcalIso03mu"             ).setBranchAlias(aliasprefix_+"_hcalIso03_mu"            );
+  produces<std::vector<float> >               (branchprefix+"hoIso03mu"               ).setBranchAlias(aliasprefix_+"_hoIso03_mu"              );
+  produces<std::vector<float> >               (branchprefix+"trkIso03mu"              ).setBranchAlias(aliasprefix_+"_trkIso03_mu"             );
  
-  produces<std::vector<int> >                 ("ransrflag"                  ).setBranchAlias("ran_srFlag"                  );
-  produces<std::vector<float> >               ("rantoweremet"               ).setBranchAlias("ran_towerEmEt"               );
-  produces<std::vector<float> >               ("rantowerhadet"              ).setBranchAlias("ran_towerHadEt"              );
-  produces<std::vector<float> >               ("randrclosesttower"          ).setBranchAlias("ran_dRClosestTower"          );
-  produces<std::vector<float> >               ("randrclosesttoweremet"      ).setBranchAlias("ran_dRClosestTowerEmEt"      );
+  produces<std::vector<int> >                 (branchprefix+"srflag"                  ).setBranchAlias(aliasprefix_+"_srFlag"                  );
+  produces<std::vector<float> >               (branchprefix+"toweremet"               ).setBranchAlias(aliasprefix_+"_towerEmEt"               );
+  produces<std::vector<float> >               (branchprefix+"towerhadet"              ).setBranchAlias(aliasprefix_+"_towerHadEt"              );
+  produces<std::vector<float> >               (branchprefix+"drclosesttower"          ).setBranchAlias(aliasprefix_+"_dRClosestTower"          );
+  produces<std::vector<float> >               (branchprefix+"drclosesttoweremet"      ).setBranchAlias(aliasprefix_+"_dRClosestTowerEmEt"      );
   
-  produces<std::vector<LorentzVector> >       ("rantrksp4"                  ).setBranchAlias("ran_trksp4"                  );
-  produces<std::vector<LorentzVector> >       ("rantrksecalp4"              ).setBranchAlias("ran_trksecalp4"              );
+  produces<std::vector<LorentzVector> >       (branchprefix+"trksp4"                  ).setBranchAlias(aliasprefix_+"_trksp4"                  );
+  produces<std::vector<LorentzVector> >       (branchprefix+"trksecalp4"              ).setBranchAlias(aliasprefix_+"_trksecalp4"              );
 
   
   //
@@ -537,25 +539,28 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   
   
   
-  iEvent.put(ran_ecalIso03_egamma             ,"ranecalIso03egamma"             );
-  iEvent.put(ran_hcalIso03_egamma             ,"ranhcalIso03egamma"             );
-  iEvent.put(ran_hcalD1Iso03_egamma           ,"ranhcalD1Iso03egamma"           );
-  iEvent.put(ran_hcalD2Iso03_egamma           ,"ranhcalD2Iso03egamma"           );
-  iEvent.put(ran_trkIso03_egamma              ,"rantrkIso03egamma"              );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(ran_ecalIso03_mu                 ,"ranecalIso03mu"                 );
-  iEvent.put(ran_hcalIso03_mu                 ,"ranhcalIso03mu"                 );
-  iEvent.put(ran_hoIso03_mu                   ,"ranhoIso03mu"                   );
-  iEvent.put(ran_trkIso03_mu                  ,"rantrkIso03mu"                  );
+  iEvent.put(ran_ecalIso03_egamma             ,branchprefix+"ecalIso03egamma"             );
+  iEvent.put(ran_hcalIso03_egamma             ,branchprefix+"hcalIso03egamma"             );
+  iEvent.put(ran_hcalD1Iso03_egamma           ,branchprefix+"hcalD1Iso03egamma"           );
+  iEvent.put(ran_hcalD2Iso03_egamma           ,branchprefix+"hcalD2Iso03egamma"           );
+  iEvent.put(ran_trkIso03_egamma              ,branchprefix+"trkIso03egamma"              );
 
-  iEvent.put(ran_srFlag                       ,"ransrflag"                      );
-  iEvent.put(ran_towerEmEt                    ,"rantoweremet"                   );
-  iEvent.put(ran_towerHadEt                   ,"rantowerhadet"                  );
-  iEvent.put(ran_dRClosestTower               ,"randrclosesttower"              );
-  iEvent.put(ran_dRClosestTowerEmEt           ,"randrclosesttoweremet"          );
+  iEvent.put(ran_ecalIso03_mu                 ,branchprefix+"ecalIso03mu"                 );
+  iEvent.put(ran_hcalIso03_mu                 ,branchprefix+"hcalIso03mu"                 );
+  iEvent.put(ran_hoIso03_mu                   ,branchprefix+"hoIso03mu"                   );
+  iEvent.put(ran_trkIso03_mu                  ,branchprefix+"trkIso03mu"                  );
 
-  iEvent.put(ran_trksp4                       ,"rantrksp4"                      );
-  iEvent.put(ran_trksecalp4                   ,"rantrksecalp4"                 );
+  iEvent.put(ran_srFlag                       ,branchprefix+"srflag"                      );
+  iEvent.put(ran_towerEmEt                    ,branchprefix+"toweremet"                   );
+  iEvent.put(ran_towerHadEt                   ,branchprefix+"towerhadet"                  );
+  iEvent.put(ran_dRClosestTower               ,branchprefix+"drclosesttower"              );
+  iEvent.put(ran_dRClosestTowerEmEt           ,branchprefix+"drclosesttoweremet"          );
+
+  iEvent.put(ran_trksp4                       ,branchprefix+"trksp4"                      );
+  iEvent.put(ran_trksecalp4                   ,branchprefix+"trksecalp4"                 );
  
 
 }

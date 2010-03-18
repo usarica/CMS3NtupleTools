@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrkToVtxAssMaker.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TrkToVtxAssMaker.cc,v 1.3 2010/03/18 02:13:41 kalavase Exp $
 //
 //
 
@@ -39,12 +39,19 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
-TrkToVtxAssMaker::TrkToVtxAssMaker(const edm::ParameterSet& iConfig)
-     : m_vtxInputTag(iConfig.getParameter<edm::InputTag>("vtxInputTag")),
-       m_trksInputTag(iConfig.getParameter<edm::InputTag>("trksInputTag"))
-{
-     produces<vector<float> >("trksd0vtx"      ).setBranchAlias("trks_d0vtx"      );
-     produces<vector<float> >("trksd0Errvtx"   ).setBranchAlias("trks_d0Errvtx"   );
+TrkToVtxAssMaker::TrkToVtxAssMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  m_vtxInputTag  = iConfig.getParameter<edm::InputTag>("vtxInputTag");
+  m_trksInputTag = iConfig.getParameter<edm::InputTag>("trksInputTag");
+
+
+  produces<vector<float> >(branchprefix+"d0vtx"      ).setBranchAlias(aliasprefix_+"_d0vtx"      );
+  produces<vector<float> >(branchprefix+"d0Errvtx"   ).setBranchAlias(aliasprefix_+"_d0Errvtx"   );
+
 }
 
 void TrkToVtxAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -131,8 +138,11 @@ void TrkToVtxAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	  }
      }
      // store vectors
-     iEvent.put(vector_trks_d0vtx, 	"trksd0vtx");
-     iEvent.put(vector_trks_d0Errvtx, 	"trksd0Errvtx"      );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_trks_d0vtx, 	branchprefix+"d0vtx");
+     iEvent.put(vector_trks_d0Errvtx, 	branchprefix+"d0Errvtx"      );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

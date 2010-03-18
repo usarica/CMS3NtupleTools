@@ -1,10 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 from TrackingTools.TrackAssociator.default_cfi import *
 
-hypIsoMaker = cms.EDProducer(
-	"HypIsoMaker",
-	aliasPrefix = cms.untracked.string("hyp"),
-	TrackAssociatorParameterBlock, #this is read as TrackAssociatorParameters (don't ask me why)
+hypIsoMaker = cms.EDProducer("HypIsoMaker",
+	TrackAssociatorParameterBlock, 
 
 	#This is whether to use the egamma/muon isolations and subtract the isolation veto of the
 	#other hypothesis (False), or recompute the isolation variable from hits (True)
@@ -63,5 +61,6 @@ hypIsoMaker = cms.EDProducer(
 	trackIsoMinPt       = cms.double(1.0),
 	trackIsoMind0       = cms.double(0.1), #mu defaults
 	trackIsoMinz0       = cms.double(0.2),
+        aliasPrefix = cms.untracked.string("hyp")
 	#el defaults are same--see RecoEgamma/EgammaIsolationAlgos/python/eleTrackExtractorBlocks_cff.py
 )

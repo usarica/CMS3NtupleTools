@@ -41,7 +41,7 @@ e-e-e-: 19
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.cc,v 1.11 2010/03/02 19:36:07 fgolf Exp $
+// $Id: HypTrilepMaker.cc,v 1.12 2010/03/18 02:12:57 kalavase Exp $
 //
 //
 
@@ -73,8 +73,12 @@ e-e-e-: 19
 //
 // constructors and destructor
 //
-HypTrilepMaker::HypTrilepMaker(const edm::ParameterSet& iConfig)
-{
+HypTrilepMaker::HypTrilepMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // parameters from configuration
   muonsInputTag = iConfig.getParameter<edm::InputTag>("muonsInputTag");
   electronsInputTag = iConfig.getParameter<edm::InputTag>("electronsInputTag");
@@ -90,13 +94,13 @@ HypTrilepMaker::HypTrilepMaker(const edm::ParameterSet& iConfig)
   // 
   // trilepton hyptothesis
   //
-  produces<std::vector<unsigned int> >                ("hyptrilepbucket").setBranchAlias("hyp_trilep_bucket");            // trilepton bucket
-  produces<std::vector<int> >                         ("hyptrilepfirsttype").setBranchAlias("hyp_trilep_first_type");     // type of the first lepton in the trilepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> >                ("hyptrilepfirstindex").setBranchAlias("hyp_trilep_first_index");   // index of first lepton in lepton collection
-  produces<std::vector<int> >                         ("hyptrilepsecondtype").setBranchAlias("hyp_trilep_second_type");   // type of the second lepton in the trilepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> >                ("hyptrilepsecondindex").setBranchAlias("hyp_trilep_second_index"); // index of second lepton in lepton collection
-  produces<std::vector<int> >                         ("hyptrilepthirdtype").setBranchAlias("hyp_trilep_third_type");     // type of the third lepton in the trilepton hypothesis (1: muon, 2: electron)
-  produces<std::vector<unsigned int> >                ("hyptrilepthirdindex").setBranchAlias("hyp_trilep_third_index");   // index of third lepton in lepton collection
+  produces<std::vector<unsigned int> >                (branchprefix+"bucket").setBranchAlias(aliasprefix_+"_bucket");            // trilepton bucket
+  produces<std::vector<int> >                         (branchprefix+"firsttype").setBranchAlias(aliasprefix_+"_first_type");     // type of the first lepton in the trilepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> >                (branchprefix+"firstindex").setBranchAlias(aliasprefix_+"_first_index");   // index of first lepton in lepton collection
+  produces<std::vector<int> >                         (branchprefix+"secondtype").setBranchAlias(aliasprefix_+"_second_type");   // type of the second lepton in the trilepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> >                (branchprefix+"secondindex").setBranchAlias(aliasprefix_+"_second_index"); // index of second lepton in lepton collection
+  produces<std::vector<int> >                         (branchprefix+"thirdtype").setBranchAlias(aliasprefix_+"_third_type");     // type of the third lepton in the trilepton hypothesis (1: muon, 2: electron)
+  produces<std::vector<unsigned int> >                (branchprefix+"thirdindex").setBranchAlias(aliasprefix_+"_third_index");   // index of third lepton in lepton collection
 }
 
 
@@ -161,29 +165,34 @@ HypTrilepMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // number of electrons
   unsigned int evt_nmus = mus_charge->size();
 
+  std::string branchprefix = aliasprefix_;
+    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   // check for numbers of electrons/muons
   // if more than 99 electrons of 99 muons, skip event and fill empty vectors
   if ( evt_nels > 99 ) {
     edm::LogWarning("HypTrilepMaker") << "more than 99 electrons, skipping event!!!";
     // put empty containers into event
-    iEvent.put(vector_hyp_trilep_bucket,"hyptrilepbucket");
-    iEvent.put(vector_hyp_trilep_first_type,"hyptrilepfirsttype");
-    iEvent.put(vector_hyp_trilep_first_index,"hyptrilepfirstindex");
-    iEvent.put(vector_hyp_trilep_second_type,"hyptrilepsecondtype");
-    iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
-    iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
-    iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
+    
+
+    iEvent.put(vector_hyp_trilep_bucket,branchprefix+"bucket");
+    iEvent.put(vector_hyp_trilep_first_type,branchprefix+"firsttype");
+    iEvent.put(vector_hyp_trilep_first_index,branchprefix+"firstindex");
+    iEvent.put(vector_hyp_trilep_second_type,branchprefix+"secondtype");
+    iEvent.put(vector_hyp_trilep_second_index,branchprefix+"secondindex");
+    iEvent.put(vector_hyp_trilep_third_type,branchprefix+"thirdtype");
+    iEvent.put(vector_hyp_trilep_third_index,branchprefix+"thirdindex");
     return;
   } else if ( evt_nmus > 99 ) {
     edm::LogWarning("HypTrilepMaker") << "more than 99 muons, skipping event!!!";
     // put empty containers into event
-    iEvent.put(vector_hyp_trilep_bucket,"hyptrilepbucket");
-    iEvent.put(vector_hyp_trilep_first_type,"hyptrilepfirsttype");
-    iEvent.put(vector_hyp_trilep_first_index,"hyptrilepfirstindex");
-    iEvent.put(vector_hyp_trilep_second_type,"hyptrilepsecondtype");
-    iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
-    iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
-    iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
+    iEvent.put(vector_hyp_trilep_bucket,branchprefix+"bucket");
+    iEvent.put(vector_hyp_trilep_first_type,branchprefix+"firsttype");
+    iEvent.put(vector_hyp_trilep_first_index,branchprefix+"firstindex");
+    iEvent.put(vector_hyp_trilep_second_type,branchprefix+"secondtype");
+    iEvent.put(vector_hyp_trilep_second_index,branchprefix+"secondindex");
+    iEvent.put(vector_hyp_trilep_third_type,branchprefix+"thirdtype");
+    iEvent.put(vector_hyp_trilep_third_index,branchprefix+"thirdindex");
     return;
   }
 
@@ -509,13 +518,13 @@ for (unsigned int firstElectron = 0; firstElectron < evt_nels; ++firstElectron) 
   }
 
   // put containers into event
-  iEvent.put(vector_hyp_trilep_bucket,"hyptrilepbucket");
-  iEvent.put(vector_hyp_trilep_first_type,"hyptrilepfirsttype");
-  iEvent.put(vector_hyp_trilep_first_index,"hyptrilepfirstindex");
-  iEvent.put(vector_hyp_trilep_second_type,"hyptrilepsecondtype");
-  iEvent.put(vector_hyp_trilep_second_index,"hyptrilepsecondindex");
-  iEvent.put(vector_hyp_trilep_third_type,"hyptrilepthirdtype");
-  iEvent.put(vector_hyp_trilep_third_index,"hyptrilepthirdindex");
+  iEvent.put(vector_hyp_trilep_bucket,branchprefix+"bucket");
+  iEvent.put(vector_hyp_trilep_first_type,branchprefix+"firsttype");
+  iEvent.put(vector_hyp_trilep_first_index,branchprefix+"firstindex");
+  iEvent.put(vector_hyp_trilep_second_type,branchprefix+"secondtype");
+  iEvent.put(vector_hyp_trilep_second_index,branchprefix+"secondindex");
+  iEvent.put(vector_hyp_trilep_third_type,branchprefix+"thirdtype");
+  iEvent.put(vector_hyp_trilep_third_index,branchprefix+"thirdindex");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

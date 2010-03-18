@@ -50,49 +50,53 @@ typedef math::XYZPoint Point;
 //
 BCMaker::BCMaker(const edm::ParameterSet& iConfig) {
 
+  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
 	// number of superclusters in the event
 	produces<unsigned int>("evtnbcs").setBranchAlias("evt_nbcs");
 
 	// number of basicclusters and crystals
-	produces<std::vector<float> >("bcscrystalsSize").setBranchAlias("bcs_crystalsSize");
+	produces<std::vector<float> >(branchprefix+"crystalsSize").setBranchAlias(aliasprefix_+"_crystalsSize");
 
 	// energies
-	produces<std::vector<float> >("bcsenergy").setBranchAlias("bcs_energy");
+	produces<std::vector<float> >(branchprefix+"energy").setBranchAlias(aliasprefix_+"_energy");
 
 	// positions
-	produces<std::vector<LorentzVector> >("bcsp4").setBranchAlias("bcs_p4");
-	produces<std::vector<LorentzVector> >("bcsvtxp4").setBranchAlias("bcs_vtx_p4");
-	produces<std::vector<LorentzVector> >("bcsposp4").setBranchAlias("bcs_pos_p4");
-	produces<std::vector<float> >("bcseta").setBranchAlias("bcs_eta");
-	produces<std::vector<float> >("bcsphi").setBranchAlias("bcs_phi");
+	produces<std::vector<LorentzVector> >(branchprefix+"p4").setBranchAlias(aliasprefix_+"_p4");
+	produces<std::vector<LorentzVector> >(branchprefix+"vtxp4").setBranchAlias(aliasprefix_+"_vtx_p4");
+	produces<std::vector<LorentzVector> >(branchprefix+"posp4").setBranchAlias(aliasprefix_+"_pos_p4");
+	produces<std::vector<float> >(branchprefix+"eta").setBranchAlias(aliasprefix_+"_eta");
+	produces<std::vector<float> >(branchprefix+"phi").setBranchAlias(aliasprefix_+"_phi");
 
 	// shape variables for seed basiccluster
 	// see
 	// RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h
 	// revision=1.7
 
-	produces<std::vector<int> >("bcsseveritySeed").setBranchAlias("bcs_severitySeed");
+	produces<std::vector<int> >(branchprefix+"severitySeed").setBranchAlias(aliasprefix_+"_severitySeed");
 
-	produces<std::vector<float> >("bcseSeed").setBranchAlias("bcs_eSeed");
-	produces<std::vector<float> >("bcseMax").setBranchAlias("bcs_eMax");
-	produces<std::vector<float> >("bcse2nd").setBranchAlias("bcs_e2nd");
+	produces<std::vector<float> >(branchprefix+"eSeed").setBranchAlias(aliasprefix_+"_eSeed");
+	produces<std::vector<float> >(branchprefix+"eMax").setBranchAlias(aliasprefix_+"_eMax");
+	produces<std::vector<float> >(branchprefix+"e2nd").setBranchAlias(aliasprefix_+"_e2nd");
 
-	produces<std::vector<float> >("bcse1x3").setBranchAlias("bcs_e1x3");
-	produces<std::vector<float> >("bcse3x1").setBranchAlias("bcs_e3x1"); 
-	produces<std::vector<float> >("bcse1x5").setBranchAlias("bcs_e1x5");
-	produces<std::vector<float> >("bcse2x2").setBranchAlias("bcs_e2x2"); 
-	produces<std::vector<float> >("bcse3x2").setBranchAlias("bcs_e3x2"); 
-	produces<std::vector<float> >("bcse3x3").setBranchAlias("bcs_e3x3"); 
-	produces<std::vector<float> >("bcse4x4").setBranchAlias("bcs_e4x4"); 
-	produces<std::vector<float> >("bcse5x5").setBranchAlias("bcs_e5x5"); 
-	produces<std::vector<float> >("bcse2x5Max").setBranchAlias("bcs_e2x5Max");
+	produces<std::vector<float> >(branchprefix+"e1x3").setBranchAlias(aliasprefix_+"_e1x3");
+	produces<std::vector<float> >(branchprefix+"e3x1").setBranchAlias(aliasprefix_+"_e3x1"); 
+	produces<std::vector<float> >(branchprefix+"e1x5").setBranchAlias(aliasprefix_+"_e1x5");
+	produces<std::vector<float> >(branchprefix+"e2x2").setBranchAlias(aliasprefix_+"_e2x2"); 
+	produces<std::vector<float> >(branchprefix+"e3x2").setBranchAlias(aliasprefix_+"_e3x2"); 
+	produces<std::vector<float> >(branchprefix+"e3x3").setBranchAlias(aliasprefix_+"_e3x3"); 
+	produces<std::vector<float> >(branchprefix+"e4x4").setBranchAlias(aliasprefix_+"_e4x4"); 
+	produces<std::vector<float> >(branchprefix+"e5x5").setBranchAlias(aliasprefix_+"_e5x5"); 
+	produces<std::vector<float> >(branchprefix+"e2x5Max").setBranchAlias(aliasprefix_+"_e2x5Max");
 	// covariances
-	produces<std::vector<float> >("bcssigmaEtaEta").setBranchAlias("bcs_sigmaEtaEta");
-	produces<std::vector<float> >("bcssigmaEtaPhi").setBranchAlias("bcs_sigmaEtaPhi");
-	produces<std::vector<float> >("bcssigmaPhiPhi").setBranchAlias("bcs_sigmaPhiPhi");
-	produces<std::vector<float> >("bcssigmaIEtaIEta").setBranchAlias("bcs_sigmaIEtaIEta");
-	produces<std::vector<float> >("bcssigmaIEtaIPhi").setBranchAlias("bcs_sigmaIEtaIPhi");
-	produces<std::vector<float> >("bcssigmaIPhiIPhi").setBranchAlias("bcs_sigmaIPhiIPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaEtaEta").setBranchAlias(aliasprefix_+"_sigmaEtaEta");
+	produces<std::vector<float> >(branchprefix+"sigmaEtaPhi").setBranchAlias(aliasprefix_+"_sigmaEtaPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaPhiPhi").setBranchAlias(aliasprefix_+"_sigmaPhiPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaIEtaIEta").setBranchAlias(aliasprefix_+"_sigmaIEtaIEta");
+	produces<std::vector<float> >(branchprefix+"sigmaIEtaIPhi").setBranchAlias(aliasprefix_+"_sigmaIEtaIPhi");
+	produces<std::vector<float> >(branchprefix+"sigmaIPhiIPhi").setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi");
 
 	// match to electrons
 
@@ -267,37 +271,40 @@ void BCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	*evt_nbcs = vector_bcs_p4->size();
 
 	// put results into the event
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
 	iEvent.put(evt_nbcs, "evtnbcs");
-	iEvent.put(vector_bcs_energy, "bcsenergy");
-	iEvent.put(vector_bcs_p4, "bcsp4");
-	iEvent.put(vector_bcs_vtx_p4, "bcsvtxp4");
-	iEvent.put(vector_bcs_pos_p4, "bcsposp4");
-	iEvent.put(vector_bcs_eta, "bcseta");
-	iEvent.put(vector_bcs_phi, "bcsphi");
-	//iEvent.put(vector_bcs_hd1, "bcshd1");
-	//iEvent.put(vector_bcs_hd2, "bcshd2");
+	iEvent.put(vector_bcs_energy, branchprefix+"energy");
+	iEvent.put(vector_bcs_p4, branchprefix+"p4");
+	iEvent.put(vector_bcs_vtx_p4, branchprefix+"vtxp4");
+	iEvent.put(vector_bcs_pos_p4, branchprefix+"posp4");
+	iEvent.put(vector_bcs_eta, branchprefix+"eta");
+	iEvent.put(vector_bcs_phi, branchprefix+"phi");
+	//iEvent.put(vector_bcs_hd1, branchprefix+"hd1");
+	//iEvent.put(vector_bcs_hd2, branchprefix+"hd2");
 
-	iEvent.put(vector_bcs_eSeed, "bcseSeed");
-	iEvent.put(vector_bcs_severitySeed, "bcsseveritySeed");
-	iEvent.put(vector_bcs_e2nd, "bcse2nd");
-	iEvent.put(vector_bcs_eMax, "bcseMax");
+	iEvent.put(vector_bcs_eSeed, branchprefix+"eSeed");
+	iEvent.put(vector_bcs_severitySeed, branchprefix+"severitySeed");
+	iEvent.put(vector_bcs_e2nd, branchprefix+"e2nd");
+	iEvent.put(vector_bcs_eMax, branchprefix+"eMax");
 
-	iEvent.put(vector_bcs_e1x3, "bcse1x3");
-	iEvent.put(vector_bcs_e3x1, "bcse3x1");
-	iEvent.put(vector_bcs_e1x5, "bcse1x5");
-	iEvent.put(vector_bcs_e2x2, "bcse2x2");
-	iEvent.put(vector_bcs_e3x2, "bcse3x2");
-	iEvent.put(vector_bcs_e3x3, "bcse3x3");
-	iEvent.put(vector_bcs_e4x4, "bcse4x4");
-	iEvent.put(vector_bcs_e5x5, "bcse5x5");
-	iEvent.put(vector_bcs_e2x5Max, "bcse2x5Max");
-	iEvent.put(vector_bcs_sigmaEtaEta, "bcssigmaEtaEta");
-	iEvent.put(vector_bcs_sigmaEtaPhi, "bcssigmaEtaPhi");
-	iEvent.put(vector_bcs_sigmaPhiPhi, "bcssigmaPhiPhi");
-	iEvent.put(vector_bcs_sigmaIEtaIEta, "bcssigmaIEtaIEta");
-	iEvent.put(vector_bcs_sigmaIEtaIPhi, "bcssigmaIEtaIPhi");
-	iEvent.put(vector_bcs_sigmaIPhiIPhi, "bcssigmaIPhiIPhi");
-	iEvent.put(vector_bcs_crystalsSize, "bcscrystalsSize");
+	iEvent.put(vector_bcs_e1x3, branchprefix+"e1x3");
+	iEvent.put(vector_bcs_e3x1, branchprefix+"e3x1");
+	iEvent.put(vector_bcs_e1x5, branchprefix+"e1x5");
+	iEvent.put(vector_bcs_e2x2, branchprefix+"e2x2");
+	iEvent.put(vector_bcs_e3x2, branchprefix+"e3x2");
+	iEvent.put(vector_bcs_e3x3, branchprefix+"e3x3");
+	iEvent.put(vector_bcs_e4x4, branchprefix+"e4x4");
+	iEvent.put(vector_bcs_e5x5, branchprefix+"e5x5");
+	iEvent.put(vector_bcs_e2x5Max, branchprefix+"e2x5Max");
+	iEvent.put(vector_bcs_sigmaEtaEta, branchprefix+"sigmaEtaEta");
+	iEvent.put(vector_bcs_sigmaEtaPhi, branchprefix+"sigmaEtaPhi");
+	iEvent.put(vector_bcs_sigmaPhiPhi, branchprefix+"sigmaPhiPhi");
+	iEvent.put(vector_bcs_sigmaIEtaIEta, branchprefix+"sigmaIEtaIEta");
+	iEvent.put(vector_bcs_sigmaIEtaIPhi, branchprefix+"sigmaIEtaIPhi");
+	iEvent.put(vector_bcs_sigmaIPhiIPhi, branchprefix+"sigmaIPhiIPhi");
+	iEvent.put(vector_bcs_crystalsSize, branchprefix+"crystalsSize");
 
 }
 

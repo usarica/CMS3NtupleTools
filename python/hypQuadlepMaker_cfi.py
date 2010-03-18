@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 hypQuadlepMaker = cms.EDFilter("HypQuadlepMaker",
-	aliasPrefix = cms.untracked.string("hyp"),
+	aliasPrefix = cms.untracked.string("hyp_quadlep"),
     # met collection
     hypJetMinPtCut = cms.double(15.0), ##this is an uncorrected pt cut!
 

@@ -18,26 +18,30 @@ using namespace edm;
 using namespace std;
 
 
-HypDilepVertexMaker::HypDilepVertexMaker (const edm::ParameterSet& cfg)
-{
+HypDilepVertexMaker::HypDilepVertexMaker (const edm::ParameterSet& cfg) {
+
+  aliasprefix_ = cfg.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   recomuonsInputTag_      = cfg.getParameter<edm::InputTag>("recomuonsInputTag"    );
   cms2muonsInputTag_      = cfg.getParameter<edm::InputTag>("cms2muonsInputTag"    );
   recoelectronsInputTag_  = cfg.getParameter<edm::InputTag>("recoelectronsInputTag");
   cms2electronsInputTag_  = cfg.getParameter<edm::InputTag>("cms2electronsInputTag");
   hypInputTag_            = cfg.getParameter<edm::InputTag>("hypInputTag"          );
 
-  produces<vector<int> >          ("hypFVFitstatus"        ).setBranchAlias("hyp_FVFit_status"        );
-  produces<vector<int> >          ("hypFVFitndf"           ).setBranchAlias("hyp_FVFit_ndf"           );
-  produces<vector<float> >        ("hypFVFitchi2ndf"       ).setBranchAlias("hyp_FVFit_chi2ndf"       );
-  produces<vector<float> >        ("hypFVFitprob"          ).setBranchAlias("hyp_FVFit_prob"          );
-  produces<vector<float> >        ("hypFVFitv4cxx"         ).setBranchAlias("hyp_FVFit_v4cxx"         );
-  produces<vector<float> >        ("hypFVFitv4cxy"         ).setBranchAlias("hyp_FVFit_v4cxy"         );
-  produces<vector<float> >        ("hypFVFitv4cyy"         ).setBranchAlias("hyp_FVFit_v4cyy"         );
-  produces<vector<float> >        ("hypFVFitv4czz"         ).setBranchAlias("hyp_FVFit_v4czz"         );
-  produces<vector<float> >        ("hypFVFitv4czx"         ).setBranchAlias("hyp_FVFit_v4czx"         );
-  produces<vector<float> >        ("hypFVFitv4czy"         ).setBranchAlias("hyp_FVFit_v4czy"         );
-  produces<vector<LorentzVector> >("hypFVFitp4"            ).setBranchAlias("hyp_FVFit_p4"            );
-  produces<vector<LorentzVector> >("hypFVFitv4"            ).setBranchAlias("hyp_FVFit_v4"            );
+  produces<vector<int> >          (branchprefix+"status"        ).setBranchAlias(aliasprefix_+"_status"        );
+  produces<vector<int> >          (branchprefix+"ndf"           ).setBranchAlias(aliasprefix_+"_ndf"           );
+  produces<vector<float> >        (branchprefix+"chi2ndf"       ).setBranchAlias(aliasprefix_+"_chi2ndf"       );
+  produces<vector<float> >        (branchprefix+"prob"          ).setBranchAlias(aliasprefix_+"_prob"          );
+  produces<vector<float> >        (branchprefix+"v4cxx"         ).setBranchAlias(aliasprefix_+"_v4cxx"         );
+  produces<vector<float> >        (branchprefix+"v4cxy"         ).setBranchAlias(aliasprefix_+"_v4cxy"         );
+  produces<vector<float> >        (branchprefix+"v4cyy"         ).setBranchAlias(aliasprefix_+"_v4cyy"         );
+  produces<vector<float> >        (branchprefix+"v4czz"         ).setBranchAlias(aliasprefix_+"_v4czz"         );
+  produces<vector<float> >        (branchprefix+"v4czx"         ).setBranchAlias(aliasprefix_+"_v4czx"         );
+  produces<vector<float> >        (branchprefix+"v4czy"         ).setBranchAlias(aliasprefix_+"_v4czy"         );
+  produces<vector<LorentzVector> >(branchprefix+"p4"            ).setBranchAlias(aliasprefix_+"_p4"            );
+  produces<vector<LorentzVector> >(branchprefix+"v4"            ).setBranchAlias(aliasprefix_+"_v4"            );
   
 }
 
@@ -195,18 +199,21 @@ void HypDilepVertexMaker::produce(edm::Event& ev, const edm::EventSetup& es){
     (*hyp_FVFit_v4)[iH] = LorentzVector(tv.position().x(), tv.position().y(), tv.position().z(), 0);
   }
 	
-  ev.put(hyp_FVFit_status , "hypFVFitstatus" );
-  ev.put(hyp_FVFit_ndf    , "hypFVFitndf"    );
-  ev.put(hyp_FVFit_chi2ndf, "hypFVFitchi2ndf");
-  ev.put(hyp_FVFit_prob   , "hypFVFitprob"   );
-  ev.put(hyp_FVFit_v4cxx  , "hypFVFitv4cxx"  );
-  ev.put(hyp_FVFit_v4cxy  , "hypFVFitv4cxy"  );
-  ev.put(hyp_FVFit_v4cyy  , "hypFVFitv4cyy"  );
-  ev.put(hyp_FVFit_v4czz  , "hypFVFitv4czz"  );
-  ev.put(hyp_FVFit_v4czx  , "hypFVFitv4czx"  );
-  ev.put(hyp_FVFit_v4czy  , "hypFVFitv4czy"  );
-  ev.put(hyp_FVFit_p4     , "hypFVFitp4"     );
-  ev.put(hyp_FVFit_v4     , "hypFVFitv4"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  ev.put(hyp_FVFit_status , branchprefix+"status" );
+  ev.put(hyp_FVFit_ndf    , branchprefix+"ndf"    );
+  ev.put(hyp_FVFit_chi2ndf, branchprefix+"chi2ndf");
+  ev.put(hyp_FVFit_prob   , branchprefix+"prob"   );
+  ev.put(hyp_FVFit_v4cxx  , branchprefix+"v4cxx"  );
+  ev.put(hyp_FVFit_v4cxy  , branchprefix+"v4cxy"  );
+  ev.put(hyp_FVFit_v4cyy  , branchprefix+"v4cyy"  );
+  ev.put(hyp_FVFit_v4czz  , branchprefix+"v4czz"  );
+  ev.put(hyp_FVFit_v4czx  , branchprefix+"v4czx"  );
+  ev.put(hyp_FVFit_v4czy  , branchprefix+"v4czy"  );
+  ev.put(hyp_FVFit_p4     , branchprefix+"p4"     );
+  ev.put(hyp_FVFit_v4     , branchprefix+"v4"     );
 }
 
 //define this as a plug-in 

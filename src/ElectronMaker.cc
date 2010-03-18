@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.45 2010/03/03 04:23:49 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.46 2010/03/18 02:12:06 kalavase Exp $
 //
 //
 
@@ -82,8 +82,28 @@ using namespace std;
 //
 // constructors and destructor
 //
-ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),mtsTransform_(0)
-{
+ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
+
+  //get setup parameters
+  electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
+  beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
+  trksInputTag_                 = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
+  eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
+  eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
+  eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
+  eidLooseTag_		        = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
+  eidTightTag_		        = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
+  
+  minAbsDist_                   = iConfig.getParameter<double>("minAbsDist"                         );
+  minAbsDcot_                   = iConfig.getParameter<double>("minAbsDcot"                         );
+  minSharedFractionOfHits_      = iConfig.getParameter<double>("minSharedFractionOfHits"            );
+  
+  mtsTransform_ = 0;
+  clusterTools_ = 0;
+  
+  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+
+
   produces<unsigned int>       ("evtnels"                    ).setBranchAlias("evt_nels"                   ); //number of electrons in event
 
   // ECAL related (superCluster) variables
@@ -213,22 +233,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig):clusterTools_(0),
   produces<vector<float>    >    ("elsconvdcot"              ).setBranchAlias("els_conv_dcot"              );
   produces<vector<int>      >    ("elsconvtkidx"             ).setBranchAlias("els_conv_tkidx"             );
 
-  //get setup parameters
-  electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
-  beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
-  trksInputTag_                 = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
-  eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
-  eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
-  eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
-  eidLooseTag_		        = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
-  eidTightTag_		        = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
   
-  minAbsDist_                   = iConfig.getParameter<double>("minAbsDist"                         );
-  minAbsDcot_                   = iConfig.getParameter<double>("minAbsDcot"                         );
-  minSharedFractionOfHits_      = iConfig.getParameter<double>("minSharedFractionOfHits"            );
-  
-
-  clusterTools_ = 0;
 }
 
 ElectronMaker::~ElectronMaker()

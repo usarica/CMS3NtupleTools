@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tues Sep  1 11:07:38 CDT 2009
-// $Id: FlavorHistoryMaker.cc,v 1.2 2010/03/02 19:36:07 fgolf Exp $
+// $Id: FlavorHistoryMaker.cc,v 1.3 2010/03/18 02:12:11 kalavase Exp $
 //
 
 // system include files
@@ -34,11 +34,15 @@
 //
 
 FlavorHistoryMaker::FlavorHistoryMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
   
   using namespace edm;
   using namespace std;
 
-  produces<unsigned int>    ("genpsflavorHistoryFilterResult"        ).setBranchAlias("genps_flavorHistoryFilterResult");
+  produces<unsigned int>    (branchprefix+"flavorHistoryFilterResult"        ).setBranchAlias(aliasprefix_+"_flavorHistoryFilterResult");
   
   flavorHistoryFilterTag_ = iConfig.getParameter<InputTag>    ("flavorHistoryFilterTag"                  );
   
@@ -78,7 +82,10 @@ void FlavorHistoryMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   *genps_flavorHistoryFilterResult = *flavorHistoryFilterH.product();
   
 
-  iEvent.put(genps_flavorHistoryFilterResult             , "genpsflavorHistoryFilterResult");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(genps_flavorHistoryFilterResult             , branchprefix+"flavorHistoryFilterResult");
 
 }
 

@@ -11,7 +11,7 @@
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Tue Jun 17 20:40:42 UTC 2008
-// $Id: JetToElAssMaker.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
+// $Id: JetToElAssMaker.cc,v 1.7 2010/03/18 02:13:02 kalavase Exp $
 //
 //
 
@@ -36,18 +36,21 @@
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-JetToElAssMaker::JetToElAssMaker(const edm::ParameterSet& iConfig)
-{
-     produces<std::vector<int>    >("jetsclosestElectron"  ).setBranchAlias("jets_closestElectron"   );
-     produces<std::vector<double> >("jetsclosestElectronDR").setBranchAlias("jets_closestElectron_DR");
+JetToElAssMaker::JetToElAssMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     produces<std::vector<int>    >(branchprefix+"closestElectron"  ).setBranchAlias(aliasprefix_+"_closestElectron"   );
+     produces<std::vector<double> >(branchprefix+"closestElectronDR").setBranchAlias(aliasprefix_+"_closestElectron_DR");
 
      m_minDR     = iConfig.getParameter<double>("minDR");
      jetInputTag = iConfig.getParameter<edm::InputTag>("jetInputTag_");
      elInputTag  = iConfig.getParameter<edm::InputTag>("elInputTag_" );
 }
 
-void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
      std::auto_ptr<std::vector<int>    > vector_jets_closestElectron   (new std::vector<int>   );        
      std::auto_ptr<std::vector<double> > vector_jets_closestElectron_DR(new std::vector<double>);        
@@ -84,8 +87,11 @@ void JetToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      }
 
 
-     iEvent.put(vector_jets_closestElectron   , "jetsclosestElectron"  );
-     iEvent.put(vector_jets_closestElectron_DR, "jetsclosestElectronDR");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+     iEvent.put(vector_jets_closestElectron   , branchprefix+"closestElectron"  );
+     iEvent.put(vector_jets_closestElectron_DR, branchprefix+"closestElectronDR");
 }
 
 // ------------ method called once each job just before starting event loop  ------------

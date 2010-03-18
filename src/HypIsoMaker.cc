@@ -35,8 +35,12 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace edm;
 
-HypIsoMaker::HypIsoMaker(const edm::ParameterSet& iConfig) 
-{
+HypIsoMaker::HypIsoMaker(const edm::ParameterSet& iConfig) {
+
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
   //inputs: edm collections
   emObjectProducer_               = iConfig.getParameter<edm::InputTag>("emObjectProducer"); //'uniqueElectrons'
   muonsInputTag_                  = iConfig.getParameter<edm::InputTag>("muonsInputTag");
@@ -89,10 +93,10 @@ HypIsoMaker::HypIsoMaker(const edm::ParameterSet& iConfig)
   muonparameters_.loadParameters( parameters );
 
   //register your products
-  produces<vector<float> >         ("hypltecaliso"             ).setBranchAlias("hyp_lt_ecaliso");
-  produces<vector<float> >         ("hypllecaliso"             ).setBranchAlias("hyp_ll_ecaliso");
-  produces<vector<float> >         ("hyplttrkiso"              ).setBranchAlias("hyp_lt_trkiso");
-  produces<vector<float> >         ("hyplltrkiso"              ).setBranchAlias("hyp_ll_trkiso");
+  produces<vector<float> >         (branchprefix+"ltecaliso"             ).setBranchAlias(aliasprefix_+"_lt_ecaliso");
+  produces<vector<float> >         (branchprefix+"llecaliso"             ).setBranchAlias(aliasprefix_+"_ll_ecaliso");
+  produces<vector<float> >         (branchprefix+"lttrkiso"              ).setBranchAlias(aliasprefix_+"_lt_trkiso");
+  produces<vector<float> >         (branchprefix+"lltrkiso"              ).setBranchAlias(aliasprefix_+"_ll_trkiso");
 }
 
 
@@ -389,10 +393,13 @@ HypIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
 
-  iEvent.put(hyp_lt_ecaliso, "hypltecaliso");
-  iEvent.put(hyp_ll_ecaliso, "hypllecaliso");
-  iEvent.put(hyp_lt_trkiso, "hyplttrkiso");
-  iEvent.put(hyp_ll_trkiso, "hyplltrkiso");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(hyp_lt_ecaliso, branchprefix+"ltecaliso");
+  iEvent.put(hyp_ll_ecaliso, branchprefix+"llecaliso");
+  iEvent.put(hyp_lt_trkiso, branchprefix+"lttrkiso");
+  iEvent.put(hyp_ll_trkiso, branchprefix+"lltrkiso");
 
 }
 
