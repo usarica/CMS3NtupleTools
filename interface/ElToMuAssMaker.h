@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.h,v 1.4 2010/03/03 04:19:25 kalavase Exp $
+// $Id: ElToMuAssMaker.h,v 1.5 2010/03/18 02:19:41 kalavase Exp $
 //
 //
 #ifndef CMS2_ELTOMUASSMAKER_H
@@ -38,9 +38,9 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
       
-     // ----------member data ---------------------------
-     double m_minDR;
-     std::string aliasprefix_;
+  // ----------member data ---------------------------
+  double m_minDR_;
+  std::string aliasprefix_;
   edm::InputTag elsInputTag_;
   edm::InputTag musInputTag_;
 };
