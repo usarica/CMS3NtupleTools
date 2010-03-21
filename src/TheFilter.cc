@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Frank Wuerthwein
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TheFilter.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TheFilter.cc,v 1.3 2010/03/21 02:55:37 warren Exp $
 //
 //
 
@@ -58,10 +58,22 @@ bool TheFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   for ( vector<edm::InputTag>::const_iterator i=filterExpressions.begin(), end=filterExpressions.end();
 	i!=end; ++i) {
 
-    edm::Handle<vector<int> > theHandle;
-    iEvent.getByLabel(*i, theHandle);
-    if ( theHandle->size() != 0 ) return true ;
-
+	try{
+	  edm::Handle<vector<int> > theHandle;
+	  iEvent.getByLabel(*i, theHandle);
+	  if ( theHandle->size() != 0 ) return true ;
+	}
+	catch(...){
+	  //cout << "not an int" << endl; //just skip if bad
+	}
+	try{
+	  edm::Handle<vector<float> > theHandle;
+	  iEvent.getByLabel(*i, theHandle);
+	  if ( theHandle->size() != 0 ) return true ;
+	}
+	catch(...){
+	  //cout << "not a float" << endl; //just skip if bad
+	}
   }
 
   //get handle for given input string
