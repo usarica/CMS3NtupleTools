@@ -24,9 +24,9 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
+
 #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+//#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -137,6 +137,10 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	produces<std::vector<float> >(branchprefix+"emSwiss").setBranchAlias(aliasprefix_+"_emSwiss");
 	//number of crystals 
 	produces<std::vector<int> >(branchprefix+"numCrystals").setBranchAlias(aliasprefix_+"_numCrystals");
+	// These two branches are vectors OVER SPIKES NOT OVER TOWERS (empty if no spikes in the event)
+	// spikes are identified by R4 < spikeR4Thresh_ and Et > spikeEtThresh_ and spikeEtaMax_ (from config)
+	produces<std::vector<float> >(branchprefix+"spikeEt").setBranchAlias(aliasprefix_+"_spikeEt");
+	produces<std::vector<float> >(branchprefix+"spikeR4").setBranchAlias(aliasprefix_+"_spikeR4");
 
 	// add superclusters to the ntuple if they have ET > scEtMin_
 	//   scEtMin_ = iConfig.getParameter<double>("scEtMin");
@@ -148,6 +152,10 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
 	ecalDigiProducerEE_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEE");
 	ecalDigiProducerEB_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEB");
+
+	spikeEtThresh_  = iConfig.getParameter<double>("spikeEtThresh");
+	spikeR4Thresh_  = iConfig.getParameter<double>("spikeR4Thresh");
+	spikeEtaMax_    = iConfig.getParameter<double>("spikeEtaMax");
 
 	// initialise this
 	//  cachedCaloGeometryID_ = 0;
@@ -263,6 +271,9 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_emSwiss	(new std::vector<float>);	
 	std::auto_ptr<std::vector<int>   > vector_twrs_numCrystals(new std::vector<int>);
+	//vectors over spikes, not towers
+	std::auto_ptr<std::vector<float>   > vector_twrs_spikeEt  (new std::vector<float>);
+	std::auto_ptr<std::vector<float>   > vector_twrs_spikeR4  (new std::vector<float>);
 
 	*evt_ntwrs = 0;
 
@@ -319,52 +330,61 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		DetId emMaxId(0);
 		int recoFlag = -1;
 		std::vector<int> ecalMGPASampleADC;
-
+		
 		// loop on detids in the tower
 		for (size_t i = 0; i < towerDetIds.size(); ++i) {
-			// find the energy of this detId if it is in the ecal
-			if (towerDetIds[i].subdetId() == EcalEndcap)
-				emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEE);
-			if (towerDetIds[i].subdetId() == EcalBarrel)
-				emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEB);
-			// compare with previous highest energy
-			if (emE > emMax) {
-				emMax = emE; 
-				emMaxId = towerDetIds[i];
+		  // find the energy of this detId if it is in the ecal
+		  // also find spikes here for every hit in barrel towers, and fill numSpikes.
+		  if (towerDetIds[i].det() == DetId::Ecal && towerDetIds[i].subdetId() == EcalEndcap) { //no spikes in endcap
+			emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEE);
+		  }
+		  else if (towerDetIds[i].det() == DetId::Ecal && towerDetIds[i].subdetId() == EcalBarrel) {
+			emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEB);
+			//this is from RecoLocalCalo/EcalRecAlgos/src/EcalSeverityLevelAlgo.cc, or something
+			float approxEta = EBDetId::approxEta( towerDetIds[i] );
+			if( emE/cosh(approxEta) > spikeEtThresh_ ) { //check et cut first to skip SwissCross for run time speedup
+			  reco::BasicCluster dummyCluster;
+			  float s4 = SwissCross(dummyCluster, recHitsEB, towerDetIds[i]) - emE; //swiss cross still contains center hit
+			  if( s4/emE < spikeR4Thresh_ && //identify spikes with r4
+				  fabs(approxEta) < spikeEtaMax_ ) { //exclude transition
+				vector_twrs_spikeEt->push_back( emE/cosh(approxEta) );
+				vector_twrs_spikeR4->push_back( s4/emE );
+			  }
 			}
+		  }
+
+		  // compare with previous highest energy
+		  if (emE > emMax) {
+			emMax = emE; 
+			emMaxId = towerDetIds[i];
+		  }
+
 		}
 
 		// find the relevant quantities for the identified crystal
 		if (emMaxId != DetId(0)) {
-			reco::BasicCluster dummyCluster;
-			if (emMaxId.subdetId() == EcalEndcap) {
-				chi2Prob = recHitChi2Prob(emMaxId, recHitsEE);
-				emMaxTime = recHitTime(emMaxId, recHitsEE);
-				recoFlag = recHitFlag(emMaxId, recHitsEE);
-				recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
-				em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, -1, 1);
-				em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -2, 2, -2, 2);
+		  reco::BasicCluster dummyCluster;
+		  if (emMaxId.subdetId() == EcalEndcap) {
+			chi2Prob = recHitChi2Prob(emMaxId, recHitsEE);
+			emMaxTime = recHitTime(emMaxId, recHitsEE);
+			recoFlag = recHitFlag(emMaxId, recHitsEE);
+			recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
+			em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, -1, 1);
+			em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -2, 2, -2, 2);
 
-				// make the swiss cross
-				emSwiss = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, 0, 0, -1, 1);
-				emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, 0, 0);
-				emSwiss -= emMax;
-			}
+			emSwiss = SwissCross(dummyCluster, recHitsEE, emMaxId); // make the swiss cross
+		  }
 
-			if (emMaxId.subdetId() == EcalBarrel) { 
-                                chi2Prob = recHitChi2Prob(emMaxId, recHitsEB);
-				emMaxTime = recHitTime(emMaxId, recHitsEB);
-				recoFlag = recHitFlag(emMaxId, recHitsEB);
-				recHitSamples(emMaxId, ebDigis, ecalMGPASampleADC);
-				em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, -1, 1);
-				em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -2, 2, -2, 2);
+		  if (emMaxId.subdetId() == EcalBarrel) { 
+			chi2Prob = recHitChi2Prob(emMaxId, recHitsEB);
+			emMaxTime = recHitTime(emMaxId, recHitsEB);
+			recoFlag = recHitFlag(emMaxId, recHitsEB);
+			recHitSamples(emMaxId, ebDigis, ecalMGPASampleADC);
+			em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, -1, 1);
+			em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -2, 2, -2, 2);
 
-                                // make the swiss cross
-                                emSwiss = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, 0, 0, -1, 1);
-                                emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, 0, 0);
-                                emSwiss -= emMax;
-
-			}
+			emSwiss = SwissCross(dummyCluster, recHitsEB, emMaxId); // make the swiss cross
+		  }
 		}
 
 		vector_twrs_emMaxChi2Prob->push_back(chi2Prob);
@@ -423,6 +443,8 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_twrs_em5x5, branchprefix+"em5x5");
 	iEvent.put(vector_twrs_emSwiss, branchprefix+"emSwiss");
 	iEvent.put(vector_twrs_numCrystals, branchprefix+"numCrystals");
+	iEvent.put(vector_twrs_spikeEt, branchprefix+"spikeEt");
+	iEvent.put(vector_twrs_spikeR4, branchprefix+"spikeR4");
 
 }
 
@@ -465,6 +487,18 @@ void CaloTowerMaker::recHitSamples(DetId emMaxId, const EcalDigiCollection *digi
 	}
 
 }
+
+
+//returns sum of energies in emMax + 4 immediate neighbors
+float CaloTowerMaker::SwissCross( reco::BasicCluster& dummyCluster, const EcalRecHitCollection *&recHits, const DetId& emMaxId) {
+  EcalClusterTools clusterTools;
+  float emSwiss = 0.;
+  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHits, topology_, emMaxId, 0, 0, -1, 1);  //topology_ is a data memeber 
+  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHits, topology_, emMaxId, -1, 1, 0, 0); 
+  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHits, topology_, emMaxId, 0, 0, 0, 0); //center of cross was included twice above 
+  return emSwiss;
+}
+
 
 // ------------ method called once each job just before starting event loop  ------------
 	void 

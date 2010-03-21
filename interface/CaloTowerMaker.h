@@ -27,12 +27,14 @@ Implementation:
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
+#include "DataFormats/CaloTowers/interface/CaloTowerCollection.h"
 
 #include "DataFormats/DetId/interface/DetId.h"
 #include "DataFormats/EcalDigi/interface/EcalDataFrame.h" 
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 //
 // class declaration
 //
@@ -52,6 +54,7 @@ class CaloTowerMaker : public edm::EDProducer {
 		float recHitTime(DetId emMaxId, const EcalRecHitCollection *recHits);
 		int recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHits);
 		void recHitSamples(DetId emMaxId, const EcalDigiCollection *digis, std::vector<int> &samples);
+        float SwissCross(reco::BasicCluster &dummyCluster, const EcalRecHitCollection *&recHits, const DetId& emMaxId);
 
 		// ----------member data ---------------------------
 
@@ -72,6 +75,10 @@ class CaloTowerMaker : public edm::EDProducer {
 
 		// topology
 		const CaloTopology *topology_;
+
+    float spikeR4Thresh_;
+    float spikeEtThresh_;
+    float spikeEtaMax_;
 
 	std::string aliasprefix_;
 };
