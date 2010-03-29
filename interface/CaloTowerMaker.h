@@ -35,6 +35,8 @@ Implementation:
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
+#include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
 //
 // class declaration
 //
@@ -50,9 +52,11 @@ class CaloTowerMaker : public edm::EDProducer {
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;
 
+		float recHitChi2(DetId emMaxId, const EcalRecHitCollection *recHits);
 		float recHitChi2Prob(DetId emMaxId, const EcalRecHitCollection *recHits);
 		float recHitTime(DetId emMaxId, const EcalRecHitCollection *recHits);
 		int recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHits);
+        int recHitSeverityLevel(DetId emMaxId, const EcalRecHitCollection *recHits);
 		void recHitSamples(DetId emMaxId, const EcalDigiCollection *digis, std::vector<int> &samples);
         float SwissCross(reco::BasicCluster &dummyCluster, const EcalRecHitCollection *&recHits, const DetId& emMaxId);
 
@@ -73,9 +77,13 @@ class CaloTowerMaker : public edm::EDProducer {
                 edm::InputTag ecalDigiProducerEE_;
                 edm::InputTag ecalDigiProducerEB_;
 
+        //ecal channel status
+        const EcalChannelStatus* theEcalChStatus_;
+
 		// topology
 		const CaloTopology *topology_;
 
+    float threshEt_;
     float spikeR4Thresh_;
     float spikeEtThresh_;
     float spikeEtaMax_;

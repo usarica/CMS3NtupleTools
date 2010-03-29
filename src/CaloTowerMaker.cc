@@ -28,6 +28,7 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
 //#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -37,6 +38,8 @@ Implementation:
 
 typedef math::XYZTLorentzVector LorentzVector;
 typedef math::XYZPoint Point;
+
+using namespace std;
 
 //
 // class decleration
@@ -119,24 +122,33 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	//  uint numProblematicHcalCells() const { return ((twrStatusWord_ >> 21) & 0x7); }
 	produces<std::vector<unsigned int> >(branchprefix+"numProblematicHcalCells").setBranchAlias(aliasprefix_+"_numProblematicHcalCells");
 
-	// chi2 prob
-        produces<std::vector<float> >(branchprefix+"emMaxChi2Prob").setBranchAlias(aliasprefix_+"_emMaxChi2Prob");
 	// vector of 10 samples per max crystal in the calo tower
-	produces<std::vector<std::vector<int> > >(branchprefix+"emMaxEcalMGPASampleADC").setBranchAlias(aliasprefix_+"_emMaxEcalMGPASampleADC");
-	// time of crystal with highest em energy
-	produces<std::vector<float> >(branchprefix+"emMaxTime").setBranchAlias(aliasprefix_+"_emMaxTime");
-	// the recoflag of the max energy crystal in the tower
-	produces<std::vector<int> >(branchprefix+"emMaxRecoFlag").setBranchAlias(aliasprefix_+"_emMaxRecoFlag");
-	// the energy of the max energy crystal in the tower
-	produces<std::vector<float> >(branchprefix+"emMax").setBranchAlias(aliasprefix_+"_emMax");
-	// the energy in 3x3 crystals centred on the max energy crystal
-	produces<std::vector<float> >(branchprefix+"em3x3").setBranchAlias(aliasprefix_+"_em3x3");
-	// as above for 5x5 crystals
-	produces<std::vector<float> >(branchprefix+"em5x5").setBranchAlias(aliasprefix_+"_em5x5");
-	// swiss cross
-	produces<std::vector<float> >(branchprefix+"emSwiss").setBranchAlias(aliasprefix_+"_emSwiss");
+	produces<std::vector<std::vector<int> > >	(branchprefix+"emMaxEcalMGPASampleADC").setBranchAlias(aliasprefix_+"_emMaxEcalMGPASampleADC");
 	//number of crystals 
-	produces<std::vector<int> >(branchprefix+"numCrystals").setBranchAlias(aliasprefix_+"_numCrystals");
+	produces<std::vector<int> >		(branchprefix+"numCrystals").setBranchAlias(aliasprefix_+"_numCrystals");
+
+	//The following set of branches are vectors over ALL ECAL HITS WITH ET > 5 (5 is configurable in attentionEtThresh_)
+
+	// chi2 prob -- NO LONGER ACCESSIBLE IN 3_5_5. Replace this branch with Chi2
+	//produces<std::vector<float> >		(branchprefix+"emThreshChi2Prob").setBranchAlias(aliasprefix_+"_emThreshChi2Prob");
+	produces<std::vector<std::vector<float> > >		(branchprefix+"emThreshChi2").setBranchAlias(aliasprefix_+"_emThreshChi2");
+	// time of crystals with em et > 5
+	produces<std::vector<std::vector<float> > >		(branchprefix+"emThreshTime").setBranchAlias(aliasprefix_+"_emThreshTime");
+	// the recoflag of these crystals
+	produces<std::vector<std::vector<int> > >		(branchprefix+"emThreshRecoFlag").setBranchAlias(aliasprefix_+"_emThreshRecoFlag");
+	// the severity level of the hit 	(see RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h)
+	produces<std::vector<std::vector<int> > >		(branchprefix+"emThreshSevLvl").setBranchAlias(aliasprefix_+"_emThreshSevLvl");
+	// the energy of the hit
+	produces<std::vector<std::vector<float> > >		(branchprefix+"emThresh").setBranchAlias(aliasprefix_+"_emThresh");
+	// the eta of the hit
+	produces<std::vector<std::vector<float> > >		(branchprefix+"emThreshEta").setBranchAlias(aliasprefix_+"_emThreshEta");
+	// the energy in 3x3 crystals centred on the max energy crystal
+	produces<std::vector<std::vector<float> > >		(branchprefix+"em3x3").setBranchAlias(aliasprefix_+"_em3x3");
+	// as above for 5x5 crystals
+	produces<std::vector<std::vector<float> > >		(branchprefix+"em5x5").setBranchAlias(aliasprefix_+"_em5x5");
+	// swiss cross
+	produces<std::vector<std::vector<float> > >		(branchprefix+"emSwiss").setBranchAlias(aliasprefix_+"_emSwiss");
+
 	// These two branches are vectors OVER SPIKES NOT OVER TOWERS (empty if no spikes in the event)
 	// spikes are identified by R4 < spikeR4Thresh_ and Et > spikeEtThresh_ and spikeEtaMax_ (from config)
 	produces<std::vector<float> >(branchprefix+"spikeEt").setBranchAlias(aliasprefix_+"_spikeEt");
@@ -153,6 +165,7 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	ecalDigiProducerEE_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEE");
 	ecalDigiProducerEB_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEB");
 
+	threshEt_       = iConfig.getParameter<double>("threshEt");
 	spikeEtThresh_  = iConfig.getParameter<double>("spikeEtThresh");
 	spikeR4Thresh_  = iConfig.getParameter<double>("spikeR4Thresh");
 	spikeEtaMax_    = iConfig.getParameter<double>("spikeEtaMax");
@@ -222,6 +235,11 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		eeDigis = eeDigiHandle.product();
 	}
 
+	//ecal channel status
+	edm::ESHandle<EcalChannelStatus> chStatus;
+	iSetup.get<EcalChannelStatusRcd>().get(chStatus);
+	theEcalChStatus_ = chStatus.product();
+
 	// ecal cluster shape variables
 	// do not use the lazy tools because need to get the hits anyway
 	EcalClusterTools clusterTools;
@@ -262,15 +280,20 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numRecoveredHcalCells (new std::vector<unsigned int>);
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numProblematicHcalCells (new std::vector<unsigned int>);
 
-	std::auto_ptr<std::vector<float> > vector_twrs_emMaxChi2Prob (new std::vector<float>);
 	std::auto_ptr<std::vector<std::vector<int> > > vector_twrs_emMaxEcalMGPASampleADC (new std::vector<std::vector<int> >);
-	std::auto_ptr<std::vector<float> > vector_twrs_emMaxTime      (new std::vector<float>);
-	std::auto_ptr<std::vector<int> > vector_twrs_emMaxRecoFlag      (new std::vector<int>);
-	std::auto_ptr<std::vector<float> > vector_twrs_emMax      (new std::vector<float>);
-	std::auto_ptr<std::vector<float> > vector_twrs_em3x3      (new std::vector<float>);
-	std::auto_ptr<std::vector<float> > vector_twrs_em5x5      (new std::vector<float>);
-	std::auto_ptr<std::vector<float> > vector_twrs_emSwiss	(new std::vector<float>);	
 	std::auto_ptr<std::vector<int>   > vector_twrs_numCrystals(new std::vector<int>);
+
+	auto_ptr<vector<vector<float> > > vector_twrs_emThreshChi2 			(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_emThreshChi2Prob 		(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_emThreshTime      	(new vector<vector<float> >);
+	auto_ptr<vector<vector<int  > > > vector_twrs_emThreshRecoFlag      (new vector<vector<int  > >);
+	auto_ptr<vector<vector<int  > > > vector_twrs_emThreshSevLvl      	(new vector<vector<int  > >);
+	auto_ptr<vector<vector<float> > > vector_twrs_emThresh      		(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_emThreshEta      		(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_em3x3      			(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_em5x5      			(new vector<vector<float> >);
+	auto_ptr<vector<vector<float> > > vector_twrs_emSwiss				(new vector<vector<float> >);	
+
 	//vectors over spikes, not towers
 	std::auto_ptr<std::vector<float>   > vector_twrs_spikeEt  (new std::vector<float>);
 	std::auto_ptr<std::vector<float>   > vector_twrs_spikeR4  (new std::vector<float>);
@@ -322,14 +345,20 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		// get variables for highest em energy crystal in tower
 		float emE = 0.0;
 		float emMax = 0.0;
-		float em3x3 = 0.0;
-		float em5x5 = 0.0;
-		float emSwiss = 0.0;
-		float chi2Prob = -9999.99;
-		float emMaxTime = -9999.99;
 		DetId emMaxId(0);
-		int recoFlag = -1;
-		std::vector<int> ecalMGPASampleADC;
+		vector<int> ecalMGPASampleADC;
+		//below are for Thresh branches--for et > threshEt
+		vector<float> chi2;
+		vector<float> chi2Prob;
+		vector<float> emTime;
+		vector<int  > recoFlag;
+		vector<int  > sevlvl;
+		vector<float> emThresh;
+		vector<float> emThreshEta;
+		vector<float> em3x3;
+		vector<float> em5x5;
+		vector<float> emSwiss;
+		vector<DetId> emId;
 		
 		// loop on detids in the tower
 		for (size_t i = 0; i < towerDetIds.size(); ++i) {
@@ -337,11 +366,17 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  // also find spikes here for every hit in barrel towers, and fill numSpikes.
 		  if (towerDetIds[i].det() == DetId::Ecal && towerDetIds[i].subdetId() == EcalEndcap) { //no spikes in endcap
 			emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEE);
+			//for endcap, use eta of tower, not hit. Sorry, this is a bit of a fudge, but i can't easily get eta of an endcap hit
+			if( emE/cosh(j->eta()) > threshEt_ )
+			  emId.push_back( towerDetIds[i] );
 		  }
 		  else if (towerDetIds[i].det() == DetId::Ecal && towerDetIds[i].subdetId() == EcalBarrel) {
 			emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEB);
 			//this is from RecoLocalCalo/EcalRecAlgos/src/EcalSeverityLevelAlgo.cc, or something
 			float approxEta = EBDetId::approxEta( towerDetIds[i] );
+			if( emE/approxEta > threshEt_ )
+			  emId.push_back( towerDetIds[i] );
+			//spike
 			if( emE/cosh(approxEta) > spikeEtThresh_ ) { //check et cut first to skip SwissCross for run time speedup
 			  reco::BasicCluster dummyCluster;
 			  float s4 = SwissCross(dummyCluster, recHitsEB, towerDetIds[i]) - emE; //swiss cross still contains center hit
@@ -361,47 +396,66 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 		}
 
-		// find the relevant quantities for the identified crystal
-		if (emMaxId != DetId(0)) {
-		  reco::BasicCluster dummyCluster;
-		  if (emMaxId.subdetId() == EcalEndcap) {
-			chi2Prob = recHitChi2Prob(emMaxId, recHitsEE);
-			emMaxTime = recHitTime(emMaxId, recHitsEE);
-			recoFlag = recHitFlag(emMaxId, recHitsEE);
-			recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
-			em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -1, 1, -1, 1);
-			em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emMaxId, -2, 2, -2, 2);
+		//if none > threshEt_, store in Thresh branches the max anyway (so long as there is a max)
+		if( emId.size() == 0 && emMaxId != DetId(0))
+		  emId.push_back(emMaxId);
 
-			emSwiss = SwissCross(dummyCluster, recHitsEE, emMaxId); // make the swiss cross
-		  }
+		// find the relevant quantities for the identified crystals
+		for( unsigned int i=0; i<emId.size(); i++) {
+		  if (emId[i] != DetId(0)) {
+			reco::BasicCluster dummyCluster;
+			if (emId[i].subdetId() == EcalEndcap) {
+			  //chi2Prob.push_back( recHitChi2Prob(emId[i], recHitsEE) ); //cannot use in 3_5_5
+			  chi2.push_back( recHitChi2(emId[i], recHitsEE) ); //replace above with this
+			  emTime.push_back( recHitTime(emId[i], recHitsEE) );
+			  sevlvl.push_back( recHitSeverityLevel(emId[i], recHitsEE) );
+			  recoFlag.push_back( recHitFlag(emId[i], recHitsEE) );
+			  emThresh.push_back( clusterTools.recHitEnergy(emId[i], recHitsEE) );
+			  emThreshEta.push_back( j->eta() ); //again, sorry, this is just the tower eta, not hit eta
+			  em3x3.push_back( clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emId[i], -1, 1, -1, 1) );
+			  em5x5.push_back( clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, emId[i], -2, 2, -2, 2) );
+			  emSwiss.push_back( SwissCross(dummyCluster, recHitsEE, emId[i]) ); // make the swiss cross
+			
+			  if( emId[i] == emMaxId ) //adc just for max
+				recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
+			}
+			else if (emId[i].subdetId() == EcalBarrel) { 
+			  //chi2Prob.push_back( recHitChi2Prob(emId[i], recHitsEE) ); //cannot use in 3_5_5
+			  chi2.push_back( recHitChi2(emId[i], recHitsEB) ); //replace above with this
+			  emTime.push_back( recHitTime(emId[i], recHitsEB) );
+			  sevlvl.push_back( recHitSeverityLevel(emId[i], recHitsEB) );
+			  recoFlag.push_back( recHitFlag(emId[i], recHitsEB) );
+			  emThresh.push_back( clusterTools.recHitEnergy(emId[i], recHitsEB) );
+			  emThreshEta.push_back( EBDetId::approxEta(emId[i]) );
+			  em3x3.push_back( clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emId[i], -1, 1, -1, 1) );
+			  em5x5.push_back( clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emId[i], -2, 2, -2, 2) );
+			  emSwiss.push_back( SwissCross(dummyCluster, recHitsEB, emId[i]) ); // make the swiss cross
 
-		  if (emMaxId.subdetId() == EcalBarrel) { 
-			chi2Prob = recHitChi2Prob(emMaxId, recHitsEB);
-			emMaxTime = recHitTime(emMaxId, recHitsEB);
-			recoFlag = recHitFlag(emMaxId, recHitsEB);
-			recHitSamples(emMaxId, ebDigis, ecalMGPASampleADC);
-			em3x3 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -1, 1, -1, 1);
-			em5x5 = clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, emMaxId, -2, 2, -2, 2);
-
-			emSwiss = SwissCross(dummyCluster, recHitsEB, emMaxId); // make the swiss cross
+			  if( emId[i] == emMaxId ) //adc just for max
+				recHitSamples(emMaxId, ebDigis, ecalMGPASampleADC);
+			}
 		  }
 		}
 
-		vector_twrs_emMaxChi2Prob->push_back(chi2Prob);
 		vector_twrs_emMaxEcalMGPASampleADC->push_back(ecalMGPASampleADC);
-		vector_twrs_emMaxTime->push_back(emMaxTime);
-		vector_twrs_emMaxRecoFlag->push_back(recoFlag);
-		vector_twrs_emMax->push_back(emMax);
+		vector_twrs_numCrystals->push_back(j->numCrystals());
+
+		vector_twrs_emThreshChi2->push_back(chi2);
+		vector_twrs_emThreshChi2Prob->push_back(chi2Prob);
+		vector_twrs_emThreshTime->push_back(emTime);
+		vector_twrs_emThreshRecoFlag->push_back(recoFlag);
+		vector_twrs_emThreshSevLvl->push_back(sevlvl);
+		vector_twrs_emThresh->push_back(emThresh);
+		vector_twrs_emThreshEta->push_back(emThreshEta);
 		vector_twrs_em3x3->push_back(em3x3);
 		vector_twrs_em5x5->push_back(em5x5);
 		vector_twrs_emSwiss->push_back(emSwiss);
-		vector_twrs_numCrystals->push_back(j->numCrystals());
 
 	}
 
 	// put results into the event
-  std::string branchprefix = aliasprefix_;
-  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+	std::string branchprefix = aliasprefix_;
+	if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
 	iEvent.put(evt_ntwrs, "evtntwrs");
 	iEvent.put(vector_twrs_eta, branchprefix+"eta");
@@ -434,20 +488,34 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iEvent.put(vector_twrs_numRecoveredHcalCells, branchprefix+"numRecoveredHcalCells");
 	iEvent.put(vector_twrs_numProblematicHcalCells, branchprefix+"numProblematicHcalCells");
 
-	iEvent.put(vector_twrs_emMaxChi2Prob, branchprefix+"emMaxChi2Prob");
 	iEvent.put(vector_twrs_emMaxEcalMGPASampleADC, branchprefix+"emMaxEcalMGPASampleADC");
-	iEvent.put(vector_twrs_emMaxTime, branchprefix+"emMaxTime");
-	iEvent.put(vector_twrs_emMaxRecoFlag, branchprefix+"emMaxRecoFlag");
-	iEvent.put(vector_twrs_emMax, branchprefix+"emMax");
+	iEvent.put(vector_twrs_numCrystals, branchprefix+"numCrystals");
+
+	iEvent.put(vector_twrs_emThreshChi2, branchprefix+"emThreshChi2");
+	//iEvent.put(vector_twrs_emThreshChi2Prob, branchprefix+"emThreshChi2Prob");
+	iEvent.put(vector_twrs_emThreshTime, branchprefix+"emThreshTime");
+	iEvent.put(vector_twrs_emThreshSevLvl, branchprefix+"emThreshSevLvl");
+	iEvent.put(vector_twrs_emThreshRecoFlag, branchprefix+"emThreshRecoFlag");
+	iEvent.put(vector_twrs_emThresh, branchprefix+"emThresh");
+	iEvent.put(vector_twrs_emThreshEta, branchprefix+"emThreshEta");
 	iEvent.put(vector_twrs_em3x3, branchprefix+"em3x3");
 	iEvent.put(vector_twrs_em5x5, branchprefix+"em5x5");
 	iEvent.put(vector_twrs_emSwiss, branchprefix+"emSwiss");
-	iEvent.put(vector_twrs_numCrystals, branchprefix+"numCrystals");
+
 	iEvent.put(vector_twrs_spikeEt, branchprefix+"spikeEt");
 	iEvent.put(vector_twrs_spikeR4, branchprefix+"spikeR4");
 
 }
 
+
+float CaloTowerMaker::recHitChi2(DetId emMaxId, const EcalRecHitCollection *recHits)
+{               
+        EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
+        if (it != recHits->end()) return it->chi2();
+        return -9999.99;
+}
+
+//in 3_5_5, the chi2Prob method will crash--cannot use. Replace with above.
 float CaloTowerMaker::recHitChi2Prob(DetId emMaxId, const EcalRecHitCollection *recHits)
 {               
         EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
@@ -466,6 +534,17 @@ int CaloTowerMaker::recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHit
 {
 	EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
 	if (it != recHits->end()) return it->recoFlag();
+	return -1;
+}
+
+int CaloTowerMaker::recHitSeverityLevel(DetId emMaxId, const EcalRecHitCollection *recHits)
+{
+	EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
+	if (it != recHits->end()) {
+	  const EcalSeverityLevelAlgo* theEcalSevLvlAlgo;
+	  //const EcalChannelStatus* theEcalChStatus = new EcalChannelStatus(); //have to set this up, idiot
+	  return theEcalSevLvlAlgo->severityLevel( emMaxId, *recHits, *theEcalChStatus_);
+	}
 	return -1;
 }
 
