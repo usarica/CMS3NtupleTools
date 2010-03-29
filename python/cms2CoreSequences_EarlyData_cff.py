@@ -47,7 +47,7 @@ from CMS2.NtupleMaker.trkJetMaker_cfi import *
 from CMS2.NtupleMaker.trkJetSequence_cfi import *
 from CMS2.NtupleMaker.vertexMaker_cfi import *
 from CMS2.NtupleMaker.trkToVtxAssMaker_cfi import *
-from CMS2.NtupleMaker.caloTowerSequence_cfi import *
+from CMS2.NtupleMaker.caloTowerSequence_cff import *
 from CMS2.NtupleMaker.hcalNoiseSummaryMaker_cfi import *
 from CMS2.NtupleMaker.beamHaloSequence_cff import *
 from CMS2.NtupleMaker.randomConeIsoMaker_cfi import *
