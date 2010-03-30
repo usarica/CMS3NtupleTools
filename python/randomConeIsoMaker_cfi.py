@@ -20,14 +20,14 @@ randomConeIsoMaker = cms.EDFilter("RandomConeIsoMaker",
     MIsoCaloExtractorByAssociatorTowersBlock
     ),
     TrackExtractorPSet = cms.PSet(
-    MIsoTrackExtractorBlock
+    MIsoTrackExtractorBlock   
     ),
     JetExtractorPSet = cms.PSet(
     MIsoJetExtractorBlock
     ),
-    
-  
- egammaPSet = cms.PSet(
+   
+ 
+    egammaPSet = cms.PSet(
    
     useNumCrystals = cms.bool(True),
     intRadiusBarrel = cms.double(3.0),
@@ -80,7 +80,7 @@ TrackAssociatorParameters = cms.PSet(
         DTRecSegment4DCollectionLabel = cms.InputTag("dt4DSegments"),
         EERecHitCollectionLabel = cms.InputTag("ecalRecHit","EcalRecHitsEE"),
         dRHcalPreselection = cms.double(0.2),
-        useMuon = cms.bool(True),
+        useMuon = cms.bool(False),
         useCalo = cms.bool(False),
         EBRecHitCollectionLabel = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
         dRMuonPreselection = cms.double(0.2),
@@ -94,4 +94,8 @@ TrackAssociatorParameters = cms.PSet(
                                   
 )
 
+randomConeIsoMaker.CaloExtractorPSet.TrackAssociatorParameters.dREcal = 0.5
+randomConeIsoMaker.CaloExtractorPSet.TrackAssociatorParameters.dRHcal = 0.5
+randomConeIsoMaker.CaloExtractorPSet.TrackAssociatorParameters.dREcalPreselection = 0.5
+randomConeIsoMaker.CaloExtractorPSet.TrackAssociatorParameters.dRHcalPreselection = 0.5
 
