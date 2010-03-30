@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.4 2010/03/18 02:13:29 kalavase Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.5 2010/03/30 22:04:20 yanjuntu Exp $
 //
 //
 
@@ -520,7 +520,7 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
       reco::Track psuedo_trk(chi2,ndof,vertex1,v , Charge,reco::Track::CovarianceMatrix());
       reco::IsoDeposit depTrk = muIsoExtractorTrack_->deposit(iEvent, iSetup, psuedo_trk );
       std::vector<reco::IsoDeposit> caloDeps = muIsoExtractorCalo_->deposits(iEvent, iSetup, psuedo_trk);
-      reco::IsoDeposit depJet = muIsoExtractorJet_->deposit(iEvent, iSetup, psuedo_trk);
+      //reco::IsoDeposit depJet = muIsoExtractorJet_->deposit(iEvent, iSetup, psuedo_trk);
       reco::IsoDeposit depEcal = caloDeps.at(0); 
       reco::IsoDeposit depHcal = caloDeps.at(1);
       reco::IsoDeposit depHo   = caloDeps.at(2);
