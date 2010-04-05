@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.4 $'),
+        version = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -113,8 +113,9 @@ process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 
 
 # loosen thresholds on collections
-process.hypDilepMaker.TightLepton_PtCut=cms.double(1)
-process.hypDilepMaker.LooseLepton_PtCut=cms.double(1)
+process.hypDilepMaker.TightLepton_PtCut=cms.double(0.0)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(0.0)
+process.hypDilepMaker.useSTAMuon = cms.bool(True)
 
 #process.load("PhysicsTools.PatAlgos.recoLayer0.jetCorrFactors_cfi")
 #process.load("PhysicsTools.PatAlgos.recoLayer0.jetMETCorrections_cff")
