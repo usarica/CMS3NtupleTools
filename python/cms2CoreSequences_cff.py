@@ -8,6 +8,7 @@ from CMS2.NtupleMaker.bTaggingTrkSequence_cfi import *
 from CMS2.NtupleMaker.bTagMaker_cfi import *
 from CMS2.NtupleMaker.bTagTrkMaker_cfi import *
 from CMS2.NtupleMaker.calotauMaker_cfi import *
+from CMS2.NtupleMaker.conversionMaker_cfi import *
 from CMS2.NtupleMaker.elCaloIsoSequence_cff import *
 from CMS2.NtupleMaker.elTkJuraIsoMaker_cfi import *
 from CMS2.NtupleMaker.electronMaker_cfi import *
@@ -64,7 +65,7 @@ assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker
 
 hypmakers     = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker * hypIsoMaker)
 
-othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker * bTagTrkMaker )
+othermakers   = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker * bTagTrkMaker * conversionMaker)
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker * pftauMaker)
 
