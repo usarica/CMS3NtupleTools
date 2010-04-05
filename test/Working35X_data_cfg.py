@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -81,7 +81,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-'file:/home/users/jribnik/devel/minbias352.root'
+'file:/data/tmp/kalavase/blah.root'
     ),
 )
 
@@ -95,8 +95,8 @@ process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
 
 
 # loosen thresholds on collections
-process.hypDilepMaker.TightLepton_PtCut=cms.double(20)
-process.hypDilepMaker.LooseLepton_PtCut=cms.double(10)
+process.hypDilepMaker.TightLepton_PtCut=cms.double(1)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(1)
 
 process.load("PhysicsTools.PatAlgos.recoLayer0.jetCorrFactors_cfi")
 #process.load("PhysicsTools.PatAlgos.recoLayer0.jetMETCorrections_cff")
