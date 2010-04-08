@@ -56,6 +56,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
 
   // number of superclusters in the event
   produces<unsigned int>("evtnscs").setBranchAlias("evt_nscs");
+  produces<unsigned int>("evtecalrecostatus").setBranchAlias("evt_ecalRecoStatus");
 
   // number of basicclusters and crystals
   produces<std::vector<float> >(branchprefix+"clustersSize").setBranchAlias(aliasprefix_+"_clustersSize");
@@ -223,6 +224,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //EgammaTowerIsolation egammaIsoD2(isoExtRadius_, isoIntRadius_, isoEtMin_, 2, coloTowersCollection);
 
   std::auto_ptr<unsigned int> evt_nscs (new unsigned int);
+  std::auto_ptr<unsigned int> evt_ecalRecoStatus (new unsigned int);
+
   std::auto_ptr<std::vector<LorentzVector> > vector_scs_p4 (new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_scs_pos_p4 (new std::vector<LorentzVector>);
   std::auto_ptr<std::vector<LorentzVector> > vector_scs_vtx_p4 (new std::vector<LorentzVector>);
@@ -265,6 +268,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> > vector_scs_mc_dr     (new std::vector<float>); 
 
   *evt_nscs = 0;
+  *evt_ecalRecoStatus = 0;
+
   // there are multiple supercluster collections. In the ntuple
   // these will become concatonated
   for (unsigned int i = 0; i < scInputTags_.size(); ++i)
@@ -291,6 +296,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       edm::Handle<EcalRecHitCollection> rhcHandle;
       iEvent.getByLabel(hitInputTags_[i], rhcHandle);
       const EcalRecHitCollection *recHits = rhcHandle.product();
+
+      if (recHits->size() > 0) *evt_ecalRecoStatus |= (1<<i);
 
       size_t scIndex = 0;
       for (reco::SuperClusterCollection::const_iterator sc = scCollection->begin();
@@ -388,6 +395,8 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   iEvent.put(evt_nscs, "evtnscs");
+  iEvent.put(evt_ecalRecoStatus, "evtecalrecostatus");
+
   iEvent.put(vector_scs_energy, branchprefix+"energy");
   iEvent.put(vector_scs_rawEnergy, branchprefix+"rawEnergy");
   iEvent.put(vector_scs_preshowerEnergy, branchprefix+"preshowerEnergy");
