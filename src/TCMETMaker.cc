@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.8 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.9 2010/04/09 12:47:12 fgolf Exp $
 //
 //
 
@@ -47,13 +47,26 @@ using namespace std;
 
 TCMETMaker::TCMETMaker(const edm::ParameterSet& iConfig) {
 
-  produces<float>         ("evttcmet"       ).setBranchAlias("evt_tcmet"       );
-  produces<float>         ("evttcmetPhi"    ).setBranchAlias("evt_tcmetPhi"    );
-  produces<float>         ("evttcmetSig"    ).setBranchAlias("evt_tcmetSig"    );
-  produces<float>         ("evttcsumet"     ).setBranchAlias("evt_tcsumet"     );
-  produces<vector<int> >  ("mustcmetflag"   ).setBranchAlias("mus_tcmet_flag"  );
-  produces<vector<float> >("mustcmetdeltax" ).setBranchAlias("mus_tcmet_deltax");
-  produces<vector<float> >("mustcmetdeltay" ).setBranchAlias("mus_tcmet_deltay");
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos)
+       branchprefix.replace(branchprefix.find("_"),1,"");
+
+  produces<float>         (branchprefix+"tcmet"       ).setBranchAlias(aliasprefix_+"_tcmet"       );
+  produces<float>         (branchprefix+"tcmetPhi"    ).setBranchAlias(aliasprefix_+"_tcmetPhi"    );
+  produces<float>         (branchprefix+"tcmetSig"    ).setBranchAlias(aliasprefix_+"_tcmetSig"    );
+  produces<float>         (branchprefix+"tcsumet"     ).setBranchAlias(aliasprefix_+"_tcsumet"     );
+
+  if( aliasprefix_ == "evt" ) {
+       produces<vector<int> >  ("mustcmetflag"   ).setBranchAlias("mus_tcmet_flag"  );
+       produces<vector<float> >("mustcmetdeltax" ).setBranchAlias("mus_tcmet_deltax");
+       produces<vector<float> >("mustcmetdeltay" ).setBranchAlias("mus_tcmet_deltay");
+  }
+  else {
+       produces<vector<int> >  (branchprefix+"mustcmetflag"   ).setBranchAlias(aliasprefix_+"_mus_tcmet_flag"  );
+       produces<vector<float> >(branchprefix+"mustcmetdeltax" ).setBranchAlias(aliasprefix_+"_mus_tcmet_deltax");
+       produces<vector<float> >(branchprefix+"mustcmetdeltay" ).setBranchAlias(aliasprefix_+"_mus_tcmet_deltay");
+  }
 
   // input tags
   muon_tag     = iConfig.getParameter<edm::InputTag>("muon_tag_"    );
@@ -116,13 +129,25 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     mus_tcmet_deltay->push_back(muCorrData.corrY());
   }
 
-  iEvent.put(evt_tcmet            , "evttcmet"           );
-  iEvent.put(evt_tcmetPhi         , "evttcmetPhi"        );
-  iEvent.put(evt_tcmetSig         , "evttcmetSig"        );
-  iEvent.put(evt_tcsumet          , "evttcsumet"         );
-  iEvent.put(mus_tcmet_flag       , "mustcmetflag"       );
-  iEvent.put(mus_tcmet_deltax     , "mustcmetdeltax"     );
-  iEvent.put(mus_tcmet_deltay     , "mustcmetdeltay"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos)
+       branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(evt_tcmet            , branchprefix+"tcmet"           );
+  iEvent.put(evt_tcmetPhi         , branchprefix+"tcmetPhi"        );
+  iEvent.put(evt_tcmetSig         , branchprefix+"tcmetSig"        );
+  iEvent.put(evt_tcsumet          , branchprefix+"tcsumet"         );
+
+  if( aliasprefix_ == "evt" ) {
+       iEvent.put(mus_tcmet_flag       , "mustcmetflag"       );
+       iEvent.put(mus_tcmet_deltax     , "mustcmetdeltax"     );
+       iEvent.put(mus_tcmet_deltay     , "mustcmetdeltay"     );
+  }
+  else {
+       iEvent.put(mus_tcmet_flag       , branchprefix+"mustcmetflag"       );
+       iEvent.put(mus_tcmet_deltax     , branchprefix+"mustcmetdeltax"     );
+       iEvent.put(mus_tcmet_deltay     , branchprefix+"mustcmetdeltay"     );
+  }
 }
 
 //define this as a plug-in

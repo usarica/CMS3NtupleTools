@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.20 2010/03/02 19:36:08 fgolf Exp $
+// $Id: METMaker.cc,v 1.21 2010/04/09 12:47:12 fgolf Exp $
 //
 //
 
@@ -58,78 +58,90 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      metNOHFHO -> no HF and no HO
      use scheme B thresholds
      https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideMETObjects
-  */
+  */     
 
-  produces<float> ("evtmet"          ).setBranchAlias("evt_met"          );
-  produces<float> ("evtmetPhi"       ).setBranchAlias("evt_metPhi"       );
-  produces<float> ("evtmetSig"       ).setBranchAlias("evt_metSig"       );
-  produces<float> ("evtmetHO"        ).setBranchAlias("evt_metHO"        );
-  produces<float> ("evtmetHOPhi"     ).setBranchAlias("evt_metHOPhi"     );
-  produces<float> ("evtmetHOSig"     ).setBranchAlias("evt_metHOSig"     );
-  produces<float> ("evtmetNoHF"      ).setBranchAlias("evt_metNoHF"      );
-  produces<float> ("evtmetNoHFPhi"   ).setBranchAlias("evt_metNoHFPhi"   );
-  produces<float> ("evtmetNoHFSig"   ).setBranchAlias("evt_metNoHFSig"   );
-  produces<float> ("evtmetNoHFHO"    ).setBranchAlias("evt_metNoHFHO"    );
-  produces<float> ("evtmetNoHFHOPhi" ).setBranchAlias("evt_metNoHFHOPhi" );
-  produces<float> ("evtmetNoHFHOSig" ).setBranchAlias("evt_metNoHFHOSig" );
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos)
+       branchprefix.replace(branchprefix.find("_"),1,"");
+
+  produces<float> (branchprefix+"met"          ).setBranchAlias(aliasprefix_+"_met"          );
+  produces<float> (branchprefix+"metPhi"       ).setBranchAlias(aliasprefix_+"_metPhi"       );
+  produces<float> (branchprefix+"metSig"       ).setBranchAlias(aliasprefix_+"_metSig"       );
+  produces<float> (branchprefix+"metHO"        ).setBranchAlias(aliasprefix_+"_metHO"        );
+  produces<float> (branchprefix+"metHOPhi"     ).setBranchAlias(aliasprefix_+"_metHOPhi"     );
+  produces<float> (branchprefix+"metHOSig"     ).setBranchAlias(aliasprefix_+"_metHOSig"     );
+  produces<float> (branchprefix+"metNoHF"      ).setBranchAlias(aliasprefix_+"_metNoHF"      );
+  produces<float> (branchprefix+"metNoHFPhi"   ).setBranchAlias(aliasprefix_+"_metNoHFPhi"   );
+  produces<float> (branchprefix+"metNoHFSig"   ).setBranchAlias(aliasprefix_+"_metNoHFSig"   );
+  produces<float> (branchprefix+"metNoHFHO"    ).setBranchAlias(aliasprefix_+"_metNoHFHO"    );
+  produces<float> (branchprefix+"metNoHFHOPhi" ).setBranchAlias(aliasprefix_+"_metNoHFHOPhi" );
+  produces<float> (branchprefix+"metNoHFHOSig" ).setBranchAlias(aliasprefix_+"_metNoHFHOSig" );
 
   //same as above, but using Opt
-  produces<float> ("evtmetOpt"          ).setBranchAlias("evt_metOpt"          );
-  produces<float> ("evtmetOptPhi"       ).setBranchAlias("evt_metOptPhi"       );
-  produces<float> ("evtmetOptSig"       ).setBranchAlias("evt_metOptSig"       );
-  produces<float> ("evtmetOptHO"        ).setBranchAlias("evt_metOptHO"        );
-  produces<float> ("evtmetOptHOPhi"     ).setBranchAlias("evt_metOptHOPhi"     );
-  produces<float> ("evtmetOptHOSig"     ).setBranchAlias("evt_metOptHOSig"     );
-  produces<float> ("evtmetOptNoHF"      ).setBranchAlias("evt_metOptNoHF"      );
-  produces<float> ("evtmetOptNoHFPhi"   ).setBranchAlias("evt_metOptNoHFPhi"   );
-  produces<float> ("evtmetOptNoHFSig"   ).setBranchAlias("evt_metOptNoHFSig"   );
-  produces<float> ("evtmetOptNoHFHO"    ).setBranchAlias("evt_metOptNoHFHO"    );
-  produces<float> ("evtmetOptNoHFHOPhi" ).setBranchAlias("evt_metOptNoHFHOPhi" );
-  produces<float> ("evtmetOptNoHFHOSig" ).setBranchAlias("evt_metOptNoHFHOSig" );
+  produces<float> (branchprefix+"metOpt"          ).setBranchAlias(aliasprefix_+"_metOpt"          );
+  produces<float> (branchprefix+"metOptPhi"       ).setBranchAlias(aliasprefix_+"_metOptPhi"       );
+  produces<float> (branchprefix+"metOptSig"       ).setBranchAlias(aliasprefix_+"_metOptSig"       );
+  produces<float> (branchprefix+"metOptHO"        ).setBranchAlias(aliasprefix_+"_metOptHO"        );
+  produces<float> (branchprefix+"metOptHOPhi"     ).setBranchAlias(aliasprefix_+"_metOptHOPhi"     );
+  produces<float> (branchprefix+"metOptHOSig"     ).setBranchAlias(aliasprefix_+"_metOptHOSig"     );
+  produces<float> (branchprefix+"metOptNoHF"      ).setBranchAlias(aliasprefix_+"_metOptNoHF"      );
+  produces<float> (branchprefix+"metOptNoHFPhi"   ).setBranchAlias(aliasprefix_+"_metOptNoHFPhi"   );
+  produces<float> (branchprefix+"metOptNoHFSig"   ).setBranchAlias(aliasprefix_+"_metOptNoHFSig"   );
+  produces<float> (branchprefix+"metOptNoHFHO"    ).setBranchAlias(aliasprefix_+"_metOptNoHFHO"    );
+  produces<float> (branchprefix+"metOptNoHFHOPhi" ).setBranchAlias(aliasprefix_+"_metOptNoHFHOPhi" );
+  produces<float> (branchprefix+"metOptNoHFHOSig" ).setBranchAlias(aliasprefix_+"_metOptNoHFHOSig" );
 
   //raw CaloMET corrected for Muons
-  produces<float> ("evtmetMuonCorr"     ).setBranchAlias("evt_metMuonCorr"     );
-  produces<float> ("evtmetMuonCorrPhi"  ).setBranchAlias("evt_metMuonCorrPhi"  );
-  produces<float> ("evtmetMuonCorrSig"  ).setBranchAlias("evt_metMuonCorrSig"  );
+  produces<float> (branchprefix+"metMuonCorr"     ).setBranchAlias(aliasprefix_+"_metMuonCorr"     );
+  produces<float> (branchprefix+"metMuonCorrPhi"  ).setBranchAlias(aliasprefix_+"_metMuonCorrPhi"  );
+  produces<float> (branchprefix+"metMuonCorrSig"  ).setBranchAlias(aliasprefix_+"_metMuonCorrSig"  );
 
   //raw CaloMET corrected for JES (L2L3) and Muons
-  produces<float> ("evtmetMuonJESCorr"      ).setBranchAlias("evt_metMuonJESCorr"      );
-  produces<float> ("evtmetMuonJESCorrPhi"   ).setBranchAlias("evt_metMuonJESCorrPhi"   );
-  produces<float> ("evtmetMuonJESCorrSig"   ).setBranchAlias("evt_metMuonJESCorrSig"   );
+  produces<float> (branchprefix+"metMuonJESCorr"      ).setBranchAlias(aliasprefix_+"_metMuonJESCorr"      );
+  produces<float> (branchprefix+"metMuonJESCorrPhi"   ).setBranchAlias(aliasprefix_+"_metMuonJESCorrPhi"   );
+  produces<float> (branchprefix+"metMuonJESCorrSig"   ).setBranchAlias(aliasprefix_+"_metMuonJESCorrSig"   );
 
   // sumet
-  produces<float> ("evtsumet"               ).setBranchAlias("evt_sumet"                );  
-  produces<float> ("evtsumetHO"             ).setBranchAlias("evt_sumetHO"              );
-  produces<float> ("evtsumetNoHF"           ).setBranchAlias("evt_sumetNoHF"            );
-  produces<float> ("evtsumetNoHFHO"         ).setBranchAlias("evt_sumetNoHFHO"          );  
-  produces<float> ("evtsumetOpt"            ).setBranchAlias("evt_sumetOpt"             );
-  produces<float> ("evtsumetOptHO"          ).setBranchAlias("evt_sumetOptHO"           );
-  produces<float> ("evtsumetOptNoHF"        ).setBranchAlias("evt_sumetOptNoHF"         );
-  produces<float> ("evtsumetOptNoHFHO"      ).setBranchAlias("evt_sumetOptNoHFHO"       );  
-  produces<float> ("evtsumetMuonCorr"       ).setBranchAlias("evt_sumetMuonCorr"        );
+  produces<float> (branchprefix+"sumet"               ).setBranchAlias(aliasprefix_+"_sumet"                );  
+  produces<float> (branchprefix+"sumetHO"             ).setBranchAlias(aliasprefix_+"_sumetHO"              );
+  produces<float> (branchprefix+"sumetNoHF"           ).setBranchAlias(aliasprefix_+"_sumetNoHF"            );
+  produces<float> (branchprefix+"sumetNoHFHO"         ).setBranchAlias(aliasprefix_+"_sumetNoHFHO"          );  
+  produces<float> (branchprefix+"sumetOpt"            ).setBranchAlias(aliasprefix_+"_sumetOpt"             );
+  produces<float> (branchprefix+"sumetOptHO"          ).setBranchAlias(aliasprefix_+"_sumetOptHO"           );
+  produces<float> (branchprefix+"sumetOptNoHF"        ).setBranchAlias(aliasprefix_+"_sumetOptNoHF"         );
+  produces<float> (branchprefix+"sumetOptNoHFHO"      ).setBranchAlias(aliasprefix_+"_sumetOptNoHFHO"       );  
+  produces<float> (branchprefix+"sumetMuonCorr"       ).setBranchAlias(aliasprefix_+"_sumetMuonCorr"        );
 
   // store muon value map quantities
-  produces<vector<int> >   ("musmetflag"   ).setBranchAlias("mus_met_flag"              );
-  produces<vector<float> > ("musmetdeltax" ).setBranchAlias("mus_met_deltax"            );
-  produces<vector<float> > ("musmetdeltay" ).setBranchAlias("mus_met_deltay"            );
+  if(aliasprefix_ == "evt") {
+       produces<vector<int> >   ("musmetflag"   ).setBranchAlias("mus_met_flag"              );
+       produces<vector<float> > ("musmetdeltax" ).setBranchAlias("mus_met_deltax"            );
+       produces<vector<float> > ("musmetdeltay" ).setBranchAlias("mus_met_deltay"            );
+  }
+  else {
+       produces<vector<int> >   (branchprefix+"musmetflag"   ).setBranchAlias(aliasprefix_+"_"+"mus_met_flag"              );
+       produces<vector<float> > (branchprefix+"musmetdeltax" ).setBranchAlias(aliasprefix_+"_"+"mus_met_deltax"            );
+       produces<vector<float> > (branchprefix+"musmetdeltay" ).setBranchAlias(aliasprefix_+"_"+"mus_met_deltay"            );
+  }
 
-  produces<float> ("evtecalmet"            ).setBranchAlias("evt_ecalmet"               );
-  produces<float> ("evthcalmet"            ).setBranchAlias("evt_hcalmet"               );
-  produces<float> ("evtecalmetPhi"         ).setBranchAlias("evt_ecalmetPhi"            );
-  produces<float> ("evthcalmetPhi"         ).setBranchAlias("evt_hcalmetPhi"            );
+  produces<float> (branchprefix+"ecalmet"            ).setBranchAlias(aliasprefix_+"_ecalmet"               );
+  produces<float> (branchprefix+"hcalmet"            ).setBranchAlias(aliasprefix_+"_hcalmet"               );
+  produces<float> (branchprefix+"ecalmetPhi"         ).setBranchAlias(aliasprefix_+"_ecalmetPhi"            );
+  produces<float> (branchprefix+"hcalmetPhi"         ).setBranchAlias(aliasprefix_+"_hcalmetPhi"            );
 
-  produces<float> ("evtendcappmet"         		).setBranchAlias("evt_endcapp_met"       		);
-  produces<float> ("evtendcapmmet"         		).setBranchAlias("evt_endcapm_met"       		);
-  produces<float> ("evtecalendcappmet"     		).setBranchAlias("evt_ecalendcapp_met"       	);
-  produces<float> ("evtecalendcapmmet"     		).setBranchAlias("evt_ecalendcapm_met"       	);
-  produces<float> ("evthcalendcappmet"     		).setBranchAlias("evt_hcalendcapp_met"       	);
-  produces<float> ("evthcalendcapmmet"     		).setBranchAlias("evt_hcalendcapm_met"       	);
-  produces<float> ("evtendcappmetPhi"         	).setBranchAlias("evt_endcapp_metPhi"       	);
-  produces<float> ("evtendcapmmetPhi"         	).setBranchAlias("evt_endcapm_metPhi"       	);
-  produces<float> ("evtecalendcappmetPhi"     	).setBranchAlias("evt_ecalendcapp_metPhi"       );
-  produces<float> ("evtecalendcapmmetPhi"     	).setBranchAlias("evt_ecalendcapm_metPhi"       );
-  produces<float> ("evthcalendcappmetPhi"     	).setBranchAlias("evt_hcalendcapp_metPhi"       );
-  produces<float> ("evthcalendcapmmetPhi"     	).setBranchAlias("evt_hcalendcapm_metPhi"       );
+  produces<float> (branchprefix+"endcappmet"         		).setBranchAlias(aliasprefix_+"_endcapp_met"       		);
+  produces<float> (branchprefix+"endcapmmet"         		).setBranchAlias(aliasprefix_+"_endcapm_met"       		);
+  produces<float> (branchprefix+"ecalendcappmet"     		).setBranchAlias(aliasprefix_+"_ecalendcapp_met"       	);
+  produces<float> (branchprefix+"ecalendcapmmet"     		).setBranchAlias(aliasprefix_+"_ecalendcapm_met"       	);
+  produces<float> (branchprefix+"hcalendcappmet"     		).setBranchAlias(aliasprefix_+"_hcalendcapp_met"       	);
+  produces<float> (branchprefix+"hcalendcapmmet"     		).setBranchAlias(aliasprefix_+"_hcalendcapm_met"       	);
+  produces<float> (branchprefix+"endcappmetPhi"         	).setBranchAlias(aliasprefix_+"_endcapp_metPhi"       	);
+  produces<float> (branchprefix+"endcapmmetPhi"         	).setBranchAlias(aliasprefix_+"_endcapm_metPhi"       	);
+  produces<float> (branchprefix+"ecalendcappmetPhi"     	).setBranchAlias(aliasprefix_+"_ecalendcapp_metPhi"       );
+  produces<float> (branchprefix+"ecalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_ecalendcapm_metPhi"       );
+  produces<float> (branchprefix+"hcalendcappmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapp_metPhi"       );
+  produces<float> (branchprefix+"hcalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapm_metPhi"       );
   
   met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
   metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
@@ -152,12 +164,12 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
   make_eta_rings        = iConfig.getParameter<bool>         ("make_eta_rings_");
 
   if( make_eta_rings ) {
-    produces<vector<float> > ("evttowermetetaslice"         ).setBranchAlias("evt_towermet_etaslice"         );
-	produces<vector<float> > ("evtecalmetetaslice"          ).setBranchAlias("evt_ecalmet_etaslice"          );
-	produces<vector<float> > ("evthcalmetetaslice"          ).setBranchAlias("evt_hcalmet_etaslice"          );
-	produces<vector<float> > ("evttowermetetaslicePhi"      ).setBranchAlias("evt_towermet_etaslicePhi"      );
-	produces<vector<float> > ("evtecalmetetaslicePhi"       ).setBranchAlias("evt_ecalmet_etaslicePhi"       );
-	produces<vector<float> > ("evthcalmetetaslicePhi"       ).setBranchAlias("evt_hcalmet_etaslicePhi"       );
+       produces<vector<float> > (branchprefix+"towermetetaslice"         ).setBranchAlias(aliasprefix_+"_towermet_etaslice"         );
+       produces<vector<float> > (branchprefix+"ecalmetetaslice"          ).setBranchAlias(aliasprefix_+"_ecalmet_etaslice"          );
+       produces<vector<float> > (branchprefix+"hcalmetetaslice"          ).setBranchAlias(aliasprefix_+"_hcalmet_etaslice"          );
+       produces<vector<float> > (branchprefix+"towermetetaslicePhi"      ).setBranchAlias(aliasprefix_+"_towermet_etaslicePhi"      );
+       produces<vector<float> > (branchprefix+"ecalmetetaslicePhi"       ).setBranchAlias(aliasprefix_+"_ecalmet_etaslicePhi"       );
+       produces<vector<float> > (branchprefix+"hcalmetetaslicePhi"       ).setBranchAlias(aliasprefix_+"_hcalmet_etaslicePhi"       );
   }
 
 }
@@ -457,78 +469,89 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     evt_hcalmet_etaslicePhi ->push_back( atan2( -hcaletay[i], -hcaletax[i] ) );
   }
 
-  iEvent.put(evt_met               ,"evtmet"              );
-  iEvent.put(evt_metPhi            ,"evtmetPhi"           );
-  iEvent.put(evt_metSig            ,"evtmetSig"           );
-  iEvent.put(evt_metHO             ,"evtmetHO"            );
-  iEvent.put(evt_metHOPhi          ,"evtmetHOPhi"         );
-  iEvent.put(evt_metHOSig          ,"evtmetHOSig"         );
-  iEvent.put(evt_metNoHF           ,"evtmetNoHF"          );
-  iEvent.put(evt_metNoHFPhi        ,"evtmetNoHFPhi"       );
-  iEvent.put(evt_metNoHFSig        ,"evtmetNoHFSig"       );
-  iEvent.put(evt_metNoHFHO         ,"evtmetNoHFHO"        );
-  iEvent.put(evt_metNoHFHOPhi      ,"evtmetNoHFHOPhi"     );
-  iEvent.put(evt_metNoHFHOSig      ,"evtmetNoHFHOSig"     );
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos)
+       branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(evt_metOpt            ,"evtmetOpt"           );
-  iEvent.put(evt_metOptPhi         ,"evtmetOptPhi"        );
-  iEvent.put(evt_metOptSig         ,"evtmetOptSig"        );
-  iEvent.put(evt_metOptHO          ,"evtmetOptHO"         );
-  iEvent.put(evt_metOptHOPhi       ,"evtmetOptHOPhi"      );
-  iEvent.put(evt_metOptHOSig       ,"evtmetOptHOSig"      );
-  iEvent.put(evt_metOptNoHF        ,"evtmetOptNoHF"       );
-  iEvent.put(evt_metOptNoHFPhi     ,"evtmetOptNoHFPhi"    );
-  iEvent.put(evt_metOptNoHFSig     ,"evtmetOptNoHFSig"    );
-  iEvent.put(evt_metOptNoHFHO      ,"evtmetOptNoHFHO"     );
-  iEvent.put(evt_metOptNoHFHOPhi   ,"evtmetOptNoHFHOPhi"  );
-  iEvent.put(evt_metOptNoHFHOSig   ,"evtmetOptNoHFHOSig"  );
+  iEvent.put(evt_met               ,branchprefix+"met"              );
+  iEvent.put(evt_metPhi            ,branchprefix+"metPhi"           );
+  iEvent.put(evt_metSig            ,branchprefix+"metSig"           );
+  iEvent.put(evt_metHO             ,branchprefix+"metHO"            );
+  iEvent.put(evt_metHOPhi          ,branchprefix+"metHOPhi"         );
+  iEvent.put(evt_metHOSig          ,branchprefix+"metHOSig"         );
+  iEvent.put(evt_metNoHF           ,branchprefix+"metNoHF"          );
+  iEvent.put(evt_metNoHFPhi        ,branchprefix+"metNoHFPhi"       );
+  iEvent.put(evt_metNoHFSig        ,branchprefix+"metNoHFSig"       );
+  iEvent.put(evt_metNoHFHO         ,branchprefix+"metNoHFHO"        );
+  iEvent.put(evt_metNoHFHOPhi      ,branchprefix+"metNoHFHOPhi"     );
+  iEvent.put(evt_metNoHFHOSig      ,branchprefix+"metNoHFHOSig"     );
+
+  iEvent.put(evt_metOpt            ,branchprefix+"metOpt"           );
+  iEvent.put(evt_metOptPhi         ,branchprefix+"metOptPhi"        );
+  iEvent.put(evt_metOptSig         ,branchprefix+"metOptSig"        );
+  iEvent.put(evt_metOptHO          ,branchprefix+"metOptHO"         );
+  iEvent.put(evt_metOptHOPhi       ,branchprefix+"metOptHOPhi"      );
+  iEvent.put(evt_metOptHOSig       ,branchprefix+"metOptHOSig"      );
+  iEvent.put(evt_metOptNoHF        ,branchprefix+"metOptNoHF"       );
+  iEvent.put(evt_metOptNoHFPhi     ,branchprefix+"metOptNoHFPhi"    );
+  iEvent.put(evt_metOptNoHFSig     ,branchprefix+"metOptNoHFSig"    );
+  iEvent.put(evt_metOptNoHFHO      ,branchprefix+"metOptNoHFHO"     );
+  iEvent.put(evt_metOptNoHFHOPhi   ,branchprefix+"metOptNoHFHOPhi"  );
+  iEvent.put(evt_metOptNoHFHOSig   ,branchprefix+"metOptNoHFHOSig"  );
   
-  iEvent.put(evt_metMuonCorr       ,"evtmetMuonCorr"      );
-  iEvent.put(evt_metMuonCorrPhi    ,"evtmetMuonCorrPhi"   );
-  iEvent.put(evt_metMuonCorrSig    ,"evtmetMuonCorrSig"   );
-  iEvent.put(evt_metMuonJESCorr    ,"evtmetMuonJESCorr"   );
-  iEvent.put(evt_metMuonJESCorrPhi ,"evtmetMuonJESCorrPhi");
-  iEvent.put(evt_metMuonJESCorrSig ,"evtmetMuonJESCorrSig");
+  iEvent.put(evt_metMuonCorr       ,branchprefix+"metMuonCorr"      );
+  iEvent.put(evt_metMuonCorrPhi    ,branchprefix+"metMuonCorrPhi"   );
+  iEvent.put(evt_metMuonCorrSig    ,branchprefix+"metMuonCorrSig"   );
+  iEvent.put(evt_metMuonJESCorr    ,branchprefix+"metMuonJESCorr"   );
+  iEvent.put(evt_metMuonJESCorrPhi ,branchprefix+"metMuonJESCorrPhi");
+  iEvent.put(evt_metMuonJESCorrSig ,branchprefix+"metMuonJESCorrSig");
 
-  iEvent.put(evt_sumet             ,"evtsumet"            );  
-  iEvent.put(evt_sumetHO           ,"evtsumetHO"	  );
-  iEvent.put(evt_sumetNoHF         ,"evtsumetNoHF"        );
-  iEvent.put(evt_sumetNoHFHO       ,"evtsumetNoHFHO"      );
-  iEvent.put(evt_sumetOpt          ,"evtsumetOpt"         );
-  iEvent.put(evt_sumetOptHO        ,"evtsumetOptHO"       );
-  iEvent.put(evt_sumetOptNoHF      ,"evtsumetOptNoHF"     );
-  iEvent.put(evt_sumetOptNoHFHO    ,"evtsumetOptNoHFHO"   );
-  iEvent.put(evt_sumetMuonCorr     ,"evtsumetMuonCorr"    );
+  iEvent.put(evt_sumet             ,branchprefix+"sumet"            );  
+  iEvent.put(evt_sumetHO           ,branchprefix+"sumetHO"	  );
+  iEvent.put(evt_sumetNoHF         ,branchprefix+"sumetNoHF"        );
+  iEvent.put(evt_sumetNoHFHO       ,branchprefix+"sumetNoHFHO"      );
+  iEvent.put(evt_sumetOpt          ,branchprefix+"sumetOpt"         );
+  iEvent.put(evt_sumetOptHO        ,branchprefix+"sumetOptHO"       );
+  iEvent.put(evt_sumetOptNoHF      ,branchprefix+"sumetOptNoHF"     );
+  iEvent.put(evt_sumetOptNoHFHO    ,branchprefix+"sumetOptNoHFHO"   );
+  iEvent.put(evt_sumetMuonCorr     ,branchprefix+"sumetMuonCorr"    );
 
-  iEvent.put(mus_met_flag          ,"musmetflag"          );
-  iEvent.put(mus_met_deltax        ,"musmetdeltax"        );
-  iEvent.put(mus_met_deltay        ,"musmetdeltay"        );
+  if(aliasprefix_ == "evt") {
+       iEvent.put(mus_met_flag          ,"musmetflag"          );
+       iEvent.put(mus_met_deltax        ,"musmetdeltax"        );
+       iEvent.put(mus_met_deltay        ,"musmetdeltay"        );
+  }
+  else {
+       iEvent.put(mus_met_flag          ,branchprefix+"musmetflag"          );
+       iEvent.put(mus_met_deltax        ,branchprefix+"musmetdeltax"        );
+       iEvent.put(mus_met_deltay        ,branchprefix+"musmetdeltay"        );
+  }
 
-  iEvent.put(evt_ecalmet           ,"evtecalmet"          );
-  iEvent.put(evt_hcalmet           ,"evthcalmet"          );
-  iEvent.put(evt_ecalmetPhi        ,"evtecalmetPhi"       );
-  iEvent.put(evt_hcalmetPhi        ,"evthcalmetPhi"       );
+  iEvent.put(evt_ecalmet           ,branchprefix+"ecalmet"          );
+  iEvent.put(evt_hcalmet           ,branchprefix+"hcalmet"          );
+  iEvent.put(evt_ecalmetPhi        ,branchprefix+"ecalmetPhi"       );
+  iEvent.put(evt_hcalmetPhi        ,branchprefix+"hcalmetPhi"       );
 
-  iEvent.put(evt_endcapp_met       ,  "evtendcappmet"  );
-  iEvent.put(evt_endcapm_met       ,  "evtendcapmmet"  );
-  iEvent.put(evt_ecalendcapp_met   ,  "evtecalendcappmet"  );
-  iEvent.put(evt_ecalendcapm_met   ,  "evtecalendcapmmet"  );
-  iEvent.put(evt_hcalendcapp_met   ,  "evthcalendcappmet"  );
-  iEvent.put(evt_hcalendcapm_met   ,  "evthcalendcapmmet"  );
-  iEvent.put(evt_endcapp_metPhi    ,  "evtendcappmetPhi"  );
-  iEvent.put(evt_endcapm_metPhi    ,  "evtendcapmmetPhi"  );
-  iEvent.put(evt_ecalendcapp_metPhi,  "evtecalendcappmetPhi"  );
-  iEvent.put(evt_ecalendcapm_metPhi,  "evtecalendcapmmetPhi"  );
-  iEvent.put(evt_hcalendcapp_metPhi,  "evthcalendcappmetPhi"  );
-  iEvent.put(evt_hcalendcapm_metPhi,  "evthcalendcapmmetPhi"  );
+  iEvent.put(evt_endcapp_met       ,  branchprefix+"endcappmet"  );
+  iEvent.put(evt_endcapm_met       ,  branchprefix+"endcapmmet"  );
+  iEvent.put(evt_ecalendcapp_met   ,  branchprefix+"ecalendcappmet"  );
+  iEvent.put(evt_ecalendcapm_met   ,  branchprefix+"ecalendcapmmet"  );
+  iEvent.put(evt_hcalendcapp_met   ,  branchprefix+"hcalendcappmet"  );
+  iEvent.put(evt_hcalendcapm_met   ,  branchprefix+"hcalendcapmmet"  );
+  iEvent.put(evt_endcapp_metPhi    ,  branchprefix+"endcappmetPhi"  );
+  iEvent.put(evt_endcapm_metPhi    ,  branchprefix+"endcapmmetPhi"  );
+  iEvent.put(evt_ecalendcapp_metPhi,  branchprefix+"ecalendcappmetPhi"  );
+  iEvent.put(evt_ecalendcapm_metPhi,  branchprefix+"ecalendcapmmetPhi"  );
+  iEvent.put(evt_hcalendcapp_metPhi,  branchprefix+"hcalendcappmetPhi"  );
+  iEvent.put(evt_hcalendcapm_metPhi,  branchprefix+"hcalendcapmmetPhi"  );
 
   if( make_eta_rings ) {
-	iEvent.put(evt_towermet_etaslice ,"evttowermetetaslice" );
-	iEvent.put(evt_ecalmet_etaslice  ,"evtecalmetetaslice"  );
-	iEvent.put(evt_hcalmet_etaslice  ,"evthcalmetetaslice"  );
-	iEvent.put(evt_towermet_etaslicePhi, "evttowermetetaslicePhi" );
-	iEvent.put(evt_ecalmet_etaslicePhi,  "evtecalmetetaslicePhi"  );
-	iEvent.put(evt_hcalmet_etaslicePhi,  "evthcalmetetaslicePhi"  );
+	iEvent.put(evt_towermet_etaslice   ,branchprefix+"towermetetaslice" );
+	iEvent.put(evt_ecalmet_etaslice    ,branchprefix+"ecalmetetaslice"  );
+	iEvent.put(evt_hcalmet_etaslice    ,branchprefix+"hcalmetetaslice"  );
+	iEvent.put(evt_towermet_etaslicePhi,branchprefix+"towermetetaslicePhi" );
+	iEvent.put(evt_ecalmet_etaslicePhi ,branchprefix+"ecalmetetaslicePhi"  );
+	iEvent.put(evt_hcalmet_etaslicePhi ,branchprefix+"hcalmetetaslicePhi"  );
   }
   
 }
