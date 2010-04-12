@@ -24,7 +24,8 @@ hypDilepMaker = cms.EDFilter("HypDilepMaker",
     #loose lepton pt cut
     LooseLepton_PtCut = cms.double(10.0),
     # muons collection
-    muonsInputTag = cms.InputTag("muonMaker")
+    muonsInputTag = cms.InputTag("muonMaker"),
+    useSTAMuons = cms.bool(False)
 )
 
 
