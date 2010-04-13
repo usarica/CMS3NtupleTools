@@ -11,7 +11,7 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.9 2010/03/18 02:11:54 kalavase Exp $
+// $Id: ConversionMaker.cc,v 1.10 2010/04/13 00:59:06 kalavase Exp $
 //
 //
 
@@ -91,30 +91,34 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)  {
       tk1Index++) {
        
     int closestTkIdx = -9999;
-    float mindR = 9999.;
-    //pair.first=dist, pair.second = dcot
+    float mindcot = 9999.;
     pair <float, float> p_tkConvInfo = make_pair(-9999.,-9999.);
     for(unsigned int tk2Index = 0; tk2Index < trks_p4_h->size();
 	tk2Index++) {
 	 
-      if(trks_charge_h->at(tk1Index) + trks_charge_h->at(tk2Index) != 0 ) continue;
+      if(trks_charge_h->at(tk1Index) + trks_charge_h->at(tk2Index) != 0 ) continue; //opp. sign
       if(tk1Index == tk2Index) continue; //don't want to use the same track!
-      //look only in cone of 0.3
+      
       double dR = deltaR( trks_p4_h->at(tk1Index).eta(), trks_p4_h->at(tk1Index).phi(),
 			  trks_p4_h->at(tk2Index).eta(), trks_p4_h->at(tk2Index).phi());
       
-      if(dR  > 0.3)
+      //look only in cone of 0.5
+      if(dR  > 0.5)
 	continue;
       
-      if(dR < mindR) {
-	mindR = dR;
+      double dcot = fabs(1./trks_p4_h->at(tk1Index).theta() - 1./trks_p4_h->at(tk2Index).theta());
+            
+      if(dcot < mindcot) {
+	mindcot = dcot;
 	closestTkIdx = tk2Index;
-	p_tkConvInfo = ConversionFinder::getConversionInfo(math::XYZTLorentzVector(trks_p4_h->at(tk1Index)), trks_charge_h->at(tk1Index),
-							   trks_d0_h->at(tk1Index), math::XYZTLorentzVector(trks_p4_h->at(tk2Index)),
-							   trks_charge_h->at(tk2Index), trks_d0_h->at(tk2Index),
-							   bField);
-      }//if(dR < mindR)
+      }//if(dcot < mindcot) {
     }//tk2 loop
+
+    if(closestTkIdx > -1)
+      p_tkConvInfo = ConversionFinder::getConversionInfo(math::XYZTLorentzVector(trks_p4_h->at(tk1Index)), trks_charge_h->at(tk1Index),
+							 trks_d0_h->at(tk1Index), math::XYZTLorentzVector(trks_p4_h->at(closestTkIdx)),
+							 trks_charge_h->at(closestTkIdx), trks_d0_h->at(closestTkIdx),
+							 bField);
 
     trks_conv_tkidx    ->push_back(closestTkIdx                );
     trks_conv_dist     ->push_back(p_tkConvInfo.first          );
