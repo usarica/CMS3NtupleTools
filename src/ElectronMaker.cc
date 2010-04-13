@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.46 2010/03/18 02:12:06 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.47 2010/04/13 00:59:31 kalavase Exp $
 //
 //
 
@@ -85,18 +85,18 @@ using namespace std;
 ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
 
   //get setup parameters
-  electronsInputTag_            = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
-  beamSpotInputTag_         	= iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
-  trksInputTag_                 = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
-  eidRobustLooseTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
-  eidRobustTightTag_	        = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
-  eidRobustHighEnergyTag_	= iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
-  eidLooseTag_		        = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
-  eidTightTag_		        = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
+  electronsInputTag_             = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
+  beamSpotInputTag_              = iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
+  trksInputTag_                  = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
+  eidRobustLooseTag_             = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
+  eidRobustTightTag_             = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
+  eidRobustHighEnergyTag_        = iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
+  eidLooseTag_                   = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
+  eidTightTag_                   = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
   
-  minAbsDist_                   = iConfig.getParameter<double>("minAbsDist"                         );
-  minAbsDcot_                   = iConfig.getParameter<double>("minAbsDcot"                         );
-  minSharedFractionOfHits_      = iConfig.getParameter<double>("minSharedFractionOfHits"            );
+  minAbsDist_                    = iConfig.getParameter<double>("minAbsDist"                         );
+  minAbsDcot_                    = iConfig.getParameter<double>("minAbsDcot"                         );
+  minSharedFractionOfHits_       = iConfig.getParameter<double>("minSharedFractionOfHits"            );
   
   mtsTransform_ = 0;
   clusterTools_ = 0;
@@ -755,44 +755,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_trkdr          ->push_back(dR                                          );
 
 
+    ConversionFinder convFinder;
+    ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, evt_bField);
+    els_conv_dist->push_back(convInfo.dist());
+    els_conv_dcot->push_back(convInfo.dcot());
+    els_conv_tkidx->push_back(convInfo.conversionPartnerTk().key());
 
-    //conversion stuff
-    //first see if there is candidate that passes our conversion cuts
-    reco::TrackRef convTk = ConversionFinder::getConversionPartnerTrack(*el, tracks_h, evt_bField,
-									minAbsDist_, minAbsDcot_, minSharedFractionOfHits_);
-    //either CTF or GSF track made by the electron used to calculate the dist and dcot
-    const reco::Track *el_tk = ConversionFinder::getElectronTrack(*el, minSharedFractionOfHits_);
-    std::pair<float, float> p_convInfo = make_pair(-9999., -9999.);
-    if(convTk.isNonnull()) {
-      math::XYZTLorentzVector convTk_p4 = math::XYZTLorentzVector(convTk->px(), convTk->py(), convTk->pz(), convTk->p());
-      p_convInfo =  ConversionFinder::getConversionInfo(math::XYZTLorentzVector(el_tk->px(), el_tk->py(), el_tk->pz(), el_tk->p()),
-						     el_tk->charge(), el_tk->d0(), convTk_p4, convTk->charge(), convTk->d0(),
-						     evt_bField);
-      
-      els_conv_dist   ->push_back(p_convInfo.first               );
-      els_conv_dcot   ->push_back(p_convInfo.second              );
-      els_conv_tkidx  ->push_back(static_cast<int>(convTk.key()) );
-	
-    } else { //don't cut on any dist of dcot value....get the dist and dcot for the nearest track in dR to the electron's track
-      convTk = ConversionFinder::getConversionPartnerTrack(*el, tracks_h, evt_bField,
-							 999999., 999999., minSharedFractionOfHits_);
-      if(convTk.isNonnull()) {
-	
-	math::XYZTLorentzVector convTk_p4 = math::XYZTLorentzVector(convTk->px(), convTk->py(), convTk->pz(), convTk->p());
-	p_convInfo =  ConversionFinder::getConversionInfo(math::XYZTLorentzVector(el_tk->px(), el_tk->py(), el_tk->pz(), el_tk->p()),
-						       el_tk->charge(), el_tk->d0(), convTk_p4, convTk->charge(), convTk->d0(),
-						       evt_bField);
-	
-	els_conv_dist   ->push_back(p_convInfo.first               );
-	els_conv_dcot   ->push_back(p_convInfo.second              );
-	els_conv_tkidx  ->push_back(static_cast<int>(convTk.key()) );
-	
-      } else { //if there is no track in the dR cone that isn't made by the electron
-	els_conv_dist   ->push_back(-9999.);
-	els_conv_dcot   ->push_back(-9999.);
-	els_conv_tkidx  ->push_back(-9999 );
-      }// if convTk.isNonnull()
-    }//else 
+    
     
   }//electron loop
 
