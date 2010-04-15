@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -138,6 +138,11 @@ process.cms2WithEverythingExceptGEN  = cms.Sequence(   process.coreCMS2Sequence
 process.pNoFilter = cms.Path(process.cms2WithEverythingExceptGEN)
 process.eventMaker.datasetName = cms.string("/MinimumBias/BeamCommissioning09-RecoTracks-Mar3rdSkim_v2/RAW-RECO")
 process.eventMaker.CMS2tag     = cms.string("blah")
+# This isData! Currently only used for bField
+# default is False in which case bField comes
+# from the IdealMagneticFieldRecord. Otherwise
+# it is derived from DcsStatus
+process.eventMaker.isData      = cms.bool(True)
 
 process.EventSelectionSingleFilt = cms.PSet(
     SelectEvents = cms.untracked.PSet(

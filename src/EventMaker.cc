@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.28 2010/03/18 02:12:09 kalavase Exp $
+// $Id: EventMaker.cc,v 1.29 2010/04/15 11:28:59 jribnik Exp $
 //
 //
 
@@ -69,6 +69,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
      CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
 
      dcsTag_ = iConfig.getParameter<edm::InputTag>("dcsTag");
+     isData_ = iConfig.getParameter<bool>("isData");
 }
 
 
@@ -106,14 +107,30 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      *evt_timestamp                 = iEvent.eventAuxiliary().time().value();
   
   
-     //need the magnetic field
-     ESHandle<MagneticField> magneticField;
-     iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
-
-     *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
-
      edm::Handle<DcsStatusCollection> dcsHandle;
      iEvent.getByLabel(dcsTag_, dcsHandle);
+
+     // need the magnetic field
+     //
+     // if isData then derive bfield using the
+     // magnet current from DcsStatus
+     // otherwise take it from the IdealMagneticFieldRecord
+     if (isData_)
+     {
+         // scale factor = 3.801/18166.0 which are
+         // average values taken over a stable two
+         // week period
+         float currentToBFieldScaleFactor = 2.09237036221512717e-04;
+         float current = (*dcsHandle)[0].magnetCurrent();
+         *evt_bField = current*currentToBFieldScaleFactor;
+     }
+     else
+     {
+         ESHandle<MagneticField> magneticField;
+         iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
+
+         *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
+     }
 
      std::string branchprefix = aliasprefix_;
      if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
