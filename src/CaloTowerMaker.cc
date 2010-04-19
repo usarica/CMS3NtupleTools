@@ -55,7 +55,7 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
 	// number of towers in the event
-	produces<unsigned int>("evtntwrs").setBranchAlias("evt_ntwrs");
+	produces<unsigned int>("evtn"+branchprefix).setBranchAlias("evt_n"+branchprefix);
 
 	produces<std::vector<float> >(branchprefix+"eta").setBranchAlias(aliasprefix_+"_eta");
 	produces<std::vector<float> >(branchprefix+"phi").setBranchAlias(aliasprefix_+"_phi");
@@ -457,7 +457,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	std::string branchprefix = aliasprefix_;
 	if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-	iEvent.put(evt_ntwrs, "evtntwrs");
+	iEvent.put(evt_ntwrs, "evtn"+branchprefix);
 	iEvent.put(vector_twrs_eta, branchprefix+"eta");
 	iEvent.put(vector_twrs_phi, branchprefix+"phi");
 	iEvent.put(vector_twrs_detid, branchprefix+"detid");
