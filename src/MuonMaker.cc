@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.39 2010/03/18 02:13:12 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.40 2010/04/19 19:17:15 slava77 Exp $
 //
 //
 
@@ -161,6 +161,10 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >	     (branchprefix+"pidTM2DCompatibilityTight").setBranchAlias(aliasprefix_+"_pid_TM2DCompatibilityTight"); 
   //calo compatibility variable
   produces<vector<float> >           (branchprefix+"caloCompatibility").setBranchAlias(aliasprefix_+"_caloCompatibility");
+  //overlap index (-1 if none)
+  produces<vector<int> >           (branchprefix+"nOverlaps").setBranchAlias(aliasprefix_+"_nOverlaps");
+  produces<vector<int> >           (branchprefix+"overlap0").setBranchAlias(aliasprefix_+"_overlap0");
+  produces<vector<int> >           (branchprefix+"overlap1").setBranchAlias(aliasprefix_+"_overlap1");
   //p4 because we're not able to (yet) read XYZPointDs in bare root for some reason 
   //the 4th co-ordinate is 0
   produces<vector<LorentzVector> >   (branchprefix+"vertexp4"         ).setBranchAlias(aliasprefix_+"_vertex_p4" ); // from the silicon fit
@@ -267,6 +271,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityLoose   (new vector<int>    );
   auto_ptr<vector<int> >	   vector_mus_pid_TM2DCompatibilityTight   (new vector<int>    );
   auto_ptr<vector<float> >         vector_mus_caloCompatibility            (new vector<float>  );
+  auto_ptr<vector<int> >           vector_mus_nOverlaps                    (new vector<int>  );
+  auto_ptr<vector<int> >           vector_mus_overlap0                     (new vector<int>  );
+  auto_ptr<vector<int> >           vector_mus_overlap1                     (new vector<int>  );
 
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                    (new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_vertex_p4               (new vector<LorentzVector> );
@@ -409,6 +416,26 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     vector_mus_pid_TM2DCompatibilityLoose ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityLoose): -9999	);
     vector_mus_pid_TM2DCompatibilityTight ->push_back(muon->isMatchesValid() ? muon::isGoodMuon(*muon,muon::TM2DCompatibilityTight): -9999	);
     vector_mus_caloCompatibility          ->push_back(muon->caloCompatibility() );
+
+    int mus_overlap0 = -1;
+    int mus_overlap1 = -1;
+    int muInd = -1;
+    int mus_nOverlaps = 0;
+    for (edm::View<Muon>::const_iterator muonJ = muon_h->begin(); muonJ != muons_end; ++muonJ) {
+      muInd++;
+      if (muonJ!=muon){
+	if (muon::overlap(*muon, *muonJ)){
+	  if (mus_overlap0 == -1) mus_overlap0 = muInd;
+	  if (mus_overlap0 != -1) mus_overlap1 = muInd;
+	  mus_nOverlaps++;
+	}
+      }
+    }
+    
+    vector_mus_nOverlaps          ->push_back(mus_nOverlaps );
+    vector_mus_overlap0          ->push_back(mus_overlap0 );
+    vector_mus_overlap1          ->push_back(mus_overlap1 );
+    
 
     vector_mus_vertex_p4                  ->push_back(siTrack.isNonnull() ? 
 						      LorentzVector(siTrack->vx(),
@@ -561,6 +588,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, branchprefix+"pidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, branchprefix+"pidTM2DCompatibilityTight" );
   iEvent.put(vector_mus_caloCompatibility               , branchprefix+"caloCompatibility"         );
+  iEvent.put(vector_mus_nOverlaps                       , branchprefix+"nOverlaps"                 );
+  iEvent.put(vector_mus_overlap0                        , branchprefix+"overlap0"                 );
+  iEvent.put(vector_mus_overlap1                        , branchprefix+"overlap1"                 );
+
   iEvent.put(vector_mus_vertex_p4                       , branchprefix+"vertexp4"                  );
   iEvent.put(vector_mus_gfit_vertex_p4                  , branchprefix+"gfitvertexp4"              );
   iEvent.put(vector_mus_gfit_outerPos_p4                , branchprefix+"gfitouterPosp4"            );
