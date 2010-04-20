@@ -361,13 +361,13 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if(fabs(sc->seed()->eta()) > 1.479) {
 	  covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
 	}
-	vector_scs_sigmaEtaEta->push_back( sqrt(covariances[0] > 0 ? sqrt(covariances[0]) : -1 * sqrt(-1 * covariances[0]) ) );
-	vector_scs_sigmaEtaPhi->push_back( sqrt(covariances[1] > 0 ? sqrt(covariances[1]) : -1 * sqrt(-1 * covariances[1]) ) );
-	vector_scs_sigmaPhiPhi->push_back( sqrt(covariances[2] > 0 ? sqrt(covariances[2]) : -1 * sqrt(-1 * covariances[2]) ) );
+	vector_scs_sigmaEtaEta->push_back( covariances[0] > 0 ? sqrt(covariances[0]) : -sqrt(-covariances[0]) );
+	vector_scs_sigmaEtaPhi->push_back( covariances[1] > 0 ? sqrt(covariances[1]) : -sqrt(-covariances[1]) );
+	vector_scs_sigmaPhiPhi->push_back( covariances[2] > 0 ? sqrt(covariances[2]) : -sqrt(-covariances[2]) );
 	std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
-	vector_scs_sigmaIEtaIEta->push_back( sqrt(localCovariances[0] > 0 ? sqrt(localCovariances[0]) : -1 * sqrt(-1 * localCovariances[0]) ) );
-	vector_scs_sigmaIEtaIPhi->push_back( sqrt(localCovariances[1] > 0 ? sqrt(localCovariances[1]) : -1 * sqrt(-1 * localCovariances[1]) ) );
-	vector_scs_sigmaIPhiIPhi->push_back( sqrt(localCovariances[2] > 0 ? sqrt(localCovariances[2]) : -1 * sqrt(-1 * localCovariances[2]) ) );
+	vector_scs_sigmaIEtaIEta->push_back( localCovariances[0] > 0 ? sqrt(localCovariances[0]) : -sqrt(-localCovariances[0]) );
+	vector_scs_sigmaIEtaIPhi->push_back( localCovariances[1] > 0 ? sqrt(localCovariances[1]) : -sqrt(-localCovariances[1]) );
+	vector_scs_sigmaIPhiIPhi->push_back( localCovariances[2] > 0 ? sqrt(localCovariances[2]) : -sqrt(-localCovariances[2]) );
 	vector_scs_clustersSize->push_back( sc->clustersSize() );
 	const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
 	vector_scs_crystalsSize->push_back( detIds.size() );
