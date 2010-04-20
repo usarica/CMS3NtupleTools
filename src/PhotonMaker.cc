@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.8 2010/03/18 02:13:24 kalavase Exp $
+// $Id: PhotonMaker.cc,v 1.9 2010/04/20 02:11:13 warren Exp $
 //
 //
 
@@ -49,6 +49,7 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "Math/VectorUtil.h"
 
+#include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
 #include "CMS2/NtupleMaker/interface/ElUtilities.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
@@ -103,6 +104,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >	  (branchprefix+"e3x3"            ).setBranchAlias(aliasprefix_+"_e3x3"             );
      produces<vector<float> >          (branchprefix+"eMax"            ).setBranchAlias(aliasprefix_+"_eMax"             );
      produces<vector<float> >          (branchprefix+"eSeed"            ).setBranchAlias(aliasprefix_+"_eSeed"             );
+     produces<vector<float> >          (branchprefix+"timeSeed"            ).setBranchAlias(aliasprefix_+"_timeSeed"            );
+     produces<vector<float> >          (branchprefix+"swissSeed"            ).setBranchAlias(aliasprefix_+"_swissSeed"          );
 
      // isolation variables
      //
@@ -117,7 +120,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
 
      //get setup parameters
      photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
-
+	 ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
+	 ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+	 minEt_ = iConfig.getParameter<double>("minEt");
      clusterTools_ = 0;
 
 }
@@ -157,6 +162,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> >	photons_e3x3                (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_eMax                (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_eSeed               (new vector<float>        ) ;
+     auto_ptr<vector<float> >	photons_timeSeed               (new vector<float>        ) ;
+     auto_ptr<vector<float> >	photons_swissSeed               (new vector<float>        ) ;
 	
      // isolation variables
      //
@@ -186,6 +193,20 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					      edm::InputTag("reducedEcalRecHitsEB"), 
 					      edm::InputTag("reducedEcalRecHitsEE"));
 
+	 // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
+	 edm::Handle<EcalRecHitCollection> rhcHandleEE;
+	 iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
+	 const EcalRecHitCollection *recHitsEE = rhcHandleEE.product();
+
+	 edm::Handle<EcalRecHitCollection> rhcHandleEB;
+	 iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
+	 const EcalRecHitCollection *recHitsEB = rhcHandleEB.product();
+	 
+	 // calo topology
+	 edm::ESHandle<CaloTopology> pTopology;
+	 iSetup.get<CaloTopologyRecord>().get(pTopology);
+	 const CaloTopology *topology_ = pTopology.product();
+
      //fill number of eqlectrons variable
      //
      *evt_nphotons = photons_h->size();
@@ -195,8 +216,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      size_t photonsIndex = 0;
      View<reco::Photon>::const_iterator photon;
      for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
-	  // throw out photons below 10 GeV
-	  if (photon->et() < 10)
+	  // throw out photons below minEt
+	  if (photon->et() < minEt_)
 	       continue;
 
 	  // Get photon and track objects
@@ -223,7 +244,44 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_e5x5                  ->push_back( photon->e5x5()                                     );
 	  photons_e2x5Max               ->push_back( photon->e2x5()                                     );
 	  photons_eMax                  ->push_back( eMax    			);
-	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );		       photons_sigmaPhiPhi           ->push_back( spp                                             	);
+	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );
+
+	  DetId seedId = photon->superCluster()->seed()->seed();
+
+	  reco::BasicCluster dummyCluster;
+	  EcalClusterTools clusterTools;
+	  if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
+		EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
+		if (seedHit != recHitsEE->end()) {
+		  photons_timeSeed->push_back( seedHit->time() );
+		  float emSwiss = 0.;
+		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, -1, 1);
+		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
+		  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
+		  photons_swissSeed->push_back( emSwiss );
+		}
+		else {
+		  photons_timeSeed->push_back( -9999.99 );
+		  photons_swissSeed->push_back( -9999.99 );
+		}
+	  }
+	  else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
+		EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
+		if (seedHit != recHitsEB->end()) {
+		  photons_timeSeed->push_back( seedHit->time() );
+		  float emSwiss = 0.;
+		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, -1, 1);
+		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
+		  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
+		  photons_swissSeed->push_back( emSwiss );
+		}
+		else {
+		  photons_timeSeed->push_back( -9999.99 );
+		  photons_swissSeed->push_back( -9999.99 );
+		}		
+	  }
+
+	  photons_sigmaPhiPhi           ->push_back( spp                                             	);
 	  photons_sigmaIPhiIPhi         ->push_back( sipip                                           	);  
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
 	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
@@ -268,6 +326,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_e2x5Max                  ,branchprefix+"e2x5Max"         		);
      iEvent.put(photons_eMax                     ,branchprefix+"eMax"      	      	);
      iEvent.put(photons_eSeed                    ,branchprefix+"eSeed" 	          	);
+     iEvent.put(photons_timeSeed                 ,branchprefix+"timeSeed" 	          	);
+     iEvent.put(photons_swissSeed                ,branchprefix+"swissSeed" 	          	);
      iEvent.put(photons_fiduciality		,branchprefix+"fiduciality"			);
 	
      // Photon ID
