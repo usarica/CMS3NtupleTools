@@ -30,7 +30,7 @@ caloTowerMakerUncleaned = cms.EDFilter("CaloTowerMaker",
    spikeEtaMax    = cms.double(1.4442), #exclude edge of barrel
 )
 
-
-cms2CaloTowerSequence = cms.Sequence( cms2calotowermaker * caloTowerMaker * caloTowerMakerUncleaned )
-
+#this was for repeating with uncleaned--now gone
+#cms2CaloTowerSequence = cms.Sequence( cms2calotowermaker * caloTowerMaker * caloTowerMakerUncleaned )
+cms2CaloTowerSequence = cms.Sequence( caloTowerMaker )
 
