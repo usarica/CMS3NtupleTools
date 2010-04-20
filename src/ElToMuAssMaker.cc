@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElToMuAssMaker.cc,v 1.10 2010/03/18 02:12:04 kalavase Exp $
+// $Id: ElToMuAssMaker.cc,v 1.11 2010/04/20 16:51:43 jribnik Exp $
 //
 //
 
@@ -81,7 +81,7 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
        double el_eta = els_it->Eta();
        double el_phi = els_it->Phi();
        
-       double minDR = m_minDR_;
+       double minDR = 9999.;
        unsigned int i = 0;
        int index = -1; 
 
@@ -102,6 +102,11 @@ void ElToMuAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
 	   minDR = dR;
 	   index = i;
 	 }
+       }
+
+       if(minDR > m_minDR_) {
+           minDR = -9999.;
+           index = -1;
        }
        // fill vector
        vector_els_closestMuon->push_back(index);
