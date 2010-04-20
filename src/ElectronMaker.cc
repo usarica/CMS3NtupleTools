@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.47 2010/04/13 00:59:31 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.48 2010/04/20 04:27:57 kalavase Exp $
 //
 //
 
@@ -229,9 +229,11 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>  >    ("elstrkdr"                   ).setBranchAlias("els_trkdr"                  );
 
   //conversion stuff
-  produces<vector<float>    >    ("elsconvdist"              ).setBranchAlias("els_conv_dist"              );
-  produces<vector<float>    >    ("elsconvdcot"              ).setBranchAlias("els_conv_dcot"              );
-  produces<vector<int>      >    ("elsconvtkidx"             ).setBranchAlias("els_conv_tkidx"             );
+  produces<vector<float>    >       ("elsconvdist"              ).setBranchAlias("els_conv_dist"              );
+  produces<vector<float>    >       ("elsconvdcot"              ).setBranchAlias("els_conv_dcot"              );
+  produces<vector<float>    >       ("elsconvradius"            ).setBranchAlias("els_conv_radius"            );//signed radius of conversion
+  produces<vector<LorentzVector> >  ("elsconvposp4"             ).setBranchAlias("els_conv_pos_p4"            );//position of conversion
+  produces<vector<int>      >       ("elsconvtkidx"             ).setBranchAlias("els_conv_tkidx"             );//index of partner track
 
   
 }
@@ -405,9 +407,11 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float>   >      els_trkdr                   (new vector<float>        );
 
   //conversions
-  auto_ptr<vector<float>    >    els_conv_dist                (new vector<float>        );
-  auto_ptr<vector<float>    >    els_conv_dcot                (new vector<float>        );
-  auto_ptr<vector<int>      >    els_conv_tkidx               (new vector<int>          );
+  auto_ptr<vector<float>    >     els_conv_dist                (new vector<float>         );
+  auto_ptr<vector<float>    >     els_conv_dcot                (new vector<float>         );
+  auto_ptr<vector<float>    >     els_conv_radius              (new vector<float>         );
+  auto_ptr<vector<LorentzVector> >els_conv_pos_p4              (new vector<LorentzVector> );
+  auto_ptr<vector<int>      >     els_conv_tkidx               (new vector<int>           );
   
 
   //conversions
@@ -759,7 +763,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, evt_bField);
     els_conv_dist->push_back(convInfo.dist());
     els_conv_dcot->push_back(convInfo.dcot());
-    els_conv_tkidx->push_back(convInfo.conversionPartnerTk().key());
+    els_conv_radius->push_back(convInfo.radiusOfConversion());
+    math::XYZPoint convPoint = convInfo.pointOfConversion();
+    els_conv_pos_p4->push_back(LorentzVector(convPoint.x(), convPoint.y(), convPoint.z(), 0));
+    if(convInfo.conversionPartnerTk().isNonnull())
+      els_conv_tkidx->push_back(convInfo.conversionPartnerTk().key());
+    else 
+      els_conv_tkidx->push_back(-9999);
 
     
     
@@ -894,7 +904,11 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //conversion
   iEvent.put(els_conv_dist,   "elsconvdist"   );
   iEvent.put(els_conv_dcot,   "elsconvdcot"   );
+  iEvent.put(els_conv_radius, "elsconvradius" );
+  iEvent.put(els_conv_pos_p4, "elsconvposp4"  );
   iEvent.put(els_conv_tkidx,  "elsconvtkidx"  );
+  
+
 
 }
 
