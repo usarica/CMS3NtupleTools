@@ -107,6 +107,9 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
   produces<std::vector<float> >(branchprefix+"sigmaIEtaIEta").setBranchAlias(aliasprefix_+"_sigmaIEtaIEta");
   produces<std::vector<float> >(branchprefix+"sigmaIEtaIPhi").setBranchAlias(aliasprefix_+"_sigmaIEtaIPhi");
   produces<std::vector<float> >(branchprefix+"sigmaIPhiIPhi").setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi");
+  produces<std::vector<float> >(branchprefix+"sigmaIEtaIEtaSC").setBranchAlias(aliasprefix_+"_sigmaIEtaIEtaSC");
+  produces<std::vector<float> >(branchprefix+"sigmaIEtaIPhiSC").setBranchAlias(aliasprefix_+"_sigmaIEtaIPhiSC");
+  produces<std::vector<float> >(branchprefix+"sigmaIPhiIPhiSC").setBranchAlias(aliasprefix_+"_sigmaIPhiIPhiSC");
 
   // match to electrons
   produces<std::vector<int> >(branchprefix+"elsidx").setBranchAlias(aliasprefix_+"_elsidx");
@@ -261,6 +264,11 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIEta (new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIPhi(new std::vector<float>);
   std::auto_ptr<std::vector<float> > vector_scs_sigmaIPhiIPhi(new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIEtaSC (new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_scs_sigmaIEtaIPhiSC (new std::vector<float>);
+  std::auto_ptr<std::vector<float> > vector_scs_sigmaIPhiIPhiSC (new std::vector<float>);
+
+
   std::auto_ptr<std::vector<int> > vector_scs_elsidx(new std::vector<int>);
 
   // for debugging - will only be filled and put in event if debug_ == true
@@ -355,19 +363,30 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	vector_scs_e4x4->push_back( lazyTools.e4x4(*(sc->seed())) );
 	vector_scs_e5x5->push_back( lazyTools.e5x5(*(sc->seed())) );
 	vector_scs_e2x5Max->push_back( lazyTools.e2x5Max(*(sc->seed())) );
+
+    // get the covariances computed in 5x5 around the seed
 	std::vector<float> covariances = lazyTools.covariances(*(sc->seed()));
+    // get the local covariances computed in a 5x5 around the seed
+    const std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
+    // get the local covariances computed using all crystals in the SC
+    const std::vector<float> localCovariancesSC = lazyTools.scLocalCovariances(*sc);
+
 	// if seed basic cluster is in the endcap then correct sigma eta eta
 	// according to the super cluster eta
 	if(fabs(sc->seed()->eta()) > 1.479) {
 	  covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
 	}
+
 	vector_scs_sigmaEtaEta->push_back( covariances[0] > 0 ? sqrt(covariances[0]) : -sqrt(-covariances[0]) );
 	vector_scs_sigmaEtaPhi->push_back( covariances[1] > 0 ? sqrt(covariances[1]) : -sqrt(-covariances[1]) );
 	vector_scs_sigmaPhiPhi->push_back( covariances[2] > 0 ? sqrt(covariances[2]) : -sqrt(-covariances[2]) );
-	std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
 	vector_scs_sigmaIEtaIEta->push_back( localCovariances[0] > 0 ? sqrt(localCovariances[0]) : -sqrt(-localCovariances[0]) );
 	vector_scs_sigmaIEtaIPhi->push_back( localCovariances[1] > 0 ? sqrt(localCovariances[1]) : -sqrt(-localCovariances[1]) );
 	vector_scs_sigmaIPhiIPhi->push_back( localCovariances[2] > 0 ? sqrt(localCovariances[2]) : -sqrt(-localCovariances[2]) );
+    vector_scs_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0 ? sqrt(localCovariancesSC[0]) : -1 * sqrt(-1 * localCovariancesSC[0]) );
+    vector_scs_sigmaIEtaIPhiSC->push_back( localCovariancesSC[1] > 0 ? sqrt(localCovariancesSC[1]) : -1 * sqrt(-1 * localCovariancesSC[1]) );
+    vector_scs_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0 ? sqrt(localCovariancesSC[2]) : -1 * sqrt(-1 * localCovariancesSC[2]) );
+
 	vector_scs_clustersSize->push_back( sc->clustersSize() );
 	const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
 	vector_scs_crystalsSize->push_back( detIds.size() );
@@ -430,6 +449,10 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_scs_sigmaIEtaIEta, branchprefix+"sigmaIEtaIEta");
   iEvent.put(vector_scs_sigmaIEtaIPhi, branchprefix+"sigmaIEtaIPhi");
   iEvent.put(vector_scs_sigmaIPhiIPhi, branchprefix+"sigmaIPhiIPhi");
+  iEvent.put(vector_scs_sigmaIEtaIEtaSC, branchprefix+"sigmaIEtaIEtaSC");
+  iEvent.put(vector_scs_sigmaIEtaIPhiSC, branchprefix+"sigmaIEtaIPhiSC");
+  iEvent.put(vector_scs_sigmaIPhiIPhiSC, branchprefix+"sigmaIPhiIPhiSC");
+
   iEvent.put(vector_scs_clustersSize, branchprefix+"clustersSize");
   iEvent.put(vector_scs_crystalsSize, branchprefix+"crystalsSize");
   iEvent.put(vector_scs_elsidx, branchprefix+"elsidx");

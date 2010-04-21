@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.48 2010/04/20 04:27:57 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.49 2010/04/21 13:00:59 dlevans Exp $
 //
 //
 
@@ -147,6 +147,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
   produces<vector<float> >     ("elssigmaEtaEta"             ).setBranchAlias("els_sigmaEtaEta"            );
   produces<vector<float> >     ("elssigmaIEtaIEta"           ).setBranchAlias("els_sigmaIEtaIEta"          );
+  produces<vector<float> >     ("elssigmaIPhiIPhiSC"         ).setBranchAlias("els_sigmaIPhiIPhiSC"        );
+  produces<vector<float> >     ("elssigmaIEtaIEtaSC"         ).setBranchAlias("els_sigmaIEtaIEtaSC"        );
   produces<vector<float> >     ("else2x5Max"                 ).setBranchAlias("els_e2x5Max"                );
   produces<vector<float> >     ("else1x5"                    ).setBranchAlias("els_e1x5"                   );
   produces<vector<float> >     ("else5x5"                    ).setBranchAlias("els_e5x5"                   );
@@ -322,10 +324,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > 	  els_hcalDepth1OverEcal      (new vector<float>	) ;
   auto_ptr<vector<float> >        els_hcalDepth2OverEcal      (new vector<float>        ) ;
 
-  auto_ptr<vector<float> >	  els_sigmaPhiPhi             (new vector<float>        ) ;
+  auto_ptr<vector<float> >	      els_sigmaPhiPhi             (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_sigmaIPhiIPhi           (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_sigmaEtaEta             (new vector<float>        ) ;
+  auto_ptr<vector<float> >	      els_sigmaEtaEta             (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_sigmaIEtaIEta           (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_sigmaIPhiIPhiSC         (new vector<float>        ) ;
+  auto_ptr<vector<float> >        els_sigmaIEtaIEtaSC         (new vector<float>        ) ;
+
   auto_ptr<vector<float> >        els_e2x5Max                 (new vector<float>        ) ;
   auto_ptr<vector<float> >        els_e1x5                    (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_e5x5                    (new vector<float>        ) ;
@@ -471,33 +476,39 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     // Get cluster info that is not stored in the object
     //
-    float eMax, e3x3, spp, sipip;
+    float eMax, e3x3;
     const reco::BasicCluster& clRef= *(el->superCluster()->seed());
     eMax = clusterTools_->eMax(clRef);
     e3x3 = clusterTools_->e3x3(clRef);
+
+    // get the covariances computed in 5x5 around the seed
     const std::vector<float>& covs = clusterTools_->covariances(clRef);
-    spp = sqrt(covs[2]);
+    // get the local covariances computed in a 5x5 around the seed
     const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
-    sipip = sqrt(lcovs[2]);
+    // get the local covariances computed using all crystals in the SC
+    const std::vector<float> localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));
 
     // Fill cluster info
     //
-    els_etaSC		  ->push_back( el->superCluster()->eta()		);
-    els_phiSC		  ->push_back( el->superCluster()->phi()	       	);
-    els_eSC                   ->push_back( el->superCluster()->energy()             );
-    els_eSCRaw                ->push_back( el->superCluster()->rawEnergy()          );
-    els_eSCPresh              ->push_back( el->superCluster()->preshowerEnergy()    );
-    els_nSeed                 ->push_back( el->basicClustersSize() - 1              );      
-    els_e1x5		  ->push_back( el->e1x5()				);
-    els_e3x3                  ->push_back( e3x3                                     );
-    els_e5x5                  ->push_back( el->e5x5()                               );
-    els_e2x5Max               ->push_back( el->e2x5Max()                            );
-    els_eMax                  ->push_back( eMax                                     );
-    els_eSeed                 ->push_back( el->superCluster()->seed()->energy()     );		
-    els_sigmaPhiPhi           ->push_back( spp                                      );
-    els_sigmaIPhiIPhi         ->push_back( sipip                                    );  
-    els_sigmaEtaEta           ->push_back( el->scSigmaEtaEta()                      );
-    els_sigmaIEtaIEta         ->push_back( el->scSigmaIEtaIEta()                    );  		
+    els_etaSC		   ->push_back( el->superCluster()->eta()		);
+    els_phiSC		   ->push_back( el->superCluster()->phi()	       	);
+    els_eSC            ->push_back( el->superCluster()->energy()             );
+    els_eSCRaw         ->push_back( el->superCluster()->rawEnergy()          );
+    els_eSCPresh       ->push_back( el->superCluster()->preshowerEnergy()    );
+    els_nSeed          ->push_back( el->basicClustersSize() - 1              );      
+    els_e1x5		   ->push_back( el->e1x5()				);
+    els_e3x3           ->push_back( e3x3                                     );
+    els_e5x5           ->push_back( el->e5x5()                               );
+    els_e2x5Max        ->push_back( el->e2x5Max()                            );
+    els_eMax           ->push_back( eMax                                     );
+    els_eSeed          ->push_back( el->superCluster()->seed()->energy()     );		
+    els_sigmaPhiPhi    ->push_back( covs[2] > 0                ? sqrt(covs[2])                 : -1 * sqrt(-1 * covs[2]) );
+    els_sigmaIPhiIPhi  ->push_back( lcovs[2] > 0               ? sqrt(lcovs[2])                : -1 * sqrt(-1 * lcovs[2]) );
+    els_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) );
+    els_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) );
+    els_sigmaEtaEta    ->push_back( el->scSigmaEtaEta()                      );
+    els_sigmaIEtaIEta  ->push_back( el->scSigmaIEtaIEta()                    );
+
 
     // set the mask that describes the egamma fiduciality flags
     // the enum is in interface/EgammaFiduciality.h
@@ -839,6 +850,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_sigmaIPhiIPhi            ,"elssigmaIPhiIPhi"   		);
   iEvent.put(els_sigmaEtaEta              ,"elssigmaEtaEta"     		);
   iEvent.put(els_sigmaIEtaIEta            ,"elssigmaIEtaIEta"   		);
+  iEvent.put(els_sigmaIPhiIPhiSC          ,"elssigmaIPhiIPhiSC"         );
+  iEvent.put(els_sigmaIEtaIEtaSC          ,"elssigmaIEtaIEtaSC"         );
   iEvent.put(els_dPhiInPhiOut             ,"elsdPhiInPhiOut"    		);
   iEvent.put(els_hOverE                   ,"elshOverE"          		);
   iEvent.put(els_hcalDepth1OverEcal       ,"elshcalDepth1OverEcal"              );
