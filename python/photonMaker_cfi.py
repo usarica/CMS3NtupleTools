@@ -7,5 +7,6 @@ photonMaker = cms.EDFilter("PhotonMaker",
     photonsInputTag = cms.InputTag("photons"),
     ecalRecHitsInputTag_EE = cms.InputTag("ecalRecHit","EcalRecHitsEE"),
     ecalRecHitsInputTag_EB = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
+    cms2scsseeddetidInputTag = cms.InputTag("scMaker"),
 )
 

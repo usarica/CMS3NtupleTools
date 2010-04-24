@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.h,v 1.5 2010/04/20 02:12:19 warren Exp $
+// $Id: PhotonMaker.h,v 1.6 2010/04/24 03:58:59 warren Exp $
 //
 //
 #ifndef NTUPLEMAKER_PHOTONMAKER_H
@@ -51,6 +51,7 @@ private:
 
      // ----------member data ---------------------------
      edm::InputTag photonsInputTag_;
+     edm::InputTag cms2scsseeddetidInputTag_;
      edm::InputTag ecalRecHitsInputTag_EE_;
      edm::InputTag ecalRecHitsInputTag_EB_;
      float minEt_;

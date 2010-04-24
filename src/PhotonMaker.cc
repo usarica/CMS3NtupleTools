@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.10 2010/04/24 02:24:00 warren Exp $
+// $Id: PhotonMaker.cc,v 1.11 2010/04/24 03:58:59 warren Exp $
 //
 //
 
@@ -86,29 +86,31 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-     produces<unsigned int>            ("evtnphotons"        ).setBranchAlias("evt_nphotons"         ); //number of photons in event--NO ET cut
+     produces<unsigned int>            ("evtn"+branchprefix       ).setBranchAlias("evt_n"+branchprefix         ); //number of photons in event--NO ET cut
 
-     // ECAL related (superCluster) variables
-     produces<vector<float> >	  (branchprefix+"eSC"             ).setBranchAlias(aliasprefix_+"_eSC"              );
-     produces<vector<float> >	  (branchprefix+"eSCRaw"          ).setBranchAlias(aliasprefix_+"_eSCRaw"           );
-     produces<vector<float> >          (branchprefix+"eSCPresh"        ).setBranchAlias(aliasprefix_+"_eSCPresh"         );
-     produces<vector<int> >          (branchprefix+"fiduciality"        ).setBranchAlias(aliasprefix_+"_fiduciality"         );
+     // ECAL related (superCluster) variables--remove ones which are repeated in SCMaker
+     //produces<vector<float> >	  (branchprefix+"eSC"             ).setBranchAlias(aliasprefix_+"_eSC"              );
+     //produces<vector<float> >	  (branchprefix+"eSCRaw"          ).setBranchAlias(aliasprefix_+"_eSCRaw"           );
+     //produces<vector<float> >          (branchprefix+"eSCPresh"        ).setBranchAlias(aliasprefix_+"_eSCPresh"         );
+     produces<vector<int> >          (branchprefix+"fiduciality"        ).setBranchAlias(aliasprefix_+"_fiduciality"         ); //missing in scmaker
+     produces<vector<int> >          (branchprefix+"scindex"        ).setBranchAlias(aliasprefix_+"_scindex"         );
 
-     // ID variables
+     // ID variables : most of these are in sc. However, if we get these from photon object directly, keep even if duplicate.
      //
      produces<vector<float> >          (branchprefix+"hOverE"          ).setBranchAlias(aliasprefix_+"_hOverE"           );
-     produces<vector<float> >          (branchprefix+"sigmaPhiPhi"     ).setBranchAlias(aliasprefix_+"_sigmaPhiPhi"      );
-     produces<vector<float> >          (branchprefix+"sigmaIPhiIPhi"   ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi"    );
+     //produces<vector<float> >          (branchprefix+"sigmaPhiPhi"     ).setBranchAlias(aliasprefix_+"_sigmaPhiPhi"      ); //in sc
+     //produces<vector<float> >          (branchprefix+"sigmaIPhiIPhi"   ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi"    );
      produces<vector<float> >          (branchprefix+"sigmaEtaEta"     ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"      );
      produces<vector<float> >          (branchprefix+"sigmaIEtaIEta"   ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"    );
      produces<vector<float> >          (branchprefix+"e2x5Max"         ).setBranchAlias(aliasprefix_+"_e2x5Max"          );
      produces<vector<float> >          (branchprefix+"e1x5"          	).setBranchAlias(aliasprefix_+"_e1x5"          	);
      produces<vector<float> >          (branchprefix+"e5x5"            ).setBranchAlias(aliasprefix_+"_e5x5"             );
      produces<vector<float> >	  (branchprefix+"e3x3"            ).setBranchAlias(aliasprefix_+"_e3x3"             );
-     produces<vector<float> >          (branchprefix+"eMax"            ).setBranchAlias(aliasprefix_+"_eMax"             );
-     produces<vector<float> >          (branchprefix+"eSeed"            ).setBranchAlias(aliasprefix_+"_eSeed"             );
-     produces<vector<float> >          (branchprefix+"timeSeed"            ).setBranchAlias(aliasprefix_+"_timeSeed"            );
-     produces<vector<float> >          (branchprefix+"swissSeed"            ).setBranchAlias(aliasprefix_+"_swissSeed"          );
+	 //remove sc branches bc now there is an index to sc
+     //produces<vector<float> >          (branchprefix+"eMax"            ).setBranchAlias(aliasprefix_+"_eMax"             );
+     //produces<vector<float> >          (branchprefix+"eSeed"            ).setBranchAlias(aliasprefix_+"_eSeed"             );
+     //produces<vector<float> >          (branchprefix+"timeSeed"            ).setBranchAlias(aliasprefix_+"_timeSeed"            );
+     produces<vector<float> >          (branchprefix+"swissSeed"            ).setBranchAlias(aliasprefix_+"_swissSeed"          ); //missing in sc
 	 // major and minor moments (2nd?) of energy distribution -- see AN2008-075
      produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
      produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
@@ -128,6 +130,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
 	 ecalRecHitsInputTag_EE_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
 	 ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+	 cms2scsseeddetidInputTag_ = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
 	 minEt_ = iConfig.getParameter<double>("minEt");
      clusterTools_ = 0;
 
@@ -150,25 +153,26 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<unsigned int>		evt_nphotons		(new unsigned int         ) ;
 	
      // ECAL related (superCluster) variables
-     auto_ptr<vector<float> >	photons_eSC                 (new vector<float>        ) ;
-     auto_ptr<vector<float> >	photons_eSCRaw              (new vector<float>        ) ;
-     auto_ptr<vector<float> >   photons_eSCPresh            (new vector<float>        ) ;
+     //auto_ptr<vector<float> >	photons_eSC                 (new vector<float>        ) ;
+     //auto_ptr<vector<float> >	photons_eSCRaw              (new vector<float>        ) ;
+     //auto_ptr<vector<float> >   photons_eSCPresh            (new vector<float>        ) ;
      auto_ptr<vector<int> >     photons_fiduciality         (new vector<int>        ) ;
+     auto_ptr<vector<int> >     photons_scindex             (new vector<int>        ) ;	 
 	
      // ID variables
      //
      auto_ptr<vector<float> >	photons_hOverE              (new vector<float>        ) ;
-     auto_ptr<vector<float> >	photons_sigmaPhiPhi         (new vector<float>        ) ;
-     auto_ptr<vector<float> >        photons_sigmaIPhiIPhi       (new vector<float>        ) ;
+     //auto_ptr<vector<float> >	photons_sigmaPhiPhi         (new vector<float>        ) ;
+     //auto_ptr<vector<float> >        photons_sigmaIPhiIPhi       (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_sigmaEtaEta         (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_sigmaIEtaIEta       (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_e2x5Max         	(new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_e1x5              	(new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_e5x5                (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_e3x3                (new vector<float>        ) ;
-     auto_ptr<vector<float> >        photons_eMax                (new vector<float>        ) ;
-     auto_ptr<vector<float> >	photons_eSeed               (new vector<float>        ) ;
-     auto_ptr<vector<float> >	photons_timeSeed               (new vector<float>        ) ;
+     //auto_ptr<vector<float> >        photons_eMax                (new vector<float>        ) ;
+     //auto_ptr<vector<float> >	photons_eSeed               (new vector<float>        ) ;
+     //auto_ptr<vector<float> >	photons_timeSeed               (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_swissSeed               (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
      auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
@@ -194,6 +198,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel(photonsInputTag_, photons_h);
      View<reco::Photon> photonColl = *(photons_h.product());
 
+	 //get cms2scsseeddetid 
+	 edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
+	 edm::Handle<std::vector<int> > cms2scsseeddetid_h;
+	 iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
+	 const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
+
      // Get tools to get cluster shape information
      //
      if (clusterTools_) delete clusterTools_;
@@ -216,14 +226,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 const CaloTopology *topology_ = pTopology.product();
 
 	 // get topology (for moments)
-	 //const CaloSubdetectorTopology *topology_p;
-	 //edm::ESHandle<CaloTopology> topoHandle;
-	 //iSetup.get<CaloTopologyRecord>().get(pTopology);
-	 //topology_p = pTopology.product()->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
 	 const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
 	 //const CaloSubdetectorTopology *topology_ee = topology_->getSubdetectorTopology(DetId::Ecal, EcalEndcap); //not used yet
 
-     //fill number of electrons variable
+     //fill number of photons variable : NO ET CUT
      //
      *evt_nphotons = photons_h->size();
 
@@ -241,26 +247,39 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 	  // Get cluster info
 	  //
-	  float spp, sipip, eMax;
-	  const reco::BasicCluster& clRef= *(photon->superCluster()->seed());
-	  const std::vector<float>& covs = clusterTools_->covariances(clRef);
-	  eMax = clusterTools_->eMax(clRef);
-	  spp = sqrt(covs[2]);
-	  const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
-	  sipip = sqrt(lcovs[2]);
+	  //float spp, sipip, eMax;
+	  //const reco::BasicCluster& clRef= *(photon->superCluster()->seed()); //remove sc
+	  //const std::vector<float>& covs = clusterTools_->covariances(clRef);
+	  //eMax = clusterTools_->eMax(clRef);
+	  //spp = sqrt(covs[2]);
+	  //const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
+	  //sipip = sqrt(lcovs[2]);
 		
 	  // Fill cluster info
 	  //
-	  photons_eSC                   ->push_back( photon->superCluster()->energy()                   );
-	  photons_eSCRaw                ->push_back( photon->superCluster()->rawEnergy()                );
-	  photons_eSCPresh              ->push_back( photon->superCluster()->preshowerEnergy()          );
+	  //photons_eSC                   ->push_back( photon->superCluster()->energy()                   );
+	  //photons_eSCRaw                ->push_back( photon->superCluster()->rawEnergy()                );
+	  //photons_eSCPresh              ->push_back( photon->superCluster()->preshowerEnergy()          );
 	  photons_hOverE                ->push_back( photon->hadronicOverEm()                   	);
 	  photons_e1x5		  	->push_back( photon->e1x5()					);
 	  photons_e3x3                  ->push_back( photon->e3x3()                                     );
 	  photons_e5x5                  ->push_back( photon->e5x5()                                     );
 	  photons_e2x5Max               ->push_back( photon->e2x5()                                     );
-	  photons_eMax                  ->push_back( eMax    			);
-	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );
+	  //photons_eMax                  ->push_back( eMax    			);
+	  //photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );
+
+	  //get cms2scsseeddetid
+	  bool foundseed = false;
+	  for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
+		if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
+		  foundseed = true;
+		  photons_scindex->push_back( i );
+		}
+	  }
+	  if( !foundseed ) {
+		cout << "No seed found" << endl; //no need to exit here...shit happens
+		photons_scindex->push_back( -1 );		
+	  }
 
 	  //new from gammajetanalyzer.cc
 	  // get geometry
@@ -286,7 +305,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
 		EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
 		if (seedHit != recHitsEE->end()) {
-		  photons_timeSeed->push_back( seedHit->time() );
+		  //photons_timeSeed->push_back( seedHit->time() ); //sc
 		  float emSwiss = 0.;
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, -1, 1);
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
@@ -301,7 +320,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  photons_minmom->push_back( -9999.99 );
 		}
 		else {
-		  photons_timeSeed->push_back( -9999.99 );
+		  //photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
 		  photons_majmom->push_back( -9999.99 );
 		  photons_minmom->push_back( -9999.99 );
@@ -310,7 +329,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
 		EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
 		if (seedHit != recHitsEB->end()) {
-		  photons_timeSeed->push_back( seedHit->time() );
+		  //photons_timeSeed->push_back( seedHit->time() );
 		  float emSwiss = 0.;
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, -1, 1);
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
@@ -322,15 +341,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  photons_minmom->push_back( tempShape.sMinMin() );
 		}
 		else {
-		  photons_timeSeed->push_back( -9999.99 );
+		  //photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
 		  photons_majmom->push_back( -9999.99 );
 		  photons_minmom->push_back( -9999.99 );
 		}		
 	  }
 
-	  photons_sigmaPhiPhi           ->push_back( spp                                             	);
-	  photons_sigmaIPhiIPhi         ->push_back( sipip                                           	);  
+	  //photons_sigmaPhiPhi           ->push_back( spp                                             	); //sc
+	  //photons_sigmaIPhiIPhi         ->push_back( sipip                                           	);  
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
 	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
 	
@@ -361,20 +380,20 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-     iEvent.put(evt_nphotons           	    	,"evtnphotons"            		);
-
+     iEvent.put(evt_nphotons           	    	,"evtn"+branchprefix            		);
+	 iEvent.put(photons_scindex                 ,branchprefix+"scindex"                 );
      // Supercluster parameters
      //
-     iEvent.put(photons_eSC                      ,branchprefix+"eSC"             		);
-     iEvent.put(photons_eSCRaw                   ,branchprefix+"eSCRaw"          		);
-     iEvent.put(photons_eSCPresh                 ,branchprefix+"eSCPresh"        		);
+     //iEvent.put(photons_eSC                      ,branchprefix+"eSC"             		);
+     //iEvent.put(photons_eSCRaw                   ,branchprefix+"eSCRaw"          		);
+     //iEvent.put(photons_eSCPresh                 ,branchprefix+"eSCPresh"        		);
      iEvent.put(photons_e1x5                     ,branchprefix+"e1x5"            		);
      iEvent.put(photons_e3x3                     ,branchprefix+"e3x3"            		);
      iEvent.put(photons_e5x5                     ,branchprefix+"e5x5"            		);
      iEvent.put(photons_e2x5Max                  ,branchprefix+"e2x5Max"         		);
-     iEvent.put(photons_eMax                     ,branchprefix+"eMax"      	      	);
-     iEvent.put(photons_eSeed                    ,branchprefix+"eSeed" 	          	);
-     iEvent.put(photons_timeSeed                 ,branchprefix+"timeSeed" 	          	);
+     //iEvent.put(photons_eMax                     ,branchprefix+"eMax"      	      	);
+     //iEvent.put(photons_eSeed                    ,branchprefix+"eSeed" 	          	);
+     //iEvent.put(photons_timeSeed                 ,branchprefix+"timeSeed" 	          	);
      iEvent.put(photons_swissSeed                ,branchprefix+"swissSeed" 	          	);
      iEvent.put(photons_fiduciality		,branchprefix+"fiduciality"			);
      iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
@@ -382,8 +401,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
      // Photon ID
      //
-     iEvent.put(photons_sigmaPhiPhi              ,branchprefix+"sigmaPhiPhi"     		);
-     iEvent.put(photons_sigmaIPhiIPhi            ,branchprefix+"sigmaIPhiIPhi"   		);
+     //iEvent.put(photons_sigmaPhiPhi              ,branchprefix+"sigmaPhiPhi"     		);
+     //iEvent.put(photons_sigmaIPhiIPhi            ,branchprefix+"sigmaIPhiIPhi"   		);
      iEvent.put(photons_sigmaEtaEta              ,branchprefix+"sigmaEtaEta"     		);
      iEvent.put(photons_sigmaIEtaIEta            ,branchprefix+"sigmaIEtaIEta"   		);
      iEvent.put(photons_hOverE                   ,branchprefix+"hOverE"          		);
