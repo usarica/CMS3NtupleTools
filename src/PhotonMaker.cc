@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.9 2010/04/20 02:11:13 warren Exp $
+// $Id: PhotonMaker.cc,v 1.10 2010/04/24 02:24:00 warren Exp $
 //
 //
 
@@ -43,6 +43,8 @@
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 
+#include "DataFormats/CaloRecHit/interface/CaloClusterFwd.h"
+#include "DataFormats/EgammaReco/interface/ClusterShape.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -51,8 +53,9 @@
 
 #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
 #include "CMS2/NtupleMaker/interface/ElUtilities.h"
+#include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
-
+#include "RecoEcal/EgammaCoreTools/interface/ClusterShapeAlgo.h"
 
 #include "DataFormats/TrackReco/interface/HitPattern.h"
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHitFwd.h"
@@ -83,7 +86,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-     produces<unsigned int>            ("evtnphotons"        ).setBranchAlias("evt_nphotons"         ); //number of photons in event
+     produces<unsigned int>            ("evtnphotons"        ).setBranchAlias("evt_nphotons"         ); //number of photons in event--NO ET cut
 
      // ECAL related (superCluster) variables
      produces<vector<float> >	  (branchprefix+"eSC"             ).setBranchAlias(aliasprefix_+"_eSC"              );
@@ -106,6 +109,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >          (branchprefix+"eSeed"            ).setBranchAlias(aliasprefix_+"_eSeed"             );
      produces<vector<float> >          (branchprefix+"timeSeed"            ).setBranchAlias(aliasprefix_+"_timeSeed"            );
      produces<vector<float> >          (branchprefix+"swissSeed"            ).setBranchAlias(aliasprefix_+"_swissSeed"          );
+	 // major and minor moments (2nd?) of energy distribution -- see AN2008-075
+     produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
+     produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
 
      // isolation variables
      //
@@ -164,6 +170,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> >	photons_eSeed               (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_timeSeed               (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_swissSeed               (new vector<float>        ) ;
+     auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
+     auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
 	
      // isolation variables
      //
@@ -207,7 +215,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 iSetup.get<CaloTopologyRecord>().get(pTopology);
 	 const CaloTopology *topology_ = pTopology.product();
 
-     //fill number of eqlectrons variable
+	 // get topology (for moments)
+	 //const CaloSubdetectorTopology *topology_p;
+	 //edm::ESHandle<CaloTopology> topoHandle;
+	 //iSetup.get<CaloTopologyRecord>().get(pTopology);
+	 //topology_p = pTopology.product()->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
+	 const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
+	 //const CaloSubdetectorTopology *topology_ee = topology_->getSubdetectorTopology(DetId::Ecal, EcalEndcap); //not used yet
+
+     //fill number of electrons variable
      //
      *evt_nphotons = photons_h->size();
 
@@ -246,6 +262,23 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_eMax                  ->push_back( eMax    			);
 	  photons_eSeed                 ->push_back( photon->superCluster()->seed()->energy()           );
 
+	  //new from gammajetanalyzer.cc
+	  // get geometry
+	  edm::ESHandle<CaloGeometry> geoHandle;
+	  //   iSetup.get<IdealGeometryRecord>().get(geoHandle);
+	  iSetup.get<CaloGeometryRecord>().get(geoHandle);
+	  //const CaloGeometry* geometry = geoHandle.product();
+	  const CaloSubdetectorGeometry* geometry_eb = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+	  //const CaloSubdetectorGeometry* geometry_ee = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalEndcap); //not used yet
+
+	  CaloClusterPtr tempCluster = photon->superCluster()->seed(); //caloclusterfwd.h--different data type from BasicCluster so need both
+	  ClusterShapeAlgo algo;
+	  //const EBRecHitCollection* rhits=0;
+	  //reco::ClusterShape tempShape=algo.Calculate(*tempCluster, rhits, &(*geometry_eb), &(*topology_eb),4.7); //wtf is with the 4.7?
+	  //reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEE, &(*geometry_eb), &(*topology_eb));
+	 
+
+
 	  DetId seedId = photon->superCluster()->seed()->seed();
 
 	  reco::BasicCluster dummyCluster;
@@ -259,10 +292,19 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
 		  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
 		  photons_swissSeed->push_back( emSwiss );
+		  //NOT SUPPORTED IN ENDCAP--DO NOT USE (maybe we'll get this eventually)
+		  //major/minor axis vars
+		  //reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEE, &(*geometry_ee), &(*topology_ee));
+		  //photons_majmom->push_back( tempShape.sMajMaj() );
+		  //photons_minmom->push_back( tempShape.sMinMin() );
+		  photons_majmom->push_back( -9999.99 );
+		  photons_minmom->push_back( -9999.99 );
 		}
 		else {
 		  photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
+		  photons_majmom->push_back( -9999.99 );
+		  photons_minmom->push_back( -9999.99 );
 		}
 	  }
 	  else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
@@ -274,10 +316,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
 		  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
 		  photons_swissSeed->push_back( emSwiss );
+		  //major/minor axis vars
+		  reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEB, &(*geometry_eb), &(*topology_eb));
+		  photons_majmom->push_back( tempShape.sMajMaj() );
+		  photons_minmom->push_back( tempShape.sMinMin() );
 		}
 		else {
 		  photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
+		  photons_majmom->push_back( -9999.99 );
+		  photons_minmom->push_back( -9999.99 );
 		}		
 	  }
 
@@ -329,6 +377,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_timeSeed                 ,branchprefix+"timeSeed" 	          	);
      iEvent.put(photons_swissSeed                ,branchprefix+"swissSeed" 	          	);
      iEvent.put(photons_fiduciality		,branchprefix+"fiduciality"			);
+     iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
+     iEvent.put(photons_minmom                     ,branchprefix+"minmom"      	      	);
 	
      // Photon ID
      //
