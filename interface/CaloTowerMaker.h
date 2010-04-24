@@ -72,6 +72,8 @@ class CaloTowerMaker : public edm::EDProducer {
 		bool digi_;
 		edm::InputTag ecalRecHitsInputTag_EE_;
 		edm::InputTag ecalRecHitsInputTag_EB_;
+		edm::InputTag hbheRecHitsInputTag_;
+		edm::InputTag hfRecHitsInputTag_;
 
                 // digis
                 edm::InputTag ecalDigiProducerEE_;
@@ -83,6 +85,7 @@ class CaloTowerMaker : public edm::EDProducer {
 		// topology
 		const CaloTopology *topology_;
 
+    float threshHcal_;
     float threshEt_;
     float spikeR4Thresh_;
     float spikeEtThresh_;

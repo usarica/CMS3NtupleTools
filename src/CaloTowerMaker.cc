@@ -28,11 +28,13 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
 //#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
-#include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
-#include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Common/interface/Ref.h"
+#include "DataFormats/HcalRecHit/interface/HcalRecHitCollections.h"
+#include "RecoLocalCalo/HcalRecAlgos/interface/HcalCaloFlagLabels.h"
+#include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
+#include "Geometry/Records/interface/CaloGeometryRecord.h"
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
@@ -104,6 +106,12 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	produces<std::vector<float> >(branchprefix+"ecalTime").setBranchAlias(aliasprefix_+"_ecalTime");
 	//   float hcalTime() const { return float(hcalTime_) * 0.01; }
 	produces<std::vector<float> >(branchprefix+"hcalTime").setBranchAlias(aliasprefix_+"_hcalTime");
+	// hcal time is basically junk, but the hit time is not. For HBHE and HF, store it:
+	produces<vector<vector<float> > >(branchprefix+"hcalHitTime").setBranchAlias(aliasprefix_+"_hcalHitTime");
+	// HBHE and HF depth: 2 = short, 1 = long
+	produces<vector<vector<int  > > >(branchprefix+"hcalHitDepth").setBranchAlias(aliasprefix_+"_hcalHitDepth");
+	//see RecoLocalCalo/HcalRecAlgos/interface/HcalCaloFlagLabels.h for below
+	produces<vector<vector<int> > >(branchprefix+"hcalHitFlag").setBranchAlias(aliasprefix_+"_hcalHitFlag");
 
 	// methods to retrieve status information from the CaloTower:
 	// number of bad/recovered/problematic cells in the tower
@@ -164,7 +172,10 @@ CaloTowerMaker::CaloTowerMaker(const edm::ParameterSet& iConfig) {
 	ecalRecHitsInputTag_EB_ = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
 	ecalDigiProducerEE_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEE");
 	ecalDigiProducerEB_     = iConfig.getParameter<edm::InputTag>("ecalDigiProducerEB");
+	hbheRecHitsInputTag_    = iConfig.getParameter<edm::InputTag>("hbheRecHitsInputTag");
+	hfRecHitsInputTag_      = iConfig.getParameter<edm::InputTag>("hfRecHitsInputTag");
 
+	threshHcal_     = iConfig.getParameter<double>("threshHcal");
 	threshEt_       = iConfig.getParameter<double>("threshEt");
 	spikeEtThresh_  = iConfig.getParameter<double>("spikeEtThresh");
 	spikeR4Thresh_  = iConfig.getParameter<double>("spikeR4Thresh");
@@ -240,6 +251,13 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	iSetup.get<EcalChannelStatusRcd>().get(chStatus);
 	theEcalChStatus_ = chStatus.product();
 
+	//hf/hbhe stuffs
+	edm::Handle<HFRecHitCollection> hf_rechit;
+    iEvent.getByLabel(hfRecHitsInputTag_, hf_rechit);
+	edm::Handle<HBHERecHitCollection> hbhe_rechit;
+    iEvent.getByLabel(hbheRecHitsInputTag_, hbhe_rechit);
+
+
 	// ecal cluster shape variables
 	// do not use the lazy tools because need to get the hits anyway
 	EcalClusterTools clusterTools;
@@ -271,6 +289,9 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	std::auto_ptr<std::vector<float> > vector_twrs_ecalTime (new std::vector<float>);
 	std::auto_ptr<std::vector<float> > vector_twrs_hcalTime (new std::vector<float>);
+	std::auto_ptr<vector<vector<float> > > vector_twrs_hcalHitTime	(new vector<vector<float> >);
+	std::auto_ptr<vector<vector<int  > > > vector_twrs_hcalHitDepth	(new vector<vector<int> >);
+	std::auto_ptr<vector<vector<int  > > > vector_twrs_hcalHitFlag (new vector<vector<int> >);
 
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numBadEcalCells (new std::vector<unsigned int>);
 	std::auto_ptr<std::vector<unsigned int> > vector_twrs_numRecoveredEcalCells (new std::vector<unsigned int>);
@@ -340,7 +361,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		vector_twrs_numProblematicHcalCells->push_back(j->numProblematicHcalCells());
 
 		// find the detids of the crystals in this calo tower
-		const std::vector<DetId> &towerDetIds = j->constituents(); 
+		const std::vector<DetId> &towerDetIds = j->constituents();
 
 		// get variables for highest em energy crystal in tower
 		float emE = 0.0;
@@ -359,6 +380,9 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		vector<float> em5x5;
 		vector<float> emSwiss;
 		vector<DetId> emId;
+		vector<float> hcalTime;
+		vector<int  > hcalDepth;
+		vector<int  > hcalFlag;
 		
 		// loop on detids in the tower
 		for (size_t i = 0; i < towerDetIds.size(); ++i) {
@@ -394,7 +418,33 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 			emMaxId = towerDetIds[i];
 		  }
 
-		}
+		  //hf flags
+		  //note that check of subdetId is missing (not needed?), and thresh is on em+had bc want both hits of hf
+		  if( towerDetIds[i].det() == DetId::Hcal && j->emEt() + j->hadEt() > threshHcal_ ) {
+			if( hf_rechit.isValid() && hbhe_rechit.isValid() ) {
+			  HFRecHitCollection::const_iterator hfit = hf_rechit->find(towerDetIds[i]);
+			  HBHERecHitCollection::const_iterator hbheit = hbhe_rechit->find(towerDetIds[i]);
+			  //hcal calo flag labels
+			  if( hfit != hf_rechit->end() ) {
+				hcalFlag.push_back( hfit->flags() );
+				hcalTime.push_back( hfit->time() );
+				hcalDepth.push_back( hfit->id().depth() );
+				//cout << j-calotower->begin() << "  " << hfit-hf_rechit->begin()     << "  " << j->eta() << "  " << hfit->id().depth()   << "  " << j->hcalTime() << "  " << hfit->time() << "  " << hfit->flags() << endl;
+			  }
+			  else if( hbheit != hbhe_rechit->end() ) {
+				hcalFlag.push_back( hbheit->flags() );
+				hcalTime.push_back(  hbheit->time() );
+				hcalDepth.push_back( hbheit->id().depth() );
+				//cout << j-calotower->begin() << "  " << hbheit-hbhe_rechit->begin() << "  " << j->eta() << "  " << hbheit->id().depth() << "  " << j->hcalTime() << "  " << hbheit->time() << "  " << hbheit->flags() << endl;
+			  }
+			}
+			else {
+			  cout << "One of either hbhe or hf rechit collections are bad. Check calotowermaker cfg" << endl;
+			  exit(1);
+			}
+		  }
+
+		} //end loop on towerDetIds
 
 		//if none > threshEt_, store in Thresh branches the max anyway (so long as there is a max)
 		if( emId.size() == 0 && emMaxId != DetId(0))
@@ -420,7 +470,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				recHitSamples(emMaxId, eeDigis, ecalMGPASampleADC);
 			}
 			else if (emId[i].subdetId() == EcalBarrel) { 
-			  //chi2Prob.push_back( recHitChi2Prob(emId[i], recHitsEE) ); //cannot use in 3_5_5
+			  //chi2Prob.push_back( recHitChi2Prob(emId[i], recHitsEB) ); //cannot use in 3_5_5
 			  chi2.push_back( recHitChi2(emId[i], recHitsEB) ); //replace above with this
 			  emTime.push_back( recHitTime(emId[i], recHitsEB) );
 			  sevlvl.push_back( recHitSeverityLevel(emId[i], recHitsEB) );
@@ -451,6 +501,9 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		vector_twrs_em5x5->push_back(em5x5);
 		vector_twrs_emSwiss->push_back(emSwiss);
 
+		vector_twrs_hcalHitFlag->push_back( hcalFlag );
+		vector_twrs_hcalHitDepth->push_back( hcalDepth );
+		vector_twrs_hcalHitTime->push_back( hcalTime );
 	}
 
 	// put results into the event
@@ -479,6 +532,9 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	iEvent.put(vector_twrs_ecalTime, branchprefix+"ecalTime");
 	iEvent.put(vector_twrs_hcalTime, branchprefix+"hcalTime");
+	iEvent.put(vector_twrs_hcalHitFlag, branchprefix+"hcalHitFlag");
+	iEvent.put(vector_twrs_hcalHitTime, branchprefix+"hcalHitTime");
+	iEvent.put(vector_twrs_hcalHitDepth, branchprefix+"hcalHitDepth");
 
 	iEvent.put(vector_twrs_numBadEcalCells, branchprefix+"numBadEcalCells");
 	iEvent.put(vector_twrs_numRecoveredEcalCells, branchprefix+"numRecoveredEcalCells");
