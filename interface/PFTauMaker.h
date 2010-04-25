@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.h,v 1.4 2010/03/03 04:20:24 kalavase Exp $
+// $Id: PFTauMaker.h,v 1.5 2010/04/25 14:01:47 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFTAUMAKER_H
@@ -45,9 +45,9 @@ private:
 
       // ----------member data ---------------------------
   bool identify(const edm::RefToBase<reco::PFTau> &tau_pf);
-  edm::InputTag pftausInputTag;
-  
-	std::string aliasprefix_;
+  edm::InputTag pftausInputTag_;
+  std::string aliasprefix_;
+  double minleadPFChargedHadrCandPt_;
 };
 
 

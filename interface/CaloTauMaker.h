@@ -11,7 +11,7 @@
      <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.h,v 1.4 2010/03/03 04:19:09 kalavase Exp $
+// $Id: CaloTauMaker.h,v 1.5 2010/04/25 14:01:55 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_CALOTAUMAKER_H
@@ -47,7 +47,8 @@ private:
      // ----------member data ---------------------------
   bool identify(const edm::RefToBase<reco::CaloTau> &tau_calo, const edm::EventSetup& iSetup);
   edm::InputTag calotausInputTag;
-	std::string aliasprefix_;
+  std::string aliasprefix_;
+  double minleadTrackPt_;
 };
 
 
