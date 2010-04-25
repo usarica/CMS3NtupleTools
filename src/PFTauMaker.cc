@@ -11,32 +11,33 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.12 2010/03/18 02:13:21 kalavase Exp $
+// $Id: PFTauMaker.cc,v 1.13 2010/04/25 13:56:53 kalavase Exp $
 //
 //
 
 
 // system include files
 #include <memory>
-
+#include <math.h>
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "CMS2/NtupleMaker/interface/PFTauMaker.h"
 #include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
-
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+
+#include "CMS2/NtupleMaker/interface/PFTauMaker.h"
+#include "CMS2/NtupleMaker/interface/CommonUtils.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;
+using namespace CommonUtils;
 
 //
 // constructors and destructor
@@ -89,7 +90,9 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
     
    
 //get setup parameters
-  pftausInputTag      = iConfig.getParameter<InputTag>("pftausInputTag");
+  pftausInputTag_              = iConfig.getParameter<InputTag>("pftausInputTag");
+  minleadPFChargedHadrCandPt_  = iConfig.getParameter<double>("minleadPFChargedHadrCandPt");
+  
 
 }
 
@@ -128,33 +131,29 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         taus_pf_hcalMaxOverPLead                (new vector<float>                    ) ;
   auto_ptr<vector<float> >         taus_pf_hcal3x3OverPLead                (new vector<float>                    ) ;
   auto_ptr<vector<float> >         taus_pf_ecalStripSumEOverPLead          (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_electronPreIDOutput             (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_caloComp                        (new vector<float>                    ) ;
+  auto_ptr<vector<float> >         taus_pf_segComp                         (new vector<float>                    ) ;
   //auto_ptr<vector<float> >         taus_pf_bremsRecoveryEOverPLead         (new vector<float>) ;
  
   auto_ptr<vector<int> >           taus_pf_electronPreID                   (new vector<int>                      ) ;
-  auto_ptr<vector<float> >         taus_pf_electronPreIDOutput             (new vector<float>                    ) ;
   auto_ptr<vector<int> >           taus_pf_muonPreID                       (new vector<int>                      ) ;
   auto_ptr<vector<int> >           taus_pf_hasMuonReference                (new vector<int>                      ) ;
-  auto_ptr<vector<float> >         taus_pf_caloComp                        (new vector<float>                    ) ;
-  auto_ptr<vector<float> >         taus_pf_segComp                         (new vector<float>                    ) ;
   auto_ptr<vector<int> >           taus_pf_nmuonmatch                      (new vector<int>                      ) ;
-
   auto_ptr<vector<int> >           taus_pf_tightId                         (new vector<int>                      ) ;
- 
   auto_ptr<vector<int> >           taus_pf_leadtrk_idx                     (new vector<int>                      ) ;
 
  
   
   Handle<View<reco::PFTau> > taus_pf_h;
-  iEvent.getByLabel(pftausInputTag, taus_pf_h);
+  iEvent.getByLabel(pftausInputTag_, taus_pf_h);
   
  
   size_t tausIndex = 0;
  for(View<reco::PFTau>::const_iterator tau_pf = taus_pf_h->begin();
       tau_pf != taus_pf_h->end(); tau_pf++, tausIndex++ ) {
    if(tau_pf->leadPFChargedHadrCand().isNull()) continue;
-   if(tau_pf->leadPFChargedHadrCand()->pt()<5.0) continue;
-
-   //printf("%s  \n", "PFTau  ");
+   if(tau_pf->leadPFChargedHadrCand()->pt()<minleadPFChargedHadrCandPt_) continue;
 
    taus_pf_p4                               ->push_back( LorentzVector( tau_pf->p4() ) );
    taus_pf_charge                           ->push_back( tau_pf->charge()              );
@@ -173,90 +172,69 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    const PFCandidateRefVector& pfSigNeutrCands   =  tau_pf->signalPFNeutrHadrCands();
    const PFCandidateRefVector& pfSigGammaCands   =  tau_pf->signalPFGammaCands();
 
-   if(pfIsoChargedCands.size() >0){
-     for(size_t iIsoCand = 0; iIsoCand < pfIsoChargedCands.size(); ++iIsoCand)
-       {
-	 
-	 IsoChargedCands_p4.push_back( LorentzVector( pfIsoChargedCands[iIsoCand]->p4() ) );
-	 
-       }
+   if(pfIsoChargedCands.size() > 0){
+     for(size_t iIsoCand = 0; iIsoCand < pfIsoChargedCands.size(); ++iIsoCand) 
+       IsoChargedCands_p4.push_back( LorentzVector( pfIsoChargedCands[iIsoCand]->p4() ) );
    }
-   else IsoChargedCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
 
-  
-   if(pfIsoNeutrCands.size() >0){
+   if(pfIsoNeutrCands.size() >0) {
      for(size_t iIsoCand = 0; iIsoCand < pfIsoNeutrCands.size(); ++iIsoCand)
-       {
-	 
-	 IsoNeutrCands_p4.push_back( LorentzVector( pfIsoNeutrCands[iIsoCand]->p4() ) );
-	 
-       }
+       IsoNeutrCands_p4.push_back( LorentzVector( pfIsoNeutrCands[iIsoCand]->p4() ) );
    }
-   else IsoNeutrCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
    
-   if(pfIsoGammaCands.size() >0){
-     for(size_t iIsoCand = 0; iIsoCand < pfIsoGammaCands.size(); ++iIsoCand)
-       {
-	 
-	 IsoGammaCands_p4.push_back( LorentzVector( pfIsoGammaCands[iIsoCand]->p4() ) );
-	 
-       }
+   if(pfIsoGammaCands.size() >0) {
+     for(size_t iIsoCand = 0; iIsoCand < pfIsoGammaCands.size(); ++iIsoCand) 
+       IsoGammaCands_p4.push_back( LorentzVector( pfIsoGammaCands[iIsoCand]->p4() ) );
    }
-   else IsoGammaCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
    
 
-  if(pfSigChargedCands.size() >0){
+   if(pfSigChargedCands.size() >0) {
      for(size_t iSigCand = 0; iSigCand < pfSigChargedCands.size(); ++iSigCand)
-       {
-	 
 	 SigChargedCands_p4.push_back( LorentzVector( pfSigChargedCands[iSigCand]->p4() ) );
-	 
-       }
    }
-   else SigChargedCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
-
+   
   
    if(pfSigNeutrCands.size() >0){
-     for(size_t iSigCand = 0; iSigCand < pfSigNeutrCands.size(); ++iSigCand)
-       {
-	 
-	 SigNeutrCands_p4.push_back( LorentzVector( pfSigNeutrCands[iSigCand]->p4() ) );
-	 
-       }
+     for(size_t iSigCand = 0; iSigCand < pfSigNeutrCands.size(); ++iSigCand) 
+       SigNeutrCands_p4.push_back( LorentzVector( pfSigNeutrCands[iSigCand]->p4() ) );
    }
-   else SigNeutrCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
+
    
    if(pfSigGammaCands.size() >0){
      for(size_t iSigCand = 0; iSigCand < pfSigGammaCands.size(); ++iSigCand)
-       {
-	 
-	 SigGammaCands_p4.push_back( LorentzVector( pfSigGammaCands[iSigCand]->p4() ) );
-	 
-       }
+       SigGammaCands_p4.push_back( LorentzVector( pfSigGammaCands[iSigCand]->p4() ) );	 
    }
-   else SigGammaCands_p4.push_back( LorentzVector(0, 0, 0, 0) );
    
    
-
+   
    taus_pf_isochargecand_p4 -> push_back( IsoChargedCands_p4 );
-   taus_pf_isoneutrcand_p4 -> push_back( IsoNeutrCands_p4 );
-   taus_pf_isogammacand_p4 -> push_back( IsoGammaCands_p4 );
+   taus_pf_isoneutrcand_p4  -> push_back( IsoNeutrCands_p4   );
+   taus_pf_isogammacand_p4  -> push_back( IsoGammaCands_p4   );
    taus_pf_sigchargecand_p4 -> push_back( SigChargedCands_p4 );
-   taus_pf_signeutrcand_p4 -> push_back( SigNeutrCands_p4 );
-   taus_pf_siggammacand_p4 -> push_back( SigGammaCands_p4 );
+   taus_pf_signeutrcand_p4  -> push_back( SigNeutrCands_p4   );
+   taus_pf_siggammacand_p4  -> push_back( SigGammaCands_p4   );
    
    taus_pf_lead_chargecand_p4               ->push_back( LorentzVector( tau_pf->leadPFChargedHadrCand().get()->p4() ) );
    
    taus_pf_lead_neutrcand_p4                ->push_back( tau_pf->leadPFNeutralCand().isNonnull()? LorentzVector( tau_pf->leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
-   taus_pf_lead_chargecand_Signed_Sipt      ->push_back( tau_pf->leadPFChargedHadrCandsignedSipt()); 
-   taus_pf_isolationchargecandPtSum         ->push_back( tau_pf->isolationPFChargedHadrCandsPtSum() ); 
-   taus_pf_isolationgammacandEtSum          ->push_back( tau_pf->isolationPFGammaCandsEtSum()       ); 
-   taus_pf_maximumHCALPFClusterEt           ->push_back( tau_pf->maximumHCALPFClusterEt()       ); 
-   taus_pf_emf                              ->push_back( tau_pf->emFraction()                       ); 
-   taus_pf_hcalTotOverPLead                 ->push_back( tau_pf->hcalTotOverPLead()                 ); 
-   taus_pf_hcalMaxOverPLead                 ->push_back( tau_pf->hcalMaxOverPLead()                 ); 
-   taus_pf_hcal3x3OverPLead                 ->push_back( tau_pf->hcal3x3OverPLead()                 ); 
-   taus_pf_ecalStripSumEOverPLead           ->push_back( tau_pf->ecalStripSumEOverPLead()           ); 
+   taus_pf_lead_chargecand_Signed_Sipt      ->push_back( !isfinite(tau_pf->leadPFChargedHadrCandsignedSipt()) ? 
+							 -9999 : tau_pf->leadPFChargedHadrCandsignedSipt()  ); 
+   taus_pf_isolationchargecandPtSum         ->push_back( !isfinite(tau_pf->isolationPFChargedHadrCandsPtSum()) ? 
+							 -9999 : tau_pf->isolationPFChargedHadrCandsPtSum() ); 
+   taus_pf_isolationgammacandEtSum          ->push_back( !isfinite(tau_pf->isolationPFGammaCandsEtSum())       ? 
+							 -9999. : tau_pf->isolationPFGammaCandsEtSum()      ); 
+   taus_pf_maximumHCALPFClusterEt           ->push_back( !isfinite(tau_pf->maximumHCALPFClusterEt())           ? 
+							 -9999. : tau_pf->maximumHCALPFClusterEt()          ); 
+   taus_pf_emf                              ->push_back( !isfinite(tau_pf->emFraction())                       ? 
+							 -9999. : tau_pf->emFraction()                      ); 
+   taus_pf_hcalTotOverPLead                 ->push_back( !isfinite(tau_pf->hcalTotOverPLead())                  ?
+							 -9999. : tau_pf->hcalTotOverPLead()                ); 
+   taus_pf_hcalMaxOverPLead                 ->push_back( !isfinite(tau_pf->hcalMaxOverPLead())                 ?
+							 -9999. : tau_pf->hcalMaxOverPLead()                ); 
+   taus_pf_hcal3x3OverPLead                 ->push_back( !isfinite(tau_pf->hcal3x3OverPLead())                 ?
+							 -9999. : tau_pf->hcal3x3OverPLead()                );
+   taus_pf_ecalStripSumEOverPLead           ->push_back( !isfinite(tau_pf->ecalStripSumEOverPLead())           ? 
+							 -9999. : tau_pf->ecalStripSumEOverPLead()          ); 
    //taus_pf_bremsRecoveryEOverPLead          ->push_back( tau_pf->bremsRecoveryEOverPLead()          ); 
  
   
@@ -269,10 +247,13 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
    taus_pf_electronPreIDOutput      ->push_back(tau_pf->electronPreIDOutput());
    if(tau_pf->hasMuonReference()){
                                       taus_pf_hasMuonReference   ->push_back(1);
-                                      taus_pf_caloComp           ->push_back(isnan(tau_pf->caloComp()) ? -9999. : tau_pf->caloComp());
-                                      taus_pf_segComp            ->push_back(tau_pf->segComp());
+                                      taus_pf_caloComp           ->push_back(!isfinite(tau_pf->caloComp()) ? 
+									     -9999. : tau_pf->caloComp()  );
+                                      taus_pf_segComp            ->push_back(!isfinite(tau_pf->segComp()) ? 
+									     -9999. : tau_pf->segComp() );
 				      MuonRef muonref = tau_pf->leadPFChargedHadrCand()->muonRef();
-				      taus_pf_nmuonmatch         ->push_back(muonref ->numberOfMatches());
+				      taus_pf_nmuonmatch      ->push_back(!isfinite(muonref ->numberOfMatches()) ?
+									  -9999. : muonref->numberOfMatches());
    }
    else {
                                       taus_pf_hasMuonReference   ->push_back(0);
@@ -296,7 +277,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       
    }
   
- }
+   }
 
  std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");

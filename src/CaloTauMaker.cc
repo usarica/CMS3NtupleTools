@@ -11,13 +11,14 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: CaloTauMaker.cc,v 1.8 2010/03/18 02:11:50 kalavase Exp $
+// $Id: CaloTauMaker.cc,v 1.9 2010/04/25 13:56:46 kalavase Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <math.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -26,15 +27,15 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EventSetup.h"
-
-#include "CMS2/NtupleMaker/interface/CaloTauMaker.h"
-
 #include "DataFormats/TauReco/interface/CaloTauFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "RecoTauTag/RecoTau/interface/CaloRecoTauAlgorithm.h"
-
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
+
+#include "CMS2/NtupleMaker/interface/CaloTauMaker.h"
+#include "CMS2/NtupleMaker/interface/CommonUtils.h"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
@@ -71,15 +72,8 @@ CaloTauMaker::CaloTauMaker(const edm::ParameterSet& iConfig) {
   //tau preID
   produces<vector<int> >            (branchprefix+"tightId"                        ).setBranchAlias(aliasprefix_+"_tightId"                 );
 
-
-  //leadTrackECALSurfContactPoint, leadTrackavoidsECALcrack
-  
-  
-    
-   
-//get setup parameters
-
   calotausInputTag    = iConfig.getParameter<InputTag>("calotausInputTag");
+  minleadTrackPt_     = iConfig.getParameter<double>  ("minleadTrackPt");
 }
 
 
@@ -97,10 +91,11 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<vector<vector<int> > >  taus_calo_sigtrk_idx                       (new vector<vector<int> >  ) ;
   auto_ptr<vector<vector<int> > >  taus_calo_isotrk_idx                       (new vector<vector<int> >  ) ;
-  auto_ptr<vector<int> >           taus_calo_leadtrk_idx                      (new vector<int>           ) ;
   auto_ptr<vector<LorentzVector> > taus_calo_p4                               (new vector<LorentzVector> ) ;
+  
+  auto_ptr<vector<int> >           taus_calo_leadtrk_idx                      (new vector<int>           ) ;
   auto_ptr<vector<int> >           taus_calo_charge                           (new vector<int>) ;
-
+  auto_ptr<vector<int> >           taus_calo_tightId                          (new vector<int>           ) ; 
   auto_ptr<vector<float> >         taus_calo_leadtrk_validHits                (new vector<float>         ) ;
   auto_ptr<vector<float> >         taus_calo_leadtrk_lostHits                 (new vector<float>         ) ;
   auto_ptr<vector<float> >         taus_calo_leadtrk_Signed_Sipt              (new vector<float>         ) ;
@@ -110,38 +105,31 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         taus_calo_isolationtrksPtSum               (new vector<float>         ) ;
   auto_ptr<vector<float> >         taus_calo_isolationECALhitsEtSum           (new vector<float>         ) ;
   auto_ptr<vector<float> >         taus_calo_maximumHCALhitEt                 (new vector<float>         ) ;
-  auto_ptr<vector<int> >           taus_calo_tightId                          (new vector<int>           ) ; 
+  
   
   
   Handle<View<reco::CaloTau> > taus_calo_h;
   iEvent.getByLabel(calotausInputTag, taus_calo_h);
 
-  
- 
   size_t tausIndex = 0;
- for(View<reco::CaloTau>::const_iterator tau_calo = taus_calo_h->begin();
+  for(View<reco::CaloTau>::const_iterator tau_calo = taus_calo_h->begin();
       tau_calo != taus_calo_h->end(); tau_calo++, tausIndex++) {
    if(tau_calo->leadTrack().isNull())  continue;
-   if(tau_calo->leadTrack()->pt()<5.0) continue;
-   //printf("%s  \n", "CaloTau  ");
-  
+   if(tau_calo->leadTrack()->pt()<minleadTrackPt_) continue;
+   
    const edm::RefToBase<reco::CaloTau> calotauRef =  taus_calo_h->refAt(tausIndex);
-   bool tight_id = identify(calotauRef, iSetup) ;
-   if(tight_id) taus_calo_tightId                         ->push_back(1);
-   else         taus_calo_tightId                         ->push_back(0);
- 
+   taus_calo_tightId                         ->push_back(identify(calotauRef, iSetup));
+   
    const TrackRef leadTrack = tau_calo->leadTrack()  ;
    vector<int>  SigTrk_idx;
    vector<int>  IsoTrk_idx;
    const TrackRefVector& isolationTracks = tau_calo->isolationTracks();
    if( isolationTracks.size()>0){
-     for(size_t iTrack = 0; iTrack < isolationTracks.size(); ++iTrack)
-       {
-	 TrackRef isoTrk = isolationTracks[iTrack];
-	 IsoTrk_idx.push_back( static_cast<int>(isoTrk.key())  );
-       }
+     for(size_t iTrack = 0; iTrack < isolationTracks.size(); ++iTrack) {
+       TrackRef isoTrk = isolationTracks[iTrack];
+       IsoTrk_idx.push_back( static_cast<int>(isoTrk.key())  );
+     }
    }
-   else  IsoTrk_idx.push_back(-9999);
 
    const TrackRefVector& signalTracks = tau_calo->signalTracks();
    if( signalTracks.size()>0){
@@ -151,31 +139,33 @@ void CaloTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 SigTrk_idx.push_back( static_cast<int>(sigTrk.key())  );
        }
    }
-   else  SigTrk_idx.push_back(-9999);
 
-   
  
-   if(leadTrack.isNonnull()){
-     taus_calo_leadtrk_idx                    ->push_back( static_cast<int>(leadTrack.key())                  );
-   }
-   else {
-         taus_calo_leadtrk_idx                ->push_back( -9999                                               );
-      
-   }
-   taus_calo_isotrk_idx                     ->push_back( IsoTrk_idx                                           );
-   taus_calo_sigtrk_idx                     ->push_back( SigTrk_idx                                           );
-   taus_calo_p4                             ->push_back( LorentzVector( tau_calo->p4() )                      );
-   taus_calo_charge                        ->push_back( tau_calo->charge()                                    );
-   taus_calo_leadtrk_validHits             ->push_back( leadTrack->numberOfValidHits()                        );
-   taus_calo_leadtrk_lostHits              ->push_back( leadTrack->numberOfLostHits()                         );
-   taus_calo_leadtrk_Signed_Sipt           ->push_back( tau_calo->leadTracksignedSipt()                       );
-   taus_calo_leadtrk_HCAL3x3hitsEtSum      ->push_back( tau_calo->leadTrackHCAL3x3hitsEtSum()                 );
-   taus_calo_leadtrk_HCAL3x3hottesthitDEta ->push_back( tau_calo->leadTrackHCAL3x3hottesthitDEta()            );
-   taus_calo_signaltrksInvariantMass       ->push_back( tau_calo->signalTracksInvariantMass()                 );
-   taus_calo_isolationtrksPtSum            ->push_back( tau_calo->isolationTracksPtSum()                      );
-   taus_calo_isolationECALhitsEtSum        ->push_back( tau_calo->isolationECALhitsEtSum()                    );
-   taus_calo_maximumHCALhitEt              ->push_back( tau_calo->maximumHCALhitEt()                          );
-  
+   taus_calo_isotrk_idx                    ->push_back( IsoTrk_idx                                              );
+   taus_calo_sigtrk_idx                    ->push_back( SigTrk_idx                                              );
+   taus_calo_p4                            ->push_back( LorentzVector( tau_calo->p4() )                         );
+   taus_calo_charge                        ->push_back( !isfinite(tau_calo->charge()) ?
+							 -9999 : tau_calo->charge());
+   taus_calo_leadtrk_validHits             ->push_back( !isfinite(leadTrack->numberOfValidHits()) ? 
+							-9999  :  leadTrack->numberOfValidHits()          );
+							
+   taus_calo_leadtrk_lostHits              ->push_back( !isfinite(leadTrack->numberOfLostHits())  ?
+							-9999  : leadTrack->numberOfLostHits()            );
+   taus_calo_leadtrk_Signed_Sipt           ->push_back( !isfinite(tau_calo->leadTracksignedSipt()) ? 
+							-9999 : tau_calo->leadTracksignedSipt()           );
+   taus_calo_leadtrk_HCAL3x3hitsEtSum      ->push_back( !isfinite(tau_calo->leadTrackHCAL3x3hitsEtSum()) ? 
+							-9999 : tau_calo->leadTrackHCAL3x3hitsEtSum()     );
+   taus_calo_leadtrk_HCAL3x3hottesthitDEta ->push_back( !isfinite(tau_calo->leadTrackHCAL3x3hottesthitDEta()) ?
+							-9999 : tau_calo->leadTrackHCAL3x3hottesthitDEta());
+   taus_calo_signaltrksInvariantMass       ->push_back( !isfinite(tau_calo->signalTracksInvariantMass()) ? 
+							-9999 : tau_calo->signalTracksInvariantMass()     );
+   taus_calo_isolationtrksPtSum            ->push_back( !isfinite(tau_calo->isolationTracksPtSum()) ?
+							 -9999: tau_calo->isolationTracksPtSum()          );
+   taus_calo_isolationECALhitsEtSum        ->push_back( !isfinite(tau_calo->isolationECALhitsEtSum()) ? 
+							-9999 : tau_calo->isolationECALhitsEtSum()        );
+   taus_calo_maximumHCALhitEt              ->push_back( !isfinite(tau_calo->maximumHCALhitEt()) ? 
+							-9999 : tau_calo->maximumHCALhitEt()              );
+   
     
  }
   
