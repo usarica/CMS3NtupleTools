@@ -5,15 +5,15 @@
 // 
 /**\class L1Maker.cc CMS2/NtupleMaker/src/L1Maker.cc
 
- Description: <one line class summary>
+Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+Implementation:
+<Notes on implementation>
 */
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.7 2010/03/03 04:19:59 kalavase Exp $
+// $Id: L1Maker.h,v 1.8 2010/04/25 17:49:44 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -31,31 +31,34 @@
 
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
+#include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
 
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
 
 #include "TString.h"
 
 class L1Maker : public edm::EDProducer {
-    public:
-        explicit L1Maker (const edm::ParameterSet&);
-        ~L1Maker() {}
+public:
+  explicit L1Maker (const edm::ParameterSet&);
+  ~L1Maker() {}
 
-    private:
-        virtual void produce(edm::Event&, const edm::EventSetup&);
-        virtual void endJob() {}
+private:
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() {}
 
-        void fillL1Info(
-                unsigned int&, unsigned int&, unsigned int&, unsigned int&,
-                std::vector<TString>&,
-                const L1GtTriggerMenu* menu, const DecisionWord &dWord);
-        void fillL1TechnicalInfo(unsigned int&, unsigned int&, const DecisionWord&);
+  void fillL1Info(
+		  unsigned int&, unsigned int&, unsigned int&, unsigned int&,
+		  std::vector<TString>&,std::vector<unsigned int>&,
+		  const L1GtTriggerMenu* menu, const DecisionWord &dWord,
+		  const edm::Event&);
+  void fillL1TechnicalInfo(unsigned int&, unsigned int&, const DecisionWord&);
 
-        bool fillL1Particles_;
-        std::string l1ParticlesProcessName_;
-	std::string aliasprefix_;
-        edm::InputTag l1GlobalTriggerReadoutRecordInputTag_;
-        edm::InputTag l1extraParticlesInputTag_;
+  bool fillL1Particles_;
+  std::string l1ParticlesProcessName_;
+  std::string aliasprefix_;
+  edm::InputTag l1GlobalTriggerReadoutRecordInputTag_;
+  edm::InputTag l1extraParticlesInputTag_;
+  L1GtUtils m_l1GtUtils;
 };
 
 #endif

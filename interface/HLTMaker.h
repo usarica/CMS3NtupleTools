@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.6 2010/03/12 15:41:11 jribnik Exp $
+// $Id: HLTMaker.h,v 1.7 2010/04/25 17:49:39 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_HLTMAKER_H
@@ -41,29 +41,29 @@
 #include "TString.h"
 
 class HLTMaker : public edm::EDProducer {
-    public:
-        explicit HLTMaker(const edm::ParameterSet&);
-        ~HLTMaker() {}
-
-    private:
-        virtual void beginRun(edm::Run&, const edm::EventSetup&);
-        virtual void produce(edm::Event&, const edm::EventSetup&);
-        virtual void endJob() {}
-
-        void fillTriggerObjectInfo(unsigned int,
-                std::vector<int>&,
-                std::vector<math::XYZTLorentzVectorF>&) const;
-        bool doPruneTriggerName(const std::string&) const;
-
-        edm::Handle<edm::TriggerResults> triggerResultsH_;
-        edm::Handle<trigger::TriggerEvent> triggerEventH_;
-        HLTConfigProvider hltConfig_;
-
-        std::string processName_;
-        bool fillTriggerObjects_;
-        std::vector<std::string> prunedTriggerNames_;
-        TString processNamePrefix_;
-	std::string aliasprefix_;
+public:
+  explicit HLTMaker(const edm::ParameterSet&);
+  ~HLTMaker() {}
+  
+private:
+  virtual void beginRun(edm::Run&, const edm::EventSetup&);
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() {}
+  
+  void fillTriggerObjectInfo(unsigned int,
+			     std::vector<int>&,
+			     std::vector<math::XYZTLorentzVectorF>&) const;
+  bool doPruneTriggerName(const std::string&) const;
+  
+  edm::Handle<edm::TriggerResults> triggerResultsH_;
+  edm::Handle<trigger::TriggerEvent> triggerEventH_;
+  HLTConfigProvider hltConfig_;
+  
+  std::string processName_;
+  bool fillTriggerObjects_;
+  std::vector<std::string> prunedTriggerNames_;
+  TString processNamePrefix_;
+  std::string aliasprefix_;
 };
 
 #endif
