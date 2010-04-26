@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.49 2010/04/21 13:00:59 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.50 2010/04/26 14:30:01 dlevans Exp $
 //
 //
 
@@ -125,6 +125,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
 
   // ID variables
   //
+  produces<vector<float> >     ("elsmva"                  ).setBranchAlias("els_mva"                 );
   produces<vector<float> >     ("elsdEtaIn"                  ).setBranchAlias("els_dEtaIn"                 );
   produces<vector<float> >     ("elsdEtaOut"                 ).setBranchAlias("els_dEtaOut"                );
   produces<vector<float> >     ("elsdeltaEtaEleClusterTrackAtCalo").setBranchAlias("els_deltaEtaEleClusterTrackAtCalo");
@@ -306,6 +307,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   // ID variables
   //
+  auto_ptr<vector<float> >    els_mva                  (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_dEtaIn                  (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_dEtaOut                 (new vector<float>        ) ;
   auto_ptr<vector<float> >	  els_dPhiIn                  (new vector<float>        ) ;
@@ -630,13 +632,14 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     els_fbrem                 ->push_back( el->fbrem()                            );
 
-    els_dEtaIn	          ->push_back( el->deltaEtaSuperClusterTrackAtVtx()	 );
-    els_dEtaOut               ->push_back( el->deltaEtaSeedClusterTrackAtCalo()      );
-    els_deltaEtaEleClusterTrackAtCalo ->push_back(el->deltaEtaEleClusterTrackAtCalo() );
-    els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()      );		
-    els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                        );
-    els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()      );
-    els_deltaPhiEleClusterTrackAtCalo ->push_back( el->deltaPhiEleClusterTrackAtCalo() );
+    els_mva                     ->push_back( el->mva()                                  );
+    els_dEtaIn	                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()	    );
+    els_dEtaOut                 ->push_back( el->deltaEtaSeedClusterTrackAtCalo()       );
+    els_deltaEtaEleClusterTrackAtCalo ->push_back(el->deltaEtaEleClusterTrackAtCalo()   );
+    els_dPhiIn                ->push_back( el->deltaPhiSuperClusterTrackAtVtx()         );		
+    els_dPhiInPhiOut          ->push_back( phi_pin - phi_pout                           );
+    els_dPhiOut               ->push_back( el->deltaPhiSeedClusterTrackAtCalo()         );
+    els_deltaPhiEleClusterTrackAtCalo ->push_back( el->deltaPhiEleClusterTrackAtCalo()  );
 
     // Vertex
     //
@@ -862,6 +865,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_eSeedOverPIn             ,"elseSeedOverPIn"   		);
   iEvent.put(els_eOverPOut              ,"elseOverPOut"                        );
   iEvent.put(els_fbrem                    ,"elsfbrem"           		);
+  iEvent.put(els_mva                   ,"elsmva"                  );
   iEvent.put(els_dEtaIn                   ,"elsdEtaIn"          		);
   iEvent.put(els_dEtaOut                  ,"elsdEtaOut"         		);
   iEvent.put(els_deltaEtaEleClusterTrackAtCalo, "elsdeltaEtaEleClusterTrackAtCalo");
