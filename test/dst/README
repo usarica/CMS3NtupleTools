@@ -1,4 +1,0 @@
-Scripts used to go from a run/event/lumi list to a skimmed edm file
-containing these events.  For details, see:
-
-http://omega.physics.ucsb.edu/twiki/bin/view/CMS/EventListToEdmFile
