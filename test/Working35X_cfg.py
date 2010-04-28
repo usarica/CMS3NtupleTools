@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.5 $'),
+        version = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -82,7 +82,8 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:~/userdata/TTbar_Summer09-MC_3XY_V25_preproduction-v1_GEN-SIM-RECO/TTbar.root'
+    'file:RelValTTbar_357_001A92971B04.root'
+    #'/store/relval/CMSSW_3_5_7/RelValTTbar/GEN-SIM-RECO/MC_3XY_V26-v1/0013/F2DE790A-8049-DF11-9F2C-001A92971B04.root'
     ),
 )
 
@@ -99,7 +100,7 @@ process.out = cms.OutputModule(
         #process.EventSelectionSingleFilt,
         verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple.root')
+        fileName = cms.untracked.string('ntuple_temp.root')
 )
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -158,6 +159,15 @@ process.eventMaker.CMS2tag     = cms.string("blah")
 #process.lepGenFilter = cms.EDFilter("LepGenFilter", nGenLepsRequired = cms.int32(1))
 #process.pWithGenLepton  = cms.Path(process.cms2WithEverything * process.lepGenFilter  )
 
+#stuff to speed up I/O from castor
+process.AdaptorConfig = cms.Service("AdaptorConfig",
+                                  stats = cms.untracked.bool(True),
+                                  enable = cms.untracked.bool(True),
+                                  cacheHint = cms.untracked.string("lazy-download"),
+                                  readHint = cms.untracked.string("auto-detect")
+                                  )
+
+process.source.noEventSort = cms.untracked.bool(True)
 
 process.p = cms.Path(process.cms2WithEverything)
 
