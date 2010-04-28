@@ -256,6 +256,10 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByLabel(hfRecHitsInputTag_, hf_rechit);
 	edm::Handle<HBHERecHitCollection> hbhe_rechit;
     iEvent.getByLabel(hbheRecHitsInputTag_, hbhe_rechit);
+	if( !hf_rechit.isValid() || !hbhe_rechit.isValid() ) {
+	  cout << "One of either hbhe or hf rechit collections are bad. Check calotowermaker cfg" << endl;
+	  exit(1);
+	}
 
 
 	// ecal cluster shape variables
@@ -421,26 +425,20 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		  //hf flags
 		  //note that check of subdetId is missing (not needed?), and thresh is on em+had bc want both hits of hf
 		  if( towerDetIds[i].det() == DetId::Hcal && j->emEt() + j->hadEt() > threshHcal_ ) {
-			if( hf_rechit.isValid() && hbhe_rechit.isValid() ) {
-			  HFRecHitCollection::const_iterator hfit = hf_rechit->find(towerDetIds[i]);
-			  HBHERecHitCollection::const_iterator hbheit = hbhe_rechit->find(towerDetIds[i]);
-			  //hcal calo flag labels
-			  if( hfit != hf_rechit->end() ) {
-				hcalFlag.push_back( hfit->flags() );
-				hcalTime.push_back( hfit->time() );
-				hcalDepth.push_back( hfit->id().depth() );
-				//cout << j-calotower->begin() << "  " << hfit-hf_rechit->begin()     << "  " << j->eta() << "  " << hfit->id().depth()   << "  " << j->hcalTime() << "  " << hfit->time() << "  " << hfit->flags() << endl;
-			  }
-			  else if( hbheit != hbhe_rechit->end() ) {
-				hcalFlag.push_back( hbheit->flags() );
-				hcalTime.push_back(  hbheit->time() );
-				hcalDepth.push_back( hbheit->id().depth() );
-				//cout << j-calotower->begin() << "  " << hbheit-hbhe_rechit->begin() << "  " << j->eta() << "  " << hbheit->id().depth() << "  " << j->hcalTime() << "  " << hbheit->time() << "  " << hbheit->flags() << endl;
-			  }
+			HFRecHitCollection::const_iterator hfit = hf_rechit->find(towerDetIds[i]);
+			HBHERecHitCollection::const_iterator hbheit = hbhe_rechit->find(towerDetIds[i]);
+			//hcal calo flag labels
+			if( hfit != hf_rechit->end() ) {
+			  hcalFlag.push_back( hfit->flags() );
+			  hcalTime.push_back( hfit->time() );
+			  hcalDepth.push_back( hfit->id().depth() );
+			  //cout << j-calotower->begin() << "  " << hfit-hf_rechit->begin()     << "  " << j->eta() << "  " << hfit->id().depth()   << "  " << j->hcalTime() << "  " << hfit->time() << "  " << hfit->flags() << endl;
 			}
-			else {
-			  cout << "One of either hbhe or hf rechit collections are bad. Check calotowermaker cfg" << endl;
-			  exit(1);
+			else if( hbheit != hbhe_rechit->end() ) {
+			  hcalFlag.push_back( hbheit->flags() );
+			  hcalTime.push_back(  hbheit->time() );
+			  hcalDepth.push_back( hbheit->id().depth() );
+			  //cout << j-calotower->begin() << "  " << hbheit-hbhe_rechit->begin() << "  " << j->eta() << "  " << hbheit->id().depth() << "  " << j->hcalTime() << "  " << hbheit->time() << "  " << hbheit->flags() << endl;
 			}
 		  }
 
