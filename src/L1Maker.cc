@@ -79,7 +79,6 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig) {
   fillL1Particles_                      = iConfig.getUntrackedParameter<bool>("fillL1Particles"                      );
   l1ParticlesProcessName_               = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName"             );
   l1GlobalTriggerReadoutRecordInputTag_ = iConfig.getParameter<edm::InputTag>("l1GlobalTriggerReadoutRecordInputTag" );
-  //l1GlobalReadoutRecordInputTag_        = iConfig.getParameter<edm::InputTag>("l1GlobalReadoutRecordInputTag"        );
   l1extraParticlesInputTag_             = iConfig.getParameter<edm::InputTag>("l1extraParticlesInputTag"             );
 
 }
