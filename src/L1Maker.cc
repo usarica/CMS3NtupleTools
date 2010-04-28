@@ -24,13 +24,14 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig) {
   produces<unsigned int>           (branchprefix+"bits2"       ).setBranchAlias(aliasprefix_+"_bits2"        );
   produces<unsigned int>           (branchprefix+"bits3"       ).setBranchAlias(aliasprefix_+"_bits3"        );
   produces<unsigned int>           (branchprefix+"bits4"       ).setBranchAlias(aliasprefix_+"_bits4"        );
-  produces<vector<unsigned int> >  (branchprefix+"prescales"    ).setBranchAlias(aliasprefix_+"_prescales"     );
+  produces<vector<unsigned int> >  (branchprefix+"prescales"   ).setBranchAlias(aliasprefix_+"_prescales"     );
   produces<vector<TString> >       (branchprefix+"trigNames"   ).setBranchAlias(aliasprefix_+"_trigNames"    );    
     
-  produces<unsigned int>           (branchprefix+"techbits1"       ).setBranchAlias(aliasprefix_+"_techbits1"        );
-  produces<unsigned int>           (branchprefix+"techbits2"       ).setBranchAlias(aliasprefix_+"_techbits2"        );
-  //produces<vector<TString> >       (branchprefix+"techtrigNames"   ).setBranchAlias(aliasprefix_+"_techtrigNames"    );    
-
+  produces<unsigned int>           (branchprefix+"techbits1"        ).setBranchAlias(aliasprefix_+"_techbits1"         );
+  produces<unsigned int>           (branchprefix+"techbits2"        ).setBranchAlias(aliasprefix_+"_techbits2"         );
+  produces<vector<unsigned int> >  (branchprefix+"techtrigprescales").setBranchAlias(aliasprefix_+"_techtrigprescales");
+  produces<vector<TString> >       (branchprefix+"techtrigNames"    ).setBranchAlias(aliasprefix_+"_techtrigNames"     );    
+  
   produces<int>                    (branchprefix+"nmus"        ).setBranchAlias(aliasprefix_+"_nmus"         );
   produces<int>                    (branchprefix+"nemiso"      ).setBranchAlias(aliasprefix_+"_nemiso"       );
   produces<int>                    (branchprefix+"nemnoiso"    ).setBranchAlias(aliasprefix_+"_nemnoiso"     );
@@ -78,6 +79,7 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig) {
   fillL1Particles_                      = iConfig.getUntrackedParameter<bool>("fillL1Particles"                      );
   l1ParticlesProcessName_               = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName"             );
   l1GlobalTriggerReadoutRecordInputTag_ = iConfig.getParameter<edm::InputTag>("l1GlobalTriggerReadoutRecordInputTag" );
+  //l1GlobalReadoutRecordInputTag_        = iConfig.getParameter<edm::InputTag>("l1GlobalReadoutRecordInputTag"        );
   l1extraParticlesInputTag_             = iConfig.getParameter<edm::InputTag>("l1extraParticlesInputTag"             );
 
 }
@@ -93,8 +95,9 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto_ptr<unsigned int>           l1techbits1         (new unsigned int); *l1techbits1 = 0;
   auto_ptr<unsigned int>           l1techbits2         (new unsigned int); *l1techbits2 = 0;
-  //auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>(64,""));
-
+  auto_ptr<vector<unsigned int> >  l1techtrigprescales (new vector<unsigned int>(64,1));
+  auto_ptr<vector<TString> >       l1techtrigNames     (new vector<TString>(64,""));
+  
   auto_ptr<int>                    l1nmus          (new int); *l1nmus = 0;
   auto_ptr<int>                    l1nemiso        (new int); *l1nemiso = 0;
   auto_ptr<int>                    l1nemnoiso      (new int); *l1nemnoiso = 0;
@@ -147,12 +150,12 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
   iEvent.getByLabel(l1GlobalTriggerReadoutRecordInputTag_, gtRecord);
 
-  // Note these are both std::vector<bool>
+    // Note these are both std::vector<bool>
   const DecisionWord &gtDecisionWordBeforeMask = gtRecord->decisionWord();
   const TechnicalTriggerWord &technicalTriggerWordBeforeMask = gtRecord->technicalTriggerWord();
   
   //retrieve and cache the L1 trigger event setup
-  m_l1GtUtils.retrieveL1EventSetup(iSetup);
+  m_l1GtUtils_.retrieveL1EventSetup(iSetup);
 
   unsigned int l11, l12, l13, l14;
   fillL1Info(l11, l12, l13, l14, *l1trigNames, *l1prescales, menu, 
@@ -161,8 +164,11 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   *l1bits2  = l12;
   *l1bits3  = l13;
   *l1bits4  = l14;
-
-  fillL1TechnicalInfo(l11, l12, technicalTriggerWordBeforeMask);
+  
+  
+  
+  fillL1TechnicalInfo(l11, l12, *l1techtrigNames, *l1techtrigprescales, menu, 
+		      technicalTriggerWordBeforeMask, iEvent);
   *l1techbits1  = l11;
   *l1techbits2  = l12;
 
@@ -376,7 +382,8 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   iEvent.put(l1techbits1,        branchprefix+"techbits1"         );
   iEvent.put(l1techbits2,        branchprefix+"techbits2"         );
-  //iEvent.put(l1techtrigNames,    branchprefix+"techtrigNames"     );
+  iEvent.put(l1techtrigprescales,branchprefix+"techtrigprescales" );
+  iEvent.put(l1techtrigNames,    branchprefix+"techtrigNames"     );
 
   iEvent.put(l1nmus,         branchprefix+"nmus"          );
   iEvent.put(l1nemiso,       branchprefix+"nemiso"        );
@@ -445,14 +452,14 @@ void L1Maker::fillL1Info(
       bit = algo->second.algoBitNumber();
       l1names[bit] = algo->second.algoName();
       int ErrorCode = -1; 
-      unsigned int prescale = m_l1GtUtils.prescaleFactor(iEvent,l1names[bit].Data(), ErrorCode); 
+      unsigned int prescale = m_l1GtUtils_.prescaleFactor(iEvent,l1names[bit].Data(), ErrorCode); 
       
       if(ErrorCode == 0) 
 	l1prescales[bit] = prescale;
       else if(ErrorCode == 1)
 	throw cms::Exception("Tried to get the prescale factor, but the L1 algorithm does not exist in the L1 menu");
       else 
-	throw cms::Exception(("An unkown error was encountered while getting the L1 prescale factor for " + l1names[bit]).Data());
+	throw cms::Exception(("An unkown error was encountered while getting the prescale factor for " + l1names[bit]).Data());
       
       if (dWord.at(bit))
         {
@@ -464,23 +471,41 @@ void L1Maker::fillL1Info(
     }
 }
 
-void L1Maker::fillL1TechnicalInfo(unsigned int& l1_1, unsigned int& l1_2, const DecisionWord &dWord)
-{
+void L1Maker::fillL1TechnicalInfo(unsigned int& l1_1, unsigned int& l1_2, 
+				  std::vector<TString>& l1techtrigNames, std::vector<unsigned int>& l1techtrigprescales,
+				  const L1GtTriggerMenu* menu, const DecisionWord &dWord, const edm::Event& iEvent) {
   l1_1=0;
   l1_2=0;
-
-  unsigned int ntriggers = dWord.size();
-  // Note this should never happen as there are 64 possible technical triggers
-  if (ntriggers > 64)
+  int bit = 0;
+  
+  if(menu->gtTechnicalTriggerMap().size() > 64)
     throw cms::Exception("L1Maker::fillL1Info: Number of L1 technical trigger variables must be increased!");
 
-  for(unsigned int bit = 0; bit < ntriggers; ++bit)
-    {
-      if (dWord.at(bit)) {
-	if (bit <= 31              ) l1_1 |= (1 <<  bit      );
-	if (bit >= 32 && bit <= 63 ) l1_2 |= (1 << (bit - 32));
-      }
+  for(AlgorithmMap::const_iterator algo = menu->gtTechnicalTriggerMap().begin();
+      algo!= menu->gtTechnicalTriggerMap().end(); algo++) {
+
+    if (algo->first != algo->second.algoName())
+      throw cms::Exception("L1Maker::fillL1TechnicalInfo: L1 algorithm name mismatch");
+
+    bit = algo->second.algoBitNumber();
+    l1techtrigNames[bit] = algo->second.algoName();
+    int ErrorCode = -1; 
+    unsigned int prescale = m_l1GtUtils_.prescaleFactor(iEvent,l1techtrigNames[bit].Data(), ErrorCode); 
+      
+    if(ErrorCode == 0)
+      l1techtrigprescales[bit] = prescale;
+    else if(ErrorCode == 1) 
+      throw cms::Exception("Tried to get the prescale factor, but the L1 algorithm does not exist in the L1 Technical menu");
+    else 
+      throw cms::Exception(("An unkown error was encountered while getting the prescale factor for " + l1techtrigNames[bit]).Data());
+    if(dWord.at(bit)) {
+      if (bit <= 31              ) l1_1 |= (1 <<  bit      );
+      if (bit >= 32 && bit <= 63 ) l1_2 |= (1 << (bit - 32));
     }
+    
+    
+  }
+
 }
 
 //define this as a plug-in

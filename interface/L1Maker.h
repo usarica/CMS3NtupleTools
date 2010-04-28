@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.8 2010/04/25 17:49:44 kalavase Exp $
+// $Id: L1Maker.h,v 1.9 2010/04/28 21:25:08 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -51,14 +51,17 @@ private:
 		  std::vector<TString>&,std::vector<unsigned int>&,
 		  const L1GtTriggerMenu* menu, const DecisionWord &dWord,
 		  const edm::Event&);
-  void fillL1TechnicalInfo(unsigned int&, unsigned int&, const DecisionWord&);
+  void fillL1TechnicalInfo(unsigned int&, unsigned int&, 
+			   std::vector<TString>&, std::vector<unsigned int>&,
+			   const L1GtTriggerMenu*, const DecisionWord&,
+			   const edm::Event&);
 
   bool fillL1Particles_;
   std::string l1ParticlesProcessName_;
   std::string aliasprefix_;
   edm::InputTag l1GlobalTriggerReadoutRecordInputTag_;
   edm::InputTag l1extraParticlesInputTag_;
-  L1GtUtils m_l1GtUtils;
+  L1GtUtils m_l1GtUtils_;
 };
 
 #endif
