@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.4 $'),
+        version = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -72,16 +72,18 @@ removeMCMatching(process, ['All'])
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(1000)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
 process.source = cms.Source("PoolSource",
-    skipEvents = cms.untracked.uint32(0),
+    skipEvents = cms.untracked.uint32(100),
     fileNames = cms.untracked.vstring(
-'file:/data/tmp/kalavase/blah.root'
+	'/store/data/Commissioning10/MinimumBias/RAW-RECO/v8/000/133/516/CA61DFDB-E14B-DF11-9193-003048D476B0.root' #newer run than below
+    #'/store/data/Commissioning10/MinimumBias/RAW-RECO/v8/000/132/601/B62BF913-FE40-DF11-95C0-0015170AE328.root'
+	#'file:/data/tmp/kalavase/blah.root'
     ),
 )
 
@@ -132,12 +134,12 @@ process.cms2WithEverythingExceptGEN  = cms.Sequence(   process.coreCMS2Sequence
                                                      * process.pixelDigiMaker
                                                      * process.patDefaultSequence * process.cms2PATSequence)
 
+process.eventMaker.datasetName = cms.string("/MinimumBias/BeamCommissioning09-RecoTracks-Mar3rdSkim_v2/RAW-RECO")
+process.eventMaker.CMS2tag     = cms.string("blah")
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
 #process.pWithRecoLepton      = cms.Path(process.cms2WithEverythingExceptGEN * process.aSkimFilter )
 process.pNoFilter = cms.Path(process.cms2WithEverythingExceptGEN)
-process.eventMaker.datasetName = cms.string("/MinimumBias/BeamCommissioning09-RecoTracks-Mar3rdSkim_v2/RAW-RECO")
-process.eventMaker.CMS2tag     = cms.string("blah")
 # This isData! Currently only used for bField
 # default is False in which case bField comes
 # from the IdealMagneticFieldRecord. Otherwise
