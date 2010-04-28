@@ -1,4 +1,3 @@
-#This is to rerun the "CaloTowersCreator" (see  RecoLocalCalo/ CaloTowersCreator/ python/ calotowermaker_cfi.py) WITHOUT cleaning of spikes
 
 import FWCore.ParameterSet.Config as cms
 
@@ -14,7 +13,8 @@ cms2calotowermaker.EcalAcceptSeverityLevel = cms.uint32(4)
 #leave these off to avoid too many changes/complications
 #cms2calotowermaker.UseEcalRecoveredHits = cms.bool(True)
 
-#this is a temporary measure until the above does not exclude anything which would be below
+#This is to rerun the "CaloTowersCreator" (see  RecoLocalCalo/ CaloTowersCreator/ python/ calotowermaker_cfi.py) WITHOUT cleaning of spikes
+#This is a temporary measure until the above does not exclude anything which would be below
 caloTowerMakerUncleaned = cms.EDFilter("CaloTowerMaker",
    aliasPrefix = cms.untracked.string("twrsUncleaned"),
    primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
@@ -30,7 +30,27 @@ caloTowerMakerUncleaned = cms.EDFilter("CaloTowerMaker",
    spikeEtaMax    = cms.double(1.4442), #exclude edge of barrel
 )
 
+
 #this was for repeating with uncleaned--now gone
 #cms2CaloTowerSequence = cms.Sequence( cms2calotowermaker * caloTowerMaker * caloTowerMakerUncleaned )
-cms2CaloTowerSequence = cms.Sequence( caloTowerMaker )
+#cms2CaloTowerSequence = cms.Sequence( caloTowerMaker )
+
+
+#-------------------------------------------------
+# HF RecHit reflagger
+#-------------------------------------------------
+from JetMETAnalysis.HcalReflagging.HFrechitreflaggerJETMET_cff import *
+hfrecoV1 						= HFrechitreflaggerJETMETv1.clone()
+hfrecoV1V2 						= HFrechitreflaggerJETMETv2.clone()
+hfrecoV1V2.hfInputLabel 		= cms.untracked.InputTag('hfrecoV1')
+hfrecoV1V2.hfFlagBit 			= cms.untracked.int32(30)
+hfrecoReflagged 				= HFrechitreflaggerJETMETv3.clone()
+hfrecoReflagged.hfInputLabel 	= cms.untracked.InputTag('hfrecoV1V2')
+hfrecoReflagged.hfFlagBit 		= cms.untracked.int32(29)
+
+reflagging_step = cms.Sequence(hfrecoV1 * hfrecoV1V2 * hfrecoReflagged)
+
+#now add flagged hf hits for reading in by new maker
+from CMS2.NtupleMaker.caloTowerHFMaker_cfi import *
+cms2CaloTowerSequence = cms.Sequence( caloTowerMaker * reflagging_step * caloTowerHFMaker )
 
