@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.29 2010/04/15 11:28:59 jribnik Exp $
+// $Id: EventMaker.cc,v 1.30 2010/04/29 04:04:43 slava77 Exp $
 //
 //
 
@@ -121,7 +121,10 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
          // average values taken over a stable two
          // week period
          float currentToBFieldScaleFactor = 2.09237036221512717e-04;
-         float current = (*dcsHandle)[0].magnetCurrent();
+         float current = -9999/currentToBFieldScaleFactor;
+	 if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
+	   current = (*dcsHandle)[0].magnetCurrent();
+	 }
          *evt_bField = current*currentToBFieldScaleFactor;
      }
      else
