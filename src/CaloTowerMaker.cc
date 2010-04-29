@@ -402,7 +402,7 @@ void CaloTowerMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 			emE = clusterTools.recHitEnergy(towerDetIds[i], recHitsEB);
 			//this is from RecoLocalCalo/EcalRecAlgos/src/EcalSeverityLevelAlgo.cc, or something
 			float approxEta = EBDetId::approxEta( towerDetIds[i] );
-			if( emE/approxEta > threshEt_ )
+			if( emE/cosh(approxEta) > threshEt_ )
 			  emId.push_back( towerDetIds[i] );
 			//spike
 			if( emE/cosh(approxEta) > spikeEtThresh_ ) { //check et cut first to skip SwissCross for run time speedup
