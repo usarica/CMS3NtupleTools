@@ -146,8 +146,8 @@ void CaloTowerHFMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	}
 
 	if( hcalFlag.size() != cms2twrshitflag->at(itr).size() ) {
-	  cout << "Reflagged hit branch size not equal to original hit branch size (CaloTowerHFMaker). Exiting." << endl;
-	  exit(1);
+	  cout << "Reflagged hit branch size not equal to original hit branch size (CaloTowerHFMaker)." << endl;
+	  //exit(1);
 	}
 	
 	vector_twrs_hcalHitReFlag->push_back( hcalFlag );
