@@ -5,15 +5,15 @@
 // 
 /**\class PFJetMaker PFJetMaker.cc temp/PFJetMaker/src/PFJetMaker.cc
 
-   Description: <one line class summary>
+Description: <one line class summary>
 
-   Implementation:
-   <Notes on implementation>
+Implementation:
+<Notes on implementation>
 */
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.5 2010/03/03 04:20:20 kalavase Exp $
+// $Id: PFJetMaker.h,v 1.6 2010/05/03 23:07:19 kalavase Exp $
 //
 //
 
@@ -37,17 +37,17 @@
 
 class PFJetMaker : public edm::EDProducer {
 public:
-     explicit PFJetMaker(const edm::ParameterSet&);
-     ~PFJetMaker();
+  explicit PFJetMaker(const edm::ParameterSet&);
+  ~PFJetMaker();
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob() ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
       
-     // ----------member data ---------------------------
-     edm::InputTag pfJetsInputTag_;
-     double         pfJetPtCut_;
-     std::string nameL2L3JetCorrector_;
-	std::string aliasprefix_;
+  // ----------member data ---------------------------
+  edm::InputTag pfJetsInputTag_;
+  double         pfJetPtCut_;
+  std::string aliasprefix_;
+  std::string PFJetCorrectorL2L3_;
 };
