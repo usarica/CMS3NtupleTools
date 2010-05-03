@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.11 2010/03/17 18:31:00 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.12 2010/05/03 23:17:22 kalavase Exp $
 //
 //
 
@@ -180,7 +180,8 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   JetIDSelectionFunctor jetIDTight( JetIDSelectionFunctor::CRAFT08,
                                     JetIDSelectionFunctor::TIGHT );
-  std::strbitset ret = jetIDLoose.getBitTemplate();
+  
+  pat::strbitset ret = jetIDLoose.getBitTemplate();
   
 
   // loop over jets and fill containers
@@ -243,6 +244,7 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     jets_patjet_p4->push_back( LorentzVector( patJet->p4() ) );
     jets_patjet_uncorp4->push_back( LorentzVector( patJet->originalObject()->p4() ) );
 
+  
     ret.set(false);
     jets_pat_jetIDMinimal->push_back(jetIDMinimal(*patJet, ret));
     ret.set(false);
@@ -251,6 +253,7 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     jets_pat_jetIDLoose->push_back(jetIDLoose(*patJet, ret));
     ret.set(false);
     jets_pat_jetIDTight->push_back(jetIDTight(*patJet, ret));
+    
   }
   iEvent.put(jets_patgenParton_id, "jetspatgenPartonid");
   iEvent.put(jets_patgenPartonMother_id, "jetspatgenPartonMotherid");
