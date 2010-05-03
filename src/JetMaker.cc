@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.27 2010/03/02 19:36:08 fgolf Exp $
+// $Id: JetMaker.cc,v 1.28 2010/05/03 23:16:27 kalavase Exp $
 //
 //
 
@@ -60,10 +60,9 @@ JetMaker::JetMaker(const edm::ParameterSet& iConfig)
   // parameters from configuration
   uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
   runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
-  correctionLevels_       = iConfig.getParameter<std::string>("correctionLevels");
-  correctionTags_         = iConfig.getParameter<std::string>("correctionTags");
-  aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix");
-  jetIDIputTag_       = iConfig.getParameter<edm::InputTag>("jetIDIputTag");
+  aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix"               );
+  jetIDIputTag_           = iConfig.getParameter<edm::InputTag>("jetIDInputTag"           );
+  CaloJetCorrectorL2L3_   = iConfig.getParameter<std::string>("CaloJetCorrectorL2L3"      );
 
   // product of this EDProducer
   produces<unsigned int>                ("evtn"+aliasprefix_     ).setBranchAlias("evt_n"+aliasprefix_        ); // number of jets
@@ -131,11 +130,13 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::JetIDValueMap> h_JetIDMap;
   iEvent.getByLabel(jetIDIputTag_, h_JetIDMap);
 
-  jetcor = new CombinedJetCorrector(correctionLevels_,correctionTags_);
+  //jetcor = new CombinedJetCorrector(correctionLevels_,correctionTags_);
+
+  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_, iSetup);
   
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
     
-    double cor = jetcor->getCorrection(it->pt(), it->eta(), it->energy());
+    double cor = correctorL2L3->correction(it->p4());
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );

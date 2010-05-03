@@ -49,7 +49,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig)
 
   pfJetsInputTag_       = iConfig.getParameter<InputTag>("pfJetsInputTag");
   pfJetPtCut_           = iConfig.getParameter<double>  ("pfJetPtCut"    );
-  nameL2L3JetCorrector_ = iConfig.getParameter<std::string>("L2L3JetCorrectorName");
+  PFJetCorrectorL2L3_   = iConfig.getParameter<std::string>("PFJetCorrectorL2L3");
 }
 
 
@@ -88,7 +88,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   Handle<View<PFJet> > pfJetsHandle;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
 
-  const JetCorrector* L2L3corrector = JetCorrector::getJetCorrector(nameL2L3JetCorrector_, iSetup);
+    const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
 
   for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
@@ -106,7 +106,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     reco::PFJet uncorJet = *pfjet_it;
 
-    float L2L3JetScale = L2L3corrector->correction( uncorJet.p4() );
+    float L2L3JetScale = correctorL2L3->correction(uncorJet.p4());
     
     pfjets_cor->push_back( L2L3JetScale );
   }
