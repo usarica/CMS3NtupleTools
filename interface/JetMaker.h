@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.12 2010/03/02 19:24:11 fgolf Exp $
+// $Id: JetMaker.h,v 1.13 2010/05/03 23:10:57 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -34,7 +34,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ParameterSet/interface/InputTag.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
-#include "CondFormats/JetMETObjects/interface/CombinedJetCorrector.h"
+//#include "CondFormats/JetMETObjects/interface/CombinedJetCorrector.h"
 //
 // class decleration
 //
@@ -46,19 +46,18 @@ public:
     
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob() ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
   
-     // ----------member data ---------------------------
-     edm::InputTag uncorJetsInputTag_;
-     bool runningOnReco_;
-  //std::string nameL2L3JetCorrector_;
+  // ----------member data ---------------------------
+  edm::InputTag uncorJetsInputTag_;
+  bool runningOnReco_;
   std::string correctionLevels_;
   std::string correctionTags_;
   std::string aliasprefix_;
   edm::InputTag jetIDIputTag_;
-  CombinedJetCorrector *jetcor;
+  std::string CaloJetCorrectorL2L3_;
 };
 
 #endif
