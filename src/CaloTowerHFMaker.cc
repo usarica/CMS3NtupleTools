@@ -118,13 +118,12 @@ void CaloTowerHFMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	  const std::vector<DetId> &towerDetIds = j->constituents();
 	  // loop on detids in the tower
 	  for (size_t i = 0; i < towerDetIds.size(); ++i) {
-		
 		//hf flags
 		//reapply thresh to align
 		//note that check of subdetId is missing (not needed?), and thresh is on em+had bc want both hits of hf
-		if( towerDetIds[i].det() == DetId::Hcal && j->emEt() + j->hadEt() > threshHF_ ) {
-		  if( fabs(j->eta()) > 3. ) { //all hf hits get reflagged
-
+		if( towerDetIds[i].det() == DetId::Hcal) {
+		     HcalSubdetector subdet = (HcalSubdetector(towerDetIds[i].subdetId()));		
+		     if (subdet == HcalForward) {
 			//find in reflagged hits collection
 			HFRecHitCollection::const_iterator hfit2 = hfreflagged_rechit->find(towerDetIds[i]);
 			if( hfit2 != hfreflagged_rechit->end() ) {
@@ -136,14 +135,13 @@ void CaloTowerHFMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 			  //cout << "Hit not found in reflagged collection" << endl;
 			  hcalFlag.push_back( -1 );
 			}
-		  }
-		  else { //for hbhe, always call reflagged flag -1: no reflagging
-			hcalFlag.push_back( -1 );
-		  }
+		     }
+		     else { //for hbhe, always call reflagged flag -1: no reflagging
+			  hcalFlag.push_back( -1 );
+		     }
 		}
-
-	  } //end loop on towerDetIds
-	}
+	  }
+	} //end loop on towerDetIds
 
 	if( hcalFlag.size() != cms2twrshitflag->at(itr).size() ) {
 	  cout << "Reflagged hit branch size not equal to original hit branch size (CaloTowerHFMaker)." << endl;
