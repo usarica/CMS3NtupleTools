@@ -62,7 +62,7 @@ CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * metCor
 eventmakers   = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2beamHaloSequence * pixelDigiMaker)
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
-makers        = cms.Sequence(trackMaker * muonMaker * scMaker * electronMaker * jetMaker  * JPTCorrections * metMaker * tcmetSequence)
+makers        = cms.Sequence(trackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * JPTCorrections * metMaker * tcmetSequence)
 
 assmakers     = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * jptToCaloJetAssMaker)
 
