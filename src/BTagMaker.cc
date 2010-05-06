@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Warren Andrews
 //         Created:  
-// $Id: BTagMaker.cc,v 1.6 2010/05/06 14:27:52 fgolf Exp $
+// $Id: BTagMaker.cc,v 1.7 2010/05/06 19:21:11 fgolf Exp $
 //
 //
 
@@ -54,7 +54,7 @@ BTagMaker::BTagMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_                           = iConfig.getParameter<std::string>  ("AliasPrefix"                          );
   combinedSecondaryVertexBJetTags_       = iConfig.getParameter<edm::InputTag>("combinedSecondaryVertexBJetTags"      );   
   combinedSecondaryVertexMVABJetTags_    = iConfig.getParameter<edm::InputTag>("combinedSecondaryVertexMVABJetTags"   );
-  ghostTrackBJetTags_                    = iConfig.getParameter<edm::InputTag>("ghostTrackBJetTags"                   ); 
+//  ghostTrackBJetTags_                    = iConfig.getParameter<edm::InputTag>("ghostTrackBJetTags"                   ); 
   jetBProbabilityBJetTags_               = iConfig.getParameter<edm::InputTag>("jetBProbabilityBJetTags"              );
   jetProbabilityBJetTags_                = iConfig.getParameter<edm::InputTag>("jetProbabilityBJetTags"               );
   simpleSecondaryVertexHighEffBJetTags_  = iConfig.getParameter<edm::InputTag>("simpleSecondaryVertexHighEffBJetTags" );
@@ -70,7 +70,7 @@ BTagMaker::BTagMaker(const edm::ParameterSet& iConfig) {
   //btagging info
   produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexBJetTag"      ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexBJetTag"    );
   produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexMVABJetTag"   ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexMVABJetTag" );
-  produces<vector<float> >   (aliasprefix_+"ghostTrackBJetTag"                   ).setBranchAlias(aliasprefix_+"_ghostTrackBJetTag"                 );
+//  produces<vector<float> >   (aliasprefix_+"ghostTrackBJetTag"                   ).setBranchAlias(aliasprefix_+"_ghostTrackBJetTag"                 );
   produces<vector<float> >   (aliasprefix_+"jetBProbabilityBJetTag"              ).setBranchAlias(aliasprefix_+"_jetBProbabilityBJetTag"            );
   produces<vector<float> >   (aliasprefix_+"jetProbabilityBJetTag"               ).setBranchAlias(aliasprefix_+"_jetProbabilityBJetTag"             );
   produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexHighEffBJetTag" ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexHighEffBJetTag"      );
@@ -111,7 +111,7 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //b tagging
   auto_ptr<vector<float> >     jets_combinedSecondaryVertexBJetTag       (new vector<float>  );
   auto_ptr<vector<float> >     jets_combinedSecondaryVertexMVABJetTag    (new vector<float>  );
-  auto_ptr<vector<float> >     jets_ghostTrackBJetTag                    (new vector<float>  );
+//  auto_ptr<vector<float> >     jets_ghostTrackBJetTag                    (new vector<float>  );
   auto_ptr<vector<float> >     jets_jetBProbabilityBJetTag               (new vector<float>  );
   auto_ptr<vector<float> >     jets_jetProbabilityBJetTag                (new vector<float>  );
   auto_ptr<vector<float> >     jets_simpleSecondaryVertexHighEffBJetTag  (new vector<float>  );
@@ -131,8 +131,8 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<reco::JetFloatAssociation::Container> combinedSecondaryVertexMVABJetTags;
   iEvent.getByLabel(combinedSecondaryVertexMVABJetTags_, combinedSecondaryVertexMVABJetTags);
   
-  edm::Handle<reco::JetFloatAssociation::Container> ghostTrackBJetTags;
-  iEvent.getByLabel(ghostTrackBJetTags_, ghostTrackBJetTags);
+//  edm::Handle<reco::JetFloatAssociation::Container> ghostTrackBJetTags;
+//  iEvent.getByLabel(ghostTrackBJetTags_, ghostTrackBJetTags);
   
   edm::Handle<reco::JetFloatAssociation::Container> jetBProbabilityBJetTags;
   iEvent.getByLabel(jetBProbabilityBJetTags_, jetBProbabilityBJetTags);
@@ -178,8 +178,8 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     jets_combinedSecondaryVertexMVABJetTag   ->push_back( CommonUtils::isinf((*combinedSecondaryVertexMVABJetTags)[jetRef]) 
 							  ? -9999. :(*combinedSecondaryVertexMVABJetTags)[jetRef]  );
-    jets_ghostTrackBJetTag                   ->push_back( CommonUtils::isinf((*ghostTrackBJetTags)[jetRef])
-							  ? -9999. :(*ghostTrackBJetTags)[jetRef]                   );
+//    jets_ghostTrackBJetTag                   ->push_back( CommonUtils::isinf((*ghostTrackBJetTags)[jetRef])
+//							  ? -9999. :(*ghostTrackBJetTags)[jetRef]                   );
     jets_jetBProbabilityBJetTag              ->push_back( CommonUtils::isinf((*jetBProbabilityBJetTags)[jetRef]) 
 							  ? -9999. : (*jetBProbabilityBJetTags)[jetRef]            );
     jets_jetProbabilityBJetTag               ->push_back( CommonUtils::isinf((*jetProbabilityBJetTags)[jetRef]) 
@@ -206,7 +206,7 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   iEvent.put(jets_combinedSecondaryVertexBJetTag       ,aliasprefix_+"combinedSecondaryVertexBJetTag"      );  
   iEvent.put(jets_combinedSecondaryVertexMVABJetTag    ,aliasprefix_+"combinedSecondaryVertexMVABJetTag"   );
-  iEvent.put(jets_ghostTrackBJetTag                    ,aliasprefix_+"ghostTrackBJetTag"                   );              
+//  iEvent.put(jets_ghostTrackBJetTag                    ,aliasprefix_+"ghostTrackBJetTag"                   );              
   iEvent.put(jets_jetBProbabilityBJetTag               ,aliasprefix_+"jetBProbabilityBJetTag"              );		   
   iEvent.put(jets_jetProbabilityBJetTag                ,aliasprefix_+"jetProbabilityBJetTag"               );			  
   iEvent.put(jets_simpleSecondaryVertexHighEffBJetTag  ,aliasprefix_+"simpleSecondaryVertexHighEffBJetTag" );	  
