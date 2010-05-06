@@ -1,9 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
-from JetMETCorrections.Configuration.ZSPJetCorrections332_cff import *
-from JetMETCorrections.Configuration.JetPlusTrackCorrections_cff import *
+from RecoJets.JetPlusTracks.JetPlusTrackCorrections_cff import *
+
 from CMS2.NtupleMaker.jptMaker_cfi import jptMaker
 
-ZSPJetCorJetAntiKt5.src = cms.InputTag("prunedUncorrectedCMS2Jets")
+JetPlusTrackZSPCorJetAntiKt5.src = cms.InputTag("prunedUncorrectedCMS2Jets")
 
-JPTCorrections = cms.Sequence(ZSPJetCorrectionsAntiKt5 * JetPlusTrackCorrectionsAntiKt5 * jptMaker)
+JPTCorrections = cms.Sequence(JetPlusTrackCorrectionsAntiKt5 * jptMaker)
