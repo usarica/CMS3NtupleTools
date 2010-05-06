@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -93,7 +93,7 @@ process.out = cms.OutputModule(
         "PoolOutputModule",
         verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple_temp.root')
+        fileName = cms.untracked.string('ntuple.root')
 )
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -111,9 +111,6 @@ process.load('CMS2.NtupleMaker.beamHaloSequence_cff')
 # loosen thresholds on collections
 process.hypDilepMaker.TightLepton_PtCut=cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
-
-process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'), 
-        initialSeedSet = cms.untracked.vuint32(4126))
 
 #-------------------------------------------------
 # process paths;
