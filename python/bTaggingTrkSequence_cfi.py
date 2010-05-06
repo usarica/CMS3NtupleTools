@@ -42,11 +42,12 @@ CMS2TrkCombinedSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("C
 CMS2TrkCombinedSecondaryVertexMVABJetTags = combinedSecondaryVertexMVABJetTags.clone()
 CMS2TrkCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkImpactParameterTagInfos"), cms.InputTag("CMS2TrkSecondaryVertexTagInfos") )
 # add some ghost b-tagging stuff
-CMS2ghostVertexTagInfos = ghostTrackVertexTagInfos.clone()
-CMS2ghostVertexTagInfos.trackIPTagInfos = "CMS2TrkImpactParameterTagInfos"
-CMS2ghostTrackBJetTags = ghostTrackBJetTags.clone()
-CMS2ghostTrackBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2TrkImpactParameterTagInfos"),
-                                                cms.InputTag("CMS2ghostVertexTagInfos"))
+#CMS2TrkghostVertexTagInfos = ghostTrackVertexTagInfos.clone()
+#CMS2TrkghostVertexTagInfos.trackIPTagInfos = "CMS2TrkImpactParameterTagInfos"
+#CMS2TrkghostTrackBJetTags = ghostTrackBJetTags.clone()
+
+#CMS2TrkghostTrackBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2TrkImpactParameterTagInfos"),
+                                                cms.InputTag("CMS2TrkghostVertexTagInfos"))
 #And the soft lepton b-tag. These producers will accept as input either the raw jets, or the association collection:
 # soft electron b-tag
 CMS2TrkSoftElectronTagInfos = softElectronTagInfos.clone()
@@ -94,10 +95,10 @@ CMS2TrkJetBtaggingSV = cms.Sequence(
     )
 )
 
-CMS2TrkJetghostBTagging = cms.Sequence(
-    CMS2ghostVertexTagInfos *
-    CMS2ghostTrackBJetTags
-)
+#CMS2TrkJetghostBTagging = cms.Sequence(
+#    CMS2TrkghostVertexTagInfos *
+#    CMS2TrkghostTrackBJetTags
+#)
 
 CMS2TrkJetBtaggingEle = cms.Sequence(
     #btagSoftElectrons *
@@ -120,7 +121,7 @@ CMS2TrkJetBtaggingMu = cms.Sequence(
 CMS2TrkJetBtagging = cms.Sequence(
     CMS2TrkJetBtaggingIP +
     CMS2TrkJetBtaggingSV +
-    CMS2TrkJetghostBTagging +
+#    CMS2TrkJetghostBTagging +
     CMS2TrkJetBtaggingEle +
     CMS2TrkJetBtaggingMu
 )
