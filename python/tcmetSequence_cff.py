@@ -10,12 +10,12 @@ muonTCMETValueMapProducerNew = muonTCMETValueMapProducer.clone()
 tcMetNew = tcMet.clone()
 tcMetNew.muonDepValueMap = cms.InputTag("muonMETValueMapProducerNew", "muCorrData")
 tcMetNew.tcmetDepValueMap = cms.InputTag("muonTCMETValueMapProducerNew", "muCorrData")
-tcmetMakerNew = tcmetMaker.clone()
-tcmetMakerNew.tcmet_tag_ = cms.InputTag("tcMetNew")
-tcmetMakerNew.tcmet_vm_tag_ = cms.InputTag("muonTCMETValueMapProducerNew", "muCorrData")
+
+tcmetMaker.tcmet_tag_ = cms.InputTag("tcMetNew")
+tcmetMaker.tcmet_vm_tag_ = cms.InputTag("muonTCMETValueMapProducerNew", "muCorrData")
 
 tcmetMakerOld = tcmetMaker.clone()
 tcmetMakerOld.aliasPrefix = cms.untracked.string("evt35X")
 
-tcmetSequence = cms.Sequence(tcmetMakerOld * muonMETValueMapProducerNew * muonTCMETValueMapProducerNew * tcMetNew * tcmetMakerNew)
+tcmetSequence = cms.Sequence(tcmetMakerOld * muonMETValueMapProducerNew * muonTCMETValueMapProducerNew * tcMetNew * tcmetMaker)
 
