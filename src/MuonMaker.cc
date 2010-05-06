@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.40 2010/04/19 19:17:15 slava77 Exp $
+// $Id: MuonMaker.cc,v 1.41 2010/05/06 20:10:08 kalavase Exp $
 //
 //
 
@@ -59,11 +59,12 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
 
   // mu track quantities
   produces<vector<int> >	     (branchprefix+"type"		      ).setBranchAlias(aliasprefix_+"_type"               );	// type
-  produces<vector<int> >	     (branchprefix+"goodmask"	      ).setBranchAlias(aliasprefix_+"_goodmask"           ); // good mask
-  produces<vector<LorentzVector> >   (branchprefix+"p4"		      ).setBranchAlias(aliasprefix_+"_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)						
-  produces<vector<LorentzVector> >   (branchprefix+"trkp4"	      ).setBranchAlias(aliasprefix_+"_trk_p4"             ); // track p4						
+  produces<vector<int> >	     (branchprefix+"goodmask"	        ).setBranchAlias(aliasprefix_+"_goodmask"           ); // good mask
+  produces<vector<LorentzVector> >   (branchprefix+"p4"		        ).setBranchAlias(aliasprefix_+"_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)						
+  produces<vector<LorentzVector> >   (branchprefix+"trkp4"	        ).setBranchAlias(aliasprefix_+"_trk_p4"             ); // track p4						
   produces<vector<LorentzVector> >   (branchprefix+"gfitp4"             ).setBranchAlias(aliasprefix_+"_gfit_p4"            ); // global fit p4, if global fit exists
   produces<vector<LorentzVector> >   (branchprefix+"stap4"              ).setBranchAlias(aliasprefix_+"_sta_p4"             ); // global fit p4, if global fit exists
+  produces<vector<LorentzVector> >   (branchprefix+"ecalposp4"          ).setBranchAlias(aliasprefix_+"_ecalpos_p4"         ); // muon position at the ecal face
   produces<vector<int>   >           (branchprefix+"trkidx"             ).setBranchAlias(aliasprefix_+"_trkidx"             );	// track index matched to muon
   produces<vector<float> >	     (branchprefix+"d0"		      ).setBranchAlias(aliasprefix_+"_d0"                 ); // impact parameter at the point of closest approach	using the tracker fit
   produces<vector<float> >	     (branchprefix+"z0"		      ).setBranchAlias(aliasprefix_+"_z0"                 ); // z position of the point of closest approach. From the si track		
@@ -192,6 +193,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > vector_mus_trk_p4	          (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_p4             (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > vector_mus_sta_p4              (new vector<LorentzVector>   );
+  auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4          (new vector<LorentzVector>   );
   auto_ptr<vector<int>   >         vector_mus_trkidx              (new vector<int>             );
   auto_ptr<vector<float> >	   vector_mus_d0	          (new vector<float>           );      
   auto_ptr<vector<float> >	   vector_mus_z0	          (new vector<float>	       );      
@@ -363,6 +365,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     vector_mus_e_emS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().emS9		     :  -9999.        );
     vector_mus_e_hadS9            ->push_back(muon->isEnergyValid() ? muon->calEnergy().hadS9	             :  -9999.        );
     vector_mus_e_hoS9             ->push_back(muon->isEnergyValid() ? muon->calEnergy().hoS9                 :  -9999.        );
+    math::XYZPoint ecal_p(-9999., -9999., -9999.);
+    if(muon->isEnergyValid())
+      ecal_p = muon->calEnergy().ecal_position;
+    vector_mus_ecalpos_p4         ->push_back(LorentzVector(ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0)                               );
     vector_mus_iso_trckvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().trackerVetoPt     :  -9999.        );
     vector_mus_iso_ecalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().emVetoEt          :  -9999.        );      
     vector_mus_iso_hcalvetoDep    ->push_back(muon->isEnergyValid() ? muon->isolationR03().hadVetoEt         :  -9999.        );      
@@ -508,6 +514,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(vector_mus_trk_p4             , branchprefix+"trkp4"              );
   iEvent.put(vector_mus_gfit_p4            , branchprefix+"gfitp4"             );
   iEvent.put(vector_mus_sta_p4             , branchprefix+"stap4"              );
+  iEvent.put(vector_mus_ecalpos_p4         , branchprefix+"ecalposp4"          ); 
   iEvent.put(vector_mus_trkidx             , branchprefix+"trkidx"             );
   iEvent.put(vector_mus_d0                 , branchprefix+"d0"                 );
   iEvent.put(vector_mus_z0                 , branchprefix+"z0"                 );
