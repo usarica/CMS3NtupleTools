@@ -41,7 +41,7 @@ from CMS2.NtupleMaker.pftauMaker_cfi import *
 from CMS2.NtupleMaker.photonMaker_cfi import *
 from CMS2.NtupleMaker.scMaker_cfi import *
 #from CMS2.NtupleMaker.tcmetMaker_cfi import *
-from CMS2.NtupleMaker.tcmetSequence_cfi import *
+from CMS2.NtupleMaker.tcmetSequence_cff import *
 from CMS2.NtupleMaker.trackMaker_cfi import *
 from CMS2.NtupleMaker.trackToElsAssMaker_cfi import *
 from CMS2.NtupleMaker.trackToMuonAssMaker_cfi import *
