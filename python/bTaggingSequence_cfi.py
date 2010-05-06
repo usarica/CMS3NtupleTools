@@ -46,7 +46,7 @@ CMS2CombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("C
 #CMS2ghostVertexTagInfos.trackIPTagInfos = "CMS2ImpactParameterTagInfos"
 #CMS2ghostTrackBJetTags = ghostTrackBJetTags.clone()
 #CMS2ghostTrackBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2ImpactParameterTagInfos"),
-                                                cms.InputTag("CMS2ghostVertexTagInfos"))
+#                                                cms.InputTag("CMS2ghostVertexTagInfos"))
 #And the soft lepton b-tag. These producers will accept as input either the raw jets, or the association collection:
 # soft electron b-tag
 CMS2SoftElectronTagInfos = softElectronTagInfos.clone()
