@@ -6,5 +6,5 @@ l1Maker = cms.EDFilter("L1Maker",
     l1ParticlesProcessName = cms.untracked.string("RECO"),
     l1GlobalTriggerReadoutRecordInputTag = cms.InputTag("gtDigis"),
     l1GlobalTriggerRecordInputTag = cms.InputTag("l1GtRecord"),
-    l1extraParticlesInputTag             = cms.InputTag("")                   
+    l1extraParticlesInputTag             = cms.InputTag("l1extraParticles")                   
 )
