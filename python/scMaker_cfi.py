@@ -10,7 +10,7 @@ scMaker = cms.EDFilter("SCMaker",
     ecalRecHitsInputTag_EB = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
     primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
     electronsInputTag = cms.InputTag("gsfElectrons"),
-    scEtMin = cms.double(5.0),
+    scEtMin = cms.double(10.0),
     debug = cms.bool(False),
     MCTruthCollection = cms.InputTag("generator")
 
