@@ -50,7 +50,7 @@ CMS2CombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("C
 #And the soft lepton b-tag. These producers will accept as input either the raw jets, or the association collection:
 # soft electron b-tag
 CMS2SoftElectronTagInfos = softElectronTagInfos.clone()
-CMS2SoftElectronTagInfos.jets = "ak5TrackJets"
+CMS2SoftElectronTagInfos.jets = "ak5CaloJets"
 #CMS2SoftElectronBJetTags = softElectronBJetTags.clone()
 #CMS2SoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftElectronTagInfos") )
 CMS2SoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
@@ -61,7 +61,7 @@ CMS2SoftElectronByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftEle
 
 # soft muon b-tag
 CMS2SoftMuonTagInfos = softMuonTagInfos.clone()
-CMS2SoftMuonTagInfos.jets = "ak5TrackJets"
+CMS2SoftMuonTagInfos.jets = "ak5CaloJets"
 CMS2SoftMuonBJetTags = softMuonBJetTags.clone()
 CMS2SoftMuonBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftMuonTagInfos") )
 CMS2SoftMuonByIP3dBJetTags = softMuonByIP3dBJetTags.clone()
