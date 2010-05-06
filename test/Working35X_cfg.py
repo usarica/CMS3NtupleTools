@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.6 $'),
+        version = cms.untracked.string('$Revision: 1.7 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -17,7 +17,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
-process.GlobalTag.globaltag = "START3X_V24::All"
+process.GlobalTag.globaltag = "START3X_V26::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -82,7 +82,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:RelValTTbar_357_001A92971B04.root'
+    'file:ttbar.root'
     #'/store/relval/CMSSW_3_5_7/RelValTTbar/GEN-SIM-RECO/MC_3XY_V26-v1/0013/F2DE790A-8049-DF11-9F2C-001A92971B04.root'
     ),
 )
@@ -110,7 +110,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
-#process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
+process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
 
 
 # loosen thresholds on collections
@@ -139,13 +139,13 @@ process.l1Maker.fillL1Particles = cms.untracked.bool(False)
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load('CMS2.NtupleMaker.beamHaloSequence_cff')
 
-process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'), 
-        initialSeedSet = cms.untracked.vuint32(4126))
+#process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'), 
+#        initialSeedSet = cms.untracked.vuint32(4126))
 
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.coreCMS2Sequence
+process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
                                                        * process.cms2GENSequence
                                                        * process.cms2beamHaloSequence
                                                        * process.pixelDigiMaker
