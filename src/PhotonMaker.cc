@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.11 2010/04/24 03:58:59 warren Exp $
+// $Id: PhotonMaker.cc,v 1.12 2010/05/06 21:12:07 fgolf Exp $
 //
 //
 
@@ -112,8 +112,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      //produces<vector<float> >          (branchprefix+"timeSeed"            ).setBranchAlias(aliasprefix_+"_timeSeed"            );
      produces<vector<float> >          (branchprefix+"swissSeed"            ).setBranchAlias(aliasprefix_+"_swissSeed"          ); //missing in sc
 	 // major and minor moments (2nd?) of energy distribution -- see AN2008-075
-     produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
-     produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
+	 // remove for default until these are in a release
+     //produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
+     //produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
 
      // isolation variables
      //
@@ -174,8 +175,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      //auto_ptr<vector<float> >	photons_eSeed               (new vector<float>        ) ;
      //auto_ptr<vector<float> >	photons_timeSeed               (new vector<float>        ) ;
      auto_ptr<vector<float> >	photons_swissSeed               (new vector<float>        ) ;
-     auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
-     auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
+     //auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
+     //auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
 	
      // isolation variables
      //
@@ -204,6 +205,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
 	 const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
+
+
      // Get tools to get cluster shape information
      //
      if (clusterTools_) delete clusterTools_;
@@ -226,7 +229,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	 const CaloTopology *topology_ = pTopology.product();
 
 	 // get topology (for moments)
-	 const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
+	 //const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
 	 //const CaloSubdetectorTopology *topology_ee = topology_->getSubdetectorTopology(DetId::Ecal, EcalEndcap); //not used yet
 
      //fill number of photons variable : NO ET CUT
@@ -238,8 +241,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      size_t photonsIndex = 0;
      View<reco::Photon>::const_iterator photon;
      for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
-	  // throw out photons below minEt
-	  if (photon->et() < minEt_)
+	   // throw out photons below minEt
+	   if (photon->et() < minEt_)
+	   //instead of photon et, use sc et for alignment purposes (?)
 	       continue;
 
 	  // Get photon and track objects
@@ -271,13 +275,20 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  //get cms2scsseeddetid
 	  bool foundseed = false;
 	  for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
+		//cout << cms2scsseeddetid->at(i) << "  ";
 		if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
 		  foundseed = true;
 		  photons_scindex->push_back( i );
+		  break;
 		}
 	  }
+	  //cout << endl;
 	  if( !foundseed ) {
-		cout << "No seed found" << endl; //no need to exit here...shit happens
+		//this is understood: the photon can have energy significantly higher than SC for whatever reason.
+		//cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed())
+		//	 << "  photon et: " << photon->et()
+		//	 << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta())
+		//	 << endl;
 		photons_scindex->push_back( -1 );		
 	  }
 
@@ -287,7 +298,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  //   iSetup.get<IdealGeometryRecord>().get(geoHandle);
 	  iSetup.get<CaloGeometryRecord>().get(geoHandle);
 	  //const CaloGeometry* geometry = geoHandle.product();
-	  const CaloSubdetectorGeometry* geometry_eb = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+	  //const CaloSubdetectorGeometry* geometry_eb = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalBarrel); 
 	  //const CaloSubdetectorGeometry* geometry_ee = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalEndcap); //not used yet
 
 	  CaloClusterPtr tempCluster = photon->superCluster()->seed(); //caloclusterfwd.h--different data type from BasicCluster so need both
@@ -316,14 +327,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  //reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEE, &(*geometry_ee), &(*topology_ee));
 		  //photons_majmom->push_back( tempShape.sMajMaj() );
 		  //photons_minmom->push_back( tempShape.sMinMin() );
-		  photons_majmom->push_back( -9999.99 );
-		  photons_minmom->push_back( -9999.99 );
+		  //photons_majmom->push_back( -9999.99 );
+		  //photons_minmom->push_back( -9999.99 );
 		}
 		else {
 		  //photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
-		  photons_majmom->push_back( -9999.99 );
-		  photons_minmom->push_back( -9999.99 );
+		  //photons_majmom->push_back( -9999.99 );
+		  //photons_minmom->push_back( -9999.99 );
 		}
 	  }
 	  else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
@@ -335,16 +346,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
 		  emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
 		  photons_swissSeed->push_back( emSwiss );
-		  //major/minor axis vars
-		  reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEB, &(*geometry_eb), &(*topology_eb));
-		  photons_majmom->push_back( tempShape.sMajMaj() );
-		  photons_minmom->push_back( tempShape.sMinMin() );
+		  //major/minor axis vars -- gone until these are in a release
+		  //reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEB, &(*geometry_eb), &(*topology_eb));
+		  //photons_majmom->push_back( tempShape.sMajMaj() );
+		  //photons_minmom->push_back( tempShape.sMinMin() );
 		}
 		else {
 		  //photons_timeSeed->push_back( -9999.99 );
 		  photons_swissSeed->push_back( -9999.99 );
-		  photons_majmom->push_back( -9999.99 );
-		  photons_minmom->push_back( -9999.99 );
+		  //photons_majmom->push_back( -9999.99 );
+		  //photons_minmom->push_back( -9999.99 );
 		}		
 	  }
 
@@ -396,8 +407,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      //iEvent.put(photons_timeSeed                 ,branchprefix+"timeSeed" 	          	);
      iEvent.put(photons_swissSeed                ,branchprefix+"swissSeed" 	          	);
      iEvent.put(photons_fiduciality		,branchprefix+"fiduciality"			);
-     iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
-     iEvent.put(photons_minmom                     ,branchprefix+"minmom"      	      	);
+     //iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
+     //iEvent.put(photons_minmom                     ,branchprefix+"minmom"      	      	);
 	
      // Photon ID
      //
