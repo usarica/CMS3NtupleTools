@@ -5,19 +5,25 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.7 $'),
+        version = cms.untracked.string('$Revision: 1.8 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
 
 # load event level configurations
 process.load("Configuration.StandardSequences.Services_cff")
+process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load("Configuration.StandardSequences.Geometry_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
-process.GlobalTag.globaltag = "START3X_V26::All"
+
+process.load("RecoJets.Configuration.RecoJPTJets_cff")
+process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
+process.load('Configuration/EventContent/EventContent_cff')
+
+process.GlobalTag.globaltag = "MC_36Y_V4::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -37,31 +43,32 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1
 #-------------------------------------------------
 # PAT configuration
 #-------------------------------------------------
-#process.load("PhysicsTools.PatAlgos.patSequences_cff")
-#process.patDefaultSequence = cms.Sequence(
-#    process.patCandidates *
-#    process.selectedPatCandidates
-#)
+process.load("PhysicsTools.PatAlgos.patSequences_cff")
+process.patDefaultSequence = cms.Sequence(
+    process.patCandidates *
+    process.selectedPatCandidates
+)
 
 #add muon isolation
-#from PhysicsTools.PatAlgos.tools.muonTools import *
-#addMuonUserIsolation.isolationTypes = ['All']
-#addMuonUserIsolation.toolCode(process)
+from PhysicsTools.PatAlgos.tools.muonTools import *
+addMuonUserIsolation.isolationTypes = ['All']
+addMuonUserIsolation.toolCode(process)
 
 #change JetID tag
-#from PhysicsTools.PatAlgos.tools.jetTools import *
-#addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets'), "antikt5" )
-#switchJetCollection(process, 
-#                    cms.InputTag('prunedUncorrectedCMS2Jets'),   
-#                    doJTA            = True,            
-#                    doBTagging       = True,            
-#                    jetCorrLabel     = ('AK5','Calo'),  
-#                    doType1MET       = True,
-#                    genJetCollection = cms.InputTag("cms2antikt5GenJets"),
-#                    doJetID          = True,
-#                    jetIdLabel       = "antikt5"
-#                    jetIdLabel       = "cms2ak5"
-#                    )
+from PhysicsTools.PatAlgos.tools.jetTools import *
+from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
+run36xOn35xInput(process)
+addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets'), "antikt5" )
+switchJetCollection35X(process, 
+                    cms.InputTag('prunedUncorrectedCMS2Jets'),   
+                    doJTA            = True,            
+                    doBTagging       = True,            
+                    jetCorrLabel     = None,
+                    doType1MET       = True,
+                    genJetCollection = cms.InputTag("cms2antikt5GenJets"),
+                    doJetID          = True,
+                    jetIdLabel       = "cms2ak5"
+                    )
 
 # add statement to prevent the PAT from using generator information
 #from PhysicsTools.PatAlgos.tools.coreTools import *
@@ -82,8 +89,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:ttbar.root'
-    #'/store/relval/CMSSW_3_5_7/RelValTTbar/GEN-SIM-RECO/MC_3XY_V26-v1/0013/F2DE790A-8049-DF11-9F2C-001A92971B04.root'
+    'file:/store/disk00/jribnik/Spring10_TTbarJets-madgraph_GEN-SIM-RECO_START3X_V26_S09-v1_0005_2AA58B20-AD46-DF11-9274-003048C69032.root'
     ),
 )
 
@@ -118,19 +124,6 @@ process.hypDilepMaker.TightLepton_PtCut=cms.double(0.0)
 process.hypDilepMaker.LooseLepton_PtCut=cms.double(0.0)
 process.hypDilepMaker.useSTAMuon = cms.bool(True)
 
-#process.load("PhysicsTools.PatAlgos.recoLayer0.jetCorrFactors_cfi")
-#process.load("PhysicsTools.PatAlgos.recoLayer0.jetMETCorrections_cff")
-#process.patJetCorrections = process.process.jetCorrFactors
-#process.patJetCorrFactors = process.jetCorrFactors
-#process.prunedUncorrectedCMS2Jets.inputUncorrectedJetCollection = cms.InputTag("antikt5CaloJets")
-#process.pfJetMaker.pfJetsInputTag = cms.InputTag("antikt5PFJets")
-#process.load("JetMETCorrections.Configuration.L2L3Corrections_Summer09_7TeV_cff")
-#process.jetMaker.correctionTags   = cms.string("Summer09_7TeV_L2Relative_AK5Calo:Summer09_7TeV_L3Absolute_AK5Calo")
-#process.scjetMaker.correctionTags   = cms.string("Summer09_7TeV_L2Relative_SC5Calo:Summer09_7TeV_L3Absolute_SC5Calo")
-#switchJECSet.newName = cms.string("Summer09_7TeV")
-#switchJECSet.toolCode(process)
-#jetCorrFactors = getattr(process, 'patJetCorrFactors')
-#jetCorrFactors.corrSample = "Summer09_7TeV"
 
 # don't forget 8e29
 #process.hltMakerSequence += process.hlt8e29Maker
@@ -139,8 +132,8 @@ process.l1Maker.fillL1Particles = cms.untracked.bool(False)
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load('CMS2.NtupleMaker.beamHaloSequence_cff')
 
-#process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'), 
-#        initialSeedSet = cms.untracked.vuint32(4126))
+process.RandomNumberGeneratorService.randomConeIsoMaker = cms.PSet( engineName = cms.untracked.string('HepJamesRandom'), 
+        initialSeedSet = cms.untracked.vuint32(4126))
 
 #-------------------------------------------------
 # process paths;
@@ -149,7 +142,7 @@ process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
                                                        * process.cms2GENSequence
                                                        * process.cms2beamHaloSequence
                                                        * process.pixelDigiMaker
-                                                       )#* process.patDefaultSequence * process.cms2PATSequence)
+                                                       * process.patDefaultSequence * process.cms2PATSequence)
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
