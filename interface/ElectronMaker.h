@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.16 2010/03/03 04:19:27 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.17 2010/05/07 01:30:10 warren Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -78,6 +78,7 @@ private:
   edm::InputTag eidRobustHighEnergyTag_;
   edm::InputTag eidLooseTag_;
   edm::InputTag eidTightTag_;
+  edm::InputTag cms2scsseeddetidInputTag_;
   
   EcalClusterLazyTools* clusterTools_;
   MultiTrajectoryStateTransform *mtsTransform_;

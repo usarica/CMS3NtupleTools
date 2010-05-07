@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.50 2010/04/26 14:30:01 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.51 2010/05/07 01:30:10 warren Exp $
 //
 //
 
@@ -93,6 +93,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   eidRobustHighEnergyTag_        = iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
   eidLooseTag_                   = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
   eidTightTag_                   = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
+  cms2scsseeddetidInputTag_      = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
   
   minAbsDist_                    = iConfig.getParameter<double>("minAbsDist"                         );
   minAbsDcot_                    = iConfig.getParameter<double>("minAbsDcot"                         );
@@ -115,6 +116,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elseSCPresh"                ).setBranchAlias("els_eSCPresh"               );
   produces<vector<int> >       ("elsfiduciality"             ).setBranchAlias("els_fiduciality"            );
   produces<vector<int> >       ("elstype"                    ).setBranchAlias("els_type"                   );
+  produces<vector<int> >       ("elsscindex"                 ).setBranchAlias("els_scindex"                );
 
   // Corrections and uncertainties
   //
@@ -294,6 +296,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >    	   els_eSCPresh                 (new vector<float>       ) ;
   auto_ptr<vector<int> >     	   els_fiduciality              (new vector<int>         ) ;
   auto_ptr<vector<int> >           els_type                     (new vector<int>         ) ;
+  auto_ptr<vector<int> >       els_scindex             (new vector<int>        ) ;	 
 
   // uncertainties and corrections
   // somewhat complicated: see 
@@ -461,6 +464,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   const edm::ValueMap<float>&  eidLooseMap                = getValueMap<float>(iEvent, eidLooseTag_);
   const edm::ValueMap<float>&  eidTightMap                = getValueMap<float>(iEvent, eidTightTag_);
 
+  //get cms2scsseeddetid 
+  edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
+  edm::Handle<std::vector<int> > cms2scsseeddetid_h;
+  iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
+  const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
+
+
   //fill number of eqlectrons variable
   //
   *evt_nels = els_h->size();
@@ -510,6 +520,27 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) );
     els_sigmaEtaEta    ->push_back( el->scSigmaEtaEta()                      );
     els_sigmaIEtaIEta  ->push_back( el->scSigmaIEtaIEta()                    );
+
+
+	//get cms2scsseeddetid--sorry for junk from photons...
+	bool foundseed = false;
+	for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
+	  //cout << cms2scsseeddetid->at(i) << "  ";
+	  if( uint32_t(cms2scsseeddetid->at(i)) == el->superCluster()->seed()->seed() ) {
+		foundseed = true;
+		els_scindex->push_back( i );
+		break;
+	  }
+	}
+	//cout << endl;
+	if( !foundseed ) {
+	  //this is understood: the photon can have energy significantly higher than SC for whatever reason.
+	  //cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed())
+	  //	 << "  photon et: " << photon->et()
+	  //	 << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta())
+	  //	 << endl;
+	  els_scindex->push_back( -1 );		
+	}
 
 
     // set the mask that describes the egamma fiduciality flags
@@ -839,6 +870,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_eSeed                    ,"elseSeed" 	          	);
   iEvent.put(els_fiduciality              ,"elsfiduciality"               );
   iEvent.put(els_type                     ,"elstype"                      );
+  iEvent.put(els_scindex                  ,"elsscindex"                 );
 
   // Corrections and uncertainties
   //

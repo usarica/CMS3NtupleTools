@@ -15,6 +15,7 @@ electronMaker = cms.EDFilter(
     eidRobustHighEnergyTag = cms.InputTag("eidRobustHighEnergyCMS2"),
     eidLooseTag = cms.InputTag("eidLooseCMS2"),
     eidTightTag = cms.InputTag("eidTightCMS2"),
+    cms2scsseeddetidInputTag = cms.InputTag("scMaker"),
     #conversion stuff    
     minAbsDist  = cms.double(0.02),        
     minAbsDcot  = cms.double(0.02),
