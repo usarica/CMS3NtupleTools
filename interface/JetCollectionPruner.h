@@ -38,7 +38,10 @@ private:
   virtual void endJob() ;
   
   edm::InputTag inputUncorrectedJetCollection_;
+  std::string CaloJetCorrectorL2L3_;
   double uncorrectedJetPtCut_;
+  bool   usecorrectedCut_;
+  double correctedJetPtCut_;
 
 };
 

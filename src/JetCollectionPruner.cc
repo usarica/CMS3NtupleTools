@@ -27,6 +27,7 @@
 #include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "CMS2/NtupleMaker/interface/JetCollectionPruner.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 bool sortJetsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
   return jet1.pt() > jet2.pt();
@@ -42,7 +43,10 @@ JetCollectionPruner::JetCollectionPruner(const edm::ParameterSet& iConfig)
 
   // get the input collection of electrons
   inputUncorrectedJetCollection_ = iConfig.getParameter<edm::InputTag>("inputUncorrectedJetCollection");
+  CaloJetCorrectorL2L3_          = iConfig.getParameter<std::string>  ("CaloJetCorrectorL2L3"      );
   uncorrectedJetPtCut_           = iConfig.getParameter<double>       ("uncorrectedJetPtCut"          );
+  usecorrectedCut_               = iConfig.getParameter<bool>         ("usecorrectedCut"              );
+  correctedJetPtCut_             = iConfig.getParameter<double>       ("correctedJetPtCut"            );
 
 }
 
@@ -61,9 +65,15 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // new collection to put in the event after cleaning
   std::auto_ptr<reco::CaloJetCollection> outCollection (new reco::CaloJetCollection);
 
+  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_, iSetup);
+
   for(reco::CaloJetCollection::const_iterator jet_it = jetsHandle->begin(); jet_it != jetsHandle->end(); jet_it++) {
 
+    double cor = correctorL2L3->correction(jet_it->p4());
+
     if(jet_it->pt() > uncorrectedJetPtCut_)
+      outCollection->push_back(*jet_it);
+	else if( usecorrectedCut_ && cor*jet_it->pt() > correctedJetPtCut_ )
       outCollection->push_back(*jet_it);
   }
 
