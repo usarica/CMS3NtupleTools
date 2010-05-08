@@ -91,6 +91,7 @@ void EventSelectionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   std::auto_ptr<unsigned int>                      evt_ntrks                     (new unsigned int                     );
   std::auto_ptr<unsigned int>                      evt_ntrksHP                   (new unsigned int                     );
   std::auto_ptr<bool>                              passesdefault                 (new bool                             );
+  *evt_ntrksHP = 0;
   *passesdefault = false;     
 
   edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
