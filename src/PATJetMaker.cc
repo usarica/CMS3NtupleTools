@@ -14,7 +14,7 @@ Description: copy additional PAT jet variables in simple data structures into th
 //
 // Original Author:  pts/4
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.cc,v 1.12 2010/05/03 23:17:22 kalavase Exp $
+// $Id: PATJetMaker.cc,v 1.13 2010/05/09 19:34:48 kalavase Exp $
 //
 //
 
@@ -71,19 +71,21 @@ PATJetMaker::PATJetMaker(const edm::ParameterSet& iConfig)
   produces<vector<float> >   ("jetspatjetCharge"        ).setBranchAlias("jets_pat_jetCharge"); // PAT jet charge
 
   //btagging info
-  produces<vector<float> >   ("jetspatcombinedSecondaryVertexBJetTag"   ).setBranchAlias("jets_pat_combinedSecondaryVertexBJetTag");
-  produces<vector<float> >   ("jetspatcombinedSecondaryVertexMVABJetTag").setBranchAlias("jets_pat_combinedSecondaryVertexMVABJetTag");
-  produces<vector<float> >   ("jetspatconeIsolationTauJetTag"           ).setBranchAlias("jets_pat_coneIsolationTauJetTag");
-  produces<vector<float> >   ("jetspatimpactParameterMVABJetTag"        ).setBranchAlias("jets_pat_impactParameterMVABJetTag");
-  produces<vector<float> >   ("jetspatjetBProbabilityBJetTag"           ).setBranchAlias("jets_pat_jetBProbabilityBJetTag");
-  produces<vector<float> >   ("jetspatjetProbabilityBJetTag"            ).setBranchAlias("jets_pat_jetProbabilityBJetTag");
-  produces<vector<float> >   ("jetspatsimpleSecondaryVertexBJetTag"     ).setBranchAlias("jets_pat_simpleSecondaryVertexBJetTag");
-  produces<vector<float> >   ("jetspatsoftElectronByIP3dBJetTag"        ).setBranchAlias("jets_pat_softElectronByIP3dBJetTag");
-  produces<vector<float> >   ("jetspatsoftElectronByPtBJetTag"          ).setBranchAlias("jets_pat_softElectronByPtBJetTag");
-  produces<vector<float> >   ("jetspatsoftMuonBJetTag"                  ).setBranchAlias("jets_pat_softMuonBJetTag");
-  produces<vector<float> >   ("jetspatsoftMuonNoIPBJetTag"              ).setBranchAlias("jets_pat_softMuonNoIPBJetTag");
-  produces<vector<float> >   ("jetspattrackCountingHighEffBJetTag"      ).setBranchAlias("jets_pat_trackCountingHighEffBJetTag");
-  produces<vector<float> >   ("jetspattrackCountingHighPurBJetTag"      ).setBranchAlias("jets_pat_trackCountingHighPurBJetTag");
+  produces<vector<float> >   ("jetspatcombinedSecondaryVertexBJetTag"     ).setBranchAlias("jets_pat_combinedSecondaryVertexBJetTag");
+  produces<vector<float> >   ("jetspatcombinedSecondaryVertexMVABJetTag"  ).setBranchAlias("jets_pat_combinedSecondaryVertexMVABJetTag");
+  produces<vector<float> >   ("jetspatconeIsolationTauJetTag"             ).setBranchAlias("jets_pat_coneIsolationTauJetTag");
+  produces<vector<float> >   ("jetspatimpactParameterMVABJetTag"          ).setBranchAlias("jets_pat_impactParameterMVABJetTag");
+  produces<vector<float> >   ("jetspatjetBProbabilityBJetTag"             ).setBranchAlias("jets_pat_jetBProbabilityBJetTag");
+  produces<vector<float> >   ("jetspatjetProbabilityBJetTag"              ).setBranchAlias("jets_pat_jetProbabilityBJetTag");
+  produces<vector<float> >   ("jetspatsimpleSecondaryVertexHighEffBJetTag").setBranchAlias("jets_pat_simpleSecondaryVertexHighEffBJetTag");
+  produces<vector<float> >   ("jetspatsimpleSecondaryVertexHighPurBJetTag").setBranchAlias("jets_pat_simpleSecondaryVertexHighPurBJetTag");
+  produces<vector<float> >   ("jetspatsoftElectronByIP3dBJetTag"          ).setBranchAlias("jets_pat_softElectronByIP3dBJetTag");
+  produces<vector<float> >   ("jetspatsoftElectronByPtBJetTag"            ).setBranchAlias("jets_pat_softElectronByPtBJetTag");
+  produces<vector<float> >   ("jetspatsoftMuonBJetTag"                    ).setBranchAlias("jets_pat_softMuonBJetTag");
+  produces<vector<float> >   ("jetspatsoftMuonByIP3dBJetTag"              ).setBranchAlias("jets_pat_softMuonByIP3dBJetTag");
+  produces<vector<float> >   ("jetspatsoftMuonByPtBJetTag"                ).setBranchAlias("jets_pat_softMuonByPtBJetTag");
+  produces<vector<float> >   ("jetspattrackCountingHighEffBJetTag"        ).setBranchAlias("jets_pat_trackCountingHighEffBJetTag");
+  produces<vector<float> >   ("jetspattrackCountingHighPurBJetTag"        ).setBranchAlias("jets_pat_trackCountingHighPurBJetTag");
   
 
   produces<vector<LorentzVector> > ("jetspatgenPartonp4"      ).setBranchAlias("jets_pat_genParton_p4"); // PAT gen parton p4
@@ -139,23 +141,23 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   auto_ptr<vector<float> >     jets_patnoCorrF(new vector<float>);
   auto_ptr<vector<float> >     jets_patjetCharge(new vector<float>);
-
-  //b tagging
-  auto_ptr<vector<float> >     jets_pat_combinedSecondaryVertexBJetTag    (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_combinedSecondaryVertexMVABJetTag (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_coneIsolationTauJetTag            (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_impactParameterMVABJetTag         (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_jetBProbabilityBJetTag            (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_jetProbabilityBJetTag             (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_simpleSecondaryVertexBJetTag      (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_softElectronByIP3dBJetTag         (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_softElectronByPtBJetTag           (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_softMuonBJetTag                   (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_softMuonNoIPBJetTag               (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_trackCountingHighEffBJetTag       (new vector<float>);
-  auto_ptr<vector<float> >     jets_pat_trackCountingHighPurBJetTag       (new vector<float>);
   
-
+  //btagging
+  auto_ptr<vector<float> >   jets_pat_combinedSecondaryVertexBJetTag      (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_combinedSecondaryVertexMVABJetTag   (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_coneIsolationTauJetTag              (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_impactParameterMVABJetTag           (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_jetBProbabilityBJetTag              (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_jetProbabilityBJetTag               (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_simpleSecondaryVertexHighEffBJetTag (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_simpleSecondaryVertexHighPurBJetTag (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_softElectronByIP3dBJetTag           (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_softElectronByPtBJetTag             (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_softMuonBJetTag                     (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_softMuonByIP3dBJetTag               (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_softMuonByPtBJetTag                 (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_trackCountingHighEffBJetTag         (new vector<float>    );
+  auto_ptr<vector<float> >   jets_pat_trackCountingHighPurBJetTag         (new vector<float>    );
 
   auto_ptr<vector<LorentzVector> > jets_patgenParton_p4(new vector<LorentzVector>);
   auto_ptr<vector<LorentzVector> > jets_patgenPartonMother_p4(new vector<LorentzVector>);
@@ -206,35 +208,40 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
            
     jets_patnoCorrF->push_back(1/jetCorF); 
     jets_patjetCharge->push_back(patJet->jetCharge());
-    
-    jets_pat_combinedSecondaryVertexBJetTag    ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"))    
-							   ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexBJetTags"));
-    jets_pat_combinedSecondaryVertexMVABJetTag ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags")) 
-							   ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"));
-    jets_pat_coneIsolationTauJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("coneIsolationTauJetTags"))            
-							   ? -9999. : patJet->bDiscriminator("coneIsolationTauJetTags"));
-    jets_pat_impactParameterMVABJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("impactParameterMVABJetTags"))         
-							   ? -9999. : patJet->bDiscriminator("impactParameterMVABJetTags"));
-    jets_pat_jetBProbabilityBJetTag            ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetBProbabilityBJetTags"))            
-							   ? -9999. : patJet->bDiscriminator("jetBProbabilityBJetTags"));
-    jets_pat_jetProbabilityBJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetProbabilityBJetTags"))             
-							   ? -9999. : patJet->bDiscriminator("jetProbabilityBJetTags"));
-    jets_pat_simpleSecondaryVertexBJetTag      ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexBJetTags"))      
-							   ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexBJetTags"));
-    jets_pat_softElectronByIP3dBJetTag         ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags"))         
-							   ? -9999. : patJet->bDiscriminator("softElectronByIP3dBJetTags"));
-    jets_pat_softElectronByPtBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByPtBJetTag"))            
-							   ? -9999. : patJet->bDiscriminator("softElectronByPtBJetTag"));
-    jets_pat_softMuonBJetTag                   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonBJetTags"))                   
-							   ? -9999. : patJet->bDiscriminator("softMuonBJetTags"));
-    jets_pat_softMuonNoIPBJetTag               ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonNoIPBJetTags"))               
-							   ? -9999. : patJet->bDiscriminator("softMuonNoIPBJetTags"));
-    jets_pat_trackCountingHighEffBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighEffBJetTags"))       
-							   ? -9999. : patJet->bDiscriminator("trackCountingHighEffBJetTags"));
-    jets_pat_trackCountingHighPurBJetTag       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighPurBJetTags"))       
-							   ? -9999. : patJet->bDiscriminator("trackCountingHighPurBJetTags"));
-    
 
+
+
+    jets_pat_combinedSecondaryVertexBJetTag        ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexBJetTags")        );
+    jets_pat_combinedSecondaryVertexMVABJetTag     ->push_back(CommonUtils::isinf(patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags"))
+							       ? -9999. : patJet->bDiscriminator("combinedSecondaryVertexMVABJetTags")        );
+    jets_pat_coneIsolationTauJetTag                ->push_back(CommonUtils::isinf(patJet->bDiscriminator("coneIsolationTauJetTags"))
+							       ? -9999. : patJet->bDiscriminator("coneIsolationTauJetTags")        );
+    jets_pat_impactParameterMVABJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("impactParameterMVABJetTags"))
+							       ? -9999. : patJet->bDiscriminator("impactParameterMVABJetTags")        );
+    jets_pat_jetBProbabilityBJetTag                ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetBProbabilityBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("jetBProbabilityBJetTags")        );
+    jets_pat_jetProbabilityBJetTag                 ->push_back(CommonUtils::isinf(patJet->bDiscriminator("jetProbabilityBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("jetProbabilityBJetTags")        );
+    jets_pat_simpleSecondaryVertexHighEffBJetTag   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexHighEffBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexHighEffBJetTags")        );
+    jets_pat_simpleSecondaryVertexHighPurBJetTag   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("simpleSecondaryVertexHighPurBJetTags")        );
+    jets_pat_softElectronByIP3dBJetTag             ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByIP3dBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("softElectronByIP3dBJetTags")        );
+    jets_pat_softElectronByPtBJetTag               ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softElectronByPtBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("softElectronByPtBJetTags")        );
+    jets_pat_softMuonBJetTag                       ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("softMuonBJetTags")        );
+    jets_pat_softMuonByIP3dBJetTag                 ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonByIP3dBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("softMuonByIP3dBJetTags")        );
+    jets_pat_softMuonByPtBJetTag                   ->push_back(CommonUtils::isinf(patJet->bDiscriminator("softMuonByPtBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("softMuonByPtBJetTags")        );
+    jets_pat_trackCountingHighEffBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighEffBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("trackCountingHighEffBJetTags")        );
+    jets_pat_trackCountingHighPurBJetTag           ->push_back(CommonUtils::isinf(patJet->bDiscriminator("trackCountingHighPurBJetTags"))
+							       ? -9999. : patJet->bDiscriminator("trackCountingHighPurBJetTags")        );
+    
     
     
     jets_patgenParton_p4->push_back( LorentzVector( genParton.p4() ) );
@@ -262,19 +269,23 @@ void PATJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(jets_patnoCorrF, "jetspatnoCorrF");
   iEvent.put(jets_patjetCharge, "jetspatjetCharge");
 
-  iEvent.put(jets_pat_combinedSecondaryVertexBJetTag,    "jetspatcombinedSecondaryVertexBJetTag");
-  iEvent.put(jets_pat_combinedSecondaryVertexMVABJetTag, "jetspatcombinedSecondaryVertexMVABJetTag");
-  iEvent.put(jets_pat_coneIsolationTauJetTag,            "jetspatconeIsolationTauJetTag");
-  iEvent.put(jets_pat_impactParameterMVABJetTag,         "jetspatimpactParameterMVABJetTag");
-  iEvent.put(jets_pat_jetBProbabilityBJetTag,            "jetspatjetBProbabilityBJetTag");
-  iEvent.put(jets_pat_jetProbabilityBJetTag,             "jetspatjetProbabilityBJetTag");
-  iEvent.put(jets_pat_simpleSecondaryVertexBJetTag,      "jetspatsimpleSecondaryVertexBJetTag");
-  iEvent.put(jets_pat_softElectronByIP3dBJetTag,         "jetspatsoftElectronByIP3dBJetTag");
-  iEvent.put(jets_pat_softElectronByPtBJetTag,           "jetspatsoftElectronByPtBJetTag");
-  iEvent.put(jets_pat_softMuonBJetTag,                   "jetspatsoftMuonBJetTag");
-  iEvent.put(jets_pat_softMuonNoIPBJetTag,               "jetspatsoftMuonNoIPBJetTag");
-  iEvent.put(jets_pat_trackCountingHighEffBJetTag,       "jetspattrackCountingHighEffBJetTag");
-  iEvent.put(jets_pat_trackCountingHighPurBJetTag,       "jetspattrackCountingHighPurBJetTag");
+
+
+  iEvent.put(jets_pat_combinedSecondaryVertexBJetTag,     "jetspatcombinedSecondaryVertexBJetTag");
+  iEvent.put(jets_pat_combinedSecondaryVertexMVABJetTag,     "jetspatcombinedSecondaryVertexMVABJetTag");
+  iEvent.put(jets_pat_coneIsolationTauJetTag,     "jetspatconeIsolationTauJetTag");
+  iEvent.put(jets_pat_impactParameterMVABJetTag,     "jetspatimpactParameterMVABJetTag");
+  iEvent.put(jets_pat_jetBProbabilityBJetTag,     "jetspatjetBProbabilityBJetTag");
+  iEvent.put(jets_pat_jetProbabilityBJetTag,     "jetspatjetProbabilityBJetTag");
+  iEvent.put(jets_pat_simpleSecondaryVertexHighEffBJetTag,     "jetspatsimpleSecondaryVertexHighEffBJetTag");
+  iEvent.put(jets_pat_simpleSecondaryVertexHighPurBJetTag,     "jetspatsimpleSecondaryVertexHighPurBJetTag");
+  iEvent.put(jets_pat_softElectronByIP3dBJetTag,     "jetspatsoftElectronByIP3dBJetTag");
+  iEvent.put(jets_pat_softElectronByPtBJetTag,     "jetspatsoftElectronByPtBJetTag");
+  iEvent.put(jets_pat_softMuonBJetTag,     "jetspatsoftMuonBJetTag");
+  iEvent.put(jets_pat_softMuonByIP3dBJetTag,     "jetspatsoftMuonByIP3dBJetTag");
+  iEvent.put(jets_pat_softMuonByPtBJetTag,     "jetspatsoftMuonByPtBJetTag");
+  iEvent.put(jets_pat_trackCountingHighEffBJetTag,     "jetspattrackCountingHighEffBJetTag");
+  iEvent.put(jets_pat_trackCountingHighPurBJetTag,     "jetspattrackCountingHighPurBJetTag");
   
 
   iEvent.put(jets_patgenParton_p4, "jetspatgenPartonp4");
