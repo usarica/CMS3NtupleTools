@@ -57,7 +57,7 @@ from CMS2.NtupleMaker.beamHaloSequence_cff import *
 from CMS2.NtupleMaker.randomConeIsoMaker_cfi import *
 
 
-CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * metCorSequence * cms2TrkJetSequence * CMS2Btagging * CMS2TrkBtagging * cms2beamHaloSequence)
+CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * metCorSequence * cms2TrkJetSequence * CMS2Btagging * CMS2TrkBtagging * cms2beamHaloSequence * cms2CaloTowerSequence)
 
 eventmakers   = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2beamHaloSequence * pixelDigiMaker)
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
