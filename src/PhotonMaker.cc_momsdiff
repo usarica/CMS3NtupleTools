@@ -1,0 +1,81 @@
+16c16
+< // $Id: PhotonMaker.cc_momsdiff,v 1.1 2010/05/10 19:37:04 warren Exp $
+---
+> // $Id: PhotonMaker.cc_momsdiff,v 1.1 2010/05/10 19:37:04 warren Exp $
+115,117c115,116
+< 	 // remove for default until these are in a release
+<      //produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
+<      //produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
+---
+>      produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
+>      produces<vector<float> >          (branchprefix+"minmom"            ).setBranchAlias(aliasprefix_+"_minmom"             );
+178,179c177,178
+<      //auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
+<      //auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
+---
+>      auto_ptr<vector<float> >        photons_majmom                (new vector<float>        ) ;
+>      auto_ptr<vector<float> >        photons_minmom                (new vector<float>        ) ;
+208,209d206
+< 
+< 
+232c229
+< 	 //const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
+---
+> 	 const CaloSubdetectorTopology *topology_eb = topology_->getSubdetectorTopology(DetId::Ecal, EcalBarrel);
+244,246c241,242
+< 	   // throw out photons below minEt
+< 	   if (photon->et() < minEt_)
+< 	   //instead of photon et, use sc et for alignment purposes (?)
+---
+> 	  // throw out photons below minEt
+> 	  if (photon->et() < minEt_)
+278d273
+< 		//cout << cms2scsseeddetid->at(i) << "  ";
+285d279
+< 	  //cout << endl;
+287,291c281
+< 		//this is understood: the photon can have energy significantly higher than SC for whatever reason.
+< 		//cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed())
+< 		//	 << "  photon et: " << photon->et()
+< 		//	 << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta())
+< 		//	 << endl;
+---
+> 		//cout << "No seed found" << endl; //no need to exit here...shit happens
+301c291
+< 	  //const CaloSubdetectorGeometry* geometry_eb = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalBarrel); 
+---
+> 	  const CaloSubdetectorGeometry* geometry_eb = geoHandle->getSubdetectorGeometry(DetId::Ecal, EcalBarrel);
+330,331c320,321
+< 		  //photons_majmom->push_back( -9999.99 );
+< 		  //photons_minmom->push_back( -9999.99 );
+---
+> 		  photons_majmom->push_back( -9999.99 );
+> 		  photons_minmom->push_back( -9999.99 );
+336,337c326,327
+< 		  //photons_majmom->push_back( -9999.99 );
+< 		  //photons_minmom->push_back( -9999.99 );
+---
+> 		  photons_majmom->push_back( -9999.99 );
+> 		  photons_minmom->push_back( -9999.99 );
+349,352c339,342
+< 		  //major/minor axis vars -- gone until these are in a release
+< 		  //reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEB, &(*geometry_eb), &(*topology_eb));
+< 		  //photons_majmom->push_back( tempShape.sMajMaj() );
+< 		  //photons_minmom->push_back( tempShape.sMinMin() );
+---
+> 		  //major/minor axis vars
+> 		  reco::ClusterShape tempShape = algo.Calculate(*tempCluster, recHitsEB, &(*geometry_eb), &(*topology_eb));
+> 		  photons_majmom->push_back( tempShape.sMajMaj() );
+> 		  photons_minmom->push_back( tempShape.sMinMin() );
+357,358c347,348
+< 		  //photons_majmom->push_back( -9999.99 );
+< 		  //photons_minmom->push_back( -9999.99 );
+---
+> 		  photons_majmom->push_back( -9999.99 );
+> 		  photons_minmom->push_back( -9999.99 );
+410,411c400,401
+<      //iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
+<      //iEvent.put(photons_minmom                     ,branchprefix+"minmom"      	      	);
+---
+>      iEvent.put(photons_majmom                     ,branchprefix+"majmom"      	      	);
+>      iEvent.put(photons_minmom                     ,branchprefix+"minmom"      	      	);
