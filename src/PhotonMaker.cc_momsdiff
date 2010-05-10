@@ -1,7 +1,3 @@
-16c16
-< // $Id: PhotonMaker.cc_momsdiff,v 1.1 2010/05/10 19:37:04 warren Exp $
----
-> // $Id: PhotonMaker.cc_momsdiff,v 1.1 2010/05/10 19:37:04 warren Exp $
 115,117c115,116
 < 	 // remove for default until these are in a release
 <      //produces<vector<float> >          (branchprefix+"majmom"            ).setBranchAlias(aliasprefix_+"_majmom"             );
