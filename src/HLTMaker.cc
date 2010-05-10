@@ -7,10 +7,12 @@ using namespace std;
 
 HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
 {
-  processName_        = iConfig.getUntrackedParameter<string>         ("processName");
+  processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
   fillTriggerObjects_ = iConfig.getUntrackedParameter<bool>           ("fillTriggerObjects");
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
-  processNamePrefix_  = TString(processName_); processNamePrefix_.ToLower();
+  aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
+  processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
+  
 
   produces<unsigned int>                    (Form("%sbits1"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits1"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits2"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits2"      ,processNamePrefix_.Data()));
