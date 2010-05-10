@@ -43,7 +43,7 @@ from JetMETAnalysis.HcalReflagging.HFrechitreflaggerJETMET_cff import *
 hfrecoV3  = HFrechitreflaggerJETMETv3.clone()
 hfrecoV3.hfFlagBit = cms.untracked.int32(30)
 hfrecoV4  = HFrechitreflaggerJETMETv4.clone()
-hfrecoV4.hfInputLabel  = cms.InputTag("hfrecoV3")
+hfrecoV4.hfInputLabel  = cms.untracked.InputTag("hfrecoV3")
 hfrecoV4.hfFlagBit = cms.untracked.int32(29)
 
 reflagging_step = cms.Sequence(hfrecoV3 * hfrecoV4)
