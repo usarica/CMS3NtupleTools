@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -31,7 +31,7 @@ process.options = cms.untracked.PSet(
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 
 
@@ -58,7 +58,7 @@ switchJetCollection35X(process,
                     cms.InputTag('prunedUncorrectedCMS2Jets'),   
                     doJTA            = True,            
                     doBTagging       = True,            
-                    jetCorrLabel     = None,
+                    jetCorrLabel     = ('AK5', 'Calo'),
                     doType1MET       = True,
                     genJetCollection = cms.InputTag("cms2antikt5GenJets"),
                     doJetID          = True,
