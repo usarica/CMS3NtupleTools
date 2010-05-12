@@ -20,6 +20,12 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
+  fillL1Particles_                      = iConfig.getUntrackedParameter<bool>("fillL1Particles"                      );
+  l1ParticlesProcessName_               = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName"             );
+  l1GlobalTriggerReadoutRecordInputTag_ = iConfig.getParameter<edm::InputTag>("l1GlobalTriggerReadoutRecordInputTag" );
+  l1extraParticlesInputTag_             = iConfig.getParameter<edm::InputTag>("l1extraParticlesInputTag"             );
+
+
   produces<unsigned int>           (branchprefix+"bits1"       ).setBranchAlias(aliasprefix_+"_bits1"        );
   produces<unsigned int>           (branchprefix+"bits2"       ).setBranchAlias(aliasprefix_+"_bits2"        );
   produces<unsigned int>           (branchprefix+"bits3"       ).setBranchAlias(aliasprefix_+"_bits3"        );
@@ -32,54 +38,51 @@ L1Maker::L1Maker(const edm::ParameterSet& iConfig) {
   produces<vector<unsigned int> >  (branchprefix+"techtrigprescales").setBranchAlias(aliasprefix_+"_techtrigprescales");
   produces<vector<TString> >       (branchprefix+"techtrigNames"    ).setBranchAlias(aliasprefix_+"_techtrigNames"     );    
   
-  produces<int>                    (branchprefix+"nmus"        ).setBranchAlias(aliasprefix_+"_nmus"         );
-  produces<int>                    (branchprefix+"nemiso"      ).setBranchAlias(aliasprefix_+"_nemiso"       );
-  produces<int>                    (branchprefix+"nemnoiso"    ).setBranchAlias(aliasprefix_+"_nemnoiso"     );
-  produces<int>                    (branchprefix+"njetsc"      ).setBranchAlias(aliasprefix_+"_njetsc"       );
-  produces<int>                    (branchprefix+"njetsf"      ).setBranchAlias(aliasprefix_+"_njetsf"       );
-  produces<int>                    (branchprefix+"njetst"      ).setBranchAlias(aliasprefix_+"_njetst"       );
-  produces<vector<int> >           (branchprefix+"musq"        ).setBranchAlias(aliasprefix_+"_mus_q"        );
-  produces<vector<int> >           (branchprefix+"musqual"     ).setBranchAlias(aliasprefix_+"_mus_qual"     );
-  produces<vector<int> >           (branchprefix+"musqualFlags").setBranchAlias(aliasprefix_+"_mus_qualFlags");
-  produces<vector<int> >           (branchprefix+"musflags"    ).setBranchAlias(aliasprefix_+"_mus_flags"    );
-  produces<vector<int> >           (branchprefix+"emisotype"   ).setBranchAlias(aliasprefix_+"_emiso_type"   );
-  produces<vector<int> >           (branchprefix+"emisorawId"  ).setBranchAlias(aliasprefix_+"_emiso_rawId"  );
-  produces<vector<int> >           (branchprefix+"emisoieta"   ).setBranchAlias(aliasprefix_+"_emiso_ieta"   );
-  produces<vector<int> >           (branchprefix+"emisoiphi"   ).setBranchAlias(aliasprefix_+"_emiso_iphi"   );
-  produces<vector<int> >           (branchprefix+"emnoisotype" ).setBranchAlias(aliasprefix_+"_emnoiso_type" );
-  produces<vector<int> >           (branchprefix+"emnoisorawId").setBranchAlias(aliasprefix_+"_emnoiso_rawId");
-  produces<vector<int> >           (branchprefix+"emnoisoieta" ).setBranchAlias(aliasprefix_+"_emnoiso_ieta" );
-  produces<vector<int> >           (branchprefix+"emnoisoiphi" ).setBranchAlias(aliasprefix_+"_emnoiso_iphi" );
-  produces<vector<int> >           (branchprefix+"jetsctype"   ).setBranchAlias(aliasprefix_+"_jetsc_type"   );
-  produces<vector<int> >           (branchprefix+"jetscrawId"  ).setBranchAlias(aliasprefix_+"_jetsc_rawId"  );
-  produces<vector<int> >           (branchprefix+"jetscieta"   ).setBranchAlias(aliasprefix_+"_jetsc_ieta"   );
-  produces<vector<int> >           (branchprefix+"jetsciphi"   ).setBranchAlias(aliasprefix_+"_jetsc_iphi"   );
-  produces<vector<int> >           (branchprefix+"jetsftype"   ).setBranchAlias(aliasprefix_+"_jetsf_type"   );
-  produces<vector<int> >           (branchprefix+"jetsfrawId"  ).setBranchAlias(aliasprefix_+"_jetsf_rawId"  );
-  produces<vector<int> >           (branchprefix+"jetsfieta"   ).setBranchAlias(aliasprefix_+"_jetsf_ieta"   );
-  produces<vector<int> >           (branchprefix+"jetsfiphi"   ).setBranchAlias(aliasprefix_+"_jetsf_iphi"   );
-  produces<vector<int> >           (branchprefix+"jetsttype"   ).setBranchAlias(aliasprefix_+"_jetst_type"   );
-  produces<vector<int> >           (branchprefix+"jetstrawId"  ).setBranchAlias(aliasprefix_+"_jetst_rawId"  );
-  produces<vector<int> >           (branchprefix+"jetstieta"   ).setBranchAlias(aliasprefix_+"_jetst_ieta"   );
-  produces<vector<int> >           (branchprefix+"jetstiphi"   ).setBranchAlias(aliasprefix_+"_jetst_iphi"   );
-  produces<float>                  (branchprefix+"metmet"      ).setBranchAlias(aliasprefix_+"_met_met"      );
-  produces<float>                  (branchprefix+"metetTot"    ).setBranchAlias(aliasprefix_+"_met_etTot"    );
-  produces<float>                  (branchprefix+"mhtmht"      ).setBranchAlias(aliasprefix_+"_mht_mht"      );
-  produces<float>                  (branchprefix+"mhthtTot"    ).setBranchAlias(aliasprefix_+"_mht_htTot"    );
+  if(fillL1Particles_) {
+    produces<int>                    (branchprefix+"nmus"        ).setBranchAlias(aliasprefix_+"_nmus"         );
+    produces<int>                    (branchprefix+"nemiso"      ).setBranchAlias(aliasprefix_+"_nemiso"       );
+    produces<int>                    (branchprefix+"nemnoiso"    ).setBranchAlias(aliasprefix_+"_nemnoiso"     );
+    produces<int>                    (branchprefix+"njetsc"      ).setBranchAlias(aliasprefix_+"_njetsc"       );
+    produces<int>                    (branchprefix+"njetsf"      ).setBranchAlias(aliasprefix_+"_njetsf"       );
+    produces<int>                    (branchprefix+"njetst"      ).setBranchAlias(aliasprefix_+"_njetst"       );
+    produces<vector<int> >           (branchprefix+"musq"        ).setBranchAlias(aliasprefix_+"_mus_q"        );
+    produces<vector<int> >           (branchprefix+"musqual"     ).setBranchAlias(aliasprefix_+"_mus_qual"     );
+    produces<vector<int> >           (branchprefix+"musqualFlags").setBranchAlias(aliasprefix_+"_mus_qualFlags");
+    produces<vector<int> >           (branchprefix+"musflags"    ).setBranchAlias(aliasprefix_+"_mus_flags"    );
+    produces<vector<int> >           (branchprefix+"emisotype"   ).setBranchAlias(aliasprefix_+"_emiso_type"   );
+    produces<vector<int> >           (branchprefix+"emisorawId"  ).setBranchAlias(aliasprefix_+"_emiso_rawId"  );
+    produces<vector<int> >           (branchprefix+"emisoieta"   ).setBranchAlias(aliasprefix_+"_emiso_ieta"   );
+    produces<vector<int> >           (branchprefix+"emisoiphi"   ).setBranchAlias(aliasprefix_+"_emiso_iphi"   );
+    produces<vector<int> >           (branchprefix+"emnoisotype" ).setBranchAlias(aliasprefix_+"_emnoiso_type" );
+    produces<vector<int> >           (branchprefix+"emnoisorawId").setBranchAlias(aliasprefix_+"_emnoiso_rawId");
+    produces<vector<int> >           (branchprefix+"emnoisoieta" ).setBranchAlias(aliasprefix_+"_emnoiso_ieta" );
+    produces<vector<int> >           (branchprefix+"emnoisoiphi" ).setBranchAlias(aliasprefix_+"_emnoiso_iphi" );
+    produces<vector<int> >           (branchprefix+"jetsctype"   ).setBranchAlias(aliasprefix_+"_jetsc_type"   );
+    produces<vector<int> >           (branchprefix+"jetscrawId"  ).setBranchAlias(aliasprefix_+"_jetsc_rawId"  );
+    produces<vector<int> >           (branchprefix+"jetscieta"   ).setBranchAlias(aliasprefix_+"_jetsc_ieta"   );
+    produces<vector<int> >           (branchprefix+"jetsciphi"   ).setBranchAlias(aliasprefix_+"_jetsc_iphi"   );
+    produces<vector<int> >           (branchprefix+"jetsftype"   ).setBranchAlias(aliasprefix_+"_jetsf_type"   );
+    produces<vector<int> >           (branchprefix+"jetsfrawId"  ).setBranchAlias(aliasprefix_+"_jetsf_rawId"  );
+    produces<vector<int> >           (branchprefix+"jetsfieta"   ).setBranchAlias(aliasprefix_+"_jetsf_ieta"   );
+    produces<vector<int> >           (branchprefix+"jetsfiphi"   ).setBranchAlias(aliasprefix_+"_jetsf_iphi"   );
+    produces<vector<int> >           (branchprefix+"jetsttype"   ).setBranchAlias(aliasprefix_+"_jetst_type"   );
+    produces<vector<int> >           (branchprefix+"jetstrawId"  ).setBranchAlias(aliasprefix_+"_jetst_rawId"  );
+    produces<vector<int> >           (branchprefix+"jetstieta"   ).setBranchAlias(aliasprefix_+"_jetst_ieta"   );
+    produces<vector<int> >           (branchprefix+"jetstiphi"   ).setBranchAlias(aliasprefix_+"_jetst_iphi"   );
+    produces<float>                  (branchprefix+"metmet"      ).setBranchAlias(aliasprefix_+"_met_met"      );
+    produces<float>                  (branchprefix+"metetTot"    ).setBranchAlias(aliasprefix_+"_met_etTot"    );
+    produces<float>                  (branchprefix+"mhtmht"      ).setBranchAlias(aliasprefix_+"_mht_mht"      );
+    produces<float>                  (branchprefix+"mhthtTot"    ).setBranchAlias(aliasprefix_+"_mht_htTot"    );
         
-  produces<vector<LorentzVector> > (branchprefix+"musp4"       ).setBranchAlias(aliasprefix_+"_mus_p4"       );
-  produces<vector<LorentzVector> > (branchprefix+"emisop4"     ).setBranchAlias(aliasprefix_+"_emiso_p4"     );
-  produces<vector<LorentzVector> > (branchprefix+"emnoisop4"   ).setBranchAlias(aliasprefix_+"_emnoiso_p4"   );
-  produces<vector<LorentzVector> > (branchprefix+"jetscp4"     ).setBranchAlias(aliasprefix_+"_jetsc_p4"     );
-  produces<vector<LorentzVector> > (branchprefix+"jetsfp4"     ).setBranchAlias(aliasprefix_+"_jetsf_p4"     );
-  produces<vector<LorentzVector> > (branchprefix+"jetstp4"     ).setBranchAlias(aliasprefix_+"_jetst_p4"     );
-  produces<LorentzVector>          (branchprefix+"metp4"       ).setBranchAlias(aliasprefix_+"_met_p4"       );
-  produces<LorentzVector>          (branchprefix+"mhtp4"       ).setBranchAlias(aliasprefix_+"_mht_p4"       );
-
-  fillL1Particles_                      = iConfig.getUntrackedParameter<bool>("fillL1Particles"                      );
-  l1ParticlesProcessName_               = iConfig.getUntrackedParameter<string>("l1ParticlesProcessName"             );
-  l1GlobalTriggerReadoutRecordInputTag_ = iConfig.getParameter<edm::InputTag>("l1GlobalTriggerReadoutRecordInputTag" );
-  l1extraParticlesInputTag_             = iConfig.getParameter<edm::InputTag>("l1extraParticlesInputTag"             );
+    produces<vector<LorentzVector> > (branchprefix+"musp4"       ).setBranchAlias(aliasprefix_+"_mus_p4"       );
+    produces<vector<LorentzVector> > (branchprefix+"emisop4"     ).setBranchAlias(aliasprefix_+"_emiso_p4"     );
+    produces<vector<LorentzVector> > (branchprefix+"emnoisop4"   ).setBranchAlias(aliasprefix_+"_emnoiso_p4"   );
+    produces<vector<LorentzVector> > (branchprefix+"jetscp4"     ).setBranchAlias(aliasprefix_+"_jetsc_p4"     );
+    produces<vector<LorentzVector> > (branchprefix+"jetsfp4"     ).setBranchAlias(aliasprefix_+"_jetsf_p4"     );
+    produces<vector<LorentzVector> > (branchprefix+"jetstp4"     ).setBranchAlias(aliasprefix_+"_jetst_p4"     );
+    produces<LorentzVector>          (branchprefix+"metp4"       ).setBranchAlias(aliasprefix_+"_met_p4"       );
+    produces<LorentzVector>          (branchprefix+"mhtp4"       ).setBranchAlias(aliasprefix_+"_mht_p4"       );
+  }
 
 }
 
@@ -149,7 +152,7 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<L1GlobalTriggerReadoutRecord > gtRecord;
   iEvent.getByLabel(l1GlobalTriggerReadoutRecordInputTag_, gtRecord);
 
-    // Note these are both std::vector<bool>
+  // Note these are both std::vector<bool>
   const DecisionWord &gtDecisionWordBeforeMask = gtRecord->decisionWord();
   const TechnicalTriggerWord &technicalTriggerWordBeforeMask = gtRecord->technicalTriggerWord();
   
@@ -384,48 +387,51 @@ void L1Maker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(l1techtrigprescales,branchprefix+"techtrigprescales" );
   iEvent.put(l1techtrigNames,    branchprefix+"techtrigNames"     );
 
-  iEvent.put(l1nmus,         branchprefix+"nmus"          );
-  iEvent.put(l1nemiso,       branchprefix+"nemiso"        );
-  iEvent.put(l1nemnoiso,     branchprefix+"nemnoiso"      );
-  iEvent.put(l1njetsc,       branchprefix+"njetsc"        );
-  iEvent.put(l1njetsf,       branchprefix+"njetsf"        );
-  iEvent.put(l1njetst,       branchprefix+"njetst"        );
-  iEvent.put(l1mus_q,        branchprefix+"musq"          );
-  iEvent.put(l1mus_qual,     branchprefix+"musqual"       );
-  iEvent.put(l1mus_qualFlags,branchprefix+"musqualFlags"  );
-  iEvent.put(l1mus_flags,    branchprefix+"musflags"      );
-  iEvent.put(l1emiso_type,   branchprefix+"emisotype"     );
-  iEvent.put(l1emiso_rawId,  branchprefix+"emisorawId"    );
-  iEvent.put(l1emiso_ieta,   branchprefix+"emisoieta"     );
-  iEvent.put(l1emiso_iphi,   branchprefix+"emisoiphi"     );
-  iEvent.put(l1emnoiso_type, branchprefix+"emnoisotype"   );
-  iEvent.put(l1emnoiso_rawId,branchprefix+"emnoisorawId"  );
-  iEvent.put(l1emnoiso_ieta, branchprefix+"emnoisoieta"   );
-  iEvent.put(l1emnoiso_iphi, branchprefix+"emnoisoiphi"   );
-  iEvent.put(l1jetsc_type,   branchprefix+"jetsctype"     );
-  iEvent.put(l1jetsc_rawId,  branchprefix+"jetscrawId"    );
-  iEvent.put(l1jetsc_ieta,   branchprefix+"jetscieta"     );
-  iEvent.put(l1jetsc_iphi,   branchprefix+"jetsciphi"     );
-  iEvent.put(l1jetsf_type,   branchprefix+"jetsftype"     );
-  iEvent.put(l1jetsf_rawId,  branchprefix+"jetsfrawId"    );
-  iEvent.put(l1jetsf_ieta,   branchprefix+"jetsfieta"     );
-  iEvent.put(l1jetsf_iphi,   branchprefix+"jetsfiphi"     );
-  iEvent.put(l1jetst_type,   branchprefix+"jetsttype"     );
-  iEvent.put(l1jetst_rawId,  branchprefix+"jetstrawId"    );
-  iEvent.put(l1jetst_ieta,   branchprefix+"jetstieta"     );
-  iEvent.put(l1jetst_iphi,   branchprefix+"jetstiphi"     );
-  iEvent.put(l1met_met,      branchprefix+"metmet"        );
-  iEvent.put(l1met_etTot,    branchprefix+"metetTot"      );
-  iEvent.put(l1met_p4,       branchprefix+"metp4"         );
-  iEvent.put(l1mht_mht,      branchprefix+"mhtmht"        );
-  iEvent.put(l1mht_htTot,    branchprefix+"mhthtTot"      );
-  iEvent.put(l1mht_p4,       branchprefix+"mhtp4"         );
-  iEvent.put(l1mus_p4,       branchprefix+"musp4"         );
-  iEvent.put(l1emiso_p4,     branchprefix+"emisop4"       );
-  iEvent.put(l1emnoiso_p4,   branchprefix+"emnoisop4"     );
-  iEvent.put(l1jetsc_p4,     branchprefix+"jetscp4"       );
-  iEvent.put(l1jetsf_p4,     branchprefix+"jetsfp4"       );
-  iEvent.put(l1jetst_p4,     branchprefix+"jetstp4"       );
+  if(fillL1Particles_) {
+    iEvent.put(l1nmus,         branchprefix+"nmus"          );
+    iEvent.put(l1nemiso,       branchprefix+"nemiso"        );
+    iEvent.put(l1nemnoiso,     branchprefix+"nemnoiso"      );
+    iEvent.put(l1njetsc,       branchprefix+"njetsc"        );
+    iEvent.put(l1njetsf,       branchprefix+"njetsf"        );
+    iEvent.put(l1njetst,       branchprefix+"njetst"        );
+    iEvent.put(l1mus_q,        branchprefix+"musq"          );
+    iEvent.put(l1mus_qual,     branchprefix+"musqual"       );
+    iEvent.put(l1mus_qualFlags,branchprefix+"musqualFlags"  );
+    iEvent.put(l1mus_flags,    branchprefix+"musflags"      );
+    iEvent.put(l1emiso_type,   branchprefix+"emisotype"     );
+    iEvent.put(l1emiso_rawId,  branchprefix+"emisorawId"    );
+    iEvent.put(l1emiso_ieta,   branchprefix+"emisoieta"     );
+    iEvent.put(l1emiso_iphi,   branchprefix+"emisoiphi"     );
+    iEvent.put(l1emnoiso_type, branchprefix+"emnoisotype"   );
+    iEvent.put(l1emnoiso_rawId,branchprefix+"emnoisorawId"  );
+    iEvent.put(l1emnoiso_ieta, branchprefix+"emnoisoieta"   );
+    iEvent.put(l1emnoiso_iphi, branchprefix+"emnoisoiphi"   );
+    iEvent.put(l1jetsc_type,   branchprefix+"jetsctype"     );
+    iEvent.put(l1jetsc_rawId,  branchprefix+"jetscrawId"    );
+    iEvent.put(l1jetsc_ieta,   branchprefix+"jetscieta"     );
+    iEvent.put(l1jetsc_iphi,   branchprefix+"jetsciphi"     );
+    iEvent.put(l1jetsf_type,   branchprefix+"jetsftype"     );
+    iEvent.put(l1jetsf_rawId,  branchprefix+"jetsfrawId"    );
+    iEvent.put(l1jetsf_ieta,   branchprefix+"jetsfieta"     );
+    iEvent.put(l1jetsf_iphi,   branchprefix+"jetsfiphi"     );
+    iEvent.put(l1jetst_type,   branchprefix+"jetsttype"     );
+    iEvent.put(l1jetst_rawId,  branchprefix+"jetstrawId"    );
+    iEvent.put(l1jetst_ieta,   branchprefix+"jetstieta"     );
+    iEvent.put(l1jetst_iphi,   branchprefix+"jetstiphi"     );
+    iEvent.put(l1met_met,      branchprefix+"metmet"        );
+    iEvent.put(l1met_etTot,    branchprefix+"metetTot"      );
+    iEvent.put(l1met_p4,       branchprefix+"metp4"         );
+    iEvent.put(l1mht_mht,      branchprefix+"mhtmht"        );
+    iEvent.put(l1mht_htTot,    branchprefix+"mhthtTot"      );
+    iEvent.put(l1mht_p4,       branchprefix+"mhtp4"         );
+    iEvent.put(l1mus_p4,       branchprefix+"musp4"         );
+    iEvent.put(l1emiso_p4,     branchprefix+"emisop4"       );
+    iEvent.put(l1emnoiso_p4,   branchprefix+"emnoisop4"     );
+    iEvent.put(l1jetsc_p4,     branchprefix+"jetscp4"       );
+    iEvent.put(l1jetsf_p4,     branchprefix+"jetsfp4"       );
+    iEvent.put(l1jetst_p4,     branchprefix+"jetstp4"       );
+
+  }
 }
 
 void L1Maker::fillL1Info(
