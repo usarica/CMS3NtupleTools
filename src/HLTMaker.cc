@@ -161,8 +161,11 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
   for(unsigned int i = 0; i < prunedTriggerNames_.size(); ++i) {
     // uses wildcard matching like on the command line, not
     // straight up regexp
-    TRegexp reg(Form("%s", prunedTriggerNames_[i].c_str()), true);
+    TString pattern(prunedTriggerNames_[i]);
+    pattern.ToLower();
+    TRegexp reg(Form("%s", pattern.Data()), true);
     TString sname(name);
+    sname.ToLower();
     if (sname.Index(reg) >= 0)
       return true;
   }
