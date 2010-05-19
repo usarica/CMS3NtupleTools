@@ -15,14 +15,14 @@ hlt8e29Maker = cms.EDProducer("HLTMaker",
         "*Ele*",
         # jets
         "*Jet*",
-         #met	
-        "*met*",
+         #MET	
+        "*MET*",
         "HLT_Jet50U",
         "HLT_DiJetAve15U",
         "HLT_DiJetAve30U",
         "HLT_FwdJet20U",
         "HLT_QuadJet15U",
-        # met
+        # MET
         "HLT_MET45",
         "HLT_MET100",
         # ht
@@ -50,7 +50,7 @@ hlt8e29Maker = cms.EDProducer("HLTMaker",
     )
 )
 
-hlt1E31Maker = cms.EDProducer("HLTMaker",
+hlt1e31Maker = cms.EDProducer("HLTMaker",
     processName = cms.untracked.string("HLT"),
     aliasPrefix = cms.untracked.string("hlt1e31"),
     fillTriggerObjects = cms.untracked.bool(True),
@@ -60,8 +60,8 @@ hlt1E31Maker = cms.EDProducer("HLTMaker",
         "*Ele*",
         # jets
         "*Jet*",
-        #met	
-        "*met*",
+        #MET	
+        "*MET*",
         "HLT_Jet110",
         "HLT_DiJetAve15U",
         "HLT_DiJetAve30U",
@@ -70,7 +70,7 @@ hlt1E31Maker = cms.EDProducer("HLTMaker",
         "HLT_DiJetAve130U",
         "HLT_FwdJet40",
         "HLT_QuadJet30",
-        # met
+        # MET
         "HLT_MET60",
         "HLT_MET100",
         # ht
@@ -111,8 +111,8 @@ hltMaker = cms.EDProducer("HLTMaker",
         "*Ele*",
         # jets
         "*Jet*",
-        #met	
-        "*met*",
+        #MET	
+        "*MET*",
         "HLT_Jet110",
         "HLT_DiJetAve15U",
         "HLT_DiJetAve30U",
@@ -121,7 +121,7 @@ hltMaker = cms.EDProducer("HLTMaker",
         "HLT_DiJetAve130U",
         "HLT_FwdJet40",
         "HLT_QuadJet30",
-        # met
+        # MET
         "HLT_MET60",
         "HLT_MET100",
         # ht
