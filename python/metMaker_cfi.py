@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 metMaker = cms.EDFilter("METMaker",
 	aliasPrefix = cms.untracked.string("evt"),
                         met_tag_               = cms.InputTag("met"                  ),               
+                        met36x_tag_            = cms.InputTag("metNew"               ),
                         metHO_tag_             = cms.InputTag("metHO"                ),             
                         metNoHF_tag_           = cms.InputTag("metNoHF"              ),           
                         metNoHFHO_tag_         = cms.InputTag("metNoHFHO"            ),                        
@@ -14,7 +15,8 @@ metMaker = cms.EDFilter("METMaker",
                         MuonJEScorMET_tag_     = cms.InputTag("metMuonJESCorAK5CMS2" ),
                         muon_tag_              = cms.InputTag("muons"                ),
                         muon_vm_tag_           = cms.InputTag("muonMETValueMapProducer", "muCorrData"),
-                        caloTower_tag_         = cms.InputTag("towerMaker"),
+                        caloTower_tag_         = cms.InputTag("cms2towerMaker"),
+                        hbheNoiseFilterInputTag_ = cms.InputTag("cms2HBHENoiseFilterResultProducer"),
                         towerEtThreshold_      = cms.double(0.3),
 			make_eta_rings_        = cms.bool(False)
 )                                                              
