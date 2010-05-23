@@ -11,6 +11,7 @@ tcmetMakerOld.aliasPrefix = cms.untracked.string("evt35X")
 muonMETValueMapProducerNew = muonMETValueMapProducer.clone()
 muonTCMETValueMapProducerNew = muonTCMETValueMapProducer.clone()
 tcMetNew = tcMet.clone()
+tcMetNew.metInputTag = cms.InputTag("metNew")
 tcMetNew.muonDepValueMap = cms.InputTag("muonMETValueMapProducerNew", "muCorrData")
 tcMetNew.tcmetDepValueMap = cms.InputTag("muonTCMETValueMapProducerNew", "muCorrData")
 
