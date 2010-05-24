@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -85,24 +85,15 @@ process.source = cms.Source("PoolSource",
     ),
 )
 
-process.out = cms.OutputModule(
-        "PoolOutputModule",
-        verbose = cms.untracked.bool(True),
-        dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple.root')
-)
-
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
-
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
-#process.load("CMS2.NtupleMaker.caloTowerSequence_cff")
 process.load("CMS2.NtupleMaker.cms2EcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
+
+process.filter = cms.Path(process.sdFilter)
 
 process.hltMaker.processName = cms.untracked.string("HLT")
 process.hltMakerSequence = cms.Sequence(process.hltMaker)
@@ -111,16 +102,28 @@ process.hltMakerSequence = cms.Sequence(process.hltMaker)
 process.hypDilepMaker.TightLepton_PtCut=cms.double(7.0)
 process.hypDilepMaker.LooseLepton_PtCut=cms.double(7.0)
 
+process.out = cms.OutputModule(
+        "PoolOutputModule",
+        verbose = cms.untracked.bool(True),
+        dropMetaData = cms.untracked.string("NONE"),
+        fileName = cms.untracked.string('ntuple.root'),
+        SelectEvents = cms.untracked.PSet(
+           SelectEvents = cms.vstring('filter')
+        )
+)
+
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
+
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.sdFilter
-                                                       * process.cms2CoreSequence
+process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
+                                                       * process.patDefaultSequence
+                                                       * process.cms2PATSequence
                                                        * process.cms2ECALcleaningSequence
                                                        * process.cms2HCALcleaningSequence
-                                                       * process.cms2HFcleaningSequence
-                                                       * process.patDefaultSequence
-                                                       * process.cms2PATSequence)
+                                                       * process.cms2HFcleaningSequence)
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
