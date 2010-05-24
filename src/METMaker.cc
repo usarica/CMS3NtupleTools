@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.23 2010/05/24 14:21:23 fgolf Exp $
+// $Id: METMaker.cc,v 1.24 2010/05/24 14:29:14 fgolf Exp $
 //
 //
 
@@ -287,7 +287,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
      iEvent.getByLabel(hbheNoiseFilterInputTag, filter_h);
      iEvent.getByLabel(met_tag      , met_h       );
-     iEvent.getByLabel(met36x_tag   , met36x_h    );
      iEvent.getByLabel(metHO_tag    , metHO_h     );
      iEvent.getByLabel(metNoHF_tag  , metNoHF_h   );
      iEvent.getByLabel(metNoHFHO_tag, metNoHFHO_h );
@@ -481,11 +480,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      if(branchprefix.find("_") != std::string::npos)
 	  branchprefix.replace(branchprefix.find("_"),1,"");
 
-
-     iEvent.put(evt35x_met            ,"evt35xmet"              );
-     iEvent.put(evt35x_metPhi         ,"evt35xmetPhi"           );
-     iEvent.put(evt35x_metSig         ,"evt35xmetSig"           );
-     iEvent.put(evt35x_sumet          ,"evt35xsumet"            );
+     iEvent.put(evt_hbheFilter        ,branchprefix+"hbheFilter"       );
      iEvent.put(evt_met               ,branchprefix+"met"              );
      iEvent.put(evt_metPhi            ,branchprefix+"metPhi"           );
      iEvent.put(evt_metSig            ,branchprefix+"metSig"           );
