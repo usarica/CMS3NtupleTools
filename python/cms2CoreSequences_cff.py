@@ -40,7 +40,7 @@ from CMS2.NtupleMaker.pfJetMaker_cfi import *
 from CMS2.NtupleMaker.pfmetMaker_cfi import *
 from CMS2.NtupleMaker.photonMaker_cfi import *
 from CMS2.NtupleMaker.scMaker_cfi import *
-from CMS2.NtupleMaker.tcmetSequence_cff import *
+from CMS2.NtupleMaker.tcmetMaker_cfi import *
 from CMS2.NtupleMaker.trackMaker_cfi import *
 from CMS2.NtupleMaker.trackToElsAssMaker_cfi import *
 from CMS2.NtupleMaker.trackToMuonAssMaker_cfi import *
@@ -56,7 +56,7 @@ eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalN
                  
 trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
                  
-makers           = cms.Sequence(trackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * JPTCorrections * metMaker * tcmetSequence)
+makers           = cms.Sequence(trackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * JPTCorrections * metMaker * tcmetMaker)
                  
 assmakers        = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * jptToCaloJetAssMaker)
                  
