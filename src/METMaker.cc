@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.24 2010/05/24 14:29:14 fgolf Exp $
+// $Id: METMaker.cc,v 1.25 2010/05/24 15:14:30 fgolf Exp $
 //
 //
 
@@ -65,7 +65,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      if(branchprefix.find("_") != std::string::npos)
 	  branchprefix.replace(branchprefix.find("_"),1,"");
      
-     produces<float> (branchprefix+"hbhbeFilter").setBranchAlias(aliasprefix_+"_hbheFilter");
+     produces<bool> (branchprefix+"hbheFilter").setBranchAlias(aliasprefix_+"_hbheFilter");
 
      produces<float> (branchprefix+"met"          ).setBranchAlias(aliasprefix_+"_met"          );
      produces<float> (branchprefix+"metPhi"       ).setBranchAlias(aliasprefix_+"_metPhi"       );
