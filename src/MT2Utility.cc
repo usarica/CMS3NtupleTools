@@ -82,7 +82,7 @@ void mt2::set_momenta(double* pa0, double* pb0, double* pmiss0)
    mbsq = mb*mb;
    Ebsq = mbsq+pbx*pbx+pby*pby;
    Eb   = sqrt(Ebsq);
-     
+
    pmissx   = pmiss0[1]; pmissy = pmiss0[2];
    pmissxsq = pmissx*pmissx;
    pmissysq = pmissy*pmissy;
@@ -257,6 +257,7 @@ void mt2::mt2_massless()
    double minmass, maxmass;
    minmass = sqrt(Deltasq_low+mnsq);
    maxmass = sqrt(Deltasq_high+mnsq);
+   int nInLoop = 0;
    while(maxmass - minmass > precision)
    {
       double Delta_mid, midmass, nsols_mid;
@@ -265,6 +266,8 @@ void mt2::mt2_massless()
       nsols_mid = nsols_massless(Delta_mid);
       if(nsols_mid != nsols_low) maxmass = midmass;
       if(nsols_mid == nsols_low) minmass = midmass;
+      nInLoop++;
+      if (nInLoop>10000) break;
    }
    mt2_b = minmass;
    return;
@@ -463,8 +466,11 @@ void mt2::mt2_bisect()
       
    }
 
+   int nInLoop = 0;
    while(sqrt(Deltasq_high+mnsq) - sqrt(Deltasq_low+mnsq) > precision)
    {
+     nInLoop++;
+     if (nInLoop > 10000) break;
       double Deltasq_mid,nsols_mid;
       //bisect
       Deltasq_mid = (Deltasq_high+Deltasq_low)/2.;
@@ -492,8 +498,11 @@ int mt2::find_high(double & Deltasq_high)
    x0 = (c1*d1-b1*e1)/(b1*b1-a1*c1);
    y0 = (a1*e1-b1*d1)/(b1*b1-a1*c1);
    double Deltasq_low = (mn + ma)*(mn + ma) - mnsq;
+   int nInLoop = 0;
    do 
    {
+     nInLoop++;
+     if (nInLoop>10000) break;
       double Deltasq_mid = (Deltasq_high + Deltasq_low)/2.;
       int nsols_mid = nsols(Deltasq_mid);
       if ( nsols_mid == 2 )
