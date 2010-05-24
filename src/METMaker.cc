@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.22 2010/05/23 17:59:43 fgolf Exp $
+// $Id: METMaker.cc,v 1.23 2010/05/24 14:21:23 fgolf Exp $
 //
 //
 
@@ -66,10 +66,6 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
 	  branchprefix.replace(branchprefix.find("_"),1,"");
      
      produces<float> (branchprefix+"hbhbeFilter").setBranchAlias(aliasprefix_+"_hbheFilter");
-     produces<float> ("evt35xmet").setBranchAlias("evt35x_met");
-     produces<float> ("evt35xmetPhi").setBranchAlias("evt35x_metPhi");
-     produces<float> ("evt35xmetSig").setBranchAlias("evt35x_metSig");
-     produces<float> ("evt35xsumet").setBranchAlias("evt35x_sumet");
 
      produces<float> (branchprefix+"met"          ).setBranchAlias(aliasprefix_+"_met"          );
      produces<float> (branchprefix+"metPhi"       ).setBranchAlias(aliasprefix_+"_metPhi"       );
@@ -150,7 +146,6 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      produces<float> (branchprefix+"hcalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapm_metPhi"       );
   
      met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
-     met36x_tag            = iConfig.getParameter<edm::InputTag>("met36x_tag_"            );
      metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
      metNoHF_tag           = iConfig.getParameter<edm::InputTag>("metNoHF_tag_"           );   
      metNoHFHO_tag         = iConfig.getParameter<edm::InputTag>("metNoHFHO_tag_"         ); 
@@ -198,10 +193,6 @@ void METMaker::endJob()
 void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
      auto_ptr<bool>    evt_hbheFilter          (new bool      );
-     auto_ptr<float>   evt35x_met              (new float     );
-     auto_ptr<float>   evt35x_metPhi           (new float     );
-     auto_ptr<float>   evt35x_metSig           (new float     );
-     auto_ptr<float>   evt35x_sumet            (new float     );
      auto_ptr<float>   evt_met                 (new float     );
      auto_ptr<float>   evt_metPhi              (new float     );
      auto_ptr<float>   evt_metSig              (new float     );
@@ -278,7 +269,6 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel("towerMaker", h_caloTowers);
 
      edm::Handle< edm::View<reco::CaloMET> > met_h;
-     edm::Handle< edm::View<reco::CaloMET> > met36x_h;
      edm::Handle< edm::View<reco::CaloMET> > metHO_h;
      edm::Handle< edm::View<reco::CaloMET> > metNoHF_h;
      edm::Handle< edm::View<reco::CaloMET> > metNoHFHO_h;
@@ -314,14 +304,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel(muon_tag   , muon_h    );
     
      *evt_hbheFilter   = *filter_h;
-     *evt35x_met       = ( met_h->front()       ).et();
-     *evt35x_metPhi    = ( met_h->front()       ).phi();
-     *evt35x_metSig    = ( met_h->front()       ).metSignificance();
-     *evt35x_sumet     = ( met_h->front()       ).sumEt();
-     *evt_met          = ( met36x_h->front()    ).et();
-     *evt_metPhi       = ( met36x_h->front()    ).phi();
-     *evt_metSig       = ( met36x_h->front()    ).metSignificance();
-     *evt_sumet        = ( met36x_h->front()    ).sumEt();
+     *evt_met          = ( met_h->front()    ).et();
+     *evt_metPhi       = ( met_h->front()    ).phi();
+     *evt_metSig       = ( met_h->front()    ).metSignificance();
+     *evt_sumet        = ( met_h->front()    ).sumEt();
      *evt_metHO        = ( metHO_h->front()     ).et();
      *evt_metHOPhi     = ( metHO_h->front()     ).phi();
      *evt_metHOSig     = ( metHO_h->front()     ).metSignificance();

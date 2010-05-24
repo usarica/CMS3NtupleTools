@@ -3,7 +3,6 @@ import FWCore.ParameterSet.Config as cms
 metMaker = cms.EDFilter("METMaker",
 	aliasPrefix = cms.untracked.string("evt"),
                         met_tag_               = cms.InputTag("met"                  ),               
-                        met36x_tag_            = cms.InputTag("metNew"               ),
                         metHO_tag_             = cms.InputTag("metHO"                ),             
                         metNoHF_tag_           = cms.InputTag("metNoHF"              ),           
                         metNoHFHO_tag_         = cms.InputTag("metNoHFHO"            ),                        
