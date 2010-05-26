@@ -5,15 +5,15 @@
 // 
 /**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/BeamHaloMaker.cc
 
- Description: <one line class summary>
+   Description: <one line class summary>
 
- Implementation:
-     <Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BeamHaloMaker.h,v 1.3 2010/03/02 19:24:11 fgolf Exp $
+// $Id: BeamHaloMaker.h,v 1.4 2010/05/26 12:09:44 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_BEAMSPOTMAKER_H
@@ -39,7 +39,7 @@
 class BeamHaloMaker : public edm::EDProducer {
 public:
      explicit BeamHaloMaker (const edm::ParameterSet&);
-      ~BeamHaloMaker();
+     ~BeamHaloMaker();
 
 private:
      virtual void beginJob() ;
@@ -47,8 +47,8 @@ private:
      virtual void endJob() ;
      std::vector<TString> convertToVectorTString(const std::vector<char>);
 
-   edm::InputTag beamHaloInputTag;
-    
+     edm::InputTag beamHaloInputTag;
+     edm::InputTag cscHaloInputTag;
 };
 
 
