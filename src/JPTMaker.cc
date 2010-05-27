@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.15 2010/05/03 23:12:28 kalavase Exp $
+// $Id: JPTMaker.cc,v 1.16 2010/05/27 10:47:31 fgolf Exp $
 //
 //
 
@@ -96,19 +96,12 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
 
   *evt_njpts = jptsHandle->size();
-
-  std::vector<reco::JPTJet> v_jpts      = *( jptsHandle.product()      );
-  
-  //sort jets by pt (decreasing)
-  std::sort( v_jpts.begin(), v_jpts.end(), sortJptsByPt );
   
   //get L2L3 JPT corrections
   const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (JPTCorrectorL2L3_, iSetup);
   
-  for ( std::vector<reco::JPTJet>::const_iterator jpt = v_jpts.begin(); jpt != v_jpts.end(); ++jpt ) {
+  for ( std::vector<reco::JPTJet>::const_iterator jpt = jptsHandle->begin(); jpt != jptsHandle->end(); ++jpt ) {
 
-    if(jpt->pt() < minUncorPt_)
-      continue;
     double cor = correctorL2L3->correction(jpt->p4());
     const reco::CaloJet *cJet = dynamic_cast<const reco::CaloJet*>((jpt->getCaloJetRef()).get());
     vector_jpts_p4     ->push_back( LorentzVector( jpt->p4() )          );
