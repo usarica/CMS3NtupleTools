@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.5 $'),
+        version = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -50,10 +50,10 @@ addMuonUserIsolation.toolCode(process)
 #change JetID tag
 from PhysicsTools.PatAlgos.tools.jetTools import *
 from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
-run36xOn35xInput(process)
-addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets'), "antikt5" )
+#run36xOn35xInput(process)
+addJetID( process, cms.InputTag("prunedUncorrectedCMS2Jets", "calojet"), "antikt5" )
 switchJetCollection35X(process, 
-                    cms.InputTag('prunedUncorrectedCMS2Jets'),   
+                    cms.InputTag("prunedUncorrectedCMS2Jets", "calojet"),   
                     doJTA            = True,            
                     doBTagging       = True,            
                     jetCorrLabel     = ('AK5', 'Calo'),
@@ -68,6 +68,9 @@ from PhysicsTools.PatAlgos.tools.coreTools import *
 #uncomment for data
 removeMCMatching(process, ['All'])
 
+from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+
 #-----------------------------------------------------------
 # configure input data files and number of event to process
 #-----------------------------------------------------------
@@ -81,7 +84,7 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        '/store/data/Commissioning10/MinimumBias/RAW-RECO/May6thPDSkim_GOODCOLL-v1/0000/005706E3-8B5C-DF11-8775-00261894397D.root'
+        'file:D6ED2A95-515D-DF11-ABD2-0018F3D096DC.root'
     ),
 )
 
