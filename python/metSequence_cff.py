@@ -5,7 +5,7 @@ from JetMETCorrections.Type1MET.MetType1Corrections_cff import metJESCorIC5CaloJ
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
 
 metMuonJESCorAK5CMS2                     = metJESCorIC5CaloJet.clone()
-metMuonJESCorAK5CMS2.inputUncorJetsLabel = "prunedUncorrectedCMS2Jets"
+metMuonJESCorAK5CMS2.inputUncorJetsLabel = "ak5CaloJets"
 metMuonJESCorAK5CMS2.corrector           = "ak5CaloL2L3"
 metMuonJESCorAK5CMS2.inputUncorMetLabel  = "corMetGlobalMuons"
 
