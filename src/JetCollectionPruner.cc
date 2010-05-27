@@ -26,11 +26,13 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
+#include "DataFormats/JetReco/interface/JPTJet.h"
+#include "DataFormats/JetReco/interface/JPTJetCollection.h"
 #include "CMS2/NtupleMaker/interface/JetCollectionPruner.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
-bool sortJetsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
-  return jet1.pt() > jet2.pt();
+bool sortJetsByPt(reco::JPTJet jet1, reco::JPTJet jet2) {
+     return jet1.pt() > jet2.pt();
 }
 
 //
@@ -38,51 +40,49 @@ bool sortJetsByPt(reco::CaloJet jet1, reco::CaloJet jet2) {
 //
 JetCollectionPruner::JetCollectionPruner(const edm::ParameterSet& iConfig)
 {
-  // define what to produce
-  produces<reco::CaloJetCollection>();
+     // define what to produce
+     produces<reco::JPTJetCollection>("jpt");
+     produces<reco::CaloJetCollection>("calojet");
 
-  // get the input collection of electrons
-  inputUncorrectedJetCollection_ = iConfig.getParameter<edm::InputTag>("inputUncorrectedJetCollection");
-  CaloJetCorrectorL2L3_          = iConfig.getParameter<std::string>  ("CaloJetCorrectorL2L3"      );
-  uncorrectedJetPtCut_           = iConfig.getParameter<double>       ("uncorrectedJetPtCut"          );
-  usecorrectedCut_               = iConfig.getParameter<bool>         ("usecorrectedCut"              );
-  correctedJetPtCut_             = iConfig.getParameter<double>       ("correctedJetPtCut"            );
-
+     // get the input collection of electrons
+     inputUncorrectedJetCollection_ = iConfig.getParameter<edm::InputTag>("inputUncorrectedJetCollection");
+     uncorrectedJetPtCut_           = iConfig.getParameter<double>       ("uncorrectedJetPtCut"          );
 }
 
 void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+     // get the primary vertices
+     edm::Handle<reco::JPTJetCollection> jetsHandle;
+     try {
+	  iEvent.getByLabel(inputUncorrectedJetCollection_, jetsHandle);
+     }
+     catch ( cms::Exception& ex ) {
+	  edm::LogError("JetCollectionPrunerError") << "Error! can't get the input recoJets";
+     }
 
-  // get the primary vertices
-  edm::Handle<reco::CaloJetCollection> jetsHandle;
-  try {
-    iEvent.getByLabel(inputUncorrectedJetCollection_, jetsHandle);
-  }
-  catch ( cms::Exception& ex ) {
-    edm::LogError("JetCollectionPrunerError") << "Error! can't get the input recoJets";
-  }
+     // new collection to put in the event after cleaning
+     std::auto_ptr<reco::JPTJetCollection> outJPTcollection (new reco::JPTJetCollection);
+     std::auto_ptr<reco::CaloJetCollection> outJETcollection (new reco::CaloJetCollection);
 
-  // new collection to put in the event after cleaning
-  std::auto_ptr<reco::CaloJetCollection> outCollection (new reco::CaloJetCollection);
+     for (reco::JPTJetCollection::const_iterator jet_it = jetsHandle->begin(); jet_it != jetsHandle->end(); jet_it++)
+     {
+	  if(jet_it->pt() > uncorrectedJetPtCut_)
+	       outJPTcollection->push_back(*jet_it);
+     }
 
-  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_, iSetup);
+     //sort the jets using the above predicate.
+     //they should be sorted, but being paranoid
+     std::sort(outJPTcollection->begin(), outJPTcollection->end(), sortJetsByPt);
 
-  for(reco::CaloJetCollection::const_iterator jet_it = jetsHandle->begin(); jet_it != jetsHandle->end(); jet_it++) {
+     for (reco::JPTJetCollection::const_iterator jet_it = outJPTcollection->begin(); jet_it != outJPTcollection->end(); jet_it++)
+     {
+	  const reco::CaloJet& tmp_calojet = dynamic_cast<const reco::CaloJet&>(*(jet_it->getCaloJetRef()));
+	  outJETcollection->push_back(tmp_calojet);
+     }
 
-    double cor = correctorL2L3->correction(jet_it->p4());
-
-    if(jet_it->pt() > uncorrectedJetPtCut_)
-      outCollection->push_back(*jet_it);
-	else if( usecorrectedCut_ && cor*jet_it->pt() > correctedJetPtCut_ )
-      outCollection->push_back(*jet_it);
-  }
-
-  //sort the jets using the above predicate.
-  //they should be sorted, but being paranoid
-  std::sort(outCollection->begin(), outCollection->end(), sortJetsByPt);
-
-  // put the cleaned collection in the event
-  iEvent.put(outCollection);
+     // put the cleaned collection in the event
+     iEvent.put(outJPTcollection, "jpt");
+     iEvent.put(outJETcollection, "calojet");
 }
 
 // ------------ method called once each job just before starting event loop  ------------
