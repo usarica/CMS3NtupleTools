@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.16 2010/05/27 10:47:31 fgolf Exp $
+// $Id: JPTMaker.cc,v 1.17 2010/05/28 00:27:26 kalavase Exp $
 //
 //
 
@@ -67,7 +67,6 @@ JPTMaker::JPTMaker(const edm::ParameterSet& iConfig) {
 
   // parameters from configuration
   jptsInputTag_     = iConfig.getParameter<edm::InputTag>("jptInputTag"       );
-  minUncorPt_       = iConfig.getParameter<double>       ("minUncorPt"        );
   JPTCorrectorL2L3_ = iConfig.getParameter<std::string>  ("JPTCorrectorL2L3"  );
 
 }
