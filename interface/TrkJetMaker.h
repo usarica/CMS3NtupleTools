@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.h,v 1.5 2010/05/03 23:06:48 kalavase Exp $
+// $Id: TrkJetMaker.h,v 1.6 2010/05/28 00:25:21 kalavase Exp $
 //
 //
 
@@ -44,7 +44,6 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag trkJetsInputTag;
-  double trkJetPtCut_;
   std::string aliasprefix_;
   std::string trkJetCorrectionL2L3_;
 };
