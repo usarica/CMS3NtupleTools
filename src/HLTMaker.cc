@@ -93,7 +93,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       trigNames->push_back(name);
 	
       //What is your prescale?
-      prescales->push_back(hltConfig_.prescaleValue(0, name));
+      prescales->push_back(hltConfig_.prescaleValue(iEvent, iSetup, name));
 	
 	
       // Passed... F+
