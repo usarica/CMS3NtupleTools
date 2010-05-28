@@ -37,8 +37,12 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   
-  edm::InputTag inputUncorrectedJetCollection_;
-  double uncorrectedJetPtCut_;
+  edm::InputTag inputUncorrectedJPTJetCollection_;
+  edm::InputTag inputUncorrectedPFJetCollection_;
+  edm::InputTag inputUncorrectedTrkJetCollection_;
+  double uncorrectedJPTJetPtCut_;
+  double uncorrectedPFJetPtCut_;
+  double uncorrectedTrkJetPtCut_;
 };
 
 #endif
