@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Warren Andrews
 //         Created:  
-// $Id: BTagMaker.cc,v 1.7 2010/05/06 19:21:11 fgolf Exp $
+// $Id: BTagMaker.cc,v 1.8 2010/05/28 00:30:51 kalavase Exp $
 //
 //
 
@@ -174,34 +174,34 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     edm::RefToBase<reco::Jet> jetRef   = getReferenceJetRef(referenceCaloJets, &(*it));
 
     jets_combinedSecondaryVertexBJetTag      ->push_back( CommonUtils::isinf((*combinedSecondaryVertexBJetTags)[jetRef]) 
-							  ? -9999 : (*combinedSecondaryVertexBJetTags)[jetRef]     );
+							  ? -9999 : (*combinedSecondaryVertexBJetTags)[jetRef]     ); 
 
     jets_combinedSecondaryVertexMVABJetTag   ->push_back( CommonUtils::isinf((*combinedSecondaryVertexMVABJetTags)[jetRef]) 
-							  ? -9999. :(*combinedSecondaryVertexMVABJetTags)[jetRef]  );
+							  ? -9999. :(*combinedSecondaryVertexMVABJetTags)[jetRef]  ); 
 //    jets_ghostTrackBJetTag                   ->push_back( CommonUtils::isinf((*ghostTrackBJetTags)[jetRef])
-//							  ? -9999. :(*ghostTrackBJetTags)[jetRef]                   );
+//							  ? -9999. :(*ghostTrackBJetTags)[jetRef]                   ); 
     jets_jetBProbabilityBJetTag              ->push_back( CommonUtils::isinf((*jetBProbabilityBJetTags)[jetRef]) 
-							  ? -9999. : (*jetBProbabilityBJetTags)[jetRef]            );
+							  ? -9999. : (*jetBProbabilityBJetTags)[jetRef]            ); 
     jets_jetProbabilityBJetTag               ->push_back( CommonUtils::isinf((*jetProbabilityBJetTags)[jetRef]) 
-							  ? -9999.  : (*jetProbabilityBJetTags)[jetRef]            );
+							  ? -9999.  : (*jetProbabilityBJetTags)[jetRef]            ); 
     jets_simpleSecondaryVertexHighEffBJetTag ->push_back( CommonUtils::isinf((*simpleSecondaryVertexHighEffBJetTags)[jetRef])
-							  ? -9999.  : (*simpleSecondaryVertexHighEffBJetTags)[jetRef]     );
+							  ? -9999.  : (*simpleSecondaryVertexHighEffBJetTags)[jetRef]     ); 
     jets_simpleSecondaryVertexHighPurBJetTag ->push_back( CommonUtils::isinf((*simpleSecondaryVertexHighPurBJetTags)[jetRef])
-							  ? -9999.  : (*simpleSecondaryVertexHighPurBJetTags)[jetRef]     );
+							  ? -9999.  : (*simpleSecondaryVertexHighPurBJetTags)[jetRef]     ); 
     jets_softElectronByIP3dBJetTag           ->push_back( CommonUtils::isinf((*softElectronByIP3dBJetTags)[jetRef]) 
-							? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]        );
+							? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]        ); 
     jets_softElectronByPtBJetTag             ->push_back( CommonUtils::isinf((*softElectronByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]           );
+							  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]           ); 
     jets_softMuonBJetTag                     ->push_back( CommonUtils::isinf((*softMuonBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonBJetTags)[jetRef]                  );
+							  ? -9999.  : (*softMuonBJetTags)[jetRef]                  ); 
     jets_softMuonByIP3dBJetTag               ->push_back( CommonUtils::isinf((*softMuonByIP3dBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]            );
+							  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]            ); 
     jets_softMuonByPtBJetTag                 ->push_back( CommonUtils::isinf((*softMuonByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]              );
+							  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]              ); 
     jets_trackCountingHighEffBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighEffBJetTags)[jetRef]) 
-							  ? -9999.  : (*trackCountingHighEffBJetTags)[jetRef]      );
+							  ? -9999.  : (*trackCountingHighEffBJetTags)[jetRef]      ); 
     jets_trackCountingHighPurBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighPurBJetTags)[jetRef]) 
-							  ? -9999.  : (*trackCountingHighPurBJetTags)[jetRef]      );
+							  ? -9999.  : (*trackCountingHighPurBJetTags)[jetRef]      ); 
 }
 
   iEvent.put(jets_combinedSecondaryVertexBJetTag       ,aliasprefix_+"combinedSecondaryVertexBJetTag"      );  
