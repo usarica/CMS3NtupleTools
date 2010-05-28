@@ -17,7 +17,6 @@ from CMS2.NtupleMaker.jetSequence_cff import *
 from CMS2.NtupleMaker.jetMaker_cfi import *
 from CMS2.NtupleMaker.jetToElAssMaker_cfi import *
 from CMS2.NtupleMaker.jetToMuAssMaker_cfi import *
-from CMS2.NtupleMaker.jptSequence_cff import *
 from CMS2.NtupleMaker.jptMaker_cfi import *
 from CMS2.NtupleMaker.jptToCaloJetAssMaker_cfi import *
 from CMS2.NtupleMaker.l1Maker_cfi import *
@@ -33,13 +32,13 @@ from CMS2.NtupleMaker.trkJetMaker_cfi import *
 from CMS2.NtupleMaker.trkJetSequence_cfi import *
 
 
-CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2CaloJetSequence * metCorSequence * cms2TrkJetSequence * cms2beamHaloSequence)
+CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2JetSequence * metCorSequence * cms2TrkJetSequence * cms2beamHaloSequence)
 
 eventmakers   = cms.Sequence(beamSpotMaker * eventMaker * eventSelectionMaker * cms2beamHaloSequence)
 
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
-makers        = cms.Sequence(muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * JPTCorrections * metMaker * tcmetMaker)
+makers        = cms.Sequence(muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * metMaker * tcmetMaker * jptMaker)
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker )
 
