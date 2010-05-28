@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.7 2010/05/03 23:18:16 kalavase Exp $
+// $Id: TrkJetMaker.cc,v 1.8 2010/05/28 00:30:22 kalavase Exp $
 //
 
 
@@ -53,7 +53,6 @@ TrkJetMaker::TrkJetMaker(const edm::ParameterSet& iConfig)
 
   // parameters from configuration
   trkJetsInputTag       = iConfig.getParameter<edm::InputTag>("trkJetsInputTag");
-  trkJetPtCut_          = iConfig.getParameter<double>       ("trkJetPtCut"    );
   trkJetCorrectionL2L3_ = iConfig.getParameter<std::string>  ("trkJetCorrectionL2L3");
 
 }
@@ -82,7 +81,6 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::View<reco::TrackJet>::const_iterator jetsEnd = trkJets->end();
   for ( edm::View<reco::TrackJet>::const_iterator jet = trkJets->begin(); jet != jetsEnd; ++jet) {
 
-    if( jet->p4().pt() < trkJetPtCut_ ) continue;
     double cor = correctorL2L3->correction(jet->p4());
     vector_trkjets_cor ->push_back( cor                        );
     vector_trkjets_p4  ->push_back( LorentzVector( jet->p4() ) );
