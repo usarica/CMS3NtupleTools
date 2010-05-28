@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.6 $'),
+        version = cms.untracked.string('$Revision: 1.7 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -84,7 +84,7 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:D6ED2A95-515D-DF11-ABD2-0018F3D096DC.root'
+        'file:/store/disk00/kalavase/RelVal_TTBar_3_6_1/EABD13F1-0A5D-DF11-92FA-001A92971B38.root'
     ),
 )
 
@@ -116,8 +116,9 @@ process.out = cms.OutputModule(
 )
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+#process.out.outputCommands = cms.untracked.vstring('
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
-
+process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
