@@ -5,8 +5,12 @@ candToGenAssMaker = cms.EDFilter("CandToGenAssMaker",
     genJetsInputTag = cms.InputTag("cms2antikt5GenJets"),
     #electrons InputTag
     electronsInputTag = cms.InputTag("electronMaker", "elsp4"),
+    #phtons Input Tag
+    photonsInputTag   = cms.InputTag("photonMaker", "photonsp4"),                                 
     #jets Input Tag
     jetsInputTag = cms.InputTag("jetMaker","jetsp4"),
+    #jpts input tag
+    pfJetsInputTag = cms.InputTag("pfJetMaker", "pfjetsp4"),                                 
     #muons Input Tag
     muonsInputTag = cms.InputTag("muonMaker","musp4"),
     # MC particles
