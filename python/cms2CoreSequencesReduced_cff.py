@@ -18,7 +18,6 @@ from CMS2.NtupleMaker.jetMaker_cfi import *
 from CMS2.NtupleMaker.jetToElAssMaker_cfi import *
 from CMS2.NtupleMaker.jetToMuAssMaker_cfi import *
 from CMS2.NtupleMaker.jptMaker_cfi import *
-from CMS2.NtupleMaker.jptToCaloJetAssMaker_cfi import *
 from CMS2.NtupleMaker.l1Maker_cfi import *
 from CMS2.NtupleMaker.metSequence_cff import *
 from CMS2.NtupleMaker.metMaker_cfi import *
