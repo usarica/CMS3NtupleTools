@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.h,v 1.4 2010/03/03 04:19:13 kalavase Exp $
+// $Id: CandToGenAssMaker.h,v 1.5 2010/05/31 23:05:16 kalavase Exp $
 //
 //
 #ifndef CMS2_CANDTOGENMAKER_H
@@ -39,14 +39,16 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
-  edm::InputTag genParticlesInputTag;
-  edm::InputTag genJetsInputTag;
-  edm::InputTag muonsInputTag;
-  edm::InputTag electronsInputTag;
-  edm::InputTag jetsInputTag;
-  edm::InputTag tracksInputTag;
-  std::vector<int> vPIDsToExclude;
-	std::string aliasprefix_;
+  edm::InputTag genParticlesInputTag_;
+  edm::InputTag genJetsInputTag_;
+  edm::InputTag muonsInputTag_;
+  edm::InputTag electronsInputTag_;
+  edm::InputTag jetsInputTag_;
+  edm::InputTag tracksInputTag_;
+  edm::InputTag photonsInputTag_;
+  edm::InputTag pfJetsInputTag_;
+  std::vector<int> vPIDsToExclude_;
+  
 };
 
 
