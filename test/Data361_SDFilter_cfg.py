@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.7 $'),
+        version = cms.untracked.string('$Revision: 1.8 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -102,8 +102,8 @@ process.hltMaker.processName = cms.untracked.string("HLT")
 process.hltMakerSequence = cms.Sequence(process.hltMaker)
 
 # loosen thresholds on collections
-process.hypDilepMaker.TightLepton_PtCut=cms.double(7.0)
-process.hypDilepMaker.LooseLepton_PtCut=cms.double(7.0)
+process.hypDilepMaker.TightLepton_PtCut=cms.double(5.0)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(5.0)
 
 process.out = cms.OutputModule(
         "PoolOutputModule",
