@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.13 2010/05/31 21:48:25 fgolf Exp $
+// $Id: PhotonMaker.cc,v 1.14 2010/06/01 11:54:41 fgolf Exp $
 //
 //
 
@@ -99,6 +99,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >		(branchprefix+"swissSeed"       ).setBranchAlias(aliasprefix_+"_swissSeed"      ); //missing in sc
      produces<vector<float> >		(branchprefix+"tkIsoHollow"     ).setBranchAlias(aliasprefix_+"_tkIsoHollow"    );
      produces<vector<float> >		(branchprefix+"tkIsoSolid"      ).setBranchAlias(aliasprefix_+"_tkIsoSolid"     );
+     produces<vector<float> >		(branchprefix+"ntkIsoHollow"     ).setBranchAlias(aliasprefix_+"_ntkIsoHollow"    );
+     produces<vector<float> >		(branchprefix+"ntkIsoSolid"      ).setBranchAlias(aliasprefix_+"_ntkIsoSolid"     );
      produces<vector<float> >		(branchprefix+"ecalIso"        	).setBranchAlias(aliasprefix_+"_ecalIso"      	);
      produces<vector<float> >		(branchprefix+"hcalIso"       	).setBranchAlias(aliasprefix_+"_hcalIso"      	);
      produces<vector<LorentzVector> >	(branchprefix+"p4"              ).setBranchAlias(aliasprefix_+"_p4"             );
@@ -138,6 +140,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> >		photons_swissSeed       (new vector<float>		);
      auto_ptr<vector<float> >		photons_tkIsoHollow     (new vector<float>		);
      auto_ptr<vector<float> >		photons_tkIsoSolid      (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoHollow     (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoSolid      (new vector<float>		);
      auto_ptr<vector<float> >		photons_ecalIso         (new vector<float>		);
      auto_ptr<vector<float> >		photons_hcalIso         (new vector<float>		);
      auto_ptr<vector<LorentzVector> >	photons_p4              (new vector<LorentzVector>	);
@@ -273,6 +277,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_hcalIso->push_back(		photon->hcalTowerSumEtConeDR03()	);	
 	  photons_tkIsoHollow->push_back(	photon->trkSumPtHollowConeDR03()		);
           photons_tkIsoSolid->push_back(	photon->trkSumPtSolidConeDR03()		);
+	  photons_tkIsoHollow->push_back(	photon->nTrkHollowConeDR03()		);
+          photons_tkIsoSolid->push_back(	photon->nTrkSolidConeDR03()		);
 
      }
  
@@ -295,6 +301,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_p4              ,branchprefix+"p4"              );
      iEvent.put(photons_tkIsoHollow  	,branchprefix+"tkIsoHollow"     );
      iEvent.put(photons_tkIsoSolid  	,branchprefix+"tkIsoSolid"      );      
+     iEvent.put(photons_ntkIsoHollow  	,branchprefix+"ntkIsoHollow"     );
+     iEvent.put(photons_ntkIsoSolid  	,branchprefix+"ntkIsoSolid"      );      
      iEvent.put(photons_ecalIso         ,branchprefix+"ecalIso"         );
      iEvent.put(photons_hcalIso         ,branchprefix+"hcalIso"         );
 }
