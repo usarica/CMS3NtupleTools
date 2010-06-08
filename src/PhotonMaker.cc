@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.14 2010/06/01 11:54:41 fgolf Exp $
+// $Id: PhotonMaker.cc,v 1.15 2010/06/08 21:36:39 warren Exp $
 //
 //
 
@@ -48,7 +48,6 @@
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "DataFormats/PatCandidates/interface/Photon.h"
 #include "Math/VectorUtil.h"
 
 #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
@@ -96,14 +95,21 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >		(branchprefix+"e1x5"          	).setBranchAlias(aliasprefix_+"_e1x5"          	);
      produces<vector<float> >		(branchprefix+"e5x5"            ).setBranchAlias(aliasprefix_+"_e5x5"           );
      produces<vector<float> >		(branchprefix+"e3x3"            ).setBranchAlias(aliasprefix_+"_e3x3"           );
-     produces<vector<float> >		(branchprefix+"swissSeed"       ).setBranchAlias(aliasprefix_+"_swissSeed"      ); //missing in sc
-     produces<vector<float> >		(branchprefix+"tkIsoHollow"     ).setBranchAlias(aliasprefix_+"_tkIsoHollow"    );
-     produces<vector<float> >		(branchprefix+"tkIsoSolid"      ).setBranchAlias(aliasprefix_+"_tkIsoSolid"     );
-     produces<vector<float> >		(branchprefix+"ntkIsoHollow"     ).setBranchAlias(aliasprefix_+"_ntkIsoHollow"    );
-     produces<vector<float> >		(branchprefix+"ntkIsoSolid"      ).setBranchAlias(aliasprefix_+"_ntkIsoSolid"     );
-     produces<vector<float> >		(branchprefix+"ecalIso"        	).setBranchAlias(aliasprefix_+"_ecalIso"      	);
-     produces<vector<float> >		(branchprefix+"hcalIso"       	).setBranchAlias(aliasprefix_+"_hcalIso"      	);
-     produces<vector<LorentzVector> >	(branchprefix+"p4"              ).setBranchAlias(aliasprefix_+"_p4"             );
+     produces<vector<float> >		(branchprefix+"swissSeed"       ).setBranchAlias(aliasprefix_+"_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
+     produces<vector<bool> >		(branchprefix+"haspixelSeed"    ).setBranchAlias(aliasprefix_+"_haspixelSeed"     ); //for electron matching
+     produces<vector<float> >		(branchprefix+"tkIsoHollow03"   ).setBranchAlias(aliasprefix_+"_tkIsoHollow03"    );
+     produces<vector<float> >		(branchprefix+"tkIsoSolid03"    ).setBranchAlias(aliasprefix_+"_tkIsoSolid03"     );
+     produces<vector<float> >		(branchprefix+"ntkIsoHollow03"  ).setBranchAlias(aliasprefix_+"_ntkIsoHollow03"   );
+     produces<vector<float> >		(branchprefix+"ntkIsoSolid03"   ).setBranchAlias(aliasprefix_+"_ntkIsoSolid03"    );
+     produces<vector<float> >		(branchprefix+"ecalIso03"      	).setBranchAlias(aliasprefix_+"_ecalIso03"        );
+     produces<vector<float> >		(branchprefix+"hcalIso03"      	).setBranchAlias(aliasprefix_+"_hcalIso03"        );
+     produces<vector<float> >		(branchprefix+"tkIsoHollow04"   ).setBranchAlias(aliasprefix_+"_tkIsoHollow04"    );
+     produces<vector<float> >		(branchprefix+"tkIsoSolid04"    ).setBranchAlias(aliasprefix_+"_tkIsoSolid04"     );
+     produces<vector<float> >		(branchprefix+"ntkIsoHollow04"  ).setBranchAlias(aliasprefix_+"_ntkIsoHollow04"   );
+     produces<vector<float> >		(branchprefix+"ntkIsoSolid04"   ).setBranchAlias(aliasprefix_+"_ntkIsoSolid04"    );
+     produces<vector<float> >		(branchprefix+"ecalIso04"      	).setBranchAlias(aliasprefix_+"_ecalIso04"        );
+     produces<vector<float> >		(branchprefix+"hcalIso04"      	).setBranchAlias(aliasprefix_+"_hcalIso04"        );
+     produces<vector<LorentzVector> >	(branchprefix+"p4"              ).setBranchAlias(aliasprefix_+"_p4"           );
 
      photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
      ecalRecHitsInputTag_EE_	= iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
@@ -138,12 +144,19 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> >		photons_e5x5            (new vector<float>		);
      auto_ptr<vector<float> >		photons_e3x3            (new vector<float>		);
      auto_ptr<vector<float> >		photons_swissSeed       (new vector<float>		);
-     auto_ptr<vector<float> >		photons_tkIsoHollow     (new vector<float>		);
-     auto_ptr<vector<float> >		photons_tkIsoSolid      (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoHollow     (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoSolid      (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ecalIso         (new vector<float>		);
-     auto_ptr<vector<float> >		photons_hcalIso         (new vector<float>		);
+     auto_ptr<vector<bool> >		photons_haspixelSeed    (new vector<bool>		);
+     auto_ptr<vector<float> >		photons_tkIsoHollow03   (new vector<float>		);
+     auto_ptr<vector<float> >		photons_tkIsoSolid03    (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoHollow03  (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoSolid03   (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ecalIso03       (new vector<float>		);
+     auto_ptr<vector<float> >		photons_hcalIso03       (new vector<float>		);
+     auto_ptr<vector<float> >		photons_tkIsoHollow04   (new vector<float>		);
+     auto_ptr<vector<float> >		photons_tkIsoSolid04    (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoHollow04  (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ntkIsoSolid04   (new vector<float>		);
+     auto_ptr<vector<float> >		photons_ecalIso04       (new vector<float>		);
+     auto_ptr<vector<float> >		photons_hcalIso04       (new vector<float>		);
      auto_ptr<vector<LorentzVector> >	photons_p4              (new vector<LorentzVector>	);
 	
      // Get the photons
@@ -271,14 +284,24 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  //
 	  photons_p4                    ->push_back( LorentzVector( photon->p4() )        );
 		
+	  //pixel seeds
+	  photons_haspixelSeed          ->push_back( photon->hasPixelSeed()             );
+
 	  // Isolation  (all 0.3 cone size)
 	  //
-	  photons_ecalIso->push_back(		photon->ecalRecHitSumEtConeDR03()	);
-	  photons_hcalIso->push_back(		photon->hcalTowerSumEtConeDR03()	);	
-	  photons_tkIsoHollow->push_back(	photon->trkSumPtHollowConeDR03()		);
-          photons_tkIsoSolid->push_back(	photon->trkSumPtSolidConeDR03()		);
-	  photons_tkIsoHollow->push_back(	photon->nTrkHollowConeDR03()		);
-          photons_tkIsoSolid->push_back(	photon->nTrkSolidConeDR03()		);
+	  photons_ecalIso03->push_back(				photon->ecalRecHitSumEtConeDR03()	);
+	  photons_hcalIso03->push_back(				photon->hcalTowerSumEtConeDR03()	);	
+	  photons_tkIsoHollow03->push_back(			photon->trkSumPtHollowConeDR03()	);
+	  photons_tkIsoSolid03->push_back(			photon->trkSumPtSolidConeDR03()		);
+	  photons_ntkIsoHollow03->push_back(		photon->nTrkHollowConeDR03()		);
+	  photons_ntkIsoSolid03->push_back(			photon->nTrkSolidConeDR03()		    );
+
+	  photons_ecalIso04->push_back(				photon->ecalRecHitSumEtConeDR04()	);
+	  photons_hcalIso04->push_back(				photon->hcalTowerSumEtConeDR04()	);	
+	  photons_tkIsoHollow04->push_back(			photon->trkSumPtHollowConeDR04()	);
+	  photons_tkIsoSolid04->push_back(			photon->trkSumPtSolidConeDR04()		);
+	  photons_ntkIsoHollow04->push_back(		photon->nTrkHollowConeDR04()		);
+	  photons_ntkIsoSolid04->push_back(			photon->nTrkSolidConeDR04()		    );
 
      }
  
@@ -299,12 +322,19 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_sigmaIEtaIEta   ,branchprefix+"sigmaIEtaIEta"   );
      iEvent.put(photons_hOverE          ,branchprefix+"hOverE"          );
      iEvent.put(photons_p4              ,branchprefix+"p4"              );
-     iEvent.put(photons_tkIsoHollow  	,branchprefix+"tkIsoHollow"     );
-     iEvent.put(photons_tkIsoSolid  	,branchprefix+"tkIsoSolid"      );      
-     iEvent.put(photons_ntkIsoHollow  	,branchprefix+"ntkIsoHollow"     );
-     iEvent.put(photons_ntkIsoSolid  	,branchprefix+"ntkIsoSolid"      );      
-     iEvent.put(photons_ecalIso         ,branchprefix+"ecalIso"         );
-     iEvent.put(photons_hcalIso         ,branchprefix+"hcalIso"         );
+     iEvent.put(photons_haspixelSeed    ,branchprefix+"haspixelSeed" 	);
+     iEvent.put(photons_tkIsoHollow03  	,branchprefix+"tkIsoHollow03"   );
+     iEvent.put(photons_tkIsoSolid03  	,branchprefix+"tkIsoSolid03"    );      
+     iEvent.put(photons_ntkIsoHollow03 	,branchprefix+"ntkIsoHollow03"  );
+     iEvent.put(photons_ntkIsoSolid03  	,branchprefix+"ntkIsoSolid03"   );      
+     iEvent.put(photons_ecalIso03       ,branchprefix+"ecalIso03"       );
+     iEvent.put(photons_hcalIso03       ,branchprefix+"hcalIso03"       );
+     iEvent.put(photons_tkIsoHollow04  	,branchprefix+"tkIsoHollow04"   );
+     iEvent.put(photons_tkIsoSolid04  	,branchprefix+"tkIsoSolid04"    );      
+     iEvent.put(photons_ntkIsoHollow04 	,branchprefix+"ntkIsoHollow04"  );
+     iEvent.put(photons_ntkIsoSolid04  	,branchprefix+"ntkIsoSolid04"   );      
+     iEvent.put(photons_ecalIso04       ,branchprefix+"ecalIso04"       );
+     iEvent.put(photons_hcalIso04       ,branchprefix+"hcalIso04"       );
 }
 
 //define this as a plug-in
