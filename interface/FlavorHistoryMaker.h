@@ -13,11 +13,11 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tues Sep  1 11:07:38 CDT 2009
-// $Id: FlavorHistoryMaker.h,v 1.3 2010/03/03 04:19:31 kalavase Exp $
+// $Id: FlavorHistoryMaker.h,v 1.4 2010/06/10 09:16:01 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_FLAVORHISTORYPRODUCER_H
-#define NTUPLEMAKER_GENMAKER_H
+#define NTUPLEMAKER_FLAVORHISTORYPRODUCER_H
 
 // system include files
 #include <memory>
