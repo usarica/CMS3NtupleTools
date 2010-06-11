@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.8 $'),
+        version = cms.untracked.string('$Revision: 1.9 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -84,7 +84,8 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:/store/disk00/kalavase/RelVal_TTBar_3_6_1/EABD13F1-0A5D-DF11-92FA-001A92971B38.root'
+#        'file:/store/disk00/kalavase/RelVal_TTBar_3_6_1/EABD13F1-0A5D-DF11-92FA-001A92971B38.root'
+        'file:60E04BD6-095D-DF11-92CD-001A92971BD8.root' 
     ),
 )
 
@@ -95,6 +96,7 @@ process.load("CMS2.NtupleMaker.cms2EcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
+process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
 
 process.filter = cms.Path(process.sdFilter)
 
@@ -115,20 +117,31 @@ process.out = cms.OutputModule(
         )
 )
 
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+#run PF2PAT
+#from PhysicsTools.PatAlgos.tools.pfTools import *
+#postfix = "PFlow"
+#usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix)
+# 
+#from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
+
+#process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 #process.out.outputCommands = cms.untracked.vstring('
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
+#process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
+#process.out.outputCommands = cms.untracked.vstring('keep *_*Maker*_*_CMS2*')]
+process.out.outputCommands = cms.untracked.vstring('keep *')
+#process.out.outputCommands.extend(cms.untracked.vstring('drop *patEventContentNoCleaning*'))
+#process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.sdFilter
-                                                       * process.cms2CoreSequence
-                                                       * process.patDefaultSequence
-                                                       * process.cms2PATSequence
-                                                       * process.cms2ECALcleaningSequence
-                                                       * process.cms2HCALcleaningSequence
-                                                       * process.cms2HFcleaningSequence)
+process.cms2WithEverything = cms.Sequence( process.sdFilter
+                                           * process.cms2CoreSequence
+                                           * process.patDefaultSequence
+                                           * process.cms2PATSequence
+                                           * process.cms2PFTestSequence
+                                           * process.cms2ECALcleaningSequence
+                                           * process.cms2HCALcleaningSequence
+                                           * process.cms2HFcleaningSequence)
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
