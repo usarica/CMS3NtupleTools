@@ -5,6 +5,10 @@ from CMS2.NtupleMaker.pfMuonSequence_cff import *
 from CMS2.NtupleMaker.pfJetMaker_cfi import *
 from CMS2.NtupleMaker.pfmetMaker_cfi import *
 from CMS2.NtupleMaker.pftauMaker_cfi import *
+from CMS2.NtupleMaker.pfMuToMuAssMaker_cfi import *
+from CMS2.NtupleMaker.muToPFMuAssMaker_cfi import *
+from CMS2.NtupleMaker.pfElToElAssMaker_cfi import *
+from CMS2.NtupleMaker.elToPFElAssMaker_cfi import *
 
 from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllMuons_cfi import *
 from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllElectrons_cfi import *
@@ -30,8 +34,6 @@ CMS2pfNoMuon.topCollection = cms.InputTag("CMS2pfIsolatedMuons")
 CMS2pfAllElectrons = pfAllElectrons.clone()
 CMS2pfAllElectrons.src = cms.InputTag("CMS2pfNoMuon")
 
-cms2PFSequence = cms.Sequence(pfJetMaker * pfmetMaker * pftauMaker * pfAllMuons * pfMuonsPtGt5 * pfIsolatedMuons * pfNoMuon * pfAllElectrons * CMS2pfElectronIsolationSequence * pfElectronMaker * CMS2pfMuonIsolationSequence * pfMuonMaker)
+cms2PFSequence = cms.Sequence(pfJetMaker + pfmetMaker + pftauMaker +pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + CMS2pfElectronIsolationSequence + pfElectronMaker)
 
-cms2PFNoTauSequence = cms.Sequence(pfJetMaker * pfmetMaker * pfAllMuons * pfMuonsPtGt5 * pfIsolatedMuons * pfNoMuon * CMS2pfMuonIsolationSequence * pfMuonMaker * pfAllElectrons * CMS2pfElectronIsolationSequence * pfElectronMaker)
-
-cms2PFTestSequence = cms.Sequence(pfJetMaker + pfmetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + CMS2pfElectronIsolationSequence + pfElectronMaker)
+cms2PFNoTauSequence = cms.Sequence(pfJetMaker + pfmetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + pfMuToMuAssMaker + muToPFMuAssMaker + CMS2pfElectronIsolationSequence + pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker)
