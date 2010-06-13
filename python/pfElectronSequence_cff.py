@@ -21,10 +21,13 @@ CMS2pfElectronIsoDepositsSequence = cms.Sequence(CMS2isoDepElectronWithCharged
 
 CMS2isoValElectronWithCharged = isoValElectronWithCharged.clone()
 CMS2isoValElectronWithCharged.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithCharged")
+CMS2isoValElectronWithCharged.deposits[0].deltaR = cms.double(0.3)
 CMS2isoValElectronWithNeutral = isoValElectronWithNeutral.clone()
 CMS2isoValElectronWithNeutral.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithNeutral")
+CMS2isoValElectronWithNeutral.deposits[0].deltaR = cms.double(0.3)
 CMS2isoValElectronWithPhotons = isoValElectronWithPhotons.clone()
 CMS2isoValElectronWithPhotons.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithPhotons")
+CMS2isoValElectronWithPhotons.deposits[0].deltaR = cms.double(0.3)
 #CMS2isoValElectronWithElectrons = isoValElectronWithCharged.clone()
 #CMS2isoValElectronWithElectrons.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithElectrons")
 #CMS2isoValElectronWithMuons = isoValElectronWithCharged.clone()
