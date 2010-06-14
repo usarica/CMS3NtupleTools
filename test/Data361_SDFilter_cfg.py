@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.9 $'),
+        version = cms.untracked.string('$Revision: 1.10 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -85,7 +85,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #        'file:/store/disk00/kalavase/RelVal_TTBar_3_6_1/EABD13F1-0A5D-DF11-92FA-001A92971B38.root'
-        'file:60E04BD6-095D-DF11-92CD-001A92971BD8.root' 
+        'file:/tas05/disk00/kalavase/RelVal_TTBar_3_6_1/60E04BD6-095D-DF11-92CD-001A92971BD8.root' 
     ),
 )
 
@@ -124,11 +124,11 @@ process.out = cms.OutputModule(
 # 
 #from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 
-#process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 #process.out.outputCommands = cms.untracked.vstring('
-#process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 #process.out.outputCommands = cms.untracked.vstring('keep *_*Maker*_*_CMS2*')]
-process.out.outputCommands = cms.untracked.vstring('keep *')
+#process.out.outputCommands = cms.untracked.vstring('keep *')
 #process.out.outputCommands.extend(cms.untracked.vstring('drop *patEventContentNoCleaning*'))
 #process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 #-------------------------------------------------
@@ -138,7 +138,7 @@ process.cms2WithEverything = cms.Sequence( process.sdFilter
                                            * process.cms2CoreSequence
                                            * process.patDefaultSequence
                                            * process.cms2PATSequence
-                                           * process.cms2PFTestSequence
+                                           * process.cms2PFNoTauSequence
                                            * process.cms2ECALcleaningSequence
                                            * process.cms2HCALcleaningSequence
                                            * process.cms2HFcleaningSequence)
