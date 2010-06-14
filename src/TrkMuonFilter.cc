@@ -11,7 +11,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkMuonFilter.cc,v 1.6 2010/03/02 19:36:08 fgolf Exp $
+// $Id: TrkMuonFilter.cc,v 1.7 2010/06/14 13:06:47 dbarge Exp $
 //
 
 // system include files
@@ -31,7 +31,7 @@ Implementation:
 #include "DataFormats/TrackCandidate/interface/TrackCandidateCollection.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 #include "RecoTracker/TrackProducer/interface/TrackProducerBase.h"
 
 #include "DataFormats/MuonReco/interface/Muon.h"

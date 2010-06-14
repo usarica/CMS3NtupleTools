@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.1 2010/05/19 21:58:50 fgolf Exp $
+// $Id: SDFilter.cc,v 1.2 2010/06/14 13:06:46 dbarge Exp $
 //
 //
 
@@ -36,7 +36,7 @@
 #include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/METReco/interface/PFMETFwd.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
-#include "DataFormats/JetReco/interface/PFJetfwd.h"
+#include "DataFormats/JetReco/interface/PFJetCollection.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"

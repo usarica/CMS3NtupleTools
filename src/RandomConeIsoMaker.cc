@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.5 2010/03/30 22:04:20 yanjuntu Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.6 2010/06/14 13:06:46 dbarge Exp $
 //
 //
 
@@ -28,7 +28,7 @@ Implementation:
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
 // random numver generation
