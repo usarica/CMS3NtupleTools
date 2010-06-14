@@ -59,9 +59,4 @@ hypmakers        = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepM
                  
 othermakers      = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * conversionMaker)
 
-<<<<<<< cms2CoreSequences_cff.py
-cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * pflowmakers)
-#cms2CoreSequence = cms.Sequence(CMS2Reco)
-=======
 cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers)
->>>>>>> 1.30
