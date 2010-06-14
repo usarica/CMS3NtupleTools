@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-patMuonMaker = cms.EDFilter("PATMuonMaker",
+patMuonMaker = cms.EDProducer("PATMuonMaker",
 	aliasPrefix = cms.untracked.string("mus_pat"),
     # pat muon collection
     patMuonsInputTag  = cms.InputTag("selectedPatMuons"),

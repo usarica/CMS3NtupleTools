@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-trackMaker = cms.EDFilter("TrackMaker",
+trackMaker = cms.EDProducer("TrackMaker",
 	aliasPrefix = cms.untracked.string("trks"),
     tracksInputTag          = cms.InputTag("generalTracks"),
     beamSpotInputTag        = cms.InputTag("beamSpotMaker", "evtbsp4"),

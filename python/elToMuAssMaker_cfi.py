@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-elToMuAssMaker = cms.EDFilter("ElToMuAssMaker",
+elToMuAssMaker = cms.EDProducer("ElToMuAssMaker",
 	aliasPrefix = cms.untracked.string("els"),
     # min DR
     minDR = cms.double(0.1),

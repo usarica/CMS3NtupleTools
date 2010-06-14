@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-l1Maker = cms.EDFilter("L1Maker",
+l1Maker = cms.EDProducer("L1Maker",
 	aliasPrefix = cms.untracked.string("l1"),
     fillL1Particles = cms.untracked.bool(True),
     l1ParticlesProcessName = cms.untracked.string("RECO"),

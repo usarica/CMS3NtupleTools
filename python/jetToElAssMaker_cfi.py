@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-jetToElAssMaker = cms.EDFilter("JetToElAssMaker",
+jetToElAssMaker = cms.EDProducer("JetToElAssMaker",
 	aliasPrefix = cms.untracked.string("jets"),
                                minDR        = cms.double(0.4)                        ,
                                elInputTag_  = cms.InputTag("electronMaker", "elsp4" ),

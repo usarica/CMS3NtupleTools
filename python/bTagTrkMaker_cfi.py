@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-bTagTrkMaker = cms.EDFilter(
+bTagTrkMaker = cms.EDProducer(
         "BTagMaker",
         AliasPrefix                           = cms.string("trkjets"),
 	cms2CaloJetsTag                       = cms.InputTag("prunedUncorrectedCMS2Jets", "trkjet"),        

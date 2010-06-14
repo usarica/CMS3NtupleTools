@@ -3,7 +3,7 @@ from RecoMuon.MuonIsolationProducers.caloExtractorByAssociatorBlocks_cff import 
 from RecoMuon.MuonIsolationProducers.trackExtractorBlocks_cff import *
 from RecoMuon.MuonIsolationProducers.jetExtractorBlock_cff import *
 
-randomConeIsoMaker = cms.EDFilter("RandomConeIsoMaker",
+randomConeIsoMaker = cms.EDProducer("RandomConeIsoMaker",
 	aliasPrefix = cms.untracked.string("ran"),
     primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
     ecalBarrelRecHitProducer = cms.InputTag("ecalRecHit"),

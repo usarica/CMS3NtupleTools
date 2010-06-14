@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from RecoJets.JetProducers.ak5JetID_cfi import ak5JetID
 
-prunedUncorrectedCMS2Jets = cms.EDFilter("JetCollectionPruner",
+prunedUncorrectedCMS2Jets = cms.EDProducer("JetCollectionPruner",
                                          inputUncorrectedJPTJetCollection = cms.InputTag("JetPlusTrackZSPCorJetAntiKt5"),
                                          inputUncorrectedPFJetCollection  = cms.InputTag("ak5PFJets"),
                                          inputUncorrectedTrkJetCollection = cms.InputTag("ak5TrackJets"),

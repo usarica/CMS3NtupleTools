@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-hypTrilepMaker = cms.EDFilter("HypTrilepMaker",
+hypTrilepMaker = cms.EDProducer("HypTrilepMaker",
 	aliasPrefix = cms.untracked.string("hyp_trilep"),
     hypJetMinPtCut = cms.double(15.0), ##this is an uncorrected pt cut!
 

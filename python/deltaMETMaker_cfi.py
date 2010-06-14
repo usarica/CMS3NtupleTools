@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-deltaMETMaker = cms.EDFilter("DeltaMETMaker",
+deltaMETMaker = cms.EDProducer("DeltaMETMaker",
                              aliasPrefix          = cms.untracked.string(""),
                              cms2_metInputTag_    = cms.InputTag("metMaker", "evtmet"   ),
                              cms2_metphiInputTag_ = cms.InputTag("metMaker", "evtmetPhi"),

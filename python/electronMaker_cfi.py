@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-electronMaker = cms.EDFilter(
+electronMaker = cms.EDProducer(
 	"ElectronMaker",
 	aliasPrefix = cms.untracked.string("els"),
     # Electron collection

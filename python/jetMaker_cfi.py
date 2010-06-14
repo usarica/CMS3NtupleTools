@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 
-jetMaker = cms.EDFilter("JetMaker",
+jetMaker = cms.EDProducer("JetMaker",
            uncorJetsInputTag     = cms.InputTag("prunedUncorrectedCMS2Jets", "calojet"),
            runningOnReco         = cms.untracked.bool(True),
            AliasPrefix          = cms.string("jets"),

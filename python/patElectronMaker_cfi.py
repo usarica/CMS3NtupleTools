@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-patElectronMaker = cms.EDFilter("PATElectronMaker",
+patElectronMaker = cms.EDProducer("PATElectronMaker",
 	aliasPrefix = cms.untracked.string("els_pat"),
     # pat jet collection
     patElectronsInputTag  = cms.InputTag("selectedPatElectrons"),

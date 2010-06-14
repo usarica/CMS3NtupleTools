@@ -4,7 +4,7 @@
 
 import FWCore.ParameterSet.Config as cms
 
-hypFilter = cms.EDFilter("TheFilter",
+hypFilter = cms.EDProducer("TheFilter",
     # this syntax means: keep events that contain more than 0
     # entries in the collection hypDilepMaker:hyptype  
     filterExpressions = cms.VInputTag(cms.InputTag("hypDilepMaker","hyptype"), cms.InputTag("hypTrilepMaker","hyptrilepfirsttype"), cms.InputTag("hypQuadlepMaker","hypquadlepfirsttype"))
