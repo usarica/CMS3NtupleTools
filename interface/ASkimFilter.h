@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: ASkimFilter.h,v 1.2 2010/03/02 19:24:11 fgolf Exp $
+// $Id: ASkimFilter.h,v 1.3 2010/06/15 09:43:03 fgolf Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -33,7 +33,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 //#include "Math/LorentzVector.h"
