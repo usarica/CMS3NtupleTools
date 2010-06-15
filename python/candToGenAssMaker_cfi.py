@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-candToGenAssMaker = cms.EDFilter("CandToGenAssMaker",
+candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     #GenJets Input Tag 
     genJetsInputTag = cms.InputTag("cms2antikt5GenJets"),
     #electrons InputTag
