@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.h,v 1.6 2010/05/28 00:25:21 kalavase Exp $
+// $Id: TrkJetMaker.h,v 1.7 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 
@@ -30,7 +30,7 @@ Implementation:
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 class TrkJetMaker : public edm::EDProducer {
 public:

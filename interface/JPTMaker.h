@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.12 2010/05/28 00:21:32 kalavase Exp $
+// $Id: JPTMaker.h,v 1.13 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -30,7 +30,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 //
 // class decleration

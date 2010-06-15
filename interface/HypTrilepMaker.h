@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypTrilepMaker.h,v 1.10 2010/03/03 04:19:51 kalavase Exp $
+// $Id: HypTrilepMaker.h,v 1.11 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPTRILEPMAKER_H
@@ -34,7 +34,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 typedef math::XYZTLorentzVectorF LorentzVector;

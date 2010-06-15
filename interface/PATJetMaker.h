@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Oliver Gutsche
 // Thu Jun 12 22:55:46 UTC 2008
-// $Id: PATJetMaker.h,v 1.4 2010/03/03 04:20:12 kalavase Exp $
+// $Id: PATJetMaker.h,v 1.5 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_PATJETMAKER_H
@@ -33,7 +33,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 //
 // class decleration

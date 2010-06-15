@@ -16,7 +16,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.h,v 1.12 2010/03/03 04:19:41 kalavase Exp $
+// $Id: HypDilepMaker.h,v 1.13 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_HYPDILEPMAKER_H
@@ -34,7 +34,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

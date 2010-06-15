@@ -14,7 +14,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.h,v 1.5 2010/03/03 04:19:33 kalavase Exp $
+// $Id: GenJetMaker.h,v 1.6 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 
@@ -31,7 +31,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 class GenJetMaker : public edm::EDProducer {
 public:

@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Frank Golf
 // Thu Jun 25 16:39:55 UTC 2008
-// $Id: PATMuonMaker.h,v 1.4 2010/03/03 04:20:16 kalavase Exp $
+// $Id: PATMuonMaker.h,v 1.5 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_PATMUONMAKER_H
@@ -33,7 +33,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 //
 // class decleration

@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.13 2010/05/03 23:10:57 kalavase Exp $
+// $Id: JetMaker.h,v 1.14 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -32,7 +32,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 //#include "CondFormats/JetMETObjects/interface/CombinedJetCorrector.h"
 //

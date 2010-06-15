@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.1 2010/05/19 21:56:41 fgolf Exp $
+// $Id: SDFilter.h,v 1.2 2010/06/15 10:08:36 fgolf Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -33,7 +33,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/ParameterSet/interface/InputTag.h"
+#include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 //#include "Math/LorentzVector.h"
