@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -129,7 +129,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'
 #process.out.outputCommands = cms.untracked.vstring('keep *_*Maker*_*_CMS2*')]
 #process.out.outputCommands = cms.untracked.vstring('keep *')
 #process.out.outputCommands.extend(cms.untracked.vstring('drop *patEventContentNoCleaning*'))
-#process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
+process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
