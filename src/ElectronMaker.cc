@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.51 2010/05/07 01:30:10 warren Exp $
+// $Id: ElectronMaker.cc,v 1.52 2010/07/16 14:30:03 kalavase Exp $
 //
 //
 
@@ -202,6 +202,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elsptErr"                   ).setBranchAlias("els_ptErr"                  );
   produces<vector<float> >     ("elsetaErr"                  ).setBranchAlias("els_etaErr"                 );
   produces<vector<float> >     ("elsphiErr"                  ).setBranchAlias("els_phiErr"                 );
+  produces<vector<int> >                ("elsgsftrkidx"                         ).setBranchAlias("els_gsftrkidx"                    );
   
   // LorentzVectors
   //
@@ -285,143 +286,143 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // Define vectors to be filled
 
-  auto_ptr<unsigned int>	   evt_nels	                (new unsigned int        ) ;
+  auto_ptr<unsigned int>	   evt_nels				(new unsigned int        ) ;
 
   // ECAL related (superCluster) variables
-  auto_ptr<vector<int> >	   els_nSeed                    (new vector<int>         ) ;
-  auto_ptr<vector<float> >         els_etaSC                    (new vector<float>       ) ;
-  auto_ptr<vector<float> >         els_phiSC                    (new vector<float>       ) ;
-  auto_ptr<vector<float> >	   els_eSC                      (new vector<float>       ) ;
-  auto_ptr<vector<float> >	   els_eSCRaw                   (new vector<float>       ) ;
-  auto_ptr<vector<float> >    	   els_eSCPresh                 (new vector<float>       ) ;
-  auto_ptr<vector<int> >     	   els_fiduciality              (new vector<int>         ) ;
-  auto_ptr<vector<int> >           els_type                     (new vector<int>         ) ;
-  auto_ptr<vector<int> >       els_scindex             (new vector<int>        ) ;	 
+  auto_ptr<vector<int> >		els_nSeed				(new vector<int>		) ;
+  auto_ptr<vector<float> >		els_etaSC				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_phiSC				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSC					(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSCRaw				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSCPresh				(new vector<float>		) ;
+  auto_ptr<vector<int> >		els_fiduciality				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_type				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_scindex				(new vector<int>		) ;	 
 
   // uncertainties and corrections
   // somewhat complicated: see 
   // http://cms-service-sdtweb.web.cern.ch/cms-service-sdtweb/doxygen/CMSSW_3_1_2/doc/html/d5/d4b/GsfElectron_8h-source.html
   // note that if ecalEnergy == eSC depends on if further ecal corrections have been applied to the electron
   // after its construction
-  auto_ptr<vector<float> >         els_ecalEnergy               (new vector<float>      ) ;
-  auto_ptr<vector<float> >         els_ecalEnergyError          (new vector<float>      ) ;
-  auto_ptr<vector<float> >         els_trackMomentumError       (new vector<float>      ) ;
-  auto_ptr<vector<float> >         els_electronMomentumError    (new vector<float>      ) ;
+  auto_ptr<vector<float> >		els_ecalEnergy				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_ecalEnergyError			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_trackMomentumError			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_electronMomentumError		(new vector<float>		) ;
   
   // ID variables
   //
-  auto_ptr<vector<float> >    els_mva                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_dEtaIn                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_dEtaOut                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_dPhiIn                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_dPhiOut                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_dPhiInPhiOut            (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_fbrem                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_eSeed                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_eOverPIn                (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_eSeedOverPOut           (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_eSeedOverPIn            (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_eOverPOut		      (new vector<float>	) ;
-  auto_ptr<vector<float> >        els_deltaEtaEleClusterTrackAtCalo (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_deltaPhiEleClusterTrackAtCalo (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_mva					(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_dEtaIn				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_dEtaOut				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_dPhiIn				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_dPhiOut				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_dPhiInPhiOut			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_fbrem				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSeed				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eOverPIn				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSeedOverPOut			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eSeedOverPIn			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eOverPOut				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_deltaEtaEleClusterTrackAtCalo	(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_deltaPhiEleClusterTrackAtCalo	(new vector<float>		) ;
 
-  auto_ptr<vector<float> >	  els_hOverE                  (new vector<float>        ) ;
-  auto_ptr<vector<float> > 	  els_hcalDepth1OverEcal      (new vector<float>	) ;
-  auto_ptr<vector<float> >        els_hcalDepth2OverEcal      (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_hOverE				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth1OverEcal			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth2OverEcal			(new vector<float>		) ;
 
-  auto_ptr<vector<float> >	      els_sigmaPhiPhi             (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_sigmaIPhiIPhi           (new vector<float>        ) ;
-  auto_ptr<vector<float> >	      els_sigmaEtaEta             (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_sigmaIEtaIEta           (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_sigmaIPhiIPhiSC         (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_sigmaIEtaIEtaSC         (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_sigmaPhiPhi				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_sigmaIPhiIPhi			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_sigmaEtaEta				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_sigmaIEtaIEta			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_sigmaIPhiIPhiSC			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_sigmaIEtaIEtaSC			(new vector<float>		) ;
 
-  auto_ptr<vector<float> >        els_e2x5Max                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_e1x5                    (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_e5x5                    (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_e3x3                    (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_eMax                    (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_e2x5Max				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_e1x5				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_e5x5				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_e3x3				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_eMax				(new vector<float>		) ;
 
   // predefined ID decisions
   //
-  auto_ptr<vector<int> >	  els_class                   (new vector<int>          ) ;
-  auto_ptr<vector<int> >     	  els_category                (new vector<int>          ) ;
-  auto_ptr<vector<float> >   	  els_egamma_robustLooseId    (new vector<float>        ) ;
-  auto_ptr<vector<float> >   	  els_egamma_robustTightId    (new vector<float>        ) ;
-  auto_ptr<vector<float> >   	  els_egamma_robustHighEnergy (new vector<float>        ) ;
-  auto_ptr<vector<float> >   	  els_egamma_looseId          (new vector<float>        ) ;
-  auto_ptr<vector<float> > 	  els_egamma_tightId          (new vector<float>        ) ;
+  auto_ptr<vector<int> >		els_class				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_category				(new vector<int>		) ;
+  auto_ptr<vector<float> >		els_egamma_robustLooseId		(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_egamma_robustTightId		(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_egamma_robustHighEnergy		(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_egamma_looseId			(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_egamma_tightId			(new vector<float>		) ;
   
   // isolation variables
   //
-  auto_ptr<vector<float> >        els_tkIso                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_ecalIso                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalIso                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalDepth1TowerSumEt                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalDepth2TowerSumEt                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_tkIso				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_ecalIso				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalIso				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth1TowerSumEt		(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth2TowerSumEt		(new vector<float>		) ;
 
-  auto_ptr<vector<float> >        els_tkIso04                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_ecalIso04               (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalIso04               (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalDepth1TowerSumEt04                 (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_hcalDepth2TowerSumEt04                 (new vector<float>        ) ;
+  auto_ptr<vector<float> >		els_tkIso04				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_ecalIso04				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalIso04				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth1TowerSumEt04		(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_hcalDepth2TowerSumEt04		(new vector<float>		) ;
 
   // track variables
   //
-  auto_ptr<vector<int> >	  els_charge                  (new vector<int>          ) ;
-  auto_ptr<vector<int> >          els_trk_charge              (new vector<int>          ) ;
-  auto_ptr<vector<int> >          els_sccharge                (new vector<int>          ) ;
-  auto_ptr<vector<float> >	  els_chi2                    (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_ndof                    (new vector<float>        ) ;
-  auto_ptr<vector<int> >          els_validHits               (new vector<int>          ) ;
-  auto_ptr<vector<int> >	  els_lostHits                (new vector<int>          ) ;
-  auto_ptr<vector<float> >	  els_d0                      (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_z0                      (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_d0Err                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_z0Err                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_d0corr                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_z0corr                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_ptErr                   (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_etaErr                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_phiErr                  (new vector<float>        ) ;
-  auto_ptr<vector<float> >	  els_outerPhi                (new vector<float>        ) ;
-  auto_ptr<vector<float> >        els_outerEta                (new vector<float>        ) ;
+  auto_ptr<vector<int> >		els_charge				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_trk_charge				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_sccharge				(new vector<int>		) ;
+  auto_ptr<vector<float> >		els_chi2				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_ndof				(new vector<float>		) ;
+  auto_ptr<vector<int> >		els_validHits				(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_lostHits				(new vector<int>		) ;
+  auto_ptr<vector<float> >		els_d0					(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_z0					(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_d0Err				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_z0Err				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_d0corr				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_z0corr				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_ptErr				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_etaErr				(new vector<float>		) ;
+  auto_ptr<vector<float> >		els_phiErr				(new vector<float>		) ;
+  auto_ptr<vector<int>   >		els_gsftrkidx				(new vector<int>                ) ;
 
+  
   // LorentzVectors
   //
-  auto_ptr<vector<LorentzVector> >els_p4                      (new vector<LorentzVector>) ;
-  auto_ptr<vector<LorentzVector> >els_trk_p4                  (new vector<LorentzVector>) ;
-  auto_ptr<vector<LorentzVector> >els_p4In                    (new vector<LorentzVector>) ;
-  auto_ptr<vector<LorentzVector> >els_p4Out                   (new vector<LorentzVector>) ;
+  auto_ptr<vector<LorentzVector> >	els_p4					(new vector<LorentzVector>	) ;
+  auto_ptr<vector<LorentzVector> >	els_trk_p4				(new vector<LorentzVector>	) ;
+  auto_ptr<vector<LorentzVector> >	els_p4In				(new vector<LorentzVector>	) ;
+  auto_ptr<vector<LorentzVector> >	els_p4Out				(new vector<LorentzVector>	) ;
 
   // Vertex
   //
-  auto_ptr<vector<LorentzVector> >els_vertex_p4               (new vector<LorentzVector>) ;
+  auto_ptr<vector<LorentzVector> >	els_vertex_p4				(new vector<LorentzVector>	) ;
 
   //HitPattern information
   //
-  auto_ptr<vector<LorentzVector> >els_inner_position          (new vector<LorentzVector>);
-  auto_ptr<vector<LorentzVector> >els_outer_position          (new vector<LorentzVector>);
-  auto_ptr<vector<int> >	  els_valid_pixelhits         (new vector<int>	        ); 
-  auto_ptr<vector<int> >	  els_lost_pixelhits          (new vector<int>        	); 
-  auto_ptr<vector<int> >	  els_layer1_sizerphi         (new vector<int>	        ); 
-  auto_ptr<vector<int> >	  els_layer1_sizerz           (new vector<int>	        ); 
-  auto_ptr<vector<float> >	  els_layer1_charge           (new vector<float>	);
-  auto_ptr<vector<int> >	  els_layer1_det              (new vector<int>	        );
-  auto_ptr<vector<int> >	  els_layer1_layer            (new vector<int>          );
-  auto_ptr<vector<int> >	  els_exp_innerlayers         (new vector<int>		); 
-  auto_ptr<vector<int> >	  els_exp_outerlayers         (new vector<int>		); 
+  auto_ptr<vector<LorentzVector> >	els_inner_position			(new vector<LorentzVector>	) ;
+  auto_ptr<vector<LorentzVector> >	els_outer_position			(new vector<LorentzVector>	) ;
+  auto_ptr<vector<int> >		els_valid_pixelhits			(new vector<int>	        ) ; 
+  auto_ptr<vector<int> >		els_lost_pixelhits			(new vector<int>        	) ; 
+  auto_ptr<vector<int> >		els_layer1_sizerphi			(new vector<int>	        ) ; 
+  auto_ptr<vector<int> >		els_layer1_sizerz			(new vector<int>	        ) ; 
+  auto_ptr<vector<float> >		els_layer1_charge			(new vector<float>		) ;
+  auto_ptr<vector<int> >		els_layer1_det				(new vector<int>	        ) ;
+  auto_ptr<vector<int> >		els_layer1_layer			(new vector<int>		) ;
+  auto_ptr<vector<int> >		els_exp_innerlayers			(new vector<int>		) ; 
+  auto_ptr<vector<int> >		els_exp_outerlayers			(new vector<int>		) ; 
 
-  auto_ptr<vector<int>     >      els_trkidx                  (new vector<int>          );
-  auto_ptr<vector<float>   >      els_trkshFrac               (new vector<float>        );
-  auto_ptr<vector<float>   >      els_trkdr                   (new vector<float>        );
+  auto_ptr<vector<int>     >		els_trkidx				(new vector<int>		) ;
+  auto_ptr<vector<float>   >		els_trkshFrac				(new vector<float>		) ;
+  auto_ptr<vector<float>   >		els_trkdr				(new vector<float>		) ;
 
   //conversions
-  auto_ptr<vector<float>    >     els_conv_dist                (new vector<float>         );
-  auto_ptr<vector<float>    >     els_conv_dcot                (new vector<float>         );
-  auto_ptr<vector<float>    >     els_conv_radius              (new vector<float>         );
-  auto_ptr<vector<LorentzVector> >els_conv_pos_p4              (new vector<LorentzVector> );
-  auto_ptr<vector<int>      >     els_conv_tkidx               (new vector<int>           );
+  auto_ptr<vector<float>    >		els_conv_dist				(new vector<float>		) ;
+  auto_ptr<vector<float>    >		els_conv_dcot				(new vector<float>		) ;
+  auto_ptr<vector<float>    >		els_conv_radius				(new vector<float>		) ;
+  auto_ptr<vector<LorentzVector> >	els_conv_pos_p4				(new vector<LorentzVector>	) ;
+  auto_ptr<vector<int>      >		els_conv_tkidx				(new vector<int>		) ;
   
 
   //conversions
@@ -604,6 +605,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_ptErr                 ->push_back( trkpterr                                  );
     els_etaErr                ->push_back( el_track->etaError()                      );
     els_phiErr                ->push_back( el_track->phiError()                      );  		
+    els_gsftrkidx             ->push_back( static_cast<int>((el->gsfTrack()).key())  );
+
+
     els_validHits             ->push_back( el_track->numberOfValidHits()             );
     els_lostHits              ->push_back( el_track->numberOfLostHits()              );
     
@@ -827,135 +831,135 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // Predefined ID descisions 
   //
-  iEvent.put(els_class                   	,"elsclass"           		);
-  iEvent.put(els_category                	,"elscategory"        		);
-  iEvent.put(els_egamma_robustHighEnergy  ,"elsegammarobustHighEnergy"       );
-  iEvent.put(els_egamma_robustLooseId     ,"elsegammarobustLooseId"       );
-  iEvent.put(els_egamma_robustTightId     ,"elsegammarobustTightId"       );
-  iEvent.put(els_egamma_looseId           ,"elsegammalooseId"             );
-  iEvent.put(els_egamma_tightId           ,"elsegammatightId"             );
+  iEvent.put(els_class                   	,"elsclass"				);
+  iEvent.put(els_category                	,"elscategory"				);
+  iEvent.put(els_egamma_robustHighEnergy	,"elsegammarobustHighEnergy"		);
+  iEvent.put(els_egamma_robustLooseId		,"elsegammarobustLooseId"		);
+  iEvent.put(els_egamma_robustTightId		,"elsegammarobustTightId"		);
+  iEvent.put(els_egamma_looseId			,"elsegammalooseId"			);
+  iEvent.put(els_egamma_tightId			,"elsegammatightId"			);
 
   // Track parameters
   //
-  iEvent.put(els_d0                     	,"elsd0" 	             	);
-  iEvent.put(els_z0                      	,"elsz0"              		);
-  iEvent.put(els_d0corr               	,"elsd0corr"          		);
-  iEvent.put(els_z0corr                	,"elsz0corr"          		);
-  iEvent.put(els_chi2                    	,"elschi2"            		);
-  iEvent.put(els_ndof                   	,"elsndof"            		);
-  iEvent.put(els_d0Err                 	,"elsd0Err"           		);
-  iEvent.put(els_z0Err                   	,"elsz0Err"           		);
-  iEvent.put(els_ptErr                   	,"elsptErr"           		);
-  iEvent.put(els_etaErr                  	,"elsetaErr"        		);
-  iEvent.put(els_phiErr                  	,"elsphiErr"        		);
-  iEvent.put(els_validHits               	,"elsvalidHits"       		);
-  iEvent.put(els_lostHits                	,"elslostHits"        		);
-  iEvent.put(els_charge                  	,"elscharge"          		);
-  iEvent.put(els_trk_charge                     ,"elstrkcharge"                 );
-  iEvent.put(els_sccharge                       ,"elssccharge"                  );
+  iEvent.put(els_d0                     	,"elsd0"				);
+  iEvent.put(els_z0                      	,"elsz0"				);
+  iEvent.put(els_d0corr				,"elsd0corr"				);
+  iEvent.put(els_z0corr				,"elsz0corr"				);
+  iEvent.put(els_chi2                    	,"elschi2"				);
+  iEvent.put(els_ndof                   	,"elsndof"				);
+  iEvent.put(els_d0Err				,"elsd0Err"				);
+  iEvent.put(els_z0Err                   	,"elsz0Err"				);
+  iEvent.put(els_ptErr                   	,"elsptErr"				);
+  iEvent.put(els_etaErr                  	,"elsetaErr"				);
+  iEvent.put(els_phiErr                  	,"elsphiErr"				);
+  iEvent.put(els_validHits               	,"elsvalidHits"				);
+  iEvent.put(els_lostHits                	,"elslostHits"				);
+  iEvent.put(els_charge                  	,"elscharge"				);
+  iEvent.put(els_trk_charge                     ,"elstrkcharge"				);
+  iEvent.put(els_sccharge                       ,"elssccharge"				);
 
   // Supercluster parameters
   //
-  iEvent.put(els_nSeed                    ,"elsnSeed"           		);
-  iEvent.put(els_etaSC                    ,"elsetaSC"                     );
-  iEvent.put(els_phiSC                    ,"elsphiSC"                     );
-  iEvent.put(els_eSC                      ,"elseSC"             		);
-  iEvent.put(els_eSCRaw                   ,"elseSCRaw"          		);
-  iEvent.put(els_eSCPresh                 ,"elseSCPresh"        		);
-  iEvent.put(els_e1x5                     ,"else1x5"            		);
-  iEvent.put(els_e3x3                     ,"else3x3"            		);
-  iEvent.put(els_e5x5                     ,"else5x5"            		);
-  iEvent.put(els_e2x5Max                  ,"else2x5Max"         		);
-  iEvent.put(els_eMax                     ,"elseMax"      	      	);
-  iEvent.put(els_eSeed                    ,"elseSeed" 	          	);
-  iEvent.put(els_fiduciality              ,"elsfiduciality"               );
-  iEvent.put(els_type                     ,"elstype"                      );
-  iEvent.put(els_scindex                  ,"elsscindex"                 );
+  iEvent.put(els_nSeed				,"elsnSeed"				);
+  iEvent.put(els_etaSC				,"elsetaSC"				);
+  iEvent.put(els_phiSC				,"elsphiSC"				);
+  iEvent.put(els_eSC				,"elseSC"				);
+  iEvent.put(els_eSCRaw				,"elseSCRaw"				);
+  iEvent.put(els_eSCPresh			,"elseSCPresh"				);
+  iEvent.put(els_e1x5				,"else1x5"				);
+  iEvent.put(els_e3x3				,"else3x3"				);
+  iEvent.put(els_e5x5				,"else5x5"				);
+  iEvent.put(els_e2x5Max			,"else2x5Max"				);
+  iEvent.put(els_eMax				,"elseMax"				);
+  iEvent.put(els_eSeed				,"elseSeed"				);
+  iEvent.put(els_fiduciality			,"elsfiduciality"			);
+  iEvent.put(els_type				,"elstype"				);
+  iEvent.put(els_scindex			,"elsscindex"				);
 
   // Corrections and uncertainties
   //
-  iEvent.put(els_ecalEnergy		,"elsecalEnergy"		);
-  iEvent.put(els_ecalEnergyError          ,"elsecalEnergyError"           );
-  iEvent.put(els_trackMomentumError       ,"elstrackMomentumError"        );
-  iEvent.put(els_electronMomentumError    ,"elselectronMomentumError"     );
+  iEvent.put(els_ecalEnergy			,"elsecalEnergy"			);
+  iEvent.put(els_ecalEnergyError		,"elsecalEnergyError"			);
+  iEvent.put(els_trackMomentumError		,"elstrackMomentumError"		);
+  iEvent.put(els_electronMomentumError		,"elselectronMomentumError"		);
 
   // Electron ID
   //
-  iEvent.put(els_sigmaPhiPhi              ,"elssigmaPhiPhi"     		);
-  iEvent.put(els_sigmaIPhiIPhi            ,"elssigmaIPhiIPhi"   		);
-  iEvent.put(els_sigmaEtaEta              ,"elssigmaEtaEta"     		);
-  iEvent.put(els_sigmaIEtaIEta            ,"elssigmaIEtaIEta"   		);
-  iEvent.put(els_sigmaIPhiIPhiSC          ,"elssigmaIPhiIPhiSC"         );
-  iEvent.put(els_sigmaIEtaIEtaSC          ,"elssigmaIEtaIEtaSC"         );
-  iEvent.put(els_dPhiInPhiOut             ,"elsdPhiInPhiOut"    		);
-  iEvent.put(els_hOverE                   ,"elshOverE"          		);
-  iEvent.put(els_hcalDepth1OverEcal       ,"elshcalDepth1OverEcal"              );
-  iEvent.put(els_hcalDepth2OverEcal       ,"elshcalDepth2OverEcal"              );
+  iEvent.put(els_sigmaPhiPhi			,"elssigmaPhiPhi"			);
+  iEvent.put(els_sigmaIPhiIPhi			,"elssigmaIPhiIPhi"			);
+  iEvent.put(els_sigmaEtaEta			,"elssigmaEtaEta"			);
+  iEvent.put(els_sigmaIEtaIEta			,"elssigmaIEtaIEta"			);
+  iEvent.put(els_sigmaIPhiIPhiSC		,"elssigmaIPhiIPhiSC"			);
+  iEvent.put(els_sigmaIEtaIEtaSC		,"elssigmaIEtaIEtaSC"			);
+  iEvent.put(els_dPhiInPhiOut			,"elsdPhiInPhiOut"			);
+  iEvent.put(els_hOverE				,"elshOverE"				);
+  iEvent.put(els_hcalDepth1OverEcal		,"elshcalDepth1OverEcal"		);
+  iEvent.put(els_hcalDepth2OverEcal		,"elshcalDepth2OverEcal"		);
 
-  iEvent.put(els_eOverPIn                 ,"elseOverPIn"        		);
-  iEvent.put(els_eSeedOverPOut            ,"elseSeedOverPOut"   		);
-  iEvent.put(els_eSeedOverPIn             ,"elseSeedOverPIn"   		);
-  iEvent.put(els_eOverPOut              ,"elseOverPOut"                        );
-  iEvent.put(els_fbrem                    ,"elsfbrem"           		);
-  iEvent.put(els_mva                   ,"elsmva"                  );
-  iEvent.put(els_dEtaIn                   ,"elsdEtaIn"          		);
-  iEvent.put(els_dEtaOut                  ,"elsdEtaOut"         		);
-  iEvent.put(els_deltaEtaEleClusterTrackAtCalo, "elsdeltaEtaEleClusterTrackAtCalo");
-  iEvent.put(els_dPhiIn                   ,"elsdPhiIn"          		);
-  iEvent.put(els_dPhiOut                  ,"elsdPhiOut"         		);
-  iEvent.put(els_deltaPhiEleClusterTrackAtCalo, "elsdeltaPhiEleClusterTrackAtCalo");
+  iEvent.put(els_eOverPIn			,"elseOverPIn"				);
+  iEvent.put(els_eSeedOverPOut			,"elseSeedOverPOut"			);
+  iEvent.put(els_eSeedOverPIn			,"elseSeedOverPIn"			);
+  iEvent.put(els_eOverPOut			,"elseOverPOut"				);
+  iEvent.put(els_fbrem				,"elsfbrem"				);
+  iEvent.put(els_mva				,"elsmva"				);
+  iEvent.put(els_dEtaIn				,"elsdEtaIn"				);
+  iEvent.put(els_dEtaOut			,"elsdEtaOut"				);
+  iEvent.put(els_deltaEtaEleClusterTrackAtCalo, "elsdeltaEtaEleClusterTrackAtCalo"	);
+  iEvent.put(els_dPhiIn				,"elsdPhiIn"				);
+  iEvent.put(els_dPhiOut			,"elsdPhiOut"				);
+  iEvent.put(els_deltaPhiEleClusterTrackAtCalo, "elsdeltaPhiEleClusterTrackAtCalo"	);
 
   // Lorentz vectors
   //
-  iEvent.put(els_p4                       ,"elsp4"              		);
-  iEvent.put(els_trk_p4                   ,"elstrkp4"           		);
-  iEvent.put(els_p4In                     ,"elsp4In"            		);
-  iEvent.put(els_p4Out                    ,"elsp4Out"           		);
+  iEvent.put(els_p4				,"elsp4"				);
+  iEvent.put(els_trk_p4				,"elstrkp4"				);
+  iEvent.put(els_p4In				,"elsp4In"				);
+  iEvent.put(els_p4Out				,"elsp4Out"				);
 
   // Vertex
   //
-  iEvent.put(els_vertex_p4                ,"elsvertexp4"        		);
+  iEvent.put(els_vertex_p4			,"elsvertexp4"				);
 
   // Isolation
   //
-  iEvent.put(els_tkIso                    ,"elstkIso"           		);
-  iEvent.put(els_ecalIso                  ,"elsecalIso"           	);
-  iEvent.put(els_hcalIso                  ,"elshcalIso"           	);
-  iEvent.put(els_hcalDepth1TowerSumEt     ,"elshcalDepth1TowerSumEt"    );
-  iEvent.put(els_hcalDepth2TowerSumEt     ,"elshcalDepth2TowerSumEt"    );
+  iEvent.put(els_tkIso				,"elstkIso"				);
+  iEvent.put(els_ecalIso			,"elsecalIso"				);
+  iEvent.put(els_hcalIso			,"elshcalIso"				);
+  iEvent.put(els_hcalDepth1TowerSumEt		,"elshcalDepth1TowerSumEt"		);
+  iEvent.put(els_hcalDepth2TowerSumEt		,"elshcalDepth2TowerSumEt"		);
 
-  iEvent.put(els_tkIso04                  ,"elstkIso04"                 );
-  iEvent.put(els_ecalIso04                ,"elsecalIso04"               );
-  iEvent.put(els_hcalIso04                ,"elshcalIso04"               );
-  iEvent.put(els_hcalDepth1TowerSumEt04   ,"elshcalDepth1TowerSumEt04"  );
-  iEvent.put(els_hcalDepth2TowerSumEt04   ,"elshcalDepth2TowerSumEt04"  );
+  iEvent.put(els_tkIso04			,"elstkIso04"				);
+  iEvent.put(els_ecalIso04			,"elsecalIso04"				);
+  iEvent.put(els_hcalIso04			,"elshcalIso04"				);
+  iEvent.put(els_hcalDepth1TowerSumEt04		,"elshcalDepth1TowerSumEt04"		);
+  iEvent.put(els_hcalDepth2TowerSumEt04		,"elshcalDepth2TowerSumEt04"		);
 
   //Hit Pattern Information
 
-  iEvent.put(els_inner_position  , "elsinnerposition"  );
-  iEvent.put(els_outer_position  , "elsouterposition"  );
-  iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
-  iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
-  iEvent.put(els_layer1_layer    , "elslayer1layer"    );
-  iEvent.put(els_layer1_sizerphi , "elslayer1sizerphi" );
-  iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
-  iEvent.put(els_layer1_charge   , "elslayer1charge"   );
-  iEvent.put(els_layer1_det      , "elslayer1det"      );
-  iEvent.put(els_exp_innerlayers , "elsexpinnerlayers" );
-  iEvent.put(els_exp_outerlayers , "elsexpouterlayers" );
+  iEvent.put(els_inner_position			,"elsinnerposition"			);
+  iEvent.put(els_outer_position			,"elsouterposition"			);
+  iEvent.put(els_valid_pixelhits		,"elsvalidpixelhits"			);
+  iEvent.put(els_lost_pixelhits			,"elslostpixelhits"			);
+  iEvent.put(els_layer1_layer			,"elslayer1layer"			);
+  iEvent.put(els_layer1_sizerphi		,"elslayer1sizerphi"			);
+  iEvent.put(els_layer1_sizerz			,"elslayer1sizerz"			);
+  iEvent.put(els_layer1_charge			,"elslayer1charge"			);
+  iEvent.put(els_layer1_det			,"elslayer1det"				);
+  iEvent.put(els_exp_innerlayers		,"elsexpinnerlayers"			);
+  iEvent.put(els_exp_outerlayers		,"elsexpouterlayers"			);
 
   //CTF track info
   //
-  iEvent.put(els_trkidx,      "elstrkidx"     );
-  iEvent.put(els_trkdr ,      "elstrkdr"      );
-  iEvent.put(els_trkshFrac,   "elstrkshFrac"  );
+  iEvent.put(els_trkidx                         ,"elstrkidx"				);
+  iEvent.put(els_trkdr                          ,"elstrkdr"				);
+  iEvent.put(els_trkshFrac                      ,"elstrkshFrac"				);
 
   //conversion
-  iEvent.put(els_conv_dist,   "elsconvdist"   );
-  iEvent.put(els_conv_dcot,   "elsconvdcot"   );
-  iEvent.put(els_conv_radius, "elsconvradius" );
-  iEvent.put(els_conv_pos_p4, "elsconvposp4"  );
-  iEvent.put(els_conv_tkidx,  "elsconvtkidx"  );
+  iEvent.put(els_conv_dist                      ,"elsconvdist"				);
+  iEvent.put(els_conv_dcot                      ,"elsconvdcot"				);
+  iEvent.put(els_conv_radius                    ,"elsconvradius"			);
+  iEvent.put(els_conv_pos_p4                    ,"elsconvposp4"				);
+  iEvent.put(els_conv_tkidx                     ,"elsconvtkidx"		        	);
   
 
 
