@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.52 2010/07/16 14:30:03 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.53 2010/07/16 14:43:00 kalavase Exp $
 //
 //
 
@@ -852,6 +852,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_ptErr                   	,"elsptErr"				);
   iEvent.put(els_etaErr                  	,"elsetaErr"				);
   iEvent.put(els_phiErr                  	,"elsphiErr"				);
+  iEvent.put(els_gsftrkidx                      ,"elsgsftrkidx"                         );
+  
   iEvent.put(els_validHits               	,"elsvalidHits"				);
   iEvent.put(els_lostHits                	,"elslostHits"				);
   iEvent.put(els_charge                  	,"elscharge"				);
