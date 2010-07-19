@@ -8,11 +8,11 @@ sdFilter = cms.EDFilter("SDFilter",
                             metInputTag_    = cms.InputTag("met"),
                             tcmetInputTag_  = cms.InputTag("tcMet"),
                             pfmetInputTag_  = cms.InputTag("pfMet"),
-                            elsPt_          = cms.double(5.),   
-                            musPt_          = cms.double(5.),   
+                            elsPt_          = cms.double(10.),   
+                            musPt_          = cms.double(10.),   
                             photonPt_       = cms.double(10.),
-                            pfjetPt_        = cms.double(30.), 
-                            metPt_          = cms.double(45.),   
-                            tcmetPt_        = cms.double(45.), 
-                            pfmetPt_        = cms.double(45.) 
+                            pfjetPt_        = cms.double(40.), 
+                            metPt_          = cms.double(60.),   
+                            tcmetPt_        = cms.double(60.), 
+                            pfmetPt_        = cms.double(60.) 
 )
