@@ -43,6 +43,7 @@
 <use name=HLTrigger/HLTcore>
 <use name=CMS2/Dictionaries>
 <use name=MitEdm/ConversionRejection>
+<use name=DataFormats/ParticleFlowReco>
 <use name=root>
 <use name=clhep>
 <lib name=EG>
