@@ -16,6 +16,7 @@ Implementation:
 
 // system include files
 #include <memory>
+#include <math.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -377,15 +378,15 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
 	}
 
-	vector_scs_sigmaEtaEta->push_back( covariances[0] > 0 ? sqrt(covariances[0]) : -sqrt(-covariances[0]) );
-	vector_scs_sigmaEtaPhi->push_back( covariances[1] > 0 ? sqrt(covariances[1]) : -sqrt(-covariances[1]) );
-	vector_scs_sigmaPhiPhi->push_back( covariances[2] > 0 ? sqrt(covariances[2]) : -sqrt(-covariances[2]) );
-	vector_scs_sigmaIEtaIEta->push_back( localCovariances[0] > 0 ? sqrt(localCovariances[0]) : -sqrt(-localCovariances[0]) );
-	vector_scs_sigmaIEtaIPhi->push_back( localCovariances[1] > 0 ? sqrt(localCovariances[1]) : -sqrt(-localCovariances[1]) );
-	vector_scs_sigmaIPhiIPhi->push_back( localCovariances[2] > 0 ? sqrt(localCovariances[2]) : -sqrt(-localCovariances[2]) );
-    vector_scs_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0 ? sqrt(localCovariancesSC[0]) : -1 * sqrt(-1 * localCovariancesSC[0]) );
-    vector_scs_sigmaIEtaIPhiSC->push_back( localCovariancesSC[1] > 0 ? sqrt(localCovariancesSC[1]) : -1 * sqrt(-1 * localCovariancesSC[1]) );
-    vector_scs_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0 ? sqrt(localCovariancesSC[2]) : -1 * sqrt(-1 * localCovariancesSC[2]) );
+	vector_scs_sigmaEtaEta->push_back	 ( std::isfinite(covariances[0]       ) ? (covariances[0]        > 0 ? sqrt(covariances[0]       ) : -1 * sqrt(-1 * covariances[0]       ) ) : -9999.);
+	vector_scs_sigmaEtaPhi->push_back	 ( std::isfinite(covariances[1]       ) ? (covariances[1]        > 0 ? sqrt(covariances[1]       ) : -1 * sqrt(-1 * covariances[1]       ) ) : -9999.);
+	vector_scs_sigmaPhiPhi->push_back	 ( std::isfinite(covariances[2]       ) ? (covariances[2]        > 0 ? sqrt(covariances[2]       ) : -1 * sqrt(-1 * covariances[2]       ) ) : -9999.);
+	vector_scs_sigmaIEtaIEta->push_back	 ( std::isfinite(localCovariances[0]  ) ? (localCovariances[0]   > 0 ? sqrt(localCovariances[0]  ) : -1 * sqrt(-1 * localCovariances[0]  ) ) : -9999.);
+	vector_scs_sigmaIEtaIPhi->push_back	 ( std::isfinite(localCovariances[1]  ) ? (localCovariances[1]   > 0 ? sqrt(localCovariances[1]  ) : -1 * sqrt(-1 * localCovariances[1]  ) ) : -9999.);
+	vector_scs_sigmaIPhiIPhi->push_back	 ( std::isfinite(localCovariances[2]  ) ? (localCovariances[2]   > 0 ? sqrt(localCovariances[2]  ) : -1 * sqrt(-1 * localCovariances[2]  ) ) : -9999.);
+    vector_scs_sigmaIEtaIEtaSC->push_back( std::isfinite(localCovariancesSC[0]) ? (localCovariancesSC[0] > 0 ? sqrt(localCovariancesSC[0]) : -1 * sqrt(-1 * localCovariancesSC[0]) ) : -9999.);
+    vector_scs_sigmaIEtaIPhiSC->push_back( std::isfinite(localCovariancesSC[1]) ? (localCovariancesSC[1] > 0 ? sqrt(localCovariancesSC[1]) : -1 * sqrt(-1 * localCovariancesSC[1]) ) : -9999.);
+    vector_scs_sigmaIPhiIPhiSC->push_back( std::isfinite(localCovariancesSC[2]) ? (localCovariancesSC[2] > 0 ? sqrt(localCovariancesSC[2]) : -1 * sqrt(-1 * localCovariancesSC[2]) ) : -9999.);
 
 	vector_scs_clustersSize->push_back( sc->clustersSize() );
 	const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
