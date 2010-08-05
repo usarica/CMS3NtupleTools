@@ -11,13 +11,14 @@ Description: make associations between jets and muons
 //
 // Original Author:  Puneeth Kalavase 
 //         Created:  Wed Oct 15 18:32:24 UTC 2008
-// $Id: ConversionMaker.cc,v 1.10 2010/04/13 00:59:06 kalavase Exp $
+// $Id: ConversionMaker.cc,v 1.11 2010/08/05 14:04:22 fgolf Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <math.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -121,8 +122,8 @@ void ConversionMaker::produce(Event& iEvent, const EventSetup& iSetup)  {
 							 bField);
 
     trks_conv_tkidx    ->push_back(closestTkIdx                );
-    trks_conv_dist     ->push_back(p_tkConvInfo.first          );
-    trks_conv_dcot     ->push_back(p_tkConvInfo.second         );
+    trks_conv_dist     ->push_back(std::isfinite(p_tkConvInfo.first) ? p_tkConvInfo.first : -9999. );
+    trks_conv_dcot     ->push_back(std::isfinite(p_tkConvInfo.second) ? p_tkConvInfo.second : -9999. );
   }//tk1 loop
 
   // store vectors
