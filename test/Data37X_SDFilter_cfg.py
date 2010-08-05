@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -23,7 +23,7 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load('Configuration/EventContent/EventContent_cff')
 
-process.GlobalTag.globaltag = "START3X_V26::All"
+process.GlobalTag.globaltag = "GR_R_37X_V6A::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -103,8 +103,9 @@ process.hltMaker.processName = cms.untracked.string("HLT")
 process.hltMakerSequence = cms.Sequence(process.hltMaker)
 
 # loosen thresholds on collections
-process.hypDilepMaker.TightLepton_PtCut=cms.double(5.0)
-process.hypDilepMaker.LooseLepton_PtCut=cms.double(5.0)
+process.hypDilepMaker.TightLepton_PtCut=cms.double(10.0)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
+process.hypTrilepMaker.TightLepton_PtCut = cms.double(10.0)
 
 process.out = cms.OutputModule(
         "PoolOutputModule",
