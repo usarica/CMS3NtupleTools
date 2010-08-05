@@ -13,12 +13,13 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.53 2010/07/16 14:43:00 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.54 2010/08/05 07:45:34 fgolf Exp $
 //
 //
 
 // system include files
 #include <memory>
+#include <math.h>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -814,7 +815,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_conv_dcot->push_back(convInfo.dcot());
     els_conv_radius->push_back(convInfo.radiusOfConversion());
     math::XYZPoint convPoint = convInfo.pointOfConversion();
-    els_conv_pos_p4->push_back(LorentzVector(convPoint.x(), convPoint.y(), convPoint.z(), 0));
+	float convPointX = std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+	float convPointY = std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+	float convPointZ = std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+    els_conv_pos_p4->push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
     if(convInfo.conversionPartnerTk().isNonnull())
       els_conv_tkidx->push_back(convInfo.conversionPartnerTk().key());
     else 
