@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -121,6 +121,7 @@ process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
 #process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
+process.eventMaker.isData      = cms.bool(True)
 
 #stuff to speed up I/O from castor
 process.AdaptorConfig = cms.Service("AdaptorConfig",

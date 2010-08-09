@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -84,10 +84,10 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-#        'file:/store/disk00/kalavase/RelVal_TTBar_3_6_1/EABD13F1-0A5D-DF11-92FA-001A92971B38.root'
-        'file:/home/users/dbarge/ntuple_production/CMSSW_3_7_0patch2_V03-04-25/crab/CA47E82F-2F75-DF11-98AB-001A92810A9E.root' 
+'file:EG_Run2010A-Jul6thReReco_v1_RECO.root'
     ),
 )
+
 
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
@@ -134,19 +134,13 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything = cms.Sequence( process.sdFilter
-                                           * process.cms2CoreSequence
-                                           * process.patDefaultSequence
-                                           * process.cms2PATSequence
-                                           * process.cms2PFNoTauSequence
-                                           * process.cms2HCALcleaningSequence
-                                           * process.cms2HFcleaningSequence)
-
+process.cms2WithEverything = cms.Sequence( process.eventMaker)
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
 #process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
+process.eventMaker.isData      = cms.bool(True)
 
 #stuff to speed up I/O from castor
 process.AdaptorConfig = cms.Service("AdaptorConfig",
