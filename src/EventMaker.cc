@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.31 2010/08/09 12:30:52 kalavase Exp $
+// $Id: EventMaker.cc,v 1.32 2010/08/11 19:11:21 fgolf Exp $
 //
 //
 
@@ -130,7 +130,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
          float current = -9999/currentToBFieldScaleFactor;
 	 if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
 	   current = (*dcsHandle)[0].magnetCurrent();
-	   cout << "dcsHandle is valid. The current: " << current << endl;
+//	   cout << "dcsHandle is valid. The current: " << current << endl;
 	 }
 	 
          *evt_bField = current*currentToBFieldScaleFactor;
