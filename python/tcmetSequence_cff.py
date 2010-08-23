@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 from RecoMET.METProducers.TCMET_cfi import *
-from RecoMET.METAlgorithms.MuonTCMETValueMapProducer_cff import *
+from RecoMET.METProducers.MuonTCMETValueMapProducer_cff import *
 from CMS2.NtupleMaker.tcmetMaker_cfi import *
 
 muonTCMETValueMapProducerNew = muonTCMETValueMapProducer.clone()
