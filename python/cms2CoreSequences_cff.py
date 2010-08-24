@@ -3,7 +3,6 @@ import FWCore.ParameterSet.Config as cms
 
 from CMS2.NtupleMaker.aSkimFilter_cfi              import *
 from CMS2.NtupleMaker.beamSpotMaker_cfi            import *
-from CMS2.NtupleMaker.beamHaloSequence_cff         import *
 from CMS2.NtupleMaker.bTaggingSequence_cfi         import *
 from CMS2.NtupleMaker.bTagJPTSequence_cfi          import *
 from CMS2.NtupleMaker.bTaggingTrkSequence_cfi      import *
@@ -50,7 +49,10 @@ from CMS2.NtupleMaker.vertexMaker_cfi              import *
 
 from CMS2.NtupleMaker.tcmetSequence_cff            import *
 
-CMS2Reco         = cms.Sequence(egammaElectronIDCMS2 * cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * cms2beamHaloSequence)
+from CMS2.NtupleMaker.beamHaloMaker_cfi import *
+
+
+CMS2Reco         = cms.Sequence(egammaElectronIDCMS2 * cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * beamHaloMaker)
                  
 eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNoiseSummaryMaker)
                  
