@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-genMaker = cms.EDFilter("GenMaker",
+#genMaker = cms.EDFilter("GenMaker",
+genMaker = cms.EDProducer("GenMaker",
 	aliasPrefix = cms.untracked.string("genps"),
     ntupleOnlyStatus3     = cms.bool(True),
     ntupleDaughters       = cms.bool(True),

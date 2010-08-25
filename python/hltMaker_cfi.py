@@ -34,7 +34,8 @@ hlt1e31Maker = cms.EDProducer("HLTMaker",
 )
 
 hltMaker = cms.EDProducer("HLTMaker",
-    processName = cms.untracked.string("REDIGI"),
+    #processName = cms.untracked.string("REDIGI"),
+    processName = cms.untracked.string("HLT"),
     aliasPrefix = cms.untracked.string("hlt"),                       
     fillTriggerObjects = cms.untracked.bool(True),
     prunedTriggerNames = cms.untracked.vstring(

@@ -11,7 +11,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.9 2010/08/11 18:41:40 fgolf Exp $
+// $Id: TrkJetMaker.cc,v 1.10 2010/08/25 23:13:01 dbarge Exp $
 //
 
 
@@ -74,9 +74,10 @@ TrkJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 // get TrkJet collection
 	 edm::Handle<edm::View<reco::TrackJet> > trkJets;
 	 iEvent.getByLabel(trkJetsInputTag, trkJets);
-	 
+	
+   edm::InputTag vtxTag("vertexMaker", "vtxsposition"); 
 	 edm::Handle<std::vector<LorentzVector> > vtxs_h;
-	 iEvent.getByLabel("vtxsposition", vtxs_h);
+	 iEvent.getByLabel(vtxTag, vtxs_h);
 
 	 // create containers
 	 std::auto_ptr<unsigned int>                evt_ntrkjets			(new unsigned int(trkJets->size())		);
