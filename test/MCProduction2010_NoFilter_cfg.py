@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.6 $'),
+        version = cms.untracked.string('$Revision: 1.7 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -109,9 +109,9 @@ process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
-#process.load('CMS2.NtupleMaker.beamHaloSequence_cff')
+process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
+process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
-
 
 # loosen thresholds on collections
 process.hypDilepMaker.TightLepton_PtCut=cms.double(10.0)
