@@ -3,7 +3,6 @@ import FWCore.ParameterSet.Config as cms
 
 #from CMS2.NtupleMaker.aSkimFilter_cfi import *
 from CMS2.NtupleMaker.beamSpotMaker_cfi import *
-from CMS2.NtupleMaker.beamHaloSequence_cff import *
 #from CMS2.NtupleMaker.bTaggingSequence_cfi import *
 #from CMS2.NtupleMaker.bTaggingTrkSequence_cfi import *
 #from CMS2.NtupleMaker.bTagMaker_cfi import *
@@ -29,14 +28,17 @@ from CMS2.NtupleMaker.scMaker_cfi import *
 from CMS2.NtupleMaker.tcmetMaker_cfi import *
 from CMS2.NtupleMaker.trkJetMaker_cfi import *
 
+from CMS2.NtupleMaker.beamHaloMaker_cfi import *
 
-CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2JetSequence * metCorSequence * cms2beamHaloSequence)
 
-eventmakers   = cms.Sequence(beamSpotMaker * eventMaker * eventSelectionMaker * cms2beamHaloSequence)
+
+CMS2Reco      = cms.Sequence(egammaElectronIDCMS2 * cms2JetSequence * metCorSequence)
+
+eventmakers   = cms.Sequence(beamSpotMaker * eventMaker * eventSelectionMaker)
 
 trigmakers   = cms.Sequence(l1Maker * hltMakerSequence)
 
-makers        = cms.Sequence(muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * metMaker * tcmetMaker * jptMaker * trkJetMaker)
+makers        = cms.Sequence(muonMaker * scMaker * electronMaker * photonMaker * jetMaker  * metMaker * tcmetMaker * jptMaker * trkJetMaker * beamHaloMaker)
 
 pflowmakers   = cms.Sequence(pfmetMaker * pfJetMaker )
 
