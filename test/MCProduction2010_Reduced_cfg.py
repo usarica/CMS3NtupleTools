@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -23,7 +23,7 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load('Configuration/EventContent/EventContent_cff')
 
-process.GlobalTag.globaltag = "START3X_V26::All"
+process.GlobalTag.globaltag = "MC_38Y_V9::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -53,9 +53,9 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #from PhysicsTools.PatAlgos.tools.jetTools import *
 #from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 #run36xOn35xInput(process)
-#addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets'), "antikt5" )
+#addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets','calojet'), "antikt5" )
 #switchJetCollection35X(process, 
-#                    cms.InputTag('prunedUncorrectedCMS2Jets'),   
+#                    cms.InputTag('prunedUncorrectedCMS2Jets','calojet'),   
 #                    doJTA            = True,            
 #                    doBTagging       = True,            
 #                    jetCorrLabel     = None,
@@ -69,6 +69,10 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #from PhysicsTools.PatAlgos.tools.coreTools import *
 #uncomment for data
 #removeMCMatching(process, ['All'])
+
+#
+from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 #-----------------------------------------------------------
 # configure input data files and number of event to process
