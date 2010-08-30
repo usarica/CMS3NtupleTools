@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.5 $'),
+        version = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -88,7 +88,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:/store/disk00/jribnik/Spring10_TTbarJets-madgraph_GEN-SIM-RECO_START3X_V26_S09-v1_0005_2AA58B20-AD46-DF11-9274-003048C69032.root'
+    'file:../../../../../10743D97-CEA1-DF11-9F7E-002618943978.root'
     ),
 )
 
@@ -134,7 +134,9 @@ process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
                                                        * process.cms2PFNoTauSequence
                                                        * process.cms2GENSequence
                                                        * process.patDefaultSequence
-                                                       * process.cms2PATSequence)
+                                                       * process.cms2PATSequence
+                                                       * process.cms2HCALcleaningSequence
+                                                       * process.cms2HFcleaningSequence)
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
