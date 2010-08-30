@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.3 $'),
+        version = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -23,7 +23,7 @@ process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load('Configuration/EventContent/EventContent_cff')
 
 # global tag
-process.GlobalTag.globaltag = "MC_38Y_V9::All"
+process.GlobalTag.globaltag = "GR_R_38X_V9::All"
 
 #
 process.options = cms.untracked.PSet(
