@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -136,7 +136,15 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything = cms.Sequence( process.eventMaker)
+#process.cms2WithEverything = cms.Sequence( process.eventMaker)
+process.cms2WithEverything = cms.Sequence( process.sdFilter
+                                           * process.cms2CoreSequence
+                                           * process.patDefaultSequence
+                                           * process.cms2PATSequence
+                                           * process.cms2PFNoTauSequence
+                                           * process.cms2HCALcleaningSequence
+                                           * process.cms2HFcleaningSequence)
+
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
 #process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
