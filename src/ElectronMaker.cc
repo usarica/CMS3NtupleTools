@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.54 2010/08/05 07:45:34 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.55 2010/09/01 22:21:51 fgolf Exp $
 //
 //
 
@@ -811,7 +811,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     ConversionFinder convFinder;
     ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, evt_bField);
-    els_conv_dist->push_back(convInfo.dist());
+    els_conv_dist->push_back(std::isfinite(convInfo.dist()) ? convInfo.dist() : -9999.);
     els_conv_dcot->push_back(convInfo.dcot());
     els_conv_radius->push_back(convInfo.radiusOfConversion());
     math::XYZPoint convPoint = convInfo.pointOfConversion();
