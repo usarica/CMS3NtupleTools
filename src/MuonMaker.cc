@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.41 2010/05/06 20:10:08 kalavase Exp $
+// $Id: MuonMaker.cc,v 1.42 2010/09/08 00:22:54 dbarge Exp $
 //
 //
 
@@ -45,6 +45,7 @@ Implementation:
 
 #include "DataFormats/Math/interface/Point3D.h"
 
+#include "DataFormats/MuonReco/interface/MuonQuality.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -56,6 +57,19 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  // Muon Quality
+  produces<vector<bool> >      ( branchprefix + "updatedSta"         ).setBranchAlias( aliasprefix_ + "_updatedSta" );           // Muon Quality - updatedSta
+  produces<vector<bool> >      ( branchprefix + "tightMatch"         ).setBranchAlias( aliasprefix_ + "_tightMatch" );           // Muon Quality - tightMatch
+  produces<vector<int> >       ( branchprefix + "trkKink"            ).setBranchAlias( aliasprefix_ + "_trkKink" );              // Muon Quality - trkKink
+  produces<vector<int> >       ( branchprefix + "glbKink"            ).setBranchAlias( aliasprefix_ + "_glbKink" );              // Muon Quality - glbKink
+  produces<vector<int> >       ( branchprefix + "trkRelChi2"         ).setBranchAlias( aliasprefix_ + "_trkRelChi2" );           // Muon Quality - trkRelChi2
+  produces<vector<int> >       ( branchprefix + "staRelChi2"         ).setBranchAlias( aliasprefix_ + "_staRelChi2" );           // Muon Quality - staRelChi2
+  produces<vector<int> >       ( branchprefix + "chi2LocalPosition"  ).setBranchAlias( aliasprefix_ + "_chi2LocalPosition" );    // Muon Quality - chi2LocalPositions
+  produces<vector<int> >       ( branchprefix + "chi2LocalMomentum"  ).setBranchAlias( aliasprefix_ + "_chi2LocalMomentum" );    // Muon Quality - chi2LocalMomentum
+  produces<vector<int> >       ( branchprefix + "localDistance"      ).setBranchAlias( aliasprefix_ + "_localDistance" );        // Muon Quality - localDistance
+  produces<vector<int> >       ( branchprefix + "globalDeltaEtaPhi"  ).setBranchAlias( aliasprefix_ + "_globalDeltaEtaPhi" );    // Muon Quality - globalDeltaEtaPhi
+  produces<vector<int> >       ( branchprefix + "glbTrackProbability").setBranchAlias( aliasprefix_ + "_glbTrackProbability" );  // Muon Quality - glbTrackProbability
 
   // mu track quantities
   produces<vector<int> >	     (branchprefix+"type"		      ).setBranchAlias(aliasprefix_+"_type"               );	// type
@@ -187,6 +201,21 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   using namespace edm;
   // make vectors to hold the information
+
+  // Muon Quality
+  auto_ptr<vector<bool> > vector_mus_updatedSta          ( new vector<bool> );        
+  auto_ptr<vector<bool> > vector_mus_tightMatch          ( new vector<bool> );        
+  auto_ptr<vector<int> >  vector_mus_trkKink             ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_glbKink             ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_trkRelChi2          ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_staRelChi2          ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_chi2LocalPosition   ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_chi2LocalMomentum   ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_localDistance       ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_globalDeltaEtaPhi   ( new vector<int>  );        
+  auto_ptr<vector<int> >  vector_mus_glbTrackProbability ( new vector<int>  );        
+
+  //
   auto_ptr<vector<int> >	   vector_mus_type    	          (new vector<int>	       );        
   auto_ptr<vector<int> >	   vector_mus_goodmask            (new vector<int>             );        
   auto_ptr<vector<LorentzVector> > vector_mus_p4                  (new vector<LorentzVector>   );
@@ -315,6 +344,22 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const TrackRef staTrack    = muon->outerTrack();
 
     // fill vectors
+  
+    // Muon Quality
+    MuonQuality quality = muon->combinedQuality();
+    vector_mus_updatedSta         ->push_back( quality.updatedSta );
+    vector_mus_tightMatch         ->push_back( quality.tightMatch );
+    vector_mus_trkKink            ->push_back( quality.trkKink );
+    vector_mus_glbKink            ->push_back( quality.glbKink );
+    vector_mus_trkRelChi2         ->push_back( quality.trkRelChi2 );
+    vector_mus_staRelChi2         ->push_back( quality.staRelChi2 );
+    vector_mus_chi2LocalPosition  ->push_back( quality.chi2LocalPosition );
+    vector_mus_chi2LocalMomentum  ->push_back( quality.chi2LocalMomentum );
+    vector_mus_localDistance      ->push_back( quality.localDistance );
+    vector_mus_globalDeltaEtaPhi  ->push_back( quality.globalDeltaEtaPhi );
+    vector_mus_glbTrackProbability->push_back( quality.glbTrackProbability );
+
+    //
     vector_mus_type         ->push_back(muon->type());
     int goodMask = 0;
     
@@ -507,6 +552,19 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // store vectors
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  // Muon Quality
+  iEvent.put( vector_mus_updatedSta         , branchprefix + "updatedSta" );
+  iEvent.put( vector_mus_tightMatch         , branchprefix + "tightMatch" );
+  iEvent.put( vector_mus_trkKink            , branchprefix + "trkKink" );
+  iEvent.put( vector_mus_glbKink            , branchprefix + "glbKink" );
+  iEvent.put( vector_mus_trkRelChi2         , branchprefix + "trkRelChi2" );
+  iEvent.put( vector_mus_staRelChi2         , branchprefix + "staRelChi2" );
+  iEvent.put( vector_mus_chi2LocalPosition  , branchprefix + "chi2LocalPosition" );
+  iEvent.put( vector_mus_chi2LocalMomentum  , branchprefix + "chi2LocalMomentum" );
+  iEvent.put( vector_mus_localDistance      , branchprefix + "localDistance" );
+  iEvent.put( vector_mus_globalDeltaEtaPhi  , branchprefix + "globalDeltaEtaPhi" );
+  iEvent.put( vector_mus_glbTrackProbability, branchprefix + "glbTrackProbability" );
 
   iEvent.put(vector_mus_type               , branchprefix+"type"               );
   iEvent.put(vector_mus_goodmask           , branchprefix+"goodmask"           );
