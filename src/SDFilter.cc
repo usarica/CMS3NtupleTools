@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.2 2010/06/14 13:06:46 dbarge Exp $
+// $Id: SDFilter.cc,v 1.3 2010/09/14 21:46:44 benhoob Exp $
 //
 //
 
@@ -48,6 +48,8 @@
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 
+#include "TMath.h"
+
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 
@@ -71,6 +73,10 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
      metPt     = iConfig.getParameter<double>("metPt_"   );
      tcmetPt   = iConfig.getParameter<double>("tcmetPt_" );
      pfmetPt   = iConfig.getParameter<double>("pfmetPt_" );
+
+     photonJet_photonPt   = iConfig.getParameter<double>("photonJet_photonPt_");
+     photonJet_pfjetPt    = iConfig.getParameter<double>("photonJet_pfjetPt_");
+     photonJet_dr         = iConfig.getParameter<double>("photonJet_dr_");
 }
 
 
@@ -138,6 +144,33 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       return true;
      }
 
+     //----------------------------------------------
+     //require photon *and* jet not matched to photon
+     //----------------------------------------------
+
+     for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++)
+     {
+       if (iter->pt() > photonJet_photonPt){
+
+         for (reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); jetiter != pfjet_h->end(); jetiter++)
+           {
+
+             float deta = iter->eta() - jetiter->eta();
+             float dphi = fabs( iter->phi() - jetiter->phi() );
+             if( dphi > TMath::Pi() ) dphi = TMath::TwoPi() - dphi;
+             float dr = sqrt( deta * deta + dphi * dphi );
+             
+             if( dr < photonJet_dr ) continue;
+
+             if (jetiter->pt() > photonJet_pfjetPt)
+	       return true;
+           }
+         
+         
+       }
+     }
+     
+     
      return false;
 }
 

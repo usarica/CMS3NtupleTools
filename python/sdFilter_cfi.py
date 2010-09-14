@@ -14,5 +14,10 @@ sdFilter = cms.EDFilter("SDFilter",
                             pfjetPt_        = cms.double(40.), 
                             metPt_          = cms.double(60.),   
                             tcmetPt_        = cms.double(60.), 
-                            pfmetPt_        = cms.double(60.) 
+                            pfmetPt_        = cms.double(60.), 
+
+                            photonJet_photonPt_ = cms.double(20.),
+                            photonJet_pfjetPt_  = cms.double(30.),
+                            photonJet_dr_       = cms.double(0.4)
+
 )
