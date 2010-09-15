@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.4 2010/09/15 12:03:32 benhoob Exp $
+// $Id: SDFilter.cc,v 1.5 2010/09/15 20:59:20 yanjuntu Exp $
 //
 //
 
@@ -126,6 +126,10 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
      {
 	  if (iter->pt() > elsPt)
 	       return true;
+	  double sc_eta = iter->superCluster()->eta();
+	  double sc_energy = iter->superCluster()->energy();
+	  if (sc_energy/cosh(sc_eta) > elsPt)
+	    return true;
      }
 
      edm::Handle<reco::MuonCollection> mus_h;
