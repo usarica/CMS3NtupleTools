@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.3 2010/09/14 21:46:44 benhoob Exp $
+// $Id: SDFilter.cc,v 1.4 2010/09/15 12:03:32 benhoob Exp $
 //
 //
 
@@ -43,6 +43,7 @@
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 #include "CMS2/NtupleMaker/interface/SDFilter.h"
 
@@ -74,6 +75,11 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
      tcmetPt   = iConfig.getParameter<double>("tcmetPt_" );
      pfmetPt   = iConfig.getParameter<double>("pfmetPt_" );
 
+     //pfjet L2L3 correction params
+     PFJetCorrectorL2L3_      = iConfig.getParameter<std::string>("PFJetCorrectorL2L3_");
+     doL2L3pfjetCorrection_   = iConfig.getParameter<bool> ("doL2L3pfjetCorrection_");
+
+     //thresholds for photon+jet filter
      photonJet_photonPt   = iConfig.getParameter<double>("photonJet_photonPt_");
      photonJet_pfjetPt    = iConfig.getParameter<double>("photonJet_pfjetPt_");
      photonJet_dr         = iConfig.getParameter<double>("photonJet_dr_");
@@ -105,6 +111,11 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.getByLabel(pfmetInputTag, pfmet_h);
      float pfmet = (pfmet_h->front()).et();
 
+     const JetCorrector* correctorL2L3;
+     if( doL2L3pfjetCorrection_ )
+       correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
+     
+     
      if (met > metPt || tcmet > tcmetPt || pfmet > pfmetPt)
 	  return true;
 
@@ -125,48 +136,59 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if (iter->pt() > musPt)
 	       return true;
      }
-
+     
      edm::Handle<reco::PhotonCollection> photon_h;
      iEvent.getByLabel(photonInputTag, photon_h);
-
+     
      for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++)
      {
 	  if (iter->pt() > photonPt)
 	       return true;
      }
-
+     
+     float L2L3JetScale = 1;
+     
      edm::Handle<reco::PFJetCollection> pfjet_h;
      iEvent.getByLabel(pfjetsInputTag, pfjet_h);
 
      for (reco::PFJetCollection::const_iterator iter = pfjet_h->begin(); iter != pfjet_h->end(); iter++)
      {
-	  if (iter->pt() > pfjetPt)
-	       return true;
+
+           if( doL2L3pfjetCorrection_ ){
+             reco::PFJet uncorJet = *iter;
+             L2L3JetScale = correctorL2L3->correction(uncorJet.p4());
+             //cout << "L2L3correction: " << L2L3JetScale << endl;
+           }
+          
+           if (iter->pt() * L2L3JetScale > pfjetPt)
+             return true;
      }
 
      //----------------------------------------------
      //require photon *and* jet not matched to photon
      //----------------------------------------------
 
-     for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++)
-     {
+     for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++){
+       
        if (iter->pt() > photonJet_photonPt){
-
-         for (reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); jetiter != pfjet_h->end(); jetiter++)
-           {
-
-             float deta = iter->eta() - jetiter->eta();
-             float dphi = fabs( iter->phi() - jetiter->phi() );
-             if( dphi > TMath::Pi() ) dphi = TMath::TwoPi() - dphi;
-             float dr = sqrt( deta * deta + dphi * dphi );
-             
-             if( dr < photonJet_dr ) continue;
-
-             if (jetiter->pt() > photonJet_pfjetPt)
-	       return true;
+         
+         for (reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); jetiter != pfjet_h->end(); jetiter++){
+           
+           float deta = iter->eta() - jetiter->eta();
+           float dphi = fabs( iter->phi() - jetiter->phi() );
+           if( dphi > TMath::Pi() ) dphi = TMath::TwoPi() - dphi;
+           float dr = sqrt( deta * deta + dphi * dphi );
+           
+           if( dr < photonJet_dr ) continue;
+           
+           if( doL2L3pfjetCorrection_ ){
+             reco::PFJet uncorJet = *jetiter;
+             L2L3JetScale = correctorL2L3->correction(uncorJet.p4());
            }
-         
-         
+           
+           if (jetiter->pt() * L2L3JetScale > photonJet_pfjetPt)
+             return true;
+         }
        }
      }
      

@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.3 2010/09/14 21:47:59 benhoob Exp $
+// $Id: SDFilter.h,v 1.4 2010/09/15 12:03:37 benhoob Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -70,6 +70,12 @@ private:
      double metPt;
      double tcmetPt;
      double pfmetPt;
+
+     //L2L3 pfjet correction params
+     bool doL2L3pfjetCorrection_;
+     std::string PFJetCorrectorL2L3_;
+
+     //thresholds for photon+jet filter
      double photonJet_photonPt;
      double photonJet_pfjetPt;
      double photonJet_dr;

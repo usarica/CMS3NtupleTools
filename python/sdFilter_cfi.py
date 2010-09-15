@@ -16,6 +16,11 @@ sdFilter = cms.EDFilter("SDFilter",
                             tcmetPt_        = cms.double(60.), 
                             pfmetPt_        = cms.double(60.), 
 
+                            #L2L3 pfjet correction params
+                            doL2L3pfjetCorrection_ = cms.bool(True),
+                            PFJetCorrectorL2L3_ = cms.string("ak5PFL2L3"),
+
+                            #thresholds for photon+jet filter
                             photonJet_photonPt_ = cms.double(20.),
                             photonJet_pfjetPt_  = cms.double(30.),
                             photonJet_dr_       = cms.double(0.4)
