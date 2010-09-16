@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.4 $'),
+        version = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -33,7 +33,7 @@ process.options = cms.untracked.PSet(
 # logging
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 #-------------------------------------------------
 # PAT configuration
@@ -78,7 +78,7 @@ metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1500)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -86,7 +86,7 @@ process.options = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-      'file:../../../../../4A1CA502-E189-DF11-A4B5-00237DA15C7C.root'
+      'file:../../../../../FC831303-C3BA-DF11-B71F-003048C68A98.root'
     ),
 )
 
@@ -142,6 +142,7 @@ process.cms2WithEverything = cms.Sequence( process.sdFilter
                                            * process.patDefaultSequence
                                            * process.cms2PATSequence
                                            * process.cms2PFNoTauSequence
+                                           * process.cms2PFSequence
                                            * process.cms2HCALcleaningSequence
                                            * process.cms2HFcleaningSequence)
 
