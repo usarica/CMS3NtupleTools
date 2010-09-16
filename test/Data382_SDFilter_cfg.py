@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.5 $'),
+        version = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -142,7 +142,6 @@ process.cms2WithEverything = cms.Sequence( process.sdFilter
                                            * process.patDefaultSequence
                                            * process.cms2PATSequence
                                            * process.cms2PFNoTauSequence
-                                           * process.cms2PFSequence
                                            * process.cms2HCALcleaningSequence
                                            * process.cms2HFcleaningSequence)
 
