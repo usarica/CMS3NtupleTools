@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: ASkimFilter.h,v 1.3 2010/06/15 09:43:03 fgolf Exp $
+// $Id: ASkimFilter.h,v 1.4 2010/10/04 17:25:44 kalavase Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -36,7 +36,7 @@ Implementation:
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-//#include "Math/LorentzVector.h"
+
 //
 // class decleration
 //
@@ -55,8 +55,10 @@ private:
   virtual void endJob() ;
    
   // ----------member data ---------------------------
-  std::vector<edm::InputTag> filterExpressions;
-  double filterPtCut;
+  edm::InputTag electronsInputTag_;
+  edm::InputTag muonsInputTag_;
+  bool useSTAMuons_;
+  double filterPtCut_;
   
 };
 
