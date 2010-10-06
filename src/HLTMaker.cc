@@ -12,7 +12,6 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
   aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
-  
 
   produces<unsigned int>                    (Form("%sbits1"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits1"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits2"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits2"      ,processNamePrefix_.Data()));
@@ -23,32 +22,61 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>                    (Form("%sbits7"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits7"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits8"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits8"      ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
-  produces<vector<unsigned int> >           (Form("%sprescales"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"   ,processNamePrefix_.Data()));
+  produces<vector<unsigned int> >           (Form("%sprescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
   produces<vector<vector<int> > >           (Form("%strigObjsid",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
 
   produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
-    
 }
 
 void HLTMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
 {
+  // In the case that we are choosing the process name
+  // automatically, i.e. the processName_ parameter is
+  // an empty string, we can't init  HLTConfigProvider
+  // until after we've determined the process name. So
+  // don't init here until after we've set processName_
+  // in the produce method. Sounds scary, it is kinda!
+  // As we cannot initialize HLTConfigProvider here wo
+  // a process name save the ProcessHistory so that we
+  // can init HLTConfigProvider once and only once  in
+  // the produce method
   // HLT config _should no longer_ change within runs :)
-  bool changed(true);
-  if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
-  } else 
-    throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
+  if (processName_ != "") {
+    bool changed(true);
+    if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
+    } else 
+      throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
+  } else
+    edmPH_ = iRun.processHistory();
 }
 
 void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
-  if (! triggerResultsH_.isValid())
-    throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
-  if (fillTriggerObjects_) {
+  // If the process name is not specified retrieve the  latest
+  // TriggerEvent object and the corresponding TriggerResults.
+  // We should only have to do this once though, the next time
+  // produce is called processName_ should be set.
+  if (processName_ == "") {
+    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEventH_);
+    if (! triggerEventH_.isValid()  )
+      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
+    // This line is important as it makes sure it is never called
+    // again! A self-terminating code snippet...
+    processName_ = triggerEventH_.provenance()->processName();
+    // This is the once and only once bit described in beginRun
+    // Note that the init method used is private in CVS :|
+    bool changed(true);
+    if (hltConfig_.init(edmPH_,iSetup,processName_,changed)) {
+    } else 
+      throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
+  } else {
     iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", processName_), triggerEventH_  );
     if (! triggerEventH_.isValid()  )
       throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
   }
+  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+  if (! triggerResultsH_.isValid())
+    throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
   // sanity check
   assert(triggerResultsH_->size()==hltConfig_.size());
 
