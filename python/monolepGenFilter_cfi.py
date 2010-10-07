@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-monolepGenFilter = cms.EDProducer("LepGenFilter",
+monolepGenFilter = cms.EDFilter("LepGenFilter",
 	nGenLepsRequired = cms.int32(1)
 )
