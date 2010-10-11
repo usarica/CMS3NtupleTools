@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ASkimFilter.cc,v 1.3 2010/03/02 19:36:07 fgolf Exp $
+// $Id: ASkimFilter.cc,v 1.4 2010/10/11 10:21:10 kalavase Exp $
 //
 //
 
@@ -28,7 +28,8 @@ see header file
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
 #include "CMS2/NtupleMaker/interface/ASkimFilter.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
@@ -41,8 +42,10 @@ using namespace std;
 //
 
 ASkimFilter::ASkimFilter(const edm::ParameterSet& iConfig) {
-  filterExpressions = iConfig.getParameter<std::vector<edm::InputTag> >("filterExpressions");
-  filterPtCut       = iConfig.getParameter<double> ("filterPtCut");
+  electronsInputTag_	= iConfig.getParameter<edm::InputTag>	("electronsInputTag");
+  muonsInputTag_	= iConfig.getParameter<edm::InputTag>	("muonnsInputTag");
+  useSTAMuons_          = iConfig.getParameter<bool>            ("useSTAMuons_");
+  filterPtCut_		= iConfig.getParameter<double>		("filterPtCut");
 }
 
 
@@ -58,27 +61,37 @@ void ASkimFilter::endJob() {
 // ------------ method called to produce the data  ------------
 bool ASkimFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-  //  std::cout<<"ASkimFilter called. Pt cut is: "<<filterPtCut<<std::endl;
+  using namespace edm;
 
-  //loop over strings in input
-  for ( vector<edm::InputTag>::const_iterator i=filterExpressions.begin(), end=filterExpressions.end();
-	i!=end; ++i) {
+  Handle<View<reco::GsfElectron> > els_h;
+  iEvent.getByLabel(electronsInputTag_, els_h);
+
+  Handle<edm::View<reco::Muon> > muon_h;
+  iEvent.getByLabel(muonsInputTag_, muon_h); 
+  edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
+
+  for(View<reco::GsfElectron>::const_iterator elit = els_h->begin();
+      elit != els_h->end(); elit++) {
     
-    // somewhat dirty - handle needs to be TLorentzVector and correspond to momentum.
-    edm::Handle< vector<LorentzVector> > theHandle;
-    iEvent.getByLabel(*i, theHandle);
-    if ( theHandle->size() != 0 ) {
-      
-      for ( vector<LorentzVector>::const_iterator lepp4_it = theHandle->begin();
-            lepp4_it != theHandle->end(); ++lepp4_it) {
-        if( (*lepp4_it).pt() > filterPtCut ) {
-          return true;
-        }
-      }
+    if(elit->pt() > filterPtCut_)
+      return true;
+  }
+
+  for(View<reco::Muon>::const_iterator muit = muon_h->begin();
+      muit != muon_h->end(); muit++) {
+
+    if(!useSTAMuons_) {
+      if(!(muit->isGlobalMuon()) && !(muit->isTrackerMuon()))
+      continue;
     }
+
+    if(muit->pt() > filterPtCut_)
+      return true;
+
   }
 
   return false;
+
 }
 
 //define this as a plug-in

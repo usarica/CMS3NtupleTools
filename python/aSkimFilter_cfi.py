@@ -1,7 +1,13 @@
 import FWCore.ParameterSet.Config as cms
 
-aSkimFilter = cms.EDFilter("ASkimFilter",
-                           filterExpressions = cms.VInputTag(cms.InputTag("electronMaker","elsp4"),
-                                                             cms.InputTag("muonMaker","musp4")),
-                           filterPtCut  = cms.double(10.0)
+from CMS2.NtupleMaker.electronMaker_cfi import *
+from CMS2.NtupleMaker.muonMaker_cfi import *
+
+aSkimFilter = cms.EDProducer("ASkimFilter",
+                             #electronsInputTag = cms.InputTag("gsfElectrons"),
+                             electronsInputTag = electronMaker.electronsInputTag,
+                             #muonsInputTag     = cms.InputTag("muons"        ),
+                             muonsInputTag     = muonMaker.muonsInputTag,
+                             useSTAMuons       = cms.bool(False),
+                             filterPtCut       = cms.double(10.0)
 )
