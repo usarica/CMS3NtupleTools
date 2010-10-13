@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ASkimFilter.cc,v 1.4 2010/10/11 10:21:10 kalavase Exp $
+// $Id: ASkimFilter.cc,v 1.5 2010/10/13 10:13:59 yygao Exp $
 //
 //
 
@@ -43,8 +43,8 @@ using namespace std;
 
 ASkimFilter::ASkimFilter(const edm::ParameterSet& iConfig) {
   electronsInputTag_	= iConfig.getParameter<edm::InputTag>	("electronsInputTag");
-  muonsInputTag_	= iConfig.getParameter<edm::InputTag>	("muonnsInputTag");
-  useSTAMuons_          = iConfig.getParameter<bool>            ("useSTAMuons_");
+  muonsInputTag_	= iConfig.getParameter<edm::InputTag>	("muonsInputTag");
+  useSTAMuons_          = iConfig.getParameter<bool>            ("useSTAMuons");
   filterPtCut_		= iConfig.getParameter<double>		("filterPtCut");
 }
 
