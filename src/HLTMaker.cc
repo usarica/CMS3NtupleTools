@@ -35,19 +35,15 @@ void HLTMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
   // an empty string, we can't init  HLTConfigProvider
   // until after we've determined the process name. So
   // don't init here until after we've set processName_
-  // in the produce method. Sounds scary, it is kinda!
-  // As we cannot initialize HLTConfigProvider here wo
-  // a process name save the ProcessHistory so that we
-  // can init HLTConfigProvider once and only once  in
-  // the produce method
+  // in the produce method and init there once and only
+  // once. Sounds scary, it is kinda!
   // HLT config _should no longer_ change within runs :)
   if (processName_ != "") {
     bool changed(true);
     if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
     } else 
       throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
-  } else
-    edmPH_ = iRun.processHistory();
+  }
 }
 
 void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -64,9 +60,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // again! A self-terminating code snippet...
     processName_ = triggerEventH_.provenance()->processName();
     // This is the once and only once bit described in beginRun
-    // Note that the init method used is private in CVS :|
     bool changed(true);
-    if (hltConfig_.init(edmPH_,iSetup,processName_,changed)) {
+    if (hltConfig_.init(iEvent.getRun(),iSetup,processName_,changed)) {
     } else 
       throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
   } else {

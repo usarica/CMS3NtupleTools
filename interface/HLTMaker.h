@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.8 2010/10/06 13:52:42 jribnik Exp $
+// $Id: HLTMaker.h,v 1.9 2010/11/08 22:45:10 jribnik Exp $
 //
 //
 #ifndef NTUPLEMAKER_HLTMAKER_H
@@ -58,7 +58,6 @@ private:
   edm::Handle<edm::TriggerResults> triggerResultsH_;
   edm::Handle<trigger::TriggerEvent> triggerEventH_;
   HLTConfigProvider hltConfig_;
-  edm::ProcessHistory edmPH_;
   
   std::string processName_;
   bool fillTriggerObjects_;
