@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TCMETMaker.cc,v 1.9 2010/04/09 12:47:12 fgolf Exp $
+// $Id: TCMETMaker.cc,v 1.10 2010/11/09 10:21:26 benhoob Exp $
 //
 //
 
@@ -57,6 +57,11 @@ TCMETMaker::TCMETMaker(const edm::ParameterSet& iConfig) {
   produces<float>         (branchprefix+"tcmetSig"    ).setBranchAlias(aliasprefix_+"_tcmetSig"    );
   produces<float>         (branchprefix+"tcsumet"     ).setBranchAlias(aliasprefix_+"_tcsumet"     );
 
+  produces<float>         (branchprefix+"pftcmet"       ).setBranchAlias(aliasprefix_+"_pf_tcmet"       );
+  produces<float>         (branchprefix+"pftcmetPhi"    ).setBranchAlias(aliasprefix_+"_pf_tcmetPhi"    );
+  produces<float>         (branchprefix+"pftcmetSig"    ).setBranchAlias(aliasprefix_+"_pf_tcmetSig"    );
+  produces<float>         (branchprefix+"pftcsumet"     ).setBranchAlias(aliasprefix_+"_pf_tcsumet"     );
+
   if( aliasprefix_ == "evt" ) {
        produces<vector<int> >  ("mustcmetflag"   ).setBranchAlias("mus_tcmet_flag"  );
        produces<vector<float> >("mustcmetdeltax" ).setBranchAlias("mus_tcmet_deltax");
@@ -71,6 +76,7 @@ TCMETMaker::TCMETMaker(const edm::ParameterSet& iConfig) {
   // input tags
   muon_tag     = iConfig.getParameter<edm::InputTag>("muon_tag_"    );
   tcmet_tag    = iConfig.getParameter<edm::InputTag>("tcmet_tag_"   );
+  pftcmet_tag  = iConfig.getParameter<edm::InputTag>("pftcmet_tag_" );
   tcmet_vm_tag = iConfig.getParameter<edm::InputTag>("tcmet_vm_tag_");
 }
 
@@ -94,6 +100,10 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>          evt_tcmetPhi     (new float         );
   auto_ptr<float>          evt_tcmetSig     (new float         );
   auto_ptr<float>          evt_tcsumet      (new float         );
+  auto_ptr<float>          evt_pf_tcmet     (new float         );
+  auto_ptr<float>          evt_pf_tcmetPhi  (new float         );
+  auto_ptr<float>          evt_pf_tcmetSig  (new float         );
+  auto_ptr<float>          evt_pf_tcsumet   (new float         );
   auto_ptr<vector<int>   > mus_tcmet_flag   (new vector<int>   ); 
   auto_ptr<vector<float> > mus_tcmet_deltax (new vector<float> ); 
   auto_ptr<vector<float> > mus_tcmet_deltay (new vector<float> ); 
@@ -101,11 +111,13 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // handles to collections
   edm::Handle<reco::MuonCollection> muon_h;
   edm::Handle<reco::METCollection>  tcmet_h;
+  edm::Handle<reco::METCollection>  pftcmet_h;
   edm::Handle<edm::ValueMap<reco::MuonMETCorrectionData> > tcmet_vm_h;
 
   // get collections
   iEvent.getByLabel(muon_tag    , muon_h    );
   iEvent.getByLabel(tcmet_tag   , tcmet_h   );
+  iEvent.getByLabel(pftcmet_tag , pftcmet_h );
   iEvent.getByLabel(tcmet_vm_tag, tcmet_vm_h);
 
   // fill met quantities
@@ -113,6 +125,11 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_tcmetPhi       = (tcmet_h->front()).phi();
   *evt_tcmetSig       = (tcmet_h->front()).mEtSig();
   *evt_tcsumet        = (tcmet_h->front()).sumEt();
+
+  *evt_pf_tcmet       = (pftcmet_h->front()).et();
+  *evt_pf_tcmetPhi    = (pftcmet_h->front()).phi();
+  *evt_pf_tcmetSig    = (pftcmet_h->front()).mEtSig();
+  *evt_pf_tcsumet     = (pftcmet_h->front()).sumEt();
 
   edm::ValueMap<reco::MuonMETCorrectionData> tcmet_data = *tcmet_vm_h;
 
@@ -137,6 +154,11 @@ void TCMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_tcmetPhi         , branchprefix+"tcmetPhi"        );
   iEvent.put(evt_tcmetSig         , branchprefix+"tcmetSig"        );
   iEvent.put(evt_tcsumet          , branchprefix+"tcsumet"         );
+
+  iEvent.put(evt_pf_tcmet         , branchprefix+"pftcmet"         );
+  iEvent.put(evt_pf_tcmetPhi      , branchprefix+"pftcmetPhi"      );
+  iEvent.put(evt_pf_tcmetSig      , branchprefix+"pftcmetSig"      );
+  iEvent.put(evt_pf_tcsumet       , branchprefix+"pftcsumet"       );
 
   if( aliasprefix_ == "evt" ) {
        iEvent.put(mus_tcmet_flag       , "mustcmetflag"       );
