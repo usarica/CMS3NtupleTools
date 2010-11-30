@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.8 $'),
+        version = cms.untracked.string('$Revision: 1.9 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -79,7 +79,7 @@ metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(20)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -88,7 +88,7 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    'file:/store/disk00/jribnik/Spring10_TTbarJets-madgraph_GEN-SIM-RECO_START3X_V26_S09-v1_0005_2AA58B20-AD46-DF11-9274-003048C69032.root'
+    '/store/mc/Fall10/TTJets_TuneD6T_smallerISRFSR_7TeV-madgraph-tauola/GEN-SIM-RECO/START38_V12-v1/0002/166A1668-8DDD-DF11-A287-E0CB4E19F995.root'
     ),
 )
 
@@ -102,7 +102,7 @@ process.out = cms.OutputModule(
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
-
+process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
@@ -128,7 +128,7 @@ process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
                                                        * process.cms2HCALcleaningSequence
                                                        * process.cms2HFcleaningSequence)
 
-#since filtering is done in the last step, there is no reason to remove these paths
+#since filtering is one in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
 #process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("")
