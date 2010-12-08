@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.26 2010/03/03 04:23:52 kalavase Exp $
+// $Id: GenMaker.cc,v 1.27 2010/12/08 20:51:58 dbarge Exp $
 //
 //
 
@@ -216,7 +216,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
 
     //12 = nuE, 14=nuMu, 16=nuTau, appear at both status 1 and 3
-    if( (TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16) && genps_it->status() != 3 ) {
+    //if( (TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16) && genps_it->status() != 3 ) {
+    /* Dec 08 2010: Changed to exclude status 2 neutrinos due to observation of low tail in (RecoMET/GenMET) in Fall10 LM samples */
+    if( (TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16) && genps_it->status() != 3 && genps_it->status() != 2 ) {
       tempvect += LorentzVector( genps_it->p4().x(),
 				 genps_it->p4().y(),
 				 genps_it->p4().z(),
