@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.27 2010/12/08 20:51:58 dbarge Exp $
+// $Id: GenMaker.cc,v 1.28 2011/01/20 22:05:13 fgolf Exp $
 //
 //
 
@@ -26,6 +26,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/Run.h"
 
 #include "CMS2/NtupleMaker/interface/GenMaker.h" 
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.14 2010/03/03 04:19:35 kalavase Exp $
+// $Id: GenMaker.h,v 1.15 2011/01/20 22:05:13 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_GENMAKER_H
@@ -46,7 +46,7 @@ private:
 
      // ----------member data ---------------------------
      edm::InputTag genParticlesInputTag_;
-  edm::InputTag genRunInfoInputTag_;
+	 edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;
  
@@ -55,7 +55,6 @@ private:
      double inclusiveCrossSectionValue_;
      double exclusiveCrossSectionValue_;
      double kfactorValue_;
-
 };
 
 #endif
