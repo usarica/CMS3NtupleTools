@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.55 2010/09/01 22:21:51 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.56 2011/01/20 22:07:28 fgolf Exp $
 //
 //
 
@@ -819,8 +819,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	float convPointY = std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
 	float convPointZ = std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
     els_conv_pos_p4->push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
-    if(convInfo.conversionPartnerTk().isNonnull())
-      els_conv_tkidx->push_back(convInfo.conversionPartnerTk().key());
+    if(convInfo.conversionPartnerCtfTk().isNonnull())
+      els_conv_tkidx->push_back(convInfo.conversionPartnerCtfTk().key());
     else 
       els_conv_tkidx->push_back(-9999);
 
