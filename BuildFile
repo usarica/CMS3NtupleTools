@@ -46,6 +46,7 @@
 <use name=DataFormats/ParticleFlowReco>
 <use name=RecoTracker/MeasurementDet>
 <use name=RecoTracker/TkNavigation>
+<use name=DataFormats/Luminosity>
 <use name=root>
 <use name=clhep>
 <lib name=EG>
