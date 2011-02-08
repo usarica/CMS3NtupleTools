@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.28 2010/05/03 23:16:27 kalavase Exp $
+// $Id: JetMaker.cc,v 1.29 2011/02/08 00:58:02 kalavase Exp $
 //
 //
 
@@ -58,18 +58,22 @@ bool sortJetsByPt(LorentzVector jet1, LorentzVector jet2) {
 JetMaker::JetMaker(const edm::ParameterSet& iConfig)
 {  
   // parameters from configuration
-  uncorJetsInputTag_      = iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"       );
-  runningOnReco_          = iConfig.getUntrackedParameter<bool>("runningOnReco"           );
-  aliasprefix_            = iConfig.getParameter<std::string>("AliasPrefix"               );
-  jetIDIputTag_           = iConfig.getParameter<edm::InputTag>("jetIDInputTag"           );
-  CaloJetCorrectorL2L3_   = iConfig.getParameter<std::string>("CaloJetCorrectorL2L3"      );
+  uncorJetsInputTag_		= iConfig.getParameter<edm::InputTag>("uncorJetsInputTag"		);
+  runningOnReco_		= iConfig.getUntrackedParameter<bool>("runningOnReco"			);
+  aliasprefix_			= iConfig.getParameter<std::string>("AliasPrefix"			);
+  jetIDIputTag_			= iConfig.getParameter<edm::InputTag>("jetIDInputTag"			);
+  CaloJetCorrectorL2L3_		= iConfig.getParameter<std::string>("CaloJetCorrectorL2L3"		);
+  CaloJetCorrectorL1L2L3_	= iConfig.getParameter<std::string>("CaloJetCorrectorL1L2L3"		);
+  CaloJetCorrectorL1FastL2L3_	= iConfig.getParameter<std::string>("CaloJetCorrectorL1FastL2L3"	);
 
   // product of this EDProducer
-  produces<unsigned int>                ("evtn"+aliasprefix_     ).setBranchAlias("evt_n"+aliasprefix_        ); // number of jets
-  produces<std::vector<LorentzVector> >	(aliasprefix_+"p4"       ).setBranchAlias(aliasprefix_+"_p4"          ); // L2L3 corrected p4 of the jet
-  produces<std::vector<LorentzVector> > (aliasprefix_+"vertexp4" ).setBranchAlias(aliasprefix_+"_vertex_p4"   );
-  produces<std::vector<float> >	        (aliasprefix_+"emFrac"   ).setBranchAlias(aliasprefix_+"_emFrac"      ); // electromagnetic energy fraction
-  produces<std::vector<float> >	        (aliasprefix_+"cor"      ).setBranchAlias(aliasprefix_+"_cor"         ); // energy scale correction -> only L2 and L3
+  produces<unsigned int>                ("evtn"+aliasprefix_		).setBranchAlias("evt_n"+aliasprefix_		); // number of jets
+  produces<std::vector<LorentzVector> >	(aliasprefix_+"p4"		).setBranchAlias(aliasprefix_+"_p4"		); // L2L3 corrected p4 of the jet
+  produces<std::vector<LorentzVector> > (aliasprefix_+"vertexp4"	).setBranchAlias(aliasprefix_+"_vertex_p4"	);
+  produces<std::vector<float> >	        (aliasprefix_+"emFrac"		).setBranchAlias(aliasprefix_+"_emFrac"		); // electromagnetic energy fraction
+  produces<std::vector<float> >	        (aliasprefix_+"cor"		).setBranchAlias(aliasprefix_+"_cor"		); // energy scale correction -> only L2 and L3
+  produces<std::vector<float> >         (aliasprefix_+"corL1L2L3"	).setBranchAlias(aliasprefix_+"_corL1L2L3"      ); // energy scale correction -> only L1
+  produces<std::vector<float> >         (aliasprefix_+"corL1FastL2L3"   ).setBranchAlias(aliasprefix_+"_corL1FastL2L3"  ); // energy scale correction -> only L1
 
   if(runningOnReco_) {
     produces<std::vector<float> >     (aliasprefix_+"fHPD"           ).setBranchAlias(aliasprefix_+"_fHPD"            );
@@ -105,6 +109,8 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<vector<LorentzVector> >   vector_jets_vertex_p4      (new vector<LorentzVector> );
   auto_ptr<vector<float> >           vector_jets_emFrac         (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_cor            (new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_corL1L2L3      (new vector<float>         );
+  auto_ptr<vector<float> >           vector_jets_corL1FastL2L3  (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_fHPD           (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_fRBX           (new vector<float>         );
   auto_ptr<vector<float> >           vector_jets_n90Hits        (new vector<float>         );
@@ -132,15 +138,24 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   //jetcor = new CombinedJetCorrector(correctionLevels_,correctionTags_);
 
-  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_, iSetup);
+  const JetCorrector* correctorL2L3       = JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_	, iSetup);
+  const JetCorrector* correctorL1L2L3     = JetCorrector::getJetCorrector (CaloJetCorrectorL1L2L3_	, iSetup);
+  const JetCorrector* correctorL1FastL2L3 = JetCorrector::getJetCorrector (CaloJetCorrectorL1FastL2L3_	, iSetup);
   
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
-    
-    double cor = correctorL2L3->correction(it->p4());
+  
+    int index = it-uncorJetsHandle->begin();
+    edm::RefToBase<reco::Jet> jetRef(edm::Ref<View<reco::CaloJet> >(uncorJetsHandle,index));
+        
+    double cor			= correctorL2L3->correction(*it,jetRef,iEvent,iSetup);
+    double corL1L2L3		= correctorL1L2L3->correction(*it,jetRef,iEvent,iSetup);
+    //double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,jetRef,iEvent,iSetup);
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
     vector_jets_cor            ->push_back( cor                                             );
+    //vector_jets_corL1L2L3      ->push_back( corL1L2L3                                       );
+    //vector_jets_corL1FastL2L3  ->push_back( corL1FastL2L3                                   );
     
     if(runningOnReco_) {
 
@@ -166,11 +181,13 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   
   // put containers into event
-  iEvent.put(evt_njets,                   "evtn"+aliasprefix_     );
-  iEvent.put(vector_jets_p4,              aliasprefix_+"p4"       );
-  iEvent.put(vector_jets_vertex_p4,       aliasprefix_+"vertexp4" );
-  iEvent.put(vector_jets_emFrac,          aliasprefix_+"emFrac"   );
-  iEvent.put(vector_jets_cor,             aliasprefix_+"cor"      );
+  iEvent.put(evt_njets,                   "evtn"+aliasprefix_		);
+  iEvent.put(vector_jets_p4,              aliasprefix_+"p4"		);
+  iEvent.put(vector_jets_vertex_p4,       aliasprefix_+"vertexp4"	);
+  iEvent.put(vector_jets_emFrac,          aliasprefix_+"emFrac"		);
+  iEvent.put(vector_jets_cor,             aliasprefix_+"cor"		);
+  iEvent.put(vector_jets_corL1L2L3,       aliasprefix_+"corL1L2L3"	);
+  iEvent.put(vector_jets_corL1FastL2L3,   aliasprefix_+"corL1FastL2L3"	);
 
   if(runningOnReco_) {
     iEvent.put(vector_jets_fHPD,            aliasprefix_+"fHPD"              );
