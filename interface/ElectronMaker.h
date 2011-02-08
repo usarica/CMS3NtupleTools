@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.17 2010/05/07 01:30:10 warren Exp $
+// $Id: ElectronMaker.h,v 1.18 2011/02/08 00:55:06 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -73,6 +73,7 @@ private:
   edm::InputTag electronsInputTag_;
   edm::InputTag beamSpotInputTag_;
   edm::InputTag trksInputTag_;
+  edm::InputTag gsftracksInputTag_;
   edm::InputTag eidRobustLooseTag_;
   edm::InputTag eidRobustTightTag_;
   edm::InputTag eidRobustHighEnergyTag_;
