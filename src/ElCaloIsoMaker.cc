@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: ElCaloIsoMaker.cc,v 1.5 2010/03/18 02:11:56 kalavase Exp $
+// $Id: ElCaloIsoMaker.cc,v 1.6 2011/02/08 18:37:21 kalavase Exp $
 
 // system include files
 #include <memory>
@@ -56,6 +56,11 @@ void ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& i
    
    edm::Handle<reco::BasicClusterCollection> basicClusterHandle;
    iEvent.getByLabel(m_basicClusterInputTag, basicClusterHandle);
+
+   if(!basicClusterHandle.isValid()) {
+     els_juraIso->push_back(9999);
+     return;
+   }
    
  std::string branchprefix = aliasprefix_;
    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
@@ -92,6 +97,11 @@ void ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& i
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
    
+   if(!caloTowers.isValid()) {
+     els_hcalIso->push_back(9999);
+     return;
+   }
+   
    std::string branchprefix = aliasprefix_;
    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
    
@@ -121,6 +131,11 @@ void ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSet
    
    edm::Handle<CaloTowerCollection> caloTowers;
    iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
+   
+   if(!caloTowers.isValid()) {
+     els_juraIso->push_back(9999);
+     return;
+   }
    
    std::string branchprefix = aliasprefix_;
    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
