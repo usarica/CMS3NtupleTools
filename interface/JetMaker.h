@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.14 2010/06/15 10:08:36 fgolf Exp $
+// $Id: JetMaker.h,v 1.15 2011/02/08 00:55:34 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -58,6 +58,8 @@ private:
   std::string aliasprefix_;
   edm::InputTag jetIDIputTag_;
   std::string CaloJetCorrectorL2L3_;
+  std::string CaloJetCorrectorL1L2L3_;
+  std::string CaloJetCorrectorL1FastL2L3_;
 };
 
 #endif
