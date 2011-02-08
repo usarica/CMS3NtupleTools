@@ -1,7 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 pdfinfoMaker = cms.EDProducer( "PDFInfoMaker",
-	aliasPrefix = cms.untracked.string("pdfinfo"),
+        genEventInfoInputTag = cms.string("generator"),                               
+	aliasPrefix = cms.untracked.string("pdfinfo")
 )
 
 

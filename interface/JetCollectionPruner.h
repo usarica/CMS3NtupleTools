@@ -40,6 +40,8 @@ private:
   edm::InputTag inputUncorrectedJPTJetCollection_;
   edm::InputTag inputUncorrectedPFJetCollection_;
   edm::InputTag inputUncorrectedTrkJetCollection_;
+
+  edm::InputTag inputCaloJetIdCollection_;
   double uncorrectedJPTJetPtCut_;
   double uncorrectedPFJetPtCut_;
   double uncorrectedTrkJetPtCut_;
