@@ -44,8 +44,8 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-
-	std::string aliasprefix_;
+  std::string genEventInfoInputTag_;
+  std::string aliasprefix_;
 };
 
 #endif

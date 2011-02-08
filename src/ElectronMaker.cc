@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.57 2011/02/08 00:56:48 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.58 2011/02/08 22:06:02 kalavase Exp $
 //
 //
 
@@ -89,6 +89,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   electronsInputTag_             = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
   beamSpotInputTag_              = iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
   trksInputTag_                  = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
+
   gsftracksInputTag_             = iConfig.getParameter<edm::InputTag>("gsftracksInputTag"                  );
   eidRobustLooseTag_             = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
   eidRobustTightTag_             = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
@@ -166,6 +167,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
   // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
   produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
+
   produces<vector<float> >     ("elsegammarobustLooseId"     ).setBranchAlias("els_egamma_robustLooseId"   );
   produces<vector<float> >     ("elsegammarobustTightId"     ).setBranchAlias("els_egamma_robustTightId"   );
   produces<vector<float> >     ("elsegammalooseId"           ).setBranchAlias("els_egamma_looseId"         );
@@ -352,12 +354,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //
   auto_ptr<vector<int> >		els_class				(new vector<int>		) ;
   auto_ptr<vector<int> >		els_category				(new vector<int>		) ;
+
   auto_ptr<vector<float> >		els_egamma_robustLooseId		(new vector<float>		) ;
   auto_ptr<vector<float> >		els_egamma_robustTightId		(new vector<float>		) ;
   auto_ptr<vector<float> >		els_egamma_robustHighEnergy		(new vector<float>		) ;
   auto_ptr<vector<float> >		els_egamma_looseId			(new vector<float>		) ;
   auto_ptr<vector<float> >		els_egamma_tightId			(new vector<float>		) ;
-  
+
   // isolation variables
   //
   auto_ptr<vector<float> >		els_tkIso				(new vector<float>		) ;
@@ -471,17 +474,17 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
   // Get the value maps for the Egamma electron ID decisions
-
+  /*
   const edm::ValueMap<float>&  eidRobustLooseMap          = getValueMap<float>(iEvent, eidRobustLooseTag_);
   const edm::ValueMap<float>&  eidRobustTightMap          = getValueMap<float>(iEvent, eidRobustTightTag_);
   const edm::ValueMap<float>&  eidRobustHighEnergyMap     = getValueMap<float>(iEvent, eidRobustHighEnergyTag_);
   const edm::ValueMap<float>&  eidLooseMap                = getValueMap<float>(iEvent, eidLooseTag_);
   const edm::ValueMap<float>&  eidTightMap                = getValueMap<float>(iEvent, eidTightTag_);
-
+  */
   //get cms2scsseeddetid 
   edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
   edm::Handle<std::vector<int> > cms2scsseeddetid_h;
-  iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
+  iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
   const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
 
@@ -497,23 +500,40 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     // Get electron and track objects
     const reco::Track *el_track = (const reco::Track*)(el->gsfTrack().get());
-    const edm::RefToBase<reco::GsfElectron> gsfElRef = els_h->refAt(elsIndex);
-    
+    const edm::RefToBase<reco::GsfElectron> gsfElRef = els_h->refAt(elsIndex);    
 
     // Get cluster info that is not stored in the object
     //
-    float eMax, e3x3;
-    const reco::BasicCluster& clRef= *(el->superCluster()->seed());
-    eMax = clusterTools_->eMax(clRef);
-    e3x3 = clusterTools_->e3x3(clRef);
+    float eMax = -9999.;
+    float e3x3 = -9999.;    
+    if(el->superCluster()->seed().isAvailable() ) { 
+      const reco::BasicCluster& clRef= *(el->superCluster()->seed());
+      eMax = clusterTools_->eMax(clRef);
+      e3x3 = clusterTools_->e3x3(clRef);
+    
 
-    // get the covariances computed in 5x5 around the seed
-    const std::vector<float>& covs = clusterTools_->covariances(clRef);
-    // get the local covariances computed in a 5x5 around the seed
-    const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
-    // get the local covariances computed using all crystals in the SC
-    const std::vector<float> localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));
+      // get the covariances computed in 5x5 around the seed
+      const std::vector<float>& covs = clusterTools_->covariances(clRef);
+      // get the local covariances computed in a 5x5 around the seed
+      const std::vector<float>& lcovs = clusterTools_->localCovariances(clRef);
+      // get the local covariances computed using all crystals in the SC
+      const std::vector<float> localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));
 
+      els_eSeed          ->push_back( el->superCluster()->seed()->energy()     );		
+      els_sigmaPhiPhi    ->push_back( covs[2] > 0                ? sqrt(covs[2])                 : -1 * sqrt(-1 * covs[2]) );
+      els_sigmaIPhiIPhi  ->push_back( lcovs[2] > 0               ? sqrt(lcovs[2])                : -1 * sqrt(-1 * lcovs[2]) );
+      els_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) );
+      els_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) );
+    } else {
+      els_eSeed			->push_back(	-9999.	);
+      els_sigmaPhiPhi		->push_back(	-9999.	);
+      els_sigmaIPhiIPhi		->push_back(	-9999.	);
+      els_sigmaIEtaIEtaSC	->push_back(	-9999.	);
+      els_sigmaIPhiIPhiSC	->push_back(	-9999.	);
+    }
+    
+
+    
     // Fill cluster info
     //
     els_etaSC		   ->push_back( el->superCluster()->eta()		);
@@ -527,35 +547,33 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_e5x5           ->push_back( el->e5x5()                               );
     els_e2x5Max        ->push_back( el->e2x5Max()                            );
     els_eMax           ->push_back( eMax                                     );
-    els_eSeed          ->push_back( el->superCluster()->seed()->energy()     );		
-    els_sigmaPhiPhi    ->push_back( covs[2] > 0                ? sqrt(covs[2])                 : -1 * sqrt(-1 * covs[2]) );
-    els_sigmaIPhiIPhi  ->push_back( lcovs[2] > 0               ? sqrt(lcovs[2])                : -1 * sqrt(-1 * lcovs[2]) );
-    els_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) );
-    els_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) );
+    
     els_sigmaEtaEta    ->push_back( el->scSigmaEtaEta()                      );
     els_sigmaIEtaIEta  ->push_back( el->scSigmaIEtaIEta()                    );
 
 
-	//get cms2scsseeddetid--sorry for junk from photons...
-	bool foundseed = false;
-	for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
-	  //cout << cms2scsseeddetid->at(i) << "  ";
-	  if( uint32_t(cms2scsseeddetid->at(i)) == el->superCluster()->seed()->seed() ) {
-		foundseed = true;
-		els_scindex->push_back( i );
-		break;
-	  }
-	}
-	//cout << endl;
-	if( !foundseed ) {
-	  //this is understood: the photon can have energy significantly higher than SC for whatever reason.
-	  //cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed())
-	  //	 << "  photon et: " << photon->et()
-	  //	 << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta())
+    //get cms2scsseeddetid--sorry for junk from photons...
+    bool foundseed = false;
+    for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {      
+      if( cms2scsseeddetid->at(i) == -9999)
+	continue;      
+      if(!(el->superCluster()->seed().isAvailable()) )
+	continue;
+      if(  uint32_t(cms2scsseeddetid->at(i)) == el->superCluster()->seed()->seed() ) {
+	foundseed = true;
+	els_scindex->push_back( i );
+	break;
+      }
+    }
+    //cout << endl;
+    if( !foundseed ) {
+      //this is understood: the photon can have energy significantly higher than SC for whatever reason.
+      //cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed())
+      //	 << "  photon et: " << photon->et()
+      //	 << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta())
 	  //	 << endl;
-	  els_scindex->push_back( -1 );		
-	}
-
+      els_scindex->push_back( -1 );		
+    }
 
     // set the mask that describes the egamma fiduciality flags
     // the enum is in interface/EgammaFiduciality.h
@@ -581,10 +599,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_type->push_back( electronTypeMask);
 
     // energy corrections and uncertainties
-    els_ecalEnergy->push_back(		el->ecalEnergy()	        	);
-    els_ecalEnergyError->push_back(		el->ecalEnergyError()		        );
-    els_trackMomentumError->push_back(	el->trackMomentumError()	        );
-    els_electronMomentumError->push_back(	el->electronMomentumError()	        );
+    els_ecalEnergy		->push_back(	el->ecalEnergy()	        	);
+    els_ecalEnergyError		->push_back(	el->ecalEnergyError()		        );
+    els_trackMomentumError	->push_back(	el->trackMomentumError()	        );
+    els_electronMomentumError	->push_back(	el->electronMomentumError()	        );
 
     // Fill predifined electron ID decisions
     //
@@ -595,6 +613,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_category              ->push_back( classify(gsfElRef)		        );
     //
     // Now get the decisions from the "official" Egamma sequences
+
     els_egamma_robustLooseId     ->push_back( eidRobustLooseMap[gsfElRef]		);
     els_egamma_robustTightId     ->push_back( eidRobustTightMap[gsfElRef]		);
     els_egamma_looseId           ->push_back( eidLooseMap[gsfElRef]  		);
@@ -665,10 +684,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     // Electron ID variables
     //
-    double phi_pin = el->caloPosition().phi() -
-      el->deltaPhiSuperClusterTrackAtVtx();
-    double phi_pout = el->superCluster()->seed()->position().phi()
-      - el->deltaPhiSeedClusterTrackAtCalo();
+    double phi_pin = el->caloPosition().phi() - el->deltaPhiSuperClusterTrackAtVtx();
+    double phi_pout = -9999.;
+    if(el->superCluster()->seed().isAvailable())
+      phi_pout = el->superCluster()->seed()->position().phi() - el->deltaPhiSeedClusterTrackAtCalo();
     els_hOverE                ->push_back( el->hadronicOverEm()                      );
     els_hcalDepth1OverEcal    ->push_back( el->hcalDepth1OverEcal()		     );
     els_hcalDepth2OverEcal    ->push_back( el->hcalDepth2OverEcal()                  );
@@ -694,118 +713,127 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_vertex_p4             ->push_back( LorentzVector(el->vx(), el->vy(), el->vz(), 0.) );
 
     //Hit Pattern 
-
-    els_inner_position ->push_back(LorentzVector(el_track->innerPosition().x(), el_track->innerPosition().y() , el_track->innerPosition().z(), 0 ));
-    els_outer_position ->push_back(LorentzVector(el_track->outerPosition().x(), el_track->outerPosition().y() , el_track->outerPosition().z(), 0 ));
+    if(el_track->extra().isAvailable()) {
+      els_inner_position ->push_back(LorentzVector(el_track->innerPosition().x(), el_track->innerPosition().y() , el_track->innerPosition().z(), 0 ));
+      els_outer_position ->push_back(LorentzVector(el_track->outerPosition().x(), el_track->outerPosition().y() , el_track->outerPosition().z(), 0 ));
+    } else {
+      els_inner_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
+      els_outer_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
+    }
+    
     const reco::HitPattern& pattern = el_track->hitPattern();
-    const reco::HitPattern& p_inner = el_track->trackerExpectedHitsInner();
+    const reco::HitPattern& p_inner = el_track->trackerExpectedHitsInner(); 
     const reco::HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
     els_exp_innerlayers    -> push_back(p_inner.numberOfHits());
     els_exp_outerlayers    -> push_back(p_outer.numberOfHits());
-    //if(el_track->trackerExpectedHitsInner().numberOfHits() != el_track->trackerExpectedHitsInner().numberOfLostHits())
-    //cout << "1:" << el_track->trackerExpectedHitsInner().numberOfHits() << " " << el_track->trackerExpectedHitsInner().numberOfLostHits() << endl;
-    //if(el_track->trackerExpectedHitsOuter().numberOfHits() != el_track->trackerExpectedHitsOuter().numberOfLostHits())
-    //cout << "1:" << el_track->trackerExpectedHitsOuter().numberOfHits() << " " << el_track->trackerExpectedHitsOuter().numberOfLostHits() << endl;
-    bool valid_hit      = false;
-    uint32_t hit_pattern; 
-    int i_layer       = 1;
-    int side = -1;
-    bool pixel_hit   = false;
-    bool strip_hit   = false;
-
-    int pixel_size;
-    int pixel_sizeX;
-    int pixel_sizeY;
-    float pixel_charge;
-    int det;
-    int layer;
-
-    typedef edm::Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
-    typedef edm::Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
-
-
-    for(trackingRecHit_iterator ihit = el_track->recHitsBegin(); 
-	ihit != el_track->recHitsEnd(); ++ihit){
-      if(i_layer > 1) break;
-      int k = ihit-el_track->recHitsBegin();
-      hit_pattern = pattern.getHitPattern(k);
-      valid_hit = pattern.validHitFilter(hit_pattern);
-      pixel_hit = pattern.pixelHitFilter(hit_pattern);
-      strip_hit = pattern.stripHitFilter(hit_pattern);
-      side      = (int)pattern.getSide(hit_pattern);
-      det       = (int)pattern.getSubStructure(hit_pattern);
-      layer     = (int)pattern.getLayer(hit_pattern);
-
-      if(!valid_hit) continue;
-      if(pixel_hit){
-
-	const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
-	assert(pixel_hit_cast != 0);
-	pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-
-	pixel_size   = (int)pixel_cluster->size(); 
-	pixel_sizeX  = (int)pixel_cluster->sizeX(); 
-	pixel_sizeY  = (int)pixel_cluster->sizeY(); 
-	pixel_charge = (float)pixel_cluster->charge();
-
-	if(i_layer == 1){
-	  els_layer1_sizerphi ->push_back(pixel_sizeX);
-	  els_layer1_sizerz   ->push_back(pixel_sizeY);
-	  els_layer1_charge   ->push_back(pixel_charge);
-	  els_layer1_det      ->push_back(det);
-	  els_layer1_layer    ->push_back(layer);
-	  i_layer++;
-
-	}
-
-      }
-
-      else if (strip_hit){
-	const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
-	const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
-	ClusterRef cluster;
-	if(strip_hit_cast == NULL)
-	  cluster = strip2d_hit_cast->cluster();
-	else 
-	  cluster = strip_hit_cast->cluster();
-
-	int cluster_size   = (int)cluster->amplitudes().size();
-	int cluster_charge = 0;
-	double   cluster_weight_size = 0.0;
-	int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
-
-	for(int istrip = 0; istrip < cluster_size; istrip++){
-	  cluster_charge += (int)cluster->amplitudes().at(istrip);
-	  cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
-	}
-	cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
-
-	if(i_layer == 1){
-	  if(side==0) 
-	    {
-	      els_layer1_sizerphi ->push_back(cluster_size);
-	      els_layer1_sizerz   ->push_back(0);
-	    }
-
-	  else
-	    {
-	      els_layer1_sizerphi ->push_back(0);
-	      els_layer1_sizerz   ->push_back(cluster_size);
-	    } 
-
-	  els_layer1_charge   ->push_back(cluster_charge);
-	  els_layer1_det      ->push_back(det);
-	  els_layer1_layer    ->push_back(layer);
-	  i_layer++;
-	}
-      }
-
-    }
-
     els_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
     els_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
 
+    if(el_track->extra().isAvailable()) {
+      bool valid_hit      = false;
+      uint32_t hit_pattern; 
+      int i_layer       = 1;
+      int side = -1;
+      bool pixel_hit   = false;
+      bool strip_hit   = false;
 
+      int pixel_size;
+      int pixel_sizeX;
+      int pixel_sizeY;
+      float pixel_charge;
+      int det;
+      int layer;
+
+      typedef edm::Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
+      typedef edm::Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
+
+
+      for(trackingRecHit_iterator ihit = el_track->recHitsBegin(); 
+	  ihit != el_track->recHitsEnd(); ++ihit){
+	if(i_layer > 1) break;
+	int k = ihit-el_track->recHitsBegin();
+	hit_pattern = pattern.getHitPattern(k);
+	valid_hit = pattern.validHitFilter(hit_pattern);
+	pixel_hit = pattern.pixelHitFilter(hit_pattern);
+	strip_hit = pattern.stripHitFilter(hit_pattern);
+	side      = (int)pattern.getSide(hit_pattern);
+	det       = (int)pattern.getSubStructure(hit_pattern);
+	layer     = (int)pattern.getLayer(hit_pattern);
+
+	if(!valid_hit) continue;
+	if(pixel_hit){
+
+	  const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
+	  assert(pixel_hit_cast != 0);
+	  pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
+
+	  pixel_size   = (int)pixel_cluster->size(); 
+	  pixel_sizeX  = (int)pixel_cluster->sizeX(); 
+	  pixel_sizeY  = (int)pixel_cluster->sizeY(); 
+	  pixel_charge = (float)pixel_cluster->charge();
+
+	  if(i_layer == 1){
+	    els_layer1_sizerphi ->push_back(pixel_sizeX);
+	    els_layer1_sizerz   ->push_back(pixel_sizeY);
+	    els_layer1_charge   ->push_back(pixel_charge);
+	    els_layer1_det      ->push_back(det);
+	    els_layer1_layer    ->push_back(layer);
+	    i_layer++;
+
+	  }
+	}
+
+	else if (strip_hit){
+	  const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
+	  const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+	  ClusterRef cluster;
+	  if(strip_hit_cast == NULL)
+	    cluster = strip2d_hit_cast->cluster();
+	  else 
+	    cluster = strip_hit_cast->cluster();
+
+	  int cluster_size   = (int)cluster->amplitudes().size();
+	  int cluster_charge = 0;
+	  double   cluster_weight_size = 0.0;
+	  int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
+
+	  for(int istrip = 0; istrip < cluster_size; istrip++){
+	    cluster_charge += (int)cluster->amplitudes().at(istrip);
+	    cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
+	  }
+	  cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
+
+	  if(i_layer == 1){
+	    if(side==0) 
+	      {
+		els_layer1_sizerphi ->push_back(cluster_size);
+		els_layer1_sizerz   ->push_back(0);
+	      }
+
+	    else
+	      {
+		els_layer1_sizerphi ->push_back(0);
+		els_layer1_sizerz   ->push_back(cluster_size);
+	      } 
+
+	    els_layer1_charge   ->push_back(cluster_charge);
+	    els_layer1_det      ->push_back(det);
+	    els_layer1_layer    ->push_back(layer);
+	    i_layer++;
+	  }
+	}
+
+      }
+
+
+    } else {
+      els_layer1_sizerphi ->push_back(-9999);
+      els_layer1_sizerz   ->push_back(-9999);
+      els_layer1_charge   ->push_back(-9999);
+      els_layer1_det      ->push_back(-9999);
+      els_layer1_layer    ->push_back(-9999);
+    }
+    
     // *****************************************************
 
     TrackRef ctfTkRef    = el->closestCtfTrackRef();
@@ -845,7 +873,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       els_conv_gsftkidx->push_back(-9999);
     els_conv_delMissHits->push_back(convInfo.deltaMissingHits());
     els_conv_flag->push_back(convInfo.flag());
-
     
     
   }//electron loop
@@ -864,8 +891,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_egamma_robustTightId		,"elsegammarobustTightId"		);
   iEvent.put(els_egamma_looseId			,"elsegammalooseId"			);
   iEvent.put(els_egamma_tightId			,"elsegammatightId"			);
-
-  // Track parameters
+    // Track parameters
   //
   iEvent.put(els_d0                     	,"elsd0"				);
   iEvent.put(els_z0                      	,"elsz0"				);
