@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.25 2010/05/24 15:14:30 fgolf Exp $
+// $Id: METMaker.cc,v 1.26 2011/02/08 18:54:02 kalavase Exp $
 //
 //
 
@@ -114,6 +114,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      produces<float> (branchprefix+"sumetOptNoHF"        ).setBranchAlias(aliasprefix_+"_sumetOptNoHF"         );
      produces<float> (branchprefix+"sumetOptNoHFHO"      ).setBranchAlias(aliasprefix_+"_sumetOptNoHFHO"       );  
      produces<float> (branchprefix+"sumetMuonCorr"       ).setBranchAlias(aliasprefix_+"_sumetMuonCorr"        );
+     produces<float> (branchprefix+"sumetMuonJESCorr"    ).setBranchAlias(aliasprefix_+"_sumetMuonJESCorr"     );
 
      // store muon value map quantities
      if(aliasprefix_ == "evt") {
@@ -235,6 +236,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<float>   evt_sumetOptNoHF        (new float     );
      auto_ptr<float>   evt_sumetOptNoHFHO      (new float     );
      auto_ptr<float>   evt_sumetMuonCorr       (new float     );
+     auto_ptr<float>   evt_sumetMuonJESCorr    (new float     );
 
      auto_ptr<vector<int>   > mus_met_flag   ( new vector<int>   );
      auto_ptr<vector<float> > mus_met_deltax ( new vector<float> );
@@ -303,48 +305,56 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel(muon_tag   , muon_h    );
     
      *evt_hbheFilter   = *filter_h;
-     *evt_met          = ( met_h->front()    ).et();
-     *evt_metPhi       = ( met_h->front()    ).phi();
-     *evt_metSig       = ( met_h->front()    ).metSignificance();
-     *evt_sumet        = ( met_h->front()    ).sumEt();
-     *evt_metHO        = ( metHO_h->front()     ).et();
-     *evt_metHOPhi     = ( metHO_h->front()     ).phi();
-     *evt_metHOSig     = ( metHO_h->front()     ).metSignificance();
-     *evt_metNoHF      = ( metNoHF_h->front()   ).et();
-     *evt_metNoHFPhi   = ( metNoHF_h->front()   ).phi();
-     *evt_metNoHFSig   = ( metNoHF_h->front()   ).metSignificance();
-     *evt_metNoHFHO    = ( metNoHFHO_h->front() ).et();
-     *evt_metNoHFHOPhi = ( metNoHFHO_h->front() ).phi();
-     *evt_metNoHFHOSig = ( metNoHFHO_h->front() ).metSignificance();
+     *evt_met			= met_h.isValid()		 ? ( met_h->front()		 ).et()			: -9999;
+     *evt_metPhi		= met_h.isValid()		 ? ( met_h->front()		 ).phi()		: -9999;
+     *evt_metSig		= met_h.isValid()		 ? ( met_h->front()		 ).metSignificance()	: -9999;
+     *evt_sumet			= met_h.isValid()		 ? ( met_h->front()		 ).sumEt()		: -9999;
 
-     *evt_metOpt          = ( metOpt_h->front()       ).et();
-     *evt_metOptPhi       = ( metOpt_h->front()       ).phi();
-     *evt_metOptSig       = ( metOpt_h->front()       ).metSignificance();
-     *evt_metOptHO        = ( metOptHO_h->front()     ).et();
-     *evt_metOptHOPhi     = ( metOptHO_h->front()     ).phi();
-     *evt_metOptHOSig     = ( metOptHO_h->front()     ).metSignificance();
-     *evt_metOptNoHF      = ( metOptNoHF_h->front()   ).et();
-     *evt_metOptNoHFPhi   = ( metOptNoHF_h->front()   ).phi();
-     *evt_metOptNoHFSig   = ( metOptNoHF_h->front()   ).metSignificance();
-     *evt_metOptNoHFHO    = ( metOptNoHFHO_h->front() ).et();
-     *evt_metOptNoHFHOPhi = ( metOptNoHFHO_h->front() ).phi();
-     *evt_metOptNoHFHOSig = ( metOptNoHFHO_h->front() ).metSignificance();
+     *evt_metHO			= metHO_h.isValid()		 ? ( metHO_h->front()		 ).et()			: -9999;
+     *evt_metHOPhi		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).phi()		: -9999;
+     *evt_metHOSig		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).metSignificance()	: -9999;
+     *evt_sumetHO		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).sumEt()		: -9999;  
 
-     *evt_metMuonCorr         =  ( metMuonCorr_h->front()    ).et();
-     *evt_metMuonCorrPhi      =  ( metMuonCorr_h->front()    ).phi();
-     *evt_metMuonCorrSig      =  ( metMuonCorr_h->front()    ).metSignificance();
-     *evt_metMuonJESCorr      =  ( metMuonJESCorr_h->front() ).et();
-     *evt_metMuonJESCorrPhi   =  ( metMuonJESCorr_h->front() ).phi();
-     *evt_metMuonJESCorrSig   =  ( metMuonJESCorr_h->front() ).metSignificance();
+     *evt_metNoHF		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).et()			: -9999;
+     *evt_metNoHFPhi		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).phi()		: -9999;
+     *evt_metNoHFSig		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).metSignificance()	: -9999;
+     *evt_sumetNoHF		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).sumEt()		: -9999;
 
-     *evt_sumetHO         = ( metHO_h->front()        ).sumEt();   
-     *evt_sumetNoHF       = ( metNoHF_h->front()      ).sumEt();
-     *evt_sumetNoHFHO     = ( metNoHFHO_h->front()    ).sumEt();
-     *evt_sumetOpt        = ( metOpt_h->front()       ).sumEt();      
-     *evt_sumetOptHO      = ( metOptHO_h->front()     ).sumEt();    
-     *evt_sumetOptNoHF    = ( metOptNoHF_h->front()   ).sumEt();  
-     *evt_sumetOptNoHFHO  = ( metOptNoHFHO_h->front() ).sumEt();
-     *evt_sumetMuonCorr   = ( metMuonCorr_h->front()  ).sumEt();
+     *evt_metNoHFHO		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).et()			: -9999;
+     *evt_metNoHFHOPhi		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).phi()		: -9999;
+     *evt_metNoHFHOSig		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).metSignificance()	: -9999;     
+     *evt_sumetNoHFHO		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).sumEt()		: -9999;
+
+     *evt_metOpt		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).et()			: -9999;
+     *evt_metOptPhi		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).phi()		: -9999;
+     *evt_metOptSig		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).metSignificance()	: -9999;
+     *evt_sumetOpt		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).sumEt()		: -9999; 
+
+     *evt_metOptHO		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).et()			: -9999;
+     *evt_metOptHOPhi		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).phi()		: -9999;
+     *evt_metOptHOSig		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).metSignificance()	: -9999;
+     *evt_sumetOptHO		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).sumEt()		: -9999;    
+     *evt_metOptNoHF		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).et()			: -9999;
+     *evt_metOptNoHFPhi		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).phi()		: -9999;
+     *evt_metOptNoHFSig		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).metSignificance()	: -9999;
+     *evt_sumetOptNoHF		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).sumEt()		: -9999;
+
+     *evt_metOptNoHFHO		= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).et()			: -9999;
+     *evt_metOptNoHFHOPhi	= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).phi()		: -9999;
+     *evt_metOptNoHFHOSig	= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).metSignificance()	: -9999;
+     *evt_sumetOptNoHFHO	= metOptNoHFHO_h.isValid()       ? ( metOptNoHFHO_h->front()     ).sumEt()              : -9999;
+
+     *evt_metMuonCorr		= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).et()			: -9999;
+     *evt_metMuonCorrPhi	= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).phi()		: -9999;
+     *evt_metMuonCorrSig	= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).metSignificance()	: -9999;
+     *evt_sumetMuonCorr		= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).sumEt()		: -9999;
+
+     *evt_metMuonJESCorr	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).et()			: -9999;
+     *evt_metMuonJESCorrPhi	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).phi()		: -9999;
+     *evt_metMuonJESCorrSig	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).metSignificance()	: -9999;     
+     *evt_sumetMuonJESCorr      = metMuonJESCorr_h.isValid()     ? ( metMuonJESCorr_h->front()   ).sumEt()              : -9999;
+
+
 
      edm::ValueMap<reco::MuonMETCorrectionData> muon_data = *muon_vm_h;
 
@@ -515,7 +525,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(evt_metMuonJESCorrSig ,branchprefix+"metMuonJESCorrSig");
 
      iEvent.put(evt_sumet             ,branchprefix+"sumet"            );  
-     iEvent.put(evt_sumetHO           ,branchprefix+"sumetHO"	  );
+     iEvent.put(evt_sumetHO           ,branchprefix+"sumetHO"	       );
      iEvent.put(evt_sumetNoHF         ,branchprefix+"sumetNoHF"        );
      iEvent.put(evt_sumetNoHFHO       ,branchprefix+"sumetNoHFHO"      );
      iEvent.put(evt_sumetOpt          ,branchprefix+"sumetOpt"         );
@@ -523,6 +533,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(evt_sumetOptNoHF      ,branchprefix+"sumetOptNoHF"     );
      iEvent.put(evt_sumetOptNoHFHO    ,branchprefix+"sumetOptNoHFHO"   );
      iEvent.put(evt_sumetMuonCorr     ,branchprefix+"sumetMuonCorr"    );
+     iEvent.put(evt_sumetMuonJESCorr  ,branchprefix+"sumetMuonJESCorr" );
 
      if(aliasprefix_ == "evt") {
 	  iEvent.put(mus_met_flag          ,"musmetflag"          );
