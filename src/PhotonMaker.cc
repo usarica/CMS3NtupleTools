@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.15 2010/06/08 21:36:39 warren Exp $
+// $Id: PhotonMaker.cc,v 1.16 2011/02/08 20:45:01 kalavase Exp $
 //
 //
 
@@ -181,11 +181,21 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
      edm::Handle<EcalRecHitCollection> rhcHandleEE;
      iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
-     const EcalRecHitCollection *recHitsEE = rhcHandleEE.product();
-
+     const EcalRecHitCollection *recHitsEE;
+     
      edm::Handle<EcalRecHitCollection> rhcHandleEB;
      iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
-     const EcalRecHitCollection *recHitsEB = rhcHandleEB.product();
+     const EcalRecHitCollection *recHitsEB;
+     
+     bool haveHits = true;
+     if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())
+       haveHits = false;
+
+
+     if(haveHits) {
+       recHitsEE = rhcHandleEE.product();
+       recHitsEB = rhcHandleEB.product();
+     }
 	 
      // calo topology
      edm::ESHandle<CaloTopology> pTopology;
@@ -218,11 +228,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  //get cms2scsseeddetid
 	  bool foundseed = false;
 	  for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
-	       //cout << cms2scsseeddetid->at(i) << "  ";
-	       if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
-		    foundseed = true;
-		    photons_scindex->push_back( i );
-		    break;
+	    if(cms2scsseeddetid->at(i) == -9999)
+	      continue;
+	    if(!(photon->superCluster()->seed().isAvailable()))
+	      continue;
+	    if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
+	      foundseed = true;
+	      photons_scindex->push_back( i );
+	      break;
 	       }
 	  }
 
@@ -235,38 +248,40 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  edm::ESHandle<CaloGeometry> geoHandle;
 	  iSetup.get<CaloGeometryRecord>().get(geoHandle);
 
-	  CaloClusterPtr tempCluster = photon->superCluster()->seed(); //caloclusterfwd.h--different data type from BasicCluster so need both
-	  ClusterShapeAlgo algo;
-	  DetId seedId = photon->superCluster()->seed()->seed();
 
 	  reco::BasicCluster dummyCluster;
 	  EcalClusterTools clusterTools;
-	  if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
-	       EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
-	       if (seedHit != recHitsEE->end()) {
-		    float emSwiss = 0.;
-		    emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, -1, 1);
-		    emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
-		    emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
-		    photons_swissSeed->push_back( emSwiss );
-	       }
-	       else {
-		    photons_swissSeed->push_back( -9999.99 );
-	       }
-	  }
-	  else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
-	       EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
-	       if (seedHit != recHitsEB->end()) {
-		    float emSwiss = 0.;
-		    emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, -1, 1);
-		    emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
-		    emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
-		    photons_swissSeed->push_back( emSwiss );
-	       }
-	       else {
-		    photons_swissSeed->push_back( -9999.99 );
-	       }		
-	  }
+	  if(haveHits && photon->superCluster()->seed().isAvailable()) {
+	    DetId seedId = photon->superCluster()->seed()->seed();
+	    if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
+	    
+	      EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
+	      if (seedHit != recHitsEE->end()) {
+		float emSwiss = 0.;
+		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, -1, 1);
+		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
+		emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
+		photons_swissSeed->push_back( emSwiss );
+	      }
+	      else {
+		photons_swissSeed->push_back( -9999.99 );
+	      }
+	    }
+	    else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
+	      EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
+	      if (seedHit != recHitsEB->end()) {
+		float emSwiss = 0.;
+		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, -1, 1);
+		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
+		emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
+		photons_swissSeed->push_back( emSwiss );
+	      }
+	      else {
+		photons_swissSeed->push_back( -9999.99 );
+	      }		
+	    }
+	  } else 
+	    photons_swissSeed->push_back( -9999.99 );
 
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
 	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
