@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.56 2011/01/20 22:07:28 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.57 2011/02/08 00:56:48 kalavase Exp $
 //
 //
 
@@ -89,6 +89,7 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   electronsInputTag_             = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
   beamSpotInputTag_              = iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
   trksInputTag_                  = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
+  gsftracksInputTag_             = iConfig.getParameter<edm::InputTag>("gsftracksInputTag"                  );
   eidRobustLooseTag_             = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
   eidRobustTightTag_             = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
   eidRobustHighEnergyTag_        = iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
@@ -241,6 +242,9 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>    >       ("elsconvradius"            ).setBranchAlias("els_conv_radius"            );//signed radius of conversion
   produces<vector<LorentzVector> >  ("elsconvposp4"             ).setBranchAlias("els_conv_pos_p4"            );//position of conversion
   produces<vector<int>      >       ("elsconvtkidx"             ).setBranchAlias("els_conv_tkidx"             );//index of partner track
+  produces<vector<int>      >       ("elsconvgsftkidx"          ).setBranchAlias("els_conv_gsftkidx"          );//index of the GSF partner track, if thats where we find it
+  produces<vector<int>      >       ("elsconvdelMissHits"       ).setBranchAlias("els_conv_delMissHits"       );//Delta Missing Hits between the electron and partner track
+  produces<vector<int>      >       ("elsconvflag"              ).setBranchAlias("els_conv_flag"              );
 
   
 }
@@ -424,11 +428,19 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float>    >		els_conv_radius				(new vector<float>		) ;
   auto_ptr<vector<LorentzVector> >	els_conv_pos_p4				(new vector<LorentzVector>	) ;
   auto_ptr<vector<int>      >		els_conv_tkidx				(new vector<int>		) ;
+  auto_ptr<vector<int>      >           els_conv_gsftkidx                       (new vector<int>                ) ;
+  auto_ptr<vector<int>      >           els_conv_delMissHits                    (new vector<int>                ) ;
+  auto_ptr<vector<int>      >           els_conv_flag                           (new vector<int>                ) ;
+
   
 
-  //conversions
+   
   Handle<reco::TrackCollection> tracks_h;
   iEvent.getByLabel(trksInputTag_, tracks_h);
+
+  //get GSF Tracks
+  Handle<reco::GsfTrackCollection> gsftracks_h;
+  iEvent.getByLabel(gsftracksInputTag_, gsftracks_h);
 
   Handle<float> evt_bField_h;
   iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
@@ -690,6 +702,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
     els_exp_innerlayers    -> push_back(p_inner.numberOfHits());
     els_exp_outerlayers    -> push_back(p_outer.numberOfHits());
+    //if(el_track->trackerExpectedHitsInner().numberOfHits() != el_track->trackerExpectedHitsInner().numberOfLostHits())
+    //cout << "1:" << el_track->trackerExpectedHitsInner().numberOfHits() << " " << el_track->trackerExpectedHitsInner().numberOfLostHits() << endl;
+    //if(el_track->trackerExpectedHitsOuter().numberOfHits() != el_track->trackerExpectedHitsOuter().numberOfLostHits())
+    //cout << "1:" << el_track->trackerExpectedHitsOuter().numberOfHits() << " " << el_track->trackerExpectedHitsOuter().numberOfLostHits() << endl;
     bool valid_hit      = false;
     uint32_t hit_pattern; 
     int i_layer       = 1;
@@ -810,19 +826,25 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
     ConversionFinder convFinder;
-    ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, evt_bField);
+    ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, gsftracks_h, evt_bField);
     els_conv_dist->push_back(std::isfinite(convInfo.dist()) ? convInfo.dist() : -9999.);
     els_conv_dcot->push_back(convInfo.dcot());
     els_conv_radius->push_back(convInfo.radiusOfConversion());
     math::XYZPoint convPoint = convInfo.pointOfConversion();
-	float convPointX = std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
-	float convPointY = std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
-	float convPointZ = std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+    float convPointX = std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+    float convPointY = std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+    float convPointZ = std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
     els_conv_pos_p4->push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
     if(convInfo.conversionPartnerCtfTk().isNonnull())
       els_conv_tkidx->push_back(convInfo.conversionPartnerCtfTk().key());
     else 
       els_conv_tkidx->push_back(-9999);
+    if(convInfo.conversionPartnerGsfTk().isNonnull())
+      els_conv_gsftkidx->push_back(convInfo.conversionPartnerGsfTk().key());
+    else 
+      els_conv_gsftkidx->push_back(-9999);
+    els_conv_delMissHits->push_back(convInfo.deltaMissingHits());
+    els_conv_flag->push_back(convInfo.flag());
 
     
     
@@ -966,6 +988,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_conv_radius                    ,"elsconvradius"			);
   iEvent.put(els_conv_pos_p4                    ,"elsconvposp4"				);
   iEvent.put(els_conv_tkidx                     ,"elsconvtkidx"		        	);
+  iEvent.put(els_conv_gsftkidx                  ,"elsconvgsftkidx"                      );
+  iEvent.put(els_conv_delMissHits               ,"elsconvdelMissHits"                   );
+  iEvent.put(els_conv_flag                      ,"elsconvflag"                          );
   
 
 
