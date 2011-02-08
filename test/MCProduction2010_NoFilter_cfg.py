@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.9 $'),
+        version = cms.untracked.string('$Revision: 1.10 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -21,9 +21,13 @@ process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
 process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
+process.ak5CaloL1Offset.useCondDB = False
+process.ak5CaloL1Fastjet.useCondDB = False
+
+
 process.load('Configuration/EventContent/EventContent_cff')
 
-process.GlobalTag.globaltag = "MC_38Y_V9::All"
+process.GlobalTag.globaltag = "START39_V8::All"
 
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -31,46 +35,11 @@ process.options = cms.untracked.PSet(
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 
 
-#-------------------------------------------------
-# PAT configuration
-#-------------------------------------------------
-process.load("PhysicsTools.PatAlgos.patSequences_cff")
-process.patDefaultSequence = cms.Sequence(
-    process.patCandidates *
-    process.selectedPatCandidates
-)
 
-#add muon isolation
-from PhysicsTools.PatAlgos.tools.muonTools import *
-addMuonUserIsolation.isolationTypes = ['All']
-addMuonUserIsolation.toolCode(process)
-
-#change JetID tag
-from PhysicsTools.PatAlgos.tools.jetTools import *
-from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
-run36xOn35xInput(process)
-addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets','calojet'), "antikt5" )
-switchJetCollection35X(process, 
-                    cms.InputTag('prunedUncorrectedCMS2Jets','calojet'),   
-                    doJTA            = True,            
-                    doBTagging       = True,            
-                    jetCorrLabel     = ('AK5', 'Calo'),
-                    doType1MET       = True,
-                    genJetCollection = cms.InputTag("cms2antikt5GenJets"),
-                    doJetID          = True,
-                    jetIdLabel       = "cms2ak5"
-                    )
-
-# add statement to prevent the PAT from using generator information
-#from PhysicsTools.PatAlgos.tools.coreTools import *
-#uncomment for data
-#removeMCMatching(process, ['All'])
-
-#
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
@@ -79,7 +48,7 @@ metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(20)
+    input = cms.untracked.int32(1000)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -88,14 +57,13 @@ process.options = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-    '/store/mc/Fall10/TTJets_TuneD6T_smallerISRFSR_7TeV-madgraph-tauola/GEN-SIM-RECO/START38_V12-v1/0002/166A1668-8DDD-DF11-A287-E0CB4E19F995.root'
+        'file:/data/tmp/kalavase/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
     ),
 )
 
 
 process.out = cms.OutputModule(
         "PoolOutputModule",
-        verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
         fileName = cms.untracked.string('ntuple.root')
 )
@@ -107,7 +75,6 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
-process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
@@ -120,13 +87,11 @@ process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence
-                                                       * process.cms2PFNoTauSequence
-                                                       * process.cms2GENSequence
-                                                       * process.patDefaultSequence
-                                                       * process.cms2PATSequence
-                                                       * process.cms2HCALcleaningSequence
-                                                       * process.cms2HFcleaningSequence)
+process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence)
+#                                                       * process.cms2PFNoTauSequence
+#                                                       * process.cms2GENSequence)
+#                                                       * process.cms2HCALcleaningSequence
+#                                                       * process.cms2HFcleaningSequence)
 
 #since filtering is one in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
