@@ -9,8 +9,4 @@ prunedUncorrectedCMS2Jets = cms.EDProducer("JetCollectionPruner",
                                          uncorrectedJPTJetPtCut           = cms.double(8.0), ##cut on uncorrected JPT jets!!!!!
                                          uncorrectedTrkJetPtCut           = cms.double(5.0),                                                                                   
                                          uncorrectedPFJetPtCut            = cms.double(7.0)
-)
-                                         
-
-cms2ak5JetID = ak5JetID.clone()
-cms2ak5JetID.src = cms.InputTag("prunedUncorrectedCMS2Jets", "calojet")
+)                                         

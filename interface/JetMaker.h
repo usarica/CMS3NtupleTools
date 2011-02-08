@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.h,v 1.15 2011/02/08 00:55:34 kalavase Exp $
+// $Id: JetMaker.h,v 1.16 2011/02/08 21:56:31 kalavase Exp $
 //
 //
 #ifndef CMS2_JETMAKER_H
@@ -34,7 +34,11 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
-//#include "CondFormats/JetMETObjects/interface/CombinedJetCorrector.h"
+
+#include "DataFormats/JetReco/interface/CaloJetCollection.h"
+#include "DataFormats/Common/interface/RefToBase.h" 
+
+
 //
 // class decleration
 //
@@ -50,9 +54,12 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   
+  edm::RefToBase<reco::CaloJet> getCaloJetRef(const edm::Handle<edm::View<reco::CaloJet> > &, 
+					      const reco::CaloJet&);
+
   // ----------member data ---------------------------
   edm::InputTag uncorJetsInputTag_;
-  bool runningOnReco_;
+  edm::InputTag unprunedJetsTag_;
   std::string correctionLevels_;
   std::string correctionTags_;
   std::string aliasprefix_;
