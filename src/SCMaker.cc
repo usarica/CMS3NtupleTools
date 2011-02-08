@@ -5,10 +5,10 @@
 // 
 /**\class SCMaker SCMaker.cc CMS2/SCMaker/src/SCMaker.cc
 
-Description: <one line class summary>
+   Description: <one line class summary>
 
-Implementation:
-<Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 //
@@ -152,6 +152,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
 
   // initialise this
   cachedCaloGeometryID_ = 0;
+  clusterTools_ = 0;
 
 }
 
@@ -216,16 +217,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // get hoe variable
   HoECalculator hoeCalc(caloGeometry_);
 
-  // ecal cluster shape variables
-  EcalClusterLazyTools lazyTools(iEvent, iSetup,
-				 ecalRecHitsInputTag_EB_, ecalRecHitsInputTag_EE_);
 
-  // get hcal depth isolations
-  //edm::Handle<CaloTowerCollection> caloTowersHandle;
-  //iEvent.getByLabel(caloTowersInputTag_, caloTowersHandle);
-  //const CaloTowerCollection *coloTowersCollection = caloTowersHandle.product();
-  //EgammaTowerIsolation egammaIsoD1(isoExtRadius_, isoIntRadius_, isoEtMin_, 1, coloTowersCollection);
-  //EgammaTowerIsolation egammaIsoD2(isoExtRadius_, isoIntRadius_, isoEtMin_, 2, coloTowersCollection);
 
   std::auto_ptr<unsigned int> evt_nscs (new unsigned int);
   std::auto_ptr<unsigned int> evt_ecalRecoStatus (new unsigned int);
@@ -279,6 +271,21 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   *evt_nscs = 0;
   *evt_ecalRecoStatus = 0;
 
+  edm::Handle<EcalRecHitCollection> tempH;
+  bool haveHits = true;
+  for (unsigned int i = 0; i < scInputTags_.size(); ++i) {
+    iEvent.getByLabel(hitInputTags_[i], tempH);
+    if(tempH.failedToGet()) {
+      haveHits = false;
+      break;
+    }
+  }
+  
+  if(clusterTools_) delete clusterTools_; 
+  if(haveHits) 
+    clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup,
+					     ecalRecHitsInputTag_EB_, ecalRecHitsInputTag_EE_);
+
   // there are multiple supercluster collections. In the ntuple
   // these will become concatonated
   for (unsigned int i = 0; i < scInputTags_.size(); ++i)
@@ -304,9 +311,14 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       // get hits
       edm::Handle<EcalRecHitCollection> rhcHandle;
       iEvent.getByLabel(hitInputTags_[i], rhcHandle);
-      const EcalRecHitCollection *recHits = rhcHandle.product();
+      const EcalRecHitCollection *recHits;
+      if(haveHits) //has been determined beforehand
+	recHits = rhcHandle.product();
+      else 
+	recHits = NULL;
+      
+      if (haveHits && recHits->size() > 0) *evt_ecalRecoStatus |= (1<<i);
 
-      if (recHits->size() > 0) *evt_ecalRecoStatus |= (1<<i);
 
       size_t scIndex = 0;
       for (reco::SuperClusterCollection::const_iterator sc = scCollection->begin();
@@ -334,59 +346,100 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	vector_scs_energy->push_back( sc->energy() );
 	vector_scs_rawEnergy->push_back( sc->rawEnergy() );
 	vector_scs_preshowerEnergy->push_back( sc->preshowerEnergy() );
-	vector_scs_hoe->push_back( hoeCalc(&(*sc), mhbhe) );
+	if(mhbhe != NULL) 
+	  vector_scs_hoe->push_back( hoeCalc(&(*sc), mhbhe) );
+	else 
+	  vector_scs_hoe->push_back( -9999 );
+
 	//vector_scs_hd1->push_back(egammaIsoD1.getTowerEtSum(&(*sc)) );
 	//vector_scs_hd2->push_back(egammaIsoD2.getTowerEtSum(&(*sc)) );
-
-	DetId seedId = sc->seed()->seed();
-	EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
-	if (seedHit != recHits->end()) {
-	  vector_scs_eSeed->push_back( seedHit->energy() );
-	  vector_scs_detIdSeed->push_back(seedHit->id().rawId());
-	  vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
-	  vector_scs_timeSeed->push_back (seedHit->time() );
+	if(haveHits) {
+	  DetId seedId = sc->seed()->seed();
+	  EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
+	  if (seedHit != recHits->end()) {
+	    vector_scs_eSeed->push_back( seedHit->energy() );
+	    vector_scs_detIdSeed->push_back(seedHit->id().rawId());
+	    vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
+	    vector_scs_timeSeed->push_back (seedHit->time() );
+	  } else {
+	    vector_scs_eSeed->push_back(0.0);
+	    vector_scs_detIdSeed->push_back(-1);
+	    vector_scs_severitySeed->push_back (-1);
+	    vector_scs_timeSeed->push_back (-9999.99);
+	  }
 	} else {
-	  vector_scs_eSeed->push_back(0.0);
-	  vector_scs_detIdSeed->push_back(-1);
-	  vector_scs_severitySeed->push_back (-1);
-	  vector_scs_timeSeed->push_back (-9999.99);
+	  vector_scs_eSeed->push_back(-9999);
+	  vector_scs_detIdSeed->push_back(-9999);
+	  vector_scs_severitySeed->push_back (-9999);
+	  vector_scs_timeSeed->push_back (-9999);
 	}
 
-	vector_scs_eMax->push_back( lazyTools.eMax(*(sc->seed())) );
-	vector_scs_e2nd->push_back( lazyTools.e2nd(*(sc->seed())) );
+	if(haveHits) {
 
-	vector_scs_e1x3->push_back( lazyTools.e1x3(*(sc->seed())) );
-	vector_scs_e3x1->push_back( lazyTools.e3x1(*(sc->seed())) );
-	vector_scs_e1x5->push_back( lazyTools.e1x5(*(sc->seed())) );
-	vector_scs_e2x2->push_back( lazyTools.e2x2(*(sc->seed())) );
-	vector_scs_e3x2->push_back( lazyTools.e3x2(*(sc->seed())) );
-	vector_scs_e3x3->push_back( lazyTools.e3x3(*(sc->seed())) );
-	vector_scs_e4x4->push_back( lazyTools.e4x4(*(sc->seed())) );
-	vector_scs_e5x5->push_back( lazyTools.e5x5(*(sc->seed())) );
-	vector_scs_e2x5Max->push_back( lazyTools.e2x5Max(*(sc->seed())) );
+	  vector_scs_eMax->push_back( clusterTools_->eMax(*(sc->seed())) );
+	  vector_scs_e2nd->push_back( clusterTools_->e2nd(*(sc->seed())) );
 
-    // get the covariances computed in 5x5 around the seed
-	std::vector<float> covariances = lazyTools.covariances(*(sc->seed()));
-    // get the local covariances computed in a 5x5 around the seed
-    const std::vector<float> localCovariances = lazyTools.localCovariances(*(sc->seed()));
-    // get the local covariances computed using all crystals in the SC
-    const std::vector<float> localCovariancesSC = lazyTools.scLocalCovariances(*sc);
+	  vector_scs_e1x3->push_back( clusterTools_->e1x3(*(sc->seed())) );
+	  vector_scs_e3x1->push_back( clusterTools_->e3x1(*(sc->seed())) );
+	  vector_scs_e1x5->push_back( clusterTools_->e1x5(*(sc->seed())) );
+	  vector_scs_e2x2->push_back( clusterTools_->e2x2(*(sc->seed())) );
+	  vector_scs_e3x2->push_back( clusterTools_->e3x2(*(sc->seed())) );
+	  vector_scs_e3x3->push_back( clusterTools_->e3x3(*(sc->seed())) );
+	  vector_scs_e4x4->push_back( clusterTools_->e4x4(*(sc->seed())) );
+	  vector_scs_e5x5->push_back( clusterTools_->e5x5(*(sc->seed())) );
+	  vector_scs_e2x5Max->push_back( clusterTools_->e2x5Max(*(sc->seed())) );
 
-	// if seed basic cluster is in the endcap then correct sigma eta eta
-	// according to the super cluster eta
-	if(fabs(sc->seed()->eta()) > 1.479) {
-	  covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
+	  // get the covariances computed in 5x5 around the seed
+	  std::vector<float> covariances = clusterTools_->covariances(*(sc->seed()));
+	  // get the local covariances computed in a 5x5 around the seed
+	  const std::vector<float> localCovariances = clusterTools_->localCovariances(*(sc->seed()));
+	  // get the local covariances computed using all crystals in the SC
+	  const std::vector<float> localCovariancesSC = clusterTools_->scLocalCovariances(*sc);
+
+	  // if seed basic cluster is in the endcap then correct sigma eta eta
+	  // according to the super cluster eta
+	  if(fabs(sc->seed()->eta()) > 1.479) 
+	    covariances[0] -= 0.02*(fabs(sc->eta()) - 2.3);
+	  
+	  vector_scs_sigmaEtaEta->push_back	 ( std::isfinite(covariances[0]       ) ? (covariances[0]        > 0 ? sqrt(covariances[0]       ) : -1 * sqrt(-1 * covariances[0]       ) ) : -9999.);
+	  vector_scs_sigmaEtaPhi->push_back	 ( std::isfinite(covariances[1]       ) ? (covariances[1]        > 0 ? sqrt(covariances[1]       ) : -1 * sqrt(-1 * covariances[1]       ) ) : -9999.);
+	  vector_scs_sigmaPhiPhi->push_back	 ( std::isfinite(covariances[2]       ) ? (covariances[2]        > 0 ? sqrt(covariances[2]       ) : -1 * sqrt(-1 * covariances[2]       ) ) : -9999.);
+	  vector_scs_sigmaIEtaIEta->push_back	 ( std::isfinite(localCovariances[0]  ) ? (localCovariances[0]   > 0 ? sqrt(localCovariances[0]  ) : -1 * sqrt(-1 * localCovariances[0]  ) ) : -9999.);
+	  vector_scs_sigmaIEtaIPhi->push_back	 ( std::isfinite(localCovariances[1]  ) ? (localCovariances[1]   > 0 ? sqrt(localCovariances[1]  ) : -1 * sqrt(-1 * localCovariances[1]  ) ) : -9999.);
+	  vector_scs_sigmaIPhiIPhi->push_back	 ( std::isfinite(localCovariances[2]  ) ? (localCovariances[2]   > 0 ? sqrt(localCovariances[2]  ) : -1 * sqrt(-1 * localCovariances[2]  ) ) : -9999.);
+	  vector_scs_sigmaIEtaIEtaSC->push_back( std::isfinite(localCovariancesSC[0]) ? (localCovariancesSC[0] > 0 ? sqrt(localCovariancesSC[0]) : -1 * sqrt(-1 * localCovariancesSC[0]) ) : -9999.);
+	  vector_scs_sigmaIEtaIPhiSC->push_back( std::isfinite(localCovariancesSC[1]) ? (localCovariancesSC[1] > 0 ? sqrt(localCovariancesSC[1]) : -1 * sqrt(-1 * localCovariancesSC[1]) ) : -9999.);
+	  vector_scs_sigmaIPhiIPhiSC->push_back( std::isfinite(localCovariancesSC[2]) ? (localCovariancesSC[2] > 0 ? sqrt(localCovariancesSC[2]) : -1 * sqrt(-1 * localCovariancesSC[2]) ) : -9999.);
+	} else {
+
+	  //replace everything in this section with -9999
+
+	  vector_scs_eMax->push_back( -9999 );
+	  vector_scs_e2nd->push_back( -9999 );
+	  
+	  vector_scs_e1x3->push_back( -9999 );
+	  vector_scs_e3x1->push_back( -9999 );
+	  vector_scs_e1x5->push_back( -9999 );
+	  vector_scs_e2x2->push_back( -9999 );
+	  vector_scs_e3x2->push_back( -9999 );
+	  vector_scs_e3x3->push_back( -9999 );
+	  vector_scs_e4x4->push_back( -9999 );
+	  vector_scs_e5x5->push_back( -9999 );
+	  vector_scs_e2x5Max->push_back( -9999 );
+	  
+	  vector_scs_sigmaEtaEta->push_back	 ( -9999. );
+	  vector_scs_sigmaEtaPhi->push_back	 ( -9999. );
+	  vector_scs_sigmaPhiPhi->push_back	 ( -9999. );
+	  vector_scs_sigmaIEtaIEta->push_back	 ( -9999. );
+	  vector_scs_sigmaIEtaIPhi->push_back	 ( -9999. );
+	  vector_scs_sigmaIPhiIPhi->push_back	 ( -9999. );
+	  vector_scs_sigmaIEtaIEtaSC->push_back( -9999. );
+	  vector_scs_sigmaIEtaIPhiSC->push_back( -9999. );
+	  vector_scs_sigmaIPhiIPhiSC->push_back( -9999. );
+
 	}
 
-	vector_scs_sigmaEtaEta->push_back	 ( std::isfinite(covariances[0]       ) ? (covariances[0]        > 0 ? sqrt(covariances[0]       ) : -1 * sqrt(-1 * covariances[0]       ) ) : -9999.);
-	vector_scs_sigmaEtaPhi->push_back	 ( std::isfinite(covariances[1]       ) ? (covariances[1]        > 0 ? sqrt(covariances[1]       ) : -1 * sqrt(-1 * covariances[1]       ) ) : -9999.);
-	vector_scs_sigmaPhiPhi->push_back	 ( std::isfinite(covariances[2]       ) ? (covariances[2]        > 0 ? sqrt(covariances[2]       ) : -1 * sqrt(-1 * covariances[2]       ) ) : -9999.);
-	vector_scs_sigmaIEtaIEta->push_back	 ( std::isfinite(localCovariances[0]  ) ? (localCovariances[0]   > 0 ? sqrt(localCovariances[0]  ) : -1 * sqrt(-1 * localCovariances[0]  ) ) : -9999.);
-	vector_scs_sigmaIEtaIPhi->push_back	 ( std::isfinite(localCovariances[1]  ) ? (localCovariances[1]   > 0 ? sqrt(localCovariances[1]  ) : -1 * sqrt(-1 * localCovariances[1]  ) ) : -9999.);
-	vector_scs_sigmaIPhiIPhi->push_back	 ( std::isfinite(localCovariances[2]  ) ? (localCovariances[2]   > 0 ? sqrt(localCovariances[2]  ) : -1 * sqrt(-1 * localCovariances[2]  ) ) : -9999.);
-    vector_scs_sigmaIEtaIEtaSC->push_back( std::isfinite(localCovariancesSC[0]) ? (localCovariancesSC[0] > 0 ? sqrt(localCovariancesSC[0]) : -1 * sqrt(-1 * localCovariancesSC[0]) ) : -9999.);
-    vector_scs_sigmaIEtaIPhiSC->push_back( std::isfinite(localCovariancesSC[1]) ? (localCovariancesSC[1] > 0 ? sqrt(localCovariancesSC[1]) : -1 * sqrt(-1 * localCovariancesSC[1]) ) : -9999.);
-    vector_scs_sigmaIPhiIPhiSC->push_back( std::isfinite(localCovariancesSC[2]) ? (localCovariancesSC[2] > 0 ? sqrt(localCovariancesSC[2]) : -1 * sqrt(-1 * localCovariancesSC[2]) ) : -9999.);
+
 
 	vector_scs_clustersSize->push_back( sc->clustersSize() );
 	const std::vector<std::pair<DetId, float > > detIds = sc->hitsAndFractions() ;
@@ -414,53 +467,53 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(evt_nscs, "evtnscs");
-  iEvent.put(evt_ecalRecoStatus, "evtecalrecostatus");
+  iEvent.put(evt_nscs			, "evtnscs"				);
+  iEvent.put(evt_ecalRecoStatus		, "evtecalrecostatus"			);
 
-  iEvent.put(vector_scs_energy, branchprefix+"energy");
-  iEvent.put(vector_scs_rawEnergy, branchprefix+"rawEnergy");
-  iEvent.put(vector_scs_preshowerEnergy, branchprefix+"preshowerEnergy");
-  iEvent.put(vector_scs_p4, branchprefix+"p4");
-  iEvent.put(vector_scs_vtx_p4, branchprefix+"vtxp4");
-  iEvent.put(vector_scs_pos_p4, branchprefix+"posp4");
-  iEvent.put(vector_scs_eta, branchprefix+"eta");
-  iEvent.put(vector_scs_phi, branchprefix+"phi");
-  iEvent.put(vector_scs_hoe, branchprefix+"hoe");
-  //iEvent.put(vector_scs_hd1, branchprefix+"hd1");
-  //iEvent.put(vector_scs_hd2, branchprefix+"hd2");
-  iEvent.put(vector_scs_eSeed, branchprefix+"eSeed");
-  iEvent.put(vector_scs_detIdSeed, branchprefix+"detIdSeed");
-  iEvent.put(vector_scs_severitySeed, branchprefix+"severitySeed");
-  iEvent.put(vector_scs_timeSeed, branchprefix+"timeSeed");
-  iEvent.put(vector_scs_e2nd, branchprefix+"e2nd");
-  iEvent.put(vector_scs_eMax, branchprefix+"eMax");
+  iEvent.put(vector_scs_energy		, branchprefix+"energy"			);
+  iEvent.put(vector_scs_rawEnergy	, branchprefix+"rawEnergy"		);
+  iEvent.put(vector_scs_preshowerEnergy	, branchprefix+"preshowerEnergy"	);
+  iEvent.put(vector_scs_p4		, branchprefix+"p4"			);
+  iEvent.put(vector_scs_vtx_p4		, branchprefix+"vtxp4"			);
+  iEvent.put(vector_scs_pos_p4		, branchprefix+"posp4"			);
+  iEvent.put(vector_scs_eta		, branchprefix+"eta"			);
+  iEvent.put(vector_scs_phi		, branchprefix+"phi"			);
+  iEvent.put(vector_scs_hoe		, branchprefix+"hoe"			);
+  //iEvent.put(vector_scs_hd1		, branchprefix+"hd1"			);
+  //iEvent.put(vector_scs_hd2		, branchprefix+"hd2"			);
+  iEvent.put(vector_scs_eSeed		, branchprefix+"eSeed"			);
+  iEvent.put(vector_scs_detIdSeed	, branchprefix+"detIdSeed"		);
+  iEvent.put(vector_scs_severitySeed	, branchprefix+"severitySeed"		);
+  iEvent.put(vector_scs_timeSeed	, branchprefix+"timeSeed"		);
+  iEvent.put(vector_scs_e2nd		, branchprefix+"e2nd"			);
+  iEvent.put(vector_scs_eMax		, branchprefix+"eMax"			);
 
-  iEvent.put(vector_scs_e1x3, branchprefix+"e1x3");
-  iEvent.put(vector_scs_e3x1, branchprefix+"e3x1");
-  iEvent.put(vector_scs_e1x5, branchprefix+"e1x5");
-  iEvent.put(vector_scs_e2x2, branchprefix+"e2x2");
-  iEvent.put(vector_scs_e3x2, branchprefix+"e3x2");
-  iEvent.put(vector_scs_e3x3, branchprefix+"e3x3");
-  iEvent.put(vector_scs_e4x4, branchprefix+"e4x4");
-  iEvent.put(vector_scs_e5x5, branchprefix+"e5x5");
-  iEvent.put(vector_scs_e2x5Max, branchprefix+"e2x5Max");
-  iEvent.put(vector_scs_sigmaEtaEta, branchprefix+"sigmaEtaEta");
-  iEvent.put(vector_scs_sigmaEtaPhi, branchprefix+"sigmaEtaPhi");
-  iEvent.put(vector_scs_sigmaPhiPhi, branchprefix+"sigmaPhiPhi");
-  iEvent.put(vector_scs_sigmaIEtaIEta, branchprefix+"sigmaIEtaIEta");
-  iEvent.put(vector_scs_sigmaIEtaIPhi, branchprefix+"sigmaIEtaIPhi");
-  iEvent.put(vector_scs_sigmaIPhiIPhi, branchprefix+"sigmaIPhiIPhi");
-  iEvent.put(vector_scs_sigmaIEtaIEtaSC, branchprefix+"sigmaIEtaIEtaSC");
-  iEvent.put(vector_scs_sigmaIEtaIPhiSC, branchprefix+"sigmaIEtaIPhiSC");
-  iEvent.put(vector_scs_sigmaIPhiIPhiSC, branchprefix+"sigmaIPhiIPhiSC");
+  iEvent.put(vector_scs_e1x3		, branchprefix+"e1x3"			);
+  iEvent.put(vector_scs_e3x1		, branchprefix+"e3x1"			);
+  iEvent.put(vector_scs_e1x5		, branchprefix+"e1x5"			);
+  iEvent.put(vector_scs_e2x2		, branchprefix+"e2x2"			);
+  iEvent.put(vector_scs_e3x2		, branchprefix+"e3x2"			);
+  iEvent.put(vector_scs_e3x3		, branchprefix+"e3x3"			);
+  iEvent.put(vector_scs_e4x4		, branchprefix+"e4x4"			);
+  iEvent.put(vector_scs_e5x5		, branchprefix+"e5x5"			);
+  iEvent.put(vector_scs_e2x5Max		, branchprefix+"e2x5Max"		);
+  iEvent.put(vector_scs_sigmaEtaEta	, branchprefix+"sigmaEtaEta"		);
+  iEvent.put(vector_scs_sigmaEtaPhi	, branchprefix+"sigmaEtaPhi"		);
+  iEvent.put(vector_scs_sigmaPhiPhi	, branchprefix+"sigmaPhiPhi"		);
+  iEvent.put(vector_scs_sigmaIEtaIEta	, branchprefix+"sigmaIEtaIEta"		);
+  iEvent.put(vector_scs_sigmaIEtaIPhi	, branchprefix+"sigmaIEtaIPhi"		);
+  iEvent.put(vector_scs_sigmaIPhiIPhi	, branchprefix+"sigmaIPhiIPhi"		);
+  iEvent.put(vector_scs_sigmaIEtaIEtaSC	, branchprefix+"sigmaIEtaIEtaSC"	);
+  iEvent.put(vector_scs_sigmaIEtaIPhiSC	, branchprefix+"sigmaIEtaIPhiSC"	);
+  iEvent.put(vector_scs_sigmaIPhiIPhiSC	, branchprefix+"sigmaIPhiIPhiSC"	);
 
-  iEvent.put(vector_scs_clustersSize, branchprefix+"clustersSize");
-  iEvent.put(vector_scs_crystalsSize, branchprefix+"crystalsSize");
-  iEvent.put(vector_scs_elsidx, branchprefix+"elsidx");
+  iEvent.put(vector_scs_clustersSize	, branchprefix+"clustersSize"		);
+  iEvent.put(vector_scs_crystalsSize	, branchprefix+"crystalsSize"		);
+  iEvent.put(vector_scs_elsidx		, branchprefix+"elsidx"			);
 
   if (debug_) {
-    iEvent.put(vector_scs_mc_dr           ,branchprefix+"mcdr"          );
-    iEvent.put(vector_scs_mc_energy          ,branchprefix+"mcenergy"         );
+    iEvent.put(vector_scs_mc_dr           ,branchprefix+"mcdr"                  );
+    iEvent.put(vector_scs_mc_energy          ,branchprefix+"mcenergy"           );
   }
 
   delete mhbhe;
@@ -468,8 +521,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 math::XYZTLorentzVectorF SCMaker::initP4(const math::XYZPoint &pvPos, 
-					 const reco::SuperCluster &sc)
-{
+					 const reco::SuperCluster &sc) {
 
   math::XYZVector scPos(sc.x(), sc.y(), sc.z());
   math::XYZVector pvPosVec(pvPos.x(), pvPos.y(), pvPos.z());
@@ -578,4 +630,3 @@ float SCMaker::ecalEta(float EtaParticle , float Zvertex, float plane_Radius)
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(SCMaker);
-
