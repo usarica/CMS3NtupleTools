@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.58 2011/02/08 22:06:02 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.59 2011/02/11 19:11:43 kalavase Exp $
 //
 //
 
@@ -91,11 +91,6 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   trksInputTag_                  = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
 
   gsftracksInputTag_             = iConfig.getParameter<edm::InputTag>("gsftracksInputTag"                  );
-  eidRobustLooseTag_             = iConfig.getParameter<edm::InputTag>("eidRobustLooseTag"                  );
-  eidRobustTightTag_             = iConfig.getParameter<edm::InputTag>("eidRobustTightTag"                  );
-  eidRobustHighEnergyTag_        = iConfig.getParameter<edm::InputTag>("eidRobustHighEnergyTag"             );
-  eidLooseTag_                   = iConfig.getParameter<edm::InputTag>("eidLooseTag"                        );
-  eidTightTag_                   = iConfig.getParameter<edm::InputTag>("eidTightTag"                        );
   cms2scsseeddetidInputTag_      = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
   
   minAbsDist_                    = iConfig.getParameter<double>("minAbsDist"                         );
@@ -167,12 +162,6 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
   // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
   produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
-
-  produces<vector<float> >     ("elsegammarobustLooseId"     ).setBranchAlias("els_egamma_robustLooseId"   );
-  produces<vector<float> >     ("elsegammarobustTightId"     ).setBranchAlias("els_egamma_robustTightId"   );
-  produces<vector<float> >     ("elsegammalooseId"           ).setBranchAlias("els_egamma_looseId"         );
-  produces<vector<float> >     ("elsegammatightId"           ).setBranchAlias("els_egamma_tightId"         );
-  produces<vector<float> >     ("elsegammarobustHighEnergy"  ).setBranchAlias("els_egamma_robustHighEnergy");
 
   // isolation variables
   //
@@ -355,11 +344,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >		els_class				(new vector<int>		) ;
   auto_ptr<vector<int> >		els_category				(new vector<int>		) ;
 
-  auto_ptr<vector<float> >		els_egamma_robustLooseId		(new vector<float>		) ;
-  auto_ptr<vector<float> >		els_egamma_robustTightId		(new vector<float>		) ;
-  auto_ptr<vector<float> >		els_egamma_robustHighEnergy		(new vector<float>		) ;
-  auto_ptr<vector<float> >		els_egamma_looseId			(new vector<float>		) ;
-  auto_ptr<vector<float> >		els_egamma_tightId			(new vector<float>		) ;
 
   // isolation variables
   //
@@ -613,12 +597,6 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_category              ->push_back( classify(gsfElRef)		        );
     //
     // Now get the decisions from the "official" Egamma sequences
-
-    els_egamma_robustLooseId     ->push_back( eidRobustLooseMap[gsfElRef]		);
-    els_egamma_robustTightId     ->push_back( eidRobustTightMap[gsfElRef]		);
-    els_egamma_looseId           ->push_back( eidLooseMap[gsfElRef]  		);
-    els_egamma_tightId           ->push_back( eidTightMap[gsfElRef]    		);
-    els_egamma_robustHighEnergy  ->push_back( eidRobustHighEnergyMap[gsfElRef] 	);
 
     // Track parameters
     //
@@ -886,12 +864,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //
   iEvent.put(els_class                   	,"elsclass"				);
   iEvent.put(els_category                	,"elscategory"				);
-  iEvent.put(els_egamma_robustHighEnergy	,"elsegammarobustHighEnergy"		);
-  iEvent.put(els_egamma_robustLooseId		,"elsegammarobustLooseId"		);
-  iEvent.put(els_egamma_robustTightId		,"elsegammarobustTightId"		);
-  iEvent.put(els_egamma_looseId			,"elsegammalooseId"			);
-  iEvent.put(els_egamma_tightId			,"elsegammatightId"			);
-    // Track parameters
+  // Track parameters
   //
   iEvent.put(els_d0                     	,"elsd0"				);
   iEvent.put(els_z0                      	,"elsz0"				);
