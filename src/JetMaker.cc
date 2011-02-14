@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.30 2011/02/11 19:13:14 kalavase Exp $
+// $Id: JetMaker.cc,v 1.31 2011/02/14 19:36:10 kalavase Exp $
 //
 //
 
@@ -149,13 +149,13 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     
     double cor			= correctorL2L3->correction(*it,  jetRef1, iEvent, iSetup);
     double corL1L2L3		= correctorL1L2L3->correction(*it,jetRef1, iEvent, iSetup);
-    //double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,jetRef1,iEvent,iSetup);
+    double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,jetRef1,iEvent,iSetup);
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
     vector_jets_cor            ->push_back( cor                                             );
-    //vector_jets_corL1L2L3      ->push_back( corL1L2L3                                       );
-    //vector_jets_corL1FastL2L3  ->push_back( corL1FastL2L3                                   );
+    vector_jets_corL1L2L3      ->push_back( corL1L2L3                                       );
+    vector_jets_corL1FastL2L3  ->push_back( corL1FastL2L3                                   );
 
     
     edm::RefToBase<reco::CaloJet> jetRef2 =  getCaloJetRef(unprunedJetsHandle, *it);
