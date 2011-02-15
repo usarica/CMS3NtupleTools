@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.10 $'),
+        version = cms.untracked.string('$Revision: 1.11 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -25,19 +25,24 @@ process.ak5CaloL1Offset.useCondDB = False
 process.ak5CaloL1Fastjet.useCondDB = False
 
 
+##-------------------- Import the Jet RECO modules -----------------------
+process.load('RecoJets.Configuration.RecoPFJets_cff')
+##-------------------- Turn-on the FastJet density calculation -----------------------
+process.kt6PFJets.doRhoFastjet = True
+process.kt6PFJets.Rho_EtaMax = cms.double(4.5)
+##-------------------- Turn-on the FastJet jet area calculation for your favorite algorithm -----------------------
+process.ak5PFJets.doAreaFastjet = True
+process.ak5PFJets.Rho_EtaMax = cms.double(4.5)
+
+
 process.load('Configuration/EventContent/EventContent_cff')
-
 process.GlobalTag.globaltag = "START39_V8::All"
-
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
-
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1
-
-
 
 
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
@@ -55,10 +60,13 @@ process.options = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
+    dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        'file:/data/tmp/kalavase/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
+        'file:../../../../../F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
     ),
+    # Uncomment to emulate AOD with RECO
+    #inputCommands = process.AODEventContent.outputCommands,
 )
 
 
@@ -68,9 +76,11 @@ process.out = cms.OutputModule(
         fileName = cms.untracked.string('ntuple.root')
 )
 
+
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
+process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
@@ -87,9 +97,9 @@ process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence)
-#                                                       * process.cms2PFNoTauSequence
-#                                                       * process.cms2GENSequence)
+process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence 
+                                                       * process.cms2PFNoTauSequence
+                                                       * process.cms2GENSequence)
 #                                                       * process.cms2HCALcleaningSequence
 #                                                       * process.cms2HFcleaningSequence)
 
