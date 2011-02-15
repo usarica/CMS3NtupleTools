@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.12 $'),
+        version = cms.untracked.string('$Revision: 1.13 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -52,7 +52,7 @@ metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(10)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -98,7 +98,7 @@ process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
 process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence 
                                                        * process.cms2PFNoTauSequence
                                                        * process.cms2GENSequence
-                                                      )
+                                                     )
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
