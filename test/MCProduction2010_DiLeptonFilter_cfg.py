@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.8 $'),
+        version = cms.untracked.string('$Revision: 1.9 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -81,7 +81,7 @@ process.EventSelectionDilFilt = cms.PSet(
 process.out = cms.OutputModule(       
         "PoolOutputModule",
         process.EventSelectionDilFilt,
-        verbose = cms.untracked.bool(True),
+        #verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
         fileName = cms.untracked.string('ntuple.root')
 )
