@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.4 $'),
+        version = cms.untracked.string('$Revision: 1.1 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -18,22 +18,22 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
-
 process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load('Configuration/EventContent/EventContent_cff')
 
-process.GlobalTag.globaltag = "MC_38Y_V9::All"
+# global tag
+process.GlobalTag.globaltag = "FT_R_39X_V4A::All"
 
+#
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 
+# logging
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
-
-
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 #-------------------------------------------------
 # PAT configuration
@@ -43,22 +43,22 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #    process.patCandidates *
 #    process.selectedPatCandidates
 #)
-#
-##add muon isolation
+
+#add muon isolation
 #from PhysicsTools.PatAlgos.tools.muonTools import *
 #addMuonUserIsolation.isolationTypes = ['All']
 #addMuonUserIsolation.toolCode(process)
-#
-##change JetID tag
+
+#change JetID tag
 #from PhysicsTools.PatAlgos.tools.jetTools import *
 #from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 #run36xOn35xInput(process)
-#addJetID( process, cms.InputTag('prunedUncorrectedCMS2Jets','calojet'), "antikt5" )
+#addJetID( process, cms.InputTag("prunedUncorrectedCMS2Jets", "calojet"), "antikt5" )
 #switchJetCollection35X(process, 
-#                    cms.InputTag('prunedUncorrectedCMS2Jets','calojet'),   
+#                    cms.InputTag("prunedUncorrectedCMS2Jets", "calojet"),   
 #                    doJTA            = True,            
 #                    doBTagging       = True,            
-#                    jetCorrLabel     = None,
+#                    jetCorrLabel     = ('AK5', 'Calo'),
 #                    doType1MET       = True,
 #                    genJetCollection = cms.InputTag("cms2antikt5GenJets"),
 #                    doJetID          = True,
@@ -70,9 +70,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 #uncomment for data
 #removeMCMatching(process, ['All'])
 
-#
-from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
-metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+#from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+#metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 #-----------------------------------------------------------
 # configure input data files and number of event to process
@@ -86,54 +85,68 @@ process.options = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
-    skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-	'/store/mc/Spring10/QCD_Pt30/GEN-SIM-RECO/START3X_V26_S09-v1/0043/E09CE6E2-0947-DF11-90A9-001A4BA94900.root'
-    #'file:/store/disk00/jribnik/Spring10_TTbarJets-madgraph_GEN-SIM-RECO_START3X_V26_S09-v1_0005_2AA58B20-AD46-DF11-9274-003048C69032.root'
+      '/store/data/Run2010B/Electron/RECO/Dec22ReReco_v1/0000/2EF1BD3A-9E0D-E011-827A-003048679012.root'
     ),
 )
 
 
-#single lepton filter
-process.EventSelectionJetPhotonFilt = cms.PSet(
-    SelectEvents = cms.untracked.PSet(
-    SelectEvents = cms.vstring('pWithJetPhoton')
-                )
-        )
+# load event level configurations
+process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
+#process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
+#process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
+#process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
+process.load("CMS2.NtupleMaker.sdFilter_cfi")
+process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
+
+process.filter = cms.Path(process.sdFilter)
+
+process.hltMaker.processName = cms.untracked.string("HLT")
+process.hltMakerSequence = cms.Sequence(process.hltMaker)
+
+# loosen thresholds on collections
+process.hypDilepMaker.TightLepton_PtCut=cms.double(10.0)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
+process.hypTrilepMaker.TightLepton_PtCut = cms.double(10.0)
 
 process.out = cms.OutputModule(
         "PoolOutputModule",
-        process.EventSelectionJetPhotonFilt,
-        verbose = cms.untracked.bool(True),
+#        verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple.root')
+        fileName = cms.untracked.string('ntuple.root'),
+        SelectEvents = cms.untracked.PSet(
+           SelectEvents = cms.vstring('filter')
+        )
 )
+
+#run PF2PAT
+#from PhysicsTools.PatAlgos.tools.pfTools import *
+#postfix = "PFlow"
+#usePF2PAT(process,runPF2PAT=True, jetAlgo='AK5', runOnMC=True, postfix=postfix)
+# 
+#from PhysicsTools.PatAlgos.patEventContent_cff import patEventContentNoCleaning
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
-
-# load event level configurations
-process.load("CMS2.NtupleMaker.cms2CoreSequencesReduced_cff")
-process.load('CMS2.NtupleMaker.jetphotonFilter_cfi')
-
-# loosen thresholds on collections, change default jet cut
-process.prunedUncorrectedCMS2Jets.usecorrectedCut = cms.bool(True)
-process.scMaker.scEtMin = cms.double(5.0) #default, but maker sure
-process.photonMaker.minEt = cms.double(5.0) #gev, min to keep--lower than default
-
-
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.cms2CoreSequence )
+#process.cms2WithEverything = cms.Sequence( process.eventMaker)
+process.cms2WithEverything = cms.Sequence( process.sdFilter
+                                           * process.cms2CoreSequence
+#                                           * process.patDefaultSequence
+#                                           * process.cms2PATSequence
+                                           * process.cms2PFNoTauSequence)
+#                                           * process.cms2HCALcleaningSequence
+#                                           * process.cms2HFcleaningSequence)
 
-
-process.eventMaker.datasetName = cms.string("")
-process.eventMaker.CMS2tag     = cms.string("")
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
-process.pWithJetPhoton = cms.Path(process.cms2WithEverything * process.jetphotonFilter   )
+#process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
+process.eventMaker.datasetName = cms.string("")
+process.eventMaker.CMS2tag     = cms.string("")
+process.eventMaker.isData      = cms.bool(True)
 
 #stuff to speed up I/O from castor
 process.AdaptorConfig = cms.Service("AdaptorConfig",
@@ -145,7 +158,7 @@ process.AdaptorConfig = cms.Service("AdaptorConfig",
 
 process.source.noEventSort = cms.untracked.bool(True)
 
-
+process.p = cms.Path(process.cms2WithEverything)
 process.outpath         = cms.EndPath(process.out)
 
 
