@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.11 $'),
+        version = cms.untracked.string('$Revision: 1.12 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -18,7 +18,6 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
-
 process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.ak5CaloL1Offset.useCondDB = False
@@ -42,7 +41,7 @@ process.options = cms.untracked.PSet(
 )
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
@@ -63,12 +62,11 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-        'file:../../../../../F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
+      'file:../../../../../F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
     ),
     # Uncomment to emulate AOD with RECO
     #inputCommands = process.AODEventContent.outputCommands,
 )
-
 
 process.out = cms.OutputModule(
         "PoolOutputModule",
@@ -99,11 +97,10 @@ process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
 #-------------------------------------------------
 process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence 
                                                        * process.cms2PFNoTauSequence
-                                                       * process.cms2GENSequence)
-#                                                       * process.cms2HCALcleaningSequence
-#                                                       * process.cms2HFcleaningSequence)
+                                                       * process.cms2GENSequence
+                                                      )
 
-#since filtering is one in the last step, there is no reason to remove these paths
+#since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
 #process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("")
