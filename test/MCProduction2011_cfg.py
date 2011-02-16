@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.9 $'),
+        version = cms.untracked.string('$Revision: 1.1 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -43,7 +43,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
-#
+
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
@@ -52,7 +52,7 @@ metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 #-----------------------------------------------------------
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(100)
 )
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
@@ -68,27 +68,19 @@ process.source = cms.Source("PoolSource",
     #inputCommands = process.AODEventContent.outputCommands,
 )
 
-#single lepton filter
-process.EventSelectionSingleFilt = cms.PSet(
-  SelectEvents = cms.untracked.PSet(
-    SelectEvents = cms.vstring('pWithRecoLepton', 'pWithGenLepton')
-  )
-)
-
 process.out = cms.OutputModule(
         "PoolOutputModule",
-        process.EventSelectionSingleFilt,
-        #verbose = cms.untracked.bool(True),
         dropMetaData = cms.untracked.string("NONE"),
         fileName = cms.untracked.string('ntuple.root')
 )
+
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
-# load event level configurations    
+# load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
@@ -96,16 +88,14 @@ process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
 
-process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')
-
 # loosen thresholds on collections
-process.hypDilepMaker.TightLepton_PtCut=cms.double(10.0)
-process.hypDilepMaker.LooseLepton_PtCut=cms.double(10.0)
+process.hypDilepMaker.TightLepton_PtCut=cms.double(0.0)
+process.hypDilepMaker.LooseLepton_PtCut=cms.double(0.0)
 
 #-------------------------------------------------
 # process paths;
 #-------------------------------------------------
-process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence
+process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence 
                                                        * process.cms2PFNoTauSequence
                                                        * process.cms2GENSequence
                                                      )
@@ -116,6 +106,7 @@ process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * proce
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
 process.eventMaker.isData      = cms.bool(False)
+
 
 #stuff to speed up I/O from castor
 process.AdaptorConfig = cms.Service("AdaptorConfig",
@@ -128,9 +119,8 @@ process.AdaptorConfig = cms.Service("AdaptorConfig",
 process.source.noEventSort = cms.untracked.bool(True)
 
 
-process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
-process.pWithGenLepton  = cms.Path(process.cms2WithEverything * process.monolepGenFilter  )
 
+process.p = cms.Path(process.cms2WithEverything)
 process.outpath         = cms.EndPath(process.out)
 
 
