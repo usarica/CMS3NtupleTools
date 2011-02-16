@@ -10,7 +10,7 @@ process.out = cms.OutputModule(
         "PoolOutputModule",
         process.EventSelectionSingleFilt,
         dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple_single.root')
+        fileName = cms.untracked.string('ntuple.root')
 )
 process.load('CMS2.NtupleMaker.aSkimFilter_cfi')
 process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')

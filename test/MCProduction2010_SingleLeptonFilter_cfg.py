@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.12 $'),
+        version = cms.untracked.string('$Revision: 1.13 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -62,7 +62,7 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames = cms.untracked.vstring(
-      'file:../../../../../F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
+      'file:/nfs-3/userdata/cms2/cms2_validation/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'
     ),
     # Uncomment to emulate AOD with RECO
     #inputCommands = process.AODEventContent.outputCommands,

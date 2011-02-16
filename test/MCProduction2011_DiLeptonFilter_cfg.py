@@ -14,7 +14,7 @@ process.out = cms.OutputModule(
         "PoolOutputModule",
         process.EventSelectionDilFilt,
         dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple_dilep.root')
+        fileName = cms.untracked.string('ntuple.root')
 )
 process.load("CMS2.NtupleMaker.hypFilter_cfi")
 process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")
