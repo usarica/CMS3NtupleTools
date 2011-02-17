@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.3 $'),
+        version    = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -47,8 +47,9 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-      'file:/nfs-3/userdata/cms2/cms2_validation/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'  # MC
-      #'file:/nfs-3/userdata/cms2/cms2_validation/2EF1BD3A-9E0D-E011-827A-003048679012.root'  # Data
+      #'file:/nfs-3/userdata/cms2/cms2_validation/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'  # MC 3_9_8
+      'file:/nfs-3/userdata/cms2/cms2_validation/40CB740D-DE34-E011-9CA6-0018F3D09688.root'  # MC 3_11_1
+      #'file:/nfs-3/userdata/cms2/cms2_validation/2EF1BD3A-9E0D-E011-827A-003048679012.root'  # Data Dec22
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
