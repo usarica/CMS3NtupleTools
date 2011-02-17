@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 from Configuration.EventContent.EventContent_cff import *
 
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.2 $'),
+        version = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name = cms.untracked.string('CMS2 test configuration')
 )
@@ -35,13 +35,11 @@ process.ak5PFJets.Rho_EtaMax = cms.double(4.5)
 
 
 process.load('Configuration/EventContent/EventContent_cff')
-process.GlobalTag.globaltag = "START39_V8::All"
 process.options = cms.untracked.PSet(
     Rethrow = cms.untracked.vstring('ProductNotFound')
 )
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = ''
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 
 from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
@@ -68,18 +66,6 @@ process.source = cms.Source("PoolSource",
     #inputCommands = process.AODEventContent.outputCommands,
 )
 
-process.out = cms.OutputModule(
-        "PoolOutputModule",
-        dropMetaData = cms.untracked.string("NONE"),
-        fileName = cms.untracked.string('ntuple.root')
-)
-
-
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
-
 # load event level configurations
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
@@ -102,7 +88,6 @@ process.cms2WithEverything             = cms.Sequence( process.kt6PFJets * proce
 
 #since filtering is done in the last step, there is no reason to remove these paths
 #just comment out/remove an output which is not needed
-#process.pWithRecoLepton = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
 process.eventMaker.isData      = cms.bool(False)
@@ -117,10 +102,5 @@ process.AdaptorConfig = cms.Service("AdaptorConfig",
                                   )
 
 process.source.noEventSort = cms.untracked.bool(True)
-
-
-
-process.p = cms.Path(process.cms2WithEverything)
-process.outpath         = cms.EndPath(process.out)
 
 
