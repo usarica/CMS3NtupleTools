@@ -24,5 +24,5 @@ process.cms2WithEverything = cms.Sequence( process.kt6PFJets * process.cms2CoreS
 process.p                  = cms.Path( process.cms2WithEverything )
 
 #
-process.eventMaker.isData                        = cms.bool(False)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.eventMaker.isData                        = cms.bool(False)

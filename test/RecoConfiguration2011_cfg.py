@@ -8,9 +8,9 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version = cms.untracked.string('$Revision: 1.1 $'),
+        version    = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
-        name = cms.untracked.string('CMS2 test configuration')
+        name       = cms.untracked.string('CMS2 test configuration')
 )
 
 # load event level configurations
@@ -33,23 +33,22 @@ process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
 #
 process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
-process.kt6PFJets.doRhoFastjet = True                 # Turn-on the FastJet density calculation
-process.kt6PFJets.Rho_EtaMax = cms.double(4.5)        #
+process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
+process.kt6PFJets.Rho_EtaMax    = cms.double(4.5)     #
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
-process.ak5PFJets.Rho_EtaMax = cms.double(4.5)        #
+process.ak5PFJets.Rho_EtaMax    = cms.double(4.5)     #
 #
-process.ak5CaloL1Offset.useCondDB = False
-process.ak5CaloL1Fastjet.useCondDB = False
-
+process.ak5CaloL1Offset.useCondDB       = False
+process.ak5CaloL1Fastjet.useCondDB      = False
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 # Input
 process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
-    fileNames = cms.untracked.vstring(
-      #'file:/nfs-3/userdata/cms2/cms2_validation/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'  # MC
-      'file:/nfs-3/userdata/cms2/cms2_validation/2EF1BD3A-9E0D-E011-827A-003048679012.root'  # Data
+    fileNames  = cms.untracked.vstring(
+      'file:/nfs-3/userdata/cms2/cms2_validation/F0684341-9A0F-E011-93AF-001BFCDBD1BC.root'  # MC
+      #'file:/nfs-3/userdata/cms2/cms2_validation/2EF1BD3A-9E0D-E011-827A-003048679012.root'  # Data
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
@@ -57,12 +56,12 @@ process.source = cms.Source("PoolSource",
 
 # Speed up I/O from castor
 process.AdaptorConfig = cms.Service (
-                                      "AdaptorConfig",
-                                      stats = cms.untracked.bool(True),
-                                      enable = cms.untracked.bool(True),
-                                      cacheHint = cms.untracked.string("lazy-download"),
-                                      readHint = cms.untracked.string("auto-detect")
-                                    )
+  "AdaptorConfig",
+  stats = cms.untracked.bool(True),
+  enable = cms.untracked.bool(True),
+  cacheHint = cms.untracked.string("lazy-download"),
+  readHint = cms.untracked.string("auto-detect")
+)
 
 # Options
 process.options                       = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound') )
@@ -78,9 +77,6 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.hypTrilepMaker.TightLepton_PtCut = cms.double(20.0)
 process.hypTrilepMaker.LooseLepton_PtCut = cms.double(10.0)
 
-
-
 # Event Maker
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
-process.eventMaker.isData      = cms.bool(False)

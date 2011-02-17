@@ -36,5 +36,5 @@ process.pWithHyp           = cms.Path( process.cms2WithEverything * process.hypF
 process.pWithGenHyp        = cms.Path( process.cms2WithEverything * process.dilepGenFilter )
 
 #
-process.eventMaker.isData                        = cms.bool(False)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.eventMaker.isData                        = cms.bool(False)

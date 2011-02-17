@@ -36,5 +36,5 @@ process.pWithRecoLepton    = cms.Path(process.cms2WithEverything * process.aSkim
 process.pWithGenLepton     = cms.Path(process.cms2WithEverything * process.monolepGenFilter  )
 
 #
-process.eventMaker.isData                        = cms.bool(False)
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.eventMaker.isData                        = cms.bool(False)
