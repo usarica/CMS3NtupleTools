@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.59 2011/02/11 19:11:43 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.60 2011/02/17 22:46:43 dbarge Exp $
 //
 //
 
@@ -56,7 +56,7 @@ Implementation:
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 #include "Math/VectorUtil.h"
 
-
+#include "CondFormats/AlignmentRecord/interface/TrackerSurfaceDeformationRcd.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/CommonDetUnit/interface/TrackingGeometry.h"
 #include "Geometry/TrackerGeometryBuilder/interface/TrackerGeometry.h"
