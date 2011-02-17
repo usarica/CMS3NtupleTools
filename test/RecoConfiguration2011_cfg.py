@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.2 $'),
+        version    = cms.untracked.string('$Revision: 1.3 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -80,3 +80,4 @@ process.hypTrilepMaker.LooseLepton_PtCut = cms.double(10.0)
 # Event Maker
 process.eventMaker.datasetName = cms.string("")
 process.eventMaker.CMS2tag     = cms.string("")
+
