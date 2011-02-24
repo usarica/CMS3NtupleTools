@@ -13,5 +13,5 @@ metMuonJESCorAK5CMS2.inputUncorMetLabel  = "corMetGlobalMuons"
 from CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi import *
 cms2HBHENoiseFilterResultProducer = HBHENoiseFilterResultProducer.clone()
 
-#metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * cms2HBHENoiseFilterResultProducer)
-metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * towerMakerWithHO * metHO * cms2HBHENoiseFilterResultProducer)
+metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * cms2HBHENoiseFilterResultProducer)
+#metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * towerMakerWithHO * metHO * cms2HBHENoiseFilterResultProducer)

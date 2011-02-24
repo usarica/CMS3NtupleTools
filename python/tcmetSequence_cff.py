@@ -7,4 +7,6 @@ tcMetWithPFclusters = tcMet.clone()
 tcMetWithPFclusters.tcmetDepValueMap = cms.InputTag("muonTCMETValueMapProducer", "muCorrData")
 tcMetWithPFclusters.usePFClusters = cms.bool(True)
 
-tcmetSequence = cms.Sequence(tcMetWithPFclusters * tcmetMaker)
+
+tcmetSequence = cms.Sequence( tcmetMaker )
+#tcmetSequence = cms.Sequence(tcMetWithPFclusters * tcmetMaker)
