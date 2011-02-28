@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.cc,v 1.17 2010/05/28 00:27:26 kalavase Exp $
+// $Id: JPTMaker.cc,v 1.18 2011/02/28 22:00:08 dbarge Exp $
 //
 //
 
@@ -64,10 +64,14 @@ JPTMaker::JPTMaker(const edm::ParameterSet& iConfig) {
   produces<std::vector<LorentzVector> > (branchprefix+"p4"        ).setBranchAlias(aliasprefix_+"_p4"        );
   produces<std::vector<float> >	        (branchprefix+"emFrac"    ).setBranchAlias(aliasprefix_+"_emFrac"    );
   produces<std::vector<float> >         (branchprefix+"cor"       ).setBranchAlias(aliasprefix_+"_cor"       );
+  produces<std::vector<float> >         (branchprefix+"corL1L2L3"       ).setBranchAlias(aliasprefix_+"_corL1L2L3"       );
+  produces<std::vector<float> >         (branchprefix+"corL1FastL2L3"       ).setBranchAlias(aliasprefix_+"_corL1FastL2L3"       );
 
   // parameters from configuration
-  jptsInputTag_     = iConfig.getParameter<edm::InputTag>("jptInputTag"       );
-  JPTCorrectorL2L3_ = iConfig.getParameter<std::string>  ("JPTCorrectorL2L3"  );
+  jptsInputTag_           = iConfig.getParameter<edm::InputTag>("jptInputTag"            );
+  JPTCorrectorL2L3_       = iConfig.getParameter<std::string>  ("JPTCorrectorL2L3"       );
+  JPTCorrectorL1L2L3_     = iConfig.getParameter<std::string>  ("JPTCorrectorL1L2L3"     );
+  JPTCorrectorL1FastL2L3_ = iConfig.getParameter<std::string>  ("JPTCorrectorL1FastL2L3" );
 
 }
 
@@ -80,10 +84,12 @@ JPTMaker::~JPTMaker() {}
 // ------------ method called to produce the data  ------------
 void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  std::auto_ptr<unsigned int>                evt_njpts          (new unsigned int               );
-  std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4     (new std::vector<LorentzVector> );
-  std::auto_ptr<std::vector<float> >         vector_jpts_emFrac (new std::vector<float>         );
-  std::auto_ptr<std::vector<float> >         vector_jpts_cor    (new std::vector<float>         );
+  std::auto_ptr<unsigned int>                evt_njpts                 (new unsigned int               );
+  std::auto_ptr<std::vector<LorentzVector> > vector_jpts_p4            (new std::vector<LorentzVector> );
+  std::auto_ptr<std::vector<float> >         vector_jpts_emFrac        (new std::vector<float>         );
+  std::auto_ptr<std::vector<float> >         vector_jpts_cor           (new std::vector<float>         );
+  std::auto_ptr<std::vector<float> >         vector_jpts_corL1L2L3     (new std::vector<float>         );
+  std::auto_ptr<std::vector<float> >         vector_jpts_corL1FastL2L3 (new std::vector<float>         );
 
   edm::Handle<std::vector<reco::JPTJet> > jptsHandle;
   iEvent.getByLabel(jptsInputTag_, jptsHandle); 
@@ -97,15 +103,22 @@ void JPTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_njpts = jptsHandle->size();
   
   //get L2L3 JPT corrections
-  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (JPTCorrectorL2L3_, iSetup);
-  
+  const JetCorrector* correctorL2L3       = JetCorrector::getJetCorrector (JPTCorrectorL2L3_,       iSetup);
+  const JetCorrector* correctorL1L2L3     = JetCorrector::getJetCorrector (JPTCorrectorL1L2L3_,     iSetup);
+  const JetCorrector* correctorL1FastL2L3 = JetCorrector::getJetCorrector (JPTCorrectorL1FastL2L3_, iSetup);
+
   for ( std::vector<reco::JPTJet>::const_iterator jpt = jptsHandle->begin(); jpt != jptsHandle->end(); ++jpt ) {
 
-    double cor = correctorL2L3->correction(jpt->p4());
+    double cor           = correctorL2L3->correction(jpt->p4());
+    double corL1L2L3     = correctorL1L2L3->correction(jpt->p4());
+    double corL1FastL2L3 = correctorL1FastL2L3->correction(jpt->p4());
+
     const reco::CaloJet *cJet = dynamic_cast<const reco::CaloJet*>((jpt->getCaloJetRef()).get());
-    vector_jpts_p4     ->push_back( LorentzVector( jpt->p4() )          );
-    vector_jpts_emFrac ->push_back( cJet->emEnergyFraction()            );
-    vector_jpts_cor    ->push_back( cor                                 );
+    vector_jpts_p4            ->push_back( LorentzVector( jpt->p4() )          );
+    vector_jpts_emFrac        ->push_back( cJet->emEnergyFraction()            );
+    vector_jpts_cor           ->push_back( cor                                 );
+    vector_jpts_corL1L2L3     ->push_back( cor_L1L2L3                          );
+    vector_jpts_corL1FastL2L3 ->push_back( cor_L1FastL2L3                      );
   }
   
   // put containers into event

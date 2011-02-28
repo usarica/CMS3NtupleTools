@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.6 2010/05/03 23:07:19 kalavase Exp $
+// $Id: PFJetMaker.h,v 1.7 2011/02/28 22:00:08 dbarge Exp $
 //
 //
 
@@ -50,4 +50,6 @@ private:
   double         pfJetPtCut_;
   std::string aliasprefix_;
   std::string PFJetCorrectorL2L3_;
+  std::string PFJetCorrectorL1L2L3_;
+  std::string PFJetCorrectorL1FastL2L3_;
 };

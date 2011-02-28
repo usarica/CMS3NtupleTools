@@ -14,7 +14,7 @@
 //
 // Original Frank Golf
 // Created:  Sun Jan  18 12:23:38 CDT 2008
-// $Id: JPTMaker.h,v 1.13 2010/06/15 10:08:36 fgolf Exp $
+// $Id: JPTMaker.h,v 1.14 2011/02/28 22:00:08 dbarge Exp $
 //
 //
 #ifndef CMS2_JPTMAKER_H
@@ -50,7 +50,8 @@ private:
   edm::InputTag jptsInputTag_;
   std::string aliasprefix_;
   std::string JPTCorrectorL2L3_;
-
+  std::string JPTCorrectorL1L2L3_;
+  std::string JPTCorrectorL1FastL2L3_;
 };
 
 
