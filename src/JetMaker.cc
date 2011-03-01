@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.31 2011/02/14 19:36:10 kalavase Exp $
+// $Id: JetMaker.cc,v 1.32 2011/03/01 22:05:25 dbarge Exp $
 //
 //
 
@@ -179,11 +179,13 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   
   // put containers into event
-  iEvent.put(evt_njets,                   "evtn"+aliasprefix_     );
-  iEvent.put(vector_jets_p4,              aliasprefix_+"p4"       );
-  iEvent.put(vector_jets_vertex_p4,       aliasprefix_+"vertexp4" );
-  iEvent.put(vector_jets_emFrac,          aliasprefix_+"emFrac"   );
-  iEvent.put(vector_jets_cor,             aliasprefix_+"cor"      );
+  iEvent.put(evt_njets                , "evtn" + aliasprefix_          );
+  iEvent.put(vector_jets_p4           , aliasprefix_ + "p4"            );
+  iEvent.put(vector_jets_vertex_p4    , aliasprefix_ + "vertexp4"      );
+  iEvent.put(vector_jets_emFrac       , aliasprefix_ + "emFrac"        );
+  iEvent.put(vector_jets_cor          , aliasprefix_ + "cor"           );
+  iEvent.put(vector_jets_corL1L2L3    , aliasprefix_ + "corL1L2L3"     );
+  iEvent.put(vector_jets_corL1FastL2L3, aliasprefix_ + "corL1FastL2L3" );
 
   iEvent.put(vector_jets_fHPD,            aliasprefix_+"fHPD"              );
   iEvent.put(vector_jets_fRBX,            aliasprefix_+"fRBX"              );
