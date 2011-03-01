@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.4 $'),
+        version    = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -38,8 +38,16 @@ process.kt6PFJets.Rho_EtaMax    = cms.double(4.5)     #
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
 process.ak5PFJets.Rho_EtaMax    = cms.double(4.5)     #
 #
-process.ak5CaloL1Offset.useCondDB       = False
-process.ak5CaloL1Fastjet.useCondDB      = False
+process.ak5CaloL1Offset.useCondDB   = False
+process.ak5CaloL1Fastjet.useCondDB  = False
+
+process.ak5JPTL1Offset.useCondDB    = False
+process.ak5JPTL1Fastjet.useCondDB   = False
+
+process.ak5PFL1Offset.useCondDB     = False
+process.ak5PFL1Fastjet.useCondDB    = False
+
+
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 # Input
