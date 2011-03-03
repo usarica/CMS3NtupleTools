@@ -19,8 +19,11 @@ EcalAnomalousEventMaker::EcalAnomalousEventMaker ( const edm::ParameterSet& iCon
 
   //
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
-  std::string branchprefix_ = aliasprefix_;
+  branchprefix_ = aliasprefix_;
   if( branchprefix_.find("_") != std::string::npos) branchprefix_.replace( branchprefix_.find("_"), 1, "");
+
+  cout << "branch: " << branchprefix_ << endl;
+  cout << "alias : " << aliasprefix_ << endl;
 
   //
   produces<bool> ( branchprefix_ + "isEcalNoise" ).setBranchAlias( aliasprefix_ + "_isEcalNoise" );
@@ -33,13 +36,15 @@ EcalAnomalousEventMaker::~EcalAnomalousEventMaker () {}
 // Maker
 void EcalAnomalousEventMaker::produce ( edm::Event& iEvent, const edm::EventSetup& iSetup ){
   
+  using namespace edm;
+
   //  
   auto_ptr < bool > evt_isEcalNoise ( new bool );
 
   //
   edm::InputTag ecalAnomalousFilterTag("EcalAnomalousEventFilter", "anomalousECALVariables", "Filter");
   edm::Handle<AnomalousECALVariables> anomalousECALvarsHandle;
-  iEvent.getByLabel(ecalAnomalousFilterTag, anomalousECALvarsHandle);
+  iEvent.getByLabel( ecalAnomalousFilterTag, anomalousECALvarsHandle );
   AnomalousECALVariables anomalousECALvars;
   if ( anomalousECALvarsHandle.isValid( )) {
     anomalousECALvars = *anomalousECALvarsHandle;
@@ -52,10 +57,12 @@ void EcalAnomalousEventMaker::produce ( edm::Event& iEvent, const edm::EventSetu
   // Note: no sense to change this cut BELOW the threshold given in EcalAnomalousEventFilter..
   // ------------------------------------------------------------------------------------------ 
   bool isEcalNoise = anomalousECALvars.isEcalNoise();
-  //bool isTPSaturated = anomalousECALvars.isTPSaturated();
-
-  //
-  *evt_isEcalNoise = isEcalNoise;
+  if( isEcalNoise == true ){
+    *evt_isEcalNoise = 1;
+  }
+  else {
+    *evt_isEcalNoise = 0;
+  }
   iEvent.put( evt_isEcalNoise, branchprefix_ + "isEcalNoise" );
 
   // 

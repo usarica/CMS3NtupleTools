@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.5 $'),
+        version    = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -78,7 +78,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(500) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
