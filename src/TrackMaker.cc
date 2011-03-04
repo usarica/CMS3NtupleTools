@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.30 2011/02/08 20:47:25 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.31 2011/03/04 17:36:50 fgolf Exp $
 //
 //
 
@@ -118,8 +118,9 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("trkslayer1layer"             ).setBranchAlias("trks_layer1_layer"           ); 
   produces<vector<int> >            ("trksexpinnerlayers"          ).setBranchAlias("trks_exp_innerlayers"        );
   produces<vector<int> >            ("trksexpouterlayers"          ).setBranchAlias("trks_exp_outerlayers"        );   
-
-  tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
+  produces<vector<float> >           ("trksvalidFraction"           ).setBranchAlias("trks_validFraction"          );
+  
+tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
 
   dRConeMin_   = iConfig.getParameter<double>("trkIsolationdRConeMin"  );
@@ -173,6 +174,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<int> > vector_trks_nlayers     (new vector<int> );
   std::auto_ptr<vector<int> > vector_trks_nlayers3D   (new vector<int> );
   std::auto_ptr<vector<int> > vector_trks_nlayersLost (new vector<int> );
+  std::auto_ptr<vector<float> > vector_trks_validFraction (new vector<float> );
 
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
@@ -237,6 +239,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
     vector_trks_algo         ->push_back( i->algo()                                                );
+    vector_trks_validFraction->push_back( i->validFraction());
     
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
@@ -452,7 +455,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(trks_layer1_det      , "trkslayer1det"      );
   iEvent.put(trks_exp_innerlayers , "trksexpinnerlayers" );
   iEvent.put(trks_exp_outerlayers , "trksexpouterlayers" );
-  
+  iEvent.put(vector_trks_validFraction, "trksvalidFraction");  
 }
 
 // ------------ method called once each job just before starting event loop  ------------
