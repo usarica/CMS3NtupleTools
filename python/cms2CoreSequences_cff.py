@@ -53,9 +53,9 @@ from CMS2.NtupleMaker.ecalAnomalousEventMaker_cfi  import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 
 
-CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging)
+CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco)
                  
-eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing)
+eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing)
                  
 trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
                  
