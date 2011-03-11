@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.8 2011/03/11 03:49:33 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.9 2011/03/11 16:36:19 yanjuntu Exp $
 //
 //
 
@@ -172,7 +172,12 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     TRegexp reg(Form("%s", pattern.Data()), true);
 	     if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
 	       for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+		 double sc_eta = el->superCluster()->eta();
+		 double sc_energy = el->superCluster()->energy();
+		 double el_sc = sc_energy/cosh(sc_eta);
+		 
 		 if (el->pt() > looseptcut)return true;
+		 if (el_sc    > looseptcut)return true;
 	       }
 	     }
 	   }
