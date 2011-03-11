@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.31 2011/03/04 17:36:50 fgolf Exp $
+// $Id: TrackMaker.cc,v 1.32 2011/03/11 02:06:21 kalavase Exp $
 //
 //
 
@@ -62,7 +62,6 @@
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
-typedef math::XYZPoint Point;
 using std::vector;
 using reco::Track;
 using reco::TrackBase;
@@ -239,7 +238,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
     vector_trks_algo         ->push_back( i->algo()                                                );
-    vector_trks_validFraction->push_back( i->validFraction());
+    //vector_trks_validFraction->push_back( i->validFraction());
     
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
