@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.6 2011/03/11 00:33:14 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.7 2011/03/11 01:08:12 yanjuntu Exp $
 //
 //
 
@@ -161,11 +161,12 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   const string& name = hltConfig_.triggerName(i);
 	   
 	   for(unsigned int j = 0; j < SingleElectronTriggerNames.size(); ++j) {
-	     TString tname(name);
-	     TString sname(SingleMuTriggerNames[j]);
-	     tname.ToLower();
+	     TString sname(name);
+	     TString pattern(SingleElectronTriggerNames[j]);
 	     sname.ToLower();
-	     if ((tname == sname) && triggerResultsH_->accept(i)) {
+	     pattern.ToLower();
+	     TRegexp reg(Form("%s", pattern.Data()), true);
+	     if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
 	       for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
 		 if (el->pt() > looseptcut)return true;
 	       }
@@ -198,6 +199,26 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }    
      }
      else if (filterName== "doubleMu"){
+        for(unsigned int i = 0; i < nTriggers; ++i)
+	  {
+	    // What is your name?
+	    const string& name = hltConfig_.triggerName(i);
+	    
+	    for(unsigned int j = 0; j < SingleMuTriggerNames.size(); ++j) {
+	      TString sname(name);
+	      TString pattern(SingleMuTriggerNames[j]);
+	      sname.ToLower();
+	      pattern.ToLower();
+	      TRegexp reg(Form("%s", pattern.Data()), true);
+	      if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
+		
+		for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
+		  if( mu->pt() > looseptcut ) return true;
+		}
+	      }
+	    }
+	  }
+	
        for (reco::MuonCollection::const_iterator mu1 = mus_h->begin(); mu1 != mus_h->end(); mu1++)
       {
 	for (reco::MuonCollection::const_iterator mu2 = mu1+1; mu2 != mus_h->end(); mu2++)
@@ -235,11 +256,13 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    const string& name = hltConfig_.triggerName(i);
 	   
 	    for(unsigned int j = 0; j < SingleMuTriggerNames.size(); ++j) {
-	      TString tname(name);
-	      TString sname(SingleMuTriggerNames[j]);
-	      tname.ToLower();
+	      TString sname(name);
+	      TString pattern(SingleMuTriggerNames[j]);
 	      sname.ToLower();
-	      if ((tname == sname) && triggerResultsH_->accept(i)) {
+	      pattern.ToLower();
+	      TRegexp reg(Form("%s", pattern.Data()), true);
+	      if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
+		
 		for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
 		  if( mu->pt() > looseptcut ) return true;
 		}

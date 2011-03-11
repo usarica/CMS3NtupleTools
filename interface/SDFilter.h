@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.5 2011/03/11 00:34:33 yanjuntu Exp $
+// $Id: SDFilter.h,v 1.6 2011/03/11 01:08:51 yanjuntu Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -40,6 +40,8 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "TRegexp.h"
+#include "TString.h"
 
 //#include "Math/LorentzVector.h"
 //

@@ -30,14 +30,15 @@ sdFilter = cms.EDFilter("SDFilter",
 
                         
                             SingleMuTriggerNames_ = cms.untracked.vstring(
-                            "HLT_Mu8_v1", 
-                            "HLT_Mu12_v1", 
+                            "HLT_Mu8_v*", 
+                            "HLT_Mu12_v*",
+                            "HLT_Mu8_Jet40_v*",
                             ),
                             SingleElectronTriggerNames_ = cms.untracked.vstring(
-                            "HLT_Ele17_CaloIdL_CaloIsoVL_v1",
-                            "HLT_Ele8_CaloIdL_CaloIsoVL_v1",
-                            "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v1",
-                            "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v1",
+                            "HLT_Ele17_CaloIdL_CaloIsoVL_v*",
+                            "HLT_Ele8_CaloIdL_CaloIsoVL_v*",
+                            "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v*",
+                            "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v*",
                             ),
                             processName = cms.untracked.string("")
 )
