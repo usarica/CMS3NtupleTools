@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.26 2011/02/08 18:54:02 kalavase Exp $
+// $Id: METMaker.cc,v 1.27 2011/03/11 21:45:07 fgolf Exp $
 //
 //
 
@@ -145,7 +145,11 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      produces<float> (branchprefix+"ecalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_ecalendcapm_metPhi"       );
      produces<float> (branchprefix+"hcalendcappmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapp_metPhi"       );
      produces<float> (branchprefix+"hcalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapm_metPhi"       );
-  
+
+     produces<float> (branchprefix+"metEtGt3").setBranchAlias(aliasprefix_+"_met_EtGt3");
+     produces<float> (branchprefix+"metPhiEtGt3").setBranchAlias(aliasprefix_+"_metPhi_EtGt3");
+     produces<float> (branchprefix+"sumetEtGt3").setBranchAlias(aliasprefix_+"_sumet_EtGt3");
+
      met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
      metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
      metNoHF_tag           = iConfig.getParameter<edm::InputTag>("metNoHF_tag_"           );   
@@ -267,6 +271,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> > evt_ecalmet_etaslicePhi      (new vector<float>     );
      auto_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
 
+     auto_ptr<float> evt_met_EtGt3;
+     auto_ptr<float> evt_metPhi_EtGt3;
+     auto_ptr<float> evt_sumet_EtGt3;
+
      edm::Handle<CaloTowerCollection> h_caloTowers;
      iEvent.getByLabel("towerMaker", h_caloTowers);
 
@@ -354,7 +362,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      *evt_metMuonJESCorrSig	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).metSignificance()	: -9999;     
      *evt_sumetMuonJESCorr      = metMuonJESCorr_h.isValid()     ? ( metMuonJESCorr_h->front()   ).sumEt()              : -9999;
 
-
+     
 
      edm::ValueMap<reco::MuonMETCorrectionData> muon_data = *muon_vm_h;
 
@@ -396,9 +404,19 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      //this array has 83 entries, making 82 bins. So offset is 1 entry from the arrays above
      double etaranges[] = {-5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.5, -2.322, -2.172, -2.043, -1.93, -1.83, -1.74, -1.653, -1.566, -1.479, -1.392, -1.305, -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 0, 0.087, 0.174, 0.261, 0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.879, 0.957, 1.044, 1.131, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.043, 2.172, 2.322, 2.5, 2.650, 2.853, 2.964, 3.139, 3.314, 3.489, 3.664, 3.839, 4.013, 4.191, 4.363, 4.538, 4.716, 4.889, 5.191};
 
+     float cmetprime_x = 0.;
+     float cmetprime_y = 0.;
+     float csumetprime = 0.;
      for(CaloTowerCollection::const_iterator it = h_caloTowers->begin();
 	 it != h_caloTowers->end(); it++) {
     
+         if ((it->emEt()+it->hadEt()) > 3.) {
+             float et = it->emEt() + it->hadEt();
+             cmetprime_x -= et * cos(it->phi());
+             cmetprime_y -= et * sin(it->phi());
+             csumetprime += et;
+         }
+
 	  if(it->et() < towerEtThreshold)
 	       continue;
 
@@ -458,6 +476,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  hcaletay[index] += hadEt*sin(phi);
      }	
 
+     *evt_met_EtGt3    = sqrt(cmetprime_x * cmetprime_x + cmetprime_y * cmetprime_y);
+     *evt_metPhi_EtGt3 = atan2(cmetprime_y, cmetprime_x);
+     *evt_sumet_EtGt3  = csumetprime;
+
      *evt_ecalmet  = sqrt( ecalmetx*ecalmetx + ecalmety*ecalmety );
      *evt_hcalmet  = sqrt( hcalmetx*hcalmetx + hcalmety*hcalmety );
      *evt_ecalmetPhi  = atan2( -ecalmety, -ecalmetx );
@@ -485,6 +507,8 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  evt_ecalmet_etaslicePhi ->push_back( atan2( -ecaletay[i], -ecaletax[i] ) );
 	  evt_hcalmet_etaslicePhi ->push_back( atan2( -hcaletay[i], -hcaletax[i] ) );
      }
+
+     
 
      std::string branchprefix = aliasprefix_;
      if(branchprefix.find("_") != std::string::npos)
@@ -572,6 +596,10 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  iEvent.put(evt_ecalmet_etaslicePhi ,branchprefix+"ecalmetetaslicePhi"  );
 	  iEvent.put(evt_hcalmet_etaslicePhi ,branchprefix+"hcalmetetaslicePhi"  );
      }
+
+     iEvent.put(evt_met_EtGt3, branchprefix+"metEtGt3");
+     iEvent.put(evt_metPhi_EtGt3, branchprefix+"metPhiEtGt3");
+     iEvent.put(evt_sumet_EtGt3, branchprefix+"sumetEtGt3");
   
 }
 
