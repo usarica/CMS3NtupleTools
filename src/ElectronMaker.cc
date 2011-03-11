@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.62 2011/03/09 22:37:51 dbarge Exp $
+// $Id: ElectronMaker.cc,v 1.63 2011/03/11 02:07:48 kalavase Exp $
 //
 //
 
@@ -226,7 +226,20 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float>  >    ("elstrkshFrac"               ).setBranchAlias("els_trkshFrac"              );
   produces<vector<float>  >    ("elstrkdr"                   ).setBranchAlias("els_trkdr"                  );
 
-  //conversion stuff
+
+  //These are vectors of vectors, holding the candidate conversion partners. 
+  produces<vector<vector<float> >   >       ("elsconvsdist"          ).setBranchAlias("els_convs_dist"            );
+  produces<vector<vector<float> >   >       ("elsconvsdcot"          ).setBranchAlias("els_convs_dcot"            );
+  produces<vector<vector<float> >   >       ("elsconvsradius"        ).setBranchAlias("els_convs_radius"          );  //signed radius of conversion
+  produces<vector<vector<LorentzVector> > > ("elsconvsposp4"         ).setBranchAlias("els_convs_pos_p4"          );  //position of conversion
+  produces<vector<vector<int>   >   >       ("elsconvstkidx"         ).setBranchAlias("els_convs_tkidx"           );  //index of partner track
+  produces<vector<vector<int>   >   >       ("elsconvsgsftkidx"      ).setBranchAlias("els_convs_gsftkidx"        );  //index of the GSF partner track, if thats where we find it
+  produces<vector<vector<int>   >   >       ("elsconvsdelMissHits"   ).setBranchAlias("els_convs_delMissHits"     );  //Delta Missing Hits between the electron and partner track
+  produces<vector<vector<int>   >   >       ("elsconvsflag"          ).setBranchAlias("els_convs_flag"            );
+
+
+  //conversion stuff - This is the "best" conversion partner, defined as the one that 
+  //has the minimum sqrt(dist*dist + dcot*dcot)
   produces<vector<float>    >       ("elsconvdist"          ).setBranchAlias("els_conv_dist"            );
   produces<vector<float>    >       ("elsconvdcot"          ).setBranchAlias("els_conv_dcot"            );
   produces<vector<float>    >       ("elsconvradius"        ).setBranchAlias("els_conv_radius"          );  //signed radius of conversion
@@ -235,11 +248,12 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int>      >       ("elsconvgsftkidx"      ).setBranchAlias("els_conv_gsftkidx"        );  //index of the GSF partner track, if thats where we find it
   produces<vector<int>      >       ("elsconvdelMissHits"   ).setBranchAlias("els_conv_delMissHits"     );  //Delta Missing Hits between the electron and partner track
   produces<vector<int>      >       ("elsconvflag"          ).setBranchAlias("els_conv_flag"            );
+  
+
 
   produces<vector<float>    >       ("elsconvolddist"       ).setBranchAlias("els_conv_old_dist"        );
   produces<vector<float>    >       ("elsconvolddcot"       ).setBranchAlias("els_conv_old_dcot"        );
   produces<vector<float>    >       ("elsconvoldradius"     ).setBranchAlias("els_conv_old_radius"      );  //signed radius of conversion
-  produces<vector<LorentzVector> >  ("elsconvoldposp4"      ).setBranchAlias("els_conv_old_pos_p4"      );  //position of conversion
   produces<vector<int>      >       ("elsconvoldtkidx"      ).setBranchAlias("els_conv_old_tkidx"       );  //index of partner track
   produces<vector<int>      >       ("elsconvoldgsftkidx"   ).setBranchAlias("els_conv_old_gsftkidx"    );  //index of the GSF partner track, if thats where we find it
   produces<vector<int>      >       ("elsconvolddelMissHits").setBranchAlias("els_conv_old_delMissHits" );  //Delta Missing Hits between the electron and partner track
@@ -418,23 +432,31 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float>   >		els_trkdr				(new vector<float>		) ;
 
   //conversions
-  auto_ptr< vector <float>         >	els_conv_dist				     ( new vector<float>		     ) ;
-  auto_ptr< vector <float>         >	els_conv_dcot				     ( new vector<float>		     ) ;
-  auto_ptr< vector <float>         >	els_conv_radius			     ( new vector<float>		     ) ;
-  auto_ptr< vector <LorentzVector> >	els_conv_pos_p4			     ( new vector<LorentzVector> ) ;
-  auto_ptr< vector <int>           >	els_conv_tkidx			     ( new vector<int>		       ) ;
-  auto_ptr< vector <int>           >  els_conv_gsftkidx        ( new vector<int>           ) ;
-  auto_ptr< vector <int>           >  els_conv_delMissHits     ( new vector<int>           ) ;
-  auto_ptr< vector <int>           >  els_conv_flag            ( new vector<int>           ) ;
+  auto_ptr<vector<vector<float> > >		els_convs_dist			( new vector<vector<float> >		) ;
+  auto_ptr<vector<vector<float> > >		els_convs_dcot			( new vector<vector<float> >		) ;
+  auto_ptr<vector<vector<float> > >		els_convs_radius                ( new vector<vector<float> >		) ;
+  auto_ptr<vector<vector<LorentzVector> > >	els_convs_pos_p4		( new vector<vector<LorentzVector> >	) ;
+  auto_ptr<vector<vector<int> > >          	els_convs_tkidx			( new vector<vector<int> >		) ;
+  auto_ptr<vector<vector<int> > >		els_convs_gsftkidx		( new vector<vector<int> >		) ;
+  auto_ptr<vector<vector<int> > >		els_convs_delMissHits		( new vector<vector<int> >		) ;
+  auto_ptr<vector<vector<int> > >         	els_convs_flag			( new vector<vector<int> >		) ;  
+      
+  auto_ptr< vector <float>         >	els_conv_dist			( new vector<float>		) ;
+  auto_ptr< vector <float>         >	els_conv_dcot			( new vector<float>		) ;
+  auto_ptr< vector <float>         >	els_conv_radius			( new vector<float>		) ;
+  auto_ptr< vector <LorentzVector> >	els_conv_pos_p4			( new vector<LorentzVector>	) ;
+  auto_ptr< vector <int>           >	els_conv_tkidx			( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_gsftkidx		( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_delMissHits		( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_flag			( new vector<int>		) ;
 
-  auto_ptr< vector <float>         >  els_conv_old_dist        ( new vector<float>         ) ;
-  auto_ptr< vector <float>         >  els_conv_old_dcot        ( new vector<float>         ) ;
-  auto_ptr< vector <float>         >  els_conv_old_radius      ( new vector<float>         ) ;
-  auto_ptr< vector <LorentzVector> >  els_conv_old_pos_p4      ( new vector<LorentzVector> ) ;
-  auto_ptr< vector <int>           >  els_conv_old_tkidx       ( new vector<int>           ) ;
-  auto_ptr< vector <int>           >  els_conv_old_gsftkidx    ( new vector<int>           ) ;
-  auto_ptr< vector <int>           >  els_conv_old_delMissHits ( new vector<int>           ) ;
-  auto_ptr< vector <int>           >  els_conv_old_flag        ( new vector<int>           ) ;
+  auto_ptr< vector <float>         >	els_conv_old_dist		( new vector<float>		) ;
+  auto_ptr< vector <float>         >	els_conv_old_dcot		( new vector<float>		) ;
+  auto_ptr< vector <float>         >	els_conv_old_radius		( new vector<float>		) ;
+  auto_ptr< vector <int>           >	els_conv_old_tkidx		( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_old_gsftkidx		( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_old_delMissHits	( new vector<int>		) ;
+  auto_ptr< vector <int>           >	els_conv_old_flag		( new vector<int>		) ;
 
   
 
@@ -851,62 +873,105 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
     ConversionFinder convFinder;
-    ConversionInfo convInfo = convFinder.getConversionInfo(*el, tracks_h, gsftracks_h, evt_bField);
-    els_conv_dist->push_back(std::isfinite(convInfo.dist()) ? convInfo.dist() : -9999.);
-    els_conv_dcot->push_back(convInfo.dcot());
-    els_conv_radius->push_back(convInfo.radiusOfConversion());
-    math::XYZPoint convPoint = convInfo.pointOfConversion();
-    float convPointX = std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
-    float convPointY = std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
-    float convPointZ = std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
-    els_conv_pos_p4->push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
+    //vector of conversion infos - all the candidate conversion tracks
+    vector<ConversionInfo> v_convInfos = convFinder.getConversionInfos(*(el->core()), tracks_h, gsftracks_h, evt_bField);
+    vector<float> v_dist, v_dcot, v_rad;
+    vector<int>   v_tkidx, v_gsftkidx, v_delmisshits, v_flag;
+    vector<LorentzVector> v_pos_p4;
+
+    for(unsigned int i_conv = 0; i_conv < v_convInfos.size(); i_conv++) {
+      
+      v_dist.		push_back(std::isfinite(v_convInfos.at(i_conv).dist()) ? v_convInfos.at(i_conv).dist() : -9999.);
+      v_dcot.		push_back(v_convInfos.at(i_conv).dcot());
+      v_rad.		push_back(v_convInfos.at(i_conv).radiusOfConversion());
+      math::XYZPoint convPoint		= v_convInfos.at(i_conv).pointOfConversion();
+      float convPointX			= std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+      float convPointY			= std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+      float convPointZ			= std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+      v_pos_p4.		push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
+      if(v_convInfos.at(i_conv).conversionPartnerCtfTk().isNonnull())
+	v_tkidx.	push_back(v_convInfos.at(i_conv).conversionPartnerCtfTk().key());
+      else 
+	v_tkidx.	push_back(-9999);
+      if(v_convInfos.at(i_conv).conversionPartnerGsfTk().isNonnull())
+	v_gsftkidx.	push_back(v_convInfos.at(i_conv).conversionPartnerGsfTk().key());
+      else 
+	v_gsftkidx.	push_back(-9999);
+      v_delmisshits.	push_back(v_convInfos.at(i_conv).deltaMissingHits());
+      v_flag.		push_back(v_convInfos.at(i_conv).flag());
+
+    }
+
+    els_convs_dist		->push_back(v_dist		);
+    els_convs_dcot		->push_back(v_dcot		);
+    els_convs_radius		->push_back(v_rad		);
+    els_convs_pos_p4		->push_back(v_pos_p4		);
+    els_convs_tkidx		->push_back(v_tkidx		);
+    els_convs_gsftkidx		->push_back(v_gsftkidx		);
+    els_convs_delMissHits	->push_back(v_delmisshits	);
+    els_convs_flag		->push_back(v_flag		);
+
+
+
+    ConversionInfo convInfo	= convFinder.getConversionInfo(*el, tracks_h, gsftracks_h, evt_bField);
+    els_conv_dist		->push_back(std::isfinite(convInfo.dist()) ? convInfo.dist() : -9999.);
+    els_conv_dcot		->push_back(convInfo.dcot());
+    els_conv_radius		->push_back(convInfo.radiusOfConversion());
+    math::XYZPoint convPoint	= convInfo.pointOfConversion();
+    float convPointX		= std::isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+    float convPointY		= std::isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+    float convPointZ		= std::isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+    els_conv_pos_p4		->push_back(LorentzVector(convPointX, convPointY, convPointZ, 0));
     if(convInfo.conversionPartnerCtfTk().isNonnull())
-      els_conv_tkidx->push_back(convInfo.conversionPartnerCtfTk().key());
+      els_conv_tkidx		->push_back(convInfo.conversionPartnerCtfTk().key());
     else 
-      els_conv_tkidx->push_back(-9999);
+      els_conv_tkidx		->push_back(-9999);
     if(convInfo.conversionPartnerGsfTk().isNonnull())
-      els_conv_gsftkidx->push_back(convInfo.conversionPartnerGsfTk().key());
+      els_conv_gsftkidx		->push_back(convInfo.conversionPartnerGsfTk().key());
     else 
-      els_conv_gsftkidx->push_back(-9999);
-    els_conv_delMissHits->push_back(convInfo.deltaMissingHits());
-    els_conv_flag->push_back(convInfo.flag());
+      els_conv_gsftkidx		->push_back(-9999);
+    els_conv_delMissHits	->push_back(convInfo.deltaMissingHits());
+    els_conv_flag		->push_back(convInfo.flag());
 
     // Old Conversion Rejection
-    int gsfMissingHits       =  -9999;
-    int ctfMissingHits       =  -9999;
     int delMissHits          =  -9999;
-    int ctfMissHits          = 0;
-    int gsfMissHits          = 0;
-    int flag                 =  el->convFlags();
+    int flag                 =  isfinite(el->convFlags()) ? el->convFlags() : -9999;
     els_conv_old_flag        -> push_back( flag                     );
-    els_conv_old_dist        -> push_back( isfinite(el->convDist()) );
-    els_conv_old_dcot        -> push_back( el->convDcot()           );
-    els_conv_old_radius      -> push_back( el->convRadius()         );
-    if( flag == 0 || flag == 1 ){
-      els_conv_old_tkidx -> push_back( isfinite( el->convPartner().key() ) );     // CTF
-      ctfMissHits = el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
+    els_conv_old_dist        -> push_back( isfinite(el->convDist())   ? el->convDist()   : -9999. );
+    els_conv_old_dcot        -> push_back( isfinite(el->convDcot())   ? el->convDcot()   : -9999. );
+    els_conv_old_radius      -> push_back( isfinite(el->convRadius()) ? el->convRadius() : -9999. );
+    if( flag == 0) { //partner found in the CTF track collection using the electron's CTF track
+      els_conv_old_tkidx -> push_back( el->convPartner().key() );
+      els_conv_old_gsftkidx-> push_back( -9999 );
+      delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
     }
-    else if( flag == 2 || flag == 3 ){
-      els_conv_old_gsftkidx -> push_back( isfinite( el->convPartner().key() ) );  // GSF
-      gsfMissHits = el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
+    else if( flag == 1) {//partner found in the CTF track collection using the electron's GSF track
+      els_conv_old_tkidx -> push_back( el->convPartner().key() );  
+      els_conv_old_gsftkidx-> push_back( -9999 );
+      delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
     }
-    else {
-      if( flag != -9999 ){
-        cout << "ERROR Unexpected flag: " << flag << endl;
-        exit(1);
-      }
+    else if(flag == 2) {//partner found in the GSF track collection using the electron's CTF track
+      els_conv_old_tkidx -> push_back( -9999 );
+      els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
+      delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
+    } else if(flag == 3) {//partner found in the GSF track collection using the electron's GSF track
+      els_conv_old_tkidx -> push_back( -9999 );
+      els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
+      delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
+    } else if( flag != -9999 ){
+      cout << "ERROR Unexpected flag: " << flag << endl;
+      exit(1);
     }
-    delMissHits = ctfMissHits - gsfMissHits;
     els_conv_old_delMissHits -> push_back( delMissHits              );
-    // don't store els_conv_old_pos_p4
 
 
   }//electron loop
+  
 
 
   // Put the results into the event
   //
-  iEvent.put(evt_nels           	    	,"evtnels"            		);
+  iEvent.put(evt_nels           	    	,"evtnels"				);
 
   // Predefined ID descisions 
   //
@@ -979,10 +1044,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_mva				,"elsmva"				);
   iEvent.put(els_dEtaIn				,"elsdEtaIn"				);
   iEvent.put(els_dEtaOut			,"elsdEtaOut"				);
-  iEvent.put(els_deltaEtaEleClusterTrackAtCalo, "elsdeltaEtaEleClusterTrackAtCalo"	);
+  iEvent.put(els_deltaEtaEleClusterTrackAtCalo	, "elsdeltaEtaEleClusterTrackAtCalo"	);
   iEvent.put(els_dPhiIn				,"elsdPhiIn"				);
   iEvent.put(els_dPhiOut			,"elsdPhiOut"				);
-  iEvent.put(els_deltaPhiEleClusterTrackAtCalo, "elsdeltaPhiEleClusterTrackAtCalo"	);
+  iEvent.put(els_deltaPhiEleClusterTrackAtCalo	, "elsdeltaPhiEleClusterTrackAtCalo"	);
 
   // Lorentz vectors
   //
@@ -1029,24 +1094,34 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_trkdr                          ,"elstrkdr"				);
   iEvent.put(els_trkshFrac                      ,"elstrkshFrac"				);
 
+
   //conversion
-  iEvent.put(els_conv_dist            , "elsconvdist"				    );
-  iEvent.put(els_conv_dcot            , "elsconvdcot"				    );
-  iEvent.put(els_conv_radius          , "elsconvradius"			    );
-  iEvent.put(els_conv_pos_p4          , "elsconvposp4"			    );
-  iEvent.put(els_conv_tkidx           , "elsconvtkidx"		      );
-  iEvent.put(els_conv_gsftkidx        , "elsconvgsftkidx"       );
-  iEvent.put(els_conv_delMissHits     , "elsconvdelMissHits"    );
-  iEvent.put(els_conv_flag            , "elsconvflag"           );
+  iEvent.put(els_convs_dist			, "elsconvsdist"			);
+  iEvent.put(els_convs_dcot			, "elsconvsdcot"			);
+  iEvent.put(els_convs_radius			, "elsconvsradius"			);
+  iEvent.put(els_convs_pos_p4			, "elsconvsposp4"			);
+  iEvent.put(els_convs_tkidx			, "elsconvstkidx"			);
+  iEvent.put(els_convs_gsftkidx			, "elsconvsgsftkidx"			);
+  iEvent.put(els_convs_delMissHits		, "elsconvsdelMissHits"			);
+  iEvent.put(els_convs_flag			, "elsconvsflag"			);
+
+
+  iEvent.put(els_conv_dist			, "elsconvdist"				);
+  iEvent.put(els_conv_dcot			, "elsconvdcot"				);
+  iEvent.put(els_conv_radius			, "elsconvradius"			);
+  iEvent.put(els_conv_pos_p4			, "elsconvposp4"			);
+  iEvent.put(els_conv_tkidx			, "elsconvtkidx"			);
+  iEvent.put(els_conv_gsftkidx			, "elsconvgsftkidx"			);
+  iEvent.put(els_conv_delMissHits		, "elsconvdelMissHits"			);
+  iEvent.put(els_conv_flag			, "elsconvflag"				);
   
-  iEvent.put(els_conv_old_dist        , "elsconvolddist"        );
-  iEvent.put(els_conv_old_dcot        , "elsconvolddcot"        );
-  iEvent.put(els_conv_old_radius      , "elsconvoldradius"      );
-  iEvent.put(els_conv_old_pos_p4      , "elsconvoldposp4"       );
-  iEvent.put(els_conv_old_tkidx       , "elsconvoldtkidx"       );
-  iEvent.put(els_conv_old_gsftkidx    , "elsconvoldgsftkidx"    );
-  iEvent.put(els_conv_old_delMissHits , "elsconvolddelMissHits" );
-  iEvent.put(els_conv_old_flag        , "elsconvoldflag"        );
+  iEvent.put(els_conv_old_dist			, "elsconvolddist"			);
+  iEvent.put(els_conv_old_dcot			, "elsconvolddcot"			);
+  iEvent.put(els_conv_old_radius		, "elsconvoldradius"			);
+  iEvent.put(els_conv_old_tkidx			, "elsconvoldtkidx"			);
+  iEvent.put(els_conv_old_gsftkidx		, "elsconvoldgsftkidx"			);
+  iEvent.put(els_conv_old_delMissHits		, "elsconvolddelMissHits"		);
+  iEvent.put(els_conv_old_flag			, "elsconvoldflag"			);
 
 }
 
