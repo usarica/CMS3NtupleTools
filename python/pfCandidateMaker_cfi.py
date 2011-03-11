@@ -2,5 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 pfCandidateMaker = cms.EDProducer("PFCandidateMaker",
                                   pfCandidatesTag     = cms.InputTag("particleFlow"),
-                                  tracksInputTag      = cms.InputTag("generalTracks")
+                                  pfElectronsTag      = cms.InputTag("particleFlow","electrons"),
+                                  tracksInputTag      = cms.InputTag("generalTracks"),
+                                  minDRelectron       = cms.double(0.1)
 )

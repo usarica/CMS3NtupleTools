@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFCandidateMaker.cc,v 1.1 2011/03/09 08:53:11 benhoob Exp $
+// $Id: PFCandidateMaker.cc,v 1.2 2011/03/11 16:48:35 benhoob Exp $
 //
 //
 
@@ -33,7 +33,7 @@
 #include "DataFormats/Common/interface/ValueMap.h"
 
 #include "CMS2/NtupleMaker/interface/PFCandidateMaker.h"
-
+#include "DataFormats/Math/interface/deltaR.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -50,8 +50,10 @@ using namespace std;
 //
 PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
 
-     pfCandidatesTag_		= iConfig.getParameter<InputTag>	("pfCandidatesTag"	);
+     pfCandidatesTag_		= iConfig.getParameter<InputTag>	("pfCandidatesTag");
+     pfElectronsTag_		= iConfig.getParameter<InputTag>	("pfElectronsTag");
      tracksInputTag_            = iConfig.getParameter<InputTag>        ("tracksInputTag");
+     minDR_electron_            = iConfig.getParameter<double>          ("minDRelectron");
 
      produces<vector<LorentzVector>	> ("pfcandsp4"                  ).setBranchAlias("pfcands_p4"			);
      produces<vector<LorentzVector>	> ("pfcandsposAtEcalp4"		).setBranchAlias("pfcands_posAtEcal_p4"		);
@@ -71,6 +73,8 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int>		> ("pfcandsparticleId"		).setBranchAlias("pfcands_particleId"		);
      produces<vector<int>  		> ("pfcandsflag"		).setBranchAlias("pfcands_flag"			);
      produces<vector<int>  		> ("pfcandstrkidx"		).setBranchAlias("pfcands_trkidx"		);
+     produces<vector<int>  		> ("pfcandspfmusidx"		).setBranchAlias("pfcands_pfmusidx"		);
+     produces<vector<int>  		> ("pfcandspfelsidx"		).setBranchAlias("pfcands_pfelsidx"		);
 }
 
 PFCandidateMaker::~PFCandidateMaker() {
@@ -112,18 +116,25 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      auto_ptr<vector<int> >		pfcands_particleId	   (new vector<int>		);
      auto_ptr<vector<int> >	        pfcands_flag		   (new vector<int>        	);
      auto_ptr<vector<int> >	        pfcands_trkidx		   (new vector<int>        	);
-     auto_ptr<vector<float> >	        pfcands_isoChargedHadrons  (new vector<float>		);
-     auto_ptr<vector<float> >	        pfcands_isoNeutralHadrons  (new vector<float>		);
-     auto_ptr<vector<float> >	        pfcands_isoPhotons         (new vector<float>		);  
-
+     auto_ptr<vector<int> >	        pfcands_pfmusidx	   (new vector<int>        	);    
+     auto_ptr<vector<int> >	        pfcands_pfelsidx	   (new vector<int>        	);
+    
      //get pfcandidates
      Handle<PFCandidateCollection> pfCandidatesHandle;
      iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
      const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
 
+     //get pfelectrons
+     Handle<PFCandidateCollection> pfElectronsHandle;
+     iEvent.getByLabel(pfElectronsTag_, pfElectronsHandle);
+     const PFCandidateCollection *pfElectrons  = pfElectronsHandle.product();
+  
+
      // get tracks
      Handle<reco::TrackCollection>  track_h;
      iEvent.getByLabel(tracksInputTag_, track_h);
+
+     int npfmus = 0;
 
      for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++)
      {
@@ -157,6 +168,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
           //for charged pfcandidates, find corresponding track index
+          //here we take the track directly from PFCandidate::trackRef()
           if( pf_it->charge() != 0 ){
             
             reco::TrackRef pftrack = pf_it->trackRef();
@@ -197,6 +209,51 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
             pfcands_trkidx->push_back(-2);
           }
 
+          //find corresponding PFMuon index
+          if (pf_it->particleId() == PFCandidate::mu){
+            pfcands_pfmusidx->push_back(npfmus);
+            ++npfmus;
+          }else{
+            pfcands_pfmusidx->push_back(-2);
+          }
+
+          //find corresponding PFElectron index
+          if (pf_it->particleId() == PFCandidate::e){
+
+            double pfcand_eta = (LorentzVector(pf_it->px(), pf_it->py(), pf_it->pz(), pf_it->p())).eta();
+            double pfcand_phi = (LorentzVector(pf_it->px(), pf_it->py(), pf_it->pz(), pf_it->p())).phi();
+
+            double minDR   = 9999.;
+            unsigned int i = 0;
+            int index      = -1; 
+
+            for(PFCandidateCollection::const_iterator el_it = pfElectrons->begin(); el_it != pfElectrons->end(); el_it++ ){
+              
+              double el_eta = (LorentzVector(el_it->px(), el_it->py(), el_it->pz(), el_it->p())).eta();
+              double el_phi = (LorentzVector(el_it->px(), el_it->py(), el_it->pz(), el_it->p())).phi();
+              
+              double dR = deltaR(pfcand_eta, pfcand_phi, el_eta, el_phi);
+              
+              if(dR < minDR) {
+                minDR = dR;
+                index = i;
+              }
+
+              i++;
+            }
+            
+            if( minDR > minDR_electron_ ) {
+              minDR = -9999.;
+              index = -1;
+            }
+            
+            pfcands_pfelsidx->push_back(index);
+          }else{
+            pfcands_pfelsidx->push_back(-2);
+          }
+
+
+          
      }//loop over candidate collection
 
      iEvent.put(pfcands_p4,			"pfcandsp4"		    );
@@ -217,6 +274,8 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      iEvent.put(pfcands_particleId,		"pfcandsparticleId"	    );
      iEvent.put(pfcands_flag,			"pfcandsflag"		    );
      iEvent.put(pfcands_trkidx,			"pfcandstrkidx"		    );
+     iEvent.put(pfcands_pfmusidx,		"pfcandspfmusidx"	    );
+     iEvent.put(pfcands_pfelsidx,		"pfcandspfelsidx"	    );
  
 }
 

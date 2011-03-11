@@ -34,15 +34,17 @@ public:
      ~PFCandidateMaker();
 
 private:
-//  virtual void beginJob() ;
-     virtual void beginJob() ;
-     virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
-    
-     // ----------member data ---------------------------
-     edm::InputTag pfCandidatesTag_;
-     edm::InputTag tracksInputTag_;
+  //  virtual void beginJob() ;
+  virtual void beginJob() ;
+  virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+  
+  // ----------member data ---------------------------
+  double minDR_electron_;
+  edm::InputTag pfElectronsTag_;
+  edm::InputTag pfCandidatesTag_;
+  edm::InputTag tracksInputTag_;
 };
 
 #endif
