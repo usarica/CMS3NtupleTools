@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.5 2010/09/15 20:59:20 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.6 2011/03/11 00:33:14 yanjuntu Exp $
 //
 //
 
@@ -75,6 +75,12 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
      tcmetPt   = iConfig.getParameter<double>("tcmetPt_" );
      pfmetPt   = iConfig.getParameter<double>("pfmetPt_" );
 
+     filterName= iConfig.getParameter<std::string>("filterName_" );
+     tightptcut= iConfig.getParameter<double>("tightptcut_"   );
+     looseptcut= iConfig.getParameter<double>("looseptcut_"   );
+     SingleMuTriggerNames = iConfig.getUntrackedParameter<vector<string> >("SingleMuTriggerNames_");
+     SingleElectronTriggerNames = iConfig.getUntrackedParameter<vector<string> >("SingleElectronTriggerNames_");
+     processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
      //pfjet L2L3 correction params
      PFJetCorrectorL2L3_      = iConfig.getParameter<std::string>("PFJetCorrectorL2L3_");
      doL2L3pfjetCorrection_   = iConfig.getParameter<bool> ("doL2L3pfjetCorrection_");
@@ -98,105 +104,159 @@ void SDFilter::endJob() {
 // ------------ method called to produce the data  ------------
 bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
+
+  // If the process name is not specified retrieve the  latest
+  // TriggerEvent object and the corresponding TriggerResults.
+  // We should only have to do this once though, the next time
+  // produce is called processName_ should be set.
+  edm::Handle<edm::TriggerResults> triggerResultsH_;
+  edm::Handle<trigger::TriggerEvent> triggerEventH_;
+  if (processName_ == "") {
+    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEventH_);
+    if (! triggerEventH_.isValid()  )
+      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
+    // This line is important as it makes sure it is never called
+    // again! A self-terminating code snippet...
+    processName_ = triggerEventH_.provenance()->processName();
+    // This is the once and only once bit described in beginRun
+    bool changed(true);
+    if (hltConfig_.init(iEvent.getRun(),iSetup,processName_,changed)) {
+    } else 
+      throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
+  } else {
+    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", processName_), triggerEventH_  );
+    if (! triggerEventH_.isValid()  )
+      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
+  }
+  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+  if (! triggerResultsH_.isValid())
+    throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
+  // sanity check
+  assert(triggerResultsH_->size()==hltConfig_.size());
+
+   unsigned int nTriggers = triggerResultsH_->size();
+  if (nTriggers > 256)
+    throw cms::Exception("HLTMaker::produce: number of HLT trigger variables must be increased!");
+
      // get met collections
-     edm::Handle<reco::CaloMETCollection> met_h;
-     iEvent.getByLabel(metInputTag, met_h);
-     float met = (met_h->front()).et();
-
-     edm::Handle<reco::METCollection> tcmet_h;
-     iEvent.getByLabel(tcmetInputTag, tcmet_h);
-     float tcmet = (tcmet_h->front()).et();
-
-     edm::Handle<reco::PFMETCollection> pfmet_h;
-     iEvent.getByLabel(pfmetInputTag, pfmet_h);
-     float pfmet = (pfmet_h->front()).et();
-
-     const JetCorrector* correctorL2L3;
-     if( doL2L3pfjetCorrection_ )
-       correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
-     
-     
-     if (met > metPt || tcmet > tcmetPt || pfmet > pfmetPt)
-	  return true;
-
+   
      edm::Handle<reco::GsfElectronCollection> els_h;
      iEvent.getByLabel(elsInputTag, els_h);
 
-     for (reco::GsfElectronCollection::const_iterator iter = els_h->begin(); iter != els_h->end(); iter++)
-     {
-	  if (iter->pt() > elsPt)
-	       return true;
-	  double sc_eta = iter->superCluster()->eta();
-	  double sc_energy = iter->superCluster()->energy();
-	  if (sc_energy/cosh(sc_eta) > elsPt)
-	    return true;
-     }
-
      edm::Handle<reco::MuonCollection> mus_h;
      iEvent.getByLabel(musInputTag, mus_h);
-
-     for (reco::MuonCollection::const_iterator iter = mus_h->begin(); iter != mus_h->end(); iter++)
-     {
-	  if (iter->pt() > musPt)
-	       return true;
-     }
      
      edm::Handle<reco::PhotonCollection> photon_h;
      iEvent.getByLabel(photonInputTag, photon_h);
      
-     for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++)
-     {
-	  if (iter->pt() > photonPt)
-	       return true;
-     }
-     
-     float L2L3JetScale = 1;
-     
      edm::Handle<reco::PFJetCollection> pfjet_h;
      iEvent.getByLabel(pfjetsInputTag, pfjet_h);
 
-     for (reco::PFJetCollection::const_iterator iter = pfjet_h->begin(); iter != pfjet_h->end(); iter++)
-     {
 
-           if( doL2L3pfjetCorrection_ ){
-             reco::PFJet uncorJet = *iter;
-             L2L3JetScale = correctorL2L3->correction(uncorJet.p4());
-             //cout << "L2L3correction: " << L2L3JetScale << endl;
-           }
-          
-           if (iter->pt() * L2L3JetScale > pfjetPt)
-             return true;
-     }
-
-     //----------------------------------------------
-     //require photon *and* jet not matched to photon
-     //----------------------------------------------
-
-     for (reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++){
+     if (filterName== "doubleElectron"){
        
-       if (iter->pt() > photonJet_photonPt){
-         
-         for (reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); jetiter != pfjet_h->end(); jetiter++){
-           
-           float deta = iter->eta() - jetiter->eta();
-           float dphi = fabs( iter->phi() - jetiter->phi() );
-           if( dphi > TMath::Pi() ) dphi = TMath::TwoPi() - dphi;
-           float dr = sqrt( deta * deta + dphi * dphi );
-           
-           if( dr < photonJet_dr ) continue;
-           
-           if( doL2L3pfjetCorrection_ ){
-             reco::PFJet uncorJet = *jetiter;
-             L2L3JetScale = correctorL2L3->correction(uncorJet.p4());
-           }
-           
-           if (jetiter->pt() * L2L3JetScale > photonJet_pfjetPt)
-             return true;
-         }
+       for(unsigned int i = 0; i < nTriggers; ++i)
+	 {
+	   // What is your name?
+	   const string& name = hltConfig_.triggerName(i);
+	   
+	   for(unsigned int j = 0; j < SingleElectronTriggerNames.size(); ++j) {
+	     TString tname(name);
+	     TString sname(SingleMuTriggerNames[j]);
+	     tname.ToLower();
+	     sname.ToLower();
+	     if ((tname == sname) && triggerResultsH_->accept(i)) {
+	       for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+		 if (el->pt() > looseptcut)return true;
+	       }
+	     }
+	   }
+	 }
+       for (reco::GsfElectronCollection::const_iterator el1 = els_h->begin(); el1 != els_h->end(); el1++)
+	 {
+	   
+	   for (reco::GsfElectronCollection::const_iterator el2 = el1+1; el2 != els_h->end(); el2++)
+	     {
+	       double sc_eta1 = el1->superCluster()->eta();
+	       double sc_energy1 = el1->superCluster()->energy();
+	       double el_sc1 = sc_energy1/cosh(sc_eta1);
+	       double el_pt1=el1->pt();
+	       double sc_eta2 = el2->superCluster()->eta();
+	       double sc_energy2 = el2->superCluster()->energy();
+	       double el_sc2 = sc_energy2/cosh(sc_eta2);
+	       double el_pt2=el2->pt();
+	       if (el_pt1 > tightptcut && el_pt2 > looseptcut) return true;
+	       if (el_pt1 > looseptcut && el_pt2 > tightptcut) return true;
+	     
+	       if (el_pt1 > tightptcut && el_sc2 > looseptcut) return true;
+	       if (el_sc1 > tightptcut && el_pt2 > looseptcut) return true;
+	       if (el_sc1 > tightptcut && el_sc2 > looseptcut) return true;
+	       if (el_pt1 > looseptcut && el_sc2 > tightptcut) return true;
+	       if (el_sc1 > looseptcut && el_pt2 > tightptcut) return true;
+	       if (el_sc1 > looseptcut && el_sc2 > tightptcut) return true;
+	     } 
+	 }    
+     }
+     else if (filterName== "doubleMu"){
+       for (reco::MuonCollection::const_iterator mu1 = mus_h->begin(); mu1 != mus_h->end(); mu1++)
+      {
+	for (reco::MuonCollection::const_iterator mu2 = mu1+1; mu2 != mus_h->end(); mu2++)
+	  {
+	    double mu_pt1=mu1->pt();
+	    double mu_pt2=mu2->pt();
+	    if (mu_pt1 > tightptcut && mu_pt2 > looseptcut) return true;
+	    if (mu_pt1 > looseptcut && mu_pt2 > tightptcut) return true;
+	  } 
+      }
+     }
+     else if (filterName== "MuEG"){
+       for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+
+	 for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
+	   double el_pt=el->pt();
+	   double mu_pt=mu->pt();
+	   double sc_eta = el->superCluster()->eta();
+	   double sc_energy = el->superCluster()->energy();
+	   double el_sc = sc_energy/cosh(sc_eta);
+	   
+	   if (el_pt > tightptcut && mu_pt > looseptcut) return true;
+	   if (el_pt > looseptcut && mu_pt > tightptcut) return true;
+	  	  
+	   if (el_sc > tightptcut && mu_pt > looseptcut) return true;
+	   if (el_sc > looseptcut && mu_pt > tightptcut) return true;
+	  
+	 }
        }
      }
-     
-     
+     else if (filterName== "SingleMu"){
+        for(unsigned int i = 0; i < nTriggers; ++i)
+	  {
+	    // What is your name?
+	    const string& name = hltConfig_.triggerName(i);
+	   
+	    for(unsigned int j = 0; j < SingleMuTriggerNames.size(); ++j) {
+	      TString tname(name);
+	      TString sname(SingleMuTriggerNames[j]);
+	      tname.ToLower();
+	      sname.ToLower();
+	      if ((tname == sname) && triggerResultsH_->accept(i)) {
+		for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
+		  if( mu->pt() > looseptcut ) return true;
+		}
+	      }
+	    }
+	  }
+     }
+     else if (filterName== "Photon"){
+       return true; //will add the selections soon
+     }
+     else if (filterName== "nofilter"){
+       return true;
+     }
+     else {
+       throw cms::Exception("SDFilter::filterName is not defined!");
+     }
+
      return false;
 }
 

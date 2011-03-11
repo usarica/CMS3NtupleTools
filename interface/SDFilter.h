@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.4 2010/09/15 12:03:37 benhoob Exp $
+// $Id: SDFilter.h,v 1.5 2011/03/11 00:34:33 yanjuntu Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -36,6 +36,11 @@
 #include "FWCore/Utilities/interface/InputTag.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
+
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+
 //#include "Math/LorentzVector.h"
 //
 // class decleration
@@ -70,6 +75,14 @@ private:
      double metPt;
      double tcmetPt;
      double pfmetPt;
+
+     std::string filterName;
+     double tightptcut;
+     double looseptcut;
+     std::vector<std::string> SingleMuTriggerNames;
+     std::vector<std::string> SingleElectronTriggerNames;
+     std::string processName_;
+     HLTConfigProvider hltConfig_;
 
      //L2L3 pfjet correction params
      bool doL2L3pfjetCorrection_;
