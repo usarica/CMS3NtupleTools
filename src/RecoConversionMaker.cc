@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RecoConversionMaker.cc,v 1.1 2011/03/11 02:08:47 kalavase Exp $
+// $Id: RecoConversionMaker.cc,v 1.2 2011/03/12 04:15:11 kalavase Exp $
 //
 //
 
@@ -57,11 +57,14 @@ RecoConversionMaker::RecoConversionMaker(const edm::ParameterSet& iConfig) {
 
 
   produces<vector<int> >		("convsisConverted"	).setBranchAlias("convs_isConverted"	);
+  produces<vector<int> >                ("convsquality"         ).setBranchAlias("convs_quality"        );
   produces<vector<int> >		("convsalgo"		).setBranchAlias("convs_algo"		);
+  produces<vector<vector<int> > >	("convstkalgo"		).setBranchAlias("convs_tkalgo"		);
   produces<vector<vector<int> > >	("convstkidx"		).setBranchAlias("convs_tkidx"		);
   produces<vector<vector<int> > >	("convsnHitsBeforeVtx"	).setBranchAlias("convs_nHitsBeforeVtx"	);
 
-  produces<vector<float> >              ("convsfitProb"         ).setBranchAlias("convs_fitProb"        );
+  produces<vector<float> >              ("convsndof"            ).setBranchAlias("convs_ndof"           );
+  produces<vector<float> >              ("convschi2"            ).setBranchAlias("convs_chi2"           );
   produces<vector<float> >              ("convsdl"              ).setBranchAlias("convs_dl"             );
 
   //this comes as a momentum vector from the Conversion object, not a p4 so the 
@@ -78,10 +81,14 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   auto_ptr<vector<int> >		convs_isConverted	(new vector<int>		);
   auto_ptr<vector<int> >		convs_algo		(new vector<int>		);
+  auto_ptr<vector<int> >                convs_quality           (new vector<int>                );
+  
+  auto_ptr<vector<vector<int> > >       convs_tkalgo            (new vector<vector<int> >       );
   auto_ptr<vector<vector<int> > >       convs_tkidx		(new vector<vector<int> >       );
   auto_ptr<vector<vector<int> > >       convs_nHitsBeforeVtx	(new vector<vector<int> >       );
   
-  auto_ptr<vector<float> >              convs_fitProb           (new vector<float>              );          
+  auto_ptr<vector<float> >              convs_ndof              (new vector<float>              );          
+  auto_ptr<vector<float> >              convs_chi2              (new vector<float>              );            
   auto_ptr<vector<float> >              convs_dl                (new vector<float>              );
   auto_ptr<vector<LorentzVector> >      convs_refitPairMom_p4   (new vector<LorentzVector>      );
   auto_ptr<vector<LorentzVector> >      convs_vtxpos            (new vector<LorentzVector>      );
@@ -101,10 +108,23 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     convs_isConverted->push_back(it->isConverted());
     convs_algo->push_back(it->algo());
+    //quality 
+    int qualityMask = 0;
+    for(int iM = 0; iM < 32; ++iM) {
+      if(it->quality((Conversion::ConversionQuality)iM))
+	qualityMask |= 1 << iM;
+    }
+    convs_algo->push_back(qualityMask);
+    
     vector<edm::RefToBase<reco::Track> > v_temp_trks = it->tracks();
     vector<int> v_temp_out;
-    for(unsigned int i = 0; i < v_temp_trks.size(); i++) 
+    vector<int> v_temp_outalgo;
+    for(unsigned int i = 0; i < v_temp_trks.size(); i++) {
       v_temp_out.push_back(v_temp_trks.at(i).key());
+      v_temp_outalgo.push_back(v_temp_trks.at(i)->algo());
+    }
+			       
+
     convs_tkidx->push_back(v_temp_out);
 
     v_temp_out.clear();
@@ -113,7 +133,8 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       v_temp_out.push_back(v_temp_nhits.at(i));
     convs_nHitsBeforeVtx->push_back(v_temp_out);
 
-    convs_fitProb->push_back(ChiSquaredProbability( it->conversionVertex().chi2(),  it->conversionVertex().ndof() ));
+    convs_ndof->push_back(it->conversionVertex().ndof() );
+    convs_chi2->push_back(it->conversionVertex().chi2() );
     convs_dl->push_back(lxy(beamSpotH->position(), *it));
 
     convs_refitPairMom_p4->push_back(LorentzVector(it->refittedPair4Momentum()));
@@ -139,11 +160,13 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
 
   iEvent.put(convs_isConverted		, "convsisConverted"	 );
+  iEvent.put(convs_quality              , "convsquality"         );
   iEvent.put(convs_algo			, "convsalgo"		 );
   iEvent.put(convs_tkidx		, "convstkidx"		 );
   iEvent.put(convs_nHitsBeforeVtx	, "convsnHitsBeforeVtx"	 );
 
-  iEvent.put(convs_fitProb              , "convsfitProb"         );
+  iEvent.put(convs_ndof                 , "convsndof"            );
+  iEvent.put(convs_chi2                 , "convschi2"            );
   iEvent.put(convs_dl                   , "convsdl"              );
   iEvent.put(convs_refitPairMom_p4      , "convsrefitPairMomp4"  );
   iEvent.put(convs_vtxpos               , "convsvtxpos"          );
@@ -153,7 +176,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 
-double RecoConversionMaker::lxy(const math::XYZPoint& myBeamSpot, const Conversion& conv) const {
+  double RecoConversionMaker::lxy(const math::XYZPoint& myBeamSpot, const Conversion& conv) const {
 
   const reco::Vertex &vtx = conv.conversionVertex();
   if (!vtx.isValid()) return -9999.;
