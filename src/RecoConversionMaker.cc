@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RecoConversionMaker.cc,v 1.2 2011/03/12 04:15:11 kalavase Exp $
+// $Id: RecoConversionMaker.cc,v 1.3 2011/03/12 07:26:13 kalavase Exp $
 //
 //
 
@@ -59,8 +59,8 @@ RecoConversionMaker::RecoConversionMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >		("convsisConverted"	).setBranchAlias("convs_isConverted"	);
   produces<vector<int> >                ("convsquality"         ).setBranchAlias("convs_quality"        );
   produces<vector<int> >		("convsalgo"		).setBranchAlias("convs_algo"		);
-  produces<vector<vector<int> > >	("convstkalgo"		).setBranchAlias("convs_tkalgo"		);
   produces<vector<vector<int> > >	("convstkidx"		).setBranchAlias("convs_tkidx"		);
+  produces<vector<vector<int> > >	("convstkalgo"		).setBranchAlias("convs_tkalgo"		);
   produces<vector<vector<int> > >	("convsnHitsBeforeVtx"	).setBranchAlias("convs_nHitsBeforeVtx"	);
 
   produces<vector<float> >              ("convsndof"            ).setBranchAlias("convs_ndof"           );
@@ -83,8 +83,8 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   auto_ptr<vector<int> >		convs_algo		(new vector<int>		);
   auto_ptr<vector<int> >                convs_quality           (new vector<int>                );
   
-  auto_ptr<vector<vector<int> > >       convs_tkalgo            (new vector<vector<int> >       );
   auto_ptr<vector<vector<int> > >       convs_tkidx		(new vector<vector<int> >       );
+  auto_ptr<vector<vector<int> > >       convs_tkalgo            (new vector<vector<int> >       );
   auto_ptr<vector<vector<int> > >       convs_nHitsBeforeVtx	(new vector<vector<int> >       );
   
   auto_ptr<vector<float> >              convs_ndof              (new vector<float>              );          
@@ -114,7 +114,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       if(it->quality((Conversion::ConversionQuality)iM))
 	qualityMask |= 1 << iM;
     }
-    convs_algo->push_back(qualityMask);
+    convs_quality->push_back(qualityMask);
     
     vector<edm::RefToBase<reco::Track> > v_temp_trks = it->tracks();
     vector<int> v_temp_out;
@@ -126,8 +126,10 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 			       
 
     convs_tkidx->push_back(v_temp_out);
+    convs_tkalgo->push_back(v_temp_outalgo);
 
     v_temp_out.clear();
+    v_temp_outalgo.clear();
     vector<uint8_t> v_temp_nhits = it->nHitsBeforeVtx();
     for(unsigned int i = 0; i < v_temp_nhits.size(); i++) 
       v_temp_out.push_back(v_temp_nhits.at(i));
@@ -155,7 +157,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     */
       
 
-      }//reco conversion loop
+  }//reco conversion loop
 
 
 
@@ -163,6 +165,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.put(convs_quality              , "convsquality"         );
   iEvent.put(convs_algo			, "convsalgo"		 );
   iEvent.put(convs_tkidx		, "convstkidx"		 );
+  iEvent.put(convs_tkalgo		, "convstkalgo"		 );
   iEvent.put(convs_nHitsBeforeVtx	, "convsnHitsBeforeVtx"	 );
 
   iEvent.put(convs_ndof                 , "convsndof"            );
@@ -176,7 +179,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 
-  double RecoConversionMaker::lxy(const math::XYZPoint& myBeamSpot, const Conversion& conv) const {
+double RecoConversionMaker::lxy(const math::XYZPoint& myBeamSpot, const Conversion& conv) const {
 
   const reco::Vertex &vtx = conv.conversionVertex();
   if (!vtx.isValid()) return -9999.;
