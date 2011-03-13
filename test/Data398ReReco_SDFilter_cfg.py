@@ -23,7 +23,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
 #
-process.cms2WithEverything = cms.Sequence( process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.sdFilter )
+process.cms2WithEverything = cms.Sequence( process.sdFilter * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
 
 #
