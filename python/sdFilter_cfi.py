@@ -33,6 +33,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_Mu8_v*", 
                             "HLT_Mu12_v*",
                             "HLT_Mu8_Jet40_v*",
+                            "HLT_Mu30_v*",
                             ),
                             SingleElectronTriggerNames_ = cms.untracked.vstring(
                             "HLT_Ele17_CaloIdL_CaloIsoVL_v*",
