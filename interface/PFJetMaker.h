@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.7 2011/02/28 22:00:08 dbarge Exp $
+// $Id: PFJetMaker.h,v 1.8 2011/03/14 21:51:57 benhoob Exp $
 //
 //
 
@@ -47,6 +47,7 @@ private:
       
   // ----------member data ---------------------------
   edm::InputTag pfJetsInputTag_;
+  edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;
   std::string PFJetCorrectorL2L3_;
