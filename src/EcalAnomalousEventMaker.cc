@@ -52,7 +52,8 @@ void EcalAnomalousEventMaker::produce ( Event& iEvent, const EventSetup& iSetup 
   auto_ptr < vector<float> > evt_tpEt        ( new vector<float> );
 
   //
-  InputTag ecalAnomalousFilterTag("EcalAnomalousEventFilter", "anomalousECALVariables", "Filter");
+//  InputTag ecalAnomalousFilterTag("EcalAnomalousEventFilter", "anomalousECALVariables", "Filter");
+  InputTag ecalAnomalousFilterTag("EcalAnomalousEventFilter", "anomalousECALVariables", "CMS2");
   Handle<AnomalousECALVariables> anomalousECALvarsHandle;
   iEvent.getByLabel( ecalAnomalousFilterTag, anomalousECALvarsHandle );
   AnomalousECALVariables anomalousECALvars;
