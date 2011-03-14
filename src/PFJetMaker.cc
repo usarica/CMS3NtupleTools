@@ -24,6 +24,8 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
