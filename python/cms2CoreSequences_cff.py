@@ -49,7 +49,7 @@ from CMS2.NtupleMaker.trackToMuonAssMaker_cfi      import *
 from CMS2.NtupleMaker.trkJetMaker_cfi              import *
 from CMS2.NtupleMaker.trkToVtxAssMaker_cfi         import *
 from CMS2.NtupleMaker.vertexMaker_cfi              import *
-from CMS2.NtupleMaker.ecalAnomalousEventMaker_cfi  import *
+from CMS2.NtupleMaker.ecalAnomalousEventMaker_cff  import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS2.NtupleMaker.fastJetSequence_cff          import *
 
@@ -70,4 +70,4 @@ hypmakers        = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepM
 othermakers      = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker)
 
 #cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers)
-cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * ecalAnomalousEventMaker )
+cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * ecalAnomalousEventFilterSequence )
