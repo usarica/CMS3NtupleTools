@@ -6,7 +6,18 @@ process.GlobalTag.globaltag = "FT_R_39X_V4A::All"
 # Load Filters
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
 process.filter = cms.Path(process.sdFilter)
-
+if "DoubleElectron" in str(process.source.fileNames):
+    process.sdFilter.filterName_="doubleElectron"
+elif "DoubleMu" in str(process.source.fileNames):
+    process.sdFilter.filterName_="doubleMu"
+elif "MuEG" in  str(process.source.fileNames):
+    process.sdFilter.filterName_="MuEG"
+elif "SingleMu" in str(process.source.fileNames):
+    process.sdFilter.filterName_="SingleMu"
+elif "Photon" in str(process.source.fileNames):
+    process.sdFilter.filterName_="Photon"
+else:
+    print 'filterName missing!'
 # Output
 process.out = cms.OutputModule(
         "PoolOutputModule",
