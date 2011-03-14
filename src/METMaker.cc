@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.27 2011/03/11 21:45:07 fgolf Exp $
+// $Id: METMaker.cc,v 1.28 2011/03/14 20:56:35 kalavase Exp $
 //
 //
 
@@ -145,7 +145,7 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      produces<float> (branchprefix+"ecalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_ecalendcapm_metPhi"       );
      produces<float> (branchprefix+"hcalendcappmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapp_metPhi"       );
      produces<float> (branchprefix+"hcalendcapmmetPhi"     	).setBranchAlias(aliasprefix_+"_hcalendcapm_metPhi"       );
-
+     
      produces<float> (branchprefix+"metEtGt3").setBranchAlias(aliasprefix_+"_met_EtGt3");
      produces<float> (branchprefix+"metPhiEtGt3").setBranchAlias(aliasprefix_+"_metPhi_EtGt3");
      produces<float> (branchprefix+"sumetEtGt3").setBranchAlias(aliasprefix_+"_sumet_EtGt3");
@@ -271,9 +271,9 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> > evt_ecalmet_etaslicePhi      (new vector<float>     );
      auto_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
 
-     auto_ptr<float> evt_met_EtGt3;
-     auto_ptr<float> evt_metPhi_EtGt3;
-     auto_ptr<float> evt_sumet_EtGt3;
+     auto_ptr<float> evt_met_EtGt3 (new float);
+     auto_ptr<float> evt_metPhi_EtGt3 (new float);
+     auto_ptr<float> evt_sumet_EtGt3 (new float);
 
      edm::Handle<CaloTowerCollection> h_caloTowers;
      iEvent.getByLabel("towerMaker", h_caloTowers);
@@ -409,7 +409,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      float csumetprime = 0.;
      for(CaloTowerCollection::const_iterator it = h_caloTowers->begin();
 	 it != h_caloTowers->end(); it++) {
-    
+       
          if ((it->emEt()+it->hadEt()) > 3.) {
              float et = it->emEt() + it->hadEt();
              cmetprime_x -= et * cos(it->phi());
@@ -475,7 +475,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  hcaletax[index] += hadEt*cos(phi);
 	  hcaletay[index] += hadEt*sin(phi);
      }	
-
+     
      *evt_met_EtGt3    = sqrt(cmetprime_x * cmetprime_x + cmetprime_y * cmetprime_y);
      *evt_metPhi_EtGt3 = atan2(cmetprime_y, cmetprime_x);
      *evt_sumet_EtGt3  = csumetprime;
