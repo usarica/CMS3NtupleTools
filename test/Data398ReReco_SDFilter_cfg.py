@@ -7,15 +7,15 @@ process.GlobalTag.globaltag = "FT_R_39X_V4A::All"
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
 process.filter = cms.Path(process.sdFilter)
 if "DoubleElectron" in str(process.source.fileNames):
-    process.sdFilter.filterName_="doubleElectron"
+    process.sdFilter.filterName_=cms.string("doubleElectron")
 elif "DoubleMu" in str(process.source.fileNames):
-    process.sdFilter.filterName_="doubleMu"
+    process.sdFilter.filterName_=cms.string("doubleMu")
 elif "MuEG" in  str(process.source.fileNames):
-    process.sdFilter.filterName_="MuEG"
+    process.sdFilter.filterName_=cms.string("MuEG")
 elif "SingleMu" in str(process.source.fileNames):
-    process.sdFilter.filterName_="SingleMu"
+    process.sdFilter.filterName_=cms.string("SingleMu")
 elif "Photon" in str(process.source.fileNames):
-    process.sdFilter.filterName_="Photon"
+    process.sdFilter.filterName_=cms.string("Photon")
 else:
     print 'filterName missing!'
 # Output
