@@ -30,11 +30,11 @@ EcalAnomalousEventMaker::EcalAnomalousEventMaker ( const ParameterSet& iConfig )
 
   //
   produces <bool>            ( branchprefix_ + "anomecalisEcalNoise" ).setBranchAlias( aliasprefix_ + "_anomecal_isEcalNoise");
-  produces < vector<int>   > ( branchprefix_ + "anomecalnsfSize"     ).setBranchAlias( aliasprefix_ + "_anomEcal_eta"        );
-  produces < vector<float> > ( branchprefix_ + "anomecaleta"         ).setBranchAlias( aliasprefix_ + "_anomEcal_eta"        );
-  produces < vector<float> > ( branchprefix_ + "anomecalphi"         ).setBranchAlias( aliasprefix_ + "_anomEcal_phi"        );
-  produces < vector<float> > ( branchprefix_ + "anomecalmaxbE"       ).setBranchAlias( aliasprefix_ + "_anomEcal_maxbE"      );
-  produces < vector<float> > ( branchprefix_ + "anomecaltpEt"        ).setBranchAlias( aliasprefix_ + "_anomEcal_tpEt"       );
+  produces < vector<int>   > ( branchprefix_ + "anomecalnsfSize"     ).setBranchAlias( aliasprefix_ + "_anomecal_nsfSize"    );
+  produces < vector<float> > ( branchprefix_ + "anomecaleta"         ).setBranchAlias( aliasprefix_ + "_anomecal_eta"        );
+  produces < vector<float> > ( branchprefix_ + "anomecalphi"         ).setBranchAlias( aliasprefix_ + "_anomecal_phi"        );
+  produces < vector<float> > ( branchprefix_ + "anomecalmaxbE"       ).setBranchAlias( aliasprefix_ + "_anomecal_maxbE"      );
+  produces < vector<float> > ( branchprefix_ + "anomecaltpEt"        ).setBranchAlias( aliasprefix_ + "_anomecal_tpEt"       );
 }
 
 // Destructor
@@ -64,7 +64,6 @@ void EcalAnomalousEventMaker::produce ( Event& iEvent, const EventSetup& iSetup 
     cout << "anomalous ECAL Vars not valid/found" << endl; 
   } 
 
-  /*
   //
   int sz      = -9999;
   double be   = -9999.0;
@@ -173,14 +172,12 @@ void EcalAnomalousEventMaker::produce ( Event& iEvent, const EventSetup& iSetup 
   else {
     *evt_isEcalNoise = 0;
   }
-  iEvent.put( evt_isEcalNoise, branchprefix_ + "isEcalNoise");
-  iEvent.put( evt_nsfSize,     branchprefix_ + "nsfSize"    );
-  iEvent.put( evt_maxbE,       branchprefix_ + "maxbE"      );
-  iEvent.put( evt_tpEt,        branchprefix_ + "tpEt"       );
-  iEvent.put( evt_eta,         branchprefix_ + "eta"        );
-  iEvent.put( evt_phi,         branchprefix_ + "phi"        );
-
-  */
+  iEvent.put( evt_isEcalNoise, branchprefix_ + "anomecalisEcalNoise");
+  iEvent.put( evt_nsfSize,     branchprefix_ + "anomecalnsfSize"    );
+  iEvent.put( evt_maxbE,       branchprefix_ + "anomecalmaxbE"      );
+  iEvent.put( evt_tpEt,        branchprefix_ + "anomecaltpEt"       );
+  iEvent.put( evt_eta,         branchprefix_ + "anomecaleta"        );
+  iEvent.put( evt_phi,         branchprefix_ + "anomecalphi"        );
 
   // 
   return;
