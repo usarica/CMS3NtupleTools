@@ -1,4 +1,4 @@
-from RecoConfiguration2011_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "FT_R_39X_V4A::All"
