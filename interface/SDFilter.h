@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.6 2011/03/11 01:08:51 yanjuntu Exp $
+// $Id: SDFilter.h,v 1.7 2011/03/18 20:42:27 yanjuntu Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -83,6 +83,7 @@ private:
      double looseptcut;
      std::vector<std::string> SingleMuTriggerNames;
      std::vector<std::string> SingleElectronTriggerNames;
+     std::vector<std::string> PhotonTriggerNames;
      std::string processName_;
      HLTConfigProvider hltConfig_;
 

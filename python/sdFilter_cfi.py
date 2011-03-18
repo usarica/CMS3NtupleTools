@@ -42,5 +42,14 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v*",
                             "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v*",
                             ),
+                            PhotonTriggerNames_= cms.untracked.vstring(
+                             "Photon75_CaloIdVL_IsoL_v*",
+                             "Photon75_CaloIdVL_v*",
+                             "Photon125_NoSpikeFilter_v*",
+                             "Photon30_CaloIdVL_v*",
+                             "Photon30_CaloIdVL_IsoL_v*",
+                             "Photon20_CaloIdVL_IsoL_v*",
+                             "Photon50_CaloIdVL_IsoL_v*",
+                            ),
                             processName = cms.untracked.string("")
 )
