@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.9 2011/03/11 16:36:19 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.10 2011/03/18 04:17:39 yanjuntu Exp $
 //
 //
 
@@ -222,7 +222,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
 		
 		for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
-		  if( mu->pt() > looseptcut ) return true;
+		  if( mu->pt() > musPt  ) return true;
 		}
 	      }
 	    }
@@ -273,7 +273,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
 		
 		for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
-		  if( mu->pt() > looseptcut ) return true;
+		  if( mu->pt() > musPt ) return true;
 		}
 	      }
 	    }
