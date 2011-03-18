@@ -1,7 +1,7 @@
 from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "FT_R_39X_V4A::All"
+process.GlobalTag.globaltag = "GR_R_311_V2::All"
 
 # Load Filters
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
@@ -34,7 +34,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
 #
-process.cms2WithEverything = cms.Sequence( process.sdFilter * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )
+process.cms2WithEverything = cms.Sequence( process.sdFilter * process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
 
 #
