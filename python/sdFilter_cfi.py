@@ -30,6 +30,7 @@ sdFilter = cms.EDFilter("SDFilter",
 
                         
                             SingleMuTriggerNames_ = cms.untracked.vstring(
+                            "HLT_Mu5_v*", 
                             "HLT_Mu8_v*", 
                             "HLT_Mu12_v*",
                             "HLT_Mu8_Jet40_v*",
