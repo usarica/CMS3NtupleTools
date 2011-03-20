@@ -5,7 +5,7 @@ scMaker = cms.EDProducer("SCMaker",
     # sc collection for EE and EB
     scInputTag_EE = cms.InputTag("correctedMulti5x5SuperClustersWithPreshower"),
     scInputTag_EB = cms.InputTag("correctedHybridSuperClusters"),
-    hcalRecHitsInputTag_HBHE = cms.InputTag("hbhereco"),
+    hcalRecHitsInputTag_HBHE = cms.InputTag("reducedHcalRecHits:hbhereco"),
     ecalRecHitsInputTag_EE = cms.InputTag("reducedEcalRecHitsEE"),
     ecalRecHitsInputTag_EB = cms.InputTag("reducedEcalRecHitsEB"),
     primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
