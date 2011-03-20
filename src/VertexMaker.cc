@@ -45,7 +45,7 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<unsigned int>                      ("evtnvtxs"              ).setBranchAlias("evt_nvtxs"              );  // number of vertices in event
+  produces<unsigned int>                      ("evtn"+branchprefix              ).setBranchAlias("evt_n"+aliasprefix_              );  // number of vertices in event
   produces<std::vector<LorentzVector> >       (branchprefix+"position"          ).setBranchAlias(aliasprefix_+"_position"          );  // position of vertices and associated errors
   produces<std::vector<float> >               (branchprefix+"xError"            ).setBranchAlias(aliasprefix_+"_xError"            );
   produces<std::vector<float> >               (branchprefix+"yError"            ).setBranchAlias(aliasprefix_+"_yError"            );
@@ -125,7 +125,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(evt_nvtxs,                     "evtnvtxs"              );
+  iEvent.put(evt_nvtxs,                     "evtn"+branchprefix              );
   iEvent.put(vector_vtxs_position,          branchprefix+"position"          );
   iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
   iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
