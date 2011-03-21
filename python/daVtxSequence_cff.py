@@ -21,7 +21,10 @@ offlinePrimaryVerticesDA.TkClusParameters=cms.PSet(
     TkDAClusParameters = cms.PSet(
       coolingFactor = cms.double(0.6),  #  slow annealing
       Tmin = cms.double(4.0),           #  freezeout temperature
-      vertexSize = cms.double(0.01)     #  ~ resolution / sqrt(Tmin)
+      vertexSize = cms.double(0.01),    #  ~ resolution / sqrt(Tmin)
+      d0CutOff = cms.double(3.),        # downweight high IP tracks 
+      dzCutOff = cms.double(4.)         # outlier rejection after freeze-out
     )
 )
+
 davertexreco = cms.Sequence(offlinePrimaryVerticesDA)
