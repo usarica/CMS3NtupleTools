@@ -16,6 +16,18 @@ elif "SingleMu" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("SingleMu")
 elif "Photon" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("Photon")
+elif "ElectronHad" in str(process.source.fileNames):
+    process.sdFilter.filterName_=cms.string("ElectronHad")
+    process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
+    process.hypDilepMaker.LooseLepton_PtCut  = cms.double(5.0)
+    process.hypTrilepMaker.TightLepton_PtCut = cms.double(5.0)
+    process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
+elif "MuHad" in str(process.source.fileNames):
+    process.sdFilter.filterName_=cms.string("MuHad")
+    process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
+    process.hypDilepMaker.LooseLepton_PtCut  = cms.double(5.0)
+    process.hypTrilepMaker.TightLepton_PtCut = cms.double(5.0)
+    process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
 else:
     print 'filterName missing!'
 # Output
