@@ -42,6 +42,16 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_Ele8_CaloIdL_CaloIsoVL_Jet40_v*",
                             "HLT_Photon20_CaloIdVT_IsoT_Ele8_CaloIdL_CaloIsoVL_v*",
                             ),
+                            ElectronHadTriggerNames_ = cms.untracked.vstring(
+                            "HLT_DoubleEle8_CaloIdL_TrkIdVL_HT160_v*",
+                            "HLT_DoubleEle8_CaloIdT_TrkIdVL_HT160_v*",
+                            ),
+                            MuHadTriggerNames_ = cms.untracked.vstring(
+                            "HLT_DoubleMu3_HT160_v*",
+                            "HLT_DoubleMu3_HT200_v*",
+                            "HLT_Mu3_Ele8_CaloIdL_TrkIdVL_HT160_v*",
+                            "HLT_Mu3_Ele8_CaloIdT_TrkIdVL_HT160_v*",
+                            ),
                             PhotonTriggerNames_= cms.untracked.vstring(
                              "Photon75_CaloIdVL_IsoL_v*",
                              "Photon75_CaloIdVL_v*",

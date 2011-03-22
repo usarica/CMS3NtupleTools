@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.11 2011/03/18 20:41:04 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.12 2011/03/22 18:46:32 yanjuntu Exp $
 //
 //
 
@@ -81,6 +81,8 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
      looseptcut= iConfig.getParameter<double>("looseptcut_"   );
      SingleMuTriggerNames = iConfig.getUntrackedParameter<vector<string> >("SingleMuTriggerNames_");
      SingleElectronTriggerNames = iConfig.getUntrackedParameter<vector<string> >("SingleElectronTriggerNames_");
+     ElectronHadTriggerNames = iConfig.getUntrackedParameter<vector<string> >("ElectronHadTriggerNames_");
+     MuHadTriggerNames = iConfig.getUntrackedParameter<vector<string> >("MuHadTriggerNames_");
      PhotonTriggerNames = iConfig.getUntrackedParameter<vector<string> >("PhotonTriggerNames_");
      processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
      //pfjet L2L3 correction params
@@ -325,6 +327,42 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     }
 	   }
 	 }
+     }
+     else if (filterName== "ElectronHad"){
+       for(unsigned int i = 0; i < nTriggers; ++i)
+	 {
+	   // What is your name?                                                                                                                                                
+	   const string& name = hltConfig_.triggerName(i);
+
+	   for(unsigned int j = 0; j < ElectronHadTriggerNames.size(); ++j) {
+	     TString sname(name);
+	     TString pattern(ElectronHadTriggerNames[j]);
+	     sname.ToLower();
+	     pattern.ToLower();
+	     TRegexp reg(Form("%s", pattern.Data()), true);
+	     if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
+		 return true;
+	     }
+	   }
+	 }
+     }
+     else if (filterName== "MuHad"){
+       for(unsigned int i = 0; i < nTriggers; ++i)
+         {
+           // What is your name?                                                                                                                                                
+           const string& name = hltConfig_.triggerName(i);
+
+           for(unsigned int j = 0; j < MuHadTriggerNames.size(); ++j) {
+             TString sname(name);
+             TString pattern(MuHadTriggerNames[j]);
+             sname.ToLower();
+             pattern.ToLower();
+             TRegexp reg(Form("%s", pattern.Data()), true);
+             if ((sname.Index(reg) >= 0) && triggerResultsH_->accept(i)) {
+	       return true;
+             }
+           }
+         }
      }
      else if (filterName== "nofilter"){
        return true;
