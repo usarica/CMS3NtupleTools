@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.63 2011/03/11 02:07:48 kalavase Exp $
+// $Id: ElectronMaker.cc,v 1.64 2011/03/22 14:53:53 cerati Exp $
 //
 //
 
@@ -543,10 +543,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       const std::vector<float> localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));
 
       els_eSeed          ->push_back( el->superCluster()->seed()->energy()     );		
-      els_sigmaPhiPhi    ->push_back( covs[2] > 0                ? sqrt(covs[2])                 : -1 * sqrt(-1 * covs[2]) );
-      els_sigmaIPhiIPhi  ->push_back( lcovs[2] > 0               ? sqrt(lcovs[2])                : -1 * sqrt(-1 * lcovs[2]) );
-      els_sigmaIEtaIEtaSC->push_back( localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) );
-      els_sigmaIPhiIPhiSC->push_back( localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) );
+      els_sigmaPhiPhi    ->push_back( std::isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
+      els_sigmaIPhiIPhi  ->push_back( std::isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
+      els_sigmaIEtaIEtaSC->push_back( std::isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
+      els_sigmaIPhiIPhiSC->push_back( std::isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
     } else {
       els_eSeed			->push_back(	-9999.	);
       els_sigmaPhiPhi		->push_back(	-9999.	);
