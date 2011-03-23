@@ -4,11 +4,32 @@
 
 import FWCore.ParameterSet.Config as cms
 
-#hypFilter = cms.EDProducer("TheFilter",
-hypFilter = cms.EDFilter("TheFilter",
+hypDiLeptonPruner = cms.EDFilter("HypDilepPruner",
+    hyp_lt_p4       = cms.InputTag("hypDilepMaker","hypltp4"),
+    hyp_ll_p4       = cms.InputTag("hypDilepMaker","hypllp4"),
+    hyp_sumJetPt    = cms.InputTag("hypDilepMaker","hypsumJetPt"),
+    minNominalLTPt  = cms.double(20.),
+    minNominalLLPt  = cms.double(10.),
+    minSusyLTPt     = cms.double(5.),
+    minSusyLLPt     = cms.double(5.),
+    minSusySumJetPt = cms.double(100.)
+)
+                                 
+hypDiLeptonFilter = cms.EDFilter("TheFilter",
     # this syntax means: keep events that contain more than 0
     # entries in the collection hypDilepMaker:hyptype  
-    filterExpressions = cms.VInputTag(cms.InputTag("hypDilepMaker","hyptype"), cms.InputTag("hypTrilepMaker","hyptrilepfirsttype"), cms.InputTag("hypQuadlepMaker","hypquadlepfirsttype"))
+    filterExpressions = cms.VInputTag(cms.InputTag("hypDilepMaker","hyptype"))
+)
+hypOtherFilter = cms.EDFilter("TheFilter",
+    # this syntax means: keep events that contain more than 0
+    # entries in the collection hypDilepMaker:hyptype  
+    filterExpressions = cms.VInputTag(cms.InputTag("hypTrilepMaker","hyptrilepfirsttype"),
+                                      cms.InputTag("hypQuadlepMaker","hypquadlepfirsttype"))
 )
 
+hypFilterSequence = cms.Sequence(
+    (hypDiLeptonPruner*hypDiLeptonFilter) +
+    hypOtherFilter
+)
+    
 
