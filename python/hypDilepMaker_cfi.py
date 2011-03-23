@@ -1,10 +1,8 @@
+
 import FWCore.ParameterSet.Config as cms
 
 hypDilepMaker = cms.EDProducer("HypDilepMaker",
 	aliasPrefix = cms.untracked.string("hyp"),
-    #are we using pat jets in the JetMaker?
-    #need to know if the jets were corrected
-    usingCorrectedJets = cms.bool(True),
     # met collection
     tcmetInputTag = cms.InputTag("tcmetMaker"),
     metInputTag = cms.InputTag("metMaker"),
@@ -12,9 +10,9 @@ hypDilepMaker = cms.EDProducer("HypDilepMaker",
     muToGenInputTag = cms.InputTag("muToGenAssMaker"),
     # electrons collection
     electronsInputTag = cms.InputTag("electronMaker"),
-    hypJetMaxEtaCut = cms.double(2.4),
+    hypJetMaxEtaCut = cms.double(5.0),
     #jet collection
-    jetsInputTag = cms.InputTag("jptMaker"),
+    jetsInputTag = cms.InputTag("pfJetMaker","pfjetsp4"),
     hypJetMinPtCut = cms.double(30.0), ##this is a corrected pt cut!
 
     #tight lepton pt cut
