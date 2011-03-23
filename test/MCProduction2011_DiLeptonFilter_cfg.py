@@ -1,7 +1,7 @@
 from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "MC_311_V2::All"
+process.GlobalTag.globaltag = "START311_V2::All"
 
 # Load Filters
 process.load("CMS2.NtupleMaker.hypFilter_cfi")
@@ -29,10 +29,19 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
+# Lower default hypothesis thresholds
+# Later we filter dilepton events to have either
+# * 20/10 or
+# * 5/5 + 100GeV sumJetPt
+process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
+process.hypDilepMaker.LooseLepton_PtCut  = cms.double(5.0)
+process.hypTrilepMaker.TightLepton_PtCut = cms.double(5.0)
+process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
+
 #
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
-process.pWithHyp           = cms.Path( process.cms2WithEverything * process.hypFilter )
+process.pWithHyp           = cms.Path( process.cms2WithEverything * process.hypFilterSequence )
 process.pWithGenHyp        = cms.Path( process.cms2WithEverything * process.dilepGenFilter )
 
 #
