@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.23 2010/03/18 02:12:15 kalavase Exp $
+// $Id: HypDilepMaker.cc,v 1.24 2011/03/23 14:33:13 dmytro Exp $
 //
 //
 
@@ -438,9 +438,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   //--------------------------------------------------------------------
   
   //jet p4
-  InputTag jets_p4_tag(jetsInputTag.label(), "jptsp4");
   Handle<vector<LorentzVector> > jets_p4_h;
-  iEvent.getByLabel(jets_p4_tag, jets_p4_h);
+  iEvent.getByLabel(jetsInputTag, jets_p4_h);
   const vector<LorentzVector> *jets_p4 = jets_p4_h.product();
  
   //event metPhi
