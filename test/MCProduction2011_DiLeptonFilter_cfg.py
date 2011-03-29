@@ -10,7 +10,7 @@ process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")
 # Dilepton Filter
 process.EventSelectionDilFilt = cms.PSet (
   SelectEvents = cms.untracked.PSet (
-    SelectEvents = cms.vstring('pWithHyp', 'pWithGenHyp')
+    SelectEvents = cms.vstring('pDiLepton', 'pMultiLepton', 'pWithGenHyp')
   )
 )
 
@@ -41,7 +41,8 @@ process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
 #
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
-process.pWithHyp           = cms.Path( process.cms2WithEverything * process.hypFilterSequence )
+process.pDiLepton          = cms.Path( process.cms2WithEverything * process.hypDiLeptonFilter )
+process.pMultiLepton       = cms.Path( process.cms2WithEverything * process.hypOtherFilter )
 process.pWithGenHyp        = cms.Path( process.cms2WithEverything * process.dilepGenFilter )
 
 #

@@ -4,7 +4,7 @@
 
 import FWCore.ParameterSet.Config as cms
 
-hypDiLeptonPruner = cms.EDFilter("HypDilepPruner",
+hypDiLeptonFilter = cms.EDFilter("HypDilepPruner",
     hyp_lt_p4       = cms.InputTag("hypDilepMaker","hypltp4"),
     hyp_ll_p4       = cms.InputTag("hypDilepMaker","hypllp4"),
     hyp_sumJetPt    = cms.InputTag("hypDilepMaker","hypsumJetPt"),
@@ -14,22 +14,10 @@ hypDiLeptonPruner = cms.EDFilter("HypDilepPruner",
     minSusyLLPt     = cms.double(5.),
     minSusySumJetPt = cms.double(100.)
 )
-                                 
-hypDiLeptonFilter = cms.EDFilter("TheFilter",
-    # this syntax means: keep events that contain more than 0
-    # entries in the collection hypDilepMaker:hyptype  
-    filterExpressions = cms.VInputTag(cms.InputTag("hypDilepMaker","hyptype"))
-)
+
 hypOtherFilter = cms.EDFilter("TheFilter",
     # this syntax means: keep events that contain more than 0
     # entries in the collection hypDilepMaker:hyptype  
     filterExpressions = cms.VInputTag(cms.InputTag("hypTrilepMaker","hyptrilepfirsttype"),
                                       cms.InputTag("hypQuadlepMaker","hypquadlepfirsttype"))
 )
-
-hypFilterSequence = cms.Sequence(
-    (hypDiLeptonPruner*hypDiLeptonFilter) +
-    hypOtherFilter
-)
-    
-
