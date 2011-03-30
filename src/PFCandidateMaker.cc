@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFCandidateMaker.cc,v 1.2 2011/03/11 16:48:35 benhoob Exp $
+// $Id: PFCandidateMaker.cc,v 1.3 2011/03/30 17:11:31 benhoob Exp $
 //
 //
 
@@ -150,7 +150,8 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 								  pf_it->positionAtECALEntrance().y(),
 								  pf_it->positionAtECALEntrance().z(),
 								  0.0)							);
-	  pfcands_ecalE			->push_back(pf_it->ecalEnergy()							);
+
+	  pfcands_ecalE			->push_back( isfinite( pf_it->ecalEnergy() ) ? pf_it->ecalEnergy() : -9999.     );
 	  pfcands_hcalE			->push_back(pf_it->hcalEnergy()							);
 	  pfcands_rawEcalE		->push_back(pf_it->rawEcalEnergy()						);
 	  pfcands_rawHcalE		->push_back(pf_it->rawHcalEnergy()						);

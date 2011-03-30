@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMuonMaker.cc,v 1.1 2010/06/11 17:26:50 fgolf Exp $
+// $Id: PFMuonMaker.cc,v 1.2 2011/03/30 17:11:31 benhoob Exp $
 //
 //
 
@@ -156,7 +156,8 @@ void PFMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 							       pf_it->positionAtECALEntrance().y(),
 							       pf_it->positionAtECALEntrance().z(),
 							       0.0)							);
-	  pfmus_ecalE			->push_back(pf_it->ecalEnergy()							);
+
+	  pfmus_ecalE			->push_back( isfinite( pf_it->ecalEnergy() ) ? pf_it->ecalEnergy() : -9999.     );
 	  pfmus_hcalE			->push_back(pf_it->hcalEnergy()							);
 	  pfmus_rawEcalE		->push_back(pf_it->rawEcalEnergy()						);
 	  pfmus_rawHcalE		->push_back(pf_it->rawHcalEnergy()						);
