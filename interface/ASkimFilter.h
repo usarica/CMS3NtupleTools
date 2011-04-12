@@ -5,17 +5,17 @@
 // 
 /**\class ASkimFilter ASkimFilter.h CMS2/NtupleMaker/interface/ASkimFilter.h
 
-Description: generic filter for cms2
+   Description: generic filter for cms2
 
-Implementation:
-- get list of names of momentum vectors as input
-- event passes if any of these vectors have pt larger than configured cut
+   Implementation:
+   - get list of names of momentum vectors as input
+   - event passes if any of these vectors have pt larger than configured cut
 
 */
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: ASkimFilter.h,v 1.4 2010/10/04 17:25:44 kalavase Exp $
+// $Id: ASkimFilter.h,v 1.5 2011/04/12 21:09:03 fgolf Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -43,23 +43,20 @@ Implementation:
 
 class ASkimFilter : public edm::EDFilter {
 public:
-  
-    
-
-  explicit ASkimFilter (const edm::ParameterSet&);
-  ~ASkimFilter();
+    explicit ASkimFilter (const edm::ParameterSet&);
+    ~ASkimFilter();
   
 private:
-  virtual void beginJob() ;
-  virtual bool filter(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+    virtual void beginJob() ;
+    virtual bool filter(edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
    
-  // ----------member data ---------------------------
-  edm::InputTag electronsInputTag_;
-  edm::InputTag muonsInputTag_;
-  bool useSTAMuons_;
-  double filterPtCut_;
-  
+    // ----------member data ---------------------------
+    edm::InputTag electronsInputTag_;
+    edm::InputTag muonsInputTag_;
+    bool useSTAMuons_;
+    double eleFilterPtCut_;
+    double muFilterPtCut_;
 };
 
 
