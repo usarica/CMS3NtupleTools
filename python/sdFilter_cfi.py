@@ -27,7 +27,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             photonJet_photonPt_ = cms.double(20.),
                             photonJet_pfjetPt_  = cms.double(30.),
                             photonJet_dr_       = cms.double(0.4),
-
+                            photonJet_dotrig_   = cms.bool(True),
                         
                             SingleMuTriggerNames_ = cms.untracked.vstring(
                             "HLT_Mu5_v*", 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.13 2011/03/29 05:22:40 warren Exp $
+// $Id: SDFilter.cc,v 1.14 2011/04/22 01:23:31 warren Exp $
 //
 //
 
@@ -93,6 +93,7 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
      photonJet_photonPt   = iConfig.getParameter<double>("photonJet_photonPt_");
      photonJet_pfjetPt    = iConfig.getParameter<double>("photonJet_pfjetPt_");
      photonJet_dr         = iConfig.getParameter<double>("photonJet_dr_");
+     photonJet_dotrig     = iConfig.getParameter<bool  >("photonJet_dotrig_");
 }
 
 
@@ -286,8 +287,8 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
        if( photon_h->size() == 0 ) //no photons
          return false;
 
-	   bool passtrig = false;
-       for(unsigned int i = 0; i < nTriggers; ++i) {
+	   bool passtrig = !photonJet_dotrig; //if don't do trigs, automatically pass
+       for(unsigned int i = 0; photonJet_dotrig && i < nTriggers; ++i) {
 		 const string name = hltConfig_.triggerName(i); // What is your name? 
 		 for(unsigned int j = 0; j < PhotonTriggerNames.size(); ++j) {
 		   TString sname(name);
@@ -315,8 +316,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   if( maxpt == 0 ) //no photons above threshold
 		 return false;
 
-	   unsigned int npfjets = 0;
-	       
+	   unsigned int npfjets = 0;	       
 	   for( reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); jetiter != pfjet_h->end(); jetiter++ ){
 		 float L2L3JetScale = 1.;
 		 if( doL2L3pfjetCorrection_ ) 

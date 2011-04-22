@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.8 2011/03/22 18:47:13 yanjuntu Exp $
+// $Id: SDFilter.h,v 1.9 2011/04/22 01:24:00 warren Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -97,6 +97,7 @@ private:
      double photonJet_photonPt;
      double photonJet_pfjetPt;
      double photonJet_dr;
+     bool   photonJet_dotrig;
 };
 
 
