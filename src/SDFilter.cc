@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.15 2011/04/24 20:19:43 kalavase Exp $
+// $Id: SDFilter.cc,v 1.16 2011/04/24 20:46:47 kalavase Exp $
 //
 //
 
@@ -106,31 +106,33 @@ void  SDFilter::beginJob() { }
 
 bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) { 
 
-  bool changed(true);
-  if (!hltConfig_.init(r, c, processName_, changed)) {
-    throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
-  }
-
-  if(filterName == "doubleMu" || filterName == "SingleMu") 
-    FillnTriggerPaths(SingleMuTriggerNames);
-  else if(filterName == "doubleElectron") 
-    FillnTriggerPaths(SingleElectronTriggerNames);
-  else if(filterName == "ElectronHad")
-    FillnTriggerPaths(ElectronHadTriggerNames);
-  else if(filterName == "MuHad")
-    FillnTriggerPaths(MuHadTriggerNames);  
-  else if(filterName == "Photon")
-    FillnTriggerPaths(PhotonTriggerNames);
-  else if((filterName != "MuEG") && (filterName != "nofilter") )
-    throw cms::Exception("SDFilter::filterName is not defined!");
+  if(processName_ != "") {
+    bool changed(true);
+    if (!hltConfig_.init(r, c, processName_, changed)) {
+      throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
+    }
   
-  std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths.\n";
 
-
+    if(filterName == "doubleMu" || filterName == "SingleMu") 
+      FillnTriggerPaths(SingleMuTriggerNames);
+    else if(filterName == "doubleElectron") 
+      FillnTriggerPaths(SingleElectronTriggerNames);
+    else if(filterName == "ElectronHad")
+      FillnTriggerPaths(ElectronHadTriggerNames);
+    else if(filterName == "MuHad")
+      FillnTriggerPaths(MuHadTriggerNames);  
+    else if(filterName == "Photon")
+      FillnTriggerPaths(PhotonTriggerNames);
+    else if((filterName != "MuEG") && (filterName != "nofilter") )
+      throw cms::Exception("SDFilter::filterName is not defined!");
+  
+    std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths.\n";
+  }
+  
   return true;
 }
 
-  void SDFilter::endJob() {
+void SDFilter::endJob() {
 }
 
 void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
@@ -171,6 +173,23 @@ void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
       // This is the once and only once bit described in beginRun
       bool changed(true);
       if (hltConfig_.init(iEvent.getRun(),iSetup,processName_,changed)) {
+
+	if(filterName == "doubleMu" || filterName == "SingleMu") 
+	  FillnTriggerPaths(SingleMuTriggerNames);
+	else if(filterName == "doubleElectron") 
+	  FillnTriggerPaths(SingleElectronTriggerNames);
+	else if(filterName == "ElectronHad")
+	  FillnTriggerPaths(ElectronHadTriggerNames);
+	else if(filterName == "MuHad")
+	  FillnTriggerPaths(MuHadTriggerNames);  
+	else if(filterName == "Photon")
+	  FillnTriggerPaths(PhotonTriggerNames);
+	else if((filterName != "MuEG") && (filterName != "nofilter") )
+	  throw cms::Exception("SDFilter::filterName is not defined!");
+  
+	std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths.\n";
+
+
       } else 
 	throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
     } else {
