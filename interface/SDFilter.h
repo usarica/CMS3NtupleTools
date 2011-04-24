@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.9 2011/04/22 01:24:00 warren Exp $
+// $Id: SDFilter.h,v 1.10 2011/04/24 20:14:15 kalavase Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -53,51 +53,55 @@ public:
   
     
 
-     explicit SDFilter (const edm::ParameterSet&);
-     ~SDFilter();
+  explicit SDFilter (const edm::ParameterSet&);
+  ~SDFilter();
   
 private:
-     virtual void beginJob() ;
-     virtual bool filter(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+  virtual void beginJob() ;
+  virtual bool beginRun(edm::Run&, const edm::EventSetup&);
+  virtual bool filter(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+  void FillnTriggerPaths(const std::vector<std::string>&);
    
-     // ----------member data ---------------------------
-     edm::InputTag elsInputTag;
-     edm::InputTag musInputTag;
-     edm::InputTag pfjetsInputTag;
-     edm::InputTag photonInputTag;
-     edm::InputTag metInputTag;
-     edm::InputTag tcmetInputTag;
-     edm::InputTag pfmetInputTag;
+  // ----------member data ---------------------------
+  edm::InputTag elsInputTag;
+  edm::InputTag musInputTag;
+  edm::InputTag pfjetsInputTag;
+  edm::InputTag photonInputTag;
+  edm::InputTag metInputTag;
+  edm::InputTag tcmetInputTag;
+  edm::InputTag pfmetInputTag;
 
-     double elsPt;
-     double musPt;
-     double photonPt;
-     double pfjetPt;
-     double metPt;
-     double tcmetPt;
-     double pfmetPt;
+  double elsPt;
+  double musPt;
+  double photonPt;
+  double pfjetPt;
+  double metPt;
+  double tcmetPt;
+  double pfmetPt;
 
-     std::string filterName;
-     double tightptcut;
-     double looseptcut;
-     std::vector<std::string> SingleMuTriggerNames;
-     std::vector<std::string> SingleElectronTriggerNames;
-     std::vector<std::string> ElectronHadTriggerNames;
-     std::vector<std::string> MuHadTriggerNames;
-     std::vector<std::string> PhotonTriggerNames;
-     std::string processName_;
-     HLTConfigProvider hltConfig_;
+  std::string filterName;
+  double tightptcut;
+  double looseptcut;
+  std::vector<std::string> SingleMuTriggerNames;
+  std::vector<std::string> SingleElectronTriggerNames;
+  std::vector<std::string> ElectronHadTriggerNames;
+  std::vector<std::string> MuHadTriggerNames;
+  std::vector<std::string> PhotonTriggerNames;
+  std::string processName_;
+  HLTConfigProvider hltConfig_;
+  std::vector<unsigned int> nTriggerPaths;
 
-     //L2L3 pfjet correction params
-     bool doL2L3pfjetCorrection_;
-     std::string PFJetCorrectorL2L3_;
+  //L2L3 pfjet correction params
+  bool doL2L3pfjetCorrection_;
+  std::string PFJetCorrectorL2L3_;
 
-     //thresholds for photon+jet filter
-     double photonJet_photonPt;
-     double photonJet_pfjetPt;
-     double photonJet_dr;
-     bool   photonJet_dotrig;
+  //thresholds for photon+jet filter
+  double photonJet_photonPt;
+  double photonJet_pfjetPt;
+  double photonJet_dr;
+  bool   photonJet_dotrig;
+
 };
 
 
