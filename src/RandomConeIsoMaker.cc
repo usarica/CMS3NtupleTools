@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.6 2010/06/14 13:06:46 dbarge Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.7 2011/04/28 00:59:56 dbarge Exp $
 //
 //
 
@@ -334,15 +334,11 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   
   // Standard ecal isolation code
   
-  EgammaRecHitIsolation ecalBarrelIsol(egIsoConeSizeOut_, egIsoConeSizeInBarrel_,
-				       egIsoJurassicWidth_, egIsoPtMinBarrel_,
-				       egIsoEMinBarrel_, caloGeom, &ecalBarrelHits, DetId::Ecal);
+  EgammaRecHitIsolation ecalBarrelIsol( egIsoConeSizeOut_, egIsoConeSizeInBarrel_, egIsoJurassicWidth_, egIsoPtMinBarrel_, egIsoEMinBarrel_, caloGeom, &ecalBarrelHits, 0, DetId::Ecal );
   ecalBarrelIsol.setUseNumCrystals(useNumCrystals_);
   ecalBarrelIsol.setVetoClustered(vetoClustered_);
   
-  EgammaRecHitIsolation ecalEndcapIsol(egIsoConeSizeOut_, egIsoConeSizeInEndcap_,
-				       egIsoJurassicWidth_, egIsoPtMinEndcap_,
-				       egIsoEMinEndcap_, caloGeom, &ecalEndcapHits, DetId::Ecal);
+  EgammaRecHitIsolation ecalEndcapIsol( egIsoConeSizeOut_, egIsoConeSizeInEndcap_, egIsoJurassicWidth_, egIsoPtMinEndcap_, egIsoEMinEndcap_, caloGeom, &ecalEndcapHits, 0, DetId::Ecal);
   ecalEndcapIsol.setUseNumCrystals(useNumCrystals_);
   ecalEndcapIsol.setVetoClustered(vetoClustered_);
   

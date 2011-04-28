@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: EcalRecHitMaker.cc,v 1.1 2010/05/19 15:26:07 kalavase Exp $
+// $Id: EcalRecHitMaker.cc,v 1.2 2011/04/28 00:59:48 dbarge Exp $
 
 // system include files
 #include <memory>
@@ -155,7 +155,7 @@ void EcalRecHitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     reco::BasicCluster dummyCluster;
     if(id.subdetId() == EcalBarrel) {
       float s4 = SwissCross(dummyCluster, ecalEBRecHits, id) - it->energy();
-      ecalrhit_sevLvl	->push_back(theEcalSevLvlAlgo->severityLevel( id, *ecalEBRecHits, theEcalChStatus)	         );    
+      //ecalrhit_sevLvl	->push_back(theEcalSevLvlAlgo->severityLevel( id, *ecalEBRecHits, theEcalChStatus)	         );    
       ecalrhit_em3x3	->push_back(clusterTools_.matrixEnergy(dummyCluster, ecalEBRecHits, topology_, id, -1, 1, -1, 1) );
       ecalrhit_em5x5	->push_back(clusterTools_.matrixEnergy(dummyCluster, ecalEBRecHits, topology_, id, -2, 2, -2, 2) );
       ecalrhit_emSwiss	->push_back( s4											 );
@@ -163,7 +163,7 @@ void EcalRecHitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     } else if(id.subdetId() == EcalEndcap) {
 
       float s4 = SwissCross(dummyCluster, ecalEERecHits, id) - it->energy();
-      ecalrhit_sevLvl	->push_back(theEcalSevLvlAlgo->severityLevel( id, *ecalEERecHits, theEcalChStatus)	         );    
+      //ecalrhit_sevLvl	->push_back(theEcalSevLvlAlgo->severityLevel( id, *ecalEERecHits, theEcalChStatus)	         );    
       ecalrhit_em3x3	->push_back(clusterTools_.matrixEnergy(dummyCluster, ecalEERecHits, topology_, id, -1, 1, -1, 1) );
       ecalrhit_em5x5	->push_back(clusterTools_.matrixEnergy(dummyCluster, ecalEERecHits, topology_, id, -2, 2, -2, 2) );
       ecalrhit_emSwiss	->push_back( s4											 );
