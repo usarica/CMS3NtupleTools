@@ -33,7 +33,7 @@ Implementation:
 #include "DataFormats/EcalDigi/interface/EcalDataFrame.h" 
 #include "DataFormats/EcalDigi/interface/EcalDigiCollections.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
-#include "DataFormats/EcalRecHit/interface/EcalSeverityLevel.h"
+//#include "DataFormats/EcalRecHit/interface/EcalSeverityLevel.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
