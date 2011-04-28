@@ -572,8 +572,8 @@ float CaloTowerMaker::recHitChi2(DetId emMaxId, const EcalRecHitCollection *recH
 //in 3_5_5, the chi2Prob method will crash--cannot use. Replace with above.
 float CaloTowerMaker::recHitChi2Prob(DetId emMaxId, const EcalRecHitCollection *recHits)
 {               
-        EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
-        if (it != recHits->end()) return it->chi2Prob();
+        //EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
+        //if (it != recHits->end()) return it->chi2Prob();
         return -9999.99;
 }
 
@@ -593,12 +593,14 @@ int CaloTowerMaker::recHitFlag(DetId emMaxId, const EcalRecHitCollection *recHit
 
 int CaloTowerMaker::recHitSeverityLevel(DetId emMaxId, const EcalRecHitCollection *recHits)
 {
+  /*
 	EcalRecHitCollection::const_iterator it = recHits->find(emMaxId);
 	if (it != recHits->end()) {
 	  const EcalSeverityLevelAlgo* theEcalSevLvlAlgo;
 	  //const EcalChannelStatus* theEcalChStatus = new EcalChannelStatus(); //have to set this up, idiot
 	  return theEcalSevLvlAlgo->severityLevel( emMaxId, *recHits, *theEcalChStatus_);
 	}
+  */
 	return -1;
 }
 
