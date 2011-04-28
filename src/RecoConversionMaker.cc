@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RecoConversionMaker.cc,v 1.3 2011/03/12 07:26:13 kalavase Exp $
+// $Id: RecoConversionMaker.cc,v 1.4 2011/04/28 00:23:38 dbarge Exp $
 //
 //
 
@@ -184,7 +184,7 @@ double RecoConversionMaker::lxy(const math::XYZPoint& myBeamSpot, const Conversi
   const reco::Vertex &vtx = conv.conversionVertex();
   if (!vtx.isValid()) return -9999.;
 
-  math::XYZVector mom = conv.refittedPairMomentum();
+  math::XYZVectorF mom = conv.refittedPairMomentum();
   
   double dbsx = vtx.x() - myBeamSpot.x();
   double dbsy = vtx.y() - myBeamSpot.y();
