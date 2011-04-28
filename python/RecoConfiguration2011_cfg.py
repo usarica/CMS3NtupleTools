@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.4 $'),
+        version    = cms.untracked.string('$Revision: 1.5 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -55,8 +55,9 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_1_2_AODSIM/DoubleElectron/D8806C68-D745-E011-9741-00304867BFB0.root'    # MC 4_1 AOD
-      #'file:/home/users/dbarge/ntuple_production/CMSSW_4_2_2_V04-01-05/crab/FC0C879D-D466-E011-A858-003048678FA6.root' # MC 4_2_1
+      #'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_1_2/RelValProdTTbar_CMSSW_4_1_2-MC_311_V2-v1_AODSIM/D8806C68-D745-E011-9741-00304867BFB0.root'
+      #'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_1_2/DoubleElectron_Run2011A-PromptReco-v1_AOD/92461CFF-9B56-E011-A86C-0030487CAEAC.root'
+      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_2_2/RelValProdTTbar_CMSSW_4_2_2-MC_42_V11-v1_AODSIM/70847C4B-8F6D-E011-A767-002354EF3BE6.root'
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
