@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.16 2011/04/24 20:46:47 kalavase Exp $
+// $Id: SDFilter.cc,v 1.17 2011/04/28 01:06:07 dbarge Exp $
 //
 //
 
@@ -126,7 +126,7 @@ bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) {
     else if((filterName != "MuEG") && (filterName != "nofilter") )
       throw cms::Exception("SDFilter::filterName is not defined!");
   
-    std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths.\n";
+    std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths for filter: " << filterName << endl;
   }
   
   return true;
@@ -187,7 +187,7 @@ void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
 	else if((filterName != "MuEG") && (filterName != "nofilter") )
 	  throw cms::Exception("SDFilter::filterName is not defined!");
   
-	std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths.\n";
+  std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths for filter: " << filterName << endl;
 
 
       } else 

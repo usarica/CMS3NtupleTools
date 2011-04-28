@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.3 $'),
+        version    = cms.untracked.string('$Revision: 1.4 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -55,10 +55,8 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-      #'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_3_9_9_AODSIM/48ED27B0-9B3D-E011-AE04-002618FDA211.root'    # MC 3_9_9_3      AOD
-      #'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_3_11_3_AODSIM/B6C498B7-274E-E011-9B01-003048679274.root'  # MC 3_11_3       AOD
-      #'file:/nfs-3/userdata/cms2/cms2_validation/84535966-D745-E011-A45B-003048D15CC0.root'                      # MC 4_1_2_patch1 RECO
-      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_1_2_AODSIM/D8806C68-D745-E011-9741-00304867BFB0.root'    # MC 4_1_2_patch1 AOD
+      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_1_2_AODSIM/DoubleElectron/D8806C68-D745-E011-9741-00304867BFB0.root'    # MC 4_1 AOD
+      #'file:/home/users/dbarge/ntuple_production/CMSSW_4_2_2_V04-01-05/crab/FC0C879D-D466-E011-A858-003048678FA6.root' # MC 4_2_1
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
@@ -79,7 +77,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
