@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.64 2011/03/22 14:53:53 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.65 2011/04/28 00:50:29 dbarge Exp $
 //
 //
 
@@ -616,7 +616,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // and how is the electron seeding driven
     int electronTypeMask = 0;
     if (el->isEcalEnergyCorrected()) 	electronTypeMask |= 1 << ISECALENERGYCORRECTED;
-    if (el->isMomentumCorrected())		electronTypeMask |= 1 << ISMOMENTUMCORRECTED;
+    // Depricated in CMSSW_4_2x ( http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/DataFormats/EgammaCandidates/interface/GsfElectron.h?revision=1.50&view=markup )
+    //if (el->isMomentumCorrected())		electronTypeMask |= 1 << ISMOMENTUMCORRECTED; 
     if (el->trackerDrivenSeed())		electronTypeMask |= 1 << ISTRACKERDRIVEN;
     if (el->ecalDrivenSeed())			electronTypeMask |= 1 << ISECALDRIVEN; 
     els_type->push_back( electronTypeMask);
@@ -625,7 +626,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_ecalEnergy		->push_back(	el->ecalEnergy()	        	);
     els_ecalEnergyError		->push_back(	el->ecalEnergyError()		        );
     els_trackMomentumError	->push_back(	el->trackMomentumError()	        );
-    els_electronMomentumError	->push_back(	el->electronMomentumError()	        );
+    //els_electronMomentumError	->push_back(	el->electronMomentumError()	        );
 
     // Fill predifined electron ID decisions
     //
@@ -674,10 +675,10 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			  el_track->pz(), el_track->p() );
     double          mass = 0.000510998918;
     LorentzVector   p4In; 
-    math::XYZVector p3In = el->trackMomentumAtVtx();
+    math::XYZVectorF p3In = el->trackMomentumAtVtx();
     p4In.SetXYZT(   p3In.x(), p3In.y(), p3In.z(), sqrt(mass*mass+p3In.R()*p3In.R()));
     LorentzVector   p4Out; 
-    math::XYZVector p3Out = el->trackMomentumOut();
+    math::XYZVectorF p3Out = el->trackMomentumOut();
     p4Out.SetXYZT(  p3Out.x(), p3Out.y(), p3Out.z(), sqrt(mass*mass+p3Out.R()*p3Out.R()));
 
     els_p4                    ->push_back( LorentzVector( el->p4() )                 );
