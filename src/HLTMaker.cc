@@ -230,16 +230,6 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   const unsigned int moduleIndex = triggerResultsH_->index(triggerIndex);
 
   unsigned int nFilters = triggerEventH_->sizeFilters();
-  // the first and last filter information is stored
-  // but we just want the last filter
-  unsigned int lastFilterIndex = nFilters;
-  for(unsigned int j = 0; j <= moduleIndex; ++j) {
-    const string& moduleLabel = moduleLabels[j];
-    const unsigned int filterIndex = triggerEventH_->filterIndex(InputTag(moduleLabel, "", processName_));
-    if (filterIndex < nFilters){ 
-      lastFilterIndex = filterIndex;
-    }
-  }
 
 /////////////////////////////////////
 // Show all stored trigger objects //
@@ -259,6 +249,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   bool mixedTrigIds = false;
 
   // loop over trigger modules
+  unsigned int lastFilterIndex = nFilters;
   for(unsigned int j = 0; j <= moduleIndex; ++j) {
 
     // get module name & filter index
@@ -274,7 +265,10 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
       
     // these are the filters with trigger objects filled
     if ( filterIndex < nFilters ){ 
-        
+     
+      //
+      lastFilterIndex = filterIndex;
+   
       // get trigger objects & ids
       unsigned int lastEleFilterIndex = 0;
       const trigger::Vids& triggerIds  = triggerEventH_->filterIds(filterIndex);
