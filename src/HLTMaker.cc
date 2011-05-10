@@ -1,9 +1,25 @@
 #include "CMS2/NtupleMaker/interface/HLTMaker.h"
+#include <map>
+#include <fstream>
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
 using namespace reco;
 using namespace std;
+
+void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > p4 ){
+
+  outfile.setf( ios::fixed, ios::floatfield );
+  outfile << "\t\t\t\t\t"
+          <<  id << "\t"
+          << "( "
+          << setprecision(2) << setw(4) << setfill(' ') << p4.pt() << ", "
+          << setprecision(2) << setw(4) << setfill(' ') << p4.eta() << ", "
+          << setprecision(2) << setw(4) << setfill(' ') << p4.phi()
+          << " )"
+          << endl << endl;
+  return;
+}
 
 HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
 {
@@ -195,10 +211,16 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
   return false;
 }
 
-void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex,
-				     vector<int>& idV,
-				     vector<LorentzVector>& p4V) const
-{
+void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V) const {
+
+  // trigger name
+  const string& trigName = hltConfig_.triggerName(triggerIndex);
+
+  //  
+  string fileName = Form("%s.txt", trigName.c_str() );
+  std::ofstream outfile( fileName.c_str(), ios::out | ios::app );
+
+  //
   const trigger::TriggerObjectCollection& triggerObjects = triggerEventH_->getObjects();
   if (triggerObjects.size() == 0) return;
 
@@ -214,21 +236,189 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex,
   for(unsigned int j = 0; j <= moduleIndex; ++j) {
     const string& moduleLabel = moduleLabels[j];
     const unsigned int filterIndex = triggerEventH_->filterIndex(InputTag(moduleLabel, "", processName_));
-    if (filterIndex < nFilters)
+    if (filterIndex < nFilters){ 
       lastFilterIndex = filterIndex;
-  }
-  if (lastFilterIndex < nFilters) {
-    const trigger::Vids& triggerIds = triggerEventH_->filterIds(lastFilterIndex);
-    const trigger::Keys& triggerKeys = triggerEventH_->filterKeys(lastFilterIndex);
-    assert(triggerIds.size()==triggerKeys.size());
-
-    for(unsigned int j = 0; j < triggerKeys.size(); ++j) {
-      const trigger::TriggerObject& triggerObject = triggerObjects[triggerKeys[j]];
-      p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
-      idV.push_back(triggerObject.id());
     }
   }
-}
+
+/////////////////////////////////////
+// Show all stored trigger objects //
+/////////////////////////////////////
+
+  // CMSSW_4_2x
+  // We want to store the filter index corresponding to the last filter for each distinct trigger object type ( the trigger id & p4 can be accessed given the filter index )
+  // For Electrons: take the filter index for the last trigger id of either 82 or 92, we don't consider 82 and 92 distinct trigger objects
+  // This assumes that each filter will have the same trigger ids... this is *NOT* true for overlap triggers, PFTau triggers for instance
+  // If we find that any filter has mixed trigger ids, we store the objects for the last filter only ( this is what was done before and should be right )
+  // Yes this is kludged, and yes a universal solution is preferred
+
+  // map ( trigger id => filter index )
+  map< int, unsigned int > trigObjsToStore;
+
+  // True if different trigger id's are found in the same filter
+  bool mixedTrigIds = false;
+
+  // loop over trigger modules
+  for(unsigned int j = 0; j <= moduleIndex; ++j) {
+
+    // get module name & filter index
+    const string&      moduleLabel = moduleLabels[j];
+    const unsigned int filterIndex = triggerEventH_->filterIndex(InputTag(moduleLabel, "", processName_));
+
+    // debug
+    if( j == 0 ){
+      outfile << endl << "--------------------------------------------------------------------------------------------------------------" << endl << endl;
+      outfile << trigName << endl << endl;
+      outfile << "-> Everything:" << endl << endl;
+    }
+      
+    // these are the filters with trigger objects filled
+    if ( filterIndex < nFilters ){ 
+        
+      // get trigger objects & ids
+      unsigned int lastEleFilterIndex = 0;
+      const trigger::Vids& triggerIds  = triggerEventH_->filterIds(filterIndex);
+      const trigger::Keys& triggerKeys = triggerEventH_->filterKeys(filterIndex);
+      assert( triggerIds.size() == triggerKeys.size() );
+
+      // True if a filter has hlt objects ( objects with positive trigger id )
+      bool hlt = false;   
+      
+      // Trigger object id for filters associated with a unique trigger object id
+      int filterId = -1;
+
+      // loop on trigger objects
+      for( unsigned int k = 0; k < triggerKeys.size(); k++){
+
+        // trigger object id
+        int id = triggerIds.at(k);
+
+        // trigger p4, p4id
+        const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];   
+
+        // hlt objects
+        if( id > 0 ){
+          hlt = true;                                 // True if a filter has hlt objects ( objects with positive trigger id )
+          if( k == 0 ){                               // Assuming all trigger ids are the same for this filter
+            filterId = id;                            // Filter id for all the objects in this filter
+            if( filterId == 82 || filterId == 92 ){   // Remember the index of the last filter with all objects having a trigger id of 82 or 92 
+              lastEleFilterIndex = filterIndex;
+            }
+          }
+          else {
+            if( id != filterId ){
+              mixedTrigIds = true;                    // True if different trigger id's are found in the same filter
+              cout << endl << endl << trigName << ", " << moduleLabel << ":\t ERROR in HLTMaker.cc: different trigger object ids found in the same filter... Exiting." << endl << endl;
+              //exit(1);
+            }
+          }
+        } // end if( id > 0 )
+
+        // debug
+        if( k == 0 ) outfile << "\t" << filterIndex << ": " << moduleLabel << endl << endl;
+        PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+
+      } // end loop on trigger objects
+
+      //
+      if( hlt ){                                        // only store hlt objects
+        assert( filterId != -1 );                       // sanity
+        trigObjsToStore[filterId] = filterIndex;        // Store the filter Index ( used to get trigger objects ) for each different trigger type ( filterId )
+        if( filterId == 82 ) trigObjsToStore.erase(92); // If this is an electron trigger ( filterId 82 or 92 ) we only want the last one ( that is either 82 or 92 )
+        if( filterId == 92 ) trigObjsToStore.erase(82); // 
+      }
+
+    } // end if(filterIndex < nFilters)
+  }   // end loop over trigger modules
+ 
+//////////////////////////////////////////////
+// Show the trigger objects we want to save //
+//////////////////////////////////////////////
+
+  // debug
+  outfile << endl << endl << "-> What we want to store";
+  if(mixedTrigIds) outfile << " ( mixed ids... storing last filter only )";
+  outfile << ":" << endl << endl;
+
+  // If we find different trigger ids under any filter we only store the objects for the last filter
+  if( mixedTrigIds ){
+
+    // get trigger objects & ids
+    const trigger::Vids& triggerIds  = triggerEventH_->filterIds ( lastFilterIndex );
+    const trigger::Keys& triggerKeys = triggerEventH_->filterKeys( lastFilterIndex );
+    assert( triggerIds.size() == triggerKeys.size() );
+
+    // loop on trigger objects
+    for( unsigned int k = 0; k < triggerKeys.size(); k++){
+
+      // trigger object id
+      int id = triggerIds.at(k);                                                        
+      const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];   // trigger p4, p4id
+  
+      // debug
+      PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+    }
+ 
+  }
+  // If each filter has trigger objects with the same trigger id, we store the trigger 
+  // objects for the last filter of each distinct trigger object type
+  else {
+
+    map<int,unsigned int>::iterator it;
+    for( it = trigObjsToStore.begin() ; it != trigObjsToStore.end(); it++ ){
+    
+      // get trigger objects & ids
+      const unsigned int filterIndex   = (*it).second;
+      const trigger::Vids& triggerIds  = triggerEventH_->filterIds ( filterIndex );
+      const trigger::Keys& triggerKeys = triggerEventH_->filterKeys( filterIndex );
+      assert( triggerIds.size() == triggerKeys.size() );
+    
+      // loop on trigger objects
+      for( unsigned int k = 0; k < triggerKeys.size(); k++){
+
+        // trigger object id
+        int id = triggerIds.at(k);                                                        
+
+        // trigger p4, p4id
+        const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];
+    
+        // debug
+        PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+      } 
+    }
+  }
+
+/////////////////////////////
+// Show what is stored now //
+/////////////////////////////
+
+  // these are the filters with trigger objects filled
+  if (lastFilterIndex < nFilters) {
+
+    // debug
+    outfile << endl << endl << "-> What is stored now:" << endl << endl;
+
+    // get trigger objects & ids
+    const trigger::Vids& triggerIds = triggerEventH_->filterIds(lastFilterIndex);
+    const trigger::Keys& triggerKeys = triggerEventH_->filterKeys(lastFilterIndex);
+    assert( triggerIds.size() == triggerKeys.size() );
+
+    // loop on trigger objects
+    for(unsigned int j = 0; j < triggerKeys.size(); ++j) {
+
+      // trigger p4, p4id
+      const trigger::TriggerObject& triggerObject = triggerObjects[triggerKeys[j]];
+
+      // store trigger id, trigger p4, & trigger object id
+      p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
+      idV.push_back( triggerObject.id() );
+
+      // debug
+      PrintTriggerObjectInfo( outfile, 0, triggerObject.particle().p4() );
+    }
+  }
+
+} // end HLTMaker::fillTriggerObjectInfo()
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(HLTMaker);
