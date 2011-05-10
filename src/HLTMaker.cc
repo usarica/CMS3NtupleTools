@@ -216,20 +216,16 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   // trigger name
   const string& trigName = hltConfig_.triggerName(triggerIndex);
 
-  //  
+  // debug 
   string fileName = Form("%s.txt", trigName.c_str() );
   std::ofstream outfile( fileName.c_str(), ios::out | ios::app );
 
   //
-  const trigger::TriggerObjectCollection& triggerObjects = triggerEventH_->getObjects();
-  if (triggerObjects.size() == 0) return;
-
-  // modules on this trigger path
-  const vector<string>& moduleLabels = hltConfig_.moduleLabels(triggerIndex);
-  // index (slot position) of module giving the decision of the path
-  const unsigned int moduleIndex = triggerResultsH_->index(triggerIndex);
-
-  unsigned int nFilters = triggerEventH_->sizeFilters();
+  const trigger::TriggerObjectCollection& triggerObjects = triggerEventH_->getObjects();  // trigger objects
+  if (triggerObjects.size() == 0) return;                                                 //
+  const vector<string>& moduleLabels = hltConfig_.moduleLabels(triggerIndex);             // modules on this trigger path
+  const unsigned int    moduleIndex  = triggerResultsH_->index(triggerIndex);             // index (slot position) of module giving the decision of the path
+  unsigned int          nFilters     = triggerEventH_->sizeFilters();                     // number of filters
 
 /////////////////////////////////////
 // Show all stored trigger objects //
@@ -257,11 +253,11 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
     const unsigned int filterIndex = triggerEventH_->filterIndex(InputTag(moduleLabel, "", processName_));
 
     // debug
-    if( j == 0 ){
-      outfile << endl << "--------------------------------------------------------------------------------------------------------------" << endl << endl;
-      outfile << trigName << endl << endl;
-      outfile << "-> Everything:" << endl << endl;
-    }
+    //if( j == 0 ){
+    //  outfile << endl << "--------------------------------------------------------------------------------------------------------------" << endl << endl;
+    //  outfile << trigName << endl << endl;
+    //  outfile << "-> Everything:" << endl << endl;
+    //}
       
     // these are the filters with trigger objects filled
     if ( filterIndex < nFilters ){ 
@@ -302,15 +298,15 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
           else {
             if( id != filterId ){
               mixedTrigIds = true;                    // True if different trigger id's are found in the same filter
-              cout << endl << endl << trigName << ", " << moduleLabel << ":\t ERROR in HLTMaker.cc: different trigger object ids found in the same filter... Exiting." << endl << endl;
+              //cout << endl << endl << trigName << ", " << moduleLabel << ":\t ERROR in HLTMaker.cc: different trigger object ids found in the same filter... Exiting." << endl << endl;
               //exit(1);
             }
           }
         } // end if( id > 0 )
 
         // debug
-        if( k == 0 ) outfile << "\t" << filterIndex << ": " << moduleLabel << endl << endl;
-        PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+        //if( k == 0 ) outfile << "\t" << filterIndex << ": " << moduleLabel << endl << endl;
+        //PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
 
       } // end loop on trigger objects
 
@@ -330,9 +326,9 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
 //////////////////////////////////////////////
 
   // debug
-  outfile << endl << endl << "-> What we want to store";
-  if(mixedTrigIds) outfile << " ( mixed ids... storing last filter only )";
-  outfile << ":" << endl << endl;
+  //outfile << endl << endl << "-> What we want to store";
+  //if(mixedTrigIds) outfile << " ( mixed ids... storing last filter only )";
+  //outfile << ":" << endl << endl;
 
   // If we find different trigger ids under any filter we only store the objects for the last filter
   if( mixedTrigIds ){
@@ -347,10 +343,16 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
 
       // trigger object id
       int id = triggerIds.at(k);                                                        
-      const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];   // trigger p4, p4id
+
+      // trigger p4, p4id
+      const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];
   
+      // store trigger id, trigger p4, & trigger object id
+      p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
+      idV.push_back( id );
+
       // debug
-      PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+      //PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
     }
  
   }
@@ -381,14 +383,16 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
         idV.push_back( id );
 
         // debug
-        PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
+        //PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
       } 
+
     }
   }
 
-/////////////////////////////
-// Show what is stored now //
-/////////////////////////////
+/*
+/////////////////////////////////
+// Show what was stored (2010) //
+/////////////////////////////////
 
   // these are the filters with trigger objects filled
   if (lastFilterIndex < nFilters) {
@@ -415,6 +419,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
       PrintTriggerObjectInfo( outfile, 0, triggerObject.particle().p4() );
     }
   }
+*/
 
 } // end HLTMaker::fillTriggerObjectInfo()
 
