@@ -376,6 +376,10 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
         // trigger p4, p4id
         const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];
     
+        // store trigger id, trigger p4, & trigger object id
+        p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
+        idV.push_back( id );
+
         // debug
         PrintTriggerObjectInfo( outfile, id, triggerObject.particle().p4() );
       } 
@@ -404,8 +408,8 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
       const trigger::TriggerObject& triggerObject = triggerObjects[triggerKeys[j]];
 
       // store trigger id, trigger p4, & trigger object id
-      p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
-      idV.push_back( triggerObject.id() );
+      //p4V.push_back( LorentzVector( triggerObject.particle().p4() ) );
+      //idV.push_back( triggerObject.id() );
 
       // debug
       PrintTriggerObjectInfo( outfile, 0, triggerObject.particle().p4() );
