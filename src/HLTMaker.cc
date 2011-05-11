@@ -214,11 +214,11 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
 void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V) const {
 
   // trigger name
-  const string& trigName = hltConfig_.triggerName(triggerIndex);
+  //const string& trigName = hltConfig_.triggerName(triggerIndex);
 
   // debug 
-  string fileName = Form("%s.txt", trigName.c_str() );
-  std::ofstream outfile( fileName.c_str(), ios::out | ios::app );
+  //string fileName = Form("%s.txt", trigName.c_str() );
+  //std::ofstream outfile( fileName.c_str(), ios::out | ios::app );
 
   //
   const trigger::TriggerObjectCollection& triggerObjects = triggerEventH_->getObjects();  // trigger objects
@@ -284,7 +284,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
         int id = triggerIds.at(k);
 
         // trigger p4, p4id
-        const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];   
+        //const trigger::TriggerObject& triggerObject = triggerObjects[ triggerKeys[k] ];   
 
         // hlt objects
         if( id > 0 ){
