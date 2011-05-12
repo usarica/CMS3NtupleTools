@@ -1,12 +1,13 @@
 #include "CMS2/NtupleMaker/interface/HLTMaker.h"
 #include <map>
-#include <fstream>
+//#include <fstream>
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
 using namespace reco;
 using namespace std;
 
+/*
 void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > p4 ){
 
   outfile.setf( ios::fixed, ios::floatfield );
@@ -20,6 +21,7 @@ void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::Lorent
           << endl << endl;
   return;
 }
+*/
 
 HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
 {
