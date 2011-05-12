@@ -11,7 +11,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Mon Jun 23 03:57:47 CEST 2008
-// $Id: TrkJetMaker.cc,v 1.11 2011/05/12 02:49:03 dbarge Exp $
+// $Id: TrkJetMaker.cc,v 1.12 2011/05/12 03:14:01 dbarge Exp $
 //
 
 
@@ -81,18 +81,21 @@ void TrkJetMaker::produce( edm::Event& iEvent, const edm::EventSetup& iSetup ) {
   std::auto_ptr<std::vector<int> >           vector_trkjets_ntrks    ( new std::vector<int>                );
   std::auto_ptr<std::vector<int> >           vector_trkjets_vtxs_idx ( new std::vector<int>                ); 
 
+  //
+  vector_trkjets_cor->clear();
+
   // Track Jet Correction
-  const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (trkJetCorrectionL2L3_, iSetup);
+  //const JetCorrector* correctorL2L3 = JetCorrector::getJetCorrector (trkJetCorrectionL2L3_, iSetup);
   
   // loop over jets and fill containers
   edm::View<reco::TrackJet>::const_iterator jetsEnd = trkJets->end();
-  for ( edm::View<reco::TrackJet>::const_iterator jet = trkJets->begin(); jet != jetsEnd; ++jet) {
+  for ( edm::View<reco::TrackJet>::const_iterator jet = trkJets->begin(); jet != jetsEnd; ++jet ) {
 
     // Get Track Jet Correction
-    double cor = correctorL2L3->correction( jet->p4());
+    //double cor = correctorL2L3->correction( jet->p4());
 
     // Store Track Jet Correction
-    vector_trkjets_cor  ->push_back( cor                        );
+    //vector_trkjets_cor  ->push_back( cor                        );
     vector_trkjets_p4   ->push_back( LorentzVector( jet->p4() ) );
     vector_trkjets_ntrks->push_back( jet->numberOfTracks()      );
 
@@ -102,10 +105,10 @@ void TrkJetMaker::produce( edm::Event& iEvent, const edm::EventSetup& iSetup ) {
     float trkjets_vtx_y = (*refvtx).y();
     int vtx_idx = -1;
     int nVtxs = vtxs_h->size();
-    for (int i_vtx = 0; i_vtx < nVtxs; i_vtx++) {
+    for ( int i_vtx = 0; i_vtx < nVtxs; i_vtx++ ) {
       float vtxs_x = vtxs_h->at(i_vtx).x();
       float vtxs_y = vtxs_h->at(i_vtx).y();
-      if (fabs(trkjets_vtx_x - vtxs_x) < 0.001 && fabs(trkjets_vtx_y - vtxs_y) < 0.001) vtx_idx = i_vtx;
+      if ( fabs( trkjets_vtx_x - vtxs_x ) < 0.001 && fabs( trkjets_vtx_y - vtxs_y ) < 0.001 ) vtx_idx = i_vtx;
     }
 
     // store vertex
@@ -118,7 +121,7 @@ void TrkJetMaker::produce( edm::Event& iEvent, const edm::EventSetup& iSetup ) {
 
   // put containers into event
   iEvent.put(evt_ntrkjets           , "evtntrkjets"   );
-  iEvent.put(vector_trkjets_p4      ,  "trkjetsp4"    );
+  iEvent.put(vector_trkjets_p4      , "trkjetsp4"     );
   iEvent.put(vector_trkjets_cor     , "trkjetscor"    );
   iEvent.put(vector_trkjets_ntrks   , "trkjetsntrks"  );
   iEvent.put(vector_trkjets_vtxs_idx, "trkjetsvtxsidx");
