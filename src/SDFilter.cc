@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.17 2011/04/28 01:06:07 dbarge Exp $
+// $Id: SDFilter.cc,v 1.18 2011/05/16 03:03:35 dbarge Exp $
 //
 //
 
@@ -204,7 +204,7 @@ void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
     assert(triggerResultsH_->size()==hltConfig_.size());
 
     unsigned int nTriggers = triggerResultsH_->size();
-    if (nTriggers > 256)
+    if (nTriggers > 352)
       throw cms::Exception("HLTMaker::produce: number of HLT trigger variables must be increased!");
         
       
