@@ -39,6 +39,9 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>                    (Form("%sbits6"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits6"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits7"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits7"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits8"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits8"      ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits9"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits9"      ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits10"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits10"      ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits11"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits11"      ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
   produces<vector<unsigned int> >           (Form("%sprescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
   produces<vector<vector<int> > >           (Form("%strigObjsid",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
