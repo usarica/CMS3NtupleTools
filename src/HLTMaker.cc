@@ -112,8 +112,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   *bits8 = 0;
 
   unsigned int nTriggers = triggerResultsH_->size();
-  if (nTriggers > 256)
-    throw cms::Exception("HLTMaker::produce: number of HLT trigger variables must be increased!");
+  if (nTriggers > 512) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( nTriggers = %d )", nTriggers) );
 
   auto_ptr<vector<TString> >                trigNames (new vector<TString>);
   auto_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
