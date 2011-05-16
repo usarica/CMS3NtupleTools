@@ -93,26 +93,33 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // sanity check
   assert(triggerResultsH_->size()==hltConfig_.size());
 
-  auto_ptr<unsigned int> bits1 (new unsigned int);
-  auto_ptr<unsigned int> bits2 (new unsigned int);
-  auto_ptr<unsigned int> bits3 (new unsigned int);
-  auto_ptr<unsigned int> bits4 (new unsigned int);
-  auto_ptr<unsigned int> bits5 (new unsigned int);
-  auto_ptr<unsigned int> bits6 (new unsigned int);
-  auto_ptr<unsigned int> bits7 (new unsigned int);
-  auto_ptr<unsigned int> bits8 (new unsigned int);
+  auto_ptr<unsigned int> bits1  (new unsigned int);
+  auto_ptr<unsigned int> bits2  (new unsigned int);
+  auto_ptr<unsigned int> bits3  (new unsigned int);
+  auto_ptr<unsigned int> bits4  (new unsigned int);
+  auto_ptr<unsigned int> bits5  (new unsigned int);
+  auto_ptr<unsigned int> bits6  (new unsigned int);
+  auto_ptr<unsigned int> bits7  (new unsigned int);
+  auto_ptr<unsigned int> bits8  (new unsigned int);
+  auto_ptr<unsigned int> bits9  (new unsigned int);
+  auto_ptr<unsigned int> bits10 (new unsigned int);
+  auto_ptr<unsigned int> bits11 (new unsigned int);
+
   auto_ptr<vector<unsigned int> > prescales (new vector<unsigned int>);
-  *bits1 = 0;
-  *bits2 = 0;
-  *bits3 = 0;
-  *bits4 = 0;
-  *bits5 = 0;
-  *bits6 = 0;
-  *bits7 = 0;
-  *bits8 = 0;
+  *bits1  = 0;
+  *bits2  = 0;
+  *bits3  = 0;
+  *bits4  = 0;
+  *bits5  = 0;
+  *bits6  = 0;
+  *bits7  = 0;
+  *bits8  = 0;
+  *bits9  = 0;
+  *bits10 = 0;
+  *bits11 = 0;
 
   unsigned int nTriggers = triggerResultsH_->size();
-  if (nTriggers > 512) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( nTriggers = %d )", nTriggers) );
+  if (nTriggers > 352) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 352 )", nTriggers) );
 
   auto_ptr<vector<TString> >                trigNames (new vector<TString>);
   auto_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
@@ -172,6 +179,18 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  bitmask <<=(i-224);
 	  *bits8 |= bitmask;
 	}
+	if (i >= 256 && i <= 287) {
+	  bitmask <<=(i-256);
+	  *bits9 |= bitmask;
+	}
+	if (i >= 288 && i <= 319) {
+	  bitmask <<=(i-288);
+	  *bits10 |= bitmask;
+	}
+	if (i >= 320 && i <= 351) {
+	  bitmask <<=(i-320);
+	  *bits11 |= bitmask;
+	}
 
 	// Collect desired trigger objects 
 	if (fillTriggerObjects_ && doPruneTriggerName(name))
@@ -182,18 +201,21 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       trigObjsp4->push_back(p4V);
     }
 
-  iEvent.put(bits1,      Form("%sbits1",   processNamePrefix_.Data()));
-  iEvent.put(bits2,      Form("%sbits2",   processNamePrefix_.Data()));
-  iEvent.put(bits3,      Form("%sbits3",   processNamePrefix_.Data()));
-  iEvent.put(bits4,      Form("%sbits4",   processNamePrefix_.Data()));
-  iEvent.put(bits5,      Form("%sbits5",   processNamePrefix_.Data()));
-  iEvent.put(bits6,      Form("%sbits6",   processNamePrefix_.Data()));
-  iEvent.put(bits7,      Form("%sbits7",   processNamePrefix_.Data()));
-  iEvent.put(bits8,      Form("%sbits8",   processNamePrefix_.Data()));
-  iEvent.put(prescales,  Form("%sprescales",  processNamePrefix_.Data()));
-  iEvent.put(trigNames , Form("%strigNames" , processNamePrefix_.Data()));
-  iEvent.put(trigObjsid, Form("%strigObjsid", processNamePrefix_.Data()));
-  iEvent.put(trigObjsp4, Form("%strigObjsp4", processNamePrefix_.Data()));
+  iEvent.put(bits1,      Form("%sbits1",      processNamePrefix_.Data() ) );
+  iEvent.put(bits2,      Form("%sbits2",      processNamePrefix_.Data() ) );
+  iEvent.put(bits3,      Form("%sbits3",      processNamePrefix_.Data() ) );
+  iEvent.put(bits4,      Form("%sbits4",      processNamePrefix_.Data() ) );
+  iEvent.put(bits5,      Form("%sbits5",      processNamePrefix_.Data() ) );
+  iEvent.put(bits6,      Form("%sbits6",      processNamePrefix_.Data() ) );
+  iEvent.put(bits7,      Form("%sbits7",      processNamePrefix_.Data() ) );
+  iEvent.put(bits8,      Form("%sbits8",      processNamePrefix_.Data() ) );
+  iEvent.put(bits9,      Form("%sbits9",      processNamePrefix_.Data() ) );
+  iEvent.put(bits10,     Form("%sbits10",     processNamePrefix_.Data() ) );
+  iEvent.put(bits11,     Form("%sbits11",     processNamePrefix_.Data() ) );
+  iEvent.put(prescales,  Form("%sprescales",  processNamePrefix_.Data() ) );
+  iEvent.put(trigNames , Form("%strigNames" , processNamePrefix_.Data() ) );
+  iEvent.put(trigObjsid, Form("%strigObjsid", processNamePrefix_.Data() ) );
+  iEvent.put(trigObjsp4, Form("%strigObjsp4", processNamePrefix_.Data() ) );
 }
 
 bool HLTMaker::doPruneTriggerName(const string& name) const
