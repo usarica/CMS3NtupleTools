@@ -25,13 +25,14 @@ PUSummaryInfoMaker::PUSummaryInfoMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_		= iConfig.getUntrackedParameter	<std::string>	("aliasPrefix"		);
   PUInfoInputTag_	= iConfig.getParameter		<edm::InputTag>	("PUInfoInputTag"	);
   
-  produces<int>			(aliasprefix_ + "nPUvertices"	).setBranchAlias(aliasprefix_ + "_nPUvertices"	);
-  produces<vector<float> >	(aliasprefix_ + "zpositions"	).setBranchAlias(aliasprefix_ + "_zpositions"	);
-  produces<vector<float> >	(aliasprefix_ + "sumptlowpt"	).setBranchAlias(aliasprefix_ + "_sumpt_lowpt"	);
-  produces<vector<float> >	(aliasprefix_ + "sumpthighpt"	).setBranchAlias(aliasprefix_+ "_sump_highpt"	);
-  produces<vector<float> >	(aliasprefix_ + "instLumi"	).setBranchAlias(aliasprefix_+ "_instLumi"      );
-  produces<vector<int>   >	(aliasprefix_ + "ntrkslowpt"	).setBranchAlias(aliasprefix_+ "_ntrks_lowpt"	);
-  produces<vector<int>   >	(aliasprefix_ + "ntrkshighpt"	).setBranchAlias(aliasprefix_+ "_ntrks_highpt"	);
+  produces<vector<int> >	        (aliasprefix_ + "nPUvertices"	).setBranchAlias(aliasprefix_ + "_nPUvertices"	);
+  produces<vector<int> >	        (aliasprefix_ + "bunchCrossing"	).setBranchAlias(aliasprefix_ + "_bunchCrossing");
+  produces<vector<vector<float> > >	(aliasprefix_ + "zpositions"	).setBranchAlias(aliasprefix_ + "_zpositions"	);
+  produces<vector<vector<float> > >	(aliasprefix_ + "sumptlowpt"	).setBranchAlias(aliasprefix_ + "_sumpt_lowpt"	);
+  produces<vector<vector<float> > >	(aliasprefix_ + "sumpthighpt"	).setBranchAlias(aliasprefix_ + "_sump_highpt"	);
+  produces<vector<vector<float> > >	(aliasprefix_ + "instLumi"	).setBranchAlias(aliasprefix_ + "_instLumi"     );
+  produces<vector<vector<int> > >	(aliasprefix_ + "ntrkslowpt"	).setBranchAlias(aliasprefix_ + "_ntrks_lowpt"	);
+  produces<vector<vector<int> > >	(aliasprefix_ + "ntrkshighpt"	).setBranchAlias(aliasprefix_ + "_ntrks_highpt"	);
 
 }
 
@@ -51,37 +52,34 @@ void PUSummaryInfoMaker::endJob()
 void PUSummaryInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
 
-  auto_ptr<int>			puInfo_nPUvertices	(new int		);
-  auto_ptr<vector<float> >	puInfo_zpositions	(new vector<float>	);
-  auto_ptr<vector<float> >	puInfo_sumptlowpt	(new vector<float>	);
-  auto_ptr<vector<float> >	puInfo_sumpthighpt	(new vector<float>	);
-  auto_ptr<vector<float> >	puInfo_instLumi         (new vector<float>	);
-  auto_ptr<vector<int>   >	puInfo_ntrkslowpt	(new vector<int>	);
-  auto_ptr<vector<int>   >	puInfo_ntrkshighpt	(new vector<int>	);
-  
+  auto_ptr<vector<int> >	        puInfo_nPUvertices	( new vector<int> );
+  auto_ptr<vector<int> >	        puInfo_bunchCrossing	( new vector<int> );
+  auto_ptr<vector<vector<float> > >	puInfo_zpositions	( new vector<vector<float> > );
+  auto_ptr<vector<vector<float> > >     puInfo_sumptlowpt	( new vector<vector<float> > );
+  auto_ptr<vector<vector<float> > >	puInfo_sumpthighpt	( new vector<vector<float> > );
+  auto_ptr<vector<vector<float> > >	puInfo_instLumi         ( new vector<vector<float> > );
+  auto_ptr<vector<vector<int> > >	puInfo_ntrkslowpt	( new vector<vector<int> > );
+  auto_ptr<vector<vector<int> > >	puInfo_ntrkshighpt	( new vector<vector<int> > );
 
-  Handle<PileupSummaryInfo> puInfoH;
+  Handle<vector<PileupSummaryInfo> > puInfoH;
   bool bPuInfo=iEvent.getByLabel("addPileupInfo", puInfoH);
 
   if(bPuInfo) {
-    *puInfo_nPUvertices = puInfoH->getPU_NumInteractions();
-    *puInfo_zpositions  = puInfoH->getPU_zpositions();
-    *puInfo_sumptlowpt  = puInfoH->getPU_sumpT_lowpT();
-    *puInfo_sumpthighpt = puInfoH->getPU_sumpT_highpT();
-    *puInfo_ntrkslowpt  = puInfoH->getPU_ntrks_lowpT();
-    *puInfo_ntrkshighpt = puInfoH->getPU_ntrks_highpT();
-    
-  } else {
-    *puInfo_nPUvertices = -9999;
-    *puInfo_zpositions  = vector<float>();
-    *puInfo_sumptlowpt  = vector<float>();
-    *puInfo_sumpthighpt = vector<float>();
-    *puInfo_ntrkslowpt  = vector<int>();
-    *puInfo_ntrkshighpt = vector<int>();
+    for ( vector<PileupSummaryInfo>::const_iterator itr = puInfoH->begin(); 
+	  itr != puInfoH->end(); ++itr )
+      {
+	puInfo_nPUvertices->push_back(   itr->getPU_NumInteractions() );
+	puInfo_bunchCrossing->push_back( itr->getBunchCrossing()      );
+	puInfo_zpositions->push_back(    itr->getPU_zpositions()      );
+	puInfo_sumptlowpt->push_back(    itr->getPU_sumpT_lowpT()     );
+	puInfo_sumpthighpt->push_back(   itr->getPU_sumpT_highpT()    );
+	puInfo_ntrkslowpt->push_back(    itr->getPU_ntrks_lowpT()     );
+	puInfo_ntrkshighpt->push_back(   itr->getPU_ntrks_highpT()    );
+      }
   }
-
 	
   iEvent.put(puInfo_nPUvertices,	"puInfonPUvertices"	);
+  iEvent.put(puInfo_bunchCrossing,	"puInfobunchCrossing"	);
   iEvent.put(puInfo_zpositions,		"puInfozpositions"	);
   iEvent.put(puInfo_sumptlowpt,		"puInfosumptlowpt"	);
   iEvent.put(puInfo_sumpthighpt,	"puInfosumpthighpt"	);
