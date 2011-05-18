@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.18 2011/05/16 03:03:35 dbarge Exp $
+// $Id: SDFilter.cc,v 1.19 2011/05/18 16:29:10 yanjuntu Exp $
 //
 //
 
@@ -330,11 +330,41 @@ void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
       edm::Handle<reco::MuonCollection> mus_h;
       iEvent.getByLabel(musInputTag, mus_h);
 
+      edm::Handle<reco::GsfElectronCollection> els_h;
+      iEvent.getByLabel(elsInputTag, els_h);
+
       if(acceptEvent) {
 	for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++)
 	  if( mu->pt() > musPt ) return true;
       }
-	 
+      
+
+      for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+
+        for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++){
+          double el_pt=el->pt();
+          double mu_pt=mu->pt();
+          double sc_eta = el->superCluster()->eta();
+          double sc_energy = el->superCluster()->energy();
+          double el_sc = sc_energy/cosh(sc_eta);
+
+          if (el_pt > tightptcut && mu_pt > looseptcut) return true;
+          if (el_pt > looseptcut && mu_pt > tightptcut) return true;
+
+          if (el_sc > tightptcut && mu_pt > looseptcut) return true;
+          if (el_sc > looseptcut && mu_pt > tightptcut) return true;
+
+        }
+      }
+      for (reco::MuonCollection::const_iterator mu1 = mus_h->begin(); mu1 != mus_h->end(); mu1++) {
+        for (reco::MuonCollection::const_iterator mu2 = mu1+1; mu2 != mus_h->end(); mu2++) {
+	  
+          double mu_pt1=mu1->pt();
+          double mu_pt2=mu2->pt();
+          if (mu_pt1 > tightptcut && mu_pt2 > looseptcut) return true;
+          if (mu_pt1 > looseptcut && mu_pt2 > tightptcut) return true;
+        }
+      }
     }
     else if (filterName == "Photon"){
 
