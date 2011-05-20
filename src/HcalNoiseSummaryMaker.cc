@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HcalNoiseSummaryMaker.cc,v 1.3 2010/03/18 02:12:13 kalavase Exp $
+// $Id: HcalNoiseSummaryMaker.cc,v 1.4 2011/05/20 11:47:14 benhoob Exp $
 //
 //
 
@@ -50,6 +50,14 @@ HcalNoiseSummaryMaker::HcalNoiseSummaryMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+
+  produces<float>   (branchprefix+"maxE2Over10TS"                   ).setBranchAlias(aliasprefix_+"_maxE2Over10TS"            );
+  produces<int>     (branchprefix+"maxHPDNoOtherHits"               ).setBranchAlias(aliasprefix_+"_maxHPDNoOtherHits"        );
+  produces<int>     (branchprefix+"numIsolatedNoiseChannels"        ).setBranchAlias(aliasprefix_+"_numIsolatedNoiseChannels" );
+  produces<float>   (branchprefix+"isolatedNoiseSumE"               ).setBranchAlias(aliasprefix_+"_isolatedNoiseSumE"        );
+  produces<float>   (branchprefix+"isolatedNoiseSumEt"              ).setBranchAlias(aliasprefix_+"_isolatedNoiseSumEt"       );
+  produces<bool>    (branchprefix+"HasBadRBXTS4TS5"                 ).setBranchAlias(aliasprefix_+"_HasBadRBXTS4TS5"          );
 
   produces<int>     (branchprefix+"passLooseNoiseFilter"            ).setBranchAlias(aliasprefix_+"_passLooseNoiseFilter"     );
   produces<int>     (branchprefix+"passTightNoiseFilter"            ).setBranchAlias(aliasprefix_+"_passTightNoiseFilter"     );
@@ -103,6 +111,13 @@ void HcalNoiseSummaryMaker::produce(edm::Event& iEvent, const edm::EventSetup& i
   
   using namespace reco;
   
+  auto_ptr<float>   hcalnoise_maxE2Over10TS                (new float);
+  auto_ptr<int>     hcalnoise_maxHPDNoOtherHits            (new int);
+  auto_ptr<int>     hcalnoise_numIsolatedNoiseChannels     (new int);
+  auto_ptr<float>   hcalnoise_isolatedNoiseSumE            (new float);
+  auto_ptr<float>   hcalnoise_isolatedNoiseSumEt           (new float);
+  auto_ptr<bool>    hcalnoise_HasBadRBXTS4TS5              (new bool);
+
   auto_ptr<int>     hcalnoise_passLooseNoiseFilter         (new int);
   auto_ptr<int>     hcalnoise_passTightNoiseFilter         (new int);
   auto_ptr<int>     hcalnoise_passHighLevelNoiseFilter     (new int);
@@ -135,6 +150,13 @@ void HcalNoiseSummaryMaker::produce(edm::Event& iEvent, const edm::EventSetup& i
   Handle<HcalNoiseSummary> hcalNoiseSum_h;
   iEvent.getByLabel(hcalNoiseSummaryTag_, hcalNoiseSum_h);
   
+
+  *hcalnoise_maxE2Over10TS             = hcalNoiseSum_h->maxE2Over10TS();
+  *hcalnoise_maxHPDNoOtherHits         = hcalNoiseSum_h->maxHPDNoOtherHits();
+  *hcalnoise_numIsolatedNoiseChannels  = hcalNoiseSum_h->numIsolatedNoiseChannels();
+  *hcalnoise_isolatedNoiseSumE         = hcalNoiseSum_h->isolatedNoiseSumE();
+  *hcalnoise_isolatedNoiseSumEt        = hcalNoiseSum_h->isolatedNoiseSumEt();
+  *hcalnoise_HasBadRBXTS4TS5           = hcalNoiseSum_h->HasBadRBXTS4TS5();
   
   *hcalnoise_passLooseNoiseFilter      = hcalNoiseSum_h->passLooseNoiseFilter();
   *hcalnoise_passTightNoiseFilter      = hcalNoiseSum_h->passTightNoiseFilter();
@@ -163,12 +185,16 @@ void HcalNoiseSummaryMaker::produce(edm::Event& iEvent, const edm::EventSetup& i
   *hcalnoise_minHPDEMF                 = hcalNoiseSum_h->minHPDEMF();
   *hcalnoise_minRBXEMF                 = hcalNoiseSum_h->minRBXEMF();
   *hcalnoise_numProblematicRBXs        = hcalNoiseSum_h->numProblematicRBXs();
-  
-
-
-  
+    
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  iEvent.put(hcalnoise_maxE2Over10TS             ,  branchprefix+"maxE2Over10TS");
+  iEvent.put(hcalnoise_maxHPDNoOtherHits         ,  branchprefix+"maxHPDNoOtherHits");
+  iEvent.put(hcalnoise_numIsolatedNoiseChannels  ,  branchprefix+"numIsolatedNoiseChannels");
+  iEvent.put(hcalnoise_isolatedNoiseSumE         ,  branchprefix+"isolatedNoiseSumE");
+  iEvent.put(hcalnoise_isolatedNoiseSumEt        ,  branchprefix+"isolatedNoiseSumEt");
+  iEvent.put(hcalnoise_HasBadRBXTS4TS5           ,  branchprefix+"HasBadRBXTS4TS5");
 
   iEvent.put(hcalnoise_passLooseNoiseFilter,     branchprefix+"passLooseNoiseFilter");
   iEvent.put(hcalnoise_passTightNoiseFilter,     branchprefix+"passTightNoiseFilter");
