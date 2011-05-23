@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: FastJetMaker.h,v 1.1 2011/03/09 16:49:14 benhoob Exp $
+// $Id: FastJetMaker.h,v 1.2 2011/05/23 20:03:30 kalavase Exp $
 //
 //
 
@@ -45,7 +45,8 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  edm::InputTag rho_tag;
+  edm::InputTag rhoJEC_tag;
+  edm::InputTag rhoIso_tag;
   std::string aliasprefix_;
 };
 
