@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.cc,v 1.7 2011/05/23 17:37:40 benhoob Exp $
+// $Id: PFMETMaker.cc,v 1.8 2011/05/23 18:48:39 kalavase Exp $
 //
 //
 
@@ -41,7 +41,7 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
 
   produces<float> ("evtpfmet"          ).setBranchAlias("evt_pfmet"          );
   produces<float> ("evtpfmetPhi"       ).setBranchAlias("evt_pfmetPhi"       );
-  produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       );
+  produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
   produces<float> ("evtpfsumet"        ).setBranchAlias("evt_pfsumet"        );
   produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
 
@@ -63,7 +63,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   std::auto_ptr<float>   evt_pfmet         (new float   );
   std::auto_ptr<float>   evt_pfmetPhi      (new float   );
-  std::auto_ptr<float>   evt_pfmetSig      (new float   );
+  std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
   std::auto_ptr<float>   evt_pfsumet       (new float   );
   std::auto_ptr<float>   evt_pfmetSignificance(new float   );
 
