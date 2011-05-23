@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: FastJetMaker.cc,v 1.1 2011/03/09 16:49:14 benhoob Exp $
+// $Id: FastJetMaker.cc,v 1.2 2011/05/23 20:03:48 kalavase Exp $
 //
 //
 
@@ -53,9 +53,11 @@ FastJetMaker::FastJetMaker(const edm::ParameterSet& iConfig) {
        branchprefix.replace(branchprefix.find("_"),1,"");
 
   produces<float>         (branchprefix+"rho"       ).setBranchAlias(aliasprefix_+"_rho"       );
+  produces<float>         (branchprefix+"rhoIso"    ).setBranchAlias(aliasprefix_+"_rhoIso"    );
 
   // input tags
-  rho_tag     = iConfig.getParameter<edm::InputTag>("rho_tag");
+  rhoJEC_tag     = iConfig.getParameter<edm::InputTag>("rhoJEC_tag");
+  rhoIso_tag     = iConfig.getParameter<edm::InputTag>("rhoIso_tag");
 }
 
 
@@ -75,18 +77,23 @@ void FastJetMaker::endJob()
 void FastJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<float> evt_rho(new float);
+  auto_ptr<float> evt_rhoIso(new float);
  
   edm::Handle<double> rhoH;
-  iEvent.getByLabel( rho_tag , rhoH);
+  iEvent.getByLabel( rhoJEC_tag , rhoH);
+
+  edm::Handle<double> rhoIsoH;
+  iEvent.getByLabel( rhoIso_tag , rhoIsoH);
   
   *evt_rho = *rhoH; 
+  *evt_rhoIso = *rhoIsoH; 
 
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos)
        branchprefix.replace(branchprefix.find("_"),1,"");
 
   iEvent.put(evt_rho            , branchprefix+"rho"           );
-
+  iEvent.put(evt_rhoIso         , branchprefix+"rhoIso"        );
 }
 
 //define this as a plug-in
