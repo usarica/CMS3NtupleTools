@@ -3,7 +3,35 @@ import FWCore.ParameterSet.Config as cms
 from RecoJets.JetProducers.kt4PFJets_cfi import *
 from CMS2.NtupleMaker.fastJetMaker_cfi import *
 
-mykt6PFJets = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
-mykt6PFJets.Rho_EtaMax = cms.double(2.5)
-mykt6PFJets.Ghost_EtaMax = cms.double(2.5)
-fastJetSequence = cms.Sequence( mykt6PFJets * fastJetMaker )
+kt6PFJetsDeterministicJEC = kt4PFJets.clone(
+    rParam = 0.6,
+    doAreaFastjet = True,
+    doRhoFastjet = True,
+    voronoiRfact = 0.9,
+    Rho_EtaMax = 2.5,
+    Ghost_EtaMax = 2.5
+)
+
+
+kt6PFJetsDeterministicJEC = kt4PFJets.clone(
+    rParam = 0.6,
+    doAreaFastjet = True,
+    doRhoFastjet = True,
+    voronoiRfact = 0.9,
+    Rho_EtaMax = 5.0,
+    Ghost_EtaMax = 5.0
+)
+
+kt6PFJetsDeterministicIso = kt4PFJets.clone(
+    rParam = 0.6,
+    doAreaFastjet = True,
+    doRhoFastjet = True,
+    voronoiRfact = 0.9,
+    Rho_EtaMax = 5.0,
+    Ghost_EtaMax = 5.0
+)
+
+
+
+
+fastJetSequence = cms.Sequence( kt6PFJetsDeterministicJEC * kt6PFJetsDeterministicIso * fastJetMaker )
