@@ -39,12 +39,15 @@ private:
   virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
+
+  float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
   
   // ----------member data ---------------------------
   double minDR_electron_;
   edm::InputTag pfElectronsTag_;
   edm::InputTag pfCandidatesTag_;
   edm::InputTag tracksInputTag_;
+  const reco::PFCandidateCollection *pfCandidates;
 };
 
 #endif

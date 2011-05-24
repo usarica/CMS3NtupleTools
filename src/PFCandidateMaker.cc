@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFCandidateMaker.cc,v 1.4 2011/05/24 15:56:18 cerati Exp $
+// $Id: PFCandidateMaker.cc,v 1.5 2011/05/24 18:19:41 cerati Exp $
 //
 //
 
@@ -78,7 +78,9 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int>  		> ("pfcandspfmusidx"		).setBranchAlias("pfcands_pfmusidx"		);
      produces<vector<int>  		> ("pfcandspfelsidx"		).setBranchAlias("pfcands_pfelsidx"		);
 
-     produces<float>                      ("evtfixgridrho"              ).setBranchAlias("evt_fixgrid_rho"              );
+     produces<float>                      ("evtfixgridrhoctr"           ).setBranchAlias("evt_fixgrid_rho_ctr"          );
+     produces<float>                      ("evtfixgridrhofwd"           ).setBranchAlias("evt_fixgrid_rho_fwd"          );
+     produces<float>                      ("evtfixgridrhoall"           ).setBranchAlias("evt_fixgrid_rho_all"          );
 }
 
 PFCandidateMaker::~PFCandidateMaker() {
@@ -122,12 +124,14 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      auto_ptr<vector<int> >	        pfcands_trkidx		   (new vector<int>        	);
      auto_ptr<vector<int> >	        pfcands_pfmusidx	   (new vector<int>        	);    
      auto_ptr<vector<int> >	        pfcands_pfelsidx	   (new vector<int>        	);
-     auto_ptr<float >	                evt_fixgrid_rho 	   (new float           	);
+     auto_ptr<float >	                evt_fixgrid_rho_ctr 	   (new float           	);
+     auto_ptr<float >	                evt_fixgrid_rho_fwd 	   (new float           	);
+     auto_ptr<float >	                evt_fixgrid_rho_all 	   (new float           	);
     
      //get pfcandidates
      Handle<PFCandidateCollection> pfCandidatesHandle;
      iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
-     const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+     pfCandidates  = pfCandidatesHandle.product();
 
      //get pfelectrons
      Handle<PFCandidateCollection> pfElectronsHandle;
@@ -248,35 +252,23 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      }//loop over candidate collection
 
 
-     //define the eta bins
-     vector<float> etabins;
-     for (int i=0;i<8;++i) etabins.push_back(-2.1+0.6*i);
      //define the phi bins
      vector<float> phibins;
      for (int i=0;i<10;i++) phibins.push_back(-TMath::Pi()+(2*i+1)*TMath::TwoPi()/20.);
-     float etadist = etabins[1]-etabins[0];
-     float phidist = phibins[1]-phibins[0];
-     float etahalfdist = (etabins[1]-etabins[0])/2.;
-     float phihalfdist = (phibins[1]-phibins[0])/2.;
-     vector<float> sumPFNallSMDQ;
-     sumPFNallSMDQ.reserve(80);
-     for (unsigned int ieta=0;ieta<etabins.size();++ieta) {
-       for (unsigned int iphi=0;iphi<phibins.size();++iphi) {
-	 float pfniso_ieta_iphi = 0;
-	 for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
-	   if (fabs(etabins[ieta]-pf_it->eta())>etahalfdist) continue;
-	   if (fabs(reco::deltaPhi(phibins[iphi],pf_it->phi()))>phihalfdist) continue;
-	   pfniso_ieta_iphi+=pf_it->pt();
-	 }
-	 sumPFNallSMDQ.push_back(pfniso_ieta_iphi);
-       }
+     //define the eta bins
+     vector<float> etabins_ctr;
+     for (int i=0;i<8;++i) etabins_ctr.push_back(-2.1+0.6*i);
+     vector<float> etabins_fwd;
+     for (int i=0;i<10;++i) {
+       if (i<5) etabins_fwd.push_back(-5.1+0.6*i);
+       else etabins_fwd.push_back(2.7+0.6*(i-5));
      }
-     float evt_smdq = 0;
-     sort(sumPFNallSMDQ.begin(),sumPFNallSMDQ.end());
-     if (sumPFNallSMDQ.size()%2) evt_smdq = sumPFNallSMDQ[(sumPFNallSMDQ.size()-1)/2];
-     else evt_smdq = (sumPFNallSMDQ[sumPFNallSMDQ.size()/2]+sumPFNallSMDQ[(sumPFNallSMDQ.size()-2)/2])/2.;
-     *evt_fixgrid_rho = evt_smdq/(etadist*phidist);
-
+     vector<float> etabins_all;
+     for (int i=0;i<18;++i) etabins_all.push_back(-5.1+0.6*i);
+     //compute it
+     *evt_fixgrid_rho_ctr = getFixGridRho(etabins_ctr,phibins);
+     *evt_fixgrid_rho_fwd = getFixGridRho(etabins_fwd,phibins);
+     *evt_fixgrid_rho_all = getFixGridRho(etabins_all,phibins);
 
 
      iEvent.put(pfcands_p4,			"pfcandsp4"		    );
@@ -299,9 +291,37 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      iEvent.put(pfcands_trkidx,			"pfcandstrkidx"		    );
      iEvent.put(pfcands_pfmusidx,		"pfcandspfmusidx"	    );
      iEvent.put(pfcands_pfelsidx,		"pfcandspfelsidx"	    );
-     iEvent.put(evt_fixgrid_rho,		"evtfixgridrho"	    );
+     iEvent.put(evt_fixgrid_rho_ctr,		"evtfixgridrhoctr"	    );
+     iEvent.put(evt_fixgrid_rho_fwd,		"evtfixgridrhofwd"	    );
+     iEvent.put(evt_fixgrid_rho_all,		"evtfixgridrhoall"	    );
  
 }
+
+float PFCandidateMaker::getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins) {
+     float etadist = etabins[1]-etabins[0];
+     float phidist = phibins[1]-phibins[0];
+     float etahalfdist = (etabins[1]-etabins[0])/2.;
+     float phihalfdist = (phibins[1]-phibins[0])/2.;
+     vector<float> sumPFNallSMDQ;
+     sumPFNallSMDQ.reserve(etabins.size()*phibins.size());
+     for (unsigned int ieta=0;ieta<etabins.size();++ieta) {
+       for (unsigned int iphi=0;iphi<phibins.size();++iphi) {
+	 float pfniso_ieta_iphi = 0;
+	 for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
+	   if (fabs(etabins[ieta]-pf_it->eta())>etahalfdist) continue;
+	   if (fabs(reco::deltaPhi(phibins[iphi],pf_it->phi()))>phihalfdist) continue;
+	   pfniso_ieta_iphi+=pf_it->pt();
+	 }
+	 sumPFNallSMDQ.push_back(pfniso_ieta_iphi);
+       }
+     }
+     float evt_smdq = 0;
+     sort(sumPFNallSMDQ.begin(),sumPFNallSMDQ.end());
+     if (sumPFNallSMDQ.size()%2) evt_smdq = sumPFNallSMDQ[(sumPFNallSMDQ.size()-1)/2];
+     else evt_smdq = (sumPFNallSMDQ[sumPFNallSMDQ.size()/2]+sumPFNallSMDQ[(sumPFNallSMDQ.size()-2)/2])/2.;
+     return evt_smdq/(etadist*phidist);
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(PFCandidateMaker);
