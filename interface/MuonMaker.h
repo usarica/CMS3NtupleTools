@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.14 2010/03/03 04:20:08 kalavase Exp $
+// $Id: MuonMaker.h,v 1.15 2011/05/24 15:56:18 cerati Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -32,6 +32,9 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 //
 // class declaration
@@ -45,13 +48,19 @@ private:
      virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
+  double muonIsoValuePF(const reco::Muon& mu, const reco::Vertex& vtx, float coner, float minptn, float dzcut);
   
       // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
   edm::InputTag beamSpotInputTag;
+  edm::InputTag pfCandsInputTag;
+  edm::InputTag vtxInputTag;
   std::string tevMuonsName;
 
-	std::string aliasprefix_;
+  std::string aliasprefix_;
+
+  edm::Handle<reco::PFCandidateCollection> pfCand_h;
+  edm::Handle<reco::VertexCollection> vertexHandle;
 };
 
 

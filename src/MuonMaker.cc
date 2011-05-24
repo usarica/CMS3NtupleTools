@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.42 2010/09/08 00:22:54 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.43 2011/05/24 15:56:18 cerati Exp $
 //
 //
 
@@ -46,6 +46,15 @@ Implementation:
 #include "DataFormats/Math/interface/Point3D.h"
 
 #include "DataFormats/MuonReco/interface/MuonQuality.h"
+
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "CMS2/NtupleMaker/interface/VertexReProducer.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -122,6 +131,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >	     (branchprefix+"iso05hadEt"	      ).setBranchAlias(aliasprefix_+"_iso05_hadEt"        ); // sum of hcal Et for cone of 0.5 
   produces<vector<float> >	     (branchprefix+"iso05hoEt"	      ).setBranchAlias(aliasprefix_+"_iso05_hoEt"         ); // sum of ho Et for cone of 0.5 
   produces<vector<int> >	     (branchprefix+"iso05ntrk"	      ).setBranchAlias(aliasprefix_+"_iso05_ntrk"         ); // number of tracks in the cone of 0.5 
+  produces<vector<float> >	     (branchprefix+"iso03pf"	      ).setBranchAlias(aliasprefix_+"_iso03_pf"         ); // pf isolation in cone of 0.3
+  produces<vector<float> >	     (branchprefix+"iso04pf"	      ).setBranchAlias(aliasprefix_+"_iso04_pf"         ); // pf isolation in cone of 0.4
 
   //new
   produces<vector<float> >           (branchprefix+"gfitd0"             ).setBranchAlias(aliasprefix_+"_gfit_d0"            ); // d0 from global fit, if it exists
@@ -150,7 +161,12 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >	     (branchprefix+"standof"	     ).setBranchAlias(aliasprefix_+"_sta_ndof"          ); // number of degree of freedom of the STA muon fit 
   produces<vector<int> >	     (branchprefix+"stavalidHits"      ).setBranchAlias(aliasprefix_+"_sta_validHits"     ); // number of valid hits of the STA muon fit 
   
-
+  //unbiased ip
+  produces<vector<float> >           (branchprefix+"ubd0"             ).setBranchAlias(aliasprefix_+"_ubd0"               ); // d0 from unbiased vertex
+  produces<vector<float> >           (branchprefix+"ubd0err"          ).setBranchAlias(aliasprefix_+"_ubd0err"            ); // d0 error from unbiased vertex
+  produces<vector<float> >           (branchprefix+"ubIp3d"           ).setBranchAlias(aliasprefix_+"_ubIp3d"             ); // Ip3d from unbiased vertex
+  produces<vector<float> >           (branchprefix+"ubIp3derr"        ).setBranchAlias(aliasprefix_+"_ubIp3derr"          ); // Ip3d error from unbiased vertex
+  produces<vector<float> >           (branchprefix+"ubz0"             ).setBranchAlias(aliasprefix_+"_ubz0"               ); // z0 from unbiased vertex
   
   //Muon timing info -> http://cmslxr.fnal.gov/lxr/source/DataFormats/MuonReco/interface/MuonTime.h
   produces<vector<int> >             (branchprefix+"timeNumStationsUsed").setBranchAlias(aliasprefix_+"_timeNumStationsUsed"); //number of muon stations used for timing info
@@ -193,6 +209,8 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   
   muonsInputTag  		= iConfig.getParameter<edm::InputTag>("muonsInputTag" ); 
   beamSpotInputTag 		= iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+  pfCandsInputTag 		= iConfig.getParameter<edm::InputTag>("pfCandsInputTag");
+  vtxInputTag 		        = iConfig.getParameter<edm::InputTag>("vtxInputTag");
   tevMuonsName    		= iConfig.getParameter<string>("tevMuonsName" ); 
  
 }
@@ -265,6 +283,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	   vector_mus_iso05_hadEt         (new vector<float>	       );
   auto_ptr<vector<float> >	   vector_mus_iso05_hoEt          (new vector<float>	       );
   auto_ptr<vector<int> >	   vector_mus_iso05_ntrk          (new vector<int>  	       );
+  auto_ptr<vector<float> >	   vector_mus_iso03_pf            (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_iso04_pf            (new vector<float>	       );
   //gfit
   auto_ptr<vector<float> >         vector_mus_gfit_d0             (new vector<float>           );
   auto_ptr<vector<float> >         vector_mus_gfit_z0             (new vector<float>           );
@@ -290,6 +310,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >	   vector_mus_sta_ndof           (new vector<float>	       );
   auto_ptr<vector<int> >           vector_mus_sta_validHits      (new vector<int>  	       );
 
+  auto_ptr<vector<float> >	   vector_mus_ubd0               (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_ubd0err            (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_ubIp3d             (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_ubIp3derr          (new vector<float>	       );
+  auto_ptr<vector<float> >	   vector_mus_ubz0               (new vector<float>	       );
   
   auto_ptr<vector<int> >           vector_mus_timeNumStationsUsed (new vector<int>             );
   auto_ptr<vector<float> >         vector_mus_timeAtIpInOut       (new vector<float>           );
@@ -326,6 +351,18 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(beamSpot_tag, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ?
                          Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
+
+  // get pfCands
+  iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+  // get vtx
+  iEvent.getByLabel(vtxInputTag, vertexHandle);
+
+  //unbiased revertexing
+  VertexReProducer revertex(vertexHandle, iEvent);
+  Handle<reco::BeamSpot>        pvbeamspot; 
+  iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
+  ESHandle<TransientTrackBuilder> theTTBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
   //maps for alternative muon fits
   Handle<TrackToTrackMap> trackMap;
@@ -547,6 +584,63 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       else
 	vector_mus_fittev_p4     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
     }
+
+    //pf iso
+    const reco::VertexCollection *vertexCollection = vertexHandle.product();
+    reco::VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+    for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx) {
+      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && vtx->position().Z()<=24.0) {
+	firstGoodVertex = vtx;
+	break;
+      }
+    }
+    if (firstGoodVertex!=vertexCollection->end()) {
+      vector_mus_iso03_pf->push_back( muonIsoValuePF( *muon, *firstGoodVertex, 0.3, 1.0, 0.1) );
+      vector_mus_iso04_pf->push_back( muonIsoValuePF( *muon, *firstGoodVertex, 0.4, 1.0, 0.1) );
+    } else {
+      vector_mus_iso03_pf->push_back( -9999. );
+      vector_mus_iso04_pf->push_back( -9999. );
+    }
+
+    //unbiased revertexing, courtesy of B.Mangano
+    if (siTrack.isNonnull()) {
+      reco::Vertex vertexNoB;
+      reco::TrackCollection newTkCollection;
+      bool foundMatch(false);
+      for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
+	bool refMatching = (itk->key() == siTrack.key());
+	if(refMatching){
+	  foundMatch = true;
+	}else{
+	  newTkCollection.push_back(*itk->get());
+	}
+      }//track collection for vertexNoB is set
+      if(!foundMatch) {
+	vertexNoB = *firstGoodVertex;
+      }else{      
+	vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup) ;
+	if(pvs.empty()) {
+	  vertexNoB = reco::Vertex(beamSpot, reco::Vertex::Error());
+	} else {
+	  vertexNoB = pvs.front(); //take the first in the list
+	}
+      }
+      reco::TransientTrack tt = theTTBuilder->build(siTrack);
+      Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
+      Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
+      vector_mus_ubd0->push_back(ip_2.value());
+      vector_mus_ubd0err->push_back(ip_2.error());
+      vector_mus_ubIp3d->push_back(ip3D_2.value());
+      vector_mus_ubIp3derr->push_back(ip3D_2.error());
+      vector_mus_ubz0->push_back( siTrack->dz(vertexNoB.position()) );
+    } else {
+      vector_mus_ubd0->push_back( -9999. );
+      vector_mus_ubd0err->push_back( -9999. );
+      vector_mus_ubIp3d->push_back( -9999. );
+      vector_mus_ubIp3derr->push_back( -9999. );
+      vector_mus_ubz0->push_back( -9999. );
+    }
+    
   }
      
   // store vectors
@@ -615,7 +709,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(vector_mus_iso05_hadEt        , branchprefix+"iso05hadEt"         );
   iEvent.put(vector_mus_iso05_hoEt         , branchprefix+"iso05hoEt"          );
   iEvent.put(vector_mus_iso05_ntrk         , branchprefix+"iso05ntrk"          );
-
+  iEvent.put(vector_mus_iso03_pf           , branchprefix+"iso03pf"            );
+  iEvent.put(vector_mus_iso04_pf           , branchprefix+"iso04pf"            );
   
   iEvent.put(vector_mus_gfit_d0            , branchprefix+"gfitd0"             );
   iEvent.put(vector_mus_gfit_z0            , branchprefix+"gfitz0"             );
@@ -641,6 +736,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(vector_mus_sta_ndof           , branchprefix+"standof"            );
   iEvent.put(vector_mus_sta_validHits      , branchprefix+"stavalidHits"       );
 
+  iEvent.put(vector_mus_ubd0               , branchprefix+"ubd0"               );
+  iEvent.put(vector_mus_ubd0err            , branchprefix+"ubd0err"            );
+  iEvent.put(vector_mus_ubIp3d             , branchprefix+"ubIp3d"             );
+  iEvent.put(vector_mus_ubIp3derr          , branchprefix+"ubIp3derr"          );
+  iEvent.put(vector_mus_ubz0               , branchprefix+"ubz0"               );
   
   iEvent.put(vector_mus_timeNumStationsUsed, branchprefix+"timeNumStationsUsed"); 
   iEvent.put(vector_mus_timeAtIpInOut      , branchprefix+"timeAtIpInOut"      );
@@ -674,6 +774,47 @@ void MuonMaker::beginJob() {}
 
 // ------------ method called once each job just after ending the event loop  ------------
 void MuonMaker::endJob() {}
+
+double MuonMaker::muonIsoValuePF(const Muon& mu, const Vertex& vtx, float coner, float minptn, float dzcut){
+
+  float pfciso = 0;
+  float pfniso = 0;
+
+  const TrackRef siTrack  = mu.innerTrack();
+
+  float mudz = siTrack.isNonnull() ? siTrack->dz(vtx.position()) : mu.standAloneMuon()->dz(vtx.position());
+
+  for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
+
+    float dR = reco::deltaR(pf->eta(), pf->phi(), mu.eta(), mu.phi());
+    if (dR>coner) continue;
+
+    float pfpt = pf->pt();
+    if (pf->charge()==0) {
+      //neutrals
+      if (pfpt>minptn) pfniso+=pfpt;
+    } else {
+      //charged
+      //avoid double counting of muon itself
+      const TrackRef pfTrack  = pf->trackRef();
+      if (siTrack.isNonnull()  && pfTrack.isNonnull() && siTrack.key()==pfTrack.key()) continue;
+      //first check electrons with gsf track
+      if (abs(pf->pdgId())==11 && pf->gsfTrackRef().isNonnull()) {
+	if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - mudz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	}
+	continue;//and avoid double counting
+      }
+      //then check anything that has a ctf track
+      if (pfTrack.isNonnull()) {//charged (with a ctf track)
+	if(fabs( pfTrack->dz(vtx.position()) - mudz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	}
+      } 
+    }
+  } 
+  return pfciso+pfniso;
+}
 
 
 //define this as a plug-in

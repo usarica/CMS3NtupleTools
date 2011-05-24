@@ -10,6 +10,9 @@ electronMaker = cms.EDProducer(
     # reco Track collection
     trksInputTag      = cms.InputTag("generalTracks"),
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
+    # pfCandidate and Vertex collection
+    pfCandsInputTag = cms.InputTag("particleFlow"),
+    vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
     # egamma ID
     eidRobustLooseTag = cms.InputTag("eidRobustLooseCMS2"),
     eidRobustTightTag = cms.InputTag("eidRobustTightCMS2"),

@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.65 2011/04/28 00:50:29 dbarge Exp $
+// $Id: ElectronMaker.cc,v 1.66 2011/05/24 15:56:18 cerati Exp $
 //
 //
 
@@ -68,6 +68,13 @@ Implementation:
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "CMS2/NtupleMaker/interface/VertexReProducer.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -96,6 +103,9 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   minAbsDcot_                    = iConfig.getParameter<double>("minAbsDcot"                         );
   minSharedFractionOfHits_       = iConfig.getParameter<double>("minSharedFractionOfHits"            );
   
+  pfCandsInputTag 		 = iConfig.getParameter<edm::InputTag>("pfCandsInputTag");
+  vtxInputTag 		         = iConfig.getParameter<edm::InputTag>("vtxInputTag");
+
   mtsTransform_ = 0;
   clusterTools_ = 0;
   
@@ -175,6 +185,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elshcalIso04"               ).setBranchAlias("els_hcalIso04"              );
   produces<vector<float> >     ("elshcalDepth1TowerSumEt04"  ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
   produces<vector<float> >     ("elshcalDepth2TowerSumEt04"  ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
+  produces<vector<float> >     ("elsiso03pf"	             ).setBranchAlias("els_iso03_pf"    ); // pf isolation in cone of 0.3
+  produces<vector<float> >     ("elsiso04pf"	             ).setBranchAlias("els_iso04_pf"    ); // pf isolation in cone of 0.4
 
   // track variables
   //
@@ -195,7 +207,14 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elsetaErr"                  ).setBranchAlias("els_etaErr"                 );
   produces<vector<float> >     ("elsphiErr"                  ).setBranchAlias("els_phiErr"                 );
   produces<vector<int> >                ("elsgsftrkidx"                         ).setBranchAlias("els_gsftrkidx"                    );
-  
+
+  //unbiased ip
+  produces<vector<float> >           ("elsubd0"             ).setBranchAlias("els_ubd0"               ); // d0 from unbiased vertex
+  produces<vector<float> >           ("elsubd0err"          ).setBranchAlias("els_ubd0err"            ); // d0 error from unbiased vertex
+  produces<vector<float> >           ("elsubIp3d"           ).setBranchAlias("els_ubIp3d"             ); // Ip3d from unbiased vertex
+  produces<vector<float> >           ("elsubIp3derr"        ).setBranchAlias("els_ubIp3derr"          ); // Ip3d error from unbiased vertex
+  produces<vector<float> >           ("elsubz0"             ).setBranchAlias("els_ubz0"               ); // z0 from unbiased vertex
+
   // LorentzVectors
   //
   produces<vector<LorentzVector> >  ("elsp4"                 ).setBranchAlias("els_p4"                     );
@@ -381,6 +400,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >		els_hcalDepth1TowerSumEt04		(new vector<float>		) ;
   auto_ptr<vector<float> >		els_hcalDepth2TowerSumEt04		(new vector<float>		) ;
 
+  auto_ptr<vector<float> >	        els_iso03_pf                            (new vector<float>	       );
+  auto_ptr<vector<float> >	        els_iso04_pf                            (new vector<float>	       );
+
   // track variables
   //
   auto_ptr<vector<int> >		els_charge				(new vector<int>		) ;
@@ -401,6 +423,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >		els_phiErr				(new vector<float>		) ;
   auto_ptr<vector<int>   >		els_gsftrkidx				(new vector<int>                ) ;
 
+
+  auto_ptr<vector<float> >	        els_ubd0                                (new vector<float>	       );
+  auto_ptr<vector<float> >	        els_ubd0err                             (new vector<float>	       );
+  auto_ptr<vector<float> >	        els_ubIp3d                              (new vector<float>	       );
+  auto_ptr<vector<float> >	        els_ubIp3derr                           (new vector<float>	       );
+  auto_ptr<vector<float> >	        els_ubz0                                (new vector<float>	       );
   
   // LorentzVectors
   //
@@ -510,6 +538,17 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
   const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
+  // get pfCands
+  iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+  // get vtx
+  iEvent.getByLabel(vtxInputTag, vertexHandle);
+
+  //unbiased revertexing
+  VertexReProducer revertex(vertexHandle, iEvent);
+  Handle<reco::BeamSpot>        pvbeamspot; 
+  iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
+  ESHandle<TransientTrackBuilder> theTTBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
   //fill number of eqlectrons variable
   //
@@ -965,6 +1004,58 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
     els_conv_old_delMissHits -> push_back( delMissHits              );
 
+    //pf iso
+    const reco::VertexCollection *vertexCollection = vertexHandle.product();
+    reco::VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+    for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx) {
+      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && vtx->position().Z()<=24.0) {
+	firstGoodVertex = vtx;
+	break;
+      }
+    }
+    if (firstGoodVertex!=vertexCollection->end()) {
+      els_iso03_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0, 0.1, 0.07, 0.025, 0.025) );
+      els_iso04_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0, 0.1, 0.07, 0.025, 0.025) );
+    } else {
+      els_iso03_pf->push_back( -9999. );
+      els_iso04_pf->push_back( -9999. );
+    }
+
+    //unbiased revertexing, courtesy of B.Mangano
+    reco::Vertex vertexNoB;
+    reco::TrackCollection newTkCollection;
+    bool foundMatch(false);
+    for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
+      bool refMatching;
+      if(el->closestCtfTrack().ctfTrack.isNonnull())
+	refMatching = (itk->get() == &*(el->closestCtfTrack().ctfTrack) );
+      else
+	refMatching = false;
+      float shFraction = el->closestCtfTrack().shFracInnerHits;
+      if(refMatching && shFraction > 0.5){
+	foundMatch = true;
+      }else{
+	newTkCollection.push_back(*itk->get());
+      }
+    }//track collection for vertexNoB is set
+    if(!foundMatch) {
+      vertexNoB = *firstGoodVertex;
+    }else{      
+      vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup) ;
+      if(pvs.empty()) {
+	vertexNoB = reco::Vertex(beamSpot, reco::Vertex::Error());
+      } else {
+	vertexNoB = pvs.front(); //take the first in the list
+      }
+    }
+    reco::TransientTrack tt = theTTBuilder->build(el->gsfTrack());
+    Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
+    Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
+    els_ubd0->push_back(ip_2.value());
+    els_ubd0err->push_back(ip_2.error());
+    els_ubIp3d->push_back(ip3D_2.value());
+    els_ubIp3derr->push_back(ip3D_2.error());
+    els_ubz0->push_back( el->gsfTrack()->dz(vertexNoB.position()) );
 
   }//electron loop
   
@@ -992,6 +1083,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_etaErr                  	,"elsetaErr"				);
   iEvent.put(els_phiErr                  	,"elsphiErr"				);
   iEvent.put(els_gsftrkidx                      ,"elsgsftrkidx"                         );
+
+  iEvent.put(els_ubd0                           , "elsubd0"                             );
+  iEvent.put(els_ubd0err                        , "elsubd0err"                          );
+  iEvent.put(els_ubIp3d                         , "elsubIp3d"                           );
+  iEvent.put(els_ubIp3derr                      , "elsubIp3derr"                        );
+  iEvent.put(els_ubz0                           , "elsubz0"                             );
   
   iEvent.put(els_validHits               	,"elsvalidHits"				);
   iEvent.put(els_lostHits                	,"elslostHits"				);
@@ -1075,6 +1172,9 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_hcalDepth1TowerSumEt04		,"elshcalDepth1TowerSumEt04"		);
   iEvent.put(els_hcalDepth2TowerSumEt04		,"elshcalDepth2TowerSumEt04"		);
 
+  iEvent.put(els_iso03_pf                       ,"elsiso03pf"            );
+  iEvent.put(els_iso04_pf                       ,"elsiso04pf"            );
+
   //Hit Pattern Information
 
   iEvent.put(els_inner_position			,"elsinnerposition"			);
@@ -1152,6 +1252,67 @@ template<typename T> const edm::ValueMap<T>& ElectronMaker::getValueMap(const ed
   edm::Handle<edm::ValueMap<T> > handle;
   iEvent.getByLabel(inputTag,handle);
   return *(handle.product());
+}
+
+double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vtx, float coner, float minptn, float dzcut,
+					 float footprintdr, float gammastripveto, float elestripveto){
+
+  float pfciso = 0.;
+  float pfniso = 0.;
+  float pffootprint = 0.;
+  float pfjurveto = 0.;
+  float pfjurvetoq = 0.;
+
+  TrackRef siTrack  = el.closestCtfTrackRef();
+  GsfTrackRef gsfTrack = el.gsfTrack();
+
+  float eldz = gsfTrack.isNonnull() ? gsfTrack->dz(vtx.position()) : siTrack->dz(vtx.position());
+  float eleta = el.eta();
+
+  for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
+
+    float pfeta = pf->eta();    
+    float dR = reco::deltaR(pfeta, pf->phi(), eleta, el.phi());
+    if (dR>coner) continue;
+
+    float deta = fabs(pfeta - eleta);
+    int pfid = abs(pf->pdgId());
+    float pfpt = pf->pt();
+
+    if (pf->charge()==0) {
+      //neutrals
+      if (pfpt>minptn) {
+	pfniso+=pfpt;
+	if (dR<footprintdr && pfid==130) pffootprint+=pfpt;
+	if (deta<gammastripveto && pfid==22)  pfjurveto+=pfpt;
+      }
+    } else {
+      //charged  
+      //avoid double counting of electron itself
+      //if either the gsf or the ctf track are shared with the candidate, skip it
+      const TrackRef pfTrack  = pf->trackRef();
+      if (siTrack.isNonnull()  && pfTrack.isNonnull() && siTrack.key()==pfTrack.key()) continue;
+      if (pfid==11 && pf->gsfTrackRef().isNonnull()) {
+	if (gsfTrack.isNonnull() && gsfTrack.key()==pf->gsfTrackRef().key()) continue;
+      } 
+      //check electrons with gsf track
+      if (pfid==11 && pf->gsfTrackRef().isNonnull()) {
+	if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - eldz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
+	}
+	continue;//and avoid double counting
+      }
+      //then check anything that has a ctf track
+      if (pfTrack.isNonnull()) {//charged (with a ctf track)
+	if(fabs( pfTrack->dz(vtx.position()) - eldz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
+	}
+      }
+    } 
+  }
+  return pfciso+pfniso-pffootprint-pfjurveto-pfjurvetoq;
 }
 
 //define this as a plug-in

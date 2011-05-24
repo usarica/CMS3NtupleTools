@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.18 2011/02/08 00:55:06 kalavase Exp $
+// $Id: ElectronMaker.h,v 1.19 2011/05/24 15:56:17 cerati Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -46,7 +46,8 @@
 
 #include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
 
-
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "Math/VectorUtil.h"
 
@@ -65,6 +66,9 @@ private:
   virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
+
+  double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
+			    float footprintdr, float gammastripveto, float elestripveto);
   
   int classify(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
@@ -80,7 +84,9 @@ private:
   edm::InputTag eidLooseTag_;
   edm::InputTag eidTightTag_;
   edm::InputTag cms2scsseeddetidInputTag_;
-  
+  edm::InputTag pfCandsInputTag;
+  edm::InputTag vtxInputTag;
+
   EcalClusterLazyTools* clusterTools_;
   MultiTrajectoryStateTransform *mtsTransform_;
 
@@ -88,6 +94,9 @@ private:
   double minAbsDcot_;
   double minSharedFractionOfHits_;
   std::string aliasprefix_;
+
+  edm::Handle<reco::PFCandidateCollection> pfCand_h;
+  edm::Handle<reco::VertexCollection> vertexHandle;
 };
 
 #endif
