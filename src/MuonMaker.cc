@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.43 2011/05/24 15:56:18 cerati Exp $
+// $Id: MuonMaker.cc,v 1.44 2011/05/26 20:06:55 slava77 Exp $
 //
 //
 
@@ -603,7 +603,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
 
     //unbiased revertexing, courtesy of B.Mangano
-    if (siTrack.isNonnull()) {
+    if (siTrack.isNonnull() && firstGoodVertex!=vertexCollection->end()) {
       reco::Vertex vertexNoB;
       reco::TrackCollection newTkCollection;
       bool foundMatch(false);
