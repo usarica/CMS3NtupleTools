@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.66 2011/05/24 15:56:18 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.67 2011/05/27 18:44:30 warren Exp $
 //
 //
 
@@ -1008,12 +1008,13 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::VertexCollection *vertexCollection = vertexHandle.product();
     reco::VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
     for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx) {
-      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && vtx->position().Z()<=24.0) {
+      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
 	firstGoodVertex = vtx;
 	break;
       }
     }
-    if (firstGoodVertex!=vertexCollection->end()) {
+
+    if (el->closestCtfTrack().ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end()) {
       els_iso03_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0, 0.1, 0.07, 0.025, 0.025) );
       els_iso04_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0, 0.1, 0.07, 0.025, 0.025) );
     } else {
@@ -1022,41 +1023,49 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
 
     //unbiased revertexing, courtesy of B.Mangano
-    reco::Vertex vertexNoB;
-    reco::TrackCollection newTkCollection;
-    bool foundMatch(false);
-    for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
-      bool refMatching;
-      if(el->closestCtfTrack().ctfTrack.isNonnull())
-	refMatching = (itk->get() == &*(el->closestCtfTrack().ctfTrack) );
-      else
-	refMatching = false;
-      float shFraction = el->closestCtfTrack().shFracInnerHits;
-      if(refMatching && shFraction > 0.5){
-	foundMatch = true;
-      }else{
-	newTkCollection.push_back(*itk->get());
-      }
-    }//track collection for vertexNoB is set
-    if(!foundMatch) {
-      vertexNoB = *firstGoodVertex;
-    }else{      
-      vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup) ;
-      if(pvs.empty()) {
-	vertexNoB = reco::Vertex(beamSpot, reco::Vertex::Error());
-      } else {
-	vertexNoB = pvs.front(); //take the first in the list
-      }
-    }
-    reco::TransientTrack tt = theTTBuilder->build(el->gsfTrack());
-    Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
-    Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
-    els_ubd0->push_back(ip_2.value());
-    els_ubd0err->push_back(ip_2.error());
-    els_ubIp3d->push_back(ip3D_2.value());
-    els_ubIp3derr->push_back(ip3D_2.error());
-    els_ubz0->push_back( el->gsfTrack()->dz(vertexNoB.position()) );
-
+    if (el->closestCtfTrack().ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end()) {
+	  reco::Vertex vertexNoB;
+	  reco::TrackCollection newTkCollection;
+	  bool foundMatch(false);
+	  for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
+		bool refMatching;
+		if(el->closestCtfTrack().ctfTrack.isNonnull())
+		  refMatching = (itk->get() == &*(el->closestCtfTrack().ctfTrack) );
+		else
+		  refMatching = false;
+		float shFraction = el->closestCtfTrack().shFracInnerHits;
+		if(refMatching && shFraction > 0.5){
+		  foundMatch = true;
+		}else{
+		  newTkCollection.push_back(*itk->get());
+		}
+	  }//track collection for vertexNoB is set
+	  if(!foundMatch) {
+		vertexNoB = *firstGoodVertex;
+	  }else{      
+		vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup) ;
+		if(pvs.empty()) {
+		  vertexNoB = reco::Vertex(beamSpot, reco::Vertex::Error());
+		} else {
+		  vertexNoB = pvs.front(); //take the first in the list
+		}
+	  }
+	  reco::TransientTrack tt = theTTBuilder->build(el->gsfTrack());
+	  Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
+	  Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
+	  els_ubd0->push_back(ip_2.value());
+	  els_ubd0err->push_back(ip_2.error());
+	  els_ubIp3d->push_back(ip3D_2.value());
+	  els_ubIp3derr->push_back(ip3D_2.error());
+	  els_ubz0->push_back( el->gsfTrack()->dz(vertexNoB.position()) );
+	}
+	else {
+	  els_ubd0			->push_back( -999. );
+	  els_ubd0err		->push_back( -999. );
+	  els_ubIp3d		->push_back( -999. );
+	  els_ubIp3derr		->push_back( -999. );
+	  els_ubz0			->push_back( -999. );
+	}
   }//electron loop
   
 
