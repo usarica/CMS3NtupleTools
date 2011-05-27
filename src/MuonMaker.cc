@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.44 2011/05/26 20:06:55 slava77 Exp $
+// $Id: MuonMaker.cc,v 1.45 2011/05/27 18:44:47 warren Exp $
 //
 //
 
@@ -589,7 +589,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     const reco::VertexCollection *vertexCollection = vertexHandle.product();
     reco::VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
     for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx) {
-      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && vtx->position().Z()<=24.0) {
+      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
 	firstGoodVertex = vtx;
 	break;
       }
