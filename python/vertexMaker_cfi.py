@@ -12,3 +12,7 @@ davertexMaker = cms.EDProducer("VertexMaker",
                            primaryVertexInputTag = cms.InputTag("offlinePrimaryVerticesDA"),
 )
 
+vertexMakerWithBS = cms.EDProducer("VertexMaker",
+                                   aliasPrefix = cms.untracked.string("bsvtxs"),
+                                   primaryVertexInputTag = cms.InputTag("offlinePrimaryVerticesWithBS"),
+)
