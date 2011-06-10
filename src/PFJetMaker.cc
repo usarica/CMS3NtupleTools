@@ -47,6 +47,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<float> >         ( "pfjetscorL1L2L3"           ).setBranchAlias( "pfjets_corL1L2L3"           );
   produces<vector<float> >         ( "pfjetscorL1FastL2L3"       ).setBranchAlias( "pfjets_corL1FastL2L3"       );
   produces<vector<vector<int> >  > ( "pfjetspfcandIndicies"      ).setBranchAlias( "pfjets_pfcandIndicies"      );
+  produces<vector<float> >         ( "pfjetsarea"                ).setBranchAlias( "pfjets_area"                );
   //
   pfJetsInputTag_           = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"           );
   pfCandidatesTag_          = iConfig.getParameter<InputTag>   ( "pfCandidatesTag"          );
@@ -86,6 +87,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_corL1L2L3            (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_corL1FastL2L3        (new vector<float>          );
   auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies       (new vector<vector<int> >   );
+  auto_ptr<vector<float> >         pfjets_area                 (new vector<float>          );  
 
   //
   Handle<View<PFJet> > pfJetsHandle;
@@ -113,6 +115,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_chargedMultiplicity   ->push_back(pfjet_it->chargedMultiplicity()  );
     pfjets_neutralMultiplicity   ->push_back(pfjet_it->neutralMultiplicity()  );
     pfjets_muonMultiplicity      ->push_back(pfjet_it->muonMultiplicity()     );
+    pfjets_area                  ->push_back(pfjet_it->jetArea()              );
 
     //
     int idx = pfjet_it - pfJetsHandle->begin();
@@ -169,6 +172,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_corL1L2L3,            "pfjetscorL1L2L3"             );
   iEvent.put(pfjets_corL1FastL2L3,        "pfjetscorL1FastL2L3"         );
   iEvent.put(pfjets_pfcandIndicies,       "pfjetspfcandIndicies"        );
+  iEvent.put(pfjets_area,                 "pfjetsarea"                  );
 }
 
 
