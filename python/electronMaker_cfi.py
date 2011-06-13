@@ -14,11 +14,7 @@ electronMaker = cms.EDProducer(
     pfCandsInputTag = cms.InputTag("particleFlow"),
     vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
     # egamma ID
-    eidRobustLooseTag = cms.InputTag("eidRobustLooseCMS2"),
-    eidRobustTightTag = cms.InputTag("eidRobustTightCMS2"),
-    eidRobustHighEnergyTag = cms.InputTag("eidRobustHighEnergyCMS2"),
-    eidLooseTag = cms.InputTag("eidLooseCMS2"),
-    eidTightTag = cms.InputTag("eidTightCMS2"),
+    eidLHTag = cms.InputTag("egammaIDLikelihood"),
     cms2scsseeddetidInputTag = cms.InputTag("scMaker"),
     #conversion stuff    
     minAbsDist  = cms.double(0.02),        

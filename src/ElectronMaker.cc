@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.67 2011/05/27 18:44:30 warren Exp $
+// $Id: ElectronMaker.cc,v 1.68 2011/06/13 13:08:02 dlevans Exp $
 //
 //
 
@@ -95,10 +95,10 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   electronsInputTag_             = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
   beamSpotInputTag_              = iConfig.getParameter<edm::InputTag>("beamSpotInputTag"                   );
   trksInputTag_                  = iConfig.getParameter<edm::InputTag>("trksInputTag"                       );
-
   gsftracksInputTag_             = iConfig.getParameter<edm::InputTag>("gsftracksInputTag"                  );
-  cms2scsseeddetidInputTag_      = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
-  
+  cms2scsseeddetidInputTag_      = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag"           );
+  eidLHTag_                      = iConfig.getParameter<edm::InputTag>("eidLHTag"                           );
+ 
   minAbsDist_                    = iConfig.getParameter<double>("minAbsDist"                         );
   minAbsDcot_                    = iConfig.getParameter<double>("minAbsDcot"                         );
   minSharedFractionOfHits_       = iConfig.getParameter<double>("minSharedFractionOfHits"            );
@@ -134,7 +134,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
 
   // ID variables
   //
-  produces<vector<float> >     ("elsmva"                  ).setBranchAlias("els_mva"                 );
+  produces<vector<float> >     ("elslh"                      ).setBranchAlias("els_lh"                     );
+  produces<vector<float> >     ("elsmva"                     ).setBranchAlias("els_mva"                    );
   produces<vector<float> >     ("elsdEtaIn"                  ).setBranchAlias("els_dEtaIn"                 );
   produces<vector<float> >     ("elsdEtaOut"                 ).setBranchAlias("els_dEtaOut"                );
   produces<vector<float> >     ("elsdeltaEtaEleClusterTrackAtCalo").setBranchAlias("els_deltaEtaEleClusterTrackAtCalo");
@@ -348,6 +349,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   // ID variables
   //
+  auto_ptr<vector<float> >      els_lh                  (new vector<float>      ) ;
   auto_ptr<vector<float> >		els_mva					(new vector<float>		) ;
   auto_ptr<vector<float> >		els_dEtaIn				(new vector<float>		) ;
   auto_ptr<vector<float> >		els_dEtaOut				(new vector<float>		) ;
@@ -525,13 +527,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
   // Get the value maps for the Egamma electron ID decisions
-  /*
-  const edm::ValueMap<float>&  eidRobustLooseMap          = getValueMap<float>(iEvent, eidRobustLooseTag_);
-  const edm::ValueMap<float>&  eidRobustTightMap          = getValueMap<float>(iEvent, eidRobustTightTag_);
-  const edm::ValueMap<float>&  eidRobustHighEnergyMap     = getValueMap<float>(iEvent, eidRobustHighEnergyTag_);
-  const edm::ValueMap<float>&  eidLooseMap                = getValueMap<float>(iEvent, eidLooseTag_);
-  const edm::ValueMap<float>&  eidTightMap                = getValueMap<float>(iEvent, eidTightTag_);
-  */
+  const edm::ValueMap<float>&  eidLHMap          = getValueMap<float>(iEvent, eidLHTag_);
+
   //get cms2scsseeddetid 
   edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
   edm::Handle<std::vector<int> > cms2scsseeddetid_h;
@@ -756,6 +753,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     els_fbrem                 ->push_back( el->fbrem()                            );
 
+    els_lh                      ->push_back( eidLHMap[gsfElRef]                         );
     els_mva                     ->push_back( el->mva()                                  );
     els_dEtaIn	                ->push_back( el->deltaEtaSuperClusterTrackAtVtx()	    );
     els_dEtaOut                 ->push_back( el->deltaEtaSeedClusterTrackAtCalo()       );
@@ -1148,6 +1146,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_eSeedOverPIn			,"elseSeedOverPIn"			);
   iEvent.put(els_eOverPOut			,"elseOverPOut"				);
   iEvent.put(els_fbrem				,"elsfbrem"				);
+  iEvent.put(els_lh                 ,"elslh"               );
   iEvent.put(els_mva				,"elsmva"				);
   iEvent.put(els_dEtaIn				,"elsdEtaIn"				);
   iEvent.put(els_dEtaOut			,"elsdEtaOut"				);
