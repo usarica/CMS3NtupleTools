@@ -57,7 +57,7 @@ from CMS2.NtupleMaker.pfJetMaker_cfi import *
 
 CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco)
                  
-eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing)
+eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID)
                  
 trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
                  
