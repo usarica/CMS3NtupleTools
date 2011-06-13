@@ -27,6 +27,6 @@ kt6PFJetsForRhoComputationVoronoi = kt6PFJets.clone(doRhoFastjet = True, voronoi
 kt6PFJetsForRhoComputationRandom     = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = -1)
 
 wwFastJetSequence = cms.Sequence( kt6PFJetsForRhoComputationDefault * kt6PFJetsForRhoComputationVoronoi * kt6PFJetsForRhoComputationRandom *
-                                  wwRhoDefault * wwRhoVoronoi * wwRhoRandom )
+                                  wwRhoDefaultMaker * wwRhoVoronoiMaker * wwRhoRandomMaker )
 
 fastJetSequence = cms.Sequence( kt6PFJetsDeterministicJEC * kt6PFJetsDeterministicIso * fastJetMaker * wwFastJetSequence)

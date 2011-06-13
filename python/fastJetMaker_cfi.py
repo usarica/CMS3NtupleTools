@@ -6,14 +6,14 @@ fastJetMaker = cms.EDProducer("FastJetMaker",
                               rhoIso_tag     = cms.InputTag("kt6PFJetsDeterministicIso","rho")
                               )
 
-wwRhoDefault = cms.EDProducer("EnergyDensityMaker",
+wwRhoDefaultMaker = cms.EDProducer("EnergyDensityMaker",
                               input = cms.InputTag("kt6PFJetsForRhoComputationDefault","rho"),
                               alias = cms.untracked.string("evt_ww_rho"))
                               
-wwRhoVoronoi = cms.EDProducer("EnergyDensityMaker",
+wwRhoVoronoiMaker = cms.EDProducer("EnergyDensityMaker",
                               input = cms.InputTag("kt6PFJetsForRhoComputationVoronoi","rho"),
                               alias = cms.untracked.string("evt_ww_rho_vor"))
 
-wwRhoRandom = cms.EDProducer("EnergyDensityMaker",
+wwRhoRandomMaker = cms.EDProducer("EnergyDensityMaker",
                              input = cms.InputTag("kt6PFJetsForRhoComputationRandom","rho"),
                              alias = cms.untracked.string("evt_ww_rho_rnd"))
