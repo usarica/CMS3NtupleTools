@@ -1,5 +1,5 @@
 //-*- C++ -*-
-// $Id: EnergyDensityMaker.cc,v 1.1 2011/06/13 12:29:59 dmytro Exp $
+// $Id: EnergyDensityMaker.cc,v 1.2 2011/06/13 13:30:33 dmytro Exp $
 //
 
 #include <memory>
@@ -25,8 +25,9 @@ private:
 EnergyDensityMaker::EnergyDensityMaker(const edm::ParameterSet& iConfig) {
   m_alias = iConfig.getUntrackedParameter<std::string>("alias");
   m_branch = m_alias;
-  if(m_branch.find("_") != std::string::npos)
-    m_branch.replace(m_branch.find("_"),1,"");
+  size_t pos = 0;
+  while( (pos = m_branch.find("_")) != std::string::npos)
+    m_branch.replace(pos,1,"");
   produces<float>(m_branch).setBranchAlias(m_alias);
   m_input = iConfig.getParameter<edm::InputTag>("input");
 }
