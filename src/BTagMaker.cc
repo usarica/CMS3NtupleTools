@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Warren Andrews
 //         Created:  
-// $Id: BTagMaker.cc,v 1.8 2010/05/28 00:30:51 kalavase Exp $
+// $Id: BTagMaker.cc,v 1.9 2011/06/14 01:56:44 kalavase Exp $
 //
 //
 
@@ -57,8 +57,11 @@ BTagMaker::BTagMaker(const edm::ParameterSet& iConfig) {
 //  ghostTrackBJetTags_                    = iConfig.getParameter<edm::InputTag>("ghostTrackBJetTags"                   ); 
   jetBProbabilityBJetTags_               = iConfig.getParameter<edm::InputTag>("jetBProbabilityBJetTags"              );
   jetProbabilityBJetTags_                = iConfig.getParameter<edm::InputTag>("jetProbabilityBJetTags"               );
+  simpleSecondaryVertexBJetTags_         = iConfig.getParameter<edm::InputTag>("simpleSecondaryVertexBJetTags"        );
   simpleSecondaryVertexHighEffBJetTags_  = iConfig.getParameter<edm::InputTag>("simpleSecondaryVertexHighEffBJetTags" );
   simpleSecondaryVertexHighPurBJetTags_  = iConfig.getParameter<edm::InputTag>("simpleSecondaryVertexHighPurBJetTags" );
+  simpleSecondaryVertexBJetTags_         = iConfig.getParameter<edm::InputTag>("simpleSecondaryVertexBJetTags"        );
+  softElectronTags_                      = iConfig.getParameter<edm::InputTag>("softElectronTags"                     );
   softElectronByIP3dBJetTags_            = iConfig.getParameter<edm::InputTag>("softElectronByIP3dBJetTags"           );
   softElectronByPtBJetTags_              = iConfig.getParameter<edm::InputTag>("softElectronByPtBJetTags"             );
   softMuonBJetTags_                      = iConfig.getParameter<edm::InputTag>("softMuonBJetTags"                     );
@@ -68,21 +71,23 @@ BTagMaker::BTagMaker(const edm::ParameterSet& iConfig) {
   trackCountingHighPurBJetTags_          = iConfig.getParameter<edm::InputTag>("trackCountingHighPurBJetTags"         );
 
   //btagging info
-  produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexBJetTag"      ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexBJetTag"    );
-  produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexMVABJetTag"   ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexMVABJetTag" );
+  produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexBJetTag"      ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexBJetTag"      );
+  produces<vector<float> >   (aliasprefix_+"combinedSecondaryVertexMVABJetTag"   ).setBranchAlias(aliasprefix_+"_combinedSecondaryVertexMVABJetTag"   );
 //  produces<vector<float> >   (aliasprefix_+"ghostTrackBJetTag"                   ).setBranchAlias(aliasprefix_+"_ghostTrackBJetTag"                 );
-  produces<vector<float> >   (aliasprefix_+"jetBProbabilityBJetTag"              ).setBranchAlias(aliasprefix_+"_jetBProbabilityBJetTag"            );
-  produces<vector<float> >   (aliasprefix_+"jetProbabilityBJetTag"               ).setBranchAlias(aliasprefix_+"_jetProbabilityBJetTag"             );
-  produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexHighEffBJetTag" ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexHighEffBJetTag"      );
-  produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexHighPurBJetTag" ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexHighPurBJetTags"     );  
+  produces<vector<float> >   (aliasprefix_+"jetBProbabilityBJetTag"              ).setBranchAlias(aliasprefix_+"_jetBProbabilityBJetTag"	      );
+  produces<vector<float> >   (aliasprefix_+"jetProbabilityBJetTag"               ).setBranchAlias(aliasprefix_+"_jetProbabilityBJetTag"		      );
+  produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexBJetTag"        ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexBJetTag"	      );
+  produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexHighEffBJetTag" ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexHighEffBJetTag" );
+  produces<vector<float> >   (aliasprefix_+"simpleSecondaryVertexHighPurBJetTag" ).setBranchAlias(aliasprefix_+"_simpleSecondaryVertexHighPurBJetTags");  
   //new for 312
-  produces<vector<float> >   (aliasprefix_+"softElectronByIP3dBJetTag"           ).setBranchAlias(aliasprefix_+"_softElectronByIP3dBJetTag"         );
-  produces<vector<float> >   (aliasprefix_+"softElectronByPtBJetTag"             ).setBranchAlias(aliasprefix_+"_softElectronByPtBJetTag"            );
-  produces<vector<float> >   (aliasprefix_+"softMuonBJetTag"                     ).setBranchAlias(aliasprefix_+"_softMuonBJetTag"                   );
-  produces<vector<float> >   (aliasprefix_+"softMuonByIP3dBJetTag"               ).setBranchAlias(aliasprefix_+"_softMuonByIP3dBJetTag"             );
-  produces<vector<float> >   (aliasprefix_+"softMuonByPtBJetTag"                 ).setBranchAlias(aliasprefix_+"_softMuonByPtBJetTag"               );
-  produces<vector<float> >   (aliasprefix_+"trackCountingHighEffBJetTag"         ).setBranchAlias(aliasprefix_+"_trackCountingHighEffBJetTag"       );
-  produces<vector<float> >   (aliasprefix_+"trackCountingHighPurBJetTag"         ).setBranchAlias(aliasprefix_+"_trackCountingHighPurBJetTag"       );
+  produces<vector<float> >   (aliasprefix_+"softElectronTag"                     ).setBranchAlias(aliasprefix_+"_softElectronTag"                     );
+  produces<vector<float> >   (aliasprefix_+"softElectronByIP3dBJetTag"           ).setBranchAlias(aliasprefix_+"_softElectronByIP3dBJetTag"	      );
+  produces<vector<float> >   (aliasprefix_+"softElectronByPtBJetTag"             ).setBranchAlias(aliasprefix_+"_softElectronByPtBJetTag"	      );
+  produces<vector<float> >   (aliasprefix_+"softMuonBJetTag"                     ).setBranchAlias(aliasprefix_+"_softMuonBJetTag"		      );
+  produces<vector<float> >   (aliasprefix_+"softMuonByIP3dBJetTag"               ).setBranchAlias(aliasprefix_+"_softMuonByIP3dBJetTag"		      );
+  produces<vector<float> >   (aliasprefix_+"softMuonByPtBJetTag"                 ).setBranchAlias(aliasprefix_+"_softMuonByPtBJetTag"		      );
+  produces<vector<float> >   (aliasprefix_+"trackCountingHighEffBJetTag"         ).setBranchAlias(aliasprefix_+"_trackCountingHighEffBJetTag"	      );
+  produces<vector<float> >   (aliasprefix_+"trackCountingHighPurBJetTag"         ).setBranchAlias(aliasprefix_+"_trackCountingHighPurBJetTag"	      );
 
   
 }
@@ -114,9 +119,11 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //  auto_ptr<vector<float> >     jets_ghostTrackBJetTag                    (new vector<float>  );
   auto_ptr<vector<float> >     jets_jetBProbabilityBJetTag               (new vector<float>  );
   auto_ptr<vector<float> >     jets_jetProbabilityBJetTag                (new vector<float>  );
+  auto_ptr<vector<float> >     jets_simpleSecondaryVertexBJetTag         (new vector<float>  );
   auto_ptr<vector<float> >     jets_simpleSecondaryVertexHighEffBJetTag  (new vector<float>  );
   auto_ptr<vector<float> >     jets_simpleSecondaryVertexHighPurBJetTag  (new vector<float>  );  
   auto_ptr<vector<float> >     jets_softElectronByIP3dBJetTag            (new vector<float>  );
+  auto_ptr<vector<float> >     jets_softElectronTag                      (new vector<float>  );
   auto_ptr<vector<float> >     jets_softElectronByPtBJetTag              (new vector<float>  );
   auto_ptr<vector<float> >     jets_softMuonBJetTag                      (new vector<float>  );
   auto_ptr<vector<float> >     jets_softMuonByIP3dBJetTag                (new vector<float>  );
@@ -140,11 +147,17 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   edm::Handle<reco::JetFloatAssociation::Container> jetProbabilityBJetTags;
   iEvent.getByLabel(jetProbabilityBJetTags_, jetProbabilityBJetTags);
 
+  edm::Handle<reco::JetFloatAssociation::Container> simpleSecondaryVertexBJetTags;
+  iEvent.getByLabel(simpleSecondaryVertexBJetTags_,simpleSecondaryVertexBJetTags);
+
   edm::Handle<reco::JetFloatAssociation::Container> simpleSecondaryVertexHighEffBJetTags;
   iEvent.getByLabel(simpleSecondaryVertexHighEffBJetTags_, simpleSecondaryVertexHighEffBJetTags);
 
   edm::Handle<reco::JetFloatAssociation::Container> simpleSecondaryVertexHighPurBJetTags;
   iEvent.getByLabel(simpleSecondaryVertexHighPurBJetTags_, simpleSecondaryVertexHighPurBJetTags);
+
+  edm::Handle<reco::JetFloatAssociation::Container> softElectronTags;
+  iEvent.getByLabel(softElectronTags_, softElectronTags);
 
   edm::Handle<reco::JetFloatAssociation::Container>  softElectronByIP3dBJetTags;
   iEvent.getByLabel(softElectronByIP3dBJetTags_, softElectronByIP3dBJetTags);
@@ -174,43 +187,49 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     edm::RefToBase<reco::Jet> jetRef   = getReferenceJetRef(referenceCaloJets, &(*it));
 
     jets_combinedSecondaryVertexBJetTag      ->push_back( CommonUtils::isinf((*combinedSecondaryVertexBJetTags)[jetRef]) 
-							  ? -9999 : (*combinedSecondaryVertexBJetTags)[jetRef]     ); 
+							  ? -9999 : (*combinedSecondaryVertexBJetTags)[jetRef]		); 
 
     jets_combinedSecondaryVertexMVABJetTag   ->push_back( CommonUtils::isinf((*combinedSecondaryVertexMVABJetTags)[jetRef]) 
-							  ? -9999. :(*combinedSecondaryVertexMVABJetTags)[jetRef]  ); 
+							  ? -9999. :(*combinedSecondaryVertexMVABJetTags)[jetRef]	); 
 //    jets_ghostTrackBJetTag                   ->push_back( CommonUtils::isinf((*ghostTrackBJetTags)[jetRef])
-//							  ? -9999. :(*ghostTrackBJetTags)[jetRef]                   ); 
+//							  ? -9999. :(*ghostTrackBJetTags)[jetRef]			); 
     jets_jetBProbabilityBJetTag              ->push_back( CommonUtils::isinf((*jetBProbabilityBJetTags)[jetRef]) 
-							  ? -9999. : (*jetBProbabilityBJetTags)[jetRef]            ); 
+							  ? -9999. : (*jetBProbabilityBJetTags)[jetRef]			); 
     jets_jetProbabilityBJetTag               ->push_back( CommonUtils::isinf((*jetProbabilityBJetTags)[jetRef]) 
-							  ? -9999.  : (*jetProbabilityBJetTags)[jetRef]            ); 
+							  ? -9999.  : (*jetProbabilityBJetTags)[jetRef]			); 
+    jets_simpleSecondaryVertexBJetTag        ->push_back( CommonUtils::isinf((*simpleSecondaryVertexBJetTags)[jetRef])
+							  ? -9999.  : (*simpleSecondaryVertexBJetTags)[jetRef]		);
     jets_simpleSecondaryVertexHighEffBJetTag ->push_back( CommonUtils::isinf((*simpleSecondaryVertexHighEffBJetTags)[jetRef])
-							  ? -9999.  : (*simpleSecondaryVertexHighEffBJetTags)[jetRef]     ); 
+							  ? -9999.  : (*simpleSecondaryVertexHighEffBJetTags)[jetRef]   ); 
     jets_simpleSecondaryVertexHighPurBJetTag ->push_back( CommonUtils::isinf((*simpleSecondaryVertexHighPurBJetTags)[jetRef])
-							  ? -9999.  : (*simpleSecondaryVertexHighPurBJetTags)[jetRef]     ); 
+							  ? -9999.  : (*simpleSecondaryVertexHighPurBJetTags)[jetRef]   ); 
+    jets_softElectronTag                     ->push_back( CommonUtils::isinf((*softElectronTags)[jetRef]) 
+							  ? -9999.  : (*softElectronTags)[jetRef]			); 
     jets_softElectronByIP3dBJetTag           ->push_back( CommonUtils::isinf((*softElectronByIP3dBJetTags)[jetRef]) 
-							? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]        ); 
+							? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]		); 
     jets_softElectronByPtBJetTag             ->push_back( CommonUtils::isinf((*softElectronByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]           ); 
+							  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]		); 
     jets_softMuonBJetTag                     ->push_back( CommonUtils::isinf((*softMuonBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonBJetTags)[jetRef]                  ); 
+							  ? -9999.  : (*softMuonBJetTags)[jetRef]			); 
     jets_softMuonByIP3dBJetTag               ->push_back( CommonUtils::isinf((*softMuonByIP3dBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]            ); 
+							  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]			); 
     jets_softMuonByPtBJetTag                 ->push_back( CommonUtils::isinf((*softMuonByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]              ); 
+							  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]			); 
     jets_trackCountingHighEffBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighEffBJetTags)[jetRef]) 
-							  ? -9999.  : (*trackCountingHighEffBJetTags)[jetRef]      ); 
+							  ? -9999.  : (*trackCountingHighEffBJetTags)[jetRef]		); 
     jets_trackCountingHighPurBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighPurBJetTags)[jetRef]) 
-							  ? -9999.  : (*trackCountingHighPurBJetTags)[jetRef]      ); 
+							  ? -9999.  : (*trackCountingHighPurBJetTags)[jetRef]		); 
 }
 
   iEvent.put(jets_combinedSecondaryVertexBJetTag       ,aliasprefix_+"combinedSecondaryVertexBJetTag"      );  
   iEvent.put(jets_combinedSecondaryVertexMVABJetTag    ,aliasprefix_+"combinedSecondaryVertexMVABJetTag"   );
-//  iEvent.put(jets_ghostTrackBJetTag                    ,aliasprefix_+"ghostTrackBJetTag"                   );              
+  //iEvent.put(jets_ghostTrackBJetTag                  ,aliasprefix_+"ghostTrackBJetTag"                   );              
   iEvent.put(jets_jetBProbabilityBJetTag               ,aliasprefix_+"jetBProbabilityBJetTag"              );		   
   iEvent.put(jets_jetProbabilityBJetTag                ,aliasprefix_+"jetProbabilityBJetTag"               );			  
+  iEvent.put(jets_simpleSecondaryVertexBJetTag         ,aliasprefix_+"simpleSecondaryVertexBJetTag"        );
   iEvent.put(jets_simpleSecondaryVertexHighEffBJetTag  ,aliasprefix_+"simpleSecondaryVertexHighEffBJetTag" );	  
   iEvent.put(jets_simpleSecondaryVertexHighPurBJetTag  ,aliasprefix_+"simpleSecondaryVertexHighPurBJetTag" );  
+  iEvent.put(jets_softElectronTag                      ,aliasprefix_+"softElectronTag"                     );
   iEvent.put(jets_softElectronByIP3dBJetTag            ,aliasprefix_+"softElectronByIP3dBJetTag"           );
   iEvent.put(jets_softElectronByPtBJetTag              ,aliasprefix_+"softElectronByPtBJetTag"             );
   iEvent.put(jets_softMuonBJetTag                      ,aliasprefix_+"softMuonBJetTag"                     );

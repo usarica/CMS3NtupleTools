@@ -28,19 +28,26 @@ CMS2PFJetProbabilityBJetTags = jetProbabilityBJetTags.clone()
 CMS2PFJetProbabilityBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFImpactParameterTagInfos") )
 CMS2PFJetBProbabilityBJetTags = jetBProbabilityBJetTags.clone()
 CMS2PFJetBProbabilityBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFImpactParameterTagInfos") )
+
 #Then the secondary vertex-based b-tag. Note that these producers inherit the jets and tracks they use from the impact parameter modules: # secondary vertex b-tag
 CMS2PFSecondaryVertexTagInfos = secondaryVertexTagInfos.clone()
 CMS2PFSecondaryVertexTagInfos.trackIPTagInfos = cms.InputTag("CMS2PFImpactParameterTagInfos")
-#CMS2PFSimpleSecondaryVertexBJetTags = simpleSecondaryVertexBJetTags.clone()
-#CMS2PFSimpleSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFSecondaryVertexTagInfos") )
+
+CMS2PFSimpleSecondaryVertexBJetTags = simpleSecondaryVertexBJetTags.clone()
+CMS2PFSimpleSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFSecondaryVertexTagInfos") )
+
 CMS2PFSimpleSecondaryVertexHighEffBJetTags = simpleSecondaryVertexHighEffBJetTags.clone()
 CMS2PFSimpleSecondaryVertexHighEffBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2PFSecondaryVertexTagInfos"))
+
 CMS2PFSimpleSecondaryVertexHighPurBJetTags = simpleSecondaryVertexHighPurBJetTags.clone()
 CMS2PFSimpleSecondaryVertexHighPurBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2PFSecondaryVertexTagInfos"))
+
 CMS2PFCombinedSecondaryVertexBJetTags = combinedSecondaryVertexBJetTags.clone()
 CMS2PFCombinedSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFImpactParameterTagInfos"), cms.InputTag("CMS2PFSecondaryVertexTagInfos") )
+
 CMS2PFCombinedSecondaryVertexMVABJetTags = combinedSecondaryVertexMVABJetTags.clone()
 CMS2PFCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFImpactParameterTagInfos"), cms.InputTag("CMS2PFSecondaryVertexTagInfos") )
+
 # add some ghost b-tagging stuff
 #CMS2PFghostVertexTagInfos = ghostTrackVertexTagInfos.clone()
 #CMS2PFghostVertexTagInfos.trackIPTagInfos = "CMS2PFImpactParameterTagInfos"
@@ -52,8 +59,8 @@ CMS2PFCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag(
 # soft electron b-tag
 CMS2PFSoftElectronTagInfos = softElectronTagInfos.clone()
 CMS2PFSoftElectronTagInfos.jets = "ak5PFJets"
-#CMS2PFSoftElectronBJetTags = softElectronBJetTags.clone()
-#CMS2PFSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFSoftElectronTagInfos") )
+CMS2PFSoftElectronBJetTags = softElectronBJetTags.clone()
+CMS2PFSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFSoftElectronTagInfos") )
 CMS2PFSoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
 CMS2PFSoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2PFSoftElectronTagInfos") )
 CMS2PFSoftElectronByPtBJetTags = softElectronByPtBJetTags.clone()
@@ -87,7 +94,7 @@ CMS2PFJetBtaggingIP = cms.Sequence(
 CMS2PFJetBtaggingSV = cms.Sequence(
     CMS2PFImpactParameterTagInfos *
     CMS2PFSecondaryVertexTagInfos * (
-#        CMS2PFSimpleSecondaryVertexBJetTags +
+        CMS2PFSimpleSecondaryVertexBJetTags +
         CMS2PFSimpleSecondaryVertexHighEffBJetTags +
         CMS2PFSimpleSecondaryVertexHighPurBJetTags +
         CMS2PFCombinedSecondaryVertexBJetTags +
@@ -101,11 +108,11 @@ CMS2PFJetBtaggingSV = cms.Sequence(
 #)
 
 CMS2PFJetBtaggingEle = cms.Sequence(
-    #btagSoftElectrons *
+#    btagSoftElectrons *
     softElectronCands *
     CMS2PFSoftElectronTagInfos * (
     CMS2PFSoftElectronByIP3dBJetTags + 
-#    CMS2PFSoftElectronBJetTags
+    CMS2PFSoftElectronBJetTags +
     CMS2PFSoftElectronByPtBJetTags
     )
 )

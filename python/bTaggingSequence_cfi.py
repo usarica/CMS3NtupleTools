@@ -31,16 +31,22 @@ CMS2JetBProbabilityBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2ImpactPa
 #Then the secondary vertex-based b-tag. Note that these producers inherit the jets and tracks they use from the impact parameter modules: # secondary vertex b-tag
 CMS2SecondaryVertexTagInfos = secondaryVertexTagInfos.clone()
 CMS2SecondaryVertexTagInfos.trackIPTagInfos = cms.InputTag("CMS2ImpactParameterTagInfos")
-#CMS2SimpleSecondaryVertexBJetTags = simpleSecondaryVertexBJetTags.clone()
-#CMS2SimpleSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SecondaryVertexTagInfos") )
+
+CMS2SimpleSecondaryVertexBJetTags = simpleSecondaryVertexBJetTags.clone()
+CMS2SimpleSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SecondaryVertexTagInfos") )
+
 CMS2SimpleSecondaryVertexHighEffBJetTags = simpleSecondaryVertexHighEffBJetTags.clone()
 CMS2SimpleSecondaryVertexHighEffBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2SecondaryVertexTagInfos"))
+
 CMS2SimpleSecondaryVertexHighPurBJetTags = simpleSecondaryVertexHighPurBJetTags.clone()
 CMS2SimpleSecondaryVertexHighPurBJetTags.tagInfos = cms.VInputTag(cms.InputTag("CMS2SecondaryVertexTagInfos"))
+
 CMS2CombinedSecondaryVertexBJetTags = combinedSecondaryVertexBJetTags.clone()
 CMS2CombinedSecondaryVertexBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2ImpactParameterTagInfos"), cms.InputTag("CMS2SecondaryVertexTagInfos") )
+
 CMS2CombinedSecondaryVertexMVABJetTags = combinedSecondaryVertexMVABJetTags.clone()
 CMS2CombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2ImpactParameterTagInfos"), cms.InputTag("CMS2SecondaryVertexTagInfos") )
+
 # add some ghost b-tagging stuff
 #CMS2ghostVertexTagInfos = ghostTrackVertexTagInfos.clone()
 #CMS2ghostVertexTagInfos.trackIPTagInfos = "CMS2ImpactParameterTagInfos"
@@ -51,8 +57,8 @@ CMS2CombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag("C
 # soft electron b-tag
 CMS2SoftElectronTagInfos = softElectronTagInfos.clone()
 CMS2SoftElectronTagInfos.jets = "ak5CaloJets"
-#CMS2SoftElectronBJetTags = softElectronBJetTags.clone()
-#CMS2SoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftElectronTagInfos") )
+CMS2SoftElectronBJetTags = softElectronBJetTags.clone()
+CMS2SoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftElectronTagInfos") )
 CMS2SoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
 CMS2SoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2SoftElectronTagInfos") )
 CMS2SoftElectronByPtBJetTags = softElectronByPtBJetTags.clone()
@@ -86,7 +92,7 @@ CMS2JetBtaggingIP = cms.Sequence(
 CMS2JetBtaggingSV = cms.Sequence(
     CMS2ImpactParameterTagInfos *
     CMS2SecondaryVertexTagInfos * (
-#        CMS2SimpleSecondaryVertexBJetTags +
+        CMS2SimpleSecondaryVertexBJetTags +
         CMS2SimpleSecondaryVertexHighEffBJetTags +
         CMS2SimpleSecondaryVertexHighPurBJetTags +
         CMS2CombinedSecondaryVertexBJetTags +
@@ -104,7 +110,7 @@ CMS2JetBtaggingEle = cms.Sequence(
     softElectronCands *
     CMS2SoftElectronTagInfos * (
     CMS2SoftElectronByIP3dBJetTags + 
-#    CMS2SoftElectronBJetTags
+    CMS2SoftElectronBJetTags +
     CMS2SoftElectronByPtBJetTags
     )
 )

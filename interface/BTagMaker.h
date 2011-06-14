@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: BTagMaker.h,v 1.5 2010/05/06 14:15:05 fgolf Exp $
+// $Id: BTagMaker.h,v 1.6 2011/06/14 01:55:38 kalavase Exp $
 //
 //
 #ifndef NTUPLEMAKER_BTAGMAKER_H
@@ -55,8 +55,10 @@ private:
   edm::InputTag ghostTrackBJetTags_                   ;
   edm::InputTag jetBProbabilityBJetTags_              ;
   edm::InputTag jetProbabilityBJetTags_               ;
+  edm::InputTag simpleSecondaryVertexBJetTags_        ;
   edm::InputTag simpleSecondaryVertexHighEffBJetTags_ ;
   edm::InputTag simpleSecondaryVertexHighPurBJetTags_ ;
+  edm::InputTag softElectronTags_                     ;
   edm::InputTag softElectronByIP3dBJetTags_           ;
   edm::InputTag softElectronByPtBJetTags_             ;
   edm::InputTag softMuonBJetTags_                     ;
