@@ -64,7 +64,9 @@ bool WWFilter::passedId(const reco::GsfElectron* el){
 
 bool WWFilter::passedId(const reco::Muon* mu){
   if (!applyMuId_) return true; 
-  return mu->isGlobalMuon() && mu->isTrackerMuon();
+  bool isGoodMuon1 = mu->isGlobalMuon() && mu->isTrackerMuon();
+  bool isGoodMuon2 = mu->isTrackerMuon() && mu->numberOfMatches()>1;
+  return isGoodMuon1 || isGoodMuon2;
 }
 
 WWFilter::WWFilter(const edm::ParameterSet& iConfig):
