@@ -15,7 +15,8 @@ elif "MuEG" in  str(process.source.fileNames):
 elif "SingleMu" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("SingleMu")
 elif "Photon" in str(process.source.fileNames):
-    process.sdFilter.filterName_=cms.string("Photon")
+    #process.sdFilter.filterName_=cms.string("Photon")
+    process.sdFilter.filterName_=cms.string("Photon_JetVeto")
 elif "ElectronHad" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("ElectronHad")
     process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
