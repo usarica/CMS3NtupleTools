@@ -40,8 +40,22 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   produces<unsigned int>                    (Form("%sbits7"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits7"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits8"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits8"      ,processNamePrefix_.Data()));
   produces<unsigned int>                    (Form("%sbits9"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits9"      ,processNamePrefix_.Data()));
-  produces<unsigned int>                    (Form("%sbits10"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits10"      ,processNamePrefix_.Data()));
-  produces<unsigned int>                    (Form("%sbits11"     ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits11"      ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits10"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits10"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits11"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits11"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits12"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits12"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits13"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits13"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits14"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits14"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits15"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits15"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits16"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits16"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits17"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits17"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits18"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits18"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits19"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits19"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits20"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits20"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits21"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits21"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits22"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits22"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits23"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits23"     ,processNamePrefix_.Data()));
+  produces<unsigned int>                    (Form("%sbits24"    ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits24"     ,processNamePrefix_.Data()));
+
   produces<vector<TString> >                (Form("%strigNames" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
   produces<vector<unsigned int> >           (Form("%sprescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
   produces<vector<vector<int> > >           (Form("%strigObjsid",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
@@ -107,6 +121,19 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   auto_ptr<unsigned int> bits9  (new unsigned int);
   auto_ptr<unsigned int> bits10 (new unsigned int);
   auto_ptr<unsigned int> bits11 (new unsigned int);
+  auto_ptr<unsigned int> bits12 (new unsigned int);
+  auto_ptr<unsigned int> bits13 (new unsigned int);
+  auto_ptr<unsigned int> bits14 (new unsigned int);
+  auto_ptr<unsigned int> bits15 (new unsigned int);
+  auto_ptr<unsigned int> bits16 (new unsigned int);
+  auto_ptr<unsigned int> bits17 (new unsigned int);
+  auto_ptr<unsigned int> bits18 (new unsigned int);
+  auto_ptr<unsigned int> bits19 (new unsigned int);
+  auto_ptr<unsigned int> bits20 (new unsigned int);
+  auto_ptr<unsigned int> bits21 (new unsigned int);
+  auto_ptr<unsigned int> bits22 (new unsigned int);
+  auto_ptr<unsigned int> bits23 (new unsigned int);
+  auto_ptr<unsigned int> bits24 (new unsigned int);
 
   auto_ptr<vector<unsigned int> > prescales (new vector<unsigned int>);
   *bits1  = 0;
@@ -120,9 +147,22 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   *bits9  = 0;
   *bits10 = 0;
   *bits11 = 0;
+  *bits12 = 0;
+  *bits13 = 0;
+  *bits14 = 0;
+  *bits15 = 0;
+  *bits16 = 0;
+  *bits17 = 0;
+  *bits18 = 0;
+  *bits19 = 0;
+  *bits20 = 0;
+  *bits21 = 0;
+  *bits22 = 0;
+  *bits23 = 0;
+  *bits24 = 0;
 
   unsigned int nTriggers = triggerResultsH_->size();
-  if (nTriggers > 352) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 352 )", nTriggers) );
+  if (nTriggers > 1024) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 352 )", nTriggers) );
 
   auto_ptr<vector<TString> >                trigNames (new vector<TString>);
   auto_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
@@ -194,6 +234,62 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  bitmask <<=(i-320);
 	  *bits11 |= bitmask;
 	}
+  // expanded 21 Jun 2011
+	if (i >= 352 && i <= 383) {
+	  bitmask <<=(i-352);
+	  *bits12 |= bitmask;
+	}
+	if (i >= 384 && i <= 415) {
+	  bitmask <<=(i-384);
+	  *bits13 |= bitmask;
+	}
+	if (i >= 416 && i <= 447) {
+	  bitmask <<=(i-416);
+	  *bits14 |= bitmask;
+	}
+	if (i >= 448 && i <= 479) {
+	  bitmask <<=(i-448);
+	  *bits15 |= bitmask;
+	}
+	if (i >= 480 && i <= 511) {
+	  bitmask <<=(i-480);
+	  *bits16 |= bitmask;
+	}
+	if (i >= 512 && i <= 543) {
+	  bitmask <<=(i-512);
+	  *bits17 |= bitmask;
+	}
+	if (i >= 544 && i <= 375) {
+	  bitmask <<=(i-544);
+	  *bits18 |= bitmask;
+	}
+	if (i >= 576 && i <= 607) {
+	  bitmask <<=(i-576);
+	  *bits19 |= bitmask;
+	}
+	if (i >= 608 && i <= 639) {
+	  bitmask <<=(i-608);
+	  *bits20 |= bitmask;
+	}
+	if (i >= 640 && i <= 671) {
+	  bitmask <<=(i-640);
+	  *bits21 |= bitmask;
+	}
+	if (i >= 672 && i <= 703) {
+	  bitmask <<=(i-672);
+	  *bits22 |= bitmask;
+	}
+	if (i >= 704 && i <= 735) {
+	  bitmask <<=(i-704);
+	  *bits23 |= bitmask;
+	}
+	if (i >= 736 && i <= 767) {
+	  bitmask <<=(i-736);
+	  *bits24 |= bitmask;
+	}
+
+
+
 
 	// Collect desired trigger objects 
 	if (fillTriggerObjects_ && doPruneTriggerName(name))
@@ -215,6 +311,20 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(bits9,      Form("%sbits9",      processNamePrefix_.Data() ) );
   iEvent.put(bits10,     Form("%sbits10",     processNamePrefix_.Data() ) );
   iEvent.put(bits11,     Form("%sbits11",     processNamePrefix_.Data() ) );
+  iEvent.put(bits12,     Form("%sbits12",     processNamePrefix_.Data() ) );
+  iEvent.put(bits13,     Form("%sbits13",     processNamePrefix_.Data() ) );
+  iEvent.put(bits14,     Form("%sbits14",     processNamePrefix_.Data() ) );
+  iEvent.put(bits15,     Form("%sbits15",     processNamePrefix_.Data() ) );
+  iEvent.put(bits16,     Form("%sbits16",     processNamePrefix_.Data() ) );
+  iEvent.put(bits17,     Form("%sbits17",     processNamePrefix_.Data() ) );
+  iEvent.put(bits18,     Form("%sbits18",     processNamePrefix_.Data() ) );
+  iEvent.put(bits19,     Form("%sbits19",     processNamePrefix_.Data() ) );
+  iEvent.put(bits20,     Form("%sbits20",     processNamePrefix_.Data() ) );
+  iEvent.put(bits21,     Form("%sbits21",     processNamePrefix_.Data() ) );
+  iEvent.put(bits22,     Form("%sbits22",     processNamePrefix_.Data() ) );
+  iEvent.put(bits23,     Form("%sbits23",     processNamePrefix_.Data() ) );
+  iEvent.put(bits24,     Form("%sbits24",     processNamePrefix_.Data() ) );
+
   iEvent.put(prescales,  Form("%sprescales",  processNamePrefix_.Data() ) );
   iEvent.put(trigNames , Form("%strigNames" , processNamePrefix_.Data() ) );
   iEvent.put(trigObjsid, Form("%strigObjsid", processNamePrefix_.Data() ) );
