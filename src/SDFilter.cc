@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.20 2011/06/20 16:30:34 macneill Exp $
+// $Id: SDFilter.cc,v 1.21 2011/06/21 09:03:58 macneill Exp $
 //
 //
 
@@ -50,7 +50,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "TMath.h"
 #include "Math/VectorUtil.h"
-
+#include <iostream>
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
@@ -124,6 +124,8 @@ bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) {
       FillnTriggerPaths(MuHadTriggerNames);  
     else if(filterName == "Photon")
       FillnTriggerPaths(PhotonTriggerNames);
+    else if(filterName == "Photon_JetVeto")
+      FillnTriggerPaths(PhotonTriggerNames);
     else if((filterName != "MuEG") && (filterName != "nofilter") )
       throw cms::Exception("SDFilter::filterName is not defined!");
   
@@ -185,6 +187,8 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		FillnTriggerPaths(MuHadTriggerNames);  
 	  else if(filterName == "Photon")
 		FillnTriggerPaths(PhotonTriggerNames);
+	  else if(filterName == "Photon_JetVeto")
+		FillnTriggerPaths(PhotonTriggerNames);
 	  else if((filterName != "MuEG") && (filterName != "nofilter") )
 		throw cms::Exception("SDFilter::filterName is not defined!");
   
@@ -205,8 +209,9 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   assert(triggerResultsH_->size()==hltConfig_.size());
 
   unsigned int nTriggers = triggerResultsH_->size();
-  if (nTriggers > 352)
-	throw cms::Exception("HLTMaker::produce: number of HLT trigger variables must be increased!");
+  unsigned int nTriggersLimit = 352;
+  if (nTriggers > nTriggersLimit)
+	throw cms::Exception(Form("HLTMaker::produce: number of HLT trigger variables (%i) exceeds the limit (%i)!",nTriggers,nTriggersLimit));
         
       
         

@@ -1,7 +1,11 @@
 from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "GR_R_311_V2::All"
+#process.GlobalTag.globaltag = "GR_R_311_V2::All"
+process.GlobalTag.globaltag = "GR_R_42_V14::All"
+#put data set here
+process.source.fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/data/Run2011A/Photon/AOD/PromptReco-v4/000/167/150/A662F168-069B-E011-A478-001D09F2AD84.root")
+
 
 # Load Filters
 process.load("CMS2.NtupleMaker.sdFilter_cfi")
