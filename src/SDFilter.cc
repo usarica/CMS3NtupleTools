@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.21 2011/06/21 09:03:58 macneill Exp $
+// $Id: SDFilter.cc,v 1.22 2011/06/21 18:19:21 dbarge Exp $
 //
 //
 
@@ -209,7 +209,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   assert(triggerResultsH_->size()==hltConfig_.size());
 
   unsigned int nTriggers = triggerResultsH_->size();
-  unsigned int nTriggersLimit = 352;
+  unsigned int nTriggersLimit = 768;
   if (nTriggers > nTriggersLimit)
 	throw cms::Exception(Form("HLTMaker::produce: number of HLT trigger variables (%i) exceeds the limit (%i)!",nTriggers,nTriggersLimit));
         
