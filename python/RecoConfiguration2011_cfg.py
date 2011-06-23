@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.9 $'),
+        version    = cms.untracked.string('$Revision: 1.10 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -36,14 +36,14 @@ process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modu
 process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
 #
-process.ak5CaloL1Offset.useCondDB   = False
-process.ak5CaloL1Fastjet.useCondDB  = False
-
-process.ak5JPTL1Offset.useCondDB    = False
-process.ak5JPTL1Fastjet.useCondDB   = False
-
-process.ak5PFL1Offset.useCondDB     = False
-process.ak5PFL1Fastjet.useCondDB    = False
+#process.ak5CaloL1Offset.useCondDB   = False
+#process.ak5CaloL1Fastjet.useCondDB  = False
+#
+#process.ak5JPTL1Offset.useCondDB    = False
+#process.ak5JPTL1Fastjet.useCondDB   = False
+#
+#process.ak5PFL1Offset.useCondDB     = False
+#process.ak5PFL1Fastjet.useCondDB    = False
 
 
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
