@@ -13,13 +13,14 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.23 2011/06/22 23:02:28 jribnik Exp $
+// $Id: SDFilter.cc,v 1.24 2011/06/27 12:19:59 macneill Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -50,7 +51,8 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "TMath.h"
 #include "Math/VectorUtil.h"
-#include <iostream>
+
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
@@ -94,10 +96,11 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
 
   //thresholds for photon+jet filter
   photonJet_photonPt	= iConfig.getParameter<double>("photonJet_photonPt_"	);
-  photonJet_pfjetPt	= iConfig.getParameter<double>("photonJet_pfjetPt_"	);
-  photonJet_pfjetPt_JetVeto = iConfig.getParameter<double>("photonJet_pfjetPt_JetVeto_");
-  photonJet_dr		= iConfig.getParameter<double>("photonJet_dr_"		);
-  photonJet_dotrig	= iConfig.getParameter<bool  >("photonJet_dotrig_"	);
+  photonJet_pfjetPt	    = iConfig.getParameter<double>("photonJet_pfjetPt_"	);
+  photonJet_pfjetPt_hzz = iConfig.getParameter<double>("photonJet_pfjetPt_hzz_"); 
+  photonJet_doJet_hzz   = iConfig.getParameter<bool  >("photonJet_doJet_hzz_");     
+  photonJet_dr		    = iConfig.getParameter<double>("photonJet_dr_"		);
+  photonJet_dotrig	    = iConfig.getParameter<bool  >("photonJet_dotrig_"	);
 }
 
 
@@ -123,8 +126,6 @@ bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) {
     else if(filterName == "MuHad")
       FillnTriggerPaths(MuHadTriggerNames);  
     else if(filterName == "Photon")
-      FillnTriggerPaths(PhotonTriggerNames);
-    else if(filterName == "Photon_JetVeto")
       FillnTriggerPaths(PhotonTriggerNames);
     else if((filterName != "MuEG") && (filterName != "nofilter") )
       throw cms::Exception("SDFilter::filterName is not defined!");
@@ -186,8 +187,6 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  else if(filterName == "MuHad")
 		FillnTriggerPaths(MuHadTriggerNames);  
 	  else if(filterName == "Photon")
-		FillnTriggerPaths(PhotonTriggerNames);
-	  else if(filterName == "Photon_JetVeto")
 		FillnTriggerPaths(PhotonTriggerNames);
 	  else if((filterName != "MuEG") && (filterName != "nofilter") )
 		throw cms::Exception("SDFilter::filterName is not defined!");
@@ -410,6 +409,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
 
 	unsigned int npfjets = 0;
+	unsigned int npfjets_hzz = 0;
 	       
 	for( reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); 
 		 jetiter != pfjet_h->end(); jetiter++ ){
@@ -417,73 +417,26 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if( doL2L3pfjetCorrection_ ) 
 		L2L3JetScale = correctorL2L3->correction(jetiter->p4());
 		 
-	  if( jetiter->pt()*L2L3JetScale < photonJet_pfjetPt ) //min jet pt
-		continue;
+	  float jetThreshold = photonJet_pfjetPt;  
+	  if( photonJet_doJet_hzz ) jetThreshold = std::min(photonJet_pfjetPt,photonJet_pfjetPt_hzz); 
+	  if( jetiter->pt()*L2L3JetScale < jetThreshold ) //min jet pt  
+		continue;                                                        
 		 
 	  float dr = ROOT::Math::VectorUtil::DeltaR( maxptpho->p4(), jetiter->p4() );         
-	  if( dr > photonJet_dr ) //dr from pho
-		npfjets++;
+	  if( dr > photonJet_dr ){ //dr from pho
+		if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt )
+		  npfjets++;
+		if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt_hzz )
+		  npfjets_hzz++;
+	  }
 	}
 	if( npfjets >= 2 )
 	  return true;
+	if( photonJet_doJet_hzz && npfjets_hzz == 0 ) 
+	  return true; 
+
 
   }//else if(filterName == "Photon")
-  else if (filterName == "Photon_JetVeto"){
-
-	edm::Handle<reco::PhotonCollection> photon_h;
-	iEvent.getByLabel(photonInputTag, photon_h);
-      
-	if( photon_h->size() == 0 ) //no photons
-	  return false;
-
-	bool acceptEvent = !photonJet_dotrig;
-	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {
-	  if(triggerResultsH_->accept(nTriggerPaths.at(i)))  {
-		acceptEvent = true;
-		break;
-	  }
-	}
-	if( !acceptEvent )
-	  return false; //none of the trigs we want have fired
-	   
-	reco::PhotonCollection::const_iterator maxptpho = photon_h->end();
-	float maxpt = 0; //need this to check if any phos above threshold
-	for( reco::PhotonCollection::const_iterator iter = photon_h->begin(); 
-		 iter != photon_h->end(); iter++) {
-	  if( iter->pt() > photonJet_photonPt && iter->pt() > maxpt ) {
-		maxptpho = iter;
-		maxpt = iter->pt();
-	  }
-	}
-	if( maxpt == 0 ) //no photons above threshold
-	  return false;
-
-	edm::Handle<reco::PFJetCollection> pfjet_h;
-	iEvent.getByLabel(pfjetsInputTag, pfjet_h);
-     
-	const JetCorrector* correctorL2L3 = 0;
-	if( doL2L3pfjetCorrection_ )
-	  correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
-
-	unsigned int npfjets = 0;
-	       
-	for( reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); 
-		 jetiter != pfjet_h->end(); jetiter++ ){
-	  float L2L3JetScale = 1.;
-	  if( doL2L3pfjetCorrection_ ) 
-		L2L3JetScale = correctorL2L3->correction(jetiter->p4());
-		 
-	  if( jetiter->pt()*L2L3JetScale < photonJet_pfjetPt_JetVeto ) //min jet pt
-		continue;
-		 
-	  float dr = ROOT::Math::VectorUtil::DeltaR( maxptpho->p4(), jetiter->p4() );         
-	  if( dr > photonJet_dr ) //dr from pho
-		npfjets++;
-	}
-	if( npfjets == 0 )
-	  return true;
-
-  }//else if(filterName == "Photon_JetVeto")
   else if (filterName== "ElectronHad") {
 	// What is your name?       
 	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {

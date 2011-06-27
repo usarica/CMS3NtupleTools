@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.11 2011/06/20 16:29:19 macneill Exp $
+// $Id: SDFilter.h,v 1.12 2011/06/27 12:20:01 macneill Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -99,7 +99,8 @@ private:
   //thresholds for photon+jet filter
   double photonJet_photonPt;
   double photonJet_pfjetPt;
-  double photonJet_pfjetPt_JetVeto;
+  double photonJet_pfjetPt_hzz;
+  bool   photonJet_doJet_hzz;
   double photonJet_dr;
   bool   photonJet_dotrig;
 

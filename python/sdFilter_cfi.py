@@ -26,7 +26,8 @@ sdFilter = cms.EDFilter("SDFilter",
                             #thresholds for photon+jet filter
                             photonJet_photonPt_ = cms.double(20.),
                             photonJet_pfjetPt_  = cms.double(30.),
-                            photonJet_pfjetPt_JetVeto_ = cms.double(50.),
+                            photonJet_pfjetPt_hzz_ = cms.double(50.),
+                            photonJet_doJet_hzz_ = cms.bool(True),
                             photonJet_dr_       = cms.double(0.4),
                             photonJet_dotrig_   = cms.bool(True),
                         

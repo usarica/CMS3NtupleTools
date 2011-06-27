@@ -4,7 +4,7 @@ from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 #process.GlobalTag.globaltag = "GR_R_311_V2::All"
 process.GlobalTag.globaltag = "GR_R_42_V14::All"
 #put data set here
-process.source.fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/data/Run2011A/Photon/AOD/PromptReco-v4/000/167/150/A662F168-069B-E011-A478-001D09F2AD84.root")
+process.source.fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/data/Run2011A/Photon/AOD/PromptReco-v4/000/167/284/24D88EF7-019E-E011-9C06-003048D2C01A.root")
 
 
 # Load Filters
@@ -19,8 +19,7 @@ elif "MuEG" in  str(process.source.fileNames):
 elif "SingleMu" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("SingleMu")
 elif "Photon" in str(process.source.fileNames):
-    #process.sdFilter.filterName_=cms.string("Photon")
-    process.sdFilter.filterName_=cms.string("Photon_JetVeto")
+    process.sdFilter.filterName_=cms.string("Photon")
 elif "ElectronHad" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("ElectronHad")
     process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
