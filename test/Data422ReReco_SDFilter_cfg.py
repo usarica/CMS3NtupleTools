@@ -4,7 +4,7 @@ from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
 #process.GlobalTag.globaltag = "GR_R_311_V2::All"
 process.GlobalTag.globaltag = "GR_R_42_V14::All"
 #put data set here
-process.source.fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/data/Run2011A/Photon/AOD/PromptReco-v4/000/167/284/24D88EF7-019E-E011-9C06-003048D2C01A.root")
+#process.source.fileNames = cms.untracked.vstring("root://xrootd.unl.edu//store/data/Run2011A/Photon/AOD/PromptReco-v4/000/167/282/F0C31CB6-A89D-E011-ADD0-003048D2C108.root")
 
 
 # Load Filters

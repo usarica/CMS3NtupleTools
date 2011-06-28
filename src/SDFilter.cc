@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.24 2011/06/27 12:19:59 macneill Exp $
+// $Id: SDFilter.cc,v 1.25 2011/06/28 09:27:04 macneill Exp $
 //
 //
 
@@ -400,40 +400,41 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 	if( maxpt == 0 ) //no photons above threshold
 	  return false;
+	return true;  //added the return true like this, so that if we want to use the rest of the filter, we can just remove the true statment and uncomment the rest. takes a minimum amount of editing and changing logic.
 
-	edm::Handle<reco::PFJetCollection> pfjet_h;
-	iEvent.getByLabel(pfjetsInputTag, pfjet_h);
+	// edm::Handle<reco::PFJetCollection> pfjet_h;
+	// iEvent.getByLabel(pfjetsInputTag, pfjet_h);
      
-	const JetCorrector* correctorL2L3 = 0;
-	if( doL2L3pfjetCorrection_ )
-	  correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
+	// const JetCorrector* correctorL2L3 = 0;
+	// if( doL2L3pfjetCorrection_ )
+	//   correctorL2L3 = JetCorrector::getJetCorrector (PFJetCorrectorL2L3_, iSetup);
 
-	unsigned int npfjets = 0;
-	unsigned int npfjets_hzz = 0;
+	// unsigned int npfjets = 0;
+	// unsigned int npfjets_hzz = 0;
 	       
-	for( reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); 
-		 jetiter != pfjet_h->end(); jetiter++ ){
-	  float L2L3JetScale = 1.;
-	  if( doL2L3pfjetCorrection_ ) 
-		L2L3JetScale = correctorL2L3->correction(jetiter->p4());
+	// for( reco::PFJetCollection::const_iterator jetiter = pfjet_h->begin(); 
+	// 	 jetiter != pfjet_h->end(); jetiter++ ){
+	//   float L2L3JetScale = 1.;
+	//   if( doL2L3pfjetCorrection_ ) 
+	// 	L2L3JetScale = correctorL2L3->correction(jetiter->p4());
 		 
-	  float jetThreshold = photonJet_pfjetPt;  
-	  if( photonJet_doJet_hzz ) jetThreshold = std::min(photonJet_pfjetPt,photonJet_pfjetPt_hzz); 
-	  if( jetiter->pt()*L2L3JetScale < jetThreshold ) //min jet pt  
-		continue;                                                        
+	//   float jetThreshold = photonJet_pfjetPt;  
+	//   if( photonJet_doJet_hzz ) jetThreshold = std::min(photonJet_pfjetPt,photonJet_pfjetPt_hzz); 
+	//   if( jetiter->pt()*L2L3JetScale < jetThreshold ) //min jet pt  
+	// 	continue;                                                        
 		 
-	  float dr = ROOT::Math::VectorUtil::DeltaR( maxptpho->p4(), jetiter->p4() );         
-	  if( dr > photonJet_dr ){ //dr from pho
-		if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt )
-		  npfjets++;
-		if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt_hzz )
-		  npfjets_hzz++;
-	  }
-	}
-	if( npfjets >= 2 )
-	  return true;
-	if( photonJet_doJet_hzz && npfjets_hzz == 0 ) 
-	  return true; 
+	//   float dr = ROOT::Math::VectorUtil::DeltaR( maxptpho->p4(), jetiter->p4() );         
+	//   if( dr > photonJet_dr ){ //dr from pho
+	// 	if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt )
+	// 	  npfjets++;
+	// 	if( jetiter->pt()*L2L3JetScale >= photonJet_pfjetPt_hzz )
+	// 	  npfjets_hzz++;
+	//   }
+	// }
+	// if( npfjets >= 2 )
+	//   return true;
+	// if( photonJet_doJet_hzz && npfjets_hzz == 0 ) 
+	//   return true; 
 
 
   }//else if(filterName == "Photon")
