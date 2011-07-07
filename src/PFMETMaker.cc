@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.cc,v 1.8 2011/05/23 18:48:39 kalavase Exp $
+// $Id: PFMETMaker.cc,v 1.9 2011/07/07 23:50:23 kalavase Exp $
 //
 //
 
@@ -79,9 +79,15 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   *evt_pfmet    = ( met_h->front() ).et();
   *evt_pfmetPhi = ( met_h->front() ).phi();
   *evt_pfmetSig = ( met_h->front() ).mEtSig();
-  *evt_pfsumet  = ( met_h->front() ).sumEt();     
-  *evt_pfmetSignificance = ( met_h->front() ).significance();     
-
+  *evt_pfsumet  = ( met_h->front() ).sumEt();       
+  
+  try { 
+    *evt_pfmetSignificance = ( met_h->front() ).significance();
+  }
+  catch ( cms::Exception& ex ) {
+    *evt_pfmetSignificance = -9999;
+  }
+  
   iEvent.put(evt_pfmet    , "evtpfmet"      );
   iEvent.put(evt_pfmetPhi , "evtpfmetPhi"   );
   iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
