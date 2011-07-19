@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.10 $'),
+        version    = cms.untracked.string('$Revision: 1.11 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -53,10 +53,7 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-
-      #'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_2_2/RelValProdTTbar_CMSSW_4_2_2-MC_42_V11-v1_AODSIM/70847C4B-8F6D-E011-A767-002354EF3BE6.root' # CMSSW_4_2_2 ttbar RelVal
-      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_2_2/DoubleElectron/90B8D392-DF75-E011-A365-001BFCDBD160.root'                                  # CMSSW_4_2_2 DoubleElectron
-
+      'file:/nfs-3/userdata/cms2/cms2_validation/CMSSW_4_2_7_patch1/DoubleMuon/488D4763-00B1-E011-B110-BCAEC532971C.root'   # CMSSW_4_2_7
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
