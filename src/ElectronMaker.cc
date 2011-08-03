@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.68 2011/06/13 13:08:02 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.69 2011/08/03 08:31:46 cerati Exp $
 //
 //
 
@@ -1012,7 +1012,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       }
     }
 
-    if (el->closestCtfTrack().ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end()) {
+    if (firstGoodVertex!=vertexCollection->end()) {
       els_iso03_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0, 0.1, 0.07, 0.025, 0.025) );
       els_iso04_pf->push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0, 0.1, 0.07, 0.025, 0.025) );
     } else {
@@ -1273,6 +1273,8 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
 
   TrackRef siTrack  = el.closestCtfTrackRef();
   GsfTrackRef gsfTrack = el.gsfTrack();
+
+  if (gsfTrack.isNull() && siTrack.isNull()) return -9999.;
 
   float eldz = gsfTrack.isNonnull() ? gsfTrack->dz(vtx.position()) : siTrack->dz(vtx.position());
   float eleta = el.eta();
