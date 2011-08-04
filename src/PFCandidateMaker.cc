@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFCandidateMaker.cc,v 1.6 2011/08/04 21:58:42 dbarge Exp $
+// $Id: PFCandidateMaker.cc,v 1.7 2011/08/04 22:14:32 dbarge Exp $
 //
 //
 
@@ -61,7 +61,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
 
      produces<vector<LorentzVector>	> ("pfcandsp4"              ).setBranchAlias("pfcands_p4"			          );
      produces<vector<LorentzVector>	> ("pfcandsposAtEcalp4"		  ).setBranchAlias("pfcands_posAtEcal_p4"		  );
-     produces<vector<bool> >          ("pfcandisMuIso"          ).setBranchAlias("pfcands_isMuIso"	        );
+     produces<vector<bool> >          ("pfcandsisMuIso"         ).setBranchAlias("pfcands_isMuIso"	        );
      produces<vector<float>	>         ("pfcandsecalE"	  	      ).setBranchAlias("pfcands_ecalE"		        );
      produces<vector<float>	>         ("pfcandshcalE"		        ).setBranchAlias("pfcands_hcalE"		        );
      produces<vector<float>	>         ("pfcandsrawEcalE"		    ).setBranchAlias("pfcands_rawEcalE"		      );
