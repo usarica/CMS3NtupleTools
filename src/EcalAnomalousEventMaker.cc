@@ -1,7 +1,7 @@
 #include "CMS2/NtupleMaker/interface/EcalAnomalousEventMaker.h"
 
-#include "PhysicsTools/EcalAnomalousEventFilter/interface/EcalBoundaryInfoCalculator.h"
-#include "DataFormats/AnomalousEcalDataFormats/interface/AnomalousECALVariables.h"
+//#include "PhysicsTools/EcalAnomalousEventFilter/interface/EcalBoundaryInfoCalculator.h"
+//#include "DataFormats/AnomalousEcalDataFormats/interface/AnomalousECALVariables.h"
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -23,6 +23,7 @@ using namespace edm;
 // Constructor
 EcalAnomalousEventMaker::EcalAnomalousEventMaker ( const ParameterSet& iConfig ) {
 
+  /*
   //
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   branchprefix_ = aliasprefix_;
@@ -35,6 +36,8 @@ EcalAnomalousEventMaker::EcalAnomalousEventMaker ( const ParameterSet& iConfig )
   produces < vector<float> > ( branchprefix_ + "anomecalphi"         ).setBranchAlias( aliasprefix_ + "_anomecal_phi"        );
   produces < vector<float> > ( branchprefix_ + "anomecalmaxbE"       ).setBranchAlias( aliasprefix_ + "_anomecal_maxbE"      );
   produces < vector<float> > ( branchprefix_ + "anomecaltpEt"        ).setBranchAlias( aliasprefix_ + "_anomecal_tpEt"       );
+  */
+
 }
 
 // Destructor
@@ -43,6 +46,7 @@ EcalAnomalousEventMaker::~EcalAnomalousEventMaker () {}
 // Maker
 void EcalAnomalousEventMaker::produce ( Event& iEvent, const EventSetup& iSetup ){
   
+  /*
   //  
   auto_ptr <bool>            evt_isEcalNoise ( new bool          );
   auto_ptr < vector<int>   > evt_nsfSize     ( new vector<int>   );
@@ -179,6 +183,7 @@ void EcalAnomalousEventMaker::produce ( Event& iEvent, const EventSetup& iSetup 
   iEvent.put( evt_eta,         branchprefix_ + "anomecaleta"        );
   iEvent.put( evt_phi,         branchprefix_ + "anomecalphi"        );
 
+  */
   // 
   return;
 }

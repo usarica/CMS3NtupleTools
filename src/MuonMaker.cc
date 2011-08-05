@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.45 2011/05/27 18:44:47 warren Exp $
+// $Id: MuonMaker.cc,v 1.46 2011/08/05 00:24:17 dbarge Exp $
 //
 //
 
@@ -33,6 +33,7 @@ Implementation:
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
 #include "DataFormats/MuonReco/interface/MuonCocktails.h"
@@ -56,6 +57,11 @@ Implementation:
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
+// Cosmic Compatibility
+#include "DataFormats/Common/interface/ValueMap.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/MuonReco/interface/MuonCosmicCompatibility.h"
+
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace std;
@@ -66,6 +72,15 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+
+  // Cosmic Compatibility
+  produces<vector<float> > ( branchprefix + "cosmicCompat"     ).setBranchAlias( aliasprefix_ + "_cosmicCompat"     );
+  produces<vector<float> > ( branchprefix + "timeCompat"       ).setBranchAlias( aliasprefix_ + "_timeCompat"       );
+  produces<vector<float> > ( branchprefix + "backToBackCompat" ).setBranchAlias( aliasprefix_ + "_backToBackCompat" );
+  produces<vector<float> > ( branchprefix + "overlapCompat"    ).setBranchAlias( aliasprefix_ + "_overlapCompat"    );
+  produces<vector<float> > ( branchprefix + "vertexCompat"     ).setBranchAlias( aliasprefix_ + "_vertexCompat"     );
+
 
   // Muon Quality
   produces<vector<bool> >      ( branchprefix + "updatedSta"         ).setBranchAlias( aliasprefix_ + "_updatedSta" );           // Muon Quality - updatedSta
@@ -213,12 +228,22 @@ MuonMaker::MuonMaker(const edm::ParameterSet& iConfig) {
   vtxInputTag 		        = iConfig.getParameter<edm::InputTag>("vtxInputTag");
   tevMuonsName    		= iConfig.getParameter<string>("tevMuonsName" ); 
  
+  // Cosmics Compatibility
+  src_    = iConfig.getParameter<edm::InputTag>("src");
+
 }
 
 void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   using namespace edm;
   // make vectors to hold the information
+
+  // Cosmics Compatibility
+  auto_ptr<vector<float> > cosmicCompat     ( new vector<float> );
+  auto_ptr<vector<float> > timeCompat       ( new vector<float> );
+  auto_ptr<vector<float> > backToBackCompat ( new vector<float> );
+  auto_ptr<vector<float> > overlapCompat    ( new vector<float> );
+  auto_ptr<vector<float> > vertexCompat     ( new vector<float> );
 
   // Muon Quality
   auto_ptr<vector<bool> > vector_mus_updatedSta          ( new vector<bool> );        
@@ -373,15 +398,39 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(tevMuonsName, "firstHit", trackMapFirstHit);
   iEvent.getByLabel(tevMuonsName, "picky", trackMapPicky);
   
-  for (edm::View<Muon>::const_iterator muon = muon_h->begin(); 
-       muon != muons_end; ++muon) {
-    
+  ////////////////////////// 
+  // Cosmic Compatibility //
+  //////////////////////////
+
+  Handle<reco::MuonCollection> muons;
+  iEvent.getByLabel("muons",muons);
+  Handle<edm::ValueMap<reco::MuonCosmicCompatibility> > CosmicMap;
+  iEvent.getByLabel( src_, CosmicMap );
+  unsigned int muonIndex = 0;
+
+  ///////////
+  // Muons // 
+  ///////////
+  for ( edm::View<Muon>::const_iterator muon = muon_h->begin(); muon != muons_end; ++muon ) {
+
+    //
     const TrackRef siTrack     = muon->innerTrack();
     const TrackRef globalTrack = muon->globalTrack();
     const TrackRef staTrack    = muon->outerTrack();
 
-    // fill vectors
-  
+    //////////////////////////
+    // Cosmic Compatibility //
+    //////////////////////////
+
+    RefToBase<Muon> muonRef = muon_h->refAt(muonIndex); 
+    MuonCosmicCompatibility muonCosmicCompatibility = (*CosmicMap)[muonRef];
+    cosmicCompat    ->push_back( muonCosmicCompatibility.cosmicCompatibility     );
+    timeCompat      ->push_back( muonCosmicCompatibility.timeCompatibility       );
+    backToBackCompat->push_back( muonCosmicCompatibility.backToBackCompatibility );
+    overlapCompat   ->push_back( muonCosmicCompatibility.overlapCompatibility    );
+    vertexCompat    ->push_back( muonCosmicCompatibility.vertexCompatibility     );
+    muonIndex++;
+
     // Muon Quality
     MuonQuality quality = muon->combinedQuality();
     vector_mus_updatedSta         ->push_back( quality.updatedSta );
@@ -647,6 +696,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
+  // Cosmic Compatibility
+  iEvent.put( cosmicCompat    , branchprefix + "cosmicCompat"     );
+  iEvent.put( timeCompat      , branchprefix + "timeCompat"       );
+  iEvent.put( backToBackCompat, branchprefix + "backToBackCompat" );
+  iEvent.put( overlapCompat   , branchprefix + "overlapCompat"    );
+  iEvent.put( vertexCompat    , branchprefix + "vertexCompat"     );
+
   // Muon Quality
   iEvent.put( vector_mus_updatedSta         , branchprefix + "updatedSta" );
   iEvent.put( vector_mus_tightMatch         , branchprefix + "tightMatch" );
@@ -800,16 +856,16 @@ double MuonMaker::muonIsoValuePF(const Muon& mu, const Vertex& vtx, float coner,
       if (siTrack.isNonnull()  && pfTrack.isNonnull() && siTrack.key()==pfTrack.key()) continue;
       //first check electrons with gsf track
       if (abs(pf->pdgId())==11 && pf->gsfTrackRef().isNonnull()) {
-	if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - mudz )<dzcut) {//dz cut
-	  pfciso+=pfpt;
-	}
-	continue;//and avoid double counting
+	      if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - mudz )<dzcut) {//dz cut
+	        pfciso+=pfpt;
+	      }
+	      continue;//and avoid double counting
       }
       //then check anything that has a ctf track
       if (pfTrack.isNonnull()) {//charged (with a ctf track)
-	if(fabs( pfTrack->dz(vtx.position()) - mudz )<dzcut) {//dz cut
-	  pfciso+=pfpt;
-	}
+	      if(fabs( pfTrack->dz(vtx.position()) - mudz )<dzcut) {//dz cut
+	        pfciso+=pfpt;
+	      }
       } 
     }
   } 

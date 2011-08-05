@@ -49,15 +49,18 @@ from CMS2.NtupleMaker.trackToMuonAssMaker_cfi      import *
 from CMS2.NtupleMaker.trkJetMaker_cfi              import *
 from CMS2.NtupleMaker.trkToVtxAssMaker_cfi         import *
 from CMS2.NtupleMaker.vertexMaker_cfi              import *
-from CMS2.NtupleMaker.ecalAnomalousEventMaker_cff  import *
+#from CMS2.NtupleMaker.ecalAnomalousEventMaker_cff  import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS2.NtupleMaker.fastJetSequence_cff          import *
 from CMS2.NtupleMaker.pfJetMaker_cfi import *
 
+from CMS2.NtupleMaker.ecalDRFilterMaker_cff        import *
+from CMS2.NtupleMaker.ecalTPFilterMaker_cff        import *
+from CMS2.NtupleMaker.eeBadRecovMaker_cff          import *
 
 CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco)
                  
-eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID)
+eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID * ecalDRFilterMaker * ecalTPFilterMaker )
                  
 trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
                  

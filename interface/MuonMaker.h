@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.15 2011/05/24 15:56:18 cerati Exp $
+// $Id: MuonMaker.h,v 1.16 2011/08/05 00:24:17 dbarge Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -61,6 +61,10 @@ private:
 
   edm::Handle<reco::PFCandidateCollection> pfCand_h;
   edm::Handle<reco::VertexCollection> vertexHandle;
+
+  // Cosmics Compatibility
+  edm::InputTag src_;
+
 };
 
 
