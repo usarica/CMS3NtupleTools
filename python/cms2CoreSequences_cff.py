@@ -60,7 +60,7 @@ from CMS2.NtupleMaker.eeBadRecovMaker_cff          import *
 
 CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco)
                  
-eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID * ecalDRFilterMaker * ecalTPFilterMaker )
+eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID * ecalDRFilterMaker * ecalTPFilterMaker * eeBadRecovMaker )
                  
 trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
                  
