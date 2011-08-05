@@ -8,14 +8,7 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
-#include "Geometry/CaloTopology/interface/CaloTopology.h"
-#include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
-#include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
-#include "CondFormats/EcalObjects/interface/EcalChannelStatus.h"
-
 
 class EEBadRecovMaker : public edm::EDProducer {
 
@@ -28,11 +21,8 @@ class EEBadRecovMaker : public edm::EDProducer {
   
   void produce(edm::Event&, const edm::EventSetup&);
 
-  edm::InputTag ecalEBRecHitInputTag_;
-  edm::InputTag ecalEERecHitInputTag_;  
-  
-  EcalClusterTools clusterTools_;
-  const CaloTopology *topology_; // topology
+  edm::InputTag eeRHSrc_;
+  double minRecovE_;
 
 };
 
