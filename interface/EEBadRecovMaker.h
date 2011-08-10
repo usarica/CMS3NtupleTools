@@ -23,6 +23,7 @@ class EEBadRecovMaker : public edm::EDProducer {
 
   edm::InputTag eeRHSrc_;
   double minRecovE_;
+  double maxNrRecHits_;
 
 };
 

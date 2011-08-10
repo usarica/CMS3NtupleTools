@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: EEBadRecovMaker.cc,v 1.2 2011/08/05 23:30:50 dbarge Exp $
+// $Id: EEBadRecovMaker.cc,v 1.3 2011/08/10 21:48:22 dbarge Exp $
 
 // C++
 #include <memory>
@@ -19,11 +19,13 @@ using namespace edm;
 EEBadRecovMaker::EEBadRecovMaker(const edm::ParameterSet& iConfig) {
 
   //
-  eeRHSrc_      = iConfig.getParameter<edm::InputTag>("EERecHitSource");
-  minRecovE_ = iConfig.getParameter<double>("MinRecovE");
+  eeRHSrc_      = iConfig.getParameter <edm::InputTag> ("EERecHitSource");
+  minRecovE_    = iConfig.getParameter <double>        ("MinRecovE"     );
+  maxNrRecHits_ = iConfig.getParameter <unsigned int>  ("MaxNrRecHits"  );
 
   //
-  produces<bool> ("ecalnoiseeeBadRecov").setBranchAlias("ecalnoise_eeBadRecov");
+  produces<bool> ("ecalnoiseeeBadRecov") .setBranchAlias("ecalnoise_eeBadRecov" );
+  produces<bool> ("ecalnoiseeeRedRecHits").setBranchAlias("ecalnoise_eeRedRecHits");
 
 }
 
@@ -42,6 +44,11 @@ void EEBadRecovMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   ///////////////////
   // Filter Result //
   ///////////////////
+
+  // # EE Reduced Rec Hits
+  bool eeRedRecHits = ( eeRHs->size() < maxNrRecHits_ );
+
+  // EEBadRecov Filter
   double recovE = 0;
   for (EcalRecHitCollection::const_iterator eerh = eeRHs->begin(); eerh != eeRHs->end(); ++eerh) {
     if (eerh->time()!=0 ||
@@ -70,8 +77,12 @@ void EEBadRecovMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //if(taggingMode_) return true; else return result;
 
   //
-  auto_ptr<bool> ecalnoise_eeBadRecov (new bool(result) );
-  iEvent.put(ecalnoise_eeBadRecov, "ecalnoiseeeBadRecov");
+  auto_ptr <bool> ecalnoise_eeBadRecov   (new bool (result)       );
+  auto_ptr <bool> ecalnoise_eeRedRecHits (new bool (eeRedRecHits) );
+
+  //
+  iEvent.put(ecalnoise_eeBadRecov  , "ecalnoiseeeBadRecov"  );
+  iEvent.put(ecalnoise_eeRedRecHits, "ecalnoiseeeRedRecHits");
 
 }
 
