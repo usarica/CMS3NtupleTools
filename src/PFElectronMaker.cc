@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFElectronMaker.cc,v 1.3 2011/03/30 17:11:31 benhoob Exp $
+// $Id: PFElectronMaker.cc,v 1.4 2011/09/14 17:41:57 slava77 Exp $
 //
 //
 
@@ -120,10 +120,10 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      auto_ptr<vector<float> >	        pfels_isoNeutralHadrons (new vector<float>		);
      auto_ptr<vector<float> >	        pfels_isoPhotons        (new vector<float>		);  
 
-
-     Handle<PFCandidateCollection> pfCandidatesHandle;
+     typedef edm::ValueMap<reco::PFCandidatePtr> PFCandMap;
+     Handle<PFCandMap > pfCandidatesHandle;
      iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
-     const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+     const PFCandMap *pfCandidates  = pfCandidatesHandle.product();
   
      edm::Handle<edm::ValueMap<double> > isocHandle;
      iEvent.getByLabel(isoc_vm_tag_, isocHandle);
@@ -140,36 +140,41 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      edm::Handle<reco::PFCandidateCollection> pfAllElectronsHandle;
      iEvent.getByLabel(pfAllElectrons_tag_, pfAllElectronsHandle);
 
-     for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++)
-     {
-	  int pfflags = 0;
-	  for(unsigned int i = 0; i < 17; i++)
-	  {
-	       if(pf_it->flag((PFCandidate::Flags)i))
-		    pfflags |= (1<<i);
-	  }
-
-	  pfels_p4			->push_back(LorentzVector(pf_it->px(), pf_it->py(), pf_it->pz(), pf_it->p())	);
-	  pfels_posAtEcal_p4		->push_back(LorentzVector(pf_it->positionAtECALEntrance().x(),
+     PFCandMap::const_iterator pf_pit = pfCandidates->begin();
+     unsigned int nC = pf_pit.size();
+     for(unsigned int iC = 0; iC < nC; ++iC)
+       {
+	 const PFCandidatePtr& pf_it = pf_pit[iC];
+	 if (pf_it.isNull() ) continue;
+	 int pfflags = 0;
+	 for(unsigned int i = 0; i < 17; i++)
+	   {
+	     if(pf_it->flag((PFCandidate::Flags)i))
+	       pfflags |= (1<<i);
+	   }
+	 
+	 pfels_p4			->push_back(LorentzVector(pf_it->px(), pf_it->py(), pf_it->pz(), pf_it->p())	);
+	 pfels_posAtEcal_p4		->push_back(LorentzVector(pf_it->positionAtECALEntrance().x(),
 								  pf_it->positionAtECALEntrance().y(),
 								  pf_it->positionAtECALEntrance().z(),
 								  0.0)							);
-	  pfels_ecalE			->push_back( isfinite( pf_it->ecalEnergy() ) ? pf_it->ecalEnergy() : -9999.     );
-	  pfels_hcalE			->push_back(pf_it->hcalEnergy()							);
-	  pfels_rawEcalE		->push_back(pf_it->rawEcalEnergy()						);
-	  pfels_rawHcalE		->push_back(pf_it->rawHcalEnergy()						);
-	  pfels_pS1E			->push_back(pf_it->pS1Energy()							);
-	  pfels_pS2E			->push_back(pf_it->pS2Energy()							);
-	  pfels_deltaP			->push_back(pf_it->deltaP()							);
-	  pfels_mva_epi			->push_back(pf_it->mva_e_pi()							);
-	  pfels_mva_emu			->push_back(pf_it->mva_e_mu()							);
-	  pfels_mva_pimu		->push_back(pf_it->mva_pi_mu()							);
-	  pfels_mva_nothing_gamma	->push_back(pf_it->mva_nothing_gamma()						);
-	  pfels_mva_nothing_nh		->push_back(pf_it->mva_nothing_nh()						);
-	  pfels_charge			->push_back(pf_it->charge()							);
-	  pfels_particleId		->push_back(pf_it->translateTypeToPdgId(pf_it->particleId())			);
-	  pfels_flag			->push_back(pfflags                                                             );    
-     }//loop over candidate collection
+	 pfels_ecalE			->push_back( isfinite( pf_it->ecalEnergy() ) ? pf_it->ecalEnergy() : -9999.     );
+	 pfels_hcalE			->push_back(pf_it->hcalEnergy()							);
+	 pfels_rawEcalE		->push_back(pf_it->rawEcalEnergy()						);
+	 pfels_rawHcalE		->push_back(pf_it->rawHcalEnergy()						);
+	 pfels_pS1E			->push_back(pf_it->pS1Energy()							);
+	 pfels_pS2E			->push_back(pf_it->pS2Energy()							);
+	 pfels_deltaP			->push_back(pf_it->deltaP()							);
+	 pfels_mva_epi			->push_back(pf_it->mva_e_pi()							);
+	 pfels_mva_emu			->push_back(pf_it->mva_e_mu()							);
+	 pfels_mva_pimu		->push_back(pf_it->mva_pi_mu()							);
+	 pfels_mva_nothing_gamma	->push_back(pf_it->mva_nothing_gamma()						);
+	 pfels_mva_nothing_nh		->push_back(pf_it->mva_nothing_nh()						);
+	 pfels_charge			->push_back(pf_it->charge()							);
+	 pfels_particleId		->push_back(pf_it->translateTypeToPdgId(pf_it->particleId())			);
+	 pfels_flag			->push_back(pfflags                                                             );    
+       }//loop over candidate collection
+     
 
      for(unsigned int  pfit = 0; pfit < pfAllElectronsHandle->size(); pfit++)
      {
