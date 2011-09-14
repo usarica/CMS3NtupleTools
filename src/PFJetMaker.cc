@@ -123,8 +123,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     //
     float L2L3JetScale       = correctorL2L3      ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
-    float L1L2L3JetScale     = correctorL1L2L3    ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
-    float L1FastL2L3JetScale = correctorL1FastL2L3->correction( *pfjet_it, jetRef1, iEvent, iSetup );
+    float L1L2L3JetScale     = correctorL1L2L3    ->correction( *pfjet_it,  iEvent, iSetup );
+    float L1FastL2L3JetScale = correctorL1FastL2L3->correction( *pfjet_it,  iEvent, iSetup );
 
     //
     pfjets_cor           ->push_back( L2L3JetScale       );

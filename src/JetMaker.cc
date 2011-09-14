@@ -14,7 +14,7 @@
 //
 // Original Author:  Oliver Gutsche
 // Created:  Tue Jun  9 11:07:38 CDT 2008
-// $Id: JetMaker.cc,v 1.32 2011/03/01 22:05:25 dbarge Exp $
+// $Id: JetMaker.cc,v 1.33 2011/09/14 17:35:35 slava77 Exp $
 //
 //
 
@@ -147,9 +147,9 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::RefToBase<reco::Jet> jetRef1(edm::Ref<View<reco::CaloJet> >(uncorJetsHandle,idx));
 
     
-    double cor			= correctorL2L3->correction(*it,  jetRef1, iEvent, iSetup);
-    double corL1L2L3		= correctorL1L2L3->correction(*it,jetRef1, iEvent, iSetup);
-    double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,jetRef1,iEvent,iSetup);
+    double cor			= correctorL2L3      ->correction(*it,   iEvent, iSetup);
+    double corL1L2L3		= correctorL1L2L3    ->correction(*it,   iEvent, iSetup);
+    double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,   iEvent, iSetup);
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
