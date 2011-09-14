@@ -9,3 +9,4 @@ jptMaker = cms.EDProducer("JPTMaker",
   JPTCorrectorL1L2L3     = cms.string("ak5JPTL1L2L3"),                        
   JPTCorrectorL1FastL2L3 = cms.string("ak5JPTL1FastL2L3")                        
 )
+
