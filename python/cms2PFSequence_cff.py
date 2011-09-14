@@ -14,17 +14,17 @@ from CMS2.NtupleMaker.bTagPFJetMaker_cfi import *
 from CMS2.NtupleMaker.pfCandidateMaker_cfi import *
 from CMS2.NtupleMaker.trkMetSequence_cff   import *
 
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllMuons_cfi import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllElectrons_cfi import *
-from PhysicsTools.PFCandProducer.TopProjectors.pfNoMuon_cfi import *
-from PhysicsTools.PFCandProducer.Isolation.pfIsolatedMuons_cfi import *
-from PhysicsTools.PFCandProducer.pfNoPileUp_cff  import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllNeutralHadrons_cfi  import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllChargedHadrons_cfi import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllPhotons_cfi import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllMuons_cfi import *
-from PhysicsTools.PFCandProducer.ParticleSelectors.pfAllElectrons_cfi import *
-from PhysicsTools.PFCandProducer.pfMuons_cff import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllMuons_cfi import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllElectrons_cfi import *
+from CommonTools.ParticleFlow.TopProjectors.pfNoMuon_cfi import *
+from CommonTools.ParticleFlow.Isolation.pfIsolatedMuons_cfi import *
+from CommonTools.ParticleFlow.pfNoPileUp_cff  import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllNeutralHadrons_cfi  import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllChargedHadrons_cfi import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllPhotons_cfi import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllMuons_cfi import *
+from CommonTools.ParticleFlow.ParticleSelectors.pfAllElectrons_cfi import *
+from CommonTools.ParticleFlow.pfMuons_cff import *
 
 CMS2pfIsolatedMuons = pfIsolatedMuons.clone()
 CMS2pfIsolatedMuons.src = cms.InputTag("pfAllMuons")
