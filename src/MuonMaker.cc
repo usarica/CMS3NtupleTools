@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.46 2011/08/05 00:24:17 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.47 2011/09/14 17:46:14 slava77 Exp $
 //
 //
 
@@ -654,14 +654,14 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //unbiased revertexing, courtesy of B.Mangano
     if (siTrack.isNonnull() && firstGoodVertex!=vertexCollection->end()) {
       reco::Vertex vertexNoB;
-      reco::TrackCollection newTkCollection;
+      reco::TrackRefVector newTkCollection;
       bool foundMatch(false);
       for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
 	bool refMatching = (itk->key() == siTrack.key());
 	if(refMatching){
 	  foundMatch = true;
 	}else{
-	  newTkCollection.push_back(*itk->get());
+	  newTkCollection.push_back(itk->castTo<reco::TrackRef>());
 	}
       }//track collection for vertexNoB is set
       if(!foundMatch) {

@@ -69,3 +69,20 @@ VertexReProducer::makeVertices(const reco::TrackCollection &tracks,
 
   return algo_->vertices(t_tks, bs);
 }
+
+std::vector<TransientVertex> 
+VertexReProducer::makeVertices(const reco::TrackRefVector &tracks, 
+                               const reco::BeamSpot &bs, 
+                               const edm::EventSetup &iSetup) const 
+{
+  edm::ESHandle<TransientTrackBuilder> theB;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theB);
+
+  std::vector<reco::TransientTrack> t_tks; t_tks.reserve(tracks.size());
+  for (reco::TrackRefVector::const_iterator it = tracks.begin(), ed = tracks.end(); it != ed; ++it) {
+    t_tks.push_back((*theB).build(*it));
+    t_tks.back().setBeamSpot(bs);
+  }
+
+  return algo_->vertices(t_tks, bs);
+}
