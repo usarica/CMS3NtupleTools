@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.12 2011/06/27 12:20:01 macneill Exp $
+// $Id: SDFilter.h,v 1.13 2011/09/20 22:03:56 yanjuntu Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -62,6 +62,8 @@ private:
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   void FillnTriggerPaths(const std::vector<std::string>&);
+  bool passedIso(const reco::GsfElectron* el);
+  bool passedIso(const reco::Muon* mu);
    
   // ----------member data ---------------------------
   edm::InputTag elsInputTag;

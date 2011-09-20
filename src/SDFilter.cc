@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.25 2011/06/28 09:27:04 macneill Exp $
+// $Id: SDFilter.cc,v 1.26 2011/09/20 22:03:55 yanjuntu Exp $
 //
 //
 
@@ -157,6 +157,25 @@ void SDFilter::FillnTriggerPaths(const std::vector<std::string>& trigNames) {
   }
   return;
 }
+
+
+bool SDFilter::passedIso(const reco::GsfElectron* el) {
+  float pt               = el->pt();                                                                  // Electron Pt
+  float ecal_sum_over_pt = 0.0;                                                                                       // ECAL Relative Isolation, NT
+  if( fabs(el->superCluster()->eta()) > 1.479  ) ecal_sum_over_pt += el->dr03EcalRecHitSumEt();                       // EE: Ecal Endcap  
+  if( fabs(el->superCluster()->eta()) <= 1.479 ) ecal_sum_over_pt += max( 0.0, ( el->dr03EcalRecHitSumEt() - 1.0 ) ); // EB: Ecal Barrel
+  ecal_sum_over_pt += el->dr03HcalTowerSumEt()+el->dr03TkSumPt();
+  ecal_sum_over_pt /= pt;
+ 
+  return ecal_sum_over_pt <1.0;
+}
+
+bool SDFilter::passedIso(const reco::Muon* mu) {
+  return (mu->isolationR03().sumPt + mu->isolationR03().emEt +
+	  mu->isolationR03().hadEt)/mu->pt()<1.0;
+  
+}
+
 // ------------ method called to produce the data  ------------
 bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
@@ -343,6 +362,24 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		if( mu->pt() > musPt ) return true;
 	}
       
+	for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+	  
+	  double el_pt=el->pt();
+	  
+	  double sc_eta = el->superCluster()->eta();
+	  double sc_energy = el->superCluster()->energy();
+	  double el_sc = sc_energy/cosh(sc_eta);
+	  
+	  if (el_pt > tightptcut  && passedIso(&*el)) return true;
+	  if (el_sc > tightptcut && passedIso(&*el)) return true;
+	  
+	}
+	for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++) {
+	 
+	  double mu_pt = mu->pt();
+	  if (mu_pt > tightptcut && passedIso(&*mu) ) return true;
+	}
+
 
 	for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
 
@@ -444,11 +481,58 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if(triggerResultsH_->accept(nTriggerPaths.at(i)))  
 		return true;
 	}
+	
+	edm::Handle<reco::MuonCollection> mus_h;
+	iEvent.getByLabel(musInputTag, mus_h);
+	
+	edm::Handle<reco::GsfElectronCollection> els_h;
+	iEvent.getByLabel(elsInputTag, els_h);
+	for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+
+	  double el_pt=el->pt();
+	  
+	  double sc_eta = el->superCluster()->eta();
+	  double sc_energy = el->superCluster()->energy();
+	  double el_sc = sc_energy/cosh(sc_eta);
+	  
+	  if (el_pt > tightptcut  && passedIso(&*el)) return true;
+	  if (el_sc > tightptcut && passedIso(&*el)) return true;
+	  
+	}
+	for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++) {
+	 
+	  double mu_pt = mu->pt();
+	  if (mu_pt > tightptcut && passedIso(&*mu) ) return true;
+	}
+	
   }
   else if (filterName== "MuHad"){
 	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {
 	  if(triggerResultsH_->accept(nTriggerPaths.at(i)))  
 		return true;
+	  
+	}
+	edm::Handle<reco::MuonCollection> mus_h;
+	iEvent.getByLabel(musInputTag, mus_h);
+
+	edm::Handle<reco::GsfElectronCollection> els_h;
+	iEvent.getByLabel(elsInputTag, els_h);
+	for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+	  
+	  double el_pt=el->pt();
+	  
+	  double sc_eta = el->superCluster()->eta();
+	  double sc_energy = el->superCluster()->energy();
+	  double el_sc = sc_energy/cosh(sc_eta);
+	  
+	  if (el_pt > tightptcut  && passedIso(&*el)) return true;
+	  if (el_sc > tightptcut && passedIso(&*el)) return true;
+	  
+	}
+	for (reco::MuonCollection::const_iterator mu = mus_h->begin(); mu != mus_h->end(); mu++) {
+	 
+	  double mu_pt = mu->pt();
+	  if (mu_pt > tightptcut && passedIso(&*mu) ) return true;
 	}
   } else if (filterName== "nofilter") {
 	return true;

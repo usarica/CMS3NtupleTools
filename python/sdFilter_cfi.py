@@ -40,7 +40,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_Ele8*",
                             ),
                             ElectronHadTriggerNames_ = cms.untracked.vstring(
-                            "HLT_DoubleEle8*",
+                            "HLT_DoubleEle*",
                             ),
                             MuHadTriggerNames_ = cms.untracked.vstring(
                             "HLT_DoubleMu*",
