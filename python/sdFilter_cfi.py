@@ -44,6 +44,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             ),
                             MuHadTriggerNames_ = cms.untracked.vstring(
                             "HLT_DoubleMu*",
+                            "HLT_Mu3_Ele8*",
                             "HLT_Mu5_Ele8*",
                             ),
                             PhotonTriggerNames_= cms.untracked.vstring(
