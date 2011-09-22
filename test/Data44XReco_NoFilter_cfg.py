@@ -39,8 +39,8 @@ process.source.fileNames = [
     'root://xrootd.unl.edu//store/relval/CMSSW_4_4_0_pre9/SingleMu/RECO/GR_R_44_V4_RelVal_mu2011A-v1/0000/EAFCB646-ACD2-E011-BDA0-002618943905.root'
                             ]
 
-process.out.fileName = '/tas06/disk00/slava77/reltest/CMSSW_4_4_0_pre9-cms2/CMSSW_4_4_0_pre9_SingleMu_GR_R_44_V4_RelVal_mu2011A-ntuple.root'
-process.maxEvents.input = -1
+process.out.fileName = 'ntuple.root'
+process.maxEvents.input = 10
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 #process.Timing =cms.Service("Timing")        
