@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.70 2011/09/14 17:46:14 slava77 Exp $
+// $Id: ElectronMaker.cc,v 1.71 2011/09/28 14:57:34 dlevans Exp $
 //
 //
 
@@ -208,6 +208,8 @@ ElectronMaker::ElectronMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >     ("elsetaErr"                  ).setBranchAlias("els_etaErr"                 );
   produces<vector<float> >     ("elsphiErr"                  ).setBranchAlias("els_phiErr"                 );
   produces<vector<int> >                ("elsgsftrkidx"                         ).setBranchAlias("els_gsftrkidx"                    );
+  produces<vector<float> >           ("elsip3d"           ).setBranchAlias("els_ip3d"             ); // Ip3d from normal vertex
+  produces<vector<float> >           ("elsip3derr"        ).setBranchAlias("els_ip3derr"          ); // Ip3d error from normal vertex
 
   //unbiased ip
   produces<vector<float> >           ("elsubd0"             ).setBranchAlias("els_ubd0"               ); // d0 from unbiased vertex
@@ -424,6 +426,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >		els_etaErr				(new vector<float>		) ;
   auto_ptr<vector<float> >		els_phiErr				(new vector<float>		) ;
   auto_ptr<vector<int>   >		els_gsftrkidx				(new vector<int>                ) ;
+  auto_ptr<vector<float> >      els_ip3d                              (new vector<float>         );
+  auto_ptr<vector<float> >      els_ip3derr                           (new vector<float>         );
 
 
   auto_ptr<vector<float> >	        els_ubd0                                (new vector<float>	       );
@@ -704,7 +708,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     els_z0                    ->push_back( el_track->dz()                            );		
     els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
     els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
-    
+   
     // Lorentz Vectors	
     //
     LorentzVector trk_p4( el_track->px(), el_track->py(), 
@@ -1056,6 +1060,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  els_ubIp3d->push_back(ip3D_2.value());
 	  els_ubIp3derr->push_back(ip3D_2.error());
 	  els_ubz0->push_back( el->gsfTrack()->dz(vertexNoB.position()) );
+
+      // now for the regular vertex
+      Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
+      els_ip3d->push_back(ip3D_regular.value());
+      els_ip3derr->push_back(ip3D_regular.error());
+
 	}
 	else {
 	  els_ubd0			->push_back( -999. );
@@ -1063,7 +1073,12 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  els_ubIp3d		->push_back( -999. );
 	  els_ubIp3derr		->push_back( -999. );
 	  els_ubz0			->push_back( -999. );
+      els_ip3d          ->push_back( -999. );
+      els_ip3derr       ->push_back( -999. );
+
 	}
+
+
   }//electron loop
   
 
@@ -1090,6 +1105,8 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(els_etaErr                  	,"elsetaErr"				);
   iEvent.put(els_phiErr                  	,"elsphiErr"				);
   iEvent.put(els_gsftrkidx                      ,"elsgsftrkidx"                         );
+  iEvent.put(els_ip3d                         , "elsip3d"                           );
+  iEvent.put(els_ip3derr                      , "elsip3derr"                        );
 
   iEvent.put(els_ubd0                           , "elsubd0"                             );
   iEvent.put(els_ubd0err                        , "elsubd0err"                          );
