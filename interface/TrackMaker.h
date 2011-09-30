@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.h,v 1.8 2010/03/03 04:20:36 kalavase Exp $
+// $Id: TrackMaker.h,v 1.9 2011/09/30 21:56:14 slava77 Exp $
 //
 //
 #ifndef CMS2_TRACKMAKER_H
@@ -49,14 +49,15 @@ private:
   // ----------member data ---------------------------
   edm::InputTag tracksInputTag;
   edm::InputTag beamSpotTag;
-
+  edm::InputTag primaryVertexInputTag_;
+  
   float dRConeMin_;
   float dRConeMax_;
   float vtxDiffZMax_;
   float tkVtxDMax_;
   float ptMin_;
   int   nHits_;
-	std::string aliasprefix_;
+  std::string aliasprefix_;
 };
 
 #endif

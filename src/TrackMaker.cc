@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.32 2011/03/11 02:06:21 kalavase Exp $
+// $Id: TrackMaker.cc,v 1.33 2011/09/30 21:56:15 slava77 Exp $
 //
 //
 
@@ -35,6 +35,10 @@
 #include "DataFormats/Math/interface/Point3D.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackExtra.h"
+
+
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 // Propagator specific include files
 #include "TrackingTools/TrajectoryState/interface/TrajectoryStateOnSurface.h"
@@ -118,9 +122,13 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("trksexpinnerlayers"          ).setBranchAlias("trks_exp_innerlayers"        );
   produces<vector<int> >            ("trksexpouterlayers"          ).setBranchAlias("trks_exp_outerlayers"        );   
   produces<vector<float> >           ("trksvalidFraction"           ).setBranchAlias("trks_validFraction"          );
+
+  produces<vector<int> >            ("trkspvidx0"                  ).setBranchAlias("trks_pvidx0"        );
+  produces<vector<int> >            ("trkspvidx1"                  ).setBranchAlias("trks_pvidx1"        );
   
-tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
+  tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+  primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
 
   dRConeMin_   = iConfig.getParameter<double>("trkIsolationdRConeMin"  );
   dRConeMax_   = iConfig.getParameter<double>("trkIsolationdRConeMax"  );
@@ -175,6 +183,10 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<int> > vector_trks_nlayersLost (new vector<int> );
   std::auto_ptr<vector<float> > vector_trks_validFraction (new vector<float> );
 
+  //indeces to the pvs
+  std::auto_ptr<vector<int> > vector_trks_pvidx0    (new vector<int> );
+  std::auto_ptr<vector<int> > vector_trks_pvidx1    (new vector<int> );
+
   // get tracks
   Handle<edm::View<reco::Track> > track_h;
   iEvent.getByLabel(tracksInputTag, track_h);
@@ -206,11 +218,22 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::ESHandle<TrackerGeometry> theG;
   iSetup.get<TrackerDigiGeometryRecord>().get(theG);
   
+  // get the primary vertices
+  edm::Handle<reco::VertexCollection> vertexHandle;
+  try {
+    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+  }
+  catch ( cms::Exception& ex ) {
+    edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
+  }
+  const reco::VertexCollection *vertexCollection = vertexHandle.product();
+
 
   edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
   
+  unsigned int iTIndex=-1;
   for (edm::View<reco::Track>::const_iterator i = track_h->begin(); i != tracks_end; ++i) {
-
+    iTIndex++;
     vector_trks_trk_p4       ->push_back( LorentzVector( i->px(), i->py(), i->pz(), i->p() )       );
     vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)              );
     vector_trks_d0           ->push_back( i->d0()                                                  );
@@ -411,6 +434,41 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
      vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement() );
 
+     int iPV0 = -9999;
+     int iPV1 = -9999;
+     float wPV0 = -1;
+     float wPV1 = -1;
+     int ivIndex = -1;
+     reco::TrackBaseRef trackBaseRef = track_h->refAt(iTIndex);
+     if (trackBaseRef->px() != i->px()){
+       edm::LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref";
+     }
+     //pick and fill the vertex with the highest and the second highest weight for the track
+     for (reco::VertexCollection::const_iterator iV = vertexCollection->begin(); iV!= vertexCollection->end(); ++iV){
+       ivIndex++;
+       for(reco::Vertex::trackRef_iterator iT = iV->tracks_begin(); iT != iV->tracks_end(); ++iT){
+	 const reco::TrackBaseRef& baseRef = *iT;
+	 if (baseRef.key() == trackBaseRef.key()){
+	   float wT = iV->trackWeight(baseRef);
+	   //	   if (baseRef->px() != i->px()){
+	   //	     edm::LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref from vtx";
+	   //	   }
+	   if (wT > wPV0){
+	     wPV1 = wPV0;
+	     iPV1 = iPV0;
+	     wPV0 = wT;
+	     iPV0 = ivIndex;
+	   }
+	   if (wT > wPV1 && wT != wPV0){
+	     wPV1 = wT;
+	     iPV1 = ivIndex;
+	   }
+	 }
+       }
+     }
+     vector_trks_pvidx0->push_back(iPV0);
+     vector_trks_pvidx1->push_back(iPV1);
+
   }
 
   // store vectors
@@ -455,6 +513,9 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(trks_exp_innerlayers , "trksexpinnerlayers" );
   iEvent.put(trks_exp_outerlayers , "trksexpouterlayers" );
   iEvent.put(vector_trks_validFraction, "trksvalidFraction");  
+
+  iEvent.put(vector_trks_pvidx0, "trkspvidx0");
+  iEvent.put(vector_trks_pvidx1, "trkspvidx1");
 }
 
 // ------------ method called once each job just before starting event loop  ------------
