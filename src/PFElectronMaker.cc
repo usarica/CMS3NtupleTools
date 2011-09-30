@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFElectronMaker.cc,v 1.4 2011/09/14 17:41:57 slava77 Exp $
+// $Id: PFElectronMaker.cc,v 1.5 2011/09/30 20:09:50 slava77 Exp $
 //
 //
 
@@ -54,6 +54,9 @@ PFElectronMaker::PFElectronMaker(const edm::ParameterSet& iConfig) {
      isoc_vm_tag_		= iConfig.getParameter<edm::InputTag>	("isoc_vm_tag"		);
      ison_vm_tag_		= iConfig.getParameter<edm::InputTag>	("ison_vm_tag"		);
      isop_vm_tag_		= iConfig.getParameter<edm::InputTag>	("isop_vm_tag"		);
+     isoc04_vm_tag_		= iConfig.getParameter<edm::InputTag>	("isoc04_vm_tag"		);
+     ison04_vm_tag_		= iConfig.getParameter<edm::InputTag>	("ison04_vm_tag"		);
+     isop04_vm_tag_		= iConfig.getParameter<edm::InputTag>	("isop04_vm_tag"		);
      pfAllElectrons_tag_	= iConfig.getParameter<edm::InputTag>	("pfAllElectrons_tag"	);     
 
      produces<vector<LorentzVector>	> ("pfelsp4"                    ).setBranchAlias("pfels_p4"			);
@@ -76,6 +79,9 @@ PFElectronMaker::PFElectronMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float>             > ("pfelsisoChargedHadrons"     ).setBranchAlias("pfels_isoChargedHadrons"      );
      produces<vector<float>             > ("pfelsisoNeutralHadrons"     ).setBranchAlias("pfels_isoNeutralHadrons"      );
      produces<vector<float>             > ("pfelsisoPhotons"            ).setBranchAlias("pfels_isoPhotons"             );
+     produces<vector<float>             > ("pfelsiso04ChargedHadrons"     ).setBranchAlias("pfels_iso04ChargedHadrons"      );
+     produces<vector<float>             > ("pfelsiso04NeutralHadrons"     ).setBranchAlias("pfels_iso04NeutralHadrons"      );
+     produces<vector<float>             > ("pfelsiso04Photons"            ).setBranchAlias("pfels_iso04Photons"             );
 }
 
 PFElectronMaker::~PFElectronMaker() {
@@ -119,6 +125,9 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      auto_ptr<vector<float> >	        pfels_isoChargedHadrons (new vector<float>		);
      auto_ptr<vector<float> >	        pfels_isoNeutralHadrons (new vector<float>		);
      auto_ptr<vector<float> >	        pfels_isoPhotons        (new vector<float>		);  
+     auto_ptr<vector<float> >	        pfels_iso04ChargedHadrons (new vector<float>		);
+     auto_ptr<vector<float> >	        pfels_iso04NeutralHadrons (new vector<float>		);
+     auto_ptr<vector<float> >	        pfels_iso04Photons        (new vector<float>		);  
 
      typedef edm::ValueMap<reco::PFCandidatePtr> PFCandMap;
      Handle<PFCandMap > pfCandidatesHandle;
@@ -136,6 +145,18 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      edm::Handle<edm::ValueMap<double> > isopHandle;
      iEvent.getByLabel(isop_vm_tag_, isopHandle);
      edm::ValueMap<double> isop_data = *isopHandle;
+
+     edm::Handle<edm::ValueMap<double> > isoc04Handle;
+     iEvent.getByLabel(isoc04_vm_tag_, isoc04Handle);
+     edm::ValueMap<double> isoc04_data = *isoc04Handle;
+
+     edm::Handle<edm::ValueMap<double> > ison04Handle;
+     iEvent.getByLabel(ison04_vm_tag_, ison04Handle);
+     edm::ValueMap<double> ison04_data = *ison04Handle;
+
+     edm::Handle<edm::ValueMap<double> > isop04Handle;
+     iEvent.getByLabel(isop04_vm_tag_, isop04Handle);
+     edm::ValueMap<double> isop04_data = *isop04Handle;
 
      edm::Handle<reco::PFCandidateCollection> pfAllElectronsHandle;
      iEvent.getByLabel(pfAllElectrons_tag_, pfAllElectronsHandle);
@@ -186,6 +207,14 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  pfels_isoChargedHadrons	->push_back(isoc);
 	  pfels_isoNeutralHadrons	->push_back(ison);
 	  pfels_isoPhotons		->push_back(isop);
+
+	  float isoc04 = (isoc04_data)[pfref];
+	  float ison04 = (ison04_data)[pfref];
+	  float isop04 = (isop04_data)[pfref];
+
+	  pfels_iso04ChargedHadrons	->push_back(isoc04);
+	  pfels_iso04NeutralHadrons	->push_back(ison04);
+	  pfels_iso04Photons		->push_back(isop04);
      }
 
      iEvent.put(pfels_p4,			"pfelsp4"		);
@@ -208,6 +237,9 @@ void PFElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      iEvent.put(pfels_isoChargedHadrons,        "pfelsisoChargedHadrons");
      iEvent.put(pfels_isoNeutralHadrons,        "pfelsisoNeutralHadrons");
      iEvent.put(pfels_isoPhotons,               "pfelsisoPhotons"       );
+     iEvent.put(pfels_iso04ChargedHadrons,      "pfelsiso04ChargedHadrons");
+     iEvent.put(pfels_iso04NeutralHadrons,      "pfelsiso04NeutralHadrons");
+     iEvent.put(pfels_iso04Photons,             "pfelsiso04Photons"       );
 }
 
 //define this as a plug-in

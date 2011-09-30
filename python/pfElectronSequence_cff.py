@@ -28,6 +28,17 @@ CMS2isoValElectronWithNeutral.deposits[0].deltaR = cms.double(0.3)
 CMS2isoValElectronWithPhotons = isoValElectronWithPhotons.clone()
 CMS2isoValElectronWithPhotons.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithPhotons")
 CMS2isoValElectronWithPhotons.deposits[0].deltaR = cms.double(0.3)
+# same, with cone 0.4
+CMS2isoValElectronWithCharged04 = isoValElectronWithCharged.clone()
+CMS2isoValElectronWithCharged04.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithCharged")
+CMS2isoValElectronWithCharged04.deposits[0].deltaR = cms.double(0.4)
+CMS2isoValElectronWithNeutral04 = isoValElectronWithNeutral.clone()
+CMS2isoValElectronWithNeutral04.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithNeutral")
+CMS2isoValElectronWithNeutral04.deposits[0].deltaR = cms.double(0.4)
+CMS2isoValElectronWithPhotons04 = isoValElectronWithPhotons.clone()
+CMS2isoValElectronWithPhotons04.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithPhotons")
+CMS2isoValElectronWithPhotons04.deposits[0].deltaR = cms.double(0.4)
+
 #CMS2isoValElectronWithElectrons = isoValElectronWithCharged.clone()
 #CMS2isoValElectronWithElectrons.deposits[0].src = cms.InputTag("CMS2isoDepElectronWithElectrons")
 #CMS2isoValElectronWithMuons = isoValElectronWithCharged.clone()
@@ -35,7 +46,11 @@ CMS2isoValElectronWithPhotons.deposits[0].deltaR = cms.double(0.3)
 
 CMS2pfElectronIsolationFromDepositsSequence = cms.Sequence(CMS2isoValElectronWithCharged
                                                            + CMS2isoValElectronWithNeutral
-                                                           + CMS2isoValElectronWithPhotons)
+                                                           + CMS2isoValElectronWithPhotons
+                                                           + CMS2isoValElectronWithCharged04
+                                                           + CMS2isoValElectronWithNeutral04
+                                                           + CMS2isoValElectronWithPhotons04
+                                                           )
 #                                                           + CMS2isoValElectronWithElectrons
 #                                                           + CMS2isoValElectronWithMuons)
 

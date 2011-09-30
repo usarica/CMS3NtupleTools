@@ -45,6 +45,9 @@ private:
      edm::InputTag isoc_vm_tag_;
      edm::InputTag ison_vm_tag_;
      edm::InputTag isop_vm_tag_;
+     edm::InputTag isoc04_vm_tag_;
+     edm::InputTag ison04_vm_tag_;
+     edm::InputTag isop04_vm_tag_;
      edm::InputTag pfAllElectrons_tag_;  
 };
 
