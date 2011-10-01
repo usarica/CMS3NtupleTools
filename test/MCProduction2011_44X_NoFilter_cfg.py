@@ -1,5 +1,6 @@
 from CMS2.NtupleMaker.RecoConfiguration2011_44X_cfg import *
 
+
 # Global Tag
 process.GlobalTag.globaltag = "MC_44_V4::All"
 
@@ -28,7 +29,10 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(5.0)
 process.hypTrilepMaker.TightLepton_PtCut = cms.double(5.0)
 process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
 
-#
+#removes luminosityMaker from MC config since this info not stored in MC anymore.
+from CMS2.NtupleMaker.luminosityMaker_cfi import *
+process.makers.remove(luminosityMaker)
+
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
 
