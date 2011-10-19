@@ -43,7 +43,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_DoubleEle*",
                             ),
                             MuHadTriggerNames_ = cms.untracked.vstring(
-                            #"HLT_DoubleMu*",
+                            "HLT*DoubleMu*",
                             #"HLT_Mu3_Ele8*",
                             #"HLT_Mu5_Ele8*",
                             "HLT*Mu*Ele*HT*",
