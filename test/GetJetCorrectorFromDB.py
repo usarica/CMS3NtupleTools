@@ -23,13 +23,13 @@ process.maxEvents = cms.untracked.PSet(
 # Global Tag
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 # process.GlobalTag.globaltag = "START41_V0::All"
-process.GlobalTag.globaltag = "START311_V2::All"
+process.GlobalTag.globaltag = "GR_R_42_V19::All"
 
 # jet correction extractor
 process.readAK5PF = cms.EDAnalyzer('JetCorrectorDBReader',
                                    payloadName    = cms.untracked.string('AK5PF'),
                                    printScreen    = cms.untracked.bool(False),
                                    createTextFile = cms.untracked.bool(True),
-                                   globalTag      = cms.untracked.string('Spring10') # voodoo parameter
+                                   globalTag      = cms.untracked.string('GR_R_42_V19') # voodoo parameter
                                    )
 process.p = cms.Path( process.readAK5PF )

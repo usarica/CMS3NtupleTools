@@ -12,8 +12,9 @@ process.eventMaker.isData                        = cms.bool(True)
 
 # Load Filters
 process.load("CMS2.NtupleMaker.wwfilter_cfi")
-process.CMS2_Ele10Mu10_IsoIdMET = cms.Path( process.ele10mu10IsoIdMET * process.cms2WithEverything )
-process.CMS2_Ele10Mu10_IsoId    = cms.Path( process.ele10mu10IsoId    * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_IsoIdMET  = cms.Path( process.ele10mu10IsoIdMET * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_IsoId     = cms.Path( process.ele10mu10IsoId    * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_IsoIdPt25 = cms.Path( process.ele10mu10IsoIdPt25 * process.cms2WithEverything )
 process.load("CMS2.NtupleMaker.zzfilter_cfi")
 process.CMS2_4L = cms.Path( process.fourLeptons    * process.cms2WithEverything )
 
@@ -22,6 +23,7 @@ process.out = cms.OutputModule(
         "PoolOutputModule",
         SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('CMS2_Ele10Mu10_IsoIdMET',
                                                                       'CMS2_Ele10Mu10_IsoId',
+                                                                      'CMS2_Ele10Mu10_IsoIdPt25',
                                                                       'CMS2_4L') ),
         fileName     = cms.untracked.string('ntuple.root'),
 )

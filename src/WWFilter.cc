@@ -33,6 +33,7 @@ private:
   double minMuPt_;
   double minElePt_;
   double minMET_;
+  double minDiLepPt_;
   double minMass_;
   bool applyEleId_;
   bool applyEleIso_;
@@ -76,6 +77,7 @@ WWFilter::WWFilter(const edm::ParameterSet& iConfig):
   minMuPt_        ( iConfig.getParameter<double>("minMuPt") ),
   minElePt_       ( iConfig.getParameter<double>("minElePt") ),
   minMET_         ( iConfig.getParameter<double>("minMET") ),
+  minDiLepPt_     ( iConfig.getParameter<double>("minDiLepPt") ),
   minMass_        ( iConfig.getParameter<double>("minMass") ),
   applyEleId_     ( iConfig.getParameter<bool>("applyEleId") ),
   applyEleIso_    ( iConfig.getParameter<bool>("applyEleIso") ),
@@ -165,6 +167,22 @@ WWFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
       return false;
     }
   }
+  if ( minDiLepPt_ > 0 ) {
+    bool passedPt = false;
+    for (unsigned int i=0; i < cands.size()-1; ++i)
+      for (unsigned int j=i+1; j < cands.size(); ++j){
+	if ((cands.at(i)->p4()+cands.at(j)->p4()).mass2() <= 0 ) continue;
+	if ((cands.at(i)->p4()+cands.at(j)->p4()).pt() < minDiLepPt_ ) continue;
+	passedPt = true;
+      }
+    if (!passedPt){
+      iEvent.put(filter_prescale, "prescale");
+      iEvent.put(filter_passed,   "passed");
+      iEvent.put(filter_run,      "run");
+      return false;
+    }
+  }
+    
   *filter_passed = true;
   iEvent.put(filter_prescale, "prescale");
   iEvent.put(filter_passed,   "passed");
