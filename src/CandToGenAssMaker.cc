@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.19 2010/05/31 23:05:33 kalavase Exp $
+// $Id: CandToGenAssMaker.cc,v 1.20 2012/01/09 05:11:52 fgolf Exp $
 //
 //
 
@@ -600,7 +600,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       vector_pfjets_mc_gpidx  	->push_back(-9999			);
       vector_pfjets_mc_gp_p4  	->push_back(LorentzVector(0,0,0,0)	);
       vector_pfjets_mc_id  	->push_back(-9999			);
-      
+      vector_pfjets_mc_motherid ->push_back(-9999);
+      vector_pfjets_mc_motherp4 ->push_back(LorentzVector(0,0,0,0));
     }
 
     const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*pfjetsp4_it, 
