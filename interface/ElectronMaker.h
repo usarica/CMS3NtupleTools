@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.20 2011/06/13 13:08:02 dlevans Exp $
+// $Id: ElectronMaker.h,v 1.21 2012/02/02 00:39:08 cerati Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -68,7 +68,7 @@ private:
   virtual void endJob() ;
 
   double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
-			    float footprintdr, float gammastripveto, float elestripveto);
+			    float footprintdr, float gammastripveto, float elestripveto, int filterId);
   
   int classify(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
