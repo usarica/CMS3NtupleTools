@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.49 2012/02/02 00:39:08 cerati Exp $
+// $Id: MuonMaker.cc,v 1.50 2012/03/08 09:18:22 cerati Exp $
 //
 //
 
@@ -869,6 +869,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(vector_mus_pid_TM2DCompatibilityLoose	, branchprefix+"pidTM2DCompatibilityLoose" );
   iEvent.put(vector_mus_pid_TM2DCompatibilityTight	, branchprefix+"pidTM2DCompatibilityTight" );
   iEvent.put(vector_mus_caloCompatibility               , branchprefix+"caloCompatibility"         );
+  iEvent.put(vector_mus_segmCompatibility               , branchprefix+"segmCompatibility"         );
   iEvent.put(vector_mus_nOverlaps                       , branchprefix+"nOverlaps"                 );
   iEvent.put(vector_mus_overlap0                        , branchprefix+"overlap0"                 );
   iEvent.put(vector_mus_overlap1                        , branchprefix+"overlap1"                 );
