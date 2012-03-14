@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: L1Maker.h,v 1.9 2010/04/28 21:25:08 kalavase Exp $
+// $Id: L1Maker.h,v 1.10 2012/03/14 02:57:58 dbarge Exp $
 //
 //
 #ifndef NTUPLEMAKER_L1DIGIMAKER_H
@@ -43,22 +43,16 @@ public:
   ~L1Maker() {}
 
 private:
+
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() {}
-
-  void fillL1Info(
-		  unsigned int&, unsigned int&, unsigned int&, unsigned int&,
-		  std::vector<TString>&,std::vector<unsigned int>&,
-		  const L1GtTriggerMenu* menu, const DecisionWord &dWord,
-		  const edm::Event&);
-  void fillL1TechnicalInfo(unsigned int&, unsigned int&, 
-			   std::vector<TString>&, std::vector<unsigned int>&,
-			   const L1GtTriggerMenu*, const DecisionWord&,
-			   const edm::Event&);
+  void fillL1Info( unsigned int&, unsigned int&, unsigned int&, unsigned int&, std::vector<TString>&,std::vector<unsigned int>&, const L1GtTriggerMenu* menu, const DecisionWord &dWord, const edm::Event&);
+  void fillL1TechnicalInfo(unsigned int&, unsigned int&, std::vector<TString>&, std::vector<unsigned int>&, const L1GtTriggerMenu*, const DecisionWord&, const edm::Event&);
 
   bool fillL1Particles_;
   std::string l1ParticlesProcessName_;
   std::string aliasprefix_;
+  std::string branchprefix_;
   edm::InputTag l1GlobalTriggerReadoutRecordInputTag_;
   edm::InputTag l1extraParticlesInputTag_;
   L1GtUtils m_l1GtUtils_;
