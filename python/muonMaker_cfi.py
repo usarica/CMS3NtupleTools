@@ -6,7 +6,7 @@ muonMaker = cms.EDProducer("MuonMaker",
   muonsInputTag    = cms.InputTag("muons"        ),                         
   beamSpotInputTag = cms.InputTag("beamSpotMaker"),
   pfCandsInputTag  = cms.InputTag("particleFlow"),
-  vtxInputTag      = cms.InputTag("offlinePrimaryVertices"),
+  vtxInputTag      = cms.InputTag("offlinePrimaryVerticesDA"),
   tevMuonsName     = cms.string("tevMuons"),
   src              = cms.InputTag("muons", "cosmicsVeto"),
 

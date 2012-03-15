@@ -13,13 +13,14 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: RandomConeIsoMaker.cc,v 1.7 2011/04/28 00:59:56 dbarge Exp $
+// $Id: RandomConeIsoMaker.cc,v 1.8 2012/03/15 22:01:37 dbarge Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <utility>
 
 // user include files
 #include "FWCore/Framework/interface/Event.h"
@@ -287,7 +288,7 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   const CaloTowerCollection* towers = towerHandle.product();
   std::map<DetId, CaloTower> towersMap;
   for (size_t i = 0; i < towers->size(); ++i) {
-    towersMap.insert(std::make_pair<DetId, CaloTower>((*towers)[i].id(), (*towers)[i]));
+    towersMap.insert(std::make_pair((*towers)[i].id(), (*towers)[i]));
   }
   
   edm::Handle<EESrFlagCollection> srHandleEE;
@@ -298,7 +299,7 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   if (iEvent.getByLabel(srProducerEE_, srHandleEE)) {
     srFlagCollectionEE = srHandleEE.product();
     for (size_t i = 0; i < srFlagCollectionEE->size(); ++i) {
-      eeSrMap.insert(std::make_pair<EcalScDetId, int>((*srFlagCollectionEE)[i].id(), (*srFlagCollectionEE)[i].value()));
+      eeSrMap.insert(std::make_pair((*srFlagCollectionEE)[i].id(), (*srFlagCollectionEE)[i].value()));
     }
   }
   
@@ -310,7 +311,7 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   if (iEvent.getByLabel(srProducerEB_, srHandleEB)) {
     srFlagCollectionEB = srHandleEB.product();
     for (size_t i = 0; i < srFlagCollectionEB->size(); ++i) {
-      ebSrMap.insert(std::make_pair<EcalTrigTowerDetId, int>((*srFlagCollectionEB)[i].id(), (*srFlagCollectionEB)[i].value()));
+      ebSrMap.insert(std::make_pair((*srFlagCollectionEB)[i].id(), (*srFlagCollectionEB)[i].value()));
     }
   }
   
@@ -381,10 +382,10 @@ void RandomConeIsoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   double eta_eb = signedRnd(jamesRandom_->flat(), 0.0, 1.5);
   double phi = signedRnd(jamesRandom_->flat(), 0.0, 1.0) * M_PI;
   double eta_ee = signedRnd(jamesRandom_->flat(), 1.5, 3.0);
-  randomDirections.push_back(std::make_pair<double, double>(eta_eb, phi));
-  randomDirections.push_back(std::make_pair<double, double>(-1*eta_eb, phi));
-  randomDirections.push_back(std::make_pair<double, double>(eta_ee, phi));
-  randomDirections.push_back(std::make_pair<double, double>(-1*eta_ee, phi));
+  randomDirections.push_back(std::make_pair(eta_eb, phi));
+  randomDirections.push_back(std::make_pair(-1*eta_eb, phi));
+  randomDirections.push_back(std::make_pair(eta_ee, phi));
+  randomDirections.push_back(std::make_pair(-1*eta_ee, phi));
 
   for (size_t d = 0; d < randomDirections.size(); ++d)
     {

@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.50 2012/03/08 09:18:22 cerati Exp $
+// $Id: MuonMaker.cc,v 1.51 2012/03/15 22:00:28 dbarge Exp $
 //
 //
 
@@ -674,7 +674,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       
       TrackRef fittmpref;
 
-      fittmpref = muon::tevOptimized(*muon, *trackMapDefault, *trackMapFirstHit, *trackMapPicky);
+      fittmpref = muon::tevOptimized(*muon, *trackMapDefault, *trackMapFirstHit, *trackMapPicky).first;
 
       if( fittmpref.isAvailable() )
 	vector_mus_fittev_p4->push_back( LorentzVector( fittmpref->px(), fittmpref->py(), fittmpref->pz(), fittmpref->p() ) );

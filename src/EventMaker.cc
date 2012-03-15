@@ -13,10 +13,9 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: EventMaker.cc,v 1.32 2010/08/11 19:11:21 fgolf Exp $
+// $Id: EventMaker.cc,v 1.33 2012/03/15 22:02:28 dbarge Exp $
 //
 //
-
 
 // system include files
 #include <memory>
@@ -60,19 +59,17 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
      produces<int>                 (branchprefix+"storeNumber"    ).setBranchAlias(aliasprefix_+"_storeNumber"   );
      produces<int>                 (branchprefix+"experimentType" ).setBranchAlias(aliasprefix_+"_experimentType");
      produces<unsigned long long>  (branchprefix+"timestamp"      ).setBranchAlias(aliasprefix_+"_timestamp"     );
-     produces<TString>             (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
-     produces<TString>             (branchprefix+"CMS2tag"        ).setBranchAlias(aliasprefix_+"_CMS2tag"       );
+     produces< vector< TString > > (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
+     produces< vector< TString > > (branchprefix+"CMS2tag"        ).setBranchAlias(aliasprefix_+"_CMS2tag"       );
      produces<float>               (branchprefix+"bField"         ).setBranchAlias(aliasprefix_+"_bField"        );
      produces<unsigned int>        (branchprefix+"detectorStatus" ).setBranchAlias(aliasprefix_+"_detectorStatus");
      produces<int>                 (branchprefix+"isRealData"     ).setBranchAlias(aliasprefix_+"_isRealData"    );
-
-
   
      datasetName_ = iConfig.getParameter<std::string>("datasetName");
      CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
 
      dcsTag_ = iConfig.getParameter<edm::InputTag>("dcsTag");
-     isData_ = iConfig.getParameter<bool>("isData");
+     isData_ = iConfig.getParameter<bool>("isData") ;
 }
 
 
@@ -95,8 +92,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<int>                  evt_storeNumber     (new int                       );
      auto_ptr<int>                  evt_experimentType  (new int                       );
      auto_ptr<unsigned long long>   evt_timestamp       (new unsigned long long        );
-     auto_ptr<TString>              evt_dataset         (new TString(datasetName_.c_str()));
-     auto_ptr<TString>              evt_CMS2tag         (new TString(CMS2tag_.c_str()) );
+     auto_ptr<vector<TString>>      evt_dataset         (new vector<TString>           );
+     auto_ptr<vector<TString>>      evt_CMS2tag         (new vector<TString>           );
      auto_ptr<float>                evt_bField          (new float                     );
      auto_ptr<unsigned int>         evt_detectorStatus  (new unsigned int              );
      auto_ptr<int>                  evt_isRealData      (new int                       );
@@ -111,7 +108,8 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      *evt_timestamp                 = iEvent.eventAuxiliary().time().value();
      *evt_isRealData                = iEvent.isRealData();
 
-  
+     evt_dataset->push_back( TString( datasetName_.c_str() ) );
+     evt_CMS2tag->push_back( TString( CMS2tag_    .c_str() ) );
   
      edm::Handle<DcsStatusCollection> dcsHandle;
      iEvent.getByLabel(dcsTag_, dcsHandle);

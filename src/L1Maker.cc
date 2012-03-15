@@ -157,12 +157,10 @@ void L1Maker::produce( edm::Event& iEvent, const edm::EventSetup& iSetup ) {
   //retrieve and cache the L1 trigger event setup
   m_l1GtUtils_.retrieveL1EventSetup(iSetup);
 
-  /*
   //
   bool useL1EventSetup = true;
   bool useL1GtTriggerMenuLite = false;
   m_l1GtUtils_.getL1GtRunCache(iEvent, iSetup, useL1EventSetup, useL1GtTriggerMenuLite);
-  */
 
   //
   unsigned int l11, l12, l13, l14;

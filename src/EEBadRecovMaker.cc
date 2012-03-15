@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: EEBadRecovMaker.cc,v 1.4 2011/09/22 23:27:13 dbarge Exp $
+// $Id: EEBadRecovMaker.cc,v 1.5 2012/03/15 22:02:08 dbarge Exp $
 
 // C++
 #include <memory>
@@ -12,7 +12,10 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHit.h"
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
-#include "DataFormats/AnomalousEcalDataFormats/interface/AnomalousECALVariables.h"
+
+//#include "DataFormats/AnomalousEcalDataFormats/interface/AnomalousECALVariables.h"
+#include "DataFormats/METReco/interface/AnomalousECALVariables.h"
+
 
 using namespace std;
 using namespace edm;
