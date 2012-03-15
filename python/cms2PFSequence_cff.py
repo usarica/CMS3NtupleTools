@@ -38,6 +38,10 @@ CMS2pfNoMuon.topCollection = cms.InputTag("CMS2pfIsolatedMuons")
 CMS2pfAllElectrons = pfAllElectrons.clone()
 CMS2pfAllElectrons.src = cms.InputTag("CMS2pfNoMuon")
 
-cms2PFSequence = cms.Sequence(pfJetMaker + pfmetMaker + pftauMaker + CMS2PFBtagging + bTagPFJetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + CMS2pfElectronIsolationSequence + pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker + pfCandidateMaker + trkMetSequence )
+cms2PFSequence = cms.Sequence(pfJetMaker + pfmetMaker + pftauMaker + CMS2PFBtagging + bTagPFJetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + 
+#CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + 
+CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + pfMuToMuAssMaker + muToPFMuAssMaker + CMS2pfElectronIsolationSequence + pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker + pfCandidateMaker + trkMetSequence)
 
-cms2PFNoTauSequence = cms.Sequence(pfJetMaker + pfmetMaker + CMS2PFBtagging + bTagPFJetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + pfMuToMuAssMaker + muToPFMuAssMaker + CMS2pfElectronIsolationSequence + pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker + pfCandidateMaker + trkMetSequence)
+cms2PFNoTauSequence = cms.Sequence(pfJetMaker + pfmetMaker + CMS2PFBtagging + bTagPFJetMaker + pfNoPileUpSequence + pfAllNeutralHadrons + pfAllChargedHadrons + pfAllPhotons + pfAllMuons + 
+#CMS2pfMuonIsolationSequence + CMS2pfIsolatedMuons + 
+CMS2pfNoMuon + CMS2pfAllElectrons + pfMuonMaker + pfMuToMuAssMaker + muToPFMuAssMaker + CMS2pfElectronIsolationSequence + pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker + pfCandidateMaker + trkMetSequence)
