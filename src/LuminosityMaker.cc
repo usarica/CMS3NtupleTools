@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.cc,v 1.1 2011/01/26 01:33:14 fgolf Exp $
+// $Id: LuminosityMaker.cc,v 1.2 2012/03/15 23:07:25 dbarge Exp $
 //
 //
 
@@ -61,14 +61,9 @@ LuminosityMaker::LuminosityMaker(const edm::ParameterSet& iConfig) {
 	 lumiSummaryInputTag_ = iConfig.getParameter<edm::InputTag>("lumiSummaryInputTag");
 }
 
-
-LuminosityMaker::~LuminosityMaker() {}
-
-void LuminosityMaker::beginJob() {  
-}
-
-void LuminosityMaker::endJob() {
-}
+LuminosityMaker::~LuminosityMaker(){}
+void LuminosityMaker::beginJob(){}
+void LuminosityMaker::endJob(){}
 
 // ------------ method called to produce the data  ------------
 void LuminosityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -87,40 +82,47 @@ void LuminosityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      std::auto_ptr<unsigned int>	ls_startOrbit				(new unsigned int);
      std::auto_ptr<unsigned int>	ls_numOrbit					(new unsigned int);
 
+    
+  //
      LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
-	 edm::Handle<LumiSummary> lumiSummary_h;
-	 lumiBlock.getByLabel(lumiSummaryInputTag_, lumiSummary_h);
+	   edm::Handle<LumiSummary> lumiSummary_h;
+	   lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
 
+
+	   //lumiSummary_h->isValid();
+
+/*
 	 if (lumiSummary_h->isValid()) {
-		  *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
-		  *ls_isValid             = lumiSummary_h->isValid()          ;
-		  *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
-		  *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
-		  *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
-		  *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
-		  *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
-		  *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
-		  *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
-		  *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
-		  *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
-		  *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
-		  *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
+//		  *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
+//		  *ls_isValid             = lumiSummary_h->isValid()          ;
+//		  *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
+//		  *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
+//		  *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
+//		  *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
+//		  *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
+//		  *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
+//		  *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
+//		  *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
+//		  *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
+//		  *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
+//		  *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
 	 }
 	 else {
-		  *ls_isValid             = false;
-		  *ls_lumiSecQual         = -1;
-		  *ls_avgInsDelLumi       = -1;
-		  *ls_avgInsDelLumiErr    = -1;
-		  *ls_intgDelLumi         = -1;
-		  *ls_deadFrac            = -1;
-		  *ls_lumiSectionLength   = -1;
-		  *ls_avgInsRecLumi       = -1;
-		  *ls_avgInsRecLumiErr    = -1;
-		  *ls_intgRecLumi         = -1;
-		  *ls_lsNumber            = 0;
-		  *ls_startOrbit          = 0;
-		  *ls_numOrbit            = 0;
+//		  *ls_isValid             = false;
+//		  *ls_lumiSecQual         = -1;
+//		  *ls_avgInsDelLumi       = -1;
+//		  *ls_avgInsDelLumiErr    = -1;
+//		  *ls_intgDelLumi         = -1;
+//		  *ls_deadFrac            = -1;
+//		  *ls_lumiSectionLength   = -1;
+//		  *ls_avgInsRecLumi       = -1;
+//		  *ls_avgInsRecLumiErr    = -1;
+//		  *ls_intgRecLumi         = -1;
+//		  *ls_lsNumber            = 0;
+//		  *ls_startOrbit          = 0;
+//		  *ls_numOrbit            = 0;
 	 }
+*/
 
 	 std::string branchprefix = aliasprefix_;
 	 if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
