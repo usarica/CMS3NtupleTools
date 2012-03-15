@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.1 $'),
+        version    = cms.untracked.string('$Revision: 1.2 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -31,21 +31,17 @@ process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
-#
 process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
 process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
-#
-#process.ak5CaloL1Offset.useCondDB   = False
-#process.ak5CaloL1Fastjet.useCondDB  = False
-#
-#process.ak5JPTL1Offset.useCondDB    = False
-#process.ak5JPTL1Fastjet.useCondDB   = False
-#
-#process.ak5PFL1Offset.useCondDB     = False
-#process.ak5PFL1Fastjet.useCondDB    = False
 
 
+#undo what's pulled in by including Reconstruction_cff
+#it relies on transient steps introduced in PF in 44X (back-fill)
+process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
+process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlow") 
+
+#
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 # Input
