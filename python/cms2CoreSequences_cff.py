@@ -41,7 +41,6 @@ from CMS2.NtupleMaker.recoErrorLogMaker_cfi        import *
 from CMS2.NtupleMaker.recoConversionMaker_cfi      import *
 from CMS2.NtupleMaker.scMaker_cfi                  import *
 from CMS2.NtupleMaker.secVertexMaker_cfi           import *
-#from CMS2.NtupleMaker.tcmetMaker_cfi               import *
 from CMS2.NtupleMaker.tcmetSequence_cff            import *
 from CMS2.NtupleMaker.trackMaker_cfi               import *
 from CMS2.NtupleMaker.trackToElsAssMaker_cfi       import *
@@ -49,29 +48,19 @@ from CMS2.NtupleMaker.trackToMuonAssMaker_cfi      import *
 from CMS2.NtupleMaker.trkJetMaker_cfi              import *
 from CMS2.NtupleMaker.trkToVtxAssMaker_cfi         import *
 from CMS2.NtupleMaker.vertexMaker_cfi              import *
-#from CMS2.NtupleMaker.ecalAnomalousEventMaker_cff  import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS2.NtupleMaker.fastJetSequence_cff          import *
-from CMS2.NtupleMaker.pfJetMaker_cfi import *
-
+from CMS2.NtupleMaker.pfJetMaker_cfi               import *
 from CMS2.NtupleMaker.ecalDRFilterMaker_cff        import *
 from CMS2.NtupleMaker.ecalTPFilterMaker_cff        import *
 from CMS2.NtupleMaker.eeBadRecovMaker_cff          import *
 
-CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco)
-                 
-eventmakers      = cms.Sequence(beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID * ecalDRFilterMaker * ecalTPFilterMaker * eeBadRecovMaker )
-                 
-trigmakers       = cms.Sequence(l1Maker * hltMakerSequence)
-                 
-makers           = cms.Sequence(trackMaker * gsfTrackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * fastJetSequence )
-#makers           = cms.Sequence(trackMaker * gsfTrackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker * jptMaker * pfJetMaker * metMaker * tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * fastJetSequence )
-                 
-assmakers        = cms.Sequence(jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker) 
-                 
-hypmakers        = cms.Sequence(hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker)# * hypIsoMaker)
-                 
-othermakers      = cms.Sequence(elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker)
-
-cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers)
-#cms2CoreSequence = cms.Sequence(CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers * ecalAnomalousEventFilterSequence )
+CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco )
+eventmakers      = cms.Sequence( beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID )
+trigmakers       = cms.Sequence( l1Maker * hltMakerSequence )
+makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * 
+                                 tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * fastJetSequence )
+assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker ) 
+hypmakers        = cms.Sequence( hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker )
+othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker )
+cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers )
