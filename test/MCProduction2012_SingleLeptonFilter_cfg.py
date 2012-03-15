@@ -1,20 +1,16 @@
-from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "MC_311_V2::All"
+process.GlobalTag.globaltag = "START52_V4A::All"
 
 # Load Filters
 process.load('CMS2.NtupleMaker.aSkimFilter_cfi')
 process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')
-process.load("CMS2.NtupleMaker.sdFilter_cfi")
 
-process.sdFilter.filterName_=cms.string("Photon")
-process.sdFilter.photonJet_dotrig_=cms.bool(False)
-
-#now 3 paths
+# Single Lepton Filter
 process.EventSelectionSingleFilt = cms.PSet(
   SelectEvents = cms.untracked.PSet(
-    SelectEvents = cms.vstring('pWithRecoLepton', 'pWithGenLepton', 'pPhoton')
+    SelectEvents = cms.vstring('pWithRecoLepton', 'pWithGenLepton')
   )
 )
 
@@ -38,7 +34,6 @@ process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets
 process.p                  = cms.Path( process.cms2WithEverything )
 process.pWithRecoLepton    = cms.Path(process.cms2WithEverything * process.aSkimFilter   )
 process.pWithGenLepton     = cms.Path(process.cms2WithEverything * process.monolepGenFilter  )
-process.pPhoton            = cms.Path(process.cms2WithEverything * process.sdFilter)
 
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
