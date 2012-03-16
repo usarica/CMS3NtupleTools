@@ -209,7 +209,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
       lastFilterIndex = filterIndex;
    
       // get trigger objects & ids
-      unsigned int lastEleFilterIndex = 0;
+      //unsigned int lastEleFilterIndex = 0;
       const trigger::Vids& triggerIds  = triggerEventH_->filterIds(filterIndex);
       const trigger::Keys& triggerKeys = triggerEventH_->filterKeys(filterIndex);
       assert( triggerIds.size() == triggerKeys.size() );
@@ -235,7 +235,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
           if( k == 0 ){                               // Assuming all trigger ids are the same for this filter
             filterId = id;                            // Filter id for all the objects in this filter
             if( filterId == 82 || filterId == 92 ){   // Remember the index of the last filter with all objects having a trigger id of 82 or 92 
-              lastEleFilterIndex = filterIndex;
+              //lastEleFilterIndex = filterIndex;
             }
           }
           else {

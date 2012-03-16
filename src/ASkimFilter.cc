@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ASkimFilter.cc,v 1.6 2011/04/12 21:09:03 fgolf Exp $
+// $Id: ASkimFilter.cc,v 1.7 2012/03/16 19:18:33 dbarge Exp $
 //
 //
 
@@ -66,7 +66,7 @@ bool ASkimFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     Handle<edm::View<reco::Muon> > muon_h;
     iEvent.getByLabel(muonsInputTag_, muon_h); 
-    edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
+    //edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
 
     for (View<reco::GsfElectron>::const_iterator elit = els_h->begin(); elit != els_h->end(); elit++) {
     

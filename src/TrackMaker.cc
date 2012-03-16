@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.33 2011/09/30 21:56:15 slava77 Exp $
+// $Id: TrackMaker.cc,v 1.34 2012/03/16 19:22:26 dbarge Exp $
 //
 //
 
@@ -337,7 +337,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool pixel_hit   = false;
       bool strip_hit   = false;
 
-      int pixel_size;
+      //int pixel_size;
       int pixel_sizeX;
       int pixel_sizeY;
       float pixel_charge;
@@ -364,7 +364,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
 	  assert(pixel_hit_cast != 0);
 	  pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-	  pixel_size   = (int)pixel_cluster->size(); 
+	  //pixel_size   = (int)pixel_cluster->size(); 
 	  pixel_sizeX  = (int)pixel_cluster->sizeX(); 
 	  pixel_sizeY  = (int)pixel_cluster->sizeY(); 
 	  pixel_charge = (float)pixel_cluster->charge();

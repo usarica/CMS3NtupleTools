@@ -296,7 +296,7 @@ void GSFTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       bool pixel_hit   = false;
       bool strip_hit   = false;
 
-      int pixel_size;
+      //int pixel_size;
       int pixel_sizeX;
       int pixel_sizeY;
       float pixel_charge;
@@ -323,7 +323,7 @@ void GSFTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
 	  assert(pixel_hit_cast != 0);
 	  pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-	  pixel_size   = (int)pixel_cluster->size(); 
+	  //pixel_size   = (int)pixel_cluster->size(); 
 	  pixel_sizeX  = (int)pixel_cluster->sizeX(); 
 	  pixel_sizeY  = (int)pixel_cluster->sizeY(); 
 	  pixel_charge = (float)pixel_cluster->charge();

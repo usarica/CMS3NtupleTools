@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: EcalRecHitMaker.cc,v 1.2 2011/04/28 00:59:48 dbarge Exp $
+// $Id: EcalRecHitMaker.cc,v 1.3 2012/03/16 19:19:43 dbarge Exp $
 
 // system include files
 #include <memory>
@@ -144,7 +144,7 @@ void EcalRecHitMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       continue;
 
     
-    const EcalSeverityLevelAlgo *theEcalSevLvlAlgo;
+    //const EcalSeverityLevelAlgo *theEcalSevLvlAlgo;
 
     ecalrhit_recoFlag	->push_back(it->recoFlag()								);
 

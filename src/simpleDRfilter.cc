@@ -412,7 +412,7 @@ int simpleDRfilter::dPhiToMETfunc(const std::vector<reco::Jet> &jetTVec, const d
   closeToMETjetsVec.clear();
 
   double minDphi = 999.0;
-  int minIdx = -1;
+  //int minIdx = -1;
   for(unsigned int ii=0; ii<jetTVec.size(); ii++){
 
      const reco::Jet& jet = jetTVec[ii];
@@ -424,7 +424,7 @@ int simpleDRfilter::dPhiToMETfunc(const std::vector<reco::Jet> &jetTVec, const d
 
      if( deltaPhi < minDphi ){
         minDphi = deltaPhi;
-        minIdx = ii;
+        //minIdx = ii;
      }
   }
 

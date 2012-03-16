@@ -57,7 +57,7 @@ void ESClusterAlgo::cluster(const EcalRecHitCollection *hitCollection, const Cal
       //std::cout << std::endl;
       //print(hitsMap, hitId);
 
-      std::map<ESDetId, EcalRecHit>::iterator hitItr = hitsMap.find(hitId);
+      //std::map<ESDetId, EcalRecHit>::iterator hitItr = hitsMap.find(hitId);
       window(hitId, hitsMap, usedHits, topology, detsFirstPlane);
 
       // get the closest hit to the seed in the other plane
