@@ -22,7 +22,7 @@ ee:3
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.24 2011/03/23 14:33:13 dmytro Exp $
+// $Id: HypDilepMaker.cc,v 1.25 2012/03/16 19:49:36 dbarge Exp $
 //
 //
 
@@ -1021,8 +1021,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       //mupt > tightcut      
       	
       //correct the met for the hyp muons
-      pair<LorentzVector, LorentzVector> muon_pair = make_pair(mus_p4->at(mus_index),
-							       mus_trk_p4->at(mus_index) );
+      //pair<LorentzVector, LorentzVector> muon_pair = make_pair( mus_p4->at(mus_index), mus_trk_p4->at(mus_index) );
       
       //mt2 shit, testing
       hyp_mt2_tcMet          ->push_back(mT2_bisect(els_p4->at(els_index), mus_p4->at(mus_index), 

@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Tue Jul  22 11:07:38 CDT 2008
-// $Id: CandToGenAssMaker.cc,v 1.20 2012/01/09 05:11:52 fgolf Exp $
+// $Id: CandToGenAssMaker.cc,v 1.21 2012/03/16 19:49:21 dbarge Exp $
 //
 //
 
@@ -627,7 +627,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
        track != trks_end; ++track) { 
     
     //MC matching stuff
-    int mcid = -9999, mom_mcid = -9999, genidx = -9999, mc3_motheridx = -9999;
+    int mcid          = -9999;
+    int mom_mcid      = -9999;
+    int genidx        = -9999;
+    //int mc3_motheridx = -9999;
     LorentzVector mc_p4(0,0,0,0);
     float dR = -9999;
     
@@ -663,7 +666,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
        mcid                = matchedGenParticleDoc->pdgId();
        mc_p4               = matchedGenParticleDoc->p4();
        mom_mcid            = matchedMotherParticle->pdgId();
-       mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticles, 3, vPIDsToExclude_);
+       //mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticles, 3, vPIDsToExclude_);
        dR = ROOT::Math::VectorUtil::DeltaR(mc_p4, *track);
      }
      vector_trk_mc3_id      ->push_back(mcid    );

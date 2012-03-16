@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.16 2011/02/08 20:45:01 kalavase Exp $
+// $Id: PhotonMaker.cc,v 1.17 2012/03/16 19:49:42 dbarge Exp $
 //
 //
 
@@ -181,11 +181,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
      edm::Handle<EcalRecHitCollection> rhcHandleEE;
      iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
-     const EcalRecHitCollection *recHitsEE;
+     const EcalRecHitCollection *recHitsEE = 0;
      
      edm::Handle<EcalRecHitCollection> rhcHandleEB;
      iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
-     const EcalRecHitCollection *recHitsEB;
+     const EcalRecHitCollection *recHitsEB = 0;
      
      bool haveHits = true;
      if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())

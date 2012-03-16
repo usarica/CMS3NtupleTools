@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.72 2012/02/02 00:39:08 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.73 2012/03/16 19:49:27 dbarge Exp $
 //
 //
 
@@ -816,7 +816,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       bool pixel_hit   = false;
       bool strip_hit   = false;
 
-      int pixel_size;
+      //int pixel_size;
       int pixel_sizeX;
       int pixel_sizeY;
       float pixel_charge;
@@ -846,7 +846,7 @@ void ElectronMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  assert(pixel_hit_cast != 0);
 	  pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
 
-	  pixel_size   = (int)pixel_cluster->size(); 
+	  //pixel_size   = (int)pixel_cluster->size(); 
 	  pixel_sizeX  = (int)pixel_cluster->sizeX(); 
 	  pixel_sizeY  = (int)pixel_cluster->sizeY(); 
 	  pixel_charge = (float)pixel_cluster->charge();
