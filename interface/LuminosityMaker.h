@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.h,v 1.1 2011/01/26 01:33:14 fgolf Exp $
+// $Id: LuminosityMaker.h,v 1.2 2012/03/16 20:06:14 dbarge Exp $
 //
 //
 #ifndef NTUPLEMAKER_LUMINOSITYMAKER_H
@@ -34,17 +34,23 @@
 //
 
 class LuminosityMaker : public edm::EDProducer {
+
 public:
-     explicit LuminosityMaker (const edm::ParameterSet&);
-     ~LuminosityMaker();
+     
+  explicit LuminosityMaker (const edm::ParameterSet&);
+  ~LuminosityMaker();
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+     
+  virtual void beginJob() ;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
 
-     edm::InputTag lumiSummaryInputTag_;
-	 std::string aliasprefix_;
+     
+  edm::InputTag lumiSummaryInputTag_;
+  std::string aliasprefix_;
+  std::string branchprefix_;
+
 };
 
 
