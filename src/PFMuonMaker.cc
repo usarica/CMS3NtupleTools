@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMuonMaker.cc,v 1.4 2012/03/15 23:07:25 dbarge Exp $
+// $Id: PFMuonMaker.cc,v 1.5 2012/03/16 20:02:35 dbarge Exp $
 //
 //
 
@@ -43,13 +43,11 @@ PFMuonMaker::PFMuonMaker(const edm::ParameterSet& iConfig) {
 
      pfCandidatesTag_	= iConfig.getParameter<edm::InputTag>("pfCandidatesTag");
      isoc_vm_tag_	    = iConfig.getParameter<edm::InputTag>("isoc_vm_tag");
-    /*
      ison_vm_tag_	    = iConfig.getParameter<edm::InputTag>("ison_vm_tag");
      isop_vm_tag_	    = iConfig.getParameter<edm::InputTag>("isop_vm_tag");
      isoc04_vm_tag_	  = iConfig.getParameter<edm::InputTag>("isoc04_vm_tag");
      ison04_vm_tag_	  = iConfig.getParameter<edm::InputTag>("ison04_vm_tag");
      isop04_vm_tag_	  = iConfig.getParameter<edm::InputTag>("isop04_vm_tag");
-    */
      pfAllMuons_tag_	= iConfig.getParameter<edm::InputTag>("pfAllMuons_tag");     
 
      produces< vector< int>	>           ("pfmuscharge"		          ).setBranchAlias("pfmus_charge"			        );
@@ -117,42 +115,20 @@ void PFMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
   const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
 
-/*
-  edm::Handle<edm::ValueMap<double> > isocHandle;
-  iEvent.getByLabel(isoc_vm_tag_, isocHandle);
-  edm::ValueMap<double> isoc_data = *isocHandle;
-
-  edm::Handle<edm::ValueMap<double> > isonHandle;
-  iEvent.getByLabel(ison_vm_tag_, isonHandle);
-  edm::ValueMap<double> ison_data = *isonHandle;
-
-  edm::Handle<edm::ValueMap<double> > isopHandle;
-  iEvent.getByLabel(isop_vm_tag_, isopHandle);
-  edm::ValueMap<double> isop_data = *isopHandle;
-
-  edm::Handle<edm::ValueMap<double> > isoc04Handle;
-  iEvent.getByLabel(isoc04_vm_tag_, isoc04Handle);
-  edm::ValueMap<double> isoc04_data = *isoc04Handle;
-
-  edm::Handle<edm::ValueMap<double> > ison04Handle;
-  iEvent.getByLabel(ison04_vm_tag_, ison04Handle);
-  edm::ValueMap<double> ison04_data = *ison04Handle;
-
-  edm::Handle<edm::ValueMap<double> > isop04Handle;
-  iEvent.getByLabel(isop04_vm_tag_, isop04Handle);
-  edm::ValueMap<double> isop04_data = *isop04Handle;
-  */
-
   edm::Handle<reco::PFCandidateCollection> pfAllMuonsHandle;
   iEvent.getByLabel(pfAllMuons_tag_, pfAllMuonsHandle);
 
   //
   for( PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
 
-	  if (pf_it->particleId() != PFCandidate::mu) continue;
+	  if ( pf_it->particleId() != PFCandidate::mu ) continue;
 	  int pfflags = 0;
+
+    pf_it->muonRef();
+
 	  for( unsigned int i = 0; i < 17; i++ ) {
-	    if(pf_it->flag((PFCandidate::Flags)i)) pfflags |= (1<<i);
+	    if( pf_it->flag( (PFCandidate::Flags) i ) ) 
+        pfflags |= (1<<i);
 	  }
 
     //
@@ -176,29 +152,55 @@ void PFMuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
  
   } //
 
-  /*
+
   //
+  edm::Handle<edm::ValueMap<double> > isocHandle;
+  iEvent.getByLabel(isoc_vm_tag_, isocHandle);
+  edm::ValueMap<double> isoc03_data = *isocHandle;
+
+  edm::Handle<edm::ValueMap<double> > isonHandle;
+  iEvent.getByLabel(ison_vm_tag_, isonHandle);
+  edm::ValueMap<double> ison03_data = *isonHandle;
+
+  edm::Handle<edm::ValueMap<double> > isopHandle;
+  iEvent.getByLabel(isop_vm_tag_, isopHandle);
+  edm::ValueMap<double> isop03_data = *isopHandle;
+
+
+  edm::Handle<edm::ValueMap<double> > isoc04Handle;
+  iEvent.getByLabel(isoc04_vm_tag_, isoc04Handle);
+  edm::ValueMap<double> isoc04_data = *isoc04Handle;
+
+  edm::Handle<edm::ValueMap<double> > ison04Handle;
+  iEvent.getByLabel(ison04_vm_tag_, ison04Handle);
+  edm::ValueMap<double> ison04_data = *ison04Handle;
+
+  edm::Handle<edm::ValueMap<double> > isop04Handle;
+  iEvent.getByLabel(isop04_vm_tag_, isop04Handle);
+  edm::ValueMap<double> isop04_data = *isop04Handle;
+
   for( unsigned int  pfit = 0; pfit < pfAllMuonsHandle->size(); pfit++ ){
 
 	  reco::PFCandidateRef pfref(pfAllMuonsHandle, pfit);
-	  float isoc = (isoc_data)[pfref];
-	  float ison = (ison_data)[pfref];
-	  float isop = (isop_data)[pfref];
 
-	  pfmus_isoChargedHadrons	->push_back(isoc);
-	  pfmus_isoNeutralHadrons	->push_back(ison);
-	  pfmus_isoPhotons		    ->push_back(isop);
+	  float isoc03 = (isoc03_data)[pfref];
+	  float ison03 = (ison03_data)[pfref];
+	  float isop03 = (isop03_data)[pfref];
 
 	  float isoc04 = (isoc04_data)[pfref];
 	  float ison04 = (ison04_data)[pfref];
 	  float isop04 = (isop04_data)[pfref];
+
+	  pfmus_isoChargedHadrons	  ->push_back(isoc03);
+	  pfmus_isoNeutralHadrons	  ->push_back(ison03);
+	  pfmus_isoPhotons		      ->push_back(isop03);
 
 	  pfmus_iso04ChargedHadrons	->push_back(isoc04);
 	  pfmus_iso04NeutralHadrons	->push_back(ison04);
 	  pfmus_iso04Photons		    ->push_back(isop04);
 
   } //
-  */
+
 
   //
   iEvent.put(pfmus_p4                  ,	"pfmusp4"		              );
