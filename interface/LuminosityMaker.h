@@ -13,9 +13,10 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.h,v 1.2 2012/03/16 20:06:14 dbarge Exp $
+// $Id: LuminosityMaker.h,v 1.3 2012/03/16 21:46:21 dbarge Exp $
 //
 //
+
 #ifndef NTUPLEMAKER_LUMINOSITYMAKER_H
 #define NTUPLEMAKER_LUMINOSITYMAKER_H
 
@@ -30,9 +31,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //
-// class decleration
-//
-
 class LuminosityMaker : public edm::EDProducer {
 
 public:
@@ -46,12 +44,10 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
-     
   edm::InputTag lumiSummaryInputTag_;
   std::string aliasprefix_;
   std::string branchprefix_;
 
 };
-
 
 #endif
