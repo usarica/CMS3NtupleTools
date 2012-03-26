@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.cc,v 1.3 2012/03/16 21:46:21 dbarge Exp $
+// $Id: LuminosityMaker.cc,v 1.4 2012/03/26 22:21:16 dbarge Exp $
 
 
 // system include files
@@ -30,7 +30,6 @@
 //
 using namespace edm;
 using namespace std;
-
 
 //
 LuminosityMaker::LuminosityMaker(const ParameterSet& iConfig) {
@@ -85,38 +84,37 @@ void LuminosityMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   Handle<LumiSummary> lumiSummary_h;
   lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
 
-/*
+
   if (lumiSummary_h->isValid()) {
-//    *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
-//    *ls_isValid             = lumiSummary_h->isValid()          ;
-//    *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
-//    *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
-//    *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
-//    *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
-//    *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
-//    *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
-//    *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
-//    *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
-//    *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
-//    *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
-//    *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
+    *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
+    *ls_isValid             = lumiSummary_h->isValid()          ;
+    *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
+    *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
+    *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
+    *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
+    *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
+    *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
+    *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
+    *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
+    *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
+    *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
+    *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
   }
   else {
-//    *ls_isValid             = false;
-//    *ls_lumiSecQual         = -1;
-//    *ls_avgInsDelLumi       = -1;
-//    *ls_avgInsDelLumiErr    = -1;
-//    *ls_intgDelLumi         = -1;
-//    *ls_deadFrac            = -1;
-//    *ls_lumiSectionLength   = -1;
-//    *ls_avgInsRecLumi       = -1;
-//    *ls_avgInsRecLumiErr    = -1;
-//    *ls_intgRecLumi         = -1;
-//    *ls_lsNumber            = 0;
-//    *ls_startOrbit          = 0;
-//    *ls_numOrbit            = 0;
+    *ls_isValid             = false;
+    *ls_lumiSecQual         = -1;
+    *ls_avgInsDelLumi       = -1;
+    *ls_avgInsDelLumiErr    = -1;
+    *ls_intgDelLumi         = -1;
+    *ls_deadFrac            = -1;
+    *ls_lumiSectionLength   = -1;
+    *ls_avgInsRecLumi       = -1;
+    *ls_avgInsRecLumiErr    = -1;
+    *ls_intgRecLumi         = -1;
+    *ls_lsNumber            = 0;
+    *ls_startOrbit          = 0;
+    *ls_numOrbit            = 0;
   }
-*/
 
 
   //
