@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.52 2012/03/27 21:22:09 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.53 2012/03/27 21:32:47 dbarge Exp $
 //
 //
 
@@ -103,6 +103,7 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
 
   produces<vector<int> >            ( branchprefix_ + "type"            ).setBranchAlias( aliasprefix_ + "_type"               ); // type
   produces<vector<int> >            ( branchprefix_ + "goodmask"        ).setBranchAlias( aliasprefix_ + "_goodmask"           ); // good mask
+  produces<vector<LorentzVector> >  ( branchprefix_ + "p4"              ).setBranchAlias( aliasprefix_ + "_p4"                 ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)  
   produces<vector<LorentzVector> >  ( branchprefix_ + "trkp4"           ).setBranchAlias( aliasprefix_ + "_trk_p4"             ); // track p4            
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitp4"          ).setBranchAlias( aliasprefix_ + "_gfit_p4"            ); // global fit p4, if global fit exists
   produces<vector<LorentzVector> >  ( branchprefix_ + "stap4"           ).setBranchAlias( aliasprefix_ + "_sta_p4"             ); // global fit p4, if global fit exists
