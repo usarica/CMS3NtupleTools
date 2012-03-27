@@ -38,3 +38,4 @@ process.pWithGenLepton     = cms.Path(process.cms2WithEverything * process.monol
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(False)
+process.luminosityMaker.isData                   = process.eventMaker.isData

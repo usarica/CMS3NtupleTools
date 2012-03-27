@@ -24,3 +24,4 @@ process.p                  = cms.Path( process.cms2WithEverything )
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(False)
+process.luminosityMaker.isData                   = process.eventMaker.isData

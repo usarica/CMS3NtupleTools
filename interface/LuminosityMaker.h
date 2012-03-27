@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.h,v 1.3 2012/03/16 21:46:21 dbarge Exp $
+// $Id: LuminosityMaker.h,v 1.4 2012/03/27 20:08:54 dbarge Exp $
 //
 //
 
@@ -45,9 +45,10 @@ private:
   virtual void endJob() ;
 
   edm::InputTag lumiSummaryInputTag_;
-  std::string aliasprefix_;
-  std::string branchprefix_;
-
+  std::string   aliasprefix_;
+  std::string   branchprefix_;
+  bool          isData_;
+  
 };
 
 #endif

@@ -9,6 +9,7 @@ process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(True)
+process.luminosityMaker.isData                   = process.eventMaker.isData
 
 # Load Filters
 process.load("CMS2.NtupleMaker.wwfilter_cfi")

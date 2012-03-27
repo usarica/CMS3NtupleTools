@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.cc,v 1.4 2012/03/26 22:21:16 dbarge Exp $
+// $Id: LuminosityMaker.cc,v 1.5 2012/03/27 20:08:55 dbarge Exp $
 
 
 // system include files
@@ -21,10 +21,10 @@
 #include <string>
 
 // user include files
+#include "DataFormats/Luminosity/interface/LumiSummary.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/LuminosityBlock.h"
-#include "DataFormats/Luminosity/interface/LumiSummary.h"
 #include "CMS2/NtupleMaker/interface/LuminosityMaker.h"
 
 //
@@ -32,11 +32,12 @@ using namespace edm;
 using namespace std;
 
 //
-LuminosityMaker::LuminosityMaker(const ParameterSet& iConfig) {
+LuminosityMaker::LuminosityMaker( const ParameterSet& iConfig ) {
   
   //
-  lumiSummaryInputTag_ = iConfig.getParameter<InputTag>("lumiSummaryInputTag");
-  aliasprefix_         = iConfig.getUntrackedParameter<string>("aliasPrefix");
+  lumiSummaryInputTag_ = iConfig.getParameter          <InputTag> ( "lumiSummaryInputTag" );
+  aliasprefix_         = iConfig.getUntrackedParameter <string>   ( "aliasPrefix"         );
+  isData_              = iConfig.getParameter          <bool>     ( "isData"              );
   branchprefix_        = aliasprefix_;
   if( branchprefix_.find("_") != string::npos ) branchprefix_.replace( branchprefix_.find("_"), 1, "" );
 
@@ -57,12 +58,12 @@ LuminosityMaker::LuminosityMaker(const ParameterSet& iConfig) {
 
 } //
 
-LuminosityMaker::~LuminosityMaker() {}
-void LuminosityMaker::beginJob() {}
-void LuminosityMaker::endJob() {}
+LuminosityMaker::~LuminosityMaker () {}
+void LuminosityMaker::beginJob    () {}
+void LuminosityMaker::endJob      () {}
 
 //
-void LuminosityMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
+void LuminosityMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   
   //
   auto_ptr<int>          ls_lumiSecQual       ( new int          );
@@ -78,46 +79,72 @@ void LuminosityMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<unsigned int> ls_lsNumber          ( new unsigned int );
   auto_ptr<unsigned int> ls_startOrbit        ( new unsigned int );
   auto_ptr<unsigned int> ls_numOrbit          ( new unsigned int );
+
  
-  //
-  LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
-  Handle<LumiSummary> lumiSummary_h;
-  lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
+  ////////////////////////////////////////////////////////////////////
+  // Default values - Luminosity Summary not filled in MC after 44x //
+  ////////////////////////////////////////////////////////////////////
+
+  *ls_isValid             = false;
+  *ls_lumiSecQual         = -1;
+  *ls_avgInsDelLumi       = -1;
+  *ls_avgInsDelLumiErr    = -1;
+  *ls_intgDelLumi         = -1;
+  *ls_deadFrac            = -1;
+  *ls_lumiSectionLength   = -1;
+  *ls_avgInsRecLumi       = -1;
+  *ls_avgInsRecLumiErr    = -1;
+  *ls_intgRecLumi         = -1;
+  *ls_lsNumber            =  0;
+  *ls_startOrbit          =  0;
+  *ls_numOrbit            =  0;
+ 
+ 
+  ///////////////////////////////////////
+  // Store Luminosity Summary for Data //
+  ///////////////////////////////////////
+
+  if(isData_){
+
+    /////////////////////////////////////
+    // Get LumiSummary handle by label //
+    /////////////////////////////////////
+
+    LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
+    Handle<LumiSummary> lumiSummary_h;
+    lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
 
 
-  if (lumiSummary_h->isValid()) {
-    *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
-    *ls_isValid             = lumiSummary_h->isValid()          ;
-    *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
-    *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
-    *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
-    *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
-    *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
-    *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
-    *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
-    *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
-    *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
-    *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
-    *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
-  }
-  else {
-    *ls_isValid             = false;
-    *ls_lumiSecQual         = -1;
-    *ls_avgInsDelLumi       = -1;
-    *ls_avgInsDelLumiErr    = -1;
-    *ls_intgDelLumi         = -1;
-    *ls_deadFrac            = -1;
-    *ls_lumiSectionLength   = -1;
-    *ls_avgInsRecLumi       = -1;
-    *ls_avgInsRecLumiErr    = -1;
-    *ls_intgRecLumi         = -1;
-    *ls_lsNumber            = 0;
-    *ls_startOrbit          = 0;
-    *ls_numOrbit            = 0;
-  }
+    ///////////////////////////////////////////////////////
+    // Fill variables if LumiSummary is filled, else err //
+    ///////////////////////////////////////////////////////
+
+    if ( lumiSummary_h->isValid() ) {
+      *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
+      *ls_isValid             = lumiSummary_h->isValid()          ;
+      *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
+      *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
+      *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
+      *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
+      *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
+      *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
+      *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
+      *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
+      *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
+      *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
+      *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
+    }
+    else{ 
+      throw cms::Exception("LuminosityMaker::produce(): Error! lumiSummary not valid for data, this should never happen."); 
+    }
+
+  } // end isData
 
 
-  //
+  //////////////////
+  // Write Output //
+  //////////////////
+
   iEvent.put( ls_lumiSecQual      , branchprefix_ + "lumiSecQual"       );
   iEvent.put( ls_isValid          , branchprefix_ + "isValid"           );
   iEvent.put( ls_avgInsDelLumi    , branchprefix_ + "avgInsDelLumi"     );
@@ -131,7 +158,9 @@ void LuminosityMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( ls_lsNumber         , branchprefix_ + "lsNumber"          );
   iEvent.put( ls_startOrbit       , branchprefix_ + "startOrbit"        );
   iEvent.put( ls_numOrbit         , branchprefix_ + "numOrbit"          );
-}
+
+} // end LuminosityMaker::produce()
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(LuminosityMaker);

@@ -30,6 +30,7 @@ process.p                  = cms.Path( process.cms2WithEverything )
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(True)
+process.luminosityMaker.isData                   = process.eventMaker.isData
 
 process.source.fileNames = [
     'root://xrootd.unl.edu//store/relval/CMSSW_4_4_0_pre9/SingleMu/RECO/GR_R_44_V4_RelVal_mu2011A-v1/0000/EAFCB646-ACD2-E011-BDA0-002618943905.root'
