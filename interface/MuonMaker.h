@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.17 2012/02/02 00:39:08 cerati Exp $
+// $Id: MuonMaker.h,v 1.18 2012/03/27 21:22:08 dbarge Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -58,6 +58,7 @@ private:
   std::string tevMuonsName;
 
   std::string aliasprefix_;
+  std::string branchprefix_;
 
   edm::Handle<reco::PFCandidateCollection> pfCand_h;
   edm::Handle<reco::VertexCollection> vertexHandle;
