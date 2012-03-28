@@ -13,13 +13,14 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.54 2012/03/28 00:14:46 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.55 2012/03/28 22:10:45 dbarge Exp $
 //
 //
 
 
 // system include files
 #include <memory>
+#include <sstream>
 
 // user include files
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -504,17 +505,12 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ////////////////////////////////////////
 
   Handle<edm::View<Muon> > muon_h;
-  iEvent.getByLabel( muonsInputTag   , muon_h       );        // Get Muons
-  iEvent.getByLabel( pfCandsInputTag , pfCand_h     );        // Get PF Candidates
-  iEvent.getByLabel( vtxInputTag     , vertexHandle );        // Get Vertices
-  edm::View<Muon>::const_iterator muons_end = muon_h->end();
-
-  //
-  edm::Handle<edm::ValueMap<reco::PFCandidatePtr> > pfMap;
+  iEvent.getByLabel( muonsInputTag   , muon_h       );              // Get Muons
+  iEvent.getByLabel( pfCandsInputTag , pfCand_h     );              // Get PF Candidates
+  iEvent.getByLabel( vtxInputTag     , vertexHandle );              // Get Vertices
+  edm::Handle<edm::ValueMap<reco::PFCandidatePtr> > pfMap;          // Map to get pf-Muon from reco-Muon
   iEvent.getByLabel("particleFlow", muonsInputTag.label(), pfMap );
-  //recoPFCandidateedmPtredmValueMap = edm::ValueMap<reco::PFCandidatePtr>;
-  //typedef edm::AssociationMap< edm::OneToOne< reco::MuonRef, reco::PFCandidateRef > > MuonRef_to_PFCandidateRef;
-  //MuonRef_to_PFCandidateRef myMap;
+
 
   /////////////////////////////////////
   // Get BeamSpot from BeamSpotMaker //
@@ -565,6 +561,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ///////////
 
   unsigned int muonIndex = 0;
+  edm::View<Muon>::const_iterator muons_end = muon_h->end();  // Iterator
   for ( edm::View<Muon>::const_iterator muon = muon_h->begin(); muon != muons_end; ++muon ) {
 
     //
@@ -671,58 +668,88 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     ////////
 
     //
-    reco::MuonRef   pfMuonRef   = (*pfMap)[muonRef]->muonRef();
     MuonPFIsolation pfStructR03 = muon->pfIsolationR03();
     MuonPFIsolation pfStructR04 = muon->pfIsolationR04();
 
-    // Sanity
-    //if ( pfMuonRef->particleId() != PFCandidate::mu ) { 
-    //}
+    //
+    if ( (*pfMap)[muonRef].isNonnull() ) {
 
-    // flags
-    int pfflags = 0;
-    for( unsigned int i = 0; i < 17; i++ ) {
-      //if( pfMuonRef->flag( (PFCandidate::Flags) i ) ) pfflags |= (1<<i);
-    }
+      // Sanity & Flags
+      stringstream ss;
+      ss << "MuonMaker::produce: Error! pf Muon has particle id = " << (*pfMap)[muonRef]->translateTypeToPdgId( (*pfMap)[muonRef]->particleId() );
+      cout << ss.str() << endl;
+      if ( (*pfMap)[muonRef]->particleId() != PFCandidate::mu ) { 
+        //cout << ss.str() << endl;
+        //throw cms::Exception( ss.str() );
+      }
+      int pfflags = 0;
+      for( unsigned int i = 0; i < 17; i++ ) {
+        if( (*pfMap)[muonRef]->flag( (PFCandidate::Flags) i ) ) pfflags |= (1<<i);
+      }
+  
+      //
+      vector_mus_pfcharge              ->push_back( (*pfMap)[muonRef]->charge()                                                               );
+      vector_mus_pfparticleId          ->push_back( (*pfMap)[muonRef]->translateTypeToPdgId( (*pfMap)[muonRef]->particleId() )                );
+      vector_mus_pfflag                ->push_back( pfflags                                                                                   );
+      vector_mus_pfecalE               ->push_back( isfinite( (*pfMap)[muonRef]->ecalEnergy() ) ? (*pfMap)[muonRef]->ecalEnergy() : -9999.0   );
+      vector_mus_pfrawEcalE            ->push_back( (*pfMap)[muonRef]->rawEcalEnergy()                                                        );
+      vector_mus_pfrawHcalE            ->push_back( (*pfMap)[muonRef]->rawHcalEnergy()                                                        );
+      vector_mus_pfpS1E                ->push_back( (*pfMap)[muonRef]->pS1Energy()                                                            );
+      vector_mus_pfpS2E                ->push_back( (*pfMap)[muonRef]->pS2Energy()                                                            );
+      vector_mus_pfdeltaP              ->push_back( (*pfMap)[muonRef]->deltaP()                                                               );
+      vector_mus_pfmvaepi              ->push_back( (*pfMap)[muonRef]->mva_e_pi()                                                             );
+      vector_mus_pfmvaemu              ->push_back( (*pfMap)[muonRef]->mva_e_mu()                                                             );
+      vector_mus_pfmvapimu             ->push_back( (*pfMap)[muonRef]->mva_pi_mu()                                                            );
+      vector_mus_pfmvanothinggamma     ->push_back( (*pfMap)[muonRef]->mva_nothing_gamma()                                                    );
+      vector_mus_pfmvanothingnh        ->push_back( (*pfMap)[muonRef]->mva_nothing_nh()                                                       );
+      /*
+      vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso03Photons        ->push_back(                                                                     ); 
+      vector_mus_pfiso04ChargedHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso04NeutralHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
+      */
+      //vector_mus_pfp4                  ->push_back( LorentzVector( muon->pfP4() )                                                             );
+      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( (*pfMap)[muonRef]->positionAtECALEntrance().x() , 
+                                                                   (*pfMap)[muonRef]->positionAtECALEntrance().y() , 
+                                                                   (*pfMap)[muonRef]->positionAtECALEntrance().z() , 
+                                                                   0.0                                               )                        );             
+    } else {
+
+      //
+      cout << "MuonMaker::produce: Error! (*pfMap)[muonRef] is null" << endl;
+
+      //
+      vector_mus_pfcharge              ->push_back( -9999.0 );
+      vector_mus_pfparticleId          ->push_back( -9999.0 );
+      vector_mus_pfflag                ->push_back( -9999.0 );
+      vector_mus_pfecalE               ->push_back( -9999.0 );
+      vector_mus_pfrawEcalE            ->push_back( -9999.0 );
+      vector_mus_pfrawHcalE            ->push_back( -9999.0 );
+      vector_mus_pfpS1E                ->push_back( -9999.0 );
+      vector_mus_pfpS2E                ->push_back( -9999.0 );
+      vector_mus_pfdeltaP              ->push_back( -9999.0 );
+      vector_mus_pfmvaepi              ->push_back( -9999.0 );
+      vector_mus_pfmvaemu              ->push_back( -9999.0 );
+      vector_mus_pfmvapimu             ->push_back( -9999.0 );
+      vector_mus_pfmvanothinggamma     ->push_back( -9999.0 );
+      vector_mus_pfmvanothingnh        ->push_back( -9999.0 );
+      /*
+      vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso03Photons        ->push_back(                                                                     ); 
+      vector_mus_pfiso04ChargedHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso04NeutralHadrons ->push_back(                                                                     ); 
+      vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
+      */
+      //vector_mus_pfp4                  ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ;
+      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ; 
+
+    } //
 
     //
-    vector_mus_pfcharge              ->push_back( pfMuonRef->charge()                                                     );
-    //vector_mus_pfparticleId          ->push_back( pfMuonRef->translateTypeToPdgId(pfMuonRef->particleId())                );
-    //vector_mus_pfflag                ->push_back( pfflags                                                             );                                                            
-    /*
-    vector_mus_pfecalE               ->push_back( isfinite( pfMuonRef->ecalEnergy() ) ? pfMuonRef->ecalEnergy() : -9999.0 );
-    vector_mus_pfhcalE               ->push_back( pfMuonRef->hcalEnergy()                                             );
-    vector_mus_pfrawEcalE            ->push_back( pfMuonRef->rawEcalEnergy()                                          );
-    vector_mus_pfrawHcalE            ->push_back( pfMuonRef->rawHcalEnergy()                                          );
-    vector_mus_pfpS1E                ->push_back( pfMuonRef->pS1Energy()                                              );
-    vector_mus_pfpS2E                ->push_back( pfMuonRef->pS2Energy()                                              );
-    vector_mus_pfdeltaP              ->push_back( pfMuonRef->deltaP()                                                 );
-    vector_mus_pfmvaepi              ->push_back( pfMuonRef->mva_e_pi()                                               );
-    vector_mus_pfmvaemu              ->push_back( pfMuonRef->mva_e_mu()                                               );
-    vector_mus_pfmvapimu             ->push_back( pfMuonRef->mva_pi_mu()                                              );
-    vector_mus_pfmvanothinggamma     ->push_back( pfMuonRef->mva_nothing_gamma()                                      );
-    vector_mus_pfmvanothingnh        ->push_back( pfMuonRef->mva_nothing_nh()                                         );
-    */
-
-    /*
-    vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
-    vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
-    vector_mus_pfiso03Photons        ->push_back(                                                                     ); 
-    vector_mus_pfiso04ChargedHadrons ->push_back(                                                                     ); 
-    vector_mus_pfiso04NeutralHadrons ->push_back(                                                                     ); 
-    vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
-    */
-
-    /*
-    vector_mus_pfp4                  ->push_back( muon->pfP4()                                                         ); 
-    vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( pfMuonRef->positionAtECALEntrance().x() , 
-                                                                 pfMuonRef->positionAtECALEntrance().y() , 
-                                                                 pfMuonRef->positionAtECALEntrance().z() , 
-                                                                 0.0                                        
-      
-                                                         )                                                        );             
-    */
-
+    vector_mus_pfp4                  ->push_back( LorentzVector( muon->pfP4() ) );
 
     //
     vector_mus_isoR03_pf_ChargedHadronPt  ->push_back( pfStructR03.sumChargedHadronPt   );
