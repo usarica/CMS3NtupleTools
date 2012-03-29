@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.57 2012/03/29 05:36:52 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.58 2012/03/29 20:30:18 dbarge Exp $
 //
 //
 
@@ -83,7 +83,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   /////////////////////////////
 
   aliasprefix_        = iConfig.getUntrackedParameter<string>("aliasPrefix");
-  string branchprefix = aliasprefix_;
   branchprefix_       = aliasprefix_; if( branchprefix_.find("_") != string::npos ) branchprefix_.replace( branchprefix_.find("_"), 1, "" );
 
 
@@ -161,40 +160,40 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // Timing //
   //////////// 
 
-  produces<vector<int> >            ( branchprefix_ + "timeNumStationsUsed"       ).setBranchAlias( aliasprefix_ + "_timeNumStationsUsed"        ); // number of muon stations used for timing info
-  produces<vector<float> >          ( branchprefix_ + "timeAtIpInOut"             ).setBranchAlias( aliasprefix_ + "_timeAtIpInOut"              ); // time of arrival at the IP for the Beta=1 hypothesis -> particle moving from inside out
-  produces<vector<float> >          ( branchprefix_ + "timeAtIpInOutErr"          ).setBranchAlias( aliasprefix_ + "_timeAtIpInOutErr"           ); // particle moving from outside in
-  produces<vector<float> >          ( branchprefix_ + "timeAtIpOutIn"             ).setBranchAlias( aliasprefix_ + "_timeAtIpOutIn"              );
-  produces<vector<float> >          ( branchprefix_ + "timeAtIpOutInErr"          ).setBranchAlias( aliasprefix_ + "_timeAtIpOutInErr"           );
-  produces<vector<int> >            ( branchprefix_ + "timeDirection"             ).setBranchAlias( aliasprefix_ + "_timeDirection"              ); //Direction { OutsideIn = -1, Undefined = 0, InsideOut = 1 };
+  produces<vector<int> >            ( branchprefix_ + "timeNumStationsUsed"       ).setBranchAlias( aliasprefix_ + "_timeNumStationsUsed" ); // number of muon stations used for timing info
+  produces<vector<float> >          ( branchprefix_ + "timeAtIpInOut"             ).setBranchAlias( aliasprefix_ + "_timeAtIpInOut"       ); // time of arrival at the IP for the Beta=1 hypothesis -> particle moving from inside out
+  produces<vector<float> >          ( branchprefix_ + "timeAtIpInOutErr"          ).setBranchAlias( aliasprefix_ + "_timeAtIpInOutErr"    ); // particle moving from outside in
+  produces<vector<float> >          ( branchprefix_ + "timeAtIpOutIn"             ).setBranchAlias( aliasprefix_ + "_timeAtIpOutIn"       );
+  produces<vector<float> >          ( branchprefix_ + "timeAtIpOutInErr"          ).setBranchAlias( aliasprefix_ + "_timeAtIpOutInErr"    );
+  produces<vector<int> >            ( branchprefix_ + "timeDirection"             ).setBranchAlias( aliasprefix_ + "_timeDirection"       ); //Direction { OutsideIn = -1, Undefined = 0, InsideOut = 1 };
 
                                     
   //////////////////////////
   // Cosmic Compatibility //
   //////////////////////////
 
-  produces<vector<float> >          ( branchprefix_ + "cosmicCompat"              ).setBranchAlias( aliasprefix_ + "_cosmicCompat"     );
-  produces<vector<float> >          ( branchprefix_ + "timeCompat"                ).setBranchAlias( aliasprefix_ + "_timeCompat"       );
-  produces<vector<float> >          ( branchprefix_ + "backToBackCompat"          ).setBranchAlias( aliasprefix_ + "_backToBackCompat" );
-  produces<vector<float> >          ( branchprefix_ + "overlapCompat"             ).setBranchAlias( aliasprefix_ + "_overlapCompat"    );
-  produces<vector<float> >          ( branchprefix_ + "vertexCompat"              ).setBranchAlias( aliasprefix_ + "_vertexCompat"     );
+  produces<vector<float> >          ( branchprefix_ + "cosmicCompat"              ).setBranchAlias( aliasprefix_ + "_cosmicCompat"        );
+  produces<vector<float> >          ( branchprefix_ + "timeCompat"                ).setBranchAlias( aliasprefix_ + "_timeCompat"          );
+  produces<vector<float> >          ( branchprefix_ + "backToBackCompat"          ).setBranchAlias( aliasprefix_ + "_backToBackCompat"    );
+  produces<vector<float> >          ( branchprefix_ + "overlapCompat"             ).setBranchAlias( aliasprefix_ + "_overlapCompat"       );
+  produces<vector<float> >          ( branchprefix_ + "vertexCompat"              ).setBranchAlias( aliasprefix_ + "_vertexCompat"        );
 
 
   //////////
   // Muon //
   //////////
 
-  produces<vector<int> >            ( branchprefix_ + "type"                      ).setBranchAlias( aliasprefix_ + "_type"           ); // type
-  produces<vector<int> >            ( branchprefix_ + "goodmask"                  ).setBranchAlias( aliasprefix_ + "_goodmask"       ); // good mask
-  produces<vector<int> >            ( branchprefix_ + "charge"                    ).setBranchAlias( aliasprefix_ + "_charge"         ); // charge from muon object             
-  produces<vector<int> >            ( branchprefix_ + "nmatches"                  ).setBranchAlias( aliasprefix_ + "_nmatches"       ); // number of stations with matched segments 
-  produces<vector<int> >            ( branchprefix_ + "nOverlaps"                 ).setBranchAlias( aliasprefix_ + "_nOverlaps"                  ); //overlap index (-1 if none)
-  produces<vector<int> >            ( branchprefix_ + "overlap0"                  ).setBranchAlias( aliasprefix_ + "_overlap0"                   );
-  produces<vector<int> >            ( branchprefix_ + "overlap1"                  ).setBranchAlias( aliasprefix_ + "_overlap1"                   );
-  produces<vector<float> >          ( branchprefix_ + "caloCompatibility"         ).setBranchAlias( aliasprefix_ + "_caloCompatibility"          ); // calo compatibility variable
-  produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"          );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"             ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
-  produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"     ); // muon position at the ecal face
+  produces<vector<int> >            ( branchprefix_ + "type"                      ).setBranchAlias( aliasprefix_ + "_type"                ); // type
+  produces<vector<int> >            ( branchprefix_ + "goodmask"                  ).setBranchAlias( aliasprefix_ + "_goodmask"            ); // good mask
+  produces<vector<int> >            ( branchprefix_ + "charge"                    ).setBranchAlias( aliasprefix_ + "_charge"              ); // charge from muon object             
+  produces<vector<int> >            ( branchprefix_ + "nmatches"                  ).setBranchAlias( aliasprefix_ + "_nmatches"            ); // number of stations with matched segments 
+  produces<vector<int> >            ( branchprefix_ + "nOverlaps"                 ).setBranchAlias( aliasprefix_ + "_nOverlaps"           ); //overlap index (-1 if none)
+  produces<vector<int> >            ( branchprefix_ + "overlap0"                  ).setBranchAlias( aliasprefix_ + "_overlap0"            );
+  produces<vector<int> >            ( branchprefix_ + "overlap1"                  ).setBranchAlias( aliasprefix_ + "_overlap1"            );
+  produces<vector<float> >          ( branchprefix_ + "caloCompatibility"         ).setBranchAlias( aliasprefix_ + "_caloCompatibility"   ); // calo compatibility variable
+  produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"   );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                  ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
+  produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"          ); // muon position at the ecal face
 
 
   ////////
@@ -211,86 +210,86 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // Energy //
   ////////////
 
-  produces<vector<float> >          ( branchprefix_ + "eem"                       ).setBranchAlias( aliasprefix_ + "_e_em"               ); // energy in crossed ECAL crystalls 
-  produces<vector<float> >          ( branchprefix_ + "ehad"                      ).setBranchAlias( aliasprefix_ + "_e_had"              ); // energy in crossed HCAL towers 
-  produces<vector<float> >          ( branchprefix_ + "eho"                       ).setBranchAlias( aliasprefix_ + "_e_ho"               ); // energy in crossed HO towers 
-  produces<vector<float> >          ( branchprefix_ + "eemS9"                     ).setBranchAlias( aliasprefix_ + "_e_emS9"             ); // energy in 3x3 ECAL crystall shape 
-  produces<vector<float> >          ( branchprefix_ + "ehadS9"                    ).setBranchAlias( aliasprefix_ + "_e_hadS9"            ); // energy in 3x3 HCAL towers 
-  produces<vector<float> >          ( branchprefix_ + "ehoS9"                     ).setBranchAlias( aliasprefix_ + "_e_hoS9"             ); // energy in 3x3 HO towers 
+  produces<vector<float> >          ( branchprefix_ + "eem"                       ).setBranchAlias( aliasprefix_ + "_e_em"                ); // energy in crossed ECAL crystalls 
+  produces<vector<float> >          ( branchprefix_ + "ehad"                      ).setBranchAlias( aliasprefix_ + "_e_had"               ); // energy in crossed HCAL towers 
+  produces<vector<float> >          ( branchprefix_ + "eho"                       ).setBranchAlias( aliasprefix_ + "_e_ho"                ); // energy in crossed HO towers 
+  produces<vector<float> >          ( branchprefix_ + "eemS9"                     ).setBranchAlias( aliasprefix_ + "_e_emS9"              ); // energy in 3x3 ECAL crystall shape 
+  produces<vector<float> >          ( branchprefix_ + "ehadS9"                    ).setBranchAlias( aliasprefix_ + "_e_hadS9"             ); // energy in 3x3 HCAL towers 
+  produces<vector<float> >          ( branchprefix_ + "ehoS9"                     ).setBranchAlias( aliasprefix_ + "_e_hoS9"              ); // energy in 3x3 HO towers 
 
 
   ///////////////
   // Isolation //
   ///////////////
                                     
-  produces<vector<float> >          ( branchprefix_ + "isotrckvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_trckvetoDep"    ); // sumPt in the veto cone, tracker
-  produces<vector<float> >          ( branchprefix_ + "isoecalvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_ecalvetoDep"    ); // sumEt in the veto cone, ecal
-  produces<vector<float> >          ( branchprefix_ + "isohcalvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_hcalvetoDep"    ); // sumPt in the veto cone, hcal
-  produces<vector<float> >          ( branchprefix_ + "isohovetoDep"              ).setBranchAlias( aliasprefix_ + "_iso_hovetoDep"      ); // sumPt in the veto cone, ho
-  produces<vector<float> >          ( branchprefix_ + "iso03sumPt"                ).setBranchAlias( aliasprefix_ + "_iso03_sumPt"        ); // sum of track Pt for cone of 0.3 
-  produces<vector<float> >          ( branchprefix_ + "iso03emEt"                 ).setBranchAlias( aliasprefix_ + "_iso03_emEt"         ); // sum of ecal Et for cone of 0.3 
-  produces<vector<float> >          ( branchprefix_ + "iso03hadEt"                ).setBranchAlias( aliasprefix_ + "_iso03_hadEt"        ); // sum of hcal Et for cone of 0.3 
-  produces<vector<float> >          ( branchprefix_ + "iso03hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso03_hoEt"         ); // sum of ho Et for cone of 0.3 
-  produces<vector<int> >            ( branchprefix_ + "iso03ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso03_ntrk"         ); // number of tracks in the cone of 0.3 
-  produces<vector<float> >          ( branchprefix_ + "iso05sumPt"                ).setBranchAlias( aliasprefix_ + "_iso05_sumPt"        ); // sum of track Pt for cone of 0.5 
-  produces<vector<float> >          ( branchprefix_ + "iso05emEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_emEt"         ); // sum of ecal Et for cone of 0.5 
-  produces<vector<float> >          ( branchprefix_ + "iso05hadEt"                ).setBranchAlias( aliasprefix_ + "_iso05_hadEt"        ); // sum of hcal Et for cone of 0.5 
-  produces<vector<float> >          ( branchprefix_ + "iso05hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_hoEt"         ); // sum of ho Et for cone of 0.5 
-  produces<vector<int> >            ( branchprefix_ + "iso05ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso05_ntrk"         ); // number of tracks in the cone of 0.5 
+  produces<vector<float> >          ( branchprefix_ + "isotrckvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_trckvetoDep"     ); // sumPt in the veto cone, tracker
+  produces<vector<float> >          ( branchprefix_ + "isoecalvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_ecalvetoDep"     ); // sumEt in the veto cone, ecal
+  produces<vector<float> >          ( branchprefix_ + "isohcalvetoDep"            ).setBranchAlias( aliasprefix_ + "_iso_hcalvetoDep"     ); // sumPt in the veto cone, hcal
+  produces<vector<float> >          ( branchprefix_ + "isohovetoDep"              ).setBranchAlias( aliasprefix_ + "_iso_hovetoDep"       ); // sumPt in the veto cone, ho
+  produces<vector<float> >          ( branchprefix_ + "iso03sumPt"                ).setBranchAlias( aliasprefix_ + "_iso03_sumPt"         ); // sum of track Pt for cone of 0.3 
+  produces<vector<float> >          ( branchprefix_ + "iso03emEt"                 ).setBranchAlias( aliasprefix_ + "_iso03_emEt"          ); // sum of ecal Et for cone of 0.3 
+  produces<vector<float> >          ( branchprefix_ + "iso03hadEt"                ).setBranchAlias( aliasprefix_ + "_iso03_hadEt"         ); // sum of hcal Et for cone of 0.3 
+  produces<vector<float> >          ( branchprefix_ + "iso03hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso03_hoEt"          ); // sum of ho Et for cone of 0.3 
+  produces<vector<int> >            ( branchprefix_ + "iso03ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso03_ntrk"          ); // number of tracks in the cone of 0.3 
+  produces<vector<float> >          ( branchprefix_ + "iso05sumPt"                ).setBranchAlias( aliasprefix_ + "_iso05_sumPt"         ); // sum of track Pt for cone of 0.5 
+  produces<vector<float> >          ( branchprefix_ + "iso05emEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_emEt"          ); // sum of ecal Et for cone of 0.5 
+  produces<vector<float> >          ( branchprefix_ + "iso05hadEt"                ).setBranchAlias( aliasprefix_ + "_iso05_hadEt"         ); // sum of hcal Et for cone of 0.5 
+  produces<vector<float> >          ( branchprefix_ + "iso05hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_hoEt"          ); // sum of ho Et for cone of 0.5 
+  produces<vector<int> >            ( branchprefix_ + "iso05ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso05_ntrk"          ); // number of tracks in the cone of 0.5 
 
 
   ////////////
   // Tracks //
   ////////////
 
-  produces<vector<int> >            ( branchprefix_ + "muonBestTrackType"         ).setBranchAlias( aliasprefix_ + "_muonBestTrackType"  ); 
-  produces<vector<LorentzVector> >  ( branchprefix_ + "trkp4"                     ).setBranchAlias( aliasprefix_ + "_trk_p4"             ); // track p4            
-  produces<vector<LorentzVector> >  ( branchprefix_ + "vertexp4"                  ).setBranchAlias( aliasprefix_ + "_vertex_p4"          ); // from the silicon fit
-  produces<vector<int>   >          ( branchprefix_ + "trkidx"                    ).setBranchAlias( aliasprefix_ + "_trkidx"             ); // track index matched to muon
-  produces<vector<float> >          ( branchprefix_ + "d0"                        ).setBranchAlias( aliasprefix_ + "_d0"                 ); // impact parameter at the point of closest approach  using the tracker fit
-  produces<vector<float> >          ( branchprefix_ + "z0"                        ).setBranchAlias( aliasprefix_ + "_z0"                 ); // z position of the point of closest approach. From the si track    
-  produces<vector<float> >          ( branchprefix_ + "d0corr"                    ).setBranchAlias( aliasprefix_ + "_d0corr"             ); // corrected impact parameter at the point of closest approach. From si track  
-  produces<vector<float> >          ( branchprefix_ + "z0corr"                    ).setBranchAlias( aliasprefix_ + "_z0corr"             ); // corrected z position of the point of closest approach. From si track    
-  produces<vector<float> >          ( branchprefix_ + "vertexphi"                 ).setBranchAlias( aliasprefix_ + "_vertexphi"          ); // phi angle of the point of closest approach. From si track    
-  produces<vector<float> >          ( branchprefix_ + "chi2"                      ).setBranchAlias( aliasprefix_ + "_chi2"               ); // chi2 of the silicon tracker fit      
-  produces<vector<float> >          ( branchprefix_ + "ndof"                      ).setBranchAlias( aliasprefix_ + "_ndof"               ); // number of degrees of freedom of the si tracker fit    
-  produces<vector<int> >            ( branchprefix_ + "validHits"                 ).setBranchAlias( aliasprefix_ + "_validHits"          ); // number of used hits in the sitracker fit      
-  produces<vector<int> >            ( branchprefix_ + "lostHits"                  ).setBranchAlias( aliasprefix_ + "_lostHits"           ); // number of lost hits in the sitracker fit      
-  produces<vector<float> >          ( branchprefix_ + "d0Err"                     ).setBranchAlias( aliasprefix_ + "_d0Err"              ); // error on the impact parameter, si track fit      
-  produces<vector<float> >          ( branchprefix_ + "z0Err"                     ).setBranchAlias( aliasprefix_ + "_z0Err"              ); // error on z position of the point of closest approach, si track fit  
-  produces<vector<float> >          ( branchprefix_ + "ptErr"                     ).setBranchAlias( aliasprefix_ + "_ptErr"              ); // si track Pt error          
-  produces<vector<float> >          ( branchprefix_ + "etaErr"                    ).setBranchAlias( aliasprefix_ + "_etaErr"             ); // si track eta error          
-  produces<vector<float> >          ( branchprefix_ + "phiErr"                    ).setBranchAlias( aliasprefix_ + "_phiErr"             ); // si track phi error          
-  produces<vector<int> >            ( branchprefix_ + "trkcharge"                 ).setBranchAlias( aliasprefix_ + "_trk_charge"         ); // si track charge
-  produces<vector<float> >          ( branchprefix_ + "qoverp"                    ).setBranchAlias( aliasprefix_ + "_qoverp"             ); // si track qoverp
-  produces<vector<float> >          ( branchprefix_ + "qoverpError"               ).setBranchAlias( aliasprefix_ + "_qoverpError"        ); // si track qoverp error
+  produces<vector<int> >            ( branchprefix_ + "muonBestTrackType"         ).setBranchAlias( aliasprefix_ + "_muonBestTrackType"   ); 
+  produces<vector<LorentzVector> >  ( branchprefix_ + "trkp4"                     ).setBranchAlias( aliasprefix_ + "_trk_p4"              ); // track p4            
+  produces<vector<LorentzVector> >  ( branchprefix_ + "vertexp4"                  ).setBranchAlias( aliasprefix_ + "_vertex_p4"           ); // from the silicon fit
+  produces<vector<int>   >          ( branchprefix_ + "trkidx"                    ).setBranchAlias( aliasprefix_ + "_trkidx"              ); // track index matched to muon
+  produces<vector<float> >          ( branchprefix_ + "d0"                        ).setBranchAlias( aliasprefix_ + "_d0"                  ); // impact parameter at the point of closest approach  using the tracker fit
+  produces<vector<float> >          ( branchprefix_ + "z0"                        ).setBranchAlias( aliasprefix_ + "_z0"                  ); // z position of the point of closest approach. From the si track    
+  produces<vector<float> >          ( branchprefix_ + "d0corr"                    ).setBranchAlias( aliasprefix_ + "_d0corr"              ); // corrected impact parameter at the point of closest approach. From si track  
+  produces<vector<float> >          ( branchprefix_ + "z0corr"                    ).setBranchAlias( aliasprefix_ + "_z0corr"              ); // corrected z position of the point of closest approach. From si track    
+  produces<vector<float> >          ( branchprefix_ + "vertexphi"                 ).setBranchAlias( aliasprefix_ + "_vertexphi"           ); // phi angle of the point of closest approach. From si track    
+  produces<vector<float> >          ( branchprefix_ + "chi2"                      ).setBranchAlias( aliasprefix_ + "_chi2"                ); // chi2 of the silicon tracker fit      
+  produces<vector<float> >          ( branchprefix_ + "ndof"                      ).setBranchAlias( aliasprefix_ + "_ndof"                ); // number of degrees of freedom of the si tracker fit    
+  produces<vector<int> >            ( branchprefix_ + "validHits"                 ).setBranchAlias( aliasprefix_ + "_validHits"           ); // number of used hits in the sitracker fit      
+  produces<vector<int> >            ( branchprefix_ + "lostHits"                  ).setBranchAlias( aliasprefix_ + "_lostHits"            ); // number of lost hits in the sitracker fit      
+  produces<vector<float> >          ( branchprefix_ + "d0Err"                     ).setBranchAlias( aliasprefix_ + "_d0Err"               ); // error on the impact parameter, si track fit      
+  produces<vector<float> >          ( branchprefix_ + "z0Err"                     ).setBranchAlias( aliasprefix_ + "_z0Err"               ); // error on z position of the point of closest approach, si track fit  
+  produces<vector<float> >          ( branchprefix_ + "ptErr"                     ).setBranchAlias( aliasprefix_ + "_ptErr"               ); // si track Pt error          
+  produces<vector<float> >          ( branchprefix_ + "etaErr"                    ).setBranchAlias( aliasprefix_ + "_etaErr"              ); // si track eta error          
+  produces<vector<float> >          ( branchprefix_ + "phiErr"                    ).setBranchAlias( aliasprefix_ + "_phiErr"              ); // si track phi error          
+  produces<vector<int> >            ( branchprefix_ + "trkcharge"                 ).setBranchAlias( aliasprefix_ + "_trk_charge"          ); // si track charge
+  produces<vector<float> >          ( branchprefix_ + "qoverp"                    ).setBranchAlias( aliasprefix_ + "_qoverp"              ); // si track qoverp
+  produces<vector<float> >          ( branchprefix_ + "qoverpError"               ).setBranchAlias( aliasprefix_ + "_qoverpError"         ); // si track qoverp error
 
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"        );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fitpickyp4"                ).setBranchAlias( aliasprefix_ + "_fitpicky_p4"        );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fittevp4"                  ).setBranchAlias( aliasprefix_ + "_fittev_p4"          );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"         );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "fitpickyp4"                ).setBranchAlias( aliasprefix_ + "_fitpicky_p4"         );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "fittevp4"                  ).setBranchAlias( aliasprefix_ + "_fittev_p4"           );
 
   
   ////////
   // PF //
   ////////
 
-  produces<vector< int> >           ( branchprefix_ + "pfcharge"                  ).setBranchAlias( aliasprefix_ + "_pfcharge"             );
-  produces<vector< int> >           ( branchprefix_ + "pfparticleId"              ).setBranchAlias( aliasprefix_ + "_pfparticleId"         );
-  produces<vector< int> >           ( branchprefix_ + "pfflag"                    ).setBranchAlias( aliasprefix_ + "_pfflag"               );
-  produces<vector< float> >         ( branchprefix_ + "pfecalE"                   ).setBranchAlias( aliasprefix_ + "_pfecalE"              );
-  produces<vector< float> >         ( branchprefix_ + "pfhcalE"                   ).setBranchAlias( aliasprefix_ + "_pfhcalE"              );
-  produces<vector< float> >         ( branchprefix_ + "pfrawEcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawEcalE"           );
-  produces<vector< float> >         ( branchprefix_ + "pfrawHcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawHcalE"           );
-  produces<vector< float> >         ( branchprefix_ + "pfpS1E"                    ).setBranchAlias( aliasprefix_ + "_pfpS1E"               );
-  produces<vector< float> >         ( branchprefix_ + "pfpS2E"                    ).setBranchAlias( aliasprefix_ + "_pfpS2E"               );
-  produces<vector< float> >         ( branchprefix_ + "pfdeltaP"                  ).setBranchAlias( aliasprefix_ + "_pfdeltaP"             );
-  produces<vector< float> >         ( branchprefix_ + "pfmvaepi"                  ).setBranchAlias( aliasprefix_ + "_pfmva_epi"            );
-  produces<vector< float> >         ( branchprefix_ + "pfmvaemu"                  ).setBranchAlias( aliasprefix_ + "_pfmva_emu"            );
-  produces<vector< float> >         ( branchprefix_ + "pfmvapimu"                 ).setBranchAlias( aliasprefix_ + "_pfmva_pimu"           );
-  produces<vector< float> >         ( branchprefix_ + "pfmvanothinggamma"         ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_gamma"  );
-  produces<vector< float> >         ( branchprefix_ + "pfmvanothingnh"            ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_nh"     );
-  produces<vector< LorentzVector> > ( branchprefix_ + "pfp4"                      ).setBranchAlias( aliasprefix_ + "_pfp4"                 );
-  produces<vector< LorentzVector> > ( branchprefix_ + "pfposAtEcalp4"             ).setBranchAlias( aliasprefix_ + "_pfposAtEcal_p4"       );
+  produces<vector< int> >           ( branchprefix_ + "pfcharge"                  ).setBranchAlias( aliasprefix_ + "_pfcharge"            );
+  produces<vector< int> >           ( branchprefix_ + "pfparticleId"              ).setBranchAlias( aliasprefix_ + "_pfparticleId"        );
+  produces<vector< int> >           ( branchprefix_ + "pfflag"                    ).setBranchAlias( aliasprefix_ + "_pfflag"              );
+  produces<vector< float> >         ( branchprefix_ + "pfecalE"                   ).setBranchAlias( aliasprefix_ + "_pfecalE"             );
+  produces<vector< float> >         ( branchprefix_ + "pfhcalE"                   ).setBranchAlias( aliasprefix_ + "_pfhcalE"             );
+  produces<vector< float> >         ( branchprefix_ + "pfrawEcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawEcalE"          );
+  produces<vector< float> >         ( branchprefix_ + "pfrawHcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawHcalE"          );
+  produces<vector< float> >         ( branchprefix_ + "pfpS1E"                    ).setBranchAlias( aliasprefix_ + "_pfpS1E"              );
+  produces<vector< float> >         ( branchprefix_ + "pfpS2E"                    ).setBranchAlias( aliasprefix_ + "_pfpS2E"              );
+  produces<vector< float> >         ( branchprefix_ + "pfdeltaP"                  ).setBranchAlias( aliasprefix_ + "_pfdeltaP"            );
+  produces<vector< float> >         ( branchprefix_ + "pfmvaepi"                  ).setBranchAlias( aliasprefix_ + "_pfmva_epi"           );
+  produces<vector< float> >         ( branchprefix_ + "pfmvaemu"                  ).setBranchAlias( aliasprefix_ + "_pfmva_emu"           );
+  produces<vector< float> >         ( branchprefix_ + "pfmvapimu"                 ).setBranchAlias( aliasprefix_ + "_pfmva_pimu"          );
+  produces<vector< float> >         ( branchprefix_ + "pfmvanothinggamma"         ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_gamma" );
+  produces<vector< float> >         ( branchprefix_ + "pfmvanothingnh"            ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_nh"    );
+  produces<vector< LorentzVector> > ( branchprefix_ + "pfp4"                      ).setBranchAlias( aliasprefix_ + "_pfp4"                );
+  produces<vector< LorentzVector> > ( branchprefix_ + "pfposAtEcalp4"             ).setBranchAlias( aliasprefix_ + "_pfposAtEcal_p4"      );
   /*
   produces<vector< float> >         ( branchprefix_ + "pfisoChargedHadrons"       ).setBranchAlias( aliasprefix_ + "_pfiso03ChargedHadrons");
   produces<vector< float> >         ( branchprefix_ + "pfisoNeutralHadrons"       ).setBranchAlias( aliasprefix_ + "_pfiso03NeutralHadrons");
@@ -310,19 +309,19 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "isoR04pfPhotonEt"          ).setBranchAlias( aliasprefix_ + "_isoR04_pf_PhotonEt"          );
   produces<vector<float> >          ( branchprefix_ + "isoR04pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoR04_pf_PUPt"              );
 
-  produces<vector<float> >          ( branchprefix_ + "iso03pf"                   ).setBranchAlias( aliasprefix_ + "_iso03_pf"           ); // pf isolation in cone of 0.3
-  produces<vector<float> >          ( branchprefix_ + "iso04pf"                   ).setBranchAlias( aliasprefix_ + "_iso04_pf"           ); // pf isolation in cone of 0.4
+  produces<vector<float> >          ( branchprefix_ + "iso03pf"                   ).setBranchAlias( aliasprefix_ + "_iso03_pf"            ); // pf isolation in cone of 0.3
+  produces<vector<float> >          ( branchprefix_ + "iso04pf"                   ).setBranchAlias( aliasprefix_ + "_iso04_pf"            ); // pf isolation in cone of 0.4
 
 
   /////////////////
   // Unbiased IP //
   /////////////////
   
-  produces<vector<float> >          ( branchprefix_ + "ubd0"                      ).setBranchAlias( aliasprefix_ + "_ubd0"               ); // d0 from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubd0err"                   ).setBranchAlias( aliasprefix_ + "_ubd0err"            ); // d0 error from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubIp3d"                    ).setBranchAlias( aliasprefix_ + "_ubIp3d"             ); // Ip3d from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubIp3derr"                 ).setBranchAlias( aliasprefix_ + "_ubIp3derr"          ); // Ip3d error from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubz0"                      ).setBranchAlias( aliasprefix_ + "_ubz0"               ); // z0 from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ubd0"                      ).setBranchAlias( aliasprefix_ + "_ubd0"                ); // d0 from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ubd0err"                   ).setBranchAlias( aliasprefix_ + "_ubd0err"             ); // d0 error from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ubIp3d"                    ).setBranchAlias( aliasprefix_ + "_ubIp3d"              ); // Ip3d from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ubIp3derr"                 ).setBranchAlias( aliasprefix_ + "_ubIp3derr"           ); // Ip3d error from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ubz0"                      ).setBranchAlias( aliasprefix_ + "_ubz0"                ); // z0 from unbiased vertex
 
 
 } // end Constructor
