@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.76 2012/03/29 21:42:59 dbarge Exp $
+// $Id: ElectronMaker.cc,v 1.77 2012/03/29 22:12:23 dbarge Exp $
 //
 //
 
@@ -1436,7 +1436,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_iso04_pf_gamma05                       ,"elsiso04pfgamma05"            );
   iEvent.put(els_iso04_pf_nhad05                        ,"elsiso04pfnhad05"            );
 
-  iEvent.put( els_pfChargedHadronIso , "elspfChardedHadronIso" );
+  iEvent.put( els_pfChargedHadronIso , "elspfChargedHadronIso" );
   iEvent.put( els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
   iEvent.put( els_pfPhotonIso        , "elspfPhotonIso"        );
 
