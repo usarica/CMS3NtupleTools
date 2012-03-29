@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.55 2012/03/28 22:10:45 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.56 2012/03/29 01:25:46 dbarge Exp $
 //
 //
 
@@ -61,13 +61,27 @@ typedef math::XYZPoint Point;
 //
 using namespace std;
 using namespace reco;
+using namespace edm;
 
-MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
+MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
 
-  aliasprefix_ = iConfig.getUntrackedParameter<string>("aliasPrefix");
+  //
+  aliasprefix_        = iConfig.getUntrackedParameter<string>("aliasPrefix");
   string branchprefix = aliasprefix_;
-  branchprefix_ = aliasprefix_;
+  branchprefix_       = aliasprefix_;
   if( branchprefix_.find("_") != string::npos ) branchprefix_.replace( branchprefix_.find("_"), 1, "" );
+
+
+  //////////////////////
+  // Input Parameters //
+  //////////////////////
+
+  muonsInputTag    = iConfig.getParameter<InputTag> ("muonsInputTag"   );
+  beamSpotInputTag = iConfig.getParameter<InputTag> ("beamSpotInputTag");
+  pfCandsInputTag  = iConfig.getParameter<InputTag> ("pfCandsInputTag" );
+  vtxInputTag      = iConfig.getParameter<InputTag> ("vtxInputTag"     );
+  tevMuonsName     = iConfig.getParameter<string>        ("tevMuonsName"    );
+  src_             = iConfig.getParameter<InputTag> ("src"             ); // Cosmics Compatibility
 
 
   //////////////////////////
@@ -98,9 +112,11 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces<vector<float> >  ( branchprefix_ + "glbTrackProbability").setBranchAlias( aliasprefix_ + "_glbTrackProbability" );  // Muon Quality - glbTrackProbability
 
 
-  ///////////////////////////
-  // Muon track quantities //
-  ///////////////////////////
+  ////////////
+  // Tracks //
+  ////////////
+
+  produces<vector<int> >            ( branchprefix_ + "muonBestTrackType" ).setBranchAlias( aliasprefix_ + "_muonBestTrackType" ); 
 
   produces<vector<int> >            ( branchprefix_ + "type"            ).setBranchAlias( aliasprefix_ + "_type"               ); // type
   produces<vector<int> >            ( branchprefix_ + "goodmask"        ).setBranchAlias( aliasprefix_ + "_goodmask"           ); // good mask
@@ -161,29 +177,6 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces<vector<float> >       ( branchprefix_ + "iso04pf"        ).setBranchAlias( aliasprefix_ + "_iso04_pf"           ); // pf isolation in cone of 0.4
 
 
-     
-    /* 
-     produces< vector< int> >           ("pfmuscharge"              ).setBranchAlias("pfmus_charge"             );
-     produces< vector< int> >           ("pfmusparticleId"          ).setBranchAlias("pfmus_particleId"         );
-     produces< vector< int> >           ("pfmusflag"                ).setBranchAlias("pfmus_flag"               );
-     produces< vector< float> >         ("pfmusecalE"               ).setBranchAlias("pfmus_ecalE"              );
-     produces< vector< float> >         ("pfmushcalE"               ).setBranchAlias("pfmus_hcalE"              );
-     produces< vector< float> >         ("pfmusrawEcalE"            ).setBranchAlias("pfmus_rawEcalE"           );
-     produces< vector< float> >         ("pfmusrawHcalE"            ).setBranchAlias("pfmus_rawHcalE"           );
-     produces< vector< float> >         ("pfmuspS1E"                ).setBranchAlias("pfmus_pS1E"               );
-     produces< vector< float> >         ("pfmuspS2E"                ).setBranchAlias("pfmus_pS2E"               );
-     produces< vector< float> >         ("pfmusdeltaP"              ).setBranchAlias("pfmus_deltaP"             );
-     produces< vector< float> >         ("pfmusmvaepi"              ).setBranchAlias("pfmus_mva_epi"            );
-     produces< vector< float> >         ("pfmusmvaemu"              ).setBranchAlias("pfmus_mva_emu"            );
-     produces< vector< float> >         ("pfmusmvapimu"             ).setBranchAlias("pfmus_mva_pimu"           );
-     produces< vector< float> >         ("pfmusmvanothinggamma"     ).setBranchAlias("pfmus_mva_nothing_gamma"  );
-     produces< vector< float> >         ("pfmusmvanothingnh"        ).setBranchAlias("pfmus_mva_nothing_nh"     );
-
-     produces< vector< LorentzVector> > ("pfmusp4"                  ).setBranchAlias("pfmus_p4"                 );
-     produces< vector< LorentzVector> > ("pfmusposAtEcalp4"         ).setBranchAlias("pfmus_posAtEcal_p4"       );
-    */
-
-
   ////////
   // PF //
   ////////
@@ -203,6 +196,8 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces< vector< float> >         ( branchprefix_ + "pfmvapimu"             ).setBranchAlias( aliasprefix_ + "_pfmva_pimu"           );
   produces< vector< float> >         ( branchprefix_ + "pfmvanothinggamma"     ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_gamma"  );
   produces< vector< float> >         ( branchprefix_ + "pfmvanothingnh"        ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_nh"     );
+  produces< vector< LorentzVector> > ( branchprefix_ + "pfp4"                  ).setBranchAlias( aliasprefix_ + "_pfp4"                 );
+  produces< vector< LorentzVector> > ( branchprefix_ + "pfposAtEcalp4"         ).setBranchAlias( aliasprefix_ + "_pfposAtEcal_p4"       );
   /*
   produces< vector< float> >         ( branchprefix_ + "pfisoChargedHadrons"   ).setBranchAlias( aliasprefix_ + "_pfiso03ChargedHadrons");
   produces< vector< float> >         ( branchprefix_ + "pfisoNeutralHadrons"   ).setBranchAlias( aliasprefix_ + "_pfiso03NeutralHadrons");
@@ -211,8 +206,6 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces< vector< float> >         ( branchprefix_ + "pfiso04NeutralHadrons" ).setBranchAlias( aliasprefix_ + "_pfiso04NeutralHadrons");
   produces< vector< float> >         ( branchprefix_ + "pfiso04Photons"        ).setBranchAlias( aliasprefix_ + "_pfiso04Photons"       );
   */
-  produces< vector< LorentzVector> > ( branchprefix_ + "pfp4"                  ).setBranchAlias( aliasprefix_ + "_pfp4"                 );
-  produces< vector< LorentzVector> > ( branchprefix_ + "pfposAtEcalp4"         ).setBranchAlias( aliasprefix_ + "_pfposAtEcal_p4"       );
 
   produces<vector<float> >       ( branchprefix_ + "isoR03pfChargedHadronPt"   ).setBranchAlias( aliasprefix_ + "_isoR03_pf_ChargedHadronPt"   );
   produces<vector<float> >       ( branchprefix_ + "isoR03pfChargedParticlePt" ).setBranchAlias( aliasprefix_ + "_isoR03_pf_ChargedParticlePt" );
@@ -271,7 +264,6 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces<vector<float> >       ( branchprefix_ + "ubz0"             ).setBranchAlias( aliasprefix_ + "_ubz0"               ); // z0 from unbiased vertex
  
 
-
   //////////////////////
   // Muon timing info //
   ////////////////////// 
@@ -296,38 +288,32 @@ MuonMaker::MuonMaker( const edm::ParameterSet& iConfig ) {
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitouterPosp4"            ).setBranchAlias( aliasprefix_ + "_gfit_outerPos_p4"           );
   produces<vector<LorentzVector> >  ( branchprefix_ + "stavertexp4"               ).setBranchAlias( aliasprefix_ + "_sta_vertex_p4"              );
   produces<vector<LorentzVector> >  ( branchprefix_ + "fitdefaultp4"              ).setBranchAlias( aliasprefix_ + "_fitdefault_p4"              );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fitfirsthitp4"             ).setBranchAlias( aliasprefix_ + "_fitfirsthit_p4"             );
+  //produces<vector<LorentzVector> >  ( branchprefix_ + "fitfirsthitp4"             ).setBranchAlias( aliasprefix_ + "_fitfirsthit_p4"             );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"                );
   produces<vector<LorentzVector> >  ( branchprefix_ + "fitpickyp4"                ).setBranchAlias( aliasprefix_ + "_fitpicky_p4"                );
   produces<vector<LorentzVector> >  ( branchprefix_ + "fittevp4"                  ).setBranchAlias( aliasprefix_ + "_fittev_p4"                  );
 
 
-
-  //////////////////////
-  // Input Parameters //
-  //////////////////////
-
-  muonsInputTag    = iConfig.getParameter<edm::InputTag> ("muonsInputTag"   ); 
-  beamSpotInputTag = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag");
-  pfCandsInputTag  = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag" );
-  vtxInputTag      = iConfig.getParameter<edm::InputTag> ("vtxInputTag"     );
-  tevMuonsName     = iConfig.getParameter<string>        ("tevMuonsName"    ); 
-  src_             = iConfig.getParameter<edm::InputTag> ("src"             ); // Cosmics Compatibility
-
 } //
 
-void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
-  using namespace edm;
-  // make vectors to hold the information
 
-  // Cosmics Compatibility
+  ///////////////////////////
+  // Cosmics Compatibility //
+  ///////////////////////////
+
   auto_ptr<vector<float> > cosmicCompat     ( new vector<float> );
   auto_ptr<vector<float> > timeCompat       ( new vector<float> );
   auto_ptr<vector<float> > backToBackCompat ( new vector<float> );
   auto_ptr<vector<float> > overlapCompat    ( new vector<float> );
   auto_ptr<vector<float> > vertexCompat     ( new vector<float> );
 
-  // Muon Quality
+
+  //////////////////
+  // Muon Quality //
+  //////////////////
+
   auto_ptr<vector<bool> >   vector_mus_updatedSta          ( new vector<bool>   );        
   auto_ptr<vector<bool> >   vector_mus_tightMatch          ( new vector<bool>   );        
   auto_ptr<vector<float> >  vector_mus_trkKink             ( new vector<float>  );        
@@ -340,7 +326,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >  vector_mus_globalDeltaEtaPhi   ( new vector<float>  );        
   auto_ptr<vector<float> >  vector_mus_glbTrackProbability ( new vector<float>  );        
 
-  //
+
+  ////////////
+  // Tracks //
+  ////////////
+
+  auto_ptr<vector<int> >           vector_mus_muonBestTrackType   ( new vector<int>            );        
+
   auto_ptr<vector<int> >           vector_mus_type                ( new vector<int>            );        
   auto_ptr<vector<int> >           vector_mus_goodmask            ( new vector<int>            );        
   auto_ptr<vector<LorentzVector> > vector_mus_p4                  ( new vector<LorentzVector>  );
@@ -413,6 +405,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr< vector< float> >         vector_mus_pfmvapimu             ( new vector<float> );
   auto_ptr< vector< float> >         vector_mus_pfmvanothinggamma     ( new vector<float> );
   auto_ptr< vector< float> >         vector_mus_pfmvanothingnh        ( new vector<float> );
+  auto_ptr< vector< LorentzVector> > vector_mus_pfp4                  ( new vector<LorentzVector> );
+  auto_ptr< vector< LorentzVector> > vector_mus_pfposAtEcalp4         ( new vector<LorentzVector> );
   /*
   auto_ptr< vector< float> >         vector_mus_pfiso03ChargedHadrons ( new vector<float> );
   auto_ptr< vector< float> >         vector_mus_pfiso03NeutralHadrons ( new vector<float> );
@@ -421,8 +415,6 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr< vector< float> >         vector_mus_pfiso04NeutralHadrons ( new vector<float> );
   auto_ptr< vector< float> >         vector_mus_pfiso04Photons        ( new vector<float> );
   */
-  auto_ptr< vector< LorentzVector> > vector_mus_pfp4                  ( new vector<LorentzVector> );
-  auto_ptr< vector< LorentzVector> > vector_mus_pfposAtEcalp4         ( new vector<LorentzVector> );
 
   auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedHadronPt   ( new vector<float>   );
   auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedParticlePt ( new vector<float>   );
@@ -438,8 +430,10 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
 
+  ////////////////  
+  // Global Fit //
+  ////////////////
 
-  //gfit
   auto_ptr<vector<float> >         vector_mus_gfit_d0                     ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_gfit_z0                     ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_gfit_d0Err                  ( new vector<float>   );
@@ -452,7 +446,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_gfit_ndof                   ( new vector<float>   );
   auto_ptr<vector<int> >           vector_mus_gfit_validHits              ( new vector<int>     );
 
-  //sta
+
+  /////////
+  // STA //
+  /////////
+
   auto_ptr<vector<float> >         vector_mus_sta_d0                      ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_sta_z0                      ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_sta_d0Err                   ( new vector<float>   );
@@ -465,11 +463,21 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_sta_ndof                    ( new vector<float>   );
   auto_ptr<vector<int> >           vector_mus_sta_validHits               ( new vector<int>     );
 
+
+  /////////////////
+  // Unbiased IP //
+  /////////////////
+
   auto_ptr<vector<float> >         vector_mus_ubd0                        ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubd0err                     ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubIp3d                      ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubIp3derr                   ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubz0                        ( new vector<float>   );
+
+
+  ////////////
+  // Timing //
+  ////////////
   
   auto_ptr<vector<int> >           vector_mus_timeNumStationsUsed         ( new vector<int>     );
   auto_ptr<vector<float> >         vector_mus_timeAtIpInOut               ( new vector<float>   );
@@ -487,13 +495,18 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_overlap0                    ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_overlap1                    ( new vector<int>     );
 
-  //
+
+  ////////////
+  // Vertex //
+  ////////////
+
   auto_ptr<vector<LorentzVector> > vector_mus_vertex_p4                   ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_vertex_p4              ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4            ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_sta_vertex_p4               ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitdefault_p4               ( new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fitfirsthit_p4              ( new vector<LorentzVector> );
+  //auto_ptr<vector<LorentzVector> > vector_mus_fitfirsthit_p4              ( new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_fittpfms_p4                 ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitpicky_p4                 ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fittev_p4                   ( new vector<LorentzVector> );
    
@@ -504,11 +517,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Get Muons, PF Candidates, Vertices //
   ////////////////////////////////////////
 
-  Handle<edm::View<Muon> > muon_h;
+  Handle<View<Muon> > muon_h;
   iEvent.getByLabel( muonsInputTag   , muon_h       );              // Get Muons
   iEvent.getByLabel( pfCandsInputTag , pfCand_h     );              // Get PF Candidates
   iEvent.getByLabel( vtxInputTag     , vertexHandle );              // Get Vertices
-  edm::Handle<edm::ValueMap<reco::PFCandidatePtr> > pfMap;          // Map to get pf-Muon from reco-Muon
+  Handle<ValueMap<PFCandidatePtr> > pfMap;          // Map to get pf-Muon from reco-Muon
   iEvent.getByLabel("particleFlow", muonsInputTag.label(), pfMap );
 
 
@@ -516,8 +529,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Get BeamSpot from BeamSpotMaker //
   /////////////////////////////////////
 
-  edm::InputTag beamSpot_tag( beamSpotInputTag.label(), "evtbsp4" );
-  edm::Handle<LorentzVector> beamSpotH;
+  InputTag beamSpot_tag( beamSpotInputTag.label(), "evtbsp4" );
+  Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel( beamSpot_tag, beamSpotH );
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
@@ -527,32 +540,19 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //////////////////////////
 
   VertexReProducer revertex( vertexHandle, iEvent );
-  Handle<reco::BeamSpot> pvbeamspot; 
+  Handle<BeamSpot> pvbeamspot; 
   iEvent.getByLabel( revertex.inputBeamSpot(), pvbeamspot );
   ESHandle<TransientTrackBuilder> theTTBuilder;
   iSetup.get<TransientTrackRecord>().get( "TransientTrackBuilder", theTTBuilder );
 
   
-  ////////////////////////////////////
-  // Maps for alternative muon fits //
-  ////////////////////////////////////
-
-  Handle<TrackToTrackMap> trackMap;
-  Handle<TrackToTrackMap> trackMapDefault;
-  Handle<TrackToTrackMap> trackMapFirstHit;
-  Handle<TrackToTrackMap> trackMapPicky;
-  iEvent.getByLabel( tevMuonsName, "default"  , trackMapDefault  );
-  iEvent.getByLabel( tevMuonsName, "firstHit" , trackMapFirstHit );
-  iEvent.getByLabel( tevMuonsName, "picky"    , trackMapPicky    );
-  
-
   ////////////////////////// 
   // Cosmic Compatibility //
   //////////////////////////
 
-  Handle<reco::MuonCollection> muons;
+  Handle<MuonCollection> muons;
   iEvent.getByLabel( "muons", muons );
-  Handle<edm::ValueMap<reco::MuonCosmicCompatibility> > CosmicMap;
+  Handle<ValueMap<MuonCosmicCompatibility> > CosmicMap;
   iEvent.getByLabel( src_, CosmicMap );
 
 
@@ -561,13 +561,14 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ///////////
 
   unsigned int muonIndex = 0;
-  edm::View<Muon>::const_iterator muons_end = muon_h->end();  // Iterator
-  for ( edm::View<Muon>::const_iterator muon = muon_h->begin(); muon != muons_end; ++muon ) {
+  View<Muon>::const_iterator muons_end = muon_h->end();  // Iterator
+  for ( View<Muon>::const_iterator muon = muon_h->begin(); muon != muons_end; ++muon ) {
 
     //
     const TrackRef siTrack     = muon->innerTrack();
     const TrackRef globalTrack = muon->globalTrack();
     const TrackRef staTrack    = muon->outerTrack();
+
 
     //////////////////////////
     // Cosmic Compatibility //
@@ -600,14 +601,22 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     vector_mus_globalDeltaEtaPhi  ->push_back( quality.globalDeltaEtaPhi );
     vector_mus_glbTrackProbability->push_back( quality.glbTrackProbability );
 
+
+    ////////////
+    // Tracks //
+    ////////////
+
+    vector_mus_muonBestTrackType -> push_back( muon->muonBestTrackType() );
+
+    vector_mus_type              -> push_back(muon->type());
+
     //
-    vector_mus_type         ->push_back(muon->type());
     int goodMask = 0;
-    
     for (int iG = 0; iG < 24; ++iG){ //overkill here
       if (isGoodMuon(*muon,(muon::SelectionType)iG) ) goodMask |=   (1 << iG);
     }
      
+    //
     vector_mus_goodmask           ->push_back( goodMask );
     vector_mus_p4                 ->push_back( LorentzVector( muon->p4() ) );
     vector_mus_trk_p4             ->push_back( siTrack.isNonnull()     ? LorentzVector( siTrack.get()->px() , siTrack.get()->py() , siTrack.get()->pz() , siTrack.get()->p() ) : LorentzVector(0, 0, 0, 0) );
@@ -667,41 +676,54 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // PF //
     ////////
 
-    //
+    // PF p4
+    vector_mus_pfp4 -> push_back( LorentzVector( muon->pfP4() ) );
+
+    // PF Isolation
     MuonPFIsolation pfStructR03 = muon->pfIsolationR03();
     MuonPFIsolation pfStructR04 = muon->pfIsolationR04();
+    vector_mus_isoR03_pf_ChargedHadronPt  -> push_back( pfStructR03.sumChargedHadronPt   );
+    vector_mus_isoR03_pf_ChargedParticlePt-> push_back( pfStructR03.sumChargedParticlePt );
+    vector_mus_isoR03_pf_NeutralHadronEt  -> push_back( pfStructR03.sumNeutralHadronEt   );
+    vector_mus_isoR03_pf_PhotonEt         -> push_back( pfStructR03.sumPhotonEt          );
+    vector_mus_isoR03_pf_PUPt             -> push_back( pfStructR03.sumPUPt              );
+    vector_mus_isoR04_pf_ChargedHadronPt  -> push_back( pfStructR04.sumChargedHadronPt   );
+    vector_mus_isoR04_pf_ChargedParticlePt-> push_back( pfStructR04.sumChargedParticlePt );
+    vector_mus_isoR04_pf_NeutralHadronEt  -> push_back( pfStructR04.sumNeutralHadronEt   );
+    vector_mus_isoR04_pf_PhotonEt         -> push_back( pfStructR04.sumPhotonEt          );
+    vector_mus_isoR04_pf_PUPt             -> push_back( pfStructR04.sumPUPt              );
 
-    //
-    if ( (*pfMap)[muonRef].isNonnull() ) {
+    // Other PF
+  
+    PFCandidatePtr pfCandRef = (*pfMap)[muonRef];
 
-      // Sanity & Flags
-      stringstream ss;
-      ss << "MuonMaker::produce: Error! pf Muon has particle id = " << (*pfMap)[muonRef]->translateTypeToPdgId( (*pfMap)[muonRef]->particleId() );
-      cout << ss.str() << endl;
-      if ( (*pfMap)[muonRef]->particleId() != PFCandidate::mu ) { 
-        //cout << ss.str() << endl;
-        //throw cms::Exception( ss.str() );
-      }
+    if ( pfCandRef.isNonnull() ) {
+
+      // Flags
       int pfflags = 0;
       for( unsigned int i = 0; i < 17; i++ ) {
-        if( (*pfMap)[muonRef]->flag( (PFCandidate::Flags) i ) ) pfflags |= (1<<i);
+        if( pfCandRef->flag( (PFCandidate::Flags) i ) ) pfflags |= (1<<i);
       }
   
       //
-      vector_mus_pfcharge              ->push_back( (*pfMap)[muonRef]->charge()                                                               );
-      vector_mus_pfparticleId          ->push_back( (*pfMap)[muonRef]->translateTypeToPdgId( (*pfMap)[muonRef]->particleId() )                );
-      vector_mus_pfflag                ->push_back( pfflags                                                                                   );
-      vector_mus_pfecalE               ->push_back( isfinite( (*pfMap)[muonRef]->ecalEnergy() ) ? (*pfMap)[muonRef]->ecalEnergy() : -9999.0   );
-      vector_mus_pfrawEcalE            ->push_back( (*pfMap)[muonRef]->rawEcalEnergy()                                                        );
-      vector_mus_pfrawHcalE            ->push_back( (*pfMap)[muonRef]->rawHcalEnergy()                                                        );
-      vector_mus_pfpS1E                ->push_back( (*pfMap)[muonRef]->pS1Energy()                                                            );
-      vector_mus_pfpS2E                ->push_back( (*pfMap)[muonRef]->pS2Energy()                                                            );
-      vector_mus_pfdeltaP              ->push_back( (*pfMap)[muonRef]->deltaP()                                                               );
-      vector_mus_pfmvaepi              ->push_back( (*pfMap)[muonRef]->mva_e_pi()                                                             );
-      vector_mus_pfmvaemu              ->push_back( (*pfMap)[muonRef]->mva_e_mu()                                                             );
-      vector_mus_pfmvapimu             ->push_back( (*pfMap)[muonRef]->mva_pi_mu()                                                            );
-      vector_mus_pfmvanothinggamma     ->push_back( (*pfMap)[muonRef]->mva_nothing_gamma()                                                    );
-      vector_mus_pfmvanothingnh        ->push_back( (*pfMap)[muonRef]->mva_nothing_nh()                                                       );
+      vector_mus_pfcharge              ->push_back( pfCandRef->charge()                                                     );
+      vector_mus_pfparticleId          ->push_back( pfCandRef->translateTypeToPdgId( pfCandRef->particleId() )              );
+      vector_mus_pfflag                ->push_back( pfflags                                                                 );
+      vector_mus_pfecalE               ->push_back( isfinite( pfCandRef->ecalEnergy() ) ? pfCandRef->ecalEnergy() : -9999.0 );
+      vector_mus_pfrawEcalE            ->push_back( pfCandRef->rawEcalEnergy()                                              );
+      vector_mus_pfrawHcalE            ->push_back( pfCandRef->rawHcalEnergy()                                              );
+      vector_mus_pfpS1E                ->push_back( pfCandRef->pS1Energy()                                                  );
+      vector_mus_pfpS2E                ->push_back( pfCandRef->pS2Energy()                                                  );
+      vector_mus_pfdeltaP              ->push_back( pfCandRef->deltaP()                                                     );
+      vector_mus_pfmvaepi              ->push_back( pfCandRef->mva_e_pi()                                                   );
+      vector_mus_pfmvaemu              ->push_back( pfCandRef->mva_e_mu()                                                   );
+      vector_mus_pfmvapimu             ->push_back( pfCandRef->mva_pi_mu()                                                  );
+      vector_mus_pfmvanothinggamma     ->push_back( pfCandRef->mva_nothing_gamma()                                          );
+      vector_mus_pfmvanothingnh        ->push_back( pfCandRef->mva_nothing_nh()                                             );
+      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( pfCandRef->positionAtECALEntrance().x() , 
+                                                                   pfCandRef->positionAtECALEntrance().y() , 
+                                                                   pfCandRef->positionAtECALEntrance().z() , 
+                                                                   0.0 )                                                    );             
       /*
       vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
       vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
@@ -710,15 +732,11 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       vector_mus_pfiso04NeutralHadrons ->push_back(                                                                     ); 
       vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
       */
-      //vector_mus_pfp4                  ->push_back( LorentzVector( muon->pfP4() )                                                             );
-      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( (*pfMap)[muonRef]->positionAtECALEntrance().x() , 
-                                                                   (*pfMap)[muonRef]->positionAtECALEntrance().y() , 
-                                                                   (*pfMap)[muonRef]->positionAtECALEntrance().z() , 
-                                                                   0.0                                               )                        );             
+
     } else {
 
       //
-      cout << "MuonMaker::produce: Error! (*pfMap)[muonRef] is null" << endl;
+      //cout << "MuonMaker::produce: Error! (*pfMap)[muonRef] is null" << endl;
 
       //
       vector_mus_pfcharge              ->push_back( -9999.0 );
@@ -735,6 +753,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       vector_mus_pfmvapimu             ->push_back( -9999.0 );
       vector_mus_pfmvanothinggamma     ->push_back( -9999.0 );
       vector_mus_pfmvanothingnh        ->push_back( -9999.0 );
+      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ; 
       /*
       vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
       vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
@@ -743,25 +762,12 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       vector_mus_pfiso04NeutralHadrons ->push_back(                                                                     ); 
       vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
       */
-      //vector_mus_pfp4                  ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ;
-      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ; 
 
     } //
 
-    //
-    vector_mus_pfp4                  ->push_back( LorentzVector( muon->pfP4() ) );
 
-    //
-    vector_mus_isoR03_pf_ChargedHadronPt  ->push_back( pfStructR03.sumChargedHadronPt   );
-    vector_mus_isoR03_pf_ChargedParticlePt->push_back( pfStructR03.sumChargedParticlePt );
-    vector_mus_isoR03_pf_NeutralHadronEt  ->push_back( pfStructR03.sumNeutralHadronEt   );
-    vector_mus_isoR03_pf_PhotonEt         ->push_back( pfStructR03.sumPhotonEt          );
-    vector_mus_isoR03_pf_PUPt             ->push_back( pfStructR03.sumPUPt              );
-    vector_mus_isoR04_pf_ChargedHadronPt  ->push_back( pfStructR04.sumChargedHadronPt   );
-    vector_mus_isoR04_pf_ChargedParticlePt->push_back( pfStructR04.sumChargedParticlePt );
-    vector_mus_isoR04_pf_NeutralHadronEt  ->push_back( pfStructR04.sumNeutralHadronEt   );
-    vector_mus_isoR04_pf_PhotonEt         ->push_back( pfStructR04.sumPhotonEt          );
-    vector_mus_isoR04_pf_PUPt             ->push_back( pfStructR04.sumPUPt              );
+
+
 
 
     ////////////////
@@ -815,7 +821,7 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     int mus_overlap1 = -1;
     int muInd = -1;
     int mus_nOverlaps = 0;
-    for ( edm::View<Muon>::const_iterator muonJ = muon_h->begin(); muonJ != muons_end; ++muonJ ) {
+    for ( View<Muon>::const_iterator muonJ = muon_h->begin(); muonJ != muons_end; ++muonJ ) {
       muInd++;
       if ( muonJ != muon ){
         if ( muon::overlap( *muon, *muonJ ) ) {
@@ -831,19 +837,31 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     vector_mus_vertex_p4        -> push_back( siTrack.isNonnull()     ? LorentzVector( siTrack->vx()                    , siTrack->vy()                    , siTrack->vz()                    , 0. ) : LorentzVector( -9999., -9999., -9999., -9999.) );
     vector_mus_gfit_vertex_p4   -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->vx()                , globalTrack->vy()                , globalTrack->vz()                , 0. ) : LorentzVector( -9999., -9999., -9999., -9999.) );
     vector_mus_gfit_outerPos_p4 -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->outerPosition().x() , globalTrack->outerPosition().y() , globalTrack->outerPosition().z() , 0. ) : LorentzVector( -9999., -9999., -9999., -9999.) );
-    
+ 
+
+
+    //   
     if( !muon->isGlobalMuon() ) { // Muon is not global
+
       vector_mus_fitdefault_p4  -> push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fitfirsthit_p4 -> push_back( LorentzVector( 0, 0, 0, 0 ) );
+      //vector_mus_fitfirsthit_p4 -> push_back( LorentzVector( 0, 0, 0, 0 ) );
+      vector_mus_fittpfms_p4    -> push_back( LorentzVector( 0, 0, 0, 0 ) );
       vector_mus_fitpicky_p4    -> push_back( LorentzVector( 0, 0, 0, 0 ) );
       vector_mus_fittev_p4      -> push_back( LorentzVector( 0, 0, 0, 0 ) );
+
     }
     else {  // Muon is global
 
-      reco::TrackToTrackMap::const_iterator fittmp;
+      /////////////
+      // Default //
+      /////////////
+
+      /*
+      TrackToTrackMap::const_iterator fittmp;
       if( !muon->combinedMuon().isAvailable() ) cout << "WTF" << endl;
 
-      //
+      Handle<TrackToTrackMap> trackMapDefault;
+      iEvent.getByLabel( tevMuonsName, "default"  , trackMapDefault  );
       fittmp = (*trackMapDefault).find(muon->combinedMuon());
       if( fittmp != trackMapDefault->end()  ) {
         vector_mus_fitdefault_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
@@ -851,8 +869,20 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       else {
         vector_mus_fitdefault_p4 ->push_back( LorentzVector( 0, 0, 0, 0 ) );
       }
+      */
+    
 
-      //
+      ///////////////
+      // First Hit //
+      ///////////////
+
+      TrackRef tpfmsRef = muon->muonTrackFromMap( Muon::TPFMS );
+      if( ! tpfmsRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! tpfmsRef is not available.");
+      vector_mus_fittpfms_p4->push_back( LorentzVector( tpfmsRef->px(), tpfmsRef->py(), tpfmsRef->pz(), tpfmsRef->p() ) );
+
+      /*
+      Handle<TrackToTrackMap> trackMapFirstHit;
+      iEvent.getByLabel( tevMuonsName, "firstHit" , trackMapFirstHit );
       fittmp = (*trackMapFirstHit).find(muon->combinedMuon());
       if( fittmp != trackMapFirstHit->end()  ) {
         vector_mus_fitfirsthit_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
@@ -860,8 +890,23 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       else {
         vector_mus_fitfirsthit_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
       }
+      cout << tpfmsRef->px() - (*fittmp).val->px() << endl; 
+      cout << tpfmsRef->py() - (*fittmp).val->py() << endl; 
+      cout << tpfmsRef->pz() - (*fittmp).val->pz() << endl << endl; 
+      */
 
-      //  
+
+      ///////////
+      // Picky //
+      ///////////
+   
+      TrackRef pickyRef = muon->muonTrackFromMap( Muon::Picky );
+      if( !pickyRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! pickyRef is not available.");
+      vector_mus_fitpicky_p4->push_back( LorentzVector( pickyRef->px(), pickyRef->py(), pickyRef->pz(), pickyRef->p() ) );
+
+      /*
+      Handle<TrackToTrackMap> trackMapPicky;
+      iEvent.getByLabel( tevMuonsName, "picky", trackMapPicky );
       fittmp = (*trackMapPicky).find(muon->combinedMuon());
       if( fittmp != trackMapPicky->end()  ) {
         vector_mus_fitpicky_p4->push_back( LorentzVector( (*fittmp).val->px(), (*fittmp).val->py(), (*fittmp).val->pz(), (*fittmp).val->p() ) );
@@ -869,16 +914,35 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       else {
         vector_mus_fitpicky_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
       }
- 
-      //     
-      TrackRef fittmpref;
-      fittmpref = muon::tevOptimized(*muon, *trackMapDefault, *trackMapFirstHit, *trackMapPicky).first;
+      cout << pickyRef->px() - (*fittmp).val->px() << endl; 
+      cout << pickyRef->py() - (*fittmp).val->py() << endl; 
+      cout << pickyRef->pz() - (*fittmp).val->pz() << endl << endl; 
+      */
+
+
+      /////////
+      // TeV //
+      /////////  
+  
+      TrackRef tevRef = muon::tevOptimized( *muon ).first;
+      //TrackRef tevRef = muon::tevOptimized( muon->muonTrackFromMap( Muon::CombinedTrack ), muon->muonTrackFromMap( Muon::InnerTrack ), muon->muonTrackFromMap( Muon::TPFMS ), muon->muonTrackFromMap( Muon::Picky ) ).first;
+      if( !tevRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! tevRef is not available.");
+      vector_mus_fittev_p4 -> push_back( LorentzVector( tevRef->px(), tevRef->py(), tevRef->pz(), tevRef->p() ) );
+
+      /*
+      TrackRef fittmpref = muon::tevOptimized( *muon, *trackMapDefault, *trackMapFirstHit, *trackMapPicky ).first;
       if( fittmpref.isAvailable() ) {
-        vector_mus_fittev_p4->push_back( LorentzVector( fittmpref->px(), fittmpref->py(), fittmpref->pz(), fittmpref->p() ) );
+        vector_mus_fittev_p4 -> push_back( LorentzVector( fittmpref->px(), fittmpref->py(), fittmpref->pz(), fittmpref->p() ) );
       }
       else {
-        vector_mus_fittev_p4     ->push_back( LorentzVector( 0, 0, 0, 0 ) );
+        vector_mus_fittev_p4 -> push_back( LorentzVector( 0, 0, 0, 0 ) );
       }
+      cout << tevRef->px() - fittmpref->px() << endl; 
+      cout << tevRef->py() - fittmpref->py() << endl; 
+      cout << tevRef->pz() - fittmpref->pz() << endl << endl; 
+      cout << "-------------------------------------------" << endl;
+      */
+
 
     } // 
 
@@ -888,9 +952,9 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // PF Isolation //
     //////////////////
 
-    const reco::VertexCollection *vertexCollection = vertexHandle.product();
-    reco::VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
-    for ( reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx ) {
+    const VertexCollection *vertexCollection = vertexHandle.product();
+    VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+    for ( VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx ) {
       if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0 ) {
         firstGoodVertex = vtx;
         break;
@@ -911,16 +975,16 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     if ( siTrack.isNonnull() && firstGoodVertex != vertexCollection->end() ) {
 
-      reco::Vertex vertexNoB;
-      reco::TrackRefVector newTkCollection;
+      Vertex vertexNoB;
+      TrackRefVector newTkCollection;
       bool foundMatch(false);
-      for(reco::Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
+      for(Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
       bool refMatching = (itk->key() == siTrack.key());
       if(refMatching){
         foundMatch = true;
       }
       else{
-        newTkCollection.push_back(itk->castTo<reco::TrackRef>());
+        newTkCollection.push_back(itk->castTo<TrackRef>());
       }
 
     }//track collection for vertexNoB is set
@@ -934,13 +998,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     else{      
       vector<TransientVertex> pvs = revertex.makeVertices( newTkCollection, *pvbeamspot, iSetup );
       if(pvs.empty()) {
-        vertexNoB = reco::Vertex(beamSpot, reco::Vertex::Error());
+        vertexNoB = Vertex(beamSpot, Vertex::Error());
       } 
       else {
         vertexNoB = pvs.front(); //take the first in the list
       }
       }
-      reco::TransientTrack tt = theTTBuilder->build(siTrack);
+      TransientTrack tt = theTTBuilder->build(siTrack);
       Measurement1D ip_2      = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
       Measurement1D ip3D_2    = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
       vector_mus_ubd0         -> push_back( ip_2.value()                      );
@@ -959,14 +1023,22 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   } //
      
 
-  // Cosmic Compatibility
+
+  //////////////////////////
+  // Cosmic Compatibility //
+  //////////////////////////
+
   iEvent.put( cosmicCompat                  , branchprefix_ + "cosmicCompat"       );
   iEvent.put( timeCompat                    , branchprefix_ + "timeCompat"         );
   iEvent.put( backToBackCompat              , branchprefix_ + "backToBackCompat"   );
   iEvent.put( overlapCompat                 , branchprefix_ + "overlapCompat"      );
   iEvent.put( vertexCompat                  , branchprefix_ + "vertexCompat"       );
 
-  // Muon Quality
+
+  //////////////////
+  // Muon Quality //
+  //////////////////
+
   iEvent.put( vector_mus_updatedSta         , branchprefix_ + "updatedSta"         );
   iEvent.put( vector_mus_tightMatch         , branchprefix_ + "tightMatch"         );
   iEvent.put( vector_mus_trkKink            , branchprefix_ + "trkKink"            );
@@ -979,7 +1051,13 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( vector_mus_globalDeltaEtaPhi  , branchprefix_ + "globalDeltaEtaPhi"  );
   iEvent.put( vector_mus_glbTrackProbability, branchprefix_ + "glbTrackProbability");
 
-  //
+
+  ////////////
+  // Tracks //
+  ////////////
+
+  iEvent.put( vector_mus_muonBestTrackType  , branchprefix_ + "muonBestTrackType"  );
+
   iEvent.put( vector_mus_type               , branchprefix_ + "type"               );
   iEvent.put( vector_mus_goodmask           , branchprefix_ + "goodmask"           );
   iEvent.put( vector_mus_p4                 , branchprefix_ + "p4"                 );
@@ -1131,7 +1209,8 @@ void MuonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( vector_mus_gfit_outerPos_p4             , branchprefix_ + "gfitouterPosp4"           );
   iEvent.put( vector_mus_sta_vertex_p4                , branchprefix_ + "stavertexp4"              );
   iEvent.put( vector_mus_fitdefault_p4                , branchprefix_ + "fitdefaultp4"             );
-  iEvent.put( vector_mus_fitfirsthit_p4               , branchprefix_ + "fitfirsthitp4"            );
+  //iEvent.put( vector_mus_fitfirsthit_p4               , branchprefix_ + "fitfirsthitp4"            );
+  iEvent.put( vector_mus_fittpfms_p4                  , branchprefix_ + "fittpfmsp4"               );
   iEvent.put( vector_mus_fitpicky_p4                  , branchprefix_ + "fitpickyp4"               );
   iEvent.put( vector_mus_fittev_p4                    , branchprefix_ + "fittevp4"                 );
 
@@ -1155,7 +1234,7 @@ double MuonMaker::muonIsoValuePF(const Muon& mu, const Vertex& vtx, float coner,
 
   for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
 
-    float dR = reco::deltaR(pf->eta(), pf->phi(), mu.eta(), mu.phi());
+    float dR = deltaR(pf->eta(), pf->phi(), mu.eta(), mu.phi());
     if (dR>coner) continue;
 
     int pfid = abs(pf->pdgId());
