@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.58 2012/03/29 20:30:18 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.59 2012/03/29 22:58:29 dbarge Exp $
 //
 //
 
@@ -865,17 +865,24 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       ///////////////
 
       TrackRef tmpRef = muon->muonTrackFromMap( Muon::TPFMS );
-      if( ! tmpRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! tpfmsRef is not available.");
-      vector_mus_fittpfms_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
-
+      if( tmpRef.isAvailable() ) { 
+        vector_mus_fittpfms_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
+      }
+      else{
+        vector_mus_fittpfms_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      }
 
       ///////////
       // Picky //
       ///////////
 
       tmpRef = muon->muonTrackFromMap( Muon::Picky );
-      if( !tmpRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! tmpRef is not available.");
-      vector_mus_fitpicky_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
+      if( tmpRef.isAvailable() ) {
+        vector_mus_fitpicky_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
+      }
+      else {
+        vector_mus_fitpicky_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
+      }
 
 
       /////////
@@ -883,8 +890,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       /////////  
 
       tmpRef = muon::tevOptimized( *muon ).first;
-      if( !tmpRef.isAvailable() ) throw cms::Exception("MuonMaker::produce: Error! tmpRef is not available.");
-      vector_mus_fittev_p4 -> push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
+      if( tmpRef.isAvailable() ) { 
+        vector_mus_fittev_p4 -> push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
+      }
+      else {
+        vector_mus_fittev_p4 -> push_back( LorentzVector( 0, 0, 0, 0 ) );
+      }
 
     } // end Muon is global
 
