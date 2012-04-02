@@ -1,7 +1,8 @@
-from CMS2.NtupleMaker.RecoConfiguration2011_44X_cfg import *
+#from CMS2.NtupleMaker.RecoConfiguration2011_44X_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "GR_R_44_V4::All"
+process.GlobalTag.globaltag = "GR_R_52_V4::All"
 
 # Lower default hypothesis thresholds
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
@@ -32,11 +33,11 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(True)
 process.luminosityMaker.isData                   = process.eventMaker.isData
 
-process.source.fileNames = [
-    'root://xrootd.unl.edu//store/relval/CMSSW_4_4_0_pre9/SingleMu/RECO/GR_R_44_V4_RelVal_mu2011A-v1/0000/EAFCB646-ACD2-E011-BDA0-002618943905.root'
-                            ]
+#process.source.fileNames = [
+#    'root://xrootd.unl.edu//store/relval/CMSSW_4_4_0_pre9/SingleMu/RECO/GR_R_44_V4_RelVal_mu2011A-v1/0000/EAFCB646-ACD2-E011-BDA0-002618943905.root'
+#                            ]
 
-process.maxEvents.input = 10
+#process.maxEvents.input = 10
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 #process.Timing =cms.Service("Timing")        
