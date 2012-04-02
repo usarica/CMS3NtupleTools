@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.59 2012/03/29 22:58:29 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.60 2012/04/02 12:13:23 cerati Exp $
 //
 //
 
@@ -322,6 +322,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "ubIp3d"                    ).setBranchAlias( aliasprefix_ + "_ubIp3d"              ); // Ip3d from unbiased vertex
   produces<vector<float> >          ( branchprefix_ + "ubIp3derr"                 ).setBranchAlias( aliasprefix_ + "_ubIp3derr"           ); // Ip3d error from unbiased vertex
   produces<vector<float> >          ( branchprefix_ + "ubz0"                      ).setBranchAlias( aliasprefix_ + "_ubz0"                ); // z0 from unbiased vertex
+  produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
+  produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
 
 
 } // end Constructor
@@ -559,6 +561,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_ubIp3d                      ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubIp3derr                   ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ubz0                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
 
 
 
@@ -1052,6 +1056,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_ubIp3derr    -> push_back( ip3D_2.error()                    );
       vector_mus_ubz0         -> push_back( siTrack->dz(vertexNoB.position()) );
 
+      Measurement1D ip3D      = IPTools::absoluteImpactParameter3D( tt, *firstGoodVertex ).second;
+      vector_mus_ip3d         -> push_back( ip3D.value()                    );
+      vector_mus_ip3derr      -> push_back( ip3D.error()                    );
+
     } else {
 
       vector_mus_ubd0         -> push_back( -9999. );
@@ -1059,6 +1067,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_ubIp3d       -> push_back( -9999. );
       vector_mus_ubIp3derr    -> push_back( -9999. );
       vector_mus_ubz0         -> push_back( -9999. );
+      vector_mus_ip3d         -> push_back( -9999. );
+      vector_mus_ip3derr      -> push_back( -9999. );
 
     } //
 
@@ -1302,8 +1312,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_ubd0                         , branchprefix_ + "ubd0"               );
   iEvent.put( vector_mus_ubd0err                      , branchprefix_ + "ubd0err"            );
   iEvent.put( vector_mus_ubIp3d                       , branchprefix_ + "ubIp3d"             );
-  iEvent.put( vector_mus_ubIp3derr                    , branchprefix_ + "ubIp3derr"                );
-  iEvent.put( vector_mus_ubz0                         , branchprefix_ + "ubz0"                     );
+  iEvent.put( vector_mus_ubIp3derr                    , branchprefix_ + "ubIp3derr"          );
+  iEvent.put( vector_mus_ubz0                         , branchprefix_ + "ubz0"               );
+  iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
+  iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
 
 
 
