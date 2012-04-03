@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.cc,v 1.5 2012/03/27 20:08:55 dbarge Exp $
+// $Id: LuminosityMaker.cc,v 1.6 2012/04/03 19:29:17 macneill Exp $
 
 
 // system include files
@@ -112,32 +112,32 @@ void LuminosityMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
 
     LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
     Handle<LumiSummary> lumiSummary_h;
-    lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
+    bool bLumiBlock = lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
 
 
     ///////////////////////////////////////////////////////
     // Fill variables if LumiSummary is filled, else err //
     ///////////////////////////////////////////////////////
-
-    if ( lumiSummary_h->isValid() ) {
-      *ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
-      *ls_isValid             = lumiSummary_h->isValid()          ;
-      *ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
-      *ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
-      *ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
-      *ls_deadFrac            = lumiSummary_h->deadFrac()         ;
-      *ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
-      *ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
-      *ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
-      *ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
-      *ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
-      *ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
-      *ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
-    }
-    else{ 
-      throw cms::Exception("LuminosityMaker::produce(): Error! lumiSummary not valid for data, this should never happen."); 
-    }
-
+    if ( bLumiBlock ){
+	  if ( lumiSummary_h->isValid() ) {
+		*ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
+		*ls_isValid             = lumiSummary_h->isValid()          ;
+		*ls_avgInsDelLumi       = lumiSummary_h->avgInsDelLumi()    ;
+		*ls_avgInsDelLumiErr    = lumiSummary_h->avgInsDelLumiErr() ;
+		*ls_intgDelLumi         = lumiSummary_h->intgDelLumi()      ;
+		*ls_deadFrac            = lumiSummary_h->deadFrac()         ;
+		*ls_lumiSectionLength   = lumiSummary_h->lumiSectionLength();
+		*ls_avgInsRecLumi       = lumiSummary_h->lsNumber()         ;
+		*ls_avgInsRecLumiErr    = lumiSummary_h->startOrbit()       ;
+		*ls_intgRecLumi         = lumiSummary_h->numOrbit()         ;
+		*ls_lsNumber            = lumiSummary_h->avgInsRecLumi()    ;
+		*ls_startOrbit          = lumiSummary_h->avgInsRecLumiErr() ;
+		*ls_numOrbit            = lumiSummary_h->intgRecLumi()      ;
+	  }
+	  else{ 
+		throw cms::Exception("LuminosityMaker::produce(): Error! lumiSummary not valid for data, this should never happen."); 
+	  }
+	}
   } // end isData
 
 
