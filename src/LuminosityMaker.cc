@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: LuminosityMaker.cc,v 1.6 2012/04/03 19:29:17 macneill Exp $
+// $Id: LuminosityMaker.cc,v 1.7 2012/04/03 21:04:38 macneill Exp $
 
 
 // system include files
@@ -118,7 +118,7 @@ void LuminosityMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     ///////////////////////////////////////////////////////
     // Fill variables if LumiSummary is filled, else err //
     ///////////////////////////////////////////////////////
-    if ( bLumiBlock ){
+    if ( !lumiSummary_h.failedToGet() ){
 	  if ( lumiSummary_h->isValid() ) {
 		*ls_lumiSecQual         = lumiSummary_h->lumiSecQual()      ;
 		*ls_isValid             = lumiSummary_h->isValid()          ;
