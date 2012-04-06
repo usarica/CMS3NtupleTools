@@ -33,18 +33,30 @@ sdFilter = cms.EDFilter("SDFilter",
                         
                             SingleMuTriggerNames_ = cms.untracked.vstring(
                             "HLT_Mu*", 
+                            "HLT_IsoMu*", 
+                            "HLT_RelIso1p0*", 
                             ),
                             SingleElectronTriggerNames_ = cms.untracked.vstring(
+                            "HLT_Ele*", #temporary --> may remove/restrict later
+                            ),
+                            DoubleElectronTriggerNames_ = cms.untracked.vstring(
                             "HLT_Ele17*",
                             "HLT_Photon*",
                             "HLT_Ele8*",
+                            "HLT_Ele20_CaloIdVT_CaloIsoVT_TrkIdT_TrkIsoVT_SC4_Mass50_v*",
+                            "HLT_Ele32_CaloIdT_CaloIsoT_TrkIdT_TrkIsoT_SC17_Mass50_v*",
                             ),
                             ElectronHadTriggerNames_ = cms.untracked.vstring(
                             "HLT_DoubleEle*",
+                            "HLT_Ele8_CaloIdT_TrkIdVL_Jet30_v*",
+                            "HLT_Ele25*", #temporary --> may remove/restrict later
+                            "HLT_Ele27*", #temporary --> may remove/restrict later
                             ),
                             MuHadTriggerNames_ = cms.untracked.vstring(
                             "HLT*Mu*Ele*HT*",
                             "HLT*Doubl*Mu*HT*",
+                            "HLT_IsoMu20*", #temporary --> may remove/restrict later
+                            "HLT_Mu20*",    #temporary --> may remove/restrict later
                             ),
                             PhotonTriggerNames_= cms.untracked.vstring(
                              "HLT_Photon20_CaloIdVL_IsoL_v*",
@@ -54,10 +66,13 @@ sdFilter = cms.EDFilter("SDFilter",
                              "HLT_Photon75_CaloIdVL_IsoL_v*",
                              #"HLT_Photon75_CaloIdVL_v*",
                              "HLT_Photon90_CaloIdVL_IsoL_v*",
-                             "HLT_Photon125_v*",
-                             "HLT_Photon125_NoSpikeFilter_v*",
+                             #"HLT_Photon125_v*",
+                             #"HLT_Photon125_NoSpikeFilter_v*",
+                             #"HLT_Photon135_v*",
+                             #"HLT_Photon400_v*",
                              "HLT_Photon135_v*",
-                             "HLT_Photon400_v*",
+                             "HLT_Photon150_v*",
+                             "HLT_Photon160_v*",
                             ),
                             processName = cms.untracked.string("")
 )
