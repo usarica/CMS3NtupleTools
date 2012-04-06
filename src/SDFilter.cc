@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.26 2011/09/20 22:03:55 yanjuntu Exp $
+// $Id: SDFilter.cc,v 1.27 2012/04/06 20:03:54 benhoob Exp $
 //
 //
 
@@ -86,6 +86,7 @@ SDFilter::SDFilter(const edm::ParameterSet& iConfig) {
   looseptcut			= iConfig.getParameter<double>("looseptcut_"					);
   SingleMuTriggerNames		= iConfig.getUntrackedParameter<vector<string> >("SingleMuTriggerNames_"	);
   SingleElectronTriggerNames	= iConfig.getUntrackedParameter<vector<string> >("SingleElectronTriggerNames_"	);
+  DoubleElectronTriggerNames	= iConfig.getUntrackedParameter<vector<string> >("DoubleElectronTriggerNames_"	);
   ElectronHadTriggerNames	= iConfig.getUntrackedParameter<vector<string> >("ElectronHadTriggerNames_"	);
   MuHadTriggerNames		= iConfig.getUntrackedParameter<vector<string> >("MuHadTriggerNames_"		);
   PhotonTriggerNames		= iConfig.getUntrackedParameter<vector<string> >("PhotonTriggerNames_"		);
@@ -119,8 +120,10 @@ bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) {
 
     if(filterName == "doubleMu" || filterName == "SingleMu") 
       FillnTriggerPaths(SingleMuTriggerNames);
-    else if(filterName == "doubleElectron") 
+    else if(filterName == "SingleElectron") 
       FillnTriggerPaths(SingleElectronTriggerNames);
+    else if(filterName == "doubleElectron") 
+      FillnTriggerPaths(DoubleElectronTriggerNames);
     else if(filterName == "ElectronHad")
       FillnTriggerPaths(ElectronHadTriggerNames);
     else if(filterName == "MuHad")
@@ -199,8 +202,10 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	  if(filterName == "doubleMu" || filterName == "SingleMu") 
 		FillnTriggerPaths(SingleMuTriggerNames);
-	  else if(filterName == "doubleElectron") 
+	  else if(filterName == "SingleElectron") 
 		FillnTriggerPaths(SingleElectronTriggerNames);
+	  else if(filterName == "doubleElectron") 
+		FillnTriggerPaths(DoubleElectronTriggerNames);
 	  else if(filterName == "ElectronHad")
 		FillnTriggerPaths(ElectronHadTriggerNames);
 	  else if(filterName == "MuHad")
@@ -286,6 +291,20 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  } 
 	}    
   }
+
+
+  if (filterName== "SingleElectron"){
+	bool acceptEvent = false;
+	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {
+	  if(triggerResultsH_->accept(nTriggerPaths.at(i)))  {
+		acceptEvent = true;
+		break;
+	  }
+	}
+
+	if( acceptEvent ) return true;
+  }
+
   else if (filterName== "doubleMu"){
 	bool acceptEvent =false;
 	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) 	  {	  

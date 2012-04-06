@@ -15,7 +15,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: SDFilter.h,v 1.13 2011/09/20 22:03:56 yanjuntu Exp $
+// $Id: SDFilter.h,v 1.14 2012/04/06 20:03:53 benhoob Exp $
 //
 //
 #ifndef CMS2_ASKIMFILTER_H
@@ -87,6 +87,7 @@ private:
   double looseptcut;
   std::vector<std::string> SingleMuTriggerNames;
   std::vector<std::string> SingleElectronTriggerNames;
+  std::vector<std::string> DoubleElectronTriggerNames;
   std::vector<std::string> ElectronHadTriggerNames;
   std::vector<std::string> MuHadTriggerNames;
   std::vector<std::string> PhotonTriggerNames;
