@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.21 2012/02/02 00:39:08 cerati Exp $
+// $Id: ElectronMaker.h,v 1.22 2012/04/07 16:37:40 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -72,7 +72,12 @@ private:
   
   int classify(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
-  
+ 
+    // for 2012 pf isolation
+    int chargedHadronVertex(const reco::PFCandidate& pfcand);
+    void PFIsolation2012(const reco::GsfElectron& el, const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh);
+
+ 
   // ----------member data ---------------------------
   edm::InputTag electronsInputTag_;
   edm::InputTag beamSpotInputTag_;

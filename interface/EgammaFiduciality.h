@@ -29,7 +29,9 @@ enum EgammaElectronType {
 	ISECALENERGYCORRECTED,	// if false, the electron "ecalEnergy" is just the supercluster energy 
 	ISMOMENTUMCORRECTED,  	// has E-p combination been applied
 	ISECALDRIVEN,
-	ISTRACKERDRIVEN
+	ISTRACKERDRIVEN,
+    ISCUTPRESELECTED,
+    ISMVAPRESELECTED
 };
 
 #endif
