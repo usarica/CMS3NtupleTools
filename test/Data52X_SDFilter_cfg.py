@@ -18,7 +18,7 @@ if "DoubleElectron" in str(process.source.fileNames):
 elif "SingleElectron" in str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("SingleElectron")
 elif "DoubleMu" in str(process.source.fileNames):
-    process.sdFilter.filterName_=cms.string("doubleMu")
+    process.sdFilter.filterName_=cms.string("nofilter")
 elif "MuEG" in  str(process.source.fileNames):
     process.sdFilter.filterName_=cms.string("MuEG")
 elif "SingleMu" in str(process.source.fileNames):
