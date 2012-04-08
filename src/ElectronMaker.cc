@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.78 2012/04/07 16:37:39 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.79 2012/04/08 17:53:45 dlevans Exp $
 //
 //
 
@@ -203,6 +203,14 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<float> >     ("elsiso04pfch"             ).setBranchAlias("els_iso04_pf_ch"    ); // pf isolation in cone of 0.3, charged only
   produces<vector<float> >     ("elsiso04pfgamma05"          ).setBranchAlias("els_iso04_pf_gamma05"); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
   produces<vector<float> >     ("elsiso04pfnhad05"           ).setBranchAlias("els_iso04_pf_nhad05"); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
+
+  // 2012 Electron Particle Flow Isolation
+  produces<vector<float> >     ("elsiso03pf2012ch"             ).setBranchAlias("els_iso03_pf2012_ch"    );
+  produces<vector<float> >     ("elsiso03pf2012em"             ).setBranchAlias("els_iso03_pf2012_em"    );
+  produces<vector<float> >     ("elsiso03pf2012nh"             ).setBranchAlias("els_iso03_pf2012_nh"    );
+  produces<vector<float> >     ("elsiso04pf2012ch"             ).setBranchAlias("els_iso04_pf2012_ch"    );
+  produces<vector<float> >     ("elsiso04pf2012em"             ).setBranchAlias("els_iso04_pf2012_em"    );
+  produces<vector<float> >     ("elsiso04pf2012nh"             ).setBranchAlias("els_iso04_pf2012_nh"    );
 
   //
   produces<vector<float> >     ("elspfChargedHadronIso").setBranchAlias("els_pfChargedHadronIso");
@@ -437,6 +445,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >        els_iso04_pf_gamma05                            (new vector<float>       );
   auto_ptr<vector<float> >        els_iso04_pf_nhad05                             (new vector<float>       );
 
+  auto_ptr<vector<float> >        els_iso03_pf2012_ch                                 (new vector<float>       );
+  auto_ptr<vector<float> >        els_iso03_pf2012_em                                 (new vector<float>       );
+  auto_ptr<vector<float> >        els_iso03_pf2012_nh                                 (new vector<float>       );
+  auto_ptr<vector<float> >        els_iso04_pf2012_ch                                 (new vector<float>       );
+  auto_ptr<vector<float> >        els_iso04_pf2012_em                                 (new vector<float>       );
+  auto_ptr<vector<float> >        els_iso04_pf2012_nh                                 (new vector<float>       );
 
   auto_ptr<vector<float> >        els_pfChargedHadronIso ( new vector<float> );
   auto_ptr<vector<float> >        els_pfNeutralHadronIso ( new vector<float> );
@@ -769,11 +783,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
       els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
 
-    //float pfiso_ch = 0.0;
-    //float pfiso_em = 0.0;
-    //float pfiso_nh = 0.0;
-    //PFIsolation2012(*el, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
-    //std::cout << el->pt() << " : " << pfiso_ch << ", " << pfiso_em << ", " << pfiso_nh << std::endl;
+      // pf iso 2012
+      float pfiso_ch = 0.0;
+      float pfiso_em = 0.0;
+      float pfiso_nh = 0.0;
+      PFIsolation2012(*el, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
+      els_iso03_pf2012_ch ->push_back( pfiso_ch );
+      els_iso03_pf2012_em ->push_back( pfiso_em );
+      els_iso03_pf2012_nh ->push_back( pfiso_nh );
+
+      PFIsolation2012(*el, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
+      els_iso04_pf2012_ch ->push_back( pfiso_ch );
+      els_iso04_pf2012_em ->push_back( pfiso_em );
+      els_iso04_pf2012_nh ->push_back( pfiso_nh );
 
     } else {
 
@@ -786,6 +808,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       els_iso04_pf_ch      -> push_back( -9999. );
       els_iso04_pf_gamma05 -> push_back( -9999. );
       els_iso04_pf_nhad05  -> push_back( -9999. );
+
+      els_iso03_pf2012_ch ->push_back( -9999. );
+      els_iso03_pf2012_em ->push_back( -9999. );
+      els_iso03_pf2012_nh ->push_back( -9999. );
+      els_iso04_pf2012_ch ->push_back( -9999. );
+      els_iso04_pf2012_em ->push_back( -9999. );
+      els_iso04_pf2012_nh ->push_back( -9999. );
+
     }
 
 
@@ -1449,6 +1479,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_iso04_pf_gamma05                       ,"elsiso04pfgamma05"            );
   iEvent.put(els_iso04_pf_nhad05                        ,"elsiso04pfnhad05"            );
 
+  iEvent.put(els_iso03_pf2012_ch                       ,"elsiso03pf2012ch"            );
+  iEvent.put(els_iso03_pf2012_em                       ,"elsiso03pf2012em"            );
+  iEvent.put(els_iso03_pf2012_nh                       ,"elsiso03pf2012nh"            );
+  iEvent.put(els_iso04_pf2012_ch                       ,"elsiso04pf2012ch"            );
+  iEvent.put(els_iso04_pf2012_em                       ,"elsiso04pf2012em"            );
+  iEvent.put(els_iso04_pf2012_nh                       ,"elsiso04pf2012nh"            );
+
   iEvent.put( els_pfChargedHadronIso , "elspfChargedHadronIso" );
   iEvent.put( els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
   iEvent.put( els_pfPhotonIso        , "elspfPhotonIso"        );
@@ -1607,12 +1644,12 @@ void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const int verte
     pfiso_nh = 0.0;
 
     // loop on pfcandidates
-    PFCandidateCollection::const_iterator pf = pfCand_h->begin();
+    reco::PFCandidateCollection::const_iterator pf = pfCand_h->begin();
     for (pf = pfCand_h->begin(); pf != pfCand_h->end(); ++pf) {
 
         // skip electrons and muons
-        if (pf->particleId() == PFCandidate::e)     continue;
-        if (pf->particleId() == PFCandidate::mu)    continue;
+        if (pf->particleId() == reco::PFCandidate::e)     continue;
+        if (pf->particleId() == reco::PFCandidate::mu)    continue;
 
         // deltaR between electron and cadidate
         const float dR = deltaR(pf->eta(), pf->phi(), el.eta(), el.phi());
@@ -1620,34 +1657,21 @@ void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const int verte
 
         // charged hadrons closest vertex
         // should be the primary vertex
-        int pfVertexIndex = chargedHadronVertex(*pf);
-        if (pfVertexIndex != vertexIndex) continue;
-
-        // barrel region
-        if (el.isEB()) {
-
-            // add to isolation sum
-            if (pf->particleId() == PFCandidate::h)         pfiso_ch += pf->pt();
-            if (pf->particleId() == PFCandidate::gamma)     pfiso_em += pf->pt();
-            if (pf->particleId() == PFCandidate::h0)        pfiso_nh += pf->pt();
-        } 
+        if (pf->particleId() == reco::PFCandidate::h) {
+            int pfVertexIndex = chargedHadronVertex(*pf);
+            if (pfVertexIndex != vertexIndex) continue;
+        }
 
         // endcap region
-        else {
-
-            // vetoes in the case electron is not identified
-            // by the particle flow algorithm
-            if (!el.passingMvaPreselection()) {
-                if (pf->particleId() == PFCandidate::h      && dR <= 0.015) continue;
-                if (pf->particleId() == PFCandidate::gamma  && dR <= 0.08)  continue;
-            }
-
-            // add to isolation sum
-            if (pf->particleId() == PFCandidate::h)         pfiso_ch += pf->pt();
-            if (pf->particleId() == PFCandidate::gamma)     pfiso_em += pf->pt();
-            if (pf->particleId() == PFCandidate::h0)        pfiso_nh += pf->pt();
-
+        if (!el.isEB()) {
+            if (pf->particleId() == reco::PFCandidate::h      && dR <= 0.015)   continue;
+            if (pf->particleId() == reco::PFCandidate::gamma  && dR <= 0.08)    continue;
         }
+
+        // add to isolation sum
+        if (pf->particleId() == reco::PFCandidate::h)       pfiso_ch += pf->pt();
+        if (pf->particleId() == reco::PFCandidate::gamma)   pfiso_em += pf->pt();
+        if (pf->particleId() == reco::PFCandidate::h0)      pfiso_nh += pf->pt();
 
     }
 
