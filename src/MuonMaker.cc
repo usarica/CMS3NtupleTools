@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.60 2012/04/02 12:13:23 cerati Exp $
+// $Id: MuonMaker.cc,v 1.61 2012/04/13 00:28:11 fgolf Exp $
 //
 //
 
@@ -183,18 +183,18 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // Muon //
   //////////
 
-  produces<vector<int> >            ( branchprefix_ + "type"                      ).setBranchAlias( aliasprefix_ + "_type"                ); // type
-  produces<vector<int> >            ( branchprefix_ + "goodmask"                  ).setBranchAlias( aliasprefix_ + "_goodmask"            ); // good mask
-  produces<vector<int> >            ( branchprefix_ + "charge"                    ).setBranchAlias( aliasprefix_ + "_charge"              ); // charge from muon object             
-  produces<vector<int> >            ( branchprefix_ + "nmatches"                  ).setBranchAlias( aliasprefix_ + "_nmatches"            ); // number of stations with matched segments 
-  produces<vector<int> >            ( branchprefix_ + "nOverlaps"                 ).setBranchAlias( aliasprefix_ + "_nOverlaps"           ); //overlap index (-1 if none)
-  produces<vector<int> >            ( branchprefix_ + "overlap0"                  ).setBranchAlias( aliasprefix_ + "_overlap0"            );
-  produces<vector<int> >            ( branchprefix_ + "overlap1"                  ).setBranchAlias( aliasprefix_ + "_overlap1"            );
-  produces<vector<float> >          ( branchprefix_ + "caloCompatibility"         ).setBranchAlias( aliasprefix_ + "_caloCompatibility"   ); // calo compatibility variable
-  produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"   );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                  ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
-  produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"          ); // muon position at the ecal face
-
+  produces<vector<int> >            ( branchprefix_ + "type"                      ).setBranchAlias( aliasprefix_ + "_type"                   ); // type
+  produces<vector<int> >            ( branchprefix_ + "goodmask"                  ).setBranchAlias( aliasprefix_ + "_goodmask"               ); // good mask
+  produces<vector<int> >            ( branchprefix_ + "charge"                    ).setBranchAlias( aliasprefix_ + "_charge"                 ); // charge from muon object             
+  produces<vector<int> >            ( branchprefix_ + "nmatches"                  ).setBranchAlias( aliasprefix_ + "_nmatches"               ); // number of stations with matched segments 
+  produces<vector<int> >            ( branchprefix_ + "nOverlaps"                 ).setBranchAlias( aliasprefix_ + "_nOverlaps"              ); //overlap index (-1 if none)
+  produces<vector<int> >            ( branchprefix_ + "overlap0"                  ).setBranchAlias( aliasprefix_ + "_overlap0"               );
+  produces<vector<int> >            ( branchprefix_ + "overlap1"                  ).setBranchAlias( aliasprefix_ + "_overlap1"               );
+  produces<vector<float> >          ( branchprefix_ + "caloCompatibility"         ).setBranchAlias( aliasprefix_ + "_caloCompatibility"      ); // calo compatibility variable
+  produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"      );
+  produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                     ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
+  produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"             ); // muon position at the ecal face
+  produces<vector<int> >            ( branchprefix_ + "numberOfMatchedStations"   ).setBranchAlias( aliasprefix_ + "_numberOfMatchedStations"); // number of muon stations with muon segements used in the fit
 
   ////////
   // ID //
@@ -423,17 +423,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Muons //
   ///////////
 
-  auto_ptr<vector<int> >           vector_mus_type                ( new vector<int>           );        
-  auto_ptr<vector<int> >           vector_mus_goodmask            ( new vector<int>           );        
-  auto_ptr<vector<int> >           vector_mus_nmatches            ( new vector<int>           );
-  auto_ptr<vector<int> >           vector_mus_charge              ( new vector<int>            );        
-  auto_ptr<vector<int> >           vector_mus_nOverlaps           ( new vector<int>           );
-  auto_ptr<vector<int> >           vector_mus_overlap0            ( new vector<int>           );
-  auto_ptr<vector<int> >           vector_mus_overlap1            ( new vector<int>           );
-  auto_ptr<vector<float> >         vector_mus_caloCompatibility   ( new vector<float>         );
-  auto_ptr<vector<float> >         vector_mus_segmCompatibility   ( new vector<float>         );
-  auto_ptr<vector<LorentzVector> > vector_mus_p4                  ( new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4          ( new vector<LorentzVector>  );
+  auto_ptr<vector<int> >           vector_mus_type                    ( new vector<int>           );        
+  auto_ptr<vector<int> >           vector_mus_goodmask                ( new vector<int>           );        
+  auto_ptr<vector<int> >           vector_mus_nmatches                ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_charge                  ( new vector<int>           );        
+  auto_ptr<vector<int> >           vector_mus_nOverlaps               ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_overlap0                ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_overlap1                ( new vector<int>           );
+  auto_ptr<vector<float> >         vector_mus_caloCompatibility       ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_segmCompatibility       ( new vector<float>         );
+  auto_ptr<vector<LorentzVector> > vector_mus_p4                      ( new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4              ( new vector<LorentzVector> );
+  auto_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
 
   ////////
   // ID //
@@ -769,17 +770,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Muon Quantities //
     /////////////////////
 
-    vector_mus_type               -> push_back( muon->type()                                              );
-    vector_mus_goodmask           -> push_back( goodMask                                                  );
-    vector_mus_charge             -> push_back( muon->charge()                                            );
-    vector_mus_nmatches           -> push_back( muon->isMatchesValid() ? muon->numberOfMatches() :  -9999 );
-    vector_mus_nOverlaps          -> push_back( mus_nOverlaps                                             );
-    vector_mus_overlap0           -> push_back( mus_overlap0                                              );
-    vector_mus_overlap1           -> push_back( mus_overlap1                                              );
-    vector_mus_caloCompatibility  -> push_back( muon->caloCompatibility()                                 );
-    vector_mus_segmCompatibility  -> push_back( muon::segmentCompatibility(*muon)                         );
-    vector_mus_p4                 -> push_back( LorentzVector( muon->p4()                              )  );
-    vector_mus_ecalpos_p4         -> push_back( LorentzVector( ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0 )  );
+    vector_mus_type                    -> push_back( muon->type()                                              );
+    vector_mus_goodmask                -> push_back( goodMask                                                  );
+    vector_mus_charge                  -> push_back( muon->charge()                                            );
+    vector_mus_nmatches                -> push_back( muon->isMatchesValid() ? muon->numberOfMatches() :  -9999 );
+    vector_mus_nOverlaps               -> push_back( mus_nOverlaps                                             );
+    vector_mus_overlap0                -> push_back( mus_overlap0                                              );
+    vector_mus_overlap1                -> push_back( mus_overlap1                                              );
+    vector_mus_caloCompatibility       -> push_back( muon->caloCompatibility()                                 );
+    vector_mus_segmCompatibility       -> push_back( muon::segmentCompatibility(*muon)                         );
+    vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
+    vector_mus_ecalpos_p4              -> push_back( LorentzVector( ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0 )  );
+    vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
 
 
     ////////
@@ -1176,17 +1178,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Muons //
   ///////////
 
-  iEvent.put( vector_mus_type               , branchprefix_ + "type"               );
-  iEvent.put( vector_mus_goodmask           , branchprefix_ + "goodmask"           );
-  iEvent.put( vector_mus_charge             , branchprefix_ + "charge"             );
-  iEvent.put( vector_mus_nmatches           , branchprefix_ + "nmatches"           );
-  iEvent.put( vector_mus_nOverlaps          , branchprefix_ + "nOverlaps"          );
-  iEvent.put( vector_mus_overlap0           , branchprefix_ + "overlap0"           );
-  iEvent.put( vector_mus_overlap1           , branchprefix_ + "overlap1"           );
-  iEvent.put( vector_mus_caloCompatibility  , branchprefix_ + "caloCompatibility"  );
-  iEvent.put( vector_mus_segmCompatibility  , branchprefix_ + "segmCompatibility"  );
-  iEvent.put( vector_mus_p4                 , branchprefix_ + "p4"                 );
-  iEvent.put( vector_mus_ecalpos_p4         , branchprefix_ + "ecalposp4"          ); 
+  iEvent.put( vector_mus_type                    , branchprefix_ + "type"                    );
+  iEvent.put( vector_mus_goodmask                , branchprefix_ + "goodmask"                );
+  iEvent.put( vector_mus_charge                  , branchprefix_ + "charge"                  );
+  iEvent.put( vector_mus_nmatches                , branchprefix_ + "nmatches"                );
+  iEvent.put( vector_mus_nOverlaps               , branchprefix_ + "nOverlaps"               );
+  iEvent.put( vector_mus_overlap0                , branchprefix_ + "overlap0"                );
+  iEvent.put( vector_mus_overlap1                , branchprefix_ + "overlap1"                );
+  iEvent.put( vector_mus_caloCompatibility       , branchprefix_ + "caloCompatibility"       );
+  iEvent.put( vector_mus_segmCompatibility       , branchprefix_ + "segmCompatibility"       );
+  iEvent.put( vector_mus_p4                      , branchprefix_ + "p4"                      );
+  iEvent.put( vector_mus_ecalpos_p4              , branchprefix_ + "ecalposp4"               );
+  iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
 
   ////////
   // ID //
