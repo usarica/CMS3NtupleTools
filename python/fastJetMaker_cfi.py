@@ -7,7 +7,7 @@ fastJetMaker = cms.EDProducer("FastJetMaker",
                               )
 
 wwRhoDefaultMaker = cms.EDProducer("EnergyDensityMaker",
-                              input = cms.InputTag("kt6PFJetsForRhoComputationDefault","rho"),
+                              input = cms.InputTag("kt6PFJets","rho"),
                               alias = cms.untracked.string("evt_ww_rho"))
                               
 wwRhoVoronoiMaker = cms.EDProducer("EnergyDensityMaker",
