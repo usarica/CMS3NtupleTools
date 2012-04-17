@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.79 2012/04/08 17:53:45 dlevans Exp $
+// $Id: ElectronMaker.cc,v 1.80 2012/04/17 14:51:21 cerati Exp $
 //
 //
 
@@ -972,6 +972,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////
 
     if( ctfTkRef.isNonnull() ) {
+      cout << "el idx=" << ctfTkRef.key() << " pt=" << ctfTkRef->pt() << " eta=" << ctfTkRef->eta() << endl;
       els_trkidx    -> push_back( static_cast<int>  ( ctfTkRef.key()        )                                  );
       //els_trkshFrac -> push_back( static_cast<float>( el->shFracInnerHits() )                                  );
       els_trkshFrac -> push_back( static_cast<float>( el->ctfGsfOverlap() )                                    );
@@ -984,12 +985,28 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     }
 
 
+        
+    ////////////////////
+    // Regular Vertex //
+    ////////////////////
+    TransientTrack tt = theTTBuilder->build(el->gsfTrack());
+    
+    if ( firstGoodVertex!=vertexCollection->end() ) {
+      Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
+      //
+      els_ip3d      -> push_back( ip3D_regular.value() );
+      els_ip3derr   -> push_back( ip3D_regular.error() );
+    } else {
+      //
+      els_ip3d      -> push_back( -999. );
+      els_ip3derr   -> push_back( -999. );
+    }
+
     /////////////////
     // Unbiased IP //
     /////////////////
 
     GsfElectron::ClosestCtfTrack closest_ctf = el->closestCtfTrack(); // This should probably be updated, still here in 52X for backwards compatibility
-
     //if ( el->closestCtfTrack().ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end() ) {
     if ( closest_ctf.ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end() ) {
 
@@ -1036,7 +1053,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
           vertexNoB = pvs.front(); //take the first in the list
         }
       }
-      TransientTrack tt = theTTBuilder->build(el->gsfTrack());
       Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
       Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
 
@@ -1047,16 +1063,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       els_ubIp3derr -> push_back( ip3D_2.error()                           );
       els_ubz0      -> push_back( el->gsfTrack()->dz(vertexNoB.position()) );
         
-      ////////////////////
-      // Regular Vertex //
-      ////////////////////
-
-      Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
-
-      //
-      els_ip3d      -> push_back( ip3D_regular.value() );
-      els_ip3derr   -> push_back( ip3D_regular.error() );
-        
     }
     else {
 
@@ -1066,10 +1072,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       els_ubIp3d    -> push_back( -999. );
       els_ubIp3derr -> push_back( -999. );
       els_ubz0      -> push_back( -999. );
-
-      //
-      els_ip3d      -> push_back( -999. );
-      els_ip3derr   -> push_back( -999. );
 
     } //
 
@@ -1602,9 +1604,9 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
     if (pf->charge()==0) {
       //neutrals
       if (pfpt>minptn) {
-pfniso+=pfpt;
-if (dR<footprintdr && pfid==130) pffootprint+=pfpt;
-if (deta<gammastripveto && pfid==22)  pfjurveto+=pfpt;
+	pfniso+=pfpt;
+	if (dR<footprintdr && pfid==130) pffootprint+=pfpt;
+	if (deta<gammastripveto && pfid==22)  pfjurveto+=pfpt;
       }
     } else {
       //charged  
@@ -1612,23 +1614,24 @@ if (deta<gammastripveto && pfid==22)  pfjurveto+=pfpt;
       //if either the gsf or the ctf track are shared with the candidate, skip it
       const TrackRef pfTrack  = pf->trackRef();
       if (siTrack.isNonnull()  && pfTrack.isNonnull() && siTrack.key()==pfTrack.key()) continue;
-      if (pfid==11 && pf->gsfTrackRef().isNonnull()) {
-if (gsfTrack.isNonnull() && gsfTrack.key()==pf->gsfTrackRef().key()) continue;
+      //below pfid==1 is commented out: in some cases the pfCand has a gsf even if it is not an electron... this is to improve the sync with MIT
+      if (/*pfid==11 &&*/ pf->gsfTrackRef().isNonnull()) {
+	if (gsfTrack.isNonnull() && gsfTrack.key()==pf->gsfTrackRef().key()) continue;
       } 
       //check electrons with gsf track
       if (pfid==11 && pf->gsfTrackRef().isNonnull()) {
-if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - eldz )<dzcut) {//dz cut
-  pfciso+=pfpt;
-  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
-}
-continue;//and avoid double counting
+	if(fabs(pf->gsfTrackRef()->dz(vtx.position()) - eldz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
+	}
+	continue;//and avoid double counting
       }
       //then check anything that has a ctf track
       if (pfTrack.isNonnull()) {//charged (with a ctf track)
-if(fabs( pfTrack->dz(vtx.position()) - eldz )<dzcut) {//dz cut
-  pfciso+=pfpt;
-  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
-}
+	if(fabs( pfTrack->dz(vtx.position()) - eldz )<dzcut) {//dz cut
+	  pfciso+=pfpt;
+	  if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
+	}
       }
     } 
   }
