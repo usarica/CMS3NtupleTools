@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.80 2012/04/17 14:51:21 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.81 2012/04/17 14:59:02 cerati Exp $
 //
 //
 
@@ -972,7 +972,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////
 
     if( ctfTkRef.isNonnull() ) {
-      cout << "el idx=" << ctfTkRef.key() << " pt=" << ctfTkRef->pt() << " eta=" << ctfTkRef->eta() << endl;
       els_trkidx    -> push_back( static_cast<int>  ( ctfTkRef.key()        )                                  );
       //els_trkshFrac -> push_back( static_cast<float>( el->shFracInnerHits() )                                  );
       els_trkshFrac -> push_back( static_cast<float>( el->ctfGsfOverlap() )                                    );
