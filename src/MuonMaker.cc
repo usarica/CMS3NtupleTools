@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.61 2012/04/13 00:28:11 fgolf Exp $
+// $Id: MuonMaker.cc,v 1.62 2012/04/19 23:37:56 dbarge Exp $
 //
 //
 
@@ -538,16 +538,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr< vector< float> >         vector_mus_pfiso04NeutralHadrons ( new vector<float> );
   auto_ptr< vector< float> >         vector_mus_pfiso04Photons        ( new vector<float> );
   */
-  auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedHadronPt   ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedParticlePt ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR03_pf_NeutralHadronEt   ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR03_pf_PhotonEt          ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR03_pf_PUPt              ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedHadronPt   ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedParticlePt ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR04_pf_NeutralHadronEt   ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR04_pf_PhotonEt          ( new vector<float>   );
-  auto_ptr< vector<float> >         vector_mus_isoR04_pf_PUPt              ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR03_pf_PUPt                            ( new vector<float>   );
+
+
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoR04_pf_PUPt                            ( new vector<float>   );
 
   auto_ptr<vector<float> >         vector_mus_iso03_pf            ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_iso04_pf            ( new vector<float>          );
@@ -918,16 +924,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Isolation
     MuonPFIsolation pfStructR03 = muon->pfIsolationR03();
     MuonPFIsolation pfStructR04 = muon->pfIsolationR04();
-    vector_mus_isoR03_pf_ChargedHadronPt  -> push_back( pfStructR03.sumChargedHadronPt   );
-    vector_mus_isoR03_pf_ChargedParticlePt-> push_back( pfStructR03.sumChargedParticlePt );
-    vector_mus_isoR03_pf_NeutralHadronEt  -> push_back( pfStructR03.sumNeutralHadronEt   );
-    vector_mus_isoR03_pf_PhotonEt         -> push_back( pfStructR03.sumPhotonEt          );
-    vector_mus_isoR03_pf_PUPt             -> push_back( pfStructR03.sumPUPt              );
-    vector_mus_isoR04_pf_ChargedHadronPt  -> push_back( pfStructR04.sumChargedHadronPt   );
-    vector_mus_isoR04_pf_ChargedParticlePt-> push_back( pfStructR04.sumChargedParticlePt );
-    vector_mus_isoR04_pf_NeutralHadronEt  -> push_back( pfStructR04.sumNeutralHadronEt   );
-    vector_mus_isoR04_pf_PhotonEt         -> push_back( pfStructR04.sumPhotonEt          );
-    vector_mus_isoR04_pf_PUPt             -> push_back( pfStructR04.sumPUPt              );
+
+    vector_mus_isoR03_pf_ChargedHadronPt                 -> push_back( pfStructR03.sumChargedHadronPt              );
+    vector_mus_isoR03_pf_ChargedParticlePt               -> push_back( pfStructR03.sumChargedParticlePt            );
+    vector_mus_isoR03_pf_NeutralHadronEt                 -> push_back( pfStructR03.sumNeutralHadronEt              );
+    vector_mus_isoR03_pf_PhotonEt                        -> push_back( pfStructR03.sumPhotonEt                     );
+    vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructR03.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoR03_pf_sumPhotonEtHighThreshold        -> push_back( pfStructR03.sumPhotonEtHighThreshold        );
+    vector_mus_isoR03_pf_PUPt                            -> push_back( pfStructR03.sumPUPt                         );
+
+    vector_mus_isoR04_pf_ChargedHadronPt                 -> push_back( pfStructR04.sumChargedHadronPt              );
+    vector_mus_isoR04_pf_ChargedParticlePt               -> push_back( pfStructR04.sumChargedParticlePt            );
+    vector_mus_isoR04_pf_NeutralHadronEt                 -> push_back( pfStructR04.sumNeutralHadronEt              );
+    vector_mus_isoR04_pf_PhotonEt                        -> push_back( pfStructR04.sumPhotonEt                     );
+    vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructR04.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructR04.sumPhotonEtHighThreshold        );
+    vector_mus_isoR04_pf_PUPt                            -> push_back( pfStructR04.sumPUPt                         );
 
     // Other PF
     PFCandidatePtr pfCandRef = (*pfMap)[muonRef];
@@ -1285,6 +1297,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_pfmvanothingnh        , branchprefix_ + "pfmvanothingnh"       );
   iEvent.put( vector_mus_pfp4                  , branchprefix_ + "pfp4"                 );
   iEvent.put( vector_mus_pfposAtEcalp4         , branchprefix_ + "pfposAtEcalp4"        );
+
   /*
   iEvent.put( vector_mus_pfiso03ChargedHadrons , branchprefix_ + "pfiso03ChargedHadrons");
   iEvent.put( vector_mus_pfiso03NeutralHadrons , branchprefix_ + "pfiso03NeutralHadrons");
@@ -1293,19 +1306,25 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_pfiso04NeutralHadrons , branchprefix_ + "pfiso04NeutralHadrons");
   iEvent.put( vector_mus_pfiso04Photons        , branchprefix_ + "pfiso04Photons"       );
   */
-  iEvent.put( vector_mus_isoR03_pf_ChargedHadronPt    , branchprefix_ + "isoR03pfChargedHadronPt"         );
-  iEvent.put( vector_mus_isoR03_pf_ChargedParticlePt  , branchprefix_ + "isoR03pfChargedParticlePt"       );
-  iEvent.put( vector_mus_isoR03_pf_NeutralHadronEt    , branchprefix_ + "isoR03pfNeutralHadronEt"         );
-  iEvent.put( vector_mus_isoR03_pf_PhotonEt           , branchprefix_ + "isoR03pfPhotonEt"                );
-  iEvent.put( vector_mus_isoR03_pf_PUPt               , branchprefix_ + "isoR03pfPUPt"                    );
-  iEvent.put( vector_mus_isoR04_pf_ChargedHadronPt    , branchprefix_ + "isoR04pfChargedHadronPt"         );
-  iEvent.put( vector_mus_isoR04_pf_ChargedParticlePt  , branchprefix_ + "isoR04pfChargedParticlePt"       );
-  iEvent.put( vector_mus_isoR04_pf_NeutralHadronEt    , branchprefix_ + "isoR04pfNeutralHadronEt"         );
-  iEvent.put( vector_mus_isoR04_pf_PhotonEt           , branchprefix_ + "isoR04pfPhotonEt"                );
-  iEvent.put( vector_mus_isoR04_pf_PUPt               , branchprefix_ + "isoR04pfPUPt"                    );
 
-  iEvent.put( vector_mus_iso03_pf           , branchprefix_ + "iso03pf"            );
-  iEvent.put( vector_mus_iso04_pf           , branchprefix_ + "iso04pf"            );
+  iEvent.put( vector_mus_isoR03_pf_ChargedHadronPt                , branchprefix_ + "isoR03pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoR03_pf_ChargedParticlePt              , branchprefix_ + "isoR03pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoR03_pf_NeutralHadronEt                , branchprefix_ + "isoR03pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoR03_pf_PhotonEt                       , branchprefix_ + "isoR03pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoR03pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoR03_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoR03pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoR03_pf_PUPt                           , branchprefix_ + "isoR03pfPUPt"                        );
+
+  iEvent.put( vector_mus_isoR04_pf_ChargedHadronPt                , branchprefix_ + "isoR04pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoR04_pf_ChargedParticlePt              , branchprefix_ + "isoR04pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoR04_pf_NeutralHadronEt                , branchprefix_ + "isoR04pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoR04_pf_PhotonEt                       , branchprefix_ + "isoR04pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoR04pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoR04pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoR04_pf_PUPt                           , branchprefix_ + "isoR04pfPUPt"                        );
+
+  iEvent.put( vector_mus_iso03_pf , branchprefix_ + "iso03pf" );
+  iEvent.put( vector_mus_iso04_pf , branchprefix_ + "iso04pf" );
 
 
   /////////////////
