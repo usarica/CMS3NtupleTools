@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.81 2012/04/17 14:59:02 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.82 2012/04/19 11:43:52 cerati Exp $
 //
 //
 
@@ -76,6 +76,7 @@ Implementation:
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
 //
 using namespace reco;
@@ -111,6 +112,9 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   
   pfCandsInputTag  = iConfig.getParameter<InputTag>("pfCandsInputTag");
   vtxInputTag          = iConfig.getParameter<InputTag>("vtxInputTag");
+
+  recoConversionInputTag_ = iConfig.getParameter<edm::InputTag>("recoConversionInputTag");
+
 
   mtsTransform_ = 0;
   clusterTools_ = 0;
@@ -309,6 +313,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<int>      >       ("elsconvolddelMissHits").setBranchAlias("els_conv_old_delMissHits" );  //Delta Missing Hits between the electron and partner track
   produces<vector<int>      >       ("elsconvoldflag"       ).setBranchAlias("els_conv_old_flag"        );
 
+  produces<vector<bool>      >       ("elsconvvtxflag"       ).setBranchAlias("els_conv_vtx_flag"       );
   
 }
 
@@ -540,6 +545,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr< vector <int>           >els_conv_old_gsftkidx( new vector<int>) ;
   auto_ptr< vector <int>           >els_conv_old_delMissHits( new vector<int>) ;
   auto_ptr< vector <int>           >els_conv_old_flag( new vector<int>) ;
+
+  auto_ptr< vector <bool>           >els_conv_vtx_flag( new vector<bool>) ;
 
   
 
@@ -1301,6 +1308,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 
     //////////////////////////////
+    // Flag For Vertex Fit Conversion Rejection //
+    //////////////////////////////
+
+    Handle<ConversionCollection> convs_h;
+    iEvent.getByLabel(recoConversionInputTag_, convs_h);
+    els_conv_vtx_flag        -> push_back( ConversionTools::hasMatchedConversion(*el, convs_h, beamSpot ) );
+
+    //////////////////////////////
     // Old Conversion Rejection //
     //////////////////////////////
 
@@ -1539,6 +1554,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_conv_old_gsftkidx, "elsconvoldgsftkidx");
   iEvent.put(els_conv_old_delMissHits, "elsconvolddelMissHits");
   iEvent.put(els_conv_old_flag, "elsconvoldflag");
+
+  iEvent.put(els_conv_vtx_flag, "elsconvvtxflag");
 
 }
 

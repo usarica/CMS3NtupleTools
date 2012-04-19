@@ -13,6 +13,8 @@ electronMaker = cms.EDProducer(
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("particleFlow"),
     vtxInputTag = cms.InputTag("offlinePrimaryVerticesDA"),
+    # reco conversions
+    recoConversionInputTag = cms.InputTag("allConversions"),
     # egamma ID
     eidLHTag = cms.InputTag("egammaIDLikelihood"),
     cms2scsseeddetidInputTag = cms.InputTag("scMaker"),
