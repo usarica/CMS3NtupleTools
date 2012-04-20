@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HcalNoiseSummaryMaker.cc,v 1.5 2012/04/20 02:49:29 dbarge Exp $
+// $Id: HcalNoiseSummaryMaker.cc,v 1.6 2012/04/20 02:52:13 dbarge Exp $
 
 
 // C++ Includes
@@ -98,10 +98,9 @@ HcalNoiseSummaryMaker::HcalNoiseSummaryMaker( const ParameterSet& iConfig ) {
   produces<float>   ( branchprefix_ + "TS4TS5NoiseSumEt"                ).setBranchAlias( aliasprefix_ + "_TS4TS5NoiseSumEt"         );
   produces<int>     ( branchprefix_ + "GetRecHitCount"                  ).setBranchAlias( aliasprefix_ + "_GetRecHitCount"           );
   produces<int>     ( branchprefix_ + "GetRecHitCount15"                ).setBranchAlias( aliasprefix_ + "_GetRecHitCount15"         );
-  produces<double>  ( branchprefix_ + "GetRecHitEnergy"                 ).setBranchAlias( aliasprefix_ + "_GetRecHitEnergy"          );
-  produces<double>  ( branchprefix_ + "GetRecHitEnergy15"               ).setBranchAlias( aliasprefix_ + "_GetRecHitEnergy15"        );
-  produces<double>  ( branchprefix_ + "GetTotalCalibCharge"             ).setBranchAlias( aliasprefix_ + "_GetTotalCalibCharge"      );
-
+  produces<float>   ( branchprefix_ + "GetRecHitEnergy"                 ).setBranchAlias( aliasprefix_ + "_GetRecHitEnergy"          );
+  produces<float>   ( branchprefix_ + "GetRecHitEnergy15"               ).setBranchAlias( aliasprefix_ + "_GetRecHitEnergy15"        );
+  produces<float>   ( branchprefix_ + "GetTotalCalibCharge"             ).setBranchAlias( aliasprefix_ + "_GetTotalCalibCharge"      );
 
   produces<bool>    ( branchprefix_ + "HasBadRBXTS4TS5"                 ).setBranchAlias( aliasprefix_ + "_HasBadRBXTS4TS5"          );
 
@@ -171,9 +170,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<float>   hcalnoise_TS4TS5NoiseSumEt            ( new float  );
   auto_ptr<int>     hcalnoise_GetRecHitCount              ( new int    );
   auto_ptr<int>     hcalnoise_GetRecHitCount15            ( new int    );
-  auto_ptr<double>  hcalnoise_GetRecHitEnergy             ( new double );
-  auto_ptr<double>  hcalnoise_GetRecHitEnergy15           ( new double );
-  auto_ptr<double>  hcalnoise_GetTotalCalibCharge         ( new double );
+  auto_ptr<float>   hcalnoise_GetRecHitEnergy             ( new float  );
+  auto_ptr<float>   hcalnoise_GetRecHitEnergy15           ( new float  );
+  auto_ptr<float>   hcalnoise_GetTotalCalibCharge         ( new float  );
 
   auto_ptr<bool>    hcalnoise_HasBadRBXTS4TS5             ( new bool   );
 
@@ -238,9 +237,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   *hcalnoise_TS4TS5NoiseSumEt          = hcalNoiseSum_h -> TS4TS5NoiseSumEt();
   *hcalnoise_GetRecHitCount            = hcalNoiseSum_h -> GetRecHitCount();
   *hcalnoise_GetRecHitCount15          = hcalNoiseSum_h -> GetRecHitCount15();
-  *hcalnoise_GetRecHitEnergy           = hcalNoiseSum_h -> GetRecHitEnergy();
-  *hcalnoise_GetRecHitEnergy15         = hcalNoiseSum_h -> GetRecHitEnergy15();
-  *hcalnoise_GetTotalCalibCharge       = hcalNoiseSum_h -> GetTotalCalibCharge();
+  *hcalnoise_GetRecHitEnergy           = (float) hcalNoiseSum_h -> GetRecHitEnergy();
+  *hcalnoise_GetRecHitEnergy15         = (float) hcalNoiseSum_h -> GetRecHitEnergy15();
+  *hcalnoise_GetTotalCalibCharge       = (float) hcalNoiseSum_h -> GetTotalCalibCharge();
 
   *hcalnoise_HasBadRBXTS4TS5           = hcalNoiseSum_h -> HasBadRBXTS4TS5();
 
