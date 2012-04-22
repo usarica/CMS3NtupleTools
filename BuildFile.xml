@@ -50,6 +50,7 @@
 <use   name="DataFormats/Luminosity"/>
 <use   name="RecoVertex/PrimaryVertexProducer"/>
 <use   name="TrackingTools/IPTools"/>
+<use   name="CMGTools/External"/>
 <use   name="root"/>
 <use   name="clhep"/>
 <lib   name="EG"/>
