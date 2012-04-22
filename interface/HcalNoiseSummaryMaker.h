@@ -13,9 +13,10 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HcalNoiseSummaryMaker.h,v 1.3 2010/03/03 04:19:39 kalavase Exp $
+// $Id: HcalNoiseSummaryMaker.h,v 1.4 2012/04/22 21:31:32 dbarge Exp $
 //
 //
+
 #ifndef NTUPLEMAKER_EVENTMAKER_H
 #define NTUPLEMAKER_EVENTMAKER_H
 
@@ -30,23 +31,24 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "TString.h"
-//
-// class decleration
-//
 
 class HcalNoiseSummaryMaker : public edm::EDProducer {
-public:
+
+ public:
+
   explicit HcalNoiseSummaryMaker (const edm::ParameterSet&);
   ~HcalNoiseSummaryMaker();
 
 private:
+
   virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
   edm::InputTag hcalNoiseSummaryTag_;
-
 	std::string aliasprefix_;
+  std::string branchprefix_;
+
 };
 
 
