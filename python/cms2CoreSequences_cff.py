@@ -51,15 +51,20 @@ from CMS2.NtupleMaker.vertexMaker_cfi              import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS2.NtupleMaker.fastJetSequence_cff          import *
 from CMS2.NtupleMaker.pfJetMaker_cfi               import *
+
 #from CMS2.NtupleMaker.ecalDRFilterMaker_cff        import *
 #from CMS2.NtupleMaker.ecalTPFilterMaker_cff        import *
 #from CMS2.NtupleMaker.eeBadRecovMaker_cff          import *
+
+from CMS2.NtupleMaker.metFilterSequence_cff        import *
+from CMS2.NtupleMaker.metFilterMaker_cfi           import *
+
 
 CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * davertexreco )
 eventmakers      = cms.Sequence( beamSpotMaker * vertexMaker * vertexMakerWithBS * davertexMaker * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID )
 trigmakers       = cms.Sequence( l1Maker * hltMakerSequence )
 makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * 
-                                 tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * fastJetSequence )
+                                 tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * fastJetSequence * cms2MetFilterSequence * metFilterMaker )
 assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker ) 
 hypmakers        = cms.Sequence( hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker )
 othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker )

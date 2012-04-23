@@ -7,6 +7,15 @@
 using namespace edm;
 using namespace std;
 
+ 
+//
+void checkValid( Handle<bool> hbool, InputTag tag ){
+  if( !hbool.isValid() ){
+    cout << "Error, Invalid Handle: " << tag <<  endl; 
+  }
+  return;
+}
+
 
 // Constructor
 MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
@@ -17,8 +26,16 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
 
 
   //
-  ecalTPInputTag_                   = iConfig.getParameter<InputTag>("ecalTPInputTag"          );
-  InputTag trackingFailureInputTag_ = iConfig.getParameter<InputTag>("trackingFailureInputTag" );
+
+  ecalBEInputTag_             = iConfig.getParameter<InputTag>("ecalBEInputTag"           );
+  ecalDRInputTag_             = iConfig.getParameter<InputTag>("ecalDRInputTag"           );
+  ecalTPInputTag_             = iConfig.getParameter<InputTag>("ecalTPInputTag"           );
+  greedyMuonInputTag_         = iConfig.getParameter<InputTag>("greedyMuonInputTag"       );
+  hcalLaserEventInputTag_     = iConfig.getParameter<InputTag>("hcalLaserEventInputTag"   );
+  inconsistentMuonInputTag_   = iConfig.getParameter<InputTag>("inconsistentMuonInputTag" );
+  jetIDFailureInputTag_       = iConfig.getParameter<InputTag>("jetIDFailureInputTag"     );
+  multiEventFailureInputTag_  = iConfig.getParameter<InputTag>("multiEventFailureInputTag");
+  trackingFailureInputTag_    = iConfig.getParameter<InputTag>("trackingFailureInputTag"  );
 
 
   //
@@ -53,10 +70,10 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   auto_ptr <bool> filt_ecalDR           ( new bool(false) );
   auto_ptr <bool> filt_ecalTP           ( new bool(false) );
   auto_ptr <bool> filt_greedyMuon       ( new bool(false) );
-  auto_ptr <bool> filt_hcalLaser        ( new bool(false) );
+  auto_ptr <bool> filt_hcalLaserEvent   ( new bool(false) );
   auto_ptr <bool> filt_inconsistentMuon ( new bool(false) );
   auto_ptr <bool> filt_jetIDFailure     ( new bool(false) );
-  auto_ptr <bool> filt_multiEvent       ( new bool(false) );
+  auto_ptr <bool> filt_multiEventFailure( new bool(false) );
   auto_ptr <bool> filt_trackingFailure  ( new bool(false) );
 
 
@@ -68,42 +85,41 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   Handle<bool> b_ecalDR;
   Handle<bool> b_ecalTP;
   Handle<bool> b_greedyMuon;
-  Handle<bool> b_hcalLaser;
+  Handle<bool> b_hcalLaserEvent;
   Handle<bool> b_inconsistentMuon;
   Handle<bool> b_jetIDFailure;
-  Handle<bool> b_multiEvent;
+  Handle<bool> b_multiEventFailure;
   Handle<bool> b_trackingFailure;
 
-  iEvent.getByLabel( ecalTPInputTag_          , b_ecalTP          );
-  iEvent.getByLabel( trackingFailureInputTag_ , b_trackingFailure );
+  iEvent.getByLabel( ecalBEInputTag_            , b_ecalBE            );
+  iEvent.getByLabel( ecalDRInputTag_            , b_ecalDR            );
+  iEvent.getByLabel( ecalTPInputTag_            , b_ecalTP            );
+  iEvent.getByLabel( greedyMuonInputTag_        , b_greedyMuon        );
+  iEvent.getByLabel( hcalLaserEventInputTag_    , b_hcalLaserEvent    );
+  iEvent.getByLabel( inconsistentMuonInputTag_  , b_inconsistentMuon  );
+  iEvent.getByLabel( jetIDFailureInputTag_      , b_jetIDFailure      );
+  iEvent.getByLabel( multiEventFailureInputTag_ , b_multiEventFailure );
+  iEvent.getByLabel( trackingFailureInputTag_   , b_trackingFailure   );
 
+  checkValid( b_ecalBE            , ecalBEInputTag_            );
+  //checkValid( b_ecalDR            , ecalDRInputTag_            );
+  checkValid( b_ecalTP            , ecalTPInputTag_            );
+  checkValid( b_greedyMuon        , greedyMuonInputTag_        );
+  checkValid( b_hcalLaserEvent    , hcalLaserEventInputTag_    );
+  checkValid( b_inconsistentMuon  , inconsistentMuonInputTag_  );
+  //checkValid( b_jetIDFailure      , jetIDFailureInputTag_      );
+  checkValid( b_multiEventFailure , multiEventFailureInputTag_ );
+  checkValid( b_trackingFailure   , trackingFailureInputTag_   );
 
-
-  //
-  if( b_ecalTP.isValid()          ){ 
-    *filt_ecalTP          = *b_ecalTP;
-  } 
-  else {
-    cout << "Invalid Handle: ecalTP.   File: " << __FILE__ << ", Line: " << __LINE__ << endl; 
-  }   
-
-
-
-  //
-  if( b_trackingFailure.isValid() ){ 
-    *filt_trackingFailure = *b_trackingFailure;
-  } 
-  else {
-    cout << "Invalid Handle: trackingFailure" << __FILE__ << ", " << __LINE__ << endl; 
-  }
-
-
-  ///////////
-  // Debug //
-  ///////////
-
-  //cout << ecalTPInputTag_ << ": " << b_ecalTP << endl;
-
+  *filt_ecalBE            = *b_ecalBE;
+  //*filt_ecalDR            = *b_ecalDR;
+  *filt_ecalTP            = *b_ecalTP;
+  *filt_greedyMuon        = *b_greedyMuon;
+  *filt_hcalLaserEvent    = *b_hcalLaserEvent;
+  *filt_inconsistentMuon  = *b_inconsistentMuon;
+  //*filt_jetIDFailure      = *b_jetIDFailure;
+  *filt_multiEventFailure = *b_multiEventFailure;
+  *filt_trackingFailure   = *b_trackingFailure;
 
 
   //////////////////
@@ -116,10 +132,10 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put( filt_ecalDR           , branchprefix_ + "ecalDR"          );
   iEvent.put( filt_ecalTP           , branchprefix_ + "ecalTP"          );
   iEvent.put( filt_greedyMuon       , branchprefix_ + "greedyMuon"      );
-  iEvent.put( filt_hcalLaser        , branchprefix_ + "hcalLaser"       );
+  iEvent.put( filt_hcalLaserEvent   , branchprefix_ + "hcalLaser"       );
   iEvent.put( filt_inconsistentMuon , branchprefix_ + "inconsistentMuon");
   iEvent.put( filt_jetIDFailure     , branchprefix_ + "jetIDFailure"    );
-  iEvent.put( filt_multiEvent       , branchprefix_ + "multiEvent"      );
+  iEvent.put( filt_multiEventFailure, branchprefix_ + "multiEvent"      );
   iEvent.put( filt_trackingFailure  , branchprefix_ + "trackingFailure" );
 
 } // End MetFilterMaker::produce()
