@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.5 $'),
+        version    = cms.untracked.string('$Revision: 1.6 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -36,6 +36,21 @@ process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet dens
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
 
 
+####################
+# MET Filters 2012 #
+####################
+
+process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
+#process.load('RecoMET.METAnalyzers.CSCHaloFilter_cfi')
+process.load('RecoMET.METFilters.hcalLaserEventFilter_cfi')
+process.load('RecoMET.METFilters.EcalDeadCellBoundaryEnergyFilter_cfi')
+process.load('RecoMET.METFilters.EcalDeadCellDeltaRFilter_cfi')
+process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
+process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+process.load('RecoMET.METFilters.inconsistentMuonPFCandidateFilter_cfi')
+process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
+
+
 #undo what's pulled in by including Reconstruction_cff
 #it relies on transient steps introduced in PF in 44X (back-fill)
 process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
@@ -49,7 +64,9 @@ process.source = cms.Source("PoolSource",
     dropDescendantsOfDroppedBranches = cms.untracked.bool(False),
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-      'file:/nfs-3/userdata/cms2/RelValProdTTbar_CMSSW_5_2_2-START52_V4-v2/82900610-FC74-E111-B01A-0018F3D09628.root'   # CMSSW_5_2_2
+      #'file:/nfs-3/userdata/cms2/RelValProdTTbar_CMSSW_5_2_2-START52_V4-v2/82900610-FC74-E111-B01A-0018F3D09628.root'   # CMSSW_5_2_2
+      'file:/nfs-3/userdata/cms2/cms2_validation/RelValProdTTbar_CMSSW_5_2_3-START52_V5-v1/144D6226-2C7A-E111-8629-003048678B7C.root'   # CMSSW_5_2_3
+
     ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
