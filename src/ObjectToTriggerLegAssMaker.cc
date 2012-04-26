@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ObjectToTriggerLegAssMaker.cc,v 1.2 2012/04/26 11:30:46 dlevans Exp $
+// $Id: ObjectToTriggerLegAssMaker.cc,v 1.3 2012/04/26 13:01:34 dlevans Exp $
 // This code was written by DLE
 //
 //
@@ -235,8 +235,6 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
                 const trigger::Keys &keys = triggerEvent_->filterKeys(filterIndex);
                 for (size_t j = 0; j < keys.size(); j++) {
                     trigger::TriggerObject foundObject = allObjects[keys[j]];
-                    std::cout << "\t" << foundObject.pt() << std::endl;
-
                     if (deltaR(foundObject.eta(), foundObject.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
                          prescale = hltConfig_.prescaleValue(iEvent, iSetup, hltConfig_.triggerName(i));
                          return prescale;
