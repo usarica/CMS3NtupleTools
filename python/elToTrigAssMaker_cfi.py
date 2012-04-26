@@ -4,9 +4,9 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
 
     aliasPrefix         = cms.untracked.string("els"),
     objectInputTag      = cms.untracked.InputTag("electronMaker:elsp4"),
-    cone                = cms.double(0.2),
+    cone                = cms.untracked.double(0.2),
 
-    trigInputTag    = cms.untracked.VInputTag(
+    triggers    = cms.untracked.VInputTag(
 
         # HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*
         cms.InputTag('HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*:hltL1sL1DoubleEG137:HLT_Ele17_Ele8_L1sL1DoubleEG137'),

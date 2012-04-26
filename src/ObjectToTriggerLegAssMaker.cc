@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ObjectToTriggerLegAssMaker.cc,v 1.1 2012/04/25 14:06:14 dlevans Exp $
+// $Id: ObjectToTriggerLegAssMaker.cc,v 1.2 2012/04/26 11:30:46 dlevans Exp $
 // This code was written by DLE
 //
 //
@@ -41,9 +41,9 @@ Implementation:
 ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& iConfig) {
 
     // get configuration from event
-    cone_               = iConfig.getParameter<double>("cone");
-    objectInputTag_     = iConfig.getParameter<edm::InputTag>("objectInputTag");
-    triggers_           = iConfig.getParameter<std::vector<edm::InputTag> >("triggers");
+    cone_               = iConfig.getUntrackedParameter<double>("cone");
+    objectInputTag_     = iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag");
+    triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
 
     // get the branch prefix and remove spurious _s
     std::string aliasprefix = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
@@ -59,12 +59,13 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
         // figure out the branch names, removing spurious _s
         std::string trigName = triggers_[i].process();
         std::string branchName = branchPrefix + trigName;
-        if (branchName.find("_") != std::string::npos) branchName.replace(branchName.find("_"), 1, "");
+        std::string::size_type k = 0;
+        while ((k = branchName.find('_', k)) != branchName.npos) branchName.erase(k, 1);
         branchNames_.push_back(branchName);
  
         // set up the branches
-        produces<std::vector<int> >     (branchNames_[i]).setBranchAlias            (branchPrefix + "_" + trigName);
-        produces<int>                   (branchNames_[i]+"version").setBranchAlias  (branchPrefix + "_" + trigName + "_version");
+        produces<std::vector<unsigned int> >     (branchNames_[i]).setBranchAlias            (branchPrefix + "_" + trigName);
+        produces<unsigned int>                   (branchNames_[i]+"version").setBranchAlias  (branchPrefix + "_" + trigName + "_version");
 
     }
 
@@ -115,23 +116,28 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     // online objects for all triggers
     const trigger::TriggerObjectCollection &allObjects = triggerEvent_->getObjects();
 
-    // loop on muon triggers
+    // loop on triggers
     std::vector<LorentzVector>::const_iterator obj_it = obj_p4_h->begin();
     for (unsigned int t = 0; t < triggers_.size(); ++t) {
 
-        // loop on each muon and match to this trigger
+        // loop on each object and match to this trigger
         // store zero if no match, otherwise prescale value of trigger
+        // indexed like the collection of objects
+        std::vector<unsigned int> triggerPrescales;
         for (obj_it = obj_p4_h->begin(); obj_it != obj_p4_h->end(); ++obj_it) {
-            prescales[t].push_back(matchTriggerObject(iEvent, iSetup,
+            triggerPrescales.push_back(matchTriggerObject(iEvent, iSetup,
                 triggers_[t].label(), triggers_[t].instance(), allObjects, *obj_it));
         }
+
+        // push back the results for this trigger
+        prescales.push_back(triggerPrescales);
+
     }
 
     //
     // put the results in the event
     //
 
-    // put electron trigger branches
     for (unsigned int i = 0; i < triggers_.size(); ++i) {
 
         // get name of this trigger
@@ -139,12 +145,12 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
 
         // create auto ptrs to hold matches (prescales) of this trigger to each electron
         // and version number of this trigger
-        std::auto_ptr<std::vector<unsigned int> > autoptr_prescales(new std::vector<unsigned int> (prescales[i].begin(), prescales[i].end()));
-        std::auto_ptr<unsigned int> autoptr_version(new unsigned int (triggerVersions_[i]));
+        std::auto_ptr<std::vector<unsigned int> >   autoptr_prescales   (new std::vector<unsigned int> (prescales[i].begin(), prescales[i].end()));
+        std::auto_ptr<unsigned int>                 autoptr_version     (new unsigned int (triggerVersions_[i]));
 
         // put into the event
         iEvent.put(autoptr_prescales,           branchNames_[i]);
-        iEvent.put(autoptr_version,             branchNames_[i]);
+        iEvent.put(autoptr_version,             branchNames_[i]+"version");
     }
 
 }
@@ -214,7 +220,7 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
         // then look for the objects corresponding to
         // the specified filter name
         if (hltTrigName.Index(reg) >= 0) {
-            
+
             edm::InputTag filterNameTag(filterName, "", processName_);
             if (filterName == "") {
                 const std::vector<std::string> &modules = hltConfig_.saveTagsModules(i);
@@ -229,6 +235,8 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
                 const trigger::Keys &keys = triggerEvent_->filterKeys(filterIndex);
                 for (size_t j = 0; j < keys.size(); j++) {
                     trigger::TriggerObject foundObject = allObjects[keys[j]];
+                    std::cout << "\t" << foundObject.pt() << std::endl;
+
                     if (deltaR(foundObject.eta(), foundObject.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
                          prescale = hltConfig_.prescaleValue(iEvent, iSetup, hltConfig_.triggerName(i));
                          return prescale;
@@ -237,7 +245,7 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
             }
         }
     }
-    
+   
     assert(prescale == 0);
     return prescale;
 
