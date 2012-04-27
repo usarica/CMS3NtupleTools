@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFCandidateMaker.cc,v 1.8 2011/09/14 17:41:57 slava77 Exp $
+// $Id: PFCandidateMaker.cc,v 1.9 2012/04/27 15:08:10 dlevans Exp $
 //
 //
 
@@ -30,6 +30,7 @@
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "RecoParticleFlow/PFProducer/interface/PFMuonAlgo.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -57,6 +58,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      pfCandidatesTag_		= iConfig.getParameter<InputTag>	("pfCandidatesTag");
      pfElectronsTag_		= iConfig.getParameter<InputTag>	("pfElectronsTag");
      tracksInputTag_            = iConfig.getParameter<InputTag>        ("tracksInputTag");
+     vertexInputTag_            = iConfig.getParameter<InputTag>        ("vertexInputTag");
      minDR_electron_            = iConfig.getParameter<double>          ("minDRelectron");
 
      produces<vector<LorentzVector>	> ("pfcandsp4"              ).setBranchAlias("pfcands_p4"			          );
@@ -80,13 +82,23 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int>	>           ("pfcandstrkidx"		      ).setBranchAlias("pfcands_trkidx"		        );
      produces<vector<int>	>           ("pfcandspfmusidx"		    ).setBranchAlias("pfcands_pfmusidx"		      );
      produces<vector<int>	>           ("pfcandspfelsidx"		    ).setBranchAlias("pfcands_pfelsidx"		      );
+     produces<vector<int>   >          ("pfcandsvtxidx"             ).setBranchAlias("pfcands_vtxidx"       );
 
      produces<float>                  ("evtfixgridrhoctr"       ).setBranchAlias("evt_fixgrid_rho_ctr"      );
      produces<float>                  ("evtfixgridrhofwd"       ).setBranchAlias("evt_fixgrid_rho_fwd"      );
      produces<float>                  ("evtfixgridrhoall"       ).setBranchAlias("evt_fixgrid_rho_all"      );
+
+    // for matching to vertices using the "PFNoPileup" method
+    // hint: it is just track vertex association 
+    pfPileUpAlgo_ = new PFPileUpAlgo();
+
 }
 
-PFCandidateMaker::~PFCandidateMaker() {}
+PFCandidateMaker::~PFCandidateMaker() 
+{
+    if (pfPileUpAlgo_ != 0) delete pfPileUpAlgo_;
+}
+
 void  PFCandidateMaker::beginRun(edm::Run&, const edm::EventSetup& es) {}
 void PFCandidateMaker::beginJob() {}
 void PFCandidateMaker::endJob()   {}
@@ -115,6 +127,8 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      auto_ptr<vector<int> >	          pfcands_trkidx		        (new vector<int>        	  );
      auto_ptr<vector<int> >	          pfcands_pfmusidx	        (new vector<int>        	  );    
      auto_ptr<vector<int> >	          pfcands_pfelsidx	        (new vector<int>        	  );
+     auto_ptr<vector<int> >           pfcands_vtxidx            (new vector<int>              );
+
      auto_ptr<float >	                evt_fixgrid_rho_ctr 	    (new float           	      );
      auto_ptr<float >	                evt_fixgrid_rho_fwd 	    (new float           	      );
      auto_ptr<float >	                evt_fixgrid_rho_all 	    (new float           	      );
@@ -129,17 +143,17 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      Handle<PFCandMap> pfElectronsHandle;
      iEvent.getByLabel(pfElectronsTag_, pfElectronsHandle);
      const PFCandMap *pfElectrons  = pfElectronsHandle.product();
-  
 
      // get tracks
      Handle<reco::TrackCollection>  track_h;
      iEvent.getByLabel(tracksInputTag_, track_h);
 
-     int npfmus = 0;
-  
+     // get vertices
+     Handle<reco::VertexCollection> vertex_h;
+     iEvent.getByLabel(vertexInputTag_, vertex_h);
+     const reco::VertexCollection *vertices = vertex_h.product();
 
-     
-       
+     int npfmus = 0;
       int iCand = 0;
       for( PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
   
@@ -178,7 +192,11 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
           //for charged pfcandidates, find corresponding track index
           //here we take the track directly from PFCandidate::trackRef()
           if( pf_it->charge() != 0 ){
-            
+
+            // match pf cand to a vertex
+            // using the no pileup algo
+            pfcands_vtxidx->push_back(pfPileUpAlgo_->chargedHadronVertex(*vertices, *pf_it));
+
             reco::TrackRef pftrack = pf_it->trackRef();
 
             int trkidx = 0;
@@ -215,6 +233,8 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
           }else{
             //neutral particle, set trkidx to -2
             pfcands_trkidx->push_back(-2);
+            // no vertex match
+            pfcands_vtxidx->push_back(-2);
           }
 
           //find corresponding PFMuon index
@@ -294,6 +314,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      iEvent.put(pfcands_trkidx,			        "pfcandstrkidx"		      );
      iEvent.put(pfcands_pfmusidx,		        "pfcandspfmusidx"	      );
      iEvent.put(pfcands_pfelsidx,		        "pfcandspfelsidx"	      );
+     iEvent.put(pfcands_vtxidx,               "pfcandsvtxidx"         );
      iEvent.put(evt_fixgrid_rho_ctr,		    "evtfixgridrhoctr"	    );
      iEvent.put(evt_fixgrid_rho_fwd,		    "evtfixgridrhofwd"	    );
      iEvent.put(evt_fixgrid_rho_all,		    "evtfixgridrhoall"	    );

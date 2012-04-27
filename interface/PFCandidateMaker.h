@@ -22,6 +22,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
 #include "Math/VectorUtil.h"
 
 //
@@ -47,7 +48,12 @@ private:
   edm::InputTag pfElectronsTag_;
   edm::InputTag pfCandidatesTag_;
   edm::InputTag tracksInputTag_;
+  edm::InputTag vertexInputTag_;
+
   const reco::PFCandidateCollection *pfCandidates;
+
+    PFPileUpAlgo *pfPileUpAlgo_;
+
 };
 
 #endif
