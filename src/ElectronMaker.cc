@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.82 2012/04/19 11:43:52 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.83 2012/04/27 14:43:04 cerati Exp $
 //
 //
 
@@ -228,6 +228,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<int> >       ("elstrkcharge"               ).setBranchAlias("els_trk_charge"             );
   produces<vector<float> >     ("elschi2"                    ).setBranchAlias("els_chi2"                   );
   produces<vector<float> >     ("elsndof"                    ).setBranchAlias("els_ndof"                   );
+  produces<vector<float> >     ("elsckfchi2"                 ).setBranchAlias("els_ckf_chi2"               );
+  produces<vector<float> >     ("elsckfndof"                 ).setBranchAlias("els_ckf_ndof"               );
   produces<vector<int> >       ("elsvalidHits"               ).setBranchAlias("els_validHits"              ); //number of used hits in fit
   produces<vector<int> >       ("elslostHits"                ).setBranchAlias("els_lostHits"               ); //number of lost hits in fit
   produces<vector<float> >     ("elsd0"                      ).setBranchAlias("els_d0"                     );
@@ -274,6 +276,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<int> >            ("elslayer1layer"             ).setBranchAlias("els_layer1_layer"           ); 
   produces<vector<int> >            ("elsexpinnerlayers"          ).setBranchAlias("els_exp_innerlayers"        );
   produces<vector<int> >            ("elsexpouterlayers"          ).setBranchAlias("els_exp_outerlayers"        );   
+  produces<vector<int> >            ("elsckflaywithmeas"          ).setBranchAlias("els_ckf_laywithmeas"         );
 
   //CTF track matching stuff
   produces<vector<int>    >    ("elstrkidx"                  ).setBranchAlias("els_trkidx"                 );// track index matched to electron
@@ -469,6 +472,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >els_sccharge(new vector<int>) ;
   auto_ptr<vector<float> >els_chi2(new vector<float>) ;
   auto_ptr<vector<float> >els_ndof(new vector<float>) ;
+  auto_ptr<vector<float> >els_ckf_chi2(new vector<float>) ;
+  auto_ptr<vector<float> >els_ckf_ndof(new vector<float>) ;
   auto_ptr<vector<int> >els_validHits(new vector<int>) ;
   auto_ptr<vector<int> >els_lostHits(new vector<int>) ;
   auto_ptr<vector<float> >els_d0(new vector<float>) ;
@@ -514,6 +519,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >els_layer1_layer(new vector<int>) ;
   auto_ptr<vector<int> >els_exp_innerlayers(new vector<int>) ; 
   auto_ptr<vector<int> >els_exp_outerlayers(new vector<int>) ; 
+  auto_ptr<vector<int> >els_ckf_laywithmeas(new vector<int>) ; 
 
   auto_ptr<vector<int>     >els_trkidx(new vector<int>) ;
   auto_ptr<vector<float>   >els_trkshFrac(new vector<float>) ;
@@ -983,14 +989,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       //els_trkshFrac -> push_back( static_cast<float>( el->shFracInnerHits() )                                  );
       els_trkshFrac -> push_back( static_cast<float>( el->ctfGsfOverlap() )                                    );
       els_trkdr     -> push_back( deltaR( gsfTkRef->eta(), gsfTkRef->phi(), ctfTkRef->eta(), ctfTkRef->phi() ) );
+      els_ckf_chi2  -> push_back( ctfTkRef->chi2() );
+      els_ckf_ndof  -> push_back( ctfTkRef->ndof() );
+      els_ckf_laywithmeas -> push_back( ctfTkRef->hitPattern().trackerLayersWithMeasurement() );
     } 
     else {
       els_trkidx    -> push_back(-9999.);
       els_trkshFrac -> push_back(-9999.);
       els_trkdr     -> push_back(-9999.);
+      els_ckf_chi2  -> push_back(-9999.);
+      els_ckf_ndof  -> push_back(-9999.);
+      els_ckf_laywithmeas -> push_back(-9999.);
     }
-
-
         
     ////////////////////
     // Regular Vertex //
@@ -1385,6 +1395,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_z0corr,"elsz0corr");
   iEvent.put(els_chi2                    ,"elschi2");
   iEvent.put(els_ndof                   ,"elsndof");
+  iEvent.put(els_ckf_chi2                ,"elsckfchi2");
+  iEvent.put(els_ckf_ndof                ,"elsckfndof");
   iEvent.put(els_d0Err,"elsd0Err");
   iEvent.put(els_z0Err                   ,"elsz0Err");
   iEvent.put(els_ptErr                   ,"elsptErr");
@@ -1519,6 +1531,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_layer1_det,"elslayer1det");
   iEvent.put(els_exp_innerlayers,"elsexpinnerlayers");
   iEvent.put(els_exp_outerlayers,"elsexpouterlayers");
+  iEvent.put(els_ckf_laywithmeas,"elsckflaywithmeas");
 
   //CTF track info
   //
