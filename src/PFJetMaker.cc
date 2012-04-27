@@ -126,7 +126,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   const JetCorrector* correctorL1FastL2L3 = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3_ , iSetup );
   for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
-    if( pfjet_it->p4().Pt() < 5.0 ) continue;
+    //if( pfjet_it->p4().Pt() < 5.0 ) continue;
 
     //
     pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
