@@ -25,11 +25,15 @@ kt6PFJetsDeterministicIso = kt4PFJets.clone(
 kt6PFJetsForRhoComputationVoronoi = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = 0.9)
 kt6PFJetsForRhoComputationRandom     = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = -1)
 
+kt6PFJetsForEGIsolation = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
+kt6PFJetsForEGIsolation.Rho_EtaMax = cms.double(2.5)
+
 wwFastJetSequence = cms.Sequence( kt6PFJetsForRhoComputationVoronoi * kt6PFJetsForRhoComputationRandom *
                                   wwRhoDefaultMaker * wwRhoVoronoiMaker * wwRhoRandomMaker )
 
 additionalFastJetSequence = cms.Sequence( fixedGridRhoAllMaker * fixedGridRhoFastJetAllMaker *
                                           kt6CaloJetsRhoMaker * kt6CaloJetsCentralRhoMaker *
-                                          kt6PFJetsCentralChargedPileUpRhoMaker * kt6PFJetsCentralNeutralRhoMaker * kt6PFJetsCentralNeutralTightRhoMaker )
+                                          kt6PFJetsCentralChargedPileUpRhoMaker * kt6PFJetsCentralNeutralRhoMaker *
+                                          kt6PFJetsCentralNeutralTightRhoMaker * kt6PFJetsForEGIsolation )
 
 fastJetSequence = cms.Sequence( kt6PFJetsDeterministicJEC * kt6PFJetsDeterministicIso * fastJetMaker * wwFastJetSequence * additionalFastJetSequence)
