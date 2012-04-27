@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: MVAJetIdMaker.h,v 1.1 2012/04/22 15:44:11 jaehyeok Exp $
+// $Id: MVAJetIdMaker.h,v 1.2 2012/04/27 20:45:45 jaehyeok Exp $
 //
 //
 
@@ -45,8 +45,9 @@ private:
   virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-      
-  // ----------member data ---------------------------
+  bool passPFLooseId(const reco::PFJet *iJet);     
+ 
+ // ----------member data ---------------------------
   edm::InputTag pfJetsInputTag_;
   edm::InputTag fVertexNameTag_;
   edm::InputTag fCorrJetName;
