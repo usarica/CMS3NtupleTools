@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: MVAJetIdMaker.h,v 1.2 2012/04/27 20:45:45 jaehyeok Exp $
+// $Id: MVAJetIdMaker.h,v 1.3 2012/04/27 21:02:55 jaehyeok Exp $
 //
 //
 
@@ -52,8 +52,8 @@ private:
   edm::InputTag fVertexNameTag_;
   edm::InputTag fCorrJetName;
   edm::InputTag fUnCorrJetName;
-  
-  double         	pfJetPtCut_;
+   
+  double            fJetPtMin; 
   PileupJetIdAlgo  *fPUJetIdAlgo;
   
   std::string aliasprefix_;

@@ -28,7 +28,7 @@ MVAJetIdMaker::MVAJetIdMaker(const edm::ParameterSet& iConfig){
   fVertexNameTag_   = iConfig.getParameter<InputTag>	( "VertexName" 		);
   fCorrJetName    	= iConfig.getParameter<InputTag>	( "CorrJetName"		);
   fUnCorrJetName  	= iConfig.getParameter<InputTag>	( "JetName"			);
-
+  fJetPtMin       	= iConfig.getParameter<double>       ("JetPtMin");
   // 
   fPUJetIdAlgo    	= new PileupJetIdAlgo(iConfig); 
 
@@ -89,6 +89,7 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		  const PFJet     *pCJet  = &(lCJets.at(i1));
 		  if(       pUCJet->jetArea() != pCJet->jetArea()                  ) continue;
 		  if( fabs(pUCJet->eta() - pCJet->eta())         > 0.01            ) continue;
+      	  if( pUCJet->pt()                               < fJetPtMin       ) continue;
 		  if( !passPFLooseId(pUCJet)                                       ) continue;
 		  double lJec = pCJet ->pt()/pUCJet->pt();
 
