@@ -49,7 +49,7 @@ cms2trackingFailureFilter              .taggingMode = cms.bool(True)
 # Vertices for Tracking Failure Filter #
 ########################################
 
-cms2trackingFailureFilter.VertexSource = cms.InputTag("offlinePrimaryVerticesDA")
+cms2trackingFailureFilter.VertexSource = cms.InputTag("offlinePrimaryVertices")
 
 
 ##################################
