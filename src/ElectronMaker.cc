@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.83 2012/04/27 14:43:04 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.84 2012/04/27 15:09:31 dlevans Exp $
 //
 //
 
@@ -317,11 +317,16 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<int>      >       ("elsconvoldflag"       ).setBranchAlias("els_conv_old_flag"        );
 
   produces<vector<bool>      >       ("elsconvvtxflag"       ).setBranchAlias("els_conv_vtx_flag"       );
-  
+ 
+    // for matching to vertices using the "PFNoPileup" method
+    // hint: it is just track vertex association 
+    pfPileUpAlgo_ = new PFPileUpAlgo();
+ 
 }
 
 ElectronMaker::~ElectronMaker()
 {
+  if (pfPileUpAlgo_) delete pfPileUpAlgo_;
   if (clusterTools_) delete clusterTools_;
   if (mtsTransform_) delete mtsTransform_;
 }
@@ -800,12 +805,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       float pfiso_ch = 0.0;
       float pfiso_em = 0.0;
       float pfiso_nh = 0.0;
-      PFIsolation2012(*el, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
+      PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
       els_iso03_pf2012_ch ->push_back( pfiso_ch );
       els_iso03_pf2012_em ->push_back( pfiso_em );
       els_iso03_pf2012_nh ->push_back( pfiso_nh );
 
-      PFIsolation2012(*el, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
+      PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
       els_iso04_pf2012_ch ->push_back( pfiso_ch );
       els_iso04_pf2012_em ->push_back( pfiso_em );
       els_iso04_pf2012_nh ->push_back( pfiso_nh );
@@ -1667,7 +1672,8 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
   return pfciso+pfniso-pffootprint-pfjurveto-pfjurvetoq;
 }
 
-void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh)
+void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const reco::VertexCollection* vertexCollection,
+        const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh)
 {
 
     // isolation sums
@@ -1690,7 +1696,7 @@ void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const int verte
         // charged hadrons closest vertex
         // should be the primary vertex
         if (pf->particleId() == reco::PFCandidate::h) {
-            int pfVertexIndex = chargedHadronVertex(*pf);
+            int pfVertexIndex = pfPileUpAlgo_->chargedHadronVertex(*vertexCollection, *pf);
             if (pfVertexIndex != vertexIndex) continue;
         }
 
@@ -1706,34 +1712,6 @@ void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const int verte
         if (pf->particleId() == reco::PFCandidate::h0)      pfiso_nh += pf->pt();
 
     }
-
-}
-
-int ElectronMaker::chargedHadronVertex(const reco::PFCandidate& pfcand)
-{
-
-    double  dzmin = 10000;
-    bool    found = false;
-    int     iVertex = -1;
-
-    // loop on vertices
-    int n = vertexHandle->size();
-    for (int index = 0; index < n; ++index) {
-
-        // find the dz
-        reco::VertexRef vertexRef(vertexHandle, index);
-        double dz = fabs(pfcand.vertex().z() - vertexRef->z());
-
-        // find the closest dz
-        if (dz < dzmin) {
-            dzmin = dz;
-            iVertex = index;
-            found = true;
-        }
-    }
-
-    if (found) return iVertex;  
-    return -1;
 
 }
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.23 2012/04/19 11:43:51 cerati Exp $
+// $Id: ElectronMaker.h,v 1.24 2012/04/27 15:09:31 dlevans Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -47,6 +47,7 @@
 #include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "Math/VectorUtil.h"
@@ -73,10 +74,9 @@ private:
   int classify(const edm::RefToBase<reco::GsfElectron> &);
   template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
  
-    // for 2012 pf isolation
-    int chargedHadronVertex(const reco::PFCandidate& pfcand);
-    void PFIsolation2012(const reco::GsfElectron& el, const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh);
-
+  // for 2012 pf isolation
+  void PFIsolation2012(const reco::GsfElectron& el, const reco::VertexCollection* vertexCollection, 
+        const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh);
  
   // ----------member data ---------------------------
   edm::InputTag electronsInputTag_;
@@ -100,6 +100,9 @@ private:
 
   edm::Handle<reco::PFCandidateCollection> pfCand_h;
   edm::Handle<reco::VertexCollection> vertexHandle;
+
+    PFPileUpAlgo *pfPileUpAlgo_;
+
 };
 
 #endif
