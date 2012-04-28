@@ -58,6 +58,9 @@ pfAllNeutralHadrons.src = cms.InputTag("pfNoPileUp")
 pfAllChargedHadrons.src = cms.InputTag("pfNoPileUp")
 pfAllPhotons.src        = cms.InputTag("pfNoPileUp")
 
+from CMS2.NtupleMaker.muonIsolationMaker_cfi import *
+from CMS2.NtupleMaker.electronIsolationMaker_cfi import *
+
 cms2PFNoTauSequence = cms.Sequence( 
   pfJetMaker + 
   pfmetMaker + 
@@ -81,5 +84,7 @@ cms2PFNoTauSequence = cms.Sequence(
   elToPFElAssMaker + 
   pfCandidateMaker + 
   trkMetSequence +
-  mvaJetIdMaker
+#  mvaJetIdMaker +
+  muonIsolationMaker +
+  electronIsolationMaker
 )
