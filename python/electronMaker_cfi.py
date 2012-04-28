@@ -1,8 +1,8 @@
 import FWCore.ParameterSet.Config as cms
 
 electronMaker = cms.EDProducer(
-	"ElectronMaker",
-	aliasPrefix = cms.untracked.string("els"),
+    "ElectronMaker",
+    aliasPrefix = cms.untracked.string("els"),
     # Electron collection
     electronsInputTag = cms.InputTag("gsfElectrons"),
     # Beamspot
@@ -12,7 +12,7 @@ electronMaker = cms.EDProducer(
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("particleFlow"),
-    vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
+    vtxInputTag = cms.InputTag("offlinePrimaryVerticesDA"),
     # reco conversions
     recoConversionInputTag = cms.InputTag("allConversions"),
     # egamma ID
@@ -21,6 +21,9 @@ electronMaker = cms.EDProducer(
     #conversion stuff    
     minAbsDist  = cms.double(0.02),        
     minAbsDcot  = cms.double(0.02),
-    minSharedFractionOfHits = cms.double(0.45)    
+    minSharedFractionOfHits = cms.double(0.45),
+    rhoInputTag = cms.InputTag("fastJetMaker", "evtrho"),
+    beamSpotTag = cms.InputTag("offlineBeamSpot"),
+    vertexInputTag = cms.InputTag("offlinePrimaryVertices")
 )
 
