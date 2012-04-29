@@ -76,9 +76,9 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   for(int ivtx    = 0; ivtx < (int)lVertices.size(); ivtx++)
   {
 	  const Vertex       *vtx = &(lVertices.at(ivtx));
-	  if( vtx->isFake()               )  continue;
-	  if( vtx->ndof()<=4              )  continue;
-	  if( vtx->position().Rho()>2.0   )  continue;
+	  if( vtx->isFake()               		)  continue;
+	  if( vtx->ndof()<=4              		)  continue;
+	  if( vtx->position().Rho()>2.0   		)  continue;
 	  if( fabs(vtx->position().Z())>24.0    )  continue;
 	  lGoodVertices.push_back(*vtx);
   }
@@ -87,10 +87,10 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  const PFJet       *pUCJet = &(lUCJets.at(i0));
 	  for(int i1 = 0; i1 < (int) lCJets.size(); i1++) {   // corrected jets collection                                         
 		  const PFJet     *pCJet  = &(lCJets.at(i1));
-		  if(       pUCJet->jetArea() != pCJet->jetArea()                  ) continue;
-		  if( fabs(pUCJet->eta() - pCJet->eta())         > 0.01            ) continue;
-      	  if( pUCJet->pt()                               < fJetPtMin       ) continue;
-		  if( !passPFLooseId(pUCJet)                                       ) continue;
+		  if( pUCJet->jetArea() != pCJet->jetArea()                  	) continue;
+		  if( fabs(pUCJet->eta() - pCJet->eta())         > 0.01         ) continue;
+      	  if( pUCJet->pt()                               < fJetPtMin    ) continue;
+//		  if( !passPFLooseId(pUCJet)                                    ) continue;
 		  double lJec = pCJet ->pt()/pUCJet->pt();
 
 		  // calculate mva value
