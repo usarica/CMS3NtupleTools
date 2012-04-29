@@ -1,7 +1,7 @@
-from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "GR_R_42_V14::All"
+process.GlobalTag.globaltag = "GR_R_52_V7::All"
 
 #
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )
@@ -38,8 +38,9 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_fourLeptons_*_CM
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
-# process.source = cms.Source("PoolSource",
-#      fileNames = cms.untracked.vstring( 'file:/tas/dmytro/tmp/DYToEE_M-20_CT10_TuneZ2_7TeV-powheg-pythia_Spring11-PU_S1_START311_V1G1-v1_AODSIM_7840115C-5D4F-E011-BD85-001E0B48D9A4.root' )
-# )
+#process.source.fileNames = [
+#    'file:/smurf/cerati/Run2012A_DoubleElectron_AOD_PromptReco-v1_000_190_733_86B0E544-E283-E111-9A36-BCAEC53296F4.root',
+#    'file:/smurf/cerati/Run2012A_DoubleElectron_AOD_PromptReco-v1_000_191_247_04825687-3588-E111-82CE-BCAEC518FF63.root'
+#                            ]
              
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
