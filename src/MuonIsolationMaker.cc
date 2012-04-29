@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonIsolationMaker.cc,v 1.1 2012/04/28 07:57:38 fgolf Exp $
+// $Id: MuonIsolationMaker.cc,v 1.2 2012/04/29 20:58:47 fgolf Exp $
 //
 //
 
@@ -36,7 +36,6 @@
 #include "Math/VectorUtil.h"
 #include "CMS2/NtupleMaker/interface/MuonIsolationMaker.h"
 #include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
-
 
 //////////////
 // typedefs //
@@ -81,7 +80,14 @@ MuonIsolationMaker::MuonIsolationMaker( const ParameterSet& iConfig ) {
     // RADIAL ISOLATION //
     //////////////////////
     produces<vector<float> >          ( branchprefix_ + "isoR03pfradial"            ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radial"     );
-    produces<vector<float> >          ( branchprefix_ + "isoR03pfradialTight"       ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radial"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radial"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radial"   );
+
+    produces<vector<float> >          ( branchprefix_ + "isoR03pfradialTight"       ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radialTight"  );
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radialTight");
 
 } // end Constructor
 
@@ -100,13 +106,20 @@ void MuonIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // RADIAL ISOLATION //
     //////////////////////
     auto_ptr<vector<float> >         vector_mus_isoR03_pf_radial            ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_chpf_radial          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_nhpf_radial          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_empf_radial          ( new vector<float>   );
+
     auto_ptr<vector<float> >         vector_mus_isoR03_pf_radialTight       ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_chpf_radialTight     ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_nhpf_radialTight     ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_mus_isoR03_empf_radialTight     ( new vector<float>   );
 
     ////////////////////////////
     // --- Fill Muon Data --- //
     ////////////////////////////
 
-
+    
     ///////////////
     // Get Muons //
     ///////////////
@@ -160,10 +173,28 @@ void MuonIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //////////////////////
         // RADIAL ISOLATION //
         //////////////////////
-        float pfiso_radial       = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, 0.3, 0.5);
-        float pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, 0.3, 1.0);
+        double chiso = 0.;
+        double nhiso = 0.;
+        double emiso = 0.;
+        double pfiso_radial       = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso, nhiso, emiso, 0.3, 0.5);
         vector_mus_isoR03_pf_radial->push_back(pfiso_radial);
+        vector_mus_isoR03_chpf_radial->push_back(chiso);
+        vector_mus_isoR03_nhpf_radial->push_back(nhiso);
+        vector_mus_isoR03_empf_radial->push_back(emiso);
+
+        double chiso_tight = 0.;
+        double nhiso_tight = 0.;
+        double emiso_tight = 0.;
+        double pfiso_radial_tight = 0.;
+        if (iEvent.id().run() == 1 && iEvent.id().event() == 1558 && iEvent.luminosityBlock() == 666697 && fabs(mu.pt() - 6.5) < 0.3)
+            pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, true);
+        else
+            pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, false);
+
         vector_mus_isoR03_pf_radialTight->push_back(pfiso_radial_tight);
+        vector_mus_isoR03_chpf_radialTight->push_back(chiso_tight);
+        vector_mus_isoR03_nhpf_radialTight->push_back(nhiso_tight);
+        vector_mus_isoR03_empf_radialTight->push_back(emiso_tight);
 
     } // end loop on muons
 
@@ -173,8 +204,14 @@ void MuonIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // RADIAL ISOLATION //
     //////////////////////
     iEvent.put( vector_mus_isoR03_pf_radial     , branchprefix_ + "isoR03pfradial"     );
-    iEvent.put( vector_mus_isoR03_pf_radialTight, branchprefix_ + "isoR03pfradialTight");
+    iEvent.put( vector_mus_isoR03_chpf_radial     , branchprefix_ + "isoR03chpfradial"     );
+    iEvent.put( vector_mus_isoR03_nhpf_radial     , branchprefix_ + "isoR03nhpfradial"     );
+    iEvent.put( vector_mus_isoR03_empf_radial     , branchprefix_ + "isoR03empfradial"     );
 
+    iEvent.put( vector_mus_isoR03_pf_radialTight, branchprefix_ + "isoR03pfradialTight");
+    iEvent.put( vector_mus_isoR03_chpf_radialTight, branchprefix_ + "isoR03chpfradialTight");
+    iEvent.put( vector_mus_isoR03_nhpf_radialTight, branchprefix_ + "isoR03nhpfradialTight");
+    iEvent.put( vector_mus_isoR03_empf_radialTight, branchprefix_ + "isoR03empfradialTight");
 } //
 
 
