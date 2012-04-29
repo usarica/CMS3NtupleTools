@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 // Thu Apr 26 13:01:55 UTC 2012
-// $Id: IsolationUtilities.h,v 1.1 2012/04/28 07:55:53 fgolf Exp $
+// $Id: IsolationUtilities.h,v 1.2 2012/04/29 20:57:48 fgolf Exp $
 //
 //
 #ifndef CMS2_ISOLATIONUTILITIES_H
@@ -34,7 +34,9 @@ public:
     IsolationUtilities();
     ~IsolationUtilities();
 
-    static double GetMuonRadialIsolation(const reco::Muon &mu, const reco::PFCandidateCollection &PFCandidates, double cone_size = 0.3, double neutral_et_threshold = 1.);
+    static double GetMuonRadialIsolation(const reco::Muon &mu, const reco::PFCandidateCollection &PFCandidates, 
+                                         double &chpfiso, double &nhpfiso, double &empfiso,
+                                         double cone_size = 0.3, double neutral_et_threshold = 1., bool verbose = false);
     static double GetElectronRadialIsolation(const reco::GsfElectron &ele, const reco::PFCandidateCollection &PFCandidates, double cone_size = 0.3, double neutral_et_threshold = 1., bool barrel_veto = false);
 
 private:
