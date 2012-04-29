@@ -53,12 +53,7 @@
 <use   name="TrackingTools/IPTools"/>
 <use   name="CMGTools/External"/>
 <use   name="EGamma/EGammaAnalysisTools"/>
-<use   name="CommonTools/ParticleFlow"/>
 <use   name="root"/>
 <use   name="clhep"/>
 <lib   name="EG"/>
 <flags   EDM_PLUGIN="1"/>
-<export>
-  <lib   name="1"/>
-</export>
-<Flags CXXFLAGS="-g -O0"/>
