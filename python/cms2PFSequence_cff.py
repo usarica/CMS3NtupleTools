@@ -25,6 +25,7 @@ from CommonTools.ParticleFlow.ParticleSelectors.pfAllNeutralHadrons_cfi  import 
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllChargedHadrons_cfi import *
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllPhotons_cfi import *
 from CommonTools.ParticleFlow.pfMuons_cff import *
+from JetMETCorrections.Configuration.DefaultJEC_cff import *
 
 CMS2pfIsolatedMuons = pfIsolatedMuons.clone()
 CMS2pfIsolatedMuons.src = cms.InputTag("pfAllMuons")
@@ -84,7 +85,8 @@ cms2PFNoTauSequence = cms.Sequence(
   elToPFElAssMaker + 
   pfCandidateMaker + 
   trkMetSequence +
-#  mvaJetIdMaker +
+  ak5PFJetsL1FastL2L3 +
+  mvaJetIdMaker +
   muonIsolationMaker +
   electronIsolationMaker
 )
