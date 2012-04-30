@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronIsolationMaker.cc,v 1.1 2012/04/28 07:57:38 fgolf Exp $
+// $Id: ElectronIsolationMaker.cc,v 1.2 2012/04/30 01:20:31 fgolf Exp $
 //
 //
 
@@ -81,9 +81,24 @@ ElectronIsolationMaker::ElectronIsolationMaker( const ParameterSet& iConfig ) {
     // RADIAL ISOLATION //
     //////////////////////
     produces<vector<float> >          ( branchprefix_ + "isoR03pfradial"            ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radial"     );
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radial"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radial"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradial"          ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radial"   );
+
     produces<vector<float> >          ( branchprefix_ + "isoR03pfradialTight"       ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radialTight");
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradialTight"     ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radialTight");
+
     produces<vector<float> >          ( branchprefix_ + "isoR03pfradialbv"            ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radial_bv"     );
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradialbv"          ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radial_bv"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradialbv"          ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radial_bv"   );
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradialbv"          ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radial_bv"   );
+
     produces<vector<float> >          ( branchprefix_ + "isoR03pfradialTightbv"       ).setBranchAlias( aliasprefix_ + "_isoR03_pf_radialTight_bv");
+    produces<vector<float> >          ( branchprefix_ + "isoR03chpfradialTightbv"     ).setBranchAlias( aliasprefix_ + "_isoR03_chpf_radialTight_bv");
+    produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradialTightbv"     ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radialTight_bv");
+    produces<vector<float> >          ( branchprefix_ + "isoR03empfradialTightbv"     ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radialTight_bv");
 
 } // end Constructor
 
@@ -102,9 +117,24 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // RADIAL ISOLATION //
     //////////////////////
     auto_ptr<vector<float> >         vector_els_isoR03_pf_radial            ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_chpf_radial          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_nhpf_radial          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_empf_radial          ( new vector<float>   );
+
     auto_ptr<vector<float> >         vector_els_isoR03_pf_radialTight       ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_chpf_radialTight     ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_nhpf_radialTight     ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_empf_radialTight     ( new vector<float>   );
+
     auto_ptr<vector<float> >         vector_els_isoR03_pf_radial_bv         ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_chpf_radial_bv       ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_nhpf_radial_bv       ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_empf_radial_bv       ( new vector<float>   );
+
     auto_ptr<vector<float> >         vector_els_isoR03_pf_radialTight_bv    ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_chpf_radialTight_bv  ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_nhpf_radialTight_bv  ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_empf_radialTight_bv  ( new vector<float>   );
 
     ////////////////////////////
     // --- Fill Electron Data --- //
@@ -164,14 +194,41 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //////////////////////
         // RADIAL ISOLATION //
         //////////////////////
-        float pfiso_radial          = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, 0.3, 0.5, false);
-        float pfiso_radial_tight    = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, 0.3, 1.0, false);
-        float pfiso_radial_bv       = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, 0.3, 0.5, true);
-        float pfiso_radial_tight_bv = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, 0.3, 1.0, true);
+        double chiso = 0.;
+        double nhiso = 0.;
+        double emiso = 0.;
+        float pfiso_radial          = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, chiso, nhiso, emiso, 0.3, 0.5, false);
         vector_els_isoR03_pf_radial->push_back(pfiso_radial);
+        vector_els_isoR03_chpf_radial->push_back(chiso);
+        vector_els_isoR03_nhpf_radial->push_back(nhiso);
+        vector_els_isoR03_empf_radial->push_back(emiso);
+
+        double chiso_tight = 0.;
+        double nhiso_tight = 0.;
+        double emiso_tight = 0.;
+        float pfiso_radial_tight    = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, false);
         vector_els_isoR03_pf_radialTight->push_back(pfiso_radial_tight);
+        vector_els_isoR03_chpf_radialTight->push_back(chiso_tight);
+        vector_els_isoR03_nhpf_radialTight->push_back(nhiso_tight);
+        vector_els_isoR03_empf_radialTight->push_back(emiso_tight);
+
+        double chiso_bv = 0.;
+        double nhiso_bv = 0.;
+        double emiso_bv = 0.;
+        float pfiso_radial_bv       = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, chiso_bv, nhiso_bv, emiso_bv, 0.3, 0.5, true);
         vector_els_isoR03_pf_radial_bv->push_back(pfiso_radial_bv);
+        vector_els_isoR03_chpf_radial_bv->push_back(chiso_bv);
+        vector_els_isoR03_nhpf_radial_bv->push_back(nhiso_bv);
+        vector_els_isoR03_empf_radial_bv->push_back(emiso_bv);
+
+        double chiso_tight_bv = 0.;
+        double nhiso_tight_bv = 0.;
+        double emiso_tight_bv = 0.;
+        float pfiso_radial_tight_bv = IsolationUtilities::GetElectronRadialIsolation(ele, *pfNoPileUpColl, chiso_tight_bv, nhiso_tight_bv, emiso_tight_bv, 0.3, 1.0, true);
         vector_els_isoR03_pf_radialTight_bv->push_back(pfiso_radial_tight_bv);
+        vector_els_isoR03_chpf_radialTight_bv->push_back(chiso_tight_bv);
+        vector_els_isoR03_nhpf_radialTight_bv->push_back(nhiso_tight_bv);
+        vector_els_isoR03_empf_radialTight_bv->push_back(emiso_tight_bv);
 
     } // end loop on muons
 
@@ -181,9 +238,24 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // RADIAL ISOLATION //
     //////////////////////
     iEvent.put( vector_els_isoR03_pf_radial     , branchprefix_ + "isoR03pfradial"     );
+    iEvent.put( vector_els_isoR03_chpf_radial     , branchprefix_ + "isoR03chpfradial"     );
+    iEvent.put( vector_els_isoR03_nhpf_radial     , branchprefix_ + "isoR03nhpfradial"     );
+    iEvent.put( vector_els_isoR03_empf_radial     , branchprefix_ + "isoR03empfradial"     );
+
     iEvent.put( vector_els_isoR03_pf_radialTight, branchprefix_ + "isoR03pfradialTight");
+    iEvent.put( vector_els_isoR03_chpf_radialTight, branchprefix_ + "isoR03chpfradialTight");
+    iEvent.put( vector_els_isoR03_nhpf_radialTight, branchprefix_ + "isoR03nhpfradialTight");
+    iEvent.put( vector_els_isoR03_empf_radialTight, branchprefix_ + "isoR03empfradialTight");
+
     iEvent.put( vector_els_isoR03_pf_radial_bv     , branchprefix_ + "isoR03pfradialbv"     );
+    iEvent.put( vector_els_isoR03_chpf_radial_bv     , branchprefix_ + "isoR03chpfradialbv"     );
+    iEvent.put( vector_els_isoR03_nhpf_radial_bv     , branchprefix_ + "isoR03nhpfradialbv"     );
+    iEvent.put( vector_els_isoR03_empf_radial_bv     , branchprefix_ + "isoR03empfradialbv"     );
+
     iEvent.put( vector_els_isoR03_pf_radialTight_bv, branchprefix_ + "isoR03pfradialTightbv");
+    iEvent.put( vector_els_isoR03_chpf_radialTight_bv, branchprefix_ + "isoR03chpfradialTightbv");
+    iEvent.put( vector_els_isoR03_nhpf_radialTight_bv, branchprefix_ + "isoR03nhpfradialTightbv");
+    iEvent.put( vector_els_isoR03_empf_radialTight_bv, branchprefix_ + "isoR03empfradialTightbv");
 } //
 
 
