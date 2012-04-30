@@ -1,4 +1,4 @@
-from CMS2.NtupleMaker.RecoConfiguration2011_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "START42_V12::All"
