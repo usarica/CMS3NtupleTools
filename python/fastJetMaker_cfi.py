@@ -13,6 +13,10 @@ wwRhoDefaultMaker = cms.EDProducer("EnergyDensityMaker",
 wwRhoVoronoiMaker = cms.EDProducer("EnergyDensityMaker",
                               input = cms.InputTag("kt6PFJetsForRhoComputationVoronoi","rho"),
                               alias = cms.untracked.string("evt_ww_rho_vor"))
+                              
+wwRhoActiveAreaMaker = cms.EDProducer("EnergyDensityMaker",
+                              input = cms.InputTag("kt6PFJetsForRhoComputationActiveArea","rho"),
+                              alias = cms.untracked.string("evt_ww_rho_act"))
 
 wwRhoRandomMaker = cms.EDProducer("EnergyDensityMaker",
                              input = cms.InputTag("kt6PFJetsForRhoComputationRandom","rho"),
