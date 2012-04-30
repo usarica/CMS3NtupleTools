@@ -11,7 +11,7 @@
 //
 // Original Author:  Frank Golf
 // Thu Apr 26 13:01:55 UTC 2012
-// $Id: IsolationUtilities.cc,v 1.2 2012/04/29 20:57:48 fgolf Exp $
+// $Id: IsolationUtilities.cc,v 1.3 2012/04/30 01:17:56 fgolf Exp $
 //
 //
 #include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
@@ -104,9 +104,12 @@ double IsolationUtilities::GetMuonRadialIsolation(const reco::Muon &mu, const re
     return radial_iso;        
 }
 
-double IsolationUtilities::GetElectronRadialIsolation(const reco::GsfElectron &el, const reco::PFCandidateCollection &PFCandidates, double cone_size, double neutral_et_threshold, bool barrel_veto)
+double IsolationUtilities::GetElectronRadialIsolation(const reco::GsfElectron &el, const reco::PFCandidateCollection &PFCandidates, double &chpfiso, double &nhpfiso, double &empfiso, double cone_size, double neutral_et_threshold, bool barrel_veto, bool verbose)
 {   
     double radial_iso = 0;
+    chpfiso = 0.;
+    nhpfiso = 0.;
+    empfiso = 0.;
 
     for (reco::PFCandidateCollection::const_iterator iP = PFCandidates.begin(); iP != PFCandidates.end(); ++iP) {
 
@@ -134,9 +137,20 @@ double IsolationUtilities::GetElectronRadialIsolation(const reco::GsfElectron &e
         //Charged
         if(iP->trackRef().isNonnull()) {
             radial_iso += iP->pt() * (1 - 3*dr) / el.pt();
+            chpfiso += iP->pt() * (1 - 3*dr) / el.pt();
         }
         else if (iP->pt() > neutral_et_threshold) {
             radial_iso += iP->pt() * (1 - 3*dr) / el.pt();
+            if (iP->particleId() == reco::PFCandidate::h0) {
+                nhpfiso += iP->pt() * (1 - 3*dr) / el.pt();
+                if (verbose)
+                    std::cout << "Summing NH with id, pt, eta = " << iP->translateTypeToPdgId(iP->particleId()) << ", " << iP->pt() << ", " << iP->eta() << std::endl;            
+            }
+            if (iP->particleId() == reco::PFCandidate::gamma) {
+                empfiso += iP->pt() * (1 - 3*dr) / el.pt();
+                if (verbose)
+                    std::cout << "Summing EM with id, pt, eta = " << iP->translateTypeToPdgId(iP->particleId()) << ", " << iP->pt() << ", " << iP->eta() << std::endl;            
+            }
         } 
     } //loop over PF candidates
         
