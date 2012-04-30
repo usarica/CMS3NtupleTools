@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonIsolationMaker.cc,v 1.2 2012/04/29 20:58:47 fgolf Exp $
+// $Id: MuonIsolationMaker.cc,v 1.3 2012/04/30 01:19:04 fgolf Exp $
 //
 //
 
@@ -186,11 +186,11 @@ void MuonIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         double nhiso_tight = 0.;
         double emiso_tight = 0.;
         double pfiso_radial_tight = 0.;
-        if (iEvent.id().run() == 1 && iEvent.id().event() == 1558 && iEvent.luminosityBlock() == 666697 && fabs(mu.pt() - 6.5) < 0.3)
-            pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, true);
-        else
-            pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, false);
-
+        // if (iEvent.id().run() == 1 && iEvent.id().event() == 1558 && iEvent.luminosityBlock() == 666697 && fabs(mu.pt() - 6.5) < 0.3)
+        //     pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, true);
+        // else
+        pfiso_radial_tight = IsolationUtilities::GetMuonRadialIsolation(mu, *pfNoPileUpColl, chiso_tight, nhiso_tight, emiso_tight, 0.3, 1.0, false);
+            
         vector_mus_isoR03_pf_radialTight->push_back(pfiso_radial_tight);
         vector_mus_isoR03_chpf_radialTight->push_back(chiso_tight);
         vector_mus_isoR03_nhpf_radialTight->push_back(nhiso_tight);
