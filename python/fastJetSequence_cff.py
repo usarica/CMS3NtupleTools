@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 from RecoJets.Configuration.RecoPFJets_cff import *
-from RecoJets.JetProducers.kt4PFJets_cfi import *
+from RecoJets.Configuration.RecoJets_cff import *
 from CMS2.NtupleMaker.fastJetMaker_cfi import *
 
 kt6PFJetsDeterministicJEC = kt4PFJets.clone(
@@ -29,12 +29,15 @@ kt6PFJetsForRhoComputationRandom     = kt6PFJets.clone(doRhoFastjet = True, voro
 kt6PFJetsForEGIsolation = kt4PFJets.clone( rParam = 0.6, doRhoFastjet = True )
 kt6PFJetsForEGIsolation.Rho_EtaMax = cms.double(2.5)
 
+kt6CaloJetsForMuHLT = kt6CaloJets.clone(doRhoFastjet = True, doAreaFastjet = False, voronoiRfact = 0.9, Ghost_EtaMax = 5.0, Rho_EtaMax = 2.5, doAreaDiskApprox = True, doPVCorrection = False)
+
 wwFastJetSequence = cms.Sequence( kt6PFJetsForRhoComputationVoronoi * kt6PFJetsForRhoComputationActiveArea * kt6PFJetsForRhoComputationRandom *
                                   wwRhoDefaultMaker * wwRhoVoronoiMaker * wwRhoActiveAreaMaker * wwRhoRandomMaker )
 
 additionalFastJetSequence = cms.Sequence( fixedGridRhoAllMaker * fixedGridRhoFastJetAllMaker *
                                           kt6CaloJetsRhoMaker * kt6CaloJetsCentralRhoMaker *
                                           kt6PFJetsCentralChargedPileUpRhoMaker * kt6PFJetsCentralNeutralRhoMaker *
-                                          kt6PFJetsCentralNeutralTightRhoMaker * kt6PFJetsForEGIsolation )
+                                          kt6PFJetsCentralNeutralTightRhoMaker * kt6PFJetsForEGIsolation *
+                                          kt6CaloJetsForMuHLT * kt6CaloJetsForMuHLTRhoMaker)
 
 fastJetSequence = cms.Sequence( kt6PFJetsDeterministicJEC * kt6PFJetsDeterministicIso * fastJetMaker * wwFastJetSequence * additionalFastJetSequence)

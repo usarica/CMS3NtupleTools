@@ -54,3 +54,7 @@ kt6PFJetsCentralNeutralTightRhoMaker = cms.EDProducer("EnergyDensityMaker",
 kt6PFJetsForEGIsolationRhoMaker = cms.EDProducer("EnergyDensityMaker",
                                                  input = cms.InputTag("kt6PFJetsForEGIsolation","rho"),
                                                  alias = cms.untracked.string("evt_kt6pf_foregiso_rho"))
+
+kt6CaloJetsForMuHLTRhoMaker = cms.EDProducer("EnergyDensityMaker",
+                                             input = cms.InputTag("kt6CaloJetsForMuHLT","rho"),
+                                             alias = cms.untracked.string("evt_kt6calo_muhlt_rho"))
