@@ -83,6 +83,7 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  lGoodVertices.push_back(*vtx);
   }
 
+  // loop over jets 
   for(int i0   = 0; i0 < (int) lUCJets.size(); i0++) {   // uncorrecte jets collection                                           
 	  const PFJet       *pUCJet = &(lUCJets.at(i0));
 	  for(int i1 = 0; i1 < (int) lCJets.size(); i1++) {   // corrected jets collection                                         
@@ -93,42 +94,44 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 //		  if( !passPFLooseId(pUCJet)                                    ) continue;
 		  double lJec = pCJet ->pt()/pUCJet->pt();
 
-		  // calculate mva value
-		  PileupJetIdentifier lPUJetId =  fPUJetIdAlgo->computeIdVariables(pCJet,lJec,&lGoodVertices[0],lGoodVertices,true);
-
-		  //
-		  // fill branch
-		  //
-		  pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
-
-		  // print out MVA inputs 
-		  if(false)
+		  // calculate mva value only when there are good vertices 
+		  // otherwise store -999
+		  if( lGoodVertices.size()>0 ) 
 		  {
-			  std::cout << "Debug Jet MVA: "
-				  << lPUJetId.nvtx()      << " "
-				  << pCJet->pt()       	  << " "
-				  << lPUJetId.jetEta()    << " "
-				  << lPUJetId.jetPhi()    << " "
-				  << lPUJetId.d0()        << " "
-				  << lPUJetId.dZ()        << " "
-				  << lPUJetId.beta()      << " "
-				  << lPUJetId.betaStar()  << " "
-				  << lPUJetId.nCharged()  << " "
-				  << lPUJetId.nNeutrals() << " "
-				  << lPUJetId.dRMean()    << " "
-				  << lPUJetId.frac01()    << " "
-				  << lPUJetId.frac02()    << " "
-				  << lPUJetId.frac03()    << " "
-				  << lPUJetId.frac04()    << " "
-				  << lPUJetId.frac05()
-				  << " === : === "; 
-
-			 cout << lPUJetId.mva() << endl;
+		  	PileupJetIdentifier lPUJetId =  fPUJetIdAlgo->computeIdVariables(pCJet,lJec,&lGoodVertices[0],lGoodVertices,true);
+		   	pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
+		  
+			// print out MVA inputs 
+			if(false)
+			{
+				std::cout << "Debug Jet MVA: "
+					<< lPUJetId.nvtx()      << " "
+					<< pCJet->pt()       	  << " "
+					<< lPUJetId.jetEta()    << " "
+					<< lPUJetId.jetPhi()    << " "
+					<< lPUJetId.d0()        << " "
+					<< lPUJetId.dZ()        << " "
+					<< lPUJetId.beta()      << " "
+					<< lPUJetId.betaStar()  << " "
+					<< lPUJetId.nCharged()  << " "
+					<< lPUJetId.nNeutrals() << " "
+					<< lPUJetId.dRMean()    << " "
+					<< lPUJetId.frac01()    << " "
+					<< lPUJetId.frac02()    << " "
+					<< lPUJetId.frac03()    << " "
+					<< lPUJetId.frac04()    << " "
+					<< lPUJetId.frac05()
+					<< " === : === "; 
+				cout << lPUJetId.mva() << endl;
+			}
 		  }
+		  else             
+		  	pfjets_mvavalue                 ->push_back( -999.              );
 
 		  break;
-	  }
-  }
+
+	  } // lCJets
+  } // lUCJets
 
   // 
   iEvent.put(pfjets_mvavalue,             	 "pfjetsmvavalue"                 );
