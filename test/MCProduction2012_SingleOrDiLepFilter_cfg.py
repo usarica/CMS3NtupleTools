@@ -52,8 +52,8 @@ process.pWithGenHyp        = cms.Path( process.cms2WithEverything * process.dile
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.eventMaker.isData                        = cms.bool(False)
 process.luminosityMaker.isData                   = process.eventMaker.isData
-process.source.fileNames = [
-    #'root://xrootd.unl.edu//store/mc/Summer12/TTJets_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S7_START52_V5-v1/0000/920C7062-4D81-E111-A036-001A92810AE4.root'
-    'file:/nfs-3/userdata/cms2/cms2_validation/RelValTTbar_CMSSW_5_2_3_patch3-START52_V9_special_120410-v1/F8D46BF0-1083-E111-9B6A-001A92811728.root'
-    ]
-process.maxEvents.input = 10
+#process.source.fileNames = [
+#    #'root://xrootd.unl.edu//store/mc/Summer12/TTJets_TuneZ2star_8TeV-madgraph-tauola/AODSIM/PU_S7_START52_V5-v1/0000/920C7062-4D81-E111-A036-001A92810AE4.root'
+#    'file:/nfs-3/userdata/cms2/cms2_validation/RelValTTbar_CMSSW_5_2_3_patch3-START52_V9_special_120410-v1/F8D46BF0-1083-E111-9B6A-001A92811728.root'
+#    ]
+#process.maxEvents.input = 10
