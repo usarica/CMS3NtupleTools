@@ -3,7 +3,8 @@ import FWCore.ParameterSet.Config as cms
 from CMS2.NtupleMaker.pfElectronSequence_cff import *
 from CMS2.NtupleMaker.pfMuonSequence_cff import *
 from CMS2.NtupleMaker.pfJetMaker_cfi import *
-from CMS2.NtupleMaker.pfmetMaker_cfi import *
+#from CMS2.NtupleMaker.pfmetMaker_cfi import *
+from CMS2.NtupleMaker.pfmetSequence_cff import *
 from CMS2.NtupleMaker.pftauMaker_cfi import *
 from CMS2.NtupleMaker.pfMuToMuAssMaker_cfi import *
 from CMS2.NtupleMaker.muToPFMuAssMaker_cfi import *
@@ -26,6 +27,17 @@ from CommonTools.ParticleFlow.ParticleSelectors.pfAllChargedHadrons_cfi import *
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllPhotons_cfi import *
 from CommonTools.ParticleFlow.pfMuons_cff import *
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
+
+#VERTEX_SEL=("!isFake && ndof > 4 && abs(z) <= 24 && position.Rho <= 2")
+#        
+#goodPrimaryVertices = cms.EDFilter("VertexSelector",
+#                                           src = cms.InputTag("offlinePrimaryVertices"),
+#                                           cut = cms.string(VERTEX_SEL),
+#                                           filter = cms.bool(True),
+#                                           )
+#pfPileUp.Vertices = cms.InputTag("goodPrimaryVertices")
+#pfPileUp.PFCandidates = cms.InputTag("particleFlow")
+#pfNoPileUp.bottomCollection = cms.InputTag("particleFlow")
 
 CMS2pfIsolatedMuons = pfIsolatedMuons.clone()
 CMS2pfIsolatedMuons.src = cms.InputTag("pfAllMuons")
@@ -64,9 +76,11 @@ from CMS2.NtupleMaker.electronIsolationMaker_cfi import *
 
 cms2PFNoTauSequence = cms.Sequence( 
   pfJetMaker + 
-  pfmetMaker + 
+#  pfmetMaker + 
+  CMS2pfMetSequence +
   CMS2PFBtagging + 
   bTagPFJetMaker + 
+#  goodPrimaryVertices +
   pfNoPileUpSequence +
   pfAllNeutralHadrons + 
   pfAllChargedHadrons + 

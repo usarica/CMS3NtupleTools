@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.6 $'),
+        version    = cms.untracked.string('$Revision: 1.7 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -65,9 +65,11 @@ process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
       #'file:/nfs-3/userdata/cms2/RelValProdTTbar_CMSSW_5_2_2-START52_V4-v2/82900610-FC74-E111-B01A-0018F3D09628.root'   # CMSSW_5_2_2
-      'file:/nfs-3/userdata/cms2/cms2_validation/RelValProdTTbar_CMSSW_5_2_3-START52_V5-v1/144D6226-2C7A-E111-8629-003048678B7C.root'   # CMSSW_5_2_3
-
-    ),
+#      'file:/nfs-3/userdata/cms2/cms2_validation/RelValProdTTbar_CMSSW_5_2_3-START52_V5-v1/144D6226-2C7A-E111-8629-003048678B7C.root'   # CMSSW_5_2_3
+#      'file:/nfs-3/userdata/cms2/cms2_validation/RelValTTbar_CMSSW_5_2_3_patch3-START52_V9_special_120410-v1/F8D46BF0-1083-E111-9B6A-001A92811728.root'   # CMSSW_5_2_3_patch3
+#        'file:/nfs-3/userdata/fgolf/synchronization/isoSynchFile_DoubleMu191700.root' #muon synch
+        'file:/nfs-3/userdata/fgolf/synchronization/DoubleElectron_Run2012_synchFile.root' #electron synch
+   ),
     #--- Uncomment to emulate AOD with RECO --- #
     #inputCommands = process.AODEventContent.outputCommands,
 )
@@ -87,7 +89,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(500) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
