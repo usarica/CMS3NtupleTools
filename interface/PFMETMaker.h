@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PFMETMaker.h,v 1.4 2010/03/03 04:20:22 kalavase Exp $
+// $Id: PFMETMaker.h,v 1.5 2012/05/09 22:51:52 fgolf Exp $
 //
 //
 #ifndef NTUPLEMAKER_PFMETMAKER_H
@@ -35,17 +35,19 @@
 
 class PFMETMaker : public edm::EDProducer {
 public:
-  explicit PFMETMaker (const edm::ParameterSet&);
-  ~PFMETMaker();
+    explicit PFMETMaker (const edm::ParameterSet&);
+    ~PFMETMaker();
 
 private:
-  virtual void beginJob() ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+    virtual void beginJob() ;
+    virtual void produce(edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
 
-  // ----------member data ---------------------------
-  edm::InputTag pfMetInputTag;
+    // ----------member data ---------------------------
+    edm::InputTag pfMetInputTag;
 	std::string aliasprefix_;
+    edm::InputTag pfMetCorInputTag;
+    
 };
 
 
