@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.64 2012/04/23 15:17:31 dlevans Exp $
+// $Id: MuonMaker.cc,v 1.65 2012/05/10 02:25:40 macneill Exp $
 //
 //
 
@@ -660,7 +660,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     const TrackRef                siTrack                 = muon->innerTrack();
     const TrackRef                staTrack                = muon->outerTrack();
     const MuonQuality             quality                 = muon->combinedQuality();
-    const MuonCosmicCompatibility muonCosmicCompatibility = (*CosmicMap)[muonRef];
+    const MuonCosmicCompatibility muonCosmicCompatibility = CosmicMap.isValid() ? (*CosmicMap)[muonRef] : MuonCosmicCompatibility(); //protection for fast sim
     const VertexCollection*       vertexCollection        = vertexHandle.product();
 
     // Iterators

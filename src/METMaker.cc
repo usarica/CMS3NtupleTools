@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: METMaker.cc,v 1.28 2011/03/14 20:56:35 kalavase Exp $
+// $Id: METMaker.cc,v 1.29 2012/05/10 02:25:40 macneill Exp $
 //
 //
 
@@ -312,7 +312,7 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel(muon_vm_tag, muon_vm_h );
      iEvent.getByLabel(muon_tag   , muon_h    );
     
-     *evt_hbheFilter   = *filter_h;
+     *evt_hbheFilter   = filter_h.isValid() ? *filter_h : false;
      *evt_met			= met_h.isValid()		 ? ( met_h->front()		 ).et()			: -9999;
      *evt_metPhi		= met_h.isValid()		 ? ( met_h->front()		 ).phi()		: -9999;
      *evt_metSig		= met_h.isValid()		 ? ( met_h->front()		 ).metSignificance()	: -9999;

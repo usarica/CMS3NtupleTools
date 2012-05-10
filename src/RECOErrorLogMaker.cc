@@ -56,7 +56,7 @@ void RECOErrorLogMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   
   edm::Handle<vector<ErrorSummaryEntry> > errorSummary_h;
   iEvent.getByLabel(errorSummaryCollInputTag_, errorSummary_h);
-  const vector<ErrorSummaryEntry> *v_errors = errorSummary_h.product();
+  const vector<ErrorSummaryEntry> *v_errors = errorSummary_h.isValid() ? errorSummary_h.product() : new vector<ErrorSummaryEntry>; // protection for fast sim
 
 
 
