@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronIsolationMaker.cc,v 1.2 2012/04/30 01:20:31 fgolf Exp $
+// $Id: ElectronIsolationMaker.cc,v 1.3 2012/05/12 07:37:34 fgolf Exp $
 //
 //
 
@@ -27,7 +27,6 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -36,14 +35,13 @@
 #include "Math/VectorUtil.h"
 #include "CMS2/NtupleMaker/interface/ElectronIsolationMaker.h"
 #include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
-
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 //////////////
 // typedefs //
 //////////////
 
 typedef math::XYZTLorentzVectorF LorentzVector;
-
 
 ////////////////
 // namespaces //
@@ -75,6 +73,7 @@ ElectronIsolationMaker::ElectronIsolationMaker( const ParameterSet& iConfig ) {
     gsfElectronInputTag  = iConfig.getParameter<InputTag> ("gsfElectronInputTag" );
     pfNoPileUpInputTag   = iConfig.getParameter<InputTag> ("pfNoPileUpInputTag_" );
     cms2electronInputTag = iConfig.getParameter<InputTag> ("cms2electronInputTag");
+    vertexInputTag       = iConfig.getParameter<InputTag> ("vertexInputTag_");
 
 
     //////////////////////
@@ -100,6 +99,13 @@ ElectronIsolationMaker::ElectronIsolationMaker( const ParameterSet& iConfig ) {
     produces<vector<float> >          ( branchprefix_ + "isoR03nhpfradialTightbv"     ).setBranchAlias( aliasprefix_ + "_isoR03_nhpf_radialTight_bv");
     produces<vector<float> >          ( branchprefix_ + "isoR03empfradialTightbv"     ).setBranchAlias( aliasprefix_ + "_isoR03_empf_radialTight_bv");
 
+    produces<vector<float> >          ( branchprefix_ + "isoR03pf2012n0p5ch" ).setBranchAlias( aliasprefix_ + "_isoR03_pf2012n0p5_ch" );
+    produces<vector<float> >          ( branchprefix_ + "isoR03pf2012n0p5nh" ).setBranchAlias( aliasprefix_ + "_isoR03_pf2012n0p5_nh" );
+    produces<vector<float> >          ( branchprefix_ + "isoR03pf2012n0p5em" ).setBranchAlias( aliasprefix_ + "_isoR03_pf2012n0p5_em" );
+
+    // for matching to vertices using the "PFNoPileup" method
+    // hint: it is just track vertex association 
+    pfPileUpAlgo_ = new PFPileUpAlgo();
 } // end Constructor
 
 void ElectronIsolationMaker::beginJob () {}  // method called once each job just before starting event loop
@@ -136,6 +142,10 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> >         vector_els_isoR03_nhpf_radialTight_bv  ( new vector<float>   );
     auto_ptr<vector<float> >         vector_els_isoR03_empf_radialTight_bv  ( new vector<float>   );
 
+    auto_ptr<vector<float> >         vector_els_isoR03_pf2012n0p5_ch          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_pf2012n0p5_nh          ( new vector<float>   );
+    auto_ptr<vector<float> >         vector_els_isoR03_pf2012n0p5_em          ( new vector<float>   );
+
     ////////////////////////////
     // --- Fill Electron Data --- //
     ////////////////////////////
@@ -145,7 +155,7 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Get Electrons //
     ///////////////
 
-    Handle<View<GsfElectron> > ele_h;
+    Handle<reco::GsfElectronCollection> ele_h;
     iEvent.getByLabel( gsfElectronInputTag , ele_h );
 
 
@@ -160,24 +170,35 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////////
     // Get pfNoPileUp    //
     ///////////////////////
-    Handle<PFCandidateCollection> pfNoPileUp_h;
     iEvent.getByLabel(pfNoPileUpInputTag, pfNoPileUp_h);
     const PFCandidateCollection *pfNoPileUpColl = pfNoPileUp_h.product();
 
+    ///////////////////////////
+    // Get Vertex Collection //
+    ///////////////////////////
+    Handle<VertexCollection> vertex_h;
+    iEvent.getByLabel(vertexInputTag, vertex_h);
+    const VertexCollection *vertex_coll = vertex_h.product();
+    VertexCollection::const_iterator firstGoodVertex = vertex_h->end();
+    int firstGoodVertexIdx = 0;
+    for (VertexCollection::const_iterator vtx = vertex_h->begin(); vtx != vertex_h->end(); ++vtx, ++firstGoodVertexIdx) {
+        if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
+            firstGoodVertex = vtx;
+            break;
+        }
+    }
 
 
-    ///////////
+    ///////////////
     // Electrons // 
-    ///////////
-  
-
+    ///////////////
     for (vector<LorentzVector>::const_iterator it = cms2_ele_h->begin(); it != cms2_ele_h->end(); it++) {
 
         // get reco muon matched to the muon we're storing
         double mindr = 0.5;
         reco::GsfElectron ele;
         bool found_ele = false;
-        for (View<GsfElectron>::const_iterator electron = ele_h->begin(); electron != ele_h->end(); electron++) {
+        for (reco::GsfElectronCollection::const_iterator electron = ele_h->begin(); electron != ele_h->end(); electron++) {
             double dr = ROOT::Math::VectorUtil::DeltaR(electron->p4(), *it);
             if (dr < mindr) {
                 mindr = dr;
@@ -230,6 +251,16 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_els_isoR03_nhpf_radialTight_bv->push_back(nhiso_tight_bv);
         vector_els_isoR03_empf_radialTight_bv->push_back(emiso_tight_bv);
 
+
+        ////////////////////////////////////////
+        // PF ISOLATION W/ NEUTRAL THRESHOLDS //
+        ////////////////////////////////////////
+        PFIsolation2012(ele, vertex_coll, firstGoodVertexIdx, 0.3, chiso, emiso, nhiso); 
+
+        vector_els_isoR03_pf2012n0p5_ch->push_back(chiso);
+        vector_els_isoR03_pf2012n0p5_em->push_back(emiso);
+        vector_els_isoR03_pf2012n0p5_nh->push_back(nhiso);
+
     } // end loop on muons
 
     assert(vector_els_isoR03_pf_radial->size() == cms2_ele_h->size());
@@ -256,8 +287,53 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put( vector_els_isoR03_chpf_radialTight_bv, branchprefix_ + "isoR03chpfradialTightbv");
     iEvent.put( vector_els_isoR03_nhpf_radialTight_bv, branchprefix_ + "isoR03nhpfradialTightbv");
     iEvent.put( vector_els_isoR03_empf_radialTight_bv, branchprefix_ + "isoR03empfradialTightbv");
-} //
 
+    iEvent.put( vector_els_isoR03_pf2012n0p5_ch, branchprefix_ + "isoR03pf2012n0p5ch");
+    iEvent.put( vector_els_isoR03_pf2012n0p5_nh, branchprefix_ + "isoR03pf2012n0p5nh");
+    iEvent.put( vector_els_isoR03_pf2012n0p5_em, branchprefix_ + "isoR03pf2012n0p5em");
+
+} 
+
+
+void ElectronIsolationMaker::PFIsolation2012(const reco::GsfElectron& el, const reco::VertexCollection* vertexCollection,
+        const int vertexIndex, const double &R, double &pfiso_ch, double &pfiso_em, double &pfiso_nh)
+{
+
+    // isolation sums
+    pfiso_ch = 0.0;
+    pfiso_em = 0.0;
+    pfiso_nh = 0.0;
+
+    // loop on pfcandidates
+    reco::PFCandidateCollection::const_iterator pf = pfNoPileUp_h->begin();
+    for (pf = pfNoPileUp_h->begin(); pf != pfNoPileUp_h->end(); ++pf) {
+
+        // skip electrons and muons
+        if (pf->particleId() == reco::PFCandidate::e)     continue;
+        if (pf->particleId() == reco::PFCandidate::mu)    continue;
+
+        // deltaR between electron and cadidate
+        const float dR = deltaR(pf->eta(), pf->phi(), el.eta(), el.phi());
+        if (dR > R)                             continue;
+
+        // charged hadrons closest vertex
+        // should be the primary vertex
+        if (pf->particleId() == reco::PFCandidate::h) {
+            int pfVertexIndex = pfPileUpAlgo_->chargedHadronVertex(*vertexCollection, *pf);
+            if (pfVertexIndex != vertexIndex) continue;
+        }
+
+        if (pf->particleId() == reco::PFCandidate::gamma || pf->particleId() == reco::PFCandidate::h0)
+            if (pf->pt() < 0.5) continue;
+
+        // add to isolation sum
+        if (pf->particleId() == reco::PFCandidate::h)       pfiso_ch += pf->pt();
+        if (pf->particleId() == reco::PFCandidate::gamma)   pfiso_em += pf->pt();
+        if (pf->particleId() == reco::PFCandidate::h0)      pfiso_nh += pf->pt();
+
+    }
+
+}
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronIsolationMaker);
