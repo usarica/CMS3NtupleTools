@@ -2,7 +2,7 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "GR_R_52_V4::All"
+process.GlobalTag.globaltag = "GR_R_52_V7::All"
 
 # Lower default hypothesis thresholds
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)
@@ -23,6 +23,8 @@ process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
+
+process.pfJetMETcorr.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
 
 #
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )

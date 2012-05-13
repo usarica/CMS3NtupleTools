@@ -56,6 +56,8 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
+process.pfJetMETcorr.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
+
 #
 process.cms2WithEverything = cms.Sequence( process.sdFilter * process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence )
 process.p                  = cms.Path( process.cms2WithEverything )
