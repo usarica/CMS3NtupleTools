@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: PFJetMaker.h,v 1.8 2011/03/14 21:51:57 benhoob Exp $
+// $Id: PFJetMaker.h,v 1.9 2012/05/13 04:22:36 fgolf Exp $
 //
 //
 
@@ -53,4 +53,6 @@ private:
   std::string PFJetCorrectorL2L3_;
   std::string PFJetCorrectorL1L2L3_;
   std::string PFJetCorrectorL1FastL2L3_;
+  std::string PFJetCorrectorL1Fast_;
+  std::string PFJetCorrectorL1FastL2L3residual_;
 };
