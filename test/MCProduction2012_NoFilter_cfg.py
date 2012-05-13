@@ -1,7 +1,7 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "START52_V4A::All"
+process.GlobalTag.globaltag = "START52_V9::All"
 
 # Output
 process.out = cms.OutputModule(
