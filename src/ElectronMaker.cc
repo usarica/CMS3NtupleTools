@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.85 2012/04/28 07:51:24 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.86 2012/05/13 18:17:07 fgolf Exp $
 //
 //
 
@@ -693,7 +693,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //const TrackRef               ctfTkRef         = el->closestCtfTrackRef();
         const TrackRef               ctfTkRef         = el->closestTrack();
         const GsfTrackRef            gsfTkRef         = el->gsfTrack();
-        const VertexCollection*      vertexCollection = vertexHandle.product();
+        const VertexCollection*      vertexCollection = vtxHandle.product();
 
         ////////////
         // Vertex //
@@ -1022,7 +1022,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         
         ////////////////////
         // Regular Vertex //
-        ////////////////////
+        ////////////////////        
         TransientTrack tt = theTTBuilder->build(el->gsfTrack());
     
         if ( firstGoodVertex!=vertexCollection->end() ) {
