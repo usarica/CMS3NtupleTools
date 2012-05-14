@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.86 2012/05/13 18:17:07 fgolf Exp $
+// $Id: ElectronMaker.cc,v 1.87 2012/05/14 17:15:13 cerati Exp $
 //
 //
 
@@ -71,7 +71,6 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "CMS2/NtupleMaker/interface/VertexReProducer.h"
 #include "TrackingTools/IPTools/interface/IPTools.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
@@ -114,8 +113,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     minAbsDcot_               = iConfig.getParameter<double>          ("minAbsDcot"              );
     minSharedFractionOfHits_  = iConfig.getParameter<double>          ("minSharedFractionOfHits" );
     aliasprefix_              = iConfig.getUntrackedParameter<string> ("aliasPrefix"             );
-
-    vertexInputTag            = iConfig.getParameter<edm::InputTag> ("vertexInputTag" );
 
     mtsTransform_ = 0;
     clusterTools_ = 0;
@@ -249,13 +246,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elsip3d"          ).setBranchAlias("els_ip3d"           ); // Ip3d from normal vertex
     produces<vector<float> >     ("elsip3derr"       ).setBranchAlias("els_ip3derr"        ); // Ip3d error from normal vertex
     produces<vector<int> >       ("elsckflaywithmeas").setBranchAlias("els_ckf_laywithmeas");
-
-    //unbiased ip
-    produces<vector<float> >     ("elsubd0"      ).setBranchAlias("els_ubd0"      ); // d0 from unbiased vertex
-    produces<vector<float> >     ("elsubd0err"   ).setBranchAlias("els_ubd0err"   ); // d0 error from unbiased vertex
-    produces<vector<float> >     ("elsubIp3d"    ).setBranchAlias("els_ubIp3d"    ); // Ip3d from unbiased vertex
-    produces<vector<float> >     ("elsubIp3derr" ).setBranchAlias("els_ubIp3derr" ); // Ip3d error from unbiased vertex
-    produces<vector<float> >     ("elsubz0"      ).setBranchAlias("els_ubz0"      ); // z0 from unbiased vertex
 
     // LorentzVectors
     //
@@ -484,12 +474,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int>   > els_gsftrkidx  (new vector<int>   );
     auto_ptr<vector<float> > els_ip3d       (new vector<float> );
     auto_ptr<vector<float> > els_ip3derr    (new vector<float> );
-
-    auto_ptr<vector<float> > els_ubd0       (new vector<float> );
-    auto_ptr<vector<float> > els_ubd0err    (new vector<float> );
-    auto_ptr<vector<float> > els_ubIp3d     (new vector<float> );
-    auto_ptr<vector<float> > els_ubIp3derr  (new vector<float> );
-    auto_ptr<vector<float> > els_ubz0       (new vector<float> );
   
     // LorentzVectors
     //
@@ -608,20 +592,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.getByLabel(vtxInputTag, vertexHandle);
 
-    ////////////////////
-    // Vertex for Iso //
-    ////////////////////
-    Handle<reco::VertexCollection> vtxHandle;
-    iEvent.getByLabel(vertexInputTag, vtxHandle);
 
-
-    /////////////////
-    // Unbiased IP //
-    /////////////////
-
-    VertexReProducer revertex(vertexHandle, iEvent);
-    Handle<BeamSpot>        pvbeamspot; 
-    iEvent.getByLabel(revertex.inputBeamSpot(), pvbeamspot);
+    ///////////////////////////
+    // TransientTrackBuilder //
+    ///////////////////////////
     ESHandle<TransientTrackBuilder> theTTBuilder;
     iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
@@ -693,7 +667,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //const TrackRef               ctfTkRef         = el->closestCtfTrackRef();
         const TrackRef               ctfTkRef         = el->closestTrack();
         const GsfTrackRef            gsfTkRef         = el->gsfTrack();
-        const VertexCollection*      vertexCollection = vtxHandle.product();
+        const VertexCollection*      vertexCollection = vertexHandle.product();
 
         ////////////
         // Vertex //
@@ -1036,79 +1010,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_ip3derr   -> push_back( -999. );
         }
 
-        /////////////////
-        // Unbiased IP //
-        /////////////////
-
-        GsfElectron::ClosestCtfTrack closest_ctf = el->closestCtfTrack(); // This should probably be updated, still here in 52X for backwards compatibility
-        //if ( el->closestCtfTrack().ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end() ) {
-        if ( closest_ctf.ctfTrack.isNonnull() && firstGoodVertex!=vertexCollection->end() ) {
-
-            Vertex vertexNoB;
-            TrackRefVector newTkCollection;
-            bool foundMatch(false);
-
-            for(Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++){
-
-                bool refMatching;
-                //float shFraction = el->closestCtfTrack().shFracInnerHits;
-                float shFraction = closest_ctf.shFracInnerHits;
-
-                //
-                //if( el->closestCtfTrack().ctfTrack.isNonnull() ) {
-                //  refMatching = (itk->get() == &*(el->closestCtfTrack().ctfTrack) );
-                //}
-                if( closest_ctf.ctfTrack.isNonnull() ) {
-                    refMatching = (itk->get() == &*(closest_ctf.ctfTrack) );
-                }
-                else {
-                    refMatching = false;
-                }
-                if( refMatching && shFraction > 0.5 ){
-                    foundMatch = true;
-                }
-                else{
-                    newTkCollection.push_back(itk->castTo<TrackRef>());
-                }
-
-            } // track collection for vertexNoB is set
-
-            if( !foundMatch ) {
-                vertexNoB = *firstGoodVertex;
-            } 
-            else {
-
-                vector<TransientVertex> pvs = revertex.makeVertices(newTkCollection, *pvbeamspot, iSetup) ;
-
-                if( pvs.empty() ) {
-                    vertexNoB = Vertex(beamSpot, Vertex::Error());
-                } 
-                else {
-                    vertexNoB = pvs.front(); //take the first in the list
-                }
-            }
-            Measurement1D ip_2 = IPTools::absoluteTransverseImpactParameter(tt,vertexNoB).second;
-            Measurement1D ip3D_2 = IPTools::absoluteImpactParameter3D(tt,vertexNoB).second;
-
-            //
-            els_ubd0      -> push_back( ip_2.value()                             );
-            els_ubd0err   -> push_back( ip_2.error()                             );
-            els_ubIp3d    -> push_back( ip3D_2.value()                           );
-            els_ubIp3derr -> push_back( ip3D_2.error()                           );
-            els_ubz0      -> push_back( el->gsfTrack()->dz(vertexNoB.position()) );
-        
-        }
-        else {
-
-            //
-            els_ubd0      -> push_back( -999. );
-            els_ubd0err   -> push_back( -999. );
-            els_ubIp3d    -> push_back( -999. );
-            els_ubIp3derr -> push_back( -999. );
-            els_ubz0      -> push_back( -999. );
-
-        } //
-
 
         /////////////////
         // Hit Pattern //
@@ -1394,10 +1295,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         float pfiso_ch = els_iso03_pf2012_ch->at(elsIndex);
         float pfiso_em = els_iso03_pf2012_em->at(elsIndex);
         float pfiso_nh = els_iso03_pf2012_nh->at(elsIndex);
-        unsigned int veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vtxHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vtxHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vtxHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vtxHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        unsigned int veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        unsigned int loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        unsigned int medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        unsigned int tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
 
         els_id2012_veto   ->push_back(veto_bits   );
         els_id2012_loose  ->push_back(loose_bits  );
@@ -1438,12 +1339,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_gsftrkidx  , "elsgsftrkidx" );
     iEvent.put(els_ip3d       , "elsip3d"      );
     iEvent.put(els_ip3derr    , "elsip3derr"   );
-
-    iEvent.put(els_ubd0       , "elsubd0"      );
-    iEvent.put(els_ubd0err    , "elsubd0err"   );
-    iEvent.put(els_ubIp3d     , "elsubIp3d"    );
-    iEvent.put(els_ubIp3derr  , "elsubIp3derr" );
-    iEvent.put(els_ubz0       , "elsubz0"      );
   
     iEvent.put(els_validHits  , "elsvalidHits" );
     iEvent.put(els_lostHits   , "elslostHits"  );

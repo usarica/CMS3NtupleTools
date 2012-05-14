@@ -12,7 +12,7 @@ electronMaker = cms.EDProducer(
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("particleFlow"),
-    vtxInputTag = cms.InputTag("offlinePrimaryVerticesDA"),
+    vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
     # reco conversions
     recoConversionInputTag = cms.InputTag("allConversions"),
     # egamma ID
@@ -24,6 +24,5 @@ electronMaker = cms.EDProducer(
     minSharedFractionOfHits = cms.double(0.45),
     rhoInputTag = cms.InputTag("fastJetMaker", "evtrho"),
     beamSpotTag = cms.InputTag("offlineBeamSpot"),
-    vertexInputTag = cms.InputTag("offlinePrimaryVertices")
 )
 

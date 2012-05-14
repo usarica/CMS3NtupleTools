@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.65 2012/05/10 02:25:40 macneill Exp $
+// $Id: MuonMaker.cc,v 1.66 2012/05/14 17:15:16 cerati Exp $
 //
 //
 
@@ -52,7 +52,6 @@ Implementation:
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "CMS2/NtupleMaker/interface/MuonMaker.h"
-#include "CMS2/NtupleMaker/interface/VertexReProducer.h"
 
 
 //////////////
@@ -317,19 +316,12 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "iso03pf"                   ).setBranchAlias( aliasprefix_ + "_iso03_pf"            ); // pf isolation in cone of 0.3
   produces<vector<float> >          ( branchprefix_ + "iso04pf"                   ).setBranchAlias( aliasprefix_ + "_iso04_pf"            ); // pf isolation in cone of 0.4
 
-
-  /////////////////
-  // Unbiased IP //
-  /////////////////
+  ///////////
+  // IP 3D //
+  ///////////
   
-  produces<vector<float> >          ( branchprefix_ + "ubd0"                      ).setBranchAlias( aliasprefix_ + "_ubd0"                ); // d0 from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubd0err"                   ).setBranchAlias( aliasprefix_ + "_ubd0err"             ); // d0 error from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubIp3d"                    ).setBranchAlias( aliasprefix_ + "_ubIp3d"              ); // Ip3d from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubIp3derr"                 ).setBranchAlias( aliasprefix_ + "_ubIp3derr"           ); // Ip3d error from unbiased vertex
-  produces<vector<float> >          ( branchprefix_ + "ubz0"                      ).setBranchAlias( aliasprefix_ + "_ubz0"                ); // z0 from unbiased vertex
   produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
   produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
-
 
 } // end Constructor
 
@@ -564,19 +556,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_iso03_pf            ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_iso04_pf            ( new vector<float>          );
 
+  ///////////
+  // IP 3D //
+  ///////////
 
-  /////////////////
-  // Unbiased IP //
-  /////////////////
-
-  auto_ptr<vector<float> >         vector_mus_ubd0                        ( new vector<float>   );
-  auto_ptr<vector<float> >         vector_mus_ubd0err                     ( new vector<float>   );
-  auto_ptr<vector<float> >         vector_mus_ubIp3d                      ( new vector<float>   );
-  auto_ptr<vector<float> >         vector_mus_ubIp3derr                   ( new vector<float>   );
-  auto_ptr<vector<float> >         vector_mus_ubz0                        ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
-
 
 
 
@@ -607,6 +592,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   iEvent.getByLabel( vtxInputTag , vertexHandle );  
 
+  ///////////////////////////
+  // TransientTrackBuilder //
+  ///////////////////////////
+  ESHandle<TransientTrackBuilder> theTTBuilder;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
   ///////////////////////
   // Get PF Candidates //
@@ -623,17 +613,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel( beamSpot_tag, beamSpotH );
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
-
-
-  //////////////////////////
-  // Unbiased Revertexing //
-  //////////////////////////
-
-  VertexReProducer revertex( vertexHandle, iEvent );
-  Handle<BeamSpot> pvbeamspot; 
-  iEvent.getByLabel( revertex.inputBeamSpot(), pvbeamspot );
-  ESHandle<TransientTrackBuilder> theTTBuilder;
-  iSetup.get<TransientTrackRecord>().get( "TransientTrackBuilder", theTTBuilder );
 
   
   ////////////////////////// 
@@ -1029,72 +1008,23 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_iso04_pf->push_back( -9999. );
     }
 
-
-
-    /////////////////
-    // Unbiased IP //
-    /////////////////
+    ///////////
+    // IP 3D //
+    ///////////
 
     if ( siTrack.isNonnull() && firstGoodVertex != vertexCollection->end() ) {
       
-      Vertex         vertexNoB;        
-      TrackRefVector newTkCollection;  
-      bool           foundMatch(false);
-      
-      for( Vertex::trackRef_iterator itk = firstGoodVertex->tracks_begin(); itk!= firstGoodVertex->tracks_end(); itk++ ){   
-      
-        bool refMatching = ( itk->key() == siTrack.key() );
-        if( refMatching ){             
-          foundMatch = true;           
-        }
-        else{
-          newTkCollection.push_back( itk->castTo<TrackRef>() );
-        }   
-      
-      } // track collection for vertexNoB is set                   
-                                                                   
-      if( !foundMatch ) {                                          
-        vertexNoB = *firstGoodVertex;
-      }
-      else{      
-        vector<TransientVertex> pvs = revertex.makeVertices( newTkCollection, *pvbeamspot, iSetup );
-        if( pvs.empty() ) {
-          vertexNoB = Vertex( beamSpot, Vertex::Error() );
-        } 
-        else {
-          vertexNoB = pvs.front(); //take the first in the list
-        }
-      }
-
       TransientTrack tt       = theTTBuilder->build( siTrack );
-      Measurement1D ip_2      = IPTools::absoluteTransverseImpactParameter( tt, vertexNoB ).second;
-      Measurement1D ip3D_2    = IPTools::absoluteImpactParameter3D( tt, vertexNoB ).second;
-
-      vector_mus_ubd0         -> push_back( ip_2.value()                      );
-      vector_mus_ubd0err      -> push_back( ip_2.error()                      );
-      vector_mus_ubIp3d       -> push_back( ip3D_2.value()                    );
-      vector_mus_ubIp3derr    -> push_back( ip3D_2.error()                    );
-      vector_mus_ubz0         -> push_back( siTrack->dz(vertexNoB.position()) );
-
       Measurement1D ip3D      = IPTools::absoluteImpactParameter3D( tt, *firstGoodVertex ).second;
       vector_mus_ip3d         -> push_back( ip3D.value()                    );
       vector_mus_ip3derr      -> push_back( ip3D.error()                    );
 
     } else {
 
-      vector_mus_ubd0         -> push_back( -9999. );
-      vector_mus_ubd0err      -> push_back( -9999. );
-      vector_mus_ubIp3d       -> push_back( -9999. );
-      vector_mus_ubIp3derr    -> push_back( -9999. );
-      vector_mus_ubz0         -> push_back( -9999. );
       vector_mus_ip3d         -> push_back( -9999. );
       vector_mus_ip3derr      -> push_back( -9999. );
 
     } //
-
-
-
-
 
 
     //  
@@ -1333,20 +1263,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_iso03_pf , branchprefix_ + "iso03pf" );
   iEvent.put( vector_mus_iso04_pf , branchprefix_ + "iso04pf" );
 
+  ///////////
+  // IP 3D //
+  ///////////
 
-  /////////////////
-  // Unbiased IP //
-  /////////////////
-
-  iEvent.put( vector_mus_ubd0                         , branchprefix_ + "ubd0"               );
-  iEvent.put( vector_mus_ubd0err                      , branchprefix_ + "ubd0err"            );
-  iEvent.put( vector_mus_ubIp3d                       , branchprefix_ + "ubIp3d"             );
-  iEvent.put( vector_mus_ubIp3derr                    , branchprefix_ + "ubIp3derr"          );
-  iEvent.put( vector_mus_ubz0                         , branchprefix_ + "ubz0"               );
   iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
   iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
-
-
 
 
 

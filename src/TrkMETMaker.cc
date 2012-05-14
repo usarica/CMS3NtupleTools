@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrkMETMaker.cc,v 1.1 2011/05/23 17:45:42 benhoob Exp $
+// $Id: TrkMETMaker.cc,v 1.2 2012/05/14 17:15:17 cerati Exp $
 //
 //
 
@@ -111,7 +111,7 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   const vector<LorentzVector> *trks_vertex_p4 = trks_vertex_p4_h.product();
 
   //vertex position
-  InputTag vertex_position_tag(vertexInputTag_.label(),"davtxsposition");
+  InputTag vertex_position_tag(vertexInputTag_.label(),"vtxsposition");
   Handle<vector<LorentzVector> > vertex_position_h;
   iEvent.getByLabel(vertex_position_tag, vertex_position_h);
   const vector<LorentzVector> *vertex_position = vertex_position_h.product();
