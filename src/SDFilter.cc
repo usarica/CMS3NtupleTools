@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.27 2012/04/06 20:03:54 benhoob Exp $
+// $Id: SDFilter.cc,v 1.28 2012/05/15 19:25:38 benhoob Exp $
 //
 //
 
@@ -303,6 +303,23 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
 
 	if( acceptEvent ) return true;
+
+	edm::Handle<reco::GsfElectronCollection> els_h;
+	iEvent.getByLabel(elsInputTag, els_h);
+
+	for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++){
+
+	  double el_pt     = el->pt();
+	  double sc_eta    = el->superCluster()->eta();
+	  double sc_energy = el->superCluster()->energy();
+	  double el_sc     = sc_energy/cosh(sc_eta);
+	  
+	  if (el_pt > tightptcut  && passedIso(&*el)) return true;
+	  if (el_sc > tightptcut  && passedIso(&*el)) return true;
+	  
+	}
+
+
   }
 
   else if (filterName== "doubleMu"){

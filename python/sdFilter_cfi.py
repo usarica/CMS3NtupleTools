@@ -37,7 +37,7 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_RelIso1p0*", 
                             ),
                             SingleElectronTriggerNames_ = cms.untracked.vstring(
-                            "HLT_Ele*", #temporary --> may remove/restrict later
+                            "HLT_Ele25*", #temporary --> may remove/restrict later
                             ),
                             DoubleElectronTriggerNames_ = cms.untracked.vstring(
                             "HLT_Ele17*",
