@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.18 2012/05/15 19:02:21 benhoob Exp $
+// $Id: PhotonMaker.cc,v 1.19 2012/05/15 19:27:40 benhoob Exp $
 //
 //
 
@@ -252,14 +252,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 	  reco::BasicCluster dummyCluster;
 	  EcalClusterTools clusterTools;
+
+	  const SuperClusterRef scr  = photon->superCluster();
+	  const CaloClusterPtr  ccp  = scr->seed();                                        //seed  basic cluster
+	  float sigma_iphi_iphi      = sqrt( clusterTools_->localCovariances(*ccp)[2] );   //sigiphiiphi
+	  photons_sigmaIPhiIPhi->push_back( sigma_iphi_iphi );
+
 	  if(haveHits && photon->superCluster()->seed().isAvailable()) {
 	  
-	    const SuperClusterRef scr  = photon->superCluster();
-	    const CaloClusterPtr  ccp  = scr->seed();                                        //seed  basic cluster
-	    float sigma_iphi_iphi      = sqrt( clusterTools_->localCovariances(*ccp)[2] );   //sigiphiiphi
-
-	    photons_sigmaIPhiIPhi->push_back( sigma_iphi_iphi );
-
 	    DetId seedId = photon->superCluster()->seed()->seed();
 	    if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
 	    
@@ -290,7 +290,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	    }
 	  } else {
 	    photons_swissSeed->push_back( -9999.99 );
-	    photons_sigmaIPhiIPhi->push_back( -9999.99 );
+	    //photons_sigmaIPhiIPhi->push_back( -9999.99 );
 	  }
 
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
