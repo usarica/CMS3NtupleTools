@@ -13,7 +13,7 @@
 //
 // Original Author:  Ingo Bloch
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: SDFilter.cc,v 1.28 2012/05/15 19:25:38 benhoob Exp $
+// $Id: SDFilter.cc,v 1.29 2012/05/16 21:21:05 benhoob Exp $
 //
 //
 
@@ -244,6 +244,11 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //there is an electron with pt/scEt > X
   //if there are 2 electrons that pass the cuts, don't
   //care about the trigger
+
+  // Added May16 by Ben: doubleElectron now contains the H->gg single photon triggers
+  // for events passing a trigger save if there is >=1 photon pt > photonJet_photonPt (default 20 GeV)
+
+
   if (filterName== "doubleElectron"){
 	bool acceptEvent = false;
 	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {
@@ -256,6 +261,9 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	edm::Handle<reco::GsfElectronCollection> els_h;
 	iEvent.getByLabel(elsInputTag, els_h);
 
+	edm::Handle<reco::PhotonCollection> photon_h;
+	iEvent.getByLabel(photonInputTag, photon_h);
+
 	if(acceptEvent) {
 	 
 	  for (reco::GsfElectronCollection::const_iterator el = els_h->begin(); el != els_h->end(); el++) {
@@ -266,6 +274,12 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		if (el->pt() > looseptcut)return true;
 		if (el_sc    > looseptcut)return true;
 	  }
+
+
+	  for( reco::PhotonCollection::const_iterator iter = photon_h->begin(); iter != photon_h->end(); iter++) {
+	    if( iter->pt() > photonJet_photonPt ) return true;
+	  }
+
 	}
        
 	for (reco::GsfElectronCollection::const_iterator el1 = els_h->begin(); el1 != els_h->end(); el1++) {
@@ -293,7 +307,7 @@ bool SDFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
 
 
-  if (filterName== "SingleElectron"){
+  else if (filterName== "SingleElectron"){
 	bool acceptEvent = false;
 	for(unsigned int i = 0; i < nTriggerPaths.size(); ++i) {
 	  if(triggerResultsH_->accept(nTriggerPaths.at(i)))  {
