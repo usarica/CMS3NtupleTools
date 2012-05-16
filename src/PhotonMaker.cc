@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.20 2012/05/16 08:35:51 benhoob Exp $
+// $Id: PhotonMaker.cc,v 1.21 2012/05/16 09:29:45 benhoob Exp $
 //
 //
 
@@ -91,7 +91,6 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >		(branchprefix+"hOverE"          ).setBranchAlias(aliasprefix_+"_hOverE"         );
      produces<vector<float> >		(branchprefix+"sigmaEtaEta"     ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"    );
      produces<vector<float> >		(branchprefix+"sigmaIEtaIEta"   ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"  );
-     produces<vector<float> >		(branchprefix+"sigmaIPhiIPhi"   ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi"  );
      produces<vector<float> >		(branchprefix+"e2x5Max"         ).setBranchAlias(aliasprefix_+"_e2x5Max"        );
      produces<vector<float> >		(branchprefix+"e1x5"          	).setBranchAlias(aliasprefix_+"_e1x5"          	);
      produces<vector<float> >		(branchprefix+"e5x5"            ).setBranchAlias(aliasprefix_+"_e5x5"           );
@@ -140,7 +139,6 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<float> >		photons_hOverE          (new vector<float>		);
      auto_ptr<vector<float> >		photons_sigmaEtaEta     (new vector<float>		);
      auto_ptr<vector<float> >		photons_sigmaIEtaIEta   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_sigmaIPhiIPhi   (new vector<float>		);
      auto_ptr<vector<float> >		photons_e2x5Max         (new vector<float>		);
      auto_ptr<vector<float> >		photons_e1x5            (new vector<float>		);
      auto_ptr<vector<float> >		photons_e5x5            (new vector<float>		);
@@ -250,18 +248,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  edm::ESHandle<CaloGeometry> geoHandle;
 	  iSetup.get<CaloGeometryRecord>().get(geoHandle);
 
+
 	  reco::BasicCluster dummyCluster;
 	  EcalClusterTools clusterTools;
-
-	  const SuperClusterRef scr  = photon->superCluster();
-	  const CaloClusterPtr  ccp  = scr->seed();                                 //seed  basic cluster
-	  float sigma_iphi_iphi2     = clusterTools_->localCovariances(*ccp)[2] ;   //sigiphiiphi
-
-	  if( sigma_iphi_iphi2 > 0 ) photons_sigmaIPhiIPhi->push_back( sqrt( sigma_iphi_iphi2 ) );
-	  else                       photons_sigmaIPhiIPhi->push_back( -1 );
-
 	  if(haveHits && photon->superCluster()->seed().isAvailable()) {
-	  
 	    DetId seedId = photon->superCluster()->seed()->seed();
 	    if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
 	    
@@ -290,9 +280,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		photons_swissSeed->push_back( -9999.99 );
 	      }		
 	    }
-	  } else {
+	  } else 
 	    photons_swissSeed->push_back( -9999.99 );
-	  }
 
 	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
 	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
@@ -346,7 +335,6 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(photons_fiduciality	,branchprefix+"fiduciality"	);
      iEvent.put(photons_sigmaEtaEta     ,branchprefix+"sigmaEtaEta"     );
      iEvent.put(photons_sigmaIEtaIEta   ,branchprefix+"sigmaIEtaIEta"   );
-     iEvent.put(photons_sigmaIPhiIPhi   ,branchprefix+"sigmaIPhiIPhi"   );
      iEvent.put(photons_hOverE          ,branchprefix+"hOverE"          );
      iEvent.put(photons_p4              ,branchprefix+"p4"              );
      iEvent.put(photons_haspixelSeed    ,branchprefix+"haspixelSeed" 	);
