@@ -45,6 +45,9 @@ cms2multiEventFailureFilter            .taggingMode = cms.bool(True)
 cms2trackingFailureFilter              .taggingMode = cms.bool(True)
 
 
+cms2hcalLaserEventFilter.vetoByRunEventNumber = cms.untracked.bool(False)
+cms2hcalLaserEventFilter.vetoByHBHEOccupancy  = cms.untracked.bool(True)
+
 ########################################
 # Vertices for Tracking Failure Filter #
 ########################################
