@@ -1,5 +1,5 @@
 //-*- C++ -*-
-// $Id: EnergyDensityMaker.cc,v 1.2 2011/06/13 13:30:33 dmytro Exp $
+// $Id: EnergyDensityMaker.cc,v 1.3 2012/05/17 00:25:14 macneill Exp $
 //
 
 #include <memory>
@@ -33,10 +33,12 @@ EnergyDensityMaker::EnergyDensityMaker(const edm::ParameterSet& iConfig) {
 }
 
 void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  std::auto_ptr<float> rho(new float);
+  std::auto_ptr<float> rho(new float(-9999.));
   edm::Handle<double> rhoH;
   iEvent.getByLabel( m_input , rhoH);
-  *rho = *rhoH; 
+  if(rhoH.isValid()){
+	*rho = *rhoH; 
+  }
   iEvent.put(rho, m_branch);
 }
 
