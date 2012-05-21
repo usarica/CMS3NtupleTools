@@ -13,18 +13,18 @@ process.luminosityMaker.isData                   = process.eventMaker.isData
 
 # Load Filters
 process.load("CMS2.NtupleMaker.wwfilter_cfi")
-process.CMS2_Ele10Mu10_IsoIdMET  = cms.Path( process.ele10mu10IsoIdMET * process.cms2WithEverything )
-process.CMS2_Ele10Mu10_IsoId     = cms.Path( process.ele10mu10IsoId    * process.cms2WithEverything )
-process.CMS2_Ele10Mu10_IsoIdPt25 = cms.Path( process.ele10mu10IsoIdPt25 * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_NoIsoIdMET  = cms.Path( process.ele10mu10NoIsoIdMET * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_NoIsoId     = cms.Path( process.ele10mu10NoIsoId    * process.cms2WithEverything )
+process.CMS2_Ele10Mu10_NoIsoIdPt45 = cms.Path( process.ele10mu10NoIsoIdPt45 * process.cms2WithEverything )
 process.load("CMS2.NtupleMaker.zzfilter_cfi")
 process.CMS2_4L = cms.Path( process.fourLeptons    * process.cms2WithEverything )
 
 # Output
 process.out = cms.OutputModule(
         "PoolOutputModule",
-        SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('CMS2_Ele10Mu10_IsoIdMET',
-                                                                      'CMS2_Ele10Mu10_IsoId',
-                                                                      'CMS2_Ele10Mu10_IsoIdPt25',
+        SelectEvents = cms.untracked.PSet( SelectEvents = cms.vstring('CMS2_Ele10Mu10_NoIsoIdMET',
+                                                                      'CMS2_Ele10Mu10_NoIsoId',
+                                                                      'CMS2_Ele10Mu10_NoIsoIdPt45',
                                                                       'CMS2_4L') ),
         fileName     = cms.untracked.string('ntuple.root'),
 )

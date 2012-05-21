@@ -54,12 +54,11 @@ bool WWFilter::passedIso(const reco::Muon* mu){
 }
 bool WWFilter::passedId(const reco::GsfElectron* el){
   if (!applyEleId_) return true; 
-  // VBTF90
   if (el->isEB())
-    return el->sigmaIetaIeta()<0.01 && fabs(el->deltaPhiSuperClusterTrackAtVtx())<0.08 &&
+    return el->sigmaIetaIeta()<0.01 && fabs(el->deltaPhiSuperClusterTrackAtVtx())<0.15 &&
       fabs(el->deltaEtaSuperClusterTrackAtVtx())<0.007;
   else
-    return el->sigmaIetaIeta()<0.03 && fabs(el->deltaPhiSuperClusterTrackAtVtx())<0.07 &&
+    return el->sigmaIetaIeta()<0.03 && fabs(el->deltaPhiSuperClusterTrackAtVtx())<0.10 &&
       fabs(el->deltaEtaSuperClusterTrackAtVtx())<0.009;
 }
 
