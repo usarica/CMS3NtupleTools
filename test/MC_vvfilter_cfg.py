@@ -1,7 +1,7 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "START42_V12::All"
+process.GlobalTag.globaltag = "START52_V9::All"
 
 #
 process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
