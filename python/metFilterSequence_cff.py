@@ -13,6 +13,7 @@ from RecoMET.METFilters.inconsistentMuonPFCandidateFilter_cfi  import *
 from RecoMET.METFilters.jetIDFailureFilter_cfi                 import *
 from RecoMET.METFilters.multiEventFilter_cfi                   import *
 from RecoMET.METFilters.trackingFailureFilter_cfi              import *
+from RecoMET.METFilters.eeBadScFilter_cfi                      import *
 
 
 ##################
@@ -28,6 +29,7 @@ cms2inconsistentMuonPFCandidateFilter  = inconsistentMuonPFCandidateFilter.clone
 cms2jetIDFailureFilter                 = jetIDFailure.clone()
 cms2multiEventFailureFilter            = multiEventFilter.clone()
 cms2trackingFailureFilter              = trackingFailureFilter.clone()
+cms2eeBadScFilter                      = eeBadScFilter.clone()
 
 
 ####################
@@ -43,6 +45,7 @@ cms2inconsistentMuonPFCandidateFilter  .taggingMode = cms.bool(True)
 cms2jetIDFailureFilter                 .taggingMode = cms.bool(True)
 cms2multiEventFailureFilter            .taggingMode = cms.bool(True)
 cms2trackingFailureFilter              .taggingMode = cms.bool(True)
+cms2eeBadScFilter                      .taggingMode = cms.bool(True)
 
 
 cms2hcalLaserEventFilter.vetoByRunEventNumber = cms.untracked.bool(False)
@@ -71,7 +74,8 @@ cms2MetFilterSequence = cms.Sequence(
   cms2inconsistentMuonPFCandidateFilter *
   #cms2jetIDFailureFilter *
   cms2multiEventFailureFilter *
-  cms2trackingFailureFilter              
+  cms2trackingFailureFilter *
+  cms2eeBadScFilter
 )
 
 

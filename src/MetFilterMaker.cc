@@ -36,6 +36,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
   jetIDFailureInputTag_       = iConfig.getParameter<InputTag>("jetIDFailureInputTag"     );
   multiEventFailureInputTag_  = iConfig.getParameter<InputTag>("multiEventFailureInputTag");
   trackingFailureInputTag_    = iConfig.getParameter<InputTag>("trackingFailureInputTag"  );
+  eeBadScFilterInputTag_      = iConfig.getParameter<InputTag>("eeBadScFilterInputTag"    );
 
 
   //
@@ -50,6 +51,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
   produces <bool> ( branchprefix_ + "jetIDFailure"    ).setBranchAlias( aliasprefix_ + "_jetIDFailure"    );
   produces <bool> ( branchprefix_ + "multiEvent"      ).setBranchAlias( aliasprefix_ + "_multiEvent"      );
   produces <bool> ( branchprefix_ + "trackingFailure" ).setBranchAlias( aliasprefix_ + "_trackingFailure" );
+  produces <bool> ( branchprefix_ + "eeBadSc"         ).setBranchAlias( aliasprefix_ + "_eeBadSc"         );
 
 } // End Constructor
 
@@ -75,6 +77,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   auto_ptr <bool> filt_jetIDFailure     ( new bool(false) );
   auto_ptr <bool> filt_multiEventFailure( new bool(false) );
   auto_ptr <bool> filt_trackingFailure  ( new bool(false) );
+  auto_ptr <bool> filt_eeBadSc          ( new bool(false) );
 
 
   ////////////////////////
@@ -90,6 +93,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   Handle<bool> b_jetIDFailure;
   Handle<bool> b_multiEventFailure;
   Handle<bool> b_trackingFailure;
+  Handle<bool> b_eeBadSc;
 
   iEvent.getByLabel( ecalBEInputTag_            , b_ecalBE            );
   iEvent.getByLabel( ecalDRInputTag_            , b_ecalDR            );
@@ -100,6 +104,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.getByLabel( jetIDFailureInputTag_      , b_jetIDFailure      );
   iEvent.getByLabel( multiEventFailureInputTag_ , b_multiEventFailure );
   iEvent.getByLabel( trackingFailureInputTag_   , b_trackingFailure   );
+  iEvent.getByLabel( eeBadScFilterInputTag_     , b_eeBadSc           );
 
   checkValid( b_ecalBE            , ecalBEInputTag_            );
   //checkValid( b_ecalDR            , ecalDRInputTag_            );
@@ -110,6 +115,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //checkValid( b_jetIDFailure      , jetIDFailureInputTag_      );
   checkValid( b_multiEventFailure , multiEventFailureInputTag_ );
   checkValid( b_trackingFailure   , trackingFailureInputTag_   );
+  checkValid( b_eeBadSc           , eeBadScFilterInputTag_     );
 
   *filt_ecalBE            = *b_ecalBE;
   //*filt_ecalDR            = *b_ecalDR;
@@ -120,6 +126,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //*filt_jetIDFailure      = *b_jetIDFailure;
   *filt_multiEventFailure = *b_multiEventFailure;
   *filt_trackingFailure   = *b_trackingFailure;
+  *filt_eeBadSc           = *b_eeBadSc;
 
 
   //////////////////
@@ -137,6 +144,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put( filt_jetIDFailure     , branchprefix_ + "jetIDFailure"    );
   iEvent.put( filt_multiEventFailure, branchprefix_ + "multiEvent"      );
   iEvent.put( filt_trackingFailure  , branchprefix_ + "trackingFailure" );
+  iEvent.put( filt_eeBadSc          , branchprefix_ + "eeBadSc"         );
 
 } // End MetFilterMaker::produce()
 

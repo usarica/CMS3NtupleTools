@@ -38,6 +38,7 @@ private:
   edm::InputTag jetIDFailureInputTag_;
   edm::InputTag multiEventFailureInputTag_;
   edm::InputTag trackingFailureInputTag_;
+  edm::InputTag eeBadScFilterInputTag_;
 
 
 };

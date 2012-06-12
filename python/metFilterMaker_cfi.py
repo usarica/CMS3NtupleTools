@@ -13,6 +13,7 @@ metFilterMaker = cms.EDProducer(
   inconsistentMuonInputTag  = cms.InputTag("cms2inconsistentMuonPFCandidateFilter"  ),
   jetIDFailureInputTag      = cms.InputTag("cms2jetIDFailureFilter"                 ),
   multiEventFailureInputTag = cms.InputTag("cms2multiEventFailureFilter"            ),
-  trackingFailureInputTag   = cms.InputTag("cms2trackingFailureFilter"              )
+  trackingFailureInputTag   = cms.InputTag("cms2trackingFailureFilter"              ),
+  eeBadScFilterInputTag     = cms.InputTag("cms2eeBadScFilter"                      )
 
 )
