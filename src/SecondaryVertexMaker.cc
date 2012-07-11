@@ -92,8 +92,8 @@ SecondaryVertexMaker::SecondaryVertexMaker(const edm::ParameterSet& iConfig) {
   inclusiveVertexInputTag_ = iConfig.getParameter<edm::InputTag>("inclusiveVertexInputTag");
 }
 
-void SecondaryVertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
-{
+
+void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& iSetup ) {
 
   // get the primary vertices
   edm::Handle<reco::VertexCollection> primaryVertices;
@@ -101,29 +101,43 @@ void SecondaryVertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iS
   if (! primaryVertices.isValid() ) {
     edm::LogError("SecondaryVertexMakerError") << "Error! can't get the primary vertices";
   }
+
+  // get the secondary vertices
   edm::Handle<reco::VertexCollection> secVertices;
-  iEvent.getByLabel(inclusiveVertexInputTag_, secVertices);
+  iEvent.getByLabel( inclusiveVertexInputTag_ , secVertices);
   if (! secVertices.isValid() ) {
-    edm::LogError("SecondaryVertexMakerError") << "Error! can't get the secondary vertices";
+    edm::LogError("SecondaryVertexMakerError") << "Error! can't get the secondary vertices associated with label: " << inclusiveVertexInputTag_;
+    exit(1);
   }
+
+  // gen
   edm::Handle<reco::GenParticleCollection> genps;
   iEvent.getByLabel("genParticles",genps);
 
+
+  ////////////////////////////////
+  // Loop over Primary Vertices //
+  ////////////////////////////////
+
   primaryVertex_ = 0;
   double primaryVertexSumPt(0);
-  for ( reco::VertexCollection::const_iterator vtx = primaryVertices->begin();
-        vtx != primaryVertices->end(); ++vtx){
+  for ( reco::VertexCollection::const_iterator vtx = primaryVertices->begin(); vtx != primaryVertices->end(); ++vtx ) {
+
     if ( !vtx->isValid() || vtx->isFake() ) continue;
+
     double sumpt(0);
-    for (reco::Vertex::trackRef_iterator trk = vtx->tracks_begin();
-         trk != vtx->tracks_end(); ++trk)
+    for ( reco::Vertex::trackRef_iterator trk = vtx->tracks_begin(); trk != vtx->tracks_end(); ++trk ){
       sumpt += (*trk)->pt();
+    }
+
     if ( sumpt > primaryVertexSumPt ){
       primaryVertexSumPt = sumpt;
       primaryVertex_ = &*vtx;
     }
-  }
 
+  } //
+
+  
   std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
   std::auto_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
@@ -144,104 +158,132 @@ void SecondaryVertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iS
   std::auto_ptr<std::vector<float> >               vector_vtxs_anglePV           (new std::vector<float>               );
   std::auto_ptr<std::vector<int> >                 vector_vtxs_mc3id             (new std::vector<int>                 );
   std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_mc3p4             (new std::vector<LorentzVector>       );
-     
+ 
+
+  ////////////////////////////////
+  // Loop on Secondary Vertices //
+  ////////////////////////////////
+
   if ( primaryVertex_ ){
-    for ( std::vector<reco::Vertex>::const_iterator vertex=secVertices->begin();
-	  vertex!=secVertices->end(); ++vertex )
-      {
-	vector_vtxs_position->push_back( LorentzVector( vertex->position().x(), vertex->position().y(), vertex->position().z(), 0 ) );
-	vector_vtxs_prob->push_back( TMath::Prob(vertex->chi2(), (int)vertex->ndof()) );
 
-	std::vector<const reco::Track*> vtxtracks;
-	LorentzVector p4;
-	for(std::vector<reco::TrackBaseRef>::const_iterator trk=vertex->tracks_begin();
-	    trk!=vertex->tracks_end(); ++trk){
-	  vtxtracks.push_back(trk->get());
-	  p4 += math::PtEtaPhiMLorentzVector((*trk)->pt(), (*trk)->eta(), (*trk)->phi(),0.139570);;
-	}
-	vector_vtxs_p4->push_back( p4 );
-
-	LorentzVector p4Ref;
-	if (vertex->hasRefittedTracks()){
-	  const std::vector<reco::Track>& reftrks(vertex->refittedTracks());
-	  for(std::vector<reco::Track>::const_iterator trk=reftrks.begin();
-	      trk!=reftrks.end();++trk){
-	    p4Ref += math::PtEtaPhiMLorentzVector(trk->pt(), trk->eta(), trk->phi(), 0.139570);
-	  }
-	}
-	vector_vtxs_refitp4->push_back( p4Ref );
-
-	// distance and errors
-	VertexDistance3D vdist3D;
-	Measurement1D dist3D = vdist3D.distance(*vertex,*primaryVertex_);
-	vector_vtxs_dist3Dval->push_back(dist3D.value());
-	vector_vtxs_dist3Dsig->push_back(dist3D.significance());
-	VertexDistanceXY vdistXY;
-	Measurement1D distXY = vdistXY.distance(*vertex,*primaryVertex_);
-	vector_vtxs_distXYval->push_back(distXY.value());
-	vector_vtxs_distXYsig->push_back(distXY.significance());
-
-	vector_vtxs_anglePV->push_back(angle(*vertex, *primaryVertex_, p4));
-	vector_vtxs_nTrk->push_back(vtxtracks.size());
-
-	vector_vtxs_xError->push_back( vertex->xError() );
-	vector_vtxs_yError->push_back( vertex->yError() );
-	vector_vtxs_zError->push_back( vertex->zError() );
-	vector_vtxs_chi2->push_back( vertex->chi2() );
-	vector_vtxs_ndof->push_back( vertex->ndof() );
+      for ( std::vector<reco::Vertex>::const_iterator vertex = secVertices->begin(); vertex != secVertices->end(); ++vertex ) {
 	
-	bool kshort(false);
-	bool lambda(false);
-	if ( vtxtracks.size() == 2 ){
-	  if (vertex->hasRefittedTracks()){
-	    // good resolution (~7MeV for Ks mass)
-	    const std::vector<reco::Track>& reftrks(vertex->refittedTracks());
-	    math::PtEtaPhiMLorentzVector pion1(  reftrks.at(0).pt(), reftrks.at(0).eta(), reftrks.at(0).phi(), 0.139570);
-	    math::PtEtaPhiMLorentzVector pion2(  reftrks.at(1).pt(), reftrks.at(1).eta(), reftrks.at(1).phi(), 0.139570);
-	    math::PtEtaPhiMLorentzVector proton1(reftrks.at(0).pt(), reftrks.at(0).eta(), reftrks.at(0).phi(), 0.938272);
-	    math::PtEtaPhiMLorentzVector proton2(reftrks.at(1).pt(), reftrks.at(1).eta(), reftrks.at(1).phi(), 0.938272);
-	    if ( fabs((pion1+pion2).mass()-0.498) < 0.03 )   kshort = true;
-	    if ( fabs((proton1+pion2).mass()-1.116) < 0.01 ) lambda = true;
-	    if ( fabs((proton2+pion1).mass()-1.116) < 0.01 ) lambda = true;
-	  } else {
-	    // resolution is much worse (~50MeV for Ks mass)
-	    math::PtEtaPhiMLorentzVector pion1(  vtxtracks.at(0)->pt(), vtxtracks.at(0)->eta(), vtxtracks.at(0)->phi(), 0.139570);
-	    math::PtEtaPhiMLorentzVector pion2(  vtxtracks.at(1)->pt(), vtxtracks.at(1)->eta(), vtxtracks.at(1)->phi(), 0.139570);
-	    math::PtEtaPhiMLorentzVector proton1(vtxtracks.at(0)->pt(), vtxtracks.at(0)->eta(), vtxtracks.at(0)->phi(), 0.938272);
-	    math::PtEtaPhiMLorentzVector proton2(vtxtracks.at(1)->pt(), vtxtracks.at(1)->eta(), vtxtracks.at(1)->phi(), 0.938272);
-	    if ( fabs((pion1+pion2).mass()-0.498) < 0.10 )   kshort = true;
-	    if ( fabs((proton1+pion2).mass()-1.116) < 0.03 ) lambda = true;
-	    if ( fabs((proton2+pion1).mass()-1.116) < 0.03 ) lambda = true;
-	  }
-	}
-	vector_vtxs_isKs->push_back(kshort);
-	vector_vtxs_isLambda->push_back(lambda);
+      vector_vtxs_position->push_back( LorentzVector( vertex->position().x(), vertex->position().y(), vertex->position().z(), 0 ) );
+	    vector_vtxs_prob    ->push_back( TMath::Prob(vertex->chi2(), (int)vertex->ndof()) );
 
-	int genid(0);
-	LorentzVector genp4;
-	LorentzVector flightDir;
-	if ( genps.isValid() ){
-	  double drMin = 999;
-	  for (reco::GenParticleCollection::const_iterator ps = genps->begin();
-	       ps != genps->end(); ++ps)
-	    {
-	      if ( ps->status()!=3 ) continue;
-	      GlobalVector dir = direction(*vertex,*primaryVertex_);
-	      flightDir = LorentzVector(dir.x(),dir.y(),dir.z(),0);
-	      double dr = reco::deltaR(dir,*ps);
-	      if ( dr > 0.5 ) continue;
-	      if ( dr > drMin ) continue;
-	      genid = ps->pdgId();
-	      genp4 = ps->p4();
-	      drMin = dr;
+	    std::vector<const reco::Track*> vtxtracks;
+	    LorentzVector p4;
+
+	    for( std::vector<reco::TrackBaseRef>::const_iterator trk=vertex->tracks_begin(); trk!=vertex->tracks_end(); ++trk ) {
+	      vtxtracks.push_back(trk->get());
+	      p4 += math::PtEtaPhiMLorentzVector((*trk)->pt(), (*trk)->eta(), (*trk)->phi(),0.139570);;
 	    }
-	}
-	vector_vtxs_mc3id->push_back(genid);
-	vector_vtxs_mc3p4->push_back(genp4);
-	vector_vtxs_flight->push_back(flightDir);
-      }
-  }
-  // store into the event
+
+	    vector_vtxs_p4->push_back( p4 );
+
+	    LorentzVector p4Ref;
+	    if (vertex->hasRefittedTracks()){
+	      const std::vector<reco::Track>& reftrks(vertex->refittedTracks());
+	      for(std::vector<reco::Track>::const_iterator trk=reftrks.begin();
+	        trk!=reftrks.end();++trk){
+	        p4Ref += math::PtEtaPhiMLorentzVector(trk->pt(), trk->eta(), trk->phi(), 0.139570);
+	      }
+	    }
+
+	    vector_vtxs_refitp4->push_back( p4Ref );
+
+    	// distance and errors
+    	VertexDistance3D vdist3D;
+    	Measurement1D dist3D = vdist3D.distance(*vertex,*primaryVertex_);
+
+    	VertexDistanceXY vdistXY;
+    	Measurement1D distXY = vdistXY.distance(*vertex,*primaryVertex_);
+
+    	vector_vtxs_dist3Dval -> push_back(dist3D.value());
+    	vector_vtxs_dist3Dsig -> push_back(dist3D.significance());
+    	vector_vtxs_distXYval -> push_back(distXY.value());
+    	vector_vtxs_distXYsig -> push_back(distXY.significance());
+    	vector_vtxs_anglePV   -> push_back(angle(*vertex, *primaryVertex_, p4));
+    	vector_vtxs_nTrk      -> push_back(vtxtracks.size());
+    	vector_vtxs_xError    -> push_back( vertex->xError() );
+    	vector_vtxs_yError    -> push_back( vertex->yError() );
+    	vector_vtxs_zError    -> push_back( vertex->zError() );
+    	vector_vtxs_chi2      -> push_back( vertex->chi2() );
+    	vector_vtxs_ndof      -> push_back( vertex->ndof() );
+    	
+    	bool kshort(false);
+    	bool lambda(false);
+
+    	if ( vtxtracks.size() == 2 ){
+
+	      if (vertex->hasRefittedTracks()){
+
+  	    // good resolution (~7MeV for Ks mass)
+  	    const std::vector<reco::Track>& reftrks(vertex->refittedTracks());
+  	    math::PtEtaPhiMLorentzVector pion1(  reftrks.at(0).pt(), reftrks.at(0).eta(), reftrks.at(0).phi(), 0.139570);
+  	    math::PtEtaPhiMLorentzVector pion2(  reftrks.at(1).pt(), reftrks.at(1).eta(), reftrks.at(1).phi(), 0.139570);
+  	    math::PtEtaPhiMLorentzVector proton1(reftrks.at(0).pt(), reftrks.at(0).eta(), reftrks.at(0).phi(), 0.938272);
+  	    math::PtEtaPhiMLorentzVector proton2(reftrks.at(1).pt(), reftrks.at(1).eta(), reftrks.at(1).phi(), 0.938272);
+
+  	    if ( fabs( ( pion1   + pion2 ).mass() - 0.498 ) < 0.03 ) kshort = true;
+  	    if ( fabs( ( proton1 + pion2 ).mass() - 1.116 ) < 0.01 ) lambda = true;
+  	    if ( fabs( ( proton2 + pion1 ).mass() - 1.116 ) < 0.01 ) lambda = true;
+  	  } 
+      else {
+
+  	    // resolution is much worse (~50MeV for Ks mass)
+  	    math::PtEtaPhiMLorentzVector pion1  ( vtxtracks.at(0) -> pt(), vtxtracks.at(0)->eta() , vtxtracks.at(0)->phi() , 0.139570 );
+  	    math::PtEtaPhiMLorentzVector pion2  ( vtxtracks.at(1) -> pt(), vtxtracks.at(1)->eta() , vtxtracks.at(1)->phi() , 0.139570 );
+  	    math::PtEtaPhiMLorentzVector proton1( vtxtracks.at(0) -> pt(), vtxtracks.at(0)->eta() , vtxtracks.at(0)->phi() , 0.938272 );
+  	    math::PtEtaPhiMLorentzVector proton2( vtxtracks.at(1) -> pt(), vtxtracks.at(1)->eta() , vtxtracks.at(1)->phi() , 0.938272 );
+
+  	    if ( fabs( ( pion1   + pion2 ).mass() - 0.498 ) < 0.10 ) kshort = true;
+  	    if ( fabs( ( proton1 + pion2 ).mass() - 1.116 ) < 0.03 ) lambda = true;
+  	    if ( fabs( ( proton2 + pion1 ).mass() - 1.116 ) < 0.03 ) lambda = true;
+  	  }
+  	} // end vtxtracks.size() == 2
+
+  	vector_vtxs_isKs     -> push_back(kshort);
+  	vector_vtxs_isLambda -> push_back(lambda);
+
+
+    //////////////////
+    // Gen Vertices //
+    //////////////////
+ 
+  	int genid(0);
+  	LorentzVector genp4;
+  	LorentzVector flightDir;
+  	if ( genps.isValid() ){
+      
+  	  double drMin = 999;
+  	  for (reco::GenParticleCollection::const_iterator ps = genps->begin(); ps != genps->end(); ++ps ) {
+
+  	      if ( ps->status() != 3 ) continue;
+  	      GlobalVector dir = direction( *vertex , *primaryVertex_ );
+  	      flightDir        = LorentzVector( dir.x() , dir.y() , dir.z() , 0 );
+  	      double dr        = reco::deltaR( dir , *ps );
+  	      if ( dr > 0.5   ) continue;
+  	      if ( dr > drMin ) continue;
+  	      genid = ps->pdgId();
+  	      genp4 = ps->p4();
+  	      drMin = dr;
+  	    }
+  	  }
+      
+	    vector_vtxs_mc3id  -> push_back( genid     );
+	    vector_vtxs_mc3p4  -> push_back( genp4     );
+	    vector_vtxs_flight -> push_back( flightDir );
+
+    } // End loop on secondary vertices
+
+  } // end if primary vertex
+
+
+  //////////////////////////
+  // Store into the event //
+  //////////////////////////
+
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
@@ -264,8 +306,9 @@ void SecondaryVertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iS
   iEvent.put(vector_vtxs_distXYsig,         branchprefix+"distXYsig"         );
   iEvent.put(vector_vtxs_anglePV,           branchprefix+"anglePV"           );
   iEvent.put(vector_vtxs_mc3id,             branchprefix+"mc3id"             );
-  iEvent.put(vector_vtxs_mc3p4,             branchprefix+"mc3p4"     );
-}
+  iEvent.put(vector_vtxs_mc3p4,             branchprefix+"mc3p4"             );
+
+} // End Producer
 
 // ------------ method called once each job just before starting event loop  ------------
 void SecondaryVertexMaker::beginJob()
