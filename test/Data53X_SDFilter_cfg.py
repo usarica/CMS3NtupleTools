@@ -2,7 +2,8 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "GR_R_52_V4::All"
+#process.GlobalTag.globaltag = "GR_R_52_V4::All"
+process.GlobalTag.globaltag = "GR_R_53_V2::All"
 
 # Lower default hypothesis thresholds
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(5.0)

@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.8 $'),
+        version    = cms.untracked.string('$Revision: 1.9 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -16,7 +16,8 @@ process.configurationMetadata = cms.untracked.PSet(
 # load event level configurations
 process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Reconstruction_cff")
-process.load("Configuration.StandardSequences.Geometry_cff")
+#process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.Geometry.GeometryIdeal_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load('Configuration/EventContent/EventContent_cff')
@@ -94,7 +95,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(500) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
