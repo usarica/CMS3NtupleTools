@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.21 2012/05/16 09:29:45 benhoob Exp $
+// $Id: PhotonMaker.cc,v 1.22 2012/07/19 22:49:07 dbarge Exp $
 //
 //
 
@@ -80,43 +80,58 @@ using namespace std;
 // constructors and destructor
 //
 PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
+         
+  //
+  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-     aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
-     std::string branchprefix = aliasprefix_;
-     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+  // 
+  produces<unsigned int>   ( "evtn" + branchprefix            ).setBranchAlias( "evt_n"      + branchprefix      ); //number of photons in event--NO ET cut
+  produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
+  produces<vector<int> >   ( branchprefix + "fiduciality"     ).setBranchAlias( aliasprefix_ + "_fiduciality"    ); //missing in scmaker
+  produces<vector<int> >   ( branchprefix + "scindex"         ).setBranchAlias( aliasprefix_ + "_scindex"        );
+  produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );
+  produces<vector<float> > ( branchprefix + "sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_sigmaEtaEta"    );
+  produces<vector<float> > ( branchprefix + "sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_sigmaIEtaIEta"  );
+  produces<vector<float> > ( branchprefix + "e2x5Max"         ).setBranchAlias( aliasprefix_ + "_e2x5Max"        );
+  produces<vector<float> > ( branchprefix + "e1x5"            ).setBranchAlias( aliasprefix_ + "_e1x5"           );
+  produces<vector<float> > ( branchprefix + "e5x5"            ).setBranchAlias( aliasprefix_ + "_e5x5"           );
+  produces<vector<float> > ( branchprefix + "e3x3"            ).setBranchAlias( aliasprefix_ + "_e3x3"           );
+  produces<vector<float> > ( branchprefix + "swissSeed"       ).setBranchAlias( aliasprefix_ + "_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
+  produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );
+  produces<vector<float> > ( branchprefix + "tkIsoSolid03"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid03"   );
+  produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );
+  produces<vector<float> > ( branchprefix + "ntkIsoSolid03"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid03"  );
+  produces<vector<float> > ( branchprefix + "ecalIso03"       ).setBranchAlias( aliasprefix_ + "_ecalIso03"      );
+  produces<vector<float> > ( branchprefix + "hcalIso03"       ).setBranchAlias( aliasprefix_ + "_hcalIso03"      );
+  produces<vector<float> > ( branchprefix + "tkIsoHollow04"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow04"  );
+  produces<vector<float> > ( branchprefix + "tkIsoSolid04"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid04"   );
+  produces<vector<float> > ( branchprefix + "ntkIsoHollow04"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow04" );
+  produces<vector<float> > ( branchprefix + "ntkIsoSolid04"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid04"  );
+  produces<vector<float> > ( branchprefix + "ecalIso04"       ).setBranchAlias( aliasprefix_ + "_ecalIso04"      );
+  produces<vector<float> > ( branchprefix + "hcalIso04"       ).setBranchAlias( aliasprefix_ + "_hcalIso04"      );
+  produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );
 
-     produces<unsigned int>		("evtn"+branchprefix		).setBranchAlias("evt_n"+branchprefix		); //number of photons in event--NO ET cut
-     produces<vector<int> >		(branchprefix+"fiduciality"     ).setBranchAlias(aliasprefix_+"_fiduciality"    ); //missing in scmaker
-     produces<vector<int> >		(branchprefix+"scindex"		).setBranchAlias(aliasprefix_+"_scindex"        );
-     produces<vector<float> >		(branchprefix+"hOverE"          ).setBranchAlias(aliasprefix_+"_hOverE"         );
-     produces<vector<float> >		(branchprefix+"sigmaEtaEta"     ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"    );
-     produces<vector<float> >		(branchprefix+"sigmaIEtaIEta"   ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"  );
-     produces<vector<float> >		(branchprefix+"e2x5Max"         ).setBranchAlias(aliasprefix_+"_e2x5Max"        );
-     produces<vector<float> >		(branchprefix+"e1x5"          	).setBranchAlias(aliasprefix_+"_e1x5"          	);
-     produces<vector<float> >		(branchprefix+"e5x5"            ).setBranchAlias(aliasprefix_+"_e5x5"           );
-     produces<vector<float> >		(branchprefix+"e3x3"            ).setBranchAlias(aliasprefix_+"_e3x3"           );
-     produces<vector<float> >		(branchprefix+"swissSeed"       ).setBranchAlias(aliasprefix_+"_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
-     produces<vector<bool> >		(branchprefix+"haspixelSeed"    ).setBranchAlias(aliasprefix_+"_haspixelSeed"     ); //for electron matching
-     produces<vector<float> >		(branchprefix+"tkIsoHollow03"   ).setBranchAlias(aliasprefix_+"_tkIsoHollow03"    );
-     produces<vector<float> >		(branchprefix+"tkIsoSolid03"    ).setBranchAlias(aliasprefix_+"_tkIsoSolid03"     );
-     produces<vector<float> >		(branchprefix+"ntkIsoHollow03"  ).setBranchAlias(aliasprefix_+"_ntkIsoHollow03"   );
-     produces<vector<float> >		(branchprefix+"ntkIsoSolid03"   ).setBranchAlias(aliasprefix_+"_ntkIsoSolid03"    );
-     produces<vector<float> >		(branchprefix+"ecalIso03"      	).setBranchAlias(aliasprefix_+"_ecalIso03"        );
-     produces<vector<float> >		(branchprefix+"hcalIso03"      	).setBranchAlias(aliasprefix_+"_hcalIso03"        );
-     produces<vector<float> >		(branchprefix+"tkIsoHollow04"   ).setBranchAlias(aliasprefix_+"_tkIsoHollow04"    );
-     produces<vector<float> >		(branchprefix+"tkIsoSolid04"    ).setBranchAlias(aliasprefix_+"_tkIsoSolid04"     );
-     produces<vector<float> >		(branchprefix+"ntkIsoHollow04"  ).setBranchAlias(aliasprefix_+"_ntkIsoHollow04"   );
-     produces<vector<float> >		(branchprefix+"ntkIsoSolid04"   ).setBranchAlias(aliasprefix_+"_ntkIsoSolid04"    );
-     produces<vector<float> >		(branchprefix+"ecalIso04"      	).setBranchAlias(aliasprefix_+"_ecalIso04"        );
-     produces<vector<float> >		(branchprefix+"hcalIso04"      	).setBranchAlias(aliasprefix_+"_hcalIso04"        );
-     produces<vector<LorentzVector> >	(branchprefix+"p4"              ).setBranchAlias(aliasprefix_+"_p4"           );
+  ///////////////////
+  // Added for 53x //
+  ///////////////////
 
-     photonsInputTag_    	= iConfig.getParameter<InputTag>("photonsInputTag");
-     ecalRecHitsInputTag_EE_	= iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
-     ecalRecHitsInputTag_EB_	= iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
-     cms2scsseeddetidInputTag_	= iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
-     minEt_			= iConfig.getParameter<double>("minEt");
-     clusterTools_		= 0;
+  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR04"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR04"      );
+  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR04");
+  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR04");
+  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR03"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR03"      );
+  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR03");
+  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR03");
+
+
+  //
+  photonsInputTag_      = iConfig.getParameter<InputTag>("photonsInputTag");
+  ecalRecHitsInputTag_EE_  = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
+  ecalRecHitsInputTag_EB_  = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+  cms2scsseeddetidInputTag_  = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
+  minEt_      = iConfig.getParameter<double>("minEt");
+  clusterTools_    = 0;
 
 }
 
@@ -132,115 +147,132 @@ void PhotonMaker::endJob() {}
 // ------------ method called to produce the data  ------------
 void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-     // Define vectors to be filled	
-     auto_ptr<unsigned int>		evt_nphotons		(new unsigned int		);
-     auto_ptr<vector<int> >		photons_fiduciality     (new vector<int>		);
-     auto_ptr<vector<int> >		photons_scindex         (new vector<int>		);	 
-     auto_ptr<vector<float> >		photons_hOverE          (new vector<float>		);
-     auto_ptr<vector<float> >		photons_sigmaEtaEta     (new vector<float>		);
-     auto_ptr<vector<float> >		photons_sigmaIEtaIEta   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_e2x5Max         (new vector<float>		);
-     auto_ptr<vector<float> >		photons_e1x5            (new vector<float>		);
-     auto_ptr<vector<float> >		photons_e5x5            (new vector<float>		);
-     auto_ptr<vector<float> >		photons_e3x3            (new vector<float>		);
-     auto_ptr<vector<float> >		photons_swissSeed       (new vector<float>		);
-     auto_ptr<vector<bool> >		photons_haspixelSeed    (new vector<bool>		);
-     auto_ptr<vector<float> >		photons_tkIsoHollow03   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_tkIsoSolid03    (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoHollow03  (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoSolid03   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ecalIso03       (new vector<float>		);
-     auto_ptr<vector<float> >		photons_hcalIso03       (new vector<float>		);
-     auto_ptr<vector<float> >		photons_tkIsoHollow04   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_tkIsoSolid04    (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoHollow04  (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ntkIsoSolid04   (new vector<float>		);
-     auto_ptr<vector<float> >		photons_ecalIso04       (new vector<float>		);
-     auto_ptr<vector<float> >		photons_hcalIso04       (new vector<float>		);
-     auto_ptr<vector<LorentzVector> >	photons_p4              (new vector<LorentzVector>	);
-	
-     // Get the photons
-     //
-     Handle<View<reco::Photon> > photons_h;
-     iEvent.getByLabel(photonsInputTag_, photons_h);
-     View<reco::Photon> photonColl = *(photons_h.product());
+  // Define vectors to be filled  
+  auto_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
+  auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
+  auto_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
+  auto_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
+  auto_ptr<vector<float> > photons_hOverE         ( new vector<float> );
+  auto_ptr<vector<float> > photons_sigmaEtaEta    ( new vector<float> );
+  auto_ptr<vector<float> > photons_sigmaIEtaIEta  ( new vector<float> );
+  auto_ptr<vector<float> > photons_e2x5Max        ( new vector<float> );
+  auto_ptr<vector<float> > photons_e1x5           ( new vector<float> );
+  auto_ptr<vector<float> > photons_e5x5           ( new vector<float> );
+  auto_ptr<vector<float> > photons_e3x3           ( new vector<float> );
+  auto_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
+  auto_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
+  auto_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
+  auto_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
+  auto_ptr<vector<float> > photons_ntkIsoSolid03  ( new vector<float> );
+  auto_ptr<vector<float> > photons_ecalIso03      ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalIso03      ( new vector<float> );
+  auto_ptr<vector<float> > photons_tkIsoHollow04  ( new vector<float> );
+  auto_ptr<vector<float> > photons_tkIsoSolid04   ( new vector<float> );
+  auto_ptr<vector<float> > photons_ntkIsoHollow04 ( new vector<float> );
+  auto_ptr<vector<float> > photons_ntkIsoSolid04  ( new vector<float> );
+  auto_ptr<vector<float> > photons_ecalIso04      ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalIso04      ( new vector<float> );
 
-     //get cms2scsseeddetid 
-     edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
-     edm::Handle<std::vector<int> > cms2scsseeddetid_h;
-     iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
-     const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
+  auto_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
+ 
 
-     // Get tools to get cluster shape information
-     //
-     if (clusterTools_) delete clusterTools_;
-     clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
-					      edm::InputTag("reducedEcalRecHitsEB"), 
-					      edm::InputTag("reducedEcalRecHitsEE"));
+  ///////////////////
+  // Added for 53x //
+  ///////////////////
 
-     // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
-     edm::Handle<EcalRecHitCollection> rhcHandleEE;
-     iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
-     const EcalRecHitCollection *recHitsEE = 0;
-     
-     edm::Handle<EcalRecHitCollection> rhcHandleEB;
-     iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
-     const EcalRecHitCollection *recHitsEB = 0;
-     
-     bool haveHits = true;
-     if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())
-       haveHits = false;
+  auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR04       ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR04 ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR04 ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR03       ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR03 ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> );
 
 
-     if(haveHits) {
-       recHitsEE = rhcHandleEE.product();
-       recHitsEB = rhcHandleEB.product();
-     }
+
+  ///////////////////// 
+  // Get the photons //
+  /////////////////////
+ 
+  Handle<View<reco::Photon> > photons_h;
+  iEvent.getByLabel(photonsInputTag_, photons_h);
+  View<reco::Photon> photonColl = *(photons_h.product());
+
+  //get cms2scsseeddetid 
+  edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
+  edm::Handle<std::vector<int> > cms2scsseeddetid_h;
+  iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h);
+  const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
+
+  // Get tools to get cluster shape information
+  //
+  if (clusterTools_) delete clusterTools_;
+  clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
+					   edm::InputTag("reducedEcalRecHitsEB"), 
+					   edm::InputTag("reducedEcalRecHitsEE"));
+
+  // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
+  edm::Handle<EcalRecHitCollection> rhcHandleEE;
+  iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
+  const EcalRecHitCollection *recHitsEE = 0;
+  
+  edm::Handle<EcalRecHitCollection> rhcHandleEB;
+  iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
+  const EcalRecHitCollection *recHitsEB = 0;
+  
+  bool haveHits = true;
+  if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())
+    haveHits = false;
+
+
+  if(haveHits) {
+    recHitsEE = rhcHandleEE.product();
+    recHitsEB = rhcHandleEB.product();
+  }
 	 
-     // calo topology
-     edm::ESHandle<CaloTopology> pTopology;
-     iSetup.get<CaloTopologyRecord>().get(pTopology);
-     const CaloTopology *topology_ = pTopology.product();
+  // calo topology
+  edm::ESHandle<CaloTopology> pTopology;
+  iSetup.get<CaloTopologyRecord>().get(pTopology);
+  const CaloTopology *topology_ = pTopology.product();
 
-     //fill number of photons variable : NO ET CUT
-     //
-     *evt_nphotons = photons_h->size();
+  //fill number of photons variable : NO ET CUT
+  //
+  *evt_nphotons = photons_h->size();
 
-     //loop over photon collection
-     //
-     size_t photonsIndex = 0;
-     View<reco::Photon>::const_iterator photon;
-     for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
+  //loop over photon collection
+  //
+  size_t photonsIndex = 0;
+  View<reco::Photon>::const_iterator photon;
+  for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
 	  // throw out photons below minEt
 	  if (photon->et() < minEt_)
-	       //instead of photon et, use sc et for alignment purposes (?)
-	       continue;
+	    //instead of photon et, use sc et for alignment purposes (?)
+	    continue;
 
 	  // Get photon and track objects
 	  const edm::RefToBase<reco::Photon> photonRef = photons_h->refAt(photonsIndex);
 		
-	  photons_hOverE                ->push_back( photon->hadronicOverEm()                   	);
+	  photons_hOverE             ->push_back( photon->hadronicOverEm()                   	);
 	  photons_e1x5		  	->push_back( photon->e1x5()					);
-	  photons_e3x3                  ->push_back( photon->e3x3()                                     );
-	  photons_e5x5                  ->push_back( photon->e5x5()                                     );
-	  photons_e2x5Max               ->push_back( photon->e2x5()                                     );
+	  photons_e3x3               ->push_back( photon->e3x3()                                     );
+	  photons_e5x5               ->push_back( photon->e5x5()                                     );
+	  photons_e2x5Max            ->push_back( photon->e2x5()                                     );
 
 	  //get cms2scsseeddetid
 	  bool foundseed = false;
 	  for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {
-	    if(cms2scsseeddetid->at(i) == -9999)
-	      continue;
-	    if(!(photon->superCluster()->seed().isAvailable()))
-	      continue;
-	    if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
-	      foundseed = true;
-	      photons_scindex->push_back( i );
-	      break;
-	       }
+	 if(cms2scsseeddetid->at(i) == -9999)
+	   continue;
+	 if(!(photon->superCluster()->seed().isAvailable()))
+	   continue;
+	 if( uint32_t(cms2scsseeddetid->at(i)) == photon->superCluster()->seed()->seed() ) {
+	   foundseed = true;
+	   photons_scindex->push_back( i );
+	   break;
+	    }
 	  }
 
 	  if( !foundseed ) {
-	       photons_scindex->push_back( -1 );		
+	    photons_scindex->push_back( -1 );		
 	  }
 
 	  //new from gammajetanalyzer.cc
@@ -252,55 +284,55 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  reco::BasicCluster dummyCluster;
 	  EcalClusterTools clusterTools;
 	  if(haveHits && photon->superCluster()->seed().isAvailable()) {
-	    DetId seedId = photon->superCluster()->seed()->seed();
-	    if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
-	    
-	      EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
-	      if (seedHit != recHitsEE->end()) {
+	 DetId seedId = photon->superCluster()->seed()->seed();
+	 if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalEndcap) {
+	 
+	   EcalRecHitCollection::const_iterator seedHit = recHitsEE->find(seedId);
+	   if (seedHit != recHitsEE->end()) {
 		float emSwiss = 0.;
 		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, -1, 1);
 		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, -1, 1, 0, 0); 
 		emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEE, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
 		photons_swissSeed->push_back( emSwiss );
-	      }
-	      else {
+	   }
+	   else {
 		photons_swissSeed->push_back( -9999.99 );
-	      }
-	    }
-	    else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
-	      EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
-	      if (seedHit != recHitsEB->end()) {
+	   }
+	 }
+	 else if (seedId.det() == DetId::Ecal && seedId.subdetId() == EcalBarrel) {
+	   EcalRecHitCollection::const_iterator seedHit = recHitsEB->find(seedId);
+	   if (seedHit != recHitsEB->end()) {
 		float emSwiss = 0.;
 		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, -1, 1);
 		emSwiss += clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, -1, 1, 0, 0); 
 		emSwiss -= clusterTools.matrixEnergy(dummyCluster, recHitsEB, topology_, seedId, 0, 0, 0, 0); //center of cross was included twice above 
 		photons_swissSeed->push_back( emSwiss );
-	      }
-	      else {
+	   }
+	   else {
 		photons_swissSeed->push_back( -9999.99 );
-	      }		
-	    }
+	   }		
+	 }
 	  } else 
-	    photons_swissSeed->push_back( -9999.99 );
+	 photons_swissSeed->push_back( -9999.99 );
 
-	  photons_sigmaEtaEta           ->push_back( photon->sigmaEtaEta()                           	);
-	  photons_sigmaIEtaIEta         ->push_back( photon->sigmaIetaIeta()                         	);  		
+	  photons_sigmaEtaEta        ->push_back( photon->sigmaEtaEta()                           	);
+	  photons_sigmaIEtaIEta      ->push_back( photon->sigmaIetaIeta()                         	);  		
 	
 	  // set the mask that describes the egamma fiduciality flags
 	  // the enum is in interface/EgammaFiduciality.h
 	  int fiducialityMask = 0;
 	  if (photon->isEB()) 	fiducialityMask |= 1 << ISEB;
 	  if (photon->isEBEEGap())fiducialityMask |= 1 << ISEBEEGAP;
-	  if (photon->isEE())     fiducialityMask |= 1 << ISEE;
+	  if (photon->isEE())  fiducialityMask |= 1 << ISEE;
 	  if (photon->isEEGap())  fiducialityMask |= 1 << ISEEGAP;
 	  photons_fiduciality->push_back( fiducialityMask );
 	
 	  // Lorentz Vectors	
 	  //
-	  photons_p4                    ->push_back( LorentzVector( photon->p4() )        );
+	  photons_p4                 ->push_back( LorentzVector( photon->p4() )        );
 		
 	  //pixel seeds
-	  photons_haspixelSeed          ->push_back( photon->hasPixelSeed()             );
+	  photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
 
 	  // Isolation  (all 0.3 cone size)
 	  //
@@ -309,47 +341,72 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_tkIsoHollow03->push_back(			photon->trkSumPtHollowConeDR03()	);
 	  photons_tkIsoSolid03->push_back(			photon->trkSumPtSolidConeDR03()		);
 	  photons_ntkIsoHollow03->push_back(		photon->nTrkHollowConeDR03()		);
-	  photons_ntkIsoSolid03->push_back(			photon->nTrkSolidConeDR03()		    );
+	  photons_ntkIsoSolid03->push_back(			photon->nTrkSolidConeDR03()		 );
 
 	  photons_ecalIso04->push_back(				photon->ecalRecHitSumEtConeDR04()	);
 	  photons_hcalIso04->push_back(				photon->hcalTowerSumEtConeDR04()	);	
 	  photons_tkIsoHollow04->push_back(			photon->trkSumPtHollowConeDR04()	);
 	  photons_tkIsoSolid04->push_back(			photon->trkSumPtSolidConeDR04()		);
 	  photons_ntkIsoHollow04->push_back(		photon->nTrkHollowConeDR04()		);
-	  photons_ntkIsoSolid04->push_back(			photon->nTrkSolidConeDR04()		    );
+	  photons_ntkIsoSolid04->push_back(			photon->nTrkSolidConeDR04()		 );
 
-     }
+
+    ///////////////////
+    // Added for 53x //
+    ///////////////////
+
+    photons_hcalTowerSumEtBcConeDR04       ->push_back( photon->hcalTowerSumEtBcConeDR04()       );
+    photons_hcalDepth1TowerSumEtBcConeDR04 ->push_back( photon->hcalDepth1TowerSumEtBcConeDR04() );
+    photons_hcalDepth2TowerSumEtBcConeDR04 ->push_back( photon->hcalDepth2TowerSumEtBcConeDR04() );
+    photons_hcalTowerSumEtBcConeDR03       ->push_back( photon->hcalTowerSumEtBcConeDR03()       );
+    photons_hcalDepth1TowerSumEtBcConeDR03 ->push_back( photon->hcalDepth1TowerSumEtBcConeDR03() );
+    photons_hcalDepth2TowerSumEtBcConeDR03 ->push_back( photon->hcalDepth2TowerSumEtBcConeDR03() );
+
+  }
  
-     // Put the results into the event
-     //
-     std::string branchprefix = aliasprefix_;
-     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+  // Put the results into the event
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-     iEvent.put(evt_nphotons           	,"evtn"+branchprefix            );
-     iEvent.put(photons_scindex         ,branchprefix+"scindex"         );
-     iEvent.put(photons_e1x5            ,branchprefix+"e1x5"            );
-     iEvent.put(photons_e3x3            ,branchprefix+"e3x3"            );
-     iEvent.put(photons_e5x5            ,branchprefix+"e5x5"            );
-     iEvent.put(photons_e2x5Max         ,branchprefix+"e2x5Max"         );
-     iEvent.put(photons_swissSeed       ,branchprefix+"swissSeed" 	);
-     iEvent.put(photons_fiduciality	,branchprefix+"fiduciality"	);
-     iEvent.put(photons_sigmaEtaEta     ,branchprefix+"sigmaEtaEta"     );
-     iEvent.put(photons_sigmaIEtaIEta   ,branchprefix+"sigmaIEtaIEta"   );
-     iEvent.put(photons_hOverE          ,branchprefix+"hOverE"          );
-     iEvent.put(photons_p4              ,branchprefix+"p4"              );
-     iEvent.put(photons_haspixelSeed    ,branchprefix+"haspixelSeed" 	);
-     iEvent.put(photons_tkIsoHollow03  	,branchprefix+"tkIsoHollow03"   );
-     iEvent.put(photons_tkIsoSolid03  	,branchprefix+"tkIsoSolid03"    );      
-     iEvent.put(photons_ntkIsoHollow03 	,branchprefix+"ntkIsoHollow03"  );
-     iEvent.put(photons_ntkIsoSolid03  	,branchprefix+"ntkIsoSolid03"   );      
-     iEvent.put(photons_ecalIso03       ,branchprefix+"ecalIso03"       );
-     iEvent.put(photons_hcalIso03       ,branchprefix+"hcalIso03"       );
-     iEvent.put(photons_tkIsoHollow04  	,branchprefix+"tkIsoHollow04"   );
-     iEvent.put(photons_tkIsoSolid04  	,branchprefix+"tkIsoSolid04"    );      
-     iEvent.put(photons_ntkIsoHollow04 	,branchprefix+"ntkIsoHollow04"  );
-     iEvent.put(photons_ntkIsoSolid04  	,branchprefix+"ntkIsoSolid04"   );      
-     iEvent.put(photons_ecalIso04       ,branchprefix+"ecalIso04"       );
-     iEvent.put(photons_hcalIso04       ,branchprefix+"hcalIso04"       );
+  //
+  iEvent.put( evt_nphotons           , "evtn"+branchprefix            );
+  iEvent.put( photons_scindex        , branchprefix+"scindex"         );
+  iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
+  iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
+  iEvent.put( photons_e5x5           , branchprefix+"e5x5"            );
+  iEvent.put( photons_e2x5Max        , branchprefix+"e2x5Max"         );
+  iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
+  iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
+  iEvent.put( photons_sigmaEtaEta    , branchprefix+"sigmaEtaEta"     );
+  iEvent.put( photons_sigmaIEtaIEta  , branchprefix+"sigmaIEtaIEta"   );
+  iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
+  iEvent.put( photons_p4             , branchprefix+"p4"              );
+  iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
+  iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
+  iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
+  iEvent.put( photons_ntkIsoHollow03 , branchprefix+"ntkIsoHollow03"  );
+  iEvent.put( photons_ntkIsoSolid03  , branchprefix+"ntkIsoSolid03"   );      
+  iEvent.put( photons_ecalIso03      , branchprefix+"ecalIso03"       );
+  iEvent.put( photons_hcalIso03      , branchprefix+"hcalIso03"       );
+  iEvent.put( photons_tkIsoHollow04  , branchprefix+"tkIsoHollow04"   );
+  iEvent.put( photons_tkIsoSolid04   , branchprefix+"tkIsoSolid04"    );      
+  iEvent.put( photons_ntkIsoHollow04 , branchprefix+"ntkIsoHollow04"  );
+  iEvent.put( photons_ntkIsoSolid04  , branchprefix+"ntkIsoSolid04"   );      
+  iEvent.put( photons_ecalIso04      , branchprefix+"ecalIso04"       );
+  iEvent.put( photons_hcalIso04      , branchprefix+"hcalIso04"       );
+ 
+
+  ///////////////////
+  // Added for 53x //
+  ///////////////////
+
+  iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );
+  iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");
+  iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR04 , branchprefix + "hcalDepth2TowerSumEtBcConeDR04");
+  iEvent.put( photons_hcalTowerSumEtBcConeDR03       , branchprefix + "hcalTowerSumEtBcConeDR03"      );
+  iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");
+  iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");
+ 
 }
 
 //define this as a plug-in

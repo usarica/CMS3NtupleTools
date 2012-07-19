@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.87 2012/05/14 17:15:13 cerati Exp $
+// $Id: ElectronMaker.cc,v 1.88 2012/07/19 22:49:07 dbarge Exp $
 //
 //
 
@@ -318,6 +318,17 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<unsigned int> >  ("elsid2012medium" ).setBranchAlias("els_id2012_medium" );
     produces<vector<unsigned int> >  ("elsid2012tight"  ).setBranchAlias("els_id2012_tight"  );
  
+
+    ///////////////////
+    // Added for 53x //
+    ///////////////////
+
+    produces<vector<bool > >  ("elspassingMvaPreselection"  ).setBranchAlias("els_passingMvaPreselection"  );
+    produces<vector<bool > >  ("elspassingPflowPreselection").setBranchAlias("els_passingPflowPreselection");
+    produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
+    produces<vector<float> >  ("elssigmaIphiIphi"           ).setBranchAlias("els_sigmaIphiIphi"           );
+
+
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
     pfPileUpAlgo_ = new PFPileUpAlgo();
@@ -539,6 +550,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<unsigned int> > els_id2012_loose  (new vector<unsigned int>);
     auto_ptr<vector<unsigned int> > els_id2012_medium (new vector<unsigned int>);
     auto_ptr<vector<unsigned int> > els_id2012_tight  (new vector<unsigned int>);
+
+    ///////////////////
+    // Added for 53x //
+    ///////////////////
+
+    auto_ptr<vector<bool > >  els_passingMvaPreselection   ( new vector<bool>  );
+    auto_ptr<vector<bool > >  els_passingPflowPreselection ( new vector<bool>  );
+    auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
+    auto_ptr<vector<float> >  els_sigmaIphiIphi            ( new vector<float> );
+
 
 
     // --- Get Input Collections --- //
@@ -1305,6 +1326,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_id2012_medium ->push_back(medium_bits );
         els_id2012_tight  ->push_back(tight_bits  );
 
+ 
+        ///////////////////
+        // Added for 53x //
+        ///////////////////
+
+        els_passingMvaPreselection  ->push_back( el->passingMvaPreselection()   );
+        els_passingPflowPreselection->push_back( el->passingPflowPreselection() );
+        els_r9                      ->push_back( el->r9()                       );
+        els_sigmaIphiIphi           ->push_back( el->sigmaIphiIphi()            );
+
+
+
     } // end Loop on Electrons
   
 
@@ -1502,6 +1535,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_id2012_loose  , "elsid2012loose"  );
     iEvent.put(els_id2012_medium , "elsid2012medium" );
     iEvent.put(els_id2012_tight  , "elsid2012tight"  );
+
+
+    ///////////////////
+    // Added for 53x //
+    ///////////////////
+
+    iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
+    iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
+    iEvent.put( els_r9                       , "elsr9"                       );
+    iEvent.put( els_sigmaIphiIphi            , "elssigmaIphiIphi"            );
+
+
 }
 
 //----------------------------------------------------------------------------

@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.66 2012/05/14 17:15:16 cerati Exp $
+// $Id: MuonMaker.cc,v 1.67 2012/07/19 22:49:07 dbarge Exp $
 //
 //
 
@@ -53,6 +53,7 @@ Implementation:
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "CMS2/NtupleMaker/interface/MuonMaker.h"
 
+#include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
 
 //////////////
 // typedefs //
@@ -194,6 +195,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                     ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
   produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"             ); // muon position at the ecal face
   produces<vector<int> >            ( branchprefix_ + "numberOfMatchedStations"   ).setBranchAlias( aliasprefix_ + "_numberOfMatchedStations"); // number of muon stations with muon segements used in the fit
+
+  produces<vector<bool> >           ( branchprefix_ + "isRPCMuon"                 ).setBranchAlias( aliasprefix_ + "_isRPCMuon"              ); 
+
 
   ////////
   // ID //
@@ -433,6 +437,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4              ( new vector<LorentzVector> );
   auto_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
 
+  auto_ptr<vector<bool> >          vector_mus_isRPCMuon               ( new vector<bool>          );
+
   ////////
   // ID //
   ////////
@@ -577,7 +583,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   Handle<View<Muon> > muon_h;
   iEvent.getByLabel( muonsInputTag , muon_h );
 
-  
+
   ////////////////////////////////
   // Get pf-Muon from reco-muon //
   ////////////////////////////////
@@ -773,6 +779,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
     vector_mus_ecalpos_p4              -> push_back( LorentzVector( ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0 )  );
     vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
+
+    vector_mus_isRPCMuon               ->push_back( muon->isRPCMuon()                                          );
+
+    /*
+    /////////////////
+    // rpc matches //
+    /////////////////
+    const vector<MuonChamberMatch>& v_muMatches   = muon->matches();
+    for( unsigned int imatch = 0; imatch < v_muMatches.size(); imatch++ ){
+      //MuonChamberMatch        muMatch     = v_muMatches.at(imatch);
+      //vector<MuonRPCHitMatch> rpcMatches  = muMatch.rpcMatches;
+      //unsigned int            nRPCMatches = rpcMatches.size();
+      unsigned int            nRPCMatches = v_muMatches.at(imatch).rpcMatches.size();
+    }
+    */
 
 
     ////////
@@ -1138,6 +1159,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_p4                      , branchprefix_ + "p4"                      );
   iEvent.put( vector_mus_ecalpos_p4              , branchprefix_ + "ecalposp4"               );
   iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
+
+  iEvent.put( vector_mus_isRPCMuon               , branchprefix_ + "isRPCMuon"               );
 
   ////////
   // ID //

@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: TrackMaker.cc,v 1.34 2012/03/16 19:22:26 dbarge Exp $
+// $Id: TrackMaker.cc,v 1.35 2012/07/19 22:49:07 dbarge Exp $
 //
 //
 
@@ -126,6 +126,8 @@ TrackMaker::TrackMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            ("trkspvidx0"                  ).setBranchAlias("trks_pvidx0"        );
   produces<vector<int> >            ("trkspvidx1"                  ).setBranchAlias("trks_pvidx1"        );
   
+  produces<vector<int> >            ("trksnLoops"                  ).setBranchAlias("trks_nLoops"        );
+
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
   primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
@@ -187,67 +189,88 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<vector<int> > vector_trks_pvidx0    (new vector<int> );
   std::auto_ptr<vector<int> > vector_trks_pvidx1    (new vector<int> );
 
-  // get tracks
-  Handle<edm::View<reco::Track> > track_h;
+  std::auto_ptr<vector<int> > vector_trks_nLoops    (new vector<int> );
+
+
+
+  ////////////////
+  // Get Tracks //
+  ////////////////
+
+  Handle<View<reco::Track> > track_h;
   iEvent.getByLabel(tracksInputTag, track_h);
-
   if( !track_h.isValid() ) {
-    edm::LogInfo("OutputInfo") << " failed to retrieve track collection";
-    edm::LogInfo("OutputInfo") << " TrackMaker cannot continue...!";
+    LogInfo("OutputInfo") << " failed to retrieve track collection";
+    LogInfo("OutputInfo") << " TrackMaker cannot continue...!";
     return;
   }
 
-  edm::ESHandle<MagneticField> theMagField;
+
+  /////////////////
+  // Get B Field //
+  /////////////////
+
+  ESHandle<MagneticField> theMagField;
   iSetup.get<IdealMagneticFieldRecord>().get(theMagField);
-
   if( !theMagField.isValid() ) {
-    edm::LogInfo("OutputInfo") << " failed to retrieve the magnetic field";
-    edm::LogInfo("OutputInfo") << " TrackMaker cannot continue...!";
+    LogInfo("OutputInfo") << " failed to retrieve the magnetic field";
+    LogInfo("OutputInfo") << " TrackMaker cannot continue...!";
     return;
   }
-
   const MagneticField* bf = theMagField.product();
   
-  edm::Handle<LorentzVector> beamSpotH;
-  iEvent.getByLabel(beamSpotTag, beamSpotH);
   
+  ///////////////////
+  // Get Beam Spot //
+  ///////////////////
+
+  Handle<LorentzVector> beamSpotH;
+  iEvent.getByLabel(beamSpotTag, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
   
-  //get tracker geometry   
+
+  //////////////////////////
+  // Get Tracker Geometry //
+  //////////////////////////  
                                                                                                                                                                   
-  edm::ESHandle<TrackerGeometry> theG;
+  ESHandle<TrackerGeometry> theG;
   iSetup.get<TrackerDigiGeometryRecord>().get(theG);
   
-  // get the primary vertices
-  edm::Handle<reco::VertexCollection> vertexHandle;
+  //////////////////////////////
+  // Get the primary vertices //
+  //////////////////////////////
+
+  Handle<reco::VertexCollection> vertexHandle;
   try {
     iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
   }
   catch ( cms::Exception& ex ) {
-    edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
+    LogError("VertexMakerError") << "Error! can't get the primary vertex";
   }
   const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
 
-  edm::View<reco::Track>::const_iterator tracks_end = track_h->end();
-  
+  //////////////////////
+  // Loop over Tracks //
+  //////////////////////
+
+  View<reco::Track>::const_iterator tracks_end = track_h->end();
   unsigned int iTIndex=-1;
-  for (edm::View<reco::Track>::const_iterator i = track_h->begin(); i != tracks_end; ++i) {
+  for (View<reco::Track>::const_iterator i = track_h->begin(); i != tracks_end; ++i) {
+
     iTIndex++;
+
+    double corrd0    = beamSpotH.isValid() ? -1 * ( i->dxy(beamSpot) ) : i->d0();		           
+    double corrd0phi = atan2( -1 * corrd0 * sin( i->phi() ), corrd0 * cos( i->phi() ) );           
+    double corrz0    = beamSpotH.isValid() ? i->dz(beamSpot) : i->dz();			           
+
     vector_trks_trk_p4       ->push_back( LorentzVector( i->px(), i->py(), i->pz(), i->p() )       );
     vector_trks_vertex_p4    ->push_back( LorentzVector(i->vx(),i->vy(), i->vz(), 0.)              );
     vector_trks_d0           ->push_back( i->d0()                                                  );
     vector_trks_z0           ->push_back( i->dz()                                                  );
-    						           
-    double corrd0 = beamSpotH.isValid() ? -1 * ( i->dxy(beamSpot) ) : i->d0();		           
     vector_trks_d0corr       ->push_back( corrd0                                                   );
-    						           
-    double corrd0phi = atan2( -1 * corrd0 * sin( i->phi() ), corrd0 * cos( i->phi() ) );           
     vector_trks_d0corrPhi    ->push_back( corrd0phi                                                );
-    						           
-    double corrz0 = beamSpotH.isValid() ? i->dz(beamSpot) : i->dz();			           
     vector_trks_z0corr       ->push_back( corrz0                                                   );
-    						           
     vector_trks_chi2         ->push_back( i->chi2()                                                );
     vector_trks_ndof         ->push_back( i->ndof()                                                );
     vector_trks_validHits    ->push_back( i->numberOfValidHits()                                   );
@@ -257,32 +280,32 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_trks_ptErr        ->push_back( i->ptError()                                             );
     vector_trks_etaErr       ->push_back( i->etaError()                                            );
     vector_trks_phiErr       ->push_back( i->phiError()                                            );
-    vector_trks_d0phiCov     ->push_back( -i->covariance(TrackBase::i_phi, TrackBase::i_dxy)	   );  // minus sign because we want cov(d0, phi) = cov(-dxy, phi)
+    vector_trks_d0phiCov     ->push_back( -i->covariance(TrackBase::i_phi, TrackBase::i_dxy)	     );  // minus sign because we want cov(d0, phi) = cov(-dxy, phi)
     vector_trks_charge       ->push_back( i->charge()                                              );
     vector_trks_qualityMask  ->push_back( i->qualityMask()                                         );
     vector_trks_algo         ->push_back( i->algo()                                                );
     //vector_trks_validFraction->push_back( i->validFraction());
     
+    vector_trks_nLoops       ->push_back( i->nLoops()                                              );
+
+
+
+    //
     GlobalPoint  tpVertex   ( i->vx(), i->vy(), i->vz() );
     GlobalVector tpMomentum ( i->px(), i->py(), i->pz() );
     int tpCharge ( i->charge() );
     
     FreeTrajectoryState fts ( tpVertex, tpMomentum, tpCharge, bf);
-    const float zdist = 314.;
-    
-    const float radius = 130.;
 
+    const float zdist  = 314.;
+    const float radius = 130.;
     const float corner = 1.479;
 
-    Plane::PlanePointer lendcap = Plane::build( Plane::PositionType (0, 0, -zdist), Plane::RotationType () );    
-    Plane::PlanePointer rendcap = Plane::build( Plane::PositionType (0, 0,  zdist), Plane::RotationType () );
-
+    Plane::PlanePointer lendcap      = Plane::build( Plane::PositionType (0, 0, -zdist), Plane::RotationType () );    
+    Plane::PlanePointer rendcap      = Plane::build( Plane::PositionType (0, 0,  zdist), Plane::RotationType () );
     Cylinder::CylinderPointer barrel = Cylinder::build( Cylinder::PositionType (0, 0, 0), Cylinder::RotationType (), radius);
-
     AnalyticalPropagator myAP (bf, alongMomentum, 2*M_PI);
-	  
     TrajectoryStateOnSurface tsos;    
-    
         
     /*
     Trajectory State is at intersection of cylinder and track, 
@@ -344,8 +367,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       int det;
       int layer;
 
-      typedef edm::Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
-      typedef edm::Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
+      typedef Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
+      typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
 
 
       for(trackingRecHit_iterator ihit = i->recHitsBegin(); 
@@ -441,7 +464,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      int ivIndex = -1;
      reco::TrackBaseRef trackBaseRef = track_h->refAt(iTIndex);
      if (trackBaseRef->px() != i->px()){
-       edm::LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref";
+       LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref";
      }
      //pick and fill the vertex with the highest and the second highest weight for the track
      for (reco::VertexCollection::const_iterator iV = vertexCollection->begin(); iV!= vertexCollection->end(); ++iV){
@@ -451,7 +474,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 if (baseRef.key() == trackBaseRef.key()){
 	   float wT = iV->trackWeight(baseRef);
 	   //	   if (baseRef->px() != i->px()){
-	   //	     edm::LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref from vtx";
+	   //	     LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref from vtx";
 	   //	   }
 	   if (wT > wPV0){
 	     wPV1 = wPV0;
@@ -469,7 +492,8 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
      vector_trks_pvidx0->push_back(iPV0);
      vector_trks_pvidx1->push_back(iPV1);
 
-  }
+
+  } // End loop on tracks
 
   // store vectors
   iEvent.put(vector_trks_trk_p4       , "trkstrkp4"             );
@@ -516,6 +540,9 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   iEvent.put(vector_trks_pvidx0, "trkspvidx0");
   iEvent.put(vector_trks_pvidx1, "trkspvidx1");
+
+  iEvent.put(vector_trks_nLoops, "trksnLoops");
+
 }
 
 // ------------ method called once each job just before starting event loop  ------------
