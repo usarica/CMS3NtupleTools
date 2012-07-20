@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.cc,v 1.67 2012/07/19 22:49:07 dbarge Exp $
+// $Id: MuonMaker.cc,v 1.68 2012/07/20 01:19:39 dbarge Exp $
 //
 //
 
@@ -54,6 +54,7 @@ Implementation:
 #include "CMS2/NtupleMaker/interface/MuonMaker.h"
 
 #include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
+#include "DataFormats/MuonReco/interface/MuonShower.h"
 
 //////////////
 // typedefs //
@@ -96,7 +97,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   vtxInputTag      = iConfig.getParameter<InputTag> ("vtxInputTag"     );
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
   src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
-
+  showerTag_       = iConfig.getParameter<InputTag> ("muonShower"      ); 
 
   /////////
   // STA //
@@ -197,6 +198,16 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "numberOfMatchedStations"   ).setBranchAlias( aliasprefix_ + "_numberOfMatchedStations"); // number of muon stations with muon segements used in the fit
 
   produces<vector<bool> >           ( branchprefix_ + "isRPCMuon"                 ).setBranchAlias( aliasprefix_ + "_isRPCMuon"              ); 
+
+
+  /////////////////////////////
+  // Muon Shower Information //
+  /////////////////////////////
+
+  produces<vector< vector<int> > >   ( branchprefix_ + "nStationHits"              ).setBranchAlias( aliasprefix_ + "_nStationHits"           ); 
+  produces<vector< vector<int> > >   ( branchprefix_ + "nStationCorrelatedHits"    ).setBranchAlias( aliasprefix_ + "_nStationCorrelatedHits" ); 
+  produces<vector< vector<float> > > ( branchprefix_ + "stationShowerSizeT"        ).setBranchAlias( aliasprefix_ + "_stationShowerSizeT"     ); 
+  produces<vector< vector<float> > > ( branchprefix_ + "stationShowerDeltaR"       ).setBranchAlias( aliasprefix_ + "_stationShowerDeltaR"    ); 
 
 
   ////////
@@ -439,6 +450,17 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   auto_ptr<vector<bool> >          vector_mus_isRPCMuon               ( new vector<bool>          );
 
+
+  /////////////////////////////
+  // Muon Shower Information //
+  /////////////////////////////
+
+  auto_ptr<vector< vector<int> > >   vv_mus_nStationHits            ( new vector< vector<int> >   );
+  auto_ptr<vector< vector<int> > >   vv_mus_nStationCorrelatedHits  ( new vector< vector<int> >   );
+  auto_ptr<vector< vector<float> > > vv_mus_stationShowerSizeT      ( new vector< vector<float> > );
+  auto_ptr<vector< vector<float> > > vv_mus_stationShowerDeltaR     ( new vector< vector<float> > );
+
+
   ////////
   // ID //
   ////////
@@ -582,6 +604,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   Handle<View<Muon> > muon_h;
   iEvent.getByLabel( muonsInputTag , muon_h );
+
+  
+  /////////////////////////////////
+  // Get Muon Shower Information //
+  /////////////////////////////////
+
+  Handle<ValueMap<MuonShower> > showerMap;
+  iEvent.getByLabel( showerTag_ , showerMap );
 
 
   ////////////////////////////////
@@ -782,18 +812,30 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     vector_mus_isRPCMuon               ->push_back( muon->isRPCMuon()                                          );
 
+
     /*
+    /////////////////             
+    // rpc matches //             
     /////////////////
-    // rpc matches //
-    /////////////////
-    const vector<MuonChamberMatch>& v_muMatches   = muon->matches();
+    const vector<MuonChamberMatch>& v_muMatches   = muon->matches();    
     for( unsigned int imatch = 0; imatch < v_muMatches.size(); imatch++ ){
-      //MuonChamberMatch        muMatch     = v_muMatches.at(imatch);
+      //MuonChamberMatch        muMatch     = v_muMatches.at(imatch);   
       //vector<MuonRPCHitMatch> rpcMatches  = muMatch.rpcMatches;
       //unsigned int            nRPCMatches = rpcMatches.size();
       unsigned int            nRPCMatches = v_muMatches.at(imatch).rpcMatches.size();
     }
     */
+    
+
+    /////////////////////////////
+    // Muon Shower Information //
+    /////////////////////////////
+
+    const MuonShower muShower = showerMap.isValid() ? (*showerMap)[muonRef] : MuonShower();
+    vv_mus_nStationHits           ->push_back( muShower.nStationHits           );
+    vv_mus_nStationCorrelatedHits ->push_back( muShower.nStationCorrelatedHits );
+    vv_mus_stationShowerSizeT     ->push_back( muShower.stationShowerSizeT     );
+    vv_mus_stationShowerDeltaR    ->push_back( muShower.stationShowerDeltaR    );
 
 
     ////////
@@ -946,6 +988,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructR04.sumNeutralHadronEtHighThreshold );
     vector_mus_isoR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructR04.sumPhotonEtHighThreshold        );
     vector_mus_isoR04_pf_PUPt                            -> push_back( pfStructR04.sumPUPt                         );
+
 
     // Other PF
     PFCandidatePtr pfCandRef = (*pfMap)[muonRef];
@@ -1161,6 +1204,17 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
 
   iEvent.put( vector_mus_isRPCMuon               , branchprefix_ + "isRPCMuon"               );
+
+ 
+  /////////////////////////////
+  // Muon Shower Information //
+  /////////////////////////////
+
+  iEvent.put( vv_mus_nStationHits            , branchprefix_ + "nStationHits"               );
+  iEvent.put( vv_mus_nStationCorrelatedHits  , branchprefix_ + "nStationCorrelatedHits"     );
+  iEvent.put( vv_mus_stationShowerSizeT      , branchprefix_ + "stationShowerSizeT"         );
+  iEvent.put( vv_mus_stationShowerDeltaR     , branchprefix_ + "stationShowerDeltaR"        );
+
 
   ////////
   // ID //

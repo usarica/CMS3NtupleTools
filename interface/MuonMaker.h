@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: MuonMaker.h,v 1.18 2012/03/27 21:22:08 dbarge Exp $
+// $Id: MuonMaker.h,v 1.19 2012/07/20 01:24:31 dbarge Exp $
 //
 //
 #ifndef CMS2_MUONMAKER_H
@@ -65,6 +65,9 @@ private:
 
   // Cosmics Compatibility
   edm::InputTag src_;
+
+  //  
+  edm::InputTag showerTag_;
 
 };
 
