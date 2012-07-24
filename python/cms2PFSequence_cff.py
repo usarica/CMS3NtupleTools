@@ -100,6 +100,7 @@ cms2PFNoTauSequence = cms.Sequence(
   pfCandidateMaker + 
   trkMetSequence +
   ak5PFJetsL1FastL2L3 +
+  ak5PFJetsL1FastL2L3Residual +
   mvaJetIdMaker +
   muonIsolationMaker +
   electronIsolationMaker

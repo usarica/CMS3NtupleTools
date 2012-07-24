@@ -26,9 +26,10 @@ MVAJetIdMaker::MVAJetIdMaker(const edm::ParameterSet& iConfig){
   
   //
   fVertexNameTag_   = iConfig.getParameter<InputTag>	( "VertexName" 		);
-  fCorrJetName    	= iConfig.getParameter<InputTag>	( "CorrJetName"		);
+  fCorrJetNameData  = iConfig.getParameter<InputTag>	( "CorrJetNameData"		);
+  fCorrJetNameMC    = iConfig.getParameter<InputTag>	( "CorrJetNameMC"		);
   fUnCorrJetName  	= iConfig.getParameter<InputTag>	( "JetName"			);
-  fJetPtMin       	= iConfig.getParameter<double>       ("JetPtMin");
+  fJetPtMin       	= iConfig.getParameter<double>      ("JetPtMin");
   // 
   fPUJetIdAlgo    	= new PileupJetIdAlgo(iConfig); 
 
@@ -46,6 +47,8 @@ void MVAJetIdMaker::endJob() {}
 // ------------ method called to produce the data  ------------
 void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
+
+
   using namespace std;
   using namespace edm;
   using namespace reco;
@@ -61,7 +64,8 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   //Corrected Jets
   Handle<PFJetCollection>       lHCJets;
-  iEvent.getByLabel(fCorrJetName  , lHCJets);
+  if(iEvent.isRealData()) iEvent.getByLabel(fCorrJetNameData  , lHCJets);
+  else iEvent.getByLabel(fCorrJetNameMC  , lHCJets);
   PFJetCollection               lCJets = *lHCJets;
 
   // vertices    
@@ -102,11 +106,13 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		   	pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
 		  
 			// print out MVA inputs 
-			if(false)
+			if(0)
 			{
-				std::cout << "Debug Jet MVA: "
+				std::cout << setprecision(5)
+					<< "Debug Jet MVA : "
+				 	<< iEvent.id() 			<< " : "
 					<< lPUJetId.nvtx()      << " "
-					<< pCJet->pt()       	  << " "
+					<< pCJet->pt()         	<< " "
 					<< lPUJetId.jetEta()    << " "
 					<< lPUJetId.jetPhi()    << " "
 					<< lPUJetId.d0()        << " "

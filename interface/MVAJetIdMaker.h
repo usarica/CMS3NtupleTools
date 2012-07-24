@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: MVAJetIdMaker.h,v 1.3 2012/04/27 21:02:55 jaehyeok Exp $
+// $Id: MVAJetIdMaker.h,v 1.4 2012/07/24 16:34:33 jaehyeok Exp $
 //
 //
 
@@ -50,7 +50,8 @@ private:
  // ----------member data ---------------------------
   edm::InputTag pfJetsInputTag_;
   edm::InputTag fVertexNameTag_;
-  edm::InputTag fCorrJetName;
+  edm::InputTag fCorrJetNameData;
+  edm::InputTag fCorrJetNameMC;
   edm::InputTag fUnCorrJetName;
    
   double            fJetPtMin; 

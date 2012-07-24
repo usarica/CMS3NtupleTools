@@ -2,8 +2,9 @@ import FWCore.ParameterSet.Config as cms
 from CMGTools.External.puJetIDAlgo_cff import *
 
 mvaJetIdMaker = cms.EDProducer("MVAJetIdMaker", 
-	CorrJetName     = cms.InputTag("ak5PFJetsL1FastL2L3"), 
-	#CorrJetName     = cms.InputTag("ak5PFJets"),			# for JEC test
+	CorrJetNameData = cms.InputTag("ak5PFJetsL1FastL2L3Residual"), 
+	CorrJetNameMC   = cms.InputTag("ak5PFJetsL1FastL2L3"), 
+	#CorrJetName    = cms.InputTag("ak5PFJets"),			# for JEC test
 	JetName         = cms.InputTag("ak5PFJets"),		
 	VertexName      = cms.InputTag("offlinePrimaryVertices"),	
     JetPtMin        = cms.double(0.),
