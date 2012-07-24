@@ -11,11 +11,14 @@ from CMS2.NtupleMaker.pdfinfoMaker_cfi          import *
 from CMS2.NtupleMaker.genJetMaker_cfi           import *
 from CMS2.NtupleMaker.puSummaryInfoMaker_cfi    import *
 
+from CMS2.NtupleMaker.jetFlavorMaker_cfi        import *
+
 #This should be in the config
 from CMS2.NtupleMaker.dilepGenFilter_cfi import dilepGenFilter
 
 
-cms2GENSequence     = cms.Sequence(genMaker * pdfinfoMaker * 
-                                   genJetSequence * CMS2FlavorHistorySequence * 
-                                   candToGenAssMaker * genJetMaker * 
-                                   hypGenMaker * puSummaryInfoMaker)
+cms2GENSequence     = cms.Sequence(
+
+  genMaker * pdfinfoMaker * genJetSequence * CMS2FlavorHistorySequence * candToGenAssMaker * genJetMaker * hypGenMaker * puSummaryInfoMaker * jetFlavorSequence
+
+)
