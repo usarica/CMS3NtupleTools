@@ -29,6 +29,6 @@ jetFlavorMaker = cms.EDProducer("JetFlavorMaker",
 
 )
 
-#genJetFlavorSequence = printTree * myPartons * flavourByRef * flavourByVal * genJetFlavorMaker
-genJetFlavorSequence = myPartons * flavourByRef * flavourByVal * jetFlavorMaker
+#jetFlavorSequence = printTree * myPartons * flavourByRef * flavourByVal * genJetFlavorMaker
+jetFlavorSequence = myPartons * flavourByRef * flavourByVal * jetFlavorMaker
 

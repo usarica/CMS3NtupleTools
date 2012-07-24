@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.9 $'),
+        version    = cms.untracked.string('$Revision: 1.10 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -73,7 +73,9 @@ process.source = cms.Source("PoolSource",
 
 
       #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_2_5_cand1-GR_R_52_V7_RelVal_mu2011A-v1_RECO/0CF15A58-7B91-E111-9FDA-002618FDA237.root' # CMSSW_5_2_5
-      'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_3_1-GR_R_53_V2_RelVal_mu2011A-v1_RECO/B4750996-E5A4-E111-8DEC-0030486791F2.root'        # CMSSW_5_3_1
+      #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_3_1-GR_R_53_V2_RelVal_mu2011A-v1_RECO/B4750996-E5A4-E111-8DEC-0030486791F2.root'        # CMSSW_5_3_1
+
+      'file:../test/TTJets_D6EA05D1-26C2-E111-BF3A-003048FFD7A2.root' # 52x TTJets
 
    ),
     #--- Uncomment to emulate AOD with RECO --- #
@@ -95,7 +97,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
