@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.88 2012/07/19 22:49:07 dbarge Exp $
+// $Id: ElectronMaker.cc,v 1.89 2012/08/16 00:00:27 slava77 Exp $
 //
 //
 
@@ -105,6 +105,14 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     eidLHTag_                 = iConfig.getParameter<edm::InputTag> ("eidLHTag"                 );
     pfCandsInputTag           = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"          );
     vtxInputTag               = iConfig.getParameter<edm::InputTag> ("vtxInputTag"              );
+    pfIsoCharged03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   );
+    pfIsoGamma03InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     );
+    pfIsoNeutral03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   );
+    pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
+    pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
+    pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
+    
+
     recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
     rhoInputTag_              = iConfig.getParameter<edm::InputTag> ("rhoInputTag"              );
     beamSpot_tag_             = iConfig.getParameter<edm::InputTag> ("beamSpotTag"              );
@@ -216,6 +224,14 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elsiso04pf2012em"             ).setBranchAlias("els_iso04_pf2012_em"    );
     produces<vector<float> >     ("elsiso04pf2012nh"             ).setBranchAlias("els_iso04_pf2012_nh"    );
 
+    // from external code
+    produces<vector<float> >     ("elsiso03pf2012extch"             ).setBranchAlias("els_iso03_pf2012ext_ch"    );
+    produces<vector<float> >     ("elsiso03pf2012extem"             ).setBranchAlias("els_iso03_pf2012ext_em"    );
+    produces<vector<float> >     ("elsiso03pf2012extnh"             ).setBranchAlias("els_iso03_pf2012ext_nh"    );
+    produces<vector<float> >     ("elsiso04pf2012extch"             ).setBranchAlias("els_iso04_pf2012ext_ch"    );
+    produces<vector<float> >     ("elsiso04pf2012extem"             ).setBranchAlias("els_iso04_pf2012ext_em"    );
+    produces<vector<float> >     ("elsiso04pf2012extnh"             ).setBranchAlias("els_iso04_pf2012ext_nh"    );
+
     // pf isolation variables
     produces<vector<float> >     ("elspfChargedHadronIso").setBranchAlias("els_pfChargedHadronIso");
     produces<vector<float> >     ("elspfNeutralHadronIso").setBranchAlias("els_pfNeutralHadronIso");
@@ -317,6 +333,11 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<unsigned int> >  ("elsid2012loose"  ).setBranchAlias("els_id2012_loose"  );
     produces<vector<unsigned int> >  ("elsid2012medium" ).setBranchAlias("els_id2012_medium" );
     produces<vector<unsigned int> >  ("elsid2012tight"  ).setBranchAlias("els_id2012_tight"  );
+    //the same using 2012ext iso
+    produces<vector<unsigned int> >  ("elsid2012extveto"   ).setBranchAlias("els_id2012ext_veto"   );
+    produces<vector<unsigned int> >  ("elsid2012extloose"  ).setBranchAlias("els_id2012ext_loose"  );
+    produces<vector<unsigned int> >  ("elsid2012extmedium" ).setBranchAlias("els_id2012ext_medium" );
+    produces<vector<unsigned int> >  ("elsid2012exttight"  ).setBranchAlias("els_id2012ext_tight"  );
  
 
     ///////////////////
@@ -458,6 +479,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_iso04_pf2012_em        (new vector<float> );
     auto_ptr<vector<float> > els_iso04_pf2012_nh        (new vector<float> );
 
+    auto_ptr<vector<float> > els_iso03_pf2012ext_ch        (new vector<float> );
+    auto_ptr<vector<float> > els_iso03_pf2012ext_em        (new vector<float> );
+    auto_ptr<vector<float> > els_iso03_pf2012ext_nh        (new vector<float> );
+    auto_ptr<vector<float> > els_iso04_pf2012ext_ch        (new vector<float> );
+    auto_ptr<vector<float> > els_iso04_pf2012ext_em        (new vector<float> );
+    auto_ptr<vector<float> > els_iso04_pf2012ext_nh        (new vector<float> );
+
     auto_ptr<vector<float> > els_pfChargedHadronIso     (new vector<float> );
     auto_ptr<vector<float> > els_pfNeutralHadronIso     (new vector<float> );
     auto_ptr<vector<float> > els_pfPhotonIso            (new vector<float> );
@@ -550,6 +578,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<unsigned int> > els_id2012_loose  (new vector<unsigned int>);
     auto_ptr<vector<unsigned int> > els_id2012_medium (new vector<unsigned int>);
     auto_ptr<vector<unsigned int> > els_id2012_tight  (new vector<unsigned int>);
+    //the same using 2012ext iso
+    auto_ptr<vector<unsigned int> > els_id2012ext_veto   (new vector<unsigned int>);
+    auto_ptr<vector<unsigned int> > els_id2012ext_loose  (new vector<unsigned int>);
+    auto_ptr<vector<unsigned int> > els_id2012ext_medium (new vector<unsigned int>);
+    auto_ptr<vector<unsigned int> > els_id2012ext_tight  (new vector<unsigned int>);
 
     ///////////////////
     // Added for 53x //
@@ -605,6 +638,23 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //////////////
 
     iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+
+    /////////////////////////
+    // External Isolations //
+    /////////////////////////
+    edm::Handle< edm::ValueMap<double> > pfIsoCharged03_h;
+    iEvent.getByLabel(pfIsoCharged03InputTag, pfIsoCharged03_h);
+    edm::Handle< edm::ValueMap<double> > pfIsoGamma03_h;
+    iEvent.getByLabel(pfIsoGamma03InputTag, pfIsoGamma03_h);
+    edm::Handle< edm::ValueMap<double> > pfIsoNeutral03_h;
+    iEvent.getByLabel(pfIsoNeutral03InputTag, pfIsoNeutral03_h);
+
+    edm::Handle< edm::ValueMap<double> > pfIsoCharged04_h;
+    iEvent.getByLabel(pfIsoCharged04InputTag, pfIsoCharged04_h);
+    edm::Handle< edm::ValueMap<double> > pfIsoGamma04_h;
+    iEvent.getByLabel(pfIsoGamma04InputTag, pfIsoGamma04_h);
+    edm::Handle< edm::ValueMap<double> > pfIsoNeutral04_h;
+    iEvent.getByLabel(pfIsoNeutral04InputTag, pfIsoNeutral04_h);
 
   
     ////////////
@@ -821,7 +871,22 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
             els_iso04_pf2012_ch ->push_back( pfiso_ch );
             els_iso04_pf2012_em ->push_back( pfiso_em );
-            els_iso04_pf2012_nh ->push_back( pfiso_nh );
+            els_iso04_pf2012_nh ->push_back( pfiso_nh );	    
+
+	    pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
+	    pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
+	    pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
+            els_iso03_pf2012ext_ch ->push_back( pfiso_ch );
+            els_iso03_pf2012ext_em ->push_back( pfiso_em );
+            els_iso03_pf2012ext_nh ->push_back( pfiso_nh );
+
+	    pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
+	    pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
+	    pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
+            els_iso04_pf2012ext_ch ->push_back( pfiso_ch );
+            els_iso04_pf2012ext_em ->push_back( pfiso_em );
+            els_iso04_pf2012ext_nh ->push_back( pfiso_nh );
+
 
         } else {
 
@@ -841,6 +906,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_iso04_pf2012_ch ->push_back( -9999. );
             els_iso04_pf2012_em ->push_back( -9999. );
             els_iso04_pf2012_nh ->push_back( -9999. );
+
+
+            els_iso03_pf2012ext_ch ->push_back( -9999. );
+            els_iso03_pf2012ext_em ->push_back( -9999. );
+            els_iso03_pf2012ext_nh ->push_back( -9999. );
+            els_iso04_pf2012ext_ch ->push_back( -9999. );
+            els_iso04_pf2012ext_em ->push_back( -9999. );
+            els_iso04_pf2012ext_nh ->push_back( -9999. );
 
         }
 
@@ -1326,6 +1399,20 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_id2012_medium ->push_back(medium_bits );
         els_id2012_tight  ->push_back(tight_bits  );
 
+        pfiso_ch = els_iso03_pf2012ext_ch->at(elsIndex);
+        pfiso_em = els_iso03_pf2012ext_em->at(elsIndex);
+        pfiso_nh = els_iso03_pf2012ext_nh->at(elsIndex);
+        veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+        tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+
+        els_id2012ext_veto   ->push_back(veto_bits   );
+        els_id2012ext_loose  ->push_back(loose_bits  );
+        els_id2012ext_medium ->push_back(medium_bits );
+        els_id2012ext_tight  ->push_back(tight_bits  );
+
+
  
         ///////////////////
         // Added for 53x //
@@ -1475,6 +1562,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_iso04_pf2012_em , "elsiso04pf2012em" );
     iEvent.put(els_iso04_pf2012_nh , "elsiso04pf2012nh" );
 
+    iEvent.put(els_iso03_pf2012ext_ch , "elsiso03pf2012extch" );
+    iEvent.put(els_iso03_pf2012ext_em , "elsiso03pf2012extem" );
+    iEvent.put(els_iso03_pf2012ext_nh , "elsiso03pf2012extnh" );
+    iEvent.put(els_iso04_pf2012ext_ch , "elsiso04pf2012extch" );
+    iEvent.put(els_iso04_pf2012ext_em , "elsiso04pf2012extem" );
+    iEvent.put(els_iso04_pf2012ext_nh , "elsiso04pf2012extnh" );
+
     iEvent.put(els_pfChargedHadronIso , "elspfChargedHadronIso" );
     iEvent.put(els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
     iEvent.put(els_pfPhotonIso        , "elspfPhotonIso"        );
@@ -1535,6 +1629,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_id2012_loose  , "elsid2012loose"  );
     iEvent.put(els_id2012_medium , "elsid2012medium" );
     iEvent.put(els_id2012_tight  , "elsid2012tight"  );
+
+    iEvent.put(els_id2012ext_veto   , "elsid2012extveto"   );
+    iEvent.put(els_id2012ext_loose  , "elsid2012extloose"  );
+    iEvent.put(els_id2012ext_medium , "elsid2012extmedium" );
+    iEvent.put(els_id2012ext_tight  , "elsid2012exttight"  );
 
 
     ///////////////////

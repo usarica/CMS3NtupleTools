@@ -13,7 +13,7 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.26 2012/05/14 17:15:10 cerati Exp $
+// $Id: ElectronMaker.h,v 1.27 2012/08/16 00:00:26 slava77 Exp $
 //
 //
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
@@ -88,6 +88,13 @@ private:
     edm::InputTag cms2scsseeddetidInputTag_;
     edm::InputTag pfCandsInputTag;
     edm::InputTag vtxInputTag;
+
+  edm::InputTag pfIsoCharged03InputTag;
+  edm::InputTag pfIsoGamma03InputTag;
+  edm::InputTag pfIsoNeutral03InputTag;
+  edm::InputTag pfIsoCharged04InputTag;
+  edm::InputTag pfIsoGamma04InputTag;
+  edm::InputTag pfIsoNeutral04InputTag;
 
     edm::InputTag recoConversionInputTag_;
 

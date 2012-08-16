@@ -20,6 +20,7 @@ from CMS2.NtupleMaker.mvaJetIdMaker_cfi import *
 from CommonTools.ParticleFlow.TopProjectors.pfNoMuon_cfi import *
 from CommonTools.ParticleFlow.Isolation.pfIsolatedMuons_cfi import *
 from CommonTools.ParticleFlow.pfNoPileUp_cff  import *
+from CommonTools.ParticleFlow.pfNoPileUpIso_cff  import *
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllMuons_cfi import *
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllElectrons_cfi import *
 from CommonTools.ParticleFlow.ParticleSelectors.pfAllNeutralHadrons_cfi  import *
@@ -67,9 +68,9 @@ CMS2pfAllElectrons.src = cms.InputTag("CMS2pfNoMuon")
 #pfElectronMaker + pfElToElAssMaker + elToPFElAssMaker + pfCandidateMaker + trkMetSequence)
 
    
-pfAllNeutralHadrons.src = cms.InputTag("pfNoPileUp")
-pfAllChargedHadrons.src = cms.InputTag("pfNoPileUp")
-pfAllPhotons.src        = cms.InputTag("pfNoPileUp")
+#pfAllNeutralHadrons.src = cms.InputTag("pfNoPileUp")
+#pfAllChargedHadrons.src = cms.InputTag("pfNoPileUp")
+#pfAllPhotons.src        = cms.InputTag("pfNoPileUp")
 
 from CMS2.NtupleMaker.muonIsolationMaker_cfi import *
 from CMS2.NtupleMaker.electronIsolationMaker_cfi import *
@@ -81,6 +82,7 @@ cms2PFNoTauSequence = cms.Sequence(
   CMS2PFBtagging + 
   bTagPFJetMaker + 
 #  goodPrimaryVertices +
+  pfNoPileUpIsoSequence +
   pfNoPileUpSequence +
   pfAllNeutralHadrons + 
   pfAllChargedHadrons + 

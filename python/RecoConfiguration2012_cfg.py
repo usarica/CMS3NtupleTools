@@ -8,7 +8,7 @@ process = cms.Process("CMS2")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.10 $'),
+        version    = cms.untracked.string('$Revision: 1.11 $'),
         annotation = cms.untracked.string('CMS2'),
         name       = cms.untracked.string('CMS2 test configuration')
 )
@@ -26,7 +26,13 @@ process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
+
+from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
+process.eleIsoSequence = setupPFElectronIso(process, 'gsfElectrons')
+
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
+process.CMS2Reco *= process.pfParticleSelectionSequence
+process.CMS2Reco *= process.eleIsoSequence
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
