@@ -13,6 +13,7 @@ from CMS2.NtupleMaker.elToPFElAssMaker_cfi import *
 from CMS2.NtupleMaker.bTagPFSequence_cfi import *
 from CMS2.NtupleMaker.bTagPFJetMaker_cfi import *
 from CMS2.NtupleMaker.pfCandidateMaker_cfi import *
+from CMS2.NtupleMaker.trackIsolationMaker_cfi import *
 from CMS2.NtupleMaker.trkMetSequence_cff   import *
 from CMS2.NtupleMaker.mvaJetIdMaker_cfi import *
 
@@ -100,6 +101,7 @@ cms2PFNoTauSequence = cms.Sequence(
   pfElToElAssMaker + 
   elToPFElAssMaker + 
   pfCandidateMaker + 
+  trackIsolationMaker + 
   trkMetSequence +
   ak5PFJetsL1FastL2L3 +
   ak5PFJetsL1FastL2L3Residual +
