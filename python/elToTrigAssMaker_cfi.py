@@ -38,6 +38,7 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
 
         # HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*
         # only store final filter for this one, since it is the electron one
-        cms.InputTag('HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*::HLT_Mu8_Ele17'))
+        cms.InputTag('HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*::HLT_Mu8_Ele17')),
 
+        processName = cms.untracked.string("HLT")
 )

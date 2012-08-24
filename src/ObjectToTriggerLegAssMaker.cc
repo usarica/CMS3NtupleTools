@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ObjectToTriggerLegAssMaker.cc,v 1.3 2012/04/26 13:01:34 dlevans Exp $
+// $Id: ObjectToTriggerLegAssMaker.cc,v 1.4 2012/08/24 18:58:55 fgolf Exp $
 // This code was written by DLE
 //
 //
@@ -44,6 +44,7 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
     cone_               = iConfig.getUntrackedParameter<double>("cone");
     objectInputTag_     = iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag");
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
+    processName_        = iConfig.getUntrackedParameter<std::string>("processName");
 
     // get the branch prefix and remove spurious _s
     std::string aliasprefix = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
