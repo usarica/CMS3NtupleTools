@@ -13,9 +13,10 @@ metMuonJESCorAK5CMS2.inputUncorMetLabel  = "corMetGlobalMuons"
 from CommonTools.RecoAlgos.HBHENoiseFilterResultProducer_cfi import *
 cms2HBHENoiseFilterResultProducer = HBHENoiseFilterResultProducer.clone()
 #Updated configuration based on https://hypernews.cern.ch/HyperNews/CMS/get/JetMET/1196.html
-cms2HBHENoiseFilterResultProducer.minIsolatedNoiseSumE = cms.double(999999.)
-cms2HBHENoiseFilterResultProducer.minNumIsolatedNoiseChannels = cms.int32(999999)
-cms2HBHENoiseFilterResultProducer.minIsolatedNoiseSumEt = cms.double(999999.)
+#### REMOVE THE FOLLOWING SINCE THEY ARE OUTDATED
+#cms2HBHENoiseFilterResultProducer.minIsolatedNoiseSumE = cms.double(999999.)
+#cms2HBHENoiseFilterResultProducer.minNumIsolatedNoiseChannels = cms.int32(999999)
+#cms2HBHENoiseFilterResultProducer.minIsolatedNoiseSumEt = cms.double(999999.)
 
 metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * cms2HBHENoiseFilterResultProducer)
 #metCorSequence = cms.Sequence(metMuonJESCorAK5CMS2 * towerMakerWithHO * metHO * cms2HBHENoiseFilterResultProducer)
