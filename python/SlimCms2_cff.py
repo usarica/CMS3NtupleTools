@@ -149,7 +149,6 @@ slimcms2.extend(cms.untracked.vstring('drop *_*_gsftrkslostpixelhits_CMS2*'))
 #Other Track-related Makers
 slimcms2.extend(cms.untracked.vstring('drop *_trkToVtxAssMaker_*_CMS2*'))
 slimcms2.extend(cms.untracked.vstring('drop *_beamHaloMaker_*_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_myTrkMetMaker_*_CMS2*'))
 slimcms2.extend(cms.untracked.vstring('drop *_myTrkJetMetMaker_*_CMS2*'))
 
 #RecoConversionMaker
