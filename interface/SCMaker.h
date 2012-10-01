@@ -31,9 +31,9 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
 
-
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 #include "CondFormats/DataRecord/interface/EcalChannelStatusRcd.h"
+#include "CalibCalorimetry/EcalLaserCorrection/interface/EcalLaserDbService.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 
@@ -91,6 +91,9 @@ private:
   unsigned long long cachedCaloGeometryID_;
   edm::ESHandle<CaloGeometry> caloGeometry_;
   const   EcalChannelStatus *channelStatus_;
+
+  // access the laser
+  edm::ESHandle<EcalLaserDbService>      laser_;
 
   EcalClusterLazyTools* clusterTools_;
 
