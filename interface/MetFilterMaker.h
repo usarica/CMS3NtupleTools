@@ -17,29 +17,29 @@ class MetFilterMaker : public edm::EDProducer {
 
 public:
      
-  explicit MetFilterMaker (const edm::ParameterSet&);
-  ~MetFilterMaker();
+    explicit MetFilterMaker (const edm::ParameterSet&);
+    ~MetFilterMaker();
 
 private:
      
-  virtual void beginJob ();
-  virtual void endJob   ();
-  virtual void produce  ( edm::Event&, const edm::EventSetup& );
+    virtual void beginJob ();
+    virtual void endJob   ();
+    virtual void produce  ( edm::Event&, const edm::EventSetup& );
 
-  std::string   aliasprefix_;
-  std::string   branchprefix_;
+    std::string   aliasprefix_;
+    std::string   branchprefix_;
  
-  edm::InputTag ecalBEInputTag_;
-  edm::InputTag ecalDRInputTag_;
-  edm::InputTag ecalTPInputTag_;
-  edm::InputTag greedyMuonInputTag_;
-  edm::InputTag hcalLaserEventInputTag_;
-  edm::InputTag inconsistentMuonInputTag_;
-  edm::InputTag jetIDFailureInputTag_;
-  edm::InputTag multiEventFailureInputTag_;
-  edm::InputTag trackingFailureInputTag_;
-  edm::InputTag eeBadScFilterInputTag_;
-
+    edm::InputTag ecalBEInputTag_;
+    edm::InputTag ecalDRInputTag_;
+    edm::InputTag ecalTPInputTag_;
+    edm::InputTag greedyMuonInputTag_;
+    edm::InputTag hcalLaserEventInputTag_;
+    edm::InputTag inconsistentMuonInputTag_;
+    edm::InputTag jetIDFailureInputTag_;
+    edm::InputTag multiEventFailureInputTag_;
+    edm::InputTag trackingFailureInputTag_;
+    edm::InputTag eeBadScFilterInputTag_;
+    edm::InputTag ecalLaserCorrFilterInputTag_;
 
 };
 
