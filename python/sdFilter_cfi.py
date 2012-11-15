@@ -54,8 +54,10 @@ sdFilter = cms.EDFilter("SDFilter",
                             "HLT_Ele27*", #temporary --> may remove/restrict later
                             ),
                             MuHadTriggerNames_ = cms.untracked.vstring(
-                            "HLT*Mu*Ele*HT*",
+                            "HLT*Doubl*Mu*MET*",
                             "HLT*Doubl*Mu*HT*",
+                            "HLT*Mu*Ele*HT*",
+                            "HLT*Mu*Ele*MET*",
                             "HLT_IsoMu20*", #temporary --> may remove/restrict later
                             "HLT_Mu20*",    #temporary --> may remove/restrict later
                             ),
