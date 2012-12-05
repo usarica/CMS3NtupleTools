@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.28 2011/01/20 22:05:13 fgolf Exp $
+// $Id: GenMaker.cc,v 1.29 2012/12/05 22:50:16 linacre Exp $
 //
 //
 
@@ -199,23 +199,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     int id = genps_it->pdgId();
     
-    
-    //fill daughter branches
-    if( ntupleDaughters_ ) { 
-      vector<int> v_temp_id;
-      vector<int> v_temp_idx;
-      vector<LorentzVector> v_temp_p4;
-      //unnecessary but being paranoid
-      v_temp_id.clear();
-      v_temp_idx.clear();
-      v_temp_p4.clear();
-      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ) 
-	MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
-      genps_lepdaughter_id ->push_back(v_temp_id  );
-      genps_lepdaughter_idx->push_back(v_temp_idx );
-      genps_lepdaughter_p4 ->push_back(v_temp_p4  );
-    }
-
     //12 = nuE, 14=nuMu, 16=nuTau, appear at both status 1 and 3
     //if( (TMath::Abs(id) == 12 || TMath::Abs(id) == 14 || TMath::Abs(id) == 16) && genps_it->status() != 3 ) {
     /* Dec 08 2010: Changed to exclude status 2 neutrinos due to observation of low tail in (RecoMET/GenMET) in Fall10 LM samples */
@@ -237,6 +220,22 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	}
   
     if( ntupleOnlyStatus3_ && (genps_it->status() !=3) ) continue;
+    
+    //fill daughter branches
+    if( ntupleDaughters_ ) { 
+      vector<int> v_temp_id;
+      vector<int> v_temp_idx;
+      vector<LorentzVector> v_temp_p4;
+      //unnecessary but being paranoid
+      v_temp_id.clear();
+      v_temp_idx.clear();
+      v_temp_p4.clear();
+      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ) 
+	MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
+      genps_lepdaughter_id ->push_back(v_temp_id  );
+      genps_lepdaughter_idx->push_back(v_temp_idx );
+      genps_lepdaughter_p4 ->push_back(v_temp_p4  );
+    }
 
     genps_status    ->push_back( genps_it->status()                        );
     genps_id        ->push_back( genps_it->pdgId()                         );
