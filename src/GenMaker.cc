@@ -13,7 +13,7 @@
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.cc,v 1.29 2012/12/05 22:50:16 linacre Exp $
+// $Id: GenMaker.cc,v 1.30 2012/12/18 18:03:21 linacre Exp $
 //
 //
 
@@ -148,6 +148,13 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   const vector<GenParticle>* genps_coll = genpsHandle.product();
 
+  //get the signal processID
+  edm::Handle<GenEventInfoProduct> genEvtInfo;
+  iEvent.getByLabel("generator", genEvtInfo);
+  *genps_signalProcessID = genEvtInfo->signalProcessID();
+  *genps_qScale          = genEvtInfo->qScale();
+  *genps_alphaQCD        = genEvtInfo->alphaQCD();
+
   //get the MC event weights
   //if weights do not exist (Pythia), default is weight of 1
   vector< Handle<HepMCProduct> > hepmc_vect;
@@ -178,14 +185,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   } 
   else
-    *genps_weight = 1.;
-
-  //get the signal processID
-  edm::Handle<GenEventInfoProduct> genEvtInfo;
-  iEvent.getByLabel("generator", genEvtInfo);
-  *genps_signalProcessID = genEvtInfo->signalProcessID();
-  *genps_qScale          = genEvtInfo->qScale();
-  *genps_alphaQCD        = genEvtInfo->alphaQCD();
+    *genps_weight = genEvtInfo->weight();
+  //  *genps_weight = 1.;
 
   *evt_scale1fb  = 1.; // this value is a placeholder; it will be filled during post-processing
   *evt_xsec_incl = inclusiveCrossSectionValue_;
