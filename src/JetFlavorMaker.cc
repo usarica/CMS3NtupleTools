@@ -55,8 +55,8 @@ JetFlavorMaker::JetFlavorMaker(const ParameterSet& iConfig) {
   // Declare Products //
   //////////////////////
 
-  produces <vector<int> > ("jetsmcflavorAlgo").setBranchAlias("jets_mcflavorAlgo");
-  produces <vector<int> > ("jetsmcflavorPhys").setBranchAlias("jets_mcflavorPhys");
+  produces <vector<int> > ("pfjetsmcflavorAlgo").setBranchAlias("pfjets_mcflavorAlgo");
+  produces <vector<int> > ("pfjetsmcflavorPhys").setBranchAlias("pfjets_mcflavorPhys");
 
 } //
 
@@ -217,8 +217,8 @@ void JetFlavorMaker::produce( Event& iEvent, const EventSetup& iSetup ) {
   // Store Products //
   ////////////////////
 
-  iEvent.put( v_flavorAlgo, "jetsmcflavorAlgo" );
-  iEvent.put( v_flavorPhys, "jetsmcflavorPhys" );
+  iEvent.put( v_flavorAlgo, "pfjetsmcflavorAlgo" );
+  iEvent.put( v_flavorPhys, "pfjetsmcflavorPhys" );
 
 }
 
