@@ -10,7 +10,8 @@ myPartons = cms.EDProducer("PartonSelector",
 )
 
 flavourByRef = cms.EDProducer("JetPartonMatcher",
-    jets                = cms.InputTag("ak5CaloJets"),
+    jets                = cms.InputTag("ak5PFJets"),
+    #jets                = cms.InputTag("ak5CaloJets"),
     coneSizeToAssociate = cms.double(0.3),
     partons             = cms.InputTag("myPartons")
 )
