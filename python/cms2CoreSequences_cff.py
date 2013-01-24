@@ -65,14 +65,18 @@ from CMS2.NtupleMaker.cms2PFSequence_cff           import *
 
 from CMS2.NtupleMaker.sParmMaker_cff               import * # doesn't always get loaded
 
-CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging * CMS2PFtautagging)
+CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging )
 eventmakers      = cms.Sequence( beamSpotMaker * vertexMaker * vertexMakerWithBS * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID )
-eventmakerswsparm=cms.Sequence( eventmakers * sParmMaker ) # build up alternate sequence to be swapped in main config file
+eventmakerswsparm= cms.Sequence( eventmakers * sParmMaker ) # build up alternate sequence to be swapped in main config file
 
 trigmakers       = cms.Sequence( l1Maker * hltMakerSequence )
+
 makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * fastJetSequence * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * 
                                  tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * cms2MetFilterSequence * metFilterMaker )
+
 assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * muToTrigAssMaker * elToTrigAssMaker)
 hypmakers        = cms.Sequence( hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker )
 othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker * pftauMaker )
-cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * othermakers * hypmakers )
+cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * hypmakers * CMS2PFtautagging * othermakers )
+
+## the CMS2PFtautagging need the fastJetSequence before so the order is makers / CMS2PFtautagging / othermakers 
