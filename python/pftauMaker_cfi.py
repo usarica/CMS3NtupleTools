@@ -2,10 +2,12 @@ import FWCore.ParameterSet.Config as cms
 
 pftauMaker = cms.EDProducer("PFTauMaker",
 	aliasPrefix = cms.untracked.string("taus_pf"),
-        minleadPFChargedHadrCandPt = cms.double(5.),
+        cms2PFJetsTag = cms.InputTag("prunedUncorrectedCMS2Jets", "pfjet"),
+        referencePFJetsTag = cms.InputTag("ak5PFJets"),
+        particleFlowTag = cms.InputTag("particleFlow"),
         # PFTau collection
-        pftausInputTag = cms.InputTag("fixedConePFTauProducer"),
-      
+        pftausInputTag = cms.InputTag("hpsPFTauProducer")
+        # discriminator
 )
 
 
