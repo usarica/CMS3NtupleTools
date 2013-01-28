@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.15 2013/01/28 14:20:34 dalfonso Exp $
+// $Id: PFTauMaker.cc,v 1.16 2013/01/28 16:53:38 dalfonso Exp $
 //
 //
 
@@ -379,16 +379,17 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
     const reco::PFJetRef & myJet=cand.jetRef();
     
+    int ijet = 0;
+
     for(reco::PFJetCollection::const_iterator jet_it = referencePFJets->begin(); jet_it != referencePFJets->end(); ++jet_it){
-      
-      int ijet = 0;
       
       reco::PFJetRef jet_new( referencePFJetsHandle , jet_it - referencePFJetsHandle->begin() );
       
       //if a match is found, store index in pfjet
       if(  myJet.key() == jet_new.key() ) pfjetIndex=ijet;
-      //      cout << "the matched jet " << jet_it->pt() << " the tau pt is " << cand.pt() << endl;
-      
+      //      if(  myJet.key() == jet_new.key() ) cout << "the matched jet " << jet_it->pt() << " the tau pt is " << cand.pt() << " jet index " << pfjetIndex << endl;
+      ijet++;      
+
     }
     
     taus_pf_pfjetIndex->push_back( pfjetIndex );
@@ -471,12 +472,14 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     taus_pf_againstElectronVTightMVA3		       ->push_back((*hpsTauDiscragainstElectronVTightMVA3 		    )[theTauJetRef]);   	
     taus_pf_againstElectronDeadECAL                        ->push_back((*hpsTauDiscragainstElectronDeadECAL                     )[theTauJetRef]);
 
+    /*
     if(theTauJetRef->pt()>10 && fabs(theTauJetRef->eta())<5) {
       cout << "tauJet: pt " << theTauJetRef->pt() 
 	   << " eta " << theTauJetRef->eta()
 	   << " byLooseCombinedIsolationDeltaBetaCorr " << (*hpsTauDiscrbyLooseCombinedIsolationDeltaBetaCorr) [theTauJetRef] 
 	   << " ByDecayModeFinding "  << (*hpsTauDiscrbyDecayModeFinding)[theTauJetRef] << endl;
     }
+    */
 		
   }
     
