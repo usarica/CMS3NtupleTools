@@ -13,7 +13,7 @@ Implementation:
 //
 // Original Author:  Puneeth Devanand KALAVASE
 //         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: MVAJetIdMaker.h,v 1.4 2012/07/24 16:34:33 jaehyeok Exp $
+// $Id: MVAJetIdMaker.h,v 1.5 2013/02/01 15:21:45 dalfonso Exp $
 //
 //
 
@@ -31,6 +31,9 @@ Implementation:
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "CMGTools/External/interface/PileupJetIdAlgo.h"
+
+#include <iostream>
+#include <string>
 
 //
 // class decleration
@@ -61,4 +64,7 @@ private:
   std::string PFJetCorrectorL2L3_;
   std::string PFJetCorrectorL1L2L3_;
   std::string PFJetCorrectorL1FastL2L3_;
+
+  std::string label_; 
+
 };

@@ -15,23 +15,43 @@
 typedef math::XYZTLorentzVectorF LorentzVector;
 
 
-
 // Constructor
 MVAJetIdMaker::MVAJetIdMaker(const edm::ParameterSet& iConfig){
   using namespace std;
   using namespace edm;
 
-  // product of this EDProducer
-  produces<vector<float> >         ( "pfjetsmvavalue" ).setBranchAlias( "pfjets_mvavalue"	);
-  
   //
   fVertexNameTag_   = iConfig.getParameter<InputTag>	( "VertexName" 		);
-  fCorrJetNameData  = iConfig.getParameter<InputTag>	( "CorrJetNameData"		);
-  fCorrJetNameMC    = iConfig.getParameter<InputTag>	( "CorrJetNameMC"		);
-  fUnCorrJetName  	= iConfig.getParameter<InputTag>	( "JetName"			);
-  fJetPtMin       	= iConfig.getParameter<double>      ("JetPtMin");
+  fCorrJetNameData  = iConfig.getParameter<InputTag>	( "CorrJetNameData"	);
+  fCorrJetNameMC    = iConfig.getParameter<InputTag>	( "CorrJetNameMC"	);
+  fUnCorrJetName    = iConfig.getParameter<InputTag>	( "JetName"		);
+  fJetPtMin         = iConfig.getParameter<double>      ( "JetPtMin"            );
   // 
-  fPUJetIdAlgo    	= new PileupJetIdAlgo(iConfig); 
+  fPUJetIdAlgo      = new PileupJetIdAlgo(iConfig); 
+
+  label_            = iConfig.getParameter<std::string>      ( "label"               );
+
+  // product of this EDProducer
+  if(label_.find("philv1")==0)  produces<vector<float> >         ( "pfjetsmvavalue" ).setBranchAlias( "pfjets_mvavalue"	);
+  if(label_.find("full5x")==0) produces<vector<float> >         ( "pfjetsfull5xmvavalue" ).setBranchAlias( "pfjets_full5xmvavalue"	);
+
+  if(label_.find("full53x")==0) {
+    produces<vector<float> >         ( "pfjetsfull53xmvavalue" ).setBranchAlias( "pfjets_full53xmvavalue"	);  
+
+    produces<vector<float> >         ( "pfjetsfull53xmvanvtx" ).setBranchAlias( "pfjets_full53xmva_nvtx"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvad0" ).setBranchAlias( "pfjets_full53xmva_d0"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvadZ" ).setBranchAlias( "pfjets_full53xmva_dZ"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvabeta" ).setBranchAlias( "pfjets_full53xmva_beta"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvabetaStar" ).setBranchAlias( "pfjets_full53xmva_betaStar"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvanCharged" ).setBranchAlias( "pfjets_full53xmva_nCharged"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvanNeutrals" ).setBranchAlias( "pfjets_full53xmva_nNeutrals"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvadRMean" ).setBranchAlias( "pfjets_full53xmva_dRMean"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvafrac01" ).setBranchAlias( "pfjets_full53xmva_frac01"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvafrac02" ).setBranchAlias( "pfjets_full53xmva_frac02"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvafrac03" ).setBranchAlias( "pfjets_full53xmva_frac03"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvafrac04" ).setBranchAlias( "pfjets_full53xmva_frac04"	);
+    produces<vector<float> >         ( "pfjetsfull53xmvafrac05" ).setBranchAlias( "pfjets_full53xmva_frac05"	);
+  }
 
 }
 
@@ -47,16 +67,32 @@ void MVAJetIdMaker::endJob() {}
 // ------------ method called to produce the data  ------------
 void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
-
-
   using namespace std;
   using namespace edm;
   using namespace reco;
- 
+
+  //  cout << " ==> run " << iEvent.run() << " lumi" << iEvent.luminosityBlock() << " event " <<  iEvent.id() << " label " << label_ << endl; 
+
   // create containers
-  auto_ptr<vector<float> >         pfjets_mvavalue                (new vector<float>          );  
-
-
+  auto_ptr<vector<float> >         pfjets_mvavalue                (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full5xmvavalue                (new vector<float>          );
+  
+  auto_ptr<vector<float> >         pfjets_full53xmvavalue                (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_nvtx       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_d0       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_dZ       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_beta       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_betaStar       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_nCharged       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_nNeutrals       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_dRMean       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_frac01       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_frac02       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_frac03       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_frac04       (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_full53xmva_frac05       (new vector<float>          );
+  
+  
   //Uncorrected Jets
   Handle<PFJetCollection>       lHUCJets;
   iEvent.getByLabel(fUnCorrJetName, lHUCJets);
@@ -92,6 +128,8 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  const PFJet       *pUCJet = &(lUCJets.at(i0));
 	  for(int i1 = 0; i1 < (int) lCJets.size(); i1++) {   // corrected jets collection                                         
 		  const PFJet     *pCJet  = &(lCJets.at(i1));
+
+
 		  if( pUCJet->jetArea() != pCJet->jetArea()                  	) continue;
 		  if( fabs(pUCJet->eta() - pCJet->eta())         > 0.01         ) continue;
       	  if( pUCJet->pt()                               < fJetPtMin    ) continue;
@@ -103,8 +141,28 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		  if( lGoodVertices.size()>0 ) 
 		  {
 		  	PileupJetIdentifier lPUJetId =  fPUJetIdAlgo->computeIdVariables(pCJet,lJec,&lGoodVertices[0],lGoodVertices,true);
-		   	pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
+
+		   	if(label_.find("philv1")==0) pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
+                        if(label_.find("full5x")==0) pfjets_full5xmvavalue             ->push_back( lPUJetId.mva()              );
+
+			//			cout << " Jet pt" << pCJet->pt() << " jet eta " << pCJet->eta() << " mva " << lPUJetId.mva() << endl;
 		  
+			if(label_.find("full53x")==0) pfjets_full53xmvavalue             ->push_back( lPUJetId.mva()              );
+			if(label_.find("full53x")==0) pfjets_full53xmva_nvtx        ->push_back( lPUJetId.nvtx() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_d0        ->push_back( lPUJetId.d0() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_dZ        ->push_back( lPUJetId.dZ() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_beta        ->push_back( lPUJetId.beta() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_betaStar        ->push_back( lPUJetId.betaStar() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_nCharged        ->push_back( lPUJetId.nCharged() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_nNeutrals        ->push_back( lPUJetId.nNeutrals() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_dRMean        ->push_back( lPUJetId.dRMean() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_frac01        ->push_back( lPUJetId.frac01() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_frac02        ->push_back( lPUJetId.frac02() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_frac03        ->push_back( lPUJetId.frac03() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_frac04        ->push_back( lPUJetId.frac04() );
+			if(label_.find("full53x")==0) pfjets_full53xmva_frac05        ->push_back( lPUJetId.frac05() );
+
+
 			// print out MVA inputs 
 			if(0)
 			{
@@ -130,17 +188,57 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 					<< " === : === "; 
 				cout << lPUJetId.mva() << endl;
 			}
+
 		  }
 		  else             
-		  	pfjets_mvavalue                 ->push_back( -999.              );
 
+		    if(label_.find("philv1")==0) pfjets_mvavalue                 ->push_back( -999.              );
+  		    if(label_.find("full5x")==0) pfjets_full5xmvavalue              ->push_back( -999.              );
+  		    if(label_.find("full53x")==0) pfjets_full53xmvavalue              ->push_back( -999.              );
+		  
+		    if(label_.find("full53x")==0) pfjets_full53xmva_nvtx          ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_d0            ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_dZ            ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_beta          ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_betaStar      ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_nCharged      ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_nNeutrals     ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_dRMean        ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_frac01        ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_frac02        ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_frac03        ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_frac04        ->push_back( -999. );
+		    if(label_.find("full53x")==0) pfjets_full53xmva_frac05        ->push_back( -999. );
+		    
+		    
 		  break;
 
 	  } // lCJets
   } // lUCJets
 
   // 
-  iEvent.put(pfjets_mvavalue,             	 "pfjetsmvavalue"                 );
+
+  if(label_.find("philv1")==0)   iEvent.put(pfjets_mvavalue,             	  "pfjetsmvavalue"             );
+  if(label_.find("full5x")==0) iEvent.put(pfjets_full5xmvavalue,               "pfjetsfull5xmvavalue"       );
+
+  if(label_.find("full53x")==0) {
+    iEvent.put(pfjets_full53xmvavalue,              "pfjetsfull53xmvavalue"      );
+    
+    iEvent.put(pfjets_full53xmva_nvtx,         "pfjetsfull53xmvanvtx" );
+    iEvent.put(pfjets_full53xmva_d0,           "pfjetsfull53xmvad0" );
+    iEvent.put(pfjets_full53xmva_dZ,           "pfjetsfull53xmvadZ" );
+    iEvent.put(pfjets_full53xmva_beta,         "pfjetsfull53xmvabeta"  );
+    iEvent.put(pfjets_full53xmva_betaStar,     "pfjetsfull53xmvabetaStar"  );
+    iEvent.put(pfjets_full53xmva_nCharged,     "pfjetsfull53xmvanCharged"  );
+    iEvent.put(pfjets_full53xmva_nNeutrals,    "pfjetsfull53xmvanNeutrals"  );
+    iEvent.put(pfjets_full53xmva_dRMean,       "pfjetsfull53xmvadRMean"  );
+    
+    iEvent.put(pfjets_full53xmva_frac01,       "pfjetsfull53xmvafrac01"  );
+    iEvent.put(pfjets_full53xmva_frac02,       "pfjetsfull53xmvafrac02"  );
+    iEvent.put(pfjets_full53xmva_frac03,       "pfjetsfull53xmvafrac03"  );
+    iEvent.put(pfjets_full53xmva_frac04,       "pfjetsfull53xmvafrac04"  );
+    iEvent.put(pfjets_full53xmva_frac05,       "pfjetsfull53xmvafrac05"  );
+  }
 
 }
 
