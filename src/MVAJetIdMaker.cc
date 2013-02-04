@@ -145,7 +145,6 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		   	if(label_.find("philv1")==0) pfjets_mvavalue              	->push_back( lPUJetId.mva()              );
                         if(label_.find("full5x")==0) pfjets_full5xmvavalue             ->push_back( lPUJetId.mva()              );
 
-			//			cout << " Jet pt" << pCJet->pt() << " jet eta " << pCJet->eta() << " mva " << lPUJetId.mva() << endl;
 		  
 			if(label_.find("full53x")==0) pfjets_full53xmvavalue             ->push_back( lPUJetId.mva()              );
 			if(label_.find("full53x")==0) pfjets_full53xmva_nvtx        ->push_back( lPUJetId.nvtx() );
@@ -190,11 +189,12 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 			}
 
 		  }
-		  else             
 
-		    if(label_.find("philv1")==0) pfjets_mvavalue                 ->push_back( -999.              );
-  		    if(label_.find("full5x")==0) pfjets_full5xmvavalue              ->push_back( -999.              );
-  		    if(label_.find("full53x")==0) pfjets_full53xmvavalue              ->push_back( -999.              );
+		  else {
+
+		    if(label_.find("philv1")==0) pfjets_mvavalue                  ->push_back( -999. );
+  		    if(label_.find("full5x")==0) pfjets_full5xmvavalue            ->push_back( -999. );
+  		    if(label_.find("full53x")==0) pfjets_full53xmvavalue          ->push_back( -999. );
 		  
 		    if(label_.find("full53x")==0) pfjets_full53xmva_nvtx          ->push_back( -999. );
 		    if(label_.find("full53x")==0) pfjets_full53xmva_d0            ->push_back( -999. );
@@ -210,8 +210,9 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		    if(label_.find("full53x")==0) pfjets_full53xmva_frac04        ->push_back( -999. );
 		    if(label_.find("full53x")==0) pfjets_full53xmva_frac05        ->push_back( -999. );
 		    
+		  }
 		    
-		  break;
+		  //		  break;
 
 	  } // lCJets
   } // lUCJets
@@ -219,25 +220,25 @@ void MVAJetIdMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // 
 
   if(label_.find("philv1")==0)   iEvent.put(pfjets_mvavalue,             	  "pfjetsmvavalue"             );
-  if(label_.find("full5x")==0) iEvent.put(pfjets_full5xmvavalue,               "pfjetsfull5xmvavalue"       );
+  if(label_.find("full5x")==0)   iEvent.put(pfjets_full5xmvavalue,               "pfjetsfull5xmvavalue"       );
 
   if(label_.find("full53x")==0) {
-    iEvent.put(pfjets_full53xmvavalue,              "pfjetsfull53xmvavalue"      );
+    iEvent.put(pfjets_full53xmvavalue,         "pfjetsfull53xmvavalue"    );
     
-    iEvent.put(pfjets_full53xmva_nvtx,         "pfjetsfull53xmvanvtx" );
-    iEvent.put(pfjets_full53xmva_d0,           "pfjetsfull53xmvad0" );
-    iEvent.put(pfjets_full53xmva_dZ,           "pfjetsfull53xmvadZ" );
-    iEvent.put(pfjets_full53xmva_beta,         "pfjetsfull53xmvabeta"  );
-    iEvent.put(pfjets_full53xmva_betaStar,     "pfjetsfull53xmvabetaStar"  );
-    iEvent.put(pfjets_full53xmva_nCharged,     "pfjetsfull53xmvanCharged"  );
-    iEvent.put(pfjets_full53xmva_nNeutrals,    "pfjetsfull53xmvanNeutrals"  );
-    iEvent.put(pfjets_full53xmva_dRMean,       "pfjetsfull53xmvadRMean"  );
+    iEvent.put(pfjets_full53xmva_nvtx,         "pfjetsfull53xmvanvtx"     );
+    iEvent.put(pfjets_full53xmva_d0,           "pfjetsfull53xmvad0"       );
+    iEvent.put(pfjets_full53xmva_dZ,           "pfjetsfull53xmvadZ"       );
+    iEvent.put(pfjets_full53xmva_beta,         "pfjetsfull53xmvabeta"     );
+    iEvent.put(pfjets_full53xmva_betaStar,     "pfjetsfull53xmvabetaStar" );
+    iEvent.put(pfjets_full53xmva_nCharged,     "pfjetsfull53xmvanCharged" );
+    iEvent.put(pfjets_full53xmva_nNeutrals,    "pfjetsfull53xmvanNeutrals");
+    iEvent.put(pfjets_full53xmva_dRMean,       "pfjetsfull53xmvadRMean"   );
     
-    iEvent.put(pfjets_full53xmva_frac01,       "pfjetsfull53xmvafrac01"  );
-    iEvent.put(pfjets_full53xmva_frac02,       "pfjetsfull53xmvafrac02"  );
-    iEvent.put(pfjets_full53xmva_frac03,       "pfjetsfull53xmvafrac03"  );
-    iEvent.put(pfjets_full53xmva_frac04,       "pfjetsfull53xmvafrac04"  );
-    iEvent.put(pfjets_full53xmva_frac05,       "pfjetsfull53xmvafrac05"  );
+    iEvent.put(pfjets_full53xmva_frac01,       "pfjetsfull53xmvafrac01"   );
+    iEvent.put(pfjets_full53xmva_frac02,       "pfjetsfull53xmvafrac02"   );
+    iEvent.put(pfjets_full53xmva_frac03,       "pfjetsfull53xmvafrac03"   );
+    iEvent.put(pfjets_full53xmva_frac04,       "pfjetsfull53xmvafrac04"   );
+    iEvent.put(pfjets_full53xmva_frac05,       "pfjetsfull53xmvafrac05"   );
   }
 
 }
