@@ -11,7 +11,7 @@ Implementation:
 <Notes on implementation>
 */
 //
-// $Id: PFTauMaker.cc,v 1.16 2013/01/28 16:53:38 dalfonso Exp $
+// $Id: PFTauMaker.cc,v 1.17 2013/02/04 17:05:06 dalfonso Exp $
 //
 //
 
@@ -492,6 +492,9 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
   // iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
+
+  iEvent.put(taus_pf_pfcandIndicies                                      , branchprefix+"pfcandIndicies"                                ) ;
+  iEvent.put(taus_pf_pfjetIndex                                          , branchprefix+"pfjetIndex"                                    ) ;
 
   iEvent.put(taus_pf_byDecayModeFinding  			         , branchprefix+"byDecayModeFinding"			        ) ;
   iEvent.put(taus_pf_byCombinedIsolationDeltaBetaCorrRaw	      	 , branchprefix+"byCombinedIsolationDeltaBetaCorrRaw" 		) ;
