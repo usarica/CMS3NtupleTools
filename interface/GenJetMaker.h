@@ -14,7 +14,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.h,v 1.6 2010/06/15 10:08:36 fgolf Exp $
+// $Id: GenJetMaker.h,v 1.7 2013/02/18 17:28:06 dalfonso Exp $
 //
 //
 
@@ -47,6 +47,8 @@ private:
   edm::InputTag genJetsInputTag;
 
   double genJetMinPtCut;
-	std::string aliasprefix_;
+  std::string aliasprefix_;
+  std::string aliaspostfix_;
+
 };
 #endif

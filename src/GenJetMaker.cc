@@ -12,7 +12,7 @@
 //
 // Original Author:  Sanjay Padhi
 //         Created:  Thu Aug 21 15:47:53 CEST 2008
-// $Id: GenJetMaker.cc,v 1.6 2010/03/02 19:36:07 fgolf Exp $
+// $Id: GenJetMaker.cc,v 1.7 2013/02/18 17:23:22 dalfonso Exp $
 //
 //
 
@@ -43,15 +43,17 @@ bool sortByPt(LorentzVector jet1, LorentzVector jet2) {
 //
 GenJetMaker::GenJetMaker(const edm::ParameterSet& iConfig)
 {
+
+  aliaspostfix_ = iConfig.getUntrackedParameter<std::string>("aliasPostfix");
+
   // product of this EDProducer
-  produces<unsigned int>                ("evtngenjets").setBranchAlias("evt_ngenjets"); // number of jets
-  produces<std::vector<LorentzVector> > ("genjetsp4"  ).setBranchAlias("genjets_p4"  ); // p4 of the jet
+  produces<unsigned int>                ("evtngenjets"+aliaspostfix_).setBranchAlias("evt_ngenjets"+aliaspostfix_); // number of jets
+  produces<std::vector<LorentzVector> > ("genjetsp4"+aliaspostfix_).setBranchAlias("genjets_p4"+aliaspostfix_); // p4 of the jet
 
   // parameters from configuration
   genJetsInputTag = iConfig.getParameter<edm::InputTag>("genJetsInputTag");
   genJetMinPtCut  = iConfig.getParameter<double>       ("genJetMinPtCut" );
 }
-
 
 GenJetMaker::~GenJetMaker()
 {
@@ -89,8 +91,9 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::sort(vector_genjets_p4->begin(), vector_genjets_p4->end(), sortByPt);
 
   // put containers into event
-  iEvent.put(evt_ngenjets     , "evtngenjets" );
-  iEvent.put(vector_genjets_p4, "genjetsp4"   );
+  iEvent.put(evt_ngenjets     , "evtngenjets"+aliaspostfix_);
+  iEvent.put(vector_genjets_p4, "genjetsp4"+aliaspostfix_);
+
 }
 
 void GenJetMaker::beginJob()

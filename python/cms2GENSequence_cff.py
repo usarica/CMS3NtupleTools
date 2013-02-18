@@ -19,6 +19,6 @@ from CMS2.NtupleMaker.dilepGenFilter_cfi import dilepGenFilter
 
 cms2GENSequence     = cms.Sequence(
 
-  genMaker * pdfinfoMaker * genJetSequence * CMS2FlavorHistorySequence * candToGenAssMaker * genJetMaker * hypGenMaker * puSummaryInfoMaker * jetFlavorSequence
+  genMaker * pdfinfoMaker * genJetSequence * CMS2FlavorHistorySequence * candToGenAssMaker * genPFJetMaker * genJetMaker * hypGenMaker * puSummaryInfoMaker * jetFlavorSequence
 
 )
