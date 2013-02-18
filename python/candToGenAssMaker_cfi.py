@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     #GenJets Input Tag 
-    genJetsInputTag = cms.InputTag("cms2antikt5GenJets"),
+    genJetsInputTag = cms.InputTag("cms2antikt5PFGenJets"),
     #electrons InputTag
     electronsInputTag = cms.InputTag("electronMaker", "elsp4"),
     #phtons Input Tag
