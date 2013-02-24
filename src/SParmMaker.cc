@@ -108,6 +108,7 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if( sparm_handle.isValid() ){
 	for (std::vector<std::string>::const_iterator it = sparm_handle->comments_begin(); it != sparm_handle->comments_end(); it++) {      
 	  TString model_comment(*it);
+          if( !model_comment.Contains("model") ){ continue; }
 
 	  // check if sparm comment is in expected format
 	  TObjArray* space_tokens = model_comment.Tokenize(" ");
