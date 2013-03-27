@@ -137,11 +137,12 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             TString model_params = ((TObjString*)space_tokens->At(2))->GetString();
             TObjArray* tokens = model_params.Tokenize("_");
             for(int i = 1; i < tokens->GetEntries(); i++) { // the crap before the first "_" is not a parameter
-                const TString& token = ((TObjString*)tokens->At(i))->GetString();
+                TString token = ((TObjString*)tokens->At(i))->GetString();
                 // UFL's private T4tW sample has extra characters in the parameter string:
                 // i.e. "# model T2bb_sb_675_ch_375_lsp_50  0.0106123" 
                 // specific sample is: /SMS-T4tW_Msbottom-325to700_mChargino-150to625_8TeV-Madgraph/Summer12-START52_V9_FSIM/USER
-                if (token.IsFloat()) {
+                if (token.ReplaceAll("\n", "").IsFloat())
+                {
                     sparm_values->push_back(token.Atof());
                 }
             }
