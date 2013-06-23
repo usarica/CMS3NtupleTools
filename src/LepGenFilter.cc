@@ -13,7 +13,7 @@ see header file
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  1 11:07:38 PDT 2009
-// $Id: LepGenFilter.cc,v 1.2 2010/03/02 19:36:08 fgolf Exp $
+// $Id: LepGenFilter.cc,v 1.3 2013/06/23 13:18:28 dalfonso Exp $
 //
 //
 
@@ -39,6 +39,7 @@ using namespace std;
 
 LepGenFilter::LepGenFilter(const edm::ParameterSet& iConfig) {
 
+   ntupleDaughters_  = iConfig.getParameter<bool>("ntupleDaughters");
    nGenLepsRequired_ = iConfig.getParameter<int>("nGenLepsRequired");
 
 }
@@ -70,9 +71,13 @@ bool LepGenFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   const vector<int> *v_genstatus = genstatus_h.product();
 
   InputTag genlepdaughterid_tag("genMaker", "genpslepdaughterid");
-  Handle<vector<vector<int> > > genlepdaughterid_h;
-  iEvent.getByLabel(genlepdaughterid_tag, genlepdaughterid_h);
-  const vector<vector<int> > *v_genlepdaughterid = genlepdaughterid_h.product();
+  const vector<vector<int> > *v_genlepdaughterid;
+  if(ntupleDaughters_) {
+    Handle<vector<vector<int> > > genlepdaughterid_h;
+    iEvent.getByLabel(genlepdaughterid_tag, genlepdaughterid_h);
+    v_genlepdaughterid= genlepdaughterid_h.product();
+  }
+ 
 
   int nGenLeps = 0;
   for(unsigned int idx = 0; idx < v_genid->size(); idx++) {
@@ -86,16 +91,17 @@ bool LepGenFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     if(pid == 11 || pid == 13)
       nGenLeps++;
 
-    //if a tau whose daughter is a e/mu, sum
-    if(pid == 15) {
-      for(unsigned int daughter = 0; daughter < v_genlepdaughterid->at(idx).size(); daughter++) {
-	int daughterid = abs(v_genlepdaughterid->at(idx).at(daughter));
-	
-	if(daughterid == 11 || daughterid == 13)
-	  nGenLeps++;
-      }//daughter loop
-    }//if(pid == 15)
-	    
+    if(ntupleDaughters_) {
+      //if a tau whose daughter is a e/mu, sum
+      if(pid == 15) {
+	for(unsigned int daughter = 0; daughter < v_genlepdaughterid->at(idx).size(); daughter++) {
+	  int daughterid = abs(v_genlepdaughterid->at(idx).at(daughter));
+	  
+	  if(daughterid == 11 || daughterid == 13)
+	    nGenLeps++;
+	}//daughter loop
+      }//if(pid == 15)
+    }	    
     
   }//genid loop
 
