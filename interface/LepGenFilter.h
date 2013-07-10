@@ -15,7 +15,7 @@ Implementation:
 //
 // Original Author:  Ingo Bloch
 //         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: LepGenFilter.h,v 1.3 2010/06/15 10:08:36 fgolf Exp $
+// $Id: LepGenFilter.h,v 1.4 2013/07/10 12:54:33 cwelke Exp $
 //
 //
 #ifndef CMS2_LEPGENFILTER_H
@@ -51,7 +51,7 @@ private:
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   int nGenLepsRequired_;
-
+  bool ntupleDaughters_;
       
 };
 
