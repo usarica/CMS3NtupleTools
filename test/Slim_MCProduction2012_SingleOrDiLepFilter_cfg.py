@@ -13,7 +13,7 @@ process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")     # from di lepton filter
 process.EventSelectionSingleOrDilFilt = cms.PSet (    # what does changing this do?
   SelectEvents = cms.untracked.PSet (
     SelectEvents = cms.vstring('pWithRecoLepton', 'pWithGenLepton',        # from single lepton filter
-                               'pDiLepton', 'pMultiLepton', 'pWithGenHyp'  #from di lepton filter
+                               'pDiLepton', 'pWithGenHyp'  #from di lepton filter
                                ) #pWithGenLepton and pWithGenHyp should be redundant, leaving them both in to be safe
   )
 )
@@ -48,7 +48,6 @@ process.p                  = cms.Path( process.cms2WithEverything )
 process.pWithRecoLepton    = cms.Path( process.cms2WithEverything * process.aSkimFilter   )       # from single lepton filter
 process.pWithGenLepton     = cms.Path( process.cms2WithEverything * process.monolepGenFilter  )   # from single lepton filter
 process.pDiLepton          = cms.Path( process.cms2WithEverything * process.hypDiLeptonFilter )   # from di lepton filter
-process.pMultiLepton       = cms.Path( process.cms2WithEverything * process.hypOtherFilter )      # from di lepton filter
 process.pWithGenHyp        = cms.Path( process.cms2WithEverything * process.dilepGenFilter )      # from di lepton filter
 
 #
