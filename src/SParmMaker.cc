@@ -138,10 +138,23 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             TObjArray* tokens = model_params.Tokenize("_");
             for(int i = 1; i < tokens->GetEntries(); i++) { // the crap before the first "_" is not a parameter
                 TString token = ((TObjString*)tokens->At(i))->GetString();
+		// special case for the ewkino-Higgs samples.. 
+		// example string: "#  model WinoNLSP_chargino375_bino100_9_hw_bbw 0.0"
+		// example sample: /SMS-TChiWH_WlnuHbb_2J_mChargino-130to500_mLSP-1to370_TuneZ2star_8TeV-madgraph-tauola/Summer12-START53_V7C_FSIM-v1/AODSIM
+		if (model_params.Contains("WinoNLSP") || model_params.Contains("HiggsinoNLSP")) {
+		  if (token.Contains("chargino") || token.Contains("bino")) {
+		    TString mass = TString(token);
+		    mass.ReplaceAll("chargino","").ReplaceAll("bino","");
+		    if (mass.IsFloat()) {
+		      sparm_values->push_back(mass.Atof());
+		    }
+		  }
+		}
+		// default case, and also UFL exception..
                 // UFL's private T4tW sample has extra characters in the parameter string:
                 // i.e. "# model T2bb_sb_675_ch_375_lsp_50  0.0106123" 
                 // specific sample is: /SMS-T4tW_Msbottom-325to700_mChargino-150to625_8TeV-Madgraph/Summer12-START52_V9_FSIM/USER
-                if (token.ReplaceAll("\n", "").IsFloat())
+                else if (token.ReplaceAll("\n", "").IsFloat())
                 {
                     sparm_values->push_back(token.Atof());
                 }
