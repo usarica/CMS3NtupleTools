@@ -127,6 +127,14 @@ pushd $CMSSW_BASE/src/CondFormats/EgammaObjects
 git checkout CondFormats-EgammaObjects-V00-04-00
 popd
 
+
+#######################
+#  LCG dictionaries   #
+#######################
+
+git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS2/Dictionaries
+
+
 #######################
 
 # run checkdeps
