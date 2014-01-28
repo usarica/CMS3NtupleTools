@@ -843,9 +843,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
 
-        els_pfChargedHadronIso -> push_back( pfIso.chargedHadronIso );
-        els_pfNeutralHadronIso -> push_back( pfIso.neutralHadronIso );
-        els_pfPhotonIso        -> push_back( pfIso.photonIso        );
+        els_pfChargedHadronIso -> push_back( pfIso.sumChargedHadronPt );
+        els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
+        els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
 
         if ( firstGoodVertex!=vertexCollection->end() ) {
 
