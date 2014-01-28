@@ -1,9 +1,5 @@
 #!/bin/bash
 
-git cms-addpkg PhysicsTools/PatAlgos
-git cms-addpkg RecoTauTag/RecoTau
-git cms-addpkg RecoTauTag/Configuration
-git cms-addpkg RecoParticleFlow/PFProducer
 
 ####################
 # MET Filters 2012 #
@@ -45,20 +41,12 @@ popd
 # do stuff with PF candidates
 #############################
 
-#git clone https://github.com/cms-cvs-history/RecoParticleFlow-PFProducer $CMSSW_BASE/src/RecoParticleFlow/PFProducer
-#pushd $CMSSW_BASE/src/RecoParticleFlow/PFProducer
-#git checkout RecoParticleFlow-PFProducer-V15-02-06
-#popd
 
 git clone https://github.com/cms-cvs-history/CommonTools-ParticleFlow $CMSSW_BASE/src/CommonTools/ParticleFlow
 pushd $CMSSW_BASE/src/CommonTools/ParticleFlow
 git checkout CommonTools-ParticleFlow-V00-03-15
 popd
 
-#git clone https://github.com/cms-cvs-history/PhysicsTools-PatAlgos $CMSSW_BASE/src/PhysicsTools/PatAlgos
-#pushd $CMSSW_BASE/src/PhysicsTools/PatAlgos
-#git checkout PhysicsTools-PatAlgos-V08-09-21
-#popd
 
 
 ####################
@@ -116,16 +104,6 @@ mv blah $CMSSW_BASE/src/PhysicsTools/JetMCAlgos/plugins/GenJetBCEnergyRatio.cc
 # TAUs
 #######################
 
-#git clone https://github.com/cms-cvs-history/RecoTauTag-RecoTau $CMSSW_BASE/src/RecoTauTag/RecoTau
-#pushd $CMSSW_BASE/src/RecoTauTag/RecoTau
-#git checkout RecoTauTag-RecoTau-V01-04-23
-#popd
-
-
-#git clone https://github.com/cms-cvs-history/RecoTauTag-Configuration $CMSSW_BASE/src/RecoTauTag/Configuration
-#pushd $CMSSW_BASE/src/RecoTauTag/Configuration
-#git checkout RecoTauTag-Configuration-V01-04-10
-#popd
 
 git clone https://github.com/cms-cvs-history/CondFormats-EgammaObjects $CMSSW_BASE/src/CondFormats/EgammaObjects
 pushd $CMSSW_BASE/src/CondFormats/EgammaObjects
