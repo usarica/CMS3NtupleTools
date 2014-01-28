@@ -104,6 +104,8 @@ void InterestingRecHitMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
     edm::Handle<EEDigiCollection> eeDigiHandle;
     iEvent.getByLabel(ecalDigiProducerEE_, eeDigiHandle);
 
+    //these lines commented out by jgran. Unused variables.
+/*
     const EBDigiCollection *ebDigis = 0;
     const EEDigiCollection *eeDigis = 0;
     digi_ = false;
@@ -112,6 +114,7 @@ void InterestingRecHitMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
         ebDigis = ebDigiHandle.product();
         eeDigis = eeDigiHandle.product();
     }
+*/
 
     //ecal channel status
     edm::ESHandle<EcalChannelStatus> chStatus;
