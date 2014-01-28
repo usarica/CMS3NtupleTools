@@ -95,7 +95,8 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get MC particle collection
   edm::Handle<edm::HepMCProduct> hepmcHandle;
-  iEvent.getByType( hepmcHandle ); //not getByLabel
+  //iEvent.getByType( hepmcHandle ); //not getByLabel. doesn't work in new release.
+  iEvent.getByLabel( "generator", hepmcHandle ); //need to check this. jgran.
   const HepMC::GenEvent* evt = 0;
   const HepMC::PdfInfo* pdfinfo = 0;
   if(!hepmcHandle.failedToGet() ) {
