@@ -21,10 +21,10 @@ popd
 
 
 
-git clone https://github.com/cms-cvs-history/CommonTools-RecoAlgos $CMSSW_BASE/src/CommonTools/RecoAlgos
-pushd $CMSSW_BASE/src/CommonTools/RecoAlgos
-git checkout CommonTools-RecoAlgos-V00-03-23
-popd
+#git clone https://github.com/cms-cvs-history/CommonTools-RecoAlgos $CMSSW_BASE/src/CommonTools/RecoAlgos
+#pushd $CMSSW_BASE/src/CommonTools/RecoAlgos
+#git checkout CommonTools-RecoAlgos-V00-03-23
+#popd
 
 
 #############
@@ -42,10 +42,10 @@ popd
 #############################
 
 
-git clone https://github.com/cms-cvs-history/CommonTools-ParticleFlow $CMSSW_BASE/src/CommonTools/ParticleFlow
-pushd $CMSSW_BASE/src/CommonTools/ParticleFlow
-git checkout CommonTools-ParticleFlow-V00-03-15
-popd
+#git clone https://github.com/cms-cvs-history/CommonTools-ParticleFlow $CMSSW_BASE/src/CommonTools/ParticleFlow
+#pushd $CMSSW_BASE/src/CommonTools/ParticleFlow
+#git checkout CommonTools-ParticleFlow-V00-03-15
+#popd
 
 
 
