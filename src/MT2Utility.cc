@@ -545,7 +545,7 @@ int mt2::scan_high(double & Deltasq_high)
    int nsols_high;
 
    
-   double Deltasq_low;
+   //double Deltasq_low;
    double tempmass, maxmass;
    tempmass = mn + ma;
    maxmass  = sqrt(mnsq + Deltasq_high);
@@ -557,7 +557,7 @@ int mt2::scan_high(double & Deltasq_high)
       
       if( nsols_high > 0)
       {
-	 Deltasq_low = (mass-SCANSTEP)*(mass-SCANSTEP) - mnsq;
+	 //Deltasq_low = (mass-SCANSTEP)*(mass-SCANSTEP) - mnsq;
          foundhigh   = 1;
          break;
       }
