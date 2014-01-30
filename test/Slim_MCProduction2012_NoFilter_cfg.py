@@ -1,7 +1,12 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "START53_V7::All"
+process.GlobalTag.globaltag = "START70_V5::All"
+
+#Input
+process.source = cms.Source("PoolSource",
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/jgran/7_0_0_pre12_RelValProdTTbar.root')
+)
 
 # Output
 process.out = cms.OutputModule(
