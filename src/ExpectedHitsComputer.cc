@@ -28,7 +28,9 @@
 #include <TrackingTools/KalmanUpdators/interface/Chi2MeasurementEstimator.h>
 #include <TrackingTools/DetLayers/interface/GeometricSearchDet.h> 
 #include <RecoTracker/MeasurementDet/interface/MeasurementTracker.h>
+#include <RecoTracker/MeasurementDet/interface/MeasurementTrackerEvent.h>
 #include <TrackingTools/MeasurementDet/interface/MeasurementDet.h>
+#include <TrackingTools/MeasurementDet/interface/MeasurementDetWithData.h>
 #include "RecoTracker/Record/interface/CkfComponentsRecord.h"
 
 #include <TrackingTools/TransientTrack/interface/TrackTransientTrack.h>
@@ -145,9 +147,7 @@ ExpectedHitsComputer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
     //cout << "innerCompLayers size: " << innerCompLayers.size() << endl; 
 
     int counter=0;
-/*
-//FIXME
-//this temporary comment block placed by jgran 
+
     for(vector<const DetLayer *>::const_iterator it=innerCompLayers.begin(); it!=innerCompLayers.end();
 	++it){
       vector< GeometricSearchDet::DetWithState > detWithState = (*it)->compatibleDets(tsos,
@@ -155,8 +155,12 @@ ExpectedHitsComputer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 										      estimator);
       if(!detWithState.size()) continue;
       DetId id = detWithState.front().first->geographicalId();
-      const MeasurementDet* measDet = theMeasTk->idToDet(id);	//this line is a problem
-      if(measDet->isActive()){	//this line is a problem
+
+      //This is just a dummy!!  Do we need to change this?
+      const MeasurementTrackerEvent mte = MeasurementTrackerEvent();
+
+      const MeasurementDetWithData measDet = theMeasTk->idToDet(id, mte);	
+      if(measDet.isActive()){	
 	counter++;
 	//InvalidTrackingRecHit  tmpHit(id,TrackingRecHit::missing);
 	////track.setTrackerExpectedHitsInner(tmpHit,counter); 	 
@@ -165,7 +169,7 @@ ExpectedHitsComputer::produce(edm::Event & iEvent, const edm::EventSetup & iSetu
 	//cout << "WARNING: this hit is NOT marked as lost because the detector was marked as inactive" << endl;
       }
     }//end loop over layers
-*/
+
     values.push_back(counter);
     //cout << "counter: " << counter << endl;
   }
