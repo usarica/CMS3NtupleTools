@@ -46,6 +46,7 @@ private:
   // ----------member data ---------------------------
   std::string genEventInfoInputTag_;
   std::string aliasprefix_;
+  std::string hepmcHandle_;
 };
 
 #endif
