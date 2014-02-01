@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 fourLeptons = cms.EDFilter("ZZFilter",
     muons           = cms.InputTag("muons"),
-    electrons       = cms.InputTag("gsfElectrons"),
+    electrons       = cms.InputTag("gedGsfElectrons"),
     minMuPt         = cms.double(5.),
     minElePt        = cms.double(5.),
     minLeadingLepPt = cms.double(20.),                           

@@ -72,11 +72,12 @@ eventmakerswsparm= cms.Sequence( eventmakers * sParmMaker ) # build up alternate
 trigmakers       = cms.Sequence( l1Maker * hltMakerSequence )
 
 makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * fastJetSequence * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * 
-                                 tcmetSequence * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * cms2MetFilterSequence * metFilterMaker )
+                                 tcmetMaker * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * cms2MetFilterSequence * metFilterMaker )
 
 assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * muToTrigAssMaker * elToTrigAssMaker)
 hypmakers        = cms.Sequence( hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker )
 othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker * pftauMaker )
-cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * hypmakers * CMS2PFtautagging * othermakers )
+#cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * hypmakers * CMS2PFtautagging * othermakers )
+cms2CoreSequence = cms.Sequence( CMS2Reco *  eventmakers * trigmakers * makers * assmakers * hypmakers * othermakers )
 
 ## the CMS2PFtautagging need the fastJetSequence before so the order is makers / CMS2PFtautagging / othermakers 

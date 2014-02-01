@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 from RecoJets.Configuration.RecoPFJets_cff import *
 from RecoJets.Configuration.RecoJets_cff import *
 from CMS2.NtupleMaker.fastJetMaker_cfi import *
+from RecoTauTag.Configuration.HPSPFTaus_cff import kt6PFJetsForRhoComputationVoronoi
 
 kt6PFJetsDeterministicJEC = kt4PFJets.clone(
     rParam = 0.6,
@@ -22,7 +23,7 @@ kt6PFJetsDeterministicIso = kt4PFJets.clone(
     Ghost_EtaMax = 2.5
 )
 
-kt6PFJetsForRhoComputationVoronoi = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = 0.9)
+#kt6PFJetsForRhoComputationVoronoi = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = 0.9)
 kt6PFJetsForRhoComputationActiveArea = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = -0.9)
 kt6PFJetsForRhoComputationRandom     = kt6PFJets.clone(doRhoFastjet = True, voronoiRfact = -1)
 

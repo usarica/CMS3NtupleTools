@@ -105,12 +105,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     eidLHTag_                 = iConfig.getParameter<edm::InputTag> ("eidLHTag"                 );
     pfCandsInputTag           = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"          );
     vtxInputTag               = iConfig.getParameter<edm::InputTag> ("vtxInputTag"              );
-    pfIsoCharged03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   );
-    pfIsoGamma03InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     );
-    pfIsoNeutral03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   );
-    pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
-    pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
-    pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
+    // pfIsoCharged03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   );
+    // pfIsoGamma03InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     );
+    // pfIsoNeutral03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   );
+    // pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
+    // pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
+    // pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
     
 
     recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
@@ -642,19 +642,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////////////////////
     // External Isolations //
     /////////////////////////
-    edm::Handle< edm::ValueMap<double> > pfIsoCharged03_h;
-    iEvent.getByLabel(pfIsoCharged03InputTag, pfIsoCharged03_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoGamma03_h;
-    iEvent.getByLabel(pfIsoGamma03InputTag, pfIsoGamma03_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoNeutral03_h;
-    iEvent.getByLabel(pfIsoNeutral03InputTag, pfIsoNeutral03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoCharged03_h;
+    // iEvent.getByLabel(pfIsoCharged03InputTag, pfIsoCharged03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoGamma03_h;
+    // iEvent.getByLabel(pfIsoGamma03InputTag, pfIsoGamma03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoNeutral03_h;
+    // iEvent.getByLabel(pfIsoNeutral03InputTag, pfIsoNeutral03_h);
 
-    edm::Handle< edm::ValueMap<double> > pfIsoCharged04_h;
-    iEvent.getByLabel(pfIsoCharged04InputTag, pfIsoCharged04_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoGamma04_h;
-    iEvent.getByLabel(pfIsoGamma04InputTag, pfIsoGamma04_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoNeutral04_h;
-    iEvent.getByLabel(pfIsoNeutral04InputTag, pfIsoNeutral04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoCharged04_h;
+    // iEvent.getByLabel(pfIsoCharged04InputTag, pfIsoCharged04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoGamma04_h;
+    // iEvent.getByLabel(pfIsoGamma04InputTag, pfIsoGamma04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoNeutral04_h;
+    // iEvent.getByLabel(pfIsoNeutral04InputTag, pfIsoNeutral04_h);
 
   
     ////////////
@@ -873,16 +873,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_iso04_pf2012_em ->push_back( pfiso_em );
             els_iso04_pf2012_nh ->push_back( pfiso_nh );	    
 
-	    pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
-	    pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
-	    pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
+	    // pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
+	    // pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
+	    // pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
             els_iso03_pf2012ext_ch ->push_back( pfiso_ch );
             els_iso03_pf2012ext_em ->push_back( pfiso_em );
             els_iso03_pf2012ext_nh ->push_back( pfiso_nh );
 
-	    pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
-	    pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
-	    pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
+	    // pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
+	    // pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
+	    // pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
             els_iso04_pf2012ext_ch ->push_back( pfiso_ch );
             els_iso04_pf2012ext_em ->push_back( pfiso_em );
             els_iso04_pf2012ext_nh ->push_back( pfiso_nh );

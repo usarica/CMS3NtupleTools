@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 sdFilter = cms.EDFilter("SDFilter",
-                            elsInputTag_    = cms.InputTag("gsfElectrons"),
+                            elsInputTag_    = cms.InputTag("gedGsfElectrons"),
                             musInputTag_    = cms.InputTag("muons"),
                             pfjetsInputTag_ = cms.InputTag("ak5PFJets"),
                             photonInputTag_ = cms.InputTag("photons"),

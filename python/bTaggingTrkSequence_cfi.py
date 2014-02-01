@@ -7,7 +7,7 @@ import FWCore.ParameterSet.Config as cms
 # b-tagging general configuration
 from RecoJets.JetAssociationProducers.ic5JetTracksAssociatorAtVertex_cfi import *
 from RecoBTag.Configuration.RecoBTag_cff import *
-from RecoBTag.SoftLepton.softElectronCandProducer_cfi import *
+#from RecoBTag.SoftLepton.softElectronCandProducer_cfi import *
 
 
 
@@ -56,25 +56,25 @@ CMS2TrkCombinedSecondaryVertexMVABJetTags.tagInfos = cms.VInputTag( cms.InputTag
 #                                                cms.InputTag("CMS2TrkghostVertexTagInfos"))
 #And the soft lepton b-tag. These producers will accept as input either the raw jets, or the association collection:
 # soft electron b-tag
-CMS2TrkSoftElectronTagInfos = softElectronTagInfos.clone()
-CMS2TrkSoftElectronTagInfos.jets = "ak5TrackJets"
-CMS2TrkSoftElectronBJetTags = softElectronBJetTags.clone()
-CMS2TrkSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
-CMS2TrkSoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
-CMS2TrkSoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
-CMS2TrkSoftElectronByPtBJetTags = softElectronByPtBJetTags.clone()
-CMS2TrkSoftElectronByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+#CMS2TrkSoftElectronTagInfos = softElectronTagInfos.clone()
+#CMS2TrkSoftElectronTagInfos.jets = "ak5TrackJets"
+#CMS2TrkSoftElectronBJetTags = softElectronBJetTags.clone()
+#CMS2TrkSoftElectronBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+#CMS2TrkSoftElectronByIP3dBJetTags = softElectronByIP3dBJetTags.clone()
+#CMS2TrkSoftElectronByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
+#CMS2TrkSoftElectronByPtBJetTags = softElectronByPtBJetTags.clone()
+#CMS2TrkSoftElectronByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftElectronTagInfos") )
 
 
 # soft muon b-tag
-CMS2TrkSoftMuonTagInfos = softMuonTagInfos.clone()
-CMS2TrkSoftMuonTagInfos.jets = "ak5TrackJets"
-CMS2TrkSoftMuonBJetTags = softMuonBJetTags.clone()
-CMS2TrkSoftMuonBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
-CMS2TrkSoftMuonByIP3dBJetTags = softMuonByIP3dBJetTags.clone()
-CMS2TrkSoftMuonByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
-CMS2TrkSoftMuonByPtBJetTags = softMuonByPtBJetTags.clone()
-CMS2TrkSoftMuonByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
+#CMS2TrkSoftMuonTagInfos = softMuonTagInfos.clone()
+#CMS2TrkSoftMuonTagInfos.jets = "ak5TrackJets"
+#CMS2TrkSoftMuonBJetTags = softMuonBJetTags.clone()
+#CMS2TrkSoftMuonBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
+#CMS2TrkSoftMuonByIP3dBJetTags = softMuonByIP3dBJetTags.clone()
+#CMS2TrkSoftMuonByIP3dBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
+#CMS2TrkSoftMuonByPtBJetTags = softMuonByPtBJetTags.clone()
+#CMS2TrkSoftMuonByPtBJetTags.tagInfos = cms.VInputTag( cms.InputTag("CMS2TrkSoftMuonTagInfos") )
 #Finally, there needs to be a CMS2 path running all these modules
 # prepare a path running the CMS2 modules
 CMS2TrkJetTracksAssociator = cms.Sequence(
@@ -106,30 +106,30 @@ CMS2TrkJetBtaggingSV = cms.Sequence(
 #    CMS2TrkghostTrackBJetTags
 #)
 
-CMS2TrkJetBtaggingEle = cms.Sequence(
-    #btagSoftElectrons *
-    softElectronCands *
-    CMS2TrkSoftElectronTagInfos * (
-    CMS2TrkSoftElectronByIP3dBJetTags + 
-    CMS2TrkSoftElectronBJetTags +
-    CMS2TrkSoftElectronByPtBJetTags
-    )
-)
+#CMS2TrkJetBtaggingEle = cms.Sequence(
+#    #btagSoftElectrons *
+#    softElectronCands *
+#    CMS2TrkSoftElectronTagInfos * (
+#    CMS2TrkSoftElectronByIP3dBJetTags + 
+#    CMS2TrkSoftElectronBJetTags +
+#    CMS2TrkSoftElectronByPtBJetTags
+#    )
+#)
 
-CMS2TrkJetBtaggingMu = cms.Sequence(
-    CMS2TrkSoftMuonTagInfos * (
-        CMS2TrkSoftMuonBJetTags +
-        CMS2TrkSoftMuonByIP3dBJetTags +
-        CMS2TrkSoftMuonByPtBJetTags
-    )
-)
+#CMS2TrkJetBtaggingMu = cms.Sequence(
+#    CMS2TrkSoftMuonTagInfos * (
+#        CMS2TrkSoftMuonBJetTags +
+#        CMS2TrkSoftMuonByIP3dBJetTags +
+#        CMS2TrkSoftMuonByPtBJetTags
+#    )
+#)
 
 CMS2TrkJetBtagging = cms.Sequence(
     CMS2TrkJetBtaggingIP +
-    CMS2TrkJetBtaggingSV +
+    CMS2TrkJetBtaggingSV
 #    CMS2TrkJetghostBTagging +
-    CMS2TrkJetBtaggingEle +
-    CMS2TrkJetBtaggingMu
+#    CMS2TrkJetBtaggingEle +
+#    CMS2TrkJetBtaggingMu
 )
 
 CMS2TrkBtagging = cms.Sequence(

@@ -27,12 +27,12 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
-from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
-process.eleIsoSequence = setupPFElectronIso(process, 'gsfElectrons')
+#from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
+#process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
 
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
-process.CMS2Reco *= process.pfParticleSelectionSequence
-process.CMS2Reco *= process.eleIsoSequence
+#process.CMS2Reco *= process.pfParticleSelectionSequence
+#process.CMS2Reco *= process.eleIsoSequence
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
@@ -60,11 +60,12 @@ process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
 
 #undo what's pulled in by including Reconstruction_cff
 #it relies on transient steps introduced in PF in 44X (back-fill)
-process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
-process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlow") 
+#process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
+#process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlow") 
 
 #
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+
 
 # Input
 process.source = cms.Source("PoolSource",
@@ -98,7 +99,8 @@ process.AdaptorConfig = cms.Service (
 )
 
 # Options
-process.options                       = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound') )
+process.options                       = cms.untracked.PSet( SkipEvent = cms.untracked.vstring('ProductNotFound'))
+#Rethrow = cms.untracked.vstring('ProductNotFound'),
 process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 

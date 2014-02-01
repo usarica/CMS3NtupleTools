@@ -57,3 +57,4 @@
 <use   name="clhep"/>
 <lib   name="EG"/>
 <flags   EDM_PLUGIN="1"/>
+<flags   CXXFLAGS="-g -O0"/>

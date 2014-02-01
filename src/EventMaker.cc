@@ -157,7 +157,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.put(evt_orbitNumber      ,branchprefix+"orbitNumber"     );
      iEvent.put(evt_storeNumber      ,branchprefix+"storeNumber"     );
      iEvent.put(evt_experimentType   ,branchprefix+"experimentType"  );
-     iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );
+     // iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );
      iEvent.put(evt_dataset          ,branchprefix+"dataset"         );
      iEvent.put(evt_CMS2tag          ,branchprefix+"CMS2tag"         );
      iEvent.put(evt_bField           ,branchprefix+"bField"          );
