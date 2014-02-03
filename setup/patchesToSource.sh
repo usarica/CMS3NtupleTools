@@ -20,13 +20,6 @@ git checkout V00-00-08
 popd
 
 
-
-#git clone https://github.com/cms-cvs-history/CommonTools-RecoAlgos $CMSSW_BASE/src/CommonTools/RecoAlgos
-#pushd $CMSSW_BASE/src/CommonTools/RecoAlgos
-#git checkout CommonTools-RecoAlgos-V00-03-23
-#popd
-
-
 #############
 # MVA JetId #
 #############
@@ -35,18 +28,6 @@ git clone https://github.com/latinos/UserCode-CMG-CMGTools-External $CMSSW_BASE/
 pushd $CMSSW_BASE/src/CMGTools/External
 git checkout V00-03-01
 popd
-
-
-#############################
-# do stuff with PF candidates
-#############################
-
-
-#git clone https://github.com/cms-cvs-history/CommonTools-ParticleFlow $CMSSW_BASE/src/CommonTools/ParticleFlow
-#pushd $CMSSW_BASE/src/CommonTools/ParticleFlow
-#git checkout CommonTools-ParticleFlow-V00-03-15
-#popd
-
 
 
 ####################
@@ -98,17 +79,6 @@ mv blah $CMSSW_BASE/src/PhysicsTools/JetMCAlgos/plugins/PartonSelector.cc
 
 sed '32 s/GenParticleCandidate/GenParticle/' <$CMSSW_BASE/src/PhysicsTools/JetMCAlgos/plugins/GenJetBCEnergyRatio.cc >blah
 mv blah $CMSSW_BASE/src/PhysicsTools/JetMCAlgos/plugins/GenJetBCEnergyRatio.cc
-
-
-#######################
-# TAUs
-#######################
-
-
-git clone https://github.com/cms-cvs-history/CondFormats-EgammaObjects $CMSSW_BASE/src/CondFormats/EgammaObjects
-pushd $CMSSW_BASE/src/CondFormats/EgammaObjects
-git checkout CondFormats-EgammaObjects-V00-04-00
-popd
 
 
 #######################
