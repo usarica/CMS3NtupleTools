@@ -94,7 +94,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   muonsInputTag    = iConfig.getParameter<InputTag> ("muonsInputTag"   );
   beamSpotInputTag = iConfig.getParameter<InputTag> ("beamSpotInputTag");
   pfCandsInputTag  = iConfig.getParameter<InputTag> ("pfCandsInputTag" );
-  vtxInputTag      = iConfig.getParameter<InputTag> ("vtxInputTag"     );
+  vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
   src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
   showerTag_       = iConfig.getParameter<InputTag> ("muonShower"      ); 
@@ -626,7 +626,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Get Vertices //
   //////////////////
 
-  iEvent.getByLabel( vtxInputTag , vertexHandle );  
+  iEvent.getByToken( vtxToken , vertexHandle );
 
   ///////////////////////////
   // TransientTrackBuilder //
