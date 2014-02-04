@@ -36,8 +36,6 @@
 
 #include "DataFormats/Scalers/interface/DcsStatus.h"
 
-#include "FWCore/Utilities/interface/typedefs.h"
-
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace edm;
