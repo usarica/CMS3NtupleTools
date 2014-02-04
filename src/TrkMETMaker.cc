@@ -74,7 +74,7 @@ TrkMETMaker::~TrkMETMaker() {
 }
 
 
-void  TrkMETMaker::beginRun(edm::Run&, const edm::EventSetup& es) {
+void  TrkMETMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {
      
 
 }

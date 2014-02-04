@@ -362,7 +362,7 @@ ElectronMaker::~ElectronMaker()
   if (mtsTransform_) delete mtsTransform_;
 }
 
-void  ElectronMaker::beginRun(Run&, const EventSetup& es) {
+void  ElectronMaker::beginRun(const edm::Run&, const EventSetup& es) {
   
     ESHandle<TrackerGeometry>              trackerGeometryHandle;
     ESHandle<MagneticField>                magFieldHandle;

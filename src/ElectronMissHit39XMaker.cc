@@ -66,7 +66,7 @@ ElectronMissHit39XMaker::~ElectronMissHit39XMaker()
 {
 }
 
-void  ElectronMissHit39XMaker::beginRun(edm::Run&, const edm::EventSetup& es) {
+void  ElectronMissHit39XMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {
 }
 
 void ElectronMissHit39XMaker::beginJob() {

@@ -82,7 +82,8 @@ process.source = cms.Source("PoolSource",
       #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_2_5_cand1-GR_R_52_V7_RelVal_mu2011A-v1_RECO/0CF15A58-7B91-E111-9FDA-002618FDA237.root' # CMSSW_5_2_5
       #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_3_1-GR_R_53_V2_RelVal_mu2011A-v1_RECO/B4750996-E5A4-E111-8DEC-0030486791F2.root'        # CMSSW_5_3_1
 
-      'file:../test/TTJets_D6EA05D1-26C2-E111-BF3A-003048FFD7A2.root' # 52x TTJets
+      #'file:../test/TTJets_D6EA05D1-26C2-E111-BF3A-003048FFD7A2.root' # 52x TTJets
+        'file:/nfs-3/userdata/jgran/7_0_0_pre12_RelValProdTTbar.root'
 
    ),
     #--- Uncomment to emulate AOD with RECO --- #

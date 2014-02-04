@@ -42,7 +42,7 @@ class BCMaker : public edm::EDProducer {
 		explicit BCMaker (const edm::ParameterSet&);
 
 	private:
-		void beginRun( const edm::EventSetup & iSetup );
+                virtual void beginRun(const edm::Run & iRun, const edm::EventSetup & iSetup );
 		virtual void beginJob() ;
 		virtual void produce(edm::Event&, const edm::EventSetup&);
 		virtual void endJob() ;

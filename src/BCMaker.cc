@@ -124,7 +124,7 @@ BCMaker::BCMaker(const edm::ParameterSet& iConfig) {
 
 }
 
-void BCMaker::beginRun( const edm::EventSetup & iSetup )
+void BCMaker::beginRun(const edm::Run & iRun, const edm::EventSetup & iSetup )
 {
 	edm::ESHandle<EcalChannelStatus> chStatus;
 	iSetup.get<EcalChannelStatusRcd>().get(chStatus);

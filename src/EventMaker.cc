@@ -75,6 +75,10 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
 
 EventMaker::~EventMaker() {}
 
+void EventMaker::beginRun (const edm::Run& iRun, const edm::EventSetup& iSetup)
+{
+}
+
 void EventMaker::beginJob() {  
 }
 

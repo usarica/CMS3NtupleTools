@@ -43,6 +43,7 @@ private:
      virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
+    virtual void beginRun (const edm::Run& iRun, const edm::EventSetup& iSetup);
 
      std::string datasetName_;
      std::string CMS2tag_;

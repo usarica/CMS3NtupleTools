@@ -96,7 +96,7 @@ void GenMaker::endJob()
 {
 }
 
-void GenMaker::beginRun( edm::Run& iRun, const edm::EventSetup& iSetup) {
+void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
      edm::Handle<GenRunInfoProduct> genRunInfo;
      bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);

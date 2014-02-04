@@ -103,9 +103,9 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void beginJob();
   virtual void endJob();
-  //virtual bool beginRun(edm::Run&, const edm::EventSetup&);
+  //virtual bool beginRun(const edm::Run&, const edm::EventSetup&);
   //virtual bool endRun(edm::Run&, const edm::EventSetup&);
-  virtual void beginRun(edm::Run&, const edm::EventSetup&);
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
   virtual void endRun(edm::Run&, const edm::EventSetup&);
   virtual void envSet(const edm::EventSetup&);
 
@@ -364,8 +364,8 @@ void simpleDRfilter::endJob() {
 }
 
 // ------------ method called once each run just before starting event loop  ------------
-//bool simpleDRfilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
-void simpleDRfilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
+//bool simpleDRfilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
+void simpleDRfilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
 /*
   if (debug_) std::cout << "beginRun" << std::endl;
 // Channel status might change for each run (data)

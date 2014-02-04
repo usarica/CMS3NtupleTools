@@ -71,7 +71,7 @@ TrackIsolationMaker::~TrackIsolationMaker()
 
 }
 
-void  TrackIsolationMaker::beginRun(edm::Run&, const edm::EventSetup& es) {}
+void  TrackIsolationMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {}
 void  TrackIsolationMaker::beginJob() {}
 void  TrackIsolationMaker::endJob()   {}
 

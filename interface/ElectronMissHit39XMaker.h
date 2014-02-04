@@ -54,7 +54,7 @@ public:
 
 private:
   virtual void beginJob() ;
-  virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   

@@ -42,7 +42,7 @@ private:
      virtual void beginJob() ;
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
-     virtual void beginRun(edm::Run&, const edm::EventSetup&);
+     virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
      // ----------member data ---------------------------
      edm::InputTag genParticlesInputTag_;
