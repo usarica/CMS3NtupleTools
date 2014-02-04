@@ -30,16 +30,6 @@ git checkout V00-03-01
 popd
 
 
-####################
-# 2012 Electron ID #
-####################
-
-git clone https://github.com/latinos/UserCode-EGamma-EGammaAnalysisTools.git $CMSSW_BASE/src/EGamma/EGammaAnalysisTools
-pushd $CMSSW_BASE/src/EGamma/EGammaAnalysisTools
-git checkout CutBasedId_V00-00-03
-popd
-
-
 ########################
 # Type-I Corrected MET #
 ########################
