@@ -164,7 +164,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
 
 }
 
-void SCMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
+void SCMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
     /*
        edm::ESHandle<EcalChannelStatus> chStatus;
@@ -379,7 +379,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                 for (unsigned int i = 0; i < detIds.size(); ++i) {
                     EcalRecHitCollection::const_iterator hit = recHits->find(detIds[i].first);
                     if (hit != recHits->end()) {
-                        // eSumNoLaser += hit->energy() / laser_->getLaserCorrection(hit->id(), iEvent.time());
+                        eSumNoLaser += hit->energy() / laser_->getLaserCorrection(hit->id(), iEvent.time());
                         if (hit->energy() > eMax) {
                             eMax = hit->energy();
                             maxHit = hit;
@@ -387,7 +387,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                     }
                 }
                 vector_scs_laserCorMean->push_back(sc->rawEnergy() / eSumNoLaser);
-                // vector_scs_laserCorMax->push_back(laser_->getLaserCorrection(maxHit->id(), iEvent.time()));
+                vector_scs_laserCorMax->push_back(laser_->getLaserCorrection(maxHit->id(), iEvent.time()));
 
                 EcalRecHitCollection::const_iterator seedHit = recHits->find(seedId);
                 if (seedHit != recHits->end()) {
@@ -395,7 +395,7 @@ void SCMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
                     vector_scs_detIdSeed->push_back(seedHit->id().rawId());
                     vector_scs_severitySeed->push_back ( seedHit->recoFlag() );
                     vector_scs_timeSeed->push_back (seedHit->time() );
-                    // vector_scs_laserCorSeed->push_back(laser_->getLaserCorrection(seedHit->id(), iEvent.time()));
+                    vector_scs_laserCorSeed->push_back(laser_->getLaserCorrection(seedHit->id(), iEvent.time()));
                 } else {
                     vector_scs_eSeed->push_back(0.0);
                     vector_scs_detIdSeed->push_back(-1);
