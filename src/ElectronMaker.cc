@@ -78,7 +78,7 @@
 
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
-#include "EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h"
+#include "EgammaAnalysis/ElectronTools/interface/EGammaCutBasedEleId.h"
 
 //
 using namespace reco;
