@@ -58,7 +58,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
      produces<int>                 (branchprefix+"orbitNumber"    ).setBranchAlias(aliasprefix_+"_orbitNumber"   );
      produces<int>                 (branchprefix+"storeNumber"    ).setBranchAlias(aliasprefix_+"_storeNumber"   );
      produces<int>                 (branchprefix+"experimentType" ).setBranchAlias(aliasprefix_+"_experimentType");
-     produces<double>              (branchprefix+"timestamp"      ).setBranchAlias(aliasprefix_+"_timestamp"     );
+     produces<unsigned long long>              (branchprefix+"timestamp"      ).setBranchAlias(aliasprefix_+"_timestamp"     );
      produces< vector< TString > > (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
      produces< vector< TString > > (branchprefix+"CMS2tag"        ).setBranchAlias(aliasprefix_+"_CMS2tag"       );
      produces<float>               (branchprefix+"bField"         ).setBranchAlias(aliasprefix_+"_bField"        );
@@ -95,7 +95,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<int>                  evt_orbitNumber     (new int                       );
      auto_ptr<int>                  evt_storeNumber     (new int                       );
      auto_ptr<int>                  evt_experimentType  (new int                       );
-     auto_ptr<double>               evt_timestamp       (new double                    );
+     auto_ptr<unsigned long long>               evt_timestamp       (new unsigned long long                    );
      auto_ptr<vector<TString>>      evt_dataset         (new vector<TString>           );
      auto_ptr<vector<TString>>      evt_CMS2tag         (new vector<TString>           );
      auto_ptr<float>                evt_bField          (new float                     );
