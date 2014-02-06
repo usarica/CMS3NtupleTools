@@ -60,8 +60,10 @@ process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
 
 #undo what's pulled in by including Reconstruction_cff
 #it relies on transient steps introduced in PF in 44X (back-fill)
-#process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
-#process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlow") 
+process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
+process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
 
 #
 metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
