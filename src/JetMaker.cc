@@ -137,22 +137,21 @@ void JetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::JetIDValueMap> h_JetIDMap;
   iEvent.getByLabel(jetIDIputTag_, h_JetIDMap);
 
-  // const JetCorrector* correctorL2L3		= JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_          , iSetup);
-  // const JetCorrector* correctorL1L2L3		= JetCorrector::getJetCorrector (CaloJetCorrectorL1L2L3_	, iSetup);
-  // const JetCorrector* correctorL1FastL2L3	= JetCorrector::getJetCorrector (CaloJetCorrectorL1FastL2L3_	, iSetup);
+  const JetCorrector* correctorL2L3		= JetCorrector::getJetCorrector (CaloJetCorrectorL2L3_          , iSetup);
+  //  const JetCorrector* correctorL1L2L3		= JetCorrector::getJetCorrector (CaloJetCorrectorL1L2L3_	, iSetup);
+  const JetCorrector* correctorL1FastL2L3	= JetCorrector::getJetCorrector (CaloJetCorrectorL1FastL2L3_	, iSetup);
 
   for(View<reco::CaloJet>::const_iterator it = uncorJetsHandle->begin(); it != uncorJetsHandle->end(); it++) {
 
     unsigned int idx = it - uncorJetsHandle->begin();
     edm::RefToBase<reco::Jet> jetRef1(edm::Ref<View<reco::CaloJet> >(uncorJetsHandle,idx));
 
-    
-    double cor			= 1.;
+            
+    double cor			= correctorL2L3      ->correction(*it,   iEvent, iSetup);
     double corL1L2L3		= 1.;
-    double corL1FastL2L3        = 1.; 
-    // double cor			= correctorL2L3      ->correction(*it,   iEvent, iSetup);
-    // double corL1L2L3		= correctorL1L2L3    ->correction(*it,   iEvent, iSetup);
-    // double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,   iEvent, iSetup);
+    //double corL1L2L3		= correctorL1L2L3    ->correction(*it,   iEvent, iSetup);
+    double corL1FastL2L3	= correctorL1FastL2L3->correction(*it,   iEvent, iSetup);
+
     vector_jets_p4             ->push_back( LorentzVector(it->p4())                         );
     vector_jets_vertex_p4      ->push_back( LorentzVector(it->vx(), it->vy(), it->vz(), 0.) );
     vector_jets_emFrac         ->push_back( it->emEnergyFraction()                          );
