@@ -1,7 +1,8 @@
 # Import Python Modules
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
-from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+#from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
 
 # CMS2
 process = cms.Process("CMS2")
@@ -66,7 +67,7 @@ process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
 process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
 
 #
-metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+#metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
 
 
 # Input
