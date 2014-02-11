@@ -100,6 +100,10 @@ void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
      edm::Handle<GenRunInfoProduct> genRunInfo;
      bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);
+ 
+//This code block causes the following error:  "::getByLabel: An attempt was made to read a Run product before endRun() was called."
+//To fix, we just set the xsecs to 0 because we don't use the branches with these xsecs for anything. jgran 02-11-2014.
+/*
      if (haveRunInfo){
        
        inclusiveCrossSectionValue_ = genRunInfo->internalXSec().value();
@@ -108,6 +112,10 @@ void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
        inclusiveCrossSectionValue_ = 0;
        exclusiveCrossSectionValue_ = 0;
      }
+*/
+
+     inclusiveCrossSectionValue_ = 0;
+     exclusiveCrossSectionValue_ = 0;
 
 }
 
