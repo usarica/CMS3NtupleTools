@@ -82,7 +82,7 @@ electronIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 cms2PFNoTauSequence = cms.Sequence( 
   pfJetMaker + 
 #  pfmetMaker + 
-#  CMS2pfMetSequence + #(doesn't run because JetMETCorrections package is outdated. But if we try the new version, we break the metCorSequence. deactivating for now.)
+  CMS2pfMetSequence +
   CMS2PFBtagging + 
   bTagPFJetMaker + 
 #  goodPrimaryVertices +

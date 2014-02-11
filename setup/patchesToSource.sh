@@ -30,16 +30,6 @@ git checkout V00-03-01
 popd
 
 
-########################
-# Type-I Corrected MET #
-########################
-
-git clone https://github.com/cms-cvs-history/JetMETCorrections-Type1MET $CMSSW_BASE/src/JetMETCorrections/Type1MET
-pushd $CMSSW_BASE/src/JetMETCorrections/Type1MET
-git checkout JetMETCorrections-Type1MET-V04-06-09
-popd
-
-
 #######################
 # MC Jet Flavor Truth #
 #######################
