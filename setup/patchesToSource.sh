@@ -1,25 +1,6 @@
 #!/bin/bash
 
 
-####################
-# MET Filters 2012 #
-####################
-
-git clone https://github.com/cms-cvs-history/RecoMET-METFilters $CMSSW_BASE/src/RecoMET/METFilters
-pushd $CMSSW_BASE/src/RecoMET/METFilters
-git checkout RecoMET-METFilters-V00-00-10
-popd
-touch $CMSSW_BASE/src/RecoMET/METFilters/data/dummy.txt
-sed '3 s/EDFilter/EDProducer/' <$CMSSW_BASE/src/RecoMET/METFilters/python/EcalDeadCellDeltaRFilter_cfi.py > blah
-mv blah $CMSSW_BASE/src/RecoMET/METFilters/python/EcalDeadCellDeltaRFilter_cfi.py
-
-
-git clone https://github.com/cms-cvs-dump/RecoMET_METAnalyzers $CMSSW_BASE/src/RecoMET/METAnalyzers
-pushd $CMSSW_BASE/src/RecoMET/METAnalyzers
-git checkout V00-00-08
-popd
-
-
 #############
 # MVA JetId #
 #############

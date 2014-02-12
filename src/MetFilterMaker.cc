@@ -34,7 +34,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     hcalLaserEventInputTag_     = iConfig.getParameter<InputTag>("hcalLaserEventInputTag"   );
     inconsistentMuonInputTag_   = iConfig.getParameter<InputTag>("inconsistentMuonInputTag" );
     jetIDFailureInputTag_       = iConfig.getParameter<InputTag>("jetIDFailureInputTag"     );
-    multiEventFailureInputTag_  = iConfig.getParameter<InputTag>("multiEventFailureInputTag");
+    //multiEventFailureInputTag_  = iConfig.getParameter<InputTag>("multiEventFailureInputTag");
     trackingFailureInputTag_    = iConfig.getParameter<InputTag>("trackingFailureInputTag"  );
     eeBadScFilterInputTag_      = iConfig.getParameter<InputTag>("eeBadScFilterInputTag"    );
     ecalLaserCorrFilterInputTag_ = iConfig.getParameter<InputTag>("ecalLaserCorrFilterInputTag");
@@ -50,7 +50,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     produces <bool> ( branchprefix_ + "hcalLaser"       ).setBranchAlias( aliasprefix_ + "_hcalLaser"       );
     produces <bool> ( branchprefix_ + "inconsistentMuon").setBranchAlias( aliasprefix_ + "_inconsistentMuon");
     produces <bool> ( branchprefix_ + "jetIDFailure"    ).setBranchAlias( aliasprefix_ + "_jetIDFailure"    );
-    produces <bool> ( branchprefix_ + "multiEvent"      ).setBranchAlias( aliasprefix_ + "_multiEvent"      );
+    //produces <bool> ( branchprefix_ + "multiEvent"      ).setBranchAlias( aliasprefix_ + "_multiEvent"      );
     produces <bool> ( branchprefix_ + "trackingFailure" ).setBranchAlias( aliasprefix_ + "_trackingFailure" );
     produces <bool> ( branchprefix_ + "eeBadSc"         ).setBranchAlias( aliasprefix_ + "_eeBadSc"         );
     produces <bool> ( branchprefix_ + "ecalLaser"       ).setBranchAlias( aliasprefix_ + "_ecalLaser"       );
@@ -76,7 +76,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     auto_ptr <bool> filt_hcalLaserEvent   ( new bool(false) );
     auto_ptr <bool> filt_inconsistentMuon ( new bool(false) );
     auto_ptr <bool> filt_jetIDFailure     ( new bool(false) );
-    auto_ptr <bool> filt_multiEventFailure( new bool(false) );
+    //auto_ptr <bool> filt_multiEventFailure( new bool(false) );
     auto_ptr <bool> filt_trackingFailure  ( new bool(false) );
     auto_ptr <bool> filt_eeBadSc          ( new bool(false) );
     auto_ptr <bool> filt_ecalLaser        ( new bool(false) );
@@ -92,7 +92,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     Handle<bool> b_hcalLaserEvent;
     Handle<bool> b_inconsistentMuon;
     Handle<bool> b_jetIDFailure;
-    Handle<bool> b_multiEventFailure;
+    //Handle<bool> b_multiEventFailure;
     Handle<bool> b_trackingFailure;
     Handle<bool> b_eeBadSc;
     Handle<bool> b_ecalLaser;
@@ -104,7 +104,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     iEvent.getByLabel( hcalLaserEventInputTag_    , b_hcalLaserEvent    );
     iEvent.getByLabel( inconsistentMuonInputTag_  , b_inconsistentMuon  );
     iEvent.getByLabel( jetIDFailureInputTag_      , b_jetIDFailure      );
-    iEvent.getByLabel( multiEventFailureInputTag_ , b_multiEventFailure );
+    //iEvent.getByLabel( multiEventFailureInputTag_ , b_multiEventFailure );
     iEvent.getByLabel( trackingFailureInputTag_   , b_trackingFailure   );
     iEvent.getByLabel( eeBadScFilterInputTag_     , b_eeBadSc           );
     iEvent.getByLabel( ecalLaserCorrFilterInputTag_ , b_ecalLaser       );
@@ -116,7 +116,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     checkValid( b_hcalLaserEvent    , hcalLaserEventInputTag_    );
     checkValid( b_inconsistentMuon  , inconsistentMuonInputTag_  );
     //checkValid( b_jetIDFailure      , jetIDFailureInputTag_      );
-    checkValid( b_multiEventFailure , multiEventFailureInputTag_ );
+    //checkValid( b_multiEventFailure , multiEventFailureInputTag_ );
     checkValid( b_trackingFailure   , trackingFailureInputTag_   );
     checkValid( b_eeBadSc           , eeBadScFilterInputTag_     );
     checkValid( b_ecalLaser         , ecalLaserCorrFilterInputTag_ );
@@ -128,7 +128,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     *filt_hcalLaserEvent    = *b_hcalLaserEvent;
     *filt_inconsistentMuon  = *b_inconsistentMuon;
     //*filt_jetIDFailure      = *b_jetIDFailure;
-    *filt_multiEventFailure = *b_multiEventFailure;
+    //*filt_multiEventFailure = *b_multiEventFailure;
     *filt_trackingFailure   = *b_trackingFailure;
     *filt_eeBadSc           = *b_eeBadSc;
     *filt_ecalLaser         = *b_ecalLaser;
@@ -146,7 +146,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     iEvent.put( filt_hcalLaserEvent   , branchprefix_ + "hcalLaser"       );
     iEvent.put( filt_inconsistentMuon , branchprefix_ + "inconsistentMuon");
     iEvent.put( filt_jetIDFailure     , branchprefix_ + "jetIDFailure"    );
-    iEvent.put( filt_multiEventFailure, branchprefix_ + "multiEvent"      );
+    //iEvent.put( filt_multiEventFailure, branchprefix_ + "multiEvent"      );
     iEvent.put( filt_trackingFailure  , branchprefix_ + "trackingFailure" );
     iEvent.put( filt_eeBadSc          , branchprefix_ + "eeBadSc"         );
     iEvent.put( filt_ecalLaser        , branchprefix_ + "ecalLaser"       );
