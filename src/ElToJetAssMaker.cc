@@ -47,8 +47,8 @@ ElToJetAssMaker::ElToJetAssMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int>   >(branchprefix+"closestJet").setBranchAlias(aliasprefix_+"_closestJet");	// electron closest to jet
      produces<vector<float> >(branchprefix+"jetdr"     ).setBranchAlias(aliasprefix_+"_jetdr"     );     
      
-     elsInputTag_  = iConfig.getParameter<edm::InputTag>("elsInputTag");
-     jetsInputTag_ = iConfig.getParameter<edm::InputTag>("jetsInputTag");
+     elsToken_  = consumes<std::vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("elsInputTag"));
+     jetsToken_ = consumes<std::vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("jetsInputTag"));
      m_minDR_       = iConfig.getParameter<double>       ("minDR");
 }
 
@@ -61,11 +61,11 @@ void ElToJetAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      // get electrons
      Handle<vector<LorentzVector> > els_p4_h;
-     iEvent.getByLabel(elsInputTag_.label(), "elsp4", els_p4_h);  
+     iEvent.getByToken(elsToken_, els_p4_h);  
 
-     // get jet p4's
+     // get jet p4s
      Handle<vector<LorentzVector> > jets_p4_h;
-     iEvent.getByLabel(jetsInputTag_.label(), "jetsp4", jets_p4_h);
+     iEvent.getByToken(jetsToken_, jets_p4_h);
      
      // loop over all electrons
      for(vector<LorentzVector>::const_iterator els_it = els_p4_h->begin(),

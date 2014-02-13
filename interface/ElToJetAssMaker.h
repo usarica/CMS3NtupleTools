@@ -22,6 +22,9 @@ Description: make associations between electrons and jets
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // class declaration
@@ -38,8 +41,8 @@ private:
       
   // ----------member data ---------------------------
   double m_minDR_;
-  edm::InputTag elsInputTag_;
-  edm::InputTag jetsInputTag_;
+  edm::EDGetTokenT<std::vector<LorentzVector> > elsToken_;
+  edm::EDGetTokenT<std::vector<LorentzVector> > jetsToken_;
   std::string aliasprefix_;
 };
 
