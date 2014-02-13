@@ -349,6 +349,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
     produces<vector<float> >  ("elssigmaIphiIphi"           ).setBranchAlias("els_sigmaIphiIphi"           );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
+    //    produces<vector<vector<int>   >   >       ("elsconvsgsftkidx"    ).setBranchAlias("els_convs_gsftkidx"    );
+    produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
+
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -593,7 +599,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
     auto_ptr<vector<float> >  els_sigmaIphiIphi            ( new vector<float> );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
 
+    auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
 
     // --- Get Input Collections --- //
 
@@ -1423,6 +1433,36 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_r9                      ->push_back( el->r9()                       );
         els_sigmaIphiIphi           ->push_back( el->sigmaIphiIphi()            );
 
+        ///////////////////
+        // Added for 7   //
+        ///////////////////
+	
+
+	
+	edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
+	InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
+	iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);
+	
+	edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
+
+	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
+	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+	int PFidx = 0;
+	vector<int> v_PFCand_idx;
+	bool foundOnePFcand = false;
+	for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
+	  reco:: PFCandidateRef pfCandRef(pfCand_h, PFidx);
+	  for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
+	    if (*ipf == pfCandRef) {
+	      foundOnePFcand = true;
+	      v_PFCand_idx.push_back(PFidx);
+	    }
+	  }
+	  PFidx++;
+	}
+	if (!foundOnePFcand) v_PFCand_idx.push_back(-1);
+	els_PFCand_idx->push_back(v_PFCand_idx);
+
 
 
     } // end Loop on Electrons
@@ -1645,6 +1685,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put( els_r9                       , "elsr9"                       );
     iEvent.put( els_sigmaIphiIphi            , "elssigmaIphiIphi"            );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
+
+    iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
 
 }
 
