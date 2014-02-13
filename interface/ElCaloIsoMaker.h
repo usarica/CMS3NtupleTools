@@ -26,9 +26,9 @@ class ElCaloIsoMaker : public edm::EDProducer {
    void produceEcalIso(edm::Event&, const edm::EventSetup&);
    void produceEcalTowerIso(edm::Event&, const edm::EventSetup&);
    void produceHcalIso(edm::Event&, const edm::EventSetup&);
-   edm::InputTag m_electronsInputTag;
-   edm::InputTag m_basicClusterInputTag;
-   edm::InputTag m_caloTowersInputTag;
+   edm::EDGetTokenT<edm::View<reco::GsfElectron> > m_electronsToken;
+   edm::EDGetTokenT<reco::BasicClusterCollection> m_basicClusterToken;
+   edm::EDGetTokenT<CaloTowerCollection> m_caloTowersToken;
    double m_maxDR;
    double m_minDR;
    double m_minDEta;
