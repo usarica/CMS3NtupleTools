@@ -352,7 +352,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     ///////////////////
     // Added for 7   //
     ///////////////////
-    //    produces<vector<vector<int>   >   >       ("elsconvsgsftkidx"    ).setBranchAlias("els_convs_gsftkidx"    );
+
     produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
 
 
@@ -726,6 +726,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
     const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
+    //////////////////////////////
+    // Get the ele<->PFCand map //
+    //////////////////////////////
+
+    edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
+    InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
+    iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
+    edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
     
     // --- Fill --- //
 
@@ -1436,31 +1444,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         ///////////////////
         // Added for 7   //
         ///////////////////
-	
-
-	
-	edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
-	InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
-	iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);
-	
-	edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
 
 	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
 	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
-	int PFidx = 0;
 	vector<int> v_PFCand_idx;
-	bool foundOnePFcand = false;
-	for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
-	  reco:: PFCandidateRef pfCandRef(pfCand_h, PFidx);
-	  for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
-	    if (*ipf == pfCandRef) {
-	      foundOnePFcand = true;
-	      v_PFCand_idx.push_back(PFidx);
-	    }
-	  }
-	  PFidx++;
+	for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
+	  v_PFCand_idx.push_back(ipf->key());
 	}
-	if (!foundOnePFcand) v_PFCand_idx.push_back(-1);
+	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
 	els_PFCand_idx->push_back(v_PFCand_idx);
 
 
