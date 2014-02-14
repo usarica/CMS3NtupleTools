@@ -54,7 +54,8 @@ TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig) {
   // index in electron collection of track matched to electron
   produces<vector<int>   >(branchprefix+"elsidx"     ).setBranchAlias(aliasprefix_+"_elsidx"    );	
   
-  electronsInputTag_ = iConfig.getParameter<InputTag>("electronsInputTag");
+  //BELOW NEEDS CONVERTED TO TOKEN!  I CHANGED NAME ONLY!
+  electronsToken_ = consumes<edm::View<reco::GsfElectron> >(iConfig.getParameter<InputTag>("electronsInputTag"));
   tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
      
 }
@@ -69,8 +70,7 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 
    //get the reco electron collection 
-  vector<const GsfElectron*> els_coll = ElUtilities::getElectrons(iEvent, 
-								  electronsInputTag_);
+  vector<const GsfElectron*> els_coll = ElUtilities::getElectrons(iEvent, electronsToken_);
   //ElUtilities::removeElectrons(&els_coll);
   
   //get the reco track collection

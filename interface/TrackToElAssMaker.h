@@ -49,7 +49,7 @@ private:
   
       
       // ----------member data ---------------------------
-  edm::InputTag electronsInputTag_;
+  edm::EDGetTokenT<edm::View<reco::GsfElectron> > electronsToken_;
   edm::InputTag tracksInputTag_;
   std::string aliasprefix_;
 

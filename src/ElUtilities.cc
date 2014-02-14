@@ -18,10 +18,10 @@ ElUtilities::~ElUtilities() {
 //get the electron collection
 //--------------------------------------------------------------------------------
 vector<const GsfElectron*> ElUtilities::getElectrons(const edm::Event& iEvent, 
-						     const edm::InputTag electronsInputTag) {
+						     const edm::EDGetTokenT<edm::View<reco::GsfElectron> > electronsToken) {
 
   edm::Handle<edm::View<GsfElectron> > electron_h;
-  iEvent.getByLabel(electronsInputTag, electron_h);
+  iEvent.getByToken(electronsToken, electron_h);
   vector<const GsfElectron*> collection;
 
   for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin();

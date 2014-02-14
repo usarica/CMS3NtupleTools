@@ -27,7 +27,7 @@ public:
   ElUtilities();
   ~ElUtilities();
 
-  static std::vector<const reco::GsfElectron* > getElectrons(const edm::Event&, const edm::InputTag);
+  static std::vector<const reco::GsfElectron* > getElectrons(const edm::Event&, const edm::EDGetTokenT<edm::View<reco::GsfElectron> >);
   static void removeElectrons(const std::vector<const reco::GsfElectron*>* );
 private:
 
