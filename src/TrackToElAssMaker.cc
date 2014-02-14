@@ -56,8 +56,8 @@ TrackToElAssMaker::TrackToElAssMaker(const edm::ParameterSet& iConfig) {
   
   //BELOW NEEDS CONVERTED TO TOKEN!  I CHANGED NAME ONLY!
   electronsToken_ = consumes<edm::View<reco::GsfElectron> >(iConfig.getParameter<InputTag>("electronsInputTag"));
-  tracksInputTag_    = iConfig.getParameter<InputTag>("tracksInputTag");
-     
+  tracksToken_ = consumes<reco::TrackCollection>(iConfig.getParameter<InputTag>("tracksInputTag"));
+
 }
 
 void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -75,7 +75,7 @@ void TrackToElAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   
   //get the reco track collection
   Handle<TrackCollection> trks_h;
-  iEvent.getByLabel(tracksInputTag_, trks_h);
+  iEvent.getByToken(tracksToken_, trks_h);
   const TrackCollection *trks_coll = trks_h.product();
   
   for(vector<Track>::const_iterator trks_it = trks_coll->begin();
