@@ -70,11 +70,10 @@ ElectronIsolationMaker::ElectronIsolationMaker( const ParameterSet& iConfig ) {
     // Input Parameters //
     //////////////////////
 
-    gsfElectronInputTag  = iConfig.getParameter<InputTag> ("gsfElectronInputTag" );
-    pfNoPileUpInputTag   = iConfig.getParameter<InputTag> ("pfNoPileUpInputTag_" );
-    cms2electronInputTag = iConfig.getParameter<InputTag> ("cms2electronInputTag");
-    vertexInputTag       = iConfig.getParameter<InputTag> ("vertexInputTag_");
-
+    gsfElectronToken  = consumes<reco::GsfElectronCollection>(iConfig.getParameter<InputTag> ("gsfElectronInputTag" ));
+    pfNoPileUpToken   = consumes<reco::PFCandidateCollection>(iConfig.getParameter<InputTag> ("pfNoPileUpInputTag_" ));
+    cms2electronToken = consumes<std::vector <LorentzVector> >(iConfig.getParameter<InputTag> ("cms2electronInputTag"));
+    vertexToken       = consumes<VertexCollection>(iConfig.getParameter<InputTag> ("vertexInputTag_"));
 
     //////////////////////
     // RADIAL ISOLATION //
@@ -156,7 +155,7 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////
 
     Handle<reco::GsfElectronCollection> ele_h;
-    iEvent.getByLabel( gsfElectronInputTag , ele_h );
+    iEvent.getByToken( gsfElectronToken , ele_h );
 
 
     ////////////////////
@@ -164,20 +163,20 @@ void ElectronIsolationMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ////////////////////
 
     Handle<vector<LorentzVector> > cms2_ele_h;
-    iEvent.getByLabel( cms2electronInputTag, cms2_ele_h);
+    iEvent.getByToken( cms2electronToken, cms2_ele_h);
 
 
     ///////////////////////
     // Get pfNoPileUp    //
     ///////////////////////
-    iEvent.getByLabel(pfNoPileUpInputTag, pfNoPileUp_h);
-    const PFCandidateCollection *pfNoPileUpColl = pfNoPileUp_h.product();
+    iEvent.getByToken(pfNoPileUpToken, pfNoPileUp_h);
+    const reco::PFCandidateCollection *pfNoPileUpColl = pfNoPileUp_h.product();
 
     ///////////////////////////
     // Get Vertex Collection //
     ///////////////////////////
     Handle<VertexCollection> vertex_h;
-    iEvent.getByLabel(vertexInputTag, vertex_h);
+    iEvent.getByToken(vertexToken, vertex_h);
     const VertexCollection *vertex_coll = vertex_h.product();
     VertexCollection::const_iterator firstGoodVertex = vertex_h->end();
     int firstGoodVertexIdx = 0;
