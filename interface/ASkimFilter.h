@@ -52,8 +52,8 @@ private:
     virtual void endJob() ;
    
     // ----------member data ---------------------------
-    edm::InputTag electronsInputTag_;
-    edm::InputTag muonsInputTag_;
+    edm::EDGetTokenT<edm::View<reco::GsfElectron> > electronsToken_;
+    edm::EDGetTokenT<edm::View<reco::Muon> > muonsToken_;
     bool useSTAMuons_;
     double eleFilterPtCut_;
     double muFilterPtCut_;

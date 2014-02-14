@@ -42,8 +42,8 @@ using namespace std;
 //
 
 ASkimFilter::ASkimFilter(const edm::ParameterSet& iConfig) {
-    electronsInputTag_ = iConfig.getParameter<edm::InputTag> ("electronsInputTag" );
-    muonsInputTag_     = iConfig.getParameter<edm::InputTag> ("muonsInputTag"     );
+    electronsToken_    = consumes<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag> ("electronsInputTag" ));
+    muonsToken_        = consumes<edm::View<reco::Muon> >(iConfig.getParameter<edm::InputTag> ("muonsInputTag"     ));
     useSTAMuons_       = iConfig.getParameter<bool>          ("useSTAMuons"       );
     eleFilterPtCut_	   = iConfig.getParameter<double>        ("eleFilterPtCut"    );
     muFilterPtCut_     = iConfig.getParameter<double>        ("muFilterPtCut"     );
@@ -62,10 +62,10 @@ bool ASkimFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     using namespace edm;
 
     Handle<View<reco::GsfElectron> > els_h;
-    iEvent.getByLabel(electronsInputTag_, els_h);
+    iEvent.getByToken(electronsToken_, els_h);
 
     Handle<edm::View<reco::Muon> > muon_h;
-    iEvent.getByLabel(muonsInputTag_, muon_h); 
+    iEvent.getByToken(muonsToken_, muon_h); 
     //edm::View<reco::Muon>::const_iterator muons_end = muon_h->end();
 
     for (View<reco::GsfElectron>::const_iterator elit = els_h->begin(); elit != els_h->end(); elit++) {
