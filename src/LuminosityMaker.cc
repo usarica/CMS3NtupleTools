@@ -113,6 +113,7 @@ void LuminosityMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     //LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
     Handle<LumiSummary> lumiSummary_h;
     //bool bLumiBlock = lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
+    iEvent.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
 
 
     ///////////////////////////////////////////////////////
