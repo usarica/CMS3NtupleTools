@@ -1,12 +1,11 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "START70_V5::All"
+process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-        fileNames = cms.untracked.vstring('file:/nfs-3/userdata/jgran/7_0_0_pre12_RelValProdTTbar.root')
-    #fileNames = cms.untracked.vstring('file:/tas/gzevi/files/store/relval/CMSSW_7_0_0_pre12/RelValProdTTbar/GEN-SIM-RECO/START70_V5-v1/7_0_0_pre12_RelValProdTTbar.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/jgran/700_relval_ttbar.root')
 )
 
 # Output
