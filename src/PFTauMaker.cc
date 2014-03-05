@@ -396,23 +396,21 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
     //    LorentzVector p4TAU;
 
-    const reco::PFCandidateRefVector  & pfjet_cands2 = cand.signalPFCands();
-    
-    for(reco::PFCandidateRefVector::const_iterator pref_it = pfjet_cands2.begin(); pref_it!=pfjet_cands2.end(); ++pref_it) {
+    for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = cand.signalPFCands().begin(); pref_it!=cand.signalPFCands().end(); ++pref_it) {
       
       int ipf = 0;
 	
       for(reco::PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); ++pf_it){
 	
-	reco::PFCandidateRef pref_new( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
-	
-	//if a match is found, store index in pfcandIndicies
-	if( pref_it->key() == pref_new.key() ) pfcandIndicies.push_back(ipf);
+        reco::PFCandidateRef pref_new( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
+        
+        //if a match is found, store index in pfcandIndicies
+        if( pref_it->key() == pref_new.key() ) pfcandIndicies.push_back(ipf);
 
-	++ipf;
-	
-      }
+        ++ipf;
       
+      }
+          
     }
       
 
