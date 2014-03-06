@@ -17,7 +17,7 @@ public:
 
 private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
-  edm::InputTag m_input;
+  edm::EDGetTokenT<double> inputToken;
   std::string m_alias;
   std::string m_branch;
 };
@@ -29,13 +29,13 @@ EnergyDensityMaker::EnergyDensityMaker(const edm::ParameterSet& iConfig) {
   while( (pos = m_branch.find("_")) != std::string::npos)
     m_branch.replace(pos,1,"");
   produces<float>(m_branch).setBranchAlias(m_alias);
-  m_input = iConfig.getParameter<edm::InputTag>("input");
+  inputToken = consumes<double>(iConfig.getParameter<edm::InputTag>("input"));
 }
 
 void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::auto_ptr<float> rho(new float(-9999.));
   edm::Handle<double> rhoH;
-  iEvent.getByLabel( m_input , rhoH);
+  iEvent.getByToken( inputToken , rhoH);
   if(rhoH.isValid()){
 	*rho = *rhoH; 
   }
