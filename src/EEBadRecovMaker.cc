@@ -23,7 +23,7 @@ using namespace edm;
 EEBadRecovMaker::EEBadRecovMaker(const edm::ParameterSet& iConfig) {
 
   //
-  eeRHSrc_      = iConfig.getParameter <edm::InputTag> ("EERecHitSource");
+  eeRHSrc_      = consumes<edm::Handle<EcalRecHitCollection> >(iConfig.getParameter <edm::InputTag> ("EERecHitSource"));
   minRecovE_    = iConfig.getParameter <double>        ("MinRecovE"     );
   maxNrRecHits_ = iConfig.getParameter <unsigned int>  ("MaxNrRecHits"  );
 
@@ -65,7 +65,7 @@ void EEBadRecovMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   /////////////////////////
 
   edm::Handle<EcalRecHitCollection> eeRHs;
-  iEvent.getByLabel(eeRHSrc_, eeRHs);
+  iEvent.getByToken(eeRHSrc_, eeRHs);
 
   ///////////////////
   // Filter Result //
