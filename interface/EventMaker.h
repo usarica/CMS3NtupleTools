@@ -28,6 +28,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/Scalers/interface/DcsStatus.h"
 
 #include "TString.h"
 //
@@ -48,7 +49,7 @@ private:
     std::string datasetName_;
     std::string CMS2tag_;
 
-    edm::InputTag dcsTag_;
+    edm::EDGetTokenT<DcsStatusCollection> dcsTag_;
     std::string aliasprefix_;
     bool isData_;
 };

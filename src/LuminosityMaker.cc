@@ -35,7 +35,7 @@ using namespace std;
 LuminosityMaker::LuminosityMaker( const ParameterSet& iConfig ) {
   
   //
-  lumiSummaryInputTag_ = iConfig.getParameter          <InputTag> ( "lumiSummaryInputTag" );
+  lumiSummaryToken_    = consumes<LumiSummary>(iConfig.getParameter <InputTag> ( "lumiSummaryInputTag" ));
   aliasprefix_         = iConfig.getUntrackedParameter <string>   ( "aliasPrefix"         );
   isData_              = iConfig.getParameter          <bool>     ( "isData"              );
   branchprefix_        = aliasprefix_;
@@ -113,7 +113,7 @@ void LuminosityMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     //LuminosityBlock const& lumiBlock = iEvent.getLuminosityBlock();
     Handle<LumiSummary> lumiSummary_h;
     //bool bLumiBlock = lumiBlock.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
-    iEvent.getByLabel( lumiSummaryInputTag_, lumiSummary_h );
+    iEvent.getByToken( lumiSummaryToken_, lumiSummary_h );
 
 
     ///////////////////////////////////////////////////////

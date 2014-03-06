@@ -44,7 +44,7 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
-  edm::InputTag lumiSummaryInputTag_;
+  edm::EDGetTokenT<LumiSummary> lumiSummaryToken_;
   std::string   aliasprefix_;
   std::string   branchprefix_;
   bool          isData_;

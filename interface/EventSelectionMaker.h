@@ -24,6 +24,8 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 
 //
 // class declaration
@@ -39,8 +41,8 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  edm::InputTag primaryVertexInputTag_;
-  edm::InputTag tracksInputTag_;
+  edm::EDGetTokenT<reco::VertexCollection> primaryVertexToken_;
+  edm::EDGetTokenT<reco::Track> tracksToken_;
 
 	std::string aliasprefix_;
 };

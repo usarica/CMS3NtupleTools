@@ -34,8 +34,6 @@
 
 #include "CMS2/NtupleMaker/interface/EventMaker.h"
 
-#include "DataFormats/Scalers/interface/DcsStatus.h"
-
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 using namespace edm;
@@ -68,7 +66,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
     datasetName_ = iConfig.getParameter<std::string>("datasetName");
     CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
 
-    dcsTag_ = iConfig.getParameter<edm::InputTag>("dcsTag");
+    dcsTag_ = consumes<DcsStatusCollection>(iConfig.getParameter<edm::InputTag>("dcsTag"));
     isData_ = iConfig.getParameter<bool>("isData") ;
 }
 
@@ -116,7 +114,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     evt_CMS2tag->push_back( TString( CMS2tag_    .c_str() ) );
   
     edm::Handle<DcsStatusCollection> dcsHandle;
-    iEvent.getByLabel(dcsTag_, dcsHandle);
+    iEvent.getByToken(dcsTag_, dcsHandle);
 
     // need the magnetic field
     //

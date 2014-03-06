@@ -26,8 +26,6 @@
 
 #include "CMS2/NtupleMaker/interface/EventSelectionMaker.h"
 
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -55,8 +53,8 @@ EventSelectionMaker::EventSelectionMaker(const edm::ParameterSet& iConfig) {
   produces<bool>                              (branchprefix+"passesDefault"     ).setBranchAlias(aliasprefix_+"_passesDefault"     );  // event passes default selection
 
   // vertex collection input tag
-  primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
-  tracksInputTag_        = iConfig.getParameter<edm::InputTag>("tracksInputTag");
+  primaryVertexToken_ = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertexInputTag"));
+  tracksToken_        = consumes<reco::Track>(iConfig.getParameter<edm::InputTag>("tracksInputTag"));
 }
 
 void EventSelectionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -65,7 +63,7 @@ void EventSelectionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   // get the primary vertices
   edm::Handle<reco::VertexCollection> vertexHandle;
   try {
-    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+    iEvent.getByToken(primaryVertexToken_, vertexHandle);
   }
   catch ( cms::Exception& ex ) {
 	edm::LogInfo("EventSelectionMakerError") << " Error! can't get the primary vertex";
@@ -75,7 +73,7 @@ void EventSelectionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // get tracks
   edm::Handle<edm::View<reco::Track> > track_h;
-  iEvent.getByLabel(tracksInputTag_, track_h);
+  iEvent.getByToken(tracksToken_, track_h);
 
   if( !track_h.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve track collection";
