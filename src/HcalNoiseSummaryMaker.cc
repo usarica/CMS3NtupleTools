@@ -21,7 +21,6 @@
 
 // CMSSW Includes
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-#include "DataFormats/METReco/interface/HcalNoiseSummary.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
@@ -37,7 +36,7 @@ using namespace std;
 HcalNoiseSummaryMaker::HcalNoiseSummaryMaker( const ParameterSet& iConfig ) {
 
   //
-  hcalNoiseSummaryTag_ = iConfig.getParameter          <InputTag> ("hcalNoiseSummaryTag");
+  hcalNoiseSummaryToken_ = consumes<HcalNoiseSummary>(iConfig.getParameter <InputTag> ("hcalNoiseSummaryTag"));
   aliasprefix_         = iConfig.getUntrackedParameter <string  > ("aliasPrefix");
   branchprefix_        = aliasprefix_;
 
@@ -179,7 +178,7 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   //
   Handle<HcalNoiseSummary> hcalNoiseSum_h;
-  iEvent.getByLabel(hcalNoiseSummaryTag_, hcalNoiseSum_h);
+  iEvent.getByToken(hcalNoiseSummaryToken_, hcalNoiseSum_h);
   if( hcalNoiseSum_h.isValid() ){ //added protection so fastsim can run
 	//
 	*hcalnoise_passLooseNoiseFilter      = hcalNoiseSum_h -> passLooseNoiseFilter();

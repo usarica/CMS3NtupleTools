@@ -38,7 +38,10 @@ using namespace std;
 //
 
 TheFilter::TheFilter(const edm::ParameterSet& iConfig) {
-  filterExpressions = iConfig.getParameter<std::vector<edm::InputTag> >("filterExpressions");
+  //filterExpressions = consumes<std::vector<int> >(iConfig.getParameter<std::vector<edm::InputTag> >("filterExpressions"));
+  for (edm::InputTag const & tag : iConfig.getParameter<std::vector<edm::InputTag> >("filterExpressions")) {
+    filterExpressions.push_back( consumes<std::vector<int> >(tag) );
+  }
 }
 
 
@@ -55,12 +58,12 @@ void TheFilter::endJob() {
 bool TheFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   //loop over strings in input
-  for ( vector<edm::InputTag>::const_iterator i=filterExpressions.begin(), end=filterExpressions.end();
+  for ( std::vector<edm::EDGetTokenT<std::vector<int> > >::const_iterator i=filterExpressions.begin(), end=filterExpressions.end();
 	i!=end; ++i) {
 
 	try{
 	  edm::Handle<vector<int> > theHandle;
-	  iEvent.getByLabel(*i, theHandle);
+	  iEvent.getByToken(*i, theHandle);
 	  if ( theHandle->size() != 0 ) return true ;
 	}
 	catch(...){
@@ -68,7 +71,7 @@ bool TheFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	}
 	try{
 	  edm::Handle<vector<float> > theHandle;
-	  iEvent.getByLabel(*i, theHandle);
+	  iEvent.getByToken(*i, theHandle);
 	  if ( theHandle->size() != 0 ) return true ;
 	}
 	catch(...){
