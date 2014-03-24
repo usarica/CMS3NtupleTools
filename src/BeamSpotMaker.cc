@@ -67,7 +67,7 @@ BeamSpotMaker::BeamSpotMaker(const edm::ParameterSet& iConfig) {
   produces<float>           (branchprefix+"YwidthErr"  ).setBranchAlias(aliasprefix_+"_YwidthErr"    );
   produces<vector <float> > (branchprefix+"covMatrix"  ).setBranchAlias(aliasprefix_+"_covMatrix"    ); 
   
-  beamSpotInputTag = iConfig.getParameter<InputTag>("beamSpotInputTag");
+  beamSpotToken = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
   
 }
 
@@ -101,8 +101,8 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>          evt_bs_YwidthErr   (new float        );
   auto_ptr<vector<float> > evt_bs_covMatrix   (new vector<float>);
   
-  Handle<BeamSpot> beamSpotH;
-  iEvent.getByLabel(beamSpotInputTag, beamSpotH);
+  edm::Handle<reco::BeamSpot> beamSpotH;
+  iEvent.getByToken(beamSpotToken, beamSpotH);
 
   bool haveBeamSpot = true;
   if(!beamSpotH.isValid() )
