@@ -5,7 +5,7 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/jgran/700_relval_ttbar.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_TTbar.root')
 )
 
 # Output
