@@ -25,6 +25,8 @@
 #include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
 #include "Math/VectorUtil.h"
 
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 //
 // class decleration
 //
@@ -41,18 +43,18 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
-  float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
+  //float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
   
   // ----------member data ---------------------------
-  double minDR_electron_;
-  edm::InputTag pfElectronsTag_;
+  //double minDR_electron_;
+  //edm::InputTag pfElectronsTag_;
   edm::InputTag pfCandidatesTag_;
-  edm::InputTag tracksInputTag_;
-  edm::InputTag vertexInputTag_;
+  //edm::InputTag tracksInputTag_;
+  //edm::InputTag vertexInputTag_;
 
-  const reco::PFCandidateCollection *pfCandidates;
+  const pat::PackedCandidateCollection *pfCandidates;
 
-    PFPileUpAlgo *pfPileUpAlgo_;
+    //PFPileUpAlgo *pfPileUpAlgo_;
 
 };
 
