@@ -76,7 +76,7 @@ makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMake
 
 assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * muToTrigAssMaker * elToTrigAssMaker)
 hypmakers        = cms.Sequence( hypDilepMaker * hypDilepVertexMaker * hypTrilepMaker * hypQuadlepMaker )
-othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker * pftauMaker )
+othermakers      = cms.Sequence( elCaloIsoSequence * elTkJuraIsoMaker * bTagMaker *  bTagTrkMaker * bTagJPTJetMaker )#* pftauMaker )
 #cms2CoreSequence = cms.Sequence( CMS2Reco * eventmakers * trigmakers * makers * assmakers * hypmakers * CMS2PFtautagging * othermakers )
 cms2CoreSequence = cms.Sequence( CMS2Reco *  eventmakers * trigmakers * makers * assmakers * hypmakers * othermakers )
 
