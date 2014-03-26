@@ -22,8 +22,16 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS2*'
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS2*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS2*'))
 
+
+#process.ak5PFCHSL1Fastjet = process.ak5PFL1Fastjet.clone(algorithm = cms.string('AK5PFchs'))
+#process.ak5PFCHSL2Relative = process.ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
+#process.ak5PFCHSL3Absolute     = process.ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
+#process.JECCHS = cms.Sequence ( process.ak5PFchsL1Fastjet * process.ak5PFchsL2Relative * process.ak5PFchsL3Absolute )
+
+from Validation.RecoJets.JetCorrectionServices_AK5CHS_cff import *
+
 #
-process.cms2WithEverything = cms.Sequence( process.ak5PFJets *  process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
+process.cms2WithEverything = cms.Sequence( process.ak5PFJets * process.kt6PFJets * process.cms2CoreSequence * process.cms2PFNoTauSequence * process.cms2GENSequence )
 process.cms2WithEverything.remove(process.jptMaker)
 process.cms2WithEverything.remove(process.hypTrilepMaker)
 process.cms2WithEverything.remove(process.hypQuadlepMaker)

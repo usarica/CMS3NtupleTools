@@ -28,6 +28,28 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
+#process.ak5PFCHSL1Fastjet = process.ak5PFL1Fastjet.clone(algorithm = cms.string('AK5PFchs'))
+#process.ak5PFCHSL2Relative = process.ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
+#process.ak5PFCHSL3Absolute     = process.ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
+
+#process.ak5PFCHSL1Offset = ak5CaloL1Offset.clone(algorithm = 'AK5PFchs') 
+#process.ak5PFCHSL1Fastjet = cms.ESProducer(
+#    'L1FastjetCorrectionESProducer',
+#    level       = cms.string('L1FastJet'),
+#    algorithm   = cms.string('AK5PFchs'),
+#    srcRho      = cms.InputTag( 'fixedGridRhoFastjetAll' )
+#    )
+#process.ak5PFCHSL2Relative = ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
+#process.ak5PFCHSL3Absolute     = ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
+
+from JetMETCorrections.Configuration.DefaultJEC_cff import *
+from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
+ak5PFCHSL1Fastjet.algorithm = 'AK5PFchs'
+ak5PFCHSL2Relative.algorithm = 'AK5PFchs'
+ak5PFCHSL3Absolute.algorithm = 'AK5PFchs'
+ak5PFCHSResidual.algorithm = 'AK5PFchs'
+
+
 #from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
 #process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
 
