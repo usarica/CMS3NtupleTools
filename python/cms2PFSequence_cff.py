@@ -79,39 +79,41 @@ pfNoPileUpClones = cms.EDProducer("PFCandidateFromFwdPtrProducer", src = cms.Inp
 muonIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 electronIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 
-cms2PFNoTauSequence = cms.Sequence( 
-  pfJetMaker + 
-#  pfmetMaker + 
-  CMS2pfMetSequence +
-  CMS2PFBtagging + 
-  bTagPFJetMaker + 
-#  goodPrimaryVertices +
-  pfNoPileUpIsoSequence +
-  pfNoPileUpSequence +
-  pfNoPileUpClones + 
-  pfAllNeutralHadrons + 
-  pfAllChargedHadrons + 
-  pfAllPhotons + 
-  pfAllMuons +
-  CMS2pfMuonIsolationSequence +
-  CMS2pfIsolatedMuons +
-  CMS2pfNoMuon + 
-  CMS2pfAllElectrons + 
-  pfMuonMaker + 
-  pfMuToMuAssMaker + 
-  muToPFMuAssMaker + 
-  CMS2pfElectronIsolationSequence +
-  pfElectronMaker + 
-  pfElToElAssMaker + 
-  elToPFElAssMaker + 
-  pfCandidateMaker + 
-  trackIsolationMaker + 
-  trkMetSequence +
-  ak5PFJetsL1FastL2L3 +
-  ak5PFJetsL1FastL2L3Residual +
-  mvaJetIdMaker +
-  mvaJetIdMakerFull5x +
-  mvaJetIdMakerFull53x +
-  muonIsolationMaker +
-  electronIsolationMaker
-)
+#cms2PFNoTauSequence = cms.Sequence( 
+#  pfJetMaker + 
+##  pfmetMaker + 
+#  CMS2pfMetSequence +
+#  CMS2PFBtagging + 
+#  bTagPFJetMaker + 
+##  goodPrimaryVertices +
+#  pfNoPileUpIsoSequence +
+#  pfNoPileUpSequence +
+#  pfNoPileUpClones + 
+#  pfAllNeutralHadrons + 
+#  pfAllChargedHadrons + 
+#  pfAllPhotons + 
+#  pfAllMuons +
+#  CMS2pfMuonIsolationSequence +
+#  CMS2pfIsolatedMuons +
+#  CMS2pfNoMuon + 
+#  CMS2pfAllElectrons + 
+#  pfMuonMaker + 
+#  pfMuToMuAssMaker + 
+#  muToPFMuAssMaker + 
+#  CMS2pfElectronIsolationSequence +
+#  pfElectronMaker + 
+#  pfElToElAssMaker + 
+#  elToPFElAssMaker + 
+#  pfCandidateMaker + 
+#  trackIsolationMaker + 
+#  trkMetSequence +
+#  ak5PFJetsL1FastL2L3 +
+#  ak5PFJetsL1FastL2L3Residual +
+#  mvaJetIdMaker +
+#  mvaJetIdMakerFull5x +
+#  mvaJetIdMakerFull53x +
+#  muonIsolationMaker +
+#  electronIsolationMaker
+#)
+
+cms2PFNoTauSequence = cms.Sequence( pfCandidateMaker )
