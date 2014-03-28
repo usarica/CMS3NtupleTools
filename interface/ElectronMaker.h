@@ -72,7 +72,7 @@ private:
     double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
                               float footprintdr, float gammastripveto, float elestripveto, int filterId);
   
-    int classify(const edm::RefToBase<reco::GsfElectron> &);
+    //int classify(const edm::RefToBase<reco::GsfElectron> &);
     template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
  
     // for 2012 pf isolation

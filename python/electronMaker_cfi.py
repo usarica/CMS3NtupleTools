@@ -4,7 +4,8 @@ electronMaker = cms.EDProducer(
     "ElectronMaker",
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
-    electronsInputTag = cms.InputTag("gedGsfElectrons"),
+    #electronsInputTag = cms.InputTag("gedGsfElectrons"),
+    electronsInputTag = cms.InputTag("slimmedElectrons"),
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
     # reco Track collection
