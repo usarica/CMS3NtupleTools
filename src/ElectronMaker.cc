@@ -123,9 +123,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     aliasprefix_              = iConfig.getUntrackedParameter<string> ("aliasPrefix"             );
 
     mtsTransform_ = 0;
-    //clusterTools_ = 0;
+    clusterTools_ = 0;
  
-/*
 
     produces<unsigned int>       ("evtnels"                    ).setBranchAlias("evt_nels"                   ); //number of electrons in event
 
@@ -160,34 +159,26 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elsdPhiInPhiOut"            ).setBranchAlias("els_dPhiInPhiOut"           );
     produces<vector<float> >     ("elsfbrem"                   ).setBranchAlias("els_fbrem"                  );
     produces<vector<float> >     ("elseSeed"                   ).setBranchAlias("els_eSeed"                  );
-*/
     produces<vector<float> >     ("elseOverPIn"                ).setBranchAlias("els_eOverPIn"               );
     produces<vector<float> >     ("elseSeedOverPOut"           ).setBranchAlias("els_eSeedOverPOut"          );
     produces<vector<float> >     ("elseSeedOverPIn"            ).setBranchAlias("els_eSeedOverPIn"           );
     produces<vector<float> >     ("elseOverPOut"               ).setBranchAlias("els_eOverPOut"              );
-/*
 
     produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
-*/
     produces<vector<float> >     ("elshcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
     produces<vector<float> >     ("elshcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
-/*
 
     produces<vector<float> >     ("elssigmaPhiPhi"             ).setBranchAlias("els_sigmaPhiPhi"            );
-*/
     produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
     produces<vector<float> >     ("elssigmaIEtaIPhi"           ).setBranchAlias("els_sigmaIEtaIPhi"          );
     produces<vector<float> >     ("elssigmaEtaEta"             ).setBranchAlias("els_sigmaEtaEta"            );
     produces<vector<float> >     ("elssigmaIEtaIEta"           ).setBranchAlias("els_sigmaIEtaIEta"          );
-/*
     produces<vector<float> >     ("elssigmaIPhiIPhiSC"         ).setBranchAlias("els_sigmaIPhiIPhiSC"        );
     produces<vector<float> >     ("elssigmaIEtaIEtaSC"         ).setBranchAlias("els_sigmaIEtaIEtaSC"        );
 
-*/
     produces<vector<float> >     ("else2x5Max"                 ).setBranchAlias("els_e2x5Max"                );
     produces<vector<float> >     ("else1x5"                    ).setBranchAlias("els_e1x5"                   );
     produces<vector<float> >     ("else5x5"                    ).setBranchAlias("els_e5x5"                   );
-/*
     produces<vector<float> >     ("else3x3"                    ).setBranchAlias("els_e3x3"                   );
     produces<vector<float> >     ("elseMax"                    ).setBranchAlias("els_eMax"                   );
 
@@ -200,7 +191,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
-    //produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
+    produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
 
     // isolation variables
     //
@@ -268,9 +259,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elsetaErr"        ).setBranchAlias("els_etaErr"         );
     produces<vector<float> >     ("elsphiErr"        ).setBranchAlias("els_phiErr"         );
     produces<vector<int> >       ("elsgsftrkidx"     ).setBranchAlias("els_gsftrkidx"      );
-*/
     produces<vector<float> >     ("elsip3d"          ).setBranchAlias("els_ip3d"           ); // Ip3d from normal vertex
-/*
     produces<vector<float> >     ("elsip3derr"       ).setBranchAlias("els_ip3derr"        ); // Ip3d error from normal vertex
     produces<vector<int> >       ("elsckflaywithmeas").setBranchAlias("els_ckf_laywithmeas");
 
@@ -357,10 +346,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     produces<vector<bool > >  ("elspassingMvaPreselection"  ).setBranchAlias("els_passingMvaPreselection"  );
     produces<vector<bool > >  ("elspassingPflowPreselection").setBranchAlias("els_passingPflowPreselection");
-*/
     produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
     produces<vector<float> >  ("elssigmaIphiIphi"           ).setBranchAlias("els_sigmaIphiIphi"           );
-/*
 
     ///////////////////
     // Added for 7   //
@@ -368,7 +355,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
 
-*/
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -378,7 +364,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 ElectronMaker::~ElectronMaker()
 {
   if (pfPileUpAlgo_) delete pfPileUpAlgo_;
-  //if (clusterTools_) delete clusterTools_;
+  if (clusterTools_) delete clusterTools_;
   if (mtsTransform_) delete mtsTransform_;
 }
 
@@ -401,7 +387,6 @@ void ElectronMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
-/*
     // Define vectors to be filled
     auto_ptr<unsigned int>   evt_nels(new unsigned int) ;
 
@@ -439,43 +424,35 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_dPhiInPhiOut                  (new vector<float> );
     auto_ptr<vector<float> > els_fbrem                         (new vector<float> );
     auto_ptr<vector<float> > els_eSeed                         (new vector<float> );
-*/
     auto_ptr<vector<float> > els_eOverPIn                      (new vector<float> );
     auto_ptr<vector<float> > els_eSeedOverPOut                 (new vector<float> );
     auto_ptr<vector<float> > els_eSeedOverPIn                  (new vector<float> );
     auto_ptr<vector<float> > els_eOverPOut                     (new vector<float> );
-/*
     auto_ptr<vector<float> > els_deltaEtaEleClusterTrackAtCalo (new vector<float> );
     auto_ptr<vector<float> > els_deltaPhiEleClusterTrackAtCalo (new vector<float> );
                              
     auto_ptr<vector<float> > els_hOverE                        (new vector<float> );
-*/
     auto_ptr<vector<float> > els_hcalDepth1OverEcal            (new vector<float> );
     auto_ptr<vector<float> > els_hcalDepth2OverEcal            (new vector<float> );
-/*
                              
     auto_ptr<vector<float> > els_sigmaPhiPhi                   (new vector<float> );
-*/
     auto_ptr<vector<float> > els_sigmaIPhiIPhi                 (new vector<float> );
     auto_ptr<vector<float> > els_sigmaIEtaIPhi                 (new vector<float> );
     auto_ptr<vector<float> > els_sigmaEtaEta                   (new vector<float> );
     auto_ptr<vector<float> > els_sigmaIEtaIEta                 (new vector<float> );
-/*
     auto_ptr<vector<float> > els_sigmaIPhiIPhiSC               (new vector<float> );
     auto_ptr<vector<float> > els_sigmaIEtaIEtaSC               (new vector<float> );
                              
-*/
     auto_ptr<vector<float> > els_e2x5Max                       (new vector<float> );
     auto_ptr<vector<float> > els_e1x5                          (new vector<float> );
     auto_ptr<vector<float> > els_e5x5                          (new vector<float> );
-/*
     auto_ptr<vector<float> > els_e3x3                          (new vector<float> );
     auto_ptr<vector<float> > els_eMax                          (new vector<float> );
 
     // predefined ID decisions
     //
     auto_ptr<vector<int> > els_class    (new vector<int>);
-    //auto_ptr<vector<int> > els_category (new vector<int>);
+    auto_ptr<vector<int> > els_category (new vector<int>);
 
     // isolation variables
     //
@@ -540,9 +517,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_etaErr     (new vector<float> );
     auto_ptr<vector<float> > els_phiErr     (new vector<float> );
     auto_ptr<vector<int>   > els_gsftrkidx  (new vector<int>   );
-*/
     auto_ptr<vector<float> > els_ip3d       (new vector<float> );
-/*
     auto_ptr<vector<float> > els_ip3derr    (new vector<float> );
   
     // LorentzVectors
@@ -621,19 +596,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     auto_ptr<vector<bool > >  els_passingMvaPreselection   ( new vector<bool>  );
     auto_ptr<vector<bool > >  els_passingPflowPreselection ( new vector<bool>  );
-*/
     auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
     auto_ptr<vector<float> >  els_sigmaIphiIphi            ( new vector<float> );
-/*
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
     auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
-*/
 
-/*
     // --- Get Input Collections --- //
 
     ////////////////
@@ -661,7 +632,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     float evt_bField = *evt_bField_h.product();
   
 
-*/
     ///////////////
     // Electrons //
     ///////////////
@@ -672,7 +642,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     Handle<GsfElectronCollection> els_coll_h;
     iEvent.getByLabel(electronsInputTag_, els_coll_h);    
-/*
 
     //////////////
     // PF Cands //
@@ -716,8 +685,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Get tools to get cluster shape information //
     ////////////////////////////////////////////////
 
-    //if ( clusterTools_ ) delete clusterTools_;
-    //clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
+    if ( clusterTools_ ) delete clusterTools_;
+    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
 
     //////////////
@@ -765,7 +734,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
     iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
     edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
-*/
     
     // --- Fill --- //
 
@@ -773,16 +741,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Loop Over Electrons //
     /////////////////////////
 
-    //*evt_nels       = els_h->size();
-    //double mass     = 0.000510998918;
+    *evt_nels       = els_h->size();
+    double mass     = 0.000510998918;
     size_t elsIndex = 0;
     for( View<pat::Electron>::const_iterator el = els_h->begin(); el != els_h->end(); el++, elsIndex++ ) {
 
-/*
+
         ////////////////
         // References //
         ////////////////
+        const GsfTrackRef            el_track         = el->gsfTrack();
 
+/*
         const Track*                 el_track         = (const Track*)(el->gsfTrack().get());
         const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
 
@@ -804,7 +774,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         }
 */
 
-/*
+
         //////////////////////
         // Fiduciality Mask //
         //////////////////////
@@ -851,7 +821,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         ///////////////////
 
         els_class              ->push_back( el->classification()  ); // this is the old pTDR classification
-        //els_category           ->push_back( classify(gsfElRef)    ); // this is the sani classification
+        els_category           ->push_back( classify(gsfElRef)    ); // this is the sani classification
 
 
         //////////////
@@ -899,7 +869,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
         els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
 
-        if ( firstGoodVertex!=vertexCollection->end() ) {
+        if (1) { // FIX GZ if ( firstGoodVertex!=vertexCollection->end() ) {
 
             els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
             els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
@@ -915,12 +885,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             float pfiso_ch = 0.0;
             float pfiso_em = 0.0;
             float pfiso_nh = 0.0;
-            PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
+            //PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
             els_iso03_pf2012_ch ->push_back( pfiso_ch );
             els_iso03_pf2012_em ->push_back( pfiso_em );
             els_iso03_pf2012_nh ->push_back( pfiso_nh );
 
-            PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
+            //PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
             els_iso04_pf2012_ch ->push_back( pfiso_ch );
             els_iso04_pf2012_em ->push_back( pfiso_em );
             els_iso04_pf2012_nh ->push_back( pfiso_nh );	    
@@ -980,16 +950,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_eSCRaw        ->push_back( el->superCluster()->rawEnergy()       );
         els_eSCPresh      ->push_back( el->superCluster()->preshowerEnergy() );
         els_nSeed         ->push_back( el->basicClustersSize() - 1           );
-*/
-        els_e1x5          ->push_back( el->showerShape().e1x5                );
-        els_e5x5          ->push_back( el->showerShape().e5x5                );
-        els_e2x5Max       ->push_back( el->showerShape().e2x5Max             );
+	els_e1x5          ->push_back( el->e1x5()              );
+        els_e5x5          ->push_back( el->e5x5()              );
+        els_e2x5Max       ->push_back( el->e2x5Max()           );
 
         //els_sigmaEtaEta   ->push_back( el->scSigmaEtaEta()                   );
         //els_sigmaIEtaIEta ->push_back( el->scSigmaIEtaIEta()                 );
-        els_sigmaEtaEta   ->push_back( el->showerShape().sigmaEtaEta         );
-        els_sigmaIEtaIEta ->push_back( el->showerShape().sigmaIetaIeta       );
-/*
+        els_sigmaEtaEta   ->push_back( el->sigmaEtaEta()       );
+        els_sigmaIEtaIEta ->push_back( el->sigmaIetaIeta()     );
         els_etaSCwidth    ->push_back( el->superCluster()->etaWidth()        );
         els_phiSCwidth    ->push_back( el->superCluster()->phiWidth()        );
 
@@ -1011,9 +979,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_sigmaPhiPhi     ->push_back( isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
             els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
             els_sigmaIEtaIPhi   ->push_back( isfinite(lcovs[1])              ? lcovs[1] > 0               ? sqrt(lcovs[1]) : -1 * sqrt(-1 * lcovs[1])                             : -9999. );
-*/
             els_sigmaIEtaIPhi   ->push_back( el->sigmaIetaIphi() );
-/*
             els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
             els_sigmaIPhiIPhiSC ->push_back( isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
 
@@ -1072,14 +1038,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         //els_hOverE                        ->push_back( el->hadronicOverEm()                 );
         els_hOverE                        ->push_back( el->hcalOverEcal()                   );
-*/
-        els_hcalDepth1OverEcal            ->push_back( el->showerShape().hcalDepth1OverEcal                      );
-        els_hcalDepth2OverEcal            ->push_back( el->showerShape().hcalDepth2OverEcal                      );
-        els_eOverPIn                      ->push_back( el->trackClusterMatching().eSuperClusterOverP             );
-        els_eSeedOverPOut                 ->push_back( el->trackClusterMatching().eSeedClusterOverPout           );
-        els_eSeedOverPIn                  ->push_back( el->trackClusterMatching().eSeedClusterOverP              );
-        els_eOverPOut                     ->push_back( el->trackClusterMatching().eEleClusterOverPout            );
-/*
+        els_hcalDepth1OverEcal            ->push_back( el->hcalDepth1OverEcal()                      );
+        els_hcalDepth2OverEcal            ->push_back( el->hcalDepth2OverEcal()                      );
+        els_eOverPIn                      ->push_back( el->eSuperClusterOverP()           );
+        els_eSeedOverPOut                 ->push_back( el->eSeedClusterOverPout()         );
+        els_eSeedOverPIn                  ->push_back( el->eSeedClusterOverP()            );
+        els_eOverPOut                     ->push_back( el->eEleClusterOverPout()          );
         els_fbrem                         ->push_back( el->fbrem()                          );
         els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
         //els_mva                           ->push_back( el->mva()                            );
@@ -1163,11 +1127,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_ip3d      -> push_back( -999. );
             els_ip3derr   -> push_back( -999. );
         }
-*/
 
             els_ip3d      -> push_back( el->ip3d() );
 
-/*
+
 
 
         /////////////////
@@ -1485,10 +1448,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_passingMvaPreselection  ->push_back( el->passingMvaPreselection()   );
         els_passingPflowPreselection->push_back( el->passingPflowPreselection() );
-*/
         els_r9                      ->push_back( el->r9()                        );
         els_sigmaIphiIphi           ->push_back( el->showerShape().sigmaIphiIphi );
-/*
 
         ///////////////////
         // Added for 7   //
@@ -1503,7 +1464,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
 	els_PFCand_idx->push_back(v_PFCand_idx);
 
-*/
 
     } // end Loop on Electrons
   
@@ -1511,7 +1471,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 
 
-/*
 
 
     // Put the results into the event
@@ -1521,7 +1480,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Predefined ID descisions 
     //
     iEvent.put(els_class    , "elsclass"    );
-    //iEvent.put(els_category , "elscategory" );
+    iEvent.put(els_category , "elscategory" );
 
     // Track parameters
     //
@@ -1537,9 +1496,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_etaErr     , "elsetaErr"    );
     iEvent.put(els_phiErr     , "elsphiErr"    );
     iEvent.put(els_gsftrkidx  , "elsgsftrkidx" );
-*/
     iEvent.put(els_ip3d       , "elsip3d"      );
-/*
     iEvent.put(els_ip3derr    , "elsip3derr"   );
   
     iEvent.put(els_validHits  , "elsvalidHits" );
@@ -1556,11 +1513,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_eSC         , "elseSC"         );
     iEvent.put(els_eSCRaw      , "elseSCRaw"      );
     iEvent.put(els_eSCPresh    , "elseSCPresh"    );
-*/
     iEvent.put(els_e1x5        , "else1x5"        );
     iEvent.put(els_e5x5        , "else5x5"        );
     iEvent.put(els_e2x5Max     , "else2x5Max"     );
-/*
     iEvent.put(els_e3x3        , "else3x3"        );
     iEvent.put(els_eMax        , "elseMax"        );
     iEvent.put(els_eSeed       , "elseSeed"       );
@@ -1579,17 +1534,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Electron ID
     //
     iEvent.put(els_sigmaPhiPhi        , "elssigmaPhiPhi"        );
-*/
     iEvent.put(els_sigmaIPhiIPhi      , "elssigmaIPhiIPhi"      );
     iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
     iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
     iEvent.put(els_sigmaIEtaIEta      , "elssigmaIEtaIEta"      );
-/*
     iEvent.put(els_sigmaIPhiIPhiSC    , "elssigmaIPhiIPhiSC"    );
     iEvent.put(els_sigmaIEtaIEtaSC    , "elssigmaIEtaIEtaSC"    );
     iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
     iEvent.put(els_hOverE             , "elshOverE"             );
-*/
     iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
     iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
 
@@ -1597,7 +1549,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_eSeedOverPOut                 , "elseSeedOverPOut"                 );
     iEvent.put(els_eSeedOverPIn                  , "elseSeedOverPIn"                  );
     iEvent.put(els_eOverPOut                     , "elseOverPOut"                     );
-/*
     iEvent.put(els_fbrem                         , "elsfbrem"                         );
     iEvent.put(els_lh                            , "elslh"                            );
     iEvent.put(els_mva                           , "elsmva"                           );
@@ -1730,21 +1681,17 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
     iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
-*/
     iEvent.put( els_r9                       , "elsr9"                       );
     iEvent.put( els_sigmaIphiIphi            , "elssigmaIphiIphi"            );
-/*
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
     iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
-*/
 
 }
 
-/* jgran
 //----------------------------------------------------------------------------
 // Electron Id classification function (a flag for the Sani type class)
 //----------------------------------------------------------------------------
@@ -1764,7 +1711,6 @@ int ElectronMaker::classify(const RefToBase<GsfElectron> &electron) {
     return cat;
 
 }
-*/
 
 //little labour saving function to get the reference to the ValueMap
 template<typename T> const ValueMap<T>& ElectronMaker::getValueMap(const Event& iEvent, InputTag& inputTag)
