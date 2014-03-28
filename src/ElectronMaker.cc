@@ -950,14 +950,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_eSCRaw        ->push_back( el->superCluster()->rawEnergy()       );
         els_eSCPresh      ->push_back( el->superCluster()->preshowerEnergy() );
         els_nSeed         ->push_back( el->basicClustersSize() - 1           );
-	els_e1x5          ->push_back( el->e1x5()              );
-        els_e5x5          ->push_back( el->e5x5()              );
-        els_e2x5Max       ->push_back( el->e2x5Max()           );
-
+        els_e1x5          ->push_back( el->e1x5()                            );
+        els_e5x5          ->push_back( el->e5x5()                            );
+        els_e2x5Max       ->push_back( el->e2x5Max()                         );
         //els_sigmaEtaEta   ->push_back( el->scSigmaEtaEta()                   );
         //els_sigmaIEtaIEta ->push_back( el->scSigmaIEtaIEta()                 );
-        els_sigmaEtaEta   ->push_back( el->sigmaEtaEta()       );
-        els_sigmaIEtaIEta ->push_back( el->sigmaIetaIeta()     );
+        els_sigmaEtaEta   ->push_back( el->sigmaEtaEta()                     );
+        els_sigmaIEtaIEta ->push_back( el->sigmaIetaIeta()                   );
         els_etaSCwidth    ->push_back( el->superCluster()->etaWidth()        );
         els_phiSCwidth    ->push_back( el->superCluster()->phiWidth()        );
 
@@ -970,22 +969,21 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
             //
             const BasicCluster&  clRef              = *(el->superCluster()->seed());
-            //const vector<float>& covs               = clusterTools_->covariances(clRef);                         // get the covariances computed in 5x5 around the seed
-            //const vector<float>& lcovs              = clusterTools_->localCovariances(clRef);                    // get the local covariances computed in a 5x5 around the seed
-            //const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
+            const vector<float>& covs               = clusterTools_->covariances(clRef);                         // get the covariances computed in 5x5 around the seed
+            const vector<float>& lcovs              = clusterTools_->localCovariances(clRef);                    // get the local covariances computed in a 5x5 around the seed
+            const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
 
             //
             els_eSeed           ->push_back( el->superCluster()->seed()->energy()     );
             els_sigmaPhiPhi     ->push_back( isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
             els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
             els_sigmaIEtaIPhi   ->push_back( isfinite(lcovs[1])              ? lcovs[1] > 0               ? sqrt(lcovs[1]) : -1 * sqrt(-1 * lcovs[1])                             : -9999. );
-            els_sigmaIEtaIPhi   ->push_back( el->sigmaIetaIphi() );
             els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
             els_sigmaIPhiIPhiSC ->push_back( isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
 
             //
-            //els_e3x3            ->push_back( clusterTools_->e3x3(clRef) );
-            //els_eMax            ->push_back( clusterTools_->eMax(clRef) );
+            els_e3x3            ->push_back( clusterTools_->e3x3(clRef) );
+            els_eMax            ->push_back( clusterTools_->eMax(clRef) );
         } 
         else {
 
@@ -1038,12 +1036,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         //els_hOverE                        ->push_back( el->hadronicOverEm()                 );
         els_hOverE                        ->push_back( el->hcalOverEcal()                   );
-        els_hcalDepth1OverEcal            ->push_back( el->hcalDepth1OverEcal()                      );
-        els_hcalDepth2OverEcal            ->push_back( el->hcalDepth2OverEcal()                      );
-        els_eOverPIn                      ->push_back( el->eSuperClusterOverP()           );
-        els_eSeedOverPOut                 ->push_back( el->eSeedClusterOverPout()         );
-        els_eSeedOverPIn                  ->push_back( el->eSeedClusterOverP()            );
-        els_eOverPOut                     ->push_back( el->eEleClusterOverPout()          );
+        els_hcalDepth1OverEcal            ->push_back( el->hcalDepth1OverEcal()             );
+        els_hcalDepth2OverEcal            ->push_back( el->hcalDepth2OverEcal()             );
+        els_eOverPIn                      ->push_back( el->eSuperClusterOverP()             );
+        els_eSeedOverPOut                 ->push_back( el->eSeedClusterOverPout()           );
+        els_eSeedOverPIn                  ->push_back( el->eSeedClusterOverP()              );
+        els_eOverPOut                     ->push_back( el->eEleClusterOverPout()            );
         els_fbrem                         ->push_back( el->fbrem()                          );
         els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
         //els_mva                           ->push_back( el->mva()                            );
@@ -1448,8 +1446,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_passingMvaPreselection  ->push_back( el->passingMvaPreselection()   );
         els_passingPflowPreselection->push_back( el->passingPflowPreselection() );
-        els_r9                      ->push_back( el->r9()                        );
-        els_sigmaIphiIphi           ->push_back( el->showerShape().sigmaIphiIphi );
+        els_r9                      ->push_back( el->r9()                       );
+        els_sigmaIphiIphi           ->push_back( el->sigmaIphiIphi()            );
 
         ///////////////////
         // Added for 7   //
@@ -1514,9 +1512,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_eSCRaw      , "elseSCRaw"      );
     iEvent.put(els_eSCPresh    , "elseSCPresh"    );
     iEvent.put(els_e1x5        , "else1x5"        );
+    iEvent.put(els_e3x3        , "else3x3"        );
     iEvent.put(els_e5x5        , "else5x5"        );
     iEvent.put(els_e2x5Max     , "else2x5Max"     );
-    iEvent.put(els_e3x3        , "else3x3"        );
     iEvent.put(els_eMax        , "elseMax"        );
     iEvent.put(els_eSeed       , "elseSeed"       );
     iEvent.put(els_fiduciality , "elsfiduciality" );
