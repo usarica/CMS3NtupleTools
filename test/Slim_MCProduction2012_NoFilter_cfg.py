@@ -30,7 +30,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 
 #process.cms2WithEverything = cms.Sequence( process.cms2PFNoTauSequence )
 #process.p                  = cms.Path( process.cms2WithEverything )
-process.p                  = cms.Path( process.pfCandidateMaker*process.eventMaker*process.electronMaker )
+process.p                  = cms.Path( process.pfCandidateMaker*process.eventMaker*process.electronMaker*process.muonMaker )
 
 #
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
