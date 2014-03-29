@@ -611,25 +611,25 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Get Tracks //
     ////////////////
    
-    Handle<TrackCollection> tracks_h;
-    iEvent.getByLabel(trksInputTag_, tracks_h);
+//    Handle<TrackCollection> tracks_h;
+//    iEvent.getByLabel(trksInputTag_, tracks_h);
 
   
     ////////////////
     // GSF Tracks //
     ////////////////
 
-    Handle<GsfTrackCollection> gsftracks_h;
-    iEvent.getByLabel(gsftracksInputTag_, gsftracks_h);
+//    Handle<GsfTrackCollection> gsftracks_h;
+//    iEvent.getByLabel(gsftracksInputTag_, gsftracks_h);
 
 
     /////////////
     // B Field //
     /////////////
 
-    Handle<float> evt_bField_h;
-    iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
-    float evt_bField = *evt_bField_h.product();
+//    Handle<float> evt_bField_h;
+//    iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
+//    float evt_bField = *evt_bField_h.product();
   
 
     ///////////////
@@ -640,14 +640,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByLabel(electronsInputTag_, els_h);
     View<pat::Electron> gsfElColl = *(els_h.product());
 
-    Handle<GsfElectronCollection> els_coll_h;
-    iEvent.getByLabel(electronsInputTag_, els_coll_h);    
+//    Handle<GsfElectronCollection> els_coll_h;
+//    iEvent.getByLabel(electronsInputTag_, els_coll_h);    
 
     //////////////
     // PF Cands //
     //////////////
 
-    iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+// FIX GZ    iEvent.getByLabel(pfCandsInputTag, pfCand_h);
 
     /////////////////////////
     // External Isolations //
@@ -671,69 +671,69 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex //
     ////////////
 
-    iEvent.getByLabel(vtxInputTag, vertexHandle);
+// FIX GZ    iEvent.getByLabel(vtxInputTag, vertexHandle);
 
 
     ///////////////////////////
     // TransientTrackBuilder //
     ///////////////////////////
-    ESHandle<TransientTrackBuilder> theTTBuilder;
-    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
+//    ESHandle<TransientTrackBuilder> theTTBuilder;
+//    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
 
-    ////////////////////////////////////////////////
-    // Get tools to get cluster shape information //
-    ////////////////////////////////////////////////
+//    ////////////////////////////////////////////////
+//    // Get tools to get cluster shape information //
+//    ////////////////////////////////////////////////
+//
+//    if ( clusterTools_ ) delete clusterTools_;
+//    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
-    if ( clusterTools_ ) delete clusterTools_;
-    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
+//    //////////////
+//    // Beamspot //
+//    //////////////
+//
+//    InputTag beamSpot_tag(beamSpotInputTag_.label(),"evtbsp4");
+//    Handle<LorentzVector> beamSpotH;
+//    iEvent.getByLabel(beamSpot_tag, beamSpotH);
+//    const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
+//
+//    Handle<reco::BeamSpot> beamspot_h;
+//    iEvent.getByLabel(beamSpot_tag_, beamspot_h);
+//    const reco::BeamSpot &beamSpotreco = *(beamspot_h.product());
 
-    //////////////
-    // Beamspot //
-    //////////////
+//    ///////////////////////
+//    // rho for isolation //
+//    ///////////////////////
+//
+//    edm::Handle<float> rhoIso_h;
+//    iEvent.getByLabel(rhoInputTag_, rhoIso_h);
+//    float rhoIso = *(rhoIso_h.product());
 
-    InputTag beamSpot_tag(beamSpotInputTag_.label(),"evtbsp4");
-    Handle<LorentzVector> beamSpotH;
-    iEvent.getByLabel(beamSpot_tag, beamSpotH);
-    const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
-
-    Handle<reco::BeamSpot> beamspot_h;
-    iEvent.getByLabel(beamSpot_tag_, beamspot_h);
-    const reco::BeamSpot &beamSpotreco = *(beamspot_h.product());
-
-    ///////////////////////
-    // rho for isolation //
-    ///////////////////////
-
-    edm::Handle<float> rhoIso_h;
-    iEvent.getByLabel(rhoInputTag_, rhoIso_h);
-    float rhoIso = *(rhoIso_h.product());
-
-    /////////////////////////////////////////////////////////////
-    // Get the value maps for the Egamma electron ID decisions //
-    /////////////////////////////////////////////////////////////
-
-    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
+//    /////////////////////////////////////////////////////////////
+//    // Get the value maps for the Egamma electron ID decisions //
+//    /////////////////////////////////////////////////////////////
+//
+//    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
 
 
     //////////////////////////
     // get cms2scsseeddetid //
     //////////////////////////
 
-    InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
-    Handle<vector<int> > cms2scsseeddetid_h;
-    iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
-    const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
+//    InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
+//    Handle<vector<int> > cms2scsseeddetid_h;
+//    iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
+//    const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
     //////////////////////////////
     // Get the ele<->PFCand map //
     //////////////////////////////
 
-    edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
-    InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
-    iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
-    edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
+//    edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
+//    InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
+//    iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
+//    edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
     
     // --- Fill --- //
 
@@ -750,7 +750,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         ////////////////
         // References //
         ////////////////
-        const GsfTrackRef            el_track         = el->gsfTrack();
+      const GsfTrackRef            el_track         = el->gsfTrack(); // Embedded Track for miniAOD
+      const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
 
 /*
         const Track*                 el_track         = (const Track*)(el->gsfTrack().get());
@@ -871,15 +872,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         if (1) { // FIX GZ if ( firstGoodVertex!=vertexCollection->end() ) {
 
-            els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-            els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-            els_iso03_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-            els_iso03_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 130) );
-
-            els_iso04_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-            els_iso04_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-            els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-            els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
+//FixGZ            els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
+//FixGZ            els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
+//FixGZ            els_iso03_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
+//FixGZ            els_iso03_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 130) );
+//FixGZ
+//FixGZ            els_iso04_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
+//FixGZ            els_iso04_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
+//FixGZ            els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
+//FixGZ            els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
 
             // pf iso 2012
             float pfiso_ch = 0.0;
@@ -946,7 +947,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_etaSC         ->push_back( el->superCluster()->eta()             );
         els_phiSC         ->push_back( el->superCluster()->phi()             );
-        els_eSC           ->push_back( el->superCluster()->energy()          );
+	els_eSC           ->push_back( el->superCluster()->energy()          );
         els_eSCRaw        ->push_back( el->superCluster()->rawEnergy()       );
         els_eSCPresh      ->push_back( el->superCluster()->preshowerEnergy() );
         els_nSeed         ->push_back( el->basicClustersSize() - 1           );
@@ -961,70 +962,70 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_phiSCwidth    ->push_back( el->superCluster()->phiWidth()        );
 
 
-        ///////////////////////////////////////////////////////
-        // Get cluster info that is not stored in the object //
-        ///////////////////////////////////////////////////////
-
-        if( el->superCluster()->seed().isAvailable() ) { 
-
-            //
-            const BasicCluster&  clRef              = *(el->superCluster()->seed());
-            const vector<float>& covs               = clusterTools_->covariances(clRef);                         // get the covariances computed in 5x5 around the seed
-            const vector<float>& lcovs              = clusterTools_->localCovariances(clRef);                    // get the local covariances computed in a 5x5 around the seed
-            const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
-
-            //
-            els_eSeed           ->push_back( el->superCluster()->seed()->energy()     );
-            els_sigmaPhiPhi     ->push_back( isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
-            els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
-            els_sigmaIEtaIPhi   ->push_back( isfinite(lcovs[1])              ? lcovs[1] > 0               ? sqrt(lcovs[1]) : -1 * sqrt(-1 * lcovs[1])                             : -9999. );
-            els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
-            els_sigmaIPhiIPhiSC ->push_back( isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
-
-            //
-            els_e3x3            ->push_back( clusterTools_->e3x3(clRef) );
-            els_eMax            ->push_back( clusterTools_->eMax(clRef) );
-        } 
-        else {
-
-            //
-            els_eSeed           ->push_back(-9999.);
-            els_sigmaPhiPhi     ->push_back(-9999.);
-            els_sigmaIPhiIPhi   ->push_back(-9999.);
-            els_sigmaIEtaIPhi   ->push_back(-9999.);
-            els_sigmaIEtaIEtaSC ->push_back(-9999.);
-            els_sigmaIPhiIPhiSC ->push_back(-9999.);
-
-            //
-            els_e3x3            ->push_back(-9999.);
-            els_eMax            ->push_back(-9999.);
-
-        } //
+//        ///////////////////////////////////////////////////////
+//        // Get cluster info that is not stored in the object //
+//        ///////////////////////////////////////////////////////
+//
+//        if( el->superCluster()->seed().isAvailable() ) { 
+//
+//            //
+//            const BasicCluster&  clRef              = *(el->superCluster()->seed());
+//            const vector<float>& covs               = clusterTools_->covariances(clRef);                         // get the covariances computed in 5x5 around the seed
+//            const vector<float>& lcovs              = clusterTools_->localCovariances(clRef);                    // get the local covariances computed in a 5x5 around the seed
+//            const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
+//
+//            //
+//            els_eSeed           ->push_back( el->superCluster()->seed()->energy()     );
+//            els_sigmaPhiPhi     ->push_back( isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
+//            els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
+//            els_sigmaIEtaIPhi   ->push_back( isfinite(lcovs[1])              ? lcovs[1] > 0               ? sqrt(lcovs[1]) : -1 * sqrt(-1 * lcovs[1])                             : -9999. );
+//            els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
+//            els_sigmaIPhiIPhiSC ->push_back( isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
+//
+//            //
+//            els_e3x3            ->push_back( clusterTools_->e3x3(clRef) );
+//            els_eMax            ->push_back( clusterTools_->eMax(clRef) );
+//        } 
+//        else {
+//
+//            //
+//            els_eSeed           ->push_back(-9999.);
+//            els_sigmaPhiPhi     ->push_back(-9999.);
+//            els_sigmaIPhiIPhi   ->push_back(-9999.);
+//            els_sigmaIEtaIPhi   ->push_back(-9999.);
+//            els_sigmaIEtaIEtaSC ->push_back(-9999.);
+//            els_sigmaIPhiIPhiSC ->push_back(-9999.);
+//
+//            //
+//            els_e3x3            ->push_back(-9999.);
+//            els_eMax            ->push_back(-9999.);
+//
+//        } //
  
    
-        /////////////////////////
-        // Super Cluster Index //
-        /////////////////////////
-
-        // get cms2scsseeddetid--sorry for junk from photons...
-        bool foundseed = false;
-        for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {      
-
-            if( cms2scsseeddetid->at(i) == -9999            ) continue;      
-            if( !(el->superCluster()->seed().isAvailable()) ) continue;
-
-            if( uint32_t( cms2scsseeddetid->at(i) ) == el->superCluster()->seed()->seed() ) {
-                foundseed = true;
-                els_scindex->push_back( i );
-                break;
-            }
-
-        }
-        if( !foundseed ) {
-            els_scindex->push_back( -1 );
-            // this is understood: the photon can have energy significantly higher than SC for whatever reason.
-            // cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed()) << "  photon et: " << photon->et() << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta()) << endl;
-        }
+//        /////////////////////////
+//        // Super Cluster Index //
+//        /////////////////////////
+//
+//        // get cms2scsseeddetid--sorry for junk from photons...
+//        bool foundseed = false;
+//        for( unsigned int i=0; i<cms2scsseeddetid->size(); i++ ) {      
+//
+//            if( cms2scsseeddetid->at(i) == -9999            ) continue;      
+//            if( !(el->superCluster()->seed().isAvailable()) ) continue;
+//
+//            if( uint32_t( cms2scsseeddetid->at(i) ) == el->superCluster()->seed()->seed() ) {
+//                foundseed = true;
+//                els_scindex->push_back( i );
+//                break;
+//            }
+//
+//        }
+//        if( !foundseed ) {
+//            els_scindex->push_back( -1 );
+//            // this is understood: the photon can have energy significantly higher than SC for whatever reason.
+//            // cout << "No seed found. seed id: " << int(photon->superCluster()->seed()->seed()) << "  photon et: " << photon->et() << "  sc et: " << photon->superCluster()->energy()/cosh(photon->superCluster()->eta()) << endl;
+//        }
 
 
         ////////
@@ -1043,7 +1044,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_eSeedOverPIn                  ->push_back( el->eSeedClusterOverP()              );
         els_eOverPOut                     ->push_back( el->eEleClusterOverPout()            );
         els_fbrem                         ->push_back( el->fbrem()                          );
-        els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
+	//        els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
         //els_mva                           ->push_back( el->mva()                            );
         els_mva                           ->push_back( el->mvaOutput().mva                  );
 
@@ -1083,51 +1084,52 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_sccharge              ->push_back( el->scPixCharge()                         );
         els_d0                    ->push_back( el_track->d0()                            );
         els_z0                    ->push_back( el_track->dz()                            );
-        els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
-        els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
+//FixGZ        els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
+//FixGZ        els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
    
 
-        /////////
-        // CTF //
-        /////////
-
-        if( ctfTkRef.isNonnull() ) {
-            els_trkidx    -> push_back( static_cast<int>  ( ctfTkRef.key()        )                                  );
-            //els_trkshFrac -> push_back( static_cast<float>( el->shFracInnerHits() )                                  );
-            els_trkshFrac -> push_back( static_cast<float>( el->ctfGsfOverlap() )                                    );
-            els_trkdr     -> push_back( deltaR( gsfTkRef->eta(), gsfTkRef->phi(), ctfTkRef->eta(), ctfTkRef->phi() ) );
-            els_ckf_chi2  -> push_back( ctfTkRef->chi2() );
-            els_ckf_ndof  -> push_back( ctfTkRef->ndof() );
-            els_ckf_laywithmeas -> push_back( ctfTkRef->hitPattern().trackerLayersWithMeasurement() );
-        } 
-        else {
-            els_trkidx    -> push_back(-9999.);
-            els_trkshFrac -> push_back(-9999.);
-            els_trkdr     -> push_back(-9999.);
-            els_ckf_chi2  -> push_back(-9999.);
-            els_ckf_ndof  -> push_back(-9999.);
-            els_ckf_laywithmeas -> push_back(-9999.);
-        }
+//        /////////
+//        // CTF //
+//        /////////
+//
+//        if( ctfTkRef.isNonnull() ) {
+//            els_trkidx    -> push_back( static_cast<int>  ( ctfTkRef.key()        )                                  );
+//            //els_trkshFrac -> push_back( static_cast<float>( el->shFracInnerHits() )                                  );
+//            els_trkshFrac -> push_back( static_cast<float>( el->ctfGsfOverlap() )                                    );
+//            els_trkdr     -> push_back( deltaR( gsfTkRef->eta(), gsfTkRef->phi(), ctfTkRef->eta(), ctfTkRef->phi() ) );
+//            els_ckf_chi2  -> push_back( ctfTkRef->chi2() );
+//            els_ckf_ndof  -> push_back( ctfTkRef->ndof() );
+//            els_ckf_laywithmeas -> push_back( ctfTkRef->hitPattern().trackerLayersWithMeasurement() );
+//        } 
+//        else {
+//            els_trkidx    -> push_back(-9999.);
+//            els_trkshFrac -> push_back(-9999.);
+//            els_trkdr     -> push_back(-9999.);
+//            els_ckf_chi2  -> push_back(-9999.);
+//            els_ckf_ndof  -> push_back(-9999.);
+//            els_ckf_laywithmeas -> push_back(-9999.);
+//        }
 
         
-        ////////////////////
-        // Regular Vertex //
-        ////////////////////        
-        TransientTrack tt = theTTBuilder->build(el->gsfTrack());
-    
-        if ( firstGoodVertex!=vertexCollection->end() ) {
-            Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
-            //
-            els_ip3d      -> push_back( ip3D_regular.value() );
-            els_ip3derr   -> push_back( ip3D_regular.error() );
-        } else {
-            //
-            els_ip3d      -> push_back( -999. );
-            els_ip3derr   -> push_back( -999. );
-        }
+//        ////////////////////
+//        // Regular Vertex //
+//        ////////////////////        
+//        TransientTrack tt = theTTBuilder->build(el->gsfTrack());
+//    
+//        if ( firstGoodVertex!=vertexCollection->end() ) {
+//            Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
+//            //
+//            els_ip3d      -> push_back( ip3D_regular.value() );
+//            els_ip3derr   -> push_back( ip3D_regular.error() );
+//        } else {
+//            //
+//            els_ip3d      -> push_back( -999. );
+//            els_ip3derr   -> push_back( -999. );
+//        }
 
-            els_ip3d      -> push_back( el->ip3d() );
-
+	
+	els_ip3d      -> push_back( el->ip3d() ); // miniAOD
+	els_ip3derr   -> push_back( -999. ); // miniAOD
 
 
 
@@ -1263,180 +1265,181 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         }
     
 
-        /////////////////
-        // Conversions //
-        /////////////////
-
-        ConversionFinder convFinder; //vector of conversion infos - all the candidate conversion tracks
-        vector<ConversionInfo> v_convInfos = convFinder.getConversionInfos(*(el->core()), tracks_h, gsftracks_h, evt_bField);
-    
-        vector<int>           v_tkidx;
-        vector<int>           v_gsftkidx;
-        vector<int>           v_delmisshits;
-        vector<int>           v_flag;
-        vector<float>         v_dist;
-        vector<float>         v_dcot;
-        vector<float>         v_rad;
-        vector<LorentzVector> v_pos_p4;
-
-        for(unsigned int i_conv = 0; i_conv < v_convInfos.size(); i_conv++) {
-      
-            //
-            math::XYZPoint convPoint  = v_convInfos.at(i_conv).pointOfConversion();
-            float          convPointX = isfinite(convPoint.x()) ? convPoint.x() : -9999.;
-            float          convPointY = isfinite(convPoint.y()) ? convPoint.y() : -9999.;
-            float          convPointZ = isfinite(convPoint.z()) ? convPoint.z() : -9999.;
-
-            //
-            v_dist        .push_back( isfinite(v_convInfos.at(i_conv).dist()) ? v_convInfos.at(i_conv).dist() : -9999.  );
-            v_dcot        .push_back( v_convInfos.at(i_conv).dcot()                                                     );
-            v_rad         .push_back( v_convInfos.at(i_conv).radiusOfConversion()                                       );
-            v_delmisshits .push_back( v_convInfos.at(i_conv).deltaMissingHits()                                         );
-            v_flag        .push_back( v_convInfos.at(i_conv).flag()                                                     );
-            v_pos_p4      .push_back( LorentzVector(convPointX, convPointY, convPointZ, 0)                              );
-
-            //
-            if( v_convInfos.at(i_conv).conversionPartnerCtfTk().isNonnull() ) {
-                v_tkidx.push_back(v_convInfos.at(i_conv).conversionPartnerCtfTk().key());
-            }
-            else {
-                v_tkidx.push_back(-9999);
-            }
-
-            //
-            if( v_convInfos.at(i_conv).conversionPartnerGsfTk().isNonnull() ) {
-                v_gsftkidx.push_back(v_convInfos.at(i_conv).conversionPartnerGsfTk().key());
-            }
-            else { 
-                v_gsftkidx.push_back(-9999);
-            }
-
-        } // end for loop
-
-
-        //
-        els_convs_dist->push_back(v_dist);
-        els_convs_dcot->push_back(v_dcot);
-        els_convs_radius->push_back(v_rad);
-        els_convs_pos_p4->push_back(v_pos_p4);
-        els_convs_tkidx->push_back(v_tkidx);
-        els_convs_gsftkidx->push_back(v_gsftkidx);
-        els_convs_delMissHits->push_back(v_delmisshits);
-        els_convs_flag->push_back(v_flag);
-
-        //
-        ConversionInfo convInfo   = convFinder.getConversionInfo( *el, tracks_h, gsftracks_h, evt_bField );
-        math::XYZPoint convPoint  = convInfo.pointOfConversion();
-        float          convPointX = isfinite(convPoint.x()) ? convPoint.x() : -9999.;
-        float          convPointY = isfinite(convPoint.y()) ? convPoint.y() : -9999.;
-        float          convPointZ = isfinite(convPoint.z()) ? convPoint.z() : -9999.;
-
-        //
-        els_conv_dist        -> push_back( isfinite(convInfo.dist()) ? convInfo.dist() : -9999. );
-        els_conv_dcot        -> push_back( convInfo.dcot()                                      );
-        els_conv_radius      -> push_back( convInfo.radiusOfConversion()                        );
-        els_conv_delMissHits -> push_back( convInfo.deltaMissingHits()                          );
-        els_conv_flag        -> push_back( convInfo.flag()                                      );
-        els_conv_pos_p4      -> push_back( LorentzVector(convPointX, convPointY, convPointZ, 0) );
-
-        //
-        if( convInfo.conversionPartnerCtfTk().isNonnull() ) {
-            els_conv_tkidx->push_back(convInfo.conversionPartnerCtfTk().key());
-        }
-        else {
-            els_conv_tkidx->push_back(-9999);
-        }
-
-        //
-        if( convInfo.conversionPartnerGsfTk().isNonnull() ) {
-            els_conv_gsftkidx->push_back(convInfo.conversionPartnerGsfTk().key());
-        }
-        else { 
-            els_conv_gsftkidx->push_back(-9999);
-        }
+//        /////////////////
+//        // Conversions //
+//        /////////////////
+//
+//        ConversionFinder convFinder; //vector of conversion infos - all the candidate conversion tracks
+//        vector<ConversionInfo> v_convInfos = convFinder.getConversionInfos(*(el->core()), tracks_h, gsftracks_h, evt_bField);
+//    
+//        vector<int>           v_tkidx;
+//        vector<int>           v_gsftkidx;
+//        vector<int>           v_delmisshits;
+//        vector<int>           v_flag;
+//        vector<float>         v_dist;
+//        vector<float>         v_dcot;
+//        vector<float>         v_rad;
+//        vector<LorentzVector> v_pos_p4;
+//
+//        for(unsigned int i_conv = 0; i_conv < v_convInfos.size(); i_conv++) {
+//      
+//            //
+//            math::XYZPoint convPoint  = v_convInfos.at(i_conv).pointOfConversion();
+//            float          convPointX = isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+//            float          convPointY = isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+//            float          convPointZ = isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+//
+//            //
+//            v_dist        .push_back( isfinite(v_convInfos.at(i_conv).dist()) ? v_convInfos.at(i_conv).dist() : -9999.  );
+//            v_dcot        .push_back( v_convInfos.at(i_conv).dcot()                                                     );
+//            v_rad         .push_back( v_convInfos.at(i_conv).radiusOfConversion()                                       );
+//            v_delmisshits .push_back( v_convInfos.at(i_conv).deltaMissingHits()                                         );
+//            v_flag        .push_back( v_convInfos.at(i_conv).flag()                                                     );
+//            v_pos_p4      .push_back( LorentzVector(convPointX, convPointY, convPointZ, 0)                              );
+//
+//            //
+//            if( v_convInfos.at(i_conv).conversionPartnerCtfTk().isNonnull() ) {
+//                v_tkidx.push_back(v_convInfos.at(i_conv).conversionPartnerCtfTk().key());
+//            }
+//            else {
+//                v_tkidx.push_back(-9999);
+//            }
+//
+//            //
+//            if( v_convInfos.at(i_conv).conversionPartnerGsfTk().isNonnull() ) {
+//                v_gsftkidx.push_back(v_convInfos.at(i_conv).conversionPartnerGsfTk().key());
+//            }
+//            else { 
+//                v_gsftkidx.push_back(-9999);
+//            }
+//
+//        } // end for loop
+//
+//
+//        //
+//        els_convs_dist->push_back(v_dist);
+//        els_convs_dcot->push_back(v_dcot);
+//        els_convs_radius->push_back(v_rad);
+//        els_convs_pos_p4->push_back(v_pos_p4);
+//        els_convs_tkidx->push_back(v_tkidx);
+//        els_convs_gsftkidx->push_back(v_gsftkidx);
+//        els_convs_delMissHits->push_back(v_delmisshits);
+//        els_convs_flag->push_back(v_flag);
+//
+//        //
+//        ConversionInfo convInfo   = convFinder.getConversionInfo( *el, tracks_h, gsftracks_h, evt_bField );
+//        math::XYZPoint convPoint  = convInfo.pointOfConversion();
+//        float          convPointX = isfinite(convPoint.x()) ? convPoint.x() : -9999.;
+//        float          convPointY = isfinite(convPoint.y()) ? convPoint.y() : -9999.;
+//        float          convPointZ = isfinite(convPoint.z()) ? convPoint.z() : -9999.;
+//
+//        //
+//        els_conv_dist        -> push_back( isfinite(convInfo.dist()) ? convInfo.dist() : -9999. );
+//        els_conv_dcot        -> push_back( convInfo.dcot()                                      );
+//        els_conv_radius      -> push_back( convInfo.radiusOfConversion()                        );
+//        els_conv_delMissHits -> push_back( convInfo.deltaMissingHits()                          );
+//        els_conv_flag        -> push_back( convInfo.flag()                                      );
+//        els_conv_pos_p4      -> push_back( LorentzVector(convPointX, convPointY, convPointZ, 0) );
+//
+//        //
+//        if( convInfo.conversionPartnerCtfTk().isNonnull() ) {
+//            els_conv_tkidx->push_back(convInfo.conversionPartnerCtfTk().key());
+//        }
+//        else {
+//            els_conv_tkidx->push_back(-9999);
+//        }
+//
+//        //
+//        if( convInfo.conversionPartnerGsfTk().isNonnull() ) {
+//            els_conv_gsftkidx->push_back(convInfo.conversionPartnerGsfTk().key());
+//        }
+//        else { 
+//            els_conv_gsftkidx->push_back(-9999);
+//        }
 
 
         //////////////////////////////
         // Flag For Vertex Fit Conversion Rejection //
         //////////////////////////////
 
-        Handle<ConversionCollection> convs_h;
-        iEvent.getByLabel(recoConversionInputTag_, convs_h);
-        els_conv_vtx_flag        -> push_back( ConversionTools::hasMatchedConversion(*el, convs_h, beamSpot ) );
+//        Handle<ConversionCollection> convs_h;
+//        iEvent.getByLabel(recoConversionInputTag_, convs_h);
+//        els_conv_vtx_flag        -> push_back( ConversionTools::hasMatchedConversion(*el, convs_h, beamSpot ) );
+        els_conv_vtx_flag        -> push_back( el->passConversionVeto() ); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
 
-        //////////////////////////////
-        // Old Conversion Rejection //
-        //////////////////////////////
+//        //////////////////////////////
+//        // Old Conversion Rejection //
+//        //////////////////////////////
+//
+//        int delMissHits          =  -9999;
+//        int flag                 =  isfinite(el->convFlags()) ? el->convFlags() : -9999;
+//
+//        els_conv_old_flag        -> push_back( flag                     );
+//        els_conv_old_dist        -> push_back( isfinite(el->convDist())   ? el->convDist()   : -9999. );
+//        els_conv_old_dcot        -> push_back( isfinite(el->convDcot())   ? el->convDcot()   : -9999. );
+//        els_conv_old_radius      -> push_back( isfinite(el->convRadius()) ? el->convRadius() : -9999. );
+//
+//        //
+//        if( flag == 0 ) { // partner found in the CTF track collection using the electron's CTF track
+//            els_conv_old_tkidx -> push_back( el->convPartner().key() );
+//            els_conv_old_gsftkidx-> push_back( -9999 );
+//            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
+//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
+//        }
+//        else if( flag == 1 ) {// partner found in the CTF track collection using the electron's GSF track
+//            els_conv_old_tkidx -> push_back( el->convPartner().key() );  
+//            els_conv_old_gsftkidx-> push_back( -9999 );
+//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
+//        }
+//        else if( flag == 2 ) {  // partner found in the GSF track collection using the electron's CTF track
+//            els_conv_old_tkidx -> push_back( -9999 );
+//            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
+//            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
+//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
+//        } 
+//        else if( flag == 3 ) {  // partner found in the GSF track collection using the electron's GSF track
+//            els_conv_old_tkidx -> push_back( -9999 );
+//            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
+//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
+//        } 
+//        else if( flag != -9999 ){
+//            cout << "ERROR Unexpected flag: " << flag << endl;
+//            exit(1);
+//        }
+//
+//        //
+//        els_conv_old_delMissHits -> push_back( delMissHits );
 
-        int delMissHits          =  -9999;
-        int flag                 =  isfinite(el->convFlags()) ? el->convFlags() : -9999;
-
-        els_conv_old_flag        -> push_back( flag                     );
-        els_conv_old_dist        -> push_back( isfinite(el->convDist())   ? el->convDist()   : -9999. );
-        els_conv_old_dcot        -> push_back( isfinite(el->convDcot())   ? el->convDcot()   : -9999. );
-        els_conv_old_radius      -> push_back( isfinite(el->convRadius()) ? el->convRadius() : -9999. );
-
-        //
-        if( flag == 0 ) { // partner found in the CTF track collection using the electron's CTF track
-            els_conv_old_tkidx -> push_back( el->convPartner().key() );
-            els_conv_old_gsftkidx-> push_back( -9999 );
-            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
-            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
-        }
-        else if( flag == 1 ) {// partner found in the CTF track collection using the electron's GSF track
-            els_conv_old_tkidx -> push_back( el->convPartner().key() );  
-            els_conv_old_gsftkidx-> push_back( -9999 );
-            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
-        }
-        else if( flag == 2 ) {  // partner found in the GSF track collection using the electron's CTF track
-            els_conv_old_tkidx -> push_back( -9999 );
-            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
-            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
-            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
-        } 
-        else if( flag == 3 ) {  // partner found in the GSF track collection using the electron's GSF track
-            els_conv_old_tkidx -> push_back( -9999 );
-            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
-            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
-        } 
-        else if( flag != -9999 ){
-            cout << "ERROR Unexpected flag: " << flag << endl;
-            exit(1);
-        }
-
-        //
-        els_conv_old_delMissHits -> push_back( delMissHits );
-
-        //////////////////////
-        // 2012 Electron ID //
-        //////////////////////
-        GsfElectronRef ele(els_coll_h, elsIndex);
-
-        float pfiso_ch = els_iso03_pf2012_ch->at(elsIndex);
-        float pfiso_em = els_iso03_pf2012_em->at(elsIndex);
-        float pfiso_nh = els_iso03_pf2012_nh->at(elsIndex);
-        unsigned int veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        unsigned int tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-
-        els_id2012_veto   ->push_back(veto_bits   );
-        els_id2012_loose  ->push_back(loose_bits  );
-        els_id2012_medium ->push_back(medium_bits );
-        els_id2012_tight  ->push_back(tight_bits  );
-
-        pfiso_ch = els_iso03_pf2012ext_ch->at(elsIndex);
-        pfiso_em = els_iso03_pf2012ext_em->at(elsIndex);
-        pfiso_nh = els_iso03_pf2012ext_nh->at(elsIndex);
-        veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-        tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-
-        els_id2012ext_veto   ->push_back(veto_bits   );
-        els_id2012ext_loose  ->push_back(loose_bits  );
-        els_id2012ext_medium ->push_back(medium_bits );
-        els_id2012ext_tight  ->push_back(tight_bits  );
+//        //////////////////////
+//        // 2012 Electron ID //
+//        //////////////////////
+//        GsfElectronRef ele(els_coll_h, elsIndex);
+//
+//        float pfiso_ch = els_iso03_pf2012_ch->at(elsIndex);
+//        float pfiso_em = els_iso03_pf2012_em->at(elsIndex);
+//        float pfiso_nh = els_iso03_pf2012_nh->at(elsIndex);
+//        unsigned int veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        unsigned int loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        unsigned int medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        unsigned int tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//
+//        els_id2012_veto   ->push_back(veto_bits   );
+//        els_id2012_loose  ->push_back(loose_bits  );
+//        els_id2012_medium ->push_back(medium_bits );
+//        els_id2012_tight  ->push_back(tight_bits  );
+//
+//        pfiso_ch = els_iso03_pf2012ext_ch->at(elsIndex);
+//        pfiso_em = els_iso03_pf2012ext_em->at(elsIndex);
+//        pfiso_nh = els_iso03_pf2012ext_nh->at(elsIndex);
+//        veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//        tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
+//
+//        els_id2012ext_veto   ->push_back(veto_bits   );
+//        els_id2012ext_loose  ->push_back(loose_bits  );
+//        els_id2012ext_medium ->push_back(medium_bits );
+//        els_id2012ext_tight  ->push_back(tight_bits  );
 
 
  
@@ -1453,19 +1456,21 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Added for 7   //
         ///////////////////
 
-	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
-	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+//	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
+//	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+//	vector<int> v_PFCand_idx;
+//	for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
+//	  v_PFCand_idx.push_back(ipf->key());
+//	}
+//	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
+//	els_PFCand_idx->push_back(v_PFCand_idx);
 	vector<int> v_PFCand_idx;
-	for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
-	  v_PFCand_idx.push_back(ipf->key());
-	}
-	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
+	for( const edm::Ref<pat::PackedCandidateCollection> & ref : el->associatedPackedPFCandidates() )
+	  v_PFCand_idx.push_back(ref.key());
 	els_PFCand_idx->push_back(v_PFCand_idx);
-
 
     } // end Loop on Electrons
   
-
 
 
 
@@ -1693,7 +1698,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //----------------------------------------------------------------------------
 // Electron Id classification function (a flag for the Sani type class)
 //----------------------------------------------------------------------------
-int ElectronMaker::classify(const RefToBase<GsfElectron> &electron) {
+int ElectronMaker::classify(const RefToBase<pat::Electron> &electron) {
 
     double eOverP = electron->eSuperClusterOverP();
     double fbrem = electron->fbrem();

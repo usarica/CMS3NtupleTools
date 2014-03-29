@@ -4,7 +4,6 @@ electronMaker = cms.EDProducer(
     "ElectronMaker",
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
-    #electronsInputTag = cms.InputTag("gedGsfElectrons"),
     electronsInputTag = cms.InputTag("slimmedElectrons"),
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
@@ -13,7 +12,7 @@ electronMaker = cms.EDProducer(
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("particleFlow"),
-    vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
+    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
     # isolations from external
     # pfIsoCharged03InputTag = cms.InputTag("elPFIsoValueCharged03PFIdPFIso"),
