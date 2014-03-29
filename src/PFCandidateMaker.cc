@@ -76,6 +76,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      //produces<vector<float>	>         ("pfcandsmvapimu"		      ).setBranchAlias("pfcands_mva_pimu"		      );
      //produces<vector<float>	>         ("pfcandsmvanothinggamma"	).setBranchAlias("pfcands_mva_nothing_gamma");
      //produces<vector<float>	>         ("pfcandsmvanothingnh"	  ).setBranchAlias("pfcands_mva_nothing_nh"	  );
+     produces<vector<float>	>         ("pfcandsdz"              ).setBranchAlias("pfcands_dz"			          );
      produces<vector<int>	>           ("pfcandscharge"		      ).setBranchAlias("pfcands_charge"		        );
      produces<vector<int> >           ("pfcandsparticleId"		  ).setBranchAlias("pfcands_particleId"		    );
      //produces<vector<int>	>           ("pfcandsflag"		        ).setBranchAlias("pfcands_flag"			        );
@@ -83,6 +84,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      //produces<vector<int>	>           ("pfcandspfmusidx"		    ).setBranchAlias("pfcands_pfmusidx"		      );
      //produces<vector<int>	>           ("pfcandspfelsidx"		    ).setBranchAlias("pfcands_pfelsidx"		      );
      //produces<vector<int>   >          ("pfcandsvtxidx"             ).setBranchAlias("pfcands_vtxidx"       );
+     produces<vector<uint8_t>	>          ("pfcandsfromPV"          ).setBranchAlias("pfcands_fromPV"		        );
 
      //produces<float>                  ("evtfixgridrhoctr"       ).setBranchAlias("evt_fixgrid_rho_ctr"      );
      //produces<float>                  ("evtfixgridrhofwd"       ).setBranchAlias("evt_fixgrid_rho_fwd"      );
@@ -121,6 +123,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      //auto_ptr<vector<float> >		      pfcands_mva_pimu	        (new vector<float>		      );
      //auto_ptr<vector<float> >		      pfcands_mva_nothing_gamma (new vector<float>		      );
      //auto_ptr<vector<float> >		      pfcands_mva_nothing_nh	  (new vector<float>		      );
+     auto_ptr<vector<float> >         pfcands_dz                (new vector<float>          );
      auto_ptr<vector<int> >		        pfcands_charge		        (new vector<int>		        );
      auto_ptr<vector<int> >		        pfcands_particleId	      (new vector<int>		        );
      //auto_ptr<vector<int> >	          pfcands_flag		          (new vector<int>        	  );
@@ -128,6 +131,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      //auto_ptr<vector<int> >	          pfcands_pfmusidx	        (new vector<int>        	  );    
      //auto_ptr<vector<int> >	          pfcands_pfelsidx	        (new vector<int>        	  );
      //auto_ptr<vector<int> >           pfcands_vtxidx            (new vector<int>              );
+     auto_ptr<vector<uint8_t> >           pfcands_fromPV            (new vector<uint8_t>            );
 
      //auto_ptr<float >	                evt_fixgrid_rho_ctr 	    (new float           	      );
      //auto_ptr<float >	                evt_fixgrid_rho_fwd 	    (new float           	      );
@@ -188,8 +192,10 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   	    //pfcands_mva_pimu		      ->push_back( pf_it->mva_pi_mu()				                                          );
   	    //pfcands_mva_nothing_gamma	->push_back( pf_it->mva_nothing_gamma()                                         );
   	    //pfcands_mva_nothing_nh	  ->push_back( pf_it->mva_nothing_nh()		                                        );
+  	    pfcands_dz    		        ->push_back( pf_it->dz()		    				                                        );
   	    pfcands_charge		        ->push_back( pf_it->charge()						                                        );
         pfcands_particleId        ->push_back( pf_it->pdgId()                                                     );
+        pfcands_fromPV            ->push_back( pf_it->fromPV()                                                    );
   	    //pfcands_flag			        ->push_back( pfflags                                                            ); 
 
 /*
@@ -315,8 +321,10 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      //iEvent.put(pfcands_mva_pimu,	  	      "pfcandsmvapimu"	      );
      //iEvent.put(pfcands_mva_nothing_gamma,  "pfcandsmvanothinggamma");
      //iEvent.put(pfcands_mva_nothing_nh,		  "pfcandsmvanothingnh"	  );
+     iEvent.put(pfcands_dz,			            "pfcandsdz"		          );
      iEvent.put(pfcands_charge,			        "pfcandscharge"		      );
      iEvent.put(pfcands_particleId,		      "pfcandsparticleId"	    );
+     iEvent.put(pfcands_fromPV,		          "pfcandsfromPV"         );
      //iEvent.put(pfcands_flag,			          "pfcandsflag"		        );
      //iEvent.put(pfcands_trkidx,			        "pfcandstrkidx"		      );
      //iEvent.put(pfcands_pfmusidx,		        "pfcandspfmusidx"	      );
