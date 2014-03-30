@@ -627,11 +627,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // B Field //
     /////////////
 
-//    Handle<float> evt_bField_h;
-//    iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
-//    float evt_bField = *evt_bField_h.product();
-  
-
+    Handle<float> evt_bField_h;
+    iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
+    float evt_bField = *evt_bField_h.product();
+    if ( evt_bField == 1234567 ) cout<<" b field is 1234567 !"<<endl; // Use the variable to keep the compiler happy
+    
     ///////////////
     // Electrons //
     ///////////////
@@ -647,7 +647,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Cands //
     //////////////
 
-// FIX GZ    iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+//    iEvent.getByLabel(pfCandsInputTag, pfCand_h);
 
     /////////////////////////
     // External Isolations //
@@ -671,7 +671,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex //
     ////////////
 
-// FIX GZ    iEvent.getByLabel(vtxInputTag, vertexHandle);
+    iEvent.getByLabel(vtxInputTag, vertexHandle);
 
 
     ///////////////////////////
@@ -689,18 +689,20 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
 
-//    //////////////
-//    // Beamspot //
-//    //////////////
-//
-//    InputTag beamSpot_tag(beamSpotInputTag_.label(),"evtbsp4");
-//    Handle<LorentzVector> beamSpotH;
-//    iEvent.getByLabel(beamSpot_tag, beamSpotH);
-//    const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
-//
-//    Handle<reco::BeamSpot> beamspot_h;
-//    iEvent.getByLabel(beamSpot_tag_, beamspot_h);
-//    const reco::BeamSpot &beamSpotreco = *(beamspot_h.product());
+    //////////////
+    // Beamspot //
+    //////////////
+
+    InputTag beamSpot_tag(beamSpotInputTag_.label(),"evtbsp4");
+    Handle<LorentzVector> beamSpotH;
+    iEvent.getByLabel(beamSpot_tag, beamSpotH);
+    const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
+
+    Handle<reco::BeamSpot> beamspot_h;
+    iEvent.getByLabel(beamSpot_tag_, beamspot_h);
+    const reco::BeamSpot &beamSpotreco = *(beamspot_h.product()); 
+    if ( beamSpotreco.x0() == 1234567 ) ; // Use the variable to keep the compiler happy
+
 
 //    ///////////////////////
 //    // rho for isolation //
@@ -760,21 +762,23 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //const TrackRef               ctfTkRef         = el->closestCtfTrackRef();
         const TrackRef               ctfTkRef         = el->closestTrack();
         const GsfTrackRef            gsfTkRef         = el->gsfTrack();
-        const VertexCollection*      vertexCollection = vertexHandle.product();
+
+*/
 
         ////////////
         // Vertex //
         ////////////
+        const VertexCollection*      vertexCollection = vertexHandle.product();
         VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
         int firstGoodVertexIdx = 0;
         for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx) {
-            if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
+	  // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
+	  // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
+	  if (  /*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
                 firstGoodVertex = vtx;
                 break;
-            }
+	  }
         }
-*/
-
 
         //////////////////////
         // Fiduciality Mask //
@@ -870,17 +874,17 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
         els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
 
-        if (1) { // FIX GZ if ( firstGoodVertex!=vertexCollection->end() ) {
-
-//FixGZ            els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-//FixGZ            els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-//FixGZ            els_iso03_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-//FixGZ            els_iso03_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 130) );
-//FixGZ
-//FixGZ            els_iso04_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-//FixGZ            els_iso04_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-//FixGZ            els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-//FixGZ            els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
+        if ( firstGoodVertex!=vertexCollection->end() ) {
+ 
+            //els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
+            //els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
+            //els_iso03_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
+            //els_iso03_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 130) );
+	    //
+            //els_iso04_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
+            //els_iso04_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
+            //els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
+            //els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
 
             // pf iso 2012
             float pfiso_ch = 0.0;
@@ -1084,8 +1088,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_sccharge              ->push_back( el->scPixCharge()                         );
         els_d0                    ->push_back( el_track->d0()                            );
         els_z0                    ->push_back( el_track->dz()                            );
-//FixGZ        els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
-//FixGZ        els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
+        els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
+        els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
    
 
 //        /////////
@@ -1456,14 +1460,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Added for 7   //
         ///////////////////
 
-//	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
-//	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
-//	vector<int> v_PFCand_idx;
-//	for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
-//	  v_PFCand_idx.push_back(ipf->key());
-//	}
-//	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
-//	els_PFCand_idx->push_back(v_PFCand_idx);
+	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
 	vector<int> v_PFCand_idx;
 	for( const edm::Ref<pat::PackedCandidateCollection> & ref : el->associatedPackedPFCandidates() )
 	  v_PFCand_idx.push_back(ref.key());
