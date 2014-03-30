@@ -630,7 +630,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     Handle<float> evt_bField_h;
     iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
     float evt_bField = *evt_bField_h.product();
-    if ( evt_bField == 1234567 ) cout<<" b field is 1234567 !"<<endl; // Use the variable to keep the compiler happy
+    if ( evt_bField == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
     
     ///////////////
     // Electrons //
@@ -681,10 +681,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //    iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
 
 
-//    ////////////////////////////////////////////////
-//    // Get tools to get cluster shape information //
-//    ////////////////////////////////////////////////
-//
+    ////////////////////////////////////////////////
+    // Get tools to get cluster shape information //
+    ////////////////////////////////////////////////
+
 //    if ( clusterTools_ ) delete clusterTools_;
 //    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
@@ -701,21 +701,21 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     Handle<reco::BeamSpot> beamspot_h;
     iEvent.getByLabel(beamSpot_tag_, beamspot_h);
     const reco::BeamSpot &beamSpotreco = *(beamspot_h.product()); 
-    if ( beamSpotreco.x0() == 1234567 ) ; // Use the variable to keep the compiler happy
+    if ( beamSpotreco.x0() == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
 
 
-//    ///////////////////////
-//    // rho for isolation //
-//    ///////////////////////
-//
+    ///////////////////////
+    // rho for isolation //
+    ///////////////////////
+
 //    edm::Handle<float> rhoIso_h;
 //    iEvent.getByLabel(rhoInputTag_, rhoIso_h);
 //    float rhoIso = *(rhoIso_h.product());
 
-//    /////////////////////////////////////////////////////////////
-//    // Get the value maps for the Egamma electron ID decisions //
-//    /////////////////////////////////////////////////////////////
-//
+    /////////////////////////////////////////////////////////////
+    // Get the value maps for the Egamma electron ID decisions //
+    /////////////////////////////////////////////////////////////
+
 //    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
 
 
