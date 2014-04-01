@@ -66,6 +66,15 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<float> >         ( "pfjetscorL1FastL2L3residual"            ).setBranchAlias( "pfjets_corL1FastL2L3residual"            );
   produces<vector<float> >         ( "pfjetsarea"                             ).setBranchAlias( "pfjets_area"                             );
 
+  // Embedded b-tagging information (miniAOD only)
+  produces<vector<float> >   ("pfjetscombinedSecondaryVertexBJetTag"      ).setBranchAlias("pfjets_combinedSecondaryVertexBJetTag"      );
+  produces<vector<float> >   ("pfjetsjetBProbabilityBJetTag"              ).setBranchAlias("pfjets_jetBProbabilityBJetTag"	        );
+  produces<vector<float> >   ("pfjetsjetProbabilityBJetTag"               ).setBranchAlias("pfjets_jetProbabilityBJetTag"	        );
+  produces<vector<float> >   ("pfjetssimpleSecondaryVertexHighEffBJetTag" ).setBranchAlias("pfjets_simpleSecondaryVertexHighEffBJetTag" );
+  produces<vector<float> >   ("pfjetssimpleSecondaryVertexHighPurBJetTag" ).setBranchAlias("pfjets_simpleSecondaryVertexHighPurBJetTags");  
+  produces<vector<float> >   ("pfjetstrackCountingHighEffBJetTag"         ).setBranchAlias("pfjets_trackCountingHighEffBJetTag"	        );
+  produces<vector<float> >   ("pfjetstrackCountingHighPurBJetTag"         ).setBranchAlias("pfjets_trackCountingHighPurBJetTag"	        );
+
   //
   pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
   //pfCandidatesTag_                  = iConfig.getParameter<InputTag>   ( "pfCandidatesTag"                  );
@@ -120,6 +129,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_corL1FastL2L3residual     (new vector<float>          );
   auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+
+  auto_ptr<vector<float> >     pfjets_combinedSecondaryVertexBJetTag       (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_jetBProbabilityBJetTag               (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_jetProbabilityBJetTag                (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighEffBJetTag  (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighPurBJetTag  (new vector<float>  );  
+  auto_ptr<vector<float> >     pfjets_trackCountingHighEffBJetTag          (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_trackCountingHighPurBJetTag          (new vector<float>  );
 
   //
   Handle<View<pat::Jet> > pfJetsHandle;
@@ -196,6 +213,15 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     pfjets_pfcandIndicies->push_back( pfcandIndicies );
 
+    // Embedded b-tag info
+    // Default is set automatically to -1000. if no value is found
+    pfjets_combinedSecondaryVertexBJetTag      ->push_back(   pfjet_it->bDiscriminator("combinedSecondaryVertexBJetTags"     ) );
+    pfjets_jetBProbabilityBJetTag              ->push_back(   pfjet_it->bDiscriminator("jetBProbabilityBJetTags"             ) );
+    pfjets_jetProbabilityBJetTag               ->push_back(   pfjet_it->bDiscriminator("jetProbabilityBJetTags"              ) );
+    pfjets_simpleSecondaryVertexHighEffBJetTag ->push_back(   pfjet_it->bDiscriminator("simpleSecondaryVertexHighEffBJetTags") );
+    pfjets_simpleSecondaryVertexHighPurBJetTag ->push_back(   pfjet_it->bDiscriminator("simpleSecondaryVertexHighPurBJetTags") );
+    pfjets_trackCountingHighEffBJetTag         ->push_back(   pfjet_it->bDiscriminator("trackCountingHighEffBJetTags"        ) );
+    pfjets_trackCountingHighPurBJetTag         ->push_back(   pfjet_it->bDiscriminator("trackCountingHighPurBJetTags"        ) );
 
   }
 
@@ -224,6 +250,15 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
   iEvent.put(pfjets_corL1FastL2L3residual     , "pfjetscorL1FastL2L3residual"     );
   iEvent.put(pfjets_area                      , "pfjetsarea"                      );
+
+  iEvent.put(pfjets_combinedSecondaryVertexBJetTag       , "pfjetscombinedSecondaryVertexBJetTag"      );  
+  iEvent.put(pfjets_jetBProbabilityBJetTag               , "pfjetsjetBProbabilityBJetTag"              );		   
+  iEvent.put(pfjets_jetProbabilityBJetTag                , "pfjetsjetProbabilityBJetTag"               );			  
+  iEvent.put(pfjets_simpleSecondaryVertexHighEffBJetTag  , "pfjetssimpleSecondaryVertexHighEffBJetTag" );	  
+  iEvent.put(pfjets_simpleSecondaryVertexHighPurBJetTag  , "pfjetssimpleSecondaryVertexHighPurBJetTag" );  
+  iEvent.put(pfjets_trackCountingHighEffBJetTag          , "pfjetstrackCountingHighEffBJetTag"         );	  
+  iEvent.put(pfjets_trackCountingHighPurBJetTag          , "pfjetstrackCountingHighPurBJetTag"         );	  
+
 }
 
 
