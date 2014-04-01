@@ -28,6 +28,13 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
+from JetMETCorrections.Configuration.DefaultJEC_cff import *
+from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
+ak5PFCHSL1Fastjet.algorithm = 'AK5PFchs'
+ak5PFCHSL2Relative.algorithm = 'AK5PFchs'
+ak5PFCHSL3Absolute.algorithm = 'AK5PFchs'
+ak5PFCHSResidual.algorithm = 'AK5PFchs'
+
 #from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
 #process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
 

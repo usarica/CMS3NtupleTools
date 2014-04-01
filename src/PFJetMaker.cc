@@ -28,6 +28,8 @@ Implementation:
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -66,7 +68,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
 
   //
   pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
-  pfCandidatesTag_                  = iConfig.getParameter<InputTag>   ( "pfCandidatesTag"                  );
+  //pfCandidatesTag_                  = iConfig.getParameter<InputTag>   ( "pfCandidatesTag"                  );
   pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
   PFJetCorrectorL2L3_               = iConfig.getParameter<std::string>( "PFJetCorrectorL2L3"               );
   PFJetCorrectorL1L2L3_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1L2L3"             );
@@ -120,13 +122,16 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
 
   //
-  Handle<View<PFJet> > pfJetsHandle;
+  Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
 
+//pfcandidates not needed anymore to store vectors of indices for each jet
+/*
   //get pfcandidates
-  Handle<PFCandidateCollection> pfCandidatesHandle;
+  Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
   iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
-  const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+  const pat::PackedCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+*/
 
   
    const JetCorrector* correctorL2L3               = JetCorrector::getJetCorrector ( PFJetCorrectorL2L3_               , iSetup );
@@ -135,7 +140,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
    const JetCorrector* correctorL1Fast             = JetCorrector::getJetCorrector ( PFJetCorrectorL1Fast_             , iSetup );
    const JetCorrector* correctorL1FastL2L3residual = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3residual_ , iSetup );
 
-  for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
+  for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
     //
     pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
@@ -161,7 +166,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     //
     int idx = pfjet_it - pfJetsHandle->begin();
-    RefToBase < Jet > jetRef1( Ref < View < PFJet > > ( pfJetsHandle , idx ) );
+    RefToBase < Jet > jetRef1( Ref < View < pat::Jet > > ( pfJetsHandle , idx ) );
 
     
     float L2L3JetScale               = correctorL2L3               ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
@@ -183,24 +188,12 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     vector<int> pfcandIndicies;
 
-    int ipf = 0;
-    
-    //loop over all PFCandidates
-    for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++){
-      
-      reco::PFCandidateRef pref( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
-      
-      //loop over PFCandidates associated to this jet
-      for( unsigned int ic = 0 ; ic < pfjet_cands.size() ; ++ic ){
-        
-        //if a match is found, store index in pfcandIndicies
-        if( pref.key() == pfjet_cands.at(ic).key() ){
-          pfcandIndicies.push_back(ipf);
-        }
-      }
-      ++ipf;
-    }
-    
+    for(std::vector<reco::PFCandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
+
+      pfcandIndicies.push_back(cand_it->key());
+
+    } 
+
     pfjets_pfcandIndicies->push_back( pfcandIndicies );
 
 
@@ -229,8 +222,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_corL1FastL2L3             , "pfjetscorL1FastL2L3"             );
   iEvent.put(pfjets_corL1Fast                 , "pfjetscorL1Fast"                 );
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
-  iEvent.put(pfjets_area                      , "pfjetsarea"                      );
   iEvent.put(pfjets_corL1FastL2L3residual     , "pfjetscorL1FastL2L3residual"     );
+  iEvent.put(pfjets_area                      , "pfjetsarea"                      );
 }
 
 
