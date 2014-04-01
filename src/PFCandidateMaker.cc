@@ -86,9 +86,9 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      //produces<vector<int>   >          ("pfcandsvtxidx"             ).setBranchAlias("pfcands_vtxidx"       );
      produces<vector<uint8_t>	>          ("pfcandsfromPV"          ).setBranchAlias("pfcands_fromPV"		        );
 
-     //produces<float>                  ("evtfixgridrhoctr"       ).setBranchAlias("evt_fixgrid_rho_ctr"      );
-     //produces<float>                  ("evtfixgridrhofwd"       ).setBranchAlias("evt_fixgrid_rho_fwd"      );
-     //produces<float>                  ("evtfixgridrhoall"       ).setBranchAlias("evt_fixgrid_rho_all"      );
+     produces<float>                  ("evtfixgridrhoctr"       ).setBranchAlias("evt_fixgrid_rho_ctr"      );
+     produces<float>                  ("evtfixgridrhofwd"       ).setBranchAlias("evt_fixgrid_rho_fwd"      );
+     produces<float>                  ("evtfixgridrhoall"       ).setBranchAlias("evt_fixgrid_rho_all"      );
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -133,9 +133,9 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      //auto_ptr<vector<int> >           pfcands_vtxidx            (new vector<int>              );
      auto_ptr<vector<uint8_t> >           pfcands_fromPV            (new vector<uint8_t>            );
 
-     //auto_ptr<float >	                evt_fixgrid_rho_ctr 	    (new float           	      );
-     //auto_ptr<float >	                evt_fixgrid_rho_fwd 	    (new float           	      );
-     //auto_ptr<float >	                evt_fixgrid_rho_all 	    (new float           	      );
+     auto_ptr<float >	                evt_fixgrid_rho_ctr 	    (new float           	      );
+     auto_ptr<float >	                evt_fixgrid_rho_fwd 	    (new float           	      );
+     auto_ptr<float >	                evt_fixgrid_rho_all 	    (new float           	      );
     
      //get pfcandidates
      Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -285,7 +285,6 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      }//loop over candidate collection
 
 
-/*
      //define the phi bins
      vector<float> phibins;
      for (int i=0;i<10;i++) phibins.push_back(-TMath::Pi()+(2*i+1)*TMath::TwoPi()/20.);
@@ -303,7 +302,6 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      *evt_fixgrid_rho_ctr = getFixGridRho(etabins_ctr,phibins);
      *evt_fixgrid_rho_fwd = getFixGridRho(etabins_fwd,phibins);
      *evt_fixgrid_rho_all = getFixGridRho(etabins_all,phibins);
-*/
 
      //
      iEvent.put(pfcands_p4,			            "pfcandsp4"		          );
@@ -330,13 +328,12 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      //iEvent.put(pfcands_pfmusidx,		        "pfcandspfmusidx"	      );
      //iEvent.put(pfcands_pfelsidx,		        "pfcandspfelsidx"	      );
      //iEvent.put(pfcands_vtxidx,               "pfcandsvtxidx"         );
-     //iEvent.put(evt_fixgrid_rho_ctr,		    "evtfixgridrhoctr"	    );
-     //iEvent.put(evt_fixgrid_rho_fwd,		    "evtfixgridrhofwd"	    );
-     //iEvent.put(evt_fixgrid_rho_all,		    "evtfixgridrhoall"	    );
+     iEvent.put(evt_fixgrid_rho_ctr,		    "evtfixgridrhoctr"	    );
+     iEvent.put(evt_fixgrid_rho_fwd,		    "evtfixgridrhofwd"	    );
+     iEvent.put(evt_fixgrid_rho_all,		    "evtfixgridrhoall"	    );
  
 }
 
-/*
 float PFCandidateMaker::getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins) {
      float etadist = etabins[1]-etabins[0];
      float phidist = phibins[1]-phibins[0];
@@ -347,7 +344,7 @@ float PFCandidateMaker::getFixGridRho(std::vector<float>& etabins,std::vector<fl
      for (unsigned int ieta=0;ieta<etabins.size();++ieta) {
        for (unsigned int iphi=0;iphi<phibins.size();++iphi) {
 	 float pfniso_ieta_iphi = 0;
-	 for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
+	 for(pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
 	   if (fabs(etabins[ieta]-pf_it->eta())>etahalfdist) continue;
 	   if (fabs(reco::deltaPhi(phibins[iphi],pf_it->phi()))>phihalfdist) continue;
 	   pfniso_ieta_iphi+=pf_it->pt();
@@ -361,7 +358,6 @@ float PFCandidateMaker::getFixGridRho(std::vector<float>& etabins,std::vector<fl
      else evt_smdq = (sumPFNallSMDQ[sumPFNallSMDQ.size()/2]+sumPFNallSMDQ[(sumPFNallSMDQ.size()-2)/2])/2.;
      return evt_smdq/(etadist*phidist);
 }
-*/
 
 
 //define this as a plug-in
