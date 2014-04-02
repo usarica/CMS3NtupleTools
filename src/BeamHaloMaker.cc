@@ -29,7 +29,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "CMS2/NtupleMaker/interface/BeamHaloMaker.h"
-#include "DataFormats/METReco/interface/BeamHaloSummary.h"
 #include "TString.h"
 
 using namespace reco;
@@ -63,8 +62,8 @@ BeamHaloMaker::BeamHaloMaker(const edm::ParameterSet& iConfig) {
      produces<vector<int> >      ("evthcaliPhiSuspects"  ).setBranchAlias("evt_hcaliPhiSuspects"  );
      produces<vector<int> >      ("evtglobaliPhiSuspects").setBranchAlias("evt_globaliPhiSuspects");
   	  
-     beamHaloInputTag = iConfig.getParameter<edm::InputTag>("beamHaloInputTag");
-     cscHaloInputTag  = iConfig.getParameter<edm::InputTag>("cscHaloInputTag");
+     beamHaloToken = consumes<reco::BeamHaloSummary>(iConfig.getParameter<edm::InputTag>("beamHaloInputTag"));
+     cscHaloToken  = consumes<reco::CSCHaloData>(iConfig.getParameter<edm::InputTag>("cscHaloInputTag"));
 }
 
 BeamHaloMaker::~BeamHaloMaker() {}
@@ -98,10 +97,10 @@ void BeamHaloMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      auto_ptr<vector<int> >       evt_globaliPhiSuspects  (new vector<int>      );
      
      edm::Handle<reco::BeamHaloSummary> beamHalo_h;
-     iEvent.getByLabel(beamHaloInputTag, beamHalo_h);
+     iEvent.getByToken(beamHaloToken, beamHalo_h);
 
      edm::Handle<reco::CSCHaloData> cscHalo_h;
-     iEvent.getByLabel(cscHaloInputTag, cscHalo_h);
+     iEvent.getByToken(cscHaloToken, cscHalo_h);
 
      *evt_nHaloTriggerCandidates = cscHalo_h.isValid() ? cscHalo_h->NumberOfHaloTriggers() : -9999;
      *evt_nHaloLikeTracks        = cscHalo_h.isValid() ? cscHalo_h->NumberOfHaloTracks() : -9999;

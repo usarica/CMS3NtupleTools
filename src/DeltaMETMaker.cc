@@ -55,10 +55,10 @@ DeltaMETMaker::DeltaMETMaker(const edm::ParameterSet& iConfig) {
   produces<float> (branchprefix+"dmety" ).setBranchAlias(aliasprefix_+"_dmety" );
   produces<float> (branchprefix+"dsumet").setBranchAlias(aliasprefix_+"_dsumet");
   
-  cms2_metInputTag    = iConfig.getParameter<edm::InputTag>("cms2_metInputTag_"   );       
-  cms2_metphiInputTag = iConfig.getParameter<edm::InputTag>("cms2_metphiInputTag_");     
-  cms2_sumetInputTag  = iConfig.getParameter<edm::InputTag>("cms2_sumetInputTag_" );   
-  metInputTag         = iConfig.getParameter<edm::InputTag>("metInputTag_"        ); 
+  cms2_metToken    = consumes<float>(iConfig.getParameter<edm::InputTag>("cms2_metInputTag_"   ));
+  cms2_metphiToken = consumes<float>(iConfig.getParameter<edm::InputTag>("cms2_metphiInputTag_"));
+  cms2_sumetToken  = consumes<float>(iConfig.getParameter<edm::InputTag>("cms2_sumetInputTag_" ));   
+  metToken         = consumes<float>(iConfig.getParameter<edm::InputTag>("metInputTag_"        )); 
 }
 
 DeltaMETMaker::~DeltaMETMaker()
@@ -81,16 +81,16 @@ void DeltaMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>   evt_dsumet    (new float);
 
   edm::Handle<float> cms2_met_h;
-  iEvent.getByLabel(cms2_metInputTag, cms2_met_h);
+  iEvent.getByToken(cms2_metToken, cms2_met_h);
 
   edm::Handle<float> cms2_metphi_h;
-  iEvent.getByLabel(cms2_metphiInputTag, cms2_metphi_h);
+  iEvent.getByToken(cms2_metphiToken, cms2_metphi_h);
 
   edm::Handle<float> cms2_sumet_h;
-  iEvent.getByLabel(cms2_sumetInputTag, cms2_sumet_h);
+  iEvent.getByToken(cms2_sumetToken, cms2_sumet_h);
 
   edm::Handle<reco::CaloMETCollection> met_h;
-  iEvent.getByLabel(metInputTag, met_h);
+  iEvent.getByToken(metToken, met_h);
 
   float met      = (met_h->front()).et();
   float met_phi  = (met_h->front()).phi();

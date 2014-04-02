@@ -40,7 +40,7 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
 }
 
-void HLTMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
+void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
   // In the case that we are choosing the process name
   // automatically, i.e. the processName_ parameter is

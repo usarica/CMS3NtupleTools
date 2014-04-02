@@ -169,7 +169,7 @@ ObjectToTriggerLegAssMaker::endJob() {
 
 // ------------ method called when starting to processes a run  ------------
     void
-ObjectToTriggerLegAssMaker::beginRun(edm::Run &r, edm::EventSetup const &c)
+ObjectToTriggerLegAssMaker::beginRun(const edm::Run &r, edm::EventSetup const &c)
 {
 
     //

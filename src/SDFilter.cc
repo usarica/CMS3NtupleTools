@@ -109,7 +109,7 @@ SDFilter::~SDFilter() {}
 
 void  SDFilter::beginJob() { }
 
-bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) { 
+void SDFilter::beginRun(const edm::Run& r, edm::EventSetup const& c) { 
 
   if(processName_ != "") {
     bool changed(true);
@@ -136,7 +136,7 @@ bool SDFilter::beginRun(edm::Run& r, edm::EventSetup const& c) {
     std::cout << "There are " << nTriggerPaths.size() << " acceptable trigger paths for filter: " << filterName << endl;
   }
   
-  return true;
+  return;
 }
 
 void SDFilter::endJob() {

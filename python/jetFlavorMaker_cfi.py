@@ -6,6 +6,7 @@ printTree = cms.EDAnalyzer("ParticleListDrawer",
 )
 
 myPartons = cms.EDProducer("PartonSelector",
+    src = cms.InputTag("genParticles"),
     withLeptons = cms.bool(False)
 )
 

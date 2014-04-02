@@ -54,9 +54,9 @@ using namespace std;
 ElectronMissHit39XMaker::ElectronMissHit39XMaker(const edm::ParameterSet& iConfig) {
 
   //get setup parameters
-  electronsInputTag_             = iConfig.getParameter<edm::InputTag>("electronsInputTag"                  );
-  electronMissHit39XTag_         = iConfig.getParameter<edm::InputTag>("electronMissHit39XTag"              );
-  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  electronsToken_          = consumes<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
+  electronMissHit39XToken_ = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("electronMissHit39XTag"));
+  aliasprefix_             = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
 
   produces<vector<int> >            ("elsexpinnerlayers39X"          ).setBranchAlias("els_exp_innerlayers39X"        );
   
@@ -66,7 +66,7 @@ ElectronMissHit39XMaker::~ElectronMissHit39XMaker()
 {
 }
 
-void  ElectronMissHit39XMaker::beginRun(edm::Run&, const edm::EventSetup& es) {
+void  ElectronMissHit39XMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {
 }
 
 void ElectronMissHit39XMaker::beginJob() {
@@ -85,10 +85,10 @@ void ElectronMissHit39XMaker::produce(edm::Event& iEvent, const edm::EventSetup&
   // Get the electrons
   //
   Handle<View<reco::GsfElectron> > els_h;
-  iEvent.getByLabel(electronsInputTag_, els_h);
+  iEvent.getByToken(electronsToken_, els_h);
   
   // Get the valueMap
-  const edm::ValueMap<int>&  expectedHits_Ele          = getValueMap<int>(iEvent, electronMissHit39XTag_);
+  const edm::ValueMap<int>  expectedHits_Ele          = getValueMap<int>(iEvent, electronMissHit39XToken_);
   
   //loop over electron collection
   //
@@ -103,11 +103,11 @@ void ElectronMissHit39XMaker::produce(edm::Event& iEvent, const edm::EventSetup&
 
 }
 
-//little labour saving function to get the reference to the ValueMap
-template<typename T> const edm::ValueMap<T>& ElectronMissHit39XMaker::getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag)
+//little labor saving function to get the reference to the ValueMap
+template<typename T> const edm::ValueMap<T>& ElectronMissHit39XMaker::getValueMap(const edm::Event& iEvent, edm::EDGetTokenT<edm::ValueMap<T> > token)
 {
   edm::Handle<edm::ValueMap<T> > handle;
-  iEvent.getByLabel(inputTag,handle);
+  iEvent.getByToken(token, handle);
   return *(handle.product());
 }
 

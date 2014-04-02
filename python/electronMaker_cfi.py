@@ -4,7 +4,7 @@ electronMaker = cms.EDProducer(
     "ElectronMaker",
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
-    electronsInputTag = cms.InputTag("gsfElectrons"),
+    electronsInputTag = cms.InputTag("gedGsfElectrons"),
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
     # reco Track collection
@@ -15,12 +15,12 @@ electronMaker = cms.EDProducer(
     vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
 
     # isolations from external
-    pfIsoCharged03InputTag = cms.InputTag("elPFIsoValueCharged03PFIdPFIso"),
-    pfIsoGamma03InputTag   = cms.InputTag("elPFIsoValueGamma03PFIdPFIso"),
-    pfIsoNeutral03InputTag = cms.InputTag("elPFIsoValueNeutral03PFIdPFIso"),
-    pfIsoCharged04InputTag = cms.InputTag("elPFIsoValueCharged04PFIdPFIso"),
-    pfIsoGamma04InputTag   = cms.InputTag("elPFIsoValueGamma04PFIdPFIso"),
-    pfIsoNeutral04InputTag = cms.InputTag("elPFIsoValueNeutral04PFIdPFIso"),
+    # pfIsoCharged03InputTag = cms.InputTag("elPFIsoValueCharged03PFIdPFIso"),
+    # pfIsoGamma03InputTag   = cms.InputTag("elPFIsoValueGamma03PFIdPFIso"),
+    # pfIsoNeutral03InputTag = cms.InputTag("elPFIsoValueNeutral03PFIdPFIso"),
+    # pfIsoCharged04InputTag = cms.InputTag("elPFIsoValueCharged04PFIdPFIso"),
+    # pfIsoGamma04InputTag   = cms.InputTag("elPFIsoValueGamma04PFIdPFIso"),
+    # pfIsoNeutral04InputTag = cms.InputTag("elPFIsoValueNeutral04PFIdPFIso"),
 
     # reco conversions
     recoConversionInputTag = cms.InputTag("allConversions"),

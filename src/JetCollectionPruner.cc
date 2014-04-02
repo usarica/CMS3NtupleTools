@@ -58,14 +58,17 @@ JetCollectionPruner::JetCollectionPruner(const edm::ParameterSet& iConfig)
   produces<reco::JPTJetCollection>	("jpt"		);
   produces<reco::CaloJetCollection>	("calojet"	);
   produces<reco::PFJetCollection>	("pfjet"	);
+  produces<reco::PFJetCollection>	("pfchsjet"	);
   produces<reco::TrackJetCollection>	("trkjet"	);
   
   // get the input collection of electrons
   inputUncorrectedJPTJetCollection_	= iConfig.getParameter<edm::InputTag>	("inputUncorrectedJPTJetCollection"   	);
   inputUncorrectedPFJetCollection_	= iConfig.getParameter<edm::InputTag>	("inputUncorrectedPFJetCollection" 	);
+  inputUncorrectedPFCHSJetCollection_	= iConfig.getParameter<edm::InputTag>	("inputUncorrectedPFCHSJetCollection" 	);
   inputUncorrectedTrkJetCollection_     = iConfig.getParameter<edm::InputTag>	("inputUncorrectedTrkJetCollection"	);  
   uncorrectedJPTJetPtCut_       	= iConfig.getParameter<double>       	("uncorrectedJPTJetPtCut"            	);
   uncorrectedPFJetPtCut_        	= iConfig.getParameter<double>       	("uncorrectedPFJetPtCut"          	);
+  uncorrectedPFCHSJetPtCut_        	= iConfig.getParameter<double>       	("uncorrectedPFCHSJetPtCut"          	);
   uncorrectedTrkJetPtCut_       	= iConfig.getParameter<double>    	("uncorrectedTrkJetPtCut"		);
 }
 
@@ -80,15 +83,18 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   }
 
   edm::Handle<reco::PFJetCollection>    pfjetsHandle;
+  edm::Handle<reco::PFJetCollection>    pfjetschsHandle;
   edm::Handle<reco::TrackJetCollection> trkjetsHandle;
 
   iEvent.getByLabel(inputUncorrectedPFJetCollection_,  pfjetsHandle	);
+  iEvent.getByLabel(inputUncorrectedPFCHSJetCollection_,  pfjetschsHandle	);
   iEvent.getByLabel(inputUncorrectedTrkJetCollection_, trkjetsHandle	);
     
   // new collection to put in the event after cleaning
   std::auto_ptr<reco::JPTJetCollection>		outJPTcollection	(new reco::JPTJetCollection	);
   std::auto_ptr<reco::CaloJetCollection>	outJETcollection	(new reco::CaloJetCollection	);
   std::auto_ptr<reco::PFJetCollection>		outPFJetCollection	(new reco::PFJetCollection	);
+  std::auto_ptr<reco::PFJetCollection>		outPFCHSJetCollection	(new reco::PFJetCollection	);
   std::auto_ptr<reco::TrackJetCollection> 	outTrkJetCollection 	(new reco::TrackJetCollection	);
 
   for (reco::JPTJetCollection::const_iterator jet_it = jetsHandle->begin(); jet_it != jetsHandle->end(); jet_it++)
@@ -115,6 +121,14 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
       outPFJetCollection->push_back(*jet_it);
   }
 
+
+  for(reco::PFJetCollection::const_iterator jet_it = pfjetschsHandle->begin();
+      jet_it != pfjetschsHandle->end(); jet_it++) {
+       
+    if(jet_it->pt() > uncorrectedPFCHSJetPtCut_ )
+      outPFCHSJetCollection->push_back(*jet_it);
+  }
+
   for(reco::TrackJetCollection::const_iterator jet_it = trkjetsHandle->begin();
       jet_it != trkjetsHandle->end(); jet_it++) {
 
@@ -124,6 +138,7 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   }
   
   std::sort(outPFJetCollection->begin(),  outPFJetCollection->end(),  sortPFJetsByPt);
+  std::sort(outPFCHSJetCollection->begin(),  outPFCHSJetCollection->end(),  sortPFJetsByPt);
   std::sort(outTrkJetCollection->begin(), outTrkJetCollection->end(), sortTrkJetsByPt);
 
 
@@ -131,6 +146,7 @@ void JetCollectionPruner::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.put(outJPTcollection,		"jpt"		);
   iEvent.put(outJETcollection,		"calojet"	);
   iEvent.put(outPFJetCollection,	"pfjet"		);
+  iEvent.put(outPFCHSJetCollection,	"pfchsjet"	);
   iEvent.put(outTrkJetCollection,       "trkjet"        );
 
 }

@@ -23,3 +23,27 @@ bTagPFJetMaker = cms.EDProducer(
 	trackCountingHighPurBJetTags          = cms.InputTag("CMS2PFTrackCountingHighPurBJetTags")
 )
 
+
+bTagPFCHSJetMaker = cms.EDProducer(
+        "BTagMaker",
+        AliasPrefix                           = cms.string("pfchsjets"),
+	cms2CaloJetsTag                       = cms.InputTag("prunedUncorrectedCMS2Jets","pfchsjet"),        
+        referenceCaloJetsTag                  = cms.InputTag("ak5PFJetsCHS"),
+        combinedSecondaryVertexBJetTags       = cms.InputTag("CMS2PFCHSCombinedSecondaryVertexBJetTags"),
+	combinedSecondaryVertexMVABJetTags    = cms.InputTag("CMS2PFCHSCombinedSecondaryVertexMVABJetTags"),
+#        ghostTrackBJetTags                    = cms.InputTag("CMS2ghostTrackBJetTags"),
+        jetBProbabilityBJetTags               = cms.InputTag("CMS2PFCHSJetBProbabilityBJetTags"),
+	jetProbabilityBJetTags                = cms.InputTag("CMS2PFCHSJetProbabilityBJetTags"),
+        simpleSecondaryVertexBJetTags         = cms.InputTag("CMS2PFCHSSimpleSecondaryVertexBJetTags"),
+        simpleSecondaryVertexHighEffBJetTags  = cms.InputTag("CMS2PFCHSSimpleSecondaryVertexHighEffBJetTags"),
+        simpleSecondaryVertexHighPurBJetTags  = cms.InputTag("CMS2PFCHSSimpleSecondaryVertexHighPurBJetTags"),  
+        softElectronTags                      = cms.InputTag("CMS2PFCHSSoftElectronBJetTags"),
+        softElectronByIP3dBJetTags            = cms.InputTag("CMS2PFCHSSoftElectronByIP3dBJetTags"),
+        softElectronByPtBJetTags              = cms.InputTag("CMS2PFCHSSoftElectronByPtBJetTags"),
+	softMuonBJetTags                      = cms.InputTag("CMS2PFCHSSoftMuonBJetTags"),
+        softMuonByIP3dBJetTags                = cms.InputTag("CMS2PFCHSSoftMuonByIP3dBJetTags"),
+        softMuonByPtBJetTags                  = cms.InputTag("CMS2PFCHSSoftMuonByPtBJetTags"),
+	trackCountingHighEffBJetTags          = cms.InputTag("CMS2PFCHSTrackCountingHighEffBJetTags"),
+	trackCountingHighPurBJetTags          = cms.InputTag("CMS2PFCHSTrackCountingHighPurBJetTags")
+)
+

@@ -99,7 +99,7 @@ PFCandidateMaker::~PFCandidateMaker()
     if (pfPileUpAlgo_ != 0) delete pfPileUpAlgo_;
 }
 
-void  PFCandidateMaker::beginRun(edm::Run&, const edm::EventSetup& es) {}
+void  PFCandidateMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {}
 void PFCandidateMaker::beginJob() {}
 void PFCandidateMaker::endJob()   {}
 

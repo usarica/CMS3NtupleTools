@@ -78,7 +78,7 @@
 
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
-#include "EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h"
+#include "EgammaAnalysis/ElectronTools/interface/EGammaCutBasedEleId.h"
 
 //
 using namespace reco;
@@ -105,12 +105,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     eidLHTag_                 = iConfig.getParameter<edm::InputTag> ("eidLHTag"                 );
     pfCandsInputTag           = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"          );
     vtxInputTag               = iConfig.getParameter<edm::InputTag> ("vtxInputTag"              );
-    pfIsoCharged03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   );
-    pfIsoGamma03InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     );
-    pfIsoNeutral03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   );
-    pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
-    pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
-    pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
+    // pfIsoCharged03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   );
+    // pfIsoGamma03InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     );
+    // pfIsoNeutral03InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   );
+    // pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
+    // pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
+    // pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
     
 
     recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
@@ -349,6 +349,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
     produces<vector<float> >  ("elssigmaIphiIphi"           ).setBranchAlias("els_sigmaIphiIphi"           );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
+
+    produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
+
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -362,7 +368,7 @@ ElectronMaker::~ElectronMaker()
   if (mtsTransform_) delete mtsTransform_;
 }
 
-void  ElectronMaker::beginRun(Run&, const EventSetup& es) {
+void  ElectronMaker::beginRun(const edm::Run&, const EventSetup& es) {
   
     ESHandle<TrackerGeometry>              trackerGeometryHandle;
     ESHandle<MagneticField>                magFieldHandle;
@@ -593,7 +599,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
     auto_ptr<vector<float> >  els_sigmaIphiIphi            ( new vector<float> );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
 
+    auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
 
     // --- Get Input Collections --- //
 
@@ -642,19 +652,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////////////////////
     // External Isolations //
     /////////////////////////
-    edm::Handle< edm::ValueMap<double> > pfIsoCharged03_h;
-    iEvent.getByLabel(pfIsoCharged03InputTag, pfIsoCharged03_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoGamma03_h;
-    iEvent.getByLabel(pfIsoGamma03InputTag, pfIsoGamma03_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoNeutral03_h;
-    iEvent.getByLabel(pfIsoNeutral03InputTag, pfIsoNeutral03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoCharged03_h;
+    // iEvent.getByLabel(pfIsoCharged03InputTag, pfIsoCharged03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoGamma03_h;
+    // iEvent.getByLabel(pfIsoGamma03InputTag, pfIsoGamma03_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoNeutral03_h;
+    // iEvent.getByLabel(pfIsoNeutral03InputTag, pfIsoNeutral03_h);
 
-    edm::Handle< edm::ValueMap<double> > pfIsoCharged04_h;
-    iEvent.getByLabel(pfIsoCharged04InputTag, pfIsoCharged04_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoGamma04_h;
-    iEvent.getByLabel(pfIsoGamma04InputTag, pfIsoGamma04_h);
-    edm::Handle< edm::ValueMap<double> > pfIsoNeutral04_h;
-    iEvent.getByLabel(pfIsoNeutral04InputTag, pfIsoNeutral04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoCharged04_h;
+    // iEvent.getByLabel(pfIsoCharged04InputTag, pfIsoCharged04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoGamma04_h;
+    // iEvent.getByLabel(pfIsoGamma04InputTag, pfIsoGamma04_h);
+    // edm::Handle< edm::ValueMap<double> > pfIsoNeutral04_h;
+    // iEvent.getByLabel(pfIsoNeutral04InputTag, pfIsoNeutral04_h);
 
   
     ////////////
@@ -716,6 +726,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
     const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
 
+    //////////////////////////////
+    // Get the ele<->PFCand map //
+    //////////////////////////////
+
+    edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
+    InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
+    iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
+    edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
     
     // --- Fill --- //
 
@@ -843,9 +861,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
 
-        els_pfChargedHadronIso -> push_back( pfIso.chargedHadronIso );
-        els_pfNeutralHadronIso -> push_back( pfIso.neutralHadronIso );
-        els_pfPhotonIso        -> push_back( pfIso.photonIso        );
+        els_pfChargedHadronIso -> push_back( pfIso.sumChargedHadronPt );
+        els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
+        els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
 
         if ( firstGoodVertex!=vertexCollection->end() ) {
 
@@ -873,16 +891,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_iso04_pf2012_em ->push_back( pfiso_em );
             els_iso04_pf2012_nh ->push_back( pfiso_nh );	    
 
-	    pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
-	    pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
-	    pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
+	    // pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
+	    // pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
+	    // pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
             els_iso03_pf2012ext_ch ->push_back( pfiso_ch );
             els_iso03_pf2012ext_em ->push_back( pfiso_em );
             els_iso03_pf2012ext_nh ->push_back( pfiso_nh );
 
-	    pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
-	    pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
-	    pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
+	    // pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
+	    // pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
+	    // pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
             els_iso04_pf2012ext_ch ->push_back( pfiso_ch );
             els_iso04_pf2012ext_em ->push_back( pfiso_em );
             els_iso04_pf2012ext_nh ->push_back( pfiso_nh );
@@ -1423,6 +1441,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_r9                      ->push_back( el->r9()                       );
         els_sigmaIphiIphi           ->push_back( el->sigmaIphiIphi()            );
 
+        ///////////////////
+        // Added for 7   //
+        ///////////////////
+
+	reco::GsfElectronRef gedEleRef(els_coll_h, elsIndex);
+	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+	vector<int> v_PFCand_idx;
+	for( std::vector<reco::PFCandidateRef>::const_iterator ipf = eleToParticleBasedIsoMap[gedEleRef].begin(); ipf != eleToParticleBasedIsoMap[gedEleRef].end(); ++ipf ) {
+	  v_PFCand_idx.push_back(ipf->key());
+	}
+	if (v_PFCand_idx.size() == 0) v_PFCand_idx.push_back(-1);
+	els_PFCand_idx->push_back(v_PFCand_idx);
+
 
 
     } // end Loop on Electrons
@@ -1645,6 +1676,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put( els_r9                       , "elsr9"                       );
     iEvent.put( els_sigmaIphiIphi            , "elssigmaIphiIphi"            );
 
+    ///////////////////
+    // Added for 7   //
+    ///////////////////
+
+    iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
 
 }
 

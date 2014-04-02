@@ -28,6 +28,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/Scalers/interface/DcsStatus.h"
 
 #include "TString.h"
 //
@@ -36,19 +37,20 @@
 
 class EventMaker : public edm::EDProducer {
 public:
-     explicit EventMaker (const edm::ParameterSet&);
-     ~EventMaker();
+    explicit EventMaker (const edm::ParameterSet&);
+    ~EventMaker();
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
+    virtual void beginJob() ;
+    virtual void produce(edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
+    virtual void beginRun (const edm::Run& iRun, const edm::EventSetup& iSetup);
 
-     std::string datasetName_;
-     std::string CMS2tag_;
+    std::string datasetName_;
+    std::string CMS2tag_;
 
-     edm::InputTag dcsTag_;
-	std::string aliasprefix_;
+    edm::EDGetTokenT<DcsStatusCollection> dcsTag_;
+    std::string aliasprefix_;
     bool isData_;
 };
 

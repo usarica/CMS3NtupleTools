@@ -29,6 +29,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 //
@@ -45,7 +47,7 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
 
-   edm::InputTag beamSpotInputTag;
+   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken;
     
 	std::string aliasprefix_;
 };

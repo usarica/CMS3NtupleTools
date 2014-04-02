@@ -32,6 +32,8 @@
 
 #include "TString.h"
 
+#include "DataFormats/METReco/interface/HcalNoiseSummary.h"
+
 class HcalNoiseSummaryMaker : public edm::EDProducer {
 
  public:
@@ -45,7 +47,7 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
 
-  edm::InputTag hcalNoiseSummaryTag_;
+  edm::EDGetTokenT<HcalNoiseSummary> hcalNoiseSummaryToken_;
 	std::string aliasprefix_;
   std::string branchprefix_;
 

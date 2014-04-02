@@ -82,7 +82,7 @@ PFElectronMaker::PFElectronMaker(const ParameterSet& iConfig) {
 } //
 
 PFElectronMaker::~PFElectronMaker() {}
-void  PFElectronMaker::beginRun( Run&, const EventSetup& es ) {}
+void  PFElectronMaker::beginRun(const edm::Run&, const EventSetup& es ) {}
 void PFElectronMaker::beginJob() {}
 void PFElectronMaker::endJob() {}
 

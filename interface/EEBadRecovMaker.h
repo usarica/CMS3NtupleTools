@@ -1,6 +1,7 @@
 #ifndef NTUPLEMAKER_EEBadRecovMaker_H
 #define NTUPLEMAKER_EEBadRecovMaker_H
 
+
 // system include files
 #include <memory>
 
@@ -9,6 +10,7 @@
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 
 class EEBadRecovMaker : public edm::EDProducer {
 
@@ -21,7 +23,7 @@ class EEBadRecovMaker : public edm::EDProducer {
   
   void produce(edm::Event&, const edm::EventSetup&);
 
-  edm::InputTag eeRHSrc_;
+  edm::EDGetTokenT<edm::Handle<EcalRecHitCollection> > eeRHSrc_;
   double minRecovE_;
   double maxNrRecHits_;
 

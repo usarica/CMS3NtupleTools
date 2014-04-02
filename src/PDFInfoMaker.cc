@@ -47,6 +47,7 @@ using namespace std;
 PDFInfoMaker::PDFInfoMaker(const edm::ParameterSet& iConfig) {
 
   genEventInfoInputTag_ = iConfig.getParameter<std::string>("genEventInfoInputTag");
+  hepmcHandle_          = iConfig.getParameter<std::string>("hepmcHandle");
   
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
@@ -95,7 +96,8 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get MC particle collection
   edm::Handle<edm::HepMCProduct> hepmcHandle;
-  iEvent.getByType( hepmcHandle ); //not getByLabel
+  iEvent.getByLabel( hepmcHandle_, hepmcHandle ); 
+
   const HepMC::GenEvent* evt = 0;
   const HepMC::PdfInfo* pdfinfo = 0;
   if(!hepmcHandle.failedToGet() ) {

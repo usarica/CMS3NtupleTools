@@ -32,6 +32,9 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // class declaration
@@ -51,10 +54,10 @@ private:
                          const int vertexIndex, const double &R, double &pfiso_ch, double &pfiso_em, double &pfiso_nh);
   
     // ----------member data ---------------------------
-    edm::InputTag gsfElectronInputTag;
-    edm::InputTag cms2electronInputTag;
-    edm::InputTag pfNoPileUpInputTag;
-    edm::InputTag vertexInputTag;
+    edm::EDGetTokenT<reco::GsfElectronCollection> gsfElectronToken;
+    edm::EDGetTokenT<std::vector<LorentzVector> > cms2electronToken;
+    edm::EDGetTokenT<reco::PFCandidateCollection> pfNoPileUpToken;
+    edm::EDGetTokenT<reco::VertexCollection> vertexToken;
 
     edm::Handle<reco::PFCandidateCollection> pfNoPileUp_h;
 

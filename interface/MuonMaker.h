@@ -54,7 +54,7 @@ private:
   edm::InputTag muonsInputTag;
   edm::InputTag beamSpotInputTag;
   edm::InputTag pfCandsInputTag;
-  edm::InputTag vtxInputTag;
+  edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
 
   std::string aliasprefix_;

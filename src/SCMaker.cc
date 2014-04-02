@@ -164,7 +164,7 @@ SCMaker::SCMaker(const edm::ParameterSet& iConfig) {
 
 }
 
-void SCMaker::beginRun(edm::Run& iRun, const edm::EventSetup& iSetup)
+void SCMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
     /*
        edm::ESHandle<EcalChannelStatus> chStatus;

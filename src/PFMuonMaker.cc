@@ -77,7 +77,7 @@ PFMuonMaker::PFMuonMaker(const edm::ParameterSet& iConfig) {
 }
 
 PFMuonMaker::~PFMuonMaker() {}
-void  PFMuonMaker::beginRun(edm::Run&, const edm::EventSetup& es) {}
+void  PFMuonMaker::beginRun(const edm::Run&, const edm::EventSetup& es) {}
 void PFMuonMaker::beginJob() {}
 void PFMuonMaker::endJob() {}
 

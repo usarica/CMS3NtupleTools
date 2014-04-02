@@ -77,9 +77,9 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void beginJob();
   virtual void endJob();
-  //virtual bool beginRun(edm::Run&, const edm::EventSetup&);
+  //virtual bool beginRun(const edm::Run&, const edm::EventSetup&);
   //virtual bool endRun(edm::Run&, const edm::EventSetup&);
-  virtual void beginRun(edm::Run&, const edm::EventSetup&);
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
   virtual void endRun(edm::Run&, const edm::EventSetup&);
   virtual void envSet(const edm::EventSetup&);
 
@@ -387,8 +387,8 @@ void EcalDeadCellEventFilter::endJob() {
 }
 
 // ------------ method called once each run just before starting event loop  ------------
-//bool EcalDeadCellEventFilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
-void EcalDeadCellEventFilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
+//bool EcalDeadCellEventFilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
+void EcalDeadCellEventFilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
 // Channel status might change for each run (data)
 // Event setup
   envSet(iSetup);

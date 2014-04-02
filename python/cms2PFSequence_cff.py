@@ -11,6 +11,7 @@ from CMS2.NtupleMaker.muToPFMuAssMaker_cfi import *
 from CMS2.NtupleMaker.pfElToElAssMaker_cfi import *
 from CMS2.NtupleMaker.elToPFElAssMaker_cfi import *
 from CMS2.NtupleMaker.bTagPFSequence_cfi import *
+from CMS2.NtupleMaker.bTagPFCHSSequence_cfi import *
 from CMS2.NtupleMaker.bTagPFJetMaker_cfi import *
 from CMS2.NtupleMaker.pfCandidateMaker_cfi import *
 from CMS2.NtupleMaker.trackIsolationMaker_cfi import *
@@ -75,16 +76,22 @@ CMS2pfAllElectrons.src = cms.InputTag("CMS2pfNoMuon")
 
 from CMS2.NtupleMaker.muonIsolationMaker_cfi import *
 from CMS2.NtupleMaker.electronIsolationMaker_cfi import *
+pfNoPileUpClones = cms.EDProducer("PFCandidateFromFwdPtrProducer", src = cms.InputTag("pfNoPileUp") )
+muonIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
+electronIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 
 cms2PFNoTauSequence = cms.Sequence( 
   pfJetMaker + 
 #  pfmetMaker + 
   CMS2pfMetSequence +
-  CMS2PFBtagging + 
-  bTagPFJetMaker + 
+  CMS2PFBtagging +
+  CMS2PFCHSBtagging + 
+  bTagPFJetMaker +
+  bTagPFCHSJetMaker + 
 #  goodPrimaryVertices +
   pfNoPileUpIsoSequence +
   pfNoPileUpSequence +
+  pfNoPileUpClones + 
   pfAllNeutralHadrons + 
   pfAllChargedHadrons + 
   pfAllPhotons + 

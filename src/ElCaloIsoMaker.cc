@@ -29,9 +29,9 @@ ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig) {
    produces<std::vector<float> >  (branchprefix+"ecalJuraIso").setBranchAlias(aliasprefix_+"_ecalJuraIso");
    produces<std::vector<float> >  (branchprefix+"ecalJuraTowerIso").setBranchAlias(aliasprefix_+"_ecalJuraTowerIso");
    produces<std::vector<float> >  (branchprefix+"hcalConeIso").setBranchAlias(aliasprefix_+"_hcalConeIso");
-   m_electronsInputTag =    iConfig.getParameter<edm::InputTag>("electronsInputTag");
-   m_basicClusterInputTag = iConfig.getParameter<edm::InputTag>("basicClusterInputTag");
-   m_caloTowersInputTag   = iConfig.getParameter<edm::InputTag>("caloTowersInputTag");
+   m_electronsToken    = consumes<edm::View<reco::GsfElectron> >(iConfig.getParameter<edm::InputTag>("electronsInputTag")); 
+   m_basicClusterToken = consumes<reco::BasicClusterCollection>(iConfig.getParameter<edm::InputTag>("basicClusterInputTag"));
+   m_caloTowersToken   = consumes<CaloTowerCollection>(iConfig.getParameter<edm::InputTag>("caloTowersInputTag"));
    m_maxDR =                iConfig.getParameter<double>("maxDR");
    m_minDR =                iConfig.getParameter<double>("minDR");
    m_minDEta =              iConfig.getParameter<double>("minDEta");
@@ -52,85 +52,85 @@ void ElCaloIsoMaker::produceEcalIso(edm::Event& iEvent, const edm::EventSetup& i
    std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
    
    edm::Handle<edm::View<reco::GsfElectron> > electron_h;
-   iEvent.getByLabel(m_electronsInputTag, electron_h);
-   
+   iEvent.getByToken(m_electronsToken, electron_h);
+
    edm::Handle<reco::BasicClusterCollection> basicClusterHandle;
-   iEvent.getByLabel(m_basicClusterInputTag, basicClusterHandle);
+   iEvent.getByToken(m_basicClusterToken, basicClusterHandle);
 
    if(!basicClusterHandle.isValid()) {
      els_juraIso->push_back(9999);
      return;
    }
-   
- std::string branchprefix = aliasprefix_;
+
+   std::string branchprefix = aliasprefix_;
    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-   
+
 
    for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
        electron != electron_h->end(); ++electron){
-      math::XYZPoint positionAtEcal = electron->caloPosition();
-      double juraIso(0);
-      // loop over basic clusters
-      for(reco::BasicClusterCollection::const_iterator cluster = basicClusterHandle->begin(); 
-	  cluster != basicClusterHandle->end(); ++cluster)
-	{
-	   double dR = deltaR( positionAtEcal.eta(), positionAtEcal.phi(), cluster->eta(), cluster->phi() );
-	   if ( dR > m_maxDR ) continue;
-	   if ( dR < m_minDR ) continue;
-	   if ( fabs( positionAtEcal.eta() - cluster->eta() ) < m_minDEta ) continue;
-	   
-	   juraIso += cluster->energy()*sin(cluster->position().theta());
-	}
-      els_juraIso->push_back( juraIso );
+     math::XYZPoint positionAtEcal = electron->caloPosition();
+     double juraIso(0);
+     // loop over basic clusters
+     for(reco::BasicClusterCollection::const_iterator cluster = basicClusterHandle->begin(); 
+         cluster != basicClusterHandle->end(); ++cluster)
+     {
+       double dR = deltaR( positionAtEcal.eta(), positionAtEcal.phi(), cluster->eta(), cluster->phi() );
+       if ( dR > m_maxDR ) continue;
+       if ( dR < m_minDR ) continue;
+       if ( fabs( positionAtEcal.eta() - cluster->eta() ) < m_minDEta ) continue;
+
+       juraIso += cluster->energy()*sin(cluster->position().theta());
+     }
+     els_juraIso->push_back( juraIso );
    }
-   
+
    iEvent.put(els_juraIso, branchprefix+"ecalJuraIso");
 }
 
 void ElCaloIsoMaker::produceHcalIso(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-   std::auto_ptr<std::vector<float> >  els_hcalIso( new std::vector<float> ) ;
-   
-   edm::Handle<edm::View<reco::GsfElectron> > electron_h;
-   iEvent.getByLabel(m_electronsInputTag, electron_h);
-   
-   edm::Handle<CaloTowerCollection> caloTowers;
-   iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
-   
-   if(!caloTowers.isValid()) {
-     els_hcalIso->push_back(9999);
-     return;
-   }
-   
-   std::string branchprefix = aliasprefix_;
-   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-   
-   for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
-       electron != electron_h->end(); ++electron){
-      math::XYZPoint positionAtEcal = electron->caloPosition();
-      double hcalIso(0);
-      // loop over towers
-      for(CaloTowerCollection::const_iterator tower = caloTowers->begin();
-	  tower != caloTowers->end(); ++tower)
-	{
-	   double dR = deltaR( positionAtEcal.eta(), positionAtEcal.phi(), tower->eta(), tower->phi() );
-	   if ( dR > m_maxDR ) continue;
-	   
-	   hcalIso += tower->hadEnergy() + tower->outerEnergy();
-	}
-      els_hcalIso->push_back( hcalIso );
-   }
-   iEvent.put(els_hcalIso, branchprefix+"hcalConeIso");
+  std::auto_ptr<std::vector<float> >  els_hcalIso( new std::vector<float> ) ;
+
+  edm::Handle<edm::View<reco::GsfElectron> > electron_h;
+  iEvent.getByToken(m_electronsToken, electron_h);
+
+  edm::Handle<CaloTowerCollection> caloTowers;
+  iEvent.getByToken(m_caloTowersToken, caloTowers);
+
+  if(!caloTowers.isValid()) {
+    els_hcalIso->push_back(9999);
+    return;
+  }
+
+  std::string branchprefix = aliasprefix_;
+  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+
+  for(edm::View<reco::GsfElectron>::const_iterator electron = electron_h->begin(); 
+      electron != electron_h->end(); ++electron){
+    math::XYZPoint positionAtEcal = electron->caloPosition();
+    double hcalIso(0);
+    // loop over towers
+    for(CaloTowerCollection::const_iterator tower = caloTowers->begin();
+        tower != caloTowers->end(); ++tower)
+    {
+      double dR = deltaR( positionAtEcal.eta(), positionAtEcal.phi(), tower->eta(), tower->phi() );
+      if ( dR > m_maxDR ) continue;
+
+      hcalIso += tower->hadEnergy() + tower->outerEnergy();
+    }
+    els_hcalIso->push_back( hcalIso );
+  }
+  iEvent.put(els_hcalIso, branchprefix+"hcalConeIso");
 }
 
 void ElCaloIsoMaker::produceEcalTowerIso(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-   std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
-   
-   edm::Handle<edm::View<reco::GsfElectron> > electron_h;
-   iEvent.getByLabel(m_electronsInputTag, electron_h);
-   
-   edm::Handle<CaloTowerCollection> caloTowers;
-   iEvent.getByLabel(m_caloTowersInputTag, caloTowers);
+  std::auto_ptr<std::vector<float> >  els_juraIso( new std::vector<float> ) ;
+
+  edm::Handle<edm::View<reco::GsfElectron> > electron_h;
+  iEvent.getByToken(m_electronsToken, electron_h);
+
+  edm::Handle<CaloTowerCollection> caloTowers;
+  iEvent.getByToken(m_caloTowersToken, caloTowers);
    
    if(!caloTowers.isValid()) {
      els_juraIso->push_back(9999);

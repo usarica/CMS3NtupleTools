@@ -44,7 +44,7 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
         virtual void produce(edm::Event&, const edm::EventSetup&);
         virtual void endJob() ;
 
-        virtual void beginRun(edm::Run&, edm::EventSetup const&);
+        virtual void beginRun(const edm::Run&, edm::EventSetup const&);
         virtual void endRun(edm::Run&, edm::EventSetup const&);
 
         // match an offline p4 to a trigger object

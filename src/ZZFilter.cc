@@ -22,8 +22,8 @@ public:
   
 private:
   virtual bool filter(edm::Event&, const edm::EventSetup&);
-  edm::InputTag muons_;
-  edm::InputTag electrons_;
+  edm::EDGetTokenT<edm::Handle<std::vector<reco::Muon> > > muons_;
+  edm::EDGetTokenT<edm::Handle<std::vector<reco::GsfElectron> > > electrons_;
   double minMuPt_;
   double minElePt_;
   double minLeadingLepPt_;
@@ -31,8 +31,8 @@ private:
   int  prescale_;
 };
 ZZFilter::ZZFilter(const edm::ParameterSet& iConfig):
-  muons_          ( iConfig.getParameter<edm::InputTag>("muons") ),
-  electrons_      ( iConfig.getParameter<edm::InputTag>("electrons") ),
+  muons_          ( consumes<edm::Handle<std::vector<reco::Muon> > >( iConfig.getParameter<edm::InputTag>("muons") ) ),
+  electrons_      ( consumes<edm::Handle<std::vector<reco::GsfElectron> > >( iConfig.getParameter<edm::InputTag>("electrons") ) ),
   minMuPt_        ( iConfig.getParameter<double>("minMuPt") ),
   minElePt_       ( iConfig.getParameter<double>("minElePt") ),
   minLeadingLepPt_( iConfig.getParameter<double>("minLeadingLepPt") ),
@@ -68,7 +68,7 @@ ZZFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::vector<const reco::RecoCandidate*> cands;
   
   edm::Handle<std::vector<reco::Muon> > muons;
-  iEvent.getByLabel(muons_, muons);
+  iEvent.getByToken(muons_, muons);
   double leadingLeptonPt(0);
   for ( std::vector<reco::Muon>::const_iterator muon = muons->begin(); muon != muons->end(); ++muon )
     {
@@ -77,7 +77,7 @@ ZZFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }  
 
   edm::Handle<std::vector<reco::GsfElectron> > eles;
-  iEvent.getByLabel(electrons_, eles);
+  iEvent.getByToken(electrons_, eles);
   for ( std::vector<reco::GsfElectron>::const_iterator ele = eles->begin(); ele != eles->end(); ++ele )
     {
       if ( ele->pt()>minElePt_ ) cands.push_back(&*ele);

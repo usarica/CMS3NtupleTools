@@ -92,21 +92,21 @@
 #include "TTree.h"
 #include "TH1.h"
 
-//class simpleDRfilter : public edm::EDFilter {
-class simpleDRfilter : public edm::EDProducer {
+class simpleDRfilter : public edm::EDFilter {
+//class simpleDRfilter : public edm::EDProducer {
 public:
   explicit simpleDRfilter(const edm::ParameterSet&);
   ~simpleDRfilter();
 
 private:
-  //virtual bool filter(edm::Event&, const edm::EventSetup&);
-  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual bool filter(edm::Event&, const edm::EventSetup&);
+  //virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void beginJob();
   virtual void endJob();
-  //virtual bool beginRun(edm::Run&, const edm::EventSetup&);
-  //virtual bool endRun(edm::Run&, const edm::EventSetup&);
-  virtual void beginRun(edm::Run&, const edm::EventSetup&);
-  virtual void endRun(edm::Run&, const edm::EventSetup&);
+  //virtual bool beginRun(const edm::Run&, const edm::EventSetup&);
+  virtual bool endRun(edm::Run&, const edm::EventSetup&);
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+  //virtual void endRun(edm::Run&, const edm::EventSetup&);
   virtual void envSet(const edm::EventSetup&);
 
   // ----------member data ---------------------------
@@ -288,8 +288,8 @@ void simpleDRfilter::envSet(const edm::EventSetup& iSetup) {
 }
 
 // ------------ method called on each new Event  ------------
-//bool simpleDRfilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-void simpleDRfilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+bool simpleDRfilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+//void simpleDRfilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //
   std::auto_ptr<bool> dRFilter ( new bool );
@@ -349,8 +349,8 @@ void simpleDRfilter::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) 
   *dRFilter = pass;
   iEvent.put( dRFilter, "ecalnoisedRFilter" );
 
-  //return pass;
-  return;
+  return pass;
+  //return;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
@@ -364,8 +364,8 @@ void simpleDRfilter::endJob() {
 }
 
 // ------------ method called once each run just before starting event loop  ------------
-//bool simpleDRfilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
-void simpleDRfilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
+//bool simpleDRfilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
+void simpleDRfilter::beginRun(const edm::Run &run, const edm::EventSetup& iSetup) {
 /*
   if (debug_) std::cout << "beginRun" << std::endl;
 // Channel status might change for each run (data)
@@ -379,11 +379,11 @@ void simpleDRfilter::beginRun(edm::Run &run, const edm::EventSetup& iSetup) {
 }
 
 // ------------ method called once each run just after starting event loop  ------------
-//bool simpleDRfilter::endRun(edm::Run &run, const edm::EventSetup& iSetup) {
-void simpleDRfilter::endRun(edm::Run &run, const edm::EventSetup& iSetup) {
+bool simpleDRfilter::endRun(edm::Run &run, const edm::EventSetup& iSetup) {
+//void simpleDRfilter::endRun(edm::Run &run, const edm::EventSetup& iSetup) {
   if (debug_) std::cout << "endRun" << std::endl;
-  //return true;
-  return;
+  return true;
+  //return;
 }
 
 int simpleDRfilter::etaToBoundary(const std::vector<reco::Jet> &jetTVec){

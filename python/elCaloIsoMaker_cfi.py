@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 elCaloIsoMaker = cms.EDProducer("ElCaloIsoMaker",
 	aliasPrefix = cms.untracked.string("els"),
-  electronsInputTag = cms.InputTag("gsfElectrons"),
+  electronsInputTag = cms.InputTag("gedGsfElectrons"),
   basicClusterInputTag = cms.InputTag("egammaBasicClusterMerger"),
   caloTowersInputTag = cms.InputTag("towerMaker"),
   minDR = cms.double(0.05),

@@ -32,6 +32,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "TString.h"
 
+#include "DataFormats/METReco/interface/BeamHaloSummary.h"
+
 //
 // class decleration
 //
@@ -47,8 +49,8 @@ private:
      virtual void endJob() ;
      std::vector<TString> convertToVectorTString(const std::vector<char>);
 
-     edm::InputTag beamHaloInputTag;
-     edm::InputTag cscHaloInputTag;
+     edm::EDGetTokenT<reco::BeamHaloSummary> beamHaloToken;
+     edm::EDGetTokenT<reco::CSCHaloData> cscHaloToken;
 };
 
 

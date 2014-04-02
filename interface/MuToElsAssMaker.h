@@ -19,11 +19,21 @@
 #ifndef CMS2_MUTOELASSMAKER_H
 #define CMS2_MUTOELASSMAKER_H
 
+#include <memory>
+
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "Math/VectorUtil.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/Math/interface/deltaR.h"
+
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 //
 // class declaration
@@ -41,8 +51,8 @@ private:
       // ----------member data ---------------------------
      double m_minDR;
      std::string aliasprefix_;
-     edm::InputTag musInputTag_;
-     edm::InputTag elsInputTag_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > musToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > elsToken_;
 };
 
 

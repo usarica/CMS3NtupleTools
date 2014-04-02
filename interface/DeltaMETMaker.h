@@ -45,10 +45,10 @@ private:
      virtual void endJob() ;
 
      // ----------member data ---------------------------  
-     edm::InputTag cms2_metInputTag;       
-     edm::InputTag cms2_metphiInputTag;     
-     edm::InputTag cms2_sumetInputTag;   
-     edm::InputTag metInputTag; 
+     edm::EDGetTokenT<float> cms2_metToken;       
+     edm::EDGetTokenT<float> cms2_metphiToken;     
+     edm::EDGetTokenT<float> cms2_sumetToken;   
+     edm::EDGetTokenT<float> metToken; 
      std::string aliasprefix_;
 };
 

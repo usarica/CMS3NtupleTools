@@ -9,4 +9,4 @@ from RecoTauTag.Configuration.RecoPFTauTag_cff import *
 
 CMS2PFtautagging = cms.Sequence(recoTauClassicHPSSequence
                                 )
-CMS2PFtautagging.remove(kt6PFJetsForRhoComputationVoronoi)
+#CMS2PFtautagging.remove(kt6PFJetsForRhoComputationVoronoi)

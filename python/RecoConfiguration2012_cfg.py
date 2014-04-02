@@ -1,7 +1,8 @@
 # Import Python Modules
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
-from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+#from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
+from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
 
 # CMS2
 process = cms.Process("CMS2")
@@ -27,12 +28,34 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
-from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
-process.eleIsoSequence = setupPFElectronIso(process, 'gsfElectrons')
+#process.ak5PFCHSL1Fastjet = process.ak5PFL1Fastjet.clone(algorithm = cms.string('AK5PFchs'))
+#process.ak5PFCHSL2Relative = process.ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
+#process.ak5PFCHSL3Absolute     = process.ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
+
+#process.ak5PFCHSL1Offset = ak5CaloL1Offset.clone(algorithm = 'AK5PFchs') 
+#process.ak5PFCHSL1Fastjet = cms.ESProducer(
+#    'L1FastjetCorrectionESProducer',
+#    level       = cms.string('L1FastJet'),
+#    algorithm   = cms.string('AK5PFchs'),
+#    srcRho      = cms.InputTag( 'fixedGridRhoFastjetAll' )
+#    )
+#process.ak5PFCHSL2Relative = ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
+#process.ak5PFCHSL3Absolute     = ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
+
+from JetMETCorrections.Configuration.DefaultJEC_cff import *
+from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
+ak5PFCHSL1Fastjet.algorithm = 'AK5PFchs'
+ak5PFCHSL2Relative.algorithm = 'AK5PFchs'
+ak5PFCHSL3Absolute.algorithm = 'AK5PFchs'
+ak5PFCHSResidual.algorithm = 'AK5PFchs'
+
+
+#from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
+#process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
 
 process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
-process.CMS2Reco *= process.pfParticleSelectionSequence
-process.CMS2Reco *= process.eleIsoSequence
+#process.CMS2Reco *= process.pfParticleSelectionSequence
+#process.CMS2Reco *= process.eleIsoSequence
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
 process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
@@ -60,11 +83,14 @@ process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
 
 #undo what's pulled in by including Reconstruction_cff
 #it relies on transient steps introduced in PF in 44X (back-fill)
-process.pfPileUp.PFCandidates = cms.InputTag("particleFlow")
-process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlow") 
+process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
+process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
 
 #
-metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+#metJESCorAK5CaloJet.inputUncorJetsLabel = cms.string("ak5CaloJets")
+
 
 # Input
 process.source = cms.Source("PoolSource",
@@ -81,7 +107,8 @@ process.source = cms.Source("PoolSource",
       #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_2_5_cand1-GR_R_52_V7_RelVal_mu2011A-v1_RECO/0CF15A58-7B91-E111-9FDA-002618FDA237.root' # CMSSW_5_2_5
       #'file:/nfs-3/userdata/cms2/cms2_validation/SingleMu_CMSSW_5_3_1-GR_R_53_V2_RelVal_mu2011A-v1_RECO/B4750996-E5A4-E111-8DEC-0030486791F2.root'        # CMSSW_5_3_1
 
-      'file:../test/TTJets_D6EA05D1-26C2-E111-BF3A-003048FFD7A2.root' # 52x TTJets
+      #'file:../test/TTJets_D6EA05D1-26C2-E111-BF3A-003048FFD7A2.root' # 52x TTJets
+        'file:/nfs-3/userdata/jgran/7_0_0_pre12_RelValProdTTbar.root'
 
    ),
     #--- Uncomment to emulate AOD with RECO --- #
@@ -98,12 +125,13 @@ process.AdaptorConfig = cms.Service (
 )
 
 # Options
-process.options                       = cms.untracked.PSet( Rethrow = cms.untracked.vstring('ProductNotFound') )
+process.options                       = cms.untracked.PSet( SkipEvent = cms.untracked.vstring('ProductNotFound'))
+#Rethrow = cms.untracked.vstring('ProductNotFound'),
 process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)

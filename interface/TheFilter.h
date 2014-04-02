@@ -55,7 +55,8 @@ private:
   virtual void endJob() ;
    
   // ----------member data ---------------------------
-  std::vector<edm::InputTag> filterExpressions;
+  //std::vector<edm::InputTag> filterExpressions;
+  std::vector<edm::EDGetTokenT<std::vector<int> > > filterExpressions;
   
 };
 

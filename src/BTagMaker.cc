@@ -204,17 +204,17 @@ void BTagMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     jets_simpleSecondaryVertexHighPurBJetTag ->push_back( CommonUtils::isinf((*simpleSecondaryVertexHighPurBJetTags)[jetRef])
 							  ? -9999.  : (*simpleSecondaryVertexHighPurBJetTags)[jetRef]   ); 
     jets_softElectronTag                     ->push_back( CommonUtils::isinf((*softElectronTags)[jetRef]) 
-							  ? -9999.  : (*softElectronTags)[jetRef]			); 
+        						  ? -9999.  : (*softElectronTags)[jetRef]			); 
     jets_softElectronByIP3dBJetTag           ->push_back( CommonUtils::isinf((*softElectronByIP3dBJetTags)[jetRef]) 
-							? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]		); 
+        						? -9999.  : (*softElectronByIP3dBJetTags)[jetRef]		); 
     jets_softElectronByPtBJetTag             ->push_back( CommonUtils::isinf((*softElectronByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]		); 
+        						  ? -9999.  : (*softElectronByPtBJetTags)[jetRef]		); 
     jets_softMuonBJetTag                     ->push_back( CommonUtils::isinf((*softMuonBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonBJetTags)[jetRef]			); 
+        						  ? -9999.  : (*softMuonBJetTags)[jetRef]			); 
     jets_softMuonByIP3dBJetTag               ->push_back( CommonUtils::isinf((*softMuonByIP3dBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]			); 
+        						  ? -9999.  : (*softMuonByIP3dBJetTags)[jetRef]			); 
     jets_softMuonByPtBJetTag                 ->push_back( CommonUtils::isinf((*softMuonByPtBJetTags)[jetRef]) 
-							  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]			); 
+        						  ? -9999.  : (*softMuonByPtBJetTags)[jetRef]			); 
     jets_trackCountingHighEffBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighEffBJetTags)[jetRef]) 
 							  ? -9999.  : (*trackCountingHighEffBJetTags)[jetRef]		); 
     jets_trackCountingHighPurBJetTag         ->push_back( CommonUtils::isinf((*trackCountingHighPurBJetTags)[jetRef]) 

@@ -18,25 +18,10 @@
 //
 
 
-// system include files
-#include <memory>
-
 // user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
-
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CMS2/NtupleMaker/interface/MuToElsAssMaker.h"
 
-#include "DataFormats/Math/interface/LorentzVector.h"
-#include "Math/VectorUtil.h"
-#include "DataFormats/Math/interface/deltaR.h"
 
-
-typedef math::XYZTLorentzVectorF LorentzVector;
 using std::vector;
 
 MuToElsAssMaker::MuToElsAssMaker(const edm::ParameterSet& iConfig) {
@@ -48,8 +33,8 @@ MuToElsAssMaker::MuToElsAssMaker(const edm::ParameterSet& iConfig) {
      produces<vector<float> >(branchprefix+"eledr"     ).setBranchAlias(aliasprefix_+"_eledr"     );
      
      m_minDR       =  iConfig.getParameter<double>("minDR");
-     musInputTag_  =  iConfig.getParameter<edm::InputTag>("musInputTag");
-     elsInputTag_  =  iConfig.getParameter<edm::InputTag>("elsInputTag");
+     musToken_  =  consumes<std::vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("musInputTag"));
+     elsToken_  =  consumes<std::vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("elsInputTag"));
 }
 
 void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -61,11 +46,11 @@ void MuToElsAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
      // get muons
      Handle<vector<LorentzVector> > mus_p4_h;
-     iEvent.getByLabel(musInputTag_.label(), "musp4", mus_p4_h);  
+     iEvent.getByToken(musToken_, mus_p4_h);  
 
      // get electrons
      Handle<vector<LorentzVector> > els_p4_h;
-     iEvent.getByLabel(elsInputTag_.label(), "elsp4", els_p4_h);
+     iEvent.getByToken(elsToken_, els_p4_h);
      
      //loop over muons and find the closest electron
      for(vector<LorentzVector>::const_iterator mus_it = mus_p4_h->begin(),

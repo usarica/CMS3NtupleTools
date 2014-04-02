@@ -54,15 +54,15 @@ public:
 
 private:
   virtual void beginJob() ;
-  virtual void beginRun(edm::Run&, const edm::EventSetup&) ;
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
+  template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::EDGetTokenT<edm::ValueMap<T> > token);
   
-  template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
   
   // ----------member data ---------------------------
-  edm::InputTag electronsInputTag_;
-  edm::InputTag electronMissHit39XTag_;
+  edm::EDGetTokenT<edm::View<reco::GsfElectron> > electronsToken_;
+  edm::EDGetTokenT<edm::ValueMap<int> > electronMissHit39XToken_;
   std::string aliasprefix_;
 };
 

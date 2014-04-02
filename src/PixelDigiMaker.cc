@@ -31,7 +31,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CMS2/NtupleMaker/interface/PixelDigiMaker.h"
 // #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHitCollection.h"
-#include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
 #include "Geometry/CommonTopologies/interface/PixelTopology.h"
 #include "Geometry/TrackerGeometryBuilder/interface/PixelGeomDetUnit.h"
@@ -60,7 +59,7 @@ PixelDigiMaker::PixelDigiMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int>   >(branchprefix+"ndigispxb").setBranchAlias(aliasprefix_+"_ndigis_pxb");	// number digis in each pixel barrel layer
   produces<vector<int>   >(branchprefix+"ndigispxf").setBranchAlias(aliasprefix_+"_ndigis_pxf");	// number digis in each pixel forward layer
 
-  pixelsInputTag_          = iConfig.getParameter<edm::InputTag>("pixelsInputTag");
+  pixelsToken_          = consumes<SiPixelClusterCollectionNew>(iConfig.getParameter<edm::InputTag>("pixelsInputTag"));
   
 }
 
@@ -77,7 +76,7 @@ void PixelDigiMaker::produce(edm::Event& iEvent, const edm::EventSetup& es) {
   vector_pxl_ndigis_pxf->push_back(0);
 
   edm::Handle<SiPixelClusterCollectionNew> recHitColl;
-  iEvent.getByLabel(pixelsInputTag_, recHitColl);
+  iEvent.getByToken(pixelsToken_, recHitColl);
 
   edm::ESHandle<TrackerGeometry> pDD;
   es.get<TrackerDigiGeometryRecord> ().get (pDD);

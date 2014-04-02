@@ -1,23 +1,11 @@
 // -*- C++ -*-
 //
 // Package:    NtupleMaker
-// Class:      PDFInfoMaker
-// 
-/**\class PDFInfoMaker PDFInfoMaker.cc CMS2/NtupleMaker/src/PDFInfoMaker.cc
-
-   Description: <one line class summary>
-
-   Implementation:
-   see CMS2/src/PDFInfoMaker.cc
-
-*/
-//
-// Original Author: Warren Andrews
-//         Created: Thu Mar  12  2009
+// Class:      WeightInfoMaker
 // 
 
-#ifndef CMS2_PDFINFOMAKER_H
-#define CMS2_PDFINFOMAKER_H
+#ifndef CMS2_WEIGHTINFOMAKER_H
+#define CMS2_WEIGHTINFOMAKER_H
 
 // system include files
 #include <memory>
@@ -33,10 +21,10 @@
 // class decleration
 //
 
-class PDFInfoMaker : public edm::EDProducer {
+class WeightInfoMaker : public edm::EDProducer {
 public:
-  explicit PDFInfoMaker (const edm::ParameterSet&);
-  ~PDFInfoMaker();
+  explicit WeightInfoMaker (const edm::ParameterSet&);
+  ~WeightInfoMaker();
 
 private:
   virtual void beginJob() ;
@@ -44,9 +32,8 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  std::string genEventInfoInputTag_;
+  std::string LHEEventInputTag_;
   std::string aliasprefix_;
-  std::string hepmcHandle_;
 };
 
 #endif

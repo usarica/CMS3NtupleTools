@@ -58,7 +58,7 @@ public:
   
 private:
   virtual void beginJob() ;
-  virtual bool beginRun(edm::Run&, const edm::EventSetup&);
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
   virtual bool filter(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
   void FillnTriggerPaths(const std::vector<std::string>&);
