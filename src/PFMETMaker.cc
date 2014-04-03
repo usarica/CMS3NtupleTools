@@ -44,11 +44,11 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     produces<float> ("evtpfsumet"        ).setBranchAlias("evt_pfsumet"        );
     produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
-    produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
-    produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
+    //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
+    //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
-    pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
+    //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
 }
 
 
@@ -69,14 +69,14 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     std::auto_ptr<float>   evt_pfsumet       (new float   );
     std::auto_ptr<float>   evt_pfmetSignificance(new float   );
-    std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
-    std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
+    //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
+    //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
 
     edm::Handle<edm::View<reco::PFMET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
 
-    edm::Handle<edm::View<reco::PFMET> > metcor_h;
-    iEvent.getByLabel(pfMetCorInputTag, metcor_h);
+    //edm::Handle<edm::View<reco::PFMET> > metcor_h;
+    //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
 
     if( !met_h.isValid() ) {
         edm::LogInfo("OutputInfo") << " failed to retrieve particle-flow MET collection";
@@ -102,6 +102,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfsumet  , "evtpfsumet"    );  
     iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
 
+/*
     if( !metcor_h.isValid() ) {
         edm::LogInfo("OutputInfo") << " failed to corrected retrieve particle-flow MET collection";
         edm::LogInfo("OutputInfo") << " PFMETMaker cannot continue...!";
@@ -113,6 +114,9 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
     iEvent.put(evt_pfmet_type1cor    , "evtpfmettype1cor"      );
     iEvent.put(evt_pfmetPhi_type1cor , "evtpfmetPhitype1cor"   );
+*/
+
+
 }
 
 //define this as a plug-in
