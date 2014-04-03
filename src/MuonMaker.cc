@@ -339,8 +339,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // IP 3D //
   ///////////
   
-  produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
-  produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
+  //produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
+  //produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
 
 } // end Constructor
 
@@ -595,8 +595,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // IP 3D //
   ///////////
 
-  auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
-  auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
+  //auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
+  //auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
 
 
 
