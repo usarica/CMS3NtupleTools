@@ -37,6 +37,10 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+//NOT IN miniAOD #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
 #include "TRegexp.h"
 #include "TString.h"
 
@@ -56,7 +60,10 @@ private:
   bool doPruneTriggerName(const std::string&) const;
   
   edm::Handle<edm::TriggerResults> triggerResultsH_;
-  edm::Handle<trigger::TriggerEvent> triggerEventH_;
+  edm::Handle<trigger::TriggerEvent> triggerEventH_; 
+  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjectStandAlonesH_;
+  edm::TriggerNames triggerNames_;
+
   HLTConfigProvider hltConfig_;
   
   std::string processName_;

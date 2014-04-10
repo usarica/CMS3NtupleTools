@@ -6,7 +6,7 @@ hltMaker = cms.EDProducer("HLTMaker",
     # guaranteed to be there. Use an empty string to
     # automatically choose the process name responsible
     # for the latest HLT products
-    processName = cms.untracked.string(""),
+    processName = cms.untracked.string("HLT"),
     aliasPrefix = cms.untracked.string("hlt"),                       
     fillTriggerObjects = cms.untracked.bool(True),
     prunedTriggerNames = cms.untracked.vstring(
