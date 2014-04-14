@@ -201,11 +201,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_corL1FastL2L3residual ->push_back( L1FastL2L3residualJetScale );
 
     //store indices of PFCandidates associated to this jet
-    std::vector <reco::PFCandidatePtr> pfjet_cands = pfjet_it->getPFConstituents();
+    //    std::vector <reco::PFCandidatePtr> pfjet_cands = pfjet_it->getPFConstituents();
+    std::vector <reco::CandidatePtr> pfjet_cands = pfjet_it->daughterPtrVector(); 
 
     vector<int> pfcandIndicies;
 
-    for(std::vector<reco::PFCandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
+    //    for(std::vector<reco::PFCandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
+    for(std::vector<reco::CandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
 
       pfcandIndicies.push_back(cand_it->key());
 

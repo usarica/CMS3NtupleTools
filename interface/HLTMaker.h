@@ -39,6 +39,7 @@
 
 //NOT IN miniAOD #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
 #include "TRegexp.h"
@@ -67,6 +68,7 @@ private:
   HLTConfigProvider hltConfig_;
   
   std::string processName_;
+  std::string triggerObjectsName_;
   bool fillTriggerObjects_;
   std::vector<std::string> prunedTriggerNames_;
   TString processNamePrefix_;

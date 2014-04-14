@@ -31,6 +31,7 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
   aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
+  triggerObjectsName_ = iConfig.getUntrackedParameter<string>         ("triggerObjectsName");
 
   produces<TBits>                           (Form("%sbits"      ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
@@ -43,47 +44,45 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
 void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
 {
 
-//not in miniAOD  // In the case that we are choosing the process name
-//not in miniAOD  // automatically, i.e. the processName_ parameter is
-//not in miniAOD  // an empty string, we can't init  HLTConfigProvider
-//not in miniAOD  // until after we've determined the process name. So
-//not in miniAOD  // don't init here until after we've set processName_
-//not in miniAOD  // in the produce method and init there once and only
-//not in miniAOD  // once. Sounds scary, it is kinda!
-//not in miniAOD  // HLT config _should no longer_ change within runs :)
-//not in miniAOD  if (processName_ != "") {
-//not in miniAOD  bool changed(true);
-//not in miniAOD  if (hltConfig_.init(iRun,iSetup,"*",changed)) {
-//not in miniAOD  } else 
-//not in miniAOD    throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
-//not in miniAOD  }
+  // In the case that we are choosing the process name
+  // automatically, i.e. the processName_ parameter is
+  // an empty string, we can't init  HLTConfigProvider
+  // until after we've determined the process name. So
+  // don't init here until after we've set processName_
+  // in the produce method and init there once and only
+  // once. Sounds scary, it is kinda!
+  // HLT config _should no longer_ change within runs :)
+//AOD  if (processName_ != "") {
+//AOD  bool changed(true);
+//AOD  if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+//AOD  } else 
+//AOD    throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
+//AOD  }
 }
 
 void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-//not in miniAOD  // If the process name is not specified retrieve the  latest
-//not in miniAOD  // TriggerEvent object and the corresponding TriggerResults.
-//not in miniAOD  // We should only have to do this once though, the next time
-//not in miniAOD  // produce is called processName_ should be set.
-//not in miniAOD  if (processName_ == "") {
-//not in miniAOD    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEventH_);
-//not in miniAOD    if (! triggerEventH_.isValid()  )
-//not in miniAOD      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
-//not in miniAOD    // This line is important as it makes sure it is never called
-//not in miniAOD    // again! A self-terminating code snippet...
-//not in miniAOD    processName_ = triggerEventH_.provenance()->processName();
-//not in miniAOD    // This is the once and only once bit described in beginRun
-//not in miniAOD    bool changed(true);
-//not in miniAOD    if (hltConfig_.init(iEvent.getRun(),iSetup,processName_,changed)) {
-//not in miniAOD    } else 
-//not in miniAOD      throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
-//not in miniAOD  } else {
-//not in miniAOD    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", processName_), triggerEventH_  );
-//not in miniAOD    if (! triggerEventH_.isValid()  )
-//not in miniAOD      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
-//not in miniAOD  }
-//not in miniAOD  
-
+  // If the process name is not specified retrieve the  latest
+  // TriggerEvent object and the corresponding TriggerResults.
+  // We should only have to do this once though, the next time
+  // produce is called processName_ should be set.
+//AOD  if (processName_ == "") {
+//AOD    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEventH_);
+//AOD    if (! triggerEventH_.isValid()  )
+//AOD      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
+//AOD    // This line is important as it makes sure it is never called
+//AOD    // again! A self-terminating code snippet...
+//AOD    processName_ = triggerEventH_.provenance()->processName();
+//AOD    // This is the once and only once bit described in beginRun
+//AOD    bool changed(true);
+//AOD    if (hltConfig_.init(iEvent.getRun(),iSetup,processName_,changed)) {
+//AOD    } else 
+//AOD      throw cms::Exception("HLTMaker::produce: config extraction failure with process name " + processName_);
+//AOD  } else {
+//AOD    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", processName_), triggerEventH_  );
+//AOD    if (! triggerEventH_.isValid()  )
+//AOD      throw cms::Exception("HLTMaker::produce: error getting TriggerEvent product from Event!"  );
+//AOD  }
 
 // Now using a single processName_ (set to "HLT" in the configuration file). Is this OK? Do we need the flexibility we had before?
   iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
@@ -92,11 +91,16 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
-  iEvent.getByLabel("selectedPatTrigger", triggerObjectStandAlonesH_);
+  iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
   if (! triggerObjectStandAlonesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
 
-//Dumping miniAOD content...
+  edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
+  iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+  if (! triggerPrescalesH_.isValid())
+    throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
+
+////// Printing miniAOD content...
 //  for (unsigned int i=0; i<triggerNames_.size(); i++) {
 //    std::cout << "triggerNames= " << triggerNames_.triggerName(i) << std::endl;
 //  }
@@ -106,10 +110,6 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //    pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
 //    TO.unpackPathNames( triggerNames_ );
 //    cout<<"Trigger Object "<<i<<"has pt, eta, phi, id = "<< TO.pt() <<" "<<TO.eta()<<" "<<TO.phi()<<" and hasPathLastFilterAccepted() "<<TO.hasPathLastFilterAccepted()<<endl;
-//    std::vector< std::string > path_names = TO.pathNames();
-//    cout<<"Trigger Object "<<i<<" has "<< path_names.size() <<" pathNames(): ";
-//    for (uint j  = 0; j < path_names.size(); j++) cout<<path_names[j]<<" ";
-//    cout<<endl;
 //
 //    std::vector< std::string > path_namesPASS = TO.pathNames(true); //make sure they passed!
 //    cout<<"Trigger Object "<<i<<" passed "<< path_namesPASS.size() <<" pathNames(true): ";
@@ -120,9 +120,11 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //   cout<<"Trigger Object "<<i<<" has "<< filter_labels.size() <<" filter_labels: ";
 //   for (uint j  = 0; j < filter_labels.size(); j++) cout<<filter_labels[j]<<" ";
 //   cout<<endl;
+//   
+//   cout<<"Trigger Object "<<i<<" has collection() "<<TO.collection()<<endl;
 //
 //  }
-// END dumping miniAOD content
+////// END printing miniAOD content
 
 //  // sanity check
 //  assert(triggerResultsH_->size()==hltConfig_.size());
@@ -152,7 +154,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       trigNames->push_back(name);
 	
       //What is your prescale?
-      prescales->push_back( 999 /*hltConfig_.prescaleValue(iEvent, iSetup, name) GZ DO THIS LATER. HLT PRESCALES ARE IN A SEPARATE HANDLE */);
+      prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
 	
 	
       // Passed... F+
@@ -233,6 +235,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
     }
   } // End of loop over trigger objects in miniAOD
   // miniAOD NOTE: Do we need an exception for mixed trigger, as in the CMS2forAOD code? Not sure why this was there in the first place. And impossible to implement for PAT.
+
 
   // End of Triggers from miniAOD
 
