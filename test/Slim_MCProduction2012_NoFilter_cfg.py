@@ -42,7 +42,8 @@ process.p                  = cms.Path(
     process.pfmetMaker*
     process.hltMakerSequence*
     process.pftauMaker*
-    process.photonMaker 
+    process.photonMaker*
+    process.genMaker
     )
 
 

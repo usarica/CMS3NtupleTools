@@ -32,7 +32,7 @@
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
@@ -145,16 +145,17 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   // get MC particle collection
-  edm::Handle<reco::GenParticleCollection> genpsHandle;
+  edm::Handle<pat::PackedGenParticleCollection> genpsHandle;
   iEvent.getByLabel(genParticlesInputTag_, genpsHandle);
 
   if( !genpsHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen particle collection";
     edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";
+    cout << " GenMaker cannot continue...!" << endl;
     return;
   }
 
-  const vector<GenParticle>* genps_coll = genpsHandle.product();
+  const vector<pat::PackedGenParticle>* genps_coll = genpsHandle.product();
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -204,7 +205,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
 
-  for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
+  for(vector<pat::PackedGenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
 
     int id = genps_it->pdgId();
     

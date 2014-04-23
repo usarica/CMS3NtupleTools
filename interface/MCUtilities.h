@@ -20,6 +20,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 #include <vector>
 
@@ -30,8 +31,9 @@ public:
   MCUtilities();
   ~MCUtilities();
 
-  static const reco::GenParticle* motherID(const reco::GenParticle& gp);
-  static void writeDaughter(const reco::GenParticle& gp, int idx, std::vector<int>& genps_ld_id,
+  static const reco::GenParticle* motherID(const reco::GenParticle& gp); //can remove this once CandToGenAssMaker is modified to run on the miniAOD or it is removed
+  static const pat::PackedGenParticle* motherID(const pat::PackedGenParticle& gp); //overload this method for now
+  static void writeDaughter(const pat::PackedGenParticle& gp, int idx, std::vector<int>& genps_ld_id,
 			    std::vector<int>& genps_ld_idx, std::vector<LorentzVector>& genps_ld_p4 );
 
 private:
