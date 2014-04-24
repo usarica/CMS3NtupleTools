@@ -6,6 +6,7 @@ process.GlobalTag.globaltag = "START70_V6::All"
 #Input
 process.source = cms.Source("PoolSource",
 #    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_TTbar.root') # default file, old miniAOD version
+#     fileNames = cms.untracked.vstring('file:patTuple_mini_eleClusFix.root') # just 50 events, but with prescales and fixed elecluster
      fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_mini_eleClusFix.root') # just 50 events, but with prescales and fixed elecluster
 #    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_mini_withL1.root') # just 35 events, but with prescales and L1GlobalTriggerReadoutRecord 
 )
@@ -34,6 +35,9 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 #process.p                  = cms.Path( process.cms2WithEverything )
 
 process.p                  = cms.Path( 
+    #process.unpackedTracksAndVertices *
+    process.beamSpotMaker *
+    process.vertexMaker *
     process.pfCandidateMaker*
     process.eventMaker*
     process.electronMaker*
