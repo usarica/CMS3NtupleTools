@@ -37,7 +37,7 @@ slimcms2.extend(cms.untracked.vstring('drop *_trackMaker_trksnlayersLost_CMS2*')
 slimcms2.extend(cms.untracked.vstring('drop *_trackMaker_trkslostpixelhits_CMS2*'))
 
 #L1 Maker
-slimcms2.extend(cms.untracked.vstring('drop *_l1Maker_*_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_l1Maker_*_CMS2*'))
 
 #GenMaker
 #slimcms2.extend(cms.untracked.vstring('drop *_genMaker_genps*_CMS2*'))

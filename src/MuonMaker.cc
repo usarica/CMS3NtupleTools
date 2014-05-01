@@ -57,6 +57,7 @@ Implementation:
 #include "DataFormats/MuonReco/interface/MuonShower.h"
 
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 //////////////
 // typedefs //
@@ -233,6 +234,19 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "ehadS9"                    ).setBranchAlias( aliasprefix_ + "_e_hadS9"             ); // energy in 3x3 HCAL towers 
   produces<vector<float> >          ( branchprefix_ + "ehoS9"                     ).setBranchAlias( aliasprefix_ + "_e_hoS9"              ); // energy in 3x3 HO towers 
 
+  produces<vector<float> >          ( branchprefix_ + "tower"         ).setBranchAlias( aliasprefix_ + "_tower"           );
+  produces<vector<float> >          ( branchprefix_ + "towerS9"       ).setBranchAlias( aliasprefix_ + "_towerS9"         ); 
+  produces<vector<float> >          ( branchprefix_ + "emS25"         ).setBranchAlias( aliasprefix_ + "_emS25"           ); 
+  produces<vector<float> >          ( branchprefix_ + "emMax"         ).setBranchAlias( aliasprefix_ + "_emMax"           ); 
+  produces<vector<float> >          ( branchprefix_ + "hadMax"        ).setBranchAlias( aliasprefix_ + "_hadMax"          ); 
+  produces<vector<float> >          ( branchprefix_ + "ecaltime"      ).setBranchAlias( aliasprefix_ + "_ecal_time"       ); 
+  produces<vector<float> >          ( branchprefix_ + "ecaltimeError" ).setBranchAlias( aliasprefix_ + "_ecal_timeError"  ); 
+  produces<vector<float> >          ( branchprefix_ + "hcaltime"      ).setBranchAlias( aliasprefix_ + "_hcal_time"       ); 
+  produces<vector<float> >          ( branchprefix_ + "hcaltimeError" ).setBranchAlias( aliasprefix_ + "_hcal_timeError"  ); 
+  produces<vector<int> >            ( branchprefix_ + "ecalrawId"     ).setBranchAlias( aliasprefix_ + "_ecal_rawId"      ); 
+  produces<vector<int> >            ( branchprefix_ + "hcalrawId"     ).setBranchAlias( aliasprefix_ + "_hcal_rawId"      ); 
+
+
 
   ///////////////
   // Isolation //
@@ -247,6 +261,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "iso03hadEt"                ).setBranchAlias( aliasprefix_ + "_iso03_hadEt"         ); // sum of hcal Et for cone of 0.3 
   produces<vector<float> >          ( branchprefix_ + "iso03hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso03_hoEt"          ); // sum of ho Et for cone of 0.3 
   produces<vector<int> >            ( branchprefix_ + "iso03ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso03_ntrk"          ); // number of tracks in the cone of 0.3 
+  produces<vector<int> >            ( branchprefix_ + "iso03njets"                ).setBranchAlias( aliasprefix_ + "_iso03_njets"         ); // number of jets in the cone of 0.3 
   produces<vector<float> >          ( branchprefix_ + "iso05sumPt"                ).setBranchAlias( aliasprefix_ + "_iso05_sumPt"         ); // sum of track Pt for cone of 0.5 
   produces<vector<float> >          ( branchprefix_ + "iso05emEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_emEt"          ); // sum of ecal Et for cone of 0.5 
   produces<vector<float> >          ( branchprefix_ + "iso05hadEt"                ).setBranchAlias( aliasprefix_ + "_iso05_hadEt"         ); // sum of hcal Et for cone of 0.5 
@@ -284,6 +299,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"         );
   produces<vector<LorentzVector> >  ( branchprefix_ + "fitpickyp4"                ).setBranchAlias( aliasprefix_ + "_fitpicky_p4"         );
   produces<vector<LorentzVector> >  ( branchprefix_ + "fittevp4"                  ).setBranchAlias( aliasprefix_ + "_fittev_p4"           );
+*/
 
   
   ////////
@@ -292,20 +308,21 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
 
   produces<vector< int> >           ( branchprefix_ + "pfcharge"                  ).setBranchAlias( aliasprefix_ + "_pfcharge"            );
   produces<vector< int> >           ( branchprefix_ + "pfparticleId"              ).setBranchAlias( aliasprefix_ + "_pfparticleId"        );
-  produces<vector< int> >           ( branchprefix_ + "pfflag"                    ).setBranchAlias( aliasprefix_ + "_pfflag"              );
-  produces<vector< float> >         ( branchprefix_ + "pfecalE"                   ).setBranchAlias( aliasprefix_ + "_pfecalE"             );
-  produces<vector< float> >         ( branchprefix_ + "pfhcalE"                   ).setBranchAlias( aliasprefix_ + "_pfhcalE"             );
-  produces<vector< float> >         ( branchprefix_ + "pfrawEcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawEcalE"          );
-  produces<vector< float> >         ( branchprefix_ + "pfrawHcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawHcalE"          );
-  produces<vector< float> >         ( branchprefix_ + "pfpS1E"                    ).setBranchAlias( aliasprefix_ + "_pfpS1E"              );
-  produces<vector< float> >         ( branchprefix_ + "pfpS2E"                    ).setBranchAlias( aliasprefix_ + "_pfpS2E"              );
-  produces<vector< float> >         ( branchprefix_ + "pfdeltaP"                  ).setBranchAlias( aliasprefix_ + "_pfdeltaP"            );
-  produces<vector< float> >         ( branchprefix_ + "pfmvaepi"                  ).setBranchAlias( aliasprefix_ + "_pfmva_epi"           );
-  produces<vector< float> >         ( branchprefix_ + "pfmvaemu"                  ).setBranchAlias( aliasprefix_ + "_pfmva_emu"           );
-  produces<vector< float> >         ( branchprefix_ + "pfmvapimu"                 ).setBranchAlias( aliasprefix_ + "_pfmva_pimu"          );
-  produces<vector< float> >         ( branchprefix_ + "pfmvanothinggamma"         ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_gamma" );
-  produces<vector< float> >         ( branchprefix_ + "pfmvanothingnh"            ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_nh"    );
+  //produces<vector< int> >           ( branchprefix_ + "pfflag"                    ).setBranchAlias( aliasprefix_ + "_pfflag"              );
+  //produces<vector< float> >         ( branchprefix_ + "pfecalE"                   ).setBranchAlias( aliasprefix_ + "_pfecalE"             );
+  //produces<vector< float> >         ( branchprefix_ + "pfhcalE"                   ).setBranchAlias( aliasprefix_ + "_pfhcalE"             );
+  //produces<vector< float> >         ( branchprefix_ + "pfrawEcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawEcalE"          );
+  //produces<vector< float> >         ( branchprefix_ + "pfrawHcalE"                ).setBranchAlias( aliasprefix_ + "_pfrawHcalE"          );
+  //produces<vector< float> >         ( branchprefix_ + "pfpS1E"                    ).setBranchAlias( aliasprefix_ + "_pfpS1E"              );
+  //produces<vector< float> >         ( branchprefix_ + "pfpS2E"                    ).setBranchAlias( aliasprefix_ + "_pfpS2E"              );
+  //produces<vector< float> >         ( branchprefix_ + "pfdeltaP"                  ).setBranchAlias( aliasprefix_ + "_pfdeltaP"            );
+  //produces<vector< float> >         ( branchprefix_ + "pfmvaepi"                  ).setBranchAlias( aliasprefix_ + "_pfmva_epi"           );
+  //produces<vector< float> >         ( branchprefix_ + "pfmvaemu"                  ).setBranchAlias( aliasprefix_ + "_pfmva_emu"           );
+  //produces<vector< float> >         ( branchprefix_ + "pfmvapimu"                 ).setBranchAlias( aliasprefix_ + "_pfmva_pimu"          );
+  //produces<vector< float> >         ( branchprefix_ + "pfmvanothinggamma"         ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_gamma" );
+  //produces<vector< float> >         ( branchprefix_ + "pfmvanothingnh"            ).setBranchAlias( aliasprefix_ + "_pfmva_nothing_nh"    );
   produces<vector< LorentzVector> > ( branchprefix_ + "pfp4"                      ).setBranchAlias( aliasprefix_ + "_pfp4"                );
+/*
   produces<vector< LorentzVector> > ( branchprefix_ + "pfposAtEcalp4"             ).setBranchAlias( aliasprefix_ + "_pfposAtEcal_p4"      );
 
   //produces<vector< float> >         ( branchprefix_ + "pfisoChargedHadrons"       ).setBranchAlias( aliasprefix_ + "_pfiso03ChargedHadrons");
@@ -332,6 +349,38 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "isoR04pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoR04_pf_PhotonEtHighThreshold"       );
   produces<vector<float> >          ( branchprefix_ + "isoR04pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoR04_pf_PUPt"              );
 
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfChargedHadronPt"   ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_ChargedHadronPt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfChargedParticlePt" ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_ChargedParticlePt" );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfNeutralHadronEt"   ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_NeutralHadronEt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfPhotonEt"          ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_PhotonEt"          );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfNeutralHadronEtHighThreshold").setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_NeutralHadronEtHighThreshold");
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_PhotonEtHighThreshold"       );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR03pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoMeanDRR03_pf_PUPt"              );
+
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfChargedHadronPt"   ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_ChargedHadronPt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfChargedParticlePt" ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_ChargedParticlePt" );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfNeutralHadronEt"   ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_NeutralHadronEt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfPhotonEt"          ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_PhotonEt"          );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfNeutralHadronEtHighThreshold").setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_NeutralHadronEtHighThreshold");
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_PhotonEtHighThreshold"       );
+  produces<vector<float> >          ( branchprefix_ + "isoMeanDRR04pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoMeanDRR04_pf_PUPt"              );
+
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfChargedHadronPt"   ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_ChargedHadronPt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfChargedParticlePt" ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_ChargedParticlePt" );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfNeutralHadronEt"   ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_NeutralHadronEt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfPhotonEt"          ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_PhotonEt"          );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfNeutralHadronEtHighThreshold").setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_NeutralHadronEtHighThreshold");
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_PhotonEtHighThreshold"       );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR03pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoSumDRR03_pf_PUPt"              );
+
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfChargedHadronPt"   ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_ChargedHadronPt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfChargedParticlePt" ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_ChargedParticlePt" );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfNeutralHadronEt"   ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_NeutralHadronEt"   );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfPhotonEt"          ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_PhotonEt"          );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfNeutralHadronEtHighThreshold").setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_NeutralHadronEtHighThreshold");
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_PhotonEtHighThreshold"       );
+  produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_PUPt"              );
+
   //produces<vector<float> >          ( branchprefix_ + "iso03pf"                   ).setBranchAlias( aliasprefix_ + "_iso03_pf"            ); // pf isolation in cone of 0.3
   //produces<vector<float> >          ( branchprefix_ + "iso04pf"                   ).setBranchAlias( aliasprefix_ + "_iso04_pf"            ); // pf isolation in cone of 0.4
 
@@ -339,8 +388,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // IP 3D //
   ///////////
   
-  //produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
-  //produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
+  produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
+  produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
 
 } // end Constructor
 
@@ -487,6 +536,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_e_hadS9             ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_e_hoS9              ( new vector<float>          );
 
+  auto_ptr<vector<float> >         vector_mus_tower               ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_towerS9             ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_emS25               ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_emMax               ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_hadMax              ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_ecal_time           ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_ecal_timeError      ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_hcal_time           ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_hcal_timeError      ( new vector<float>          );
+  auto_ptr<vector<int> >           vector_mus_ecal_rawId          ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_hcal_rawId          ( new vector<int>            );
+
 
   ///////////////
   // Isolation //
@@ -501,6 +562,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_iso03_hadEt         ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_iso03_hoEt          ( new vector<float>          );
   auto_ptr<vector<int> >           vector_mus_iso03_ntrk          ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_iso03_njets         ( new vector<int>            );
   auto_ptr<vector<float> >         vector_mus_iso05_sumPt         ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_iso05_emEt          ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_iso05_hadEt         ( new vector<float>          );
@@ -538,6 +600,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > vector_mus_fittpfms_p4                 ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fitpicky_p4                 ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fittev_p4                   ( new vector<LorentzVector> );
+*/
 
 
   ////////
@@ -546,23 +609,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   auto_ptr< vector< int> >           vector_mus_pfcharge              ( new vector<int>   );
   auto_ptr< vector< int> >           vector_mus_pfparticleId          ( new vector<int>   );
-  auto_ptr< vector< int> >           vector_mus_pfflag                ( new vector<int>   );
-  auto_ptr< vector< float> >         vector_mus_pfecalE               ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfhcalE               ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfrawEcalE            ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfrawHcalE            ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfpS1E                ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfpS2E                ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfdeltaP              ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfmvaepi              ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfmvaemu              ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfmvapimu             ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfmvanothinggamma     ( new vector<float> );
-  auto_ptr< vector< float> >         vector_mus_pfmvanothingnh        ( new vector<float> );
+  //auto_ptr< vector< int> >           vector_mus_pfflag                ( new vector<int>   );
+  //auto_ptr< vector< float> >         vector_mus_pfecalE               ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfhcalE               ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfrawEcalE            ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfrawHcalE            ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfpS1E                ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfpS2E                ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfdeltaP              ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfmvaepi              ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfmvaemu              ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfmvapimu             ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfmvanothinggamma     ( new vector<float> );
+  //auto_ptr< vector< float> >         vector_mus_pfmvanothingnh        ( new vector<float> );
   auto_ptr< vector< LorentzVector> > vector_mus_pfp4                  ( new vector<LorentzVector> );
-  auto_ptr< vector< LorentzVector> > vector_mus_pfposAtEcalp4         ( new vector<LorentzVector> );
+  //auto_ptr< vector< LorentzVector> > vector_mus_pfposAtEcalp4         ( new vector<LorentzVector> );
 
-*/
 
   //auto_ptr< vector< float> >         vector_mus_pfiso03ChargedHadrons ( new vector<float> );
   //auto_ptr< vector< float> >         vector_mus_pfiso03NeutralHadrons ( new vector<float> );
@@ -579,7 +641,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr< vector<float> >         vector_mus_isoR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
   auto_ptr< vector<float> >         vector_mus_isoR03_pf_PUPt                            ( new vector<float>   );
 
-
   auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedHadronPt                 ( new vector<float>   );
   auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedParticlePt               ( new vector<float>   );
   auto_ptr< vector<float> >         vector_mus_isoR04_pf_NeutralHadronEt                 ( new vector<float>   );
@@ -588,6 +649,38 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr< vector<float> >         vector_mus_isoR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
   auto_ptr< vector<float> >         vector_mus_isoR04_pf_PUPt                            ( new vector<float>   );
 
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR03_pf_PUPt                            ( new vector<float>   );
+
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoMeanDRR04_pf_PUPt                            ( new vector<float>   );
+
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR03_pf_PUPt                            ( new vector<float>   );
+
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_ChargedHadronPt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_ChargedParticlePt               ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_NeutralHadronEt                 ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_PhotonEt                        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+  auto_ptr< vector<float> >         vector_mus_isoSumDRR04_pf_PUPt                            ( new vector<float>   );
+
   //auto_ptr<vector<float> >         vector_mus_iso03_pf            ( new vector<float>          );
   //auto_ptr<vector<float> >         vector_mus_iso04_pf            ( new vector<float>          );
 
@@ -595,8 +688,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // IP 3D //
   ///////////
 
-  //auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
-  //auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
 
 
 
@@ -866,6 +959,23 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_e_hadS9            -> push_back( energyIsValid ? muon->calEnergy().hadS9                              :  -9999.       );
     vector_mus_e_hoS9             -> push_back( energyIsValid ? muon->calEnergy().hoS9                               :  -9999.       );
 
+    //calEnergy is an object of type reco::MuonEnergy, learn about it at
+    //cmslxr.fnal.gov/lxr/source/DataFormats/MuonReco/interface/MuonEnergy.h
+    vector_mus_tower           -> push_back( energyIsValid ? muon->calEnergy().tower                         : -9999. );
+    vector_mus_towerS9         -> push_back( energyIsValid ? muon->calEnergy().towerS9                       : -9999. );
+    vector_mus_emS25           -> push_back( energyIsValid ? muon->calEnergy().emS25                         : -9999. );
+    vector_mus_emMax           -> push_back( energyIsValid ? muon->calEnergy().emMax                         : -9999. );
+    vector_mus_hadMax          -> push_back( energyIsValid ? muon->calEnergy().hadMax                        : -9999. );
+    vector_mus_ecal_time       -> push_back( energyIsValid ? muon->calEnergy().ecal_time                     : -9999. );
+    vector_mus_ecal_timeError  -> push_back( energyIsValid ? muon->calEnergy().ecal_timeError                : -9999. );
+    vector_mus_hcal_time       -> push_back( energyIsValid ? muon->calEnergy().hcal_time                     : -9999. );
+    vector_mus_hcal_timeError  -> push_back( energyIsValid ? muon->calEnergy().hcal_timeError                : -9999. );
+    vector_mus_ecal_rawId      -> push_back( energyIsValid ? muon->calEnergy().ecal_id.rawId()               : -9999. );
+    vector_mus_hcal_rawId      -> push_back( energyIsValid ? muon->calEnergy().hcal_id.rawId()               : -9999. );
+
+
+
+    
 
     ///////////////
     // Isolation //
@@ -880,6 +990,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_iso03_hadEt        -> push_back( muon->isIsolationValid() ? muon->isolationR03().hadEt          : -9999.        );
     vector_mus_iso03_hoEt         -> push_back( muon->isIsolationValid() ? muon->isolationR03().hoEt           : -9999.        );
     vector_mus_iso03_ntrk         -> push_back( muon->isIsolationValid() ? muon->isolationR03().nTracks        : -9999         );
+    vector_mus_iso03_njets        -> push_back( muon->isIsolationValid() ? muon->isolationR03().nJets          : -9999         );
     vector_mus_iso05_sumPt        -> push_back( muon->isIsolationValid() ? muon->isolationR05().sumPt          : -9999.        );
     vector_mus_iso05_emEt         -> push_back( muon->isIsolationValid() ? muon->isolationR05().emEt           : -9999.        );
     vector_mus_iso05_hadEt        -> push_back( muon->isIsolationValid() ? muon->isolationR05().hadEt          : -9999.        );
@@ -965,17 +1076,19 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 
 
+*/
     ////////
     // PF //
     ////////
 
-    // PF p4
-    vector_mus_pfp4 -> push_back( LorentzVector( muon->pfP4() ) );
-*/
-
     // PF Isolation
     MuonPFIsolation pfStructR03 = muon->pfIsolationR03();
     MuonPFIsolation pfStructR04 = muon->pfIsolationR04();
+    MuonPFIsolation pfStructMeanDRR03 = muon->pfMeanDRIsoProfileR03();
+    MuonPFIsolation pfStructMeanDRR04 = muon->pfSumDRIsoProfileR04();
+    MuonPFIsolation pfStructSumDRR03  = muon->pfMeanDRIsoProfileR03();
+    MuonPFIsolation pfStructSumDRR04  = muon->pfSumDRIsoProfileR04();
+
 
     vector_mus_isoR03_pf_ChargedHadronPt                 -> push_back( pfStructR03.sumChargedHadronPt              );
     vector_mus_isoR03_pf_ChargedParticlePt               -> push_back( pfStructR03.sumChargedParticlePt            );
@@ -993,36 +1106,72 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_isoR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructR04.sumPhotonEtHighThreshold        );
     vector_mus_isoR04_pf_PUPt                            -> push_back( pfStructR04.sumPUPt                         );
 
-/*
-    // Other PF
-    PFCandidatePtr pfCandRef = (*pfMap)[muonRef];
-    if ( pfCandRef.isNonnull() ) {
+    vector_mus_isoMeanDRR03_pf_ChargedHadronPt                 -> push_back( pfStructMeanDRR03.sumChargedHadronPt              );
+    vector_mus_isoMeanDRR03_pf_ChargedParticlePt               -> push_back( pfStructMeanDRR03.sumChargedParticlePt            );
+    vector_mus_isoMeanDRR03_pf_NeutralHadronEt                 -> push_back( pfStructMeanDRR03.sumNeutralHadronEt              );
+    vector_mus_isoMeanDRR03_pf_PhotonEt                        -> push_back( pfStructMeanDRR03.sumPhotonEt                     );
+    vector_mus_isoMeanDRR03_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructMeanDRR03.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoMeanDRR03_pf_sumPhotonEtHighThreshold        -> push_back( pfStructMeanDRR03.sumPhotonEtHighThreshold        );
+    vector_mus_isoMeanDRR03_pf_PUPt                            -> push_back( pfStructMeanDRR03.sumPUPt                         );
 
+    vector_mus_isoMeanDRR04_pf_ChargedHadronPt                 -> push_back( pfStructMeanDRR04.sumChargedHadronPt              );
+    vector_mus_isoMeanDRR04_pf_ChargedParticlePt               -> push_back( pfStructMeanDRR04.sumChargedParticlePt            );
+    vector_mus_isoMeanDRR04_pf_NeutralHadronEt                 -> push_back( pfStructMeanDRR04.sumNeutralHadronEt              );
+    vector_mus_isoMeanDRR04_pf_PhotonEt                        -> push_back( pfStructMeanDRR04.sumPhotonEt                     );
+    vector_mus_isoMeanDRR04_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructMeanDRR04.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoMeanDRR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructMeanDRR04.sumPhotonEtHighThreshold        );
+    vector_mus_isoMeanDRR04_pf_PUPt                            -> push_back( pfStructMeanDRR04.sumPUPt                         );
+
+    vector_mus_isoSumDRR03_pf_ChargedHadronPt                 -> push_back( pfStructSumDRR03.sumChargedHadronPt              );
+    vector_mus_isoSumDRR03_pf_ChargedParticlePt               -> push_back( pfStructSumDRR03.sumChargedParticlePt            );
+    vector_mus_isoSumDRR03_pf_NeutralHadronEt                 -> push_back( pfStructSumDRR03.sumNeutralHadronEt              );
+    vector_mus_isoSumDRR03_pf_PhotonEt                        -> push_back( pfStructSumDRR03.sumPhotonEt                     );
+    vector_mus_isoSumDRR03_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructSumDRR03.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoSumDRR03_pf_sumPhotonEtHighThreshold        -> push_back( pfStructSumDRR03.sumPhotonEtHighThreshold        );
+    vector_mus_isoSumDRR03_pf_PUPt                            -> push_back( pfStructSumDRR03.sumPUPt                         );
+
+    vector_mus_isoSumDRR04_pf_ChargedHadronPt                 -> push_back( pfStructSumDRR04.sumChargedHadronPt              );
+    vector_mus_isoSumDRR04_pf_ChargedParticlePt               -> push_back( pfStructSumDRR04.sumChargedParticlePt            );
+    vector_mus_isoSumDRR04_pf_NeutralHadronEt                 -> push_back( pfStructSumDRR04.sumNeutralHadronEt              );
+    vector_mus_isoSumDRR04_pf_PhotonEt                        -> push_back( pfStructSumDRR04.sumPhotonEt                     );
+    vector_mus_isoSumDRR04_pf_sumNeutralHadronEtHighThreshold -> push_back( pfStructSumDRR04.sumNeutralHadronEtHighThreshold );
+    vector_mus_isoSumDRR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructSumDRR04.sumPhotonEtHighThreshold        );
+    vector_mus_isoSumDRR04_pf_PUPt                            -> push_back( pfStructSumDRR04.sumPUPt                         );
+
+    // Other PF
+    reco::CandidatePtr pfCandRef = muon->sourceCandidatePtr(0);
+
+    if(pfCandRef.isNonnull()){
+
+/*
       // Flags
       int pfflags = 0;
       for( unsigned int i = 0; i < 17; i++ ) {
         if( pfCandRef->flag( (PFCandidate::Flags) i ) ) pfflags |= (1<<i);
       }
+*/
 
       //
+      vector_mus_pfp4                  ->push_back( LorentzVector( pfCandRef->p4() )                                        );
       vector_mus_pfcharge              ->push_back( pfCandRef->charge()                                                     );
-      vector_mus_pfparticleId          ->push_back( pfCandRef->translateTypeToPdgId( pfCandRef->particleId() )              );
-      vector_mus_pfflag                ->push_back( pfflags                                                                 );
-      vector_mus_pfecalE               ->push_back( isfinite( pfCandRef->ecalEnergy() ) ? pfCandRef->ecalEnergy() : -9999.0 );
-      vector_mus_pfrawEcalE            ->push_back( pfCandRef->rawEcalEnergy()                                              );
-      vector_mus_pfrawHcalE            ->push_back( pfCandRef->rawHcalEnergy()                                              );
-      vector_mus_pfpS1E                ->push_back( pfCandRef->pS1Energy()                                                  );
-      vector_mus_pfpS2E                ->push_back( pfCandRef->pS2Energy()                                                  );
-      vector_mus_pfdeltaP              ->push_back( pfCandRef->deltaP()                                                     );
-      vector_mus_pfmvaepi              ->push_back( pfCandRef->mva_e_pi()                                                   );
-      vector_mus_pfmvaemu              ->push_back( pfCandRef->mva_e_mu()                                                   );
-      vector_mus_pfmvapimu             ->push_back( pfCandRef->mva_pi_mu()                                                  );
-      vector_mus_pfmvanothinggamma     ->push_back( pfCandRef->mva_nothing_gamma()                                          );
-      vector_mus_pfmvanothingnh        ->push_back( pfCandRef->mva_nothing_nh()                                             );
-      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( pfCandRef->positionAtECALEntrance().x() ,
-                                                                   pfCandRef->positionAtECALEntrance().y() ,
-                                                                   pfCandRef->positionAtECALEntrance().z() ,
-                                                                   0.0 )                                                    );
+      vector_mus_pfparticleId          ->push_back( pfCandRef->pdgId()                                                      );
+      //vector_mus_pfparticleId          ->push_back( pfCandRef->translateTypeToPdgId( pfCandRef->particleId() )              );
+      //vector_mus_pfflag                ->push_back( pfflags                                                                 );
+      //vector_mus_pfecalE               ->push_back( isfinite( pfCandRef->ecalEnergy() ) ? pfCandRef->ecalEnergy() : -9999.0 );
+      //vector_mus_pfrawEcalE            ->push_back( pfCandRef->rawEcalEnergy()                                              );
+      //vector_mus_pfrawHcalE            ->push_back( pfCandRef->rawHcalEnergy()                                              );
+      //vector_mus_pfpS1E                ->push_back( pfCandRef->pS1Energy()                                                  );
+      //vector_mus_pfpS2E                ->push_back( pfCandRef->pS2Energy()                                                  );
+      //vector_mus_pfdeltaP              ->push_back( pfCandRef->deltaP()                                                     );
+      //vector_mus_pfmvaepi              ->push_back( pfCandRef->mva_e_pi()                                                   );
+      //vector_mus_pfmvaemu              ->push_back( pfCandRef->mva_e_mu()                                                   );
+      //vector_mus_pfmvapimu             ->push_back( pfCandRef->mva_pi_mu()                                                  );
+      //vector_mus_pfmvanothinggamma     ->push_back( pfCandRef->mva_nothing_gamma()                                          );
+      //vector_mus_pfmvanothingnh        ->push_back( pfCandRef->mva_nothing_nh()                                             );
+      //vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( pfCandRef->positionAtECALEntrance().x() ,
+                                                                   //pfCandRef->positionAtECALEntrance().y() ,
+                                                                   //pfCandRef->positionAtECALEntrance().z() ,
+                                                                   //0.0 )                                                    );
       //vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
       //vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
       //vector_mus_pfiso03Photons        ->push_back(                                                                     ); 
@@ -1035,19 +1184,19 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       //
       vector_mus_pfcharge              ->push_back( -9999.0 );
       vector_mus_pfparticleId          ->push_back( -9999.0 );
-      vector_mus_pfflag                ->push_back( -9999.0 );
-      vector_mus_pfecalE               ->push_back( -9999.0 );
-      vector_mus_pfrawEcalE            ->push_back( -9999.0 );
-      vector_mus_pfrawHcalE            ->push_back( -9999.0 );
-      vector_mus_pfpS1E                ->push_back( -9999.0 );
-      vector_mus_pfpS2E                ->push_back( -9999.0 );
-      vector_mus_pfdeltaP              ->push_back( -9999.0 );
-      vector_mus_pfmvaepi              ->push_back( -9999.0 );
-      vector_mus_pfmvaemu              ->push_back( -9999.0 );
-      vector_mus_pfmvapimu             ->push_back( -9999.0 );
-      vector_mus_pfmvanothinggamma     ->push_back( -9999.0 );
-      vector_mus_pfmvanothingnh        ->push_back( -9999.0 );
-      vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ;
+      //vector_mus_pfflag                ->push_back( -9999.0 );
+      //vector_mus_pfecalE               ->push_back( -9999.0 );
+      //vector_mus_pfrawEcalE            ->push_back( -9999.0 );
+      //vector_mus_pfrawHcalE            ->push_back( -9999.0 );
+      //vector_mus_pfpS1E                ->push_back( -9999.0 );
+      //vector_mus_pfpS2E                ->push_back( -9999.0 );
+      //vector_mus_pfdeltaP              ->push_back( -9999.0 );
+      //vector_mus_pfmvaepi              ->push_back( -9999.0 );
+      //vector_mus_pfmvaemu              ->push_back( -9999.0 );
+      //vector_mus_pfmvapimu             ->push_back( -9999.0 );
+      //vector_mus_pfmvanothinggamma     ->push_back( -9999.0 );
+      //vector_mus_pfmvanothingnh        ->push_back( -9999.0 );
+      //vector_mus_pfposAtEcalp4         ->push_back( LorentzVector( 0.0, 0.0, 0.0, 0.0 ) ) ;
       //vector_mus_pfiso03ChargedHadrons ->push_back(                                                                     ); 
       //vector_mus_pfiso03NeutralHadrons ->push_back(                                                                     ); 
       //vector_mus_pfiso03Photons        ->push_back(                                                                     ); 
@@ -1056,7 +1205,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       //vector_mus_pfiso04Photons        ->push_back(                                                                     ); 
 
     } //
-*/
 
 /*
 
@@ -1077,11 +1225,13 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_iso03_pf->push_back( -9999. );
       vector_mus_iso04_pf->push_back( -9999. );
     }
+*/
 
     ///////////
     // IP 3D //
     ///////////
 
+/*
     if ( siTrack.isNonnull() && firstGoodVertex != vertexCollection->end() ) {
       
       TransientTrack tt       = theTTBuilder->build( siTrack );
@@ -1094,13 +1244,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_ip3d         -> push_back( -9999. );
       vector_mus_ip3derr      -> push_back( -9999. );
 
-    } //
+    } 
+*/
 
+    vector_mus_ip3d         -> push_back( muon->dB(pat::Muon::PV3D) ); 
+    vector_mus_ip3derr      -> push_back( muon->edB(pat::Muon::PV3D) );
 
-    //  
     muonIndex++;
 
-*/
   } // end loop on muons
 
 
@@ -1243,6 +1394,17 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_e_hadS9            , branchprefix_ + "ehadS9"             );
   iEvent.put( vector_mus_e_hoS9             , branchprefix_ + "ehoS9"              );
 
+  iEvent.put( vector_mus_tower              , branchprefix_ + "tower"              );
+  iEvent.put( vector_mus_towerS9            , branchprefix_ + "towerS9"            );
+  iEvent.put( vector_mus_emS25              , branchprefix_ + "emS25"              );
+  iEvent.put( vector_mus_emMax              , branchprefix_ + "emMax"              );
+  iEvent.put( vector_mus_hadMax             , branchprefix_ + "hadMax"             );
+  iEvent.put( vector_mus_ecal_time          , branchprefix_ + "ecaltime"           );
+  iEvent.put( vector_mus_ecal_timeError     , branchprefix_ + "ecaltimeError"      );
+  iEvent.put( vector_mus_hcal_time          , branchprefix_ + "hcaltime"           );
+  iEvent.put( vector_mus_hcal_timeError     , branchprefix_ + "hcaltimeError"      );
+  iEvent.put( vector_mus_ecal_rawId         , branchprefix_ + "ecalrawId"          );
+  iEvent.put( vector_mus_hcal_rawId         , branchprefix_ + "hcalrawId"          );
   
   ///////////////
   // Isolation //
@@ -1257,6 +1419,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_iso03_hadEt        , branchprefix_ + "iso03hadEt"         );
   iEvent.put( vector_mus_iso03_hoEt         , branchprefix_ + "iso03hoEt"          );
   iEvent.put( vector_mus_iso03_ntrk         , branchprefix_ + "iso03ntrk"          );
+  iEvent.put( vector_mus_iso03_njets        , branchprefix_ + "iso03njets"         );
   iEvent.put( vector_mus_iso05_sumPt        , branchprefix_ + "iso05sumPt"         );
   iEvent.put( vector_mus_iso05_emEt         , branchprefix_ + "iso05emEt"          );
   iEvent.put( vector_mus_iso05_hadEt        , branchprefix_ + "iso05hadEt"         );
@@ -1294,6 +1457,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_fittpfms_p4                  , branchprefix_ + "fittpfmsp4"               );
   iEvent.put( vector_mus_fitpicky_p4                  , branchprefix_ + "fitpickyp4"               );
   iEvent.put( vector_mus_fittev_p4                    , branchprefix_ + "fittevp4"                 );
+*/
 
 
   ////////                                  
@@ -1302,21 +1466,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   iEvent.put( vector_mus_pfcharge              , branchprefix_ + "pfcharge"             );
   iEvent.put( vector_mus_pfparticleId          , branchprefix_ + "pfparticleId"         );
-  iEvent.put( vector_mus_pfflag                , branchprefix_ + "pfflag"               );
-  iEvent.put( vector_mus_pfecalE               , branchprefix_ + "pfecalE"              );
-  iEvent.put( vector_mus_pfhcalE               , branchprefix_ + "pfhcalE"              );
-  iEvent.put( vector_mus_pfrawEcalE            , branchprefix_ + "pfrawEcalE"           );
-  iEvent.put( vector_mus_pfrawHcalE            , branchprefix_ + "pfrawHcalE"           );
-  iEvent.put( vector_mus_pfpS1E                , branchprefix_ + "pfpS1E"               );
-  iEvent.put( vector_mus_pfpS2E                , branchprefix_ + "pfpS2E"               );
-  iEvent.put( vector_mus_pfdeltaP              , branchprefix_ + "pfdeltaP"             );
-  iEvent.put( vector_mus_pfmvaepi              , branchprefix_ + "pfmvaepi"             );
-  iEvent.put( vector_mus_pfmvaemu              , branchprefix_ + "pfmvaemu"             );
-  iEvent.put( vector_mus_pfmvapimu             , branchprefix_ + "pfmvapimu"            );
-  iEvent.put( vector_mus_pfmvanothinggamma     , branchprefix_ + "pfmvanothinggamma"    );
-  iEvent.put( vector_mus_pfmvanothingnh        , branchprefix_ + "pfmvanothingnh"       );
+  //iEvent.put( vector_mus_pfflag                , branchprefix_ + "pfflag"               );
+  //iEvent.put( vector_mus_pfecalE               , branchprefix_ + "pfecalE"              );
+  //iEvent.put( vector_mus_pfhcalE               , branchprefix_ + "pfhcalE"              );
+  //iEvent.put( vector_mus_pfrawEcalE            , branchprefix_ + "pfrawEcalE"           );
+  //iEvent.put( vector_mus_pfrawHcalE            , branchprefix_ + "pfrawHcalE"           );
+  //iEvent.put( vector_mus_pfpS1E                , branchprefix_ + "pfpS1E"               );
+  //iEvent.put( vector_mus_pfpS2E                , branchprefix_ + "pfpS2E"               );
+  //iEvent.put( vector_mus_pfdeltaP              , branchprefix_ + "pfdeltaP"             );
+  //iEvent.put( vector_mus_pfmvaepi              , branchprefix_ + "pfmvaepi"             );
+  //iEvent.put( vector_mus_pfmvaemu              , branchprefix_ + "pfmvaemu"             );
+  //iEvent.put( vector_mus_pfmvapimu             , branchprefix_ + "pfmvapimu"            );
+  //iEvent.put( vector_mus_pfmvanothinggamma     , branchprefix_ + "pfmvanothinggamma"    );
+  //iEvent.put( vector_mus_pfmvanothingnh        , branchprefix_ + "pfmvanothingnh"       );
   iEvent.put( vector_mus_pfp4                  , branchprefix_ + "pfp4"                 );
-  iEvent.put( vector_mus_pfposAtEcalp4         , branchprefix_ + "pfposAtEcalp4"        );
+  //iEvent.put( vector_mus_pfposAtEcalp4         , branchprefix_ + "pfposAtEcalp4"        );
 
   //iEvent.put( vector_mus_pfiso03ChargedHadrons , branchprefix_ + "pfiso03ChargedHadrons");
   //iEvent.put( vector_mus_pfiso03NeutralHadrons , branchprefix_ + "pfiso03NeutralHadrons");
@@ -1324,7 +1488,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   //iEvent.put( vector_mus_pfiso04ChargedHadrons , branchprefix_ + "pfiso04ChargedHadrons");
   //iEvent.put( vector_mus_pfiso04NeutralHadrons , branchprefix_ + "pfiso04NeutralHadrons");
   //iEvent.put( vector_mus_pfiso04Photons        , branchprefix_ + "pfiso04Photons"       );
-*/
 
   iEvent.put( vector_mus_isoR03_pf_ChargedHadronPt                , branchprefix_ + "isoR03pfChargedHadronPt"             );
   iEvent.put( vector_mus_isoR03_pf_ChargedParticlePt              , branchprefix_ + "isoR03pfChargedParticlePt"           );
@@ -1342,6 +1505,38 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_isoR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoR04pfPhotonEtHighThreshold"       );
   iEvent.put( vector_mus_isoR04_pf_PUPt                           , branchprefix_ + "isoR04pfPUPt"                        );
 
+  iEvent.put( vector_mus_isoMeanDRR03_pf_ChargedHadronPt                , branchprefix_ + "isoMeanDRR03pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoMeanDRR03_pf_ChargedParticlePt              , branchprefix_ + "isoMeanDRR03pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoMeanDRR03_pf_NeutralHadronEt                , branchprefix_ + "isoMeanDRR03pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoMeanDRR03_pf_PhotonEt                       , branchprefix_ + "isoMeanDRR03pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoMeanDRR03_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoMeanDRR03pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoMeanDRR03_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoMeanDRR03pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoMeanDRR03_pf_PUPt                           , branchprefix_ + "isoMeanDRR03pfPUPt"                        );
+
+  iEvent.put( vector_mus_isoMeanDRR04_pf_ChargedHadronPt                , branchprefix_ + "isoMeanDRR04pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoMeanDRR04_pf_ChargedParticlePt              , branchprefix_ + "isoMeanDRR04pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoMeanDRR04_pf_NeutralHadronEt                , branchprefix_ + "isoMeanDRR04pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoMeanDRR04_pf_PhotonEt                       , branchprefix_ + "isoMeanDRR04pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoMeanDRR04_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoMeanDRR04pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoMeanDRR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoMeanDRR04pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoMeanDRR04_pf_PUPt                           , branchprefix_ + "isoMeanDRR04pfPUPt"                        );
+
+  iEvent.put( vector_mus_isoSumDRR03_pf_ChargedHadronPt                , branchprefix_ + "isoSumDRR03pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoSumDRR03_pf_ChargedParticlePt              , branchprefix_ + "isoSumDRR03pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoSumDRR03_pf_NeutralHadronEt                , branchprefix_ + "isoSumDRR03pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoSumDRR03_pf_PhotonEt                       , branchprefix_ + "isoSumDRR03pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoSumDRR03_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoSumDRR03pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoSumDRR03_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoSumDRR03pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoSumDRR03_pf_PUPt                           , branchprefix_ + "isoSumDRR03pfPUPt"                        );
+
+  iEvent.put( vector_mus_isoSumDRR04_pf_ChargedHadronPt                , branchprefix_ + "isoSumDRR04pfChargedHadronPt"             );
+  iEvent.put( vector_mus_isoSumDRR04_pf_ChargedParticlePt              , branchprefix_ + "isoSumDRR04pfChargedParticlePt"           );
+  iEvent.put( vector_mus_isoSumDRR04_pf_NeutralHadronEt                , branchprefix_ + "isoSumDRR04pfNeutralHadronEt"             );
+  iEvent.put( vector_mus_isoSumDRR04_pf_PhotonEt                       , branchprefix_ + "isoSumDRR04pfPhotonEt"                    );
+  iEvent.put( vector_mus_isoSumDRR04_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoSumDRR04pfNeutralHadronEtHighThreshold");
+  iEvent.put( vector_mus_isoSumDRR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoSumDRR04pfPhotonEtHighThreshold"       );
+  iEvent.put( vector_mus_isoSumDRR04_pf_PUPt                           , branchprefix_ + "isoSumDRR04pfPUPt"                        );
+
   //iEvent.put( vector_mus_iso03_pf , branchprefix_ + "iso03pf" );
   //iEvent.put( vector_mus_iso04_pf , branchprefix_ + "iso04pf" );
 
@@ -1349,8 +1544,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // IP 3D //
   ///////////
 
-  //iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
-  //iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
+  iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
+  iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
 
 
 } //

@@ -31,7 +31,21 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 #process.cms2WithEverything = cms.Sequence( process.cms2PFNoTauSequence )
 #process.p                  = cms.Path( process.cms2WithEverything )
 
-process.p                  = cms.Path( process.pfCandidateMaker*process.eventMaker*process.electronMaker*process.muonMaker*process.pfJetMaker*process.pfmetMaker*process.hltMakerSequence)
+process.p                  = cms.Path( 
+    #process.unpackedTracksAndVertices *
+    process.beamSpotMaker *
+    process.vertexMaker *
+    process.pfCandidateMaker*
+    process.eventMaker*
+    process.electronMaker*
+    process.muonMaker*
+    process.pfJetMaker*
+    process.pfmetMaker*
+    process.hltMakerSequence*
+    process.pftauMaker*
+    process.photonMaker*
+    process.genMaker
+    )
 
 
 #
