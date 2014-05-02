@@ -45,6 +45,7 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
     objectInputTag_     = iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag");
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
     processName_        = iConfig.getUntrackedParameter<std::string>("processName");
+    triggerObjectsName_ = iConfig.getUntrackedParameter<std::string>("triggerObjectsName");
 
     // get the branch prefix and remove spurious _s
     std::string aliasprefix = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
@@ -95,27 +96,47 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     // get trigger information
     //
 
-    // trigger event handle
-    edm::Handle<trigger::TriggerEvent> triggerEvent_h_;
-    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEvent_h_);
-    if (!triggerEvent_h_.isValid()) {
-        throw cms::Exception("[ObjectToTriggerLegAssMaker][produce] Error getting TriggerEvent product from Event!");
-    }
-    triggerEvent_ = triggerEvent_h_.product();
+//AOD    // trigger event handle
+//AOD    edm::Handle<trigger::TriggerEvent> triggerEvent_h_;
+//AOD    iEvent.getByLabel(edm::InputTag("hltTriggerSummaryAOD", ""), triggerEvent_h_);
+//AOD    if (!triggerEvent_h_.isValid()) {
+//AOD        throw cms::Exception("[ObjectToTriggerLegAssMaker][produce] Error getting TriggerEvent product from Event!");
+//AOD    }
+//AOD    triggerEvent_ = triggerEvent_h_.product();
+//AOD
+//AOD    // set process name if not set
+//AOD    if (processName_ == "") {
+//AOD        processName_ = triggerEvent_h_.provenance()->processName();
+//AOD        bool changed(true);
+//AOD        hltConfig_.init(iEvent.getRun(), iSetup, processName_, changed);
+//AOD    }
 
-    // set process name if not set
-    if (processName_ == "") {
-        processName_ = triggerEvent_h_.provenance()->processName();
-        bool changed(true);
-        hltConfig_.init(iEvent.getRun(), iSetup, processName_, changed);
-    }
+    iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+    if (! triggerResultsH_.isValid())
+      throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
+    triggerNames_ = iEvent.triggerNames(*triggerResultsH_);
+    // find versions for the triggers requested
+    getTriggerVersions(triggers_, triggerVersions_);
+
+    iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+    if (! triggerPrescalesH_.isValid())
+      throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 
     //
     //  do the matching
     //
 
     // online objects for all triggers
-    const trigger::TriggerObjectCollection &allObjects = triggerEvent_->getObjects();
+//AOD    const trigger::TriggerObjectCollection &allObjects = triggerEvent_->getObjects();
+    
+    iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
+    if (! triggerObjectStandAlonesH_.isValid())
+      throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
+    const pat::TriggerObjectStandAloneCollection * allObjects = triggerObjectStandAlonesH_.product();
+
+
+
+
 
     // loop on triggers
     std::vector<LorentzVector>::const_iterator obj_it = obj_p4_h->begin();
@@ -177,15 +198,13 @@ ObjectToTriggerLegAssMaker::beginRun(const edm::Run &r, edm::EventSetup const &c
     //
 
     // init HLT config
-    if (processName_ != "") {
-        bool changed(true);
-        if (!hltConfig_.init(r, c, processName_, changed)) {
-            throw cms::Exception("[ObjectToTriggerLegAssMaker][beginRun] Config extraction failure with process name " + processName_);
-        }
-    }
+//AOD    if (processName_ != "") {
+//AOD        bool changed(true);
+//AOD        if (!hltConfig_.init(r, c, processName_, changed)) {
+//AOD            throw cms::Exception("[ObjectToTriggerLegAssMaker][beginRun] Config extraction failure with process name " + processName_);
+//AOD        }
+//AOD    }
 
-    // find versions for the triggers requested
-    getTriggerVersions(triggers_, triggerVersions_);
 
 }
 
@@ -197,53 +216,70 @@ ObjectToTriggerLegAssMaker::endRun(edm::Run&, edm::EventSetup const&)
 
 unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
         const std::string triggerName, const std::string filterName,
-        const trigger::TriggerObjectCollection &allObjects,
+	//const trigger::TriggerObjectCollection &allObjects,
+	const  pat::TriggerObjectStandAloneCollection* allObjects,
         const LorentzVector &offlineObject)
 {
 
     unsigned int prescale = 0;
 
-    // loop on triggers
-    for (unsigned int i = 0; i < hltConfig_.size(); i++) {
-        
-        // get name of ith trigger
-        TString hltTrigName(hltConfig_.triggerName(i));
-        hltTrigName.ToLower();
-        
-        // pattern to match
-        TString pattern(triggerName);
-        pattern.ToLower();
-        
-        // match pattern
-        TRegexp reg(Form("%s", pattern.Data()), true);
-        
-        // if trigger matches
-        // then look for the objects corresponding to
-        // the specified filter name
-        if (hltTrigName.Index(reg) >= 0) {
-
-            edm::InputTag filterNameTag(filterName, "", processName_);
-            if (filterName == "") {
-                const std::vector<std::string> &modules = hltConfig_.saveTagsModules(i);
-                filterNameTag = edm::InputTag(modules.back(), "", processName_);
-            }
-            else {
-                filterNameTag = edm::InputTag(filterName, "", processName_);
-            }
-            
-            size_t filterIndex = triggerEvent_->filterIndex(filterNameTag);
-            if (filterIndex < triggerEvent_->sizeFilters()) {
-                const trigger::Keys &keys = triggerEvent_->filterKeys(filterIndex);
-                for (size_t j = 0; j < keys.size(); j++) {
-                    trigger::TriggerObject foundObject = allObjects[keys[j]];
-                    if (deltaR(foundObject.eta(), foundObject.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
-                         prescale = hltConfig_.prescaleValue(iEvent, iSetup, hltConfig_.triggerName(i));
-                         return prescale;
-                    }
-                }
-            }
-        }
+    // For miniAOD, don't loop over triggers. 
+    // Loop over triggerObjects, and find one that matches criteria
+    for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
+      pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
+      TO.unpackPathNames( triggerNames_ );
+      if ( TO.hasPathName(triggerName, true) ) { // this TriggerObject passed the full path (uses wildcards!! ;-)
+	if (filterName == "" || TO.hasFilterLabel(filterName) ) { // and the individual filter (if specified)
+	  if (deltaR(TO.eta(), TO.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
+	    prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1;
+	    return prescale;
+	  }
+	}
+      }
     }
+    // end of miniAOD
+
+
+    // loop on triggers
+//AOD    for (unsigned int i = 0; i < hltConfig_.size(); i++) {
+//AOD        // get name of ith trigger
+//AOD        TString hltTrigName(hltConfig_.triggerName(i));
+//AOD        hltTrigName.ToLower();
+//AOD        
+//AOD        // pattern to match
+//AOD        TString pattern(triggerName);
+//AOD        pattern.ToLower();
+//AOD        
+//AOD        // match pattern
+//AOD        TRegexp reg(Form("%s", pattern.Data()), true);
+//AOD        
+//AOD        // if trigger matches
+//AOD        // then look for the objects corresponding to
+//AOD        // the specified filter name
+//AOD        if (hltTrigName.Index(reg) >= 0) {
+//AOD
+//AOD            edm::InputTag filterNameTag(filterName, "", processName_);
+//AOD            if (filterName == "") {
+//AOD                const std::vector<std::string> &modules = hltConfig_.saveTagsModules(i);
+//AOD                filterNameTag = edm::InputTag(modules.back(), "", processName_);
+//AOD            }
+//AOD            else {
+//AOD                filterNameTag = edm::InputTag(filterName, "", processName_);
+//AOD            }
+//AOD            
+//AOD            size_t filterIndex = triggerEvent_->filterIndex(filterNameTag);
+//AOD            if (filterIndex < triggerEvent_->sizeFilters()) {
+//AOD                const trigger::Keys &keys = triggerEvent_->filterKeys(filterIndex);
+//AOD                for (size_t j = 0; j < keys.size(); j++) {
+//AOD                    trigger::TriggerObject foundObject = allObjects[keys[j]];
+//AOD                    if (deltaR(foundObject.eta(), foundObject.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
+//AOD                         prescale = hltConfig_.prescaleValue(iEvent, iSetup, hltConfig_.triggerName(i));
+//AOD                         return prescale;
+//AOD                    }
+//AOD                }
+//AOD            }
+//AOD        }
+//AOD    }
    
     assert(prescale == 0);
     return prescale;
@@ -261,10 +297,11 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
         TString trigName = trigNames[t].label();
 
         // loop on triggers in menu
-        for (unsigned int i = 0; i < hltConfig_.size(); i++) {
+	  unsigned int nTriggers = triggerResultsH_->size();
+          for(unsigned int i = 0; i < nTriggers; ++i) {
 
             // get name of ith trigger
-            TString hltTrigName(hltConfig_.triggerName(i));
+            TString hltTrigName(triggerNames_.triggerName(i));
             hltTrigName.ToLower();
 
             // test if it matches this trigger name
