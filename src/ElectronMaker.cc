@@ -357,6 +357,13 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
 
+    //////////////////////
+    // genMatch miniAOD //
+    //////////////////////
+
+  produces<vector<int>           >("elsmcpatMatchid"            	).setBranchAlias("els_mc_patMatch_id"          		); 
+  produces<vector<LorentzVector> >("elsmcpatMatchp4"            	).setBranchAlias("els_mc_patMatch_p4"          		);
+  produces<vector<float>         >("elsmcpatMatchdr"            	).setBranchAlias("els_mc_patMatch_dr"                  	);
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -608,6 +615,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////
 
     auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
+
+    //////////////////////
+    // genMatch miniAOD //
+    //////////////////////
+  auto_ptr<vector<int>           >       els_mc_patMatch_id          (new vector<int>          );
+  auto_ptr<vector<LorentzVector> >       els_mc_patMatch_p4          (new vector<LorentzVector>);
+  auto_ptr<vector<float>         >       els_mc_patMatch_dr          (new vector<float>        );
+
 
     // --- Get Input Collections --- //
 
@@ -1472,6 +1487,25 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  v_PFCand_idx.push_back(ref.key());
 	els_PFCand_idx->push_back(v_PFCand_idx);
 
+	//////////////////////
+	// genMatch miniAOD //
+	//////////////////////
+	
+	LorentzVector mc_p4(0,0,0,0);	 
+	const reco::GenParticle * gen = el->genParticle();
+	if (gen != 0) {
+	  mc_p4 = gen->p4();
+	  els_mc_patMatch_id      ->push_back( gen->pdgId()  );
+	  els_mc_patMatch_p4      ->push_back( mc_p4         );
+	  els_mc_patMatch_dr      ->push_back( ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4())  );
+	}
+	else {
+	  els_mc_patMatch_id      ->push_back( -999   );
+	  els_mc_patMatch_p4      ->push_back( mc_p4  );
+	  els_mc_patMatch_dr      ->push_back( -999.  );
+	}
+
+
     } // end Loop on Electrons
   
 
@@ -1697,6 +1731,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////
 
     iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
+
+    // genParticle matching from miniAOD
+  iEvent.put( els_mc_patMatch_id          		,"elsmcpatMatchid"          	);
+  iEvent.put( els_mc_patMatch_p4           		,"elsmcpatMatchp4"          	);
+  iEvent.put( els_mc_patMatch_dr          		,"elsmcpatMatchdr"          	);
 
 }
 
