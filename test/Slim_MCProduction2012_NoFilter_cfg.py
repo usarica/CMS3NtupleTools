@@ -46,7 +46,7 @@ process.p                  = cms.Path(
     process.photonMaker*
     process.genMaker*
     process.muToTrigAssMaker* # must run after muonMaker
-    process.eleToTrigAssMaker # must run after electronMaker
+    process.elToTrigAssMaker # must run after electronMaker
     )
 
 
