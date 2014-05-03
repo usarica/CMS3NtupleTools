@@ -50,6 +50,19 @@ const pat::PackedGenParticle* MCUtilities::motherID(const pat::PackedGenParticle
   return mom;
 }
 
+const reco::GenParticle* MCUtilities::motherIDPacked(const pat::PackedGenParticle& gp) {
+  const pat::PackedGenParticle* momPGP = &gp;
+  const reco::GenParticle* firstMomGP = (const reco::GenParticle*) momPGP->mother(0); // link to the prunedGenParticles collection
+  if (firstMomGP != 0) {
+    const reco::GenParticle* momGP = MCUtilities::motherID(*firstMomGP); // then call the usual function
+    return momGP;
+  }
+  else {
+    return 0;
+  }
+}
+
+
 void MCUtilities::writeDaughter( const pat::PackedGenParticle& gp, int idx, vector<int>& genps_ld_id,
 				 vector<int>& genps_ld_idx, vector<LorentzVector>& genps_ld_p4) {
   //call this for the status 3 particles to add all of their status 1 (not 2) daughters ( and grand daughters and great grand daughters ... )

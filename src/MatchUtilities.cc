@@ -110,6 +110,38 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
 
   return output;
 }
+ 
+//----------------------------------------------------------------------------------------------
+const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
+							const std::vector<pat::PackedGenParticle>* genParticles, 
+							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
+
+  const pat::PackedGenParticle* output = 0;
+  double dRmin = 0.2;
+  unsigned int i = 0;
+  genidx = -9999;
+  
+  std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( itPart->status() != status ) continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+      continue;
+
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
+  
+  }//END loop over genParticles
+
+  return output;
+}
 
 //----------------------------------------------------------------------------------------------
 const reco::Candidate* MatchUtilities::matchGenToCand(const reco::GenJet& genJet,

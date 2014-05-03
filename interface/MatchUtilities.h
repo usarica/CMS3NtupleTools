@@ -27,6 +27,7 @@
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 #include <Math/VectorUtil.h>
 
@@ -42,6 +43,8 @@ public:
   static const reco::GenParticle* matchCandToGen(const reco::Track&, const std::vector<reco::GenParticle>* genParticles, 
 						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
   static const reco::GenParticle* matchCandToGen(const LorentzVector& candp4, const std::vector<reco::GenParticle>* genParticles, 
+						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
+  static const pat::PackedGenParticle* matchCandToGen(const LorentzVector& candp4, const std::vector<pat::PackedGenParticle>* genParticles, 
 						 int& genidx, int status, const std::vector<int> v_PIDstoExclude = std::vector<int>());
   static const reco::GenJet* matchCandToGenJet(const reco::Candidate& jet,  const std::vector<reco::GenJet>* genJets);
   static const reco::GenJet* matchCandToGenJet(const LorentzVector& genJetp4, 

@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     #GenJets Input Tag 
-    genJetsInputTag = cms.InputTag("cms2antikt5PFGenJets"),
+    genJetsInputTag = cms.InputTag("slimmedGenJets"),
     #electrons InputTag
     electronsInputTag = cms.InputTag("electronMaker", "elsp4"),
     #phtons Input Tag
@@ -14,7 +14,8 @@ candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     #muons Input Tag
     muonsInputTag = cms.InputTag("muonMaker","musp4"),
     # MC particles
-    genParticlesInputTag = cms.InputTag("genParticles"),
+    genParticlesInputTagPacked = cms.InputTag("packedGenParticles"),
+    genParticlesInputTagPruned = cms.InputTag("prunedGenParticles"),
     #jets Input Tag
     tracksInputTag = cms.InputTag("trackMaker", "trkstrkp4"),
     #PIDs of particles to not match to
