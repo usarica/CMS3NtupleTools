@@ -391,6 +391,16 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
   produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
 
+
+  //////////////////////
+  // genMatch miniAOD //
+  //////////////////////
+
+  produces<vector<int>           >("musmcpatMatchid"            	).setBranchAlias("mus_mc_patMatch_id"          		); 
+  produces<vector<LorentzVector> >("musmcpatMatchp4"            	).setBranchAlias("mus_mc_patMatch_p4"          		);
+  produces<vector<float>         >("musmcpatMatchdr"            	).setBranchAlias("mus_mc_patMatch_dr"                  	);
+
+
 } // end Constructor
 
 void MuonMaker::beginJob () {}  // method called once each job just before starting event loop
@@ -691,6 +701,13 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
 
+
+  //////////////////////
+  // genMatch miniAOD //
+  //////////////////////
+  auto_ptr<vector<int>           >       mus_mc_patMatch_id          (new vector<int>          );
+  auto_ptr<vector<LorentzVector> >       mus_mc_patMatch_p4          (new vector<LorentzVector>);
+  auto_ptr<vector<float>         >       mus_mc_patMatch_dr          (new vector<float>        );
 
 
 ////////////////////////////
@@ -1250,6 +1267,26 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_ip3d         -> push_back( muon->dB(pat::Muon::PV3D) ); 
     vector_mus_ip3derr      -> push_back( muon->edB(pat::Muon::PV3D) );
 
+    //////////////////////
+    // genMatch miniAOD //
+    //////////////////////
+    
+    LorentzVector mc_p4(0,0,0,0);	 
+    const reco::GenParticle * gen = muon->genParticle();
+    if (gen != 0) {
+      mc_p4 = gen->p4();
+      mus_mc_patMatch_id      ->push_back( gen->pdgId()  );
+      mus_mc_patMatch_p4      ->push_back( mc_p4         );
+      mus_mc_patMatch_dr      ->push_back( ROOT::Math::VectorUtil::DeltaR(gen->p4(), muon->p4())  );
+    }
+    else {
+      mus_mc_patMatch_id      ->push_back( -999   );
+      mus_mc_patMatch_p4      ->push_back( mc_p4  );
+      mus_mc_patMatch_dr      ->push_back( -999.  );
+    }
+
+
+
     muonIndex++;
 
   } // end loop on muons
@@ -1546,6 +1583,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
   iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
+
+  // genParticle matching from miniAOD
+  iEvent.put( mus_mc_patMatch_id          		,"musmcpatMatchid"          	);
+  iEvent.put( mus_mc_patMatch_p4           		,"musmcpatMatchp4"          	);
+  iEvent.put( mus_mc_patMatch_dr          		,"musmcpatMatchdr"          	);
 
 
 } //
