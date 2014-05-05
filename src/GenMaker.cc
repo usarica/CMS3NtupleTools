@@ -51,7 +51,7 @@ using namespace std;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
+  //genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
@@ -98,7 +98,7 @@ void GenMaker::endJob()
 
 void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
-     edm::Handle<GenRunInfoProduct> genRunInfo;
+     //edm::Handle<GenRunInfoProduct> genRunInfo;
      //bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);
  
 //This code block causes the following error:  "::getByLabel: An attempt was made to read a Run product before endRun() was called."
@@ -145,7 +145,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   // get MC particle collection
-  edm::Handle<pat::PackedGenParticleCollection> genpsHandle;
+  edm::Handle<reco::GenParticleCollection> genpsHandle;
   iEvent.getByLabel(genParticlesInputTag_, genpsHandle);
 
   if( !genpsHandle.isValid() ) {
@@ -155,7 +155,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     return;
   }
 
-  const vector<pat::PackedGenParticle>* genps_coll = genpsHandle.product();
+  const vector<reco::GenParticle>* genps_coll = genpsHandle.product();
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -205,7 +205,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
 
-  for(vector<pat::PackedGenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
+  for(vector<reco::GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
 
     int id = genps_it->pdgId();
     
@@ -224,10 +224,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				 genps_it->p4().z(),
 				 genps_it->p4().e() );
     }
-	else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
-			 find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) == vmetPIDs_.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
-	  sumEt += genps_it->p4().pt();
-	}
+    else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
+         find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) == vmetPIDs_.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
+      sumEt += genps_it->p4().pt();
+    }
   
     if( ntupleOnlyStatus3_ && (genps_it->status() !=3) ) continue;
     
@@ -240,8 +240,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       v_temp_id.clear();
       v_temp_idx.clear();
       v_temp_p4.clear();
-      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ) 
-	MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
+      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ){ 
+        MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
+      }
       genps_lepdaughter_id ->push_back(v_temp_id  );
       genps_lepdaughter_idx->push_back(v_temp_idx );
       genps_lepdaughter_p4 ->push_back(v_temp_p4  );

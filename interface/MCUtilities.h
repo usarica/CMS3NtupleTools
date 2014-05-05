@@ -32,10 +32,9 @@ public:
   ~MCUtilities();
 
   static const reco::GenParticle* motherID(const reco::GenParticle& gp); // Find the GenParticle mother of a GenParticle
-  static const pat::PackedGenParticle* motherID(const pat::PackedGenParticle& gp); //overload this method for now 
   static const reco::GenParticle* motherIDPacked(const pat::PackedGenParticle& gp); // Find the GenParticle mother of a PackedGenParticle. Return "0" if nothing is found.
 
-  static void writeDaughter(const pat::PackedGenParticle& gp, int idx, std::vector<int>& genps_ld_id,
+  static void writeDaughter(const reco::GenParticle& gp, int idx, std::vector<int>& genps_ld_id,
 			    std::vector<int>& genps_ld_idx, std::vector<LorentzVector>& genps_ld_p4 );
 
 private:

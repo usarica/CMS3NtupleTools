@@ -31,25 +31,6 @@ const reco::GenParticle* MCUtilities::motherID(const reco::GenParticle& gp) {
   return mom;
 }
 
-const pat::PackedGenParticle* MCUtilities::motherID(const pat::PackedGenParticle& gp) {
-  //extract motherid from a GenParticle by walking on the left side of the mother graph
-  //inlining it here to avoid cyclic depce
-    
-  //yuck; this is all because mother access in the candidate is not virtual
-  const pat::PackedGenParticle* mom = &gp;
-  while( mom->numberOfMothers() > 0 ) {
-    for(uint j = 0; j < mom->numberOfMothers(); ++j) {
-
-      mom = dynamic_cast<const pat::PackedGenParticle*>( mom->mother(j) );
-
-      if( mom->pdgId()!=gp.pdgId() )
-	return mom;
-    }
-  }
-
-  return mom;
-}
-
 const reco::GenParticle* MCUtilities::motherIDPacked(const pat::PackedGenParticle& gp) {
   const pat::PackedGenParticle* momPGP = &gp;
   const reco::GenParticle* firstMomGP = (const reco::GenParticle*) momPGP->mother(0); // link to the prunedGenParticles collection
@@ -63,7 +44,7 @@ const reco::GenParticle* MCUtilities::motherIDPacked(const pat::PackedGenParticl
 }
 
 
-void MCUtilities::writeDaughter( const pat::PackedGenParticle& gp, int idx, vector<int>& genps_ld_id,
+void MCUtilities::writeDaughter( const reco::GenParticle& gp, int idx, vector<int>& genps_ld_id,
 				 vector<int>& genps_ld_idx, vector<LorentzVector>& genps_ld_p4) {
   //call this for the status 3 particles to add all of their status 1 (not 2) daughters ( and grand daughters and great grand daughters ... )
 
@@ -79,7 +60,7 @@ void MCUtilities::writeDaughter( const pat::PackedGenParticle& gp, int idx, vect
 					     gp.daughter(i)->p4().e() ) );
     }
     else { 
-      const pat::PackedGenParticle* dau = dynamic_cast<const pat::PackedGenParticle*>( gp.daughter(i) );
+      const reco::GenParticle* dau = dynamic_cast<const reco::GenParticle*>( gp.daughter(i) );
       MCUtilities::writeDaughter( *dau, idx, genps_ld_id, genps_ld_idx, genps_ld_p4 );
     }
   }
