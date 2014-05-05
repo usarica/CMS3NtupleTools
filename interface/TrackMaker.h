@@ -58,6 +58,7 @@ private:
   float ptMin_;
   int   nHits_;
   std::string aliasprefix_;
+  std::string branchprefix_;
 };
 
 #endif
