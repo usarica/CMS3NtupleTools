@@ -252,11 +252,16 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("elslostHits"      ).setBranchAlias("els_lostHits"       ); //number of lost hits in fit
     produces<vector<float> >     ("elsd0"            ).setBranchAlias("els_d0"             );
     produces<vector<float> >     ("elsz0"            ).setBranchAlias("els_z0"             );
+    produces<vector<float> >     ("elsdxyPV"         ).setBranchAlias("els_dxyPV"          );
+    produces<vector<float> >     ("elsdzPV"          ).setBranchAlias("els_dzPV"           );
     produces<vector<float> >     ("elsd0Err"         ).setBranchAlias("els_d0Err"          );
     produces<vector<float> >     ("elsz0Err"         ).setBranchAlias("els_z0Err"          );
     produces<vector<float> >     ("elsd0corr"        ).setBranchAlias("els_d0corr"         );
+    produces<vector<float> >     ("elsd0corrPhi"     ).setBranchAlias("els_d0corrPhi"      );
+    produces<vector<float> >     ("elsd0phiCov"      ).setBranchAlias("els_d0phiCov"       );
     produces<vector<float> >     ("elsz0corr"        ).setBranchAlias("els_z0corr"         );
     produces<vector<float> >     ("elsptErr"         ).setBranchAlias("els_ptErr"          );
+    produces<vector<float> >     ("elsptErrGsf"      ).setBranchAlias("els_ptErrGsf"       );
     produces<vector<float> >     ("elsetaErr"        ).setBranchAlias("els_etaErr"         );
     produces<vector<float> >     ("elsphiErr"        ).setBranchAlias("els_phiErr"         );
     produces<vector<int> >       ("elsgsftrkidx"     ).setBranchAlias("els_gsftrkidx"      );
@@ -275,6 +280,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // Vertex
     //
     produces<vector<LorentzVector> >  ("elsvertexp4").setBranchAlias("els_vertex_p4");
+    produces<vector<LorentzVector> >  ("elstrkvertexp4").setBranchAlias("els_trk_vertex_p4");
 
     //Hit Pattern information
     //
@@ -282,6 +288,9 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<LorentzVector> >  ("elsouterposition"  ).setBranchAlias("els_outer_position"  );
     produces<vector<int> >            ("elsvalidpixelhits" ).setBranchAlias("els_valid_pixelhits" );
     produces<vector<int> >            ("elslostpixelhits"  ).setBranchAlias("els_lost_pixelhits"  );
+    produces<vector<int> >            ("elsnlayers"        ).setBranchAlias("els_nlayers"         );
+    produces<vector<int> >            ("elsnlayers3D"      ).setBranchAlias("els_nlayers3D"       );
+    produces<vector<int> >            ("elsnlayersLost"    ).setBranchAlias("els_nlayersLost"     );
     produces<vector<int> >            ("elslayer1sizerphi" ).setBranchAlias("els_layer1_sizerphi" ); 
     produces<vector<int> >            ("elslayer1sizerz"   ).setBranchAlias("els_layer1_sizerz"   ); 
     produces<vector<float> >          ("elslayer1charge"   ).setBranchAlias("els_layer1_charge"   ); 
@@ -519,11 +528,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int> >   els_lostHits   (new vector<int>   );
     auto_ptr<vector<float> > els_d0         (new vector<float> );
     auto_ptr<vector<float> > els_z0         (new vector<float> );
+    auto_ptr<vector<float> > els_dxyPV      (new vector<float> );
+    auto_ptr<vector<float> > els_dzPV       (new vector<float> );
     auto_ptr<vector<float> > els_d0Err      (new vector<float> );
     auto_ptr<vector<float> > els_z0Err      (new vector<float> );
     auto_ptr<vector<float> > els_d0corr     (new vector<float> );
+    auto_ptr<vector<float> > els_d0corrPhi  (new vector<float> );
+    auto_ptr<vector<float> > els_d0phiCov   (new vector<float> );
     auto_ptr<vector<float> > els_z0corr     (new vector<float> );
     auto_ptr<vector<float> > els_ptErr      (new vector<float> );
+    auto_ptr<vector<float> > els_ptErrGsf   (new vector<float> );
     auto_ptr<vector<float> > els_etaErr     (new vector<float> );
     auto_ptr<vector<float> > els_phiErr     (new vector<float> );
     auto_ptr<vector<int>   > els_gsftrkidx  (new vector<int>   );
@@ -540,6 +554,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex
     //
     auto_ptr<vector<LorentzVector> > els_vertex_p4 (new vector<LorentzVector>);
+    auto_ptr<vector<LorentzVector> > els_trk_vertex_p4 (new vector<LorentzVector>);
 
     //HitPattern information
     //
@@ -547,6 +562,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<LorentzVector> >          els_outer_position       (new vector<LorentzVector> );
     auto_ptr<vector<int> >                    els_valid_pixelhits      (new vector<int>           ); 
     auto_ptr<vector<int> >                    els_lost_pixelhits       (new vector<int>           ); 
+    auto_ptr<vector<int> >                    els_nlayers              (new vector<int>           ); 
+    auto_ptr<vector<int> >                    els_nlayers3D            (new vector<int>           ); 
+    auto_ptr<vector<int> >                    els_nlayersLost          (new vector<int>           ); 
     auto_ptr<vector<int> >                    els_layer1_sizerphi      (new vector<int>           ); 
     auto_ptr<vector<int> >                    els_layer1_sizerz        (new vector<int>           ); 
     auto_ptr<vector<float> >                  els_layer1_charge        (new vector<float>         );
@@ -864,6 +882,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_p4In               ->push_back( p4In                                            );
         els_p4Out              ->push_back( p4Out                                           );
         els_vertex_p4          ->push_back( LorentzVector(el->vx(), el->vy(), el->vz(), 0.) );
+        els_trk_vertex_p4      ->push_back( LorentzVector(el_track->vx(), el_track->vy(), el_track->vz(), 0.) );
 
 
         ///////////////
@@ -1098,6 +1117,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_d0Err                 ->push_back( el_track->d0Error()                       );
         els_z0Err                 ->push_back( el_track->dzError()                       );
         els_ptErr                 ->push_back( trkpterr                                  );
+        els_ptErrGsf              ->push_back( el_track->ptError()                       );
         els_etaErr                ->push_back( el_track->etaError()                      );
         els_phiErr                ->push_back( el_track->phiError()                      );  
         els_gsftrkidx             ->push_back( -9999.                                    );
@@ -1110,6 +1130,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_z0                    ->push_back( el_track->dz()                            );
         els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
         els_z0corr                ->push_back( el_track->dz(beamSpot)                    );
+	float d0corr = -1*(el_track->dxy(beamSpot));
+	float corrd0phi = atan2( (-1 * d0corr * sin( el_track->phi() )), d0corr * cos( el_track->phi() ) );  
+        els_d0corrPhi             ->push_back( corrd0phi                                 );
+        els_d0phiCov              ->push_back( -1.* el_track->covariance(TrackBase::i_phi, TrackBase::i_dxy));
+	if (firstGoodVertex!=vertexCollection->end()) {
+	  els_dxyPV                 ->push_back( el_track->dxy( firstGoodVertex->position() )  );
+	  els_dzPV                  ->push_back( el_track->dz(  firstGoodVertex->position() )  );
+	}
+	else {
+	  els_dxyPV ->push_back( -999. );
+	  els_dzPV  ->push_back( -999. );
+	}
 
         /////////
         // CTF //
@@ -1178,6 +1210,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_exp_outerlayers -> push_back(p_outer.numberOfHits());
         els_valid_pixelhits -> push_back(pattern.numberOfValidPixelHits());
         els_lost_pixelhits  -> push_back(pattern.numberOfLostPixelHits());
+	els_nlayers         -> push_back(pattern.trackerLayersWithMeasurement());
+	els_nlayers3D       -> push_back(pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
+	els_nlayersLost     -> push_back(pattern.trackerLayersWithoutMeasurement());
 
         if( el_track->extra().isAvailable() ) {
 
@@ -1526,13 +1561,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     iEvent.put(els_d0         , "elsd0"        );
     iEvent.put(els_z0         , "elsz0"        );
+    iEvent.put(els_dxyPV      , "elsdxyPV"    );
+    iEvent.put(els_dzPV       , "elsdzPV"     );
     iEvent.put(els_d0corr     , "elsd0corr"    );
+    iEvent.put(els_d0corrPhi  , "elsd0corrPhi" );
+    iEvent.put(els_d0phiCov   , "elsd0phiCov"  );
     iEvent.put(els_z0corr     , "elsz0corr"    );
     iEvent.put(els_chi2       , "elschi2"      );
     iEvent.put(els_ndof       , "elsndof"      );
     iEvent.put(els_d0Err      , "elsd0Err"     );
     iEvent.put(els_z0Err      , "elsz0Err"     );
     iEvent.put(els_ptErr      , "elsptErr"     );
+    iEvent.put(els_ptErrGsf   , "elsptErrGsf"  );
     iEvent.put(els_etaErr     , "elsetaErr"    );
     iEvent.put(els_phiErr     , "elsphiErr"    );
     iEvent.put(els_gsftrkidx  , "elsgsftrkidx" );
@@ -1610,6 +1650,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex
     //
     iEvent.put(els_vertex_p4, "elsvertexp4");
+    iEvent.put(els_trk_vertex_p4, "elstrkvertexp4");
 
     // Isolation
     //
@@ -1658,6 +1699,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_outer_position  , "elsouterposition"  );
     iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
     iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
+    iEvent.put(els_nlayers         , "elsnlayers"        );
+    iEvent.put(els_nlayers3D       , "elsnlayers3D"      );
+    iEvent.put(els_nlayersLost     , "elsnlayersLost"    );
     iEvent.put(els_layer1_layer    , "elslayer1layer"    );
     iEvent.put(els_layer1_sizerphi , "elslayer1sizerphi" );
     iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
