@@ -285,6 +285,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "chi2"                      ).setBranchAlias( aliasprefix_ + "_chi2"                ); // chi2 of the silicon tracker fit      
   produces<vector<float> >          ( branchprefix_ + "ndof"                      ).setBranchAlias( aliasprefix_ + "_ndof"                ); // number of degrees of freedom of the si tracker fit    
   produces<vector<int> >            ( branchprefix_ + "validHits"                 ).setBranchAlias( aliasprefix_ + "_validHits"           ); // number of used hits in the sitracker fit      
+  produces<vector<int> >            ( branchprefix_ + "validPixelHits"            ).setBranchAlias( aliasprefix_ + "_validPixelHits"      );
   produces<vector<int> >            ( branchprefix_ + "lostHits"                  ).setBranchAlias( aliasprefix_ + "_lostHits"            ); // number of lost hits in the sitracker fit      
   produces<vector<float> >          ( branchprefix_ + "d0Err"                     ).setBranchAlias( aliasprefix_ + "_d0Err"               ); // error on the impact parameter, si track fit      
   produces<vector<float> >          ( branchprefix_ + "z0Err"                     ).setBranchAlias( aliasprefix_ + "_z0Err"               ); // error on z position of the point of closest approach, si track fit  
@@ -294,6 +295,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "trkcharge"                 ).setBranchAlias( aliasprefix_ + "_trk_charge"          ); // si track charge
   produces<vector<float> >          ( branchprefix_ + "qoverp"                    ).setBranchAlias( aliasprefix_ + "_qoverp"              ); // si track qoverp
   produces<vector<float> >          ( branchprefix_ + "qoverpError"               ).setBranchAlias( aliasprefix_ + "_qoverpError"         ); // si track qoverp error
+  produces<vector<int> >            ( branchprefix_ + "nlayers"                   ).setBranchAlias( aliasprefix_ + "_nlayers"             ); 
 /*
 
   produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"         );
@@ -596,6 +598,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_chi2                ( new vector<float>          );      
   auto_ptr<vector<float> >         vector_mus_ndof                ( new vector<float>          );      
   auto_ptr<vector<int> >           vector_mus_validHits           ( new vector<int>            );        
+  auto_ptr<vector<int> >           vector_mus_validPixelHits      ( new vector<int>            );        
   auto_ptr<vector<int> >           vector_mus_lostHits            ( new vector<int>            );        
   auto_ptr<vector<float> >         vector_mus_d0Err               ( new vector<float>          );      
   auto_ptr<vector<float> >         vector_mus_z0Err               ( new vector<float>          );      
@@ -605,6 +608,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_trk_charge          ( new vector<int>            );   
   auto_ptr<vector<float> >         vector_mus_qoverp              ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_qoverpError         ( new vector<float>          );
+  auto_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );        
 /*
 
   auto_ptr<vector<LorentzVector> > vector_mus_fittpfms_p4                 ( new vector<LorentzVector> );
@@ -1031,6 +1035,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_chi2               -> push_back( siTrack.isNonnull()     ? siTrack->chi2()                                      : -9999.        );
     vector_mus_ndof               -> push_back( siTrack.isNonnull()     ? siTrack->ndof()                                      : -9999.        );
     vector_mus_validHits          -> push_back( siTrack.isNonnull()     ? siTrack->numberOfValidHits()                         : -9999         );
+    vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       : -9999         );
     vector_mus_lostHits           -> push_back( siTrack.isNonnull()     ? siTrack->numberOfLostHits()                          : -9999         );
     vector_mus_d0Err              -> push_back( siTrack.isNonnull()     ? siTrack->d0Error()                                   :  -9999.       );
     vector_mus_z0Err              -> push_back( siTrack.isNonnull()     ? siTrack->dzError()                                   :  -9999.       );
@@ -1040,6 +1045,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_trk_charge         -> push_back( siTrack.isNonnull()     ? siTrack->charge()                                    :  -9999        );
     vector_mus_qoverp             -> push_back( siTrack.isNonnull()     ? siTrack->qoverp()                                    :  -9999.       );
     vector_mus_qoverpError        -> push_back( siTrack.isNonnull()     ? siTrack->qoverpError()                               :  -9999.       );
+    vector_mus_nlayers            -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
 /*
 
     //   
@@ -1480,6 +1486,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_chi2               , branchprefix_ + "chi2"               );
   iEvent.put( vector_mus_ndof               , branchprefix_ + "ndof"               );
   iEvent.put( vector_mus_validHits          , branchprefix_ + "validHits"          );
+  iEvent.put( vector_mus_validPixelHits     , branchprefix_ + "validPixelHits"     );
   iEvent.put( vector_mus_lostHits           , branchprefix_ + "lostHits"           );
   iEvent.put( vector_mus_d0Err              , branchprefix_ + "d0Err"              );
   iEvent.put( vector_mus_z0Err              , branchprefix_ + "z0Err"              );
@@ -1489,6 +1496,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_trk_charge         , branchprefix_ + "trkcharge"          );
   iEvent.put( vector_mus_qoverp             , branchprefix_ + "qoverp"             );
   iEvent.put( vector_mus_qoverpError        , branchprefix_ + "qoverpError"        );
+  iEvent.put( vector_mus_nlayers            , branchprefix_ + "nlayers"            );
 /*
           
   iEvent.put( vector_mus_fittpfms_p4                  , branchprefix_ + "fittpfmsp4"               );
