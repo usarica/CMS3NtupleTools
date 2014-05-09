@@ -45,11 +45,18 @@ process.p                  = cms.Path(
     process.pftauMaker*
     process.photonMaker*
     process.genMaker*
+    process.genJetMaker*
     process.muToTrigAssMaker*  # requires muonMaker
     process.elToTrigAssMaker*  # requires electronMaker
     process.candToGenAssMaker* # requires electronMaker, muonMaker, pfJetMaker, photonMaker
     process.pdfinfoMaker*
     process.puSummaryInfoMaker
+
+    # Optional (filters)
+    #process.dilepGenFilter*    # requires genMaker    
+
+    # Optional (requires LHEEventProduct, need a SUSY sample to test)
+    #process.sParmMakerSequence
     )
 
 
