@@ -119,7 +119,22 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "stavalidHits"              ).setBranchAlias( aliasprefix_ + "_sta_validHits"     ); // number of valid hits of the STA muon fit 
   produces<vector<LorentzVector> >  ( branchprefix_ + "stap4"                     ).setBranchAlias( aliasprefix_ + "_sta_p4"            ); // 
   produces<vector<LorentzVector> >  ( branchprefix_ + "stavertexp4"               ).setBranchAlias( aliasprefix_ + "_sta_vertex_p4"     );
-
+  produces<vector<float> >          ( branchprefix_ + "stad0corrPhi"              ).setBranchAlias( aliasprefix_ + "_sta_d0corrPhi"     );
+  produces<vector<float> >          ( branchprefix_ + "stad0phiCov"               ).setBranchAlias( aliasprefix_ + "_sta_d0phiCov"      );
+  produces<vector<int> >            ( branchprefix_ + "staqualityMask"            ).setBranchAlias( aliasprefix_ + "_sta_qualityMask"   );
+  produces<vector<int> >            ( branchprefix_ + "staalgo"                   ).setBranchAlias( aliasprefix_ + "_sta_algo"          );
+  produces<vector<int> >            ( branchprefix_ + "stanlayers"                ).setBranchAlias( aliasprefix_ + "_sta_nlayers"       );
+  produces<vector<int> >            ( branchprefix_ + "stanlayers3D"              ).setBranchAlias( aliasprefix_ + "_sta_nlayers3D"     );
+  produces<vector<int> >            ( branchprefix_ + "stanlayersLost"            ).setBranchAlias( aliasprefix_ + "_sta_nlayersLost"   );
+  produces<vector<int> >            ( branchprefix_ + "stavalidPixelHits"         ).setBranchAlias( aliasprefix_ + "_sta_validPixelHits");
+  produces<vector<int> >            ( branchprefix_ + "stalostPixelHits"          ).setBranchAlias( aliasprefix_ + "_sta_lostPixelHits" );
+  produces<vector<int> >            ( branchprefix_ + "staexpinnerlayer"          ).setBranchAlias( aliasprefix_ + "_sta_exp_innerlayer");
+  produces<vector<int> >            ( branchprefix_ + "staexpouterlayer"          ).setBranchAlias( aliasprefix_ + "_sta_exp_outerlayer");
+  produces<vector<int> >            ( branchprefix_ + "stalostHits"               ).setBranchAlias( aliasprefix_ + "_sta_lostHits"      );
+  produces<vector<int> >            ( branchprefix_ + "staptErr"                  ).setBranchAlias( aliasprefix_ + "_sta_ptErr"         );
+  produces<vector<int> >            ( branchprefix_ + "staetaErr"                 ).setBranchAlias( aliasprefix_ + "_sta_etaErr"        );
+  produces<vector<int> >            ( branchprefix_ + "staphiErr"                 ).setBranchAlias( aliasprefix_ + "_sta_phiErr"        );
+  produces<vector<int> >            ( branchprefix_ + "statrkcharge"              ).setBranchAlias( aliasprefix_ + "_sta_trk_charge"    );
 
   ////////////
   // Global //
@@ -141,7 +156,22 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitp4"                    ).setBranchAlias( aliasprefix_ + "_gfit_p4"            ); // global fit p4, if global fit exists
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitvertexp4"              ).setBranchAlias( aliasprefix_ + "_gfit_vertex_p4"     );
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitouterPosp4"            ).setBranchAlias( aliasprefix_ + "_gfit_outerPos_p4"   );
-
+  produces<vector<float> >          ( branchprefix_ + "gfitd0corrPhi"             ).setBranchAlias( aliasprefix_ + "_gfit_d0corrPhi"     );
+  produces<vector<float> >          ( branchprefix_ + "gfitd0phiCov"              ).setBranchAlias( aliasprefix_ + "_gfit_d0phiCov"      );
+  produces<vector<int> >            ( branchprefix_ + "gfitqualityMask"           ).setBranchAlias( aliasprefix_ + "_gfit_qualityMask"   );
+  produces<vector<int> >            ( branchprefix_ + "gfitalgo"                  ).setBranchAlias( aliasprefix_ + "_gfit_algo"          );
+  produces<vector<int> >            ( branchprefix_ + "gfitnlayers"               ).setBranchAlias( aliasprefix_ + "_gfit_nlayers"       );
+  produces<vector<int> >            ( branchprefix_ + "gfitnlayers3D"             ).setBranchAlias( aliasprefix_ + "_gfit_nlayers3D"     );
+  produces<vector<int> >            ( branchprefix_ + "gfitnlayersLost"           ).setBranchAlias( aliasprefix_ + "_gfit_nlayersLost"   );
+  produces<vector<int> >            ( branchprefix_ + "gfitvalidPixelHits"        ).setBranchAlias( aliasprefix_ + "_gfit_validPixelHits");
+  produces<vector<int> >            ( branchprefix_ + "gfitlostPixelHits"         ).setBranchAlias( aliasprefix_ + "_gfit_lostPixelHits" );
+  produces<vector<int> >            ( branchprefix_ + "gfitexpinnerlayer"         ).setBranchAlias( aliasprefix_ + "_gfit_exp_innerlayer");
+  produces<vector<int> >            ( branchprefix_ + "gfitexpouterlayer"         ).setBranchAlias( aliasprefix_ + "_gfit_exp_outerlayer");
+  produces<vector<int> >            ( branchprefix_ + "gfitlostHits"              ).setBranchAlias( aliasprefix_ + "_gfit_lostHits"      );
+  produces<vector<int> >            ( branchprefix_ + "gfitptErr"                 ).setBranchAlias( aliasprefix_ + "_gfit_ptErr"         );
+  produces<vector<int> >            ( branchprefix_ + "gfitetaErr"                ).setBranchAlias( aliasprefix_ + "_gfit_etaErr"        );
+  produces<vector<int> >            ( branchprefix_ + "gfitphiErr"                ).setBranchAlias( aliasprefix_ + "_gfit_phiErr"        );
+  produces<vector<int> >            ( branchprefix_ + "gfittrkcharge"             ).setBranchAlias( aliasprefix_ + "_gfit_trk_charge"    );
 
   /////////////
   // Quality //
@@ -285,7 +315,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "chi2"                      ).setBranchAlias( aliasprefix_ + "_chi2"                ); // chi2 of the silicon tracker fit      
   produces<vector<float> >          ( branchprefix_ + "ndof"                      ).setBranchAlias( aliasprefix_ + "_ndof"                ); // number of degrees of freedom of the si tracker fit    
   produces<vector<int> >            ( branchprefix_ + "validHits"                 ).setBranchAlias( aliasprefix_ + "_validHits"           ); // number of used hits in the sitracker fit      
-  produces<vector<int> >            ( branchprefix_ + "validPixelHits"            ).setBranchAlias( aliasprefix_ + "_validPixelHits"      );
   produces<vector<int> >            ( branchprefix_ + "lostHits"                  ).setBranchAlias( aliasprefix_ + "_lostHits"            ); // number of lost hits in the sitracker fit      
   produces<vector<float> >          ( branchprefix_ + "d0Err"                     ).setBranchAlias( aliasprefix_ + "_d0Err"               ); // error on the impact parameter, si track fit      
   produces<vector<float> >          ( branchprefix_ + "z0Err"                     ).setBranchAlias( aliasprefix_ + "_z0Err"               ); // error on z position of the point of closest approach, si track fit  
@@ -295,7 +324,22 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "trkcharge"                 ).setBranchAlias( aliasprefix_ + "_trk_charge"          ); // si track charge
   produces<vector<float> >          ( branchprefix_ + "qoverp"                    ).setBranchAlias( aliasprefix_ + "_qoverp"              ); // si track qoverp
   produces<vector<float> >          ( branchprefix_ + "qoverpError"               ).setBranchAlias( aliasprefix_ + "_qoverpError"         ); // si track qoverp error
-  produces<vector<int> >            ( branchprefix_ + "nlayers"                   ).setBranchAlias( aliasprefix_ + "_nlayers"             ); 
+  produces<vector<float> >          ( branchprefix_ + "d0corrPhi"      		  ).setBranchAlias( aliasprefix_ + "_d0corrPhi"      	  );
+  produces<vector<float> >          ( branchprefix_ + "d0phiCov"       		  ).setBranchAlias( aliasprefix_ + "_d0phiCov"       	  );
+  produces<vector<int> >            ( branchprefix_ + "qualityMask"    		  ).setBranchAlias( aliasprefix_ + "_qualityMask"    	  );
+  produces<vector<int> >            ( branchprefix_ + "algo"           		  ).setBranchAlias( aliasprefix_ + "_algo"           	  );
+  produces<vector<int> >            ( branchprefix_ + "nlayers"        		  ).setBranchAlias( aliasprefix_ + "_nlayers"        	  );
+  produces<vector<int> >            ( branchprefix_ + "nlayers3D"      		  ).setBranchAlias( aliasprefix_ + "_nlayers3D"      	  );
+  produces<vector<int> >            ( branchprefix_ + "nlayersLost"    		  ).setBranchAlias( aliasprefix_ + "_nlayersLost"    	  );
+  produces<vector<int> >            ( branchprefix_ + "validPixelHits" 		  ).setBranchAlias( aliasprefix_ + "_validPixelHits" 	  );
+  produces<vector<int> >            ( branchprefix_ + "lostPixelHits"  		  ).setBranchAlias( aliasprefix_ + "_lostPixelHits"  	  );
+  produces<vector<int> >            ( branchprefix_ + "expinnerlayers"		  ).setBranchAlias( aliasprefix_ + "_exp_innerlayers"	  );
+  produces<vector<int> >            ( branchprefix_ + "expouterlayers"            ).setBranchAlias( aliasprefix_ + "_exp_outerlayers"     );
+  produces<vector<float> >          ( branchprefix_ + "dxyPV"            	  ).setBranchAlias( aliasprefix_ + "_dxyPV"            	  );
+  produces<vector<float> >          ( branchprefix_ + "dzPV"             	  ).setBranchAlias( aliasprefix_ + "_dzPV"             	  );
+  produces<vector<float> >          ( branchprefix_ + "bestdxyPV"       	  ).setBranchAlias( aliasprefix_ + "_best_dxyPV"       	  );
+  produces<vector<float> >          ( branchprefix_ + "bestdzPV"        	  ).setBranchAlias( aliasprefix_ + "_best_dzPV"        	  );
+
 /*
 
   produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"         );
@@ -432,7 +476,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_sta_validHits               ( new vector<int>     );
   auto_ptr<vector<LorentzVector> > vector_mus_sta_p4                      ( new vector<LorentzVector>  );
   auto_ptr<vector<LorentzVector> > vector_mus_sta_vertex_p4               ( new vector<LorentzVector> );
-
+  auto_ptr<vector<float> >         vector_mus_sta_d0corrPhi               ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_sta_d0phiCov                ( new vector<float>   );
+  auto_ptr<vector<int> >           vector_mus_sta_qualityMask             ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_algo                    ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_nlayers                 ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_nlayers3D               ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_nlayersLost             ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_validPixelHits          ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_lostPixelHits           ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_exp_innerlayers         ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_exp_outerlayers         ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_lostHits                ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_ptErr                   ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_etaErr                  ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_phiErr                  ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_sta_trk_charge              ( new vector<int>     );     
 
   ////////////  
   // Global //
@@ -454,7 +513,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_p4                     ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_vertex_p4              ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4            ( new vector<LorentzVector> );
-
+  auto_ptr<vector<float> >         vector_mus_gfit_d0corrPhi              ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_gfit_d0phiCov               ( new vector<float>         );
+  auto_ptr<vector<int> >           vector_mus_gfit_qualityMask            ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_algo                   ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_nlayers                ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_nlayers3D              ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_nlayersLost            ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_validPixelHits         ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_lostPixelHits          ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_exp_innerlayers        ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_exp_outerlayers        ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_lostHits               ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_ptErr                  ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_etaErr                 ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_phiErr                 ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_gfit_trk_charge             ( new vector<int>           );   
 
   /////////////
   // Quality //
@@ -598,7 +672,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_chi2                ( new vector<float>          );      
   auto_ptr<vector<float> >         vector_mus_ndof                ( new vector<float>          );      
   auto_ptr<vector<int> >           vector_mus_validHits           ( new vector<int>            );        
-  auto_ptr<vector<int> >           vector_mus_validPixelHits      ( new vector<int>            );        
   auto_ptr<vector<int> >           vector_mus_lostHits            ( new vector<int>            );        
   auto_ptr<vector<float> >         vector_mus_d0Err               ( new vector<float>          );      
   auto_ptr<vector<float> >         vector_mus_z0Err               ( new vector<float>          );      
@@ -608,7 +681,23 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_trk_charge          ( new vector<int>            );   
   auto_ptr<vector<float> >         vector_mus_qoverp              ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_qoverpError         ( new vector<float>          );
-  auto_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );        
+  auto_ptr<vector<float> >         vector_mus_d0corrPhi           ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_d0phiCov            ( new vector<float>          );
+  auto_ptr<vector<int> >           vector_mus_qualityMask         ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_algo                ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_nlayers3D           ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_nlayersLost         ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_validPixelHits      ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_lostPixelHits       ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_exp_innerlayers     ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_exp_outerlayers     ( new vector<int>            );
+  auto_ptr<vector<float> >         vector_mus_dxyPV               ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_dzPV      	  ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_best_dxyPV	  ( new vector<float>          );
+  auto_ptr<vector<float> >         vector_mus_best_dzPV           ( new vector<float>          );
+
+
 /*
 
   auto_ptr<vector<LorentzVector> > vector_mus_fittpfms_p4                 ( new vector<LorentzVector> );
@@ -740,14 +829,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   Handle<ValueMap<PFCandidatePtr> > pfMap;
   iEvent.getByLabel( "particleFlow"  , muonsInputTag.label(), pfMap );
-
+ */
 
   //////////////////
   // Get Vertices //
   //////////////////
 
   iEvent.getByToken( vtxToken , vertexHandle );
-
+  /*
   ///////////////////////////
   // TransientTrackBuilder //
   ///////////////////////////
@@ -793,13 +882,20 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     const TrackRef                globalTrack             = muon->globalTrack();
     const TrackRef                siTrack                 = muon->innerTrack();
     const TrackRef                staTrack                = muon->outerTrack();
+    const TrackRef                bestTrack               = muon->muonBestTrack();
     const MuonQuality             quality                 = muon->combinedQuality();
     const MuonCosmicCompatibility muonCosmicCompatibility = CosmicMap.isValid() ? (*CosmicMap)[muonRef] : MuonCosmicCompatibility(); //protection for fast sim
-    //const VertexCollection*       vertexCollection        = vertexHandle.product();
+    const VertexCollection*       vertexCollection        = vertexHandle.product();
 
     // Iterators
-    //VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
-
+    VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+    int firstGoodVertexIdx = 0;
+    for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx) {
+      if (  !vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0 ) {
+        firstGoodVertex = vtx;
+        break;
+      }
+    }
 
     /////////
     // STA //
@@ -818,6 +914,25 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_sta_validHits     -> push_back( staTrack.isNonnull()  ? staTrack->numberOfValidHits()    :  -9999         );
     vector_mus_sta_p4            -> push_back( staTrack.isNonnull()  ? LorentzVector( staTrack->px() , staTrack->py() , staTrack->pz() , staTrack->p() ) : LorentzVector(0, 0, 0, 0) );
     vector_mus_sta_vertex_p4     -> push_back( staTrack.isNonnull()  ? LorentzVector( staTrack->vx() , staTrack->vy() , staTrack->vz() ,           0.0 ) : LorentzVector(0, 0, 0, 0) );
+   // Embedding all trackMaker details
+    vector_mus_sta_d0corrPhi       -> push_back( staTrack.isNonnull()     ?  atan2( (staTrack->dxy(beamSpot) * sin( staTrack->phi() )), -1 * staTrack->dxy(beamSpot) * cos( staTrack->phi() ) ) : -9999.        );
+    vector_mus_sta_d0phiCov        -> push_back( staTrack.isNonnull()     ?  -1.* staTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
+    vector_mus_sta_qualityMask     -> push_back( staTrack.isNonnull()     ? staTrack->qualityMask()                               : -9999.        );
+    vector_mus_sta_algo            -> push_back( staTrack.isNonnull()     ? staTrack->algo()                                      : -9999.        );
+    vector_mus_sta_nlayers         -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
+    vector_mus_sta_nlayers3D       -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().pixelLayersWithMeasurement()  + staTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
+    vector_mus_sta_nlayersLost     -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_sta_validPixelHits  -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
+    vector_mus_sta_lostPixelHits   -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
+    vector_mus_sta_exp_innerlayers -> push_back( staTrack.isNonnull()     ? staTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
+    vector_mus_sta_exp_outerlayers -> push_back( staTrack.isNonnull()     ? staTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    vector_mus_sta_lostHits        -> push_back( staTrack.isNonnull()     ? staTrack->numberOfLostHits()                          :  -9999        );
+    vector_mus_sta_ptErr           -> push_back( staTrack.isNonnull()     ? staTrack->ptError()                                   :  -9999.       );
+    vector_mus_sta_etaErr          -> push_back( staTrack.isNonnull()     ? staTrack->etaError()                                  :  -9999.       );
+    vector_mus_sta_phiErr          -> push_back( staTrack.isNonnull()     ? staTrack->phiError()                                  :  -9999.       );
+    vector_mus_sta_trk_charge      -> push_back( staTrack.isNonnull()     ? staTrack->charge()                                    :  -9999        );
+
+
 
     ////////////
     // Global //
@@ -838,9 +953,28 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_gfit_validSTAHits -> push_back( globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidMuonHits()    : -9999         );
     vector_mus_gfit_validSiHits  -> push_back( globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidTrackerHits() : -9999         );
 
-    vector_mus_gfit_p4           -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->px()                , globalTrack->py()                , globalTrack->pz()                , globalTrack->p() ) : LorentzVector(     0.0,     0.0,    0.0,      0.0) );
-    vector_mus_gfit_vertex_p4    -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->vx()                , globalTrack->vy()                , globalTrack->vz()                ,              0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
+    vector_mus_gfit_p4           -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->px(), globalTrack->py(), globalTrack->pz(), globalTrack->p() ) : LorentzVector(0.0,0.0,0.0,0.0) );
+    vector_mus_gfit_vertex_p4    -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->vx(), globalTrack->vy(), globalTrack->vz(),  0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
     //vector_mus_gfit_outerPos_p4  -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->outerPosition().x() , globalTrack->outerPosition().y() , globalTrack->outerPosition().z() ,              0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
+  // Embedding all trackMaker details
+    vector_mus_gfit_d0corrPhi       -> push_back( globalTrack.isNonnull()     ?  atan2( (globalTrack->dxy(beamSpot) * sin( globalTrack->phi() )), -1 * globalTrack->dxy(beamSpot) * cos( globalTrack->phi() ) ) : -9999.        );
+    vector_mus_gfit_d0phiCov        -> push_back( globalTrack.isNonnull()     ?  -1.* globalTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
+    vector_mus_gfit_qualityMask     -> push_back( globalTrack.isNonnull()     ? globalTrack->qualityMask()                               : -9999.        );
+    vector_mus_gfit_algo            -> push_back( globalTrack.isNonnull()     ? globalTrack->algo()                                      : -9999.        );
+    vector_mus_gfit_nlayers         -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
+    vector_mus_gfit_nlayers3D       -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().pixelLayersWithMeasurement()  + globalTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
+    vector_mus_gfit_nlayersLost     -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_gfit_validPixelHits  -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
+    vector_mus_gfit_lostPixelHits   -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
+    vector_mus_gfit_exp_innerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
+    vector_mus_gfit_exp_outerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    vector_mus_gfit_lostHits        -> push_back( globalTrack.isNonnull()     ? globalTrack->numberOfLostHits()                          :  -9999        );
+    vector_mus_gfit_ptErr           -> push_back( globalTrack.isNonnull()     ? globalTrack->ptError()                                   :  -9999.       );
+    vector_mus_gfit_etaErr          -> push_back( globalTrack.isNonnull()     ? globalTrack->etaError()                                  :  -9999.       );
+    vector_mus_gfit_phiErr          -> push_back( globalTrack.isNonnull()     ? globalTrack->phiError()                                  :  -9999.       );
+    vector_mus_gfit_trk_charge      -> push_back( globalTrack.isNonnull()     ? globalTrack->charge()                                    :  -9999        );
+
+
 
     //////////////////
     // Muon Quality //
@@ -1035,7 +1169,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_chi2               -> push_back( siTrack.isNonnull()     ? siTrack->chi2()                                      : -9999.        );
     vector_mus_ndof               -> push_back( siTrack.isNonnull()     ? siTrack->ndof()                                      : -9999.        );
     vector_mus_validHits          -> push_back( siTrack.isNonnull()     ? siTrack->numberOfValidHits()                         : -9999         );
-    vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       : -9999         );
     vector_mus_lostHits           -> push_back( siTrack.isNonnull()     ? siTrack->numberOfLostHits()                          : -9999         );
     vector_mus_d0Err              -> push_back( siTrack.isNonnull()     ? siTrack->d0Error()                                   :  -9999.       );
     vector_mus_z0Err              -> push_back( siTrack.isNonnull()     ? siTrack->dzError()                                   :  -9999.       );
@@ -1045,7 +1178,33 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_trk_charge         -> push_back( siTrack.isNonnull()     ? siTrack->charge()                                    :  -9999        );
     vector_mus_qoverp             -> push_back( siTrack.isNonnull()     ? siTrack->qoverp()                                    :  -9999.       );
     vector_mus_qoverpError        -> push_back( siTrack.isNonnull()     ? siTrack->qoverpError()                               :  -9999.       );
+    // Embedding all trackMaker details
+    vector_mus_d0corrPhi          -> push_back( siTrack.isNonnull()     ?  atan2( (siTrack->dxy(beamSpot) * sin( siTrack->phi() )), -1 * siTrack->dxy(beamSpot) * cos( siTrack->phi() ) ) : -9999.        );
+    vector_mus_d0phiCov           -> push_back( siTrack.isNonnull()     ?  -1.* siTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
+    vector_mus_qualityMask        -> push_back( siTrack.isNonnull()     ? siTrack->qualityMask()                               : -9999.        );
+    vector_mus_algo               -> push_back( siTrack.isNonnull()     ? siTrack->algo       ()                               : -9999.        );
     vector_mus_nlayers            -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
+    vector_mus_nlayers3D          -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().pixelLayersWithMeasurement()  + siTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
+    vector_mus_nlayersLost        -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
+    vector_mus_lostPixelHits      -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
+    vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
+    vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    if (firstGoodVertex!=vertexCollection->end()) { 
+      vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
+      vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
+//BROKEN in miniAOD      vector_mus_best_dxyPV   ->push_back( bestTrack.isNonnull()   ? bestTrack->dxy( firstGoodVertex->position() ) : -9999.  );
+//BROKEN in miniAOD      vector_mus_best_dzPV    ->push_back( bestTrack.isNonnull()   ? bestTrack->dz(  firstGoodVertex->position() ) : -9999.  );
+      vector_mus_best_dxyPV  ->push_back( -999. );
+      vector_mus_best_dzPV   ->push_back( -999. );
+    }
+    else {
+      vector_mus_dxyPV       ->push_back( -999. );
+      vector_mus_dxyPV       ->push_back( -999. );
+      vector_mus_best_dxyPV  ->push_back( -999. );
+      vector_mus_best_dzPV   ->push_back( -999. );
+    }
+
 /*
 
     //   
@@ -1322,7 +1481,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_sta_validHits                , branchprefix_ + "stavalidHits"       );
   iEvent.put( vector_mus_sta_p4                       , branchprefix_ + "stap4"              );
   iEvent.put( vector_mus_sta_vertex_p4                , branchprefix_ + "stavertexp4"        );
-  
+  iEvent.put( vector_mus_sta_d0corrPhi                , branchprefix_ + "stad0corrPhi"       );
+  iEvent.put( vector_mus_sta_d0phiCov        	      , branchprefix_ + "stad0phiCov"        );
+  iEvent.put( vector_mus_sta_qualityMask     	      , branchprefix_ + "staqualityMask"     );
+  iEvent.put( vector_mus_sta_algo              	      , branchprefix_ + "staalgo"            );
+  iEvent.put( vector_mus_sta_nlayers         	      , branchprefix_ + "stanlayers"         );
+  iEvent.put( vector_mus_sta_nlayers3D       	      , branchprefix_ + "stanlayers3D"       );
+  iEvent.put( vector_mus_sta_nlayersLost     	      , branchprefix_ + "stanlayersLost"     );
+  iEvent.put( vector_mus_sta_validPixelHits  	      , branchprefix_ + "stavalidPixelHits"  );
+  iEvent.put( vector_mus_sta_lostPixelHits   	      , branchprefix_ + "stalostPixelHits"   );
+  iEvent.put( vector_mus_sta_exp_innerlayers 	      , branchprefix_ + "staexpinnerlayer"  );
+  iEvent.put( vector_mus_sta_exp_outerlayers 	      , branchprefix_ + "staexpouterlayer"  );
+  iEvent.put( vector_mus_sta_lostHits        	      , branchprefix_ + "stalostHits"        );
+  iEvent.put( vector_mus_sta_ptErr           	      , branchprefix_ + "staptErr"           );
+  iEvent.put( vector_mus_sta_etaErr          	      , branchprefix_ + "staetaErr"          );
+  iEvent.put( vector_mus_sta_phiErr          	      , branchprefix_ + "staphiErr"          );
+  iEvent.put( vector_mus_sta_trk_charge               , branchprefix_ + "statrkcharge"       );
 
   ////////////                                                                       
   // Global //
@@ -1344,7 +1518,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_gfit_p4                      , branchprefix_ + "gfitp4"             );
   iEvent.put( vector_mus_gfit_vertex_p4               , branchprefix_ + "gfitvertexp4"             );
   iEvent.put( vector_mus_gfit_outerPos_p4             , branchprefix_ + "gfitouterPosp4"           );
-
+  iEvent.put( vector_mus_gfit_d0corrPhi               , branchprefix_ + "gfitd0corrPhi"       );
+  iEvent.put( vector_mus_gfit_d0phiCov        	      , branchprefix_ + "gfitd0phiCov"        );
+  iEvent.put( vector_mus_gfit_qualityMask     	      , branchprefix_ + "gfitqualityMask"     );
+  iEvent.put( vector_mus_gfit_algo             	      , branchprefix_ + "gfitalgo"            );
+  iEvent.put( vector_mus_gfit_nlayers         	      , branchprefix_ + "gfitnlayers"         );
+  iEvent.put( vector_mus_gfit_nlayers3D       	      , branchprefix_ + "gfitnlayers3D"       );
+  iEvent.put( vector_mus_gfit_nlayersLost     	      , branchprefix_ + "gfitnlayersLost"     );
+  iEvent.put( vector_mus_gfit_validPixelHits  	      , branchprefix_ + "gfitvalidPixelHits"  );
+  iEvent.put( vector_mus_gfit_lostPixelHits   	      , branchprefix_ + "gfitlostPixelHits"   );
+  iEvent.put( vector_mus_gfit_exp_innerlayers 	      , branchprefix_ + "gfitexpinnerlayer"  );
+  iEvent.put( vector_mus_gfit_exp_outerlayers 	      , branchprefix_ + "gfitexpouterlayer"  );
+  iEvent.put( vector_mus_gfit_lostHits        	      , branchprefix_ + "gfitlostHits"        );
+  iEvent.put( vector_mus_gfit_ptErr           	      , branchprefix_ + "gfitptErr"           );
+  iEvent.put( vector_mus_gfit_etaErr          	      , branchprefix_ + "gfitetaErr"          );
+  iEvent.put( vector_mus_gfit_phiErr          	      , branchprefix_ + "gfitphiErr"          );
+  iEvent.put( vector_mus_gfit_trk_charge              , branchprefix_ + "gfittrkcharge"       );
 
   //////////////////
   // Muon Quality //
@@ -1486,7 +1675,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_chi2               , branchprefix_ + "chi2"               );
   iEvent.put( vector_mus_ndof               , branchprefix_ + "ndof"               );
   iEvent.put( vector_mus_validHits          , branchprefix_ + "validHits"          );
-  iEvent.put( vector_mus_validPixelHits     , branchprefix_ + "validPixelHits"     );
   iEvent.put( vector_mus_lostHits           , branchprefix_ + "lostHits"           );
   iEvent.put( vector_mus_d0Err              , branchprefix_ + "d0Err"              );
   iEvent.put( vector_mus_z0Err              , branchprefix_ + "z0Err"              );
@@ -1496,7 +1684,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_trk_charge         , branchprefix_ + "trkcharge"          );
   iEvent.put( vector_mus_qoverp             , branchprefix_ + "qoverp"             );
   iEvent.put( vector_mus_qoverpError        , branchprefix_ + "qoverpError"        );
-  iEvent.put( vector_mus_nlayers            , branchprefix_ + "nlayers"            );
+  iEvent.put( vector_mus_d0corrPhi          , branchprefix_ + "d0corrPhi"      	   );
+  iEvent.put( vector_mus_d0phiCov           , branchprefix_ + "d0phiCov"       	   );
+  iEvent.put( vector_mus_qualityMask        , branchprefix_ + "qualityMask"    	   );
+  iEvent.put( vector_mus_algo               , branchprefix_ + "algo"           	   );
+  iEvent.put( vector_mus_nlayers            , branchprefix_ + "nlayers"        	   );
+  iEvent.put( vector_mus_nlayers3D          , branchprefix_ + "nlayers3D"      	   );
+  iEvent.put( vector_mus_nlayersLost        , branchprefix_ + "nlayersLost"    	   );
+  iEvent.put( vector_mus_validPixelHits     , branchprefix_ + "validPixelHits" 	   );
+  iEvent.put( vector_mus_lostPixelHits      , branchprefix_ + "lostPixelHits"  	   );
+  iEvent.put( vector_mus_exp_innerlayers    , branchprefix_ + "expinnerlayers"	   );
+  iEvent.put( vector_mus_exp_outerlayers    , branchprefix_ + "expouterlayers"     );
+  iEvent.put( vector_mus_dxyPV              , branchprefix_ + "dxyPV"      	   );
+  iEvent.put( vector_mus_dzPV               , branchprefix_ + "dzPV"      	   );
+  iEvent.put( vector_mus_best_dxyPV         , branchprefix_ + "bestdxyPV"     	   );
+  iEvent.put( vector_mus_best_dzPV          , branchprefix_ + "bestdzPV"      	   );
+  
 /*
           
   iEvent.put( vector_mus_fittpfms_p4                  , branchprefix_ + "fittpfmsp4"               );
