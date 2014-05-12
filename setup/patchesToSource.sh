@@ -38,20 +38,35 @@ pushd .
 cd $CMSSW_BASE/src
 git init
 git config core.sparsecheckout true
-echo CommonTools/CandAlgos >> .git/info/sparse-checkout
-echo DataFormats/Candidate >> .git/info/sparse-checkout
-echo DataFormats/PatCandidates >> .git/info/sparse-checkout
-echo DataFormats/ParticleFlowCandidate >> .git/info/sparse-checkout
-echo DataFormats/TrackReco >> .git/info/sparse-checkout
-echo JetMETCorrections/Type1MET >> .git/info/sparse-checkout
-echo PhysicsTools/HepMCCandAlgos >> .git/info/sparse-checkout
-echo PhysicsTools/JetMCAlgos >> .git/info/sparse-checkout
-echo PhysicsTools/PatAlgos >> .git/info/sparse-checkout
-echo PhysicsTools/PatUtils >> .git/info/sparse-checkout
-echo RecoJets/JetProducers >> .git/info/sparse-checkout
-echo RecoMET/METAlgorithms >> .git/info/sparse-checkout
-echo DataFormats/ParticleFlowCandidate >> .git/info/sparse-checkout
+echo CommonTools/CandAlgos                    >> .git/info/sparse-checkout
+echo Configuration/Applications		      >> .git/info/sparse-checkout
+echo Configuration/EventContent		      >> .git/info/sparse-checkout
+echo Configuration/PyReleaseValidation	      >> .git/info/sparse-checkout
+echo Configuration/StandardSequences	      >> .git/info/sparse-checkout
+echo DataFormats/Candidate		      >> .git/info/sparse-checkout
+echo DataFormats/PatCandidates		      >> .git/info/sparse-checkout
+echo DataFormats/ParticleFlowCandidate	      >> .git/info/sparse-checkout
+echo DataFormats/TrackReco		      >> .git/info/sparse-checkout
+echo DataFormats/EgammaReco		      >> .git/info/sparse-checkout
+echo DataFormats/ParticleFlowCandidate	      >> .git/info/sparse-checkout
+echo DataFormats/EgammaCandidates	      >> .git/info/sparse-checkout
+echo DataFormats/BTauReco		      >> .git/info/sparse-checkout
+echo DataFormats/JetReco		      >> .git/info/sparse-checkout
+echo DQM/SiStripMonitorSummary		      >> .git/info/sparse-checkout
+echo JetMETCorrections/Type1MET		      >> .git/info/sparse-checkout
+echo PhysicsTools/HepMCCandAlgos	      >> .git/info/sparse-checkout
+echo PhysicsTools/JetMCAlgos		      >> .git/info/sparse-checkout
+echo PhysicsTools/PatAlgos		      >> .git/info/sparse-checkout
+echo PhysicsTools/PatUtils		      >> .git/info/sparse-checkout
+echo RecoJets/JetProducers		      >> .git/info/sparse-checkout
+echo RecoMET/METAlgorithms		      >> .git/info/sparse-checkout
+echo RecoEcal/EgammaCoreTools		      >> .git/info/sparse-checkout
+echo RecoEgamma/EgammaPhotonProducers	      >> .git/info/sparse-checkout
+echo RecoEgamma/EgammaTools		      >> .git/info/sparse-checkout
+echo RecoBTag/SecondaryVertex		      >> .git/info/sparse-checkout
+echo RecoEcal/EgammaClusterProducers	      >> .git/info/sparse-checkout
+echo RecoVertex/AdaptiveVertexFinder          >> .git/info/sparse-checkout     
 git remote add -f origin https://github.com/gpetruc/cmssw.git
-git pull origin micro-from700
-git checkout 6ce5fed6d4f11ec52f867bd96187549b6b0f73b5
+git pull origin miniAOD-from704-part3
+git checkout 581225caf04ec7705e7b3bde789365f1a8a9ad85
 popd

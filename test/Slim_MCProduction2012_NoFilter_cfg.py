@@ -5,7 +5,7 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_mini.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/patTuple_mini_12May14.root')
 )
 
 # Output
