@@ -8,6 +8,7 @@
 git clone https://github.com/latinos/UserCode-CMG-CMGTools-External $CMSSW_BASE/src/CMGTools/External
 pushd $CMSSW_BASE/src/CMGTools/External
 git checkout V00-03-01
+rm plugins/PileupJetIdProducer.cc
 popd
 
 
