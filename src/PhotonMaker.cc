@@ -93,6 +93,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<unsigned int>   ( "evtn" + branchprefix            ).setBranchAlias( "evt_n"      + branchprefix      ); //number of photons in event--NO ET cut // works
   produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );// works
   produces<vector<int> >   ( branchprefix + "fiduciality"     ).setBranchAlias( aliasprefix_ + "_fiduciality"    ); //missing in scmaker // works
+
   produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );// works
   produces<vector<float> > ( branchprefix + "e1x5"            ).setBranchAlias( aliasprefix_ + "_e1x5"           );// works
   produces<vector<float> > ( branchprefix + "e3x3"            ).setBranchAlias( aliasprefix_ + "_e3x3"           );// works
@@ -100,6 +101,15 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> > ( branchprefix + "e2x5Max"         ).setBranchAlias( aliasprefix_ + "_e2x5Max"        );// works
   produces<vector<float> > ( branchprefix + "sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_sigmaEtaEta"    );// works
   produces<vector<float> > ( branchprefix + "sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_sigmaIEtaIEta"  );// works
+
+  produces<vector<float> > ( branchprefix + "full5x5hOverE"          ).setBranchAlias( aliasprefix_ + "_full5x5_hOverE"         );// works
+  produces<vector<float> > ( branchprefix + "full5x5e1x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e1x5"           );// works
+  produces<vector<float> > ( branchprefix + "full3x3e3x3"            ).setBranchAlias( aliasprefix_ + "_full3x3_e3x3"           );// works
+  produces<vector<float> > ( branchprefix + "full5x5e5x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e5x5"           );// works
+  produces<vector<float> > ( branchprefix + "full5x5e2x5Max"         ).setBranchAlias( aliasprefix_ + "_full5x5_e2x5Max"        );// works
+  produces<vector<float> > ( branchprefix + "full5x5sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaEtaEta"    );// works
+  produces<vector<float> > ( branchprefix + "full5x5sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaIEtaIEta"  );// works
+
   produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );// works
   produces<vector<float> > ( branchprefix + "tkIsoSolid03"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid03"   );// works
   produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );// works
@@ -125,7 +135,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
 // does not work in 7_X_X
   // produces<vector<int> >   ( branchprefix + "scindex"         ).setBranchAlias( aliasprefix_ + "_scindex"        );
   // produces<vector<float> > ( branchprefix + "swissSeed"       ).setBranchAlias( aliasprefix_ + "_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
-  // produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
+  produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
 
 
 
@@ -155,6 +165,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
   auto_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
   auto_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
+
   auto_ptr<vector<float> > photons_hOverE         ( new vector<float> );
   auto_ptr<vector<float> > photons_e1x5           ( new vector<float> );
   auto_ptr<vector<float> > photons_e3x3           ( new vector<float> );
@@ -162,6 +173,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_e2x5Max        ( new vector<float> );
   auto_ptr<vector<float> > photons_sigmaEtaEta    ( new vector<float> );
   auto_ptr<vector<float> > photons_sigmaIEtaIEta  ( new vector<float> );
+
+  auto_ptr<vector<float> > photons_full5x5_hOverE         ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_e1x5           ( new vector<float> );
+  auto_ptr<vector<float> > photons_full3x3_e3x3           ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_e5x5           ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_e2x5Max        ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_sigmaEtaEta    ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_sigmaIEtaIEta  ( new vector<float> );
+
   auto_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
   auto_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
   auto_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
@@ -181,7 +201,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
   auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
 
-  // auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
+  auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
   // auto_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
   // auto_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
 
@@ -189,9 +209,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ///////////////////// 
   // Get the photons //
   /////////////////////
-   Handle<View<reco::Photon> > photons_h;
+   // Handle<View<reco::Photon> > photons_h;
+   Handle<View<pat::Photon> > photons_h;
   iEvent.getByLabel(photonsInputTag_, photons_h);
-  View<reco::Photon> photonColl = *(photons_h.product());
+  // View<reco::Photon> photonColl = *(photons_h.product());
 
   // //get cms2scsseeddetid 
   // edm::InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
@@ -235,7 +256,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //loop over photon collection
   size_t photonsIndex = 0;
-  View<reco::Photon>::const_iterator photon;
+  View<pat::Photon>::const_iterator photon;
   for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
 	// throw out photons below minEt
 	if (photon->et() < minEt_)
@@ -243,7 +264,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  continue;
 
 	// Get photon and track objects
-	const edm::RefToBase<reco::Photon> photonRef = photons_h->refAt(photonsIndex);
+	const edm::RefToBase<pat::Photon> photonRef = photons_h->refAt(photonsIndex);
 		
 	// Lorentz Vectors	
 	photons_p4                 ->push_back( LorentzVector( photon->p4() )    );
@@ -262,9 +283,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_e3x3               ->push_back( photon->e3x3()                   );
 	photons_e5x5               ->push_back( photon->e5x5()                   );
 	photons_e2x5Max            ->push_back( photon->e2x5()                   );
-
 	photons_sigmaEtaEta        ->push_back( photon->sigmaEtaEta()          	 );
 	photons_sigmaIEtaIEta      ->push_back( photon->sigmaIetaIeta()        	 );  		
+
+	photons_full5x5_hOverE             ->push_back( photon->full5x5_hadronicOverEm()       	 );
+	photons_full5x5_e1x5    		   ->push_back( photon->full5x5_e1x5()					 );
+	photons_full3x3_e3x3               ->push_back( photon->full3x3_e3x3()                   );
+	photons_full5x5_e5x5               ->push_back( photon->full5x5_e5x5()                   );
+	photons_full5x5_e2x5Max            ->push_back( photon->full5x5_e2x5()                   );
+	photons_full5x5_sigmaEtaEta        ->push_back( photon->full5x5_sigmaEtaEta()          	 );
+	photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()        	 );  		
 	
 	// Isolation  (all 0.3 cone size)
 	photons_ecalIso03          ->push_back(	photon->ecalRecHitSumEtConeDR03() );
@@ -349,7 +377,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	
 		
 	// //pixel seeds
-	// photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
+	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
 
 
 
@@ -363,6 +391,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( evt_nphotons           , "evtn"+branchprefix            );
   iEvent.put( photons_p4             , branchprefix+"p4"              );
   iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
+
   iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
   iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
   iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
@@ -370,6 +399,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_e2x5Max        , branchprefix+"e2x5Max"         );
   iEvent.put( photons_sigmaEtaEta    , branchprefix+"sigmaEtaEta"     );
   iEvent.put( photons_sigmaIEtaIEta  , branchprefix+"sigmaIEtaIEta"   );
+
+  iEvent.put( photons_full5x5_hOverE         , branchprefix+"full5x5hOverE"          );
+  iEvent.put( photons_full5x5_e1x5           , branchprefix+"full5x5e1x5"            );
+  iEvent.put( photons_full3x3_e3x3           , branchprefix+"full3x3e3x3"            );
+  iEvent.put( photons_full5x5_e5x5           , branchprefix+"full5x5e5x5"            );
+  iEvent.put( photons_full5x5_e2x5Max        , branchprefix+"full5x5e2x5Max"         );
+  iEvent.put( photons_full5x5_sigmaEtaEta    , branchprefix+"full5x5sigmaEtaEta"     );
+  iEvent.put( photons_full5x5_sigmaIEtaIEta  , branchprefix+"full5x5sigmaIEtaIEta"   );
+
   iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
   iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
   iEvent.put( photons_ntkIsoHollow03 , branchprefix+"ntkIsoHollow03"  );
@@ -388,7 +426,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_hcalTowerSumEtBcConeDR03       , branchprefix + "hcalTowerSumEtBcConeDR03"      );// Added for 53x //
   iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
-  // iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
+  iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
   // iEvent.put( photons_scindex        , branchprefix+"scindex"         );
   // iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
  
