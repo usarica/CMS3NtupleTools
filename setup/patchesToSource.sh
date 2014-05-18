@@ -67,7 +67,8 @@ echo RecoEgamma/EgammaTools		      >> .git/info/sparse-checkout
 echo RecoBTag/SecondaryVertex		      >> .git/info/sparse-checkout
 echo RecoEcal/EgammaClusterProducers	      >> .git/info/sparse-checkout
 echo RecoVertex/AdaptiveVertexFinder          >> .git/info/sparse-checkout     
+echo SimDataFormats/JetMatching               >> .git/info/sparse-checkout
 git remote add -f origin https://github.com/gpetruc/cmssw.git
 git pull origin miniAOD-from704-part3
-git checkout a70b14893749c429f974a7fdbe44c46a452eea68
+git checkout e2de8f727c073b6c20bd56063202e505d4db6346
 popd
