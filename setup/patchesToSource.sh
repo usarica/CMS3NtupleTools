@@ -56,6 +56,7 @@ echo DQM/SiStripMonitorSummary		      >> .git/info/sparse-checkout
 echo JetMETCorrections/Type1MET		      >> .git/info/sparse-checkout
 echo PhysicsTools/HepMCCandAlgos	      >> .git/info/sparse-checkout
 echo PhysicsTools/JetMCAlgos		      >> .git/info/sparse-checkout
+echo PhysicsTools/JetMCUtils		      >> .git/info/sparse-checkout
 echo PhysicsTools/PatAlgos		      >> .git/info/sparse-checkout
 echo PhysicsTools/PatUtils		      >> .git/info/sparse-checkout
 echo RecoJets/JetProducers		      >> .git/info/sparse-checkout
@@ -68,5 +69,5 @@ echo RecoEcal/EgammaClusterProducers	      >> .git/info/sparse-checkout
 echo RecoVertex/AdaptiveVertexFinder          >> .git/info/sparse-checkout     
 git remote add -f origin https://github.com/gpetruc/cmssw.git
 git pull origin miniAOD-from704-part3
-git checkout 581225caf04ec7705e7b3bde789365f1a8a9ad85
+git checkout a70b14893749c429f974a7fdbe44c46a452eea68
 popd
