@@ -374,6 +374,17 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<LorentzVector> >("elsmcpatMatchp4"            	).setBranchAlias("els_mc_patMatch_p4"          		);
   produces<vector<float>         >("elsmcpatMatchdr"            	).setBranchAlias("els_mc_patMatch_dr"                  	);
 
+  produces<vector<float>         >("elssigmaIPhiIPhifull5x5"   	).setBranchAlias("els_sigmaIPhiIPhi_full5x5"                  	);
+  produces<vector<float>         >("elssigmaEtaEtafull5x5"     	).setBranchAlias("els_sigmaEtaEta_full5x5"                    	);
+  produces<vector<float>         >("elssigmaIEtaIEtafull5x5"   	).setBranchAlias("els_sigmaIEtaIEta_full5x5"                  	);
+  produces<vector<float>         >("elsr9full5x5"              	).setBranchAlias("els_r9_full5x5"                             	);
+  produces<vector<float>         >("else1x5full5x5"            	).setBranchAlias("els_e1x5_full5x5"                           	);
+  produces<vector<float>         >("else5x5full5x5"            	).setBranchAlias("els_e5x5_full5x5"                           	);
+  produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
+
+
+
+
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
     pfPileUpAlgo_ = new PFPileUpAlgo();
@@ -635,11 +646,20 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
 
     //////////////////////
-    // genMatch miniAOD //
+    // Added miniAOD    //
     //////////////////////
   auto_ptr<vector<int>           >       els_mc_patMatch_id          (new vector<int>          );
   auto_ptr<vector<LorentzVector> >       els_mc_patMatch_p4          (new vector<LorentzVector>);
   auto_ptr<vector<float>         >       els_mc_patMatch_dr          (new vector<float>        );
+
+  auto_ptr<vector<float>   >       els_sigmaIPhiIPhi_full5x5             (new vector<float>        );
+  auto_ptr<vector<float>   >       els_sigmaEtaEta_full5x5               (new vector<float>        );
+  auto_ptr<vector<float>   >       els_sigmaIEtaIEta_full5x5             (new vector<float>        );
+  auto_ptr<vector<float>   >       els_r9_full5x5                        (new vector<float>        );
+  auto_ptr<vector<float>   >       els_e1x5_full5x5                      (new vector<float>        );
+  auto_ptr<vector<float>   >       els_e5x5_full5x5                      (new vector<float>        );
+  auto_ptr<vector<float>   >       els_e2x5Max_full5x5                   (new vector<float>        );
+
 
 
     // --- Get Input Collections --- //
@@ -996,12 +1016,23 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_e1x5          ->push_back( el->e1x5()                            );
         els_e5x5          ->push_back( el->e5x5()                            );
         els_e2x5Max       ->push_back( el->e2x5Max()                         );
-        //els_sigmaEtaEta   ->push_back( el->scSigmaEtaEta()                   );
-        //els_sigmaIEtaIEta ->push_back( el->scSigmaIEtaIEta()                 );
         els_sigmaEtaEta   ->push_back( el->sigmaEtaEta()                     );
         els_sigmaIEtaIEta ->push_back( el->sigmaIetaIeta()                   );
         els_etaSCwidth    ->push_back( el->superCluster()->etaWidth()        );
         els_phiSCwidth    ->push_back( el->superCluster()->phiWidth()        );
+	
+	// We used to make these using the cluster tools, but now we can take them directly from RECO electron
+	els_sigmaIPhiIPhi         ->push_back( el->sigmaIphiIphi()           );
+
+	// Take these directly from the PAT electron of the miniAOD
+	els_sigmaIPhiIPhi_full5x5  ->push_back( el->full5x5_sigmaIphiIphi()   ); 
+	els_sigmaEtaEta_full5x5    ->push_back( el->full5x5_sigmaEtaEta()     );
+	els_sigmaIEtaIEta_full5x5  ->push_back( el->full5x5_sigmaIetaIeta()   );
+	els_r9_full5x5             ->push_back( el->full5x5_r9()              );
+	els_e1x5_full5x5           ->push_back( el->full5x5_e1x5()            );
+	els_e5x5_full5x5           ->push_back( el->full5x5_e5x5()            );  
+	els_e2x5Max_full5x5        ->push_back( el->full5x5_e2x5Max()         );
+
 
 
         ///////////////////////////////////////////////////////
@@ -1019,9 +1050,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //            //
             els_eSeed           ->push_back( el->superCluster()->seed()->energy()     );
 //            els_sigmaPhiPhi     ->push_back( isfinite(covs[2])               ? covs[2] > 0                ? sqrt(covs[2])  : -1 * sqrt(-1 * covs[2])                              : -9999. );
-//            els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
+//get from RECO            els_sigmaIPhiIPhi   ->push_back( isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
 //            els_sigmaIEtaIPhi   ->push_back( isfinite(lcovs[1])              ? lcovs[1] > 0               ? sqrt(lcovs[1]) : -1 * sqrt(-1 * lcovs[1])                             : -9999. );
-//            els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
+//get from RECO            els_sigmaIEtaIEtaSC ->push_back( isfinite(localCovariancesSC[0]) ? localCovariancesSC[0] > 0  ? sqrt(localCovariancesSC[0])   : -1 * sqrt(-1 * localCovariancesSC[0]) : -9999. );
 //            els_sigmaIPhiIPhiSC ->push_back( isfinite(localCovariancesSC[2]) ? localCovariancesSC[2] > 0  ? sqrt(localCovariancesSC[2])   : -1 * sqrt(-1 * localCovariancesSC[2]) : -9999. );
 //
 //            //
@@ -1510,7 +1541,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_passingMvaPreselection  ->push_back( el->passingMvaPreselection()   );
         els_passingPflowPreselection->push_back( el->passingPflowPreselection() );
         els_r9                      ->push_back( el->r9()                       );
-        els_sigmaIphiIphi           ->push_back( el->sigmaIphiIphi()            );
 
         ///////////////////
         // Added for 7   //
@@ -1768,7 +1798,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
     iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
     iEvent.put( els_r9                       , "elsr9"                       );
-    iEvent.put( els_sigmaIphiIphi            , "elssigmaIphiIphi"            );
 
     ///////////////////
     // Added for 7   //
@@ -1776,10 +1805,24 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
 
+    /////////////////////////
+    // Added for miniAOD   //
+    /////////////////////////
+
     // genParticle matching from miniAOD
   iEvent.put( els_mc_patMatch_id          		,"elsmcpatMatchid"          	);
   iEvent.put( els_mc_patMatch_p4           		,"elsmcpatMatchp4"          	);
   iEvent.put( els_mc_patMatch_dr          		,"elsmcpatMatchdr"          	);
+
+    iEvent.put(els_sigmaIPhiIPhi_full5x5  , "elssigmaIPhiIPhifull5x5" );
+    iEvent.put(els_sigmaEtaEta_full5x5    , "elssigmaEtaEtafull5x5"   );
+    iEvent.put(els_sigmaIEtaIEta_full5x5  , "elssigmaIEtaIEtafull5x5" );
+    iEvent.put(els_r9_full5x5             , "elsr9full5x5"            );
+    iEvent.put(els_e1x5_full5x5           , "else1x5full5x5"          );
+    iEvent.put(els_e5x5_full5x5           , "else5x5full5x5"          );
+    iEvent.put(els_e2x5Max_full5x5        , "else2x5Maxfull5x5"       ); 
+
+
 
 }
 
