@@ -98,7 +98,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // get reco Conversions
   Handle<View<Conversion> > convs_h;
-  iEvent.getByLabel(recoConversionInputTag_, convs_h);
+  iEvent.getByLabel("reducedEgamma", recoConversionInputTag_.label(), convs_h);
   
   Handle<BeamSpot> beamSpotH;
   iEvent.getByLabel(beamSpotInputTag_, beamSpotH);
@@ -116,6 +116,8 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
     }
     convs_quality->push_back(qualityMask);
     
+    // Can't use tracks in miniA
+    /*
     vector<edm::RefToBase<reco::Track> > v_temp_trks = it->tracks();
     vector<int> v_temp_out;
     vector<int> v_temp_outalgo;
@@ -130,6 +132,9 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
     v_temp_out.clear();
     v_temp_outalgo.clear();
+    */
+
+    vector<int> v_temp_out;
     vector<uint8_t> v_temp_nhits = it->nHitsBeforeVtx();
     for(unsigned int i = 0; i < v_temp_nhits.size(); i++) 
       v_temp_out.push_back(v_temp_nhits.at(i));

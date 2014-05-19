@@ -50,8 +50,8 @@ process.p                  = cms.Path(
     process.elToTrigAssMaker*  # requires electronMaker
     process.candToGenAssMaker* # requires electronMaker, muonMaker, pfJetMaker, photonMaker
     process.pdfinfoMaker*
-    process.puSummaryInfoMaker
-
+    process.puSummaryInfoMaker*
+    process.recoConversionMaker
     # Optional (filters)
     #process.dilepGenFilter*    # requires genMaker    
 
