@@ -5,7 +5,8 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
+#    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/TT_Tune4C_13TeV-pythia8-tauola_PAT.root')
 )
 
 # Output
@@ -51,7 +52,10 @@ process.p                  = cms.Path(
     process.candToGenAssMaker* # requires electronMaker, muonMaker, pfJetMaker, photonMaker
     process.pdfinfoMaker*
     process.puSummaryInfoMaker*
-    process.recoConversionMaker
+    process.recoConversionMaker*
+    process.metFilterMaker*
+    process.hcalNoiseSummaryMaker
+
     # Optional (filters)
     #process.dilepGenFilter*    # requires genMaker    
 

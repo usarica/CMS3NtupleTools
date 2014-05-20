@@ -20,40 +20,33 @@ void checkValid( Handle<bool> hbool, InputTag tag ){
 // Constructor
 MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
 
+  
     //
-    branchprefix_ = "filt";
-    aliasprefix_  = branchprefix_;  
-
-
-    //
-
-    ecalBEInputTag_             = iConfig.getParameter<InputTag>("ecalBEInputTag"           );
-    ecalDRInputTag_             = iConfig.getParameter<InputTag>("ecalDRInputTag"           );
-    ecalTPInputTag_             = iConfig.getParameter<InputTag>("ecalTPInputTag"           );
-    greedyMuonInputTag_         = iConfig.getParameter<InputTag>("greedyMuonInputTag"       );
-    hcalLaserEventInputTag_     = iConfig.getParameter<InputTag>("hcalLaserEventInputTag"   );
-    inconsistentMuonInputTag_   = iConfig.getParameter<InputTag>("inconsistentMuonInputTag" );
-    jetIDFailureInputTag_       = iConfig.getParameter<InputTag>("jetIDFailureInputTag"     );
-    //multiEventFailureInputTag_  = iConfig.getParameter<InputTag>("multiEventFailureInputTag");
-    trackingFailureInputTag_    = iConfig.getParameter<InputTag>("trackingFailureInputTag"  );
-    eeBadScFilterInputTag_      = iConfig.getParameter<InputTag>("eeBadScFilterInputTag"    );
-    ecalLaserCorrFilterInputTag_ = iConfig.getParameter<InputTag>("ecalLaserCorrFilterInputTag");
-
+    aliasprefix_     = iConfig.getUntrackedParameter<string>("aliasPrefix");
+    branchprefix_    = aliasprefix_;
+    filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
+    processName_     = iConfig.getUntrackedParameter<string> ("processName" );
 
     //
-    //produces <bool> ( branchprefix_ + "cscBeamHalo"     ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"     );
-    //produces <bool> ( branchprefix_ + "hbheNoise"       ).setBranchAlias( aliasprefix_ + "_hbheNoise"       );
-    produces <bool> ( branchprefix_ + "ecalBE"          ).setBranchAlias( aliasprefix_ + "_ecalBE"          );
-    produces <bool> ( branchprefix_ + "ecalDR"          ).setBranchAlias( aliasprefix_ + "_ecalDR"          );
-    produces <bool> ( branchprefix_ + "ecalTP"          ).setBranchAlias( aliasprefix_ + "_ecalTP"          );
-    produces <bool> ( branchprefix_ + "greedyMuon"      ).setBranchAlias( aliasprefix_ + "_greedyMuon"      );
-    produces <bool> ( branchprefix_ + "hcalLaser"       ).setBranchAlias( aliasprefix_ + "_hcalLaser"       );
-    produces <bool> ( branchprefix_ + "inconsistentMuon").setBranchAlias( aliasprefix_ + "_inconsistentMuon");
-    produces <bool> ( branchprefix_ + "jetIDFailure"    ).setBranchAlias( aliasprefix_ + "_jetIDFailure"    );
-    //produces <bool> ( branchprefix_ + "multiEvent"      ).setBranchAlias( aliasprefix_ + "_multiEvent"      );
-    produces <bool> ( branchprefix_ + "trackingFailure" ).setBranchAlias( aliasprefix_ + "_trackingFailure" );
-    produces <bool> ( branchprefix_ + "eeBadSc"         ).setBranchAlias( aliasprefix_ + "_eeBadSc"         );
-    produces <bool> ( branchprefix_ + "ecalLaser"       ).setBranchAlias( aliasprefix_ + "_ecalLaser"       );
+    produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
+    produces <bool> ( branchprefix_ + "hbheNoise"                      ).setBranchAlias( aliasprefix_ + "_hbheNoise"                      );
+    produces <bool> ( branchprefix_ + "ecalTP"                         ).setBranchAlias( aliasprefix_ + "_ecalTP"                         );
+    produces <bool> ( branchprefix_ + "hcalLaser"                      ).setBranchAlias( aliasprefix_ + "_hcalLaser"                      );
+    produces <bool> ( branchprefix_ + "trackingFailure"                ).setBranchAlias( aliasprefix_ + "_trackingFailure"                );
+    produces <bool> ( branchprefix_ + "eeBadSc"                        ).setBranchAlias( aliasprefix_ + "_eeBadSc"                        );
+    produces <bool> ( branchprefix_ + "ecalLaser"                      ).setBranchAlias( aliasprefix_ + "_ecalLaser"                      );
+    produces <bool> ( branchprefix_ + "metfilter"                      ).setBranchAlias( aliasprefix_ + "_metfilter"                      );
+    produces <bool> ( branchprefix_ + "goodVertices"                   ).setBranchAlias( aliasprefix_ + "_goodVertices"                   );
+    produces <bool> ( branchprefix_ + "trkPOGFilters"                  ).setBranchAlias( aliasprefix_ + "_trkPOGFilters"                  );
+    produces <bool> ( branchprefix_ + "trkPOGlogErrorTooManyClusters"  ).setBranchAlias( aliasprefix_ + "_trkPOG_logErrorTooManyClusters" );
+    produces <bool> ( branchprefix_ + "trkPOGmanystripclus53X"	       ).setBranchAlias( aliasprefix_ + "_trkPOG_manystripclus53X"        );
+    produces <bool> ( branchprefix_ + "trkPOGtoomanystripclus53X"      ).setBranchAlias( aliasprefix_ + "_trkPOG_toomanystripclus53X"     );
+
+    // For compatibility with CMS2 variable names
+    produces <bool> ( "evtcscTightHaloId"                 ).setBranchAlias( "evt_cscTightHaloId"                 );
+    produces <bool> ( "evthbheFilter"                     ).setBranchAlias( "evt_hbheFilter"                     );
+	    
+
 } // End Constructor
 
 MetFilterMaker::~MetFilterMaker () {}
@@ -63,94 +56,107 @@ void MetFilterMaker::endJob     () {}
 // Producer
 void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   
-    //////////////
-    // Pointers //
-    //////////////
+  //////////////
+  // Pointers //
+  //////////////
+  
+  auto_ptr <bool> filt_cscBeamHalo                   ( new bool(false) );
+  auto_ptr <bool> filt_hbheNoise                     ( new bool(false) );
+  auto_ptr <bool> filt_ecalTP                        ( new bool(false) );
+  auto_ptr <bool> filt_hcalLaserEvent                ( new bool(false) );
+  auto_ptr <bool> filt_trackingFailure               ( new bool(false) );
+  auto_ptr <bool> filt_eeBadSc                       ( new bool(false) );
+  auto_ptr <bool> filt_ecalLaser                     ( new bool(false) );
+  auto_ptr <bool> filt_metfilter                     ( new bool(false) );
+  auto_ptr <bool> filt_goodVertices                  ( new bool(false) );
+  auto_ptr <bool> filt_trkPOGFilters                 ( new bool(false) );
+  auto_ptr <bool> filt_trkPOG_logErrorTooManyClusters( new bool(false) );
+  auto_ptr <bool> filt_trkPOG_manystripclus53X       ( new bool(false) );
+  auto_ptr <bool> filt_trkPOG_toomanystripclus53X    ( new bool(false) );
+  // For compatibility with CMS2 variable names
+  auto_ptr <bool> filt_cscTightHaloId                ( new bool(false) );
+  auto_ptr <bool> filt_hbheFilter                    ( new bool(false) );
 
-    //auto_ptr <bool> filt_cscBeamHalo      ( new bool(false) );
-    //auto_ptr <bool> filt_hbheNoise        ( new bool(false) );
-    auto_ptr <bool> filt_ecalBE           ( new bool(false) );
-    auto_ptr <bool> filt_ecalDR           ( new bool(false) );
-    auto_ptr <bool> filt_ecalTP           ( new bool(false) );
-    auto_ptr <bool> filt_greedyMuon       ( new bool(false) );
-    auto_ptr <bool> filt_hcalLaserEvent   ( new bool(false) );
-    auto_ptr <bool> filt_inconsistentMuon ( new bool(false) );
-    auto_ptr <bool> filt_jetIDFailure     ( new bool(false) );
-    //auto_ptr <bool> filt_multiEventFailure( new bool(false) );
-    auto_ptr <bool> filt_trackingFailure  ( new bool(false) );
-    auto_ptr <bool> filt_eeBadSc          ( new bool(false) );
-    auto_ptr <bool> filt_ecalLaser        ( new bool(false) );
+  ////////////////////////
+  // Assign MET Filters //
+  ////////////////////////
+  
+  iEvent.getByLabel(edm::InputTag(filtersInputTag_.label(), "", processName_), metFilterResultsH_);
+  if (! metFilterResultsH_.isValid())
+    throw cms::Exception("MetFilterMaker::produce: error getting TriggerResults_PAT product from Event!");
+  
+  int idx_cscBeamHalo                     = -1;
+  int idx_hbheNoise                       = -1;
+  int idx_ecalTP                          = -1;
+  int idx_hcalLaserEvent                  = -1;
+  int idx_trackingFailure                 = -1;
+  int idx_eeBadSc                         = -1;
+  int idx_ecalLaser                       = -1;
+  int idx_metfilter                       = -1;
+  int idx_goodVertices                    = -1;
+  int idx_trkPOGFilters                   = -1;
+  int idx_trkPOG_logErrorTooManyClusters  = -1;
+  int idx_trkPOG_manystripclus53X	  = -1;
+  int idx_trkPOG_toomanystripclus53X      = -1; 
+  
+  
+  edm::TriggerNames metFilterNames_ = iEvent.triggerNames(*metFilterResultsH_); 
+  for (unsigned int i=0; i<metFilterNames_.size(); i++) {
+    if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHaloFilter"	              )  idx_cscBeamHalo                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_HBHENoiseFilter"		      )  idx_hbheNoise                      = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellTriggerPrimitiveFilter" )  idx_ecalTP                         = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_hcalLaserEventFilter"               )  idx_hcalLaserEvent                 = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_trackingFailureFilter"	      )  idx_trackingFailure                = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_eeBadScFilter"		      )  idx_eeBadSc                        = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_ecalLaserCorrFilter"	              )  idx_ecalLaser                      = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_METFilters"                         )  idx_metfilter                      = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_goodVertices"                       )  idx_goodVertices                   = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_trkPOGFilters"                      )  idx_trkPOGFilters                  = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_logErrorTooManyClusters"     )  idx_trkPOG_logErrorTooManyClusters = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_manystripclus53X"            )  idx_trkPOG_manystripclus53X	    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_toomanystripclus53X"         )  idx_trkPOG_toomanystripclus53X     = i;
+    //  std::cout << "metFilterName= " << metFilterNames_.triggerName(i) << std::endl;
+  }
+  
+  *filt_cscBeamHalo                          = metFilterResultsH_->accept(idx_cscBeamHalo                     );
+  *filt_hbheNoise                            = metFilterResultsH_->accept(idx_hbheNoise                       );
+  *filt_ecalTP                               = metFilterResultsH_->accept(idx_ecalTP                          );
+  *filt_hcalLaserEvent                       = metFilterResultsH_->accept(idx_hcalLaserEvent                  );
+  *filt_trackingFailure                      = metFilterResultsH_->accept(idx_trackingFailure                 );
+  *filt_eeBadSc                              = metFilterResultsH_->accept(idx_eeBadSc                         );
+  *filt_ecalLaser                            = metFilterResultsH_->accept(idx_ecalLaser                       );
+  *filt_metfilter                            = metFilterResultsH_->accept(idx_metfilter                       );
+  *filt_goodVertices                         = metFilterResultsH_->accept(idx_goodVertices                    );
+  *filt_trkPOGFilters                        = metFilterResultsH_->accept(idx_trkPOGFilters                   );
+  *filt_trkPOG_logErrorTooManyClusters       = metFilterResultsH_->accept(idx_trkPOG_logErrorTooManyClusters  );
+  *filt_trkPOG_manystripclus53X	             = metFilterResultsH_->accept(idx_trkPOG_manystripclus53X	      );
+  *filt_trkPOG_toomanystripclus53X           = metFilterResultsH_->accept(idx_trkPOG_toomanystripclus53X      );
+  // For compatibility with CMS2 variable names
+  *filt_cscTightHaloId                       = metFilterResultsH_->accept(idx_cscBeamHalo                     );
+  *filt_hbheFilter                           = metFilterResultsH_->accept(idx_hbheNoise                       );
 
-    ////////////////////////
-    // Assign MET Filters //
-    ////////////////////////
+  //////////////////
+  // Write Output //
+  //////////////////
+  iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
+  iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
+  iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
+  iEvent.put( filt_hcalLaserEvent                 , branchprefix_ + "hcalLaser"                      );
+  iEvent.put( filt_trackingFailure                , branchprefix_ + "trackingFailure"                );
+  iEvent.put( filt_eeBadSc                        , branchprefix_ + "eeBadSc"                        );
+  iEvent.put( filt_ecalLaser                      , branchprefix_ + "ecalLaser"                      );
+  iEvent.put( filt_metfilter                      , branchprefix_ + "metfilter"                      );
+  iEvent.put( filt_goodVertices                   , branchprefix_ + "goodVertices"                   );
+  iEvent.put( filt_trkPOGFilters                  , branchprefix_ + "trkPOGFilters"                  );
+  iEvent.put( filt_trkPOG_logErrorTooManyClusters , branchprefix_ + "trkPOGlogErrorTooManyClusters"  );
+  iEvent.put( filt_trkPOG_manystripclus53X	  , branchprefix_ + "trkPOGmanystripclus53X"	     );
+  iEvent.put( filt_trkPOG_toomanystripclus53X     , branchprefix_ + "trkPOGtoomanystripclus53X"      );
 
-    Handle<bool> b_ecalBE;
-    Handle<bool> b_ecalDR;
-    Handle<bool> b_ecalTP;
-    Handle<bool> b_greedyMuon;
-    Handle<bool> b_hcalLaserEvent;
-    Handle<bool> b_inconsistentMuon;
-    Handle<bool> b_jetIDFailure;
-    //Handle<bool> b_multiEventFailure;
-    Handle<bool> b_trackingFailure;
-    Handle<bool> b_eeBadSc;
-    Handle<bool> b_ecalLaser;
+  // For compatibility with CMS2 variable names
+  iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );
+  iEvent.put( filt_hbheFilter                     , "evthbheFilter"                      );
 
-    iEvent.getByLabel( ecalBEInputTag_            , b_ecalBE            );
-    iEvent.getByLabel( ecalDRInputTag_            , b_ecalDR            );
-    iEvent.getByLabel( ecalTPInputTag_            , b_ecalTP            );
-    iEvent.getByLabel( greedyMuonInputTag_        , b_greedyMuon        );
-    iEvent.getByLabel( hcalLaserEventInputTag_    , b_hcalLaserEvent    );
-    iEvent.getByLabel( inconsistentMuonInputTag_  , b_inconsistentMuon  );
-    iEvent.getByLabel( jetIDFailureInputTag_      , b_jetIDFailure      );
-    //iEvent.getByLabel( multiEventFailureInputTag_ , b_multiEventFailure );
-    iEvent.getByLabel( trackingFailureInputTag_   , b_trackingFailure   );
-    iEvent.getByLabel( eeBadScFilterInputTag_     , b_eeBadSc           );
-    iEvent.getByLabel( ecalLaserCorrFilterInputTag_ , b_ecalLaser       );
-
-    checkValid( b_ecalBE            , ecalBEInputTag_            );
-    //checkValid( b_ecalDR            , ecalDRInputTag_            );
-    checkValid( b_ecalTP            , ecalTPInputTag_            );
-    checkValid( b_greedyMuon        , greedyMuonInputTag_        );
-    checkValid( b_hcalLaserEvent    , hcalLaserEventInputTag_    );
-    checkValid( b_inconsistentMuon  , inconsistentMuonInputTag_  );
-    //checkValid( b_jetIDFailure      , jetIDFailureInputTag_      );
-    //checkValid( b_multiEventFailure , multiEventFailureInputTag_ );
-    checkValid( b_trackingFailure   , trackingFailureInputTag_   );
-    checkValid( b_eeBadSc           , eeBadScFilterInputTag_     );
-    checkValid( b_ecalLaser         , ecalLaserCorrFilterInputTag_ );
-
-    *filt_ecalBE            = *b_ecalBE;
-    //*filt_ecalDR            = *b_ecalDR;
-    *filt_ecalTP            = *b_ecalTP;
-    *filt_greedyMuon        = *b_greedyMuon;
-    *filt_hcalLaserEvent    = *b_hcalLaserEvent;
-    *filt_inconsistentMuon  = *b_inconsistentMuon;
-    //*filt_jetIDFailure      = *b_jetIDFailure;
-    //*filt_multiEventFailure = *b_multiEventFailure;
-    *filt_trackingFailure   = *b_trackingFailure;
-    *filt_eeBadSc           = *b_eeBadSc;
-    *filt_ecalLaser         = *b_ecalLaser;
-
-    //////////////////
-    // Write Output //
-    //////////////////
-
-    //iEvent.put( filt_cscBeamHalo      , branchprefix_ + "cscBeamHalo"     );
-    //iEvent.put( filt_hbheNoise        , branchprefix_ + "hbheNoise"       );
-    iEvent.put( filt_ecalBE           , branchprefix_ + "ecalBE"          );
-    iEvent.put( filt_ecalDR           , branchprefix_ + "ecalDR"          );
-    iEvent.put( filt_ecalTP           , branchprefix_ + "ecalTP"          );
-    iEvent.put( filt_greedyMuon       , branchprefix_ + "greedyMuon"      );
-    iEvent.put( filt_hcalLaserEvent   , branchprefix_ + "hcalLaser"       );
-    iEvent.put( filt_inconsistentMuon , branchprefix_ + "inconsistentMuon");
-    iEvent.put( filt_jetIDFailure     , branchprefix_ + "jetIDFailure"    );
-    //iEvent.put( filt_multiEventFailure, branchprefix_ + "multiEvent"      );
-    iEvent.put( filt_trackingFailure  , branchprefix_ + "trackingFailure" );
-    iEvent.put( filt_eeBadSc          , branchprefix_ + "eeBadSc"         );
-    iEvent.put( filt_ecalLaser        , branchprefix_ + "ecalLaser"       );
-
+  
 } // End MetFilterMaker::produce()
 
 //define this as a plug-in

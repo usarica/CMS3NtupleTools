@@ -6,13 +6,13 @@ process.GlobalTag.globaltag = "FT_R_70_V1::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring('file:/nfs-7/userdata/olivito/miniaod/patTuple_mini_dimu.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DoubleElectron-Run2012D-15Apr2014-v1_PAT.root')
 )
 
 # Output
 process.out = cms.OutputModule(
   "PoolOutputModule",
-  fileName     = cms.untracked.string('ntuple.root'),
+  fileName     = cms.untracked.string('ntupleData.root'),
   dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath      = cms.EndPath(process.out)
@@ -47,16 +47,20 @@ process.p                  = cms.Path(
     process.photonMaker*
     process.muToTrigAssMaker*  # requires muonMaker
     process.elToTrigAssMaker*  # requires electronMaker
-    process.puSummaryInfoMaker
+    process.puSummaryInfoMaker*
+    process.recoConversionMaker*
+    process.metFilterMaker*
+    process.hcalNoiseSummaryMaker
+
     )
 
 #
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(True)
 process.luminosityMaker.isData                   = process.eventMaker.isData
 
 #process.maxEvents.input = 10
-process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
+#process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 #process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 #process.Timing =cms.Service("Timing")        
 
