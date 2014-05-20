@@ -65,6 +65,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<vector<int> >  > ( "pfjetspfcandIndicies"                   ).setBranchAlias( "pfjets_pfcandIndicies"                   );
   produces<vector<float> >         ( "pfjetscorL1FastL2L3residual"            ).setBranchAlias( "pfjets_corL1FastL2L3residual"            );
   produces<vector<float> >         ( "pfjetsarea"                             ).setBranchAlias( "pfjets_area"                             );
+  produces<vector<int> >           ( "pfjetspartonFlavour"                    ).setBranchAlias( "pfjets_partonFlavour"                    );
 
   // Embedded b-tagging information (miniAOD only)
   produces<vector<float> >   ("pfjetscombinedSecondaryVertexBJetTag"      ).setBranchAlias("pfjets_combinedSecondaryVertexBJetTag"      );
@@ -129,6 +130,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_corL1FastL2L3residual     (new vector<float>          );
   auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+  auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
 
   auto_ptr<vector<float> >     pfjets_combinedSecondaryVertexBJetTag       (new vector<float>  );
   auto_ptr<vector<float> >     pfjets_jetBProbabilityBJetTag               (new vector<float>  );
@@ -180,6 +182,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
     pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
+    pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
 
     //
     int idx = pfjet_it - pfJetsHandle->begin();
@@ -252,6 +255,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
   iEvent.put(pfjets_corL1FastL2L3residual     , "pfjetscorL1FastL2L3residual"     );
   iEvent.put(pfjets_area                      , "pfjetsarea"                      );
+  iEvent.put(pfjets_partonFlavour             , "pfjetspartonFlavour"             );
 
   iEvent.put(pfjets_combinedSecondaryVertexBJetTag       , "pfjetscombinedSecondaryVertexBJetTag"      );  
   iEvent.put(pfjets_jetBProbabilityBJetTag               , "pfjetsjetBProbabilityBJetTag"              );		   
