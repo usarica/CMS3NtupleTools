@@ -54,7 +54,8 @@ process.p                  = cms.Path(
     process.puSummaryInfoMaker*
     process.recoConversionMaker*
     process.metFilterMaker*
-    process.hcalNoiseSummaryMaker
+    process.hcalNoiseSummaryMaker*
+    process.miniAODrhoSequence
 
     # Optional (filters)
     #process.dilepGenFilter*    # requires genMaker    

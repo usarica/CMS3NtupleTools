@@ -41,4 +41,6 @@ additionalFastJetSequence = cms.Sequence( fixedGridRhoAllMaker * fixedGridRhoFas
                                           kt6PFJetsCentralNeutralTightRhoMaker * kt6PFJetsForEGIsolation * kt6PFJetsForEGIsolationRhoMaker *
                                           kt6CaloJetsForMuHLT * kt6CaloJetsForMuHLTRhoMaker)
 
+miniAODrhoSequence = cms.Sequence ( fixedGridRhoAllMaker * fixedGridRhoFastJetAllMaker * fixedGridRhoFastJetAllCaloMaker * fixedGridRhoFastJetCentralCaloMaker * fixedGridRhoFastJetCentralChargedPileUpMaker * fixedGridRhoFastJetCentralNeutralMaker )
+
 fastJetSequence = cms.Sequence( kt6PFJetsDeterministicJEC * kt6PFJetsDeterministicIso * fastJetMaker * wwFastJetSequence * additionalFastJetSequence)
