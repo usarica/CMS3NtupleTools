@@ -65,6 +65,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<vector<int> >  > ( "pfjetspfcandIndicies"                   ).setBranchAlias( "pfjets_pfcandIndicies"                   );
   produces<vector<float> >         ( "pfjetscorL1FastL2L3residual"            ).setBranchAlias( "pfjets_corL1FastL2L3residual"            );
   produces<vector<float> >         ( "pfjetsarea"                             ).setBranchAlias( "pfjets_area"                             );
+  produces<vector<float> >         ( "pfjetspileupJetId"                      ).setBranchAlias( "pfjets_pileupJetId"                      );
   produces<vector<int> >           ( "pfjetspartonFlavour"                    ).setBranchAlias( "pfjets_partonFlavour"                    );
 
   // Embedded b-tagging information (miniAOD only)
@@ -130,6 +131,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_corL1FastL2L3residual     (new vector<float>          );
   auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+  auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
   auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
 
   auto_ptr<vector<float> >     pfjets_combinedSecondaryVertexBJetTag       (new vector<float>  );
@@ -182,6 +184,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
     pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
+    //const std::vector<std::string> names = pfjet_it->userFloatNames();
+    //for (unsigned int k = 0; k < names.size(); k++) cout<<names[k]<<" ";
+    //cout<<endl;
+    float pileupJetId = -999; // hedging our beg because this variable isn't yet in the miniAOD we are testing
+    if ( pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
+    if ( pfjet_it->hasUserFloat("fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("fullDiscriminant");
+    pfjets_pileupJetId               ->push_back( pileupJetId                          );
     pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
 
     //
@@ -255,6 +264,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
   iEvent.put(pfjets_corL1FastL2L3residual     , "pfjetscorL1FastL2L3residual"     );
   iEvent.put(pfjets_area                      , "pfjetsarea"                      );
+  iEvent.put(pfjets_pileupJetId               , "pfjetspileupJetId"               );
   iEvent.put(pfjets_partonFlavour             , "pfjetspartonFlavour"             );
 
   iEvent.put(pfjets_combinedSecondaryVertexBJetTag       , "pfjetscombinedSecondaryVertexBJetTag"      );  

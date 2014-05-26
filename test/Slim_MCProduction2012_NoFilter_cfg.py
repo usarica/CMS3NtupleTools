@@ -5,8 +5,7 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-#    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
-    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/TT_Tune4C_13TeV-pythia8-tauola_PAT.root')
+    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
 )
 
 # Output
@@ -16,6 +15,7 @@ process.out = cms.OutputModule(
         dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath      = cms.EndPath(process.out)
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(50) )
 
 # Branches
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
