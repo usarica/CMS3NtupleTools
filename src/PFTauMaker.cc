@@ -62,8 +62,11 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
   // produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
 
-  // produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
-  // produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+  produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
+  produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+
+  produces<vector<vector<LorentzVector> > > (branchprefix+"signalcandsp4"         ).setBranchAlias(aliasprefix_+"_signalcands_p4"                 );
+  produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
 
   /////get setup parameters
   pftausInputTag_                      = iConfig.getParameter<edm::InputTag>("pftausInputTag"   );
@@ -86,13 +89,15 @@ void PFTauMaker::endJob() {
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  
   auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
-  auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);
-							 
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
+
+  auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);							 
   // auto_ptr<vector<vector<int> >  > taus_pf_pfcandIndicies                                        (new vector<vector<int> >);
   // auto_ptr<vector<int> >           taus_pf_pfjetIndex                                            (new vector<int>);
 							  
-  // auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
-  // auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
 
   //set auto pointers for tau id container
   auto_ptr<vector<float> >         taus_pf_ids[tauIDCollection_.size()];
@@ -134,10 +139,36 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // size_t tausIndex = 0;
   for( View<pat::Tau>::const_iterator tau = taus_h->begin(); tau != taus_h->end(); tau++/*, tausIndex++*/ ) {
 
-	taus_pf_p4                               ->push_back( LorentzVector( tau->p4() ) );
-	taus_pf_charge                           ->push_back( tau->charge()              );
+	taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
+	taus_pf_charge               -> push_back( tau->charge()              );
 
-	//loops over discriminators and fills if available
+	// leadChargedHadrCand()
+	if( !tau->leadChargedHadrCand().isNull() ){ taus_pf_lead_chargecand_p4 -> push_back( LorentzVector( tau->leadChargedHadrCand() -> p4() ) );}
+	else                                      { taus_pf_lead_chargecand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );	                       }
+	// leadNeutralCand()
+	if( !tau->leadNeutralCand().isNull() ){ taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector( tau->leadNeutralCand() -> p4() ) );}
+	else                                  { taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                      }
+
+	// 	signalCands()
+	vector<LorentzVector> signalCandsPerTau;
+	for( size_t signalCandsInd = 0; signalCandsInd < tau->signalCands().size(); signalCandsInd++ ){
+	  if( !tau->signalCands().isNull() ){ signalCandsPerTau  .  push_back( LorentzVector( tau->signalCands()[signalCandsInd] -> p4() ) );}
+	  else                              { signalCandsPerTau  .  push_back( LorentzVector(0, 0, 0, 0) );                  }
+	}
+	taus_pf_signalcands_p4 -> push_back(signalCandsPerTau);
+
+	// 	isolationCands()
+	vector<LorentzVector> isoCandsPerTau;
+	for( size_t isoCandsInd = 0; isoCandsInd < tau->isolationCands().size(); isoCandsInd++ ){
+	  if( !tau->isolationCands().isNull() ){ isoCandsPerTau   .  push_back( LorentzVector( tau->isolationCands()[isoCandsInd] -> p4() ) );}
+	  else                                 { isoCandsPerTau   .  push_back( LorentzVector(0, 0, 0, 0) );                     }
+	}
+	taus_pf_isocands_p4->push_back(isoCandsPerTau);
+
+	// std::cout<<"pfJetRef: ";
+	// std::cout<<tau->pfJetRef().get()->p4()<<std::endl;
+
+	//loops over list of discriminators provided from cfg and fills branch if available
 	for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
 	  // std::cout<<tauIDCollection_.at(tauidind)<<std::endl;
 	  if( tau->isTauIDAvailable(tauIDCollection_.at(tauidind))){	  
@@ -151,6 +182,12 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	// for( size_t tauind = 0; tauind < tau_IDPair.size(); tauind++ ){
 	//   std::cout<<tau_IDPair.at(tauind).first<<" : "<<tau_IDPair.at(tauind).second<<std::endl;
 	// }
+
+	// everything beyond this point is not used in miniAOD
+
+	// for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
+
+	// }      
 
   }
   
@@ -180,8 +217,8 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   //    LorentzVector p4TAU;
 
-  // for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = cand.signalPFCands().begin(); pref_it!=cand.signalPFCands().end(); ++pref_it) {
-      
+  // for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
+
   //   int ipf = 0;
 	
   //   for(reco::PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); ++pf_it){
@@ -203,10 +240,6 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   ///////////
           
 
-  //    taus_pf_lead_neutrcand_p4                ->push_back( cand.leadPFNeutralCand().isNonnull()? LorentzVector( cand.leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
-  //    taus_pf_lead_chargecand_p4               ->push_back( cand.leadPFChargedHadrCand().isNull()? LorentzVector( cand.leadPFChargedHadrCand().get()->p4()) :  LorentzVector(0, 0, 0, 0)  );
-  //    if(!cand.leadPFChargedHadrCand().isNull()) taus_pf_lead_chargecand_p4               ->push_back( LorentzVector( cand.leadPFChargedHadrCand().get()->p4() ) );
-  //    if(!cand.leadPFNeutralCand().isNull()) taus_pf_lead_neutrcand_p4                ->push_back( LorentzVector( tau_pf->leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
 
 
   /*
@@ -227,8 +260,10 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
   iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
 
-  // iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
-  // iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
+  iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
+  iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
+  iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
+  iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
 
   // iEvent.put(taus_pf_pfcandIndicies                                      , branchprefix+"pfcandIndicies"                                ) ;
   // iEvent.put(taus_pf_pfjetIndex                                          , branchprefix+"pfjetIndex"                                    ) ;
