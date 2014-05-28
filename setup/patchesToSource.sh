@@ -70,5 +70,5 @@ echo RecoVertex/AdaptiveVertexFinder          >> .git/info/sparse-checkout
 echo SimDataFormats/JetMatching               >> .git/info/sparse-checkout
 git remote add -f origin https://github.com/gpetruc/cmssw.git
 git pull origin miniAOD-from704-part3
-git checkout e2de8f727c073b6c20bd56063202e505d4db6346
+git checkout c64fdc9b0f5fe842291e36e284db8823d108f614
 popd
