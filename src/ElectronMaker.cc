@@ -165,6 +165,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elseOverPOut"               ).setBranchAlias("els_eOverPOut"              );
 
     produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
+    produces<vector<float> >     ("elshOverEBC"                ).setBranchAlias("els_hOverEBC"               );
     produces<vector<float> >     ("elshcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
     produces<vector<float> >     ("elshcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
 
@@ -462,6 +463,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<bool > > els_isGsfCtfScPixChargeConsistent (new vector<bool > );
                              
     auto_ptr<vector<float> > els_hOverE                        (new vector<float> );
+    auto_ptr<vector<float> > els_hOverEBC                      (new vector<float> );
     auto_ptr<vector<float> > els_hcalDepth1OverEcal            (new vector<float> );
     auto_ptr<vector<float> > els_hcalDepth2OverEcal            (new vector<float> );
                              
@@ -1110,6 +1112,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         //els_hOverE                        ->push_back( el->hadronicOverEm()                 );
         els_hOverE                        ->push_back( el->hcalOverEcal()                   );
+        els_hOverEBC                      ->push_back( el->hcalOverEcalBc()                 );
         els_hcalDepth1OverEcal            ->push_back( el->hcalDepth1OverEcal()             );
         els_hcalDepth2OverEcal            ->push_back( el->hcalDepth2OverEcal()             );
         els_eOverPIn                      ->push_back( el->eSuperClusterOverP()             );
@@ -1652,6 +1655,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_sigmaIEtaIEtaSC    , "elssigmaIEtaIEtaSC"    );
     iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
     iEvent.put(els_hOverE             , "elshOverE"             );
+    iEvent.put(els_hOverEBC           , "elshOverEBC"           );
     iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
     iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
 
