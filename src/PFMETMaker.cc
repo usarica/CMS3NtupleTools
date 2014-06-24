@@ -72,7 +72,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
     //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
 
-    edm::Handle<edm::View<reco::PFMET> > met_h;
+    edm::Handle<edm::View<reco::MET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
 
     //edm::Handle<edm::View<reco::PFMET> > metcor_h;
