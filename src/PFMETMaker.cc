@@ -79,9 +79,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
 
     if( !met_h.isValid() ) {
-        edm::LogInfo("OutputInfo") << " failed to retrieve particle-flow MET collection";
-        edm::LogInfo("OutputInfo") << " PFMETMaker cannot continue...!";
-        return;
+      throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
     }
 
     *evt_pfmet    = ( met_h->front() ).et();
