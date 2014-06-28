@@ -142,28 +142,28 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
 	taus_pf_charge               -> push_back( tau->charge()              );
 
-	// leadChargedHadrCand()
-	if( !tau->leadChargedHadrCand().isNull() ){ taus_pf_lead_chargecand_p4 -> push_back( LorentzVector( tau->leadChargedHadrCand() -> p4() ) );}
-	else                                      { taus_pf_lead_chargecand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );	                       }
-	// leadNeutralCand()
-	if( !tau->leadNeutralCand().isNull() ){ taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector( tau->leadNeutralCand() -> p4() ) );}
-	else                                  { taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                      }
-
-	// 	signalCands()
-	vector<LorentzVector> signalCandsPerTau;
-	for( size_t signalCandsInd = 0; signalCandsInd < tau->signalCands().size(); signalCandsInd++ ){
-	  if( !tau->signalCands().isNull() ){ signalCandsPerTau  .  push_back( LorentzVector( tau->signalCands()[signalCandsInd] -> p4() ) );}
-	  else                              { signalCandsPerTau  .  push_back( LorentzVector(0, 0, 0, 0) );                  }
-	}
-	taus_pf_signalcands_p4 -> push_back(signalCandsPerTau);
-
-	// 	isolationCands()
-	vector<LorentzVector> isoCandsPerTau;
-	for( size_t isoCandsInd = 0; isoCandsInd < tau->isolationCands().size(); isoCandsInd++ ){
-	  if( !tau->isolationCands().isNull() ){ isoCandsPerTau   .  push_back( LorentzVector( tau->isolationCands()[isoCandsInd] -> p4() ) );}
-	  else                                 { isoCandsPerTau   .  push_back( LorentzVector(0, 0, 0, 0) );                     }
-	}
-	taus_pf_isocands_p4->push_back(isoCandsPerTau);
+//TemporarilyOffIn706	// leadChargedHadrCand()
+//TemporarilyOffIn706	if( !tau->leadChargedHadrCand().isNull() ){ taus_pf_lead_chargecand_p4 -> push_back( LorentzVector( tau->leadChargedHadrCand() -> p4() ) );}
+//TemporarilyOffIn706	else                                      { taus_pf_lead_chargecand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );	                       }
+//TemporarilyOffIn706	// leadNeutralCand()
+//TemporarilyOffIn706	if( !tau->leadNeutralCand().isNull() ){ taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector( tau->leadNeutralCand() -> p4() ) );}
+//TemporarilyOffIn706	else                                  { taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                      }
+//TemporarilyOffIn706
+//TemporarilyOffIn706	// 	signalCands()
+//TemporarilyOffIn706	vector<LorentzVector> signalCandsPerTau;
+//TemporarilyOffIn706	for( size_t signalCandsInd = 0; signalCandsInd < tau->signalCands().size(); signalCandsInd++ ){
+//TemporarilyOffIn706	  if( !tau->signalCands().isNull() ){ signalCandsPerTau  .  push_back( LorentzVector( tau->signalCands()[signalCandsInd] -> p4() ) );}
+//TemporarilyOffIn706	  else                              { signalCandsPerTau  .  push_back( LorentzVector(0, 0, 0, 0) );                  }
+//TemporarilyOffIn706	}
+//TemporarilyOffIn706	taus_pf_signalcands_p4 -> push_back(signalCandsPerTau);
+//TemporarilyOffIn706
+//TemporarilyOffIn706	// 	isolationCands()
+//TemporarilyOffIn706	vector<LorentzVector> isoCandsPerTau;
+//TemporarilyOffIn706	for( size_t isoCandsInd = 0; isoCandsInd < tau->isolationCands().size(); isoCandsInd++ ){
+//TemporarilyOffIn706	  if( !tau->isolationCands().isNull() ){ isoCandsPerTau   .  push_back( LorentzVector( tau->isolationCands()[isoCandsInd] -> p4() ) );}
+//TemporarilyOffIn706	  else                                 { isoCandsPerTau   .  push_back( LorentzVector(0, 0, 0, 0) );                     }
+//TemporarilyOffIn706	}
+//TemporarilyOffIn706	taus_pf_isocands_p4->push_back(isoCandsPerTau);
 
 	// std::cout<<"pfJetRef: ";
 	// std::cout<<tau->pfJetRef().get()->p4()<<std::endl;
