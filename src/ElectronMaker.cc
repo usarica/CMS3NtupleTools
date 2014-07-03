@@ -238,6 +238,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elspfChargedHadronIso").setBranchAlias("els_pfChargedHadronIso");
     produces<vector<float> >     ("elspfNeutralHadronIso").setBranchAlias("els_pfNeutralHadronIso");
     produces<vector<float> >     ("elspfPhotonIso"       ).setBranchAlias("els_pfPhotonIso"       );
+    produces<vector<float> >     ("elspfPUIso"           ).setBranchAlias("els_pfPUIso"           );
 
 
     // track variables
@@ -527,6 +528,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_pfChargedHadronIso     (new vector<float> );
     auto_ptr<vector<float> > els_pfNeutralHadronIso     (new vector<float> );
     auto_ptr<vector<float> > els_pfPhotonIso            (new vector<float> );
+    auto_ptr<vector<float> > els_pfPUIso                (new vector<float> );
 
     // track variables
     //
@@ -933,6 +935,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_pfChargedHadronIso -> push_back( pfIso.sumChargedHadronPt );
         els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
         els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
+        els_pfPUIso            -> push_back( pfIso.sumPUPt            );
 
         if ( firstGoodVertex!=vertexCollection->end() ) {
  
@@ -1727,6 +1730,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_pfChargedHadronIso , "elspfChargedHadronIso" );
     iEvent.put(els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
     iEvent.put(els_pfPhotonIso        , "elspfPhotonIso"        );
+    iEvent.put(els_pfPUIso            , "elspfPUIso"            );
 
     //Hit Pattern Information
     iEvent.put(els_inner_position  , "elsinnerposition"  );
