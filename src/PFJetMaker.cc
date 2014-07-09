@@ -40,6 +40,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
 
   // product of this EDProducer
   produces<vector<LorentzVector> > ( "pfjetsp4"                               ).setBranchAlias( "pfjets_p4"                               );
+  produces<vector<float> >         ( "pfjetsundoJEC"                          ).setBranchAlias( "pfjets_undoJEC"                          );
   produces<vector<float> >         ( "pfjetschargedHadronE"                   ).setBranchAlias( "pfjets_chargedHadronE"                   );
   produces<vector<float> >         ( "pfjetsneutralHadronE"                   ).setBranchAlias( "pfjets_neutralHadronE"                   );
   produces<vector<float> >         ( "pfjetschargedEmE"                       ).setBranchAlias( "pfjets_chargedEmE"                       );
@@ -106,6 +107,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
  
   // create containers
   auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
+  auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
   auto_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_chargedEmE                (new vector<float>          );
@@ -165,6 +167,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     //
     pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
+    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
     pfjets_chargedHadronE            ->push_back(pfjet_it->chargedHadronEnergy()       );
     pfjets_neutralHadronE            ->push_back(pfjet_it->neutralHadronEnergy()       );
     pfjets_chargedEmE                ->push_back(pfjet_it->chargedEmEnergy()           );
@@ -241,6 +244,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   
   iEvent.put(pfjets_p4                        , "pfjetsp4"                        );
+  iEvent.put(pfjets_undoJEC                   , "pfjetsundoJEC"                  );
   iEvent.put(pfjets_chargedHadronE            , "pfjetschargedHadronE"            );
   iEvent.put(pfjets_neutralHadronE            , "pfjetsneutralHadronE"            );
   iEvent.put(pfjets_chargedEmE                , "pfjetschargedEmE"                );
