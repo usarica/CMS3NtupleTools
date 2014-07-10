@@ -91,6 +91,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
 
   // 
   produces<unsigned int>   ( "evtn" + branchprefix            ).setBranchAlias( "evt_n"      + branchprefix      ); //number of photons in event--NO ET cut // works
+  produces<vector<float> >          (branchprefix + "mass"    ).setBranchAlias( aliasprefix_ + "_mass"           );
   produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );// works
   produces<vector<int> >   ( branchprefix + "fiduciality"     ).setBranchAlias( aliasprefix_ + "_fiduciality"    ); //missing in scmaker // works
 
@@ -164,6 +165,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   // Define vectors to be filled  
   auto_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
   auto_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
+  auto_ptr<vector<float> >          photons_mass            (new vector<float>          );
   auto_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
 
   auto_ptr<vector<float> > photons_hOverE         ( new vector<float> );
@@ -268,6 +270,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 	// Lorentz Vectors	
 	photons_p4                 ->push_back( LorentzVector( photon->p4() )    );
+
+	photons_mass               ->push_back( photon->mass() );
 
 	// set the mask that describes the egamma fiduciality flags
 	// the enum is in interface/EgammaFiduciality.h
@@ -390,6 +394,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //
   iEvent.put( evt_nphotons           , "evtn"+branchprefix            );
   iEvent.put( photons_p4             , branchprefix+"p4"              );
+  iEvent.put( photons_mass           , branchprefix+"mass"            );
   iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
 
   iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );

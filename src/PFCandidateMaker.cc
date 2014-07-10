@@ -62,6 +62,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig) {
      //minDR_electron_            = iConfig.getParameter<double>          ("minDRelectron");
 
      produces<vector<LorentzVector>	> ("pfcandsp4"              ).setBranchAlias("pfcands_p4"			          );
+     produces<vector<float>	>         ("pfcandsmass"            ).setBranchAlias("pfcands_mass"		          );
      //produces<vector<LorentzVector>	> ("pfcandsposAtEcalp4"		  ).setBranchAlias("pfcands_posAtEcal_p4"		  );
      //produces<vector<bool> >          ("pfcandsisMuIso"         ).setBranchAlias("pfcands_isMuIso"	        );
      //produces<vector<float>	>         ("pfcandsecalE"	  	      ).setBranchAlias("pfcands_ecalE"		        );
@@ -109,6 +110,7 @@ void PFCandidateMaker::endJob()   {}
 void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
      auto_ptr<vector<LorentzVector> >	pfcands_p4		            (new vector<LorentzVector>  );
+     auto_ptr<vector<float> >	        pfcands_mass		          (new vector<float>  );
      //auto_ptr<vector<LorentzVector> >	pfcands_posAtEcal_p4	    (new vector<LorentzVector>	);
      //auto_ptr<vector<bool> >		      pfcands_isMuIso	          (new vector<bool> 		      );
      //auto_ptr<vector<float> >		      pfcands_ecalE		          (new vector<float>		      );
@@ -178,6 +180,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 */
 
         pfcands_p4                ->push_back( LorentzVector(pf_it->p4())                                         );
+        pfcands_mass              ->push_back( pf_it->mass()                                                      );
   	    //pfcands_posAtEcal_p4		  ->push_back( LorentzVector(pf_it->positionAtECALEntrance().x(), pf_it->positionAtECALEntrance().y(), pf_it->positionAtECALEntrance().z(), 0.0) );
   	    //pfcands_isMuIso		        ->push_back( isMuIso                                                            );
   	    //pfcands_ecalE			        ->push_back( isfinite( pf_it->ecalEnergy() ) ? pf_it->ecalEnergy() : -9999.     );
@@ -305,6 +308,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
      //
      iEvent.put(pfcands_p4,			            "pfcandsp4"		          );
+     iEvent.put(pfcands_mass,		            "pfcandsmass"		        );
      //iEvent.put(pfcands_posAtEcal_p4,		    "pfcandsposAtEcalp4"	  );
      //iEvent.put(pfcands_isMuIso,	          "pfcandsisMuIso"	      );
      //iEvent.put(pfcands_ecalE,			        "pfcandsecalE"		      );
