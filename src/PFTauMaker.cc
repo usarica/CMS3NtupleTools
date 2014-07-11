@@ -50,6 +50,7 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 
 
   produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
+  produces<vector<float> >          (branchprefix+"mass"                          ).setBranchAlias(aliasprefix_+"_mass"                           );
   produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
 
   // set DISCRIMINATORS from pftauMaker_cfi.py
@@ -89,6 +90,7 @@ void PFTauMaker::endJob() {
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  
   auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
+  auto_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
   auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
   auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
 
@@ -140,6 +142,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   for( View<pat::Tau>::const_iterator tau = taus_h->begin(); tau != taus_h->end(); tau++/*, tausIndex++*/ ) {
 
 	taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
+	taus_pf_mass                 -> push_back( tau->mass()                );
 	taus_pf_charge               -> push_back( tau->charge()              );
 
 //TemporarilyOffIn706	// leadChargedHadrCand()
@@ -258,6 +261,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
+  iEvent.put(taus_pf_mass                                 ,branchprefix+"mass"                                     );  
   iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
 
   iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 

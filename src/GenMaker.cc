@@ -60,6 +60,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"      );
   produces<vector<LorentzVector> >          ("genpsp4"              ).setBranchAlias("genps_p4"             );
+  produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"           );
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
   produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
@@ -125,6 +126,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >                    genps_id             (new vector<int>                   );
   auto_ptr<vector<int> >                    genps_id_mother      (new vector<int>                   );
   auto_ptr<vector<LorentzVector> >          genps_p4             (new vector<LorentzVector>         );
+  auto_ptr<vector<float> >                  genps_mass           (new vector<float>                 );
   auto_ptr<vector<LorentzVector> >          genps_prod_vtx       (new vector<LorentzVector>         );
   auto_ptr<vector<int> >                    genps_status         (new vector<int>                   );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id (new vector<vector<int> >          );
@@ -257,6 +259,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					       genps_it->p4().pz(),
 					       genps_it->p4().e() ) );
 
+    genps_mass      ->push_back(genps_it->mass());
+
     genps_prod_vtx  ->push_back( LorentzVector(genps_it->vx(),
 					       genps_it->vy(),
 					       genps_it->vz(),
@@ -270,6 +274,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_id             , "genpsid"              );
   iEvent.put(genps_id_mother      , "genpsidmother"        );
   iEvent.put(genps_p4             , "genpsp4"              );
+  iEvent.put(genps_mass           , "genpsmass"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
   iEvent.put(genps_status         , "genpsstatus"          );
   iEvent.put(gen_met              , "genmet"               );

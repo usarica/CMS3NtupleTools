@@ -367,6 +367,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     ///////////////////
 
     produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
+    produces<vector<float>            >       ("elsmass"         ).setBranchAlias("els_mass"          );
 
     //////////////////////
     // genMatch miniAOD //
@@ -648,6 +649,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////
 
     auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
+    auto_ptr<vector<float> >                  els_mass             (new vector<float>          );
 
     //////////////////////
     // Added miniAOD    //
@@ -1552,6 +1554,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Added for 7   //
         ///////////////////
 
+        els_mass                    ->push_back( el->mass()                     );
+
 	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
 	vector<int> v_PFCand_idx;
 	for( const edm::Ref<pat::PackedCandidateCollection> & ref : el->associatedPackedPFCandidates() )
@@ -1812,6 +1816,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////
 
     iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
+    iEvent.put(els_mass          , "elsmass"         );
 
     /////////////////////////
     // Added for miniAOD   //

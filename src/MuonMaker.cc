@@ -226,6 +226,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "overlap1"                  ).setBranchAlias( aliasprefix_ + "_overlap1"               );
   produces<vector<float> >          ( branchprefix_ + "caloCompatibility"         ).setBranchAlias( aliasprefix_ + "_caloCompatibility"      ); // calo compatibility variable
   produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"      );
+  produces<vector<float> >          ( branchprefix_ + "mass"                      ).setBranchAlias( aliasprefix_ + "_mass"                   ); 
   produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                     ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
   produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"             ); // muon position at the ecal face
   produces<vector<int> >            ( branchprefix_ + "numberOfMatchedStations"   ).setBranchAlias( aliasprefix_ + "_numberOfMatchedStations"); // number of muon stations with muon segements used in the fit
@@ -583,6 +584,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_overlap1                ( new vector<int>           );
   auto_ptr<vector<float> >         vector_mus_caloCompatibility       ( new vector<float>         );
   auto_ptr<vector<float> >         vector_mus_segmCompatibility       ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_mass                    ( new vector<float>         );
   auto_ptr<vector<LorentzVector> > vector_mus_p4                      ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4              ( new vector<LorentzVector> );
   auto_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
@@ -1059,6 +1061,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_overlap1                -> push_back( mus_overlap1                                              );
     vector_mus_caloCompatibility       -> push_back( muon->caloCompatibility()                                 );
     vector_mus_segmCompatibility       -> push_back( muon::segmentCompatibility(*muon)                         );
+    vector_mus_mass                    -> push_back( muon->mass()                                              );
     vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
     vector_mus_ecalpos_p4              -> push_back( LorentzVector( ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0 )  );
     vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
@@ -1588,6 +1591,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_overlap1                , branchprefix_ + "overlap1"                );
   iEvent.put( vector_mus_caloCompatibility       , branchprefix_ + "caloCompatibility"       );
   iEvent.put( vector_mus_segmCompatibility       , branchprefix_ + "segmCompatibility"       );
+  iEvent.put( vector_mus_mass                    , branchprefix_ + "mass"                    );
   iEvent.put( vector_mus_p4                      , branchprefix_ + "p4"                      );
   iEvent.put( vector_mus_ecalpos_p4              , branchprefix_ + "ecalposp4"               );
   iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
