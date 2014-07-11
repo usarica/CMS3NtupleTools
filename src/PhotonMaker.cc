@@ -95,43 +95,50 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );// works
   produces<vector<int> >   ( branchprefix + "fiduciality"     ).setBranchAlias( aliasprefix_ + "_fiduciality"    ); //missing in scmaker // works
 
-  produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );// works
-  produces<vector<float> > ( branchprefix + "e1x5"            ).setBranchAlias( aliasprefix_ + "_e1x5"           );// works
-  produces<vector<float> > ( branchprefix + "e3x3"            ).setBranchAlias( aliasprefix_ + "_e3x3"           );// works
-  produces<vector<float> > ( branchprefix + "e5x5"            ).setBranchAlias( aliasprefix_ + "_e5x5"           );// works
-  produces<vector<float> > ( branchprefix + "e2x5Max"         ).setBranchAlias( aliasprefix_ + "_e2x5Max"        );// works
-  produces<vector<float> > ( branchprefix + "sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_sigmaEtaEta"    );// works
-  produces<vector<float> > ( branchprefix + "sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_sigmaIEtaIEta"  );// works
+  produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );
+  produces<vector<float> > ( branchprefix + "e1x5"            ).setBranchAlias( aliasprefix_ + "_e1x5"           );
+  produces<vector<float> > ( branchprefix + "e3x3"            ).setBranchAlias( aliasprefix_ + "_e3x3"           );
+  produces<vector<float> > ( branchprefix + "e5x5"            ).setBranchAlias( aliasprefix_ + "_e5x5"           );
+  produces<vector<float> > ( branchprefix + "e2x5Max"         ).setBranchAlias( aliasprefix_ + "_e2x5Max"        );
+  produces<vector<float> > ( branchprefix + "sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_sigmaEtaEta"    );
+  produces<vector<float> > ( branchprefix + "sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_sigmaIEtaIEta"  );
 
-  produces<vector<float> > ( branchprefix + "full5x5hOverE"          ).setBranchAlias( aliasprefix_ + "_full5x5_hOverE"         );// works
-  produces<vector<float> > ( branchprefix + "full5x5e1x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e1x5"           );// works
-  produces<vector<float> > ( branchprefix + "full3x3e3x3"            ).setBranchAlias( aliasprefix_ + "_full3x3_e3x3"           );// works
-  produces<vector<float> > ( branchprefix + "full5x5e5x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e5x5"           );// works
-  produces<vector<float> > ( branchprefix + "full5x5e2x5Max"         ).setBranchAlias( aliasprefix_ + "_full5x5_e2x5Max"        );// works
-  produces<vector<float> > ( branchprefix + "full5x5sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaEtaEta"    );// works
-  produces<vector<float> > ( branchprefix + "full5x5sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaIEtaIEta"  );// works
+  produces<vector<float> > ( branchprefix + "full5x5hOverE"          ).setBranchAlias( aliasprefix_ + "_full5x5_hOverE"         );
+  produces<vector<float> > ( branchprefix + "full5x5e1x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e1x5"           );
+  produces<vector<float> > ( branchprefix + "full3x3e3x3"            ).setBranchAlias( aliasprefix_ + "_full3x3_e3x3"           );
+  produces<vector<float> > ( branchprefix + "full5x5e5x5"            ).setBranchAlias( aliasprefix_ + "_full5x5_e5x5"           );
+  produces<vector<float> > ( branchprefix + "full5x5e2x5Max"         ).setBranchAlias( aliasprefix_ + "_full5x5_e2x5Max"        );
+  produces<vector<float> > ( branchprefix + "full5x5sigmaEtaEta"     ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaEtaEta"    );
+  produces<vector<float> > ( branchprefix + "full5x5sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaIEtaIEta"  );
+  produces<vector<float> > ( branchprefix + "full5x5hOverEtowBC"     ).setBranchAlias( aliasprefix_ + "_full5x5_hOverEtowBC"    );
+  produces<vector<float> > ( branchprefix + "full5x5r9"              ).setBranchAlias( aliasprefix_ + "_full5x5_r9"             );
+  produces<vector<int>   > ( branchprefix + "photonIDloose"          ).setBranchAlias( aliasprefix_ + "_photonID_loose"         );
+  produces<vector<int>   > ( branchprefix + "photonIDtight"          ).setBranchAlias( aliasprefix_ + "_photonID_tight"         );	
 
-  produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );// works
-  produces<vector<float> > ( branchprefix + "tkIsoSolid03"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid03"   );// works
-  produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );// works
-  produces<vector<float> > ( branchprefix + "ntkIsoSolid03"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid03"  );// works
-  produces<vector<float> > ( branchprefix + "ecalIso03"       ).setBranchAlias( aliasprefix_ + "_ecalIso03"      );// works
-  produces<vector<float> > ( branchprefix + "hcalIso03"       ).setBranchAlias( aliasprefix_ + "_hcalIso03"      );// works
-  produces<vector<float> > ( branchprefix + "tkIsoHollow04"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow04"  );// works
-  produces<vector<float> > ( branchprefix + "tkIsoSolid04"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid04"   );// works
-  produces<vector<float> > ( branchprefix + "ntkIsoHollow04"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow04" );// works
-  produces<vector<float> > ( branchprefix + "ntkIsoSolid04"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid04"  );// works
-  produces<vector<float> > ( branchprefix + "ecalIso04"       ).setBranchAlias( aliasprefix_ + "_ecalIso04"      );// works
-  produces<vector<float> > ( branchprefix + "hcalIso04"       ).setBranchAlias( aliasprefix_ + "_hcalIso04"      );// works
+  produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );
+  produces<vector<float> > ( branchprefix + "tkIsoSolid03"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid03"   );
+  produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );
+  produces<vector<float> > ( branchprefix + "ntkIsoSolid03"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid03"  );
+  produces<vector<float> > ( branchprefix + "ecalIso03"       ).setBranchAlias( aliasprefix_ + "_ecalIso03"      );
+  produces<vector<float> > ( branchprefix + "hcalIso03"       ).setBranchAlias( aliasprefix_ + "_hcalIso03"      );
+  produces<vector<float> > ( branchprefix + "tkIsoHollow04"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow04"  );
+  produces<vector<float> > ( branchprefix + "tkIsoSolid04"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid04"   );
+  produces<vector<float> > ( branchprefix + "ntkIsoHollow04"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow04" );
+  produces<vector<float> > ( branchprefix + "ntkIsoSolid04"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid04"  );
+  produces<vector<float> > ( branchprefix + "ecalIso04"       ).setBranchAlias( aliasprefix_ + "_ecalIso04"      );
+  produces<vector<float> > ( branchprefix + "hcalIso04"       ).setBranchAlias( aliasprefix_ + "_hcalIso04"      );
+  produces<vector<float> > ( branchprefix + "chargedHadronIso").setBranchAlias( aliasprefix_ + "_chargedHadronIso");
+  produces<vector<float> > ( branchprefix + "neutralHadronIso").setBranchAlias( aliasprefix_ + "_neutralHadronIso");
+  produces<vector<float> > ( branchprefix + "photonIso"       ).setBranchAlias( aliasprefix_ + "_photonIso");
   ///////////////////
   // Added for 53x //
   ///////////////////
-  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR04"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR04"      );// works
-  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR04");// works
-  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR04");// works
-  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR03"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR03"      );// works
-  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR03");// works
-  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR03");// works
+  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR04"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR04"      );
+  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR04");
+  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR04").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR04");
+  produces<vector<float> > ( branchprefix + "hcalTowerSumEtBcConeDR03"      ).setBranchAlias( aliasprefix_ + "_hcalTowerSumEtBcConeDR03"      );
+  produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR03");
+  produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR03");
 
 // does not work in 7_X_X
   // produces<vector<int> >   ( branchprefix + "scindex"         ).setBranchAlias( aliasprefix_ + "_scindex"        );
@@ -183,7 +190,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_full5x5_e2x5Max        ( new vector<float> );
   auto_ptr<vector<float> > photons_full5x5_sigmaEtaEta    ( new vector<float> );
   auto_ptr<vector<float> > photons_full5x5_sigmaIEtaIEta  ( new vector<float> );
-
+  auto_ptr<vector<float> > photons_full5x5_hOverEtowBC    ( new vector<float> );
+  auto_ptr<vector<float> > photons_full5x5_r9             ( new vector<float> );
+  auto_ptr<vector<int> >   photons_photonID_loose         ( new vector<int>   );
+  auto_ptr<vector<int> >   photons_photonID_tight         ( new vector<int>   );
+ 
   auto_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
   auto_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
   auto_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
@@ -196,6 +207,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_ntkIsoSolid04  ( new vector<float> );
   auto_ptr<vector<float> > photons_ecalIso04      ( new vector<float> );
   auto_ptr<vector<float> > photons_hcalIso04      ( new vector<float> );
+  auto_ptr<vector<float> > photons_chargedHadronIso( new vector<float> );
+  auto_ptr<vector<float> > photons_neutralHadronIso( new vector<float> );
+  auto_ptr<vector<float> > photons_photonIso       ( new vector<float> );
+
   auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR04       ( new vector<float> ); // Added for 53x //
   auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
   auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
@@ -291,12 +306,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_sigmaIEtaIEta      ->push_back( photon->sigmaIetaIeta()        	 );  		
 
 	photons_full5x5_hOverE             ->push_back( photon->full5x5_hadronicOverEm()       	 );
-	photons_full5x5_e1x5    		   ->push_back( photon->full5x5_e1x5()					 );
+	photons_full5x5_e1x5    	   ->push_back( photon->full5x5_e1x5()			 );
 	photons_full3x3_e3x3               ->push_back( photon->full3x3_e3x3()                   );
 	photons_full5x5_e5x5               ->push_back( photon->full5x5_e5x5()                   );
 	photons_full5x5_e2x5Max            ->push_back( photon->full5x5_e2x5()                   );
 	photons_full5x5_sigmaEtaEta        ->push_back( photon->full5x5_sigmaEtaEta()          	 );
-	photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()        	 );  		
+	photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()       	 );
+	photons_full5x5_hOverEtowBC        ->push_back( photon->full5x5_hadTowOverEm()        	 );  		
+	photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  		
+	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
+	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
 	
 	// Isolation  (all 0.3 cone size)
 	photons_ecalIso03          ->push_back(	photon->ecalRecHitSumEtConeDR03() );
@@ -309,10 +328,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	// Isolation  (all 0.4 cone size)
 	photons_ecalIso04          ->push_back(	photon->ecalRecHitSumEtConeDR04() );
 	photons_hcalIso04          ->push_back(	photon->hcalTowerSumEtConeDR04()  );	
-	photons_tkIsoHollow04      ->push_back(	photon->trkSumPtHollowConeDR04()  );
+       	photons_tkIsoHollow04      ->push_back(	photon->trkSumPtHollowConeDR04()  );
 	photons_tkIsoSolid04       ->push_back(	photon->trkSumPtSolidConeDR04()	  );
 	photons_ntkIsoHollow04     ->push_back(	photon->nTrkHollowConeDR04()	  );
 	photons_ntkIsoSolid04      ->push_back(	photon->nTrkSolidConeDR04()		  );
+
+	// PFIso
+	photons_chargedHadronIso   ->push_back(	photon->chargedHadronIso()        );	
+	photons_neutralHadronIso   ->push_back(	photon->neutralHadronIso()        );	
+	photons_photonIso          ->push_back(	photon->photonIso()               );
 
 	// Added for 53x //
 	photons_hcalTowerSumEtBcConeDR04       ->push_back( photon->hcalTowerSumEtBcConeDR04()       );
@@ -412,6 +436,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_full5x5_e2x5Max        , branchprefix+"full5x5e2x5Max"         );
   iEvent.put( photons_full5x5_sigmaEtaEta    , branchprefix+"full5x5sigmaEtaEta"     );
   iEvent.put( photons_full5x5_sigmaIEtaIEta  , branchprefix+"full5x5sigmaIEtaIEta"   );
+  iEvent.put( photons_full5x5_hOverEtowBC    , branchprefix+"full5x5hOverEtowBC"    );
+  iEvent.put( photons_full5x5_r9             , branchprefix+"full5x5r9"             );
+  iEvent.put( photons_photonID_loose         , branchprefix+"photonIDloose"         );
+  iEvent.put( photons_photonID_tight         , branchprefix+"photonIDtight"         );		
 
   iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
   iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
@@ -425,6 +453,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_ntkIsoSolid04  , branchprefix+"ntkIsoSolid04"   );      
   iEvent.put( photons_ecalIso04      , branchprefix+"ecalIso04"       );
   iEvent.put( photons_hcalIso04      , branchprefix+"hcalIso04"       );  
+  iEvent.put( photons_chargedHadronIso, branchprefix+"chargedHadronIso");  
+  iEvent.put( photons_neutralHadronIso, branchprefix+"neutralHadronIso");  
+  iEvent.put( photons_photonIso       , branchprefix+"photonIso"       );  
+
   iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
   iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
   iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR04 , branchprefix + "hcalDepth2TowerSumEtBcConeDR04");// Added for 53x //
