@@ -1464,7 +1464,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        Handle<ConversionCollection> convs_h;
 //        iEvent.getByLabel(recoConversionInputTag_, convs_h);
 //        els_conv_vtx_flag        -> push_back( ConversionTools::hasMatchedConversion(*el, convs_h, beamSpot ) );
-        els_conv_vtx_flag        -> push_back( el->passConversionVeto() ); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
+        els_conv_vtx_flag        -> push_back( !el->passConversionVeto() ); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
 
 //        //////////////////////////////
 //        // Old Conversion Rejection //
