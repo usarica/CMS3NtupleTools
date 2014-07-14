@@ -25,7 +25,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -57,7 +57,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
       itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -92,7 +92,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -124,7 +124,7 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
   std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -250,7 +250,7 @@ const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const s
   math::XYZVector v1(p.momentum().x(), p.momentum().y(), p.momentum().z());
   for(itCand = genParticles->begin(); itCand != genParticles->end(); itCand++, temp++) {
     
-    if(itCand->status() != status)
+    if(status != 999 && itCand->status() != status)
       continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itCand->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
