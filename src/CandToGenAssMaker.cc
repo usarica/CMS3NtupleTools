@@ -358,7 +358,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
       mcid                = matchedGenParticleDoc->pdgId();
       mc_p4               = matchedGenParticleDoc->p4();
       mom_mcid            = matchedMotherParticle->pdgId();
-      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticlesS3, 3, vPIDsToExclude_);
+      mc3_motheridx       = MatchUtilities::getMatchedGenIndex(*matchedMotherParticle, v_genParticlesS3, 999, vPIDsToExclude_);
       dR                  = ROOT::Math::VectorUtil::DeltaR(mc_p4, *elsp4_it);      
       //cout<<"Found status 3 match with pt and mother idx "<< mc_p4.pt() <<" "<<mc3_motheridx<<endl;
     }
