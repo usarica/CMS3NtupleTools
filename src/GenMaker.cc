@@ -30,6 +30,7 @@
 
 #include "CMS2/NtupleMaker/interface/GenMaker.h" 
 #include "CMS2/NtupleMaker/interface/MCUtilities.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 //#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
@@ -59,6 +60,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"      );
+  produces<vector<int> >                    ("genpsidxmother"       ).setBranchAlias("genps_idx_mother"     );
+  produces<vector<int> >                    ("genpsidxsimplemother" ).setBranchAlias("genps_idx_simplemother");
   produces<vector<LorentzVector> >          ("genpsp4"              ).setBranchAlias("genps_p4"             );
   produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"           );
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
@@ -125,6 +128,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<vector<int> >                    genps_id             (new vector<int>                   );
   auto_ptr<vector<int> >                    genps_id_mother      (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_idx_mother     (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                  );
   auto_ptr<vector<LorentzVector> >          genps_p4             (new vector<LorentzVector>         );
   auto_ptr<vector<float> >                  genps_mass           (new vector<float>                 );
   auto_ptr<vector<LorentzVector> >          genps_prod_vtx       (new vector<LorentzVector>         );
@@ -252,7 +257,14 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     genps_status    ->push_back( genps_it->status()                        );
     genps_id        ->push_back( genps_it->pdgId()                         );
-    genps_id_mother ->push_back( MCUtilities::motherID(*genps_it)->pdgId() );    
+    const reco::GenParticle *  mother = MCUtilities::motherID(*genps_it);
+    int index = MatchUtilities::getMatchedGenIndex(*mother, genps_coll, 999);
+    // Also uses the naive definition (->mother(0)). This allows full backwards navigation.
+    const reco::GenParticle *  simplemother = genps_it->numberOfMothers() > 0 ? dynamic_cast<const reco::GenParticle*>(genps_it->mother(0)) : 0;
+    int simpleindex = genps_it->numberOfMothers() > 0 ?  MatchUtilities::getMatchedGenIndex(*simplemother, genps_coll, 999) : -999;     
+    genps_id_mother ->push_back( mother->pdgId() );    
+    genps_idx_mother ->push_back( index );    
+    genps_idx_simplemother ->push_back( simpleindex );    
 
     genps_p4        ->push_back( LorentzVector(genps_it->p4().px(), 
 					       genps_it->p4().py(),
@@ -273,6 +285,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   iEvent.put(genps_id             , "genpsid"              );
   iEvent.put(genps_id_mother      , "genpsidmother"        );
+  iEvent.put(genps_idx_mother     , "genpsidxmother"       );
+  iEvent.put(genps_idx_simplemother, "genpsidxsimplemother" );
   iEvent.put(genps_p4             , "genpsp4"              );
   iEvent.put(genps_mass           , "genpsmass"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
