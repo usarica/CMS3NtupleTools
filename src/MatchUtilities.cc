@@ -172,7 +172,7 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const reco::Candidate& jet
 						      const std::vector<reco::GenJet>* genJets) { 
   
   const reco::GenJet* output = 0;
-  double dRmin = 0.3;
+  double dRmin = 0.4;
   
   std::vector<reco::GenJet>::const_iterator itJetEnd = genJets->end();
   for(std::vector<reco::GenJet>::const_iterator itJet=genJets->begin(); itJet!=itJetEnd; ++itJet) {
@@ -194,7 +194,7 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4
 						      int &genidx) { 
   
   const reco::GenJet* output = 0;
-  double dRmin = 0.2;
+  double dRmin = 0.4;
   int i = 0;
   genidx = -9999;
   
