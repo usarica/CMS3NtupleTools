@@ -66,8 +66,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"           );
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
-  produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
-  produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
+  //produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
+  //produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
   produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"            );
   produces<float>                           ("genpspthat"           ).setBranchAlias("genps_pthat"          );
   produces<float>                           ("genpsweight"          ).setBranchAlias("genps_weight"         );
@@ -137,8 +137,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id (new vector<vector<int> >          );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx(new vector<vector<int> >          );
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4 (new vector<vector<LorentzVector> >);
-  auto_ptr<float>                           gen_met              (new float                         );
-  auto_ptr<float>                           gen_metPhi           (new float                         );  
+  //auto_ptr<float>                           gen_met              (new float                         );
+  //auto_ptr<float>                           gen_metPhi           (new float                         );  
   auto_ptr<float>                           gen_sumEt            (new float                         );
   auto_ptr<float>                           genps_pthat          (new float                         );
   auto_ptr<float>                           genps_weight         (new float                         );
@@ -279,8 +279,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					       0.0 ) );
   }
 
-  *gen_met    =   tempvect.Pt();
-  *gen_metPhi =   tempvect.Phi();
+  //*gen_met    =   tempvect.Pt();
+  //*gen_metPhi =   tempvect.Phi();
   *gen_sumEt  =   sumEt;
 
   iEvent.put(genps_id             , "genpsid"              );
@@ -291,8 +291,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_mass           , "genpsmass"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
   iEvent.put(genps_status         , "genpsstatus"          );
-  iEvent.put(gen_met              , "genmet"               );
-  iEvent.put(gen_metPhi           , "genmetPhi"            );
+  //iEvent.put(gen_met              , "genmet"               );
+  //iEvent.put(gen_metPhi           , "genmetPhi"            );
   iEvent.put(gen_sumEt            , "gensumEt"             );
   iEvent.put(genps_pthat          , "genpspthat"           );
   iEvent.put(genps_weight         , "genpsweight"          );

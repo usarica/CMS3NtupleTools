@@ -30,6 +30,7 @@
 #include "CMS2/NtupleMaker/interface/PFMETMaker.h"
 
 #include "DataFormats/METReco/interface/PFMET.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -46,6 +47,8 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
     //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
     //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
+    produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
+    produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
     //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
@@ -71,9 +74,14 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetSignificance(new float   );
     //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
     //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
+    std::auto_ptr<float>   gen_met         (new float   );
+    std::auto_ptr<float>   gen_metPhi      (new float   );
 
     edm::Handle<edm::View<reco::MET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
+
+    edm::Handle<edm::View<pat::MET> > genmet_h;
+    iEvent.getByLabel(pfMetInputTag, genmet_h);
 
     //edm::Handle<edm::View<reco::PFMET> > metcor_h;
     //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
@@ -86,6 +94,9 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_pfmetPhi = ( met_h->front() ).phi();
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
+
+    *gen_met      = ( genmet_h->front()).genMET()->et();
+    *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
   
     try { 
         *evt_pfmetSignificance = ( met_h->front() ).significance();
@@ -99,6 +110,8 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
     iEvent.put(evt_pfsumet  , "evtpfsumet"    );  
     iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
+    iEvent.put(gen_met      , "genmet"      );
+    iEvent.put(gen_metPhi   , "genmetPhi"   );
 
 /*
     if( !metcor_h.isValid() ) {
