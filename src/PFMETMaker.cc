@@ -90,12 +90,12 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
     }
 
-    *evt_pfmet    = ( met_h->front() ).et();
+    *evt_pfmet    = ( met_h->front() ).pt();
     *evt_pfmetPhi = ( met_h->front() ).phi();
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
 
-    *gen_met      = ( genmet_h->front()).genMET()->et();
+    *gen_met      = ( genmet_h->front()).genMET()->pt();
     *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
   
     try { 
