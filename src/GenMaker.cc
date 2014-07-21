@@ -66,6 +66,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"           );
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
+  produces<vector<float> >                  ("genpscharge"          ).setBranchAlias("genps_charge"         );
   //produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
   //produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
   produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"            );
@@ -134,6 +135,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >                  genps_mass           (new vector<float>                 );
   auto_ptr<vector<LorentzVector> >          genps_prod_vtx       (new vector<LorentzVector>         );
   auto_ptr<vector<int> >                    genps_status         (new vector<int>                   );
+  auto_ptr<vector<float> >                  genps_charge         (new vector<float>                 );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id (new vector<vector<int> >          );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx(new vector<vector<int> >          );
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4 (new vector<vector<LorentzVector> >);
@@ -256,6 +258,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
 
     genps_status    ->push_back( genps_it->status()                        );
+    genps_charge    ->push_back( genps_it->charge()                        );
     genps_id        ->push_back( genps_it->pdgId()                         );
     const reco::GenParticle *  mother = MCUtilities::motherID(*genps_it);
     int index = MatchUtilities::getMatchedGenIndex(*mother, genps_coll, 999);
@@ -291,6 +294,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_mass           , "genpsmass"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
   iEvent.put(genps_status         , "genpsstatus"          );
+  iEvent.put(genps_charge         , "genpscharge"          );
   //iEvent.put(gen_met              , "genmet"               );
   //iEvent.put(gen_metPhi           , "genmetPhi"            );
   iEvent.put(gen_sumEt            , "gensumEt"             );
