@@ -34,6 +34,7 @@
 
 #include "CMS2/NtupleMaker/interface/TrkMETMaker.h"
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -55,13 +56,15 @@ TrkMETMaker::TrkMETMaker(const edm::ParameterSet& iConfig) {
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
     
   pfcandInputTag_           = iConfig.getParameter<InputTag>("pfcandInputTag"                          );
-  trackInputTag_            = iConfig.getParameter<InputTag>("trackInputTag"                           );
   hypInputTag_              = iConfig.getParameter<InputTag>("hypInputTag"                             );
   vertexInputTag_           = iConfig.getParameter<InputTag>("vertexInputTag"                          );
   
   dzcut_                     = iConfig.getParameter<double>          ("dzcut");
   drcut_                     = iConfig.getParameter<double>          ("drcut");
   correctJets_               = iConfig.getParameter<bool>            ("correctJet");
+
+  produces<vector<float> >           (branchprefix+"ltdPhiTrkMet"               ).setBranchAlias(aliasprefix_+"_lt_dPhi_TrkMet"                );
+  produces<vector<float> >           (branchprefix+"lldPhiTrkMet"               ).setBranchAlias(aliasprefix_+"_ll_dPhi_TrkMet"                );
 
   produces<vector<float> >           (branchprefix+"met"             ).setBranchAlias(aliasprefix_+"_met"     );
   produces<vector<float> >           (branchprefix+"metPhi"          ).setBranchAlias(aliasprefix_+"_metPhi"  );
@@ -98,23 +101,8 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >		hyp_trkmetPhi		   (new vector<float>		);
   auto_ptr<vector<float> >		hyp_trksumet		   (new vector<float>		);
 
-  //track p4
-  InputTag trks_trk_p4_tag(trackInputTag_.label(),"trkstrkp4");
-  Handle<vector<LorentzVector> > trks_trk_p4_h;
-  iEvent.getByLabel(trks_trk_p4_tag, trks_trk_p4_h);
-  const vector<LorentzVector> *trks_trk_p4 = trks_trk_p4_h.product();
-
-  //track vertex position
-  InputTag trks_vertex_p4_tag(trackInputTag_.label(),"trksvertexp4");
-  Handle<vector<LorentzVector> > trks_vertex_p4_h;
-  iEvent.getByLabel(trks_vertex_p4_tag, trks_vertex_p4_h);
-  const vector<LorentzVector> *trks_vertex_p4 = trks_vertex_p4_h.product();
-
-  //vertex position
-  InputTag vertex_position_tag(vertexInputTag_.label(),"vtxsposition");
-  Handle<vector<LorentzVector> > vertex_position_h;
-  iEvent.getByLabel(vertex_position_tag, vertex_position_h);
-  const vector<LorentzVector> *vertex_position = vertex_position_h.product();
+  auto_ptr<vector<float> >		hyp_ltdPhiTrkMet	   (new vector<float>		);
+  auto_ptr<vector<float> >		hyp_lldPhiTrkMet           (new vector<float>		);
     
   //pfcandidate p4
   InputTag pfcands_p4_tag(pfcandInputTag_.label(),"pfcandsp4");
@@ -128,18 +116,17 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(pfcands_charge_tag, pfcands_charge_h);
   const vector<int> *pfcands_charge = pfcands_charge_h.product();
 
-  //pfcandidate track index
-  InputTag pfcands_trkidx_tag(pfcandInputTag_.label(),"pfcandstrkidx");
-  Handle<vector<int> > pfcands_trkidx_h;
-  iEvent.getByLabel(pfcands_trkidx_tag, pfcands_trkidx_h);
-  const vector<int> *pfcands_trkidx = pfcands_trkidx_h.product();
+  //pfcandidate dz
+  InputTag pfcands_dz_tag(pfcandInputTag_.label(),"pfcandsdz");
+  Handle<vector<float> > pfcands_dz_h;
+  iEvent.getByLabel(pfcands_dz_tag, pfcands_dz_h);
+  const vector<float> *pfcands_dz = pfcands_dz_h.product();
 
   //hyp ll p4
   InputTag hyp_ll_p4_tag(hypInputTag_.label(),"hypllp4");
   Handle<vector<LorentzVector> > hyp_ll_p4_h;
   iEvent.getByLabel(hyp_ll_p4_tag, hyp_ll_p4_h);
   const vector<LorentzVector> *hyp_ll_p4 = hyp_ll_p4_h.product();
-
 
   //hyp lt p4
   InputTag hyp_lt_p4_tag(hypInputTag_.label(),"hypltp4");
@@ -152,7 +139,6 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   Handle<vector<vector<LorentzVector> > > hyp_jets_p4_h;
   iEvent.getByLabel(hyp_jets_p4_tag, hyp_jets_p4_h);
   const vector<vector<LorentzVector> > *hyp_jets_p4 = hyp_jets_p4_h.product();
-
 
   const unsigned int npfcands = pfcands_p4->size();
   const unsigned int nhyps    = hyp_ll_p4->size();
@@ -204,11 +190,8 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       double dRlt = deltaR( hyp_lt_p4->at(ihyp).eta() , hyp_lt_p4->at(ihyp).phi() , pfcands_p4->at(ipf).eta() , pfcands_p4->at(ipf).phi());
       if( dRll < drcut_ || dRlt < drcut_ ) continue;
 
-      // now make dz requirement on track matched to pfcandidate
-      int trkidx = pfcands_trkidx->at(ipf);
-      if( trkidx < 0 ) continue;
-      double dzpv = dzPV( trks_vertex_p4->at(trkidx) , trks_trk_p4->at(trkidx), vertex_position->at(0) );
-      if( fabs(dzpv) > dzcut_ ) continue;
+      // now make dz requirement on pfcandidate
+      if( pfcands_dz->at(ipf) > dzcut_ ) continue;
 
       // skip pfcandidates matched to jet
       if( correctJets_ ){
@@ -232,9 +215,12 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     }//pfcandidates
 
-    hyp_trkmet->push_back    ( sqrt(metx*metx+mety*mety)  );
-    hyp_trkmetPhi->push_back ( atan2(mety,metx)           );
-    hyp_trksumet->push_back  ( sumet                      );
+    hyp_lldPhiTrkMet->push_back ( deltaPhi(hyp_ll_p4->at(ihyp).phi(),atan2(mety,metx)) );
+    hyp_ltdPhiTrkMet->push_back ( deltaPhi(hyp_lt_p4->at(ihyp).phi(),atan2(mety,metx)) );
+
+    hyp_trkmet->push_back       ( sqrt(metx*metx+mety*mety)                            );
+    hyp_trkmetPhi->push_back    ( atan2(mety,metx)                                     );
+    hyp_trksumet->push_back     ( sumet                                                );
     
   }//hypotheses
 
@@ -244,7 +230,8 @@ void TrkMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(hyp_trkmet			, branchprefix+"met"		    );
   iEvent.put(hyp_trkmetPhi	       	, branchprefix+"metPhi"		    );
   iEvent.put(hyp_trksumet	       	, branchprefix+"sumet"		    );
-
+  iEvent.put(hyp_lldPhiTrkMet	       	, branchprefix+"lldPhiTrkMet"	    );
+  iEvent.put(hyp_ltdPhiTrkMet	       	, branchprefix+"ltdPhiTrkMet"	    );
 }
 
 //define this as a plug-in

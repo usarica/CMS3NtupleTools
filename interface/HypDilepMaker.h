@@ -63,15 +63,13 @@ private:
   edm::InputTag muToGenInputTag;
   edm::InputTag electronsInputTag;
   edm::InputTag metInputTag;
-  edm::InputTag tcmetInputTag;
   edm::InputTag jetsInputTag;
-  edm::InputTag trksInputTag;
   double        hypJetMaxEtaCut;
   double        hypJetMinPtCut;
   double        tightptcut;
   double        looseptcut;
     
-	std::string aliasprefix_;
+  std::string aliasprefix_;
 };
 
 

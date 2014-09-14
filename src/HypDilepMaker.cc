@@ -67,10 +67,8 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   
   muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"                                        );
   electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag"                                    );
-  tcmetInputTag            = iConfig.getParameter<InputTag>("tcmetInputTag"                                        );
   metInputTag              = iConfig.getParameter<InputTag>("metInputTag"                                          );
   jetsInputTag             = iConfig.getParameter<InputTag>("jetsInputTag"                                         );
-  trksInputTag             = iConfig.getParameter<InputTag>("trksInputTag"                                         );
   hypJetMaxEtaCut          = iConfig.getParameter<double>  ("hypJetMaxEtaCut"                                      );
   hypJetMinPtCut           = iConfig.getParameter<double>  ("hypJetMinPtCut"                                       );
   tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut"                                    );
@@ -119,29 +117,12 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector > >(branchprefix+"llp4"                    ).setBranchAlias(aliasprefix_+"_ll_p4"                      );
   produces<vector<LorentzVector > >(branchprefix+"lltrkp4"                 ).setBranchAlias(aliasprefix_+"_ll_trk_p4"                  );
   
-  produces<vector<float> >         (branchprefix+"ltdPhiunCorrMet"         ).setBranchAlias(aliasprefix_+"_lt_dPhi_unCorrMet"          );
-  produces<vector<float> >         (branchprefix+"lldPhiunCorrMet"         ).setBranchAlias(aliasprefix_+"_ll_dPhi_unCorrMet"          );
-  produces<vector<float> >         (branchprefix+"ltdPhimuCorrMet"         ).setBranchAlias(aliasprefix_+"_lt_dPhi_muCorrMet"          );
-  produces<vector<float> >         (branchprefix+"lldPhimuCorrMet"         ).setBranchAlias(aliasprefix_+"_ll_dPhi_muCorrMet"          );
-  produces<vector<float> >         (branchprefix+"ltdPhitcMet"             ).setBranchAlias(aliasprefix_+"_lt_dPhi_tcMet"              );
-  produces<vector<float> >         (branchprefix+"lldPhitcMet"             ).setBranchAlias(aliasprefix_+"_ll_dPhi_tcMet"              );
-  produces<vector<float> >         (branchprefix+"ltdPhimetMuonJESCorr"    ).setBranchAlias(aliasprefix_+"_lt_dPhi_metMuonJESCorr"     );
-  produces<vector<float> >         (branchprefix+"lldPhimetMuonJESCorr"    ).setBranchAlias(aliasprefix_+"_ll_dPhi_metMuonJESCorr"     );
-  
-  produces<vector<float> >         (branchprefix+"dPhinJetunCorrMet"       ).setBranchAlias(aliasprefix_+"_dPhi_nJet_unCorrMet"        );
-  produces<vector<float> >         (branchprefix+"dPhinJetmuCorrMet"       ).setBranchAlias(aliasprefix_+"_dPhi_nJet_muCorrMet"        );
-  produces<vector<float> >         (branchprefix+"dPhinJettcMet"           ).setBranchAlias(aliasprefix_+"_dPhi_nJet_tcMet"            );
-  produces<vector<float> >         (branchprefix+"dPhinJetmetMuonJESCorr"  ).setBranchAlias(aliasprefix_+"_dPhi_nJet_metMuonJESCorr"   );
+  produces<vector<float> >         (branchprefix+"ltdPhiMet"               ).setBranchAlias(aliasprefix_+"_lt_dPhi_Met"                );
+  produces<vector<float> >         (branchprefix+"lldPhiMet"               ).setBranchAlias(aliasprefix_+"_ll_dPhi_Met"                );
+  produces<vector<float> >         (branchprefix+"dPhinJetMet"             ).setBranchAlias(aliasprefix_+"_dPhi_nJet_Met"              );
   
   produces<vector<float> >         (branchprefix+"sumJetPt"                ).setBranchAlias(aliasprefix_+"_sumJetPt"                   );
-  produces<vector<float> >         (branchprefix+"Ht"                      ).setBranchAlias(aliasprefix_+"_Ht"                         );
-  
-  //mt2
-  produces<vector<float> >         (branchprefix+"mt2tcMet"                ).setBranchAlias(aliasprefix_+"_mt2_tcMet"                  );
-  produces<vector<float> >         (branchprefix+"mt2muCorrMet"            ).setBranchAlias(aliasprefix_+"_mt2_muCorrMet"              );
-  produces<vector<float> >         (branchprefix+"mt2metMuonJESCorr"       ).setBranchAlias(aliasprefix_+"_mt2_metMuonJESCorr"         );
-  
-  
+  produces<vector<float> >         (branchprefix+"Ht"                      ).setBranchAlias(aliasprefix_+"_Ht"                         );  
 
   produces<vector<vector<int> > >  (branchprefix+"jetsidx"                 ).setBranchAlias(aliasprefix_+"_jets_idx"                   );
   produces<vector<vector<int> > >  (branchprefix+"otherjetsidx"            ).setBranchAlias(aliasprefix_+"_other_jets_idx"             );
@@ -205,26 +186,13 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > hyp_ll_p4                   (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > hyp_ll_trk_p4               (new vector<LorentzVector>   );
   
-  auto_ptr<vector<float> >         hyp_lt_dPhi_unCorrMet       (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_ll_dPhi_unCorrMet       (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_lt_dPhi_muCorrMet       (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_ll_dPhi_muCorrMet       (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_lt_dPhi_tcMet           (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_ll_dPhi_tcMet           (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_lt_dPhi_metMuonJESCorr  (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_ll_dPhi_metMuonJESCorr  (new vector<float>           );
+  auto_ptr<vector<float> >         hyp_lt_dPhi_Met             (new vector<float>           );
+  auto_ptr<vector<float> >         hyp_ll_dPhi_Met             (new vector<float>           );
   
-  auto_ptr<vector<float> >         hyp_dPhi_nJet_unCorrMet     (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_dPhi_nJet_muCorrMet     (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_dPhi_nJet_tcMet         (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_dPhi_nJet_metMuonJESCorr(new vector<float>           );
+  auto_ptr<vector<float> >         hyp_dPhi_nJet_Met           (new vector<float>           );
   
   auto_ptr<vector<float> >         hyp_sumJetPt                (new vector<float>           );
   auto_ptr<vector<float> >         hyp_Ht                      (new vector<float>           );
-
-  auto_ptr<vector<float> >         hyp_mt2_tcMet               (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_mt2_muCorrMet           (new vector<float>           );
-  auto_ptr<vector<float> >         hyp_mt2_metMuonJESCorr      (new vector<float>           );
   
 
   auto_ptr<vector<vector<int> > >  hyp_jets_idx                (new vector<vector<int> >    );
@@ -442,47 +410,19 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(jetsInputTag, jets_p4_h);
   const vector<LorentzVector> *jets_p4 = jets_p4_h.product();
  
+  //event met
+  InputTag met_tag(metInputTag.label(), "evtpfmet");
+  Handle<float> met_tag_h;
+  iEvent.getByLabel(met_tag, met_tag_h);
+  const float* evt_met = met_tag_h.product();
+
   //event metPhi
-  InputTag metphi_tag(metInputTag.label(), "evtmetPhi");
+  InputTag metphi_tag(metInputTag.label(), "evtpfmetPhi");
   Handle<float> metphi_tag_h;
   iEvent.getByLabel(metphi_tag, metphi_tag_h);
   const float* evt_metphi = metphi_tag_h.product();
 
-  //muon corrected met
-  InputTag mumet_tag(metInputTag.label(), "evtmetMuonCorr");
-  Handle<float> mumet_tag_h;
-  iEvent.getByLabel(mumet_tag, mumet_tag_h);
-  const float* evt_mumet = mumet_tag_h.product();
 
-  //muon corrected metPhi
-  InputTag mumetphi_tag(metInputTag.label(), "evtmetMuonCorrPhi");
-  Handle<float> mumetphi_tag_h;
-  iEvent.getByLabel(mumetphi_tag, mumetphi_tag_h);
-  const float* evt_mumetphi = mumetphi_tag_h.product();
-
-  //muon+JES corrected met
-  InputTag muonJESCorrmet_tag(metInputTag.label(), "evtmetMuonJESCorr");
-  Handle<float> muonJESCorrmet_tag_h;
-  iEvent.getByLabel(muonJESCorrmet_tag, muonJESCorrmet_tag_h);
-  const float* evt_metMuonJESCorr = muonJESCorrmet_tag_h.product();
-
-  //muon+JES corrected metPhi
-  InputTag muonJESCorrmetphi_tag(metInputTag.label(), "evtmetMuonJESCorrPhi");
-  Handle<float> muonJESCorrmetphi_tag_h;
-  iEvent.getByLabel(muonJESCorrmetphi_tag, muonJESCorrmetphi_tag_h);
-  const float* evt_metMuonJESCorrPhi = muonJESCorrmetphi_tag_h.product();
-
-  //event met
-  InputTag tcmet_tag(tcmetInputTag.label(), "evttcmet");
-  Handle<float> tcmet_tag_h;
-  iEvent.getByLabel(tcmet_tag, tcmet_tag_h);
-  const float* evt_tcmet = tcmet_tag_h.product();
-
-  //event metPhi
-  InputTag tcmetphi_tag(tcmetInputTag.label(), "evttcmetPhi");
-  Handle<float> tcmetphi_tag_h;
-  iEvent.getByLabel(tcmetphi_tag, tcmetphi_tag_h);
-  const float* evt_tcmetphi = tcmetphi_tag_h.product();
 
   unsigned int nmus = mus_p4->size();
   unsigned int nels = els_p4->size();
@@ -526,15 +466,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	tight_index = mus_index_1;
 	loose_index = mus_index_2;
       }
-      
-      //mt2 shit, testing
-      hyp_mt2_tcMet          ->push_back(mT2_bisect(mus_p4->at(tight_index), mus_p4->at(loose_index), 
-						    *evt_tcmet, *evt_tcmetphi) );
-      hyp_mt2_muCorrMet      ->push_back(mT2_bisect(mus_p4->at(tight_index), mus_p4->at(loose_index), 
-						    *evt_mumet, *evt_mumetphi) );
-      hyp_mt2_metMuonJESCorr ->push_back(mT2_bisect(mus_p4->at(tight_index), mus_p4->at(loose_index), 
-						    *evt_metMuonJESCorr, *evt_metMuonJESCorrPhi ) );
-      
+            
 
       //fill the Jet vars
       vector<int> temp_jets_idx;
@@ -574,126 +506,45 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_jets_p4                    ->push_back(temp_jets_p4                  );
       hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
 
-      float temp_lt_dphi_unCorrMet;
-      float temp_ll_dphi_unCorrMet;
-      float temp_lt_dphi_muCorrMet;
-      float temp_ll_dphi_muCorrMet;
-      float temp_lt_dphi_metMuonJESCorr;
-      float temp_ll_dphi_metMuonJESCorr;
-      float temp_lt_dphi_tcMet;
-      float temp_ll_dphi_tcMet;
+      float temp_lt_dphi_Met;
+      float temp_ll_dphi_Met;
 
       if( fabs( mus_p4->at(tight_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	temp_lt_dphi_unCorrMet = mus_p4->at(tight_index).phi() - *evt_metphi;
+	temp_lt_dphi_Met = mus_p4->at(tight_index).phi() - *evt_metphi;
       else if( ( mus_p4->at(tight_index).phi() - *evt_metphi ) > TMath::Pi() )
-      	temp_lt_dphi_unCorrMet = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
+      	temp_lt_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
       else
-	temp_lt_dphi_unCorrMet = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
+	temp_lt_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
 
-      
       if( fabs( mus_p4->at(loose_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	temp_ll_dphi_unCorrMet = mus_p4->at(loose_index).phi() - *evt_metphi;
+	temp_ll_dphi_Met = mus_p4->at(loose_index).phi() - *evt_metphi;
       else if( ( mus_p4->at(loose_index).phi() - *evt_metphi ) > TMath::Pi() )
-	temp_ll_dphi_unCorrMet = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
+      	temp_ll_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
       else
-	temp_ll_dphi_unCorrMet = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
+	temp_ll_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
 
+      hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
+      hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
 
-      if( fabs( mus_p4->at(tight_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	temp_lt_dphi_muCorrMet = mus_p4->at(tight_index).phi() - *evt_mumetphi;
-      else if( ( mus_p4->at(tight_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	temp_lt_dphi_muCorrMet = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_mumetphi );
-      else
-	temp_lt_dphi_muCorrMet = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_mumetphi );
-
-
-      if( fabs( mus_p4->at(loose_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	temp_ll_dphi_muCorrMet = mus_p4->at(loose_index).phi() - *evt_mumetphi;
-      else if( ( mus_p4->at(loose_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	temp_ll_dphi_muCorrMet = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_mumetphi  );
-      else
-	temp_ll_dphi_muCorrMet = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_mumetphi  );
-
-
-      if( fabs( mus_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	temp_lt_dphi_metMuonJESCorr = mus_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi;
-      else if( ( mus_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	temp_lt_dphi_metMuonJESCorr = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi );
-      else
-	temp_lt_dphi_metMuonJESCorr = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-      if( fabs( mus_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	temp_ll_dphi_metMuonJESCorr = mus_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi;
-      else if( ( mus_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	temp_ll_dphi_metMuonJESCorr = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi );
-      else
-	temp_ll_dphi_metMuonJESCorr = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-      if( fabs( mus_p4->at(tight_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	temp_lt_dphi_tcMet = mus_p4->at(tight_index).phi() - *evt_tcmetphi;
-      else if( ( mus_p4->at(tight_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-        temp_lt_dphi_tcMet = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_tcmetphi );
-      else
-        temp_lt_dphi_tcMet = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_tcmetphi );      
-
-      
-      if( fabs( mus_p4->at(loose_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	temp_ll_dphi_tcMet = mus_p4->at(loose_index).phi() - *evt_tcmetphi;
-      else if( ( mus_p4->at(loose_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-        temp_ll_dphi_tcMet = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_tcmetphi );
-      else
-        temp_ll_dphi_tcMet = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_tcmetphi );
-
-      hyp_lt_dPhi_unCorrMet->push_back(temp_lt_dphi_unCorrMet); 
-      hyp_ll_dPhi_unCorrMet->push_back(temp_ll_dphi_unCorrMet); 
-      hyp_lt_dPhi_muCorrMet->push_back(temp_lt_dphi_muCorrMet); 
-      hyp_ll_dPhi_muCorrMet->push_back(temp_ll_dphi_muCorrMet); 
-      hyp_lt_dPhi_metMuonJESCorr ->push_back(temp_lt_dphi_metMuonJESCorr );  
-      hyp_ll_dPhi_metMuonJESCorr ->push_back(temp_ll_dphi_metMuonJESCorr );  
-      hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
-      hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
-
-      float temp_dPhi_nJet_unCorrMet = 9999.;
-      float temp_dPhi_nJet_muCorrMet = 9999.;
-      float temp_dPhi_nJet_tcMet     = 9999.;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
-
+      float temp_dPhi_nJet_Met = 9999.;
       float temp_sumJetPt = 0;
 
       for( unsigned int jidx = 0; jidx < temp_jets_p4.size(); jidx++ ) {
 
 	float dphi       = fabs( temp_jets_p4[jidx].phi() - *evt_metphi          ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metphi          : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metphi          );
-	float dphi_mu    = fabs( temp_jets_p4[jidx].phi() - *evt_mumetphi  ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_mumetphi  : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_mumetphi  );
-	float dphi_muonJESCorr = fabs( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi );
-	float dphi_tc    = fabs( temp_jets_p4[jidx].phi() - *evt_tcmetphi        ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_tcmetphi        : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_tcmetphi        );
 
-	if( dphi < temp_dPhi_nJet_unCorrMet )
-	  temp_dPhi_nJet_unCorrMet = dphi;
-
-	if( dphi_mu < temp_dPhi_nJet_muCorrMet )
-	  temp_dPhi_nJet_muCorrMet = dphi_mu;
-
-	if( dphi_muonJESCorr < temp_dPhi_nJet_metMuonJESCorr )
-	  temp_dPhi_nJet_metMuonJESCorr = dphi_muonJESCorr;
-
-	if( dphi_tc < temp_dPhi_nJet_tcMet )
-	  temp_dPhi_nJet_tcMet = dphi_tc;
+	if( dphi < temp_dPhi_nJet_Met )
+	  temp_dPhi_nJet_Met = dphi;
 
 	temp_sumJetPt += temp_jets_p4[jidx].pt();
       }
                                   
-      hyp_dPhi_nJet_unCorrMet->push_back(temp_dPhi_nJet_unCorrMet);
-      hyp_dPhi_nJet_muCorrMet->push_back(temp_dPhi_nJet_muCorrMet);
-      hyp_dPhi_nJet_tcMet    ->push_back(temp_dPhi_nJet_tcMet    );   
-      hyp_dPhi_nJet_metMuonJESCorr ->push_back(temp_dPhi_nJet_metMuonJESCorr );
-
+      hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
       hyp_sumJetPt->push_back( temp_sumJetPt );
 
       float temp_Ht = temp_sumJetPt;
 
-      temp_Ht += ( mus_p4->at(tight_index).pt() + mus_p4->at(loose_index).pt() + *evt_tcmet );
+      temp_Ht += ( mus_p4->at(tight_index).pt() + mus_p4->at(loose_index).pt() + *evt_met );
 
       hyp_Ht->push_back(temp_Ht);
 
@@ -778,16 +629,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	tight_index = els_index_1;
 	loose_index = els_index_2;
       }
-      
-      //mt2 shit, testing
-      hyp_mt2_tcMet          ->push_back(mT2_bisect(els_p4->at(tight_index), els_p4->at(loose_index), 
-						    *evt_tcmet, *evt_tcmetphi) );
-      hyp_mt2_muCorrMet      ->push_back(mT2_bisect(els_p4->at(tight_index), els_p4->at(loose_index), 
-						    *evt_mumet, *evt_mumetphi) );
-      hyp_mt2_metMuonJESCorr ->push_back(mT2_bisect(els_p4->at(tight_index), els_p4->at(loose_index), 
-						    *evt_metMuonJESCorr, *evt_metMuonJESCorrPhi ) );
-
-      
+            
       //fill the Jet vars
       vector<int> temp_jets_idx;
       vector<int> temp_other_jets_idx;
@@ -829,126 +671,50 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_jets_p4                    ->push_back(temp_jets_p4                  );
       hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
 
-      float temp_lt_dphi_unCorrMet;
-      float temp_ll_dphi_unCorrMet;
-      float temp_lt_dphi_muCorrMet;
-      float temp_ll_dphi_muCorrMet;
-      float temp_lt_dphi_metMuonJESCorr;
-      float temp_ll_dphi_metMuonJESCorr;
-      float temp_lt_dphi_tcMet;
-      float temp_ll_dphi_tcMet;
+      float temp_lt_dphi_Met;
+      float temp_ll_dphi_Met;
 
       if( fabs( els_p4->at(tight_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	temp_lt_dphi_unCorrMet = els_p4->at(tight_index).phi() - *evt_metphi;
+	temp_lt_dphi_Met = els_p4->at(tight_index).phi() - *evt_metphi;
       else if( ( els_p4->at(tight_index).phi() - *evt_metphi ) > TMath::Pi() )
-      	temp_lt_dphi_unCorrMet = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
+      	temp_lt_dphi_Met = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
       else
-	temp_lt_dphi_unCorrMet = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
+	temp_lt_dphi_Met = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
 
       
       if( fabs( els_p4->at(loose_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	temp_ll_dphi_unCorrMet = els_p4->at(loose_index).phi() - *evt_metphi;
+	temp_ll_dphi_Met = els_p4->at(loose_index).phi() - *evt_metphi;
       else if( ( els_p4->at(loose_index).phi() - *evt_metphi ) > TMath::Pi() )
-	temp_ll_dphi_unCorrMet = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
+	temp_ll_dphi_Met = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
       else
-	temp_ll_dphi_unCorrMet = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
+	temp_ll_dphi_Met = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
 
 
-      if( fabs( els_p4->at(tight_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	temp_lt_dphi_muCorrMet = els_p4->at(tight_index).phi() - *evt_mumetphi;
-      else if( ( els_p4->at(tight_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	temp_lt_dphi_muCorrMet = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_mumetphi );
-      else
-	temp_lt_dphi_muCorrMet = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_mumetphi );
 
+      hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
+      hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
 
-      if( fabs( els_p4->at(loose_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	temp_ll_dphi_muCorrMet = els_p4->at(loose_index).phi() - *evt_mumetphi;
-      else if( ( els_p4->at(loose_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	temp_ll_dphi_muCorrMet = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_mumetphi  );
-      else
-	temp_ll_dphi_muCorrMet = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_mumetphi  );
-
-
-      if( fabs( els_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	temp_lt_dphi_metMuonJESCorr = els_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi;
-      else if( ( els_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	temp_lt_dphi_metMuonJESCorr = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi );
-      else
-	temp_lt_dphi_metMuonJESCorr = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-      if( fabs( els_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	temp_ll_dphi_metMuonJESCorr = els_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi;
-      else if( ( els_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	temp_ll_dphi_metMuonJESCorr = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi );
-      else
-	temp_ll_dphi_metMuonJESCorr = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-      if( fabs( els_p4->at(tight_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	temp_lt_dphi_tcMet = els_p4->at(tight_index).phi() - *evt_tcmetphi;
-      else if( ( els_p4->at(tight_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-        temp_lt_dphi_tcMet = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_tcmetphi );
-      else
-        temp_lt_dphi_tcMet = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_tcmetphi );      
-
-      
-      if( fabs( els_p4->at(loose_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	temp_ll_dphi_tcMet = els_p4->at(loose_index).phi() - *evt_tcmetphi;
-      else if( ( els_p4->at(loose_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-        temp_ll_dphi_tcMet = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_tcmetphi );
-      else
-        temp_ll_dphi_tcMet = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_tcmetphi );
-
-      hyp_lt_dPhi_unCorrMet->push_back(temp_lt_dphi_unCorrMet); 
-      hyp_ll_dPhi_unCorrMet->push_back(temp_ll_dphi_unCorrMet); 
-      hyp_lt_dPhi_muCorrMet->push_back(temp_lt_dphi_muCorrMet); 
-      hyp_ll_dPhi_muCorrMet->push_back(temp_ll_dphi_muCorrMet); 
-      hyp_lt_dPhi_metMuonJESCorr ->push_back(temp_lt_dphi_metMuonJESCorr );  
-      hyp_ll_dPhi_metMuonJESCorr ->push_back(temp_ll_dphi_metMuonJESCorr );  
-      hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
-      hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
-
-      float temp_dPhi_nJet_unCorrMet = 9999.;
-      float temp_dPhi_nJet_muCorrMet = 9999.;
-      float temp_dPhi_nJet_tcMet     = 9999.;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
+      float temp_dPhi_nJet_Met = 9999.;
 
       float temp_sumJetPt = 0;
 
       for( unsigned int jidx = 0; jidx < temp_jets_p4.size(); jidx++ ) {
 
 	float dphi       = fabs( temp_jets_p4[jidx].phi() - *evt_metphi            ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metphi            : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metphi            );
-	float dphi_mu    = fabs( temp_jets_p4[jidx].phi() - *evt_mumetphi          ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_mumetphi          : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_mumetphi          );
-	float dphi_muonJESCorr = fabs( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi );
-	float dphi_tc    = fabs( temp_jets_p4[jidx].phi() - *evt_tcmetphi          ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_tcmetphi          : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_tcmetphi          );
 
-	if( dphi < temp_dPhi_nJet_unCorrMet )
-	  temp_dPhi_nJet_unCorrMet = dphi;
-
-	if( dphi_mu < temp_dPhi_nJet_muCorrMet )
-	  temp_dPhi_nJet_muCorrMet = dphi_mu;
-
-	if( dphi_muonJESCorr < temp_dPhi_nJet_metMuonJESCorr )
-	  temp_dPhi_nJet_metMuonJESCorr = dphi_muonJESCorr;
-
-	if( dphi_tc < temp_dPhi_nJet_tcMet )
-	  temp_dPhi_nJet_tcMet = dphi_tc;
+	if( dphi < temp_dPhi_nJet_Met )
+	  temp_dPhi_nJet_Met = dphi;
 
 	temp_sumJetPt += temp_jets_p4[jidx].pt();
       }
                                   
-      hyp_dPhi_nJet_unCorrMet->push_back(temp_dPhi_nJet_unCorrMet);
-      hyp_dPhi_nJet_muCorrMet->push_back(temp_dPhi_nJet_muCorrMet);
-      hyp_dPhi_nJet_tcMet    ->push_back(temp_dPhi_nJet_tcMet    );   
-      hyp_dPhi_nJet_metMuonJESCorr ->push_back(temp_dPhi_nJet_metMuonJESCorr );
+      hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
 
       hyp_sumJetPt->push_back( temp_sumJetPt );
 
       float temp_Ht = temp_sumJetPt;
 
-      temp_Ht += ( els_p4->at(tight_index).pt() + els_p4->at(loose_index).pt() + *evt_tcmet );
+      temp_Ht += ( els_p4->at(tight_index).pt() + els_p4->at(loose_index).pt() + *evt_met );
 
       hyp_Ht->push_back(temp_Ht);
     
@@ -1016,22 +782,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 
       //if both fail the tight cut, continue
       if(el_pt < tightptcut && mu_pt < tightptcut) continue;
-      
-      //mu is tight and e is loose only if el_pt < tightcut and 
-      //mupt > tightcut      
-      	
-      //correct the met for the hyp muons
-      //pair<LorentzVector, LorentzVector> muon_pair = make_pair( mus_p4->at(mus_index), mus_trk_p4->at(mus_index) );
-      
-      //mt2 shit, testing
-      hyp_mt2_tcMet          ->push_back(mT2_bisect(els_p4->at(els_index), mus_p4->at(mus_index), 
-						    *evt_tcmet, *evt_tcmetphi) );
-      hyp_mt2_muCorrMet      ->push_back(mT2_bisect(els_p4->at(els_index), mus_p4->at(mus_index), 
-						    *evt_mumet, *evt_mumetphi) );
-      hyp_mt2_metMuonJESCorr ->push_back(mT2_bisect(els_p4->at(els_index), mus_p4->at(mus_index), 
-						    *evt_metMuonJESCorr, *evt_metMuonJESCorrPhi ) );
-      
-
+                  
       //fill the Jet vars
       vector<int> temp_jets_idx;
       vector<int> temp_other_jets_idx;
@@ -1073,204 +824,72 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_jets_p4                    ->push_back(temp_jets_p4                  );
       hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
 
-      float temp_lt_dphi_unCorrMet;
-      float temp_ll_dphi_unCorrMet;
-      float temp_lt_dphi_muCorrMet;
-      float temp_ll_dphi_muCorrMet;
-      float temp_lt_dphi_metMuonJESCorr;
-      float temp_ll_dphi_metMuonJESCorr;
-      float temp_lt_dphi_tcMet;
-      float temp_ll_dphi_tcMet;
+      float temp_lt_dphi_Met;
+      float temp_ll_dphi_Met;
 
       if(el_pt < tightptcut && mu_pt > tightptcut) {
 
 	if( fabs( mus_p4->at(mus_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	  temp_lt_dphi_unCorrMet = mus_p4->at(mus_index).phi() - *evt_metphi;
+	  temp_lt_dphi_Met = mus_p4->at(mus_index).phi() - *evt_metphi;
 	else if( ( mus_p4->at(mus_index).phi() - *evt_metphi ) > TMath::Pi() )
-	  temp_lt_dphi_unCorrMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
+	  temp_lt_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
 	else
-	  temp_lt_dphi_unCorrMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
+	  temp_lt_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
 
       
 	if( fabs( els_p4->at(els_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	  temp_ll_dphi_unCorrMet = els_p4->at(els_index).phi() - *evt_metphi;
+	  temp_ll_dphi_Met = els_p4->at(els_index).phi() - *evt_metphi;
 	else if( ( els_p4->at(els_index).phi() - *evt_metphi ) > TMath::Pi() )
-	  temp_ll_dphi_unCorrMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
+	  temp_ll_dphi_Met = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
 	else
-	  temp_ll_dphi_unCorrMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
+	  temp_ll_dphi_Met = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
 
-
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	  temp_lt_dphi_muCorrMet = mus_p4->at(mus_index).phi() - *evt_mumetphi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	  temp_lt_dphi_muCorrMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_mumetphi );
-	else
-	  temp_lt_dphi_muCorrMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_mumetphi );
-
-
-	if( fabs( els_p4->at(els_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	  temp_ll_dphi_muCorrMet = els_p4->at(els_index).phi() - *evt_mumetphi;
-	else if( ( els_p4->at(els_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	  temp_ll_dphi_muCorrMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_mumetphi  );
-	else
-	  temp_ll_dphi_muCorrMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_mumetphi  );
-
-
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	  temp_lt_dphi_metMuonJESCorr = mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	  temp_lt_dphi_metMuonJESCorr = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi );
-	else
-	  temp_lt_dphi_metMuonJESCorr = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-	if( fabs( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	  temp_ll_dphi_metMuonJESCorr = els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi;
-	else if( ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	  temp_ll_dphi_metMuonJESCorr = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi );
-	else
-	  temp_ll_dphi_metMuonJESCorr = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	  temp_lt_dphi_tcMet = mus_p4->at(mus_index).phi() - *evt_tcmetphi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-	  temp_lt_dphi_tcMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_tcmetphi );
-	else
-	  temp_lt_dphi_tcMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_tcmetphi );      
-
-      
-	if( fabs( els_p4->at(els_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	  temp_ll_dphi_tcMet = els_p4->at(els_index).phi() - *evt_tcmetphi;
-	else if( ( els_p4->at(els_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-	  temp_ll_dphi_tcMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_tcmetphi );
-	else
-	  temp_ll_dphi_tcMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_tcmetphi );
-
-	hyp_lt_dPhi_unCorrMet->push_back(temp_lt_dphi_unCorrMet); 
-	hyp_ll_dPhi_unCorrMet->push_back(temp_ll_dphi_unCorrMet); 
-	hyp_lt_dPhi_muCorrMet->push_back(temp_lt_dphi_muCorrMet); 
-	hyp_ll_dPhi_muCorrMet->push_back(temp_ll_dphi_muCorrMet); 
-	hyp_lt_dPhi_metMuonJESCorr ->push_back(temp_lt_dphi_metMuonJESCorr );  
-	hyp_ll_dPhi_metMuonJESCorr ->push_back(temp_ll_dphi_metMuonJESCorr );  
-	hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
-	hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
+	hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
+	hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
       }
 
       else {
 
 	if( fabs( els_p4->at(els_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	  temp_lt_dphi_unCorrMet = els_p4->at(els_index).phi() - *evt_metphi;
+	  temp_lt_dphi_Met = els_p4->at(els_index).phi() - *evt_metphi;
 	else if( ( els_p4->at(els_index).phi() - *evt_metphi ) > TMath::Pi() )
-	  temp_lt_dphi_unCorrMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
+	  temp_lt_dphi_Met = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
 	else
-	  temp_lt_dphi_unCorrMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
+	  temp_lt_dphi_Met = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
 
       
 	if( fabs( mus_p4->at(mus_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	  temp_ll_dphi_unCorrMet = mus_p4->at(mus_index).phi() - *evt_metphi;
+	  temp_ll_dphi_Met = mus_p4->at(mus_index).phi() - *evt_metphi;
 	else if( ( mus_p4->at(mus_index).phi() - *evt_metphi ) > TMath::Pi() )
-	  temp_ll_dphi_unCorrMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
+	  temp_ll_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
 	else
-	  temp_ll_dphi_unCorrMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
+	  temp_ll_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
 
-
-	if( fabs( els_p4->at(els_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	  temp_lt_dphi_muCorrMet = els_p4->at(els_index).phi() - *evt_mumetphi;
-	else if( ( els_p4->at(els_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	  temp_lt_dphi_muCorrMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_mumetphi );
-	else
-	  temp_lt_dphi_muCorrMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_mumetphi );
-
-
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_mumetphi  ) <= TMath::Pi() )
-	  temp_ll_dphi_muCorrMet = mus_p4->at(mus_index).phi() - *evt_mumetphi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_mumetphi ) > TMath::Pi() )
-	  temp_ll_dphi_muCorrMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_mumetphi  );
-	else
-	  temp_ll_dphi_muCorrMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_mumetphi  );
-
-
-	if( fabs( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	  temp_lt_dphi_metMuonJESCorr = els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi;
-	else if( ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	  temp_lt_dphi_metMuonJESCorr = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi );
-	else
-	  temp_lt_dphi_metMuonJESCorr = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi ) <= TMath::Pi() )
-	  temp_ll_dphi_metMuonJESCorr = mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi ) > TMath::Pi() )
-	  temp_ll_dphi_metMuonJESCorr = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi );
-	else
-	  temp_ll_dphi_metMuonJESCorr = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metMuonJESCorrPhi );
-
-      
-	if( fabs( els_p4->at(els_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	  temp_lt_dphi_tcMet = els_p4->at(els_index).phi() - *evt_tcmetphi;
-	else if( ( els_p4->at(els_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-	  temp_lt_dphi_tcMet = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_tcmetphi );
-	else
-	  temp_lt_dphi_tcMet = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_tcmetphi );      
-
-      
-	if( fabs( mus_p4->at(mus_index).phi() - *evt_tcmetphi ) <= TMath::Pi() )
-	  temp_ll_dphi_tcMet = mus_p4->at(mus_index).phi() - *evt_tcmetphi;
-	else if( ( mus_p4->at(mus_index).phi() - *evt_tcmetphi ) > TMath::Pi() )
-	  temp_ll_dphi_tcMet = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_tcmetphi );
-	else
-	  temp_ll_dphi_tcMet = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_tcmetphi );
-
-	hyp_lt_dPhi_unCorrMet->push_back(temp_lt_dphi_unCorrMet); 
-	hyp_ll_dPhi_unCorrMet->push_back(temp_ll_dphi_unCorrMet); 
-	hyp_lt_dPhi_muCorrMet->push_back(temp_lt_dphi_muCorrMet); 
-	hyp_ll_dPhi_muCorrMet->push_back(temp_ll_dphi_muCorrMet); 
-	hyp_lt_dPhi_metMuonJESCorr ->push_back(temp_lt_dphi_metMuonJESCorr );  
-	hyp_ll_dPhi_metMuonJESCorr ->push_back(temp_ll_dphi_metMuonJESCorr );  
-	hyp_lt_dPhi_tcMet    ->push_back(temp_lt_dphi_tcMet    );    
-	hyp_ll_dPhi_tcMet    ->push_back(temp_ll_dphi_tcMet    );     
+	hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
+	hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
       }
 
-      float temp_dPhi_nJet_unCorrMet = 9999.;
-      float temp_dPhi_nJet_muCorrMet = 9999.;
-      float temp_dPhi_nJet_tcMet     = 9999.;   
-      float temp_dPhi_nJet_metMuonJESCorr  = 9999.;
+      float temp_dPhi_nJet_Met = 9999.;
 
       float temp_sumJetPt = 0;
 
       for( unsigned int jidx = 0; jidx < temp_jets_p4.size(); jidx++ ) {
 
 	float dphi       = fabs( temp_jets_p4[jidx].phi() - *evt_metphi            ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metphi            : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metphi            );
-	float dphi_mu    = fabs( temp_jets_p4[jidx].phi() - *evt_mumetphi          ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_mumetphi          : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_mumetphi          );
-	float dphi_muonJESCorr = fabs( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metMuonJESCorrPhi );
-	float dphi_tc    = fabs( temp_jets_p4[jidx].phi() - *evt_tcmetphi          ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_tcmetphi          : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_tcmetphi          );
 
-	if( dphi < temp_dPhi_nJet_unCorrMet )
-	  temp_dPhi_nJet_unCorrMet = dphi;
-
-	if( dphi_mu < temp_dPhi_nJet_muCorrMet )
-	  temp_dPhi_nJet_muCorrMet = dphi_mu;
-
-	if( dphi_muonJESCorr < temp_dPhi_nJet_metMuonJESCorr )
-	  temp_dPhi_nJet_metMuonJESCorr = dphi_muonJESCorr;
-
-	if( dphi_tc < temp_dPhi_nJet_tcMet )
-	  temp_dPhi_nJet_tcMet = dphi_tc;
+	if( dphi < temp_dPhi_nJet_Met )
+	  temp_dPhi_nJet_Met = dphi;
 
 	temp_sumJetPt += temp_jets_p4[jidx].pt();
       }
                                   
-      hyp_dPhi_nJet_unCorrMet->push_back(temp_dPhi_nJet_unCorrMet);
-      hyp_dPhi_nJet_muCorrMet->push_back(temp_dPhi_nJet_muCorrMet);
-      hyp_dPhi_nJet_tcMet    ->push_back(temp_dPhi_nJet_tcMet    );   
-      hyp_dPhi_nJet_metMuonJESCorr ->push_back(temp_dPhi_nJet_metMuonJESCorr );
+      hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
 
       hyp_sumJetPt->push_back( temp_sumJetPt );
 
       float temp_Ht = temp_sumJetPt;
 
-      temp_Ht += ( mus_p4->at(mus_index).pt() + els_p4->at(els_index).pt() + *evt_tcmet );
+      temp_Ht += ( mus_p4->at(mus_index).pt() + els_p4->at(els_index).pt() + *evt_met );
 
       hyp_Ht->push_back(temp_Ht);
       
@@ -1374,7 +993,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(hyp_type                     ,branchprefix+"type"                     );
   iEvent.put(hyp_njets                    ,branchprefix+"njets"                    );
   iEvent.put(hyp_nojets                   ,branchprefix+"nojets"                   );
-  iEvent.put(hyp_p4                      ,branchprefix+"p4"                        );
+  iEvent.put(hyp_p4                       ,branchprefix+"p4"                       );
  
   iEvent.put(hyp_lt_validHits             ,branchprefix+"ltvalidHits"              );
   iEvent.put(hyp_lt_lostHits              ,branchprefix+"ltlostHits"               );
@@ -1414,27 +1033,12 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(hyp_ll_p4                    ,branchprefix+"llp4"                     );
   iEvent.put(hyp_ll_trk_p4                ,branchprefix+"lltrkp4"                  );
   
-  iEvent.put(hyp_lt_dPhi_unCorrMet        ,branchprefix+"ltdPhiunCorrMet"          );
-  iEvent.put(hyp_ll_dPhi_unCorrMet        ,branchprefix+"lldPhiunCorrMet"          );
-  iEvent.put(hyp_lt_dPhi_muCorrMet        ,branchprefix+"ltdPhimuCorrMet"          );
-  iEvent.put(hyp_ll_dPhi_muCorrMet        ,branchprefix+"lldPhimuCorrMet"          );
-  iEvent.put(hyp_lt_dPhi_tcMet            ,branchprefix+"ltdPhitcMet"              );
-  iEvent.put(hyp_ll_dPhi_tcMet            ,branchprefix+"lldPhitcMet"              );
-  iEvent.put(hyp_lt_dPhi_metMuonJESCorr    ,branchprefix+"ltdPhimetMuonJESCorr"    );
-  iEvent.put(hyp_ll_dPhi_metMuonJESCorr    ,branchprefix+"lldPhimetMuonJESCorr"    );
-  
-  iEvent.put(hyp_dPhi_nJet_unCorrMet      ,branchprefix+"dPhinJetunCorrMet"        );
-  iEvent.put(hyp_dPhi_nJet_muCorrMet      ,branchprefix+"dPhinJetmuCorrMet"        );
-  iEvent.put(hyp_dPhi_nJet_tcMet          ,branchprefix+"dPhinJettcMet"            );
-  iEvent.put(hyp_dPhi_nJet_metMuonJESCorr ,branchprefix+"dPhinJetmetMuonJESCorr"   );
+  iEvent.put(hyp_lt_dPhi_Met              ,branchprefix+"ltdPhiMet"                );
+  iEvent.put(hyp_ll_dPhi_Met              ,branchprefix+"lldPhiMet"                );
+  iEvent.put(hyp_dPhi_nJet_Met            ,branchprefix+"dPhinJetMet"              );
   
   iEvent.put(hyp_sumJetPt                 ,branchprefix+"sumJetPt"                 );
   iEvent.put(hyp_Ht                       ,branchprefix+"Ht"                       );
-
-  iEvent.put(hyp_mt2_tcMet                ,branchprefix+"mt2tcMet"                 );
-  iEvent.put(hyp_mt2_muCorrMet            ,branchprefix+"mt2muCorrMet"             );
-  iEvent.put(hyp_mt2_metMuonJESCorr       ,branchprefix+"mt2metMuonJESCorr"        );
-
   
   iEvent.put(hyp_jets_idx                 ,branchprefix+"jetsidx"                  );
   iEvent.put(hyp_other_jets_idx           ,branchprefix+"otherjetsidx"             );
@@ -1456,10 +1060,10 @@ bool HypDilepMaker::testJetForLeptons(const LorentzVector& jetP4, const LorentzV
   
   
   bool matched = false;
-  float lepphi  = lepp4.Phi();
+  float lepphi = lepp4.Phi();
   float jetphi = jetP4.Phi();
    
-  float lepeta  = lepp4.Eta();
+  float lepeta = lepp4.Eta();
   float jeteta = jetP4.Eta();
    
   float dphi = lepphi - jetphi;
