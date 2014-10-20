@@ -1127,7 +1127,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_fbrem                         ->push_back( el->fbrem()                          );
 	//        els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
         //els_mva                           ->push_back( el->mva()                            );
-        els_mva                           ->push_back( el->mvaOutput().mva                  );
+        els_mva                           ->push_back( el->mvaOutput().mva_Isolated                  );
 
         els_dEtaIn                        ->push_back( el->deltaEtaSuperClusterTrackAtVtx() );
         els_dEtaOut                       ->push_back( el->deltaEtaSeedClusterTrackAtCalo() );
@@ -1241,17 +1241,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_outer_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
         }
     
+	// Redesign according to https://twiki.cern.ch/twiki/bin/viewauth/CMS/TrackingHitPatternRedesign
         const HitPattern& pattern = el_track->hitPattern();
-        const HitPattern& p_inner = el_track->trackerExpectedHitsInner(); 
-        const HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
+        //const HitPattern& p_inner = el_track->trackerExpectedHitsInner(); 
+        //const HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
 
-        els_exp_innerlayers -> push_back(p_inner.numberOfHits());
-        els_exp_outerlayers -> push_back(p_outer.numberOfHits());
+        els_exp_innerlayers -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_INNER_HITS));
+        els_exp_outerlayers -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_OUTER_HITS));
         els_valid_pixelhits -> push_back(pattern.numberOfValidPixelHits());
-        els_lost_pixelhits  -> push_back(pattern.numberOfLostPixelHits());
+        els_lost_pixelhits  -> push_back(pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
 	els_nlayers         -> push_back(pattern.trackerLayersWithMeasurement());
 	els_nlayers3D       -> push_back(pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
-	els_nlayersLost     -> push_back(pattern.trackerLayersWithoutMeasurement());
+	els_nlayersLost     -> push_back(pattern.trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS));
 
         if( el_track->extra().isAvailable() ) {
 
@@ -1272,7 +1273,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
                 if(i_layer > 1) break;
 
                 int k       = ihit-el_track->recHitsBegin();
-                hit_pattern = pattern.getHitPattern(k);
+                hit_pattern = pattern.getHitPattern(reco::HitPattern::TRACK_HITS, k);
                 valid_hit   = pattern.validHitFilter(hit_pattern);
                 pixel_hit   = pattern.pixelHitFilter(hit_pattern);
                 strip_hit   = pattern.stripHitFilter(hit_pattern);

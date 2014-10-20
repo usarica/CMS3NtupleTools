@@ -306,15 +306,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_sigmaEtaEta        ->push_back( photon->sigmaEtaEta()          	 );
 	photons_sigmaIEtaIEta      ->push_back( photon->sigmaIetaIeta()        	 );  		
 
-	photons_full5x5_hOverE             ->push_back( photon->full5x5_hadronicOverEm()       	 );
-	photons_full5x5_e1x5    	   ->push_back( photon->full5x5_e1x5()			 );
-	photons_full3x3_e3x3               ->push_back( photon->full3x3_e3x3()                   );
-	photons_full5x5_e5x5               ->push_back( photon->full5x5_e5x5()                   );
-	photons_full5x5_e2x5Max            ->push_back( photon->full5x5_e2x5()                   );
-	photons_full5x5_sigmaEtaEta        ->push_back( photon->full5x5_sigmaEtaEta()          	 );
-	photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()       	 );
-	photons_full5x5_hOverEtowBC        ->push_back( photon->full5x5_hadTowOverEm()        	 );  		
-	photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  		
+	//Only there in 706:  photons_full5x5_hOverE             ->push_back( photon->full5x5_hadronicOverEm()       	 );
+	//Only there in 706:  photons_full5x5_e1x5    	   ->push_back( photon->full5x5_e1x5()			 );
+	//Only there in 706:  photons_full3x3_e3x3               ->push_back( photon->full3x3_e3x3()                   );
+	//Only there in 706:  photons_full5x5_e5x5               ->push_back( photon->full5x5_e5x5()                   );
+	//Only there in 706:  photons_full5x5_e2x5Max            ->push_back( photon->full5x5_e2x5()                   );
+	//Only there in 706:  photons_full5x5_sigmaEtaEta        ->push_back( photon->full5x5_sigmaEtaEta()          	 );
+	//Only there in 706:  photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()       	 );
+	//Only there in 706:  photons_full5x5_hOverEtowBC        ->push_back( photon->full5x5_hadTowOverEm()        	 );  		
+	//Only there in 706:  photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  		
 	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
 	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
 	

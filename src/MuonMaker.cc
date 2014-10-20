@@ -925,11 +925,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_sta_algo            -> push_back( staTrack.isNonnull()     ? staTrack->algo()                                      : -9999.        );
     vector_mus_sta_nlayers         -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
     vector_mus_sta_nlayers3D       -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().pixelLayersWithMeasurement()  + staTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
-    vector_mus_sta_nlayersLost     -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_sta_nlayersLost     -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) :  -9999     );
     vector_mus_sta_validPixelHits  -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
-    vector_mus_sta_lostPixelHits   -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
-    vector_mus_sta_exp_innerlayers -> push_back( staTrack.isNonnull()     ? staTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
-    vector_mus_sta_exp_outerlayers -> push_back( staTrack.isNonnull()     ? staTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    vector_mus_sta_lostPixelHits   -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)        :  -9999        );
+    vector_mus_sta_exp_innerlayers -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+    vector_mus_sta_exp_outerlayers -> push_back( staTrack.isNonnull()     ? staTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
     vector_mus_sta_lostHits        -> push_back( staTrack.isNonnull()     ? staTrack->numberOfLostHits()                          :  -9999        );
     vector_mus_sta_ptErr           -> push_back( staTrack.isNonnull()     ? staTrack->ptError()                                   :  -9999.       );
     vector_mus_sta_etaErr          -> push_back( staTrack.isNonnull()     ? staTrack->etaError()                                  :  -9999.       );
@@ -967,11 +967,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_gfit_algo            -> push_back( globalTrack.isNonnull()     ? globalTrack->algo()                                      : -9999.        );
     vector_mus_gfit_nlayers         -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
     vector_mus_gfit_nlayers3D       -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().pixelLayersWithMeasurement()  + globalTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
-    vector_mus_gfit_nlayersLost     -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_gfit_nlayersLost     -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) :  -9999     );
     vector_mus_gfit_validPixelHits  -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
-    vector_mus_gfit_lostPixelHits   -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
-    vector_mus_gfit_exp_innerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
-    vector_mus_gfit_exp_outerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    vector_mus_gfit_lostPixelHits   -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)        :  -9999        );
+    vector_mus_gfit_exp_innerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+    vector_mus_gfit_exp_outerlayers -> push_back( globalTrack.isNonnull()     ? globalTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
     vector_mus_gfit_lostHits        -> push_back( globalTrack.isNonnull()     ? globalTrack->numberOfLostHits()                          :  -9999        );
     vector_mus_gfit_ptErr           -> push_back( globalTrack.isNonnull()     ? globalTrack->ptError()                                   :  -9999.       );
     vector_mus_gfit_etaErr          -> push_back( globalTrack.isNonnull()     ? globalTrack->etaError()                                  :  -9999.       );
@@ -1190,11 +1190,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_algo               -> push_back( siTrack.isNonnull()     ? siTrack->algo       ()                               : -9999.        );
     vector_mus_nlayers            -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
     vector_mus_nlayers3D          -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().pixelLayersWithMeasurement()  + siTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
-    vector_mus_nlayersLost        -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithoutMeasurement() :  -9999     );
+    vector_mus_nlayersLost        -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) :  -9999     );
     vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
-    vector_mus_lostPixelHits      -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfLostPixelHits()        :  -9999        );
-    vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->trackerExpectedHitsInner().numberOfHits()   :  -9999        );
-    vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->trackerExpectedHitsOuter().numberOfHits()   :  -9999        );
+    vector_mus_lostPixelHits      -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)        :  -9999        );
+    vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+    vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
     if (firstGoodVertex!=vertexCollection->end()) { 
       vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
       vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );

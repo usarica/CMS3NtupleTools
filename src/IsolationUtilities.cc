@@ -129,7 +129,7 @@ double IsolationUtilities::GetElectronRadialIsolation(const reco::GsfElectron &e
             if (iP->particleId() == reco::PFCandidate::h && dr <= 0.015) continue;
             if (iP->particleId() == reco::PFCandidate::gamma && dr <=0.08) continue;
         }
-        else if (barrel_veto && el.mvaOutput().mva < -0.1) {
+        else if (barrel_veto && el.mvaOutput().mva_Isolated < -0.1) {
             if (iP->particleId() == reco::PFCandidate::h && dr <= 0.015) continue;
             if (iP->particleId() == reco::PFCandidate::gamma && dr <=0.08) continue;            
         }

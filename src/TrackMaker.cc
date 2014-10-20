@@ -339,12 +339,11 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     
     const reco::HitPattern& pattern = i->hitPattern();    
-    const reco::HitPattern& p_inner = i->trackerExpectedHitsInner();
-    const reco::HitPattern& p_outer = i->trackerExpectedHitsOuter();
-    trks_exp_innerlayers    -> push_back(p_inner.numberOfHits());
-    trks_exp_outerlayers    -> push_back(p_outer.numberOfHits());   
+
+    trks_exp_innerlayers    -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_INNER_HITS));
+    trks_exp_outerlayers    -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_OUTER_HITS));   
     trks_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
-      trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
+      trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS));
 
       
     if(i->extra().isAvailable()) {
@@ -369,7 +368,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       for(trackingRecHit_iterator ihit = i->recHitsBegin(); ihit != i->recHitsEnd(); ++ihit){
         if(i_layer > 1) break;
         int k = ihit-i->recHitsBegin();
-        hit_pattern = pattern.getHitPattern(k);
+        hit_pattern = pattern.getHitPattern(reco::HitPattern::TRACK_HITS, k);
         valid_hit = pattern.validHitFilter(hit_pattern);
         pixel_hit = pattern.pixelHitFilter(hit_pattern);
         strip_hit = pattern.stripHitFilter(hit_pattern);
@@ -445,7 +444,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     // *****************************************************
     vector_trks_nlayers    ->push_back( i->hitPattern().trackerLayersWithMeasurement() );
     vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
-    vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement() );
+    vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) );
 
     int iPV0 = -9999;
     int iPV1 = -9999;
