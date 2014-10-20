@@ -33,7 +33,7 @@ from CMS2.NtupleMaker.jetToMuAssMaker_cfi          import *
 from CMS2.NtupleMaker.jptMaker_cfi                 import *
 from CMS2.NtupleMaker.l1Maker_cfi                  import *
 from CMS2.NtupleMaker.luminosityMaker_cfi          import *
-from CMS2.NtupleMaker.metSequence_cff              import *
+#from CMS2.NtupleMaker.metSequence_cff              import *
 from CMS2.NtupleMaker.metMaker_cfi                 import *
 from CMS2.NtupleMaker.muonMaker_cfi                import *
 from CMS2.NtupleMaker.muToElsAssMaker_cfi          import *
@@ -65,7 +65,8 @@ from CMS2.NtupleMaker.cms2PFSequence_cff           import *
 
 from CMS2.NtupleMaker.sParmMaker_cff               import * # doesn't always get loaded
 
-CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging )
+#CMS2Reco         = cms.Sequence( cms2JetSequence * metCorSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging )
+CMS2Reco         = cms.Sequence( cms2JetSequence * CMS2Btagging * CMS2TrkBtagging * CMS2JPTBtagging )
 eventmakers      = cms.Sequence( beamSpotMaker * vertexMaker * vertexMakerWithBS * eventMaker * hcalNoiseSummaryMaker * cms2InclusiveVertexing * cms2EgammaElectronID )
 eventmakerswsparm= cms.Sequence( eventmakers * sParmMaker ) # build up alternate sequence to be swapped in main config file
 

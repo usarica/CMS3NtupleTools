@@ -3,8 +3,8 @@ import FWCore.ParameterSet.Config as cms
 from CMS2.NtupleMaker.pfElectronSequence_cff import *
 from CMS2.NtupleMaker.pfMuonSequence_cff import *
 from CMS2.NtupleMaker.pfJetMaker_cfi import *
-#from CMS2.NtupleMaker.pfmetMaker_cfi import *
-from CMS2.NtupleMaker.pfmetSequence_cff import *
+from CMS2.NtupleMaker.pfmetMaker_cfi import *
+#from CMS2.NtupleMaker.pfmetSequence_cff import *
 from CMS2.NtupleMaker.pftauMaker_cfi import *
 from CMS2.NtupleMaker.pfMuToMuAssMaker_cfi import *
 from CMS2.NtupleMaker.muToPFMuAssMaker_cfi import *

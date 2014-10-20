@@ -6,7 +6,8 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
- fileNames = cms.untracked.vstring('file:/hadoop/cms/store/user/cerati/TTWJets_Tune4C_13TeV-madgraph-tauola/Spring14dr-PU_S14_POSTLS170_V6AN1-miniAOD706p1/141013_122019/0000/miniAOD-prod_PAT_10.root')
+#    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
+    fileNames = cms.untracked.vstring('file:/tas/gzevi/CMSSW_7_2_0_pre6/src/miniAOD-RelValTTbarLepton_13.root')
 
 )
 

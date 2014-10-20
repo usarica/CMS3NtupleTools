@@ -2,7 +2,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
 #from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
-from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
+#from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
 
 # CMS2
 process = cms.Process("CMS2")
@@ -30,10 +30,6 @@ process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-ak5PFCHSL1Fastjet.algorithm = 'AK5PFchs'
-ak5PFCHSL2Relative.algorithm = 'AK5PFchs'
-ak5PFCHSL3Absolute.algorithm = 'AK5PFchs'
-ak5PFCHSResidual.algorithm = 'AK5PFchs'
 
 #from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
 #process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
@@ -43,8 +39,8 @@ process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
 #process.CMS2Reco *= process.eleIsoSequence
 process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
 process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
-process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
-process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
+#process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
+#process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
 process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
 process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
 process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
