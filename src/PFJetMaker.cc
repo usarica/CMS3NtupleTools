@@ -159,11 +159,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 */
 
   
-   const JetCorrector* correctorL2L3               = JetCorrector::getJetCorrector ( PFJetCorrectorL2L3_               , iSetup );
-   //   const JetCorrector* correctorL1L2L3             = JetCorrector::getJetCorrector ( PFJetCorrectorL1L2L3_             , iSetup );
-   const JetCorrector* correctorL1FastL2L3         = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3_         , iSetup );
-   const JetCorrector* correctorL1Fast             = JetCorrector::getJetCorrector ( PFJetCorrectorL1Fast_             , iSetup );
-   const JetCorrector* correctorL1FastL2L3residual = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3residual_ , iSetup );
+//   const JetCorrector* correctorL2L3               = JetCorrector::getJetCorrector ( PFJetCorrectorL2L3_               , iSetup );
+//   //   const JetCorrector* correctorL1L2L3             = JetCorrector::getJetCorrector ( PFJetCorrectorL1L2L3_             , iSetup );
+//   const JetCorrector* correctorL1FastL2L3         = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3_         , iSetup );
+//   const JetCorrector* correctorL1Fast             = JetCorrector::getJetCorrector ( PFJetCorrectorL1Fast_             , iSetup );
+//   const JetCorrector* correctorL1FastL2L3residual = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3residual_ , iSetup );
 
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
@@ -204,19 +204,19 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     RefToBase < Jet > jetRef1( Ref < View < pat::Jet > > ( pfJetsHandle , idx ) );
 
     
-    float L2L3JetScale               = correctorL2L3               ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
-    // float L1L2L3JetScale             = correctorL1L2L3             ->correction( *pfjet_it, iEvent, iSetup );
-    float L1L2L3JetScale             = 1.;    
-    float L1FastL2L3JetScale         = correctorL1FastL2L3         ->correction( *pfjet_it, iEvent, iSetup );
-    float L1Fast                     = correctorL1Fast             ->correction( *pfjet_it, iEvent, iSetup );
-    float L1FastL2L3residualJetScale = correctorL1FastL2L3residual ->correction( *pfjet_it, iEvent, iSetup );
-
-    //
-    pfjets_cor                   ->push_back( L2L3JetScale               );
-    pfjets_corL1L2L3             ->push_back( L1L2L3JetScale             );
-    pfjets_corL1FastL2L3         ->push_back( L1FastL2L3JetScale         );
-    pfjets_corL1Fast             ->push_back( L1Fast                     );
-    pfjets_corL1FastL2L3residual ->push_back( L1FastL2L3residualJetScale );
+//    float L2L3JetScale               = correctorL2L3               ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
+//    // float L1L2L3JetScale             = correctorL1L2L3             ->correction( *pfjet_it, iEvent, iSetup );
+//    float L1L2L3JetScale             = 1.;    
+//    float L1FastL2L3JetScale         = correctorL1FastL2L3         ->correction( *pfjet_it, iEvent, iSetup );
+//    float L1Fast                     = correctorL1Fast             ->correction( *pfjet_it, iEvent, iSetup );
+//    float L1FastL2L3residualJetScale = correctorL1FastL2L3residual ->correction( *pfjet_it, iEvent, iSetup );
+//
+//    //
+//    pfjets_cor                   ->push_back( L2L3JetScale               );
+//    pfjets_corL1L2L3             ->push_back( L1L2L3JetScale             );
+//    pfjets_corL1FastL2L3         ->push_back( L1FastL2L3JetScale         );
+//    pfjets_corL1Fast             ->push_back( L1Fast                     );
+//    pfjets_corL1FastL2L3residual ->push_back( L1FastL2L3residualJetScale );
 
     //store indices of PFCandidates associated to this jet
     //    std::vector <reco::PFCandidatePtr> pfjet_cands = pfjet_it->getPFConstituents();

@@ -1,7 +1,8 @@
 from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
-process.GlobalTag.globaltag = "START70_V6::All"
+#process.GlobalTag.globaltag = "START70_V6::All"
+process.GlobalTag.globaltag = "MCRUN2_72_V1A::All"
 #process.GlobalTag.globaltag = "PLS170_V7AN1::All"
 
 #Input
