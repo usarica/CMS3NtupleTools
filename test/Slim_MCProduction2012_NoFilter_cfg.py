@@ -6,28 +6,13 @@ process.GlobalTag.globaltag = "START70_V6::All"
 
 #Input
 process.source = cms.Source("PoolSource",
-#    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
- fileNames = cms.untracked.vstring(
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/003E832C-8AFC-E311-B7AA-002590596490.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/00907CE8-8CFC-E311-8AEB-0025905B8562.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/00FC23A0-8AFC-E311-B5F1-0025905A6138.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/029E0636-8CFC-E311-A0C8-0025905A610A.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/042E80B7-8BFC-E311-9752-0025905A612A.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/06591229-8DFC-E311-A896-002618943901.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/065C10DA-8AFC-E311-98B4-003048D15DE0.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/066046AA-8AFC-E311-9DA9-00261894396B.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/0800059A-8AFC-E311-B8AC-0025905A48D0.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/081F40D0-8BFC-E311-9145-002618FDA262.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/081F8E04-8CFC-E311-95B0-00261894398C.root',
-#       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/084B5BDF-8AFC-E311-8CF2-00261894398A.root',
-       '/store/mc/Spring14miniaod/TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_POSTLS170_V5-v1/00000/085E17FC-8AFC-E311-B079-0025905A6136.root') 
+ fileNames = cms.untracked.vstring('file:/hadoop/cms/store/user/cerati/TTWJets_Tune4C_13TeV-madgraph-tauola/Spring14dr-PU_S14_POSTLS170_V6AN1-miniAOD706p1/141013_122019/0000/miniAOD-prod_PAT_10.root')
 
 )
 
 # Output
 process.out = cms.OutputModule(
         "PoolOutputModule",
-#        fileName     = cms.untracked.string('TTJets_MSDecaysCKM_central_Tune4C_13TeV-madgraph-tauola_PU20bx25_POSTLS170_V5-v1.root'),
         fileName     = cms.untracked.string('ntuple.root'),
         dropMetaData = cms.untracked.string("NONE")
 )
@@ -72,7 +57,8 @@ process.p                  = cms.Path(
     process.recoConversionMaker*
     process.metFilterMaker*
     process.hcalNoiseSummaryMaker*
-    process.miniAODrhoSequence
+    process.miniAODrhoSequence*
+    process.hypDilepMaker
 
     # Optional (filters)
     #process.dilepGenFilter*    # requires genMaker    
