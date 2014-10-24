@@ -354,6 +354,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   ////////
 
   produces<vector< int> >           ( branchprefix_ + "pfcharge"                  ).setBranchAlias( aliasprefix_ + "_pfcharge"            );
+  produces<vector< int> >           ( branchprefix_ + "pfidx"                  ).setBranchAlias( aliasprefix_ + "_pfidx"            );
   produces<vector< int> >           ( branchprefix_ + "pfparticleId"              ).setBranchAlias( aliasprefix_ + "_pfparticleId"        );
   //produces<vector< int> >           ( branchprefix_ + "pfflag"                    ).setBranchAlias( aliasprefix_ + "_pfflag"              );
   //produces<vector< float> >         ( branchprefix_ + "pfecalE"                   ).setBranchAlias( aliasprefix_ + "_pfecalE"             );
@@ -713,6 +714,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ////////
 
   auto_ptr< vector< int> >           vector_mus_pfcharge              ( new vector<int>   );
+  auto_ptr< vector< int> >           vector_mus_pfidx              ( new vector<int>   );
   auto_ptr< vector< int> >           vector_mus_pfparticleId          ( new vector<int>   );
   //auto_ptr< vector< int> >           vector_mus_pfflag                ( new vector<int>   );
   //auto_ptr< vector< float> >         vector_mus_pfecalE               ( new vector<float> );
@@ -1340,6 +1342,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_pfp4                  ->push_back( LorentzVector( pfCandRef->p4() )                                        );
       vector_mus_pfcharge              ->push_back( pfCandRef->charge()                                                     );
       vector_mus_pfparticleId          ->push_back( pfCandRef->pdgId()                                                      );
+      vector_mus_pfidx                 ->push_back( pfCandRef.key()                                                         );
       //vector_mus_pfparticleId          ->push_back( pfCandRef->translateTypeToPdgId( pfCandRef->particleId() )              );
       //vector_mus_pfflag                ->push_back( pfflags                                                                 );
       //vector_mus_pfecalE               ->push_back( isfinite( pfCandRef->ecalEnergy() ) ? pfCandRef->ecalEnergy() : -9999.0 );
@@ -1368,6 +1371,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
       //
       vector_mus_pfcharge              ->push_back( -9999.0 );
+      vector_mus_pfidx                 ->push_back( -9999.0 );
       vector_mus_pfparticleId          ->push_back( -9999.0 );
       //vector_mus_pfflag                ->push_back( -9999.0 );
       //vector_mus_pfecalE               ->push_back( -9999.0 );
@@ -1717,6 +1721,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ////////
 
   iEvent.put( vector_mus_pfcharge              , branchprefix_ + "pfcharge"             );
+  iEvent.put( vector_mus_pfidx                 , branchprefix_ + "pfidx"            );
   iEvent.put( vector_mus_pfparticleId          , branchprefix_ + "pfparticleId"         );
   //iEvent.put( vector_mus_pfflag                , branchprefix_ + "pfflag"               );
   //iEvent.put( vector_mus_pfecalE               , branchprefix_ + "pfecalE"              );
