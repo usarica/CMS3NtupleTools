@@ -145,6 +145,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   // produces<vector<float> > ( branchprefix + "swissSeed"       ).setBranchAlias( aliasprefix_ + "_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
   produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
 
+  produces<vector<vector<int>   >   >       ( branchprefix + "pfcandidx"    ).setBranchAlias( branchprefix + "_PFCand_idx"    );
 
 
   //
@@ -221,7 +222,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
   // auto_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
   // auto_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
-
+  auto_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
  
   ///////////////////// 
   // Get the photons //
@@ -407,6 +408,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	// //pixel seeds
 	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
 
+	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+	vector<int> v_PFCand_idx;
+	for( const edm::Ref<pat::PackedCandidateCollection> & ref : photon->associatedPackedPFCandidates() )
+	  v_PFCand_idx.push_back(ref.key());
+	photons_PFCand_idx->push_back(v_PFCand_idx);
 
 
   }
@@ -466,6 +472,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
   // iEvent.put( photons_scindex        , branchprefix+"scindex"         );
   // iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
+  iEvent.put( photons_PFCand_idx    , branchprefix+"pfcandidx"    );
  
 }
 
