@@ -47,10 +47,11 @@ private:
 
      // ----------member data ---------------------------
      edm::InputTag genParticlesInputTag_;
+     edm::InputTag packedGenParticlesInputTag_;
 	 edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;
- 
+     bool ntuplePackedGenParticles_;
      std::vector<int> vmetPIDs_;
 
      double inclusiveCrossSectionValue_;

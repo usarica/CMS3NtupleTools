@@ -38,6 +38,9 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
+
 #include "TMath.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -52,9 +55,11 @@ using namespace std;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
+  packedGenParticlesInputTag_ = iConfig.getParameter<InputTag>                  ("packedGenParticlesInputTag" );
   //genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
+  ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
   kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
 
@@ -169,6 +174,19 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
 
   const vector<reco::GenParticle>* genps_coll = genpsHandle.product();
+
+  // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
+  edm::Handle<pat::PackedGenParticleCollection> packedGenParticleHandle;
+  iEvent.getByLabel(packedGenParticlesInputTag_, packedGenParticleHandle);
+  if( !packedGenParticleHandle.isValid() ) {
+    edm::LogInfo("OutputInfo") << " failed to retrieve packed gen particle collection";
+    edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";
+    cout << " GenMaker cannot continue...!" << endl;
+    return;
+  }
+  const vector<pat::PackedGenParticle> *packedgenps_coll = packedGenParticleHandle.product();
+
+
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -296,6 +314,38 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					       genps_it->vz(),
 					       0.0 ) );
   }
+
+
+  // Saving the packedGenParticles
+  if ( ntuplePackedGenParticles_ ) {
+    for(vector<pat::PackedGenParticle>::const_iterator pkgenps_it = packedgenps_coll->begin(); pkgenps_it != packedgenps_coll->end(); pkgenps_it++) {
+      if (pkgenps_it->status() != 1) continue; // this should never happen 
+      if (fabs(pkgenps_it->p4().eta()) > 5) continue; // Only save those with eta < 5
+      genps_p4        ->push_back( LorentzVector(pkgenps_it->p4().px(), 
+						 pkgenps_it->p4().py(),
+						 pkgenps_it->p4().pz(),
+						 pkgenps_it->p4().e() ) );
+      genps_status    ->push_back( 1111                        ); // Setting a special status to distinguish packedGenParticles from prunedGenParticles
+      genps_charge    ->push_back( pkgenps_it->charge()        );
+      genps_id        ->push_back( pkgenps_it->pdgId()         );
+
+      int simpleindex = -1;
+      // Following two lines should work in PHYS14 samples. But not in CSA14.
+      //const reco::GenParticleRef mother = pkgenps_it->motherRef();
+      //if (mother != NULL) simpleindex = mother->key();
+
+      genps_idx_simplemother ->push_back( simpleindex ); //this index should point to the corresponding particle (or mother) in the packed collection 
+
+      // leave the rest empty
+      genps_id_mother        ->push_back( -1 );
+      genps_idx_mother       ->push_back( -1 );
+      genps_id_simplemother  ->push_back( -1 );
+      genps_id_simplegrandma ->push_back( -1 );
+      genps_mass             ->push_back( -1 );
+      genps_prod_vtx  ->push_back( LorentzVector(0.0, 0.0, 0.0, 0.0) );
+
+    }
+  } // end of packedGenParticles  
 
   //*gen_met    =   tempvect.Pt();
   //*gen_metPhi =   tempvect.Phi();
