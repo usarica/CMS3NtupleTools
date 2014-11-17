@@ -51,11 +51,13 @@ private:
 
      // ----------member data ---------------------------
      edm::InputTag photonsInputTag_;
-     // edm::InputTag cms2scsseeddetidInputTag_;
-     // edm::InputTag ecalRecHitsInputTag_EE_;
-     // edm::InputTag ecalRecHitsInputTag_EB_;
+  //   edm::InputTag cms2scsseeddetidInputTag_; 
+     edm::InputTag ecalRecHitsInputTag_EE_;
+     edm::InputTag ecalRecHitsInputTag_EB_; 
+     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EE_Token_;
+     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EB_Token_;
      float minEt_;
-     // EcalClusterLazyTools* clusterTools_;
+     noZS::EcalClusterLazyTools* clusterTools_;
      
 	std::string aliasprefix_;
 };

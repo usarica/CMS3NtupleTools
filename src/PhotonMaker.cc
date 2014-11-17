@@ -151,15 +151,19 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   //
   photonsInputTag_          = iConfig.getParameter<InputTag>("photonsInputTag");
   minEt_                    = iConfig.getParameter<double>("minEt");
-  // ecalRecHitsInputTag_EE_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
-  // ecalRecHitsInputTag_EB_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+  ecalRecHitsInputTag_EE_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
+  ecalRecHitsInputTag_EB_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
+  ecalRecHitsInputTag_EE_Token_ = consumes<EcalRecHitCollection>(ecalRecHitsInputTag_EE_);
+  ecalRecHitsInputTag_EB_Token_ = consumes<EcalRecHitCollection>(ecalRecHitsInputTag_EB_);
+
+
   // cms2scsseeddetidInputTag_ = iConfig.getParameter<edm::InputTag>("cms2scsseeddetidInputTag");
-  // clusterTools_    = 0;
+  clusterTools_    = 0;
 
 }
 
 PhotonMaker::~PhotonMaker() {
-  // if (clusterTools_) delete clusterTools_;
+  if (clusterTools_) delete clusterTools_;
 }
 
 void  PhotonMaker::beginJob() {}
@@ -240,29 +244,36 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // // Get tools to get cluster shape information
   
-  // if (clusterTools_) delete clusterTools_;
-  // clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
-  // 					   edm::InputTag("reducedEcalRecHitsEB"), 
-  // 					   edm::InputTag("reducedEcalRecHitsEE"));
+//   if (clusterTools_) delete clusterTools_;
+//   clusterTools_ = new EcalClusterLazyTools(iEvent, iSetup, 
+//   					   edm::InputTag("reducedEcalRecHitsEB"), 
+//   					   edm::InputTag("reducedEcalRecHitsEE"));
 
-  // // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
-  // edm::Handle<EcalRecHitCollection> rhcHandleEE;
-  // iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
-  // const EcalRecHitCollection *recHitsEE = 0;
-  
-  // edm::Handle<EcalRecHitCollection> rhcHandleEB;
-  // iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
-  // const EcalRecHitCollection *recHitsEB = 0;
-  
-  // bool haveHits = true;
-  // if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())
-  //   haveHits = false;
+   // get hits--this and topology are for new hit vars--remove if change to InterestingHitMaker
+   ////edm::Handle<EcalRecHitCollection> rhcHandleEE;
+   ////iEvent.getByLabel(ecalRecHitsInputTag_EE_, rhcHandleEE);
+   ////const EcalRecHitCollection *recHitsEE = 0;
+   ////
+   ////edm::Handle<EcalRecHitCollection> rhcHandleEB;
+   ////iEvent.getByLabel(ecalRecHitsInputTag_EB_, rhcHandleEB);
+   ////const EcalRecHitCollection *recHitsEB = 0;
+   ////
+   ////bool haveHits = true;
+   ////if(rhcHandleEB.failedToGet() || rhcHandleEE.failedToGet())
+   ////  haveHits = false;
+   ////
+   ////
+   ////if(haveHits) {
+   ////  recHitsEE = rhcHandleEE.product();
+   ////  recHitsEB = rhcHandleEB.product();
+   ////}
+
+   if (clusterTools_) delete clusterTools_;
+   clusterTools_ = new noZS::EcalClusterLazyTools(iEvent, iSetup, 
+   					   ecalRecHitsInputTag_EB_Token_, 
+   					   ecalRecHitsInputTag_EE_Token_);
 
 
-  // if(haveHits) {
-  //   recHitsEE = rhcHandleEE.product();
-  //   recHitsEB = rhcHandleEB.product();
-  // }
 	 
   // // calo topology
   // edm::ESHandle<CaloTopology> pTopology;
@@ -314,7 +325,28 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	//Only there in 706:  photons_full5x5_sigmaEtaEta        ->push_back( photon->full5x5_sigmaEtaEta()          	 );
 	//Only there in 706:  photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()       	 );
 	//Only there in 706:  photons_full5x5_hOverEtowBC        ->push_back( photon->full5x5_hadTowOverEm()        	 );  		
-	//Only there in 706:  photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  		
+	//Only there in 706:  photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  
+	
+	// For 720 need to get the 5x5 shapes by hand. Will be fixed in 730
+	// Use the (later killed) code from https://github.com/cms-sw/cmssw/blob/CMSSW_7_0_6/DataFormats/PatCandidates/interface/Photon.h
+	std::vector<float> vCov = clusterTools_->localCovariances( *(photon->superCluster()->seed()) );
+	const float sieie = (isnan(vCov[0]) ? 0. : sqrt(vCov[0]));
+	std::vector<float> vCovGlob = clusterTools_->covariances( *(photon->superCluster()->seed()) );
+	const float see = (isnan(vCovGlob[0]) ? 0. : sqrt(vCovGlob[0]));
+	float rawSCE = photon->superCluster()->rawEnergy();
+	float SCE = photon->superCluster()->energy();
+	float e5x5noZS = clusterTools_->e5x5(*(photon->superCluster()->seed()) );
+	
+	photons_full5x5_hOverE             ->push_back( photon->hadronicOverEm()       	 );
+	photons_full5x5_e1x5    	   ->push_back( clusterTools_->e1x5(*(photon->superCluster()->seed()) )    );
+	photons_full3x3_e3x3               ->push_back( clusterTools_->e3x3(*(photon->superCluster()->seed()) )    );
+	photons_full5x5_e5x5               ->push_back( e5x5noZS                                                  );
+	photons_full5x5_e2x5Max            ->push_back( clusterTools_->e2x5Max(*(photon->superCluster()->seed()) ) );
+	photons_full5x5_sigmaEtaEta        ->push_back( see          	                                          );
+	photons_full5x5_sigmaIEtaIEta      ->push_back( sieie       	                                          );
+	photons_full5x5_hOverEtowBC        ->push_back( (photon->hadTowDepth1OverEm() + photon->hadTowDepth2OverEm()) * (SCE / e5x5noZS));  		
+	photons_full5x5_r9                 ->push_back( clusterTools_->e3x3(*(photon->superCluster()->seed()) ) / rawSCE );  
+		
 	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
 	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
 	
