@@ -2,14 +2,14 @@ from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 #process.GlobalTag.globaltag = "START70_V6::All"
-process.GlobalTag.globaltag = "MCRUN2_72_V1A::All"
+#process.GlobalTag.globaltag = "MCRUN2_72_V1A::All"
+process.GlobalTag.globaltag = "PHYS14_25_V1::All"
 #process.GlobalTag.globaltag = "PLS170_V7AN1::All"
 
 #Input
 process.source = cms.Source("PoolSource",
 #    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
-    fileNames = cms.untracked.vstring('file:/tas/gzevi/CMSSW_7_2_0_pre6/src/miniAOD-RelValTTbarLepton_13.root')
-
+    fileNames = cms.untracked.vstring('file:/home/users/gzevi/miniAOD/CMSSW_7_2_0/src/CMS2/NtupleMaker/SMS-T1tttt_PU20bx25_tsg_PHYS14_25_V1.root')
 )
 
 # Output
