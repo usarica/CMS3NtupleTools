@@ -74,6 +74,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
   produces<vector<float> >                  ("genpscharge"          ).setBranchAlias("genps_charge"         );
+  produces<vector<float> >                  ("genpsiso"             ).setBranchAlias("genps_iso"            );
   //produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
   //produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
   produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"            );
@@ -145,6 +146,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> >          genps_prod_vtx       (new vector<LorentzVector>         );
   auto_ptr<vector<int> >                    genps_status         (new vector<int>                   );
   auto_ptr<vector<float> >                  genps_charge         (new vector<float>                 );
+  auto_ptr<vector<float> >                  genps_iso            (new vector<float>                 );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id (new vector<vector<int> >          );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx(new vector<vector<int> >          );
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4 (new vector<vector<LorentzVector> >);
@@ -313,6 +315,26 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 					       genps_it->vy(),
 					       genps_it->vz(),
 					       0.0 ) );
+    // Gen Isolation with the packedGenParticles
+    if ( genps_it->status() == 1 && 
+	 ( fabs(id)==11 || fabs(id)==13 || fabs(id)==15 || fabs(id)==22 ) 
+	 && fabs(genps_it->p4().eta())<3 && genps_it->p4().pt() > 5 ) {
+      float eta = genps_it->p4().eta();
+      float pt = genps_it->p4().pt();
+      float geniso = 0;
+      for(vector<pat::PackedGenParticle>::const_iterator pkgenps_it = packedgenps_coll->begin(); pkgenps_it != packedgenps_coll->end(); pkgenps_it++) {
+	// Skip far away ones (DeltaEta is easy to calculate)
+	if ( fabs(eta - pkgenps_it->p4().eta()) > 0.4) continue;
+	// Calculate DR
+	float DR2 = ROOT::Math::VectorUtil::DeltaR2(genps_it->p4(), pkgenps_it->p4());
+	if (DR2 > 0.3*0.3 ) continue;
+	// Avoid identical one
+	if (DR2 < 0.05*0.05 && (pkgenps_it->p4().pt()-pt)/pt < 0.05 && pkgenps_it->status() == genps_it->status() && pkgenps_it->pdgId() == id) continue;
+	geniso += pkgenps_it->p4().pt();	
+      }
+      genps_iso->push_back(geniso);
+    }
+    else genps_iso->push_back(-1.);
   }
 
 
@@ -362,6 +384,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
   iEvent.put(genps_status         , "genpsstatus"          );
   iEvent.put(genps_charge         , "genpscharge"          );
+  iEvent.put(genps_iso            , "genpsiso"          );
   //iEvent.put(gen_met              , "genmet"               );
   //iEvent.put(gen_metPhi           , "genmetPhi"            );
   iEvent.put(gen_sumEt            , "gensumEt"             );
