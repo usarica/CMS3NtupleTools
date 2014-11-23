@@ -130,6 +130,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> > ( branchprefix + "chargedHadronIso").setBranchAlias( aliasprefix_ + "_chargedHadronIso");
   produces<vector<float> > ( branchprefix + "neutralHadronIso").setBranchAlias( aliasprefix_ + "_neutralHadronIso");
   produces<vector<float> > ( branchprefix + "photonIso"       ).setBranchAlias( aliasprefix_ + "_photonIso");
+  produces<vector<float> > ( branchprefix + "recoChargedHadronIso").setBranchAlias( aliasprefix_ + "_recoChargedHadronIso");
+  produces<vector<float> > ( branchprefix + "recoNeutralHadronIso").setBranchAlias( aliasprefix_ + "_recoNeutralHadronIso");
+  produces<vector<float> > ( branchprefix + "recoPhotonIso"       ).setBranchAlias( aliasprefix_ + "_recoPhotonIso");
   ///////////////////
   // Added for 53x //
   ///////////////////
@@ -215,6 +218,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_chargedHadronIso( new vector<float> );
   auto_ptr<vector<float> > photons_neutralHadronIso( new vector<float> );
   auto_ptr<vector<float> > photons_photonIso       ( new vector<float> );
+  auto_ptr<vector<float> > photons_recoChargedHadronIso( new vector<float> );
+  auto_ptr<vector<float> > photons_recoNeutralHadronIso( new vector<float> );
+  auto_ptr<vector<float> > photons_recoPhotonIso       ( new vector<float> );
 
   auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR04       ( new vector<float> ); // Added for 53x //
   auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
@@ -371,6 +377,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_neutralHadronIso   ->push_back(	photon->neutralHadronIso()        );	
 	photons_photonIso          ->push_back(	photon->photonIso()               );
 
+	// Testing PFIso of reco::photon
+	photons_recoChargedHadronIso   ->push_back(photon->reco::Photon::chargedHadronIso()  );	
+	photons_recoNeutralHadronIso   ->push_back(photon->reco::Photon::neutralHadronIso()  );	
+	photons_recoPhotonIso          ->push_back(photon->reco::Photon::photonIso()         );
+
+
 	// Added for 53x //
 	photons_hcalTowerSumEtBcConeDR04       ->push_back( photon->hcalTowerSumEtBcConeDR04()       );
 	photons_hcalDepth1TowerSumEtBcConeDR04 ->push_back( photon->hcalDepth1TowerSumEtBcConeDR04() );
@@ -494,6 +506,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_chargedHadronIso, branchprefix+"chargedHadronIso");  
   iEvent.put( photons_neutralHadronIso, branchprefix+"neutralHadronIso");  
   iEvent.put( photons_photonIso       , branchprefix+"photonIso"       );  
+  iEvent.put( photons_recoChargedHadronIso, branchprefix+"recoChargedHadronIso");  
+  iEvent.put( photons_recoNeutralHadronIso, branchprefix+"recoNeutralHadronIso");  
+  iEvent.put( photons_recoPhotonIso       , branchprefix+"recoPhotonIso"       );  
 
   iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
   iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
