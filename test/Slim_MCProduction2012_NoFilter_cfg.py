@@ -9,7 +9,7 @@ process.GlobalTag.globaltag = "PHYS14_25_V1::All"
 #Input
 process.source = cms.Source("PoolSource",
 #    fileNames = cms.untracked.vstring('file:/nfs-3/userdata/gzevi/DYJetsToLL_M-50_13TeV-madgraph-pythia8_PAT.root')
-    fileNames = cms.untracked.vstring('file:/home/users/gzevi/miniAOD/CMSSW_7_2_0/src/CMS2/NtupleMaker/SMS-T1tttt_PU20bx25_tsg_PHYS14_25_V1.root')
+    fileNames = cms.untracked.vstring('file:/home/users/namin/stop/cms3/CMSSW_7_2_0/src/SMS-T1tttt_PU20bx25_tsg_PHYS14_25_V1.root')
 )
 
 # Output
@@ -45,6 +45,7 @@ process.p                  = cms.Path(
     process.electronMaker*
     process.muonMaker*
     process.pfJetMaker*
+    process.subJetMaker *
     process.pfmetMaker*
     process.hltMakerSequence*
     process.pftauMaker*

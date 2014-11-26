@@ -53,6 +53,7 @@ from CMS2.NtupleMaker.vertexMaker_cfi              import *
 from CMS2.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS2.NtupleMaker.fastJetSequence_cff          import *
 from CMS2.NtupleMaker.pfJetMaker_cfi               import *
+from CMS2.NtupleMaker.subJetMaker_cfi               import *
 from CMS2.NtupleMaker.muToTrigAssMaker_cfi         import *
 from CMS2.NtupleMaker.elToTrigAssMaker_cfi         import *
 #from CMS2.NtupleMaker.ecalDRFilterMaker_cff        import *
@@ -72,7 +73,7 @@ eventmakerswsparm= cms.Sequence( eventmakers * sParmMaker ) # build up alternate
 
 trigmakers       = cms.Sequence( l1Maker * hltMakerSequence )
 
-makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * fastJetSequence * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * metMaker * 
+makers           = cms.Sequence( trackMaker * gsfTrackMaker * muonMaker * scMaker * fastJetSequence * electronMaker * photonMaker * jetMaker * jptMaker * trkJetMaker * pfJetMaker * subJetMaker * metMaker * 
                                  tcmetMaker * luminosityMaker * recoErrorLogMaker * beamHaloMaker * recoConversionMaker * cms2MetFilterSequence * metFilterMaker )
 
 assmakers        = cms.Sequence( jetToMuAssMaker * jetToElAssMaker * muToElsAssMaker * muToJetAssMaker * elToMuAssMaker * elToJetAssMaker * trackToMuonAssMaker * trackToElsAssMaker * trkToVtxAssMaker * muToTrigAssMaker * elToTrigAssMaker)
