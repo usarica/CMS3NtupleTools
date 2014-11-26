@@ -40,6 +40,7 @@ process.p                  = cms.Path(
     #process.unpackedTracksAndVertices *
     process.beamSpotMaker *
     process.vertexMaker *
+    process.secondaryVertexMaker *
     process.pfCandidateMaker*
     process.eventMaker*
     process.electronMaker*
@@ -74,6 +75,8 @@ process.p                  = cms.Path(
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 process.luminosityMaker.isData                   = process.eventMaker.isData
+
+#process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 
 #Slim CMS2
 from CMS2.NtupleMaker.SlimCms2_cff import slimcms2

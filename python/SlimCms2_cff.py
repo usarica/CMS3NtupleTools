@@ -129,7 +129,7 @@ slimcms2.extend(cms.untracked.vstring('drop *_bTagPFJetMaker_pfjetssoftElectronT
 #Vertex Collections
 slimcms2.extend(cms.untracked.vstring('drop *_davertexMaker_*_CMS2*'))
 slimcms2.extend(cms.untracked.vstring('drop *_vertexMakerWithBS_*_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_secondaryVertexMaker_*_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_secondaryVertexMaker_*_CMS2*'))
 
 #GSFTrackMaker
 slimcms2.extend(cms.untracked.vstring('drop *_*_gsftrksvertexp4_CMS2*'))
