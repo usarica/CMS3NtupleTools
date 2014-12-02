@@ -2,6 +2,8 @@
 
 
 #Hard-code lepton ID
+git update-index --assume-unchanged setup/GsfEleFull5x5SigmaIEtaIEtaCut72X.cc 
+git update-index --assume-unchanged setup/cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff.py 
 mkdir $CMSSW_BASE/bullshit
 mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
 git cms-addpkg RecoEgamma/ElectronIdentification 
@@ -12,6 +14,7 @@ scram b -j 20
 popd
 mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
 rmdir $CMSSW_BASE/bullshit
+
 
 #############
 # MVA JetId #
