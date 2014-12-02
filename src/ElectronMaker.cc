@@ -1,4 +1,4 @@
-//-*- C++ -*-
+//-*- C++ -*- 
 //
 // Package:    ElectronMaker
 // Class:      ElectronMaker
