@@ -38,6 +38,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 
 process.p                  = cms.Path( 
     #process.unpackedTracksAndVertices *
+    process.egmGsfElectronIDSequence * 
     process.beamSpotMaker *
     process.vertexMaker *
     process.secondaryVertexMaker *

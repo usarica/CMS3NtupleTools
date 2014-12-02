@@ -91,6 +91,11 @@ private:
     edm::InputTag pfCandsInputTag;
     edm::InputTag vtxInputTag;
 
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken_;
+
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
   edm::InputTag pfIsoNeutral03InputTag;
@@ -107,6 +112,11 @@ private:
     double minAbsDcot_;
     double minSharedFractionOfHits_;
     std::string aliasprefix_;
+
+    std::vector<Int_t> passVetoId_;
+    std::vector<Int_t> passLooseId_;
+    std::vector<Int_t> passMediumId_;
+    std::vector<Int_t> passTightId_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
     edm::Handle<reco::VertexCollection> vertexHandle;

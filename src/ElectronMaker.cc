@@ -97,6 +97,11 @@ typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_Cluster
 ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     //get setup parameters
+    electronVetoIdMapToken_   = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
+    electronLooseIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronLooseIdMap"));
+    electronMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
+    electronTightIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
+
     electronsInputTag_        = iConfig.getParameter<edm::InputTag> ("electronsInputTag"        );
     beamSpotInputTag_         = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag"         );
     trksInputTag_             = iConfig.getParameter<edm::InputTag> ("trksInputTag"             );
@@ -190,6 +195,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // predefined ID decisions
     // http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
     produces<vector<int> >       ("elsclass"                   ).setBranchAlias("els_class"                  );
+
+    // Phys 14 predefined ID decisions
+    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("passVetoId"                 );
+    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("passLooseId"                );
+    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("passMediumId"               );
+    produces<vector<int> >       ("passTightId"                ).setBranchAlias("passTightId"                );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -342,16 +353,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaCutBasedIdentification
     // http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h?revision=1.5&view=markup
     //
-    produces<vector<unsigned int> >  ("elsid2012veto"   ).setBranchAlias("els_id2012_veto"   );
-    produces<vector<unsigned int> >  ("elsid2012loose"  ).setBranchAlias("els_id2012_loose"  );
-    produces<vector<unsigned int> >  ("elsid2012medium" ).setBranchAlias("els_id2012_medium" );
-    produces<vector<unsigned int> >  ("elsid2012tight"  ).setBranchAlias("els_id2012_tight"  );
-    //the same using 2012ext iso
-    produces<vector<unsigned int> >  ("elsid2012extveto"   ).setBranchAlias("els_id2012ext_veto"   );
-    produces<vector<unsigned int> >  ("elsid2012extloose"  ).setBranchAlias("els_id2012ext_loose"  );
-    produces<vector<unsigned int> >  ("elsid2012extmedium" ).setBranchAlias("els_id2012ext_medium" );
-    produces<vector<unsigned int> >  ("elsid2012exttight"  ).setBranchAlias("els_id2012ext_tight"  );
- 
 
     ///////////////////
     // Added for 53x //
@@ -487,6 +488,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     auto_ptr<vector<int> > els_class    (new vector<int>);
     auto_ptr<vector<int> > els_category (new vector<int>);
+
+    auto_ptr<vector<int> > passVetoId     (new vector<int>);
+    auto_ptr<vector<int> > passLooseId    (new vector<int>);
+    auto_ptr<vector<int> > passMediumId   (new vector<int>);
+    auto_ptr<vector<int> > passTightId    (new vector<int>);
 
     // isolation variables
     //
@@ -624,17 +630,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     auto_ptr<vector<bool> >                   els_conv_vtx_flag        (new vector<bool>           );
 
-    // predefined 2012 ID decisions
-    auto_ptr<vector<unsigned int> > els_id2012_veto   (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012_loose  (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012_medium (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012_tight  (new vector<unsigned int>);
-    //the same using 2012ext iso
-    auto_ptr<vector<unsigned int> > els_id2012ext_veto   (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012ext_loose  (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012ext_medium (new vector<unsigned int>);
-    auto_ptr<vector<unsigned int> > els_id2012ext_tight  (new vector<unsigned int>);
-
     ///////////////////
     // Added for 53x //
     ///////////////////
@@ -702,6 +697,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     Handle<View<pat::Electron> > els_h;
     iEvent.getByLabel(electronsInputTag_, els_h);
     View<pat::Electron> gsfElColl = *(els_h.product());
+
+
 
 //    Handle<GsfElectronCollection> els_coll_h;
 //    iEvent.getByLabel(electronsInputTag_, els_coll_h);    
@@ -780,6 +777,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////////////////////////////////////////////////////////
 
 //    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
+
+  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
+  iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
+  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
+  iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
 
 
     //////////////////////////
@@ -890,6 +896,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_class              ->push_back( el->classification()  ); // this is the old pTDR classification
         els_category           ->push_back( classify(gsfElRef)    ); // this is the sani classification
+
+        const Ptr<pat::Electron> elPtr(els_h, el - els_h->begin() );
+  
+        passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
+        passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
+        passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
+        passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
 
 
         //////////////
@@ -1467,82 +1480,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        els_conv_vtx_flag        -> push_back( ConversionTools::hasMatchedConversion(*el, convs_h, beamSpot ) );
         els_conv_vtx_flag        -> push_back( !el->passConversionVeto() ); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
 
-//        //////////////////////////////
-//        // Old Conversion Rejection //
-//        //////////////////////////////
-//
-//        int delMissHits          =  -9999;
-//        int flag                 =  isfinite(el->convFlags()) ? el->convFlags() : -9999;
-//
-//        els_conv_old_flag        -> push_back( flag                     );
-//        els_conv_old_dist        -> push_back( isfinite(el->convDist())   ? el->convDist()   : -9999. );
-//        els_conv_old_dcot        -> push_back( isfinite(el->convDcot())   ? el->convDcot()   : -9999. );
-//        els_conv_old_radius      -> push_back( isfinite(el->convRadius()) ? el->convRadius() : -9999. );
-//
-//        //
-//        if( flag == 0 ) { // partner found in the CTF track collection using the electron's CTF track
-//            els_conv_old_tkidx -> push_back( el->convPartner().key() );
-//            els_conv_old_gsftkidx-> push_back( -9999 );
-//            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
-//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
-//        }
-//        else if( flag == 1 ) {// partner found in the CTF track collection using the electron's GSF track
-//            els_conv_old_tkidx -> push_back( el->convPartner().key() );  
-//            els_conv_old_gsftkidx-> push_back( -9999 );
-//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
-//        }
-//        else if( flag == 2 ) {  // partner found in the GSF track collection using the electron's CTF track
-//            els_conv_old_tkidx -> push_back( -9999 );
-//            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
-//            //delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestCtfTrackRef()->trackerExpectedHitsInner().numberOfHits();
-//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el->closestTrack()->trackerExpectedHitsInner().numberOfHits();
-//        } 
-//        else if( flag == 3 ) {  // partner found in the GSF track collection using the electron's GSF track
-//            els_conv_old_tkidx -> push_back( -9999 );
-//            els_conv_old_gsftkidx ->push_back(el->convPartner().key() );
-//            delMissHits = el->convPartner()->trackerExpectedHitsInner().numberOfHits() - el_track->trackerExpectedHitsInner().numberOfHits();
-//        } 
-//        else if( flag != -9999 ){
-//            cout << "ERROR Unexpected flag: " << flag << endl;
-//            exit(1);
-//        }
-//
-//        //
-//        els_conv_old_delMissHits -> push_back( delMissHits );
 
-//        //////////////////////
-//        // 2012 Electron ID //
-//        //////////////////////
-//        GsfElectronRef ele(els_coll_h, elsIndex);
-//
-//        float pfiso_ch = els_iso03_pf2012_ch->at(elsIndex);
-//        float pfiso_em = els_iso03_pf2012_em->at(elsIndex);
-//        float pfiso_nh = els_iso03_pf2012_nh->at(elsIndex);
-//        unsigned int veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        unsigned int loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        unsigned int medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        unsigned int tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//
-//        els_id2012_veto   ->push_back(veto_bits   );
-//        els_id2012_loose  ->push_back(loose_bits  );
-//        els_id2012_medium ->push_back(medium_bits );
-//        els_id2012_tight  ->push_back(tight_bits  );
-//
-//        pfiso_ch = els_iso03_pf2012ext_ch->at(elsIndex);
-//        pfiso_em = els_iso03_pf2012ext_em->at(elsIndex);
-//        pfiso_nh = els_iso03_pf2012ext_nh->at(elsIndex);
-//        veto_bits   = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::VETO  , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        loose_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::LOOSE , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        medium_bits = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::MEDIUM, ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//        tight_bits  = EgammaCutBasedEleId::TestWP(EgammaCutBasedEleId::TIGHT , ele, convs_h, beamSpotreco, vertexHandle, pfiso_ch, pfiso_em, pfiso_nh, rhoIso);
-//
-//        els_id2012ext_veto   ->push_back(veto_bits   );
-//        els_id2012ext_loose  ->push_back(loose_bits  );
-//        els_id2012ext_medium ->push_back(medium_bits );
-//        els_id2012ext_tight  ->push_back(tight_bits  );
-
-
- 
         ///////////////////
         // Added for 53x //
         ///////////////////
@@ -1597,6 +1535,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     iEvent.put(els_class    , "elsclass"    );
     iEvent.put(els_category , "elscategory" );
+  
+    iEvent.put(passVetoId,   "passVetoId"   );
+    iEvent.put(passLooseId,  "passLooseId"  );
+    iEvent.put(passMediumId, "passMediumId" );
+    iEvent.put(passTightId,  "passTightId"  );
 
     // Track parameters
     //
@@ -1792,17 +1735,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_conv_old_flag        , "elsconvoldflag"        );
 
     iEvent.put(els_conv_vtx_flag        , "elsconvvtxflag"        );
-
-    iEvent.put(els_id2012_veto   , "elsid2012veto"   );
-    iEvent.put(els_id2012_loose  , "elsid2012loose"  );
-    iEvent.put(els_id2012_medium , "elsid2012medium" );
-    iEvent.put(els_id2012_tight  , "elsid2012tight"  );
-
-    iEvent.put(els_id2012ext_veto   , "elsid2012extveto"   );
-    iEvent.put(els_id2012ext_loose  , "elsid2012extloose"  );
-    iEvent.put(els_id2012ext_medium , "elsid2012extmedium" );
-    iEvent.put(els_id2012ext_tight  , "elsid2012exttight"  );
-
 
     ///////////////////
     // Added for 53x //

@@ -4,7 +4,11 @@ electronMaker = cms.EDProducer(
     "ElectronMaker",
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
-    electronsInputTag = cms.InputTag("slimmedElectrons"),
+    electronsInputTag   = cms.InputTag("slimmedElectrons"),
+    electronVetoIdMap   = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-veto"),
+    electronLooseIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-loose"),
+    electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-medium"),
+    electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-tight"),
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
     # reco Track collection
