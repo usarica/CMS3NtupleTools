@@ -7,7 +7,7 @@ mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
 git cms-addpkg RecoEgamma/ElectronIdentification 
 mv $CMSSW_BASE/bullshit/CMS2/NtupleMaker/setup/GsfEleFull5x5SigmaIEtaIEtaCut72X.cc $CMSSW_BASE/src/RecoEgamma/ElectronIdentification/plugins/cuts/
 mv $CMSSW_BASE/bullshit/CMS2/NtupleMaker/setup/cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff.py $CMSSW_BASE/src/RecoEgamma/ElectronIdentification/python/Identification
-pushd $CMSSW_BASE/source
+pushd $CMSSW_BASE/src/
 scram b -j 20 
 popd
 mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
