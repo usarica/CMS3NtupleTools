@@ -148,7 +148,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
         std::vector<unsigned int> triggerPrescales;
         for (obj_it = obj_p4_h->begin(); obj_it != obj_p4_h->end(); ++obj_it) {
             triggerPrescales.push_back(matchTriggerObject(iEvent, iSetup,
-                triggers_[t].label(), triggers_[t].instance(), allObjects, *obj_it));
+		  triggers_[t].label(), triggers_[t].instance(), t, allObjects, *obj_it));
         }
 
         // push back the results for this trigger
@@ -215,7 +215,7 @@ ObjectToTriggerLegAssMaker::endRun(edm::Run&, edm::EventSetup const&)
 }
 
 unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
-        const std::string triggerName, const std::string filterName,
+        const std::string triggerName, const std::string filterName, unsigned int triggerIndex,
 	//const trigger::TriggerObjectCollection &allObjects,
 	const  pat::TriggerObjectStandAloneCollection* allObjects,
         const LorentzVector &offlineObject)
@@ -231,7 +231,7 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
       if ( TO.hasPathName(triggerName, true) ) { // this TriggerObject passed the full path (uses wildcards!! ;-)
 	if (filterName == "" || TO.hasFilterLabel(filterName) ) { // and the individual filter (if specified)
 	  if (deltaR(TO.eta(), TO.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
-	    prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1;
+	    prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
 	    return prescale;
 	  }
 	}

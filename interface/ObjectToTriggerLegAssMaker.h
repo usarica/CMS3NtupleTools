@@ -54,7 +54,7 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
 
         // match an offline p4 to a trigger object
         unsigned int matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
-            const std::string triggerName, const std::string filterName,
+            const std::string triggerName, const std::string filterName, unsigned int triggerIndex,
 	    //            const trigger::TriggerObjectCollection &allObjects,
             const pat::TriggerObjectStandAloneCollection* allObjects,
             const LorentzVector &offlineObject);
