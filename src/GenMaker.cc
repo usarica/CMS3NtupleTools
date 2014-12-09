@@ -323,15 +323,19 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       float pt = genps_it->p4().pt();
       float geniso = 0;
       for(vector<pat::PackedGenParticle>::const_iterator pkgenps_it = packedgenps_coll->begin(); pkgenps_it != packedgenps_coll->end(); pkgenps_it++) {
+	// Skip neutrinos
+	int packedID = fabs(pkgenps_it->pdgId());
+	if (packedID==12 || packedID==14 || packedID==16 ) continue;
 	// Skip far away ones (DeltaEta is easy to calculate)
 	if ( fabs(eta - pkgenps_it->p4().eta()) > 0.4) continue;
 	// Calculate DR
 	float DR2 = ROOT::Math::VectorUtil::DeltaR2(genps_it->p4(), pkgenps_it->p4());
 	if (DR2 > 0.4*0.4 ) continue;
-	// Avoid identical one
-	if (DR2 < 0.05*0.05 && (pkgenps_it->p4().pt()-pt)/pt < 0.05 && pkgenps_it->status() == genps_it->status() && pkgenps_it->pdgId() == id) continue;
 	geniso += pkgenps_it->p4().pt();	
       }
+      // Remove original particle, set to 0 if negative
+      geniso -= pt;
+      if (geniso < 0) geniso = 0;
       genps_iso->push_back(geniso);
     }
     else genps_iso->push_back(-1.);
