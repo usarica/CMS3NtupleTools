@@ -34,8 +34,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "Math/VectorUtil.h"
-#include "CMS2/NtupleMaker/interface/MuonIsolationMaker.h"
-#include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
+#include "CMS3/NtupleMaker/interface/MuonIsolationMaker.h"
+#include "CMS3/NtupleMaker/interface/IsolationUtilities.h"
 
 //////////////
 // typedefs //

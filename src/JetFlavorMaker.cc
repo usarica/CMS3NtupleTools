@@ -7,7 +7,7 @@
 ////////////////////////////
 
 // Header
-#include "CMS2/NtupleMaker/interface/JetFlavorMaker.h"
+#include "CMS3/NtupleMaker/interface/JetFlavorMaker.h"
 
 // C++
 #include <memory>

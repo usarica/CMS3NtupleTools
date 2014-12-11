@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      HypDilepMaker
 // 
-/**\class HypDilepMaker HypDilepMaker.h CMS2/NtupleMaker/interface/HypDilepMaker.h
+/**\class HypDilepMaker HypDilepMaker.h CMS3/NtupleMaker/interface/HypDilepMaker.h
 
 Description: create trilepton hypothesis branches
 

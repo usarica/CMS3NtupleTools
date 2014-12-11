@@ -29,10 +29,10 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-#include "CMS2/NtupleMaker/interface/ElectronMaker.h"
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
-#include "CMS2/NtupleMaker/interface/EgammaFiduciality.h"
+#include "CMS3/NtupleMaker/interface/ElectronMaker.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

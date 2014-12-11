@@ -3,7 +3,7 @@
 // Package:    CaloTauMaker
 // Class:      CaloTauMaker
 // 
-/**\class CaloTauMaker CaloTauMaker.cc CMS2/NtupleMaker/src/CaloTauMaker.cc
+/**\class CaloTauMaker CaloTauMaker.cc CMS3/NtupleMaker/src/CaloTauMaker.cc
 
 Description: <one line class summary>
 
@@ -33,8 +33,8 @@ Implementation:
 #include "MagneticField/Engine/interface/MagneticField.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 
-#include "CMS2/NtupleMaker/interface/CaloTauMaker.h"
-#include "CMS2/NtupleMaker/interface/CommonUtils.h"
+#include "CMS3/NtupleMaker/interface/CaloTauMaker.h"
+#include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;

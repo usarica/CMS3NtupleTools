@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      EventMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/EventMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/EventMaker.cc
 
    Description: <one line class summary>
 

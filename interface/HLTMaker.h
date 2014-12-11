@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      HLTMaker
 // 
-/**\class HLTMaker CMS2/NtupleMaker/src/HLTMaker.cc
+/**\class HLTMaker CMS3/NtupleMaker/src/HLTMaker.cc
 
  Description: <one line class summary>
 

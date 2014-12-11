@@ -3,7 +3,7 @@
 // Package:    HypQuadlepMaker
 // Class:      HypQuadlepMaker
 // 
-/**\class HypQuadlepMaker HypQuadlepMaker.h CMS2/NtupleMaker/interface/HypQuadlepMaker.h
+/**\class HypQuadlepMaker HypQuadlepMaker.h CMS3/NtupleMaker/interface/HypQuadlepMaker.h
 
 Description: create quadlep hypothesis branches
 

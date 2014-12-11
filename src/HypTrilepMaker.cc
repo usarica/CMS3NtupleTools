@@ -3,7 +3,7 @@
 // Package:    HypTrilepMaker
 // Class:      HypTrilepMaker
 // 
-/**\class HypTrilepMaker HypTrilepMaker.cc CMS2/NtupleMaker/src/HypTrilepMaker.cc
+/**\class HypTrilepMaker HypTrilepMaker.cc CMS3/NtupleMaker/src/HypTrilepMaker.cc
 
 Description: create trilepton hypothesis branches
 
@@ -59,10 +59,10 @@ e-e-e-: 19
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/HypTrilepMaker.h"
+#include "CMS3/NtupleMaker/interface/HypTrilepMaker.h"
 
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/JetUtilities.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/JetUtilities.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 

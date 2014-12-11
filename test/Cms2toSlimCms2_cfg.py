@@ -5,7 +5,7 @@ process = cms.Process("CMS2")
 process.source = cms.Source("PoolSource",
     skipEvents = cms.untracked.uint32(0),
     fileNames  = cms.untracked.vstring(
-        "file:/home/users/fgolf/devel/CMSSW_5_3_2_patch4/src/CMS2/NtupleMaker/test/full_cms2.root"
+        "file:/home/users/fgolf/devel/CMSSW_5_3_2_patch4/src/CMS3/NtupleMaker/test/full_cms2.root"
     ),
 )
 

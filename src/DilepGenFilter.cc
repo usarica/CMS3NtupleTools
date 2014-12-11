@@ -29,7 +29,7 @@ see header file
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/DilepGenFilter.h"
+#include "CMS3/NtupleMaker/interface/DilepGenFilter.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

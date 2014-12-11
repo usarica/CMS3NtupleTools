@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      HypDilepVertexMaker
 //
-/**\class HypDilepVertexMaker HypDilepVertexMaker.h CMS2/NtupleMaker/interface/HypDilepVertexMaker.h
+/**\class HypDilepVertexMaker HypDilepVertexMaker.h CMS3/NtupleMaker/interface/HypDilepVertexMaker.h
 
  Description: fit the hyp leptons to a single vertex and add
               relevant branches to output

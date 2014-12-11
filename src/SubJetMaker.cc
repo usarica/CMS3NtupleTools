@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      SubJetMaker
 //
-/**\class SubJetMaker SubJetMaker.cc CMS2/NtupleMakerMaker/src/SubJetMaker.cc
+/**\class SubJetMaker SubJetMaker.cc CMS3/NtupleMakerMaker/src/SubJetMaker.cc
 
 Description: <one line class summary>
 
@@ -21,7 +21,7 @@ Implementation:
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS2/NtupleMaker/interface/SubJetMaker.h"
+#include "CMS3/NtupleMaker/interface/SubJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"

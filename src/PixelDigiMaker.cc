@@ -3,7 +3,7 @@
 // Package:    PixelDigiMaker
 // Class:      PixelDigiMaker
 // 
-/**\class PixelDigiMaker PixelDigiMaker.cc CMS2/NtupleMaker/src/PixelDigiMaker.cc
+/**\class PixelDigiMaker PixelDigiMaker.cc CMS3/NtupleMaker/src/PixelDigiMaker.cc
 
  Description: <one line class summary>
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/PixelDigiMaker.h"
+#include "CMS3/NtupleMaker/interface/PixelDigiMaker.h"
 // #include "DataFormats/TrackerRecHit2D/interface/SiPixelRecHitCollection.h"
 #include "DataFormats/SiPixelCluster/interface/SiPixelCluster.h"
 
