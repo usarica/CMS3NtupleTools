@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-from CMS2.NtupleMaker.trkMetMaker_cfi import *
+from CMS3.NtupleMaker.trkMetMaker_cfi import *
 
 myTrkMetMaker = trkMetMaker.clone()
 

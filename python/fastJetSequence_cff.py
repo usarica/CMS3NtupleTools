@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 from RecoJets.Configuration.RecoPFJets_cff import *
 from RecoJets.Configuration.RecoJets_cff import *
-from CMS2.NtupleMaker.fastJetMaker_cfi import *
+from CMS3.NtupleMaker.fastJetMaker_cfi import *
 #from RecoTauTag.Configuration.HPSPFTaus_cff import kt6PFJetsForRhoComputationVoronoi
 
 kt6PFJetsDeterministicJEC = kt4PFJets.clone(

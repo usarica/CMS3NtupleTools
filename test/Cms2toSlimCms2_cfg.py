@@ -17,5 +17,5 @@ process.outpath      = cms.EndPath(process.out)
 
 process.out.outputCommands = cms.untracked.vstring("keep *")
 
-from CMS2.NtupleMaker.SlimCms2_cff import slimcms2
+from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
 process.out.outputCommands.extend(slimcms2)

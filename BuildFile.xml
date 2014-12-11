@@ -45,7 +45,7 @@
 <use   name="DataFormats/DetId"/>
 <use   name="DataFormats/EcalDigi"/>
 <use   name="HLTrigger/HLTcore"/>
-<use   name="CMS2/Dictionaries"/>
+<use   name="CMS3/Dictionaries"/>
 <use   name="DataFormats/ParticleFlowReco"/>
 <use   name="RecoTracker/MeasurementDet"/>
 <use   name="DataFormats/TrackerCommon"/>
