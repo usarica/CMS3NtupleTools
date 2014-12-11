@@ -31,6 +31,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
+
 //
 // class decleration
 //
@@ -50,9 +51,8 @@ private:
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;
-  std::string PFJetCorrectorL2L3_;
-  std::string PFJetCorrectorL1L2L3_;
-  std::string PFJetCorrectorL1FastL2L3_;
-  std::string PFJetCorrectorL1Fast_;
-  std::string PFJetCorrectorL1FastL2L3residual_;
+  //std::string PFJetCorrectorL1L2L3_;
+  std::string l1file;
+  std::string l2file;
+  std::string l3file;
 };
