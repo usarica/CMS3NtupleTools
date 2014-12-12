@@ -31,10 +31,6 @@ Implementation:
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
-//For jet corrections
-#include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
-#include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
-#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -90,12 +86,23 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   l1file = edm::FileInPath(iConfig.getParameter<std::string> ("L1File")).fullPath();
   l2file = edm::FileInPath(iConfig.getParameter<std::string> ("L2File")).fullPath();
   l3file = edm::FileInPath(iConfig.getParameter<std::string> ("L3File")).fullPath();
+
+  L1Parms = new JetCorrectorParameters(l1file);
+  L2Parms = new JetCorrectorParameters(l2file);
+  L3Parms = new JetCorrectorParameters(l3file);
+  //JetCorrectorParameters *L1Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt");
+  //JetCorrectorParameters *L2Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L2Relative_AK4PFchs.txt");
+  //JetCorrectorParameters *L3Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt");
  
   //PFJetCorrectorL1L2L3_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1L2L3"             );
 }
 
 // Destructor
-PFJetMaker::~PFJetMaker(){}
+PFJetMaker::~PFJetMaker(){
+  delete L1Parms;
+  delete L2Parms;
+  delete L3Parms;
+}
 
 // ------------ method called once each job just before starting event loop  ------------
 void PFJetMaker::beginJob() {}
@@ -198,12 +205,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   
    //   const JetCorrector* correctorL1L2L3             = JetCorrector::getJetCorrector ( PFJetCorrectorL1L2L3_             , iSetup );
 
-  JetCorrectorParameters *L1Parms = new JetCorrectorParameters(l1file);
-  JetCorrectorParameters *L2Parms = new JetCorrectorParameters(l2file);
-  JetCorrectorParameters *L3Parms = new JetCorrectorParameters(l3file);
-  //JetCorrectorParameters *L1Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt");
-  //JetCorrectorParameters *L2Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L2Relative_AK4PFchs.txt");
-  //JetCorrectorParameters *L3Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt");
   vector <JetCorrectorParameters> vPar;
   vPar.push_back(*L1Parms);
   vPar.push_back(*L2Parms);
@@ -289,6 +290,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_trackCountingHighPurBJetTag              ->push_back( pfjet_it->bDiscriminator("trackCountingHighPurBJetTags"              ) );
 
   }
+  delete JetCorrector;
 
   
   iEvent.put(pfjets_p4                        , "pfjetsp4"                        );

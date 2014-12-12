@@ -19,7 +19,7 @@ process.out = cms.OutputModule(
         dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath      = cms.EndPath(process.out)
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(50) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(12000) )
 
 # Branches
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
