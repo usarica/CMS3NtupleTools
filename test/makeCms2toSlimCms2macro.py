@@ -3,7 +3,7 @@
 import sys,re,os
 
 CMSSWpath = os.environ['CMSSW_BASE']
-infilename = CMSSWpath+'/src/CMS2.NtupleMaker/python/SlimCms2_cff.py'
+infilename = CMSSWpath+'/src/CMS2/NtupleMaker/python/SlimCms2_cff.py'
 outfilename = 'Cms2toSlimCms2macro.C'
 
 if len(sys.argv) < 1:
