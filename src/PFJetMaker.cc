@@ -87,9 +87,9 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
   pfCandidatesTag_		= iConfig.getParameter<InputTag>	("pfCandidatesTag");
   pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
-  l1file = iConfig.getParameter<std::string> ("L1File");
-  l2file = iConfig.getParameter<std::string> ("L2File");
-  l3file = iConfig.getParameter<std::string> ("L3File");
+  l1file = edm::FileInPath(iConfig.getParameter<std::string> ("L1File")).fullPath();
+  l2file = edm::FileInPath(iConfig.getParameter<std::string> ("L2File")).fullPath();
+  l3file = edm::FileInPath(iConfig.getParameter<std::string> ("L3File")).fullPath();
  
   //PFJetCorrectorL1L2L3_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1L2L3"             );
 }
