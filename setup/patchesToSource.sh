@@ -31,7 +31,7 @@ popd
 # LCG dictionaries #
 #######################
 
-git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionaries
+git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS2/Dictionaries
 
 
 #######################
