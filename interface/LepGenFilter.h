@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      LepGenFilter
 // 
-/**\class LepGenFilter LepGenFilter.h CMS3/NtupleMaker/interface/LepGenFilter.h
+/**\class LepGenFilter LepGenFilter.h CMS2/NtupleMaker/interface/LepGenFilter.h
 
 Description: generic filter for cms2
 

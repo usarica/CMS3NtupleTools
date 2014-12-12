@@ -3,7 +3,7 @@
 // Package:    JPTMaker
 // Class:      JPTMaker
 // 
-/**\class JPTMaker JPTMaker.h CMS3/NtupleMaker/interface/JPTMaker.h
+/**\class JPTMaker JPTMaker.h CMS2/NtupleMaker/interface/JPTMaker.h
 
    Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
 

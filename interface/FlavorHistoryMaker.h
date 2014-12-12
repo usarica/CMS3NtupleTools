@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      FlavorHistoryMaker
 // 
-/**\class FlavorHistoryMaker FlavorHistoryMaker.cc CMS3/NtupleMaker/src/FlavorHistoryMaker.cc
+/**\class FlavorHistoryMaker FlavorHistoryMaker.cc CMS2/NtupleMaker/src/FlavorHistoryMaker.cc
 
    Description: <one line class summary>
 

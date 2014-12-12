@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
 #from RecoMET.METProducers.TCMET_cfi import *
-from CMS3.NtupleMaker.tcmetMaker_cfi import *
+from CMS2.NtupleMaker.tcmetMaker_cfi import *
 
 #tcMetWithPFclusters = tcMet.clone()
 #tcMetWithPFclusters.tcmetDepValueMap = cms.InputTag("muonTCMETValueMapProducer", "muCorrData")

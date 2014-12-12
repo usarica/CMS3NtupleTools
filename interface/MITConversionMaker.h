@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      MITConversionMaker
 // 
-/**\class MITConversionMaker MITConversionMaker.cc CMS3/NtupleMaker/src/MITConversionMaker.cc
+/**\class MITConversionMaker MITConversionMaker.cc CMS2/NtupleMaker/src/MITConversionMaker.cc
 
    Description: <one line class summary>
 

@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PDFInfoMaker
 // 
-/**\class PDFInfoMaker PDFInfoMaker.cc CMS3/NtupleMaker/src/PDFInfoMaker.cc
+/**\class PDFInfoMaker PDFInfoMaker.cc CMS2/NtupleMaker/src/PDFInfoMaker.cc
 
    Description: PDF Info
 
@@ -35,7 +35,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
-#include "CMS3/NtupleMaker/interface/PDFInfoMaker.h"
+#include "CMS2/NtupleMaker/interface/PDFInfoMaker.h"
 
 using namespace edm;
 using namespace std;

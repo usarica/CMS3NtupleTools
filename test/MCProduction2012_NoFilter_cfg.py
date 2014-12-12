@@ -1,4 +1,4 @@
-from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "START53_V7::All"

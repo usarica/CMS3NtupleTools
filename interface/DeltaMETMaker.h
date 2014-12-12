@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      DeltaMETMaker
 // 
-/**\class DeltaMETMaker.cc CMS3/NtupleMaker/src/DeltaMETMaker.cc
+/**\class DeltaMETMaker.cc CMS2/NtupleMaker/src/DeltaMETMaker.cc
 
    Description: <one line class summary>
 

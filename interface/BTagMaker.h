@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BTagMaker
 // 
-/**\class BTagMaker BTagMaker.cc CMS3/NtupleMaker/src/BTagMaker.cc
+/**\class BTagMaker BTagMaker.cc CMS2/NtupleMaker/src/BTagMaker.cc
 
  Description: <one line class summary>
 

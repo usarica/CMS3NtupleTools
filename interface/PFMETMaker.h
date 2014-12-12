@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PFMETMaker
 // 
-/**\class PFMETMaker.cc CMS3/NtupleMaker/src/PFMETMaker.cc
+/**\class PFMETMaker.cc CMS2/NtupleMaker/src/PFMETMaker.cc
 
    Description: <one line class summary>
 

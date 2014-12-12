@@ -21,8 +21,8 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
-#include "CMS3/NtupleMaker/interface/ElESIsoMaker.h"
-#include "CMS3/NtupleMaker/interface/ESCluster.h"
+#include "CMS2/NtupleMaker/interface/ElESIsoMaker.h"
+#include "CMS2/NtupleMaker/interface/ESCluster.h"
 
 ElESIsoMaker::ElESIsoMaker(const edm::ParameterSet& iConfig) {
 

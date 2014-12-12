@@ -3,7 +3,7 @@
 // Package:    TrkJetMaker
 // Class:      TrkJetMaker.cc
 //
-/**\class TrkJetMaker TrkJetMaker.cc CMS3/NtupleMaker/src/TrkJetMaker.cc
+/**\class TrkJetMaker TrkJetMaker.cc CMS2/NtupleMaker/src/TrkJetMaker.cc
 
    Description: Dumps the TrkJet contents into the ntuple
    Implementation:
@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/TrkJetMaker.h"
+#include "CMS2/NtupleMaker/interface/TrkJetMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/TrackJetCollection.h"

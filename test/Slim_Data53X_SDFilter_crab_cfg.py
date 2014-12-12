@@ -1,5 +1,5 @@
-#from CMS3.NtupleMaker.RecoConfiguration2011_44X_cfg import *
-from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
+#from CMS2.NtupleMaker.RecoConfiguration2011_44X_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "GR_R_53_V8::All"
@@ -11,7 +11,7 @@ process.hypTrilepMaker.TightLepton_PtCut = cms.double(5.0)
 process.hypTrilepMaker.LooseLepton_PtCut = cms.double(5.0)
 
 # Load Filters                                                                                                                                                                                                                       
-process.load("CMS3.NtupleMaker.sdFilter_cfi")
+process.load("CMS2.NtupleMaker.sdFilter_cfi")
 process.filter = cms.Path(process.sdFilter)
 if "DoubleElectron" in str(process.eventMaker.datasetName):
     process.sdFilter.filterName_=cms.string("nofilter")
@@ -80,5 +80,5 @@ process.SimpleMemoryCheck = cms.Service("SimpleMemoryCheck")
 #process.Timing =cms.Service("Timing")        
 
 #Slim CMS2
-from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
+from CMS2.NtupleMaker.SlimCms2_cff import slimcms2
 process.out.outputCommands.extend(slimcms2)

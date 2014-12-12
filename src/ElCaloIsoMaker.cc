@@ -18,7 +18,7 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/CaloTowers/interface/CaloTowerFwd.h"
 #include "DataFormats/CaloTowers/interface/CaloTower.h"
-#include "CMS3/NtupleMaker/interface/ElCaloIsoMaker.h"
+#include "CMS2/NtupleMaker/interface/ElCaloIsoMaker.h"
 
 ElCaloIsoMaker::ElCaloIsoMaker(const edm::ParameterSet& iConfig) {
 

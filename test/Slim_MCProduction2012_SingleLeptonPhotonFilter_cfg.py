@@ -1,12 +1,12 @@
-from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "START53_V7A::All"
 
 # Load Filters
-process.load('CMS3.NtupleMaker.aSkimFilter_cfi')
-process.load('CMS3.NtupleMaker.monolepGenFilter_cfi')
-process.load("CMS3.NtupleMaker.sdFilter_cfi")
+process.load('CMS2.NtupleMaker.aSkimFilter_cfi')
+process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')
+process.load("CMS2.NtupleMaker.sdFilter_cfi")
 
 process.sdFilter.filterName_=cms.string("Photon")
 process.sdFilter.photonJet_dotrig_=cms.bool(False)
@@ -49,5 +49,5 @@ process.eventMaker.isData                        = cms.bool(False)
 process.luminosityMaker.isData                   = process.eventMaker.isData
 
 #Slim CMS2
-from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
+from CMS2.NtupleMaker.SlimCms2_cff import slimcms2
 process.out.outputCommands.extend(slimcms2)

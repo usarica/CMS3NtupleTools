@@ -7,7 +7,7 @@ from CommonTools.ParticleFlow.Isolation.tools_cfi import *
 #from CommonTools.ParticleFlow.Isolation.isoValMuonWithCharged_cfi import *
 #from CommonTools.ParticleFlow.Isolation.isoValMuonWithNeutral_cfi import *
 #from CommonTools.ParticleFlow.Isolation.isoValMuonWithPhotons_cfi import *
-from CMS3.NtupleMaker.pfMuonMaker_cfi import *
+from CMS2.NtupleMaker.pfMuonMaker_cfi import *
 
 CMS2isoDepMuonWithCharged   = isoDepositReplace('pfAllMuons', 'pfAllChargedHadrons')
 CMS2isoDepMuonWithNeutral   = isoDepositReplace('pfAllMuons', 'pfAllNeutralHadrons')

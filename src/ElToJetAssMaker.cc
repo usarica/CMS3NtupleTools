@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ElToJetAssMaker
 // 
-/**\class ElToJetAssMaker ElToJetAssMaker.cc CMS3/NtupleMaker/src/ElToJetAssMaker.cc
+/**\class ElToJetAssMaker ElToJetAssMaker.cc CMS2/NtupleMaker/src/ElToJetAssMaker.cc
 
  Description: make associations between jets and electrons
 
@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/ElToJetAssMaker.h"
+#include "CMS2/NtupleMaker/interface/ElToJetAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

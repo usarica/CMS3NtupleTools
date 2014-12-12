@@ -35,7 +35,7 @@
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
-#include "CMS3/NtupleMaker/interface/PFCandidateMaker.h"
+#include "CMS2/NtupleMaker/interface/PFCandidateMaker.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "TMath.h"

@@ -3,7 +3,7 @@
 // Package:    IsolationUtilities
 // Class:      IsolationUtilities
 // 
-/**\class IsolationUtilities IsolationUtilities.h CMS3/NtupleMaker/interface/IsolationUtilities.h
+/**\class IsolationUtilities IsolationUtilities.h CMS2/NtupleMaker/interface/IsolationUtilities.h
 
    Description: Isolation utilities
 

@@ -1,7 +1,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS3/NtupleMaker/interface/MVAJetIdMaker.h"
+#include "CMS2/NtupleMaker/interface/MVAJetIdMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"

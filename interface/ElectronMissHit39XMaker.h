@@ -4,7 +4,7 @@
 // Package:    ElectronMissHit39XMaker
 // Class:      ElectronMissHit39XMaker
 // 
-/**\class ElectronMissHit39XMaker ElectronMissHit39XMaker.h CMS3/NtupleMaker/interface/ElectronMissHit39XMaker.h
+/**\class ElectronMissHit39XMaker ElectronMissHit39XMaker.h CMS2/NtupleMaker/interface/ElectronMissHit39XMaker.h
 
 Description: <one line class summary>
 

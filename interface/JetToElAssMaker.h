@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      JetToElAssMaker
 // 
-/**\class JetToElAssMaker JetToElAssMaker.h CMS3/NtupleMaker/interface/JetToElAssMaker.h
+/**\class JetToElAssMaker JetToElAssMaker.h CMS2/NtupleMaker/interface/JetToElAssMaker.h
 
 Description: make associations between jets and muons
 

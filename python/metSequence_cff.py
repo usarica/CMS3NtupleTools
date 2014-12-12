@@ -8,7 +8,7 @@ from RecoJets.JetProducers.CaloTowerSchemeBWithHO_cfi import towerMakerWithHO
 from RecoMET.METProducers.CaloMET_cfi import metHO
 
 
-from CMS3.NtupleMaker.metMaker_cfi import *
+from CMS2.NtupleMaker.metMaker_cfi import *
 from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
 from JetMETCorrections.Type1MET.correctedMet_cff import *
 metType1Sequence = cms.Sequence(produceCaloMETCorrections * caloType1CorrectedMet * metMaker)

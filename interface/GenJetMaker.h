@@ -3,7 +3,7 @@
 // Package:    GenJetMaker
 // Class:      GenJetMaker
 //
-/**\class GenJetMaker GenJetMaker.h CMS3/NtupleMaker/interface/GenJetMaker.h
+/**\class GenJetMaker GenJetMaker.h CMS2/NtupleMaker/interface/GenJetMaker.h
 
    Description:  GenJet Collection
 

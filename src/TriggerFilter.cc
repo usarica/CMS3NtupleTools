@@ -21,7 +21,7 @@ Description: filter for cms2
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/TriggerFilter.h"
+#include "CMS2/NtupleMaker/interface/TriggerFilter.h"
 
 using namespace std;
 

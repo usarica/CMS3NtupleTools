@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BeamSpotMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/BeamSpotMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/BeamSpotMaker.cc
 
  Description: <one line class summary>
 

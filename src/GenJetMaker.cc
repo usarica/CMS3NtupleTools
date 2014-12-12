@@ -3,7 +3,7 @@
 // Package:    GenJetMaker
 // Class:      GenJetMaker
 // 
-/**\class GenJetMaker GenJetMaker.cc CMS3/NtupleMaker/src/GenJetMaker.cc
+/**\class GenJetMaker GenJetMaker.cc CMS2/NtupleMaker/src/GenJetMaker.cc
 
    Description: <one line class summary>
    Implementation:
@@ -31,7 +31,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
 
-#include "CMS3/NtupleMaker/interface/GenJetMaker.h"
+#include "CMS2/NtupleMaker/interface/GenJetMaker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 

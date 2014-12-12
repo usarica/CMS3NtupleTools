@@ -3,7 +3,7 @@
 // Package:    HypQuadlepMaker
 // Class:      HypQuadlepMaker
 // 
-/**\class HypQuadlepMaker HypQuadlepMaker.cc CMS3/NtupleMaker/src/HypQuadlepMaker.cc
+/**\class HypQuadlepMaker HypQuadlepMaker.cc CMS2/NtupleMaker/src/HypQuadlepMaker.cc
 
 Description: create quadlepton hypothesis branches
 
@@ -75,10 +75,10 @@ e-e-e-e-: 34
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/HypQuadlepMaker.h"
+#include "CMS2/NtupleMaker/interface/HypQuadlepMaker.h"
 
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/JetUtilities.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/JetUtilities.h"
 
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 

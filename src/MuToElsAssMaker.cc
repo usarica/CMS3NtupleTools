@@ -3,7 +3,7 @@
 // Package:    MuToElsAssMaker
 // Class:      MuToElsAssMaker
 // 
-/**\class MuToElsAssMaker MuToElsAssMaker.cc CMS3/NtupleMaker/src/MuToElsAssMaker.cc
+/**\class MuToElsAssMaker MuToElsAssMaker.cc CMS2/NtupleMaker/src/MuToElsAssMaker.cc
 
  Description: <one line class summary>
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/MuToElsAssMaker.h"
+#include "CMS2/NtupleMaker/interface/MuToElsAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

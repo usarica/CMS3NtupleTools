@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      JetCollectionPruner
 // 
-/**\class JetCollectionPruner JetCollectionPruner.cc CMS3/NtupleMaker/src/JetCollectionPruner.cc
+/**\class JetCollectionPruner JetCollectionPruner.cc CMS2/NtupleMaker/src/JetCollectionPruner.cc
 
    Description: <one line class summary>
 

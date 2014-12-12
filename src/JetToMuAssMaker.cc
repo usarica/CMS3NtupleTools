@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      JetToMuAssMaker
 // 
-/**\class JetToMuAssMaker JetToMuAssMaker.cc CMS3/NtupleMaker/src/JetToMuAssMaker.cc
+/**\class JetToMuAssMaker JetToMuAssMaker.cc CMS2/NtupleMaker/src/JetToMuAssMaker.cc
 
  Description: make associations between jets and muons
 
@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/JetToMuAssMaker.h"
+#include "CMS2/NtupleMaker/interface/JetToMuAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

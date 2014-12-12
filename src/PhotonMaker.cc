@@ -27,11 +27,11 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/PhotonMaker.h"
-// #include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-// #include "CMS3/NtupleMaker/interface/MCUtilities.h"
-// #include "CMS3/NtupleMaker/interface/CaloTowerMaker.h"
-// #include "CMS3/NtupleMaker/interface/ElUtilities.h"
+#include "CMS2/NtupleMaker/interface/PhotonMaker.h"
+// #include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+// #include "CMS2/NtupleMaker/interface/MCUtilities.h"
+// #include "CMS2/NtupleMaker/interface/CaloTowerMaker.h"
+// #include "CMS2/NtupleMaker/interface/ElUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/deltaR.h"
@@ -67,7 +67,7 @@
 
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
+#include "CMS2/NtupleMaker/interface/EgammaFiduciality.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;

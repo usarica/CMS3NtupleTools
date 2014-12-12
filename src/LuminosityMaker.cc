@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      LuminosityMaker
 // 
-/**\class LuminosityMaker LuminosityMaker.cc CMS3/NtupleMakerMaker/src/LuminosityMaker.cc
+/**\class LuminosityMaker LuminosityMaker.cc CMS2/NtupleMakerMaker/src/LuminosityMaker.cc
 
    Description: <one line class summary>
 
@@ -25,7 +25,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/LuminosityBlock.h"
-#include "CMS3/NtupleMaker/interface/LuminosityMaker.h"
+#include "CMS2/NtupleMaker/interface/LuminosityMaker.h"
 
 //
 using namespace edm;

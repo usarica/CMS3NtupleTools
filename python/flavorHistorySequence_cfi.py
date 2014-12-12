@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 
 from PhysicsTools.HepMCCandAlgos.flavorHistoryProducer_cfi import *
 from PhysicsTools.HepMCCandAlgos.flavorHistoryFilter_cfi import *
-from CMS3.NtupleMaker.flavorHistoryMaker_cfi import *
+from CMS2.NtupleMaker.flavorHistoryMaker_cfi import *
 
 
 #needs the gen jets thats produced by the genJetMaker

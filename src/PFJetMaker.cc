@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PFJetMaker
 //
-/**\class PFJetMaker PFJetMaker.cc CMS3/NtupleMakerMaker/src/PFJetMaker.cc
+/**\class PFJetMaker PFJetMaker.cc CMS2/NtupleMakerMaker/src/PFJetMaker.cc
 
 Description: <one line class summary>
 
@@ -21,7 +21,7 @@ Implementation:
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS3/NtupleMaker/interface/PFJetMaker.h"
+#include "CMS2/NtupleMaker/interface/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"

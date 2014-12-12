@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      CaloTauMaker
 // 
-/**\class CaloTauMaker.cc CMS3/NtupleMaker/src/CaloTauMaker.cc
+/**\class CaloTauMaker.cc CMS2/NtupleMaker/src/CaloTauMaker.cc
 
  Description: <one line class summary>
 

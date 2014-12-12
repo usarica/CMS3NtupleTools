@@ -3,7 +3,7 @@
 // Package:    TrkMuonFilter
 // Class:      TrkMuonFilter.cc
 //
-/**\class TrkMuonFilter TrkMuonFilter.cc CMS3/NtupleMaker/src/TrkMuonFilter.cc
+/**\class TrkMuonFilter TrkMuonFilter.cc CMS2/NtupleMaker/src/TrkMuonFilter.cc
 
 Description: Produces TrkCollection after Muon subtraction
 Implementation:
@@ -36,7 +36,7 @@ Implementation:
 
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
-#include "CMS3/NtupleMaker/interface/TrkMuonFilter.h"
+#include "CMS2/NtupleMaker/interface/TrkMuonFilter.h"
 
 using namespace edm;
 using namespace reco;

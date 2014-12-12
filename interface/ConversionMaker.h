@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ConversionMaker
 // 
-/**\class ConversionMaker ConversionMaker.h CMS3/NtupleMaker/interface/ConversionMaker.h
+/**\class ConversionMaker ConversionMaker.h CMS2/NtupleMaker/interface/ConversionMaker.h
 
 Description: Vetos electrons from Conversions
 

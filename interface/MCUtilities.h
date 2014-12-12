@@ -3,7 +3,7 @@
 // Package:    MCUtilities
 // Class:      MCUtilities
 // 
-/**\class MCUtilities MCUtilities.h CMS3/NtupleMaker/interface/MCUtilities.h
+/**\class MCUtilities MCUtilities.h CMS2/NtupleMaker/interface/MCUtilities.h
 
    Description: MC utilities
 

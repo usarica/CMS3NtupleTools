@@ -3,7 +3,7 @@
 // Package:    ElectronMissHit39XMaker
 // Class:      ElectronMissHit39XMaker
 // 
-/**\class ElectronMissHit39XMaker ElectronMissHit39XMaker.cc CMS3/NtupleMaker/src/ElectronMissHit39XMaker.cc
+/**\class ElectronMissHit39XMaker ElectronMissHit39XMaker.cc CMS2/NtupleMaker/src/ElectronMissHit39XMaker.cc
 
 Description: <one line class summary>
 
@@ -32,9 +32,9 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-#include "CMS3/NtupleMaker/interface/ElectronMissHit39XMaker.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS2/NtupleMaker/interface/ElectronMissHit39XMaker.h"
+#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS2/NtupleMaker/interface/MCUtilities.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "Math/VectorUtil.h"
 

@@ -3,7 +3,7 @@
 // Package:    PFClusterMaker
 // Class:      PFClusterMaker
 // 
-/**\class PFClusterMaker PFClusterMaker.cc CMS3/NtupleMaker/src/PFClusterMaker.cc
+/**\class PFClusterMaker PFClusterMaker.cc CMS2/NtupleMaker/src/PFClusterMaker.cc
 
    Description: fill collection of PFClusters
 
@@ -34,7 +34,7 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
-#include "CMS3/NtupleMaker/interface/PFClusterMaker.h"
+#include "CMS2/NtupleMaker/interface/PFClusterMaker.h"
 #include "DataFormats/ParticleFlowReco/interface/PFCluster.h"
 #include "DataFormats/ParticleFlowReco/interface/PFClusterFwd.h"
 #include "DataFormats/ParticleFlowReco/interface/PFLayer.h"

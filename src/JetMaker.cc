@@ -3,7 +3,7 @@
 // Package:    JetMaker
 // Class:      JetMaker
 // 
-/**\class JetMaker JetMaker.cc CMS3/NtupleMaker/src/JetMaker.cc
+/**\class JetMaker JetMaker.cc CMS2/NtupleMaker/src/JetMaker.cc
 
    Description: copy reco::CaloJet variables in simple data structures into the EDM event tree
 
@@ -31,7 +31,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "CMS3/NtupleMaker/interface/JetMaker.h"
+#include "CMS2/NtupleMaker/interface/JetMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"

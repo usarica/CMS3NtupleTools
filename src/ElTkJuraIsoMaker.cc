@@ -1,7 +1,7 @@
 
 #include <vector>
 #include "Math/VectorUtil.h"
-#include "CMS3/NtupleMaker/interface/ElTkJuraIsoMaker.h"
+#include "CMS2/NtupleMaker/interface/ElTkJuraIsoMaker.h"
 
 // Framework
 #include "FWCore/Framework/interface/EventSetup.h"

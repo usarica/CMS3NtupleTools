@@ -3,7 +3,7 @@
 // Package:    IsolationUtilities
 // Class:      IsolationUtilities
 // 
-/**\class IsolationUtilities IsolationUtilities.cc CMS3/NtupleMaker/src/IsolationUtilities.cc
+/**\class IsolationUtilities IsolationUtilities.cc CMS2/NtupleMaker/src/IsolationUtilities.cc
 
    Description: Isolation utilities
 
@@ -14,7 +14,7 @@
 // $Id: IsolationUtilities.cc,v 1.3 2012/04/30 01:17:56 fgolf Exp $
 //
 //
-#include "CMS3/NtupleMaker/interface/IsolationUtilities.h"
+#include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/TrackReco/interface/Track.h"

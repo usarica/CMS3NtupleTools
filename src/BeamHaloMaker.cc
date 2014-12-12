@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BeamHaloMaker
 // 
-/**\class BeamHaloMaker BeamHaloMaker.cc CMS3/NtupleMakerMaker/src/BeamHaloMaker.cc
+/**\class BeamHaloMaker BeamHaloMaker.cc CMS2/NtupleMakerMaker/src/BeamHaloMaker.cc
 
    Description: <one line class summary>
 
@@ -28,7 +28,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/BeamHaloMaker.h"
+#include "CMS2/NtupleMaker/interface/BeamHaloMaker.h"
 #include "DataFormats/METReco/interface/BeamHaloSummary.h"
 #include "TString.h"
 

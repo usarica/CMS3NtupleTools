@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      GenMaker
 // 
-/**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
+/**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
 
    Description: <one line class summary>
 

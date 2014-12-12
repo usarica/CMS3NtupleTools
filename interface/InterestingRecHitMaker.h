@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      InterestingRecHitMaker
 // 
-/**\class InterestingRecHitMaker InterestingRecHitMaker.cc CMS3/NtupleMaker/src/InterestingRecHitMaker.cc
+/**\class InterestingRecHitMaker InterestingRecHitMaker.cc CMS2/NtupleMaker/src/InterestingRecHitMaker.cc
 
 Description: <one line class summary>
 

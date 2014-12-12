@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      DilepGenFilter
 // 
-/**\class DilepGenFilter DilepGenFilter.h CMS3/NtupleMaker/interface/DilepGenFilter.h
+/**\class DilepGenFilter DilepGenFilter.h CMS2/NtupleMaker/interface/DilepGenFilter.h
 
 Description: generic filter for cms2
 

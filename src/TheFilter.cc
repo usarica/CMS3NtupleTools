@@ -29,7 +29,7 @@ see header file
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/TheFilter.h"
+#include "CMS2/NtupleMaker/interface/TheFilter.h"
 
 using namespace std;
 

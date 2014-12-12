@@ -5,7 +5,7 @@
 #include <memory>
 
 // Header
-#include "CMS3/NtupleMaker/interface/EEBadRecovMaker.h"
+#include "CMS2/NtupleMaker/interface/EEBadRecovMaker.h"
 
 // user include files
 #include "FWCore/Framework/interface/ESHandle.h"

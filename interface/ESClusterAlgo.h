@@ -7,7 +7,7 @@
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 #include "Geometry/CaloTopology/interface/EcalPreshowerTopology.h"
 
-#include "CMS3/NtupleMaker/interface/ESCluster.h"
+#include "CMS2/NtupleMaker/interface/ESCluster.h"
 
 #include <map>
 #include <set>

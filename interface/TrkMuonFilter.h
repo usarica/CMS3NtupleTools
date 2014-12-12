@@ -3,7 +3,7 @@
 // Package:    TrkMuonFilter
 // Class:      TrkMuonFilter
 //
-/**\class TrkMuonFilter TrkMuonFilter.h CMS3/NtupleMaker/interface/TrkMuonFilter.h
+/**\class TrkMuonFilter TrkMuonFilter.h CMS2/NtupleMaker/interface/TrkMuonFilter.h
 
 Description: Produces TrkCollection after Muon subtraction
 

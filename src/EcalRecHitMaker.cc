@@ -22,8 +22,8 @@
 #include "Geometry/CaloGeometry/interface/CaloGeometry.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"
 
-#include "CMS3/NtupleMaker/interface/EcalRecHitMaker.h"
-#include "CMS3/NtupleMaker/interface/ESCluster.h"
+#include "CMS2/NtupleMaker/interface/EcalRecHitMaker.h"
+#include "CMS2/NtupleMaker/interface/ESCluster.h"
 
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "Geometry/CaloGeometry/interface/CaloCellGeometry.h"

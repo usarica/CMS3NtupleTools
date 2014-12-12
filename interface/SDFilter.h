@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      SDFilter
 // 
-/**\class SDFilter SDFilter.h CMS3/NtupleMaker/interface/SDFilter.h
+/**\class SDFilter SDFilter.h CMS2/NtupleMaker/interface/SDFilter.h
 
    Description: generic filter for cms2
 

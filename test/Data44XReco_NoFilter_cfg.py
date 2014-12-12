@@ -1,4 +1,4 @@
-from CMS3.NtupleMaker.RecoConfiguration2011_44X_cfg import *
+from CMS2.NtupleMaker.RecoConfiguration2011_44X_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "GR_R_44_V4::All"

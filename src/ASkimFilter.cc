@@ -30,7 +30,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
-#include "CMS3/NtupleMaker/interface/ASkimFilter.h"
+#include "CMS2/NtupleMaker/interface/ASkimFilter.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      TCMETMaker
 // 
-/**\class TCMETMaker.cc CMS3/NtupleMaker/src/TCMETMaker.cc
+/**\class TCMETMaker.cc CMS2/NtupleMaker/src/TCMETMaker.cc
 
    Description: <one line class summary>
 

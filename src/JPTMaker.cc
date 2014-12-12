@@ -3,7 +3,7 @@
 // Package:    JPTMaker
 // Class:      JPTMaker
 // 
-/**\class JPTMaker JPTMaker.cc CMS3/NtupleMaker/src/JPTMaker.cc
+/**\class JPTMaker JPTMaker.cc CMS2/NtupleMaker/src/JPTMaker.cc
 
    Description: copy reco::CaloJet JPT variables in simple data structures into the EDM event tree
 
@@ -37,7 +37,7 @@
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/JetReco/interface/JPTJetCollection.h"
 #include "DataFormats/JetReco/interface/JPTJet.h"
-#include "CMS3/NtupleMaker/interface/JPTMaker.h"
+#include "CMS2/NtupleMaker/interface/JPTMaker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 

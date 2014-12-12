@@ -46,7 +46,7 @@
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
-#include "CMS3/NtupleMaker/interface/SDFilter.h"
+#include "CMS2/NtupleMaker/interface/SDFilter.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "TMath.h"

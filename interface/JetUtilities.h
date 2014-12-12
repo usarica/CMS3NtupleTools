@@ -3,7 +3,7 @@
 // Package:    JetUtilities
 // Class:      JetUtilities
 // 
-/**\class JetUtilities JetUtilities.h CMS3/NtupleMaker/interface/JetUtilities.h
+/**\class JetUtilities JetUtilities.h CMS2/NtupleMaker/interface/JetUtilities.h
 
 Description: Jet utilities
 

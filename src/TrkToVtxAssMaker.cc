@@ -3,7 +3,7 @@
 // Package:    TrkToVtxAssMaker
 // Class:      TrkToVtxAssMaker
 // 
-/**\class TrkToVtxAssMaker TrkToVtxAssMaker.cc CMS3/NtupleMaker/src/TrkToVtxAssMaker.cc
+/**\class TrkToVtxAssMaker TrkToVtxAssMaker.cc CMS2/NtupleMaker/src/TrkToVtxAssMaker.cc
 
  Description: calculate the d0 and d0Error of the track wrt the highest-sumpt vertex
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/TrkToVtxAssMaker.h"
+#include "CMS2/NtupleMaker/interface/TrkToVtxAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

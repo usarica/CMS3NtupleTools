@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      VertexMaker
 // 
-/**\class VertexMaker VertexMaker.cc CMS3/NtupleMaker/src/VertexMaker.cc
+/**\class VertexMaker VertexMaker.cc CMS2/NtupleMaker/src/VertexMaker.cc
 
    Description: <one line class summary>
 

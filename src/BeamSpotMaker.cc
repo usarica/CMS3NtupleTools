@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BeamSpotMaker
 // 
-/**\class BeamSpotMaker BeamSpotMaker.cc CMS3/NtupleMakerMaker/src/BeamSpotMaker.cc
+/**\class BeamSpotMaker BeamSpotMaker.cc CMS2/NtupleMakerMaker/src/BeamSpotMaker.cc
 
 Description: <one line class summary>
 
@@ -28,7 +28,7 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/BeamSpotMaker.h"
+#include "CMS2/NtupleMaker/interface/BeamSpotMaker.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 

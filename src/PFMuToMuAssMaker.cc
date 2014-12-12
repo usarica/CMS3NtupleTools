@@ -3,7 +3,7 @@
 // Package:    PFMuToMuAssMaker
 // Class:      PFMuToMuAssMaker
 // 
-/**\class PFMuToMuAssMaker PFMuToMuAssMaker.cc CMS3/NtupleMaker/src/PFMuToMuAssMaker.cc
+/**\class PFMuToMuAssMaker PFMuToMuAssMaker.cc CMS2/NtupleMaker/src/PFMuToMuAssMaker.cc
 
    Description: <one line class summary>
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/PFMuToMuAssMaker.h"
+#include "CMS2/NtupleMaker/interface/PFMuToMuAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/TCMETMaker.h"
+#include "CMS2/NtupleMaker/interface/TCMETMaker.h"
 
 #include "DataFormats/METReco/interface/CaloMET.h"
 #include "DataFormats/METReco/interface/MET.h"

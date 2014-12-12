@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ElectronIsolationMaker
 // 
-/**\class ElectronIsolationMaker ElectronIsolationMaker.cc CMS3/NtupleMaker/src/ElectronIsolationMaker.cc
+/**\class ElectronIsolationMaker ElectronIsolationMaker.cc CMS2/NtupleMaker/src/ElectronIsolationMaker.cc
 
    Description: <one line class summary>
 

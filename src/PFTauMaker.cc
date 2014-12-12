@@ -3,7 +3,7 @@
 // Package:    PFTauMaker
 // Class:      PFTauMaker
 // 
-/**\class PFTauMaker PFTauMaker.cc CMS3/NtupleMaker/src/PFTauMaker.cc
+/**\class PFTauMaker PFTauMaker.cc CMS2/NtupleMaker/src/PFTauMaker.cc
 
    Description: <one line class summary>
 
@@ -27,8 +27,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/PFTauMaker.h"
-#include "CMS3/NtupleMaker/interface/CommonUtils.h"
+#include "CMS2/NtupleMaker/interface/PFTauMaker.h"
+#include "CMS2/NtupleMaker/interface/CommonUtils.h"
 
 #include "DataFormats/PatCandidates/interface/Tau.h"
 

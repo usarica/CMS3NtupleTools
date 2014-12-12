@@ -3,7 +3,7 @@
 // Package:    InterestingRecHitMaker
 // Class:      InterestingRecHitMaker
 // 
-/**\class InterestingRecHitMaker InterestingRecHitMaker.cc CMS3/NtupleMaker/src/InterestingRecHitMaker.cc
+/**\class InterestingRecHitMaker InterestingRecHitMaker.cc CMS2/NtupleMaker/src/InterestingRecHitMaker.cc
 
 Description: <produce TaS collection of interesting ecal rechits>
 
@@ -25,7 +25,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
-#include "CMS3/NtupleMaker/interface/InterestingRecHitMaker.h"
+#include "CMS2/NtupleMaker/interface/InterestingRecHitMaker.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "RecoLocalCalo/EcalRecAlgos/interface/EcalSeverityLevelAlgo.h"
 #include "Geometry/Records/interface/CaloGeometryRecord.h"

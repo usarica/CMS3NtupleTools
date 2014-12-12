@@ -3,7 +3,7 @@
 // Package:    JetUtilities
 // Class:      JetUtilities
 // 
-/**\class JetUtilities JetUtilities.cc CMS3/NtupleMaker/src/JetUtilities.cc
+/**\class JetUtilities JetUtilities.cc CMS2/NtupleMaker/src/JetUtilities.cc
 
 Description: Jet utilities
 
@@ -14,7 +14,7 @@ Description: Jet utilities
 // $Id: JetUtilities.cc,v 1.2 2009/09/10 10:51:43 fgolf Exp $
 //
 //
-#include "CMS3/NtupleMaker/interface/JetUtilities.h"
+#include "CMS2/NtupleMaker/interface/JetUtilities.h"
 #include "TMath.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;

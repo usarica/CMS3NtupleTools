@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PFTauMaker
 // 
-/**\class PFTauMaker.cc CMS3/NtupleMaker/src/PFTauMaker.cc
+/**\class PFTauMaker.cc CMS2/NtupleMaker/src/PFTauMaker.cc
 
  Description: <one line class summary>
 
