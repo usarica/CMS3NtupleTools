@@ -1,11 +1,11 @@
-from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "START53_V7A::All"
 
 # Load Filters
-process.load('CMS2.NtupleMaker.aSkimFilter_cfi')
-process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')
+process.load('CMS3.NtupleMaker.aSkimFilter_cfi')
+process.load('CMS3.NtupleMaker.monolepGenFilter_cfi')
 
 # Single Lepton Filter
 process.EventSelectionSingleFilt = cms.PSet(

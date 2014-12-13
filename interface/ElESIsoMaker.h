@@ -13,7 +13,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/ESClusterAlgo.h"
+#include "CMS3/NtupleMaker/interface/ESClusterAlgo.h"
 #include "Geometry/CaloTopology/interface/EcalPreshowerTopology.h"
 
 class ElESIsoMaker : public edm::EDProducer {

@@ -3,7 +3,7 @@
 // Package:    PFClusterMaker
 // Class:      PFClusterMaker
 // 
-/**\class PFClusterMaker PFClusterMaker.h CMS2/NtupleMaker/interface/PFClusterMaker.h
+/**\class PFClusterMaker PFClusterMaker.h CMS3/NtupleMaker/interface/PFClusterMaker.h
 
    Description: fill PFCluster collection
 

@@ -3,7 +3,7 @@
 // Package:    CandToGenAssMaker
 // Class:      CandToGenAssMaker
 // 
-/**\class CandToGenAssMaker CandToGenAssMaker.cc CMS2/NtupleMaker/src/CandToGenAssMaker.cc
+/**\class CandToGenAssMaker CandToGenAssMaker.cc CMS3/NtupleMaker/src/CandToGenAssMaker.cc
 
 Description: <one line class summary>
 
@@ -29,15 +29,15 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/CandToGenAssMaker.h"
+#include "CMS3/NtupleMaker/interface/CandToGenAssMaker.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;

@@ -31,7 +31,7 @@
 #include "DataFormats/JetReco/interface/PFJetCollection.h"
 #include "DataFormats/JetReco/interface/TrackJet.h"
 #include "DataFormats/JetReco/interface/TrackJetCollection.h"
-#include "CMS2/NtupleMaker/interface/JetCollectionPruner.h"
+#include "CMS3/NtupleMaker/interface/JetCollectionPruner.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 
 

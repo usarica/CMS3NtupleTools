@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      FlavorHistoryMaker
 // 
-/**\class FlavorHistoryMaker FlavorHistoryMaker.cc CMS2/NtupleMaker/src/FlavorHistoryMaker.cc
+/**\class FlavorHistoryMaker FlavorHistoryMaker.cc CMS3/NtupleMaker/src/FlavorHistoryMaker.cc
 
    Description: <one line class summary>
 
@@ -26,7 +26,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/FlavorHistoryMaker.h" 
+#include "CMS3/NtupleMaker/interface/FlavorHistoryMaker.h" 
 
 
 //

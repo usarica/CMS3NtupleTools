@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ElToJetAssMaker
 // 
-/**\class ElToJetAssMaker ElToJetAssMaker.h CMS2/NtupleMaker/interface/ElToJetAssMaker.h
+/**\class ElToJetAssMaker ElToJetAssMaker.h CMS3/NtupleMaker/interface/ElToJetAssMaker.h
 
 Description: make associations between electrons and jets
 

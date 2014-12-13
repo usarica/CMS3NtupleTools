@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      EventMaker
 // 
-/**\class EventMaker EventMaker.cc CMS2/NtupleMakerMaker/src/EventMaker.cc
+/**\class EventMaker EventMaker.cc CMS3/NtupleMakerMaker/src/EventMaker.cc
 
    Description: <one line class summary>
 
@@ -32,7 +32,7 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 
-#include "CMS2/NtupleMaker/interface/EventMaker.h"
+#include "CMS3/NtupleMaker/interface/EventMaker.h"
 
 #include "DataFormats/Scalers/interface/DcsStatus.h"
 

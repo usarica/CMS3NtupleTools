@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      GenMaker
 // 
-/**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
+/**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
 
    Description: <one line class summary>
 
@@ -28,9 +28,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Run.h"
 
-#include "CMS2/NtupleMaker/interface/GenMaker.h" 
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/GenMaker.h" 
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 //#include "DataFormats/HepMCCandidate/interface/GenParticle.h"

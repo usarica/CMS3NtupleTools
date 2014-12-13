@@ -7,7 +7,7 @@
 #include "DataFormats/L1Trigger/interface/L1MuonParticle.h"
 #include "DataFormats/L1Trigger/interface/L1MuonParticleFwd.h"
 
-#include "CMS2/NtupleMaker/interface/L1Maker.h"
+#include "CMS3/NtupleMaker/interface/L1Maker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;

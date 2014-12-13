@@ -3,7 +3,7 @@
 // Package:    ElToMuAssMaker
 // Class:      ElToMuAssMaker
 // 
-/**\class ElToMuAssMaker ElToMuAssMaker.cc CMS2/NtupleMaker/src/ElToMuAssMaker.cc
+/**\class ElToMuAssMaker ElToMuAssMaker.cc CMS3/NtupleMaker/src/ElToMuAssMaker.cc
 
  Description: <one line class summary>
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/ElToMuAssMaker.h"
+#include "CMS3/NtupleMaker/interface/ElToMuAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

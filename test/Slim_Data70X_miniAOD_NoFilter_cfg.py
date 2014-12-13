@@ -1,4 +1,4 @@
-from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 ## globaltag used for rereco of 2012D in 700
@@ -65,5 +65,5 @@ process.luminosityMaker.isData                   = process.eventMaker.isData
 #process.Timing =cms.Service("Timing")        
 
 #Slim CMS2
-from CMS2.NtupleMaker.SlimCms2_cff import slimcms2
+from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
 process.out.outputCommands.extend(slimcms2)

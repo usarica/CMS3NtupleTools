@@ -1,13 +1,13 @@
-from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "START53_V7A::All"
 
 # Load Filters
-process.load('CMS2.NtupleMaker.aSkimFilter_cfi')        # from single lepton filter
-process.load('CMS2.NtupleMaker.monolepGenFilter_cfi')   # from single lepton filter
-process.load("CMS2.NtupleMaker.hypFilter_cfi")          # from di lepton filter
-process.load("CMS2.NtupleMaker.dilepGenFilter_cfi")     # from di lepton filter
+process.load('CMS3.NtupleMaker.aSkimFilter_cfi')        # from single lepton filter
+process.load('CMS3.NtupleMaker.monolepGenFilter_cfi')   # from single lepton filter
+process.load("CMS3.NtupleMaker.hypFilter_cfi")          # from di lepton filter
+process.load("CMS3.NtupleMaker.dilepGenFilter_cfi")     # from di lepton filter
 
 # Dilepton Filter
 process.EventSelectionSingleOrDilFilt = cms.PSet (    # what does changing this do?
@@ -61,5 +61,5 @@ process.luminosityMaker.isData                   = process.eventMaker.isData
 #process.maxEvents.input = 10
 
 #Slim CMS2
-from CMS2.NtupleMaker.SlimCms2_cff import slimcms2
+from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
 process.out.outputCommands.extend(slimcms2)

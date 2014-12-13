@@ -3,7 +3,7 @@
 // Package:    MatchUtilities
 // Class:      MatchUtilities
 // 
-/**\class MatchUtilities MatchUtilities.h CMS2/NtupleMaker/interface/MatchUtilities.h
+/**\class MatchUtilities MatchUtilities.h CMS3/NtupleMaker/interface/MatchUtilities.h
 
    Description: utilities to match objects
 

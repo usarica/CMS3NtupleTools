@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      CaloTowerMaker
 // 
-/**\class CaloTowerMaker CaloTowerMaker.cc CMS2/NtupleMaker/src/CaloTowerMaker.cc
+/**\class CaloTowerMaker CaloTowerMaker.cc CMS3/NtupleMaker/src/CaloTowerMaker.cc
 
 Description: <one line class summary>
 

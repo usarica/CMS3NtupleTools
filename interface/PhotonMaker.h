@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      NtupleMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/NtupleMaker.cc
 
  Description: <one line class summary>
 

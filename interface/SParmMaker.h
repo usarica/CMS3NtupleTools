@@ -3,7 +3,7 @@
 // Package:    SParmMaker
 // Class:      SParmMaker
 // 
-/**\class SParmMaker SParmMaker.h CMS2/NtupleMaker/interface/SParmMaker.h
+/**\class SParmMaker SParmMaker.h CMS3/NtupleMaker/interface/SParmMaker.h
 
    Description: copy SUSY mSUGRA parameters into the EDM event tree
 

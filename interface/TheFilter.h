@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      TheFilter
 // 
-/**\class TheFilter TheFilter.h CMS2/NtupleMaker/interface/TheFilter.h
+/**\class TheFilter TheFilter.h CMS3/NtupleMaker/interface/TheFilter.h
 
 Description: generic filter for cms2
 

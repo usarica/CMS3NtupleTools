@@ -3,7 +3,7 @@
 // Package:    PFElToElAssMaker
 // Class:      PFElToElAssMaker
 // 
-/**\class PFElToElAssMaker PFElToElAssMaker.cc CMS2/NtupleMaker/src/PFElToElAssMaker.cc
+/**\class PFElToElAssMaker PFElToElAssMaker.cc CMS3/NtupleMaker/src/PFElToElAssMaker.cc
 
    Description: <one line class summary>
 
@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/PFElToElAssMaker.h"
+#include "CMS3/NtupleMaker/interface/PFElToElAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

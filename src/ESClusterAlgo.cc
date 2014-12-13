@@ -1,5 +1,5 @@
 
-#include "CMS2/NtupleMaker/interface/ESClusterAlgo.h"
+#include "CMS3/NtupleMaker/interface/ESClusterAlgo.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalRecHitLess.h"
 #include "RecoCaloTools/Navigation/interface/EcalPreshowerNavigator.h"

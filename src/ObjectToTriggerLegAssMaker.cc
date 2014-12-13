@@ -3,7 +3,7 @@
 // Package:    ObjectToTriggerLegAssMaker
 // Class:      ObjectToTriggerLegAssMaker
 // 
-/**\class ObjectToTriggerLegAssMaker ObjectToTriggerLegAssMaker.cc CMS2/NtupleMaker/src/ObjectToTriggerLegAssMaker.cc
+/**\class ObjectToTriggerLegAssMaker ObjectToTriggerLegAssMaker.cc CMS3/NtupleMaker/src/ObjectToTriggerLegAssMaker.cc
 
 Description: <one line class summary>
 
@@ -30,7 +30,7 @@ Implementation:
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
-#include "CMS2/NtupleMaker/interface/ObjectToTriggerLegAssMaker.h"
+#include "CMS3/NtupleMaker/interface/ObjectToTriggerLegAssMaker.h"
 
 #include "TRegexp.h"
 #include "TPRegexp.h"
