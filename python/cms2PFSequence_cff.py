@@ -1,22 +1,21 @@
 import FWCore.ParameterSet.Config as cms
 
-from CMS2.NtupleMaker.pfElectronSequence_cff import *
-from CMS2.NtupleMaker.pfMuonSequence_cff import *
-from CMS2.NtupleMaker.pfJetMaker_cfi import *
-#from CMS2.NtupleMaker.pfmetMaker_cfi import *
-from CMS2.NtupleMaker.pfmetSequence_cff import *
-from CMS2.NtupleMaker.pftauMaker_cfi import *
-from CMS2.NtupleMaker.pfMuToMuAssMaker_cfi import *
-from CMS2.NtupleMaker.muToPFMuAssMaker_cfi import *
-from CMS2.NtupleMaker.pfElToElAssMaker_cfi import *
-from CMS2.NtupleMaker.elToPFElAssMaker_cfi import *
-from CMS2.NtupleMaker.bTagPFSequence_cfi import *
-from CMS2.NtupleMaker.bTagPFCHSSequence_cfi import *
-from CMS2.NtupleMaker.bTagPFJetMaker_cfi import *
-from CMS2.NtupleMaker.pfCandidateMaker_cfi import *
-from CMS2.NtupleMaker.trackIsolationMaker_cfi import *
-from CMS2.NtupleMaker.trkMetSequence_cff   import *
-from CMS2.NtupleMaker.mvaJetIdMaker_cfi import *
+from CMS3.NtupleMaker.pfElectronSequence_cff import *
+from CMS3.NtupleMaker.pfMuonSequence_cff import *
+from CMS3.NtupleMaker.pfJetMaker_cfi import *
+from CMS3.NtupleMaker.pfmetMaker_cfi import *
+#from CMS3.NtupleMaker.pfmetSequence_cff import *
+from CMS3.NtupleMaker.pftauMaker_cfi import *
+from CMS3.NtupleMaker.pfMuToMuAssMaker_cfi import *
+from CMS3.NtupleMaker.muToPFMuAssMaker_cfi import *
+from CMS3.NtupleMaker.pfElToElAssMaker_cfi import *
+from CMS3.NtupleMaker.elToPFElAssMaker_cfi import *
+from CMS3.NtupleMaker.bTagPFSequence_cfi import *
+from CMS3.NtupleMaker.bTagPFJetMaker_cfi import *
+from CMS3.NtupleMaker.pfCandidateMaker_cfi import *
+from CMS3.NtupleMaker.trackIsolationMaker_cfi import *
+from CMS3.NtupleMaker.trkMetSequence_cff   import *
+from CMS3.NtupleMaker.mvaJetIdMaker_cfi import *
 
 
 from CommonTools.ParticleFlow.TopProjectors.pfNoMuon_cfi import *
@@ -74,47 +73,47 @@ CMS2pfAllElectrons.src = cms.InputTag("CMS2pfNoMuon")
 #pfAllChargedHadrons.src = cms.InputTag("pfNoPileUp")
 #pfAllPhotons.src        = cms.InputTag("pfNoPileUp")
 
-from CMS2.NtupleMaker.muonIsolationMaker_cfi import *
-from CMS2.NtupleMaker.electronIsolationMaker_cfi import *
+from CMS3.NtupleMaker.muonIsolationMaker_cfi import *
+from CMS3.NtupleMaker.electronIsolationMaker_cfi import *
 pfNoPileUpClones = cms.EDProducer("PFCandidateFromFwdPtrProducer", src = cms.InputTag("pfNoPileUp") )
 muonIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 electronIsolationMaker.pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUpClones")
 
-cms2PFNoTauSequence = cms.Sequence( 
-  pfJetMaker + 
-#  pfmetMaker + 
-  CMS2pfMetSequence +
-  CMS2PFBtagging +
-  CMS2PFCHSBtagging + 
-  bTagPFJetMaker +
-  bTagPFCHSJetMaker + 
-#  goodPrimaryVertices +
-  pfNoPileUpIsoSequence +
-  pfNoPileUpSequence +
-  pfNoPileUpClones + 
-  pfAllNeutralHadrons + 
-  pfAllChargedHadrons + 
-  pfAllPhotons + 
-  pfAllMuons +
-  CMS2pfMuonIsolationSequence +
-  CMS2pfIsolatedMuons +
-  CMS2pfNoMuon + 
-  CMS2pfAllElectrons + 
-  pfMuonMaker + 
-  pfMuToMuAssMaker + 
-  muToPFMuAssMaker + 
-  CMS2pfElectronIsolationSequence +
-  pfElectronMaker + 
-  pfElToElAssMaker + 
-  elToPFElAssMaker + 
-  pfCandidateMaker + 
-  trackIsolationMaker + 
-  trkMetSequence +
-  ak5PFJetsL1FastL2L3 +
-  ak5PFJetsL1FastL2L3Residual +
-  mvaJetIdMaker +
-  mvaJetIdMakerFull5x +
-  mvaJetIdMakerFull53x +
-  muonIsolationMaker +
-  electronIsolationMaker
-)
+#cms2PFNoTauSequence = cms.Sequence( 
+#  pfJetMaker + 
+##  pfmetMaker + 
+#  CMS2pfMetSequence +
+#  CMS2PFBtagging + 
+#  bTagPFJetMaker + 
+##  goodPrimaryVertices +
+#  pfNoPileUpIsoSequence +
+#  pfNoPileUpSequence +
+#  pfNoPileUpClones + 
+#  pfAllNeutralHadrons + 
+#  pfAllChargedHadrons + 
+#  pfAllPhotons + 
+#  pfAllMuons +
+#  CMS2pfMuonIsolationSequence +
+#  CMS2pfIsolatedMuons +
+#  CMS2pfNoMuon + 
+#  CMS2pfAllElectrons + 
+#  pfMuonMaker + 
+#  pfMuToMuAssMaker + 
+#  muToPFMuAssMaker + 
+#  CMS2pfElectronIsolationSequence +
+#  pfElectronMaker + 
+#  pfElToElAssMaker + 
+#  elToPFElAssMaker + 
+#  pfCandidateMaker + 
+#  trackIsolationMaker + 
+#  trkMetSequence +
+#  ak5PFJetsL1FastL2L3 +
+#  ak5PFJetsL1FastL2L3Residual +
+#  mvaJetIdMaker +
+#  mvaJetIdMakerFull5x +
+#  mvaJetIdMakerFull53x +
+#  muonIsolationMaker +
+#  electronIsolationMaker
+#)
+
+cms2PFNoTauSequence = cms.Sequence( pfCandidateMaker )

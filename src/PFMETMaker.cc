@@ -27,9 +27,10 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/PFMETMaker.h"
+#include "CMS3/NtupleMaker/interface/PFMETMaker.h"
 
 #include "DataFormats/METReco/interface/PFMET.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -44,11 +45,13 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     produces<float> ("evtpfsumet"        ).setBranchAlias("evt_pfsumet"        );
     produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
-    produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
-    produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
+    //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
+    //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
+    produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
+    produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
-    pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
+    //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
 }
 
 
@@ -69,25 +72,31 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     std::auto_ptr<float>   evt_pfsumet       (new float   );
     std::auto_ptr<float>   evt_pfmetSignificance(new float   );
-    std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
-    std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
+    //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
+    //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
+    std::auto_ptr<float>   gen_met         (new float   );
+    std::auto_ptr<float>   gen_metPhi      (new float   );
 
-    edm::Handle<edm::View<reco::PFMET> > met_h;
+    edm::Handle<edm::View<reco::MET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
 
-    edm::Handle<edm::View<reco::PFMET> > metcor_h;
-    iEvent.getByLabel(pfMetCorInputTag, metcor_h);
+    edm::Handle<edm::View<pat::MET> > genmet_h;
+    iEvent.getByLabel(pfMetInputTag, genmet_h);
+
+    //edm::Handle<edm::View<reco::PFMET> > metcor_h;
+    //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
 
     if( !met_h.isValid() ) {
-        edm::LogInfo("OutputInfo") << " failed to retrieve particle-flow MET collection";
-        edm::LogInfo("OutputInfo") << " PFMETMaker cannot continue...!";
-        return;
+      throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
     }
 
-    *evt_pfmet    = ( met_h->front() ).et();
+    *evt_pfmet    = ( met_h->front() ).pt();
     *evt_pfmetPhi = ( met_h->front() ).phi();
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
+
+    *gen_met      = ( genmet_h->front()).genMET()->pt();
+    *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
   
     try { 
         *evt_pfmetSignificance = ( met_h->front() ).significance();
@@ -101,7 +110,10 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
     iEvent.put(evt_pfsumet  , "evtpfsumet"    );  
     iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
+    iEvent.put(gen_met      , "genmet"      );
+    iEvent.put(gen_metPhi   , "genmetPhi"   );
 
+/*
     if( !metcor_h.isValid() ) {
         edm::LogInfo("OutputInfo") << " failed to corrected retrieve particle-flow MET collection";
         edm::LogInfo("OutputInfo") << " PFMETMaker cannot continue...!";
@@ -113,6 +125,9 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
     iEvent.put(evt_pfmet_type1cor    , "evtpfmettype1cor"      );
     iEvent.put(evt_pfmetPhi_type1cor , "evtpfmetPhitype1cor"   );
+*/
+
+
 }
 
 //define this as a plug-in

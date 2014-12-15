@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BeamHaloMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/BeamHaloMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/BeamHaloMaker.cc
 
    Description: <one line class summary>
 

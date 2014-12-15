@@ -3,12 +3,12 @@
 // Package:    PFTauMaker
 // Class:      PFTauMaker
 // 
-/**\class PFTauMaker PFTauMaker.cc CMS2/NtupleMaker/src/PFTauMaker.cc
+/**\class PFTauMaker PFTauMaker.cc CMS3/NtupleMaker/src/PFTauMaker.cc
 
-Description: <one line class summary>
+   Description: <one line class summary>
 
-Implementation:
-<Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // $Id: PFTauMaker.cc,v 1.17 2013/02/04 17:05:06 dalfonso Exp $
@@ -26,15 +26,11 @@ Implementation:
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "DataFormats/TauReco/interface/PFTau.h"
-#include "DataFormats/TauReco/interface/PFTauFwd.h"
-#include "DataFormats/TrackReco/interface/Track.h"
-#include "DataFormats/MuonReco/interface/Muon.h"
 
-#include "CMS2/NtupleMaker/interface/PFTauMaker.h"
-#include "CMS2/NtupleMaker/interface/CommonUtils.h"
+#include "CMS3/NtupleMaker/interface/PFTauMaker.h"
+#include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
-#include "DataFormats/TauReco/interface/PFTauDiscriminator.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
@@ -52,16 +48,26 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
+
   produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
+  produces<vector<float> >          (branchprefix+"mass"                          ).setBranchAlias(aliasprefix_+"_mass"                           );
   produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
 
-  produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
-  produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
+  // set DISCRIMINATORS from pftauMaker_cfi.py
+  tauIDCollection_.clear();
+  tauIDCollection_ = iConfig.getUntrackedParameter<std::vector< std::string> >("tauIDCollection");
+  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
+	produces<vector<float> >          (branchprefix+tauIDCollection_.at(tauidind)           ).setBranchAlias(aliasprefix_+"_"+tauIDCollection_.at(tauidind)           ); 
+  }
 
-  //  produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
-  //  produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+  // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
+  // produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
 
-  //// DISCRIMINATOR
+  produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
+  produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+
+  produces<vector<vector<LorentzVector> > > (branchprefix+"signalcandsp4"         ).setBranchAlias(aliasprefix_+"_signalcands_p4"                 );
+  produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
 
    produces<vector<bool> >          (branchprefix+"byLooseElectronRejection").setBranchAlias(aliasprefix_+"_byLooseElectronRejection");
    produces<vector<bool> >          (branchprefix+"byMediumElectronRejection").setBranchAlias(aliasprefix_+"_byMediumElectronRejection");
@@ -173,9 +179,9 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
    
   /////get setup parameters
   pftausInputTag_                      = iConfig.getParameter<edm::InputTag>("pftausInputTag"   );
-  cms2PFJetsTag_                       = iConfig.getParameter<edm::InputTag>("cms2PFJetsTag"     );
-  referencePFJetsTag_                  = iConfig.getParameter<edm::InputTag>("referencePFJetsTag");
-  particleFlowTag_                     = iConfig.getParameter<edm::InputTag>("particleFlowTag"   );
+  // cms2PFJetsTag_                       = iConfig.getParameter<edm::InputTag>("cms2PFJetsTag"     );
+  // referencePFJetsTag_                  = iConfig.getParameter<edm::InputTag>("referencePFJetsTag");
+  // particleFlowTag_                     = iConfig.getParameter<edm::InputTag>("particleFlowTag"   );
 
 }
 			
@@ -192,380 +198,158 @@ void PFTauMaker::endJob() {
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		  
   auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
-  auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);
-							 
-  auto_ptr<vector<vector<int> >  > taus_pf_pfcandIndicies                                        (new vector<vector<int> >);
-  auto_ptr<vector<int> >           taus_pf_pfjetIndex                                            (new vector<int>);
-							  
-   auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
-   auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ; 
-  auto_ptr<vector<bool> >         taus_pf_byLooseElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVA5LooseElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVA5MediumElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVA5TightElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVA5VTightElectronRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseMuonRejection3(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightMuonRejection3(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVALooseMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVAMediumMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVATightMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMVArawMuonRejection(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byDecayModeFinding(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseIsolation(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseCombinedIsolationDBSumPtCorr(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseCombinedIsolationDBSumPtCorr(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumCombinedIsolationDBSumPtCorr(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightCombinedIsolationDBSumPtCorr(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseCombinedIsolationDBSumPtCorr3Hits(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumCombinedIsolationDBSumPtCorr3Hits(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightCombinedIsolationDBSumPtCorr3Hits(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVTightIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVVTightIsolationMVA3oldDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byIsolationMVA3oldDMwoLTraw(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVTightIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVVTightIsolationMVA3oldDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byIsolationMVA3oldDMwLTraw(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVTightIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVVTightIsolationMVA3newDMwoLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byIsolationMVA3newDMwoLTraw(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVLooseIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byLooseIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byMediumIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byTightIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVTightIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byVVTightIsolationMVA3newDMwLT(new vector<bool> ) ;
-  auto_ptr<vector<bool> >         taus_pf_byIsolationMVA3newDMwLTraw(new vector<bool> ) ;
- 
-  edm::Handle<reco::PFTauDiscriminator> byLooseElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVA5LooseElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVA5MediumElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVA5TightElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVA5VTightElectronRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseMuonRejection3Handle;
-  edm::Handle<reco::PFTauDiscriminator> byTightMuonRejection3Handle;
-  edm::Handle<reco::PFTauDiscriminator> byMVALooseMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVAMediumMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVATightMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMVArawMuonRejectionHandle;
-  edm::Handle<reco::PFTauDiscriminator> byDecayModeFindingHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseIsolationHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseCombinedIsolationDBSumPtCorrHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseCombinedIsolationDBSumPtCorrHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumCombinedIsolationDBSumPtCorrHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightCombinedIsolationDBSumPtCorrHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseCombinedIsolationDBSumPtCorr3HitsHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumCombinedIsolationDBSumPtCorr3HitsHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightCombinedIsolationDBSumPtCorr3HitsHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVTightIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVVTightIsolationMVA3oldDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byIsolationMVA3oldDMwoLTrawHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVTightIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVVTightIsolationMVA3oldDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byIsolationMVA3oldDMwLTrawHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVTightIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVVTightIsolationMVA3newDMwoLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byIsolationMVA3newDMwoLTrawHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVLooseIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byLooseIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byMediumIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byTightIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVTightIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byVVTightIsolationMVA3newDMwLTHandle;
-  edm::Handle<reco::PFTauDiscriminator> byIsolationMVA3newDMwLTrawHandle;
+  auto_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+  auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
 
-  iEvent.getByLabel(byLooseElectronRejection_,	byLooseElectronRejectionHandle);
-  iEvent.getByLabel(byMediumElectronRejection_,	byMediumElectronRejectionHandle);
-  iEvent.getByLabel(byTightElectronRejection_,	byTightElectronRejectionHandle);
-  iEvent.getByLabel(byMVA5LooseElectronRejection_,	byMVA5LooseElectronRejectionHandle);
-  iEvent.getByLabel(byMVA5MediumElectronRejection_,	byMVA5MediumElectronRejectionHandle);
-  iEvent.getByLabel(byMVA5TightElectronRejection_,	byMVA5TightElectronRejectionHandle);
-  iEvent.getByLabel(byMVA5VTightElectronRejection_,	byMVA5VTightElectronRejectionHandle);
-  iEvent.getByLabel(byLooseMuonRejection_,	byLooseMuonRejectionHandle);
-  iEvent.getByLabel(byMediumMuonRejection_,	byMediumMuonRejectionHandle);
-  iEvent.getByLabel(byTightMuonRejection_,	byTightMuonRejectionHandle);
-  iEvent.getByLabel(byLooseMuonRejection3_,	byLooseMuonRejection3Handle);
-  iEvent.getByLabel(byTightMuonRejection3_,	byTightMuonRejection3Handle);
-  iEvent.getByLabel(byMVALooseMuonRejection_,	byMVALooseMuonRejectionHandle);
-  iEvent.getByLabel(byMVAMediumMuonRejection_,	byMVAMediumMuonRejectionHandle);
-  iEvent.getByLabel(byMVATightMuonRejection_,	byMVATightMuonRejectionHandle);
-  iEvent.getByLabel(byMVArawMuonRejection_,	byMVArawMuonRejectionHandle);
-  iEvent.getByLabel(byDecayModeFinding_,	byDecayModeFindingHandle);
-  iEvent.getByLabel(byVLooseIsolation_,	byVLooseIsolationHandle);
-  iEvent.getByLabel(byVLooseCombinedIsolationDBSumPtCorr_,	byVLooseCombinedIsolationDBSumPtCorrHandle);
-  iEvent.getByLabel(byLooseCombinedIsolationDBSumPtCorr_,	byLooseCombinedIsolationDBSumPtCorrHandle);
-  iEvent.getByLabel(byMediumCombinedIsolationDBSumPtCorr_,	byMediumCombinedIsolationDBSumPtCorrHandle);
-  iEvent.getByLabel(byTightCombinedIsolationDBSumPtCorr_,	byTightCombinedIsolationDBSumPtCorrHandle);
-  iEvent.getByLabel(byLooseCombinedIsolationDBSumPtCorr3Hits_,	byLooseCombinedIsolationDBSumPtCorr3HitsHandle);
-  iEvent.getByLabel(byMediumCombinedIsolationDBSumPtCorr3Hits_,	byMediumCombinedIsolationDBSumPtCorr3HitsHandle);
-  iEvent.getByLabel(byTightCombinedIsolationDBSumPtCorr3Hits_,	byTightCombinedIsolationDBSumPtCorr3HitsHandle);
-  iEvent.getByLabel(byVLooseIsolationMVA3oldDMwoLT_,	byVLooseIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byLooseIsolationMVA3oldDMwoLT_,	byLooseIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byMediumIsolationMVA3oldDMwoLT_,	byMediumIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byTightIsolationMVA3oldDMwoLT_,	byTightIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byVTightIsolationMVA3oldDMwoLT_,	byVTightIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byVVTightIsolationMVA3oldDMwoLT_,	byVVTightIsolationMVA3oldDMwoLTHandle);
-  iEvent.getByLabel(byIsolationMVA3oldDMwoLTraw_,	byIsolationMVA3oldDMwoLTrawHandle);
-  iEvent.getByLabel(byVLooseIsolationMVA3oldDMwLT_,	byVLooseIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byLooseIsolationMVA3oldDMwLT_,	byLooseIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byMediumIsolationMVA3oldDMwLT_,	byMediumIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byTightIsolationMVA3oldDMwLT_,	byTightIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byVTightIsolationMVA3oldDMwLT_,	byVTightIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byVVTightIsolationMVA3oldDMwLT_,	byVVTightIsolationMVA3oldDMwLTHandle);
-  iEvent.getByLabel(byIsolationMVA3oldDMwLTraw_,	byIsolationMVA3oldDMwLTrawHandle);
-  iEvent.getByLabel(byVLooseIsolationMVA3newDMwoLT_,	byVLooseIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byLooseIsolationMVA3newDMwoLT_,	byLooseIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byMediumIsolationMVA3newDMwoLT_,	byMediumIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byTightIsolationMVA3newDMwoLT_,	byTightIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byVTightIsolationMVA3newDMwoLT_,	byVTightIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byVVTightIsolationMVA3newDMwoLT_,	byVVTightIsolationMVA3newDMwoLTHandle);
-  iEvent.getByLabel(byIsolationMVA3newDMwoLTraw_,	byIsolationMVA3newDMwoLTrawHandle);
-  iEvent.getByLabel(byVLooseIsolationMVA3newDMwLT_,	byVLooseIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byLooseIsolationMVA3newDMwLT_,	byLooseIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byMediumIsolationMVA3newDMwLT_,	byMediumIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byTightIsolationMVA3newDMwLT_,	byTightIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byVTightIsolationMVA3newDMwLT_,	byVTightIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byVVTightIsolationMVA3newDMwLT_,	byVVTightIsolationMVA3newDMwLTHandle);
-  iEvent.getByLabel(byIsolationMVA3newDMwLTraw_,	byIsolationMVA3newDMwLTrawHandle);
-		     
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseElectronRejection	 = byLooseElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumElectronRejection	 = byMediumElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightElectronRejection	 = byTightElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVA5LooseElectronRejection	 = byMVA5LooseElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVA5MediumElectronRejection	 = byMVA5MediumElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVA5TightElectronRejection	 = byMVA5TightElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVA5VTightElectronRejection	 = byMVA5VTightElectronRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseMuonRejection	 = byLooseMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumMuonRejection	 = byMediumMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightMuonRejection	 = byTightMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseMuonRejection3	 = byLooseMuonRejection3Handle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightMuonRejection3	 = byTightMuonRejection3Handle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVALooseMuonRejection	 = byMVALooseMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVAMediumMuonRejection	 = byMVAMediumMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVATightMuonRejection	 = byMVATightMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMVArawMuonRejection	 = byMVArawMuonRejectionHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyDecayModeFinding	 = byDecayModeFindingHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseIsolation	 = byVLooseIsolationHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseCombinedIsolationDBSumPtCorr	 = byVLooseCombinedIsolationDBSumPtCorrHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseCombinedIsolationDBSumPtCorr	 = byLooseCombinedIsolationDBSumPtCorrHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumCombinedIsolationDBSumPtCorr	 = byMediumCombinedIsolationDBSumPtCorrHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightCombinedIsolationDBSumPtCorr	 = byTightCombinedIsolationDBSumPtCorrHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseCombinedIsolationDBSumPtCorr3Hits	 = byLooseCombinedIsolationDBSumPtCorr3HitsHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumCombinedIsolationDBSumPtCorr3Hits	 = byMediumCombinedIsolationDBSumPtCorr3HitsHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightCombinedIsolationDBSumPtCorr3Hits	 = byTightCombinedIsolationDBSumPtCorr3HitsHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseIsolationMVA3oldDMwoLT	 = byVLooseIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseIsolationMVA3oldDMwoLT	 = byLooseIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumIsolationMVA3oldDMwoLT	 = byMediumIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightIsolationMVA3oldDMwoLT	 = byTightIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVTightIsolationMVA3oldDMwoLT	 = byVTightIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVVTightIsolationMVA3oldDMwoLT	 = byVVTightIsolationMVA3oldDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyIsolationMVA3oldDMwoLTraw	 = byIsolationMVA3oldDMwoLTrawHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseIsolationMVA3oldDMwLT	 = byVLooseIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseIsolationMVA3oldDMwLT	 = byLooseIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumIsolationMVA3oldDMwLT	 = byMediumIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightIsolationMVA3oldDMwLT	 = byTightIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVTightIsolationMVA3oldDMwLT	 = byVTightIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVVTightIsolationMVA3oldDMwLT	 = byVVTightIsolationMVA3oldDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyIsolationMVA3oldDMwLTraw	 = byIsolationMVA3oldDMwLTrawHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseIsolationMVA3newDMwoLT	 = byVLooseIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseIsolationMVA3newDMwoLT	 = byLooseIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumIsolationMVA3newDMwoLT	 = byMediumIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightIsolationMVA3newDMwoLT	 = byTightIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVTightIsolationMVA3newDMwoLT	 = byVTightIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVVTightIsolationMVA3newDMwoLT	 = byVVTightIsolationMVA3newDMwoLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyIsolationMVA3newDMwoLTraw	 = byIsolationMVA3newDMwoLTrawHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVLooseIsolationMVA3newDMwLT	 = byVLooseIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyLooseIsolationMVA3newDMwLT	 = byLooseIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyMediumIsolationMVA3newDMwLT	 = byMediumIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyTightIsolationMVA3newDMwLT	 = byTightIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVTightIsolationMVA3newDMwLT	 = byVTightIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyVVTightIsolationMVA3newDMwLT	 = byVVTightIsolationMVA3newDMwLTHandle.product();
-  const reco::PFTauDiscriminator *hpsTauDiscrbyIsolationMVA3newDMwLTraw	 = byIsolationMVA3newDMwLTrawHandle.product();
+  auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);							 
+  // auto_ptr<vector<vector<int> >  > taus_pf_pfcandIndicies                                        (new vector<vector<int> >);
+  // auto_ptr<vector<int> >           taus_pf_pfjetIndex                                            (new vector<int>);
+							  
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
+  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
+
+  //set auto pointers for tau id container
+  auto_ptr<vector<float> >         taus_pf_ids[tauIDCollection_.size()];
+  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
+	taus_pf_ids[tauidind].reset(new vector<float>);
+  }
 
   /////  cout << "run " << iEvent.run() << " lumi" << iEvent.luminosityBlock() << " event " <<  iEvent.id() << endl;
  
   //get pfcandidates and jet collection for matching
-  Handle<PFCandidateCollection> pfCandidatesHandle;
-  iEvent.getByLabel(particleFlowTag_, pfCandidatesHandle);
-  const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+  // Handle<PFCandidateCollection> pfCandidatesHandle;
+  // iEvent.getByLabel(particleFlowTag_, pfCandidatesHandle);
+  // const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
 
-  edm::Handle<reco::PFJetCollection> referencePFJetsHandle;
-  iEvent.getByLabel(referencePFJetsTag_, referencePFJetsHandle);
-  const reco::PFJetCollection *referencePFJets = referencePFJetsHandle.product();
+  // edm::Handle<reco::PFJetCollection> referencePFJetsHandle;
+  // iEvent.getByLabel(referencePFJetsTag_, referencePFJetsHandle);
+  // const reco::PFJetCollection *referencePFJets = referencePFJetsHandle.product();
     
-  // get the tauJets
-  edm::Handle<reco::PFTauCollection> collectionHandle;
-  iEvent.getByLabel(pftausInputTag_, collectionHandle);
-  const reco::PFTauCollection *collection = collectionHandle.product();
+  // // get the tauJets
+  // edm::Handle<reco::PFTauCollection> collectionHandle;
+  // iEvent.getByLabel(pftausInputTag_, collectionHandle);
+  // const reco::PFTauCollection *collection = collectionHandle.product();
 
-  for ( int iTauJet = 0; iTauJet < (int)collection->size(); ++iTauJet) { //original                                                                              
+  // for ( int iTauJet = 0; iTauJet < (int)collection->size(); ++iTauJet) { //original                                                                              
     
-    const reco::PFTau& cand = collection->at(iTauJet);
+  // const reco::PFTau& cand = collection->at(iTauJet);
+
+  // // reco::PFCandidate::tau
     
-    reco::PFTauRef theTauJetRef(collectionHandle, iTauJet);
+  // reco::PFTauRef theTauJetRef(collectionHandle, iTauJet);
     
-    /////////
-    //store indices of PFCandidates associated to this tau and the index of the jet itself
-    ////////
-    
-    vector<int> pfcandIndicies;
-    int pfjetIndex;      
-    
-    const reco::PFJetRef & myJet=cand.jetRef();
-    
-    int ijet = 0;
+  //get PAT taus
+  Handle<View<pat::Tau> > taus_h;
+  iEvent.getByLabel(pftausInputTag_, taus_h);
+  // View<pat::Tau> *TauColl = taus_h.product();
 
-    for(reco::PFJetCollection::const_iterator jet_it = referencePFJets->begin(); jet_it != referencePFJets->end(); ++jet_it){
-      
-      reco::PFJetRef jet_new( referencePFJetsHandle , jet_it - referencePFJetsHandle->begin() );
-      
-      //if a match is found, store index in pfjet
-      if(  myJet.key() == jet_new.key() ) pfjetIndex=ijet;
-      //      if(  myJet.key() == jet_new.key() ) cout << "the matched jet " << jet_it->pt() << " the tau pt is " << cand.pt() << " jet index " << pfjetIndex << endl;
-      ijet++;      
+  //loop over taus
+  // *evt_ntaus       = taus_h->size();
+  // size_t tausIndex = 0;
+  for( View<pat::Tau>::const_iterator tau = taus_h->begin(); tau != taus_h->end(); tau++/*, tausIndex++*/ ) {
 
-    }
-    
-    taus_pf_pfjetIndex->push_back( pfjetIndex );
-    
-    //    LorentzVector p4TAU;
+	taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
+	taus_pf_mass                 -> push_back( tau->mass()                );
+	taus_pf_charge               -> push_back( tau->charge()              );
 
-    for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = cand.signalPFCands().begin(); pref_it!=cand.signalPFCands().end(); ++pref_it) {
-      
-      int ipf = 0;
-	
-      for(reco::PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); ++pf_it){
-	
-        reco::PFCandidateRef pref_new( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
-        
-        //if a match is found, store index in pfcandIndicies
-        if( pref_it->key() == pref_new.key() ) pfcandIndicies.push_back(ipf);
+//TemporarilyOffIn706	// leadChargedHadrCand()
+//TemporarilyOffIn706	if( !tau->leadChargedHadrCand().isNull() ){ taus_pf_lead_chargecand_p4 -> push_back( LorentzVector( tau->leadChargedHadrCand() -> p4() ) );}
+//TemporarilyOffIn706	else                                      { taus_pf_lead_chargecand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );	                       }
+//TemporarilyOffIn706	// leadNeutralCand()
+//TemporarilyOffIn706	if( !tau->leadNeutralCand().isNull() ){ taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector( tau->leadNeutralCand() -> p4() ) );}
+//TemporarilyOffIn706	else                                  { taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                      }
+//TemporarilyOffIn706
+//TemporarilyOffIn706	// 	signalCands()
+//TemporarilyOffIn706	vector<LorentzVector> signalCandsPerTau;
+//TemporarilyOffIn706	for( size_t signalCandsInd = 0; signalCandsInd < tau->signalCands().size(); signalCandsInd++ ){
+//TemporarilyOffIn706	  if( !tau->signalCands().isNull() ){ signalCandsPerTau  .  push_back( LorentzVector( tau->signalCands()[signalCandsInd] -> p4() ) );}
+//TemporarilyOffIn706	  else                              { signalCandsPerTau  .  push_back( LorentzVector(0, 0, 0, 0) );                  }
+//TemporarilyOffIn706	}
+//TemporarilyOffIn706	taus_pf_signalcands_p4 -> push_back(signalCandsPerTau);
+//TemporarilyOffIn706
+//TemporarilyOffIn706	// 	isolationCands()
+//TemporarilyOffIn706	vector<LorentzVector> isoCandsPerTau;
+//TemporarilyOffIn706	for( size_t isoCandsInd = 0; isoCandsInd < tau->isolationCands().size(); isoCandsInd++ ){
+//TemporarilyOffIn706	  if( !tau->isolationCands().isNull() ){ isoCandsPerTau   .  push_back( LorentzVector( tau->isolationCands()[isoCandsInd] -> p4() ) );}
+//TemporarilyOffIn706	  else                                 { isoCandsPerTau   .  push_back( LorentzVector(0, 0, 0, 0) );                     }
+//TemporarilyOffIn706	}
+//TemporarilyOffIn706	taus_pf_isocands_p4->push_back(isoCandsPerTau);
 
-        ++ipf;
-      
-      }
-          
-    }
-      
+	// std::cout<<"pfJetRef: ";
+	// std::cout<<tau->pfJetRef().get()->p4()<<std::endl;
 
-    taus_pf_pfcandIndicies->push_back( pfcandIndicies );
-            
-    ///////////
-          
+	//loops over list of discriminators provided from cfg and fills branch if available
+	for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
+	  // std::cout<<tauIDCollection_.at(tauidind)<<std::endl;
+	  if( tau->isTauIDAvailable(tauIDCollection_.at(tauidind))){	  
+		// std::cout<<tau->tauID(tauIDCollection_.at(tauidind))<<std::endl;
+		taus_pf_ids[tauidind] ->push_back(static_cast<float>(tau->tauID(tauIDCollection_.at(tauidind))));
+	  }
+	}
+  
+	//use this to spit out the available discriminators in each event
+	// const std::vector< std::pair<std::string, float> > tau_IDPair = tau->tauIDs();
+	// for( size_t tauind = 0; tauind < tau_IDPair.size(); tauind++ ){
+	//   std::cout<<tau_IDPair.at(tauind).first<<" : "<<tau_IDPair.at(tauind).second<<std::endl;
+	// }
 
-    taus_pf_p4                               ->push_back( LorentzVector( cand.p4() ) );
-    taus_pf_charge                           ->push_back( cand.charge()              );
+	// everything beyond this point is not used in miniAOD
 
-    //    taus_pf_lead_neutrcand_p4                ->push_back( cand.leadPFNeutralCand().isNonnull()? LorentzVector( cand.leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
-    //    taus_pf_lead_chargecand_p4               ->push_back( cand.leadPFChargedHadrCand().isNull()? LorentzVector( cand.leadPFChargedHadrCand().get()->p4()) :  LorentzVector(0, 0, 0, 0)  );
+	// for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
 
-    //    if(!cand.leadPFChargedHadrCand().isNull()) taus_pf_lead_chargecand_p4               ->push_back( LorentzVector( cand.leadPFChargedHadrCand().get()->p4() ) );
-    //    if(!cand.leadPFNeutralCand().isNull()) taus_pf_lead_neutrcand_p4                ->push_back( LorentzVector( tau_pf->leadPFNeutralCand().get()->p4() ) :  LorentzVector(0, 0, 0, 0)  );
+	// }      
 
-    taus_pf_byLooseElectronRejection->push_back((*hpsTauDiscrbyLooseElectronRejection)[theTauJetRef]);
-    taus_pf_byMediumElectronRejection->push_back((*hpsTauDiscrbyMediumElectronRejection)[theTauJetRef]);
-    taus_pf_byTightElectronRejection->push_back((*hpsTauDiscrbyTightElectronRejection)[theTauJetRef]);
-    taus_pf_byMVA5LooseElectronRejection->push_back((*hpsTauDiscrbyMVA5LooseElectronRejection)[theTauJetRef]);
-    taus_pf_byMVA5MediumElectronRejection->push_back((*hpsTauDiscrbyMVA5MediumElectronRejection)[theTauJetRef]);
-    taus_pf_byMVA5TightElectronRejection->push_back((*hpsTauDiscrbyMVA5TightElectronRejection)[theTauJetRef]);
-    taus_pf_byMVA5VTightElectronRejection->push_back((*hpsTauDiscrbyMVA5VTightElectronRejection)[theTauJetRef]);
-    taus_pf_byLooseMuonRejection->push_back((*hpsTauDiscrbyLooseMuonRejection)[theTauJetRef]);
-    taus_pf_byMediumMuonRejection->push_back((*hpsTauDiscrbyMediumMuonRejection)[theTauJetRef]);
-    taus_pf_byTightMuonRejection->push_back((*hpsTauDiscrbyTightMuonRejection)[theTauJetRef]);
-    taus_pf_byLooseMuonRejection3->push_back((*hpsTauDiscrbyLooseMuonRejection3)[theTauJetRef]);
-    taus_pf_byTightMuonRejection3->push_back((*hpsTauDiscrbyTightMuonRejection3)[theTauJetRef]);
-    taus_pf_byMVALooseMuonRejection->push_back((*hpsTauDiscrbyMVALooseMuonRejection)[theTauJetRef]);
-    taus_pf_byMVAMediumMuonRejection->push_back((*hpsTauDiscrbyMVAMediumMuonRejection)[theTauJetRef]);
-    taus_pf_byMVATightMuonRejection->push_back((*hpsTauDiscrbyMVATightMuonRejection)[theTauJetRef]);
-    taus_pf_byMVArawMuonRejection->push_back((*hpsTauDiscrbyMVArawMuonRejection)[theTauJetRef]);
-    taus_pf_byDecayModeFinding->push_back((*hpsTauDiscrbyDecayModeFinding)[theTauJetRef]);
-    taus_pf_byVLooseIsolation->push_back((*hpsTauDiscrbyVLooseIsolation)[theTauJetRef]);
-    taus_pf_byVLooseCombinedIsolationDBSumPtCorr->push_back((*hpsTauDiscrbyVLooseCombinedIsolationDBSumPtCorr)[theTauJetRef]);
-    taus_pf_byLooseCombinedIsolationDBSumPtCorr->push_back((*hpsTauDiscrbyLooseCombinedIsolationDBSumPtCorr)[theTauJetRef]);
-    taus_pf_byMediumCombinedIsolationDBSumPtCorr->push_back((*hpsTauDiscrbyMediumCombinedIsolationDBSumPtCorr)[theTauJetRef]);
-    taus_pf_byTightCombinedIsolationDBSumPtCorr->push_back((*hpsTauDiscrbyTightCombinedIsolationDBSumPtCorr)[theTauJetRef]);
-    taus_pf_byLooseCombinedIsolationDBSumPtCorr3Hits->push_back((*hpsTauDiscrbyLooseCombinedIsolationDBSumPtCorr3Hits)[theTauJetRef]);
-    taus_pf_byMediumCombinedIsolationDBSumPtCorr3Hits->push_back((*hpsTauDiscrbyMediumCombinedIsolationDBSumPtCorr3Hits)[theTauJetRef]);
-    taus_pf_byTightCombinedIsolationDBSumPtCorr3Hits->push_back((*hpsTauDiscrbyTightCombinedIsolationDBSumPtCorr3Hits)[theTauJetRef]);
-    taus_pf_byVLooseIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyVLooseIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byLooseIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyLooseIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byMediumIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyMediumIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byTightIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyTightIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byVTightIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyVTightIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byVVTightIsolationMVA3oldDMwoLT->push_back((*hpsTauDiscrbyVVTightIsolationMVA3oldDMwoLT)[theTauJetRef]);
-    taus_pf_byIsolationMVA3oldDMwoLTraw->push_back((*hpsTauDiscrbyIsolationMVA3oldDMwoLTraw)[theTauJetRef]);
-    taus_pf_byVLooseIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyVLooseIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byLooseIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyLooseIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byMediumIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyMediumIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byTightIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyTightIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byVTightIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyVTightIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byVVTightIsolationMVA3oldDMwLT->push_back((*hpsTauDiscrbyVVTightIsolationMVA3oldDMwLT)[theTauJetRef]);
-    taus_pf_byIsolationMVA3oldDMwLTraw->push_back((*hpsTauDiscrbyIsolationMVA3oldDMwLTraw)[theTauJetRef]);
-    taus_pf_byVLooseIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyVLooseIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byLooseIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyLooseIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byMediumIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyMediumIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byTightIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyTightIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byVTightIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyVTightIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byVVTightIsolationMVA3newDMwoLT->push_back((*hpsTauDiscrbyVVTightIsolationMVA3newDMwoLT)[theTauJetRef]);
-    taus_pf_byIsolationMVA3newDMwoLTraw->push_back((*hpsTauDiscrbyIsolationMVA3newDMwoLTraw)[theTauJetRef]);
-    taus_pf_byVLooseIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyVLooseIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byLooseIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyLooseIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byMediumIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyMediumIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byTightIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyTightIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byVTightIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyVTightIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byVVTightIsolationMVA3newDMwLT->push_back((*hpsTauDiscrbyVVTightIsolationMVA3newDMwLT)[theTauJetRef]);
-    taus_pf_byIsolationMVA3newDMwLTraw->push_back((*hpsTauDiscrbyIsolationMVA3newDMwLTraw)[theTauJetRef]);
-
-    /*
-    if(theTauJetRef->pt()>10 && fabs(theTauJetRef->eta())<5) {
-      cout << "tauJet: pt " << theTauJetRef->pt() 
-	   << " eta " << theTauJetRef->eta()
-	   << " byLooseCombinedIsolationDeltaBetaCorr " << (*hpsTauDiscrbyLooseCombinedIsolationDeltaBetaCorr) [theTauJetRef] 
-	   << " ByDecayModeFinding "  << (*hpsTauDiscrbyDecayModeFinding)[theTauJetRef] << endl;
-    }
-    */
-		
   }
+  
+  /////////
+  //store indices of PFCandidates associated to this tau and the index of the jet itself
+  ////////
     
-  std::string branchprefix = aliasprefix_;
-  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+  // vector<int> pfcandIndicies;
+  // int pfjetIndex;      
+    
+  // const reco::PFJetRef & myJet=cand.jetRef();
+    
+  // int ijet = 0;
 
+  // for(reco::PFJetCollection::const_iterator jet_it = referencePFJets->begin(); jet_it != referencePFJets->end(); ++jet_it){
 
-  iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
-  iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
+  //   reco::PFJetRef jet_new( referencePFJetsHandle , jet_it - referencePFJetsHandle->begin() );
+      
+  //   //if a match is found, store index in pfjet
+  //   if(  myJet.key() == jet_new.key() ) pfjetIndex=ijet;
+  //   //      if(  myJet.key() == jet_new.key() ) cout << "the matched jet " << jet_it->pt() << " the tau pt is " << cand.pt() << " jet index " << pfjetIndex << endl;
+  //   ijet++;      
+
+  // }
+    
+  // taus_pf_pfjetIndex->push_back( pfjetIndex );
+    
+  //    LorentzVector p4TAU;
+
+  // for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
+
+  //   int ipf = 0;
+	
+  //   for(reco::PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); ++pf_it){
+	
+  //     reco::PFCandidateRef pref_new( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
+        
+  //     //if a match is found, store index in pfcandIndicies
+  //     if( pref_it->key() == pref_new.key() ) pfcandIndicies.push_back(ipf);
+
+  //     ++ipf;
+      
+  //   }
+          
+  // }
+      
+
+  // taus_pf_pfcandIndicies->push_back( pfcandIndicies );
+            
+  ///////////
+          
 
   // iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
   // iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
@@ -632,34 +416,28 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //---------------------------------------------------------------------------------------
 edm::RefToBase<reco::Jet> PFTauMaker::getReferenceJetRef(const edm::View<reco::Jet>* refJets, const reco::Jet* jet) {
 
-  double mindR = 0.01;
-  edm::RefToBase<reco::Jet> retRef = edm::RefToBase<reco::Jet>();
-  for(edm::View<reco::Jet>::const_iterator it = refJets->begin();  
-      it!= refJets->end(); it++) {
+double mindR = 0.01;
+edm::RefToBase<reco::Jet> retRef = edm::RefToBase<reco::Jet>();
+for(edm::View<reco::Jet>::const_iterator it = refJets->begin();  
+it!= refJets->end(); it++) {
 
-    double dR = ROOT::Math::VectorUtil::DeltaR(it->p4(), jet->p4());
-    if(dR < mindR) {
-      mindR = dR;
-      unsigned int idx = it - refJets->begin();
-      retRef = refJets->refAt(idx);
-    }
-  }
+double dR = ROOT::Math::VectorUtil::DeltaR(it->p4(), jet->p4());
+if(dR < mindR) {
+mindR = dR;
+unsigned int idx = it - refJets->begin();
+retRef = refJets->refAt(idx);
+}
+}
 
-  if (mindR == 0.01)
-    std::cout << "\n didn't find a match!\n";
+if (mindR == 0.01)
+std::cout << "\n didn't find a match!\n";
 
-  if(!retRef.isNonnull())
-    throw cms::Exception("Reference jet not found in TauMaker");
-  return retRef;
+if(!retRef.isNonnull())
+throw cms::Exception("Reference jet not found in TauMaker");
+return retRef;
     
 }
 */
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(PFTauMaker);
-
-
-
-
-
-  

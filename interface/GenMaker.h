@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      GenMaker
 // 
-/**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
+/**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
 
    Description: <one line class summary>
 
@@ -28,6 +28,7 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+//#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 //
 // class decleration
@@ -46,10 +47,11 @@ private:
 
      // ----------member data ---------------------------
      edm::InputTag genParticlesInputTag_;
+     edm::InputTag packedGenParticlesInputTag_;
 	 edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;
- 
+     bool ntuplePackedGenParticles_;
      std::vector<int> vmetPIDs_;
 
      double inclusiveCrossSectionValue_;

@@ -25,6 +25,8 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
 //
 // class declaration
 //
@@ -39,7 +41,8 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
-  edm::InputTag genParticlesInputTag_;
+  edm::InputTag genParticlesInputTagPacked_;
+  edm::InputTag genParticlesInputTagPruned_;
   edm::InputTag genJetsInputTag_;
   edm::InputTag muonsInputTag_;
   edm::InputTag electronsInputTag_;

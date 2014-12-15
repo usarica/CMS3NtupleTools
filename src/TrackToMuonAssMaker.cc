@@ -31,7 +31,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/TrackToMuonAssMaker.h"
+#include "CMS3/NtupleMaker/interface/TrackToMuonAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

@@ -33,8 +33,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "Math/VectorUtil.h"
-#include "CMS2/NtupleMaker/interface/ElectronIsolationMaker.h"
-#include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
+#include "CMS3/NtupleMaker/interface/ElectronIsolationMaker.h"
+#include "CMS3/NtupleMaker/interface/IsolationUtilities.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
 //////////////

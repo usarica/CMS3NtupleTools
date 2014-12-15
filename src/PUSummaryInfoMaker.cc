@@ -11,7 +11,7 @@
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 
-#include "CMS2/NtupleMaker/interface/PUSummaryInfoMaker.h" 
+#include "CMS3/NtupleMaker/interface/PUSummaryInfoMaker.h" 
 
 using namespace edm;
 using namespace std;

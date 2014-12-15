@@ -3,7 +3,7 @@
 // Package:    ElUtilities
 // Class:      ElUtilities
 // 
-/**\class ElUtilities ElUtilities.h CMS2/NtupleMaker/interface/ElUtilities.h
+/**\class ElUtilities ElUtilities.h CMS3/NtupleMaker/interface/ElUtilities.h
 
 Description: MC utilities
 

@@ -1,9 +1,9 @@
-// -*- C++ -*-
+// -*- C++ -*-    
 //
 // Package:    NtupleMaker
 // Class:      NtupleMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/NtupleMaker.cc
 
    Description: <one line class summary>
 
@@ -53,6 +53,8 @@
 
 #include "Math/VectorUtil.h"
 
+#include "DataFormats/PatCandidates/interface/Electron.h"
+
 //
 // class decleration
 //
@@ -72,7 +74,7 @@ private:
     double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
                               float footprintdr, float gammastripveto, float elestripveto, int filterId);
   
-    int classify(const edm::RefToBase<reco::GsfElectron> &);
+    int classify(const edm::RefToBase<pat::Electron> &);
     template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
  
     // for 2012 pf isolation
@@ -88,6 +90,11 @@ private:
     edm::InputTag cms2scsseeddetidInputTag_;
     edm::InputTag pfCandsInputTag;
     edm::InputTag vtxInputTag;
+
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken_;
 
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
@@ -105,6 +112,11 @@ private:
     double minAbsDcot_;
     double minSharedFractionOfHits_;
     std::string aliasprefix_;
+
+    std::vector<Int_t> passVetoId_;
+    std::vector<Int_t> passLooseId_;
+    std::vector<Int_t> passMediumId_;
+    std::vector<Int_t> passTightId_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
     edm::Handle<reco::VertexCollection> vertexHandle;

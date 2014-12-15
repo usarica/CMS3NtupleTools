@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      BTagMaker
 // 
-/**\class BTagMaker BTagMaker.cc CMS2/NtupleMaker/src/BTagMaker.cc
+/**\class BTagMaker BTagMaker.cc CMS3/NtupleMaker/src/BTagMaker.cc
 
 Description: <one line class summary>
 
@@ -29,11 +29,11 @@ Implementation:
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/BTagMaker.h" 
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/BTagMaker.h" 
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/JetReco/interface/JetFloatAssociation.h"
-#include "CMS2/NtupleMaker/interface/CommonUtils.h"
+#include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;

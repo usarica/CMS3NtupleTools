@@ -3,7 +3,7 @@
 // Package:    CaloTowerHFMaker
 // Class:      CaloTowerHFMaker
 // 
-/**\class CaloTowerHFMaker CaloTowerHFMaker.cc CMS2/NtupleMaker/src/CaloTowerHFMaker.cc
+/**\class CaloTowerHFMaker CaloTowerHFMaker.cc CMS3/NtupleMaker/src/CaloTowerHFMaker.cc
 
 Description: <produce TaS collection of CaloTowers>
 
@@ -25,7 +25,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
-#include "CMS2/NtupleMaker/interface/CaloTowerHFMaker.h"
+#include "CMS3/NtupleMaker/interface/CaloTowerHFMaker.h"
 //#include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"

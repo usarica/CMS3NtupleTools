@@ -2,19 +2,19 @@
 
 import FWCore.ParameterSet.Config as cms
 
-from CMS2.NtupleMaker.candToGenAssMaker_cfi     import *
-from CMS2.NtupleMaker.flavorHistorySequence_cfi import *
-from CMS2.NtupleMaker.genJetSequence_cff        import *
-from CMS2.NtupleMaker.genMaker_cfi              import *
-from CMS2.NtupleMaker.hypGenMaker_cfi           import *
-from CMS2.NtupleMaker.pdfinfoMaker_cfi          import *
-from CMS2.NtupleMaker.genJetMaker_cfi           import *
-from CMS2.NtupleMaker.puSummaryInfoMaker_cfi    import *
+from CMS3.NtupleMaker.candToGenAssMaker_cfi     import *
+from CMS3.NtupleMaker.flavorHistorySequence_cfi import *
+from CMS3.NtupleMaker.genJetSequence_cff        import *
+from CMS3.NtupleMaker.genMaker_cfi              import *
+from CMS3.NtupleMaker.hypGenMaker_cfi           import *
+from CMS3.NtupleMaker.pdfinfoMaker_cfi          import *
+from CMS3.NtupleMaker.genJetMaker_cfi           import *
+from CMS3.NtupleMaker.puSummaryInfoMaker_cfi    import *
 
-from CMS2.NtupleMaker.jetFlavorMaker_cfi        import *
+from CMS3.NtupleMaker.jetFlavorMaker_cfi        import *
 
 #This should be in the config
-from CMS2.NtupleMaker.dilepGenFilter_cfi import dilepGenFilter
+from CMS3.NtupleMaker.dilepGenFilter_cfi import dilepGenFilter
 
 
 cms2GENSequence     = cms.Sequence(

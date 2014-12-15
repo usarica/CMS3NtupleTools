@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      TrackMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/NtupleMaker.cc
 
    Description: <one line class summary>
 
@@ -58,6 +58,7 @@ private:
   float ptMin_;
   int   nHits_;
   std::string aliasprefix_;
+  std::string branchprefix_;
 };
 
 #endif

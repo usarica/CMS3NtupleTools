@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/TrackMaker.h"
+#include "CMS3/NtupleMaker/interface/TrackMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"
@@ -79,54 +79,50 @@ using reco::TrackBase;
 //
 TrackMaker::TrackMaker(const edm::ParameterSet& iConfig) {
        
-  aliasprefix_            = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  aliasprefix_  = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+  branchprefix_ = aliasprefix_; if( branchprefix_.find("_") != std::string::npos ) branchprefix_.replace( branchprefix_.find("_"), 1, "" );
 
-  produces<vector<LorentzVector> >	("trkstrkp4"	  ).setBranchAlias("trks_trk_p4"     );	// track p4						
-  produces<vector<LorentzVector> >	("trksvertexp4"	  ).setBranchAlias("trks_vertex_p4"  );	// track p4
-  produces<vector<LorentzVector> >      ("trksouterp4"    ).setBranchAlias("trks_outer_p4"   );    // p4 at the outermost point of the tracker
-
-  produces<vector<float> >		("trksd0"	  ).setBranchAlias("trks_d0"         );	// impact parameter at the point of closest approach	
-  produces<vector<float> >		("trksd0corr"	  ).setBranchAlias("trks_d0corr"     );	// impact parameter at the point of closest approach corrected for the beamSpot
-  produces<vector<float> >		("trksd0corrPhi"  ).setBranchAlias("trks_d0corrPhi"  );	// angle of impact parameter corrected for beamSpot
-  produces<vector<float> >		("trksz0"	  ).setBranchAlias("trks_z0"         );	// z position of the point of closest approach		
-  produces<vector<float> >		("trksz0corr"	  ).setBranchAlias("trks_z0corr"     );	// z position of the point of closest approach corrected for the the beamSpot
-  produces<vector<float> >		("trkschi2"	  ).setBranchAlias("trks_chi2"       );	// chi2 of the silicon tracker fit			
-  produces<vector<float> >		("trksndof"	  ).setBranchAlias("trks_ndof"       );	// number of degrees of freedom of the fit		
-  produces<vector<int> >		("trksvalidHits"  ).setBranchAlias("trks_validHits"  );	// number of used hits in the fit			
-  produces<vector<int> >		("trkslostHits"	  ).setBranchAlias("trks_lostHits"   );	// number of lost hits in the fit			
-  produces<vector<float> >		("trksd0Err"	  ).setBranchAlias("trks_d0Err"      );	// error on the impact parameter			
-  produces<vector<float> >		("trksz0Err"	  ).setBranchAlias("trks_z0Err"      );	// error on z position of the point of closest approach	
-  produces<vector<float> >		("trksptErr"	  ).setBranchAlias("trks_ptErr"      );	// track Pt error					
-  produces<vector<float> >		("trksetaErr"	  ).setBranchAlias("trks_etaErr"     );	// track eta error					
-  produces<vector<float> >		("trksphiErr"	  ).setBranchAlias("trks_phiErr"     );	// track phi error					
-  produces<vector<float> >		("trksd0phiCov"	  ).setBranchAlias("trks_d0phiCov"   ); // track cov(d0, phi) 
-  produces<vector<int> >		("trkscharge"	  ).setBranchAlias("trks_charge"     );	// charge						
-  produces<vector<int> >                ("trksqualityMask").setBranchAlias("trks_qualityMask"); // mask of quality flags
-  produces<vector<int> >                ("trksalgo"       ).setBranchAlias("trks_algo"       );
-  
-  produces<vector<int> >                ("trksnlayers"    ).setBranchAlias("trks_nlayers"    );
-  produces<vector<int> >                ("trksnlayers3D"  ).setBranchAlias("trks_nlayers3D"  );
-  produces<vector<int> >                ("trksnlayersLost").setBranchAlias("trks_nlayersLost");
+  produces<vector<LorentzVector> >	    ( branchprefix_ + "trkp4"	           ).setBranchAlias( aliasprefix_ + "_trk_p4"         );	// track p4						
+  produces<vector<LorentzVector> >	    ( branchprefix_ + "vertexp4"	       ).setBranchAlias( aliasprefix_ + "_vertex_p4"      );	// vertex p4
+  produces<vector<LorentzVector> >      ( branchprefix_ + "outerp4"          ).setBranchAlias( aliasprefix_ + "_outer_p4"       ); // p4 at the outermost point of the tracker
+  produces<vector<float> >		          ( branchprefix_ + "d0"	             ).setBranchAlias( aliasprefix_ + "_d0"             );	// impact parameter at the point of closest approach	
+  produces<vector<float> >		          ( branchprefix_ + "d0corr"	         ).setBranchAlias( aliasprefix_ + "_d0corr"         );	// impact parameter at the point of closest approach corrected for the beamSpot
+  produces<vector<float> >		          ( branchprefix_ + "d0corrPhi"        ).setBranchAlias( aliasprefix_ + "_d0corrPhi"      );	// angle of impact parameter corrected for beamSpot
+  produces<vector<float> >		          ( branchprefix_ + "z0"	             ).setBranchAlias( aliasprefix_ + "_z0"             );	// z position of the point of closest approach		
+  produces<vector<float> >		          ( branchprefix_ + "z0corr"	         ).setBranchAlias( aliasprefix_ + "_z0corr"         );	// z position of the point of closest approach corrected for the the beamSpot
+  produces<vector<float> >		          ( branchprefix_ + "chi2"	           ).setBranchAlias( aliasprefix_ + "_chi2"           );	// chi2 of the silicon tracker fit			
+  produces<vector<float> >		          ( branchprefix_ + "ndof"	           ).setBranchAlias( aliasprefix_ + "_ndof"           );	// number of degrees of freedom of the fit		
+  produces<vector<int> >		            ( branchprefix_ + "validHits"        ).setBranchAlias( aliasprefix_ + "_validHits"      );	// number of used hits in the fit			
+  produces<vector<int> >		            ( branchprefix_ + "lostHits"	       ).setBranchAlias( aliasprefix_ + "_lostHits"       );	// number of lost hits in the fit			
+  produces<vector<float> >		          ( branchprefix_ + "d0Err"	           ).setBranchAlias( aliasprefix_ + "_d0Err"          );	// error on the impact parameter			
+  produces<vector<float> >		          ( branchprefix_ + "z0Err"	           ).setBranchAlias( aliasprefix_ + "_z0Err"          );	// error on z position of the point of closest approach	
+  produces<vector<float> >		          ( branchprefix_ + "ptErr"	           ).setBranchAlias( aliasprefix_ + "_ptErr"          );	// track Pt error					
+  produces<vector<float> >		          ( branchprefix_ + "etaErr"	         ).setBranchAlias( aliasprefix_ + "_etaErr"         );	// track eta error					
+  produces<vector<float> >		          ( branchprefix_ + "phiErr"	         ).setBranchAlias( aliasprefix_ + "_phiErr"         );	// track phi error					
+  produces<vector<float> >		          ( branchprefix_ + "d0phiCov"	       ).setBranchAlias( aliasprefix_ + "_d0phiCov"       ); // track cov(d0, phi) 
+  produces<vector<int> >		            ( branchprefix_ + "charge"	         ).setBranchAlias( aliasprefix_ + "_charge"         );	// charge						
+  produces<vector<int> >                ( branchprefix_ + "qualityMask"      ).setBranchAlias( aliasprefix_ + "_qualityMask"    ); // mask of quality flags
+  produces<vector<int> >                ( branchprefix_ + "algo"             ).setBranchAlias( aliasprefix_ + "_algo"           );
+  produces<vector<int> >                ( branchprefix_ + "nlayers"          ).setBranchAlias( aliasprefix_ + "_nlayers"        );
+  produces<vector<int> >                ( branchprefix_ + "nlayers3D"        ).setBranchAlias( aliasprefix_ + "_nlayers3D"      );
+  produces<vector<int> >                ( branchprefix_ + "nlayersLost"      ).setBranchAlias( aliasprefix_ + "_nlayersLost"    );
 
    //Hit Pattern information
-
-  produces<vector<LorentzVector> >  ("trksinnerposition"           ).setBranchAlias("trks_inner_position"         );
-  produces<vector<LorentzVector> >  ("trksouterposition"           ).setBranchAlias("trks_outer_position"         );
-  produces<vector<int> >            ("trksvalidpixelhits"          ).setBranchAlias("trks_valid_pixelhits"        );
-  produces<vector<int> >            ("trkslostpixelhits"           ).setBranchAlias("trks_lost_pixelhits"         );
-  produces<vector<int> >            ("trkslayer1sizerphi"          ).setBranchAlias("trks_layer1_sizerphi"        ); 
-  produces<vector<int> >            ("trkslayer1sizerz"            ).setBranchAlias("trks_layer1_sizerz"          ); 
-  produces<vector<float> >          ("trkslayer1charge"            ).setBranchAlias("trks_layer1_charge"          ); 
-  produces<vector<int> >            ("trkslayer1det"               ).setBranchAlias("trks_layer1_det"             );
-  produces<vector<int> >            ("trkslayer1layer"             ).setBranchAlias("trks_layer1_layer"           ); 
-  produces<vector<int> >            ("trksexpinnerlayers"          ).setBranchAlias("trks_exp_innerlayers"        );
-  produces<vector<int> >            ("trksexpouterlayers"          ).setBranchAlias("trks_exp_outerlayers"        );   
-  produces<vector<float> >           ("trksvalidFraction"           ).setBranchAlias("trks_validFraction"          );
-
-  produces<vector<int> >            ("trkspvidx0"                  ).setBranchAlias("trks_pvidx0"        );
-  produces<vector<int> >            ("trkspvidx1"                  ).setBranchAlias("trks_pvidx1"        );
-  
-  produces<vector<int> >            ("trksnLoops"                  ).setBranchAlias("trks_nLoops"        );
+  produces<vector<LorentzVector> >      ( branchprefix_ + "innerposition"    ).setBranchAlias( aliasprefix_ + "_inner_position" );
+  produces<vector<LorentzVector> >      ( branchprefix_ + "outerposition"    ).setBranchAlias( aliasprefix_ + "_outer_position" );
+  produces<vector<int> >                ( branchprefix_ + "validpixelhits"   ).setBranchAlias( aliasprefix_ + "_valid_pixelhits");
+  produces<vector<int> >                ( branchprefix_ + "lostpixelhits"    ).setBranchAlias( aliasprefix_ + "_lost_pixelhits" );
+  produces<vector<int> >                ( branchprefix_ + "layer1sizerphi"   ).setBranchAlias( aliasprefix_ + "_layer1_sizerphi"); 
+  produces<vector<int> >                ( branchprefix_ + "layer1sizerz"     ).setBranchAlias( aliasprefix_ + "_layer1_sizerz"  ); 
+  produces<vector<float> >              ( branchprefix_ + "layer1charge"     ).setBranchAlias( aliasprefix_ + "_layer1_charge"  ); 
+  produces<vector<int> >                ( branchprefix_ + "layer1det"        ).setBranchAlias( aliasprefix_ + "_layer1_det"     );
+  produces<vector<int> >                ( branchprefix_ + "layer1layer"      ).setBranchAlias( aliasprefix_ + "_layer1_layer"   ); 
+  produces<vector<int> >                ( branchprefix_ + "expinnerlayers"   ).setBranchAlias( aliasprefix_ + "_exp_innerlayers");
+  produces<vector<int> >                ( branchprefix_ + "expouterlayers"   ).setBranchAlias( aliasprefix_ + "_exp_outerlayers");   
+  produces<vector<float> >              ( branchprefix_ + "validFraction"    ).setBranchAlias( aliasprefix_ + "_validFraction"  );
+  produces<vector<int> >                ( branchprefix_ + "pvidx0"           ).setBranchAlias( aliasprefix_ + "_pvidx0"         );
+  produces<vector<int> >                ( branchprefix_ + "pvidx1"           ).setBranchAlias( aliasprefix_ + "_pvidx1"         );
+  produces<vector<int> >                ( branchprefix_ + "nLoops"           ).setBranchAlias( aliasprefix_ + "_nLoops"         );
 
   tracksInputTag = iConfig.getParameter<edm::InputTag>("tracksInputTag");
   beamSpotTag    = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
@@ -144,52 +140,51 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   using namespace edm;
 
-  std::auto_ptr<vector<LorentzVector> >	vector_trks_trk_p4	(new vector<LorentzVector>	);
-  std::auto_ptr<vector<LorentzVector> >	vector_trks_vertex_p4	(new vector<LorentzVector>	);
-  std::auto_ptr<vector<LorentzVector> > vector_trks_outer_p4    (new vector<LorentzVector>      );
-  std::auto_ptr<vector<float> >		vector_trks_d0		(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_d0corr      (new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_d0corrPhi   (new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_z0		(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_z0corr	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_chi2	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_ndof	(new vector<float>		);      
-  std::auto_ptr<vector<int> >		vector_trks_validHits	(new vector<int>		);        
-  std::auto_ptr<vector<int> >		vector_trks_lostHits	(new vector<int>		);        
-  std::auto_ptr<vector<float> >		vector_trks_d0Err	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_z0Err	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_ptErr	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_etaErr	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_phiErr	(new vector<float>		);      
-  std::auto_ptr<vector<float> >		vector_trks_d0phiCov	(new vector<float>		);      
-  std::auto_ptr<vector<int> >		vector_trks_charge	(new vector<int>		);        
-  std::auto_ptr<vector<int> >           vector_trks_qualityMask (new vector<int>                );
-  std::auto_ptr<vector<int> >           vector_trks_algo        (new vector<int>                );
+  std::auto_ptr<vector<LorentzVector> >	vector_trks_trk_p4	      (new vector<LorentzVector> );
+  std::auto_ptr<vector<LorentzVector> >	vector_trks_vertex_p4	    (new vector<LorentzVector> );
+  std::auto_ptr<vector<LorentzVector> > vector_trks_outer_p4      (new vector<LorentzVector> );
+  std::auto_ptr<vector<float> >		      vector_trks_d0		        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_d0corr        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_d0corrPhi     (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_z0		        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_z0corr	      (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_chi2	        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_ndof	        (new vector<float>		     );      
+  std::auto_ptr<vector<int> >	   	      vector_trks_validHits	    (new vector<int>		       );        
+  std::auto_ptr<vector<int> >		        vector_trks_lostHits	    (new vector<int>		       );        
+  std::auto_ptr<vector<float> >		      vector_trks_d0Err	        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_z0Err	        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_ptErr	        (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_etaErr	      (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_phiErr	      (new vector<float>		     );      
+  std::auto_ptr<vector<float> >		      vector_trks_d0phiCov	    (new vector<float>		     );      
+  std::auto_ptr<vector<int> >		        vector_trks_charge	      (new vector<int>		       );        
+  std::auto_ptr<vector<int> >           vector_trks_qualityMask   (new vector<int>           );
+  std::auto_ptr<vector<int> >           vector_trks_algo          (new vector<int>           );
 
-   //HitPattern information
-  //
-  std::auto_ptr<vector<LorentzVector> >trks_inner_position          (new vector<LorentzVector>  );
-  std::auto_ptr<vector<LorentzVector> >trks_outer_position          (new vector<LorentzVector>  );
-  std::auto_ptr<vector<int> >	       trks_valid_pixelhits         (new vector<int>	        ); 
-  std::auto_ptr<vector<int> >	       trks_lost_pixelhits          (new vector<int>        	); 
-  std::auto_ptr<vector<int> >	       trks_layer1_sizerphi         (new vector<int>	        ); 
-  std::auto_ptr<vector<int> >	       trks_layer1_sizerz           (new vector<int>	        ); 
-  std::auto_ptr<vector<float> >	       trks_layer1_charge           (new vector<float>	        );
-  std::auto_ptr<vector<int> >	       trks_layer1_det              (new vector<int>	        );
-  std::auto_ptr<vector<int> >	       trks_layer1_layer            (new vector<int>            );
-  std::auto_ptr<vector<int> >	       trks_exp_innerlayers         (new vector<int>		); 
-  std::auto_ptr<vector<int> >	       trks_exp_outerlayers         (new vector<int>		); 
+  //HitPattern information
+  std::auto_ptr<vector<LorentzVector> > trks_inner_position       (new vector<LorentzVector> );
+  std::auto_ptr<vector<LorentzVector> > trks_outer_position       (new vector<LorentzVector> );
+  std::auto_ptr<vector<int> >	          trks_valid_pixelhits      (new vector<int>	         ); 
+  std::auto_ptr<vector<int> >	          trks_lost_pixelhits       (new vector<int>        	 ); 
+  std::auto_ptr<vector<int> >	          trks_layer1_sizerphi      (new vector<int>	         ); 
+  std::auto_ptr<vector<int> >	          trks_layer1_sizerz        (new vector<int>	         ); 
+  std::auto_ptr<vector<float> >	        trks_layer1_charge        (new vector<float>	       );
+  std::auto_ptr<vector<int> >	          trks_layer1_det           (new vector<int>	         );
+  std::auto_ptr<vector<int> >	          trks_layer1_layer         (new vector<int>           );
+  std::auto_ptr<vector<int> >	          trks_exp_innerlayers      (new vector<int>	      	 ); 
+  std::auto_ptr<vector<int> >	          trks_exp_outerlayers      (new vector<int>	      	 ); 
 
-  std::auto_ptr<vector<int> > vector_trks_nlayers     (new vector<int> );
-  std::auto_ptr<vector<int> > vector_trks_nlayers3D   (new vector<int> );
-  std::auto_ptr<vector<int> > vector_trks_nlayersLost (new vector<int> );
-  std::auto_ptr<vector<float> > vector_trks_validFraction (new vector<float> );
+  std::auto_ptr<vector<int> >           vector_trks_nlayers       (new vector<int>           );
+  std::auto_ptr<vector<int> >           vector_trks_nlayers3D     (new vector<int>           );
+  std::auto_ptr<vector<int> >           vector_trks_nlayersLost   (new vector<int>           );
+  std::auto_ptr<vector<float> >         vector_trks_validFraction (new vector<float>         );
 
   //indeces to the pvs
-  std::auto_ptr<vector<int> > vector_trks_pvidx0    (new vector<int> );
-  std::auto_ptr<vector<int> > vector_trks_pvidx1    (new vector<int> );
+  std::auto_ptr<vector<int> >           vector_trks_pvidx0        (new vector<int>           );
+  std::auto_ptr<vector<int> >           vector_trks_pvidx1        (new vector<int>           );
 
-  std::auto_ptr<vector<int> > vector_trks_nLoops    (new vector<int> );
+  std::auto_ptr<vector<int> >           vector_trks_nLoops        (new vector<int>           );
 
 
 
@@ -331,7 +326,7 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     else {
       vector_trks_outer_p4->push_back( LorentzVector( 999., 0., 22004439., 22004440.) );
-   }
+    }
 
 
     /////hit pattern
@@ -344,12 +339,11 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     
     const reco::HitPattern& pattern = i->hitPattern();    
-    const reco::HitPattern& p_inner = i->trackerExpectedHitsInner();
-    const reco::HitPattern& p_outer = i->trackerExpectedHitsOuter();
-    trks_exp_innerlayers    -> push_back(p_inner.numberOfHits());
-    trks_exp_outerlayers    -> push_back(p_outer.numberOfHits());   
+
+    trks_exp_innerlayers    -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_INNER_HITS));
+    trks_exp_outerlayers    -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_OUTER_HITS));   
     trks_valid_pixelhits ->push_back(pattern.numberOfValidPixelHits());
-      trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits());
+      trks_lost_pixelhits ->push_back(pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS));
 
       
     if(i->extra().isAvailable()) {
@@ -371,78 +365,73 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
 
 
-      for(trackingRecHit_iterator ihit = i->recHitsBegin(); 
-	  ihit != i->recHitsEnd(); ++ihit){
-	if(i_layer > 1) break;
-	int k = ihit-i->recHitsBegin();
-	hit_pattern = pattern.getHitPattern(k);
-	valid_hit = pattern.validHitFilter(hit_pattern);
-	pixel_hit = pattern.pixelHitFilter(hit_pattern);
-	strip_hit = pattern.stripHitFilter(hit_pattern);
-	side      = (int)pattern.getSide(hit_pattern);
-	det       = (int)pattern.getSubStructure(hit_pattern);
-	layer     = (int)pattern.getLayer(hit_pattern);
-	if(!valid_hit) continue;
-	if(pixel_hit){
-	  const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
-	  assert(pixel_hit_cast != 0);
-	  pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-	  //pixel_size   = (int)pixel_cluster->size(); 
-	  pixel_sizeX  = (int)pixel_cluster->sizeX(); 
-	  pixel_sizeY  = (int)pixel_cluster->sizeY(); 
-	  pixel_charge = (float)pixel_cluster->charge();
-	  if(i_layer == 1){
-	    trks_layer1_sizerphi ->push_back(pixel_sizeX);
-	    trks_layer1_sizerz   ->push_back(pixel_sizeY);
-	    trks_layer1_charge   ->push_back(pixel_charge);
-	    trks_layer1_det      ->push_back(det);
-	    trks_layer1_layer    ->push_back(layer);
-	    i_layer++;
+      for(trackingRecHit_iterator ihit = i->recHitsBegin(); ihit != i->recHitsEnd(); ++ihit){
+        if(i_layer > 1) break;
+        int k = ihit-i->recHitsBegin();
+        hit_pattern = pattern.getHitPattern(reco::HitPattern::TRACK_HITS, k);
+        valid_hit = pattern.validHitFilter(hit_pattern);
+        pixel_hit = pattern.pixelHitFilter(hit_pattern);
+        strip_hit = pattern.stripHitFilter(hit_pattern);
+        side      = (int)pattern.getSide(hit_pattern);
+        det       = (int)pattern.getSubStructure(hit_pattern);
+        layer     = (int)pattern.getLayer(hit_pattern);
+        if(!valid_hit) continue;
+        if(pixel_hit){
+          const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
+          assert(pixel_hit_cast != 0);
+          pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
+          //pixel_size   = (int)pixel_cluster->size(); 
+          pixel_sizeX  = (int)pixel_cluster->sizeX(); 
+          pixel_sizeY  = (int)pixel_cluster->sizeY(); 
+          pixel_charge = (float)pixel_cluster->charge();
+          if(i_layer == 1){
+            trks_layer1_sizerphi ->push_back(pixel_sizeX);
+            trks_layer1_sizerz   ->push_back(pixel_sizeY);
+            trks_layer1_charge   ->push_back(pixel_charge);
+            trks_layer1_det      ->push_back(det);
+            trks_layer1_layer    ->push_back(layer);
+            i_layer++;
 
-	  }
-	}
-	else if (strip_hit){
-	  const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
-	  const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
-	  ClusterRef cluster;
-	  if(strip_hit_cast == NULL)
-	    cluster = strip2d_hit_cast->cluster();
-	  else 
-	    cluster = strip_hit_cast->cluster();
-	  int cluster_size   = (int)cluster->amplitudes().size();
-	  int cluster_charge = 0;
-	  double   cluster_weight_size = 0.0;
-	  int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
-	  for(int istrip = 0; istrip < cluster_size; istrip++){
-	    cluster_charge += (int)cluster->amplitudes().at(istrip);
-	    cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
-	  }
-	  cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
-	  if(i_layer == 1){
-	    if(side==0) 
-	      {
-		trks_layer1_sizerphi ->push_back(cluster_size);
-		trks_layer1_sizerz   ->push_back(0);
-	      }
-
-	    else
-	      {
-		trks_layer1_sizerphi ->push_back(0);
-		trks_layer1_sizerz   ->push_back(cluster_size);
-	      } 
-	    trks_layer1_charge   ->push_back(cluster_charge);
-	    trks_layer1_det      ->push_back(det);
-	    trks_layer1_layer    ->push_back(layer);
-	    i_layer++;
-	  }
-	}
+          }
+        }
+        else if (strip_hit){
+          const SiStripRecHit1D *strip_hit_cast = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
+          const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
+          ClusterRef cluster;
+          if(strip_hit_cast == NULL)
+            cluster = strip2d_hit_cast->cluster();
+          else 
+            cluster = strip_hit_cast->cluster();
+          int cluster_size   = (int)cluster->amplitudes().size();
+          int cluster_charge = 0;
+          double   cluster_weight_size = 0.0;
+          int max_strip_i = std::max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
+          for(int istrip = 0; istrip < cluster_size; istrip++){
+            cluster_charge += (int)cluster->amplitudes().at(istrip);
+            cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
+          }
+          cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
+          if(i_layer == 1){
+            if(side==0){
+              trks_layer1_sizerphi ->push_back(cluster_size);
+              trks_layer1_sizerz   ->push_back(0);
+            }else{
+              trks_layer1_sizerphi ->push_back(0);
+              trks_layer1_sizerz   ->push_back(cluster_size);
+            } 
+            trks_layer1_charge   ->push_back(cluster_charge);
+            trks_layer1_det      ->push_back(det);
+            trks_layer1_layer    ->push_back(layer);
+            i_layer++;
+          }
+        }
       }
       
     
 
     } else {
       
-      trks_layer1_sizerphi->push_back(-9999);
+      trks_layer1_sizerphi ->push_back(-9999);
       trks_layer1_sizerz   ->push_back(-9999);
       trks_layer1_charge   ->push_back(-9999);
       trks_layer1_det      ->push_back(-9999);
@@ -453,95 +442,95 @@ void TrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     
     // *****************************************************
-     vector_trks_nlayers    ->push_back( i->hitPattern().trackerLayersWithMeasurement() );
-     vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
-     vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement() );
+    vector_trks_nlayers    ->push_back( i->hitPattern().trackerLayersWithMeasurement() );
+    vector_trks_nlayers3D  ->push_back( i->hitPattern().pixelLayersWithMeasurement() + i->hitPattern().numberOfValidStripLayersWithMonoAndStereo() );
+    vector_trks_nlayersLost->push_back( i->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) );
 
-     int iPV0 = -9999;
-     int iPV1 = -9999;
-     float wPV0 = -1;
-     float wPV1 = -1;
-     int ivIndex = -1;
-     reco::TrackBaseRef trackBaseRef = track_h->refAt(iTIndex);
-     if (trackBaseRef->px() != i->px()){
-       LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref";
-     }
-     //pick and fill the vertex with the highest and the second highest weight for the track
-     for (reco::VertexCollection::const_iterator iV = vertexCollection->begin(); iV!= vertexCollection->end(); ++iV){
-       ivIndex++;
-       for(reco::Vertex::trackRef_iterator iT = iV->tracks_begin(); iT != iV->tracks_end(); ++iT){
-	 const reco::TrackBaseRef& baseRef = *iT;
-	 if (baseRef.key() == trackBaseRef.key()){
-	   float wT = iV->trackWeight(baseRef);
-	   //	   if (baseRef->px() != i->px()){
-	   //	     LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref from vtx";
-	   //	   }
-	   if (wT > wPV0){
-	     wPV1 = wPV0;
-	     iPV1 = iPV0;
-	     wPV0 = wT;
-	     iPV0 = ivIndex;
-	   }
-	   if (wT > wPV1 && wT != wPV0){
-	     wPV1 = wT;
-	     iPV1 = ivIndex;
-	   }
-	 }
-       }
-     }
-     vector_trks_pvidx0->push_back(iPV0);
-     vector_trks_pvidx1->push_back(iPV1);
+    int iPV0 = -9999;
+    int iPV1 = -9999;
+    float wPV0 = -1;
+    float wPV1 = -1;
+    int ivIndex = -1;
+    reco::TrackBaseRef trackBaseRef = track_h->refAt(iTIndex);
+    if (trackBaseRef->px() != i->px()){
+      LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref";
+    }
+    //pick and fill the vertex with the highest and the second highest weight for the track
+    for (reco::VertexCollection::const_iterator iV = vertexCollection->begin(); iV!= vertexCollection->end(); ++iV){
+      ivIndex++;
+      for(reco::Vertex::trackRef_iterator iT = iV->tracks_begin(); iT != iV->tracks_end(); ++iT){
+	      const reco::TrackBaseRef& baseRef = *iT;
+        if (baseRef.key() == trackBaseRef.key()){
+          float wT = iV->trackWeight(baseRef);
+          //	   if (baseRef->px() != i->px()){
+          //	     LogError("WrongTrackRefMade")<<"Wrong conversion to track base ref from vtx";
+          //	   }
+          if (wT > wPV0){
+            wPV1 = wPV0;
+            iPV1 = iPV0;
+            wPV0 = wT;
+            iPV0 = ivIndex;
+          }
+          if (wT > wPV1 && wT != wPV0){
+            wPV1 = wT;
+            iPV1 = ivIndex;
+          }
+        }
+      }
+    }
+    vector_trks_pvidx0->push_back(iPV0);
+    vector_trks_pvidx1->push_back(iPV1);
 
 
   } // End loop on tracks
 
   // store vectors
-  iEvent.put(vector_trks_trk_p4       , "trkstrkp4"             );
-  iEvent.put(vector_trks_vertex_p4    , "trksvertexp4"          );
-  iEvent.put(vector_trks_outer_p4     , "trksouterp4"           );
-  iEvent.put(vector_trks_d0           , "trksd0"                );
-  iEvent.put(vector_trks_d0corr       , "trksd0corr"            );
-  iEvent.put(vector_trks_d0corrPhi    , "trksd0corrPhi"         );
-  iEvent.put(vector_trks_z0           , "trksz0"                );
-  iEvent.put(vector_trks_z0corr       , "trksz0corr"            );
-  iEvent.put(vector_trks_chi2         , "trkschi2"              );
-  iEvent.put(vector_trks_ndof         , "trksndof"              );
-  iEvent.put(vector_trks_validHits    , "trksvalidHits"         );
-  iEvent.put(vector_trks_lostHits     , "trkslostHits"          );
-  iEvent.put(vector_trks_d0Err        , "trksd0Err"             );
-  iEvent.put(vector_trks_z0Err        , "trksz0Err"             );
-  iEvent.put(vector_trks_ptErr        , "trksptErr"             );
-  iEvent.put(vector_trks_etaErr       , "trksetaErr"            );
-  iEvent.put(vector_trks_phiErr       , "trksphiErr"            );
-  iEvent.put(vector_trks_d0phiCov     , "trksd0phiCov"          );
-  iEvent.put(vector_trks_charge       , "trkscharge"            );
-  iEvent.put(vector_trks_algo         , "trksalgo"              );
+  iEvent.put(vector_trks_trk_p4       , branchprefix_ + "trkp4"             );
+  iEvent.put(vector_trks_vertex_p4    , branchprefix_ + "vertexp4"          );
+  iEvent.put(vector_trks_outer_p4     , branchprefix_ + "outerp4"           );
+  iEvent.put(vector_trks_d0           , branchprefix_ + "d0"                );
+  iEvent.put(vector_trks_d0corr       , branchprefix_ + "d0corr"            );
+  iEvent.put(vector_trks_d0corrPhi    , branchprefix_ + "d0corrPhi"         );
+  iEvent.put(vector_trks_z0           , branchprefix_ + "z0"                );
+  iEvent.put(vector_trks_z0corr       , branchprefix_ + "z0corr"            );
+  iEvent.put(vector_trks_chi2         , branchprefix_ + "chi2"              );
+  iEvent.put(vector_trks_ndof         , branchprefix_ + "ndof"              );
+  iEvent.put(vector_trks_validHits    , branchprefix_ + "validHits"         );
+  iEvent.put(vector_trks_lostHits     , branchprefix_ + "lostHits"          );
+  iEvent.put(vector_trks_d0Err        , branchprefix_ + "d0Err"             );
+  iEvent.put(vector_trks_z0Err        , branchprefix_ + "z0Err"             );
+  iEvent.put(vector_trks_ptErr        , branchprefix_ + "ptErr"             );
+  iEvent.put(vector_trks_etaErr       , branchprefix_ + "etaErr"            );
+  iEvent.put(vector_trks_phiErr       , branchprefix_ + "phiErr"            );
+  iEvent.put(vector_trks_d0phiCov     , branchprefix_ + "d0phiCov"          );
+  iEvent.put(vector_trks_charge       , branchprefix_ + "charge"            );
+  iEvent.put(vector_trks_algo         , branchprefix_ + "algo"              );
 
-  iEvent.put(vector_trks_qualityMask  , "trksqualityMask"       );
+  iEvent.put(vector_trks_qualityMask  , branchprefix_ + "qualityMask"       );
 
-  iEvent.put(vector_trks_nlayers    , "trksnlayers"    );
-  iEvent.put(vector_trks_nlayers3D  , "trksnlayers3D"  );
-  iEvent.put(vector_trks_nlayersLost, "trksnlayersLost");
+  iEvent.put(vector_trks_nlayers      , branchprefix_ + "nlayers"    );
+  iEvent.put(vector_trks_nlayers3D    , branchprefix_ + "nlayers3D"  );
+  iEvent.put(vector_trks_nlayersLost  , branchprefix_ + "nlayersLost");
 
   //Hit Pattern Information
 
-  iEvent.put(trks_inner_position  , "trksinnerposition"  );
-  iEvent.put(trks_outer_position  , "trksouterposition"  );
-  iEvent.put(trks_valid_pixelhits , "trksvalidpixelhits" );
-  iEvent.put(trks_lost_pixelhits  , "trkslostpixelhits"  );
-  iEvent.put(trks_layer1_layer    , "trkslayer1layer"    );
-  iEvent.put(trks_layer1_sizerphi , "trkslayer1sizerphi" );
-  iEvent.put(trks_layer1_sizerz   , "trkslayer1sizerz"   );
-  iEvent.put(trks_layer1_charge   , "trkslayer1charge"   );
-  iEvent.put(trks_layer1_det      , "trkslayer1det"      );
-  iEvent.put(trks_exp_innerlayers , "trksexpinnerlayers" );
-  iEvent.put(trks_exp_outerlayers , "trksexpouterlayers" );
-  iEvent.put(vector_trks_validFraction, "trksvalidFraction");  
+  iEvent.put(trks_inner_position      , branchprefix_ + "innerposition"  );
+  iEvent.put(trks_outer_position      , branchprefix_ + "outerposition"  );
+  iEvent.put(trks_valid_pixelhits     , branchprefix_ + "validpixelhits" );
+  iEvent.put(trks_lost_pixelhits      , branchprefix_ + "lostpixelhits"  );
+  iEvent.put(trks_layer1_layer        , branchprefix_ + "layer1layer"    );
+  iEvent.put(trks_layer1_sizerphi     , branchprefix_ + "layer1sizerphi" );
+  iEvent.put(trks_layer1_sizerz       , branchprefix_ + "layer1sizerz"   );
+  iEvent.put(trks_layer1_charge       , branchprefix_ + "layer1charge"   );
+  iEvent.put(trks_layer1_det          , branchprefix_ + "layer1det"      );
+  iEvent.put(trks_exp_innerlayers     , branchprefix_ + "expinnerlayers" );
+  iEvent.put(trks_exp_outerlayers     , branchprefix_ + "expouterlayers" );
+  iEvent.put(vector_trks_validFraction, branchprefix_ + "validFraction");  
 
-  iEvent.put(vector_trks_pvidx0, "trkspvidx0");
-  iEvent.put(vector_trks_pvidx1, "trkspvidx1");
+  iEvent.put(vector_trks_pvidx0       , branchprefix_ + "pvidx0");
+  iEvent.put(vector_trks_pvidx1       , branchprefix_ + "pvidx1");
 
-  iEvent.put(vector_trks_nLoops, "trksnLoops");
+  iEvent.put(vector_trks_nLoops       , branchprefix_ + "nLoops");
 
 }
 

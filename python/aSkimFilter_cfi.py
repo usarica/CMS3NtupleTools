@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-from CMS2.NtupleMaker.electronMaker_cfi import *
-from CMS2.NtupleMaker.muonMaker_cfi import *
+from CMS3.NtupleMaker.electronMaker_cfi import *
+from CMS3.NtupleMaker.muonMaker_cfi import *
 
 aSkimFilter = cms.EDFilter("ASkimFilter",
                            electronsInputTag = electronMaker.electronsInputTag,

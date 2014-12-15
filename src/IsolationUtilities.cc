@@ -3,7 +3,7 @@
 // Package:    IsolationUtilities
 // Class:      IsolationUtilities
 // 
-/**\class IsolationUtilities IsolationUtilities.cc CMS2/NtupleMaker/src/IsolationUtilities.cc
+/**\class IsolationUtilities IsolationUtilities.cc CMS3/NtupleMaker/src/IsolationUtilities.cc
 
    Description: Isolation utilities
 
@@ -14,7 +14,7 @@
 // $Id: IsolationUtilities.cc,v 1.3 2012/04/30 01:17:56 fgolf Exp $
 //
 //
-#include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
+#include "CMS3/NtupleMaker/interface/IsolationUtilities.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -129,7 +129,7 @@ double IsolationUtilities::GetElectronRadialIsolation(const reco::GsfElectron &e
             if (iP->particleId() == reco::PFCandidate::h && dr <= 0.015) continue;
             if (iP->particleId() == reco::PFCandidate::gamma && dr <=0.08) continue;
         }
-        else if (barrel_veto && el.mvaOutput().mva < -0.1) {
+        else if (barrel_veto && el.mvaOutput().mva_Isolated < -0.1) {
             if (iP->particleId() == reco::PFCandidate::h && dr <= 0.015) continue;
             if (iP->particleId() == reco::PFCandidate::gamma && dr <=0.08) continue;            
         }

@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ASkimFilter
 // 
-/**\class ASkimFilter ASkimFilter.h CMS2/NtupleMaker/interface/ASkimFilter.h
+/**\class ASkimFilter ASkimFilter.h CMS3/NtupleMaker/interface/ASkimFilter.h
 
    Description: generic filter for cms2
 

@@ -3,7 +3,7 @@
 // Package:    TrkJetMaker
 // Class:      TrkJetMaker
 //
-/**\class TrkJetMaker TrkJetMaker.h CMS2/NtupleMaker/interface/TrkJetMaker.h
+/**\class TrkJetMaker TrkJetMaker.h CMS3/NtupleMaker/interface/TrkJetMaker.h
 
 Description: Produces TrkJet Collection
 

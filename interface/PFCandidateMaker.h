@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      NtupleMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/NtupleMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/NtupleMaker.cc
 
    Description: <one line class summary>
 
@@ -25,6 +25,8 @@
 #include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
 #include "Math/VectorUtil.h"
 
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 //
 // class decleration
 //
@@ -44,15 +46,15 @@ private:
   float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
   
   // ----------member data ---------------------------
-  double minDR_electron_;
-  edm::InputTag pfElectronsTag_;
+  //double minDR_electron_;
+  //edm::InputTag pfElectronsTag_;
   edm::InputTag pfCandidatesTag_;
-  edm::InputTag tracksInputTag_;
-  edm::InputTag vertexInputTag_;
+  //edm::InputTag tracksInputTag_;
+  //edm::InputTag vertexInputTag_;
 
-  const reco::PFCandidateCollection *pfCandidates;
+  const pat::PackedCandidateCollection *pfCandidates;
 
-    PFPileUpAlgo *pfPileUpAlgo_;
+    //PFPileUpAlgo *pfPileUpAlgo_;
 
 };
 

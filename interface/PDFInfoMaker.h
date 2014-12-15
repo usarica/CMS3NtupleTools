@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PDFInfoMaker
 // 
-/**\class PDFInfoMaker PDFInfoMaker.cc CMS2/NtupleMaker/src/PDFInfoMaker.cc
+/**\class PDFInfoMaker PDFInfoMaker.cc CMS3/NtupleMaker/src/PDFInfoMaker.cc
 
    Description: <one line class summary>
 

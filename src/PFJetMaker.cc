@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      PFJetMaker
 //
-/**\class PFJetMaker PFJetMaker.cc CMS2/NtupleMakerMaker/src/PFJetMaker.cc
+/**\class PFJetMaker PFJetMaker.cc CMS3/NtupleMakerMaker/src/PFJetMaker.cc
 
 Description: <one line class summary>
 
@@ -21,13 +21,16 @@ Implementation:
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS2/NtupleMaker/interface/PFJetMaker.h"
+#include "CMS3/NtupleMaker/interface/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -36,50 +39,70 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   using namespace std;
   using namespace edm;
 
-  
-  aliasprefix_                      = iConfig.getParameter<std::string>  ("AliasPrefix"                     );
-  pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
-  pfCandidatesTag_                  = iConfig.getParameter<InputTag>   ( "pfCandidatesTag"                  );
-  pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
-  PFJetCorrectorL2L3_               = iConfig.getParameter<std::string>( "PFJetCorrectorL2L3"               );
-  PFJetCorrectorL1L2L3_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1L2L3"             );
-  PFJetCorrectorL1FastL2L3_         = iConfig.getParameter<std::string>( "PFJetCorrectorL1FastL2L3"         );
-  PFJetCorrectorL1Fast_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1Fast"             );
-  PFJetCorrectorL1FastL2L3residual_ = iConfig.getParameter<std::string>( "PFJetCorrectorL1FastL2L3residual" );
-
   // product of this EDProducer
-  produces<vector<LorentzVector> > ( aliasprefix_+"p4"                               ).setBranchAlias( aliasprefix_+"_p4"                               );
-  produces<vector<float> >         ( aliasprefix_+"chargedHadronE"                   ).setBranchAlias( aliasprefix_+"_chargedHadronE"                   );
-  produces<vector<float> >         ( aliasprefix_+"neutralHadronE"                   ).setBranchAlias( aliasprefix_+"_neutralHadronE"                   );
-  produces<vector<float> >         ( aliasprefix_+"chargedEmE"                       ).setBranchAlias( aliasprefix_+"_chargedEmE"                       );
-  produces<vector<float> >         ( aliasprefix_+"neutralEmE"                       ).setBranchAlias( aliasprefix_+"_neutralEmE"                       );
-  produces<vector<float> >         ( aliasprefix_+"photonE"                          ).setBranchAlias( aliasprefix_+"_photonE"                          );
-  produces<vector<float> >         ( aliasprefix_+"electronE"                        ).setBranchAlias( aliasprefix_+"_electronE"                        );
-  produces<vector<float> >         ( aliasprefix_+"muonE"                            ).setBranchAlias( aliasprefix_+"_muonE"                            );
-  produces<vector<float> >         ( aliasprefix_+"hfHadronE"                        ).setBranchAlias( aliasprefix_+"_hfHadronE"                        );
-  produces<vector<float> >         ( aliasprefix_+"hfEmE"                            ).setBranchAlias( aliasprefix_+"_hfEmE"                            );
-  produces<vector<int> >           ( aliasprefix_+"chargedHadronMultiplicity"        ).setBranchAlias( aliasprefix_+"_chargedHadronMultiplicity"        );
-  produces<vector<int> >           ( aliasprefix_+"neutralHadronMultiplicity"        ).setBranchAlias( aliasprefix_+"_neutralHadronMultiplicity"        );
-  produces<vector<int> >           ( aliasprefix_+"photonMultiplicity"               ).setBranchAlias( aliasprefix_+"_photonMultiplicity"               );
-  produces<vector<int> >           ( aliasprefix_+"electronMultiplicity"             ).setBranchAlias( aliasprefix_+"_electronMultiplicity"             );
-  produces<vector<int> >           ( aliasprefix_+"muonMultiplicity"                 ).setBranchAlias( aliasprefix_+"_muonMultiplicity"                 );
-  produces<vector<int> >           ( aliasprefix_+"hfHadronMultiplicity"             ).setBranchAlias( aliasprefix_+"_hfHadronMultiplicity"             );
-  produces<vector<int> >           ( aliasprefix_+"hfEmMultiplicity"                 ).setBranchAlias( aliasprefix_+"_hfEmMultiplicity"                 );
-  produces<vector<int>   >         ( aliasprefix_+"chargedMultiplicity"              ).setBranchAlias( aliasprefix_+"_chargedMultiplicity"              );
-  produces<vector<int>   >         ( aliasprefix_+"neutralMultiplicity"              ).setBranchAlias( aliasprefix_+"_neutralMultiplicity"              );
-  produces<vector<float> >         ( aliasprefix_+"cor"                              ).setBranchAlias( aliasprefix_+"_cor"                              );
-  produces<vector<float> >         ( aliasprefix_+"corL1L2L3"                        ).setBranchAlias( aliasprefix_+"_corL1L2L3"                        );
-  produces<vector<float> >         ( aliasprefix_+"corL1FastL2L3"                    ).setBranchAlias( aliasprefix_+"_corL1FastL2L3"                    );
-  produces<vector<float> >         ( aliasprefix_+"corL1Fast"                        ).setBranchAlias( aliasprefix_+"_corL1Fast"                        );
-  produces<vector<vector<int> >  > ( aliasprefix_+"pfcandIndicies"                   ).setBranchAlias( aliasprefix_+"_pfcandIndicies"                   );
-  produces<vector<float> >         ( aliasprefix_+"corL1FastL2L3residual"            ).setBranchAlias( aliasprefix_+"_corL1FastL2L3residual"            );
-  produces<vector<float> >         ( aliasprefix_+"area"                             ).setBranchAlias( aliasprefix_+"_area"                             );
+  produces<vector<LorentzVector> > ( "pfjetsp4"                               ).setBranchAlias( "pfjets_p4"                               );
+  produces<vector<float> >         ( "pfjetsmass"                             ).setBranchAlias( "pfjets_mass"                             );
+  produces<vector<float> >         ( "pfjetsundoJEC"                          ).setBranchAlias( "pfjets_undoJEC"                          );
+  produces<vector<float> >         ( "pfjetschargedHadronE"                   ).setBranchAlias( "pfjets_chargedHadronE"                   );
+  produces<vector<float> >         ( "pfjetsneutralHadronE"                   ).setBranchAlias( "pfjets_neutralHadronE"                   );
+  produces<vector<float> >         ( "pfjetschargedEmE"                       ).setBranchAlias( "pfjets_chargedEmE"                       );
+  produces<vector<float> >         ( "pfjetsneutralEmE"                       ).setBranchAlias( "pfjets_neutralEmE"                       );
+  produces<vector<float> >         ( "pfjetsphotonE"                          ).setBranchAlias( "pfjets_photonE"                          );
+  produces<vector<float> >         ( "pfjetselectronE"                        ).setBranchAlias( "pfjets_electronE"                        );
+  produces<vector<float> >         ( "pfjetsmuonE"                            ).setBranchAlias( "pfjets_muonE"                            );
+  produces<vector<float> >         ( "pfjetshfHadronE"                        ).setBranchAlias( "pfjets_hfHadronE"                        );
+  produces<vector<float> >         ( "pfjetshfEmE"                            ).setBranchAlias( "pfjets_hfEmE"                            );
+  produces<vector<int> >           ( "pfjetschargedHadronMultiplicity"        ).setBranchAlias( "pfjets_chargedHadronMultiplicity"        );
+  produces<vector<int> >           ( "pfjetsneutralHadronMultiplicity"        ).setBranchAlias( "pfjets_neutralHadronMultiplicity"        );
+  produces<vector<int> >           ( "pfjetsphotonMultiplicity"               ).setBranchAlias( "pfjets_photonMultiplicity"               );
+  produces<vector<int> >           ( "pfjetselectronMultiplicity"             ).setBranchAlias( "pfjets_electronMultiplicity"             );
+  produces<vector<int> >           ( "pfjetsmuonMultiplicity"                 ).setBranchAlias( "pfjets_muonMultiplicity"                 );
+  produces<vector<int> >           ( "pfjetshfHadronMultiplicity"             ).setBranchAlias( "pfjets_hfHadronMultiplicity"             );
+  produces<vector<int> >           ( "pfjetshfEmMultiplicity"                 ).setBranchAlias( "pfjets_hfEmMultiplicity"                 );
+  produces<vector<int>   >         ( "pfjetschargedMultiplicity"              ).setBranchAlias( "pfjets_chargedMultiplicity"              );
+  produces<vector<int>   >         ( "pfjetsneutralMultiplicity"              ).setBranchAlias( "pfjets_neutralMultiplicity"              );
+  produces<vector<float> >         ( "pfjetscor"                              ).setBranchAlias( "pfjets_cor"                              );
+  produces<vector<float> >         ( "pfjetscorL1L2L3"                        ).setBranchAlias( "pfjets_corL1L2L3"                        );
+  produces<vector<vector<int> >  > ( "pfjetspfcandIndicies"                   ).setBranchAlias( "pfjets_pfcandIndicies"                   );
+  produces<vector<float> >         ( "pfjetsarea"                             ).setBranchAlias( "pfjets_area"                             );
+  produces<vector<float> >         ( "pfjetspileupJetId"                      ).setBranchAlias( "pfjets_pileupJetId"                      );
+  produces<vector<int> >           ( "pfjetspartonFlavour"                    ).setBranchAlias( "pfjets_partonFlavour"                    );
 
+  // Embedded b-tagging information (miniAOD only)
+  produces<vector<float> > ("pfjetscombinedInclusiveSecondaryVertexV2BJetTag").setBranchAlias("pfjets_combinedInclusiveSecondaryVertexV2BJetTag");
+  produces<vector<float> > ("pfjetspfCombinedSecondaryVertexBJetTag"         ).setBranchAlias("pfjets_pfCombinedSecondaryVertexBJetTag"         );
+  produces<vector<float> > ("pfjetscombinedMVABJetTag"                       ).setBranchAlias("pfjets_combinedMVABJetTag"                       );
+  produces<vector<float> > ("pfjetsjetBProbabilityBJetTag"                   ).setBranchAlias("pfjets_jetBProbabilityBJetTag"	                );
+  produces<vector<float> > ("pfjetsjetProbabilityBJetTag"                    ).setBranchAlias("pfjets_jetProbabilityBJetTag"	                );
+  produces<vector<float> > ("pfjetssimpleSecondaryVertexHighEffBJetTag"      ).setBranchAlias("pfjets_simpleSecondaryVertexHighEffBJetTag"      );
+  produces<vector<float> > ("pfjetssimpleSecondaryVertexHighPurBJetTag"      ).setBranchAlias("pfjets_simpleSecondaryVertexHighPurBJetTags"     );  
+  produces<vector<float> > ("pfjetstrackCountingHighEffBJetTag"              ).setBranchAlias("pfjets_trackCountingHighEffBJetTag"	            );
+  produces<vector<float> > ("pfjetstrackCountingHighPurBJetTag"              ).setBranchAlias("pfjets_trackCountingHighPurBJetTag"	            );
+
+  //
+  pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
+  pfCandidatesTag_		= iConfig.getParameter<InputTag>	("pfCandidatesTag");
+  pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
+  l1file = edm::FileInPath(iConfig.getParameter<std::string> ("L1File")).fullPath();
+  l2file = edm::FileInPath(iConfig.getParameter<std::string> ("L2File")).fullPath();
+  l3file = edm::FileInPath(iConfig.getParameter<std::string> ("L3File")).fullPath();
+
+  L1Parms = new JetCorrectorParameters(l1file);
+  L2Parms = new JetCorrectorParameters(l2file);
+  L3Parms = new JetCorrectorParameters(l3file);
+  //JetCorrectorParameters *L1Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L1FastJet_AK4PFchs.txt");
+  //JetCorrectorParameters *L2Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L2Relative_AK4PFchs.txt");
+  //JetCorrectorParameters *L3Parms = new JetCorrectorParameters("data/JEC_phys14/PHYS14_V1_MC_L3Absolute_AK4PFchs.txt");
  
+  //PFJetCorrectorL1L2L3_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1L2L3"             );
 }
 
 // Destructor
-PFJetMaker::~PFJetMaker(){}
+PFJetMaker::~PFJetMaker(){
+  delete L1Parms;
+  delete L2Parms;
+  delete L3Parms;
+}
 
 // ------------ method called once each job just before starting event loop  ------------
 void PFJetMaker::beginJob() {}
@@ -88,6 +111,32 @@ void PFJetMaker::beginJob() {}
 void PFJetMaker::endJob() {}
 
 // ------------ method called to produce the data  ------------
+float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins, const pat::PackedCandidateCollection* pfCandidates) {
+
+     float etadist = etabins[1]-etabins[0];
+     float phidist = phibins[1]-phibins[0];
+     float etahalfdist = (etabins[1]-etabins[0])/2.;
+     float phihalfdist = (phibins[1]-phibins[0])/2.;
+     std::vector<float> sumPFNallSMDQ;
+     sumPFNallSMDQ.reserve(etabins.size()*phibins.size());
+     for (unsigned int ieta=0;ieta<etabins.size();++ieta) {
+       for (unsigned int iphi=0;iphi<phibins.size();++iphi) {
+	 float pfniso_ieta_iphi = 0;
+	 for(pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
+	   if (fabs(etabins[ieta]-pf_it->eta())>etahalfdist) continue;
+	   if (fabs(reco::deltaPhi(phibins[iphi],pf_it->phi()))>phihalfdist) continue;
+	   pfniso_ieta_iphi+=pf_it->pt();
+	 }
+	 sumPFNallSMDQ.push_back(pfniso_ieta_iphi);
+       }
+     }
+     float evt_smdq = 0;
+     sort(sumPFNallSMDQ.begin(),sumPFNallSMDQ.end());
+     if (sumPFNallSMDQ.size()%2) evt_smdq = sumPFNallSMDQ[(sumPFNallSMDQ.size()-1)/2];
+     else evt_smdq = (sumPFNallSMDQ[sumPFNallSMDQ.size()/2]+sumPFNallSMDQ[(sumPFNallSMDQ.size()-2)/2])/2.;
+     return evt_smdq/(etadist*phidist);
+}
+
 void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   using namespace std;
@@ -96,6 +145,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
  
   // create containers
   auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
+  auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
   auto_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_chargedEmE                (new vector<float>          );
@@ -116,32 +167,56 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<int>   >         pfjets_hfEmMultiplicity          (new vector<int>            );
   auto_ptr<vector<float> >         pfjets_cor                       (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_corL1L2L3                 (new vector<float>          );
-  auto_ptr<vector<float> >         pfjets_corL1FastL2L3             (new vector<float>          );
-  auto_ptr<vector<float> >         pfjets_corL1Fast                 (new vector<float>          );
-  auto_ptr<vector<float> >         pfjets_corL1FastL2L3residual     (new vector<float>          );
   auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+  auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
+  auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
+
+  auto_ptr<vector<float> >     pfjets_combinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_pfCombinedSecondaryVertexBJetTag          (new vector<float>  ); 
+  auto_ptr<vector<float> >     pfjets_combinedMVABJetTag                        (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_jetBProbabilityBJetTag                    (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_jetProbabilityBJetTag                     (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighEffBJetTag       (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighPurBJetTag       (new vector<float>  );  
+  auto_ptr<vector<float> >     pfjets_trackCountingHighEffBJetTag               (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_trackCountingHighPurBJetTag               (new vector<float>  );
 
   //
-  Handle<View<PFJet> > pfJetsHandle;
+  Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
 
+     Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
+     iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
+     const pat::PackedCandidateCollection *pfCandidates;
+     pfCandidates  = pfCandidatesHandle.product();
+
+     //pfCandidates  = pfCandidatesHandle.product();
+
+
+//pfcandidates not needed anymore to store vectors of indices for each jet
+/*
   //get pfcandidates
-  Handle<PFCandidateCollection> pfCandidatesHandle;
+  Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
   iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
-  const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+  const pat::PackedCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
+*/
 
   
-   const JetCorrector* correctorL2L3               = JetCorrector::getJetCorrector ( PFJetCorrectorL2L3_               , iSetup );
    //   const JetCorrector* correctorL1L2L3             = JetCorrector::getJetCorrector ( PFJetCorrectorL1L2L3_             , iSetup );
-   const JetCorrector* correctorL1FastL2L3         = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3_         , iSetup );
-   const JetCorrector* correctorL1Fast             = JetCorrector::getJetCorrector ( PFJetCorrectorL1Fast_             , iSetup );
-   const JetCorrector* correctorL1FastL2L3residual = JetCorrector::getJetCorrector ( PFJetCorrectorL1FastL2L3residual_ , iSetup );
 
-  for(View<PFJet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
+  vector <JetCorrectorParameters> vPar;
+  vPar.push_back(*L1Parms);
+  vPar.push_back(*L2Parms);
+  vPar.push_back(*L3Parms);
+  FactorizedJetCorrector *JetCorrector = new FactorizedJetCorrector(vPar);
+
+  for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
     //
     pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
+    pfjets_mass                      ->push_back( pfjet_it->mass()                     );
+    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
     pfjets_chargedHadronE            ->push_back(pfjet_it->chargedHadronEnergy()       );
     pfjets_neutralHadronE            ->push_back(pfjet_it->neutralHadronEnergy()       );
     pfjets_chargedEmE                ->push_back(pfjet_it->chargedEmEnergy()           );
@@ -161,81 +236,100 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
     pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
+    //const std::vector<std::string> names = pfjet_it->userFloatNames();
+    //for (unsigned int k = 0; k < names.size(); k++) cout<<names[k]<<" ";
+    //cout<<endl;
+    float pileupJetId = -999; // hedging our beg because this variable isn't yet in the miniAOD we are testing
+    if ( pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
+    if ( pfjet_it->hasUserFloat("fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("fullDiscriminant");
+    pfjets_pileupJetId               ->push_back( pileupJetId                          );
+    pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
 
     //
     int idx = pfjet_it - pfJetsHandle->begin();
-    RefToBase < Jet > jetRef1( Ref < View < PFJet > > ( pfJetsHandle , idx ) );
+    RefToBase < Jet > jetRef1( Ref < View < pat::Jet > > ( pfJetsHandle , idx ) );
 
-    
-    float L2L3JetScale               = correctorL2L3               ->correction( *pfjet_it, jetRef1, iEvent, iSetup );
-    // float L1L2L3JetScale             = correctorL1L2L3             ->correction( *pfjet_it, iEvent, iSetup );
-    float L1L2L3JetScale             = 1.;    
-    float L1FastL2L3JetScale         = correctorL1FastL2L3         ->correction( *pfjet_it, iEvent, iSetup );
-    float L1Fast                     = correctorL1Fast             ->correction( *pfjet_it, iEvent, iSetup );
-    float L1FastL2L3residualJetScale = correctorL1FastL2L3residual ->correction( *pfjet_it, iEvent, iSetup );
+    //Calculate Rho
+    vector<float> phibins;
+    for (int i=0;i<10;i++) phibins.push_back(-TMath::Pi()+(2*i+1)*TMath::TwoPi()/20.);
+    vector<float> etabins_all;
+    for (int i=0;i<18;++i) etabins_all.push_back(-5.1+0.6*i);
+    float rho = getFixGridRho(etabins_all, phibins, pfCandidates);
 
-    //
-    pfjets_cor                   ->push_back( L2L3JetScale               );
-    pfjets_corL1L2L3             ->push_back( L1L2L3JetScale             );
-    pfjets_corL1FastL2L3         ->push_back( L1FastL2L3JetScale         );
-    pfjets_corL1Fast             ->push_back( L1Fast                     );
-    pfjets_corL1FastL2L3residual ->push_back( L1FastL2L3residualJetScale );
+    JetCorrector->setJetEta( (pfjet_it->jecFactor("Uncorrected")*pfjet_it->p4()).eta());
+    JetCorrector->setJetPt(  (pfjet_it->jecFactor("Uncorrected")*pfjet_it->p4()).pt() );
+    JetCorrector->setJetA((pfjet_it->jetArea()));
+    JetCorrector->setRho(rho);
+    pfjets_corL1L2L3             ->push_back( JetCorrector->getCorrection()  );
 
     //store indices of PFCandidates associated to this jet
-    std::vector <reco::PFCandidatePtr> pfjet_cands = pfjet_it->getPFConstituents();
+    //    std::vector <reco::PFCandidatePtr> pfjet_cands = pfjet_it->getPFConstituents();
+    std::vector <reco::CandidatePtr> pfjet_cands = pfjet_it->daughterPtrVector(); 
 
     vector<int> pfcandIndicies;
 
-    int ipf = 0;
-    
-    //loop over all PFCandidates
-    for(PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++){
-      
-      reco::PFCandidateRef pref( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
-      
-      //loop over PFCandidates associated to this jet
-      for( unsigned int ic = 0 ; ic < pfjet_cands.size() ; ++ic ){
-        
-        //if a match is found, store index in pfcandIndicies
-        if( pref.key() == pfjet_cands.at(ic).key() ){
-          pfcandIndicies.push_back(ipf);
-        }
-      }
-      ++ipf;
-    }
-    
+    //    for(std::vector<reco::PFCandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
+    for(std::vector<reco::CandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
+
+      pfcandIndicies.push_back(cand_it->key());
+
+    } 
+
     pfjets_pfcandIndicies->push_back( pfcandIndicies );
 
+    // Embedded b-tag info
+    // Default is set automatically to -1000. if no value is found
+    pfjets_combinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags") );
+    pfjets_pfCombinedSecondaryVertexBJetTag         ->push_back( pfjet_it->bDiscriminator("pfCombinedSecondaryVertexBJetTags"         ) );        
+    pfjets_combinedMVABJetTag                       ->push_back( pfjet_it->bDiscriminator("combinedMVABJetTags"                       ) );
+    pfjets_jetBProbabilityBJetTag                   ->push_back( pfjet_it->bDiscriminator("jetBProbabilityBJetTags"                   ) );
+    pfjets_jetProbabilityBJetTag                    ->push_back( pfjet_it->bDiscriminator("jetProbabilityBJetTags"                    ) );
+    pfjets_simpleSecondaryVertexHighEffBJetTag      ->push_back( pfjet_it->bDiscriminator("simpleSecondaryVertexHighEffBJetTags"      ) );
+    pfjets_simpleSecondaryVertexHighPurBJetTag      ->push_back( pfjet_it->bDiscriminator("simpleSecondaryVertexHighPurBJetTags"      ) );
+    pfjets_trackCountingHighEffBJetTag              ->push_back( pfjet_it->bDiscriminator("trackCountingHighEffBJetTags"              ) );
+    pfjets_trackCountingHighPurBJetTag              ->push_back( pfjet_it->bDiscriminator("trackCountingHighPurBJetTags"              ) );
 
   }
+  delete JetCorrector;
 
   
-  iEvent.put(pfjets_p4                        , aliasprefix_+"p4"                        );
-  iEvent.put(pfjets_chargedHadronE            , aliasprefix_+"chargedHadronE"            );
-  iEvent.put(pfjets_neutralHadronE            , aliasprefix_+"neutralHadronE"            );
-  iEvent.put(pfjets_chargedEmE                , aliasprefix_+"chargedEmE"                );
-  iEvent.put(pfjets_neutralEmE                , aliasprefix_+"neutralEmE"                );
-  iEvent.put(pfjets_photonE                   , aliasprefix_+"photonE"                   );
-  iEvent.put(pfjets_electronE                 , aliasprefix_+"electronE"                 );
-  iEvent.put(pfjets_muonE                     , aliasprefix_+"muonE"                     );
-  iEvent.put(pfjets_hfHadronE                 , aliasprefix_+"hfHadronE"                 );
-  iEvent.put(pfjets_hfEmE                     , aliasprefix_+"hfEmE"                     );  
-  iEvent.put(pfjets_chargedMultiplicity       , aliasprefix_+"chargedMultiplicity"       );
-  iEvent.put(pfjets_neutralMultiplicity       , aliasprefix_+"neutralMultiplicity"       );
-  iEvent.put(pfjets_chargedHadronMultiplicity , aliasprefix_+"chargedHadronMultiplicity" );
-  iEvent.put(pfjets_neutralHadronMultiplicity , aliasprefix_+"neutralHadronMultiplicity" );
-  iEvent.put(pfjets_photonMultiplicity        , aliasprefix_+"photonMultiplicity"        );
-  iEvent.put(pfjets_electronMultiplicity      , aliasprefix_+"electronMultiplicity"      );
-  iEvent.put(pfjets_muonMultiplicity          , aliasprefix_+"muonMultiplicity"          );
-  iEvent.put(pfjets_cor                       , aliasprefix_+"cor"                       );
-  iEvent.put(pfjets_corL1L2L3                 , aliasprefix_+"corL1L2L3"                 );
-  iEvent.put(pfjets_corL1FastL2L3             , aliasprefix_+"corL1FastL2L3"             );
-  iEvent.put(pfjets_corL1Fast                 , aliasprefix_+"corL1Fast"                 );
-  iEvent.put(pfjets_pfcandIndicies            , aliasprefix_+"pfcandIndicies"            );
-  iEvent.put(pfjets_area                      , aliasprefix_+"area"                      );
-  iEvent.put(pfjets_corL1FastL2L3residual     , aliasprefix_+"corL1FastL2L3residual"     );
-}
+  iEvent.put(pfjets_p4                        , "pfjetsp4"                        );
+  iEvent.put(pfjets_mass                      , "pfjetsmass"                      );
+  iEvent.put(pfjets_undoJEC                   , "pfjetsundoJEC"                   );
+  iEvent.put(pfjets_chargedHadronE            , "pfjetschargedHadronE"            );
+  iEvent.put(pfjets_neutralHadronE            , "pfjetsneutralHadronE"            );
+  iEvent.put(pfjets_chargedEmE                , "pfjetschargedEmE"                );
+  iEvent.put(pfjets_neutralEmE                , "pfjetsneutralEmE"                );
+  iEvent.put(pfjets_photonE                   , "pfjetsphotonE"                   );
+  iEvent.put(pfjets_electronE                 , "pfjetselectronE"                 );
+  iEvent.put(pfjets_muonE                     , "pfjetsmuonE"                     );
+  iEvent.put(pfjets_hfHadronE                 , "pfjetshfHadronE"                 );
+  iEvent.put(pfjets_hfEmE                     , "pfjetshfEmE"                     );  
+  iEvent.put(pfjets_chargedMultiplicity       , "pfjetschargedMultiplicity"       );
+  iEvent.put(pfjets_neutralMultiplicity       , "pfjetsneutralMultiplicity"       );
+  iEvent.put(pfjets_chargedHadronMultiplicity , "pfjetschargedHadronMultiplicity" );
+  iEvent.put(pfjets_neutralHadronMultiplicity , "pfjetsneutralHadronMultiplicity" );
+  iEvent.put(pfjets_photonMultiplicity        , "pfjetsphotonMultiplicity"        );
+  iEvent.put(pfjets_electronMultiplicity      , "pfjetselectronMultiplicity"      );
+  iEvent.put(pfjets_muonMultiplicity          , "pfjetsmuonMultiplicity"          );
+  iEvent.put(pfjets_cor                       , "pfjetscor"                       );
+  iEvent.put(pfjets_corL1L2L3                 , "pfjetscorL1L2L3"                 );
+  iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
+  iEvent.put(pfjets_area                      , "pfjetsarea"                      );
+  iEvent.put(pfjets_pileupJetId               , "pfjetspileupJetId"               );
+  iEvent.put(pfjets_partonFlavour             , "pfjetspartonFlavour"             );
 
+  iEvent.put(pfjets_combinedInclusiveSecondaryVertexV2BJetTag, "pfjetscombinedInclusiveSecondaryVertexV2BJetTag");  
+  iEvent.put(pfjets_pfCombinedSecondaryVertexBJetTag         , "pfjetspfCombinedSecondaryVertexBJetTag"        );
+  iEvent.put(pfjets_combinedMVABJetTag                       , "pfjetscombinedMVABJetTag"                      );
+  iEvent.put(pfjets_jetBProbabilityBJetTag                   , "pfjetsjetBProbabilityBJetTag"                   );		   
+  iEvent.put(pfjets_jetProbabilityBJetTag                    , "pfjetsjetProbabilityBJetTag"                    );			  
+  iEvent.put(pfjets_simpleSecondaryVertexHighEffBJetTag      , "pfjetssimpleSecondaryVertexHighEffBJetTag"      );	  
+  iEvent.put(pfjets_simpleSecondaryVertexHighPurBJetTag      , "pfjetssimpleSecondaryVertexHighPurBJetTag"      );  
+  iEvent.put(pfjets_trackCountingHighEffBJetTag              , "pfjetstrackCountingHighEffBJetTag"              );	  
+  iEvent.put(pfjets_trackCountingHighPurBJetTag              , "pfjetstrackCountingHighPurBJetTag"              );	  
+
+}
 
 
 //define this as a plug-in

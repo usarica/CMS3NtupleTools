@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      HypDilepMaker
 // 
-/**\class HypDilepMaker HypDilepMaker.h CMS2/NtupleMaker/interface/HypDilepMaker.h
+/**\class HypDilepMaker HypDilepMaker.h CMS3/NtupleMaker/interface/HypDilepMaker.h
 
 Description: create trilepton hypothesis branches
 
@@ -63,15 +63,13 @@ private:
   edm::InputTag muToGenInputTag;
   edm::InputTag electronsInputTag;
   edm::InputTag metInputTag;
-  edm::InputTag tcmetInputTag;
   edm::InputTag jetsInputTag;
-  edm::InputTag trksInputTag;
   double        hypJetMaxEtaCut;
   double        hypJetMinPtCut;
   double        tightptcut;
   double        looseptcut;
     
-	std::string aliasprefix_;
+  std::string aliasprefix_;
 };
 
 

@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ConversionMaker
 // 
-/**\class ConversionMaker ConversionMaker.cc CMS2/NtupleMaker/src/ConversionMaker.cc
+/**\class ConversionMaker ConversionMaker.cc CMS3/NtupleMaker/src/ConversionMaker.cc
 
 Description: make associations between jets and muons
 
@@ -29,7 +29,7 @@ Description: make associations between jets and muons
 #include "FWCore/Framework/interface/ESHandle.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/ConversionMaker.h"
+#include "CMS3/NtupleMaker/interface/ConversionMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/Point3D.h"

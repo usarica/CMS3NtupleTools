@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      FastJetMaker
 // 
-/**\class FastJetMaker.cc CMS2/NtupleMaker/src/FastJetMaker.cc
+/**\class FastJetMaker.cc CMS3/NtupleMaker/src/FastJetMaker.cc
 
    Description: <one line class summary>
 

@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-from CMS2.NtupleMaker.elCaloIsoMaker_cfi import *
+from CMS3.NtupleMaker.elCaloIsoMaker_cfi import *
 from RecoEgamma.EgammaIsolationAlgos.egammaBasicClusterMerger_cfi import *
 
 

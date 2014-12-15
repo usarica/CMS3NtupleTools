@@ -2,7 +2,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
 #from JetMETCorrections.Type1MET.MetType1Corrections_cff import *
-from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
+#from JetMETCorrections.Type1MET.caloMETCorrections_cff import *
 
 # CMS2
 process = cms.Process("CMS2")
@@ -28,39 +28,31 @@ process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 
-#process.ak5PFCHSL1Fastjet = process.ak5PFL1Fastjet.clone(algorithm = cms.string('AK5PFchs'))
-#process.ak5PFCHSL2Relative = process.ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
-#process.ak5PFCHSL3Absolute     = process.ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
-
-#process.ak5PFCHSL1Offset = ak5CaloL1Offset.clone(algorithm = 'AK5PFchs') 
-#process.ak5PFCHSL1Fastjet = cms.ESProducer(
-#    'L1FastjetCorrectionESProducer',
-#    level       = cms.string('L1FastJet'),
-#    algorithm   = cms.string('AK5PFchs'),
-#    srcRho      = cms.InputTag( 'fixedGridRhoFastjetAll' )
-#    )
-#process.ak5PFCHSL2Relative = ak5CaloL2Relative.clone( algorithm = 'AK5PFchs' )
-#process.ak5PFCHSL3Absolute     = ak5CaloL3Absolute.clone( algorithm = 'AK5PFchs' )
-
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-ak5PFCHSL1Fastjet.algorithm = 'AK5PFchs'
-ak5PFCHSL2Relative.algorithm = 'AK5PFchs'
-ak5PFCHSL3Absolute.algorithm = 'AK5PFchs'
-ak5PFCHSResidual.algorithm = 'AK5PFchs'
+
+#Identification for PHYS 14
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
+process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
+from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
+process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff']
+for idmod in my_id_modules:
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 
 #from CommonTools.ParticleFlow.Tools.pfIsolation import setupPFElectronIso
 #process.eleIsoSequence = setupPFElectronIso(process, 'gedGsfElectrons')
 
-process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
+process.load("CMS3.NtupleMaker.cms2CoreSequences_cff")
 #process.CMS2Reco *= process.pfParticleSelectionSequence
 #process.CMS2Reco *= process.eleIsoSequence
-process.load("CMS2.NtupleMaker.cms2GENSequence_cff")
-process.load('CMS2.NtupleMaker.pixelDigiMaker_cfi')
-process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
-process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
-process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
+process.load("CMS3.NtupleMaker.cms2GENSequence_cff")
+process.load('CMS3.NtupleMaker.pixelDigiMaker_cfi')
+#process.load("CMS3.NtupleMaker.cms2HFCleaningSequence_cff")
+#process.load("CMS3.NtupleMaker.cms2HcalCleaningSequence_cff")
+process.load("CMS3.NtupleMaker.cms2PFSequence_cff")
 process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
 process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm
@@ -131,7 +123,7 @@ process.source.noEventSort            = cms.untracked.bool( True )
 process.MessageLogger.cerr.threshold  = ''
 
 # Number of Events to Process
-process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(50) )
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)

@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      GenMaker
 // 
-/**\class GenMaker GenMaker.cc CMS2/NtupleMaker/src/GenMaker.cc
+/**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
 
    Description: <one line class summary>
 
@@ -28,14 +28,18 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/Run.h"
 
-#include "CMS2/NtupleMaker/interface/GenMaker.h" 
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/GenMaker.h" 
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
+
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
 
 #include "TMath.h"
 
@@ -51,19 +55,28 @@ using namespace std;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
+  packedGenParticlesInputTag_ = iConfig.getParameter<InputTag>                  ("packedGenParticlesInputTag" );
+  //genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
+  ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
   kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"             );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"      );
+  produces<vector<int> >                    ("genpsidsimplemother"  ).setBranchAlias("genps_id_simplemother"      );
+  produces<vector<int> >                    ("genpsidsimplegrandma" ).setBranchAlias("genps_id_simplegrandma"      );
+  produces<vector<int> >                    ("genpsidxmother"       ).setBranchAlias("genps_idx_mother"     );
+  produces<vector<int> >                    ("genpsidxsimplemother" ).setBranchAlias("genps_idx_simplemother");
   produces<vector<LorentzVector> >          ("genpsp4"              ).setBranchAlias("genps_p4"             );
+  produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"           );
   produces<vector<LorentzVector> >          ("genpsprodvtx"         ).setBranchAlias("genps_prod_vtx"       );
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"         );
-  produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
-  produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
+  produces<vector<float> >                  ("genpscharge"          ).setBranchAlias("genps_charge"         );
+  produces<vector<float> >                  ("genpsiso"             ).setBranchAlias("genps_iso"            );
+  //produces<float>                           ("genmet"               ).setBranchAlias("gen_met"              );
+  //produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"           );
   produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"            );
   produces<float>                           ("genpspthat"           ).setBranchAlias("genps_pthat"          );
   produces<float>                           ("genpsweight"          ).setBranchAlias("genps_weight"         );
@@ -98,7 +111,7 @@ void GenMaker::endJob()
 
 void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
-     edm::Handle<GenRunInfoProduct> genRunInfo;
+     //edm::Handle<GenRunInfoProduct> genRunInfo;
      //bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);
  
 //This code block causes the following error:  "::getByLabel: An attempt was made to read a Run product before endRun() was called."
@@ -124,14 +137,21 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   auto_ptr<vector<int> >                    genps_id             (new vector<int>                   );
   auto_ptr<vector<int> >                    genps_id_mother      (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_id_simplemother      (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_id_simplegrandma      (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_idx_mother     (new vector<int>                   );
+  auto_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                  );
   auto_ptr<vector<LorentzVector> >          genps_p4             (new vector<LorentzVector>         );
+  auto_ptr<vector<float> >                  genps_mass           (new vector<float>                 );
   auto_ptr<vector<LorentzVector> >          genps_prod_vtx       (new vector<LorentzVector>         );
   auto_ptr<vector<int> >                    genps_status         (new vector<int>                   );
+  auto_ptr<vector<float> >                  genps_charge         (new vector<float>                 );
+  auto_ptr<vector<float> >                  genps_iso            (new vector<float>                 );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id (new vector<vector<int> >          );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx(new vector<vector<int> >          );
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4 (new vector<vector<LorentzVector> >);
-  auto_ptr<float>                           gen_met              (new float                         );
-  auto_ptr<float>                           gen_metPhi           (new float                         );  
+  //auto_ptr<float>                           gen_met              (new float                         );
+  //auto_ptr<float>                           gen_metPhi           (new float                         );  
   auto_ptr<float>                           gen_sumEt            (new float                         );
   auto_ptr<float>                           genps_pthat          (new float                         );
   auto_ptr<float>                           genps_weight         (new float                         );
@@ -151,10 +171,24 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if( !genpsHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen particle collection";
     edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";
+    cout << " GenMaker cannot continue...!" << endl;
     return;
   }
 
-  const vector<GenParticle>* genps_coll = genpsHandle.product();
+  const vector<reco::GenParticle>* genps_coll = genpsHandle.product();
+
+  // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
+  edm::Handle<pat::PackedGenParticleCollection> packedGenParticleHandle;
+  iEvent.getByLabel(packedGenParticlesInputTag_, packedGenParticleHandle);
+  if( !packedGenParticleHandle.isValid() ) {
+    edm::LogInfo("OutputInfo") << " failed to retrieve packed gen particle collection";
+    edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";
+    cout << " GenMaker cannot continue...!" << endl;
+    return;
+  }
+  const vector<pat::PackedGenParticle> *packedgenps_coll = packedGenParticleHandle.product();
+
+
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -204,7 +238,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   double sumEt = 0.;
   LorentzVector tempvect(0,0,0,0);
 
-  for(vector<GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
+  for(vector<reco::GenParticle>::const_iterator genps_it = genps_coll->begin(); genps_it != genps_coll->end(); genps_it++) {
 
     int id = genps_it->pdgId();
     
@@ -223,10 +257,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 				 genps_it->p4().z(),
 				 genps_it->p4().e() );
     }
-	else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
-			 find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) == vmetPIDs_.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
-	  sumEt += genps_it->p4().pt();
-	}
+    else if( (TMath::Abs(id) != 12 && TMath::Abs(id) != 14 && TMath::Abs(id) != 16) &&
+         find( vmetPIDs_.begin(), vmetPIDs_.end(), TMath::Abs(id) ) == vmetPIDs_.end() && genps_it->status() == 1 ) { //all particles which go into 'detector'
+      sumEt += genps_it->p4().pt();
+    }
   
     if( ntupleOnlyStatus3_ && (genps_it->status() !=3) ) continue;
     
@@ -239,39 +273,124 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       v_temp_id.clear();
       v_temp_idx.clear();
       v_temp_p4.clear();
-      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ) 
-	MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
+      if( (TMath::Abs(id) == 11 || TMath::Abs(id) == 13 || TMath::Abs(id) == 15) && genps_it->status() == 3 ){ 
+        MCUtilities::writeDaughter(*genps_it, genps_it-genps_coll->begin(), v_temp_id, v_temp_idx, v_temp_p4);
+      }
       genps_lepdaughter_id ->push_back(v_temp_id  );
       genps_lepdaughter_idx->push_back(v_temp_idx );
       genps_lepdaughter_p4 ->push_back(v_temp_p4  );
     }
 
     genps_status    ->push_back( genps_it->status()                        );
+    genps_charge    ->push_back( genps_it->charge()                        );
     genps_id        ->push_back( genps_it->pdgId()                         );
-    genps_id_mother ->push_back( MCUtilities::motherID(*genps_it)->pdgId() );    
+    const reco::GenParticle *  mother = MCUtilities::motherID(*genps_it);
+    int index = MatchUtilities::getMatchedGenIndex(*mother, genps_coll, mother->status());
+    genps_id_mother ->push_back( mother->pdgId() );    
+    genps_idx_mother ->push_back( index );    
+
+    // Also uses the naive definition (->mother(0)). This should allow full backwards navigation. 
+    const reco::GenParticle *  simplemother = genps_it->numberOfMothers() > 0 ? dynamic_cast<const reco::GenParticle*>(genps_it->mother(0)) : 0;
+    if (genps_it->numberOfMothers() > 0 && simplemother != 0 ) {
+      GenParticleRefVector momRefV =  genps_it->motherRefVector();
+      int simpleindex = ( momRefV.begin() )->key();
+      genps_idx_simplemother ->push_back( simpleindex );    
+      genps_id_simplemother ->push_back( simplemother->pdgId() );    
+      genps_id_simplegrandma ->push_back( simplemother->numberOfMothers() > 0 ? (dynamic_cast<const reco::GenParticle*>(simplemother->mother(0)))->pdgId() : 0 );    
+    }
+    else {
+      genps_idx_simplemother ->push_back(0);    
+      genps_id_simplemother ->push_back(0);
+      genps_id_simplegrandma ->push_back(0);
+    }
 
     genps_p4        ->push_back( LorentzVector(genps_it->p4().px(), 
 					       genps_it->p4().py(),
 					       genps_it->p4().pz(),
 					       genps_it->p4().e() ) );
 
+    genps_mass      ->push_back(genps_it->mass());
+
     genps_prod_vtx  ->push_back( LorentzVector(genps_it->vx(),
 					       genps_it->vy(),
 					       genps_it->vz(),
 					       0.0 ) );
+    // Gen Isolation with the packedGenParticles
+    if ( genps_it->status() == 1 && 
+	 ( fabs(id)==11 || fabs(id)==13 || fabs(id)==15 || fabs(id)==22 ) 
+	 && fabs(genps_it->p4().eta())<3 && genps_it->p4().pt() > 5 ) {
+      float eta = genps_it->p4().eta();
+      float pt = genps_it->p4().pt();
+      float geniso = 0;
+      for(vector<pat::PackedGenParticle>::const_iterator pkgenps_it = packedgenps_coll->begin(); pkgenps_it != packedgenps_coll->end(); pkgenps_it++) {
+	// Skip neutrinos
+	int packedID = fabs(pkgenps_it->pdgId());
+	if (packedID==12 || packedID==14 || packedID==16 ) continue;
+	// Skip far away ones (DeltaEta is easy to calculate)
+	if ( fabs(eta - pkgenps_it->p4().eta()) > 0.4) continue;
+	// Calculate DR
+	float DR2 = ROOT::Math::VectorUtil::DeltaR2(genps_it->p4(), pkgenps_it->p4());
+	if (DR2 > 0.4*0.4 ) continue;
+	geniso += pkgenps_it->p4().pt();	
+      }
+      // Remove original particle, set to 0 if negative
+      geniso -= pt;
+      if (geniso < 0) geniso = 0;
+      genps_iso->push_back(geniso);
+    }
+    else genps_iso->push_back(-1.);
   }
 
-  *gen_met    =   tempvect.Pt();
-  *gen_metPhi =   tempvect.Phi();
+
+  // Saving the packedGenParticles
+  if ( ntuplePackedGenParticles_ ) {
+    for(vector<pat::PackedGenParticle>::const_iterator pkgenps_it = packedgenps_coll->begin(); pkgenps_it != packedgenps_coll->end(); pkgenps_it++) {
+      if (pkgenps_it->status() != 1) continue; // this should never happen 
+      if (fabs(pkgenps_it->p4().eta()) > 5) continue; // Only save those with eta < 5
+      genps_p4        ->push_back( LorentzVector(pkgenps_it->p4().px(), 
+						 pkgenps_it->p4().py(),
+						 pkgenps_it->p4().pz(),
+						 pkgenps_it->p4().e() ) );
+      genps_status    ->push_back( 1111                        ); // Setting a special status to distinguish packedGenParticles from prunedGenParticles
+      genps_charge    ->push_back( pkgenps_it->charge()        );
+      genps_id        ->push_back( pkgenps_it->pdgId()         );
+
+      int simpleindex = -1;
+      // Following two lines should work in PHYS14 samples. But not in CSA14.
+      //const reco::GenParticleRef mother = pkgenps_it->motherRef();
+      //if (mother != NULL) simpleindex = mother->key();
+
+      genps_idx_simplemother ->push_back( simpleindex ); //this index should point to the corresponding particle (or mother) in the packed collection 
+
+      // leave the rest empty
+      genps_id_mother        ->push_back( -1 );
+      genps_idx_mother       ->push_back( -1 );
+      genps_id_simplemother  ->push_back( -1 );
+      genps_id_simplegrandma ->push_back( -1 );
+      genps_mass             ->push_back( -1 );
+      genps_prod_vtx  ->push_back( LorentzVector(0.0, 0.0, 0.0, 0.0) );
+
+    }
+  } // end of packedGenParticles  
+
+  //*gen_met    =   tempvect.Pt();
+  //*gen_metPhi =   tempvect.Phi();
   *gen_sumEt  =   sumEt;
 
   iEvent.put(genps_id             , "genpsid"              );
   iEvent.put(genps_id_mother      , "genpsidmother"        );
+  iEvent.put(genps_id_simplemother      , "genpsidsimplemother"        );
+  iEvent.put(genps_id_simplegrandma      , "genpsidsimplegrandma"        );
+  iEvent.put(genps_idx_mother     , "genpsidxmother"       );
+  iEvent.put(genps_idx_simplemother, "genpsidxsimplemother" );
   iEvent.put(genps_p4             , "genpsp4"              );
+  iEvent.put(genps_mass           , "genpsmass"            );
   iEvent.put(genps_prod_vtx       , "genpsprodvtx"         );
   iEvent.put(genps_status         , "genpsstatus"          );
-  iEvent.put(gen_met              , "genmet"               );
-  iEvent.put(gen_metPhi           , "genmetPhi"            );
+  iEvent.put(genps_charge         , "genpscharge"          );
+  iEvent.put(genps_iso            , "genpsiso"          );
+  //iEvent.put(gen_met              , "genmet"               );
+  //iEvent.put(gen_metPhi           , "genmetPhi"            );
   iEvent.put(gen_sumEt            , "gensumEt"             );
   iEvent.put(genps_pthat          , "genpspthat"           );
   iEvent.put(genps_weight         , "genpsweight"          );

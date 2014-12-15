@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      LuminosityMaker
 // 
-/**\class NtupleMaker NtupleMaker.cc CMS2/NtupleMaker/src/LuminosityMaker.cc
+/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/LuminosityMaker.cc
 
    Description: <one line class summary>
 

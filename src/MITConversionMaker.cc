@@ -3,7 +3,7 @@
 //  // Package:    NtupleMaker
 //  // Class:      MITConversionMaker
 //  // 
-//  /**\class MITConversionMaker MITConversionMaker.cc CMS2/NtupleMaker/src/MITConversionMaker.cc
+//  /**\class MITConversionMaker MITConversionMaker.cc CMS3/NtupleMaker/src/MITConversionMaker.cc
 //  
 //     Description: <one line class summary>
 //  
@@ -26,7 +26,7 @@
 //  #include "FWCore/Framework/interface/MakerMacros.h"
 //  #include "FWCore/ParameterSet/interface/ParameterSet.h"
 //  
-//  #include "CMS2/NtupleMaker/interface/MITConversionMaker.h" 
+//  #include "CMS3/NtupleMaker/interface/MITConversionMaker.h" 
 //  #include "DataFormats/Common/interface/Handle.h"
 //  #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 //  #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
@@ -40,7 +40,7 @@
 //  #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 //  #include "DataFormats/Common/interface/RefToPtr.h"
 //  
-//  #include "CMS2/NtupleMaker/interface/MITConversionMaker.h" 
+//  #include "CMS3/NtupleMaker/interface/MITConversionMaker.h" 
 //  #include "DataFormats/Common/interface/Handle.h"
 //  #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 //  #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
