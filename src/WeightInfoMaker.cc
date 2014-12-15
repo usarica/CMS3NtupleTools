@@ -19,7 +19,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/WeightsInfo.h"
 
-#include "CMS2/NtupleMaker/interface/WeightInfoMaker.h"
+#include "CMS3/NtupleMaker/interface/WeightInfoMaker.h"
 
 #include <vector>
 #include "TString.h"
