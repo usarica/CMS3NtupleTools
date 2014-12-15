@@ -1,5 +1,5 @@
 include "RecoMuon/MuonIdentification/data/trackerMuons.cfi"
-include "CMS2/NtupleMaker/data/trackerMuonMaker.cfi"
+include "CMS3/NtupleMaker/data/trackerMuonMaker.cfi"
 # replace trackerMuons.minNumberOfMatches = 1
 # replace trackerMuons.fillEnergy = false
 # replace trackerMuons.fillIsolation = false

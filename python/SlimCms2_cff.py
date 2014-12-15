@@ -5,21 +5,21 @@ slimcms2 = cms.untracked.vstring()
 ### -> pass 0
 
 #PFCandidateMaker
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsposAtEcalp4_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsisMuIso_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsecalE_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandshcalE_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsrawEcalE_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsrawHcalE_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandspS1E_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandspS2E_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsdeltaP_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvaepi_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvaemu_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvapimu_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvanothinggamma_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvanothingnh_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsflag_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsposAtEcalp4_CMS2*'))       # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsisMuIso_CMS2*'))           # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsecalE_CMS2*'))             # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandshcalE_CMS2*'))             # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsrawEcalE_CMS2*'))          # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsrawHcalE_CMS2*'))          # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandspS1E_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandspS2E_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsdeltaP_CMS2*'))            # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvaepi_CMS2*'))            # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvaemu_CMS2*'))            # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvapimu_CMS2*'))           # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvanothinggamma_CMS2*'))   # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsmvanothingnh_CMS2*'))      # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_pfcandsflag_CMS2*'))              # The miniAOD doesn't fill these anyway
 
 #TrackMaker
 slimcms2.extend(cms.untracked.vstring('drop *_trackMaker_trksvertexp4_CMS2*'))
@@ -37,38 +37,38 @@ slimcms2.extend(cms.untracked.vstring('drop *_trackMaker_trksnlayersLost_CMS2*')
 slimcms2.extend(cms.untracked.vstring('drop *_trackMaker_trkslostpixelhits_CMS2*'))
 
 #L1 Maker
-slimcms2.extend(cms.untracked.vstring('drop *_l1Maker_*_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_l1Maker_*_CMS2*'))
 
 #GenMaker
 #slimcms2.extend(cms.untracked.vstring('drop *_genMaker_genps*_CMS2*'))
 
 #CandToGenAssMaker ->drop all for jet and trk
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcdr_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcidx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcemEnergy_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmchadEnergy_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcinvEnergy_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcotherEnergy_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcp4_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpdr_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpidx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpp4_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcid_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcmotherid_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcmotherp4_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3dr_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3idx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3id_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcid_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcmotherid_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcidx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcp4_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcdr_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3id_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3motherid_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3idx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3motheridx_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3dr_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcdr_CMS2*'))                    # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcidx_CMS2*'))                   # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcemEnergy_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmchadEnergy_CMS2*'))             # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcinvEnergy_CMS2*'))             # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcotherEnergy_CMS2*'))           # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcp4_CMS2*'))                    # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpdr_CMS2*'))                  # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpidx_CMS2*'))                 # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcgpp4_CMS2*'))                  # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcid_CMS2*'))                    # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcmotherid_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmcmotherp4_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3dr_CMS2*'))                   # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3idx_CMS2*'))                  # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_jetsmc3id_CMS2*'))                   # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcid_CMS2*'))                     # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcmotherid_CMS2*'))               # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcidx_CMS2*'))                    # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcp4_CMS2*'))                     # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmcdr_CMS2*'))                     # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3id_CMS2*'))                    # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3motherid_CMS2*'))              # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3idx_CMS2*'))                   # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3motheridx_CMS2*'))             # The miniAOD doesn't fill these anyway
+#slimcms2.extend(cms.untracked.vstring('drop *_*_trkmc3dr_CMS2*'))                    # The miniAOD doesn't fill these anyway
 
 #CandToGenAssMaker ->keep mcp4, mcid, motherid for els, mus, photons, pfjets
 #slimcms2.extend(cms.untracked.vstring('drop *_*_elsmcidx_CMS2*'))
@@ -129,7 +129,7 @@ slimcms2.extend(cms.untracked.vstring('drop *_bTagPFJetMaker_pfjetssoftElectronT
 #Vertex Collections
 slimcms2.extend(cms.untracked.vstring('drop *_davertexMaker_*_CMS2*'))
 slimcms2.extend(cms.untracked.vstring('drop *_vertexMakerWithBS_*_CMS2*'))
-slimcms2.extend(cms.untracked.vstring('drop *_secondaryVertexMaker_*_CMS2*'))
+#slimcms2.extend(cms.untracked.vstring('drop *_secondaryVertexMaker_*_CMS2*'))
 
 #GSFTrackMaker
 slimcms2.extend(cms.untracked.vstring('drop *_*_gsftrksvertexp4_CMS2*'))

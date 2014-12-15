@@ -3,7 +3,7 @@
 // Package:    TrackToElAssMaker
 // Class:      TrackToElAssMaker
 // 
-/**\class TrackToElAssMaker TrackToElAssMaker.cc CMS2/NtupleMaker/src/TrackToElAssMaker.cc
+/**\class TrackToElAssMaker TrackToElAssMaker.cc CMS3/NtupleMaker/src/TrackToElAssMaker.cc
 
  Description: <one line class summary>
 
@@ -30,8 +30,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/TrackToElAssMaker.h"
-#include "CMS2/NtupleMaker/interface/ElUtilities.h"
+#include "CMS3/NtupleMaker/interface/TrackToElAssMaker.h"
+#include "CMS3/NtupleMaker/interface/ElUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

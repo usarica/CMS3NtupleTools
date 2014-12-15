@@ -3,10 +3,12 @@ import FWCore.ParameterSet.Config as cms
 #genMaker = cms.EDFilter("GenMaker",
 genMaker = cms.EDProducer("GenMaker",
 	aliasPrefix = cms.untracked.string("genps"),
-    ntupleOnlyStatus3     = cms.bool(True),
+    ntupleOnlyStatus3     = cms.bool(False), # just get everything since Pythia8 has weird status codes
     ntupleDaughters       = cms.bool(True),
-    genParticlesInputTag  = cms.InputTag("genParticles" ),
-    genRunInfoInputTag    = cms.InputTag("generator"),
+    genParticlesInputTag  = cms.InputTag("prunedGenParticles" ),
+    ntuplePackedGenParticles    = cms.bool(False), # default is False                          
+    packedGenParticlesInputTag  = cms.InputTag("packedGenParticles" ), # Assign Status "1111" to these to avoid duplication. Only save p4, ID, status
+    #genRunInfoInputTag    = cms.InputTag("generator"),
     exclusiveCrossSection = cms.untracked.double(0.0),
     inclusiveCrossSection = cms.untracked.double(0.0),
     kfactor               = cms.untracked.double(1.0),

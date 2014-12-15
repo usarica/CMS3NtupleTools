@@ -1,4 +1,4 @@
-from CMS2.NtupleMaker.RecoConfiguration2012_cfg import *
+from CMS3.NtupleMaker.RecoConfiguration2012_cfg import *
 
 # Global Tag
 process.GlobalTag.globaltag = "GR_R_52_V7::All"
@@ -12,11 +12,11 @@ process.eventMaker.isData                        = cms.bool(True)
 process.luminosityMaker.isData                   = process.eventMaker.isData
 
 # Load Filters
-process.load("CMS2.NtupleMaker.wwfilter_cfi")
+process.load("CMS3.NtupleMaker.wwfilter_cfi")
 process.CMS2_Ele10Mu10_NoIsoIdMET  = cms.Path( process.ele10mu10NoIsoIdMET * process.cms2WithEverything )
 process.CMS2_Ele10Mu10_NoIsoId     = cms.Path( process.ele10mu10NoIsoId    * process.cms2WithEverything )
 process.CMS2_Ele10Mu10_NoIsoIdPt45 = cms.Path( process.ele10mu10NoIsoIdPt45 * process.cms2WithEverything )
-process.load("CMS2.NtupleMaker.zzfilter_cfi")
+process.load("CMS3.NtupleMaker.zzfilter_cfi")
 process.CMS2_4L = cms.Path( process.fourLeptons    * process.cms2WithEverything )
 
 # Output

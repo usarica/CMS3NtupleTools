@@ -2,8 +2,8 @@
 #
 #
 #from MitEdm.Producers.conversionRejection_cff import *
-#from CMS2.NtupleMaker.mitConversionMaker_cfi import *
-#from CMS2.NtupleMaker.elToMITConvAssMaker_cfi import * 
+#from CMS3.NtupleMaker.mitConversionMaker_cfi import *
+#from CMS3.NtupleMaker.elToMITConvAssMaker_cfi import * 
 #
 #mvfConversionRemoval.useRhoMin = False
 #

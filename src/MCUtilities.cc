@@ -1,4 +1,4 @@
-#include "CMS2/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -30,6 +30,20 @@ const reco::GenParticle* MCUtilities::motherID(const reco::GenParticle& gp) {
 
   return mom;
 }
+
+const reco::GenParticle* MCUtilities::motherIDPacked(const pat::PackedGenParticle& gp) {
+  const pat::PackedGenParticle* momPGP = &gp;
+  const reco::GenParticle* firstMomGP = (const reco::GenParticle*) momPGP->mother(0); // link to the prunedGenParticles collection
+  if (firstMomGP != 0) {
+    if ( firstMomGP->pdgId() != momPGP->pdgId() ) return firstMomGP;
+    const reco::GenParticle* momGP = MCUtilities::motherID(*firstMomGP); // then call the usual function
+    return momGP;
+  }
+  else {
+    return 0;
+  }
+}
+
 
 void MCUtilities::writeDaughter( const reco::GenParticle& gp, int idx, vector<int>& genps_ld_id,
 				 vector<int>& genps_ld_idx, vector<LorentzVector>& genps_ld_p4) {

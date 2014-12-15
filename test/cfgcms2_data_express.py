@@ -104,13 +104,13 @@ process.source = cms.Source("PoolSource",
 
 
 # load event level configurations
-process.load("CMS2.NtupleMaker.cms2CoreSequences_cff")
-process.load("CMS2.NtupleMaker.cms2PATSequence_cff")
-process.load("CMS2.NtupleMaker.cms2EcalCleaningSequence_cff")
-process.load("CMS2.NtupleMaker.cms2HFCleaningSequence_cff")
-process.load("CMS2.NtupleMaker.cms2HcalCleaningSequence_cff")
-#process.load("CMS2.NtupleMaker.sdFilter_cfi")
-process.load("CMS2.NtupleMaker.cms2PFSequence_cff")
+process.load("CMS3.NtupleMaker.cms2CoreSequences_cff")
+process.load("CMS3.NtupleMaker.cms2PATSequence_cff")
+process.load("CMS3.NtupleMaker.cms2EcalCleaningSequence_cff")
+process.load("CMS3.NtupleMaker.cms2HFCleaningSequence_cff")
+process.load("CMS3.NtupleMaker.cms2HcalCleaningSequence_cff")
+#process.load("CMS3.NtupleMaker.sdFilter_cfi")
+process.load("CMS3.NtupleMaker.cms2PFSequence_cff")
 
 #process.filter = cms.Path(process.sdFilter)
 

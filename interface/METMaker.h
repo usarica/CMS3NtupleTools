@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      METMaker
 // 
-/**\class METMaker.cc CMS2/NtupleMaker/src/METMaker.cc
+/**\class METMaker.cc CMS3/NtupleMaker/src/METMaker.cc
 
    Description: <one line class summary>
 

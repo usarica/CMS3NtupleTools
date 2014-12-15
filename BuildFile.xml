@@ -45,10 +45,11 @@
 <use   name="DataFormats/DetId"/>
 <use   name="DataFormats/EcalDigi"/>
 <use   name="HLTrigger/HLTcore"/>
-<use   name="CMS2/Dictionaries"/>
+<use   name="CMS3/Dictionaries"/>
 <use   name="DataFormats/ParticleFlowReco"/>
 <use   name="RecoTracker/MeasurementDet"/>
-<use   name="RecoTracker/TkNavigation"/>
+<use   name="DataFormats/TrackerCommon"/>
+<use   name="RecoTracker/TransientTrackingRecHit"/>
 <use   name="DataFormats/Luminosity"/>
 <use   name="RecoVertex/PrimaryVertexProducer"/>
 <use   name="TrackingTools/IPTools"/>

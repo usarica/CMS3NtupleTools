@@ -3,7 +3,7 @@
 // Package:    MuToElsAssMaker
 // Class:      MuToElsAssMaker
 // 
-/**\class MuToElsAssMaker MuToElsAssMaker.cc CMS2/NtupleMaker/src/MuToElsAssMaker.cc
+/**\class MuToElsAssMaker MuToElsAssMaker.cc CMS3/NtupleMaker/src/MuToElsAssMaker.cc
 
  Description: <one line class summary>
 
@@ -19,7 +19,14 @@
 
 
 // user include files
-#include "CMS2/NtupleMaker/interface/MuToElsAssMaker.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/EDProducer.h"
+
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "CMS3/NtupleMaker/interface/MuToElsAssMaker.h"
 
 
 using std::vector;

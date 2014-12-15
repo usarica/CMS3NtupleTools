@@ -1,4 +1,4 @@
-#include "CMS2/NtupleMaker/interface/EcalAnomalousEventMaker.h"
+#include "CMS3/NtupleMaker/interface/EcalAnomalousEventMaker.h"
 
 //#include "PhysicsTools/EcalAnomalousEventFilter/interface/EcalBoundaryInfoCalculator.h"
 //#include "DataFormats/AnomalousEcalDataFormats/interface/AnomalousECALVariables.h"

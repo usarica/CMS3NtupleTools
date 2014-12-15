@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      ElToMITConvAssMaker
 // 
-/**\class ElToMITConvAssMaker ElToMITConvAssMaker.cc CMS2/NtupleMaker/src/ElToMITConvAssMaker.cc
+/**\class ElToMITConvAssMaker ElToMITConvAssMaker.cc CMS3/NtupleMaker/src/ElToMITConvAssMaker.cc
 
  Description: make associations between jets and electrons
 
@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS2/NtupleMaker/interface/ElToMITConvAssMaker.h"
+#include "CMS3/NtupleMaker/interface/ElToMITConvAssMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"

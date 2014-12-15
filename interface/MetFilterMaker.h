@@ -12,6 +12,12 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+// MET Filters are stored as triggers in PAT, so need some trigger headers
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
+
+
 //
 class MetFilterMaker : public edm::EDProducer {
 
@@ -29,17 +35,10 @@ private:
     std::string   aliasprefix_;
     std::string   branchprefix_;
  
-    edm::InputTag ecalBEInputTag_;
-    edm::InputTag ecalDRInputTag_;
-    edm::InputTag ecalTPInputTag_;
-    edm::InputTag greedyMuonInputTag_;
-    edm::InputTag hcalLaserEventInputTag_;
-    edm::InputTag inconsistentMuonInputTag_;
-    edm::InputTag jetIDFailureInputTag_;
-    edm::InputTag multiEventFailureInputTag_;
-    edm::InputTag trackingFailureInputTag_;
-    edm::InputTag eeBadScFilterInputTag_;
-    edm::InputTag ecalLaserCorrFilterInputTag_;
+    std::string   processName_;
+    edm::InputTag filtersInputTag_;
+
+    edm::Handle<edm::TriggerResults> metFilterResultsH_;
 
 };
 

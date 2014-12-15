@@ -1,10 +1,14 @@
 import FWCore.ParameterSet.Config as cms
 
-electronMaker = cms.EDProducer(
+electronMaker = cms.EDProducer(   
     "ElectronMaker",
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
-    electronsInputTag = cms.InputTag("gedGsfElectrons"),
+    electronsInputTag   = cms.InputTag("slimmedElectrons"),
+    electronVetoIdMap   = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-veto"),
+    electronLooseIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-loose"),
+    electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-medium"),
+    electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V0-miniAOD-standalone-tight"),
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
     # reco Track collection
@@ -12,7 +16,7 @@ electronMaker = cms.EDProducer(
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("particleFlow"),
-    vtxInputTag = cms.InputTag("offlinePrimaryVertices"),
+    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
     # isolations from external
     # pfIsoCharged03InputTag = cms.InputTag("elPFIsoValueCharged03PFIdPFIso"),

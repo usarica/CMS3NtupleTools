@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      HcalMaker
 // 
-/**\class HcalMaker HcalMaker.cc CMS2/NtupleMakerMaker/src/HcalMaker.cc
+/**\class HcalMaker HcalMaker.cc CMS3/NtupleMakerMaker/src/HcalMaker.cc
 
    Description: <one line class summary>
 
@@ -25,7 +25,7 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 
 // Header
-#include "CMS2/NtupleMaker/interface/HcalNoiseSummaryMaker.h"
+#include "CMS3/NtupleMaker/interface/HcalNoiseSummaryMaker.h"
 
 // Namespaces
 using namespace edm;

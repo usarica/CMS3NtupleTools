@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      TriggerFilter
 // 
-/**\class TriggerFilter TriggerFilter.h CMS2/NtupleMaker/interface/TriggerFilter.h
+/**\class TriggerFilter TriggerFilter.h CMS3/NtupleMaker/interface/TriggerFilter.h
 
 Description: Filter on the OR of trigger bits
 

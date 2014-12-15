@@ -3,7 +3,7 @@
 // Package:    MCUtilities
 // Class:      MCUtilities
 // 
-/**\class MCUtilities MCUtilities.h CMS2/NtupleMaker/interface/MCUtilities.h
+/**\class MCUtilities MCUtilities.h CMS3/NtupleMaker/interface/MCUtilities.h
 
    Description: MC utilities
 
@@ -20,6 +20,7 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 #include <vector>
 
@@ -30,7 +31,9 @@ public:
   MCUtilities();
   ~MCUtilities();
 
-  static const reco::GenParticle* motherID(const reco::GenParticle& gp);
+  static const reco::GenParticle* motherID(const reco::GenParticle& gp); // Find the GenParticle mother of a GenParticle
+  static const reco::GenParticle* motherIDPacked(const pat::PackedGenParticle& gp); // Find the GenParticle mother of a PackedGenParticle. Return "0" if nothing is found.
+
   static void writeDaughter(const reco::GenParticle& gp, int idx, std::vector<int>& genps_ld_id,
 			    std::vector<int>& genps_ld_idx, std::vector<LorentzVector>& genps_ld_p4 );
 

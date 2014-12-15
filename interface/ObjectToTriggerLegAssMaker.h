@@ -26,6 +26,11 @@ Implementation:
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 
+//miniAOD
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
 #include <vector>
 #include <string>
 
@@ -49,8 +54,9 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
 
         // match an offline p4 to a trigger object
         unsigned int matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
-            const std::string triggerName, const std::string filterName,
-            const trigger::TriggerObjectCollection &allObjects,
+            const std::string triggerName, const std::string filterName, unsigned int triggerIndex,
+	    //            const trigger::TriggerObjectCollection &allObjects,
+            const pat::TriggerObjectStandAloneCollection* allObjects,
             const LorentzVector &offlineObject);
 
         // get version of triggers
@@ -66,10 +72,17 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
         std::vector<edm::InputTag>      triggers_;    
         std::vector<unsigned int>       triggerVersions_;
         std::vector<std::string>        branchNames_;
+        edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_;
+        edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjectStandAlonesH_;
+        edm::Handle<edm::TriggerResults> triggerResultsH_;
+        edm::TriggerNames triggerNames_;
+
+
 
         const trigger::TriggerEvent*    triggerEvent_;
         HLTConfigProvider               hltConfig_;
         std::string                     processName_;
+        std::string                     triggerObjectsName_;
         double                          cone_;
 
 };

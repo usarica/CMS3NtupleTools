@@ -36,7 +36,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
-#include "CMS2/NtupleMaker/interface/IsolationUtilities.h"
+#include "CMS3/NtupleMaker/interface/IsolationUtilities.h"
 
 //
 // class declaration

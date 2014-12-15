@@ -24,7 +24,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS2/NtupleMaker/interface/EventSelectionMaker.h"
+#include "CMS3/NtupleMaker/interface/EventSelectionMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

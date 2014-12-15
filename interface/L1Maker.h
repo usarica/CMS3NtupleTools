@@ -3,7 +3,7 @@
 // Package:    NtupleMaker
 // Class:      L1Maker
 // 
-/**\class L1Maker.cc CMS2/NtupleMaker/src/L1Maker.cc
+/**\class L1Maker.cc CMS3/NtupleMaker/src/L1Maker.cc
 
 Description: <one line class summary>
 

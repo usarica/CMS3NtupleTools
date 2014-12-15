@@ -1,4 +1,4 @@
-#include "CMS2/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "FWCore/Utilities/interface/Exception.h"
 
@@ -25,7 +25,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Candidate& c
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -57,7 +57,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const reco::Track& track
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); 
       itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -92,7 +92,39 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
   std::vector<reco::GenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<reco::GenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
-    if ( itPart->status() != status ) continue;
+    if ( status != 999 && itPart->status() != status ) continue;
+    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+      continue;
+
+    const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
+
+    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+
+    if (dR < dRmin) {
+      dRmin = dR;
+      output = &(*itPart);
+      genidx = i;
+    }//END find minimum delta R loop
+  
+  }//END loop over genParticles
+
+  return output;
+}
+ 
+//----------------------------------------------------------------------------------------------
+const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
+							const std::vector<pat::PackedGenParticle>* genParticles, 
+							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
+
+  const pat::PackedGenParticle* output = 0;
+  double dRmin = 0.2;
+  unsigned int i = 0;
+  genidx = -9999;
+  
+  std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
+  for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
+
+    if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
 
@@ -140,7 +172,7 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const reco::Candidate& jet
 						      const std::vector<reco::GenJet>* genJets) { 
   
   const reco::GenJet* output = 0;
-  double dRmin = 0.2;
+  double dRmin = 0.3;
   
   std::vector<reco::GenJet>::const_iterator itJetEnd = genJets->end();
   for(std::vector<reco::GenJet>::const_iterator itJet=genJets->begin(); itJet!=itJetEnd; ++itJet) {
@@ -162,7 +194,7 @@ const reco::GenJet* MatchUtilities::matchCandToGenJet(const LorentzVector& jetp4
 						      int &genidx) { 
   
   const reco::GenJet* output = 0;
-  double dRmin = 0.2;
+  double dRmin = 0.3;
   int i = 0;
   genidx = -9999;
   
@@ -218,7 +250,7 @@ const int MatchUtilities::getMatchedGenIndex(const reco::GenParticle& p, const s
   math::XYZVector v1(p.momentum().x(), p.momentum().y(), p.momentum().z());
   for(itCand = genParticles->begin(); itCand != genParticles->end(); itCand++, temp++) {
     
-    if(itCand->status() != status)
+    if(status != 999 && itCand->status() != status)
       continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itCand->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
