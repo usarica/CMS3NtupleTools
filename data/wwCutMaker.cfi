@@ -1,7 +1,0 @@
-module wwCutMaker = WWCutMaker {
-       InputTag dileptonInputTag = hypDilepMaker
-       InputTag muonsInputTag = muonMaker
-       InputTag electronsInputTag = electronMaker
-       InputTag eltomuassInputTag = elToMuAssMaker
-       InputTag genpsInputTag = genMaker
-}

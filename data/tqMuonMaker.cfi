@@ -1,6 +1,0 @@
-module tqMuonMaker = TQMuonMaker {
-
-  # tq muon collection
-  InputTag tqMuonsInputTag = allLayer1TopMuons
-
-}

@@ -1,6 +1,0 @@
-module elToTrackAssMaker = ElToTrackAssMaker{
-
-  # min DR
-  double minDR = 0.1
-
-}

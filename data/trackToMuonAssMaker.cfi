@@ -1,6 +1,0 @@
-module trackToMuonAssMaker = TrackToMuonAssMaker{
-
-  # min DR
-  double minDR = 0.1
-
-}

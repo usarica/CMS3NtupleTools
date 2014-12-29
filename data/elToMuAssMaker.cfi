@@ -1,6 +1,0 @@
-module elToMuAssMaker = ElToMuAssMaker{
-
-  # min DR
-  double minDR = 0.1
-
-}

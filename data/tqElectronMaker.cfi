@@ -1,6 +1,0 @@
-module tqElectronMaker = TQElectronMaker {
-
-  # qt jet collection
-  InputTag tqElectronsInputTag = allLayer1TopElectrons
-
-}

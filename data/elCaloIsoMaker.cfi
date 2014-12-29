@@ -1,9 +1,0 @@
-module elCaloIsoMaker = ElCaloIsoMaker {
-
-  InputTag electronsInputTag = allLayer1TopElectrons
-  InputTag basicClusterInputTag = egammaBasicClusterMerger
-  InputTag caloTowersInputTag = towerMaker
-  double minDR = 0.05
-  double maxDR = 0.4
-  double minDEta = 0.01
-}

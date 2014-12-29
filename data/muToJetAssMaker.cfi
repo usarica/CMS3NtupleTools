@@ -1,6 +1,0 @@
-module muToJetAssMaker = MuToJetAssMaker{
-
-  # min DR
-  double minDR = 0.5
-
-}

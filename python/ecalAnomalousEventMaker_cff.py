@@ -1,6 +1,0 @@
-import FWCore.ParameterSet.Config as cms
-
-#from PhysicsTools.EcalAnomalousEventFilter.ecalanomalouseventfilter_cfi import EcalAnomalousEventFilter
-#from CMS3.NtupleMaker.ecalAnomalousEventMaker_cfi import ecalAnomalousEventMaker
-
-#ecalAnomalousEventFilterSequence = cms.Sequence(EcalAnomalousEventFilter * ecalAnomalousEventMaker)

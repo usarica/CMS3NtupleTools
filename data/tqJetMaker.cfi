@@ -1,6 +1,0 @@
-module tqJetMaker = TQJetMaker {
-
-  # qt jet collection
-  InputTag tqJetsInputTag = allLayer1TopJets
-
-}

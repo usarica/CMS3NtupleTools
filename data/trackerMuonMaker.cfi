@@ -1,4 +1,0 @@
-module trackerMuonMaker = TrackerMuonMaker {
-  InputTag inputTag = trackerMuons 
-  InputTag referenceTag = allLayer1TopMuons
-}
