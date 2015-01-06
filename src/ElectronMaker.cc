@@ -181,10 +181,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("elsclass"                   ).setBranchAlias("els_class"                  );
 
     // Phys 14 predefined ID decisions
-    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("passVetoId"                 );
-    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("passLooseId"                );
-    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("passMediumId"               );
-    produces<vector<int> >       ("passTightId"                ).setBranchAlias("passTightId"                );
+    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
+    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
+    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
+    produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
