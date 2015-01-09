@@ -436,8 +436,14 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // IP 3D //
   ///////////
   
-  produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); // Ip3d from standard vertex
-  produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); // Ip3d error from standard vertex
+  produces<vector<float> >          ( branchprefix_ + "ip3d"                      ).setBranchAlias( aliasprefix_ + "_ip3d"                ); 
+  produces<vector<float> >          ( branchprefix_ + "ip3derr"                   ).setBranchAlias( aliasprefix_ + "_ip3derr"             ); 
+  produces<vector<float> >          ( branchprefix_ + "ip2d"                      ).setBranchAlias( aliasprefix_ + "_ip2d"                ); 
+  produces<vector<float> >          ( branchprefix_ + "ip2derr"                   ).setBranchAlias( aliasprefix_ + "_ip2derr"             ); 
+  produces<vector<float> >          ( branchprefix_ + "bs3d"                      ).setBranchAlias( aliasprefix_ + "_bs3d"                ); 
+  produces<vector<float> >          ( branchprefix_ + "bs3derr"                   ).setBranchAlias( aliasprefix_ + "_bs3derr"             ); 
+  produces<vector<float> >          ( branchprefix_ + "bs2d"                      ).setBranchAlias( aliasprefix_ + "_bs2d"                ); 
+  produces<vector<float> >          ( branchprefix_ + "bs2derr"                   ).setBranchAlias( aliasprefix_ + "_bs2derr"             ); 
 
 
   //////////////////////
@@ -797,6 +803,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
   auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
   auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip2d                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_ip2derr                     ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_bs3d                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_bs3derr                     ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_bs2d                        ( new vector<float>   );
+  auto_ptr<vector<float> >         vector_mus_bs2derr                     ( new vector<float>   );
 
 
   //////////////////////
@@ -1420,24 +1432,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // IP 3D //
     ///////////
 
-/*
-    if ( siTrack.isNonnull() && firstGoodVertex != vertexCollection->end() ) {
-      
-      TransientTrack tt       = theTTBuilder->build( siTrack );
-      Measurement1D ip3D      = IPTools::absoluteImpactParameter3D( tt, *firstGoodVertex ).second;
-      vector_mus_ip3d         -> push_back( ip3D.value()                    );
-      vector_mus_ip3derr      -> push_back( ip3D.error()                    );
-
-    } else {
-
-      vector_mus_ip3d         -> push_back( -9999. );
-      vector_mus_ip3derr      -> push_back( -9999. );
-
-    } 
-*/
-
     vector_mus_ip3d         -> push_back( muon->dB(pat::Muon::PV3D) ); 
     vector_mus_ip3derr      -> push_back( muon->edB(pat::Muon::PV3D) );
+    vector_mus_ip2d         -> push_back( muon->dB(pat::Muon::PV2D) ); 
+    vector_mus_ip2derr      -> push_back( muon->edB(pat::Muon::PV2D) );
+    vector_mus_bs3d         -> push_back( muon->dB(pat::Muon::BS3D) ); 
+    vector_mus_bs3derr      -> push_back( muon->edB(pat::Muon::BS3D) );
+    vector_mus_bs2d         -> push_back( muon->dB(pat::Muon::BS2D) ); 
+    vector_mus_bs2derr      -> push_back( muon->edB(pat::Muon::BS2D) );
 
     //////////////////////
     // genMatch miniAOD //
@@ -1794,15 +1796,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_isoSumDRR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoSumDRR04pfPhotonEtHighThreshold"       );
   iEvent.put( vector_mus_isoSumDRR04_pf_PUPt                           , branchprefix_ + "isoSumDRR04pfPUPt"                        );
 
-  //iEvent.put( vector_mus_iso03_pf , branchprefix_ + "iso03pf" );
-  //iEvent.put( vector_mus_iso04_pf , branchprefix_ + "iso04pf" );
-
   ///////////
   // IP 3D //
   ///////////
 
   iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
   iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
+  iEvent.put( vector_mus_ip2d                         , branchprefix_ + "ip2d"               );
+  iEvent.put( vector_mus_ip2derr                      , branchprefix_ + "ip2derr"            );
+  iEvent.put( vector_mus_bs3d                         , branchprefix_ + "bs3d"               );
+  iEvent.put( vector_mus_bs3derr                      , branchprefix_ + "bs3derr"            );
+  iEvent.put( vector_mus_bs2d                         , branchprefix_ + "bs2d"               );
+  iEvent.put( vector_mus_bs2derr                      , branchprefix_ + "bs2derr"            );
 
   // genParticle matching from miniAOD
   iEvent.put( mus_mc_patMatch_id          		,"musmcpatMatchid"          	);

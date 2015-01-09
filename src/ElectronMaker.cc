@@ -264,6 +264,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("elsgsftrkidx"     ).setBranchAlias("els_gsftrkidx"      );
     produces<vector<float> >     ("elsip3d"          ).setBranchAlias("els_ip3d"           ); // Ip3d from normal vertex
     produces<vector<float> >     ("elsip3derr"       ).setBranchAlias("els_ip3derr"        ); // Ip3d error from normal vertex
+    produces<vector<float> >     ("elsip2d"          ).setBranchAlias("els_ip2d"           ); // Ip2d from normal vertex
+    produces<vector<float> >     ("elsip2derr"       ).setBranchAlias("els_ip2derr"        ); // Ip2d error from normal vertex
+    produces<vector<float> >     ("elsbs3d"          ).setBranchAlias("els_bs3d"           ); // Ip3d from normal vertex
+    produces<vector<float> >     ("elsbs3derr"       ).setBranchAlias("els_bs3derr"        ); // Ip3d error from normal vertex
+    produces<vector<float> >     ("elsbs2d"          ).setBranchAlias("els_bs2d"           ); // Ip2d from normal vertex
+    produces<vector<float> >     ("elsbs2derr"       ).setBranchAlias("els_bs2derr"        ); // Ip2d error from normal vertex
     produces<vector<int> >       ("elsckflaywithmeas").setBranchAlias("els_ckf_laywithmeas");
     produces<vector<int> >       ("elsckfcharge"     ).setBranchAlias("els_ckf_charge"     );
 
@@ -546,6 +552,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int>   > els_gsftrkidx  (new vector<int>   );
     auto_ptr<vector<float> > els_ip3d       (new vector<float> );
     auto_ptr<vector<float> > els_ip3derr    (new vector<float> );
+    auto_ptr<vector<float> > els_ip2d       (new vector<float> );
+    auto_ptr<vector<float> > els_ip2derr    (new vector<float> );
+    auto_ptr<vector<float> > els_bs3d       (new vector<float> );
+    auto_ptr<vector<float> > els_bs3derr    (new vector<float> );
+    auto_ptr<vector<float> > els_bs2d       (new vector<float> );
+    auto_ptr<vector<float> > els_bs2derr    (new vector<float> );
   
     // LorentzVectors
     //
@@ -1218,10 +1230,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        }
 
 	
+    //Impact Parameters
+	els_ip3d   -> push_back( el->dB(pat::Electron::PV3D) ); 
+	els_ip3derr-> push_back( el->edB(pat::Electron::PV3D) ); 
+	els_ip2d   -> push_back( el->dB(pat::Electron::PV2D) ); 
+	els_ip2derr-> push_back( el->edB(pat::Electron::PV2D) ); 
+	els_bs3d   -> push_back( el->dB(pat::Electron::BS3D) ); 
+	els_bs3derr-> push_back( el->edB(pat::Electron::BS3D) ); 
+	els_bs2d   -> push_back( el->dB(pat::Electron::BS2D) ); 
+	els_bs2derr-> push_back( el->edB(pat::Electron::BS2D) ); 
 	//els_ip3d      -> push_back( el->ip3d() ); // miniAOD
-	els_ip3d   -> push_back( el->dB(pat::Electron::PV3D) ); // miniAOD
-	els_ip3derr-> push_back( el->edB(pat::Electron::PV3D) ); // miniAOD
-
 
 
         /////////////////
@@ -1544,6 +1562,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_gsftrkidx  , "elsgsftrkidx" );
     iEvent.put(els_ip3d       , "elsip3d"      );
     iEvent.put(els_ip3derr    , "elsip3derr"   );
+    iEvent.put(els_ip2d       , "elsip2d"      );
+    iEvent.put(els_ip2derr    , "elsip2derr"   );
+    iEvent.put(els_bs3d       , "elsbs3d"      );
+    iEvent.put(els_bs3derr    , "elsbs3derr"   );
+    iEvent.put(els_bs2d       , "elsbs2d"      );
+    iEvent.put(els_bs2derr    , "elsbs2derr"   );
   
     iEvent.put(els_validHits  , "elsvalidHits" );
     iEvent.put(els_lostHits   , "elslostHits"  );
