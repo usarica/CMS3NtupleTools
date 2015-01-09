@@ -1218,8 +1218,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        }
 
 	
-	els_ip3d      -> push_back( el->ip3d() ); // miniAOD
-	els_ip3derr   -> push_back( -999. ); // miniAOD
+	//els_ip3d      -> push_back( el->ip3d() ); // miniAOD
+	els_ip3d   -> push_back( el->dB(pat::Electron::PV3D) ); // miniAOD
+	els_ip3derr-> push_back( el->edB(pat::Electron::PV3D) ); // miniAOD
 
 
 
