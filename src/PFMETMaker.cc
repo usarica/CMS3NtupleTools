@@ -47,6 +47,9 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
     //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
     //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
+    produces<float> ("evtpfmetraw"          ).setBranchAlias("evt_pfmet_raw"          );
+    produces<float> ("evtpfmetPhiraw"       ).setBranchAlias("evt_pfmetPhi_raw"       );
+    produces<float> ("evtpfsumetraw"        ).setBranchAlias("evt_pfsumet_raw"        );
     produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
     produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
 
@@ -74,10 +77,13 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetSignificance(new float   );
     //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
     //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
+    std::auto_ptr<float>   evt_pfmet_raw         (new float   );
+    std::auto_ptr<float>   evt_pfmetPhi_raw      (new float   );
+    std::auto_ptr<float>   evt_pfsumet_raw       (new float   );
     std::auto_ptr<float>   gen_met         (new float   );
     std::auto_ptr<float>   gen_metPhi      (new float   );
 
-    edm::Handle<edm::View<reco::MET> > met_h;
+    edm::Handle<edm::View<pat::MET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
 
     edm::Handle<edm::View<pat::MET> > genmet_h;
@@ -95,6 +101,10 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
 
+    *evt_pfmet_raw    = ( met_h->front() ).shiftedPt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *evt_pfsumet_raw = ( met_h->front() ).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+
     *gen_met      = ( genmet_h->front()).genMET()->pt();
     *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
   
@@ -110,6 +120,9 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
     iEvent.put(evt_pfsumet  , "evtpfsumet"    );  
     iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
+    iEvent.put(evt_pfmet_raw    , "evtpfmetraw"      );
+    iEvent.put(evt_pfmetPhi_raw , "evtpfmetPhiraw"   );
+    iEvent.put(evt_pfsumet_raw  , "evtpfsumetraw"    );  
     iEvent.put(gen_met      , "genmet"      );
     iEvent.put(gen_metPhi   , "genmetPhi"   );
 
