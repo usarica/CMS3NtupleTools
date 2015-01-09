@@ -1,11 +1,12 @@
 from CMS3.NtupleMaker.RecoConfiguration2015_cfg import *
 
 #Global Tag
-process.GlobalTag.globaltag = "PHYS14_25_V1::All"
+process.GlobalTag.globaltag = "PHYS14_25_V2::All"
 
 #Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring('file:/home/users/namin/stop/cms3/CMSSW_7_2_0/src/SMS-T1tttt_PU20bx25_tsg_PHYS14_25_V1.root')
+  #fileNames = cms.untracked.vstring('root://cmsxrootd.fnal.gov//store/mc/Phys14DR/SMS-T1tttt_2J_mGl-1200_mLSP-800_Tune4C_13TeV-madgraph-tauola/MINIAODSIM/PU20bx25_tsg_PHYS14_25_V1-v1/00000/0CD15D7F-4E6B-E411-AEB4-002590DB9216.root')
 )
 
 #Output
@@ -16,7 +17,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 process.outpath = cms.EndPath(process.out)
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(104) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(51) )
 
 #Branches
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )

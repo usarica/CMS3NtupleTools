@@ -35,12 +35,6 @@ Implementation:
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
-
-
-//
-// class decleration
-//
-
 class PFJetMaker : public edm::EDProducer {
 public:
   explicit PFJetMaker(const edm::ParameterSet&);
@@ -56,11 +50,8 @@ private:
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;
-  //std::string PFJetCorrectorL1L2L3_;
-  std::string l1file;
-  std::string l2file;
-  std::string l3file;
-  JetCorrectorParameters *L1Parms;
-  JetCorrectorParameters *L2Parms;
-  JetCorrectorParameters *L3Parms;
+  std::string PFJetCorrectorL2L3_;
+  std::string PFJetCorrectorL1FastL2L3_;
+  std::string PFJetCorrectorL1Fast_;             
+  std::string PFJetCorrectorL1FastL2L3residual_; 
 };
