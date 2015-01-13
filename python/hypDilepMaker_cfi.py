@@ -14,7 +14,7 @@ hypDilepMaker = cms.EDProducer("HypDilepMaker",
     hypJetMinPtCut    = cms.double(30.0), ##this is a corrected pt cut!
 
     #tight lepton pt cut
-    TightLepton_PtCut = cms.double(20.0),
+    TightLepton_PtCut = cms.double(10.0),
     #loose lepton pt cut
     LooseLepton_PtCut = cms.double(10.0),
     # muons collection
