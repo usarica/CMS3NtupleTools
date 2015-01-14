@@ -100,7 +100,7 @@ process.MessageLogger.cerr.threshold  = ''
 process.maxEvents                     = cms.untracked.PSet( input = cms.untracked.int32(50) )
 
 # Hypothesis cuts
-process.hypDilepMaker.TightLepton_PtCut  = cms.double(20.0)
+process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 # Event Maker
