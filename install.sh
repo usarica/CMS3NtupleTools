@@ -12,4 +12,5 @@ sed -i "4s/.*/tag=$CMS3Tag/" setup2.sh
 
 head -n -20 setup2.sh > setup.sh
 rm setup2.sh
-sed -i 's,git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker,mv ../../* CMSSW_7_2_0/src/,' setup.sh
+sed -i '/git clone git@github.com:cmstas\/NtupleMaker.git CMS3\/NtupleMaker/i mkdir CMS3; mkdir CMS3/NtupleMaker' setup.sh
+sed -i 's,git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker,mv ../../* CMS3/NtupleMaker,' setup.sh
