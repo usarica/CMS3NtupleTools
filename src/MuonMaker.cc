@@ -1217,7 +1217,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     }
     else {
       vector_mus_dxyPV       ->push_back( -999. );
-      vector_mus_dxyPV       ->push_back( -999. );
+      vector_mus_dzPV        ->push_back( -999. );
       vector_mus_best_dxyPV  ->push_back( -999. );
       vector_mus_best_dzPV   ->push_back( -999. );
     }
