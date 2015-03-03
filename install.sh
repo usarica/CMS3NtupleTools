@@ -1,16 +1,16 @@
 #!/bin/bash
 
 #USER INPUTS
-GlobalTag=PHYS14_25_V2::All
-CMS3Tag=CMS3_V07-02-05
+CMS3Tag=master
 
-curl https://raw.githubusercontent.com/cmstas/NtupleTools/master/AutoTuple/setup.sh > setup2.sh
-
-sed -i '2,6d' setup2.sh
-sed -i "3s/.*/gtag=$GlobalTag/" setup2.sh
-sed -i "4s/.*/tag=$CMS3Tag/" setup2.sh
-
-head -n -20 setup2.sh > setup.sh
-rm setup2.sh
-sed -i '/git clone git@github.com:cmstas\/NtupleMaker.git CMS3\/NtupleMaker/i mkdir CMS3; mkdir CMS3/NtupleMaker' setup.sh
-sed -i 's,git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker,mv ../../* CMS3/NtupleMaker,' setup.sh
+export SCRAM_ARCH=slc6_amd64_gcc481
+scramv1 p -n CMSSW_7_2_0 CMSSW CMSSW_7_2_0
+cd CMSSW_7_2_0/src
+cmsenv
+git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker
+cd CMS3/NtupleMaker
+git checkout $CMS3Tag
+source setup/patchesToSource.sh
+cd $CMSSW_BASE/src
+scram b -j 10
+cd ..

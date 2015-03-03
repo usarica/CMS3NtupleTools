@@ -1,8 +1,9 @@
 # NtupleMaker
 
 ###Installation
-1.  Specify the global tag and CMS3 tag you want to use at the top of install.sh.  
-2.  ". install.sh"
+1.  curl https://raw.githubusercontent.com/cmstas/NtupleMaker/master/install.sh
+2.  Specify the global tag and CMS3 tag you want to use at the top of install.sh.  
+3.  source install.sh
 
 ###How to develop
 1.  Install
