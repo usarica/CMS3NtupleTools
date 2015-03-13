@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#CMSSW Environment
+: ${CMSSW_BASE:?"[ERROR] patchesToSource.sh: \$CMSSW_BASE not set. Perhaps you forgot to set your CMSSW environment."} 
 
 #Hard-code lepton ID
 git update-index --assume-unchanged setup/GsfEleFull5x5SigmaIEtaIEtaCut72X.cc 
