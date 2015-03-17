@@ -61,5 +61,5 @@ process.eventMaker.isData                        = cms.bool(False)
 process.luminosityMaker.isData                   = process.eventMaker.isData
 
 ##Slim CMS3
-#from CMS3.NtupleMaker.SlimCms2_cff import slimcms2
-#process.out.outputCommands.extend(slimcms2)
+#from CMS3.NtupleMaker.SlimCms3_cff import slimcms3
+#process.out.outputCommands.extend(slimcms3)
