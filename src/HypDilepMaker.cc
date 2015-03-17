@@ -2,9 +2,10 @@
 //
 // Package:    NtupleMaker
 // Class:      HypDilepMaker
-// 
-/**\class HypDilepMaker HypDilepMaker.cc CMS3/NtupleMaker/src/HypDilepMaker.cc
-
+//
+// Original Author:  Puneeth Kalavase
+//         Created:  Wed Jun 18 19:59:33 UTC 2008  
+/*
 Description: create trilepton hypothesis branches
 
 Implementation:
@@ -19,16 +20,6 @@ em:2
 ee:3
 
 */
-//
-// Original Author:  Puneeth Kalavase
-//         Created:  Wed Jun 18 19:59:33 UTC 2008  
-// $Id: HypDilepMaker.cc,v 1.25 2012/03/16 19:49:36 dbarge Exp $
-//
-//
-// Note from Alex: I commented out a whole bunch of shit that AFAIK no one uses.  
-// If these comments are still here six months from today (today is Oct 23 2014),
-// they can probably be deleted
-//
 
 // system include files
 #include <memory>
@@ -79,12 +70,8 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   looseptcut               = iConfig.getParameter<double>  ("LooseLepton_PtCut"                                    );
 
   produces<vector<int> >           (branchprefix+"type"                    ).setBranchAlias(aliasprefix_+"_type"                       );
-  //produces<vector<int> >           (branchprefix+"njets"                   ).setBranchAlias(aliasprefix_+"_njets"                      );
-  //produces<vector<int> >           (branchprefix+"nojets"                  ).setBranchAlias(aliasprefix_+"_nojets"                     );  
   produces<vector<LorentzVector> > (branchprefix+"p4"                      ).setBranchAlias(aliasprefix_+"_p4"                         );
   
-  //produces<vector<int> >           (branchprefix+"ltvalidHits"             ).setBranchAlias(aliasprefix_+"_lt_validHits"               );
-  //produces<vector<int> >           (branchprefix+"ltlostHits"              ).setBranchAlias(aliasprefix_+"_lt_lostHits"                );
   produces<vector<int> >           (branchprefix+"ltcharge"                ).setBranchAlias(aliasprefix_+"_lt_charge"                  );
   produces<vector<int> >           (branchprefix+"ltindex"                 ).setBranchAlias(aliasprefix_+"_lt_index"                   );
   produces<vector<int> >           (branchprefix+"ltid"                    ).setBranchAlias(aliasprefix_+"_lt_id"                      );
@@ -96,14 +83,9 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >         (branchprefix+"ltndof"                  ).setBranchAlias(aliasprefix_+"_lt_ndof"                    );
   produces<vector<float> >         (branchprefix+"ltd0Err"                 ).setBranchAlias(aliasprefix_+"_lt_d0Err"                   );
   produces<vector<float> >         (branchprefix+"ltz0Err"                 ).setBranchAlias(aliasprefix_+"_lt_z0Err"                   );
-  //produces<vector<float> >         (branchprefix+"ltptErr"                 ).setBranchAlias(aliasprefix_+"_lt_ptErr"                   );
-  //produces<vector<float> >         (branchprefix+"ltetaErr"                ).setBranchAlias(aliasprefix_+"_lt_etaErr"                  );
-  //produces<vector<float> >         (branchprefix+"ltphiErr"                ).setBranchAlias(aliasprefix_+"_lt_phiErr"                  );
   produces<vector<LorentzVector > >(branchprefix+"ltp4"                    ).setBranchAlias(aliasprefix_+"_lt_p4"                      );
   produces<vector<LorentzVector > >(branchprefix+"lttrkp4"                 ).setBranchAlias(aliasprefix_+"_lt_trk_p4"                  );
   
-  //produces<vector<int> >           (branchprefix+"llvalidHits"             ).setBranchAlias(aliasprefix_+"_ll_validHits"               );
-  //produces<vector<int> >           (branchprefix+"lllostHits"              ).setBranchAlias(aliasprefix_+"_ll_lostHits"                );
   produces<vector<int> >           (branchprefix+"llcharge"                ).setBranchAlias(aliasprefix_+"_ll_charge"                  );
   produces<vector<int> >           (branchprefix+"llindex"                 ).setBranchAlias(aliasprefix_+"_ll_index"                   );
   produces<vector<int> >           (branchprefix+"llid"                    ).setBranchAlias(aliasprefix_+"_ll_id"                      );
@@ -115,24 +97,9 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >         (branchprefix+"llndof"                  ).setBranchAlias(aliasprefix_+"_ll_ndof"                    );
   produces<vector<float> >         (branchprefix+"lld0Err"                 ).setBranchAlias(aliasprefix_+"_ll_d0Err"                   );
   produces<vector<float> >         (branchprefix+"llz0Err"                 ).setBranchAlias(aliasprefix_+"_ll_z0Err"                   );
-  //produces<vector<float> >         (branchprefix+"llptErr"                 ).setBranchAlias(aliasprefix_+"_ll_ptErr"                   );
-  //produces<vector<float> >         (branchprefix+"lletaErr"                ).setBranchAlias(aliasprefix_+"_ll_etaErr"                  );
-  //produces<vector<float> >         (branchprefix+"llphiErr"                ).setBranchAlias(aliasprefix_+"_ll_phiErr"                  );
   produces<vector<LorentzVector > >(branchprefix+"llp4"                    ).setBranchAlias(aliasprefix_+"_ll_p4"                      );
   produces<vector<LorentzVector > >(branchprefix+"lltrkp4"                 ).setBranchAlias(aliasprefix_+"_ll_trk_p4"                  );
   
-  //produces<vector<float> >         (branchprefix+"ltdPhiMet"               ).setBranchAlias(aliasprefix_+"_lt_dPhi_Met"                );
-  //produces<vector<float> >         (branchprefix+"lldPhiMet"               ).setBranchAlias(aliasprefix_+"_ll_dPhi_Met"                );
-  //produces<vector<float> >         (branchprefix+"dPhinJetMet"             ).setBranchAlias(aliasprefix_+"_dPhi_nJet_Met"              );
-  
-  //produces<vector<float> >         (branchprefix+"sumJetPt"                ).setBranchAlias(aliasprefix_+"_sumJetPt"                   );
-  //produces<vector<float> >         (branchprefix+"Ht"                      ).setBranchAlias(aliasprefix_+"_Ht"                         );  
-
-  //produces<vector<vector<int> > >  (branchprefix+"jetsidx"                 ).setBranchAlias(aliasprefix_+"_jets_idx"                   );
-  //produces<vector<vector<int> > >  (branchprefix+"otherjetsidx"            ).setBranchAlias(aliasprefix_+"_other_jets_idx"             );
-  
-  //produces<vector<vector<LorentzVector> > >  (branchprefix+"jetsp4"       ).setBranchAlias(aliasprefix_+"_jets_p4"                     );
-  //produces<vector<vector<LorentzVector> > >  (branchprefix+"otherjetsp4"  ).setBranchAlias(aliasprefix_+"_other_jets_p4"               );
 }
 
 
@@ -148,12 +115,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 
   // output collections
   auto_ptr<vector<int> >           hyp_type                    (new vector<int>             );
-  //auto_ptr<vector<int> >           hyp_njets                   (new vector<int>             );
-  //auto_ptr<vector<int> >           hyp_nojets                  (new vector<int>             );
   auto_ptr<vector<LorentzVector> > hyp_p4                      (new vector<LorentzVector>   );
-
-  //auto_ptr<vector<int> >           hyp_lt_validHits            (new vector<int>             );
-  //auto_ptr<vector<int> >           hyp_lt_lostHits             (new vector<int>             );
   auto_ptr<vector<int> >           hyp_lt_charge               (new vector<int>             );
   auto_ptr<vector<int> >           hyp_lt_index                (new vector<int>             );
   auto_ptr<vector<int> >           hyp_lt_id                   (new vector<int>             );
@@ -165,14 +127,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         hyp_lt_ndof                 (new vector<float>           );
   auto_ptr<vector<float> >         hyp_lt_d0Err                (new vector<float>           );
   auto_ptr<vector<float> >         hyp_lt_z0Err                (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_lt_ptErr                (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_lt_etaErr               (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_lt_phiErr               (new vector<float>           );
   auto_ptr<vector<LorentzVector> > hyp_lt_p4                   (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > hyp_lt_trk_p4               (new vector<LorentzVector>   );
-  
-  //auto_ptr<vector<int> >           hyp_ll_validHits            (new vector<int>             );
-  //auto_ptr<vector<int> >           hyp_ll_lostHits             (new vector<int>             );
   auto_ptr<vector<int> >           hyp_ll_charge               (new vector<int>             );
   auto_ptr<vector<int> >           hyp_ll_index                (new vector<int>             );
   auto_ptr<vector<int> >           hyp_ll_id                   (new vector<int>             );
@@ -184,25 +140,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >         hyp_ll_ndof                 (new vector<float>           );
   auto_ptr<vector<float> >         hyp_ll_d0Err                (new vector<float>           );
   auto_ptr<vector<float> >         hyp_ll_z0Err                (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_ll_ptErr                (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_ll_etaErr               (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_ll_phiErr               (new vector<float>           );
   auto_ptr<vector<LorentzVector> > hyp_ll_p4                   (new vector<LorentzVector>   );
   auto_ptr<vector<LorentzVector> > hyp_ll_trk_p4               (new vector<LorentzVector>   );
-  
-  //auto_ptr<vector<float> >         hyp_lt_dPhi_Met             (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_ll_dPhi_Met             (new vector<float>           );
-  //
-  //auto_ptr<vector<float> >         hyp_dPhi_nJet_Met           (new vector<float>           );
-  //
-  //auto_ptr<vector<float> >         hyp_sumJetPt                (new vector<float>           );
-  //auto_ptr<vector<float> >         hyp_Ht                      (new vector<float>           );
-  //
-
-  //auto_ptr<vector<vector<int> > >  hyp_jets_idx                (new vector<vector<int> >    );
-  //auto_ptr<vector<vector<int> > >  hyp_other_jets_idx          (new vector<vector<int> >    );
-  //auto_ptr<vector<vector<LorentzVector> > >  hyp_jets_p4       (new vector<vector<LorentzVector> > );
-  //auto_ptr<vector<vector<LorentzVector> > >  hyp_other_jets_p4 (new vector<vector<LorentzVector> > );
   
   // muon charge
   edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
@@ -216,18 +155,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(mus_p4_tag, mus_p4_h);
   const vector<LorentzVector> *mus_p4 = mus_p4_h.product();
 
-  ////# of validHits on the muon track
-  //InputTag mus_validHits_tag(muonsInputTag.label(),"musvalidHits");
-  //Handle<vector<int> > mus_validHits_h;
-  //iEvent.getByLabel(mus_validHits_tag, mus_validHits_h);
-  //const vector<int> *mus_validHits = mus_validHits_h.product();
-
-  ////# of lostHits on the muon track
-  //InputTag mus_lostHits_tag(muonsInputTag.label(),"muslostHits");
-  //Handle<vector<int> > mus_lostHits_h;
-  //iEvent.getByLabel(mus_lostHits_tag, mus_lostHits_h);
-  //const vector<int> *mus_lostHits = mus_lostHits_h.product();
-  
   //muond0
   InputTag mus_d0_tag(muonsInputTag.label(),"musd0");
   Handle<vector<float> > mus_d0_h;
@@ -277,24 +204,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(mus_z0err_tag, mus_z0err_h);
   const vector<float> *mus_z0Err = mus_z0err_h.product();
 
-  ////pterr
-  //InputTag mus_pterr_tag(muonsInputTag.label(),"musptErr");
-  //Handle<vector<float> > mus_pterr_h;
-  //iEvent.getByLabel(mus_pterr_tag, mus_pterr_h);
-  //const vector<float> *mus_ptErr = mus_pterr_h.product();
-
-  ////etaerr
-  //InputTag mus_etaerr_tag(muonsInputTag.label(),"musetaErr");
-  //Handle<vector<float> > mus_etaerr_h;
-  //iEvent.getByLabel(mus_etaerr_tag, mus_etaerr_h);
-  //const vector<float> *mus_etaErr = mus_etaerr_h.product();
-
-  ////phierr
-  //InputTag mus_phierr_tag(muonsInputTag.label(),"musphiErr");
-  //Handle<vector<float> > mus_phierr_h;
-  //iEvent.getByLabel(mus_phierr_tag, mus_phierr_h);
-  //const vector<float> *mus_phiErr = mus_phierr_h.product();
-
   //muon track P4
   InputTag mus_trk_p4_tag(muonsInputTag.label(),"mustrkp4");
   Handle<vector<LorentzVector> > mus_trk_p4_h;
@@ -321,18 +230,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getByLabel(els_p4_tag, els_p4_h);
   const vector<LorentzVector> *els_p4 = els_p4_h.product();
   
-  ////# of validHits on the el track
-  //InputTag els_validHits_tag(electronsInputTag.label(),"elsvalidHits");
-  //Handle<vector<int> > els_validHits_h;
-  //iEvent.getByLabel(els_validHits_tag, els_validHits_h);
-  //const vector<int> *els_validHits = els_validHits_h.product();
-
-  ////# of lostHits on the electron track
-  //InputTag els_lostHits_tag(electronsInputTag.label(),"elslostHits");
-  //Handle<vector<int> > els_lostHits_h;
-  //iEvent.getByLabel(els_lostHits_tag, els_lostHits_h);
-  //const vector<int> *els_lostHits = els_lostHits_h.product();
-
   //electrond0
   InputTag els_d0_tag(electronsInputTag.label(),"elsd0");
   Handle<vector<float> > els_d0_h;
@@ -380,24 +277,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   Handle<vector<float> > els_z0err_h;
   iEvent.getByLabel(els_z0err_tag, els_z0err_h);
   const vector<float> *els_z0Err = els_z0err_h.product();
-
-  ////pterr
-  //InputTag els_pterr_tag(electronsInputTag.label(),"elsptErr");
-  //Handle<vector<float> > els_pterr_h;
-  //iEvent.getByLabel(els_pterr_tag, els_pterr_h);
-  //const vector<float> *els_ptErr = els_pterr_h.product();
-
-  ////etaerr
-  //InputTag els_etaerr_tag(electronsInputTag.label(),"elsetaErr");
-  //Handle<vector<float> > els_etaerr_h;
-  //iEvent.getByLabel(els_etaerr_tag, els_etaerr_h);
-  //const vector<float> *els_etaErr = els_etaerr_h.product();
-
-  ////phierr
-  //InputTag els_phierr_tag(electronsInputTag.label(),"elsphiErr");
-  //Handle<vector<float> > els_phierr_h;
-  //iEvent.getByLabel(els_phierr_tag, els_phierr_h);
-  //const vector<float> *els_phiErr = els_phierr_h.product();
 
   //electron track P4
   InputTag els_trk_p4_tag(electronsInputTag.label(),"elstrkp4");
@@ -505,31 +384,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	}
       }
 
-      //hyp_jets_idx->push_back(temp_jets_idx);
-      //hyp_other_jets_idx->push_back(temp_other_jets_idx);
-      //hyp_jets_p4                    ->push_back(temp_jets_p4                  );
-      //hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
-
-      //float temp_lt_dphi_Met;
-      //float temp_ll_dphi_Met;
-
-    //  if( fabs( mus_p4->at(tight_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	//temp_lt_dphi_Met = mus_p4->at(tight_index).phi() - *evt_metphi;
-    //  else if( ( mus_p4->at(tight_index).phi() - *evt_metphi ) > TMath::Pi() )
-    //  	temp_lt_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
-    //  else
-	//temp_lt_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(tight_index).phi() - *evt_metphi );
-
-    //  if( fabs( mus_p4->at(loose_index).phi() - *evt_metphi ) <= TMath::Pi() )
-	//temp_ll_dphi_Met = mus_p4->at(loose_index).phi() - *evt_metphi;
-    //  else if( ( mus_p4->at(loose_index).phi() - *evt_metphi ) > TMath::Pi() )
-    //  	temp_ll_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
-    //  else
-	//temp_ll_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(loose_index).phi() - *evt_metphi );
-
-      //hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
-      //hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
-
       float temp_dPhi_nJet_Met = 9999.;
       float temp_sumJetPt = 0;
 
@@ -543,23 +397,14 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	temp_sumJetPt += temp_jets_p4[jidx].pt();
       }
                                   
-      //hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
-      //hyp_sumJetPt->push_back( temp_sumJetPt );
-
       float temp_Ht = temp_sumJetPt;
 
       temp_Ht += ( mus_p4->at(tight_index).pt() + mus_p4->at(loose_index).pt() + *evt_met );
 
-      //hyp_Ht->push_back(temp_Ht);
 
       //push these into the hyp_jets and hyp_other_jets vars
       hyp_type          ->push_back(0                                     );
-      //nhyp_njets         ->push_back(temp_jets_p4.size()                   );     
-      //hyp_nojets        ->push_back(temp_other_jets_p4.size()             );     
       hyp_p4            ->push_back(mus_p4->at(tight_index)+mus_p4->at(loose_index)               );
-    
-      //hyp_lt_validHits    ->push_back(mus_validHits    ->at(tight_index)  );
-      //hyp_lt_lostHits     ->push_back(mus_lostHits     ->at(tight_index)  );
       hyp_lt_charge       ->push_back(mus_charge       ->at(tight_index)  );
       hyp_lt_index        ->push_back(tight_index                         );
       hyp_lt_id           ->push_back(-13*(mus_charge   ->at(tight_index)));
@@ -571,14 +416,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_lt_ndof         ->push_back(mus_ndof         ->at(tight_index)  );
       hyp_lt_d0Err        ->push_back(mus_d0Err        ->at(tight_index)  );
       hyp_lt_z0Err        ->push_back(mus_z0Err        ->at(tight_index)  );
-      //hyp_lt_ptErr        ->push_back(mus_ptErr        ->at(tight_index)  );
-      //hyp_lt_etaErr       ->push_back(mus_etaErr       ->at(tight_index)  );
-      //hyp_lt_phiErr       ->push_back(mus_phiErr       ->at(tight_index)  );
       hyp_lt_p4           ->push_back(mus_p4           ->at(tight_index)  );
       hyp_lt_trk_p4       ->push_back(mus_trk_p4       ->at(tight_index)  );
-      
-      //hyp_ll_validHits    ->push_back(mus_validHits    ->at(loose_index)  );
-      //hyp_ll_lostHits     ->push_back(mus_lostHits     ->at(loose_index)  );
       hyp_ll_charge       ->push_back(mus_charge       ->at(loose_index)  );
       hyp_ll_index        ->push_back(loose_index                         );
       hyp_ll_id           ->push_back(-13*(mus_charge   ->at(loose_index)));
@@ -590,9 +429,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_ll_ndof         ->push_back(mus_ndof         ->at(loose_index)  );
       hyp_ll_d0Err        ->push_back(mus_d0Err        ->at(loose_index)  );
       hyp_ll_z0Err        ->push_back(mus_z0Err        ->at(loose_index)  );
-      //hyp_ll_ptErr        ->push_back(mus_ptErr        ->at(loose_index)  );
-      //hyp_ll_etaErr       ->push_back(mus_etaErr       ->at(loose_index)  );
-      //hyp_ll_phiErr       ->push_back(mus_phiErr       ->at(loose_index)  );
       hyp_ll_p4           ->push_back(mus_p4           ->at(loose_index)  );
       hyp_ll_trk_p4       ->push_back(mus_trk_p4       ->at(loose_index)  );
     }
@@ -669,35 +505,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	
       }//jet loop
 
-      //push these into the hyp_jets and hyp_other_jets vars
-      //hyp_jets_idx->push_back(temp_jets_idx);
-      //hyp_other_jets_idx->push_back(temp_other_jets_idx);
-      //hyp_jets_p4                    ->push_back(temp_jets_p4                  );
-      //hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
-
-//      float temp_lt_dphi_Met;
-//      float temp_ll_dphi_Met;
-//
-//      if( fabs( els_p4->at(tight_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	temp_lt_dphi_Met = els_p4->at(tight_index).phi() - *evt_metphi;
-//      else if( ( els_p4->at(tight_index).phi() - *evt_metphi ) > TMath::Pi() )
-//      	temp_lt_dphi_Met = 2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
-//      else
-//	temp_lt_dphi_Met = -2*TMath::Pi() - ( els_p4->at(tight_index).phi() - *evt_metphi );
-//
-//      
-//      if( fabs( els_p4->at(loose_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	temp_ll_dphi_Met = els_p4->at(loose_index).phi() - *evt_metphi;
-//      else if( ( els_p4->at(loose_index).phi() - *evt_metphi ) > TMath::Pi() )
-//	temp_ll_dphi_Met = 2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
-//      else
-//	temp_ll_dphi_Met = -2*TMath::Pi() - ( els_p4->at(loose_index).phi() - *evt_metphi );
-
-
-
-      //hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
-      //hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
-
       float temp_dPhi_nJet_Met = 9999.;
 
       float temp_sumJetPt = 0;
@@ -711,10 +518,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 
 	temp_sumJetPt += temp_jets_p4[jidx].pt();
       }
-                                  
-      //hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
-
-      //hyp_sumJetPt->push_back( temp_sumJetPt );
 
       float temp_Ht = temp_sumJetPt;
 
@@ -723,13 +526,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       //hyp_Ht->push_back(temp_Ht);
     
       hyp_type          ->push_back(3);
-      //hyp_njets         ->push_back(temp_jets_p4.size()                   );     
-      //hyp_nojets        ->push_back(temp_other_jets_p4.size()             );     
-      hyp_p4            ->push_back(els_p4->at(tight_index)+
-				    els_p4->at(loose_index)               );
-      
-      //hyp_lt_validHits    ->push_back(els_validHits    ->at(tight_index)  );
-      //hyp_lt_lostHits     ->push_back(els_lostHits     ->at(tight_index)  );
+      hyp_p4            ->push_back(els_p4->at(tight_index)+els_p4->at(loose_index)               );
       hyp_lt_charge       ->push_back(els_charge       ->at(tight_index)  );
       hyp_lt_index        ->push_back(tight_index                         );
       hyp_lt_id           ->push_back(-11*(els_charge   ->at(tight_index)));
@@ -741,14 +538,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_lt_ndof         ->push_back(els_ndof         ->at(tight_index)  );
       hyp_lt_d0Err        ->push_back(els_d0Err        ->at(tight_index)  );
       hyp_lt_z0Err        ->push_back(els_z0Err        ->at(tight_index)  );
-      //hyp_lt_ptErr        ->push_back(els_ptErr        ->at(tight_index)  );
-      //hyp_lt_etaErr       ->push_back(els_etaErr       ->at(tight_index)  );
-      //hyp_lt_phiErr       ->push_back(els_phiErr       ->at(tight_index)  );
       hyp_lt_p4           ->push_back(els_p4           ->at(tight_index)  );
       hyp_lt_trk_p4       ->push_back(els_trk_p4       ->at(tight_index)  );
-      
-      //hyp_ll_validHits    ->push_back(els_validHits    ->at(loose_index)  );
-      //hyp_ll_lostHits     ->push_back(els_lostHits     ->at(loose_index)  );
       hyp_ll_charge       ->push_back(els_charge       ->at(loose_index)  );
       hyp_ll_index        ->push_back(loose_index                         );
       hyp_ll_id           ->push_back(-11*(els_charge   ->at(loose_index)));
@@ -760,9 +551,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
       hyp_ll_ndof         ->push_back(els_ndof         ->at(loose_index)  );
       hyp_ll_d0Err        ->push_back(els_d0Err        ->at(loose_index)  );
       hyp_ll_z0Err        ->push_back(els_z0Err        ->at(loose_index)  );
-      //hyp_ll_ptErr        ->push_back(els_ptErr        ->at(loose_index)  );
-      //hyp_ll_etaErr       ->push_back(els_etaErr       ->at(loose_index)  );
-      //hyp_ll_phiErr       ->push_back(els_phiErr       ->at(loose_index)  );
       hyp_ll_p4           ->push_back(els_p4           ->at(loose_index)  );
       hyp_ll_trk_p4       ->push_back(els_trk_p4       ->at(loose_index)  );
     }
@@ -822,91 +610,12 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	}
       }       
 
-      //push these into the hyp_jets and hyp_other_jets vars
-      //hyp_jets_idx->push_back(temp_jets_idx);
-      //hyp_other_jets_idx->push_back(temp_other_jets_idx);
-      //hyp_jets_p4                    ->push_back(temp_jets_p4                  );
-      //hyp_other_jets_p4              ->push_back(temp_other_jets_p4            );
-
-//      float temp_lt_dphi_Met;
-//      float temp_ll_dphi_Met;
-//
-//      if(el_pt < tightptcut && mu_pt > tightptcut) {
-//
-//	if( fabs( mus_p4->at(mus_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	  temp_lt_dphi_Met = mus_p4->at(mus_index).phi() - *evt_metphi;
-//	else if( ( mus_p4->at(mus_index).phi() - *evt_metphi ) > TMath::Pi() )
-//	  temp_lt_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
-//	else
-//	  temp_lt_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
-//
-//      
-//	if( fabs( els_p4->at(els_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	  temp_ll_dphi_Met = els_p4->at(els_index).phi() - *evt_metphi;
-//	else if( ( els_p4->at(els_index).phi() - *evt_metphi ) > TMath::Pi() )
-//	  temp_ll_dphi_Met = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
-//	else
-//	  temp_ll_dphi_Met = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
-
-	//hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
-	//hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
-//      }
-//
-//      else {
-//
-//	if( fabs( els_p4->at(els_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	  temp_lt_dphi_Met = els_p4->at(els_index).phi() - *evt_metphi;
-//	else if( ( els_p4->at(els_index).phi() - *evt_metphi ) > TMath::Pi() )
-//	  temp_lt_dphi_Met = 2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
-//	else
-//	  temp_lt_dphi_Met = -2*TMath::Pi() - ( els_p4->at(els_index).phi() - *evt_metphi );
-//
-//      
-//	if( fabs( mus_p4->at(mus_index).phi() - *evt_metphi ) <= TMath::Pi() )
-//	  temp_ll_dphi_Met = mus_p4->at(mus_index).phi() - *evt_metphi;
-//	else if( ( mus_p4->at(mus_index).phi() - *evt_metphi ) > TMath::Pi() )
-//	  temp_ll_dphi_Met = 2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
-//	else
-//	  temp_ll_dphi_Met = -2*TMath::Pi() - ( mus_p4->at(mus_index).phi() - *evt_metphi );
-
-	//hyp_lt_dPhi_Met->push_back(temp_lt_dphi_Met); 
-	//hyp_ll_dPhi_Met->push_back(temp_ll_dphi_Met); 
-//      }
-
-      //float temp_dPhi_nJet_Met = 9999.;
-
-      //float temp_sumJetPt = 0;
-
-      //for( unsigned int jidx = 0; jidx < temp_jets_p4.size(); jidx++ ) {
-
-	//float dphi       = fabs( temp_jets_p4[jidx].phi() - *evt_metphi            ) < TMath::Pi() ? temp_jets_p4[jidx].phi() - *evt_metphi            : 2*TMath::Pi() - ( temp_jets_p4[jidx].phi() - *evt_metphi            );
-
-	//if( dphi < temp_dPhi_nJet_Met )
-	  //temp_dPhi_nJet_Met = dphi;
-
-	//temp_sumJetPt += temp_jets_p4[jidx].pt();
-      //}
-                                  
-      //hyp_dPhi_nJet_Met->push_back(temp_dPhi_nJet_Met);
-
-      //hyp_sumJetPt->push_back( temp_sumJetPt );
-
-     // float temp_Ht = temp_sumJetPt;
-
-     // temp_Ht += ( mus_p4->at(mus_index).pt() + els_p4->at(els_index).pt() + *evt_met );
-
-      //hyp_Ht->push_back(temp_Ht);
-      
-      //hyp_njets         ->push_back(temp_jets_p4.size()                   );     
-      //hyp_nojets        ->push_back(temp_other_jets_p4.size()             );     
       hyp_p4            ->push_back(mus_p4->at(mus_index)+
 				    els_p4->at(els_index)                 );
 	
       if(el_pt < tightptcut && mu_pt > tightptcut) {
 	hyp_type            ->push_back(1);
 	  
-	//hyp_lt_validHits    ->push_back(mus_validHits    ->at(mus_index)  );
-	//hyp_lt_lostHits     ->push_back(mus_lostHits     ->at(mus_index)  );
 	hyp_lt_charge       ->push_back(mus_charge       ->at(mus_index)  );
 	hyp_lt_index        ->push_back(mus_index                         );
 	hyp_lt_id           ->push_back(-13*(mus_charge   ->at(mus_index)));
@@ -918,14 +627,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	hyp_lt_ndof         ->push_back(mus_ndof         ->at(mus_index)  );
 	hyp_lt_d0Err        ->push_back(mus_d0Err        ->at(mus_index)  );
 	hyp_lt_z0Err        ->push_back(mus_z0Err        ->at(mus_index)  );
-	//hyp_lt_ptErr        ->push_back(mus_ptErr        ->at(mus_index)  );
-	//hyp_lt_etaErr       ->push_back(mus_etaErr       ->at(mus_index)  );
-	//hyp_lt_phiErr       ->push_back(mus_phiErr       ->at(mus_index)  );
 	hyp_lt_p4           ->push_back(mus_p4           ->at(mus_index)  );
 	hyp_lt_trk_p4       ->push_back(mus_trk_p4       ->at(mus_index)  );
-	
-	//hyp_ll_validHits    ->push_back(els_validHits    ->at(els_index)  );
-	//hyp_ll_lostHits     ->push_back(els_lostHits     ->at(els_index)  );
 	hyp_ll_charge       ->push_back(els_charge       ->at(els_index)  );
 	hyp_ll_index        ->push_back(els_index                         );
 	hyp_ll_id           ->push_back(-11*(els_charge   ->at(els_index)));
@@ -937,18 +640,11 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	hyp_ll_ndof         ->push_back(els_ndof         ->at(els_index)  );
 	hyp_ll_d0Err        ->push_back(els_d0Err        ->at(els_index)  );
 	hyp_ll_z0Err        ->push_back(els_z0Err        ->at(els_index)  );
-	//hyp_ll_ptErr        ->push_back(els_ptErr        ->at(els_index)  );
-	//hyp_ll_etaErr       ->push_back(els_etaErr       ->at(els_index)  );
-	//hyp_ll_phiErr       ->push_back(els_phiErr       ->at(els_index)  );
 	hyp_ll_p4           ->push_back(els_p4           ->at(els_index)  );
 	hyp_ll_trk_p4       ->push_back(els_trk_p4       ->at(els_index)  );
-	
-	  
-      } else {
+      }
+    else {
 	hyp_type            ->push_back(2);
-		  
-	//hyp_lt_validHits    ->push_back(els_validHits    ->at(els_index)  );
-	//hyp_lt_lostHits     ->push_back(els_lostHits     ->at(els_index)  );
 	hyp_lt_charge       ->push_back(els_charge       ->at(els_index)  );
 	hyp_lt_index        ->push_back(els_index                         );
 	hyp_lt_id           ->push_back(-11*(els_charge   ->at(els_index)));
@@ -960,16 +656,9 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	hyp_lt_ndof         ->push_back(els_ndof         ->at(els_index)  );
 	hyp_lt_d0Err        ->push_back(els_d0Err        ->at(els_index)  );
 	hyp_lt_z0Err        ->push_back(els_z0Err        ->at(els_index)  );
-	//hyp_lt_ptErr        ->push_back(els_ptErr        ->at(els_index)  );
-	//hyp_lt_etaErr       ->push_back(els_etaErr       ->at(els_index)  );
-	//hyp_lt_phiErr       ->push_back(els_phiErr       ->at(els_index)  );
 	hyp_lt_p4           ->push_back(els_p4           ->at(els_index)  );
 	hyp_lt_trk_p4       ->push_back(els_trk_p4       ->at(els_index)  );
 	
-
-      
-	//hyp_ll_validHits    ->push_back(mus_validHits    ->at(mus_index)  );
-	//hyp_ll_lostHits     ->push_back(mus_lostHits     ->at(mus_index)  );
 	hyp_ll_charge       ->push_back(mus_charge       ->at(mus_index)  );
 	hyp_ll_index        ->push_back(mus_index                         );
 	hyp_ll_id           ->push_back(-13*(mus_charge   ->at(mus_index)));
@@ -981,9 +670,6 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 	hyp_ll_ndof         ->push_back(mus_ndof         ->at(mus_index)  );
 	hyp_ll_d0Err        ->push_back(mus_d0Err        ->at(mus_index)  );
 	hyp_ll_z0Err        ->push_back(mus_z0Err        ->at(mus_index)  );
-	//hyp_ll_ptErr        ->push_back(mus_ptErr        ->at(mus_index)  );
-	//hyp_ll_etaErr       ->push_back(mus_etaErr       ->at(mus_index)  );
-	//hyp_ll_phiErr       ->push_back(mus_phiErr       ->at(mus_index)  );
 	hyp_ll_p4           ->push_back(mus_p4           ->at(mus_index)  );
 	hyp_ll_trk_p4       ->push_back(mus_trk_p4       ->at(mus_index)  );
 	
@@ -995,12 +681,7 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   iEvent.put(hyp_type                     ,branchprefix+"type"                     );
-  //iEvent.put(hyp_njets                    ,branchprefix+"njets"                    );
-  //iEvent.put(hyp_nojets                   ,branchprefix+"nojets"                   );
   iEvent.put(hyp_p4                       ,branchprefix+"p4"                       );
- 
-  //iEvent.put(hyp_lt_validHits             ,branchprefix+"ltvalidHits"              );
-  //iEvent.put(hyp_lt_lostHits              ,branchprefix+"ltlostHits"               );
   iEvent.put(hyp_lt_charge                ,branchprefix+"ltcharge"                 );
   iEvent.put(hyp_lt_index                 ,branchprefix+"ltindex"                  );
   iEvent.put(hyp_lt_id                    ,branchprefix+"ltid"                     );
@@ -1012,14 +693,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(hyp_lt_ndof                  ,branchprefix+"ltndof"                   );
   iEvent.put(hyp_lt_d0Err                 ,branchprefix+"ltd0Err"                  );
   iEvent.put(hyp_lt_z0Err                 ,branchprefix+"ltz0Err"                  );
-  //iEvent.put(hyp_lt_ptErr                 ,branchprefix+"ltptErr"                  );
-  //iEvent.put(hyp_lt_etaErr                ,branchprefix+"ltetaErr"                 );
-  //iEvent.put(hyp_lt_phiErr                ,branchprefix+"ltphiErr"                 );
   iEvent.put(hyp_lt_p4                    ,branchprefix+"ltp4"                     );
   iEvent.put(hyp_lt_trk_p4                ,branchprefix+"lttrkp4"                  );
-  
-  //iEvent.put(hyp_ll_validHits             ,branchprefix+"llvalidHits"              );
-  //iEvent.put(hyp_ll_lostHits              ,branchprefix+"lllostHits"               );
   iEvent.put(hyp_ll_charge                ,branchprefix+"llcharge"                 );
   iEvent.put(hyp_ll_index                 ,branchprefix+"llindex"                  );
   iEvent.put(hyp_ll_id                    ,branchprefix+"llid"                     );
@@ -1031,23 +706,8 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(hyp_ll_ndof                  ,branchprefix+"llndof"                   );
   iEvent.put(hyp_ll_d0Err                 ,branchprefix+"lld0Err"                  );
   iEvent.put(hyp_ll_z0Err                 ,branchprefix+"llz0Err"                  );
-  //iEvent.put(hyp_ll_ptErr                 ,branchprefix+"llptErr"                  );
-  //iEvent.put(hyp_ll_etaErr                ,branchprefix+"lletaErr"                 );
-  //iEvent.put(hyp_ll_phiErr                ,branchprefix+"llphiErr"                 );
   iEvent.put(hyp_ll_p4                    ,branchprefix+"llp4"                     );
   iEvent.put(hyp_ll_trk_p4                ,branchprefix+"lltrkp4"                  );
-  
-  //iEvent.put(hyp_lt_dPhi_Met              ,branchprefix+"ltdPhiMet"                );
-  //iEvent.put(hyp_ll_dPhi_Met              ,branchprefix+"lldPhiMet"                );
-  //iEvent.put(hyp_dPhi_nJet_Met            ,branchprefix+"dPhinJetMet"              );
-  
-  //iEvent.put(hyp_sumJetPt                 ,branchprefix+"sumJetPt"                 );
-  //iEvent.put(hyp_Ht                       ,branchprefix+"Ht"                       );
-  
-  //iEvent.put(hyp_jets_idx                 ,branchprefix+"jetsidx"                  );
-  //iEvent.put(hyp_other_jets_idx           ,branchprefix+"otherjetsidx"             );
-  //iEvent.put(hyp_jets_p4                  ,branchprefix+"jetsp4"                   );         
-  //iEvent.put(hyp_other_jets_p4            ,branchprefix+"otherjetsp4"              );       
 }
 
 // ------------ method called once each job just before starting event loop  ------------
