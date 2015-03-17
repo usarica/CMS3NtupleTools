@@ -2,14 +2,14 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
 
-# CMS2
-process = cms.Process("CMS2")
+# CMS3
+process = cms.Process("CMS3")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
         version    = cms.untracked.string('$Revision: 1.11 $'),
-        annotation = cms.untracked.string('CMS2'),
-        name       = cms.untracked.string('CMS2 test configuration')
+        annotation = cms.untracked.string('CMS3'),
+        name       = cms.untracked.string('CMS3 test configuration')
 )
 
 # load event level configurations
@@ -105,5 +105,5 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 # Event Maker
 process.eventMaker.datasetName = cms.string("")
-process.eventMaker.CMS2tag     = cms.string("")
+process.eventMaker.CMS3tag     = cms.string("")
 
