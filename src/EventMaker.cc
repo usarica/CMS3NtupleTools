@@ -58,13 +58,13 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
     produces<int>                          (branchprefix+"experimentType" ).setBranchAlias(aliasprefix_+"_experimentType");
     produces< vector<unsigned long long> > (branchprefix+"timestamp"      ).setBranchAlias(aliasprefix_+"_timestamp"     );
     produces< vector< TString > >          (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
-    produces< vector< TString > >          (branchprefix+"CMS2tag"        ).setBranchAlias(aliasprefix_+"_CMS2tag"       );
+    produces< vector< TString > >          (branchprefix+"CMS3tag"        ).setBranchAlias(aliasprefix_+"_CMS3tag"       );
     produces<float>                        (branchprefix+"bField"         ).setBranchAlias(aliasprefix_+"_bField"        );
     produces<unsigned int>                 (branchprefix+"detectorStatus" ).setBranchAlias(aliasprefix_+"_detectorStatus");
     produces<int>                          (branchprefix+"isRealData"     ).setBranchAlias(aliasprefix_+"_isRealData"    );
   
     datasetName_ = iConfig.getParameter<std::string>("datasetName");
-    CMS2tag_     = iConfig.getParameter<std::string>("CMS2tag");
+    CMS3tag_     = iConfig.getParameter<std::string>("CMS3tag");
 
     dcsTag_ = consumes<DcsStatusCollection>(iConfig.getParameter<edm::InputTag>("dcsTag"));
     isData_ = iConfig.getParameter<bool>("isData") ;
@@ -95,7 +95,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     auto_ptr<int>                         evt_experimentType  (new int                       );
     auto_ptr<vector<unsigned long long> > evt_timestamp       (new vector<unsigned long long>);
     auto_ptr<vector<TString>>             evt_dataset         (new vector<TString>           );
-    auto_ptr<vector<TString>>             evt_CMS2tag         (new vector<TString>           );
+    auto_ptr<vector<TString>>             evt_CMS3tag         (new vector<TString>           );
     auto_ptr<float>                       evt_bField          (new float                     );
     auto_ptr<unsigned int>                evt_detectorStatus  (new unsigned int              );
     auto_ptr<int>                         evt_isRealData      (new int                       );
@@ -111,7 +111,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     evt_timestamp->push_back(iEvent.eventAuxiliary().time().value());
     evt_dataset->push_back( TString( datasetName_.c_str() ) );
-    evt_CMS2tag->push_back( TString( CMS2tag_    .c_str() ) );
+    evt_CMS3tag->push_back( TString( CMS3tag_    .c_str() ) );
   
     edm::Handle<DcsStatusCollection> dcsHandle;
     iEvent.getByToken(dcsTag_, dcsHandle);
@@ -160,7 +160,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_storeNumber      ,branchprefix+"storeNumber"     );
     iEvent.put(evt_experimentType   ,branchprefix+"experimentType"  );
     iEvent.put(evt_dataset          ,branchprefix+"dataset"         );
-    iEvent.put(evt_CMS2tag          ,branchprefix+"CMS2tag"         );
+    iEvent.put(evt_CMS3tag          ,branchprefix+"CMS3tag"         );
     iEvent.put(evt_bField           ,branchprefix+"bField"          );
     iEvent.put(evt_isRealData       ,branchprefix+"isRealData"      );
     iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );

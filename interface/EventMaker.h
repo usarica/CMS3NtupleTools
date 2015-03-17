@@ -47,7 +47,7 @@ private:
     virtual void beginRun (const edm::Run& iRun, const edm::EventSetup& iSetup);
 
     std::string datasetName_;
-    std::string CMS2tag_;
+    std::string CMS3tag_;
 
     edm::EDGetTokenT<DcsStatusCollection> dcsTag_;
     std::string aliasprefix_;
