@@ -155,7 +155,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "gfitvalidSiHits"           ).setBranchAlias( aliasprefix_ + "_gfit_validSiHits"   ); // number of hits in the Si fit that made it into the gfit
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitp4"                    ).setBranchAlias( aliasprefix_ + "_gfit_p4"            ); // global fit p4, if global fit exists
   produces<vector<LorentzVector> >  ( branchprefix_ + "gfitvertexp4"              ).setBranchAlias( aliasprefix_ + "_gfit_vertex_p4"     );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "gfitouterPosp4"            ).setBranchAlias( aliasprefix_ + "_gfit_outerPos_p4"   );
   produces<vector<float> >          ( branchprefix_ + "gfitd0corrPhi"             ).setBranchAlias( aliasprefix_ + "_gfit_d0corrPhi"     );
   produces<vector<float> >          ( branchprefix_ + "gfitd0phiCov"              ).setBranchAlias( aliasprefix_ + "_gfit_d0phiCov"      );
   produces<vector<int> >            ( branchprefix_ + "gfitqualityMask"           ).setBranchAlias( aliasprefix_ + "_gfit_qualityMask"   );
@@ -228,7 +227,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "segmCompatibility"         ).setBranchAlias( aliasprefix_ + "_segmCompatibility"      );
   produces<vector<float> >          ( branchprefix_ + "mass"                      ).setBranchAlias( aliasprefix_ + "_mass"                   ); 
   produces<vector<LorentzVector> >  ( branchprefix_ + "p4"                        ).setBranchAlias( aliasprefix_ + "_p4"                     ); // candidate p4->this can either be gfit p4, tracker p4 or STA p4 (only for STA muoons)     
-  produces<vector<LorentzVector> >  ( branchprefix_ + "ecalposp4"                 ).setBranchAlias( aliasprefix_ + "_ecalpos_p4"             ); // muon position at the ecal face
   produces<vector<int> >            ( branchprefix_ + "numberOfMatchedStations"   ).setBranchAlias( aliasprefix_ + "_numberOfMatchedStations"); // number of muon stations with muon segements used in the fit
 
   produces<vector<bool> >           ( branchprefix_ + "isRPCMuon"                 ).setBranchAlias( aliasprefix_ + "_isRPCMuon"              ); 
@@ -341,14 +339,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "bestdxyPV"       	  ).setBranchAlias( aliasprefix_ + "_best_dxyPV"       	  );
   produces<vector<float> >          ( branchprefix_ + "bestdzPV"        	  ).setBranchAlias( aliasprefix_ + "_best_dzPV"        	  );
 
-/*
-
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fittpfmsp4"                ).setBranchAlias( aliasprefix_ + "_fittpfms_p4"         );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fitpickyp4"                ).setBranchAlias( aliasprefix_ + "_fitpicky_p4"         );
-  produces<vector<LorentzVector> >  ( branchprefix_ + "fittevp4"                  ).setBranchAlias( aliasprefix_ + "_fittev_p4"           );
-*/
-
-  
   ////////
   // PF //
   ////////
@@ -520,7 +510,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_gfit_validSiHits            ( new vector<int>           );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_p4                     ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_gfit_vertex_p4              ( new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_gfit_outerPos_p4            ( new vector<LorentzVector> );
   auto_ptr<vector<float> >         vector_mus_gfit_d0corrPhi              ( new vector<float>         );
   auto_ptr<vector<float> >         vector_mus_gfit_d0phiCov               ( new vector<float>         );
   auto_ptr<vector<int> >           vector_mus_gfit_qualityMask            ( new vector<int>           );
@@ -593,7 +582,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_segmCompatibility       ( new vector<float>         );
   auto_ptr<vector<float> >         vector_mus_mass                    ( new vector<float>         );
   auto_ptr<vector<LorentzVector> > vector_mus_p4                      ( new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_ecalpos_p4              ( new vector<LorentzVector> );
   auto_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
 
   auto_ptr<vector<bool> >          vector_mus_isRPCMuon               ( new vector<bool>          );
@@ -710,7 +698,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 /*
 
   auto_ptr<vector<LorentzVector> > vector_mus_fittpfms_p4                 ( new vector<LorentzVector> );
-  auto_ptr<vector<LorentzVector> > vector_mus_fitpicky_p4                 ( new vector<LorentzVector> );
   auto_ptr<vector<LorentzVector> > vector_mus_fittev_p4                   ( new vector<LorentzVector> );
 */
 
@@ -971,7 +958,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     vector_mus_gfit_p4           -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->px(), globalTrack->py(), globalTrack->pz(), globalTrack->p() ) : LorentzVector(0.0,0.0,0.0,0.0) );
     vector_mus_gfit_vertex_p4    -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->vx(), globalTrack->vy(), globalTrack->vz(),  0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
-    //vector_mus_gfit_outerPos_p4  -> push_back( globalTrack.isNonnull() ? LorentzVector( globalTrack->outerPosition().x() , globalTrack->outerPosition().y() , globalTrack->outerPosition().z() ,              0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
   // Embedding all trackMaker details
     vector_mus_gfit_d0corrPhi       -> push_back( globalTrack.isNonnull()     ?  atan2( (globalTrack->dxy(beamSpot) * sin( globalTrack->phi() )), -1 * globalTrack->dxy(beamSpot) * cos( globalTrack->phi() ) ) : -9999.        );
     vector_mus_gfit_d0phiCov        -> push_back( globalTrack.isNonnull()     ?  -1.* globalTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
@@ -1077,9 +1063,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_segmCompatibility       -> push_back( muon::segmentCompatibility(*muon)                         );
     vector_mus_mass                    -> push_back( muon->mass()                                              );
     vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
-    vector_mus_ecalpos_p4              -> push_back( LorentzVector( ecal_p.x(), ecal_p.y(), ecal_p.z(), 0.0 )  );
     vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
-
     vector_mus_isRPCMuon               ->push_back( muon->isRPCMuon()                                          );
 
     /*
@@ -1222,60 +1206,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_best_dzPV   ->push_back( -999. );
     }
 
-/*
-
-    //   
-    if( !muon->isGlobalMuon() ) { // Muon is not global
-
-      vector_mus_fittpfms_p4    -> push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fitpicky_p4    -> push_back( LorentzVector( 0, 0, 0, 0 ) );
-      vector_mus_fittev_p4      -> push_back( LorentzVector( 0, 0, 0, 0 ) );
-
-    }
-    else {  // Muon is global
-
-      ///////////////
-      // First Hit //
-      ///////////////
-
-      TrackRef tmpRef = muon->muonTrackFromMap( Muon::TPFMS );
-      if( tmpRef.isAvailable() ) { 
-        vector_mus_fittpfms_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
-      }
-      else{
-        vector_mus_fittpfms_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
-      }
-
-      ///////////
-      // Picky //
-      ///////////
-
-      tmpRef = muon->muonTrackFromMap( Muon::Picky );
-      if( tmpRef.isAvailable() ) {
-        vector_mus_fitpicky_p4->push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
-      }
-      else {
-        vector_mus_fitpicky_p4->push_back( LorentzVector( 0, 0, 0, 0 ) );
-      }
-
-
-      /////////
-      // TeV //
-      /////////  
-
-      tmpRef = muon::tevOptimized( *muon ).first;
-      if( tmpRef.isAvailable() ) { 
-        vector_mus_fittev_p4 -> push_back( LorentzVector( tmpRef->px(), tmpRef->py(), tmpRef->pz(), tmpRef->p() ) );
-      }
-      else {
-        vector_mus_fittev_p4 -> push_back( LorentzVector( 0, 0, 0, 0 ) );
-      }
-
-    } // end Muon is global
-
-
-
-*/
     ////////
     // PF //
     ////////
@@ -1526,7 +1456,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_gfit_validSiHits             , branchprefix_ + "gfitvalidSiHits"    );
   iEvent.put( vector_mus_gfit_p4                      , branchprefix_ + "gfitp4"             );
   iEvent.put( vector_mus_gfit_vertex_p4               , branchprefix_ + "gfitvertexp4"             );
-  iEvent.put( vector_mus_gfit_outerPos_p4             , branchprefix_ + "gfitouterPosp4"           );
   iEvent.put( vector_mus_gfit_d0corrPhi               , branchprefix_ + "gfitd0corrPhi"       );
   iEvent.put( vector_mus_gfit_d0phiCov        	      , branchprefix_ + "gfitd0phiCov"        );
   iEvent.put( vector_mus_gfit_qualityMask     	      , branchprefix_ + "gfitqualityMask"     );
@@ -1599,7 +1528,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_segmCompatibility       , branchprefix_ + "segmCompatibility"       );
   iEvent.put( vector_mus_mass                    , branchprefix_ + "mass"                    );
   iEvent.put( vector_mus_p4                      , branchprefix_ + "p4"                      );
-  iEvent.put( vector_mus_ecalpos_p4              , branchprefix_ + "ecalposp4"               );
   iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
 
   iEvent.put( vector_mus_isRPCMuon               , branchprefix_ + "isRPCMuon"               );
@@ -1710,14 +1638,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_best_dxyPV         , branchprefix_ + "bestdxyPV"     	   );
   iEvent.put( vector_mus_best_dzPV          , branchprefix_ + "bestdzPV"      	   );
   
-/*
-          
-  iEvent.put( vector_mus_fittpfms_p4                  , branchprefix_ + "fittpfmsp4"               );
-  iEvent.put( vector_mus_fitpicky_p4                  , branchprefix_ + "fitpickyp4"               );
-  iEvent.put( vector_mus_fittev_p4                    , branchprefix_ + "fittevp4"                 );
-*/
-
-
   ////////                                  
   // PF //
   ////////

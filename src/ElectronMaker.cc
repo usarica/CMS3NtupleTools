@@ -126,7 +126,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elseSCPresh"                ).setBranchAlias("els_eSCPresh"               );
     produces<vector<int> >       ("elsfiduciality"             ).setBranchAlias("els_fiduciality"            );
     produces<vector<int> >       ("elstype"                    ).setBranchAlias("els_type"                   );
-    produces<vector<int> >       ("elsscindex"                 ).setBranchAlias("els_scindex"                );
+//    produces<vector<int> >       ("elsscindex"                 ).setBranchAlias("els_scindex"                );
     produces<vector<float> >     ("elsetaSCwidth"              ).setBranchAlias("els_etaSCwidth"             );
     produces<vector<float> >     ("elsphiSCwidth"              ).setBranchAlias("els_phiSCwidth"             );
 
@@ -160,7 +160,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     //produces<vector<float> >     ("elssigmaPhiPhi"             ).setBranchAlias("els_sigmaPhiPhi"            );
     produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
-    produces<vector<float> >     ("elssigmaIEtaIPhi"           ).setBranchAlias("els_sigmaIEtaIPhi"          );
+    //produces<vector<float> >     ("elssigmaIEtaIPhi"           ).setBranchAlias("els_sigmaIEtaIPhi"          );
     produces<vector<float> >     ("elssigmaEtaEta"             ).setBranchAlias("els_sigmaEtaEta"            );
     produces<vector<float> >     ("elssigmaIEtaIEta"           ).setBranchAlias("els_sigmaIEtaIEta"          );
     //produces<vector<float> >     ("elssigmaIPhiIPhiSC"         ).setBranchAlias("els_sigmaIPhiIPhiSC"        );
@@ -169,8 +169,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("else2x5Max"                 ).setBranchAlias("els_e2x5Max"                );
     produces<vector<float> >     ("else1x5"                    ).setBranchAlias("els_e1x5"                   );
     produces<vector<float> >     ("else5x5"                    ).setBranchAlias("els_e5x5"                   );
-    produces<vector<float> >     ("else3x3"                    ).setBranchAlias("els_e3x3"                   );
-    produces<vector<float> >     ("elseMax"                    ).setBranchAlias("els_eMax"                   );
+//    produces<vector<float> >     ("else3x3"                    ).setBranchAlias("els_e3x3"                   );
+//    produces<vector<float> >     ("elseMax"                    ).setBranchAlias("els_eMax"                   );
 
     produces<vector<float> >     ("elsdeltaEtaEleClusterTrackAtCalo").setBranchAlias("els_deltaEtaEleClusterTrackAtCalo");
     produces<vector<float> >     ("elsdeltaPhiEleClusterTrackAtCalo").setBranchAlias("els_deltaPhiEleClusterTrackAtCalo");
@@ -203,15 +203,15 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elshcalIso04"              ).setBranchAlias("els_hcalIso04"              );
     produces<vector<float> >     ("elshcalDepth1TowerSumEt04" ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
     produces<vector<float> >     ("elshcalDepth2TowerSumEt04" ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
-    produces<vector<float> >     ("elsiso03pf"                ).setBranchAlias("els_iso03_pf"               ); // pf isolation in cone of 0.3, 1 GeV threshold
-    produces<vector<float> >     ("elsiso04pf"                ).setBranchAlias("els_iso04_pf"               ); // pf isolation in cone of 0.4, 1 GeV threshold
+//    produces<vector<float> >     ("elsiso03pf"                ).setBranchAlias("els_iso03_pf"               ); // pf isolation in cone of 0.3, 1 GeV threshold
+//    produces<vector<float> >     ("elsiso04pf"                ).setBranchAlias("els_iso04_pf"               ); // pf isolation in cone of 0.4, 1 GeV threshold
 
-    produces<vector<float> >     ("elsiso03pfch"              ).setBranchAlias("els_iso03_pf_ch"            ); // pf isolation in cone of 0.3, charged only
-    produces<vector<float> >     ("elsiso03pfgamma05"         ).setBranchAlias("els_iso03_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
-    produces<vector<float> >     ("elsiso03pfnhad05"          ).setBranchAlias("els_iso03_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
-    produces<vector<float> >     ("elsiso04pfch"              ).setBranchAlias("els_iso04_pf_ch"            ); // pf isolation in cone of 0.3, charged only
-    produces<vector<float> >     ("elsiso04pfgamma05"         ).setBranchAlias("els_iso04_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
-    produces<vector<float> >     ("elsiso04pfnhad05"          ).setBranchAlias("els_iso04_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
+//    produces<vector<float> >     ("elsiso03pfch"              ).setBranchAlias("els_iso03_pf_ch"            ); // pf isolation in cone of 0.3, charged only
+//    produces<vector<float> >     ("elsiso03pfgamma05"         ).setBranchAlias("els_iso03_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
+//    produces<vector<float> >     ("elsiso03pfnhad05"          ).setBranchAlias("els_iso03_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
+ //   produces<vector<float> >     ("elsiso04pfch"              ).setBranchAlias("els_iso04_pf_ch"            ); // pf isolation in cone of 0.3, charged only
+//    produces<vector<float> >     ("elsiso04pfgamma05"         ).setBranchAlias("els_iso04_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
+//    produces<vector<float> >     ("elsiso04pfnhad05"          ).setBranchAlias("els_iso04_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
 
     // 2012 Electron Particle Flow Isolation
     produces<vector<float> >     ("elsiso03pf2012ch"             ).setBranchAlias("els_iso03_pf2012_ch"    );
@@ -309,7 +309,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
 
     //These are vectors of vectors, holding the candidate conversion partners. 
-    //produces<vector<vector<LorentzVector> > > ("elsconvsposp4"       ).setBranchAlias("els_convs_pos_p4"      );  //position of conversion
     //produces<vector<vector<float> >   >       ("elsconvsdist"        ).setBranchAlias("els_convs_dist"        );
     //produces<vector<vector<float> >   >       ("elsconvsdcot"        ).setBranchAlias("els_convs_dcot"        );
     //produces<vector<vector<float> >   >       ("elsconvsradius"      ).setBranchAlias("els_convs_radius"      );  //signed radius of conversion
@@ -419,7 +418,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_eSCPresh    (new vector<float> );
     auto_ptr<vector<int> >   els_fiduciality (new vector<int>   );
     auto_ptr<vector<int> >   els_type        (new vector<int>   );
-    auto_ptr<vector<int> >   els_scindex     (new vector<int>   ); 
+//    auto_ptr<vector<int> >   els_scindex     (new vector<int>   ); 
     auto_ptr<vector<float> > els_etaSCwidth  (new vector<float> );
     auto_ptr<vector<float> > els_phiSCwidth  (new vector<float> );
 
@@ -459,7 +458,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
                              
     //auto_ptr<vector<float> > els_sigmaPhiPhi                   (new vector<float> );
     auto_ptr<vector<float> > els_sigmaIPhiIPhi                 (new vector<float> );
-    auto_ptr<vector<float> > els_sigmaIEtaIPhi                 (new vector<float> );
+    //auto_ptr<vector<float> > els_sigmaIEtaIPhi                 (new vector<float> );
     auto_ptr<vector<float> > els_sigmaEtaEta                   (new vector<float> );
     auto_ptr<vector<float> > els_sigmaIEtaIEta                 (new vector<float> );
     //auto_ptr<vector<float> > els_sigmaIPhiIPhiSC               (new vector<float> );
@@ -468,8 +467,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_e2x5Max                       (new vector<float> );
     auto_ptr<vector<float> > els_e1x5                          (new vector<float> );
     auto_ptr<vector<float> > els_e5x5                          (new vector<float> );
-    auto_ptr<vector<float> > els_e3x3                          (new vector<float> );
-    auto_ptr<vector<float> > els_eMax                          (new vector<float> );
+//    auto_ptr<vector<float> > els_e3x3                          (new vector<float> );
+//    auto_ptr<vector<float> > els_eMax                          (new vector<float> );
 
     // predefined ID decisions
     //
@@ -495,15 +494,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_hcalDepth1TowerSumEt04 (new vector<float> );
     auto_ptr<vector<float> > els_hcalDepth2TowerSumEt04 (new vector<float> );
 
-    auto_ptr<vector<float> > els_iso03_pf               (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf               (new vector<float> );
+//    auto_ptr<vector<float> > els_iso03_pf               (new vector<float> );
+//    auto_ptr<vector<float> > els_iso04_pf               (new vector<float> );
 
-    auto_ptr<vector<float> > els_iso03_pf_ch            (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf_gamma05       (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf_nhad05        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf_ch            (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf_gamma05       (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf_nhad05        (new vector<float> );
+//    auto_ptr<vector<float> > els_iso03_pf_ch            (new vector<float> );
+//    auto_ptr<vector<float> > els_iso03_pf_gamma05       (new vector<float> );
+//    auto_ptr<vector<float> > els_iso03_pf_nhad05        (new vector<float> );
+//    auto_ptr<vector<float> > els_iso04_pf_ch            (new vector<float> );
+//    auto_ptr<vector<float> > els_iso04_pf_gamma05       (new vector<float> );
+//    auto_ptr<vector<float> > els_iso04_pf_nhad05        (new vector<float> );
 
     auto_ptr<vector<float> > els_iso03_pf2012_ch        (new vector<float> );
     auto_ptr<vector<float> > els_iso03_pf2012_em        (new vector<float> );
@@ -595,7 +594,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int> >                    els_trkidx               (new vector<int>           );
 
     //conversions
-    //auto_ptr<vector<vector<LorentzVector> > > els_convs_pos_p4         (new vector<vector<LorentzVector> > );
     //auto_ptr<vector<vector<float> > >         els_convs_dist           (new vector<vector<float> > );
     //auto_ptr<vector<vector<float> > >         els_convs_dcot           (new vector<vector<float> > );
     //auto_ptr<vector<vector<float> > >         els_convs_radius         (new vector<vector<float> > );
@@ -988,15 +986,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         } else {
 
-            els_iso03_pf         -> push_back( -9999. );
-            els_iso03_pf_ch      -> push_back( -9999. );
-            els_iso03_pf_gamma05 -> push_back( -9999. );
-            els_iso03_pf_nhad05  -> push_back( -9999. );
+            //els_iso03_pf         -> push_back( -9999. );
+            //els_iso03_pf_ch      -> push_back( -9999. );
+            //els_iso03_pf_gamma05 -> push_back( -9999. );
+            //els_iso03_pf_nhad05  -> push_back( -9999. );
 
-            els_iso04_pf         -> push_back( -9999. );
-            els_iso04_pf_ch      -> push_back( -9999. );
-            els_iso04_pf_gamma05 -> push_back( -9999. );
-            els_iso04_pf_nhad05  -> push_back( -9999. );
+            //els_iso04_pf         -> push_back( -9999. );
+            //els_iso04_pf_ch      -> push_back( -9999. );
+            //els_iso04_pf_gamma05 -> push_back( -9999. );
+            //els_iso04_pf_nhad05  -> push_back( -9999. );
 
             els_iso03_pf2012_ch ->push_back( -9999. );
             els_iso03_pf2012_em ->push_back( -9999. );
@@ -1077,7 +1075,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             //
             els_eSeed           ->push_back(-9999.);
 //            els_sigmaPhiPhi     ->push_back(-9999.);
-//            els_sigmaIPhiIPhi   ->push_back(-9999.);
+            els_sigmaIPhiIPhi   ->push_back(-9999.);
 //            els_sigmaIEtaIPhi   ->push_back(-9999.);
 //            els_sigmaIEtaIEtaSC ->push_back(-9999.);
 //            els_sigmaIPhiIPhiSC ->push_back(-9999.);
@@ -1433,7 +1431,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        els_convs_dist->push_back(v_dist);
 //        els_convs_dcot->push_back(v_dcot);
 //        els_convs_radius->push_back(v_rad);
-//        els_convs_pos_p4->push_back(v_pos_p4);
 //        els_convs_tkidx->push_back(v_tkidx);
 //        els_convs_gsftkidx->push_back(v_gsftkidx);
 //        els_convs_delMissHits->push_back(v_delmisshits);
@@ -1584,14 +1581,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_eSCRaw      , "elseSCRaw"      );
     iEvent.put(els_eSCPresh    , "elseSCPresh"    );
     iEvent.put(els_e1x5        , "else1x5"        );
-    iEvent.put(els_e3x3        , "else3x3"        );
+//    iEvent.put(els_e3x3        , "else3x3"        );
     iEvent.put(els_e5x5        , "else5x5"        );
     iEvent.put(els_e2x5Max     , "else2x5Max"     );
-    iEvent.put(els_eMax        , "elseMax"        );
+//    iEvent.put(els_eMax        , "elseMax"        );
     iEvent.put(els_eSeed       , "elseSeed"       );
     iEvent.put(els_fiduciality , "elsfiduciality" );
     iEvent.put(els_type        , "elstype"        );
-    iEvent.put(els_scindex     , "elsscindex"     );
+//    iEvent.put(els_scindex     , "elsscindex"     );
     iEvent.put(els_etaSCwidth  , "elsetaSCwidth"  );
     iEvent.put(els_phiSCwidth  , "elsphiSCwidth"  );
 
@@ -1605,7 +1602,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     //iEvent.put(els_sigmaPhiPhi        , "elssigmaPhiPhi"        );
     iEvent.put(els_sigmaIPhiIPhi      , "elssigmaIPhiIPhi"      );
-    iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
+//    iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
     iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
     iEvent.put(els_sigmaIEtaIEta      , "elssigmaIEtaIEta"      );
     //iEvent.put(els_sigmaIPhiIPhiSC    , "elssigmaIPhiIPhiSC"    );
@@ -1657,15 +1654,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
     iEvent.put(els_hcalDepth2TowerSumEt04 , "elshcalDepth2TowerSumEt04" );
 
-    iEvent.put(els_iso03_pf, "elsiso03pf" );
-    iEvent.put(els_iso04_pf, "elsiso04pf" );
+//    iEvent.put(els_iso03_pf, "elsiso03pf" );
+//    iEvent.put(els_iso04_pf, "elsiso04pf" );
 
-    iEvent.put(els_iso03_pf_ch      , "elsiso03pfch"      );
-    iEvent.put(els_iso03_pf_gamma05 , "elsiso03pfgamma05" );
-    iEvent.put(els_iso03_pf_nhad05  , "elsiso03pfnhad05"  );
-    iEvent.put(els_iso04_pf_ch      , "elsiso04pfch"      );
-    iEvent.put(els_iso04_pf_gamma05 , "elsiso04pfgamma05" );
-    iEvent.put(els_iso04_pf_nhad05  , "elsiso04pfnhad05"  );
+//    iEvent.put(els_iso03_pf_ch      , "elsiso03pfch"      );
+//    iEvent.put(els_iso03_pf_gamma05 , "elsiso03pfgamma05" );
+//    iEvent.put(els_iso03_pf_nhad05  , "elsiso03pfnhad05"  );
+//    iEvent.put(els_iso04_pf_ch      , "elsiso04pfch"      );
+//    iEvent.put(els_iso04_pf_gamma05 , "elsiso04pfgamma05" );
+//    iEvent.put(els_iso04_pf_nhad05  , "elsiso04pfnhad05"  );
 
     iEvent.put(els_iso03_pf2012_ch , "elsiso03pf2012ch" );
     iEvent.put(els_iso03_pf2012_em , "elsiso03pf2012em" );
@@ -1716,7 +1713,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //iEvent.put(els_convs_dist        , "elsconvsdist"        );
     //iEvent.put(els_convs_dcot        , "elsconvsdcot"        );
     //iEvent.put(els_convs_radius      , "elsconvsradius"      );
-    //iEvent.put(els_convs_pos_p4      , "elsconvsposp4"       );
     //iEvent.put(els_convs_tkidx       , "elsconvstkidx"       );
     //iEvent.put(els_convs_gsftkidx    , "elsconvsgsftkidx"    );
     //iEvent.put(els_convs_delMissHits , "elsconvsdelMissHits" );

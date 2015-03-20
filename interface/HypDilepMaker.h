@@ -54,18 +54,10 @@ private:
   virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-  bool testJetForLeptons(const math::XYZTLorentzVectorF& jetP4, const math::XYZTLorentzVectorF& lepP4);
-  double mT2_bisect(const math::XYZTLorentzVectorF lep1_p4, const math::XYZTLorentzVectorF lep2_p4,
-		    const double met, const double metPhi);
    
   // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
-  edm::InputTag muToGenInputTag;
   edm::InputTag electronsInputTag;
-  edm::InputTag metInputTag;
-  edm::InputTag jetsInputTag;
-  double        hypJetMaxEtaCut;
-  double        hypJetMinPtCut;
   double        tightptcut;
   double        looseptcut;
     

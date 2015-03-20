@@ -35,7 +35,7 @@ pftauMaker = cms.EDProducer("PFTauMaker",
         "byTightCombinedIsolationDeltaBetaCorr",  
         "byTightCombinedIsolationDeltaBetaCorr3Hits", 
         "byVLooseCombinedIsolationDeltaBetaCorr", 
-        "byDecayModeFinding",
+        "decayModeFinding",
         ),
 
                             # ** remove this later after things work ** #
