@@ -50,7 +50,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     produces<unsigned int>                 (branchprefix+"run"            ).setBranchAlias(aliasprefix_+"_run"           );
-    produces<unsigned int>                 (branchprefix+"event"          ).setBranchAlias(aliasprefix_+"_event"         );
+    produces<unsigned long long>           (branchprefix+"event"          ).setBranchAlias(aliasprefix_+"_event"         );
     produces<unsigned int>                 (branchprefix+"lumiBlock"      ).setBranchAlias(aliasprefix_+"_lumiBlock"     );
     produces<int>                          (branchprefix+"bunchCrossing"  ).setBranchAlias(aliasprefix_+"_bunchCrossing" );
     produces<int>                          (branchprefix+"orbitNumber"    ).setBranchAlias(aliasprefix_+"_orbitNumber"   );
@@ -87,7 +87,7 @@ void EventMaker::endJob() {
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
     auto_ptr<unsigned int>                evt_run             (new unsigned int              );
-    auto_ptr<unsigned int>                evt_event           (new unsigned int              );
+    auto_ptr<unsigned long long>          evt_event           (new unsigned long long        );
     auto_ptr<unsigned int>                evt_lumiBlock       (new unsigned int              );
     auto_ptr<int>                         evt_bunchCrossing   (new int                       );
     auto_ptr<int>                         evt_orbitNumber     (new int                       );
