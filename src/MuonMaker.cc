@@ -336,8 +336,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "expouterlayers"            ).setBranchAlias( aliasprefix_ + "_exp_outerlayers"     );
   produces<vector<float> >          ( branchprefix_ + "dxyPV"            	  ).setBranchAlias( aliasprefix_ + "_dxyPV"            	  );
   produces<vector<float> >          ( branchprefix_ + "dzPV"             	  ).setBranchAlias( aliasprefix_ + "_dzPV"             	  );
-  produces<vector<float> >          ( branchprefix_ + "bestdxyPV"       	  ).setBranchAlias( aliasprefix_ + "_best_dxyPV"       	  );
-  produces<vector<float> >          ( branchprefix_ + "bestdzPV"        	  ).setBranchAlias( aliasprefix_ + "_best_dzPV"        	  );
 
   ////////
   // PF //
@@ -691,8 +689,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_exp_outerlayers     ( new vector<int>            );
   auto_ptr<vector<float> >         vector_mus_dxyPV               ( new vector<float>          );
   auto_ptr<vector<float> >         vector_mus_dzPV      	  ( new vector<float>          );
-  auto_ptr<vector<float> >         vector_mus_best_dxyPV	  ( new vector<float>          );
-  auto_ptr<vector<float> >         vector_mus_best_dzPV           ( new vector<float>          );
 
 
 /*
@@ -1194,16 +1190,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     if (firstGoodVertex!=vertexCollection->end()) { 
       vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
       vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
-//BROKEN in miniAOD      vector_mus_best_dxyPV   ->push_back( bestTrack.isNonnull()   ? bestTrack->dxy( firstGoodVertex->position() ) : -9999.  );
-//BROKEN in miniAOD      vector_mus_best_dzPV    ->push_back( bestTrack.isNonnull()   ? bestTrack->dz(  firstGoodVertex->position() ) : -9999.  );
-      vector_mus_best_dxyPV  ->push_back( -999. );
-      vector_mus_best_dzPV   ->push_back( -999. );
     }
     else {
       vector_mus_dxyPV       ->push_back( -999. );
       vector_mus_dzPV        ->push_back( -999. );
-      vector_mus_best_dxyPV  ->push_back( -999. );
-      vector_mus_best_dzPV   ->push_back( -999. );
     }
 
     ////////
@@ -1635,8 +1625,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_exp_outerlayers    , branchprefix_ + "expouterlayers"     );
   iEvent.put( vector_mus_dxyPV              , branchprefix_ + "dxyPV"      	   );
   iEvent.put( vector_mus_dzPV               , branchprefix_ + "dzPV"      	   );
-  iEvent.put( vector_mus_best_dxyPV         , branchprefix_ + "bestdxyPV"     	   );
-  iEvent.put( vector_mus_best_dzPV          , branchprefix_ + "bestdzPV"      	   );
   
   ////////                                  
   // PF //

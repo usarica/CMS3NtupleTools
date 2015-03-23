@@ -271,7 +271,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_corL1FastL2L3             , "pfjetscorL1FastL2L3"             );
   iEvent.put(pfjets_corL2L3                   , "pfjetscorL2L3"                   );
   iEvent.put(pfjets_corL1Fast                 , "pfjetscorL1Fast"                 );
-  //iEvent.put(pfjets_corL1FastL2L3residual     , "pfjetscorL1FastL2L3residual"     );
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
   iEvent.put(pfjets_area                      , "pfjetsarea"                      );
   iEvent.put(pfjets_pileupJetId               , "pfjetspileupJetId"               );
