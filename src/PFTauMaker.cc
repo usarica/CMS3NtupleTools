@@ -52,11 +52,9 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
 
   // set DISCRIMINATORS from pftauMaker_cfi.py
-  tauIDCollection_.clear();
-  tauIDCollection_ = iConfig.getUntrackedParameter<std::vector< std::string> >("tauIDCollection");
-  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
-    produces<vector<float> >          (branchprefix+tauIDCollection_.at(tauidind)           ).setBranchAlias(aliasprefix_+"_"+tauIDCollection_.at(tauidind)           ); 
-  }
+  produces<vector<TString> >          (branchprefix+"IDnames"                    ).setBranchAlias(aliasprefix_+"_IDnames"                     );
+  produces<vector<vector<float>> >    (branchprefix+"IDs"                        ).setBranchAlias(aliasprefix_+"_IDs"                         );
+
 
   // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
   // produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
@@ -100,10 +98,9 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
 
   //set auto pointers for tau id container
-  auto_ptr<vector<float> >         taus_pf_ids[tauIDCollection_.size()];
-  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
-    taus_pf_ids[tauidind].reset(new vector<float>);
-  }
+  auto_ptr<vector<vector<float>> >    taus_pf_IDs       (new vector<vector<float>>    ); 
+  auto_ptr<vector<TString> >          taus_pf_IDnames   (new vector<TString>           ); // Only set names once per event. All taus have same IDs
+
 
   /////  cout << "run " << iEvent.run() << " lumi" << iEvent.luminosityBlock() << " event " <<  iEvent.id() << endl;
  
@@ -168,15 +165,20 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     // std::cout<<"pfJetRef: ";
     // std::cout<<tau->pfJetRef().get()->p4()<<std::endl;
-
-    //loops over list of discriminators provided from cfg and fills branch if available
-    for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
-      // std::cout<<tauIDCollection_.at(tauidind)<<std::endl;
-      if( tau->isTauIDAvailable(tauIDCollection_.at(tauidind))){      
-        // std::cout<<tau->tauID(tauIDCollection_.at(tauidind))<<std::endl;
-        taus_pf_ids[tauidind] ->push_back(static_cast<float>(tau->tauID(tauIDCollection_.at(tauidind))));
-      }
+    
+    const vector<pair<string, float>> IDs = tau->tauIDs();
+    vector<float>  thisTauIds;
+    thisTauIds.clear();
+    for (size_t tauidind = 0; tauidind < IDs.size(); tauidind++ ){
+      //cout<<IDs.at(tauidind).first <<" "<<IDs.at(tauidind).second<<endl;
+      // Save names only once
+      if (tau == taus_h->begin()) taus_pf_IDnames->push_back(   IDs.at(tauidind).first   );
+      thisTauIds.push_back( IDs.at(tauidind).second );
     }
+    taus_pf_IDs->push_back(   thisTauIds   ); 
+  
+
+
   
     //use this to spit out the available discriminators in each event
     // const std::vector< std::pair<std::string, float> > tau_IDPair = tau->tauIDs();
@@ -266,14 +268,16 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
   iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
   iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
+  iEvent.put(taus_pf_IDs                                  ,branchprefix+"IDs"                                      ); 
+  iEvent.put(taus_pf_IDnames                              ,branchprefix+"IDnames"                                  ); 
 
   // iEvent.put(taus_pf_pfcandIndicies                                      , branchprefix+"pfcandIndicies"                                ) ;
   // iEvent.put(taus_pf_pfjetIndex                                          , branchprefix+"pfjetIndex"                                    ) ;
 
   //fill tau discriminator branches
-  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
-    iEvent.put(taus_pf_ids[tauidind]                         , branchprefix+tauIDCollection_.at(tauidind)                       ) ;
-  }
+//  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
+//    iEvent.put(taus_pf_ids[tauidind]                         , branchprefix+tauIDCollection_.at(tauidind)                       ) ;
+//  }
 
 
  
