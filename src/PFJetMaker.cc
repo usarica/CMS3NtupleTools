@@ -47,8 +47,8 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<int> >           ( "pfjetsphotonMultiplicity"               ).setBranchAlias( "pfjets_photonMultiplicity"               );
   produces<vector<int> >           ( "pfjetselectronMultiplicity"             ).setBranchAlias( "pfjets_electronMultiplicity"             );
   produces<vector<int> >           ( "pfjetsmuonMultiplicity"                 ).setBranchAlias( "pfjets_muonMultiplicity"                 );
-  produces<vector<int> >           ( "pfjetshfHadronMultiplicity"             ).setBranchAlias( "pfjets_hfHadronMultiplicity"             );
-  produces<vector<int> >           ( "pfjetshfEmMultiplicity"                 ).setBranchAlias( "pfjets_hfEmMultiplicity"                 );
+  //produces<vector<int> >           ( "pfjetshfHadronMultiplicity"             ).setBranchAlias( "pfjets_hfHadronMultiplicity"             );
+  //produces<vector<int> >           ( "pfjetshfEmMultiplicity"                 ).setBranchAlias( "pfjets_hfEmMultiplicity"                 );
   produces<vector<int>   >         ( "pfjetschargedMultiplicity"              ).setBranchAlias( "pfjets_chargedMultiplicity"              );
   produces<vector<int>   >         ( "pfjetsneutralMultiplicity"              ).setBranchAlias( "pfjets_neutralMultiplicity"              );
   produces<vector<float> >         ( "pfjetscorL1FastL2L3"                    ).setBranchAlias( "pfjets_corL1FastL2L3"                    );
@@ -145,8 +145,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<int>   >         pfjets_photonMultiplicity        (new vector<int>            );
   auto_ptr<vector<int>   >         pfjets_electronMultiplicity      (new vector<int>            );
   auto_ptr<vector<int>   >         pfjets_muonMultiplicity          (new vector<int>            );
-  auto_ptr<vector<int>   >         pfjets_hfHadronMultiplicity      (new vector<int>            );
-  auto_ptr<vector<int>   >         pfjets_hfEmMultiplicity          (new vector<int>            );
+  //auto_ptr<vector<int>   >         pfjets_hfHadronMultiplicity      (new vector<int>            );
+  //auto_ptr<vector<int>   >         pfjets_hfEmMultiplicity          (new vector<int>            );
   auto_ptr<vector<float> >         pfjets_corL1FastL2L3             (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_corL2L3                   (new vector<float>          );
   auto_ptr<vector<float> >         pfjets_corL1Fast                 (new vector<float>          );
@@ -197,8 +197,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_photonMultiplicity        ->push_back(pfjet_it->photonMultiplicity()        );
     pfjets_electronMultiplicity      ->push_back(pfjet_it->electronMultiplicity()      );
     pfjets_muonMultiplicity          ->push_back(pfjet_it->muonMultiplicity()          );
-    pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
-    pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
+    //pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
+    //pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
     //const std::vector<std::string> names = pfjet_it->userFloatNames();
     //for (unsigned int k = 0; k < names.size(); k++) cout<<names[k]<<" ";
