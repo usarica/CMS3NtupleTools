@@ -11,6 +11,8 @@ candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     jetsInputTag = cms.InputTag("jetMaker","jetsp4"),
     #jpts input tag
     pfJetsInputTag = cms.InputTag("pfJetMaker", "pfjetsp4"),                                 
+    #ak8jpts input tag
+    ak8JetsInputTag = cms.InputTag("subJetMaker", "ak8jetsp4"),                                 
     #muons Input Tag
     muonsInputTag = cms.InputTag("muonMaker","musp4"),
     # MC particles
