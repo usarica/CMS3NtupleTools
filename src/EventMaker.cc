@@ -111,7 +111,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     evt_timestamp->push_back(iEvent.eventAuxiliary().time().value());
 
-    //These have to be vectors of strings!! -Alex
+    //These have to be vectors of TStrings (root technicality)!! -Alex
     evt_dataset->push_back( TString( datasetName_.c_str() ) );
     evt_CMS3tag->push_back( TString( CMS3tag_    .c_str() ) );
   
