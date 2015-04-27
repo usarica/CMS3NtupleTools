@@ -3,6 +3,9 @@
 #CMSSW Environment
 : ${CMSSW_BASE:?"[ERROR] patchesToSource.sh: \$CMSSW_BASE not set. Perhaps you forgot to set your CMSSW environment."} 
 
+#cd
+cd $CMSSW_BASE/src/CMS3/NtupleMaker
+
 #Hard-code lepton ID
 git update-index --assume-unchanged setup/GsfEleFull5x5SigmaIEtaIEtaCut72X.cc 
 git update-index --assume-unchanged setup/cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff.py 
