@@ -95,7 +95,14 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );// works
   produces<vector<int> >   ( branchprefix + "fiduciality"     ).setBranchAlias( aliasprefix_ + "_fiduciality"    ); //missing in scmaker // works
 
+  produces<vector<float> > ( branchprefix + "eSC"            ).setBranchAlias( aliasprefix_ + "_eSC"             );
+  produces<vector<float> > ( branchprefix + "etaSC"          ).setBranchAlias( aliasprefix_ + "_etaSC"           );
+  produces<vector<float> > ( branchprefix + "phiSC"          ).setBranchAlias( aliasprefix_ + "_phiSC"           );
+  produces<vector<float> > ( branchprefix + "eSCRaw"         ).setBranchAlias( aliasprefix_ + "_eSCRaw"          );
+  produces<vector<float> > ( branchprefix + "eSCPresh"       ).setBranchAlias( aliasprefix_ + "_eSCPresh"        );
+
   produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );
+  produces<vector<float> > ( branchprefix + "hOverEtowBC"     ).setBranchAlias( aliasprefix_ + "_hOverEtowBC"    );
   produces<vector<float> > ( branchprefix + "e1x5"            ).setBranchAlias( aliasprefix_ + "_e1x5"           );
   produces<vector<float> > ( branchprefix + "e3x3"            ).setBranchAlias( aliasprefix_ + "_e3x3"           );
   produces<vector<float> > ( branchprefix + "e5x5"            ).setBranchAlias( aliasprefix_ + "_e5x5"           );
@@ -183,7 +190,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> >          photons_mass            (new vector<float>          );
   auto_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
 
+  auto_ptr<vector<float> > photons_etaSC       (new vector<float> );
+  auto_ptr<vector<float> > photons_phiSC       (new vector<float> );
+  auto_ptr<vector<float> > photons_eSC         (new vector<float> );
+  auto_ptr<vector<float> > photons_eSCRaw      (new vector<float> );
+  auto_ptr<vector<float> > photons_eSCPresh    (new vector<float> );
+
   auto_ptr<vector<float> > photons_hOverE         ( new vector<float> );
+  auto_ptr<vector<float> > photons_hOverEtowBC    ( new vector<float> );
   auto_ptr<vector<float> > photons_e1x5           ( new vector<float> );
   auto_ptr<vector<float> > photons_e3x3           ( new vector<float> );
   auto_ptr<vector<float> > photons_e5x5           ( new vector<float> );
@@ -315,7 +329,13 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	if (photon->isEEGap())  fiducialityMask |= 1 << ISEEGAP;
 	photons_fiduciality->push_back( fiducialityMask );
 
+	photons_etaSC              ->push_back( photon->superCluster()->eta()             );
+        photons_phiSC              ->push_back( photon->superCluster()->phi()             );
+	photons_eSC                ->push_back( photon->superCluster()->energy()          );
+        photons_eSCRaw             ->push_back( photon->superCluster()->rawEnergy()       );
+        photons_eSCPresh           ->push_back( photon->superCluster()->preshowerEnergy() );
 	photons_hOverE             ->push_back( photon->hadronicOverEm()       	 );
+	photons_hOverEtowBC        ->push_back( photon->hadTowOverEm()           );
 	photons_e1x5    		   ->push_back( photon->e1x5()					 );
 	photons_e3x3               ->push_back( photon->e3x3()                   );
 	photons_e5x5               ->push_back( photon->e5x5()                   );
@@ -352,7 +372,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_full5x5_sigmaIEtaIEta      ->push_back( sieie       	                                          );
 	photons_full5x5_hOverEtowBC        ->push_back( (photon->hadTowDepth1OverEm() + photon->hadTowDepth2OverEm()) * (SCE / e5x5noZS));  		
 	photons_full5x5_r9                 ->push_back( clusterTools_->e3x3(*(photon->superCluster()->seed()) ) / rawSCE );  
-		
+	//	cout<<"photon->hadTowOverEm() "<<photon->hadTowOverEm()<<", photons_full5x5_hOverEtowBC  "<<(photon->hadTowDepth1OverEm() + photon->hadTowDepth2OverEm()) * (SCE / e5x5noZS)<<endl;
+	//	cout<<" components were: photon->hadTowDepth1OverEm() "<<photon->hadTowDepth1OverEm()<<", photon->hadTowDepth2OverEm() "<<photon->hadTowDepth2OverEm()<<", SCE "<<SCE<<", e5x5noZS "<<e5x5noZS<<endl;
 	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
 	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
 	
@@ -471,7 +492,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_mass           , branchprefix+"mass"            );
   iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
 
+  iEvent.put(photons_etaSC       , "photonsetaSC"       );
+  iEvent.put(photons_phiSC       , "photonsphiSC"       );
+  iEvent.put(photons_eSC         , "photonseSC"         );
+  iEvent.put(photons_eSCRaw      , "photonseSCRaw"      );
+  iEvent.put(photons_eSCPresh    , "photonseSCPresh"    );
+
   iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
+  iEvent.put( photons_hOverEtowBC    , branchprefix+"hOverEtowBC"     );
   iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
   iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
   iEvent.put( photons_e5x5           , branchprefix+"e5x5"            );
