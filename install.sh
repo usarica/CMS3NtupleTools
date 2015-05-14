@@ -7,7 +7,7 @@ export SCRAM_ARCH=slc6_amd64_gcc481
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
-dsource /cvmfs/cms.cern.ch/cmsset_default.sh
+source /cvmfs/cms.cern.ch/cmsset_default.sh
 scramv1 p -n CMSSW_$CMSSW_release CMSSW CMSSW_$CMSSW_release
 cd CMSSW_$CMSSW_release/src
 eval `scramv1 runtime -sh`
