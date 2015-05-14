@@ -1,7 +1,7 @@
 from CMS3.NtupleMaker.RecoConfiguration2015_cfg import *
 
 #Global Tag
-process.GlobalTag.globaltag = "MCRUN2_74_V9::All"
+process.GlobalTag.globaltag = "MCRUN2_74_V9"
 
 #Input
 process.source = cms.Source("PoolSource",

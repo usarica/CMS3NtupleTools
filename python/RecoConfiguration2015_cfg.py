@@ -15,9 +15,11 @@ process.configurationMetadata = cms.untracked.PSet(
 # load event level configurations
 process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Reconstruction_cff")
-# process.load("Configuration.Geometry.GeometryIdeal_cff")
+#process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("Configuration.Geometry.GeometryRecoDB_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+#process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load('Configuration/EventContent/EventContent_cff')
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
