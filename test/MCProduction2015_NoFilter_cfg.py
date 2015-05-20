@@ -1,11 +1,12 @@
 from CMS3.NtupleMaker.RecoConfiguration2015_cfg import *
 
 #Global Tag
-process.GlobalTag.globaltag = "MCRUN2_74_V9"
+process.GlobalTag.globaltag = "MCRUN2_74_V9A"
 
 #Input
 process.source = cms.Source("PoolSource",
-fileNames = cms.untracked.vstring('file:///home/users/fgolf/devel/CMSSW_7_4_1/src/CMS3/NtupleMaker/test/AA2CC414-DCEC-E411-B459-0025905A608A.root')
+#fileNames = cms.untracked.vstring('file:///home/users/fgolf/devel/CMSSW_7_4_1/src/CMS3/NtupleMaker/test/AA2CC414-DCEC-E411-B459-0025905A608A.root')
+fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
 )
 
 #Output
