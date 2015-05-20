@@ -55,6 +55,8 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
     //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
+    isData_       = iConfig.getParameter<bool>     ( "isData"              );
+
 }
 
 
@@ -88,7 +90,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     edm::Handle<edm::View<pat::MET> > genmet_h;
     iEvent.getByLabel(pfMetInputTag, genmet_h);
-
+    
     //edm::Handle<edm::View<reco::PFMET> > metcor_h;
     //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
 
@@ -104,10 +106,16 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_pfmet_raw    = ( met_h->front() ).shiftedPt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
     *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
     *evt_pfsumet_raw = ( met_h->front() ).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
-
-    *gen_met      = ( genmet_h->front()).genMET()->pt();
-    *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
-  
+    
+    if ( !isData_ ) {
+      *gen_met      = ( genmet_h->front()).genMET()->pt();
+      *gen_metPhi   = ( genmet_h->front()).genMET()->phi();
+    }  
+    else {
+      *gen_met      = -9999.;
+      *gen_metPhi   = -9999.;
+    }
+    
     try { 
         *evt_pfmetSignificance = ( met_h->front() ).significance();
     }

@@ -117,23 +117,24 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_toomanystripclus53X"         )  idx_trkPOG_toomanystripclus53X     = i;
     //  std::cout << "metFilterName= " << metFilterNames_.triggerName(i) << std::endl;
   }
+
   
-  *filt_cscBeamHalo                          = metFilterResultsH_->accept(idx_cscBeamHalo                     );
-  *filt_hbheNoise                            = metFilterResultsH_->accept(idx_hbheNoise                       );
-  *filt_ecalTP                               = metFilterResultsH_->accept(idx_ecalTP                          );
-  *filt_hcalLaserEvent                       = metFilterResultsH_->accept(idx_hcalLaserEvent                  );
-  *filt_trackingFailure                      = metFilterResultsH_->accept(idx_trackingFailure                 );
-  *filt_eeBadSc                              = metFilterResultsH_->accept(idx_eeBadSc                         );
-  *filt_ecalLaser                            = metFilterResultsH_->accept(idx_ecalLaser                       );
-  *filt_metfilter                            = metFilterResultsH_->accept(idx_metfilter                       );
-  *filt_goodVertices                         = metFilterResultsH_->accept(idx_goodVertices                    );
-  *filt_trkPOGFilters                        = metFilterResultsH_->accept(idx_trkPOGFilters                   );
-  *filt_trkPOG_logErrorTooManyClusters       = metFilterResultsH_->accept(idx_trkPOG_logErrorTooManyClusters  );
-  *filt_trkPOG_manystripclus53X	             = metFilterResultsH_->accept(idx_trkPOG_manystripclus53X	      );
-  *filt_trkPOG_toomanystripclus53X           = metFilterResultsH_->accept(idx_trkPOG_toomanystripclus53X      );
+  *filt_cscBeamHalo                          = (idx_cscBeamHalo                    < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
+  *filt_hbheNoise                            = (idx_hbheNoise                      < 0) ? false : metFilterResultsH_->accept(idx_hbheNoise                       );
+  *filt_ecalTP                               = (idx_ecalTP                         < 0) ? false : metFilterResultsH_->accept(idx_ecalTP                          );
+  *filt_hcalLaserEvent                       = (idx_hcalLaserEvent                 < 0) ? false : metFilterResultsH_->accept(idx_hcalLaserEvent                  );
+  *filt_trackingFailure                      = (idx_trackingFailure                < 0) ? false : metFilterResultsH_->accept(idx_trackingFailure                 );
+  *filt_eeBadSc                              = (idx_eeBadSc                        < 0) ? false : metFilterResultsH_->accept(idx_eeBadSc                         );
+  *filt_ecalLaser                            = (idx_ecalLaser                      < 0) ? false : metFilterResultsH_->accept(idx_ecalLaser                       );
+  *filt_metfilter                            = (idx_metfilter                      < 0) ? false : metFilterResultsH_->accept(idx_metfilter                       );
+  *filt_goodVertices                         = (idx_goodVertices                   < 0) ? false : metFilterResultsH_->accept(idx_goodVertices                    );
+  *filt_trkPOGFilters                        = (idx_trkPOGFilters                  < 0) ? false : metFilterResultsH_->accept(idx_trkPOGFilters                   );
+  *filt_trkPOG_logErrorTooManyClusters       = (idx_trkPOG_logErrorTooManyClusters < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_logErrorTooManyClusters  );
+  *filt_trkPOG_manystripclus53X	             = (idx_trkPOG_manystripclus53X        < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_manystripclus53X	 );
+  *filt_trkPOG_toomanystripclus53X           = (idx_trkPOG_toomanystripclus53X     < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_toomanystripclus53X      );
   // For compatibility with CMS2 variable names
-  *filt_cscTightHaloId                       = metFilterResultsH_->accept(idx_cscBeamHalo                     );
-  *filt_hbheFilter                           = metFilterResultsH_->accept(idx_hbheNoise                       );
+  *filt_cscTightHaloId                       = (idx_cscBeamHalo < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
+  *filt_hbheFilter                           = (idx_hbheNoise < 0) ? false : metFilterResultsH_->accept(idx_hbheNoise                       );
 
   //////////////////
   // Write Output //

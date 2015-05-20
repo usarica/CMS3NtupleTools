@@ -66,8 +66,12 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
         pfcands_p4                ->push_back( LorentzVector(pf_it->p4())                                         );
         pfcands_mass              ->push_back( pf_it->mass()                                                      );
-  	    pfcands_dz    		        ->push_back( pf_it->dz()		    				                                        );
-  	    pfcands_charge		        ->push_back( pf_it->charge()						                                        );
+	if (!pf_it->vertexRef().isNull())
+	  pfcands_dz    		        ->push_back( pf_it->dz()		    				                                        );
+	else
+	  pfcands_dz                            ->push_back( -9999.                                               );
+
+	pfcands_charge		        ->push_back( pf_it->charge()						                                        );
         pfcands_particleId        ->push_back( pf_it->pdgId()                                                     );
         pfcands_fromPV            ->push_back( pf_it->fromPV()                                                    );
           
