@@ -228,10 +228,12 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
     for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
       pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
       TO.unpackPathNames( triggerNames_ );
-      if ( TO.hasPathName(triggerName, false) ) { // this TriggerObject did not necessarily pass the full path (uses wildcards!! ;-) (need this to get Leading legs in 2012, not sure why...)
-	//std::cout<<"TriggerObject related to path "<<triggerName<<std::endl;
-	if ( (filterName == "" && TO.hasPathName(triggerName, true) ) || TO.hasFilterLabel(filterName) ) { // and the individual filter (if specified), or full path
-	  //std::cout<<"... and the individual filter (if specified) "<<filterName<<std::endl;
+      // TO.hasPathName(triggerName, false) : TO belongs to any of the filters on this path
+      // TO.hasPathName(triggerName, true ) : TO belongs to the last EDFilter on this path
+      if ( TO.hasPathName(triggerName, false) ) { 
+	//std::cout<<"TriggerObject belongs to path "<<triggerName<<std::endl;
+	if ( (filterName == "" && TO.hasPathName(triggerName, true) ) || TO.hasFilterLabel(filterName) ) { 
+	  //std::cout<<"... and to filter: "<<filterName<<". If not specified, belongs to last EDFilter of this path."<<std::endl;
 	  //std::cout<<"Trigger object has eta/phi "<<TO.eta()<<"/"<<TO.phi()<<". Offline object has eta/phi "<<offlineObject.eta()<<"/"<< offlineObject.phi() <<std::endl;
 	  if (deltaR(TO.eta(), TO.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
 	    prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;

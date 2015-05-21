@@ -7,7 +7,22 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
     cone                = cms.untracked.double(0.2),
 
     triggers    = cms.untracked.VInputTag(
+        ### RUN II ###
+        # Double-lepton matching and single-lepton matching can be done using the TriggerObjects in CMS3, for example, 
+        # CORE::TriggerSelections::passUnprescaledHLTTrigger(const char* arg, const LorentzVector &obj)
+        # But for LeadingLeg matching we need to know the specific filter passed by the leading leg
+        # Use:    'TriggerName:FilterName:CMS3name'   --> this requires that electron matches to trigger object passing FilterName of TriggerName
+        # Use:    'TriggerName::CMS3name'             --> this requires that electron matches to trigger object passing the LAST EDFILTER of TriggerName
+        cms.InputTag('HLT_Ele25WP60_Ele8_Mass55_v*:hltEle25WP60Ele8TrackIsoFilter:HLT_Ele25WP60_Ele8_Mass55_LeadingLeg'),
+        cms.InputTag('HLT_Ele25WP60_Ele8_Mass55_v*::HLT_Ele25WP60_Ele8_Mass55'),
 
+        cms.InputTag('HLT_Ele25WP60_SC4_Mass55_v:hltEle25WP60SC4TrackIsoFilter:HLT_Ele25WP60_SC4_Mass55_LeadingLeg'),
+        cms.InputTag('HLT_Ele25WP60_SC4_Mass55_v::HLT_Ele25WP60_SC4_Mass55'),
+
+        cms.InputTag('HLT_Ele5_SC5_JPsi_Mass2to4p5_v:hltEle5SC5JPsiTrackIsoFilter:HLT_Ele5_SC5_JPsi_Mass2to4p5_LeadingLeg'),
+        cms.InputTag('HLT_Ele5_SC5_JPsi_Mass2to4p5_v::HLT_Ele5_SC5_JPsi_Mass2to4p5'),
+
+        ### RUN I ###
         # HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*
         cms.InputTag('HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*:hltL1sL1DoubleEG137:HLT_Ele17_Ele8_L1sL1DoubleEG137'),
         cms.InputTag('HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*:hltEle17TightIdLooseIsoEle8TightIdLooseIsoTrackIsoFilter:HLT_Ele17_Ele8_LeadingLeg'),
