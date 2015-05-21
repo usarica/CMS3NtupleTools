@@ -111,6 +111,10 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //    TO.unpackPathNames( triggerNames_ );
 //    cout<<"Trigger Object "<<i<<"has pt, eta, phi, id = "<< TO.pt() <<" "<<TO.eta()<<" "<<TO.phi()<<" and hasPathLastFilterAccepted() "<<TO.hasPathLastFilterAccepted()<<endl;
 //
+//    std::vector< std::string > path_names = TO.pathNames(false); //TO associated to path
+//    cout<<"Trigger Object "<<i<<" associated to "<< path_names.size() <<" pathNames(false): ";
+//    for (uint j  = 0; j < path_names.size(); j++) cout<<path_names[j]<<" ";
+//    cout<<endl;
 //    std::vector< std::string > path_namesPASS = TO.pathNames(true); //make sure they passed!
 //    cout<<"Trigger Object "<<i<<" passed "<< path_namesPASS.size() <<" pathNames(true): ";
 //    for (uint j  = 0; j < path_namesPASS.size(); j++) cout<<path_namesPASS[j]<<" ";

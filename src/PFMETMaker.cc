@@ -52,6 +52,8 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfsumetraw"        ).setBranchAlias("evt_pfsumet_raw"        );
     produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
     produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
+    produces<float> ("evtcalomet"          ).setBranchAlias("evt_calomet"          );
+    produces<float> ("evtcalometPhi"       ).setBranchAlias("evt_calometPhi"       );
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
     //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
@@ -84,6 +86,8 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfsumet_raw       (new float   );
     std::auto_ptr<float>   gen_met         (new float   );
     std::auto_ptr<float>   gen_metPhi      (new float   );
+    std::auto_ptr<float>   evt_calomet         (new float   );
+    std::auto_ptr<float>   evt_calometPhi      (new float   );
 
     edm::Handle<edm::View<pat::MET> > met_h;
     iEvent.getByLabel(pfMetInputTag, met_h);
@@ -123,6 +127,15 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         *evt_pfmetSignificance = -9999;
     }
 
+    try {
+      *evt_calomet    = ( met_h->front() ).caloMETPt();
+      *evt_calometPhi = ( met_h->front() ).caloMETPhi();
+    }
+    catch ( cms::Exception& ex ) {
+      *evt_calomet    = -9999.;
+      *evt_calometPhi = -9999.;
+    }
+
     iEvent.put(evt_pfmet    , "evtpfmet"      );
     iEvent.put(evt_pfmetPhi , "evtpfmetPhi"   );
     iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
@@ -133,6 +146,8 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfsumet_raw  , "evtpfsumetraw"    );  
     iEvent.put(gen_met      , "genmet"      );
     iEvent.put(gen_metPhi   , "genmetPhi"   );
+    iEvent.put(evt_calomet    , "evtcalomet"      );
+    iEvent.put(evt_calometPhi , "evtcalometPhi"   );
 
 /*
     if( !metcor_h.isValid() ) {

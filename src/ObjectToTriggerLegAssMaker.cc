@@ -228,10 +228,14 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
     for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
       pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
       TO.unpackPathNames( triggerNames_ );
-      if ( TO.hasPathName(triggerName, true) ) { // this TriggerObject passed the full path (uses wildcards!! ;-)
-	if (filterName == "" || TO.hasFilterLabel(filterName) ) { // and the individual filter (if specified)
+      if ( TO.hasPathName(triggerName, false) ) { // this TriggerObject did not necessarily pass the full path (uses wildcards!! ;-) (need this to get Leading legs in 2012, not sure why...)
+	//std::cout<<"TriggerObject related to path "<<triggerName<<std::endl;
+	if ( (filterName == "" && TO.hasPathName(triggerName, true) ) || TO.hasFilterLabel(filterName) ) { // and the individual filter (if specified), or full path
+	  //std::cout<<"... and the individual filter (if specified) "<<filterName<<std::endl;
+	  //std::cout<<"Trigger object has eta/phi "<<TO.eta()<<"/"<<TO.phi()<<". Offline object has eta/phi "<<offlineObject.eta()<<"/"<< offlineObject.phi() <<std::endl;
 	  if (deltaR(TO.eta(), TO.phi(), offlineObject.eta(), offlineObject.phi()) < cone_) {
 	    prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
+	    //std::cout<<"Match!! Prescale is "<<prescale<<std::endl;
 	    return prescale;
 	  }
 	}
