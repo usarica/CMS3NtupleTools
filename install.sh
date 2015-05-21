@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #USER INPUTS
-CMS3Tag=cmssw_74x
-CMSSW_release=7_4_1
+CMS3Tag=CMS3_V07-04-01
+CMSSW_release=7_4_1_patch1
 export SCRAM_ARCH=slc6_amd64_gcc491
 
 #--Here there be dragons----
