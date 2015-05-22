@@ -37,6 +37,8 @@
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+
 
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
@@ -87,6 +89,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<float>                           ("evtxsecexcl"          ).setBranchAlias("evt_xsec_excl"        );
   produces<float>                           ("evtkfactor"           ).setBranchAlias("evt_kfactor"          );
   produces<float>                           ("evtscale1fb"          ).setBranchAlias("evt_scale1fb"         );
+  produces<std::vector<float> >             ("genweights"           ).setBranchAlias("genweights"           );
+  produces<std::vector<std::string> >       ("genweightsID"         ).setBranchAlias("genweightsID"         );
 
   
   if(ntupleDaughters_) {
@@ -162,7 +166,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<float>                           evt_xsec_incl        (new float                         );
   auto_ptr<float>                           evt_xsec_excl        (new float                         );
   auto_ptr<float>                           evt_kfactor          (new float                         );
-
+  auto_ptr<vector<float> >                  genweights           (new vector<float>                 );
+  auto_ptr<vector<string> >                 genweightsID         (new vector<string>                );
 
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -188,8 +193,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
   const vector<pat::PackedGenParticle> *packedgenps_coll = packedGenParticleHandle.product();
 
-
-
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
   iEvent.getByLabel("generator", genEvtInfo);
@@ -201,6 +204,20 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //if weights do not exist (Pythia), default is weight of 1
   vector< Handle<HepMCProduct> > hepmc_vect;
   iEvent.getManyByType(hepmc_vect);
+
+  Handle<LHEEventProduct> LHEEventInfo;
+  iEvent.getByLabel("source", LHEEventInfo); 
+  if (LHEEventInfo.isValid()){
+    vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+    for (unsigned int i = 0; i < weightsTemp.size(); i++){
+       genweights->push_back(weightsTemp.at(i).wgt);
+       genweightsID->push_back(weightsTemp.at(i).id);
+    }
+  }
+  else { 
+    genweights->push_back(-999999); 
+    genweightsID->push_back("noneFound"); 
+  }
 
   HepMC::WeightContainer wc;
 
@@ -401,6 +418,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(evt_xsec_excl        , "evtxsecexcl"          );
   iEvent.put(evt_kfactor          , "evtkfactor"           );
   iEvent.put(evt_scale1fb         , "evtscale1fb"          );
+  iEvent.put(genweights           , "genweights"           );
+  iEvent.put(genweightsID         , "genweightsID"         );
 
   if(ntupleDaughters_) {
     iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
