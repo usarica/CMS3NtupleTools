@@ -206,7 +206,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
 
   Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByLabel("source", LHEEventInfo); 
+  iEvent.getByLabel("externalLHEProducer", LHEEventInfo); 
   if (LHEEventInfo.isValid()){
     vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
     for (unsigned int i = 0; i < weightsTemp.size(); i++){
@@ -215,8 +215,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
   }
   else { 
-    genweights->push_back(-999999); 
-    genweightsID->push_back("noneFound"); 
+    iEvent.getByLabel("externalLHEProducer", LHEEventInfo); 
+    if (LHEEventInfo.isValid()){
+      vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+      for (unsigned int i = 0; i < weightsTemp.size(); i++){
+         genweights->push_back(weightsTemp.at(i).wgt);
+         genweightsID->push_back(weightsTemp.at(i).id);
+      }
+    }
+    else {
+      genweights->push_back(-999999); 
+      genweightsID->push_back("noneFound"); 
+    }
   }
 
   HepMC::WeightContainer wc;
