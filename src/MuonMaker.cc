@@ -56,8 +56,6 @@ Implementation:
 #include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
 #include "DataFormats/MuonReco/interface/MuonShower.h"
 
-#include "DataFormats/PatCandidates/interface/Muon.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 //////////////
 // typedefs //
@@ -442,6 +440,11 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<LorentzVector> >("musmcpatMatchp4"            	).setBranchAlias("mus_mc_patMatch_p4"          		);
   produces<vector<float>         >("musmcpatMatchdr"            	).setBranchAlias("mus_mc_patMatch_dr"                  	);
 
+  produces<vector<float>         >("musminiIsouncor"       ).setBranchAlias("mus_miniIso_uncor"                       	);
+  produces<vector<float>         >("musminiIsoch"       ).setBranchAlias("mus_miniIso_ch"                       	);
+  produces<vector<float>         >("musminiIsonh"       ).setBranchAlias("mus_miniIso_nh"                       	);
+  produces<vector<float>         >("musminiIsoem"       ).setBranchAlias("mus_miniIso_em"                       	);
+  produces<vector<float>         >("musminiIsodb"       ).setBranchAlias("mus_miniIso_db"                       	);
 
 } // end Constructor
 
@@ -801,6 +804,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> >       mus_mc_patMatch_p4          (new vector<LorentzVector>);
   auto_ptr<vector<float>         >       mus_mc_patMatch_dr          (new vector<float>        );
 
+  auto_ptr<vector<float>   >       mus_miniIso_uncor                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       mus_miniIso_ch                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       mus_miniIso_nh                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       mus_miniIso_em                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       mus_miniIso_db                  (new vector<float>        );  	
+
 
 ////////////////////////////
 // --- Fill Muon Data --- //
@@ -841,14 +850,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////////////////
   ESHandle<TransientTrackBuilder> theTTBuilder;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theTTBuilder);
-
+  */
   ///////////////////////
   // Get PF Candidates //
   ///////////////////////
 
-  iEvent.getByLabel( pfCandsInputTag , pfCand_h );
+  //iEvent.getByLabel( pfCandsInputTag , pfCand_h );
+  iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+  pfCandidates  = packPfCand_h.product();
 
-*/
+
   /////////////////////////////////////
   // Get BeamSpot from BeamSpotMaker //
   /////////////////////////////////////
@@ -1379,8 +1390,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       mus_mc_patMatch_dr      ->push_back( -999.  );
     }
 
-
-
+    //////////////////////
+    // mini-isolation   //
+    //////////////////////
+    
+    float minichiso     = 0.;
+    float mininhiso     = 0.;
+    float miniemiso     = 0.;
+    float minidbiso     = 0.;
+    muMiniIso(muon, true, 0.5, minichiso, mininhiso, miniemiso, minidbiso);
+    mus_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
+    mus_miniIso_ch      ->push_back( minichiso );
+    mus_miniIso_nh      ->push_back( mininhiso );
+    mus_miniIso_em      ->push_back( miniemiso );
+    mus_miniIso_db      ->push_back( minidbiso );
+    
     muonIndex++;
 
   } // end loop on muons
@@ -1722,6 +1746,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( mus_mc_patMatch_p4           		,"musmcpatMatchp4"          	);
   iEvent.put( mus_mc_patMatch_dr          		,"musmcpatMatchdr"          	);
 
+  iEvent.put(mus_miniIso_uncor       , branchprefix_ + "miniIsouncor"    );
+  iEvent.put(mus_miniIso_ch       , "musminiIsoch"    );
+  iEvent.put(mus_miniIso_nh       , "musminiIsonh"    );
+  iEvent.put(mus_miniIso_em       , "musminiIsoem"    );
+  iEvent.put(mus_miniIso_db       , "musminiIsodb"    );
+
 
 } //
 
@@ -1768,6 +1798,44 @@ double MuonMaker::muonIsoValuePF(const Muon& mu, const Vertex& vtx, float coner,
     }
   } 
   return pfciso+pfniso;
+}
+void MuonMaker::muIsoCustomCone( edm::View<pat::Muon>::const_iterator& mu, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
+  chiso     = 0.;
+  nhiso     = 0.;
+  emiso     = 0.;
+  dbiso     = 0.;
+  float deadcone_ch = 0.0001;
+  float deadcone_pu = 0.01;
+  float deadcone_ph = 0.01;
+  float deadcone_nh = 0.01;
+
+  for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
+    float thisDR = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),mu->p4()));
+    if ( thisDR>dr ) continue;  
+    float pt = pf_it->p4().pt();
+    float id = pf_it->pdgId();
+    if ( fabs(id)==211 ) {
+      if (pf_it->fromPV() > 1 && (!useVetoCones || thisDR > deadcone_ch) ) chiso+=pt;
+      else if ((pf_it->fromPV() <= 1) && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_pu)) dbiso+=pt;
+    }
+    if ( fabs(id)==130 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_nh) ) nhiso+=pt;
+    if ( fabs(id)==22 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_ph) ) emiso+=pt;
+  }
+  //if (useDBcor) correction = 0.5 * deltaBeta;
+  //else if (useEAcor) correction = evt_fixgrid_all_rho() * elEA03(elIdx) * (dr/0.3) * (dr/0.3);
+  //float absiso = chiso + std::max(float(0.0), nhiso + emiso - correction);
+  //return absiso/(mu->p4().pt());
+  return;
+}
+
+void MuonMaker::muMiniIso( edm::View<pat::Muon>::const_iterator& mu, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
+
+  float pt = mu->p4().pt();
+  float dr = 0.2;
+  if (pt>50) dr = 10./pt;
+  if (pt>200) dr = 0.05;
+  muIsoCustomCone(mu,dr,useVetoCones,ptthresh, chiso, nhiso, emiso, dbiso);
+  return;
 }
 
 

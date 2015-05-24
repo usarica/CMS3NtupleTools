@@ -15,7 +15,7 @@ electronMaker = cms.EDProducer(
     trksInputTag      = cms.InputTag("generalTracks"),
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
-    pfCandsInputTag = cms.InputTag("particleFlow"),
+    pfCandsInputTag = cms.InputTag("packedPFCandidates"),
     vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
     # isolations from external

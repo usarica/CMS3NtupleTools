@@ -54,6 +54,7 @@
 #include "Math/VectorUtil.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 //
 // class decleration
@@ -81,6 +82,11 @@ private:
     void PFIsolation2012(const reco::GsfElectron& el, const reco::VertexCollection* vertexCollection, 
                          const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh);
  
+  void elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
+  void elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
+
+
+
     // ----------member data ---------------------------
     edm::InputTag electronsInputTag_;
     edm::InputTag beamSpotInputTag_;
@@ -119,6 +125,8 @@ private:
     std::vector<Int_t> passTightId_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
+    edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
+    const pat::PackedCandidateCollection *pfCandidates;
     edm::Handle<reco::VertexCollection> vertexHandle;
 
     edm::InputTag rhoInputTag_;

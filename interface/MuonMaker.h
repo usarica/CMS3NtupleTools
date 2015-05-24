@@ -35,6 +35,9 @@
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+
 
 //
 // class declaration
@@ -49,6 +52,8 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
   double muonIsoValuePF(const reco::Muon& mu, const reco::Vertex& vtx, float coner, float minptn, float dzcut, int filterId);
+  void muIsoCustomCone( edm::View<pat::Muon>::const_iterator& mu, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso);
+  void muMiniIso( edm::View<pat::Muon>::const_iterator& mu, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso);
   
       // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
@@ -61,7 +66,9 @@ private:
   std::string branchprefix_;
 
   edm::Handle<reco::PFCandidateCollection> pfCand_h;
+  edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
   edm::Handle<reco::VertexCollection> vertexHandle;
+  const pat::PackedCandidateCollection *pfCandidates;
 
   // Cosmics Compatibility
   edm::InputTag src_;

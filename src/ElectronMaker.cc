@@ -373,6 +373,13 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<float>         >("else5x5full5x5"            	).setBranchAlias("els_e5x5_full5x5"                           	);
   produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
 
+  produces<vector<float>         >("elsminiIsouncor"       ).setBranchAlias("els_miniIso_uncor"                       	);
+  produces<vector<float>         >("elsminiIsoch"       ).setBranchAlias("els_miniIso_ch"                       	);
+  produces<vector<float>         >("elsminiIsonh"       ).setBranchAlias("els_miniIso_nh"                       	);
+  produces<vector<float>         >("elsminiIsoem"       ).setBranchAlias("els_miniIso_em"                       	);
+  produces<vector<float>         >("elsminiIsodb"       ).setBranchAlias("els_miniIso_db"                       	);
+
+
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
     pfPileUpAlgo_ = new PFPileUpAlgo();
@@ -648,6 +655,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float>   >       els_e5x5_full5x5                      (new vector<float>        );
   auto_ptr<vector<float>   >       els_e2x5Max_full5x5                   (new vector<float>        );
 
+  auto_ptr<vector<float>   >       els_miniIso_uncor                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       els_miniIso_ch                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       els_miniIso_nh                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       els_miniIso_em                  (new vector<float>        );  	
+  auto_ptr<vector<float>   >       els_miniIso_db                  (new vector<float>        );  	
 
 
     // --- Get Input Collections --- //
@@ -694,7 +706,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Cands //
     //////////////
 
-//    iEvent.getByLabel(pfCandsInputTag, pfCand_h);
+     iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+     pfCandidates  = packPfCand_h.product();
 
     /////////////////////////
     // External Isolations //
@@ -1508,6 +1521,20 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  els_mc_patMatch_dr      ->push_back( -999.  );
 	}
 
+	//////////////////////
+	// mini-isolation   //
+	//////////////////////
+
+	float minichiso     = 0.;
+	float mininhiso     = 0.;
+	float miniemiso     = 0.;
+	float minidbiso     = 0.;
+	elMiniIso(el, true, 0.0, minichiso, mininhiso, miniemiso, minidbiso);
+	els_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
+	els_miniIso_ch      ->push_back( minichiso );
+	els_miniIso_nh      ->push_back( mininhiso );
+	els_miniIso_em      ->push_back( miniemiso );
+	els_miniIso_db      ->push_back( minidbiso );
 
     } // end Loop on Electrons
   
@@ -1759,6 +1786,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_e5x5_full5x5           , "else5x5full5x5"          );
   iEvent.put(els_e2x5Max_full5x5        , "else2x5Maxfull5x5"       ); 
 
+  iEvent.put(els_miniIso_uncor       , "elsminiIsouncor"    );
+  iEvent.put(els_miniIso_ch       , "elsminiIsoch"    );
+  iEvent.put(els_miniIso_nh       , "elsminiIsonh"    );
+  iEvent.put(els_miniIso_em       , "elsminiIsoem"    );
+  iEvent.put(els_miniIso_db       , "elsminiIsodb"    );
+  
 }
 
 //----------------------------------------------------------------------------
@@ -1896,6 +1929,49 @@ void ElectronMaker::PFIsolation2012(const reco::GsfElectron& el, const reco::Ver
     }
 
 }
+
+void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
+  chiso     = 0.;
+  nhiso     = 0.;
+  emiso     = 0.;
+  dbiso     = 0.;
+  float deadcone_ch = 0.;
+  float deadcone_pu = 0.;
+  float deadcone_ph = 0.;
+  // veto cones only in the endcap for electrons
+  if (useVetoCones && fabs(el->eta()) > 1.479) { 
+    deadcone_ch = 0.015;
+    deadcone_pu = 0.015;
+    deadcone_ph = 0.08;
+  }
+  for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
+    float thisDR = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),el->p4()));
+    if ( thisDR>dr ) continue;  
+    float pt = pf_it->p4().pt();
+    float id = pf_it->pdgId();
+    if ( fabs(id)==211 ) {
+      if (pf_it->fromPV() > 1 && (!useVetoCones || thisDR > deadcone_ch) ) chiso+=pt;
+      else if ((pf_it->fromPV() <= 1) && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_pu)) dbiso+=pt;
+    }
+    if ( fabs(id)==130 && (pt > ptthresh) ) nhiso+=pt;
+    if ( fabs(id)==22 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_ph) ) emiso+=pt;
+  }
+  //if (useDBcor) correction = 0.5 * deltaBeta;
+  //else if (useEAcor) correction = evt_fixgrid_all_rho() * elEA03(elIdx) * (dr/0.3) * (dr/0.3);
+  //float absiso = chiso + std::max(float(0.0), nhiso + emiso - correction);
+  return;
+}
+
+void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso){
+
+  float pt = el->p4().pt();
+  float dr = 0.2;
+  if (pt>50) dr = 10./pt;
+  if (pt>200) dr = 0.05;
+  elIsoCustomCone(el,dr,useVetoCones,ptthresh, chiso, nhiso, emiso, dbiso);
+  return;
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronMaker);
