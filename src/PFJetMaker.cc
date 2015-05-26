@@ -61,6 +61,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<int> >           ( "pfjetspartonFlavour"                    ).setBranchAlias( "pfjets_partonFlavour"                    );
 
   // Embedded b-tagging information (miniAOD only)
+  produces<vector<float> > ("pfjetspfCombinedInclusiveSecondaryVertexV2BJetTag").setBranchAlias("pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag");
   produces<vector<float> > ("pfjetscombinedInclusiveSecondaryVertexV2BJetTag").setBranchAlias("pfjets_combinedInclusiveSecondaryVertexV2BJetTag");
   produces<vector<float> > ("pfjetspfCombinedSecondaryVertexBJetTag"         ).setBranchAlias("pfjets_pfCombinedSecondaryVertexBJetTag"         );
   produces<vector<float> > ("pfjetscombinedMVABJetTag"                       ).setBranchAlias("pfjets_combinedMVABJetTag"                       );
@@ -156,6 +157,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
   auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
 
+  auto_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
   auto_ptr<vector<float> >     pfjets_combinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
   auto_ptr<vector<float> >     pfjets_pfCombinedSecondaryVertexBJetTag          (new vector<float>  ); 
   auto_ptr<vector<float> >     pfjets_combinedMVABJetTag                        (new vector<float>  );
@@ -237,6 +239,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // Embedded b-tag info
     // Default is set automatically to -1000. if no value is found
+    pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") );
     pfjets_combinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("combinedInclusiveSecondaryVertexV2BJetTags") );
     pfjets_pfCombinedSecondaryVertexBJetTag         ->push_back( pfjet_it->bDiscriminator("pfCombinedSecondaryVertexBJetTags"         ) );        
     pfjets_combinedMVABJetTag                       ->push_back( pfjet_it->bDiscriminator("combinedMVABJetTags"                       ) );
@@ -276,6 +279,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_pileupJetId               , "pfjetspileupJetId"               );
   iEvent.put(pfjets_partonFlavour             , "pfjetspartonFlavour"             );
 
+  iEvent.put(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag, "pfjetspfCombinedInclusiveSecondaryVertexV2BJetTag");  
   iEvent.put(pfjets_combinedInclusiveSecondaryVertexV2BJetTag, "pfjetscombinedInclusiveSecondaryVertexV2BJetTag");  
   iEvent.put(pfjets_pfCombinedSecondaryVertexBJetTag         , "pfjetspfCombinedSecondaryVertexBJetTag"        );
   iEvent.put(pfjets_combinedMVABJetTag                       , "pfjetscombinedMVABJetTag"                      );
