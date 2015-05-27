@@ -54,10 +54,8 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
   produces<std::vector<float> >               (branchprefix+"chi2"              ).setBranchAlias(aliasprefix_+"_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
   produces<std::vector<float> >               (branchprefix+"ndof"              ).setBranchAlias(aliasprefix_+"_ndof"              );
   produces<std::vector<float> >               (branchprefix+"score"             ).setBranchAlias(aliasprefix_+"_score"             );
-  produces<std::vector<float> >               (branchprefix+"sumpt"             ).setBranchAlias(aliasprefix_+"_sumpt"             );   // scalar pt sum of the tracks in the vertex
   produces<std::vector<int>   >               (branchprefix+"isFake"            ).setBranchAlias(aliasprefix_+"_isFake"            );
   produces<std::vector<int>   >               (branchprefix+"isValid"           ).setBranchAlias(aliasprefix_+"_isValid"           );
-  produces<std::vector<int>   >               (branchprefix+"tracksSize"        ).setBranchAlias(aliasprefix_+"_tracksSize"        );
   produces<std::vector<std::vector<float > > >(branchprefix+"covMatrix"         ).setBranchAlias(aliasprefix_+"_covMatrix"         );
 
   // vertex collection input tag
@@ -86,10 +84,8 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_sumpt             (new std::vector<float>               );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isValid           (new std::vector<int>                 );
-  std::auto_ptr<std::vector<int>   >               vector_vtxs_tracksSize        (new std::vector<int>                 );
   std::auto_ptr<std::vector<std::vector<float> > > vector_vtxs_covMatrix         (new std::vector<std::vector<float> > );
      
   *evt_nvtxs = vertexCollection->size();
@@ -114,7 +110,6 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_vtxs_ndof             ->push_back( vtx->ndof()              );
     vector_vtxs_isFake           ->push_back( vtx->isFake()            );
     vector_vtxs_isValid          ->push_back( vtx->isValid()           );
-    vector_vtxs_tracksSize       ->push_back( vtx->tracksSize()        );
     
     if (vertexScoreHandle.isValid()) {
       vector_vtxs_score             ->push_back( vertexScoreHandle->get(vertexHandle.id(),index) );
@@ -122,11 +117,6 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       vector_vtxs_score             ->push_back( -9999. );
     }
 
-    double sumpt = 0;
-    for (reco::Vertex::trackRef_iterator i = vtx->tracks_begin(); i != vtx->tracks_end(); ++i)
-	 sumpt += (*i)->pt();
-    vector_vtxs_sumpt		 ->push_back( sumpt		       );
-    
     std::vector<float> temp_vec;
     temp_vec.clear();
 
@@ -151,10 +141,8 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
   iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
   iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
-  iEvent.put(vector_vtxs_sumpt,             branchprefix+"sumpt"             );
   iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
   iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );
-  iEvent.put(vector_vtxs_tracksSize,        branchprefix+"tracksSize"        );
   iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
 }
 
