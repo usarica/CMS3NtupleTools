@@ -26,6 +26,7 @@
 
 #include "CMS3/NtupleMaker/interface/VertexMaker.h"
 
+#include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
@@ -52,6 +53,7 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
   produces<std::vector<float> >               (branchprefix+"zError"            ).setBranchAlias(aliasprefix_+"_zError"            );
   produces<std::vector<float> >               (branchprefix+"chi2"              ).setBranchAlias(aliasprefix_+"_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
   produces<std::vector<float> >               (branchprefix+"ndof"              ).setBranchAlias(aliasprefix_+"_ndof"              );
+  produces<std::vector<float> >               (branchprefix+"score"             ).setBranchAlias(aliasprefix_+"_score"             );
   produces<std::vector<float> >               (branchprefix+"sumpt"             ).setBranchAlias(aliasprefix_+"_sumpt"             );   // scalar pt sum of the tracks in the vertex
   produces<std::vector<int>   >               (branchprefix+"isFake"            ).setBranchAlias(aliasprefix_+"_isFake"            );
   produces<std::vector<int>   >               (branchprefix+"isValid"           ).setBranchAlias(aliasprefix_+"_isValid"           );
@@ -83,6 +85,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
+  std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
   std::auto_ptr<std::vector<float> >               vector_vtxs_sumpt             (new std::vector<float>               );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
   std::auto_ptr<std::vector<int>   >               vector_vtxs_isValid           (new std::vector<int>                 );
@@ -90,6 +93,14 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::auto_ptr<std::vector<std::vector<float> > > vector_vtxs_covMatrix         (new std::vector<std::vector<float> > );
      
   *evt_nvtxs = vertexCollection->size();
+
+  edm::Handle<edm::ValueMap<float> > vertexScoreHandle;
+  try {
+    iEvent.getByLabel(primaryVertexInputTag_, vertexScoreHandle);
+  }
+  catch ( cms::Exception& ex ) {
+    edm::LogError("VertexMakerError") << "Error! can't get the score of primary vertices";
+  }
 
   unsigned int index = 0;
   const unsigned int covMatrix_dim = 3;
@@ -104,6 +115,13 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     vector_vtxs_isFake           ->push_back( vtx->isFake()            );
     vector_vtxs_isValid          ->push_back( vtx->isValid()           );
     vector_vtxs_tracksSize       ->push_back( vtx->tracksSize()        );
+    
+    if (vertexScoreHandle.isValid()) {
+      vector_vtxs_score             ->push_back( vertexScoreHandle->get(vertexHandle.id(),index) );
+    } else { 
+      vector_vtxs_score             ->push_back( -9999. );
+    }
+
     double sumpt = 0;
     for (reco::Vertex::trackRef_iterator i = vtx->tracks_begin(); i != vtx->tracks_end(); ++i)
 	 sumpt += (*i)->pt();
@@ -132,7 +150,8 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
   iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
   iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
-  iEvent.put(vector_vtxs_sumpt,		    branchprefix+"sumpt"		    );
+  iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
+  iEvent.put(vector_vtxs_sumpt,             branchprefix+"sumpt"             );
   iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
   iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );
   iEvent.put(vector_vtxs_tracksSize,        branchprefix+"tracksSize"        );
