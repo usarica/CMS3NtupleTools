@@ -213,21 +213,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 //    produces<vector<float> >     ("elsiso04pfgamma05"         ).setBranchAlias("els_iso04_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
 //    produces<vector<float> >     ("elsiso04pfnhad05"          ).setBranchAlias("els_iso04_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
 
-    // 2012 Electron Particle Flow Isolation
-    produces<vector<float> >     ("elsiso03pf2012ch"             ).setBranchAlias("els_iso03_pf2012_ch"    );
-    produces<vector<float> >     ("elsiso03pf2012em"             ).setBranchAlias("els_iso03_pf2012_em"    );
-    produces<vector<float> >     ("elsiso03pf2012nh"             ).setBranchAlias("els_iso03_pf2012_nh"    );
-    produces<vector<float> >     ("elsiso04pf2012ch"             ).setBranchAlias("els_iso04_pf2012_ch"    );
-    produces<vector<float> >     ("elsiso04pf2012em"             ).setBranchAlias("els_iso04_pf2012_em"    );
-    produces<vector<float> >     ("elsiso04pf2012nh"             ).setBranchAlias("els_iso04_pf2012_nh"    );
-
-    // from external code
-    produces<vector<float> >     ("elsiso03pf2012extch"             ).setBranchAlias("els_iso03_pf2012ext_ch"    );
-    produces<vector<float> >     ("elsiso03pf2012extem"             ).setBranchAlias("els_iso03_pf2012ext_em"    );
-    produces<vector<float> >     ("elsiso03pf2012extnh"             ).setBranchAlias("els_iso03_pf2012ext_nh"    );
-    produces<vector<float> >     ("elsiso04pf2012extch"             ).setBranchAlias("els_iso04_pf2012ext_ch"    );
-    produces<vector<float> >     ("elsiso04pf2012extem"             ).setBranchAlias("els_iso04_pf2012ext_em"    );
-    produces<vector<float> >     ("elsiso04pf2012extnh"             ).setBranchAlias("els_iso04_pf2012ext_nh"    );
 
     // pf isolation variables
     produces<vector<float> >     ("elspfChargedHadronIso").setBranchAlias("els_pfChargedHadronIso");
@@ -508,20 +493,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //    auto_ptr<vector<float> > els_iso04_pf_ch            (new vector<float> );
 //    auto_ptr<vector<float> > els_iso04_pf_gamma05       (new vector<float> );
 //    auto_ptr<vector<float> > els_iso04_pf_nhad05        (new vector<float> );
-
-    auto_ptr<vector<float> > els_iso03_pf2012_ch        (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf2012_em        (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf2012_nh        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012_ch        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012_em        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012_nh        (new vector<float> );
-
-    auto_ptr<vector<float> > els_iso03_pf2012ext_ch        (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf2012ext_em        (new vector<float> );
-    auto_ptr<vector<float> > els_iso03_pf2012ext_nh        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012ext_ch        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012ext_em        (new vector<float> );
-    auto_ptr<vector<float> > els_iso04_pf2012ext_nh        (new vector<float> );
 
     auto_ptr<vector<float> > els_pfChargedHadronIso     (new vector<float> );
     auto_ptr<vector<float> > els_pfNeutralHadronIso     (new vector<float> );
@@ -951,76 +922,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_pfNeutralHadronIso -> push_back( pfIso.sumNeutralHadronEt );
         els_pfPhotonIso        -> push_back( pfIso.sumPhotonEt        );
         els_pfPUIso            -> push_back( pfIso.sumPUPt            );
-
-        if ( firstGoodVertex!=vertexCollection->end() ) {
- 
-            //els_iso03_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-            //els_iso03_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-            //els_iso03_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-            //els_iso03_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.3, 0.5   , 0.1, 0.07, 0.025, 0.025, 130) );
-	    //
-            //els_iso04_pf         -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 1.0   , 0.1, 0.07, 0.025, 0.025, 0  ) );
-            //els_iso04_pf_ch      -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 99999., 0.1, 0.07, 0.025, 0.025, 0  ) );
-            //els_iso04_pf_gamma05 -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4, 0.5   , 0.1, 0.07, 0.025, 0.025, 22 ) );
-            //els_iso04_pf_nhad05  -> push_back( electronIsoValuePF( *el, *firstGoodVertex, 0.4,  0.5  , 0.1, 0.07, 0.025, 0.025, 130) );
-
-            // pf iso 2012
-            float pfiso_ch = 0.0;
-            float pfiso_em = 0.0;
-            float pfiso_nh = 0.0;
-            //PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.3, pfiso_ch, pfiso_em, pfiso_nh);
-            els_iso03_pf2012_ch ->push_back( pfiso_ch );
-            els_iso03_pf2012_em ->push_back( pfiso_em );
-            els_iso03_pf2012_nh ->push_back( pfiso_nh );
-
-            //PFIsolation2012(*el, vertexCollection, firstGoodVertexIdx, 0.4, pfiso_ch, pfiso_em, pfiso_nh);
-            els_iso04_pf2012_ch ->push_back( pfiso_ch );
-            els_iso04_pf2012_em ->push_back( pfiso_em );
-            els_iso04_pf2012_nh ->push_back( pfiso_nh );	    
-
-	    // pfiso_ch = (*pfIsoCharged03_h)[gsfElRef];
-	    // pfiso_em = (*pfIsoGamma03_h)  [gsfElRef];
-	    // pfiso_nh = (*pfIsoNeutral03_h)[gsfElRef];
-            els_iso03_pf2012ext_ch ->push_back( pfiso_ch );
-            els_iso03_pf2012ext_em ->push_back( pfiso_em );
-            els_iso03_pf2012ext_nh ->push_back( pfiso_nh );
-
-	    // pfiso_ch = (*pfIsoCharged04_h)[gsfElRef];
-	    // pfiso_em = (*pfIsoGamma04_h)  [gsfElRef];
-	    // pfiso_nh = (*pfIsoNeutral04_h)[gsfElRef];
-            els_iso04_pf2012ext_ch ->push_back( pfiso_ch );
-            els_iso04_pf2012ext_em ->push_back( pfiso_em );
-            els_iso04_pf2012ext_nh ->push_back( pfiso_nh );
-
-
-        } else {
-
-            //els_iso03_pf         -> push_back( -9999. );
-            //els_iso03_pf_ch      -> push_back( -9999. );
-            //els_iso03_pf_gamma05 -> push_back( -9999. );
-            //els_iso03_pf_nhad05  -> push_back( -9999. );
-
-            //els_iso04_pf         -> push_back( -9999. );
-            //els_iso04_pf_ch      -> push_back( -9999. );
-            //els_iso04_pf_gamma05 -> push_back( -9999. );
-            //els_iso04_pf_nhad05  -> push_back( -9999. );
-
-            els_iso03_pf2012_ch ->push_back( -9999. );
-            els_iso03_pf2012_em ->push_back( -9999. );
-            els_iso03_pf2012_nh ->push_back( -9999. );
-            els_iso04_pf2012_ch ->push_back( -9999. );
-            els_iso04_pf2012_em ->push_back( -9999. );
-            els_iso04_pf2012_nh ->push_back( -9999. );
-
-
-            els_iso03_pf2012ext_ch ->push_back( -9999. );
-            els_iso03_pf2012ext_em ->push_back( -9999. );
-            els_iso03_pf2012ext_nh ->push_back( -9999. );
-            els_iso04_pf2012ext_ch ->push_back( -9999. );
-            els_iso04_pf2012ext_em ->push_back( -9999. );
-            els_iso04_pf2012ext_nh ->push_back( -9999. );
-
-        }
 
 
         //////////////////
@@ -1681,20 +1582,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //    iEvent.put(els_iso04_pf_ch      , "elsiso04pfch"      );
 //    iEvent.put(els_iso04_pf_gamma05 , "elsiso04pfgamma05" );
 //    iEvent.put(els_iso04_pf_nhad05  , "elsiso04pfnhad05"  );
-
-    iEvent.put(els_iso03_pf2012_ch , "elsiso03pf2012ch" );
-    iEvent.put(els_iso03_pf2012_em , "elsiso03pf2012em" );
-    iEvent.put(els_iso03_pf2012_nh , "elsiso03pf2012nh" );
-    iEvent.put(els_iso04_pf2012_ch , "elsiso04pf2012ch" );
-    iEvent.put(els_iso04_pf2012_em , "elsiso04pf2012em" );
-    iEvent.put(els_iso04_pf2012_nh , "elsiso04pf2012nh" );
-
-    iEvent.put(els_iso03_pf2012ext_ch , "elsiso03pf2012extch" );
-    iEvent.put(els_iso03_pf2012ext_em , "elsiso03pf2012extem" );
-    iEvent.put(els_iso03_pf2012ext_nh , "elsiso03pf2012extnh" );
-    iEvent.put(els_iso04_pf2012ext_ch , "elsiso04pf2012extch" );
-    iEvent.put(els_iso04_pf2012ext_em , "elsiso04pf2012extem" );
-    iEvent.put(els_iso04_pf2012ext_nh , "elsiso04pf2012extnh" );
 
     iEvent.put(els_pfChargedHadronIso , "elspfChargedHadronIso" );
     iEvent.put(els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
