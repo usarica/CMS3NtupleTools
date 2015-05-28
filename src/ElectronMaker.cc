@@ -271,8 +271,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     //Hit Pattern information
     //
-    produces<vector<LorentzVector> >  ("elsinnerposition"  ).setBranchAlias("els_inner_position"  );
-    produces<vector<LorentzVector> >  ("elsouterposition"  ).setBranchAlias("els_outer_position"  );
+    //produces<vector<LorentzVector> >  ("elsinnerposition"  ).setBranchAlias("els_inner_position"  );
+    //produces<vector<LorentzVector> >  ("elsouterposition"  ).setBranchAlias("els_outer_position"  );
     produces<vector<int> >            ("elsvalidpixelhits" ).setBranchAlias("els_valid_pixelhits" );
     produces<vector<int> >            ("elslostpixelhits"  ).setBranchAlias("els_lost_pixelhits"  );
     produces<vector<int> >            ("elsnlayers"        ).setBranchAlias("els_nlayers"         );
@@ -550,8 +550,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     //HitPattern information
     //
-    auto_ptr<vector<LorentzVector> >          els_inner_position       (new vector<LorentzVector> );
-    auto_ptr<vector<LorentzVector> >          els_outer_position       (new vector<LorentzVector> );
+    //auto_ptr<vector<LorentzVector> >          els_inner_position       (new vector<LorentzVector> );
+    //auto_ptr<vector<LorentzVector> >          els_outer_position       (new vector<LorentzVector> );
     auto_ptr<vector<int> >                    els_valid_pixelhits      (new vector<int>           ); 
     auto_ptr<vector<int> >                    els_lost_pixelhits       (new vector<int>           ); 
     auto_ptr<vector<int> >                    els_nlayers              (new vector<int>           ); 
@@ -1157,13 +1157,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Hit Pattern //
         /////////////////
 
-        if( el_track->extra().isAvailable() ) {
-            els_inner_position ->push_back(LorentzVector(el_track->innerPosition().x(), el_track->innerPosition().y() , el_track->innerPosition().z(), 0 ));
-            els_outer_position ->push_back(LorentzVector(el_track->outerPosition().x(), el_track->outerPosition().y() , el_track->outerPosition().z(), 0 ));
-        } else {
-            els_inner_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
-            els_outer_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
-        }
+        //if( el_track->extra().isAvailable() ) {
+        //    els_inner_position ->push_back(LorentzVector(el_track->innerPosition().x(), el_track->innerPosition().y() , el_track->innerPosition().z(), 0 ));
+        //    els_outer_position ->push_back(LorentzVector(el_track->outerPosition().x(), el_track->outerPosition().y() , el_track->outerPosition().z(), 0 ));
+        //} else {
+        //    els_inner_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
+        //    els_outer_position->push_back(LorentzVector(-9999., -9999., -9999., -9999.));
+        //}
     
 	// Redesign according to https://twiki.cern.ch/twiki/bin/viewauth/CMS/TrackingHitPatternRedesign
         const HitPattern& pattern = el_track->hitPattern();
@@ -1604,8 +1604,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_pfPUIso            , "elspfPUIso"            );
 
     //Hit Pattern Information
-    iEvent.put(els_inner_position  , "elsinnerposition"  );
-    iEvent.put(els_outer_position  , "elsouterposition"  );
+    //iEvent.put(els_inner_position  , "elsinnerposition"  );
+    //iEvent.put(els_outer_position  , "elsouterposition"  );
     iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
     iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
     iEvent.put(els_nlayers         , "elsnlayers"        );
