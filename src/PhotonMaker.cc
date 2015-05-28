@@ -155,6 +155,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   // produces<vector<float> > ( branchprefix + "swissSeed"       ).setBranchAlias( aliasprefix_ + "_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
   produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
 
+  produces<vector<float> > ( branchprefix + "ecalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_ecalPFClusterIso");
+  produces<vector<float> > ( branchprefix + "hcalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_hcalPFClusterIso");
+
   produces<vector<vector<int>   >   >       ( branchprefix + "pfcandidx"    ).setBranchAlias( branchprefix + "_PFCand_idx"    );
 
 
@@ -244,6 +247,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
 
   auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
+
+  auto_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
+  auto_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
+
   // auto_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
   // auto_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
   auto_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
@@ -473,6 +480,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	// //pixel seeds
 	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
 
+	photons_ecalPFClusterIso       ->push_back( photon->ecalPFClusterIso()             );
+	photons_hcalPFClusterIso       ->push_back( photon->hcalPFClusterIso()             );
+
+
 	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
 	vector<int> v_PFCand_idx;
 	for( const edm::Ref<pat::PackedCandidateCollection> & ref : photon->associatedPackedPFCandidates() )
@@ -545,6 +556,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
+
+  iEvent.put( photons_ecalPFClusterIso  , branchprefix+"ecalPFClusterIso"    );
+  iEvent.put( photons_hcalPFClusterIso  , branchprefix+"hcalPFClusterIso"    );
+
   // iEvent.put( photons_scindex        , branchprefix+"scindex"         );
   // iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
   iEvent.put( photons_PFCand_idx    , branchprefix+"pfcandidx"    );

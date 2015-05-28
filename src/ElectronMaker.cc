@@ -364,6 +364,9 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
   produces<vector<float>         >("elsminiIsoem"       ).setBranchAlias("els_miniIso_em"                       	);
   produces<vector<float>         >("elsminiIsodb"       ).setBranchAlias("els_miniIso_db"                       	);
 
+  produces<vector<float>         >("elsecalPFClusterIso"       ).setBranchAlias("els_ecalPFClusterIso"                       	);
+  produces<vector<float>         >("elshcalPFClusterIso"       ).setBranchAlias("els_hcalPFClusterIso"                       	);
+
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -631,6 +634,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float>   >       els_miniIso_nh                  (new vector<float>        );  	
   auto_ptr<vector<float>   >       els_miniIso_em                  (new vector<float>        );  	
   auto_ptr<vector<float>   >       els_miniIso_db                  (new vector<float>        );  	
+
+  auto_ptr<vector<float>   >       els_ecalPFClusterIso                (new vector<float>        );  	
+  auto_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
 
 
     // --- Get Input Collections --- //
@@ -1437,6 +1443,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_miniIso_em      ->push_back( miniemiso );
 	els_miniIso_db      ->push_back( minidbiso );
 
+	///////////////////////////
+	// PFCluster isolation   //
+	///////////////////////////
+
+	els_ecalPFClusterIso ->push_back(   el->ecalPFClusterIso()  );
+	els_hcalPFClusterIso ->push_back(   el->hcalPFClusterIso()  );
+
+
+
     } // end Loop on Electrons
   
 
@@ -1678,6 +1693,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put(els_miniIso_nh       , "elsminiIsonh"    );
   iEvent.put(els_miniIso_em       , "elsminiIsoem"    );
   iEvent.put(els_miniIso_db       , "elsminiIsodb"    );
+
+  iEvent.put(els_ecalPFClusterIso       , "elsecalPFClusterIso"    );
+  iEvent.put(els_hcalPFClusterIso       , "elshcalPFClusterIso"    );
   
 }
 
