@@ -50,6 +50,7 @@ private:
   edm::InputTag tracksInputTag_;
   edm::InputTag photonsInputTag_;
   edm::InputTag pfJetsInputTag_;
+  edm::InputTag ak8JetsInputTag_;
   std::vector<int> vPIDsToExclude_;
   
 };

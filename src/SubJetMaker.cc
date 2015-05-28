@@ -12,6 +12,7 @@
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/JetReco/interface/CATopJetTagInfo.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -31,8 +32,9 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<float> >         ( "ak8jetsnJettinessTau1"                   ).setBranchAlias( "ak8jets_nJettinessTau1"            );
   produces<vector<float> >         ( "ak8jetsnJettinessTau2"                   ).setBranchAlias( "ak8jets_nJettinessTau2"            );
   produces<vector<float> >         ( "ak8jetsnJettinessTau3"                   ).setBranchAlias( "ak8jets_nJettinessTau3"            );
-  //produces<vector<float> >         ( "ak8jetsqJetsVolatility"                  ).setBranchAlias( "ak8jets_qJetsVolatility"           );
-  //produces<vector<float> >         ( "ak8jetstopJetMass"                       ).setBranchAlias( "ak8jets_topJetMass"                );
+  produces<vector<float> >         ( "ak8jetstopMass"                          ).setBranchAlias( "ak8jets_topMass"                   );
+  produces<vector<float> >         ( "ak8jetsminMass"                          ).setBranchAlias( "ak8jets_minMass"                   );
+  produces<vector<int> >           ( "ak8jetsnSubJets"                         ).setBranchAlias( "ak8jets_nSubJets"                  );
   produces<vector<float> >         ( "ak8jetsprunedMass"                       ).setBranchAlias( "ak8jets_prunedMass"                );
   produces<vector<float> >         ( "ak8jetstrimmedMass"                      ).setBranchAlias( "ak8jets_trimmedMass"               );
   produces<vector<float> >         ( "ak8jetsfilteredMass"                     ).setBranchAlias( "ak8jets_filteredMass"              );
@@ -77,8 +79,9 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         ak8jets_nJettinessTau1           (new vector<float>          );  
   auto_ptr<vector<float> >         ak8jets_nJettinessTau2           (new vector<float>          );  
   auto_ptr<vector<float> >         ak8jets_nJettinessTau3           (new vector<float>          );  
-  //auto_ptr<vector<float> >         ak8jets_qJetsVolatility          (new vector<float>          );  
-  //auto_ptr<vector<float> >         ak8jets_topJetMass               (new vector<float>          );  
+  auto_ptr<vector<float> >         ak8jets_topMass                  (new vector<float>          );  
+  auto_ptr<vector<float> >         ak8jets_minMass                  (new vector<float>          );  
+  auto_ptr<vector<int> >           ak8jets_nSubJets                 (new vector<int>            );  
   auto_ptr<vector<float> >         ak8jets_prunedMass               (new vector<float>          );  
   auto_ptr<vector<float> >         ak8jets_trimmedMass              (new vector<float>          );  
   auto_ptr<vector<float> >         ak8jets_filteredMass             (new vector<float>          );  
@@ -110,21 +113,24 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
 
     float nJettinessTau1 = -999, nJettinessTau2 = -999, nJettinessTau3 = -999;
-    //float qJetsVolatility = -999, topJetMass = -999;
+    float topMass = -999, minMass = -999, nSubJets = -999;
     float prunedMass = -999, trimmedMass = -999, filteredMass = -999;
+    reco::CATopJetTagInfo const * tagInfo =  dynamic_cast<reco::CATopJetTagInfo const *>( pfjet_it->tagInfo("caTop"));
     if ( pfjet_it->hasUserFloat("NjettinessAK8:tau1") ) nJettinessTau1 = pfjet_it->userFloat("NjettinessAK8:tau1");
     if ( pfjet_it->hasUserFloat("NjettinessAK8:tau2") ) nJettinessTau2 = pfjet_it->userFloat("NjettinessAK8:tau2");
     if ( pfjet_it->hasUserFloat("NjettinessAK8:tau3") ) nJettinessTau3 = pfjet_it->userFloat("NjettinessAK8:tau3");
-    //if ( pfjet_it->hasUserFloat("QJetsAdderAK8:QjetsVolatility") ) qJetsVolatility = pfjet_it->userFloat("QJetsAdderAK8:QjetsVolatility");
-    //if ( pfjet_it->hasUserFloat("cmsTopTagPFJetsCHSLinksAK8") ) topJetMass = pfjet_it->userFloat("cmsTopTagPFJetsCHSLinksAK8");
+    if (tagInfo) topMass = tagInfo->properties().topMass;
+    if (tagInfo) minMass = tagInfo->properties().minMass;
+    if (tagInfo) nSubJets = tagInfo->properties().nSubJets;
     if ( pfjet_it->hasUserFloat("ak8PFJetsCHSPrunedLinks") ) prunedMass = pfjet_it->userFloat("ak8PFJetsCHSPrunedLinks");
     if ( pfjet_it->hasUserFloat("ak8PFJetsCHSTrimmedLinks") ) trimmedMass = pfjet_it->userFloat("ak8PFJetsCHSTrimmedLinks");
     if ( pfjet_it->hasUserFloat("ak8PFJetsCHSFilteredLinks") ) filteredMass = pfjet_it->userFloat("ak8PFJetsCHSFilteredLinks");
     ak8jets_nJettinessTau1           ->push_back( nJettinessTau1                       );
     ak8jets_nJettinessTau2           ->push_back( nJettinessTau2                       );
     ak8jets_nJettinessTau3           ->push_back( nJettinessTau3                       );
-    //ak8jets_qJetsVolatility          ->push_back( qJetsVolatility                      );
-    //ak8jets_topJetMass               ->push_back( topJetMass                           );
+    ak8jets_topMass                  ->push_back( topMass                              );
+    ak8jets_minMass                  ->push_back( minMass                              );
+    ak8jets_nSubJets                 ->push_back( nSubJets                             );
     ak8jets_prunedMass               ->push_back( prunedMass                           );
     ak8jets_trimmedMass              ->push_back( trimmedMass                          );
     ak8jets_filteredMass             ->push_back( filteredMass                         );
@@ -163,8 +169,9 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(ak8jets_nJettinessTau1           , "ak8jetsnJettinessTau1"            );
   iEvent.put(ak8jets_nJettinessTau2           , "ak8jetsnJettinessTau2"            );
   iEvent.put(ak8jets_nJettinessTau3           , "ak8jetsnJettinessTau3"            );
-  //iEvent.put(ak8jets_qJetsVolatility          , "ak8jetsqJetsVolatility"            );
-  //iEvent.put(ak8jets_topJetMass               , "ak8jetstopJetMass"            );
+  iEvent.put(ak8jets_topMass                  , "ak8jetstopMass"               );
+  iEvent.put(ak8jets_minMass                  , "ak8jetsminMass"               );
+  iEvent.put(ak8jets_nSubJets                 , "ak8jetsnSubJets"              );
   iEvent.put(ak8jets_prunedMass               , "ak8jetsprunedMass"            );
   iEvent.put(ak8jets_trimmedMass              , "ak8jetstrimmedMass"           );
   iEvent.put(ak8jets_filteredMass             , "ak8jetsfilteredMass"          );

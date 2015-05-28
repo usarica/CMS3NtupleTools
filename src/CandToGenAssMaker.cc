@@ -128,6 +128,13 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   produces<vector<int>           >("pfjetsmc3idx"         	).setBranchAlias("pfjets_mc3idx"        	); // index of matched status==3 particle
   produces<vector<int>           >("pfjetsmc3id"          	).setBranchAlias("pfjets_mc3_id"        	); // id of matched status ==3 particle
 
+
+  //info of matched genJet
+  produces<vector<LorentzVector> >("ak8jetsmcp4"           	).setBranchAlias("ak8jets_mc_p4"         	); // p4 of the matched GenJet
+  //info of matched gen particle
+  produces<vector<LorentzVector> >("ak8jetsmcgpp4"         	).setBranchAlias("ak8jets_mc_gp_p4"      	); // p4 of the matched MC particle
+  produces<vector<int>           >("ak8jetsmcid"           	).setBranchAlias("ak8jets_mc_id"         	);
+
   
 //  // track matched to gen particle
 //  produces<vector<int>           >("trkmcid"            	).setBranchAlias("trk_mc_id"          		); // track matched to gen particle
@@ -150,6 +157,7 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
   photonsInputTag_      = iConfig.getParameter<edm::InputTag>("photonsInputTag"     );
   jetsInputTag_         = iConfig.getParameter<edm::InputTag>("jetsInputTag"        );
   pfJetsInputTag_       = iConfig.getParameter<edm::InputTag>("pfJetsInputTag"      );
+  ak8JetsInputTag_       = iConfig.getParameter<edm::InputTag>("ak8JetsInputTag"      );
   tracksInputTag_       = iConfig.getParameter<edm::InputTag>("tracksInputTag"      );
   vPIDsToExclude_       = iConfig.getUntrackedParameter<std::vector<int> >("vPIDsToExclude"   );
 }
@@ -242,8 +250,14 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   auto_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
   auto_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
 
-
+  // ak8 pfjets
+  //info of matched genJet
+  auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_p4        (new vector<LorentzVector>); 
+  //info of matched gen particle
+  auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_gp_p4     (new vector<LorentzVector>); 
+  auto_ptr<vector<int>           > vector_ak8jets_mc_id        (new vector<int>          );
   
+
 //  //track matched to gen particle
 //  auto_ptr<vector<int>           > vector_trk_mc_id        (new vector<int>              );
 //  auto_ptr<vector<int>           > vector_trk_mc_motherid  (new vector<int>              );
@@ -296,6 +310,11 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   InputTag pfJets_p4_tag(pfJetsInputTag_);
   Handle<vector<LorentzVector> > pfJetsHandle;
   iEvent.getByLabel(pfJets_p4_tag, pfJetsHandle);
+
+  // get ak8 pf jets
+  InputTag ak8Jets_p4_tag(ak8JetsInputTag_);
+  Handle<vector<LorentzVector> > ak8JetsHandle;
+  iEvent.getByLabel(ak8Jets_p4_tag, ak8JetsHandle);
 
   //get the tracks
   InputTag trks_p4_tag(tracksInputTag_);
@@ -628,6 +647,37 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   // ****************************************************************************************//
 
 
+  // ***************************************  fill AK8PFJets *************************************************//
+  for(vector<LorentzVector>::const_iterator ak8jetsp4_it = ak8JetsHandle->begin();
+      ak8jetsp4_it != ak8JetsHandle->end();
+      ak8jetsp4_it++) {
+
+    int idx = -9999;
+    const GenJet* matchedGenJet = MatchUtilities::matchCandToGenJet(*ak8jetsp4_it,genJetsHandle.product(), idx);
+    
+    if ( matchedGenJet != 0 ) {
+      vector_ak8jets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
+    } else {
+      vector_ak8jets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
+    }
+
+    int temp;
+    const pat::PackedGenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*ak8jetsp4_it, 
+									   v_genParticlesS1,
+									   temp, 1, vPIDsToExclude_);
+
+    if ( matchedGenParticle != 0 ) {
+      vector_ak8jets_mc_gp_p4  	->push_back(LorentzVector( matchedGenParticle->p4() ) 					);
+      vector_ak8jets_mc_id     	->push_back(matchedGenParticle->pdgId()							);
+    } else {
+      vector_ak8jets_mc_gp_p4  	->push_back(LorentzVector(0,0,0,0)	);
+      vector_ak8jets_mc_id  	->push_back(-9999			);
+    }
+
+  }//ak8 jets 
+  // ****************************************************************************************//
+
+
 //  // ***********************************  fill Track *****************************************//
 //  for (vector<LorentzVector>::const_iterator track = trksHandle->begin(),
 //	 trks_end = trksHandle->end();
@@ -754,6 +804,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.put(vector_pfjets_mc3dr         	,"pfjetsmc3dr"        	);
   iEvent.put(vector_pfjets_mc3idx        	,"pfjetsmc3idx"       	);
   iEvent.put(vector_pfjets_mc3_id        	,"pfjetsmc3id"        	); // id of matched status ==3 particle
+
+  iEvent.put(vector_ak8jets_mc_p4        	,"ak8jetsmcp4"         	);
+  iEvent.put(vector_ak8jets_mc_gp_p4     	,"ak8jetsmcgpp4"       	);
+  iEvent.put(vector_ak8jets_mc_id        	,"ak8jetsmcid"        	);
   
 
 //  iEvent.put(vector_trk_mc_id          		,"trkmcid"          	);
