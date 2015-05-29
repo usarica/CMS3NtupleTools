@@ -90,7 +90,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     beamSpotInputTag_         = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag"         );
     trksInputTag_             = iConfig.getParameter<edm::InputTag> ("trksInputTag"             );
     gsftracksInputTag_        = iConfig.getParameter<edm::InputTag> ("gsftracksInputTag"        );
-    cms2scsseeddetidInputTag_ = iConfig.getParameter<edm::InputTag> ("cms2scsseeddetidInputTag" );
     eidLHTag_                 = iConfig.getParameter<edm::InputTag> ("eidLHTag"                 );
     pfCandsInputTag           = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"          );
     vtxInputTag               = iConfig.getParameter<edm::InputTag> ("vtxInputTag"              );
@@ -103,7 +102,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     
 
     recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
-    rhoInputTag_              = iConfig.getParameter<edm::InputTag> ("rhoInputTag"              );
+    //rhoInputTag_              = iConfig.getParameter<edm::InputTag> ("rhoInputTag"              );
     beamSpot_tag_             = iConfig.getParameter<edm::InputTag> ("beamSpotTag"              );
 
     minAbsDist_               = iConfig.getParameter<double>          ("minAbsDist"              );
@@ -732,8 +731,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Get tools to get cluster shape information //
     ////////////////////////////////////////////////
 
-//    if ( clusterTools_ ) delete clusterTools_;
-//    clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
+   // if ( clusterTools_ ) delete clusterTools_; 
+   //clusterTools_ = new EcalClusterLazyTools( iEvent, iSetup, InputTag("reducedEcalRecHitsEB"), InputTag("reducedEcalRecHitsEE") );
 
 
     //////////////

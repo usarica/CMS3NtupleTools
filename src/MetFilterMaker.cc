@@ -139,6 +139,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //////////////////
   // Write Output //
   //////////////////
+  std::cout<<"met filter"<< __LINE__ <<std::endl;
+
   iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
   iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
   iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
@@ -156,8 +158,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // For compatibility with CMS2 variable names
   iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );
   iEvent.put( filt_hbheFilter                     , "evthbheFilter"                      );
-
   
+  std::cout<<"met filter"<< __LINE__ <<std::endl;
 } // End MetFilterMaker::produce()
 
 //define this as a plug-in

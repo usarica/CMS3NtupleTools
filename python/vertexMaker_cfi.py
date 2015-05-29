@@ -15,8 +15,3 @@ vertexMaker = cms.EDProducer(
   #primaryVertexInputTag = cms.InputTag("unpackedTracksAndVertices")
 )
 
-vertexMakerWithBS = cms.EDProducer(
-  "VertexMaker",
-  aliasPrefix           = cms.untracked.string("bsvtxs"),
-  primaryVertexInputTag = cms.InputTag("offlinePrimaryVerticesWithBS"),
-)

@@ -22,13 +22,11 @@
 // system include files
 #include <memory>
 
-
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -49,7 +47,6 @@ private:
      virtual void produce(edm::Event&, const edm::EventSetup&);
      virtual void endJob() ;
   double muonIsoValuePF(const reco::Muon& mu, const reco::Vertex& vtx, float coner, float minptn, float dzcut, int filterId);
-  
       // ----------member data ---------------------------
   edm::InputTag muonsInputTag;
   edm::InputTag beamSpotInputTag;
@@ -65,7 +62,6 @@ private:
 
   // Cosmics Compatibility
   edm::InputTag src_;
-
   //  
   edm::InputTag showerTag_;
 

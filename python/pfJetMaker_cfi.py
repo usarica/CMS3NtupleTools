@@ -7,5 +7,4 @@ pfJetMaker = cms.EDProducer("PFJetMaker",
   PFJetCorrectorL2L3               = cms.string("ak4PFCHSL2L3"),
   PFJetCorrectorL1Fast             = cms.string("ak4PFCHSL1Fastjet"),
   PFJetCorrectorL1FastL2L3         = cms.string("ak4PFCHSL1FastL2L3")
-  #PFJetCorrectorL1FastL2L3residual = cms.string("ak4PFCHSL1FastL2L3")
 )

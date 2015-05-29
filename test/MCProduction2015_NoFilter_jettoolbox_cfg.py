@@ -28,13 +28,10 @@ process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.GlobalTag.globaltag = "PHYS14_25_V2::All"
 #process.GlobalTag.globaltag = "MCRUN2_74_V9::All"
-#process.GlobalTag.globaltag = 'MCRUN2_73_V4'
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-#process.load('CommonTools.UtilAlgos.TFileService_cfi')
-#process.TFileService.fileName = cms.string('output.root')
 
 process.out = cms.OutputModule("PoolOutputModule",
   fileName     = cms.untracked.string('ntuple.root'),
@@ -85,23 +82,23 @@ process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modu
 ####################
 # MET Filters 2012 #
 ####################
-process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
-process.load('RecoMET.METFilters.hcalLaserEventFilter_cfi')
-process.load('RecoMET.METFilters.CSCTightHaloFilter_cfi')
-process.load('RecoMET.METFilters.EcalDeadCellBoundaryEnergyFilter_cfi')
+#process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
+#process.load('RecoMET.METFilters.hcalLaserEventFilter_cfi')
+#process.load('RecoMET.METFilters.CSCTightHaloFilter_cfi')
+#process.load('RecoMET.METFilters.EcalDeadCellBoundaryEnergyFilter_cfi')
 #process.load('RecoMET.METFilters.EcalDeadCellDeltaRFilter_cfi')
-process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
-process.load('RecoMET.METFilters.inconsistentMuonPFCandidateFilter_cfi')
-process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
-process.load('RecoMET.METFilters.eeBadScFilter_cfi')
-process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
-process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
+#process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
+#process.load('RecoMET.METFilters.inconsistentMuonPFCandidateFilter_cfi')
+#process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
+#process.load('RecoMET.METFilters.eeBadScFilter_cfi')
+#process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
+#process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
 
 #undo what's pulled in by including Reconstruction_cff
-process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
-process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
-process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
-process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
+#process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
+#process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
+#process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
+#process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
@@ -160,11 +157,12 @@ process.p = cms.Path(
   process.photonMaker *
   process.genMaker *
   process.genJetMaker *
-  process.muToTrigAssMaker *  # requires muonMaker
-  process.elToTrigAssMaker *  # requires electronMaker
+#  process.muToTrigAssMaker *  # requires muonMaker
+##  process.elToTrigAssMaker *  # requires electronMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
   process.puSummaryInfoMaker *
+  process.recoConversionMaker *
   process.miniAODrhoSequence *
   process.hypDilepMaker
 )
