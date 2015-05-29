@@ -167,17 +167,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   const JetCorrector* correctorL2L3                   = JetCorrector::getJetCorrector (  PFJetCorrectorL2L3_                   , iSetup );
   const JetCorrector* correctorL1Fast                 = JetCorrector::getJetCorrector (  PFJetCorrectorL1Fast_                 , iSetup );
   //const JetCorrector* correctorL1FastL2L3residual     = JetCorrector::getJetCorrector (  PFJetCorrectorL1FastL2L3residual_     , iSetup );
-
-  // pfjets_IDs
-  pfjets_bDiscriminatorNames->push_back( "pfCombinedInclusiveSecondaryVertexV2BJetTags" );
-  pfjets_bDiscriminatorNames->push_back( "combinedSecondaryVertexBJetTags"              );        
-  pfjets_bDiscriminatorNames->push_back( "pfCombinedMVABJetTags"                        );
-  pfjets_bDiscriminatorNames->push_back( "pfJetBProbabilityBJetTags"                    );
-  pfjets_bDiscriminatorNames->push_back( "pfJetProbabilityBJetTags"                     );
-  pfjets_bDiscriminatorNames->push_back( "pfSimpleSecondaryVertexHighEffBJetTags"       );
-  pfjets_bDiscriminatorNames->push_back( "pfSimpleSecondaryVertexHighPurBJetTags"       );
-  pfjets_bDiscriminatorNames->push_back( "pfTrackCountingHighEffBJetTags"               );
-  pfjets_bDiscriminatorNames->push_back( "pfTrackCountingHighPurBJetTags"               );
 	
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
@@ -240,12 +229,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // // Embedded b-tag info
     // // Default is set automatically to -1000. if no value is found
+    const vector<pair<string, float>> bDiscriminatorPairs = pfjet_it->getPairDiscri();
 	vector <float> bDiscriminatorPerjet;
     bDiscriminatorPerjet.clear();
-	for( size_t bDiscriminator_ind = 0; bDiscriminator_ind < pfjets_bDiscriminatorNames->size(); bDiscriminator_ind++ ){
+    for (size_t bDiscriminator_ind = 0; bDiscriminator_ind < bDiscriminatorPairs.size(); bDiscriminator_ind++ ){
+      if (pfjet_it == pfJetsHandle->begin()) pfjets_bDiscriminatorNames->push_back( bDiscriminatorPairs.at(bDiscriminator_ind).first );
 	  bDiscriminatorPerjet.push_back(pfjet_it->bDiscriminator(string(pfjets_bDiscriminatorNames->at(bDiscriminator_ind))));
-	}
-
+    }
 	pfjets_bDiscriminators->push_back(bDiscriminatorPerjet);
 	pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") );
  
