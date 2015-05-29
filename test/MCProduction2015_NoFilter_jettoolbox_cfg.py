@@ -16,22 +16,27 @@ process.configurationMetadata = cms.untracked.PSet(
 process.load('Configuration/EventContent/EventContent_cff')
 process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.Reconstruction_cff")
-process.load("Configuration.Geometry.GeometryIdeal_cff")
+#process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.MagneticField_cff")
-process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+#process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
+process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "PHYS14_25_V2::All"
+#process.GlobalTag.globaltag = "PHYS14_25_V2::All"
 #process.GlobalTag.globaltag = "MCRUN2_74_V9::All"
+process.GlobalTag.globaltag = "MCRUN2_74_V9A"
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
+process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True),allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 process.out = cms.OutputModule("PoolOutputModule",
   fileName     = cms.untracked.string('ntuple.root'),
@@ -57,7 +62,7 @@ from JMEAnalysis.JetToolbox.jetToolbox_cff import *
 
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
+process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"","PAT")
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
 my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff']
@@ -67,7 +72,6 @@ for idmod in my_id_modules:
 
 process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
 process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
-
 ##############################
 #### Load Ntuple producer cff#####
 ##############################
@@ -95,10 +99,10 @@ process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modu
 #process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
 
 #undo what's pulled in by including Reconstruction_cff
-#process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
-#process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
-#process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
-#process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
+process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
+process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
+process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
@@ -133,7 +137,7 @@ jetToolbox( process, 'ca10', 'ca10JetSubs', 'out',
             addNsub=True,
             miniAOD=True,
             JETCorrLevels=['L2Relative', 'L3Absolute'] ) 
-#jetToolbox( process, 'ca10', 'ca10JetSubs', 'out', addHEPTopTagger=True, addSoftDrop=True, miniAOD=True)
+jetToolbox( process, 'ca10', 'ca10JetSubs', 'out', addHEPTopTagger=True, addSoftDrop=True, miniAOD=True)
 process.load('CMS3.NtupleMaker.ca12subJetMaker_cfi')
 
 process.p = cms.Path( 
@@ -173,7 +177,8 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 #Options
 #process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True),allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+
+#process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 ##Slim CMS3
 #from CMS3.NtupleMaker.SlimCms3_cff import slimcms3
