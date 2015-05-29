@@ -36,6 +36,7 @@ process.p = cms.Path(
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
+  process.pfJetPUPPIMaker *
   process.subJetMaker *
   process.pfmetMaker *
   process.hltMakerSequence *
