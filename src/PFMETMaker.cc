@@ -44,7 +44,7 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("evtpfmetPhi"       ).setBranchAlias("evt_pfmetPhi"       );
     produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     produces<float> ("evtpfsumet"        ).setBranchAlias("evt_pfsumet"        );
-    produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
+    //produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
     //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
     //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
     produces<float> ("evtpfmetraw"          ).setBranchAlias("evt_pfmet_raw"          );
@@ -78,7 +78,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetPhi      (new float   );
     std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     std::auto_ptr<float>   evt_pfsumet       (new float   );
-    std::auto_ptr<float>   evt_pfmetSignificance(new float   );
+    //std::auto_ptr<float>   evt_pfmetSignificance(new float   );
     //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
     //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
     std::auto_ptr<float>   evt_pfmet_raw         (new float   );
@@ -120,12 +120,12 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       *gen_metPhi   = -9999.;
     }
     
-    try { 
-        *evt_pfmetSignificance = ( met_h->front() ).significance();
-    }
-    catch ( cms::Exception& ex ) {
-        *evt_pfmetSignificance = -9999;
-    }
+    //try { 
+    //    *evt_pfmetSignificance = ( met_h->front() ).significance();
+    //}
+    //catch ( cms::Exception& ex ) {
+    //    *evt_pfmetSignificance = -9999;
+    //}
 
     try {
       *evt_calomet    = ( met_h->front() ).caloMETPt();
@@ -140,7 +140,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfmetPhi , "evtpfmetPhi"   );
     iEvent.put(evt_pfmetSig , "evtpfmetSig"   );
     iEvent.put(evt_pfsumet  , "evtpfsumet"    );  
-    iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
+    //iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
     iEvent.put(evt_pfmet_raw    , "evtpfmetraw"      );
     iEvent.put(evt_pfmetPhi_raw , "evtpfmetPhiraw"   );
     iEvent.put(evt_pfsumet_raw  , "evtpfsumetraw"    );  
