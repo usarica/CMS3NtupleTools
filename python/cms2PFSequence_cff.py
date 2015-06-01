@@ -13,6 +13,7 @@ from CMS3.NtupleMaker.pftauMaker_cfi import *
 #from CMS3.NtupleMaker.bTagPFSequence_cfi import *
 #from CMS3.NtupleMaker.bTagPFJetMaker_cfi import *
 from CMS3.NtupleMaker.pfCandidateMaker_cfi import *
+from CMS3.NtupleMaker.isoTrackMaker_cfi import *
 #from CMS3.NtupleMaker.trackIsolationMaker_cfi import *
 #from CMS3.NtupleMaker.trkMetSequence_cff   import *
 #from CMS3.NtupleMaker.mvaJetIdMaker_cfi import *
