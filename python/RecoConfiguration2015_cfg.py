@@ -36,8 +36,13 @@ from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
+dataFormat = DataFormat.MiniAOD
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V0_miniAOD_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+
+switchOnVIDElectronIdProducer(process, dataFormat)
+
+#add them to the VID producer
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
