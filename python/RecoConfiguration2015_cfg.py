@@ -46,10 +46,9 @@ switchOnVIDElectronIdProducer(process, dataFormat)
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
-process.load("CMS3.NtupleMaker.cms2CoreSequences_cff")
-process.load("CMS3.NtupleMaker.cms2GENSequence_cff")
-#process.load('CMS3.NtupleMaker.pixelDigiMaker_cfi')
-process.load("CMS3.NtupleMaker.cms2PFSequence_cff")
+process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
+process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
+process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
 process.kt6PFJets.doRhoFastjet  = True                # Turn-on the FastJet density calculation
 process.ak5PFJets.doAreaFastjet = True                # Turn-on the FastJet jet area calculation for your favorite algorithm

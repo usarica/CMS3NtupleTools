@@ -15,7 +15,6 @@ from CMS3.NtupleMaker.photonMaker_cfi              import *
 from CMS3.NtupleMaker.recoConversionMaker_cfi      import *
 from CMS3.NtupleMaker.secVertexMaker_cfi           import *
 from CMS3.NtupleMaker.vertexMaker_cfi              import *
-from CMS3.NtupleMaker.beamHaloMaker_cfi            import *
 from CMS3.NtupleMaker.fastJetSequence_cff          import *
 from CMS3.NtupleMaker.pfJetMaker_cfi               import *
 from CMS3.NtupleMaker.subJetMaker_cfi              import *
