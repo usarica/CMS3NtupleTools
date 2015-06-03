@@ -51,7 +51,7 @@ grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
 if [ ! $doNothing = "0" ]; then
 echo "line does not exist. Adding now."
-sed -e '/^ edm::ParameterSetDescription desc;/a\ \ desc.setAllowAnything();' $inputfile > temp_inputfile.txt
+sed -i 's/edm::ParameterSetDescription desc;/edm::ParameterSetDescription desc;\n  desc.setAllowAnything();/' $inputfile
 cat temp_inputfile.txt > $inputfile
 # deletes temp file
 if [ -e temp_inputfile.txt ]; then
