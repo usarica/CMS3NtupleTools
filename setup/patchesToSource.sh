@@ -49,16 +49,12 @@ git cms-addpkg   RecoEcal/EgammaClusterProducers
 inputfile="RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
 grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
-if [ ! $doNothing = "0" ]; then
-echo "line does not exist. Adding now."
-sed -i 's/edm::ParameterSetDescription desc;/edm::ParameterSetDescription desc;\n  desc.setAllowAnything();/' $inputfile
-cat temp_inputfile.txt > $inputfile
-# deletes temp file
-if [ -e temp_inputfile.txt ]; then
-rm temp_inputfile.txt
-fi
+if [ ! $doNothing = "0" ]; 
+then
+  echo "line does not exist. Adding now."
+  sed -i 's/edm::ParameterSetDescription desc;/edm::ParameterSetDescription desc;\n  desc.setAllowAnything();/' $inputfile
 else
-echo "line already exists. File $inputfile will be unchanged."
+  echo "line already exists. File $inputfile will be unchanged."
 fi
 
 ####################
