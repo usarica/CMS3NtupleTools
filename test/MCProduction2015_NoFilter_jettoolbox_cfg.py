@@ -19,7 +19,6 @@ process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-#process.load("RecoJets.Configuration.RecoJPTJets_cff")
 process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
 process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
@@ -29,11 +28,9 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 #process.GlobalTag.globaltag = "PHYS14_25_V2::All"
 #process.GlobalTag.globaltag = "MCRUN2_74_V9::All"
 process.GlobalTag.globaltag = "MCRUN2_74_V9A"
-#process.GlobalTag = GlobalTag(process.GlobalTag, 'MCRUN2_74_V9A', '')
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-#process.options = cms.untracked.PSet( wantSummary = cms.untracked.bool(True),allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 process.out = cms.OutputModule("PoolOutputModule",
@@ -58,9 +55,9 @@ from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersAllAlgos_cff import *
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-#ak4PFCHSL2L3.srcRho =  cms.InputTag("fixedGridRhoAll","", "RECO") 
 from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
 process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
+
 #####################################
 #Electron Identification for PHYS 14#
 #####################################
@@ -80,35 +77,9 @@ process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
 ##############################
 #### Load Ntuple producer cff#####
 ##############################
-process.load("CMS3.NtupleMaker.cms2CoreSequences_cff")
-process.load("CMS3.NtupleMaker.cms2GENSequence_cff")
-#process.load('CMS3.NtupleMaker.pixelDigiMaker_cfi')
-process.load("CMS3.NtupleMaker.cms2PFSequence_cff")
-#process.load('RecoJets.Configuration.RecoPFJets_cff') # Import the Jet RECO modules
-
-#process.kt6PFJets.doRhoFastjet  = False                # Turn-on the FastJet density calculation
-#process.ak5PFJets.doAreaFastjet = False               # Turn-on the FastJet jet area calculation for your favorite algorithm
-
-####################
-# MET Filters 2012 #
-####################
-#process.load('CommonTools/RecoAlgos/HBHENoiseFilter_cfi')
-#process.load('RecoMET.METFilters.hcalLaserEventFilter_cfi')
-#process.load('RecoMET.METFilters.CSCTightHaloFilter_cfi')
-#process.load('RecoMET.METFilters.EcalDeadCellBoundaryEnergyFilter_cfi')
-#process.load('RecoMET.METFilters.EcalDeadCellDeltaRFilter_cfi')
-#process.load('RecoMET.METFilters.EcalDeadCellTriggerPrimitiveFilter_cfi')
-#process.load('RecoMET.METFilters.inconsistentMuonPFCandidateFilter_cfi')
-#process.load('RecoMET.METFilters.greedyMuonPFCandidateFilter_cfi')
-#process.load('RecoMET.METFilters.eeBadScFilter_cfi')
-#process.load('RecoMET.METFilters.ecalLaserCorrFilter_cfi')
-#process.load('RecoMET.METFilters.trackingFailureFilter_cfi')
-
-#undo what's pulled in by including Reconstruction_cff
-#process.pfPileUp.PFCandidates = cms.InputTag("particleFlowPtrs")
-#process.pfNoPileUp.bottomCollection = cms.InputTag("particleFlowPtrs") 
-#process.pfPileUpIso.PFCandidates = cms.InputTag("particleFlowPtrs")
-#process.pfNoPileUpIso.bottomCollection = cms.InputTag("particleFlowPtrs") 
+process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
+process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
+process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
@@ -123,26 +94,25 @@ fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1
 process.source.noEventSort            = cms.untracked.bool( True )
 #Max Events
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
-#Event Maker
 
 ###############################
 ##### Run jet tool box#########
 ###############################
-jetToolbox( process, 'ca10', 'ca10JetSubs', 'out', 
-            PUMethod='CHS',
-            #addPrunedSubjets=True, 
-            #addSoftDropSubjets=True,
-            addTrimming=True,
-            addPruning=True,
-            addSoftDrop=True,
-            addFiltering=True,
-            addMassDrop=True,
-            addCMSTopTagger=False,
-            addNsub=True,
-            miniAOD=True,
-            JETCorrLevels=['L2Relative', 'L3Absolute'] ) 
-#jetToolbox( process, 'ca10', 'ca10JetSubs', 'out', addHEPTopTagger=True, addSoftDrop=True, miniAOD=True)
-process.load('CMS3.NtupleMaker.ca12subJetMaker_cfi')
+jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
+#jetToolbox( process, 'ca10', 'ca10JetSubs', 'out', 
+#            PUMethod='',
+             #addPrunedSubjets=True, 
+             #addSoftDropSubjets=True,
+#            addTrimming=True,
+#            addPruning=True,
+#            addSoftDrop=True,
+#            addFiltering=True,
+#            addMassDrop=True,
+#            addCMSTopTagger=False,
+#            addNsub=True,
+#            miniAOD=True,
+#            JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'] ) 
+#process.load('CMS3.NtupleMaker.ca12subJetMaker_cfi')
 
 process.p = cms.Path( 
   process.metFilterMaker *
@@ -157,16 +127,17 @@ process.p = cms.Path(
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
+  process.ak4JetMaker *
   process.subJetMaker *
-  process.ca12subJetMaker *
+#  process.ca12subJetMaker *
   process.pfmetMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
   process.genMaker *
   process.genJetMaker *
-#  process.muToTrigAssMaker *  # requires muonMaker
-##  process.elToTrigAssMaker *  # requires electronMaker
+  process.muToTrigAssMaker *  # requires muonMaker
+  process.elToTrigAssMaker *  # requires electronMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
   process.puSummaryInfoMaker *
@@ -174,11 +145,7 @@ process.p = cms.Path(
   process.miniAODrhoSequence *
   process.hypDilepMaker
 )
-#from FWCore.ParameterSet.Utilities import convertToUnscheduled
-#process=convertToUnscheduled(process)
-#Options
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
-#process.eventMaker.isData                        = cms.bool(False)
+process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
-#Options
 

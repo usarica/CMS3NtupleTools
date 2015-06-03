@@ -21,7 +21,7 @@ CA12SubJetMaker::CA12SubJetMaker(const edm::ParameterSet& iConfig){
   // product of this EDProducer
   produces<vector<LorentzVector> > ( "ca12jetsp4"                               ).setBranchAlias( "ca12jets_p4"                        );
   produces<vector<float> >         ( "ca12jetsmass"                             ).setBranchAlias( "ca12jets_mass"                      );
-//  produces<vector<float> >         ( "ca12jetsundoJEC"                          ).setBranchAlias( "ca12jets_undoJEC"                   );
+  produces<vector<float> >         ( "ca12jetsundoJEC"                          ).setBranchAlias( "ca12jets_undoJEC"                   );
   //produces<vector<vector<int> >  > ( "ca12jetspfcandIndicies"                   ).setBranchAlias( "ca12jets_pfcandIndicies"            );
   //produces<vector<float> >         ( "ca12jetsarea"                             ).setBranchAlias( "ca12jets_area"                      );
   //produces<vector<float> >         ( "ca12jetspileupJetId"                      ).setBranchAlias( "ca12jets_pileupJetId"               );
@@ -71,7 +71,7 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // create containers
   auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
   auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
-  //auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
+  auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
   //auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
   //auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
   //auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
@@ -97,20 +97,13 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   Handle<View<pat::Jet> > pfJetsHandle;
   //edm::Handle<std::vector<pat::Jet> >  pfJetsHandle;//jets;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
- // iEvent.getByToken(srcJet_, jets);
-//  std::cout << __LINE__ <<"reading jets 1" <<jets->size()<<std::endl;
-  //size_t nJet = (nJetMax_ == 0) ? jets->size() : std::min(nJetMax_, (unsigned int) jets->size());
-//   size_t nJet = jets->size();
+  //iEvent.getByToken(srcJet_, jets);
+  //std::cout << __LINE__ <<"reading jets 1" <<jets->size()<<std::endl;
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     // jets from toolbox are uncorrected, so we need to correct them here
    pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() ) * pfjet_it->jecFactor("Uncorrected")     );
    pfjets_mass                      ->push_back( pfjet_it->mass()                     );
-   //for (size_t iJet = 0; iJet < nJet; iJet++) {
-    //  pat::Jet const & jet = jets->at(iJet);  
-     // if (jet.pt() < 5)
-       //  continue;
-        // pfjets_p4                        ->push_back( LorentzVector( jet.p4() ) );
-   //      pfjets_mass                    ->push_back( jet.mass());
+    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
     float nJettinessTau1 = -999, nJettinessTau2 = -999, nJettinessTau3 = -999,nJettinessTau4 = -999;
 //    float topJetMass = -999;
     float prunedMass = -999, trimmedMass = -999, filteredMass = -999, massDropFilteredMass = -999; 
@@ -134,6 +127,7 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    }
   iEvent.put(pfjets_p4                                  , "ca12jetsp4"              );
   iEvent.put(pfjets_mass                                , "ca12jetsmass"            );
+  iEvent.put(pfjets_undoJEC                             , "ca12jetsundoJEC"         );
   iEvent.put(pfjets_nJettinessTau1                      , "ca12jetsnJettinessTau1"  );
   iEvent.put(pfjets_nJettinessTau2                      , "ca12jetsnJettinessTau2"  );
   iEvent.put(pfjets_nJettinessTau3                      , "ca12jetsnJettinessTau3"  );

@@ -81,9 +81,9 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
 //  PFJetCorrectorL1FastL2L3Token_ = consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("PFJetCorrectorL1FastL2L3"));
 //  PFJetCorrectorL2L3Token_ = consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("PFJetCorrectorL2L3"));
 //  PFJetCorrectorL1FastToken_ =  consumes<reco::JetCorrector>(iConfig.getParameter<edm::InputTag>("PFJetCorrectorL1Fast"));
-  PFJetCorrectorL1FastL2L3_         = iConfig.getParameter<std::string>( "PFJetCorrectorL1FastL2L3"         );
-  PFJetCorrectorL2L3_               = iConfig.getParameter<std::string>( "PFJetCorrectorL2L3"               );
-  PFJetCorrectorL1Fast_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1Fast"          );
+//  PFJetCorrectorL1FastL2L3_         = iConfig.getParameter<std::string>( "PFJetCorrectorL1FastL2L3"         );
+//  PFJetCorrectorL2L3_               = iConfig.getParameter<std::string>( "PFJetCorrectorL2L3"               );
+//  PFJetCorrectorL1Fast_             = iConfig.getParameter<std::string>( "PFJetCorrectorL1Fast"          );
   //PFJetCorrectorL1FastL2L3residual_ = iConfig.getParameter<std::string>( "PFJetCorrectorL1FastL2L3residual" );
 }
 
@@ -173,13 +173,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   //PfJets
   Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
   //Jet Energy Corrections
- const JetCorrector* correctorL1FastL2L3             = JetCorrector::getJetCorrector (  PFJetCorrectorL1FastL2L3_             , iSetup );
+ // const JetCorrector* correctorL1FastL2L3             = JetCorrector::getJetCorrector (  PFJetCorrectorL1FastL2L3_             , iSetup );
   //const JetCorrector* correctorL2L3                   = JetCorrector::getJetCorrector (  PFJetCorrectorL2L3_                   , iSetup );
   //const JetCorrector* correctorL1Fast                 = JetCorrector::getJetCorrector (  PFJetCorrectorL1Fast_                 , iSetup );
   //const JetCorrector* correctorL1FastL2L3residual     = JetCorrector::getJetCorrector (  PFJetCorrectorL1FastL2L3residual_     , iSetup );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
   //edm::Handle<reco::JetCorrector> correctorL1FastL2L3;
  // edm::Handle<reco::JetCorrector> correctorL2L3;
  // edm::Handle<reco::JetCorrector> correctorL1Fast; 
@@ -187,53 +185,30 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 // iEvent.getByToken(PFJetCorrectorL2L3Token_,correctorL2L3);
 // iEvent.getByToken(PFJetCorrectorL1FastToken_,correctorL1Fast);
   //const JetCorrector* correctorL1FastL2L3residual     = JetCorrector::getJetCorrector (  PFJetCorrectorL1FastL2L3residual_     , iSetup );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
 
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
-
     pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_mass                      ->push_back( pfjet_it->mass()                     );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_chargedHadronE            ->push_back(pfjet_it->chargedHadronEnergy()       );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_neutralHadronE            ->push_back(pfjet_it->neutralHadronEnergy()       );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_chargedEmE                ->push_back(pfjet_it->chargedEmEnergy()           );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_neutralEmE                ->push_back(pfjet_it->neutralEmEnergy()           );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_photonE                   ->push_back(pfjet_it->photonEnergy()              );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_electronE                 ->push_back(pfjet_it->electronEnergy()            );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_muonE                     ->push_back(pfjet_it->muonEnergy()                );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_hfHadronE                 ->push_back(pfjet_it->HFHadronEnergy()            );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_hfEmE                     ->push_back(pfjet_it->HFEMEnergy()                );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_chargedMultiplicity       ->push_back(pfjet_it->chargedMultiplicity()       );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_neutralMultiplicity       ->push_back(pfjet_it->neutralMultiplicity()       );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_chargedHadronMultiplicity ->push_back(pfjet_it->chargedHadronMultiplicity() );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_neutralHadronMultiplicity ->push_back(pfjet_it->neutralHadronMultiplicity() );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_photonMultiplicity        ->push_back(pfjet_it->photonMultiplicity()        );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_electronMultiplicity      ->push_back(pfjet_it->electronMultiplicity()      );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_muonMultiplicity          ->push_back(pfjet_it->muonMultiplicity()          );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     //pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
     //pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     //const std::vector<std::string> names = pfjet_it->userFloatNames();
     //for (unsigned int k = 0; k < names.size(); k++) cout<<names[k]<<" ";
     //cout<<endl;
@@ -241,28 +216,19 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if ( pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
     if ( pfjet_it->hasUserFloat("fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("fullDiscriminant");
     pfjets_pileupJetId               ->push_back( pileupJetId                          );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
-
     //
 //    int idx = pfjet_it - pfJetsHandle->begin();
 //    RefToBase < Jet > jetRef1( Ref < View < pat::Jet > > ( pfJetsHandle , idx ) );
-    std::cout<<"jet maker"<< __LINE__<<std::endl;
-
     //Jet Energy Corrections
-    float L1fastL2L3JetScale = correctorL1FastL2L3 -> correction( *pfjet_it, iEvent, iSetup );
+    //float L1fastL2L3JetScale = correctorL1FastL2L3 -> correction( *pfjet_it, iEvent, iSetup );
   //  float L1fastL2L3JetScale = correctorL1FastL2L3 -> correction( *pfjet_it);
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
 //    float L2L3JetScale = correctorL2L3 -> correction( *pfjet_it, iEvent, iSetup );
    // float L2L3JetScale = correctorL2L3 -> correction( *pfjet_it);
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
 //    float L1Fast = correctorL1Fast -> correction( *pfjet_it, iEvent, iSetup );
 //    float L1Fast = correctorL1Fast -> correction( *pfjet_it);
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
     //float L1FastL2L3residual = correctorL1FastL2L3residual -> correction( *pfjet_it, iEvent, iSetup );
-
-    pfjets_corL1FastL2L3 -> push_back( L1fastL2L3JetScale ); 
+    //pfjets_corL1FastL2L3 -> push_back( L1fastL2L3JetScale ); 
     //pfjets_corL2L3 -> push_back( L2L3JetScale ); 
 //    pfjets_corL1Fast -> push_back( L1Fast ); 
     //pfjets_corL1FastL2L3residual -> push_back( L1FastL2L3residual ); 
@@ -278,7 +244,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     } 
 
     pfjets_pfcandIndicies->push_back( pfcandIndicies );
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
 
     // Embedded b-tag info
     // Default is set automatically to -1000. if no value is found
@@ -292,8 +257,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_pfTrackCountingHighEffBJetTag              ->push_back( pfjet_it->bDiscriminator("pfTrackCountingHighEffBJetTags"              ) );
     pfjets_pfTrackCountingHighPurBJetTag              ->push_back( pfjet_it->bDiscriminator("pfTrackCountingHighPurBJetTags"              ) );
   }
-  std::cout<<"jet maker"<< __LINE__<<std::endl;
-  
   iEvent.put(pfjets_p4                        , "pfjetsp4"                        );
   iEvent.put(pfjets_mass                      , "pfjetsmass"                      );
   iEvent.put(pfjets_undoJEC                   , "pfjetsundoJEC"                   );
@@ -313,9 +276,9 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_photonMultiplicity        , "pfjetsphotonMultiplicity"        );
   iEvent.put(pfjets_electronMultiplicity      , "pfjetselectronMultiplicity"      );
   iEvent.put(pfjets_muonMultiplicity          , "pfjetsmuonMultiplicity"          );
-  iEvent.put(pfjets_corL1FastL2L3             , "pfjetscorL1FastL2L3"             );
-  iEvent.put(pfjets_corL2L3                   , "pfjetscorL2L3"                   );
-  iEvent.put(pfjets_corL1Fast                 , "pfjetscorL1Fast"                 );
+  //iEvent.put(pfjets_corL1FastL2L3             , "pfjetscorL1FastL2L3"             );
+  //iEvent.put(pfjets_corL2L3                   , "pfjetscorL2L3"                   );
+  //iEvent.put(pfjets_corL1Fast                 , "pfjetscorL1Fast"                 );
   iEvent.put(pfjets_pfcandIndicies            , "pfjetspfcandIndicies"            );
   iEvent.put(pfjets_area                      , "pfjetsarea"                      );
   iEvent.put(pfjets_pileupJetId               , "pfjetspileupJetId"               );
