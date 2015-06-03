@@ -47,7 +47,7 @@ git clone https://github.com/cms-jet/JetToolbox JMEAnalysis/JetToolbox -b jetToo
 ####### line needs to be added ###############
 git cms-addpkg   RecoEcal/EgammaClusterProducers
 inputfile="RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
-grep "desc.setAllowAnything();" $inputfile 2>&1 > NULL
+grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
 if [ ! $doNothing = "0" ]; then
 echo "line does not exist. Adding now."
