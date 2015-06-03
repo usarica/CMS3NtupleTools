@@ -123,6 +123,7 @@ process.p = cms.Path(
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
+  process.isoTrackMaker *
   process.recoConversionMaker *
   process.electronMaker *
   process.muonMaker *
