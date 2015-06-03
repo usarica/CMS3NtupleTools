@@ -128,6 +128,7 @@ process.p = cms.Path(
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
+  process.pfJetPUPPIMaker*
   process.ak4JetMaker *
   process.subJetMaker *
 #  process.ca12subJetMaker *

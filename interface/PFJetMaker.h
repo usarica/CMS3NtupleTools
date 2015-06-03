@@ -34,8 +34,7 @@ Implementation:
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-//#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
-  //using namespace reco;
+
 class PFJetMaker : public edm::EDProducer {
 public:
   explicit PFJetMaker(const edm::ParameterSet&);
@@ -51,7 +50,8 @@ private:
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;
- // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL2L3Token_;
- // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL1FastL2L3Token_;
- // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL1FastToken_;
+  std::string PFJetCorrectorL2L3_;
+  std::string PFJetCorrectorL1FastL2L3_;
+  std::string PFJetCorrectorL1Fast_;             
+  //std::string PFJetCorrectorL1FastL2L3residual_; 
 };
