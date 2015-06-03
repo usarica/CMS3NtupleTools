@@ -54,8 +54,4 @@ private:
  // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL2L3Token_;
  // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL1FastL2L3Token_;
  // edm::EDGetTokenT<reco::JetCorrector> PFJetCorrectorL1FastToken_;
-  std::string PFJetCorrectorL2L3_;
-  std::string PFJetCorrectorL1FastL2L3_;
-  std::string PFJetCorrectorL1Fast_;             
-  //std::string PFJetCorrectorL1FastL2L3residual_; 
 };
