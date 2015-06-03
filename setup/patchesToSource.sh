@@ -38,6 +38,15 @@ popd
 
 git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionaries
 
+####################
+# jet tool box     #
+####################
+
+git clone https://github.com/cms-jet/JetToolbox JMEAnalysis/JetToolbox -b jetToolbox_74X
+
+####### line needs to be added ###############
+git cms-addpkg   RecoEcal/EgammaClusterProducers
+####################
 
 #######################
 
