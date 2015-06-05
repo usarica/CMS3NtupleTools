@@ -45,7 +45,7 @@ git clone https://github.com/cms-jet/JetToolbox $CMSSW_BASE/src/JMEAnalysis/JetT
 
 ####### line needs to be added ###############
 git cms-addpkg   RecoEcal/EgammaClusterProducers
-inputfile="RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
+inputfile="$CMSSW_BASE/src/RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
 grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
 if [ ! $doNothing = "0" ]; 
