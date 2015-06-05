@@ -13,7 +13,7 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 #git cms-merge-topic ikrav:egm_id_74X_v0
 #mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
 #popd
-rmdir $CMSSW_BASE/bullshit
+#rmdir $CMSSW_BASE/bullshit
 
 #############
 # MVA JetId #
