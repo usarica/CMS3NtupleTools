@@ -10,7 +10,7 @@ export SCRAM_ARCH=slc6_amd64_gcc491
 export CMS_PATH=/cvmfs/cms.cern.ch
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 scramv1 p -n CMSSW_${CMSSW_release}${CMSSW_release_name} CMSSW CMSSW_$CMSSW_release
-cd CMSSW_${CMSSW_release}_${CMSSW_release_name}/src
+cd CMSSW_${CMSSW_release}${CMSSW_release_name}/src
 eval `scramv1 runtime -sh`
 git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker
 cd CMS3/NtupleMaker
