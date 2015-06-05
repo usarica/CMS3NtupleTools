@@ -1844,7 +1844,7 @@ void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el
   float deadcone_pu = 0.;
   float deadcone_ph = 0.;
   // veto cones only in the endcap for electrons
-  if (useVetoCones && fabs(el->eta()) > 1.479) { 
+  if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) { 
     deadcone_ch = 0.015;
     deadcone_pu = 0.015;
     deadcone_ph = 0.08;
