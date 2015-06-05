@@ -33,7 +33,7 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 
-#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+//#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
 //
 // class decleration
@@ -52,12 +52,12 @@ private:
      // ----------member data ---------------------------
      edm::InputTag photonsInputTag_;
   //   edm::InputTag cms2scsseeddetidInputTag_; 
-     edm::InputTag ecalRecHitsInputTag_EE_;
-     edm::InputTag ecalRecHitsInputTag_EB_; 
-     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EE_Token_;
-     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EB_Token_;
+//     edm::InputTag ecalRecHitsInputTag_EE_;
+//     edm::InputTag ecalRecHitsInputTag_EB_; 
+//     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EE_Token_;
+//     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EB_Token_;
      float minEt_;
-     noZS::EcalClusterLazyTools* clusterTools_;
+  //     noZS::EcalClusterLazyTools* clusterTools_;
      
 	std::string aliasprefix_;
 };
