@@ -13,8 +13,7 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 #git cms-merge-topic ikrav:egm_id_74X_v0
 #mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
 #popd
-#rmdir $CMSSW_BASE/bullshit
-
+rmdir $CMSSW_BASE/bullshit
 
 #############
 # MVA JetId #
@@ -39,8 +38,13 @@ git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionari
 
 git clone https://github.com/cms-jet/JetToolbox $CMSSW_BASE/src/JMEAnalysis/JetToolbox -b jetToolbox_74X
 
-####### line needs to be added ###############
+mkdir $CMSSW_BASE/bullshit  
+mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
 git cms-addpkg   RecoEcal/EgammaClusterProducers
+mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
+rmdir $CMSSW_BASE/bullshit
+
+####### line needs to be added ###############
 inputfile="$CMSSW_BASE/src/RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
 grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
