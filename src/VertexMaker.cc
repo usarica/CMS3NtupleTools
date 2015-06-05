@@ -66,15 +66,19 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
   // get the primary vertices
+//  std::cout << __LINE__ <<"vertex maker begin" <<std::endl;
   edm::Handle<reco::VertexCollection> vertexHandle;
-  try {
-    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
-  }
-  catch ( cms::Exception& ex ) {
-    edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
-  }
 
+//  try {
+ //   iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+//  }
+ // catch ( cms::Exception& ex ) {
+  //  edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
+ // }
+
+    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
   const reco::VertexCollection *vertexCollection = vertexHandle.product();
+//  std::cout << __LINE__ <<"number of vertex" <<vertexCollection->size()<<std::endl;
 
   std::auto_ptr<unsigned int>                      evt_nvtxs                     (new unsigned int                     );
   std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );

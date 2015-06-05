@@ -1,4 +1,4 @@
-#only CMS2 gen makers
+#only CMS3 gen makers
 
 import FWCore.ParameterSet.Config as cms
 

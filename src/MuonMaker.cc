@@ -97,8 +97,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   pfCandsInputTag  = iConfig.getParameter<InputTag> ("pfCandsInputTag" );
   vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
-  src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
-  showerTag_       = iConfig.getParameter<InputTag> ("muonShower"      ); 
+  //src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
+  //showerTag_       = iConfig.getParameter<InputTag> ("muonShower"      ); 
 
   /////////
   // STA //
@@ -274,7 +274,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "hcalrawId"     ).setBranchAlias( aliasprefix_ + "_hcal_rawId"      ); 
 
 
-
   ///////////////
   // Isolation //
   ///////////////
@@ -294,7 +293,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "iso05hadEt"                ).setBranchAlias( aliasprefix_ + "_iso05_hadEt"         ); // sum of hcal Et for cone of 0.5 
   produces<vector<float> >          ( branchprefix_ + "iso05hoEt"                 ).setBranchAlias( aliasprefix_ + "_iso05_hoEt"          ); // sum of ho Et for cone of 0.5 
   produces<vector<int> >            ( branchprefix_ + "iso05ntrk"                 ).setBranchAlias( aliasprefix_ + "_iso05_ntrk"          ); // number of tracks in the cone of 0.5 
-
 
   ////////////
   // Tracks //
@@ -414,7 +412,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfNeutralHadronEtHighThreshold").setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_NeutralHadronEtHighThreshold");
   produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfPhotonEtHighThreshold"       ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_PhotonEtHighThreshold"       );
   produces<vector<float> >          ( branchprefix_ + "isoSumDRR04pfPUPt"              ).setBranchAlias( aliasprefix_ + "_isoSumDRR04_pf_PUPt"              );
-
   //produces<vector<float> >          ( branchprefix_ + "iso03pf"                   ).setBranchAlias( aliasprefix_ + "_iso03_pf"            ); // pf isolation in cone of 0.3
   //produces<vector<float> >          ( branchprefix_ + "iso04pf"                   ).setBranchAlias( aliasprefix_ + "_iso04_pf"            ); // pf isolation in cone of 0.4
 
@@ -430,7 +427,6 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "bs3derr"                   ).setBranchAlias( aliasprefix_ + "_bs3derr"             ); 
   produces<vector<float> >          ( branchprefix_ + "bs2d"                      ).setBranchAlias( aliasprefix_ + "_bs2d"                ); 
   produces<vector<float> >          ( branchprefix_ + "bs2derr"                   ).setBranchAlias( aliasprefix_ + "_bs2derr"             ); 
-
 
   //////////////////////
   // genMatch miniAOD //
@@ -826,8 +822,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Get Muon Shower Information //
   /////////////////////////////////
 
-  Handle<ValueMap<MuonShower> > showerMap;
-  iEvent.getByLabel( showerTag_ , showerMap );
+//  Handle<ValueMap<MuonShower> > showerMap;
+ // iEvent.getByLabel( showerTag_ , showerMap );
 
 
  /* 
@@ -844,6 +840,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   //////////////////
 
   iEvent.getByToken( vtxToken , vertexHandle );
+//  std::cout << __LINE__ <<"Get Vertices in muonMaker" <<std::endl;
+
   /*
   ///////////////////////////
   // TransientTrackBuilder //
@@ -868,19 +866,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   Handle<LorentzVector> beamSpotH;
   iEvent.getByLabel( beamSpot_tag, beamSpotH );
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
+  //std::cout << __LINE__ <<"Get beamspot in muonMaker" <<std::endl;
   
   ////////////////////////// 
   // Cosmic Compatibility //
   //////////////////////////
 
-  Handle<MuonCollection> muons;
-  iEvent.getByLabel( "muons", muons );
-  Handle<ValueMap<MuonCosmicCompatibility> > CosmicMap;
-  iEvent.getByLabel( src_, CosmicMap );
+//  Handle<MuonCollection> muons;
+//  iEvent.getByLabel( "muons", muons );
+//  Handle<ValueMap<MuonCosmicCompatibility> > CosmicMap;
+//  iEvent.getByLabel( src_, CosmicMap );
 
   ///////////
   // Muons // 
   ///////////
+//  std::cout << __LINE__ <<std::endl;
   
   unsigned int muonIndex = 0;
   View<pat::Muon>::const_iterator muons_end = muon_h->end();  // Iterator
@@ -896,6 +896,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     const MuonQuality             quality                 = muon->combinedQuality();
     //const MuonCosmicCompatibility muonCosmicCompatibility = CosmicMap.isValid() ? (*CosmicMap)[muonRef] : MuonCosmicCompatibility(); //protection for fast sim
     const VertexCollection*       vertexCollection        = vertexHandle.product();
+//    std::cout << __LINE__ <<std::endl;
 
     // Iterators
     VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
@@ -944,6 +945,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 
 
+//    std::cout << __LINE__ <<std::endl;
     ////////////
     // Global //
     ////////////
@@ -1090,11 +1092,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Muon Shower Information //
     /////////////////////////////
 
-    const MuonShower muShower = showerMap.isValid() ? (*showerMap)[muonRef] : MuonShower();
-    vv_mus_nStationHits           ->push_back( muShower.nStationHits           );
-    vv_mus_nStationCorrelatedHits ->push_back( muShower.nStationCorrelatedHits );
-    vv_mus_stationShowerSizeT     ->push_back( muShower.stationShowerSizeT     );
-    vv_mus_stationShowerDeltaR    ->push_back( muShower.stationShowerDeltaR    );
+//    const MuonShower muShower = showerMap.isValid() ? (*showerMap)[muonRef] : MuonShower();
+//    vv_mus_nStationHits           ->push_back( muShower.nStationHits           );
+ //   vv_mus_nStationCorrelatedHits ->push_back( muShower.nStationCorrelatedHits );
+  //  vv_mus_stationShowerSizeT     ->push_back( muShower.stationShowerSizeT     );
+   // vv_mus_stationShowerDeltaR    ->push_back( muShower.stationShowerDeltaR    );
 
 
     ////////
@@ -1202,9 +1204,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
       vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
       vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
     }
-    else {
-      vector_mus_dxyPV       ->push_back( -999. );
-      vector_mus_dzPV        ->push_back( -999. );
+   else {
+    vector_mus_dxyPV       ->push_back( -999. );
+    vector_mus_dzPV        ->push_back( -999. );
     }
 
     ////////

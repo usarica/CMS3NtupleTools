@@ -37,6 +37,26 @@ popd
 
 git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionaries
 
+####################
+# jet tool box     #
+####################
+
+git clone https://github.com/cms-jet/JetToolbox JMEAnalysis/JetToolbox -b jetToolbox_74X
+
+####### line needs to be added ###############
+git cms-addpkg   RecoEcal/EgammaClusterProducers
+inputfile="RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
+grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
+doNothing=$?
+if [ ! $doNothing = "0" ]; 
+then
+  echo "line does not exist. Adding now."
+  sed -i 's/edm::ParameterSetDescription desc;/edm::ParameterSetDescription desc;\n  desc.setAllowAnything();/' $inputfile
+else
+  echo "line already exists. File $inputfile will be unchanged."
+fi
+
+####################
 
 #######################
 

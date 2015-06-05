@@ -115,7 +115,6 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_logErrorTooManyClusters"     )  idx_trkPOG_logErrorTooManyClusters = i;
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_manystripclus53X"            )  idx_trkPOG_manystripclus53X	    = i;
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_toomanystripclus53X"         )  idx_trkPOG_toomanystripclus53X     = i;
-    //  std::cout << "metFilterName= " << metFilterNames_.triggerName(i) << std::endl;
   }
 
   
@@ -139,6 +138,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //////////////////
   // Write Output //
   //////////////////
+
   iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
   iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
   iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
@@ -156,7 +156,6 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // For compatibility with CMS2 variable names
   iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );
   iEvent.put( filt_hbheFilter                     , "evthbheFilter"                      );
-
   
 } // End MetFilterMaker::produce()
 
