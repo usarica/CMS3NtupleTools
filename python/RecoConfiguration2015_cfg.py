@@ -38,7 +38,7 @@ process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 dataFormat = DataFormat.MiniAOD
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+#my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
 
 switchOnVIDElectronIdProducer(process, dataFormat)
 
