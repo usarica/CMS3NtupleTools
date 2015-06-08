@@ -81,10 +81,10 @@ typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_Cluster
 ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     //get setup parameters
-    //electronVetoIdMapToken_   = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
-    //electronLooseIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronLooseIdMap"));
-    //electronMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
-    //electronTightIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
+    electronVetoIdMapToken_   = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVetoIdMap"));
+    electronLooseIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronLooseIdMap"));
+    electronMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
+    electronTightIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
 
     electronsInputTag_        = iConfig.getParameter<edm::InputTag> ("electronsInputTag"        );
     beamSpotInputTag_         = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag"         );
@@ -181,10 +181,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("elsclass"                   ).setBranchAlias("els_class"                  );
 
     // Phys 14 predefined ID decisions
-    //produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
-    //produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
-    //produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
-    //produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
+    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
+    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
+    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
+    produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -468,10 +468,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int> > els_class    (new vector<int>);
     auto_ptr<vector<int> > els_category (new vector<int>);
 
-    //auto_ptr<vector<int> > passVetoId     (new vector<int>);
-    //auto_ptr<vector<int> > passLooseId    (new vector<int>);
-    //auto_ptr<vector<int> > passMediumId   (new vector<int>);
-    //auto_ptr<vector<int> > passTightId    (new vector<int>);
+    auto_ptr<vector<int> > passVetoId     (new vector<int>);
+    auto_ptr<vector<int> > passLooseId    (new vector<int>);
+    auto_ptr<vector<int> > passMediumId   (new vector<int>);
+    auto_ptr<vector<int> > passTightId    (new vector<int>);
 
     // isolation variables
     //
@@ -755,14 +755,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 //    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
 
-//  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-//  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-//  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-//  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
-//  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
-//  iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
-//  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
-//  iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
+  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
+  iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
+  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
+  iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
 
 
     //////////////////////////
@@ -876,10 +876,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         const Ptr<pat::Electron> elPtr(els_h, el - els_h->begin() );
   
-        //passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
-        //passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
-        //passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
-        //passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
+        passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
+        passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
+        passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
+        passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
 
 
         //////////////
@@ -1468,10 +1468,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_class    , "elsclass"    );
     iEvent.put(els_category , "elscategory" );
   
-    //iEvent.put(passVetoId,   "passVetoId"   );
-    //iEvent.put(passLooseId,  "passLooseId"  );
-    //iEvent.put(passMediumId, "passMediumId" );
-    //iEvent.put(passTightId,  "passTightId"  );
+    iEvent.put(passVetoId,   "passVetoId"   );
+    iEvent.put(passLooseId,  "passLooseId"  );
+    iEvent.put(passMediumId, "passMediumId" );
+    iEvent.put(passTightId,  "passTightId"  );
 
     // Track parameters
     //

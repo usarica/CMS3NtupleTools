@@ -15,12 +15,12 @@ process.configurationMetadata = cms.untracked.PSet(
 # load event level configurations
 process.load('Configuration/EventContent/EventContent_cff')
 process.load("Configuration.StandardSequences.Services_cff")
-process.load("Configuration.StandardSequences.Reconstruction_cff")
+#process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
-process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
+#process.load("TrackPropagation.SteppingHelixPropagator.SteppingHelixPropagatorAny_cfi")
+#process.load("TrackingTools.TrackAssociator.DetIdAssociatorESProducer_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
@@ -62,19 +62,19 @@ process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 
 #Electron Identification for PHYS 14#
 #####################################
 
-#from PhysicsTools.SelectorUtils.tools.vid_id_tools import *       #maybe we need these?
-#from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *       #maybe we need these?
+from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 
-#process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-#process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"","PAT")
-#process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-#my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
-#for idmod in my_id_modules:
-#    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
+process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"","PAT")
+process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+for idmod in my_id_modules:
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 ### added these.
 
-process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
-process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
+#process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
+#process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
 ##############################
 #### Load Ntuple producer cff#####
 ##############################
@@ -118,7 +118,7 @@ jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorr
 process.p = cms.Path( 
   process.metFilterMaker *
   process.hcalNoiseSummaryMaker *
-  #process.egmGsfElectronIDSequence *     
+  process.egmGsfElectronIDSequence *     
   process.beamSpotMaker *
   process.vertexMaker *
   process.secondaryVertexMaker *
