@@ -90,6 +90,7 @@ void PFJetMaker::beginJob() {}
 // ------------ method called once each job just after ending the event loop  ------------
 void PFJetMaker::endJob() {}
 
+/*
 // ------------ method called to produce the data  ------------
 float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins, const pat::PackedCandidateCollection* pfCandidates) {
 
@@ -116,6 +117,7 @@ float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins, con
   else evt_smdq = (sumPFNallSMDQ[sumPFNallSMDQ.size()/2]+sumPFNallSMDQ[(sumPFNallSMDQ.size()-2)/2])/2.;
   return evt_smdq/(etadist*phidist);
 }
+*/
 
 void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
