@@ -7,21 +7,14 @@ pfJetMaker = cms.EDProducer("PFJetMaker",
   pfJetPtCut                       = cms.double(5.),
 )
 
-
 pfJetPUPPIMaker = cms.EDProducer("PFJetMaker",
   aliasPrefix = cms.untracked.string("pfjets_puppi"),
-  pfJetsInputTag                   = cms.InputTag("slimmedJetsPuppi"),
-  pfCandidatesTag                  = cms.InputTag("packedPFCandidates"),
+  pfJetsInputTag                   = cms.InputTag("slimmedJetsPuppi","","PAT"),
   pfJetPtCut                       = cms.double(20.), #miniAOD doesn't go lower than 20
 )
 
-#pfJetPUPPIMaker = cms.EDProducer("PFJetMaker",
-#  aliasPrefix = cms.untracked.string("pfjets_puppi"),
-#  pfJetsInputTag                   = cms.InputTag("slimmedJetsPuppi","","PAT"),
-#  pfJetPtCut                       = cms.double(20.), #miniAOD doesn't go lower than 20
-#)
-
-ak4JetMaker = cms.EDProducer("AK4JetMaker",
+ak4JetMaker = cms.EDProducer("PFJetMaker",
+  aliasPrefix = cms.untracked.string("pfjets_nonCHS"),
   pfJetsInputTag                   = cms.InputTag("selectedPatJetsAK4PF","","CMS3"),
   pfJetPtCut                       = cms.double(5.),
 )
