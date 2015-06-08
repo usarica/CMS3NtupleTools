@@ -37,7 +37,9 @@ git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionari
 ####################
 
 git clone https://github.com/cms-jet/JetToolbox $CMSSW_BASE/src/JMEAnalysis/JetToolbox -b jetToolbox_74X
+pushd $CMSSW_BASE/src/JMEAnalysis/JetToolbox
 git checkout a80553163684d718e65e44d9b385a4aa11475659
+popd
 
 mkdir $CMSSW_BASE/bullshit  
 mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
