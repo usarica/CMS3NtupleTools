@@ -70,7 +70,7 @@ process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
 process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
-Options for Input
+#Options for Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
 )
