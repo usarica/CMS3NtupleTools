@@ -8,6 +8,20 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
 
     triggers    = cms.untracked.VInputTag(
 
+        ### RUN II ### 
+        # Double-lepton matching and single-lepton matching can be done using the TriggerObjects in CMS3, for example,
+        # CORE::TriggerSelections::passUnprescaledHLTTrigger(const char* arg, const LorentzVector &obj)               
+        # But for LeadingLeg matching we need to know the specific filter passed by the leading leg                   
+        # Use:    'TriggerName:FilterName:CMS3name'   --> this requires that muon matches to trigger object passing FilterName of TriggerName 
+        # Use:    'TriggerName::CMS3name'             --> this requires that muon matches to trigger object passing the LAST EDFILTER of TriggerName     
+
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*:hltL3fL1sDoubleMu103p5L1f0L2f10OneMuL3Filtered17:HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_LeadingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL'),
+
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*:hltL3fL1sDoubleMu103p5L1f0L2f10L3Filtered17:HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_LeadingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL'),
+
+        ### RUN I ### 
         # HLT_Mu17_Mu8_v*
         cms.InputTag('HLT_Mu17_Mu8_v*:hltL1sL1DoubleMu10MuOpen:HLT_Mu17_Mu8_L1sL1DoubleMu10MuOpen'),
         cms.InputTag('HLT_Mu17_Mu8_v*:hltL3pfL1DoubleMu10MuOpenL1f0L2pf0L3PreFiltered8:HLT_Mu17_Mu8_TrailingLeg'),
