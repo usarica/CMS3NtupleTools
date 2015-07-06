@@ -22,8 +22,18 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Ele5_SC5_JPsi_Mass2to4p5_v*:hltEle5SC5JPsiTrackIsoFilter:HLT_Ele5_SC5_JPsi_Mass2to4p5_LeadingLeg'),
         cms.InputTag('HLT_Ele5_SC5_JPsi_Mass2to4p5_v*::HLT_Ele5_SC5_JPsi_Mass2to4p5'),
 
+        # HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
         cms.InputTag('HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*:hltEle23Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg1Filter:HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_LeadingLeg'),
+        cms.InputTag('HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*:hltEle23Ele12CaloIdLTrackIdLIsoVLTrackIsoLeg2Filter:HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_TrailingLeg'),
         cms.InputTag('HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*::HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL'),
+
+        # HLT_Mu*_TrkIsoVVL_Ele*_CaloIdL_TrackIdL_IsoVL_v*
+        cms.InputTag('HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*:hltMu8TrkIsoVVLEle23CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter:HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_ElectronLeg'),
+        cms.InputTag('HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*:hltMu23TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter:HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_ElectronLeg'),
+
+        # HLT_*Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*
+        cms.InputTag('HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltDoubleEle8CaloIdMTrkIdMDPhiFilter:HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
+        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMu8Ele8CaloIdMTrkIdMDPhiFilter:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
 
         ### RUN I ###
         # HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*

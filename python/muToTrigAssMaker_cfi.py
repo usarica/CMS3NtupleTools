@@ -15,11 +15,23 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         # Use:    'TriggerName:FilterName:CMS3name'   --> this requires that muon matches to trigger object passing FilterName of TriggerName 
         # Use:    'TriggerName::CMS3name'             --> this requires that muon matches to trigger object passing the LAST EDFILTER of TriggerName     
 
-        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*:hltL3fL1sDoubleMu103p5L1f0L2f10OneMuL3Filtered17:HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_LeadingLeg'),
-        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL'),
+        # HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*:hltL3fL1sDoubleMu103p5L1f0L2f10OneMuL3Filtered17:HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_LeadingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*:hltL3pfL1sDoubleMu103p5L1f0L2pf0L3PreFiltered8:HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_TrailingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*::HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ'),
 
-        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*:hltL3fL1sDoubleMu103p5L1f0L2f10L3Filtered17:HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_LeadingLeg'),
-        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL'),
+        # HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*:hltL3fL1sDoubleMu103p5L1f0L2f10L3Filtered17:HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_LeadingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*:hltDiMuonGlbFiltered17TrkFiltered8:HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_TrailingLeg'),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ_v*::HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ'),
+
+        # HLT_Mu*_TrkIsoVVL_Ele*_CaloIdL_TrackIdL_IsoVL_v*
+        cms.InputTag('HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*:hltMu8TrkIsoVVLEle23CaloIdLTrackIdLIsoVLMuonlegL3IsoFiltered8:HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_MuonLeg'),
+        cms.InputTag('HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*:hltMu23TrkIsoVVLEle12CaloIdLTrackIdLIsoVLMuonlegL3IsoFiltered23:HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_MuonLeg'),
+
+        # HLT_*Mu8*_Mass8_PFHT300_v*
+        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMuon8L3Filtered0:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_MuonLeg'),
+        cms.InputTag('HLT_DoubleMu8_Mass8_PFHT300_v*:hltL3MuonCandidates:HLT_DoubleMu8_Mass8_PFHT300_MuonLeg'),
 
         ### RUN I ### 
         # HLT_Mu17_Mu8_v*
