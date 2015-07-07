@@ -90,6 +90,7 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
       if(iso_it == pf_it) continue;//don't use the pfcand we are calculating isolation for   
       if(iso_it->charge() == 0) continue;
+      if(fabs(iso_it->pdgId()) != 211) continue;
        
       float dR = deltaR(iso_it->eta(), iso_it->phi(), pf_it->eta(), pf_it->phi());
       if(dR > coneR_) continue;
