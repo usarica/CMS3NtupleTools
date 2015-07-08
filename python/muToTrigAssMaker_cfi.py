@@ -30,11 +30,12 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*:hltMu23TrkIsoVVLEle12CaloIdLTrackIdLIsoVLMuonlegL3IsoFiltered23:HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_MuonLeg'),
 
         # HLT_*Mu8*_Mass8_PFHT300_v*
-        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMuon8L3Filtered0:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_MuonLeg'),
-        cms.InputTag('HLT_DoubleMu8_Mass8_PFHT300_v*:hltL3MuonCandidates:HLT_DoubleMu8_Mass8_PFHT300_MuonLeg'),
+        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltElectronMuonInvMassFilter8:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_MuonLeg'),
+        cms.InputTag('HLT_DoubleMu8_Mass8_PFHT300_v*:hltDoubleMu8Mass8L3Filtered:HLT_DoubleMu8_Mass8_PFHT300_MuonLeg'),
 
         # single muon trigger
-        cms.InputTag('HLT_Mu10_CentralPFJet30_BTagCSV0p54PF_v*:hltL3fL1sMu0L1f0L2f3QL3Filtered10Q:LT_Mu10_CentralPFJet30_BTagCSV0p54PF_MuonLeg'),
+        cms.InputTag('HLT_Mu10_CentralPFJet30_BTagCSV0p5PF_v*:hltL3fL1sMu0L1f0L2f3QL3Filtered10Q:HLT_Mu10_CentralPFJet30_BTagCSV0p5PF_MuonLeg'),  #Spring15 MC version
+        cms.InputTag('HLT_Mu10_CentralPFJet30_BTagCSV0p54PF_v*:hltL3fL1sMu0L1f0L2f3QL3Filtered10Q:HLT_Mu10_CentralPFJet30_BTagCSV0p54PF_MuonLeg'),#data version       
 
         ### RUN I ### 
         # HLT_Mu17_Mu8_v*

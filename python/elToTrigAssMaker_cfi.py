@@ -32,15 +32,16 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*:hltMu23TrkIsoVVLEle12CaloIdLTrackIdLIsoVLElectronlegTrackIsoFilter:HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_ElectronLeg'),
 
         # HLT_*Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*
-        cms.InputTag('HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltDoubleEle8CaloIdMTrkIdMDPhiFilter:HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
-        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMu8Ele8CaloIdMTrkIdMDPhiFilter:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
+        cms.InputTag('HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltDoubleEle8Mass8Filter:HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
+        cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltElectronMuonInvMassFilter8:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
 
         # single electron triggers
         cms.InputTag('HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle33CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle23CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle18CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle12CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
-        cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_lectronLeg'),
+        cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_ElectronLeg'),  #Spring15 MC version
+        cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p54PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p54PF_ElectronLeg'),#data version       
         cms.InputTag('HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v*:hltEle33CaloIdMTrkIdMDPhiFilter:HLT_Ele33_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v*:hltEle23CaloIdMTrkIdMDPhiFilter:HLT_Ele23_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele18_CaloIdM_TrackIdM_PFJet30_v*:hltEle18CaloIdMTrkIdMDPhiFilter:HLT_Ele18_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
