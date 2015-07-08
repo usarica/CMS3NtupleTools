@@ -33,6 +33,9 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMuon8L3Filtered0:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_MuonLeg'),
         cms.InputTag('HLT_DoubleMu8_Mass8_PFHT300_v*:hltL3MuonCandidates:HLT_DoubleMu8_Mass8_PFHT300_MuonLeg'),
 
+        # single muon trigger
+        cms.InputTag('HLT_Mu10_CentralPFJet30_BTagCSV0p54PF_v*:hltL3fL1sMu0L1f0L2f3QL3Filtered10Q:LT_Mu10_CentralPFJet30_BTagCSV0p54PF_MuonLeg'),
+
         ### RUN I ### 
         # HLT_Mu17_Mu8_v*
         cms.InputTag('HLT_Mu17_Mu8_v*:hltL1sL1DoubleMu10MuOpen:HLT_Mu17_Mu8_L1sL1DoubleMu10MuOpen'),

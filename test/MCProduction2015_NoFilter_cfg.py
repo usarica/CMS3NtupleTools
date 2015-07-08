@@ -75,7 +75,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
+#fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
+fileNames = cms.untracked.vstring('/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/00EFF2EE-E60B-E511-B422-B499BAAC0A22.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 

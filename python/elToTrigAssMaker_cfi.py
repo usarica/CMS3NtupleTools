@@ -35,6 +35,18 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltDoubleEle8CaloIdMTrkIdMDPhiFilter:HLT_DoubleEle8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
         cms.InputTag('HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_v*:hltMu8Ele8CaloIdMTrkIdMDPhiFilter:HLT_Mu8_Ele8_CaloIdM_TrackIdM_Mass8_PFHT300_ElectronLeg'),
 
+        # single electron triggers
+        cms.InputTag('HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle33CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle23CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle18CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle12CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_lectronLeg'),
+        cms.InputTag('HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v*:hltEle33CaloIdMTrkIdMDPhiFilter:HLT_Ele33_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v*:hltEle23CaloIdMTrkIdMDPhiFilter:HLT_Ele23_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele18_CaloIdM_TrackIdM_PFJet30_v*:hltEle18CaloIdMTrkIdMDPhiFilter:HLT_Ele18_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele12_CaloIdM_TrackIdM_PFJet30_v*:hltEle12CaloIdMTrkIdMDPhiFilter:HLT_Ele12_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*:hltEle8CaloIdMTrkIdMDPhiFilter:HLT_Ele8_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+
         ### RUN I ###
         # HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*
         cms.InputTag('HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*:hltL1sL1DoubleEG137:HLT_Ele17_Ele8_L1sL1DoubleEG137'),
