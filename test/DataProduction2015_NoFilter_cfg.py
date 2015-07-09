@@ -1,6 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff        import *
 
+import CMS3.NtupleMaker.configProcessName as configProcessName
+configProcessName.name="RECO"
+
 #CMS3
 process = cms.Process("CMS3")
 
@@ -56,7 +59,7 @@ process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"","PAT")
+process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
 my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
 for idmod in my_id_modules:
@@ -72,7 +75,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
+  #fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
+  fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
