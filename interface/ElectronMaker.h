@@ -132,6 +132,14 @@ private:
     edm::InputTag rhoInputTag_;
     edm::InputTag beamSpot_tag_;
 
+  edm::InputTag ebReducedRecHitCollectionTag;
+  edm::InputTag eeReducedRecHitCollectionTag;
+  edm::InputTag esReducedRecHitCollectionTag;
+  
+  edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
+  edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
+  edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
+
     PFPileUpAlgo *pfPileUpAlgo_;
 };
 

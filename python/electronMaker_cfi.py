@@ -38,5 +38,10 @@ electronMaker = cms.EDProducer(
     minSharedFractionOfHits = cms.double(0.45),
     rhoInputTag = cms.InputTag("fastJetMaker", "evtrho"),
     beamSpotTag = cms.InputTag("offlineBeamSpot"),
+    
+    ebReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedEBRecHits"),
+    eeReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedEERecHits"),
+    esReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedESRecHits"),
+
 )
 
