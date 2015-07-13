@@ -33,7 +33,7 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 
-//#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
 //
 // class decleration
@@ -58,6 +58,16 @@ private:
 //     edm::EDGetTokenT<EcalRecHitCollection>  ecalRecHitsInputTag_EB_Token_;
      float minEt_;
   //     noZS::EcalClusterLazyTools* clusterTools_;
+
+  EcalClusterLazyTools* clusterTools_;
+
+  edm::InputTag ebReducedRecHitCollectionTag;
+  edm::InputTag eeReducedRecHitCollectionTag;
+  edm::InputTag esReducedRecHitCollectionTag;
+  
+  edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
+  edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
+  edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
      
 	std::string aliasprefix_;
 };

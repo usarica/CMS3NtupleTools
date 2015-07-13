@@ -1323,6 +1323,72 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  els_isEcalDriven->push_back(el->ecalDriven());
 	  els_isTrackerDriven->push_back(el->trackerDrivenSeed());
 	  els_isEB->push_back(el->isEB());
+	} else {
+
+	  els_N_ECALClusters         ->push_back(-999);
+	  els_N_PSClusters           ->push_back(-999);	  
+	  els_scPreshowerEnergyPlane1->push_back(-999.);
+	  els_scPreshowerEnergyPlane2->push_back(-999.);
+	  els_scIsEB                 ->push_back(-999.);
+	  els_scR                    ->push_back(-999.);
+	  els_eSeed                  ->push_back(-999.);	  
+	  els_scSeedEta              ->push_back(-999.);
+	  els_scSeedPhi              ->push_back(-999.);
+	  els_scSeedSize             ->push_back(-999.);
+	  els_scSeedE3x3             ->push_back(-999.);
+	  els_scSeedEmax             ->push_back(-999.);
+	  els_scSeedE2nd             ->push_back(-999.);
+	  els_scSeedELeft            ->push_back(-999.);
+	  els_scSeedERight           ->push_back(-999.);
+	  els_scSeedETop             ->push_back(-999.);
+	  els_scSeedEBottom          ->push_back(-999.);
+	  els_scSeedE2x5Left         ->push_back(-999.);
+	  els_scSeedE2x5Right        ->push_back(-999.);
+	  els_scSeedE2x5Top          ->push_back(-999.);
+	  els_scSeedE2x5Bottom       ->push_back(-999.);
+	  els_scSeedLeftRightAsym    ->push_back(-999.);
+	  els_scSeedTopBottomAsym    ->push_back(-999.);
+	  els_scSeed2x5LeftRightAsym ->push_back(-999.);
+	  els_scSeed2x5TopBottomAsym ->push_back(-999.);	  
+	  els_scSeedSigmaIetaIphi    ->push_back(-999.);
+	  els_scSeedCryEta           ->push_back(-999.);
+	  els_scSeedCryPhi           ->push_back(-999.);
+	  els_scSeedCryIeta          ->push_back(-999.);
+	  els_scSeedCryIphi          ->push_back(-999.);
+	  els_scSeedCryX             ->push_back(-999.);
+	  els_scSeedCryY             ->push_back(-999.);
+	  els_scSeedCryIx            ->push_back(-999.);
+	  els_scSeedCryIy            ->push_back(-999.);
+
+	  els_clusterMaxDR           ->push_back(-999.);
+	  els_clusterMaxDRDPhi       ->push_back(-999.);
+	  els_clusterMaxDRDEta       ->push_back(-999.);
+	  els_clustersMeanDRToSeed   ->push_back(-999.);
+	  els_clustersMeanDEtaToSeed ->push_back(-999.);
+	  els_clustersMeanDPhiToSeed ->push_back(-999.);
+	  els_clusterMaxDRRawEnergy  ->push_back(-999.);
+	  els_clustersMeanRawEnergy  ->push_back(-999.);
+	  els_clustersRMSRawEnergy   ->push_back(-999.);
+
+	  els_clusterInMustache      ->push_back(vector<int>{-999});
+	  els_clusterInDynDPhi       ->push_back(vector<int>{-999});
+
+	  els_clusterRawEnergy       ->push_back(vector<float>{-999.});
+	  els_clusterCalibEnergy     ->push_back(vector<float>{-999.});
+	  els_clusterEta             ->push_back(vector<float>{-999.});
+	  els_clusterPhi             ->push_back(vector<float>{-999.});
+	  els_clusterDPhiToSeed      ->push_back(vector<float>{-999.});
+	  els_clusterDEtaToSeed      ->push_back(vector<float>{-999.});
+	  els_clusterDPhiToCentroid  ->push_back(vector<float>{-999.});
+	  els_clusterDEtaToCentroid  ->push_back(vector<float>{-999.});
+
+	  els_psClusterRawEnergy     ->push_back(vector<float>{-999.});
+	  els_psClusterEta           ->push_back(vector<float>{-999.});
+	  els_psClusterPhi           ->push_back(vector<float>{-999.});
+
+    	  els_isEcalDriven           ->push_back(-999);
+	  els_isTrackerDriven        ->push_back(-999);
+	  els_isEB                   ->push_back(-999);
 	}
 //
 //            //

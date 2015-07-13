@@ -10,5 +10,10 @@ photonMaker = cms.EDProducer("PhotonMaker",
                              ecalRecHitsInputTag_EE = cms.InputTag("reducedEgamma","reducedEERecHits",configProcessName.name),
                              ecalRecHitsInputTag_EB = cms.InputTag("reducedEgamma","reducedEBRecHits",configProcessName.name),
                              # cms2scsseeddetidInputTag = cms.InputTag("scMaker"),
+
+                             ebReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedEBRecHits"),
+                             eeReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedEERecHits"),
+                             esReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedESRecHits"),
+
                              )
 
