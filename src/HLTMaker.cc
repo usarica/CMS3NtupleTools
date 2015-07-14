@@ -40,6 +40,9 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   produces<vector<vector<int> > >           (Form("%strigObjsid"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
 
   produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
+  
+  // isData_ = iConfig.getParameter<bool>("isData");
+  
 }
 
 void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
@@ -162,42 +165,49 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       //What is your prescale?
 	  //Buggy way in miniAOD
       // prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
+	  bool isdata = iEvent.isRealData();
 
-	  //get prescale info from hltConfig_
-	  // pair
-	  //   -vector
-	  //     -pair
-	  //       -string
-	  // 	     -int
-	  //   -int
-	  std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
-      prescales->push_back( triggerPrescalesH_.isValid() ? detailedPrescaleInfo.second : -1 );
+	  if( isdata ){
+
+		//get prescale info from hltConfig_
+		// pair
+		//   -vector
+		//     -pair
+		//       -string
+		// 	     -int
+		//   -int
+		std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
+		prescales->push_back( triggerPrescalesH_.isValid() ? detailedPrescaleInfo.second : -1 );
 	  
-	  // save l1 prescale values in standalone vector
-	  std::vector <int> l1prescalevals;
-	  for( size_t varind = 0; varind < detailedPrescaleInfo.first.size(); varind++ ){
-		l1prescalevals.push_back(detailedPrescaleInfo.first.at(varind).second);
+		// save l1 prescale values in standalone vector
+		std::vector <int> l1prescalevals;
+		for( size_t varind = 0; varind < detailedPrescaleInfo.first.size(); varind++ ){
+		  l1prescalevals.push_back(detailedPrescaleInfo.first.at(varind).second);
+		}
+
+		// find and save minimum l1 prescale of any ORed L1 that seeds the HLT
+		std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
+		size_t minind = std::distance(std::begin(l1prescalevals), result);
+		// sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
+		l1prescales->push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
+	  }else{
+	  	prescales   -> push_back( hltConfig_.prescaleValue(iEvent, iSetup, name) );
+	  	l1prescales -> push_back( 1 );
 	  }
-
-	  // find and save minimum l1 prescale of any ORed L1 that seeds the HLT
-	  std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
-	  size_t minind = std::distance(std::begin(l1prescalevals), result);
-	  // sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
-	  l1prescales->push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
 	    
-      // Passed... F+
-      if (triggerResultsH_->accept(i)) {
-          bits->SetBitNumber(i);
+	  // Passed... F+
+	  if (triggerResultsH_->accept(i)) {
+		bits->SetBitNumber(i);
 
-          // Collect desired trigger objects 
-          if (fillTriggerObjects_ && doPruneTriggerName(name))
-              fillTriggerObjectInfo(i, idV, p4V);
-      }
-
+		// Collect desired trigger objects 
+		if (fillTriggerObjects_ && doPruneTriggerName(name))
+		  fillTriggerObjectInfo(i, idV, p4V);
+	  }
+	  
       trigObjsid->push_back(idV);
       trigObjsp4->push_back(p4V);
     }
-
+	
   // strip upper zeros
   bits->Compact();
   iEvent.put(bits,       Form("%sbits",       processNamePrefix_.Data() ) );
