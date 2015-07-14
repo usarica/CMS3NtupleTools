@@ -33,12 +33,13 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig)
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
   triggerObjectsName_ = iConfig.getUntrackedParameter<string>         ("triggerObjectsName");
 
-  produces<TBits>                           (Form("%sbits"      ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
-  produces<vector<TString> >                (Form("%strigNames" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
-  produces<vector<unsigned int> >           (Form("%sprescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
-  produces<vector<vector<int> > >           (Form("%strigObjsid",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
+  produces<TBits>                           (Form("%sbits"        ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
+  produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
+  produces<vector<unsigned int> >           (Form("%sprescales"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
+  produces<vector<unsigned int> >           (Form("%sl1prescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_l1prescales",processNamePrefix_.Data()));
+  produces<vector<vector<int> > >           (Form("%strigObjsid"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
 
-  produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4",processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
+  produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
 }
 
 void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
@@ -52,12 +53,12 @@ void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup)
   // in the produce method and init there once and only
   // once. Sounds scary, it is kinda!
   // HLT config _should no longer_ change within runs :)
-//AOD  if (processName_ != "") {
-//AOD  bool changed(true);
-//AOD  if (hltConfig_.init(iRun,iSetup,"*",changed)) {
-//AOD  } else 
-//AOD    throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
-//AOD  }
+  if (processName_ != "") {
+	bool changed(true);
+	if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+	} else 
+	  throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
+  }
 }
 
 void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -133,7 +134,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //  // sanity check
 //  assert(triggerResultsH_->size()==hltConfig_.size());
 
-  auto_ptr<vector<unsigned int> > prescales (new vector<unsigned int>);
+  auto_ptr<vector<unsigned int> > prescales   (new vector<unsigned int>);
+  auto_ptr<vector<unsigned int> > l1prescales (new vector<unsigned int>);
 
   unsigned int nTriggers = triggerResultsH_->size();
   //if (nTriggers > 768) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 768 )", nTriggers) );
@@ -158,9 +160,31 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
       trigNames->push_back(name);
 	
       //What is your prescale?
-      prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
-	
-	
+	  //Buggy way in miniAOD
+      // prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
+
+	  //get prescale info from hltConfig_
+	  // pair
+	  //   -vector
+	  //     -pair
+	  //       -string
+	  // 	     -int
+	  //   -int
+	  std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
+      prescales->push_back( triggerPrescalesH_.isValid() ? detailedPrescaleInfo.second : -1 );
+	  
+	  // save l1 prescale values in standalone vector
+	  std::vector <int> l1prescalevals;
+	  for( size_t varind = 0; varind < detailedPrescaleInfo.first.size(); varind++ ){
+		l1prescalevals.push_back(detailedPrescaleInfo.first.at(varind).second);
+	  }
+
+	  // find and save minimum l1 prescale of any ORed L1 that seeds the HLT
+	  std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
+	  size_t minind = std::distance(std::begin(l1prescalevals), result);
+	  // sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
+	  l1prescales->push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
+	    
       // Passed... F+
       if (triggerResultsH_->accept(i)) {
           bits->SetBitNumber(i);
@@ -178,10 +202,11 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   bits->Compact();
   iEvent.put(bits,       Form("%sbits",       processNamePrefix_.Data() ) );
 
-  iEvent.put(prescales,  Form("%sprescales",  processNamePrefix_.Data() ) );
-  iEvent.put(trigNames , Form("%strigNames" , processNamePrefix_.Data() ) );
-  iEvent.put(trigObjsid, Form("%strigObjsid", processNamePrefix_.Data() ) );
-  iEvent.put(trigObjsp4, Form("%strigObjsp4", processNamePrefix_.Data() ) );
+  iEvent.put(prescales  , Form("%sprescales"   , processNamePrefix_.Data() ) );
+  iEvent.put(l1prescales, Form("%sl1prescales" , processNamePrefix_.Data() ) );
+  iEvent.put(trigNames  , Form("%strigNames"   , processNamePrefix_.Data() ) );
+  iEvent.put(trigObjsid , Form("%strigObjsid"  , processNamePrefix_.Data() ) );
+  iEvent.put(trigObjsp4 , Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
 }
 
 bool HLTMaker::doPruneTriggerName(const string& name) const
