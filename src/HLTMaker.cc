@@ -75,12 +75,12 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
   iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
-  if (! triggerObjectStandAlonesH_.isValid())
+  if (!triggerObjectStandAlonesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
   iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
-  if (! triggerPrescalesH_.isValid())
+  if (!triggerPrescalesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 
 ////// Printing miniAOD content...
