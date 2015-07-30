@@ -100,8 +100,13 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
   // get the primary vertices
   edm::Handle<reco::VertexCollection> primaryVertices;
   iEvent.getByLabel(primaryVertexInputTag_, primaryVertices);
-  if (! primaryVertices.isValid() ) {
+  if (!primaryVertices.isValid() ) {
     edm::LogError("SecondaryVertexMakerError") << "Error! can't get the primary vertices";
+    edm::LogInfo("OutputInfo") << " failed to retrieve primary vertices collection";
+    edm::LogInfo("OutputInfo") << " SecondaryVertexMaker cannot continue...!";
+    std::cout << " SecondaryVertexMaker cannot continue...!" << std::endl;
+    throw cms::Exception("SecondaryVertexMaker cannot continue!  Failed to receive primary vertices collection.");
+    return;
   }
 
   // get the secondary vertices
