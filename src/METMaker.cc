@@ -300,44 +300,51 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      iEvent.getByLabel(metHO_tag    , metHO_h     );
      iEvent.getByLabel(metNoHF_tag  , metNoHF_h   );
      iEvent.getByLabel(metNoHFHO_tag, metNoHFHO_h );
-
      iEvent.getByLabel(metOpt_tag      , metOpt_h       );
      iEvent.getByLabel(metOptHO_tag    , metOptHO_h     );
      iEvent.getByLabel(metOptNoHF_tag  , metOptNoHF_h   );
      iEvent.getByLabel(metOptNoHFHO_tag, metOptNoHFHO_h );
-  
      iEvent.getByLabel(corMetGlobalMuons_tag, metMuonCorr_h      );
      iEvent.getByLabel(MuonJEScorMET_tag,     metMuonJESCorr_h   );
-
      iEvent.getByLabel(muon_vm_tag, muon_vm_h );
      iEvent.getByLabel(muon_tag   , muon_h    );
+
+     if (!met_h.isValid()) throw cms::Exception("GenMaker: Could not load met_h handle");
+     if (!metHO_h.isValid()) throw cms::Exception("GenMaker: Could not load metHO_h handle");
+     if (!metNoHF_h.isValid()) throw cms::Exception("GenMaker: Could not load metNoHF_h handle");
+     if (!metNoHFHO_h.isValid()) throw cms::Exception("GenMaker: Could not load metNoHFHO_h handle");
+     if (!metOpt_h.isValid()) throw cms::Exception("GenMaker: Could not load metOpt_h handle");
+     if (!metOptHO_h.isValid()) throw cms::Exception("GenMaker: Could not load metOptHO_h handle");
+     if (!metOptNoHF_h.isValid()) throw cms::Exception("GenMaker: Could not load metOptNoHF_h handle");
+     if (!metOptNoHFHO_h.isValid()) throw cms::Exception("GenMaker: Could not load metOptNoHFHO_h handle");
+     if (!metMuonCorr_h.isValid()) throw cms::Exception("GenMaker: Could not load metMuonCorr_h handle");
+     if (!metMuonJESCorr_h.isValid()) throw cms::Exception("GenMaker: Could not load metMuonJESCorr_h handle");
+     if (!muon_h.isValid()) throw cms::Exception("GenMaker: Could not load muon_h handle");
+     if (!muon_vm_h.isValid()) throw cms::Exception("GenMaker: Could not load muon_vm_h handle");
+     if (!filter_h.isValid()) throw cms::Exception("GenMaker: Could not load filter_h handle");
+
     
      *evt_hbheFilter   = filter_h.isValid() ? *filter_h : false;
      *evt_met			= met_h.isValid()		 ? ( met_h->front()		 ).et()			: -9999;
      *evt_metPhi		= met_h.isValid()		 ? ( met_h->front()		 ).phi()		: -9999;
      *evt_metSig		= met_h.isValid()		 ? ( met_h->front()		 ).metSignificance()	: -9999;
      *evt_sumet			= met_h.isValid()		 ? ( met_h->front()		 ).sumEt()		: -9999;
-
      *evt_metHO			= metHO_h.isValid()		 ? ( metHO_h->front()		 ).et()			: -9999;
      *evt_metHOPhi		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).phi()		: -9999;
      *evt_metHOSig		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).metSignificance()	: -9999;
      *evt_sumetHO		= metHO_h.isValid()		 ? ( metHO_h->front()		 ).sumEt()		: -9999;  
-
      *evt_metNoHF		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).et()			: -9999;
      *evt_metNoHFPhi		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).phi()		: -9999;
      *evt_metNoHFSig		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).metSignificance()	: -9999;
      *evt_sumetNoHF		= metNoHF_h.isValid()		 ? ( metNoHF_h->front()		 ).sumEt()		: -9999;
-
      *evt_metNoHFHO		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).et()			: -9999;
      *evt_metNoHFHOPhi		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).phi()		: -9999;
      *evt_metNoHFHOSig		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).metSignificance()	: -9999;     
      *evt_sumetNoHFHO		= metNoHFHO_h.isValid()		 ? ( metNoHFHO_h->front()	 ).sumEt()		: -9999;
-
      *evt_metOpt		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).et()			: -9999;
      *evt_metOptPhi		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).phi()		: -9999;
      *evt_metOptSig		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).metSignificance()	: -9999;
      *evt_sumetOpt		= metOpt_h.isValid()		 ? ( metOpt_h->front()		 ).sumEt()		: -9999; 
-
      *evt_metOptHO		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).et()			: -9999;
      *evt_metOptHOPhi		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).phi()		: -9999;
      *evt_metOptHOSig		= metOptHO_h.isValid()		 ? ( metOptHO_h->front()	 ).metSignificance()	: -9999;
@@ -346,17 +353,14 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      *evt_metOptNoHFPhi		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).phi()		: -9999;
      *evt_metOptNoHFSig		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).metSignificance()	: -9999;
      *evt_sumetOptNoHF		= metOptNoHF_h.isValid()	 ? ( metOptNoHF_h->front()	 ).sumEt()		: -9999;
-
      *evt_metOptNoHFHO		= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).et()			: -9999;
      *evt_metOptNoHFHOPhi	= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).phi()		: -9999;
      *evt_metOptNoHFHOSig	= metOptNoHFHO_h.isValid()	 ? ( metOptNoHFHO_h->front()	 ).metSignificance()	: -9999;
      *evt_sumetOptNoHFHO	= metOptNoHFHO_h.isValid()       ? ( metOptNoHFHO_h->front()     ).sumEt()              : -9999;
-
      *evt_metMuonCorr		= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).et()			: -9999;
      *evt_metMuonCorrPhi	= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).phi()		: -9999;
      *evt_metMuonCorrSig	= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).metSignificance()	: -9999;
      *evt_sumetMuonCorr		= metMuonCorr_h.isValid()	 ? ( metMuonCorr_h->front()	 ).sumEt()		: -9999;
-
      *evt_metMuonJESCorr	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).et()			: -9999;
      *evt_metMuonJESCorrPhi	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).phi()		: -9999;
      *evt_metMuonJESCorrSig	= metMuonJESCorr_h.isValid()	 ? ( metMuonJESCorr_h->front()	 ).metSignificance()	: -9999;     

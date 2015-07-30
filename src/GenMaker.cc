@@ -4,18 +4,11 @@
 // Class:      GenMaker
 // 
 /**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
-
-   Description: <one line class summary>
-
-   Implementation:
-   <Notes on implementation>
 */
 //
 // Original Author:  Puneeth Kalavase
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
 // $Id: GenMaker.cc,v 1.30 2012/12/18 18:03:21 linacre Exp $
-//
-//
 
 // system include files
 #include <memory>
@@ -33,7 +26,6 @@
 #include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
-//#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
@@ -58,7 +50,6 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
   packedGenParticlesInputTag_ = iConfig.getParameter<InputTag>                  ("packedGenParticlesInputTag" );
-  //genRunInfoInputTag_         = iConfig.getParameter<InputTag>                  ("genRunInfoInputTag"   );
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
@@ -77,8 +68,6 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"          );
   produces<vector<float> >                  ("genpscharge"          ).setBranchAlias("genps_charge"          );
   produces<vector<float> >                  ("genpsiso"             ).setBranchAlias("genps_iso"             );
-  //produces<float>                           ("genmet"               ).setBranchAlias("gen_met"               );
-  //produces<float>                           ("genmetPhi"            ).setBranchAlias("gen_metPhi"            );
   produces<float>                           ("gensumEt"             ).setBranchAlias("gen_sumEt"             );
   produces<float>                           ("genpspthat"           ).setBranchAlias("genps_pthat"           );
   produces<float>                           ("genpsweight"          ).setBranchAlias("genps_weight"          );
@@ -129,24 +118,9 @@ void GenMaker::endJob()
 
 void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 
-     //edm::Handle<GenRunInfoProduct> genRunInfo;
-     //bool haveRunInfo = iRun.getByLabel(genRunInfoInputTag_, genRunInfo);
- 
-//This code block causes the following error:  "::getByLabel: An attempt was made to read a Run product before endRun() was called."
-//To fix, we just set the xsecs to 0 because we don't use the branches with these xsecs for anything. jgran 02-11-2014.
-/*
-     if (haveRunInfo){
-       
-       inclusiveCrossSectionValue_ = genRunInfo->internalXSec().value();
-       exclusiveCrossSectionValue_ = genRunInfo->externalXSecLO().value();
-     } else {
-       inclusiveCrossSectionValue_ = 0;
-       exclusiveCrossSectionValue_ = 0;
-     }
-*/
-
-     inclusiveCrossSectionValue_ = 0;
-     exclusiveCrossSectionValue_ = 0;
+  //These get filled later
+  inclusiveCrossSectionValue_ = 0;
+  exclusiveCrossSectionValue_ = 0;
 
 }
 
@@ -168,8 +142,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_id  (new vector<vector<int> >          );
   auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx (new vector<vector<int> >          );
   auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4  (new vector<vector<LorentzVector> >);
-  //auto_ptr<float>                           gen_met               (new float                         );
-  //auto_ptr<float>                           gen_metPhi            (new float                         );  
   auto_ptr<float>                           gen_sumEt             (new float                         );
   auto_ptr<float>                           genps_pthat           (new float                         );
   auto_ptr<float>                           genps_weight          (new float                         );
@@ -429,8 +401,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }
   } // end of packedGenParticles  
 
-  //*gen_met    =   tempvect.Pt();
-  //*gen_metPhi =   tempvect.Phi();
   *gen_sumEt  =   sumEt;
 
   iEvent.put(genps_id                 , "genpsid"              );
@@ -445,8 +415,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(genps_status             , "genpsstatus"          );
   iEvent.put(genps_charge             , "genpscharge"          );
   iEvent.put(genps_iso                , "genpsiso"             );
-  //iEvent.put(gen_met                  , "genmet"               );
-  //iEvent.put(gen_metPhi               , "genmetPhi"            );
   iEvent.put(gen_sumEt                , "gensumEt"             );
   iEvent.put(genps_pthat              , "genpspthat"           );
   iEvent.put(genps_weight             , "genpsweight"          );
