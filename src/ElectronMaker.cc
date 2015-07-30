@@ -780,28 +780,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // --- Get Input Collections --- //
 
-    ////////////////
-    // Get Tracks //
-    ////////////////
-   
-//    Handle<TrackCollection> tracks_h;
-//    iEvent.getByLabel(trksInputTag_, tracks_h);
-
-  
-    ////////////////
-    // GSF Tracks //
-    ////////////////
-
-//    Handle<GsfTrackCollection> gsftracks_h;
-//    iEvent.getByLabel(gsftracksInputTag_, gsftracks_h);
-
-
     /////////////
     // B Field //
     /////////////
 
     Handle<float> evt_bField_h;
     iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
+    if( !evt_bField_h.isValid() ) {
+      throw cms::Exception("ElectronMaker::produce: error getting bfield from Event!");
+    }
     float evt_bField = *evt_bField_h.product();
     if ( evt_bField == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
     
@@ -811,6 +798,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     Handle<View<pat::Electron> > els_h;
     iEvent.getByLabel(electronsInputTag_, els_h);
+    if( !els_h.isValid() ) {
+      throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
+    }
     View<pat::Electron> gsfElColl = *(els_h.product());
 
 
@@ -823,6 +813,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //////////////
 
      iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+      if( !packPfCand_h.isValid() ) {
+        throw cms::Exception("ElectronMaker::produce: error getting packed pfcands from Event!");
+      }
      pfCandidates  = packPfCand_h.product();
 
     /////////////////////////
@@ -848,6 +841,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ////////////
 
     iEvent.getByLabel(vtxInputTag, vertexHandle);
+    if( !vertexHandle.isValid() ) {
+      throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
+    }
 
 
     ///////////////////////////
@@ -877,10 +873,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByLabel(beamSpot_tag, beamSpotH);
     const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
-    Handle<reco::BeamSpot> beamspot_h;
-    iEvent.getByLabel(beamSpot_tag_, beamspot_h);
-    const reco::BeamSpot &beamSpotreco = *(beamspot_h.product()); 
-    if ( beamSpotreco.x0() == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
+    //Handle<reco::BeamSpot> beamspot_h;
+    //iEvent.getByLabel(beamSpot_tag_, beamspot_h);
+    //const reco::BeamSpot &beamSpotreco = *(beamspot_h.product()); 
+    //if ( beamSpotreco.x0() == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
 
 
     ///////////////////////

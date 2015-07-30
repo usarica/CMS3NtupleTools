@@ -77,6 +77,9 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
  // }
 
     iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+    if( !vertexHandle.isValid() ) {
+      throw cms::Exception("VertexMaker::produce: error getting vertices from Event!");
+    }
   const reco::VertexCollection *vertexCollection = vertexHandle.product();
 //  std::cout << __LINE__ <<"number of vertex" <<vertexCollection->size()<<std::endl;
 

@@ -91,6 +91,9 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
 
     edm::Handle<std::vector<LorentzVector> > obj_p4_h;
     iEvent.getByLabel(objectInputTag_, obj_p4_h);  
+    if( !obj_p4_h.isValid() ) {
+      throw cms::Exception("ObjectToTriggerLegAssMaker::produce: error getting obj_p4_h from Event!");
+    }
 
     //
     // get trigger information
