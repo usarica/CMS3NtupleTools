@@ -42,21 +42,17 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
 
     produces<float> ("evtpfmet"          ).setBranchAlias("evt_pfmet"          );
     produces<float> ("evtpfmetPhi"       ).setBranchAlias("evt_pfmetPhi"       );
-    produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
+    produces<float> ("evtpfmetSig"       ).setBranchAlias("evt_pfmetSig"       ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this
     produces<float> ("evtpfsumet"        ).setBranchAlias("evt_pfsumet"        );
-    //produces<float> ("evtpfmetSignificance").setBranchAlias("evt_pfmetSignificance");
-    //produces<float> ("evtpfmettype1cor"      ).setBranchAlias("evt_pfmet_type1cor");
-    //produces<float> ("evtpfmetPhitype1cor"      ).setBranchAlias("evt_pfmetPhi_type1cor");
-    produces<float> ("evtpfmetraw"          ).setBranchAlias("evt_pfmet_raw"          );
-    produces<float> ("evtpfmetPhiraw"       ).setBranchAlias("evt_pfmetPhi_raw"       );
-    produces<float> ("evtpfsumetraw"        ).setBranchAlias("evt_pfsumet_raw"        );
-    produces<float> ("genmet"          ).setBranchAlias("gen_met"          );
-    produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"       );
-    produces<float> ("evtcalomet"          ).setBranchAlias("evt_calomet"          );
-    produces<float> ("evtcalometPhi"       ).setBranchAlias("evt_calometPhi"       );
+    produces<float> ("evtpfmetraw"          ).setBranchAlias("evt_pfmet_raw"   );
+    produces<float> ("evtpfmetPhiraw"       ).setBranchAlias("evt_pfmetPhi_raw");
+    produces<float> ("evtpfsumetraw"        ).setBranchAlias("evt_pfsumet_raw" );
+    produces<float> ("genmet"          ).setBranchAlias("gen_met"              );
+    produces<float> ("genmetPhi"       ).setBranchAlias("gen_metPhi"           );
+    produces<float> ("evtcalomet"          ).setBranchAlias("evt_calomet"      );
+    produces<float> ("evtcalometPhi"       ).setBranchAlias("evt_calometPhi"   );
 
     pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
-    //pfMetCorInputTag = iConfig.getParameter<edm::InputTag>("pfMetCorInputTag_");
     isData_       = iConfig.getParameter<bool>     ( "isData"              );
 
 }
@@ -78,9 +74,6 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmetPhi      (new float   );
     std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
     std::auto_ptr<float>   evt_pfsumet       (new float   );
-    //std::auto_ptr<float>   evt_pfmetSignificance(new float   );
-    //std::auto_ptr<float>   evt_pfmet_type1cor         (new float   );
-    //std::auto_ptr<float>   evt_pfmetPhi_type1cor      (new float   );
     std::auto_ptr<float>   evt_pfmet_raw         (new float   );
     std::auto_ptr<float>   evt_pfmetPhi_raw      (new float   );
     std::auto_ptr<float>   evt_pfsumet_raw       (new float   );
@@ -95,11 +88,12 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     edm::Handle<edm::View<pat::MET> > genmet_h;
     iEvent.getByLabel(pfMetInputTag, genmet_h);
     
-    //edm::Handle<edm::View<reco::PFMET> > metcor_h;
-    //iEvent.getByLabel(pfMetCorInputTag, metcor_h);
-
     if( !met_h.isValid() ) {
       throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
+    }
+
+    if( !isData_ && !genmet_h.isValid() ) {
+      throw cms::Exception("PFMETMaker::produce: error getting gen particle-flow MET collection from Event!");
     }
 
     *evt_pfmet    = ( met_h->front() ).pt();
@@ -120,13 +114,6 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       *gen_metPhi   = -9999.;
     }
     
-    //try { 
-    //    *evt_pfmetSignificance = ( met_h->front() ).significance();
-    //}
-    //catch ( cms::Exception& ex ) {
-    //    *evt_pfmetSignificance = -9999;
-    //}
-
     try {
       *evt_calomet    = ( met_h->front() ).caloMETPt();
       *evt_calometPhi = ( met_h->front() ).caloMETPhi();
@@ -148,21 +135,6 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(gen_metPhi   , "genmetPhi"   );
     iEvent.put(evt_calomet    , "evtcalomet"      );
     iEvent.put(evt_calometPhi , "evtcalometPhi"   );
-
-/*
-    if( !metcor_h.isValid() ) {
-        edm::LogInfo("OutputInfo") << " failed to corrected retrieve particle-flow MET collection";
-        edm::LogInfo("OutputInfo") << " PFMETMaker cannot continue...!";
-        return;
-    }
-
-    *evt_pfmet_type1cor = ( metcor_h->front() ).et();
-    *evt_pfmetPhi_type1cor = ( metcor_h->front() ).phi();
-  
-    iEvent.put(evt_pfmet_type1cor    , "evtpfmettype1cor"      );
-    iEvent.put(evt_pfmetPhi_type1cor , "evtpfmetPhitype1cor"   );
-*/
-
 
 }
 
