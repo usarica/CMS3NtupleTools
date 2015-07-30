@@ -118,6 +118,13 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     edm::Handle<DcsStatusCollection> dcsHandle;
     iEvent.getByToken(dcsTag_, dcsHandle);
 
+    if (!dcsHandle.isValid() ) {
+      edm::LogInfo("OutputInfo") << " failed to retrieve dcs status collection";
+      edm::LogInfo("OutputInfo") << " EventMaker cannot continue...!";
+      std::cout << "EventMaker cannot continue...!  DCS status problem" << std::endl;
+      throw cms::Exception("EventMaker cannot continue!  Failed to receive DCS status collection.");
+    }
+
     // need the magnetic field
     //
     // if isData then derive bfield using the

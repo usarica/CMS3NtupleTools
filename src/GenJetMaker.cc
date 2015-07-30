@@ -19,6 +19,7 @@
 // system include files
 #include <memory>
 #include <vector>
+#include <iostream>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -71,7 +72,8 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if ( !genJets.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen jets collection";
     edm::LogInfo("OutputInfo") << " GenJetMaker cannot continue...!";
-    return;
+    std::cout << "GenJetMaker cannot continue" << std::endl;
+    throw cms::Exception("GenJetMaker cannot continue!  Could not load gen jets collection.");
   }
   
   // create containers

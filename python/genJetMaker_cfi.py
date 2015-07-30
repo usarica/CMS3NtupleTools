@@ -6,10 +6,3 @@ genJetMaker = cms.EDProducer("GenJetMaker",
    aliasPostfix = cms.untracked.string("NoMuNoNu")
 )
 
-
-genPFJetMaker = cms.EDProducer("GenJetMaker", 
-   genJetsInputTag = cms.InputTag("cms2antikt5PFGenJets"),
-   genJetMinPtCut  = cms.double(10.0),
-   aliasPostfix = cms.untracked.string("")
-
-)

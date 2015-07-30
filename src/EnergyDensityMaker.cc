@@ -3,6 +3,7 @@
 //
 
 #include <memory>
+#include <iostream>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -38,6 +39,12 @@ void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   iEvent.getByToken( inputToken , rhoH);
   if(rhoH.isValid()){
 	*rho = *rhoH; 
+  }
+  else {
+    edm::LogInfo("OutputInfo") << " failed to retrieve rho collection";
+    edm::LogInfo("OutputInfo") << " EnergyDensityMaker cannot continue...!";
+    std::cout << " EnergyDensityMaker cannot continue...!" << std::endl;
+    return;
   }
   iEvent.put(rho, m_branch);
 }

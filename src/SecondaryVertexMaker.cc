@@ -100,16 +100,24 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
   // get the primary vertices
   edm::Handle<reco::VertexCollection> primaryVertices;
   iEvent.getByLabel(primaryVertexInputTag_, primaryVertices);
-  if (! primaryVertices.isValid() ) {
+  if (!primaryVertices.isValid() ) {
     edm::LogError("SecondaryVertexMakerError") << "Error! can't get the primary vertices";
+    edm::LogInfo("OutputInfo") << " failed to retrieve primary vertices collection";
+    edm::LogInfo("OutputInfo") << " SecondaryVertexMaker cannot continue...!";
+    std::cout << " SecondaryVertexMaker cannot continue...! Primary vertex problem" << std::endl;
+    throw cms::Exception("SecondaryVertexMaker cannot continue!  Failed to receive primary vertices collection.");
+    return;
   }
 
   // get the secondary vertices
   edm::Handle<reco::VertexCompositePtrCandidateCollection> secVertices;
   iEvent.getByLabel( inclusiveVertexInputTag_ , secVertices);
-  if (! secVertices.isValid() ) {
+  if (!secVertices.isValid() ) {
     edm::LogError("SecondaryVertexMakerError") << "Error! can't get the secondary vertices associated with label: " << inclusiveVertexInputTag_;
-    exit(1);
+    edm::LogInfo("OutputInfo") << " failed to retrieve secondary vertices collection";
+    edm::LogInfo("OutputInfo") << " SecondaryVertexMaker cannot continue...!";
+    std::cout << " SecondaryVertexMaker cannot continue...!  Secondary vertex problem" << std::endl;
+    throw cms::Exception("SecondaryVertexMaker cannot continue!  Failed to receive secondary vertices collection.");
   }
 
 //  // gen
