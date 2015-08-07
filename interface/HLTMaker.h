@@ -57,7 +57,9 @@ private:
   
   void fillTriggerObjectInfo(unsigned int,
 			     std::vector<int>&,
-			     std::vector<math::XYZTLorentzVectorF>&) const;
+			     std::vector<math::XYZTLorentzVectorF>&,
+			     std::vector<bool>&,
+			     std::vector<TString>&) const;
   bool doPruneTriggerName(const std::string&) const;
   
   edm::Handle<edm::TriggerResults> triggerResultsH_;

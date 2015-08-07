@@ -39,6 +39,8 @@ HLTMaker::HLTMaker(const edm::ParameterSet& iConfig){
   produces<vector<vector<int> > >           (Form("%strigObjsid"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
 
   produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
+  produces<vector<vector<bool> > >          (Form("%strigObjspassLast"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_passLast",processNamePrefix_.Data()));
+  produces<vector<vector<TString> > >       (Form("%strigObjsfilters"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_filters",processNamePrefix_.Data()));
   
   // isData_ = iConfig.getParameter<bool>("isData");
   
@@ -92,8 +94,9 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 //  for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
 //    pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
 //    TO.unpackPathNames( triggerNames_ );
-//    cout<<"Trigger Object "<<i<<"has pt, eta, phi, id = "<< TO.pt() <<" "<<TO.eta()<<" "<<TO.phi()<<" and hasPathLastFilterAccepted() "<<TO.hasPathLastFilterAccepted()<<endl;
-//
+//    cout<<"Trigger Object "<<i<<"has pt, eta, phi, id = "<< TO.pt() <<" "<<TO.eta()<<" "<<TO.phi()<<" "<<TO.pdgId()<<endl;
+//    cout<<"Trigger Object has hasPathLastFilterAccepted() "<<TO.hasPathLastFilterAccepted()<<endl;
+//    cout<<"Trigger Object "<<i<<" has collection() "<<TO.collection()<<endl;
 //    std::vector< std::string > path_names = TO.pathNames(false); //TO associated to path
 //    cout<<"Trigger Object "<<i<<" associated to "<< path_names.size() <<" pathNames(false): ";
 //    for (uint j  = 0; j < path_names.size(); j++) cout<<path_names[j]<<" ";
@@ -107,8 +110,13 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 //   cout<<"Trigger Object "<<i<<" has "<< filter_labels.size() <<" filter_labels: ";
 //   for (uint j  = 0; j < filter_labels.size(); j++) cout<<filter_labels[j]<<" ";
 //   cout<<endl;
+//
+//   std::vector< int > filter_ids = TO.filterIds();
+//   cout<<"Trigger Object "<<i<<" has "<< filter_ids.size() <<" filter_ids: ";
+//   for (uint j  = 0; j < filter_ids.size(); j++) cout<<filter_ids[j]<<" ";
+//   cout<<endl;
 //   
-//   cout<<"Trigger Object "<<i<<" has collection() "<<TO.collection()<<endl;
+//
 //
 //  }
 ////// END printing miniAOD content
@@ -126,14 +134,21 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<TString> >                trigNames (new vector<TString>);
   auto_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
   auto_ptr<vector<vector<LorentzVector> > > trigObjsp4(new vector<vector<LorentzVector> >);
+  auto_ptr<vector<vector<bool> > >          trigObjspassLast(new vector<vector<bool> >);
+  auto_ptr<vector<vector<TString> > >       trigObjsfilters(new vector<vector<TString> >);
   trigNames ->reserve(nTriggers);
   trigObjsid->reserve(nTriggers);
   trigObjsp4->reserve(nTriggers);
+  trigObjspassLast->reserve(nTriggers);
+  trigObjsfilters->reserve(nTriggers);
 
   for(unsigned int i = 0; i < nTriggers; ++i){
       // Create now because must exist regardless of the accept
       vector<LorentzVector> p4V;
       vector<int> idV;
+      vector<bool> passLastV;
+      vector<TString> filtersV;
+
 
       // What is your name?
       const string& name = triggerNames_.triggerName(i);
@@ -172,11 +187,13 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		bits->SetBitNumber(i);
 
 		// Collect desired trigger objects 
-		if (fillTriggerObjects_ && doPruneTriggerName(name)) fillTriggerObjectInfo(i, idV, p4V);
+		if (fillTriggerObjects_ && doPruneTriggerName(name)) fillTriggerObjectInfo(i, idV, p4V, passLastV, filtersV);
 	  }
 	  
       trigObjsid->push_back(idV);
       trigObjsp4->push_back(p4V);
+      trigObjspassLast->push_back(passLastV);
+      trigObjsfilters->push_back(filtersV);
     }
 	
   // strip upper zeros
@@ -188,6 +205,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(trigNames  , Form("%strigNames"   , processNamePrefix_.Data() ) );
   iEvent.put(trigObjsid , Form("%strigObjsid"  , processNamePrefix_.Data() ) );
   iEvent.put(trigObjsp4 , Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
+  iEvent.put(trigObjspassLast , Form("%strigObjspassLast"  , processNamePrefix_.Data() ) );
+  iEvent.put(trigObjsfilters , Form("%strigObjsfilters"  , processNamePrefix_.Data() ) );
 }
 
 bool HLTMaker::doPruneTriggerName(const string& name) const
@@ -206,7 +225,7 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
   return false;
 }
 
-void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V) const {
+void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V, vector<bool>& passLastV, vector<TString>& filtersV) const {
 
   // Triggers from miniAOD. 
   // This seems slow, since it does many full loops over the trigger objects. 
@@ -219,12 +238,14 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
     pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
     TO.unpackPathNames( triggerNames_ );
-    // 3. Check hasPathName( triggerName, true). 
+    // 3. OLD: Check hasPathName( triggerName, true). 
     // This makes sure that the TriggerObjects belongs to the LAST filter in a path. 
     // With respect to CMS2forAOD, we lose the ability to get objects that don't belong to the last filter. 
     // For example, if a path is (Ecut1, Ecut2, Ecut3, Mcut1, Mcut2, Mcut3) we now only get the muon from 
     // Mcut3 and no electron. Instead, in the old CMS2forAOD we would also get the electron from Ecut3.
-    if ( TO.hasPathName(name, true) ) {  
+    //
+    // 3. NEW: save all objects associated to path, regardless of final result. And save filter names 
+    if ( TO.hasPathName(name, false) ) {  
       int storeID = 0;
       std::vector<int> IDs = TO.filterIds();
       if (IDs.size() == 1) storeID = IDs[0];
@@ -234,17 +255,40 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
 	if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
 
       }
-//      if (IDs.size() > 1) {
-//	cout<<"Multiple Types for trigger object related to "<<name<<": ";
-//	for (uint k = 0; k < IDs.size(); k++) cout<<IDs[k]<<" ";
-//	cout<<endl;
-//      }
-//      if (IDs.size() == 0) { cout<<"No IDs associated to this trigger object related to "<<name; idV.push_back( 0 ); }
+      
+      bool saveFilters = false;
+      TString filterslist = "";
+      if ( IDs.size() > 0 ) {
+      	int id = abs(IDs[0]);
+      	// From: TriggerTypeDefs.h
+      	//	 TriggerL1Mu           = -81,
+      	//       TriggerL1NoIsoEG      = -82,
+      	//       TriggerL1IsoEG        = -83,
+      	//       TriggerPhoton         = +81,
+      	//       TriggerElectron       = +82,
+      	//       TriggerMuon           = +83,
+      	//       TriggerCluster        = +92,
+      	if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
+      	if ( IDs.size() > 1 ) {
+      	  int id = abs(IDs[1]);
+      	  if ( id == 81 || id == 82 || id == 83 || IDs[1] == 92) saveFilters = true;
+      	}
+      }
+      if (saveFilters) {
+      	std::vector< std::string > filter_labels = TO.filterLabels();
+      	for (uint j  = 0; j < filter_labels.size(); j++) {
+      	  filterslist += filter_labels[j];
+      	  filterslist += " ";
+      	}
+      }
+
       idV.push_back( storeID );
       p4V.push_back( LorentzVector( TO.p4() ) );
-    }
+      passLastV.push_back( TO.hasPathName(name, true) );
+      filtersV.push_back(filterslist);
+    } // hasPathName
   } // End of loop over trigger objects in miniAOD
-  // miniAOD NOTE: Do we need an exception for mixed trigger, as in the CMS2forAOD code? Not sure why this was there in the first place. And impossible to implement for PAT.
+  
 
 
   // End of Triggers from miniAOD
