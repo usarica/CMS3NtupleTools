@@ -54,7 +54,7 @@ private:
 
   const pat::PackedCandidateCollection *pfCandidates;
 
-    //PFPileUpAlgo *pfPileUpAlgo_;
+  std::string aliasprefix_;
 
 };
 
