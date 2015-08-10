@@ -6,14 +6,26 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-#Hard-code lepton ID
-mkdir $CMSSW_BASE/bullshit  
-mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
+# #Hard-code lepton ID
+# mkdir $CMSSW_BASE/bullshit  
+# mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
+# pushd $CMSSW_BASE/src/
+# git cms-merge-topic ikrav:egm_id_74X_v0
+# mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
+# popd
+# rmdir $CMSSW_BASE/bullshit
+
+# #############
+# # MET tools #
+# #############
+
+mkdir $CMSSW_BASE/previous_code
+mv $CMSSW_BASE/src/* $CMSSW_BASE/previous_code/
 pushd $CMSSW_BASE/src/
-git cms-merge-topic ikrav:egm_id_74X_v0
-mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
+git cms-merge-topic -u cms-met:METCorUnc74X
+mv $CMSSW_BASE/previous_code/* $CMSSW_BASE/src/
 popd
-rmdir $CMSSW_BASE/bullshit
+rmdir $CMSSW_BASE/previous_code
 
 #############
 # MVA JetId #

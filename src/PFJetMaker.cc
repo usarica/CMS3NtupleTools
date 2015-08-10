@@ -172,25 +172,25 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
-    pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )      );
-    pfjets_mass                      ->push_back( pfjet_it->mass()                     );
-    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
-    pfjets_chargedHadronE            ->push_back(pfjet_it->chargedHadronEnergy()       );
-    pfjets_neutralHadronE            ->push_back(pfjet_it->neutralHadronEnergy()       );
-    pfjets_chargedEmE                ->push_back(pfjet_it->chargedEmEnergy()           );
-    pfjets_neutralEmE                ->push_back(pfjet_it->neutralEmEnergy()           );
-    pfjets_photonE                   ->push_back(pfjet_it->photonEnergy()              );
-    pfjets_electronE                 ->push_back(pfjet_it->electronEnergy()            );
-    pfjets_muonE                     ->push_back(pfjet_it->muonEnergy()                );
-    pfjets_hfHadronE                 ->push_back(pfjet_it->HFHadronEnergy()            );
-    pfjets_hfEmE                     ->push_back(pfjet_it->HFEMEnergy()                );
-    pfjets_chargedMultiplicity       ->push_back(pfjet_it->chargedMultiplicity()       );
-    pfjets_neutralMultiplicity       ->push_back(pfjet_it->neutralMultiplicity()       );
-    pfjets_chargedHadronMultiplicity ->push_back(pfjet_it->chargedHadronMultiplicity() );
-    pfjets_neutralHadronMultiplicity ->push_back(pfjet_it->neutralHadronMultiplicity() );
-    pfjets_photonMultiplicity        ->push_back(pfjet_it->photonMultiplicity()        );
-    pfjets_electronMultiplicity      ->push_back(pfjet_it->electronMultiplicity()      );
-    pfjets_muonMultiplicity          ->push_back(pfjet_it->muonMultiplicity()          );
+    pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )       );
+    pfjets_mass                      ->push_back( pfjet_it->mass()                      );
+    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")    );
+    pfjets_chargedHadronE            ->push_back( pfjet_it->chargedHadronEnergy()       );
+    pfjets_neutralHadronE            ->push_back( pfjet_it->neutralHadronEnergy()       );
+    pfjets_chargedEmE                ->push_back( pfjet_it->chargedEmEnergy()           );
+    pfjets_neutralEmE                ->push_back( pfjet_it->neutralEmEnergy()           );
+    pfjets_photonE                   ->push_back( pfjet_it->photonEnergy()              );
+    pfjets_electronE                 ->push_back( pfjet_it->electronEnergy()            );
+    pfjets_muonE                     ->push_back( pfjet_it->muonEnergy()                );
+    pfjets_hfHadronE                 ->push_back( pfjet_it->HFHadronEnergy()            );
+    pfjets_hfEmE                     ->push_back( pfjet_it->HFEMEnergy()                );
+    pfjets_chargedMultiplicity       ->push_back( pfjet_it->chargedMultiplicity()       );
+    pfjets_neutralMultiplicity       ->push_back( pfjet_it->neutralMultiplicity()       );
+    pfjets_chargedHadronMultiplicity ->push_back( pfjet_it->chargedHadronMultiplicity() );
+    pfjets_neutralHadronMultiplicity ->push_back( pfjet_it->neutralHadronMultiplicity() );
+    pfjets_photonMultiplicity        ->push_back( pfjet_it->photonMultiplicity()        );
+    pfjets_electronMultiplicity      ->push_back( pfjet_it->electronMultiplicity()      );
+    pfjets_muonMultiplicity          ->push_back( pfjet_it->muonMultiplicity()          );
     //pfjets_hfHadronMultiplicity      ->push_back(pfjet_it->HFHadronMultiplicity()      );
     //pfjets_hfEmMultiplicity          ->push_back(pfjet_it->HFEMMultiplicity()          );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );

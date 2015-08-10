@@ -72,8 +72,13 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-#fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
-fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
+                            #fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
+                            # fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
+                            fileNames = cms.untracked.vstring(
+                                'file:/nfs-7/userdata/cwelke/TTTo2L2Nu_13TeV-powheg_MINIAODSIM_Asympt50ns_MCRUN2_74_V9A-v2/04C26C81-A30C-E511-8A0D-B083FED76C6C.root',
+                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/00EFF2EE-E60B-E511-B422-B499BAAC0A22.root",
+                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/02C1F466-EE0B-E511-877D-00074305CC91.root",
+                            )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
@@ -83,11 +88,60 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
 
-#Run jet tool box
-jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
+
+#Run corrected MET maker
+### =====================================================================================================
+usePrivateSQlite =True
+# from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
+# process.GlobalTag.globaltag = 'MCRUN2_74_v9'
+
+if usePrivateSQlite:
+    from CondCore.DBCommon.CondDBSetup_cfi import *
+    era="Summer15_50nsV2_MC"
+    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+                               connect = cms.string( "sqlite_file:CMS3/NtupleMaker/setup/"+era+".db" ),
+                               toGet =  cms.VPSet(
+            cms.PSet(
+                record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+                label= cms.untracked.string("AK4PF")
+                ),
+            cms.PSet(
+                record = cms.string("JetCorrectionsRecord"),
+                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+                label= cms.untracked.string("AK4PFchs")
+                ),
+            )
+                               )
+    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
+
+### =====================================================================================================
+
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+
+#default configuration for miniAOD reprocessing, change the isData flag to run on data
+runMetCorAndUncFromMiniAOD(process, isData=False)
+
+### -------------------------------------------------------------------
+### the lines below remove the L2L3 residual uncertainties when processing data
+### -------------------------------------------------------------------
+process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+### ------------------------------------------------------------------
+
+# end Run corrected MET maker
+
+# #Run jet tool box
+# jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
+
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_packedPFCandidates_*_*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS3*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS3*'))
 
@@ -106,11 +160,12 @@ process.p = cms.Path(
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
-  process.pfJetPUPPIMaker*
-  process.ak4JetMaker *
+  process.pfJetPUPPIMaker *
+  process.METToolboxJetMaker *
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.T1pfmetMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *

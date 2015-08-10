@@ -13,9 +13,3 @@ pfJetPUPPIMaker = cms.EDProducer("PFJetMaker",
   pfJetsInputTag                   = cms.InputTag("slimmedJetsPuppi","",configProcessName.name),
   pfJetPtCut                       = cms.double(20.), #miniAOD doesn't go lower than 20
 )
-
-ak4JetMaker = cms.EDProducer("PFJetMaker",
-  aliasPrefix = cms.untracked.string("pfjets_nonCHS"),
-  pfJetsInputTag                   = cms.InputTag("selectedPatJetsAK4PF","","CMS3"),
-  pfJetPtCut                       = cms.double(5.),
-)
