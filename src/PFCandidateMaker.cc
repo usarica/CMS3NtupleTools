@@ -41,9 +41,10 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig){
   produces<vector<uint8_t> >       (branchprefix+"fromPV"           ).setBranchAlias(aliasprefix_+"_fromPV"	           );
   produces<vector<bool> >          (branchprefix+"isStandAloneMuon" ).setBranchAlias(aliasprefix_+"_isStandAloneMuon"  );
   produces<vector<bool> >          (branchprefix+"isGlobalMuon"	    ).setBranchAlias(aliasprefix_+"_isGlobalMuon"      );
-  produces<float>                  (branchprefix+"evtfixgridrhoctr" ).setBranchAlias(aliasprefix_+"evt_fixgrid_rho_ctr");
-  produces<float>                  (branchprefix+"evtfixgridrhofwd" ).setBranchAlias(aliasprefix_+"evt_fixgrid_rho_fwd");
-  produces<float>                  (branchprefix+"evtfixgridrhoall" ).setBranchAlias(aliasprefix_+"evt_fixgrid_rho_all");
+
+  produces<float>                  ("evtfixgridrhoctr" ).setBranchAlias("evt_fixgrid_rho_ctr");
+  produces<float>                  ("evtfixgridrhofwd" ).setBranchAlias("evt_fixgrid_rho_fwd");
+  produces<float>                  ("evtfixgridrhoall" ).setBranchAlias("evt_fixgrid_rho_all");
 }
 
 PFCandidateMaker::~PFCandidateMaker(){}
@@ -119,9 +120,10 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
      iEvent.put(pfcands_isGlobalMuon     , branchprefix+"isGlobalMuon"    );
      iEvent.put(pfcands_isStandAloneMuon , branchprefix+"isStandAloneMuon");
 	 iEvent.put(pfcands_fromPV           , branchprefix+"fromPV"          );
-     iEvent.put(evt_fixgrid_rho_ctr      , branchprefix+"evtfixgridrhoctr");
-     iEvent.put(evt_fixgrid_rho_fwd      , branchprefix+"evtfixgridrhofwd");
-     iEvent.put(evt_fixgrid_rho_all      , branchprefix+"evtfixgridrhoall");
+
+     iEvent.put(evt_fixgrid_rho_ctr      , "evtfixgridrhoctr");
+     iEvent.put(evt_fixgrid_rho_fwd      , "evtfixgridrhofwd");
+     iEvent.put(evt_fixgrid_rho_all      , "evtfixgridrhoall");
  
 }
 
