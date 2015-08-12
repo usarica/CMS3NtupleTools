@@ -10,7 +10,7 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 mkdir $CMSSW_BASE/bullshit  
 mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
 pushd $CMSSW_BASE/src/
-git cms-merge-topic cag51:egm_id_74X_v0
+git cms-merge-topic ikrav:egm_id_74X_v0
 mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
 popd
 rmdir $CMSSW_BASE/bullshit
