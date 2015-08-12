@@ -90,16 +90,20 @@ process.out.outputCommands = cms.untracked.vstring( 'keep *' )
 
 
 #Run corrected MET maker
-### =====================================================================================================
-usePrivateSQlite =True
-# from Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff import *
-# process.GlobalTag.globaltag = 'MCRUN2_74_v9'
+
+#configurable options =======================================================================
+runOnData=False #data/MC switch
+usePrivateSQlite=True #use external JECs (sqlite file)
+useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
+applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+#===================================================================
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
+    import os
     era="Summer15_50nsV2_MC"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-                               connect = cms.string( "sqlite_file:CMS3/NtupleMaker/setup/"+era+".db" ),
+                               connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
             cms.PSet(
                 record = cms.string("JetCorrectionsRecord"),
@@ -117,20 +121,53 @@ if usePrivateSQlite:
 
 ### =====================================================================================================
 
+
+### ---------------------------------------------------------------------------
+### Removing the HF from the MET computation
+### ---------------------------------------------------------------------------
+if not useHFCandidates:
+    process.noHFCands = cms.EDFilter("CandPtrSelector",
+                                     src=cms.InputTag("packedPFCandidates"),
+                                     cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
+                                     )
+
+#jets are rebuilt from those candidates by the tools, no need to do anything else
+### =================================================================================
+
 from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
+
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
-runMetCorAndUncFromMiniAOD(process, isData=False)
+#for a full met computation, remove the pfCandColl input
+runMetCorAndUncFromMiniAOD(process,
+                           isData=runOnData,
+                           )
+
+if not useHFCandidates:
+    runMetCorAndUncFromMiniAOD(process,
+                               isData=runOnData,
+                               pfCandColl=cms.InputTag("noHFCands"),
+                               postfix="NoHF"
+                               )
 
 ### -------------------------------------------------------------------
-### the lines below remove the L2L3 residual uncertainties when processing data
+### the lines below remove the L2L3 residual corrections when processing data
 ### -------------------------------------------------------------------
-process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+if not applyResiduals:
+    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
+    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+
+    if not useHFCandidates:
+          process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+          process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+          process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+          process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
+          process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+          process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
 # end Run corrected MET maker

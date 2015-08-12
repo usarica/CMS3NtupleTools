@@ -67,7 +67,6 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
   }
   
   pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
-  isData_       = iConfig.getParameter<bool>     ( "isData"              );
 
 }
 
@@ -98,6 +97,8 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   edm::Handle<edm::View<pat::MET> > met_h;
   iEvent.getByLabel(pfMetInputTag, met_h);
+
+  isData_ = iEvent.isRealData();
 
   if( !met_h.isValid() ) {
 	throw cms::Exception("PFMETMaker::produce: error getting particle-flow MET collection from Event!");
