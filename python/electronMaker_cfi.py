@@ -28,7 +28,7 @@ electronMaker = cms.EDProducer(
     # pfIsoNeutral04InputTag = cms.InputTag("elPFIsoValueNeutral04PFIdPFIso"),
 
     # reco conversions
-    recoConversionInputTag = cms.InputTag("allConversions"),
+    recoConversionInputTag = cms.InputTag("reducedEgamma:reducedConversions"),
     # egamma ID
     eidLHTag = cms.InputTag("egammaIDLikelihood"),
     cms2scsseeddetidInputTag = cms.InputTag("scMaker"),

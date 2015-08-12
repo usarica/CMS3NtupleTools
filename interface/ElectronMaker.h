@@ -128,6 +128,7 @@ private:
     edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
     const pat::PackedCandidateCollection *pfCandidates;
     edm::Handle<reco::VertexCollection> vertexHandle;
+    edm::Handle<reco::ConversionCollection> convs_h;
 
     edm::InputTag rhoInputTag_;
     edm::InputTag beamSpot_tag_;
