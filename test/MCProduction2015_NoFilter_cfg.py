@@ -88,7 +88,6 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
 
-
 #Run corrected MET maker
 
 #configurable options =======================================================================
@@ -202,6 +201,7 @@ process.p = cms.Path(
 #  process.ca12subJetMaker *
   process.pfmetMaker *
   process.T1pfmetMaker *
+  process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *

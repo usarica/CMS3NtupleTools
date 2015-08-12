@@ -190,6 +190,7 @@ process.p = cms.Path(
 #  process.ca12subJetMaker *
   process.pfmetMaker *
   process.T1pfmetMaker *
+  process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
