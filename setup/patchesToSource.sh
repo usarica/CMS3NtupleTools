@@ -70,4 +70,5 @@ printf "\nchecking deps:\n"
 git cms-checkdeps -a
 
 # compile
-scram build -c -j 20
+cd $CMSSW_BASE/src
+scram b -j 20
