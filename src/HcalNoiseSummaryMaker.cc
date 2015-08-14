@@ -95,6 +95,9 @@ HcalNoiseSummaryMaker::HcalNoiseSummaryMaker( const ParameterSet& iConfig ) {
   produces<int>     ( branchprefix_ + "numTS4TS5NoiseChannels"          ).setBranchAlias( aliasprefix_ + "_numTS4TS5NoiseChannels"   );
   produces<float>   ( branchprefix_ + "TS4TS5NoiseSumE"                 ).setBranchAlias( aliasprefix_ + "_TS4TS5NoiseSumE"          );
   produces<float>   ( branchprefix_ + "TS4TS5NoiseSumEt"                ).setBranchAlias( aliasprefix_ + "_TS4TS5NoiseSumEt"         );
+  produces<int>     ( branchprefix_ + "numNegativeNoiseChannels"        ).setBranchAlias( aliasprefix_ + "_numNegativeNoiseChannels" );
+  produces<float>   ( branchprefix_ + "NegativeNoiseSumE"               ).setBranchAlias( aliasprefix_ + "_NegativeNoiseSumE"        );
+  produces<float>   ( branchprefix_ + "NegativeNoiseSumEt"              ).setBranchAlias( aliasprefix_ + "_NegativeNoiseSumEt"       );
   produces<int>     ( branchprefix_ + "GetRecHitCount"                  ).setBranchAlias( aliasprefix_ + "_GetRecHitCount"           );
   produces<int>     ( branchprefix_ + "GetRecHitCount15"                ).setBranchAlias( aliasprefix_ + "_GetRecHitCount15"         );
   produces<float>   ( branchprefix_ + "GetRecHitEnergy"                 ).setBranchAlias( aliasprefix_ + "_GetRecHitEnergy"          );
@@ -102,6 +105,9 @@ HcalNoiseSummaryMaker::HcalNoiseSummaryMaker( const ParameterSet& iConfig ) {
   produces<float>   ( branchprefix_ + "GetTotalCalibCharge"             ).setBranchAlias( aliasprefix_ + "_GetTotalCalibCharge"      );
 
   produces<bool>    ( branchprefix_ + "HasBadRBXTS4TS5"                 ).setBranchAlias( aliasprefix_ + "_HasBadRBXTS4TS5"          );
+  produces<bool>    ( branchprefix_ + "HasBadRBXRechitR45Loose"         ).setBranchAlias( aliasprefix_ + "_HasBadRBXRechitR45Loose"  );
+  produces<bool>    ( branchprefix_ + "HasBadRBXRechitR45Tight"         ).setBranchAlias( aliasprefix_ + "_HasBadRBXRechitR45Tight"  );
+  produces<bool>    ( branchprefix_ + "goodJetFoundInLowBVRegion"       ).setBranchAlias( aliasprefix_ + "_goodJetFoundInLowBVRegion");
 
 } // End Constructor
 
@@ -167,6 +173,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<int>     hcalnoise_numTS4TS5NoiseChannels      ( new int    );
   auto_ptr<float>   hcalnoise_TS4TS5NoiseSumE             ( new float  );
   auto_ptr<float>   hcalnoise_TS4TS5NoiseSumEt            ( new float  );
+  auto_ptr<int>     hcalnoise_numNegativeNoiseChannels    ( new int    );
+  auto_ptr<float>   hcalnoise_NegativeNoiseSumE           ( new float  );
+  auto_ptr<float>   hcalnoise_NegativeNoiseSumEt          ( new float  );
   auto_ptr<int>     hcalnoise_GetRecHitCount              ( new int    );
   auto_ptr<int>     hcalnoise_GetRecHitCount15            ( new int    );
   auto_ptr<float>   hcalnoise_GetRecHitEnergy             ( new float  );
@@ -174,6 +183,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<float>   hcalnoise_GetTotalCalibCharge         ( new float  );
 
   auto_ptr<bool>    hcalnoise_HasBadRBXTS4TS5             ( new bool   );
+  auto_ptr<bool>    hcalnoise_HasBadRBXRechitR45Loose     ( new bool   );
+  auto_ptr<bool>    hcalnoise_HasBadRBXRechitR45Tight     ( new bool   );
+  auto_ptr<bool>    hcalnoise_goodJetFoundInLowBVRegion   ( new bool   );
 
 
   //
@@ -234,6 +246,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	*hcalnoise_numTS4TS5NoiseChannels    = hcalNoiseSum_h -> numTS4TS5NoiseChannels();
 	*hcalnoise_TS4TS5NoiseSumE           = hcalNoiseSum_h -> TS4TS5NoiseSumE();
 	*hcalnoise_TS4TS5NoiseSumEt          = hcalNoiseSum_h -> TS4TS5NoiseSumEt();
+	*hcalnoise_numNegativeNoiseChannels  = hcalNoiseSum_h -> numNegativeNoiseChannels();
+	*hcalnoise_NegativeNoiseSumE         = hcalNoiseSum_h -> NegativeNoiseSumE();
+	*hcalnoise_NegativeNoiseSumEt        = hcalNoiseSum_h -> NegativeNoiseSumEt();
 	*hcalnoise_GetRecHitCount            = hcalNoiseSum_h -> GetRecHitCount();
 	*hcalnoise_GetRecHitCount15          = hcalNoiseSum_h -> GetRecHitCount15();
 	*hcalnoise_GetRecHitEnergy           = (float) hcalNoiseSum_h -> GetRecHitEnergy();
@@ -241,6 +256,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	*hcalnoise_GetTotalCalibCharge       = (float) hcalNoiseSum_h -> GetTotalCalibCharge();
 
 	*hcalnoise_HasBadRBXTS4TS5           = hcalNoiseSum_h -> HasBadRBXTS4TS5();
+	*hcalnoise_HasBadRBXRechitR45Loose   = hcalNoiseSum_h -> HasBadRBXRechitR45Loose();
+	*hcalnoise_HasBadRBXRechitR45Tight   = hcalNoiseSum_h -> HasBadRBXRechitR45Tight();
+	*hcalnoise_goodJetFoundInLowBVRegion = hcalNoiseSum_h -> goodJetFoundInLowBVRegion();
   
 
 	// 
@@ -295,6 +313,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	iEvent.put( hcalnoise_numTS4TS5NoiseChannels    , branchprefix_ + "numTS4TS5NoiseChannels"    );
 	iEvent.put( hcalnoise_TS4TS5NoiseSumE           , branchprefix_ + "TS4TS5NoiseSumE"           );
 	iEvent.put( hcalnoise_TS4TS5NoiseSumEt          , branchprefix_ + "TS4TS5NoiseSumEt"          );
+	iEvent.put( hcalnoise_numNegativeNoiseChannels  , branchprefix_ + "numNegativeNoiseChannels"  );
+	iEvent.put( hcalnoise_NegativeNoiseSumE         , branchprefix_ + "NegativeNoiseSumE"         );
+	iEvent.put( hcalnoise_NegativeNoiseSumEt        , branchprefix_ + "NegativeNoiseSumEt"        );
 	iEvent.put( hcalnoise_GetRecHitCount            , branchprefix_ + "GetRecHitCount"            );
 	iEvent.put( hcalnoise_GetRecHitCount15          , branchprefix_ + "GetRecHitCount15"          );
 	iEvent.put( hcalnoise_GetRecHitEnergy           , branchprefix_ + "GetRecHitEnergy"           );
@@ -302,6 +323,9 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	iEvent.put( hcalnoise_GetTotalCalibCharge       , branchprefix_ + "GetTotalCalibCharge"       );
   
 	iEvent.put( hcalnoise_HasBadRBXTS4TS5           ,  branchprefix_ + "HasBadRBXTS4TS5"          );
+	iEvent.put( hcalnoise_HasBadRBXRechitR45Loose   ,  branchprefix_ + "HasBadRBXRechitR45Loose"  );
+	iEvent.put( hcalnoise_HasBadRBXRechitR45Tight   ,  branchprefix_ + "HasBadRBXRechitR45Tight"  );
+	iEvent.put( hcalnoise_goodJetFoundInLowBVRegion ,  branchprefix_ + "goodJetFoundInLowBVRegion");
   }
 } // End Producer
 
