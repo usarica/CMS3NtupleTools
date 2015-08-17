@@ -1,13 +1,13 @@
 import FWCore.ParameterSet.Config as cms
-from Configuration.EventContent.EventContent_cff   import *
+from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="PAT"
+configProcessName.name="RECO"
 
-# CMS3
+#CMS3
 process = cms.Process("CMS3")
 
-# Version Control For Python Configuration Files
+#Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
         version    = cms.untracked.string('$Revision: 1.11 $'),
         annotation = cms.untracked.string('CMS3'),
@@ -22,19 +22,26 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
-# services
+#services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "MCRUN2_74_V9A"
+process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v0"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
 process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
+#Output
 process.out = cms.OutputModule("PoolOutputModule",
   fileName     = cms.untracked.string('ntuple.root'),
   dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath = cms.EndPath(process.out)
+
+#Branches 
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
+process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS3*'))
+process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS3*'))
 
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
@@ -48,8 +55,8 @@ process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
 process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
 
-#Electron Identification for PHYS 14
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *  
+#Electron Identification for PHYS 14#
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
@@ -58,12 +65,8 @@ my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElect
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
-#process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
-#process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
-
-# Load Ntuple producer cff
+#Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
-process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 
 # Hypothesis cuts
@@ -72,35 +75,28 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-                            #fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
-                            # fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
-                            fileNames = cms.untracked.vstring(
-                                'file:/nfs-7/userdata/cwelke/TTTo2L2Nu_13TeV-powheg_MINIAODSIM_Asympt50ns_MCRUN2_74_V9A-v2/04C26C81-A30C-E511-8A0D-B083FED76C6C.root',
-                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/00EFF2EE-E60B-E511-B422-B499BAAC0A22.root",
-                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/02C1F466-EE0B-E511-877D-00074305CC91.root",
-                            )
+  # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
+  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/PromptReco-v1/000/251/162/00000/12284DB9-4227-E511-A438-02163E013674.root')
+                            # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
-
-#Branches 
-process.out.outputCommands = cms.untracked.vstring( 'keep *' )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
 #configurable options =======================================================================
-runOnData=False #data/MC switch
+runOnData=True #data/MC switch
 usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV4_MC"
+    era="Summer15_50nsV4_DATA"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
@@ -174,13 +170,6 @@ if not applyResiduals:
 # #Run jet tool box
 # jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
 
-
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS3*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS3*'))
-
-
 process.p = cms.Path( 
   process.metFilterMaker *
   process.hcalNoiseSummaryMaker *
@@ -205,18 +194,18 @@ process.p = cms.Path(
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
-  process.genMaker *
-  process.genJetMaker *
+  #process.genMaker *
+  #process.genJetMaker *
   process.muToTrigAssMaker *  # requires muonMaker
   process.elToTrigAssMaker *  # requires electronMaker
-  process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-  process.pdfinfoMaker *
-  process.puSummaryInfoMaker *
+  #process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
+  #process.pdfinfoMaker *
+  #process.puSummaryInfoMaker *
   process.recoConversionMaker *
   process.miniAODrhoSequence *
   process.hypDilepMaker
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
-process.eventMaker.isData                        = cms.bool(False)
-#process.luminosityMaker.isData                   = process.eventMaker.isData
+process.eventMaker.isData                        = cms.bool(True)
+process.pfmetMaker.isData                        = process.eventMaker.isData
 

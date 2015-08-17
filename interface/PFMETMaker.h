@@ -47,7 +47,9 @@ private:
     edm::InputTag pfMetInputTag;
 	std::string aliasprefix_;
     edm::InputTag pfMetCorInputTag;
+
   bool isData_;
+  bool onlySaveTwoVector_;
 };
 
 
