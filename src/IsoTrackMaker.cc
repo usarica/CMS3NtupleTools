@@ -42,6 +42,11 @@ IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
   produces<vector<int> >           ("isotracksparticleId"	).setBranchAlias("isotracks_particleId" );
   produces<vector<uint8_t> >       ("isotracksfromPV"     ).setBranchAlias("isotracks_fromPV"	    );
   produces<vector<float> >         ("isotracksrelIso"     ).setBranchAlias("isotracks_relIso"	    );
+  produces<vector<uint8_t> >       ("isotrackspvAssociationQuality").setBranchAlias("isotracks_pvAssociationQuality");
+  produces<vector<int> >           ("isotracksIdAssociatedPV"  ).setBranchAlias("isotracks_IdAssociatedPV");
+  produces<vector<float> >         ("isotracksdzAssociatedPV"  ).setBranchAlias("isotracks_dzAssociatedPV");
+  produces<vector<float> >         ("isotrackspuppiWeight"     ).setBranchAlias("isotracks_puppiWeight");
+
 }
 
 IsoTrackMaker::~IsoTrackMaker(){}
@@ -58,6 +63,10 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<int> >		       isotracks_particleId  (new vector<int>		        );
   auto_ptr<vector<uint8_t> >       isotracks_fromPV      (new vector<uint8_t>       );
   auto_ptr<vector<float> >         isotracks_relIso      (new vector<float>         );
+  auto_ptr<vector<uint8_t> >       isotracks_pvAssociationQuality(new vector<uint8_t>       );
+  auto_ptr<vector<int> >           isotracks_IdAssociatedPV      (new vector<int>   );
+  auto_ptr<vector<float> >         isotracks_dzAssociatedPV      (new vector<float> );
+  auto_ptr<vector<float> >         isotracks_puppiWeight         (new vector<float> );
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -75,14 +84,22 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     isotracks_p4->push_back( LorentzVector( pf_it->p4()) );
     isotracks_mass->push_back( pf_it->mass() );
-    if (!pf_it->vertexRef().isNull())
+    if (!pf_it->vertexRef().isNull()){
       isotracks_dz->push_back( pf_it->dz() );
-    else
+      isotracks_pvAssociationQuality->push_back( pf_it->pvAssociationQuality() );
+      isotracks_dzAssociatedPV    ->push_back( pf_it->dzAssociatedPV()         );
+      isotracks_IdAssociatedPV    ->push_back( pf_it->vertexRef().key()        );
+    }
+    else {
       isotracks_dz->push_back( -9999. );
-
+      isotracks_pvAssociationQuality->push_back( 0    );
+      isotracks_dzAssociatedPV    ->push_back( -9999. );
+      isotracks_IdAssociatedPV    ->push_back( -9999  );
+    }
     isotracks_charge->push_back( pf_it->charge() );
     isotracks_particleId->push_back( pf_it->pdgId() );
     isotracks_fromPV->push_back( pf_it->fromPV() );
+    isotracks_puppiWeight       ->push_back( pf_it->puppiWeight());
 
     //calculate isolation from other pfcandidates 
     float absIso = 0.0;
@@ -111,6 +128,10 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(isotracks_particleId, "isotracksparticleId");
   iEvent.put(isotracks_fromPV,		 "isotracksfromPV"    );
   iEvent.put(isotracks_relIso,		 "isotracksrelIso"    );
+  iEvent.put(isotracks_pvAssociationQuality, "isotrackspvAssociationQuality");
+  iEvent.put(isotracks_IdAssociatedPV,	 "isotracksIdAssociatedPV"    );
+  iEvent.put(isotracks_dzAssociatedPV,	 "isotracksdzAssociatedPV"    );
+  iEvent.put(isotracks_puppiWeight,	 "isotrackspuppiWeight"       );
 }
 
 //define this as a plug-in

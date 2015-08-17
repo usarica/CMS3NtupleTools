@@ -153,7 +153,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       // What is your name?
       const string& name = triggerNames_.triggerName(i);
       trigNames->push_back(name);
-	
+
       //What is your prescale?
 	  //Buggy way in miniAOD
       // prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
@@ -182,14 +182,17 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  	l1prescales -> push_back( 1 );
 	  }
 	    
+
 	  // Passed... F+
 	  if (triggerResultsH_->accept(i)){
 		bits->SetBitNumber(i);
-
-		// Collect desired trigger objects 
-		if (fillTriggerObjects_ && doPruneTriggerName(name)) fillTriggerObjectInfo(i, idV, p4V, passLastV, filtersV);
 	  }
-	  
+	  // Collect desired trigger objects 
+	  if (fillTriggerObjects_ && doPruneTriggerName(name)) {
+	    fillTriggerObjectInfo(i, idV, p4V, passLastV, filtersV);
+	  }
+
+
       trigObjsid->push_back(idV);
       trigObjsp4->push_back(p4V);
       trigObjspassLast->push_back(passLastV);
@@ -245,7 +248,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
     // Mcut3 and no electron. Instead, in the old CMS2forAOD we would also get the electron from Ecut3.
     //
     // 3. NEW: save all objects associated to path, regardless of final result. And save filter names 
-    if ( TO.hasPathName(name, false) ) {  
+    if ( TO.hasPathName(name, false, false ) ) {  
       int storeID = 0;
       std::vector<int> IDs = TO.filterIds();
       if (IDs.size() == 1) storeID = IDs[0];
