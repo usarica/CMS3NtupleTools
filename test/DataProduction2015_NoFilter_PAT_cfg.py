@@ -76,13 +76,13 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/PromptReco-v1/000/251/162/00000/12284DB9-4227-E511-A438-02163E013674.root')
+  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/17Jul2015-v1/30000/3226AF16-C22E-E511-B9D7-0025905A613C.root')
                             # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(51) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
@@ -90,13 +90,13 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(51) )
 runOnData=True #data/MC switch
 usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=True  #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV2_MC"
+    era="Summer15_50nsV4_DATA"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(

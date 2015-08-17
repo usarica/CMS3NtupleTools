@@ -83,7 +83,7 @@ process.source = cms.Source("PoolSource",
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
@@ -100,7 +100,7 @@ applyResiduals=False #application of residual corrections. Have to be set to Tru
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV2_MC"
+    era="Summer15_50nsV4_MC"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(

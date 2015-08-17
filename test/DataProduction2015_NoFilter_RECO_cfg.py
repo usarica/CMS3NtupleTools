@@ -82,7 +82,7 @@ process.source = cms.Source("PoolSource",
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(51) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
@@ -90,13 +90,13 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(51) )
 runOnData=True #data/MC switch
 usePrivateSQlite=True #use external JECs (sqlite file)
 useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV2_MC"
+    era="Summer15_50nsV4_DATA"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
