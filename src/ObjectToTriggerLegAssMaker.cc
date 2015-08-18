@@ -329,7 +329,8 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
                 } else {
                     versions[t] = 0;
                 }
-
+		delete substrArr;
+		
             }
         }
 
