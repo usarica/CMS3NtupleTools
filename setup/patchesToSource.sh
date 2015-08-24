@@ -9,7 +9,10 @@
 ## #############
 ## # MET tools #
 ## #############
-#
+
+pushd $CMSSW_BASE/src
+git cms-addpkg PhysicsTools
+popd
 #mkdir $CMSSW_BASE/previous_code
 #mv $CMSSW_BASE/src/* $CMSSW_BASE/previous_code/
 #pushd $CMSSW_BASE/src/
