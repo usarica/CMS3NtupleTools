@@ -52,7 +52,6 @@ popd
 #rmdir $CMSSW_BASE/bullshit
 
 ####### line needs to be added ###############
-mv $CMSSW_BASE/src/RecoEcal/
 inputfile="$CMSSW_BASE/src/RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
 grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
