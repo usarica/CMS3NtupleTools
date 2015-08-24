@@ -17,6 +17,7 @@ git cms-merge-topic -u cms-met:METCorDev75X-071514
 mv $CMSSW_BASE/previous_code/* $CMSSW_BASE/src/
 popd
 rmdir $CMSSW_BASE/previous_code
+mv $CMSSW_BASE/previous_code/RecoEcal/EgammaClusterProducers $CMSSW_BASE/src/RecoEcal/
 
 ##############
 ## MVA JetId #
