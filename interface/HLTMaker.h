@@ -29,7 +29,7 @@
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
+//#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
 #include "CommonTools/TriggerUtils/interface/PrescaleWeightProvider.h"
 
 #include "FWCore/Framework/interface/EDProducer.h"
