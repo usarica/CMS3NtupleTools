@@ -45,14 +45,13 @@ pushd $CMSSW_BASE/src/JMEAnalysis/JetToolbox
 git checkout a80553163684d718e65e44d9b385a4aa11475659
 popd
 
-#mkdir $CMSSW_BASE/bullshit  
-#mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
-#git cms-addpkg   RecoEcal/EgammaClusterProducers
-#mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
-#rmdir $CMSSW_BASE/bullshit
+mkdir $CMSSW_BASE/bullshit  
+mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
+git cms-addpkg   RecoEcal/EgammaClusterProducers
+mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
+rmdir $CMSSW_BASE/bullshit
 
 ####### line needs to be added ###############
-mv $CMSSW_BASE/src/RecoEcal/
 inputfile="$CMSSW_BASE/src/RecoEcal/EgammaClusterProducers/src/PFECALSuperClusterProducer.cc"
 grep "desc.setAllowAnything();" $inputfile 2>&1 > /dev/null
 doNothing=$?
