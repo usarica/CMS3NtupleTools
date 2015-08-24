@@ -19,6 +19,9 @@ popd
 rm -rf $CMSSW_BASE/previous_code
 mv $CMSSW_BASE/previous_code/RecoEcal/EgammaClusterProducers $CMSSW_BASE/src/RecoEcal/
 
+#for some reason this checks out a BUNCH of shit we don't need.  Delete the unneeded packages here.
+for i in `ls`; do if [ "$i" != "CMGTools" ] && [ "$i" != "CMS3" ] && [ "$i" != "DQMOffline" ] && [ "$i" != "JMEAnalysis" ] && [ "$i" != "JetMETCorrections" ] && [ "$i" != "PhysicsTools" ] && [ "$i" != "RecoEcal" ] && [ "$i" != "RecoMET" ] && [ "$i" != "Validation" ]; then rm -rf $i ; fi; done
+
 ##############
 ## MVA JetId #
 ##############
