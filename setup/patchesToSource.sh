@@ -75,5 +75,5 @@ printf "\nchecking deps:\n"
 git cms-checkdeps -a
 
 # compile
-cd $CMSSW_BASE/src
-scram b -j 20
+#cd $CMSSW_BASE/src
+#scram b -j 20
