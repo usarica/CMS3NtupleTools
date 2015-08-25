@@ -87,31 +87,31 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #configurable options =======================================================================
 runOnData=True #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
+usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=True  #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
-#if usePrivateSQlite:
-#    from CondCore.DBCommon.CondDBSetup_cfi import *
-#    import os
-#    era="Summer15_50nsV4_DATA"
-#    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-#                               connect = cms.string( "sqlite_file:"+era+".db" ),
-#                               toGet =  cms.VPSet(
-#            cms.PSet(
-#                record = cms.string("JetCorrectionsRecord"),
-#                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
-#                label= cms.untracked.string("AK4PF")
-#                ),
-#            cms.PSet(
-#                record = cms.string("JetCorrectionsRecord"),
-#                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-#                label= cms.untracked.string("AK4PFchs")
-#                ),
-#            )
-#                               )
-#    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
+if usePrivateSQlite:
+   from CondCore.DBCommon.CondDBSetup_cfi import *
+   import os
+   era="Summer15_50nsV4_DATA"
+   process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+                              connect = cms.string( "sqlite_file:"+era+".db" ),
+                              toGet =  cms.VPSet(
+           cms.PSet(
+               record = cms.string("JetCorrectionsRecord"),
+               tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+               label= cms.untracked.string("AK4PF")
+               ),
+           cms.PSet(
+               record = cms.string("JetCorrectionsRecord"),
+               tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+               label= cms.untracked.string("AK4PFchs")
+               ),
+           )
+                              )
+   process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
 
 ### =====================================================================================================
 
@@ -194,12 +194,12 @@ process.p = cms.Path(
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  process.METToolboxJetMaker *
+  # process.METToolboxJetMaker * # take this out for 75X validation
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.T1pfmetMaker *
-  process.T1pfmetNoHFMaker *
+  # process.T1pfmetMaker *       # take this out for 75X validation
+  # process.T1pfmetNoHFMaker *   # take this out for 75X validation
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
