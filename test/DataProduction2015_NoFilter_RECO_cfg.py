@@ -128,9 +128,6 @@ if not useHFCandidates:
 #jets are rebuilt from those candidates by the tools, no need to do anything else
 ### =================================================================================
 
-#from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-
-
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
 #for a full met computation, remove the pfCandColl input
 pt.runMETCorrectionsAndUncertainties(process,
@@ -145,14 +142,6 @@ if not useHFCandidates:
       pfCandCollection=cms.InputTag('noHFCands'),
       onMiniAOD=True 
     )
-      #runOnData=True);
-#process,
-#      "PF", [""], True, False, cms.InputTag('selectedPatElectrons'), None, cms.InputTag('selectedPatMuons'), cms.InputTag('selectedPatTaus'), cms.InputTag('selectedPatJets'), cms.InputTag('patJets'), 'PhysicsTools/PatUtils/data/Summer13_V1_DATA_UncertaintySources_AK5PF.txt',  #all these are defaults, don't get excited.  See https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATTools#MET_Systematics_Tools
-#      cms.InputTag('noHFCands'), #This is the PF CandCollection, only difference between this and above
-#      'LepClean',  #I think the twiki forgot the quotes, otherwise this is default
-#      True, #default
-#     True, True, #This are isMINIAOD and isData, respectively. 
-#     ''); #Default for postfix (or potsfix, with bug)
 
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing data
