@@ -2,7 +2,7 @@
 
 #USER INPUTS
 CMS3Tag=master
-CMSSW_release=CMSSW_7_4_7_patch2
+CMSSW_release=CMSSW_7_5_1
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
 export SCRAM_ARCH=slc6_amd64_gcc491
 
