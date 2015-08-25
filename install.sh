@@ -11,6 +11,7 @@ export CMS_PATH=/cvmfs/cms.cern.ch
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 scramv1 p -n ${CMSSW_release}${CMSSW_release_name} CMSSW $CMSSW_release
 cd ${CMSSW_release}${CMSSW_release_name}/src
+git cms-init
 eval `scramv1 runtime -sh`
 git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker
 cd CMS3/NtupleMaker
