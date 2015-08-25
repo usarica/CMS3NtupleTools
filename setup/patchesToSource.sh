@@ -10,9 +10,10 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 # # MET tools #
 # #############
 
-#No good version of PhysicsTools!!
-#Used to get from here
-#https://github.com/cms-met/cmssw/tree/METCorUnc74X
+pushd $CMSSW_BASE/src/
+git cms-addpkg PhysicsTools/PatUtils
+sed -i 's/potsfix/postfix/' âxPhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py
+popd
 
 ##############
 ## MVA JetId #
@@ -67,5 +68,5 @@ printf "\nchecking deps:\n"
 git cms-checkdeps -a
 
 # compile
-#cd $CMSSW_BASE/src
-#scram b -j 20
+cd $CMSSW_BASE/src
+scram b -j 20
