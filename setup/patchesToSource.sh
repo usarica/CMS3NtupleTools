@@ -12,7 +12,7 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
 pushd $CMSSW_BASE/src/
 git cms-addpkg PhysicsTools/PatUtils
-sed -i 's/potsfix/postfix/' âxPhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py
+sed -i '147s/potsfix/postfix/' âxPhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.
 popd
 
 ##############
