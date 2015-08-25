@@ -1,29 +1,18 @@
 #!/bin/bash
 
-##CMSSW Environment
-#: ${CMSSW_BASE:?"[ERROR] patchesToSource.sh: \$CMSSW_BASE not set. Perhaps you forgot to set your CMSSW environment."} 
-#
-##cd
-#cd $CMSSW_BASE/src/CMS3/NtupleMaker
-#
-## #############
-## # MET tools #
-## #############
+#CMSSW Environment
+: ${CMSSW_BASE:?"[ERROR] patchesToSource.sh: \$CMSSW_BASE not set. Perhaps you forgot to set your CMSSW environment."} 
 
-pushd $CMSSW_BASE/src
-git cms-addpkg PhysicsTools
-popd
-#mkdir $CMSSW_BASE/previous_code
-#mv $CMSSW_BASE/src/* $CMSSW_BASE/previous_code/
-#pushd $CMSSW_BASE/src/
-#git cms-merge-topic -u cms-met:METCorUnc74X
-#mv $CMSSW_BASE/previous_code/* $CMSSW_BASE/src/
-#popd
-#rm -rf $CMSSW_BASE/previous_code
-#mv $CMSSW_BASE/previous_code/RecoEcal/EgammaClusterProducers $CMSSW_BASE/src/RecoEcal/
+#cd
+cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-#for some reason this checks out a BUNCH of shit we don't need.  Delete the unneeded packages here.
-#for i in `ls`; do if [ "$i" != "CMGTools" ] && [ "$i" != "CMS3" ] && [ "$i" != "DQMOffline" ] && [ "$i" != "JMEAnalysis" ] && [ "$i" != "JetMETCorrections" ] && [ "$i" != "PhysicsTools" ] && [ "$i" != "RecoEcal" ] && [ "$i" != "RecoMET" ] && [ "$i" != "Validation" ]; then rm -rf $i ; fi; done
+# #############
+# # MET tools #
+# #############
+
+#No good version of PhysicsTools!!
+#Used to get from here
+#https://github.com/cms-met/cmssw/tree/METCorUnc74X
 
 ##############
 ## MVA JetId #
