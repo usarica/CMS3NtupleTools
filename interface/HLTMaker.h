@@ -29,7 +29,8 @@
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+//#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
+#include "CommonTools/TriggerUtils/interface/PrescaleWeightProvider.h"
 
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -67,7 +68,7 @@ private:
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjectStandAlonesH_;
   edm::TriggerNames triggerNames_;
 
-  HLTConfigProvider hltConfig_;
+  HLTPrescaleProvider hltConfig_;
   
   std::string processName_;
   std::string triggerObjectsName_;

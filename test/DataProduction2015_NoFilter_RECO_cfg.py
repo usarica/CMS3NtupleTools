@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+import PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties as pt
 from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
@@ -24,7 +25,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v0"
+process.GlobalTag.globaltag = "75X_dataRun2_Prompt_v0"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -75,9 +76,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/PromptReco-v1/000/251/162/00000/12284DB9-4227-E511-A438-02163E013674.root')
-                            # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
+  fileNames = cms.untracked.vstring('/store/data/Run2015B/DoubleEG/MINIAOD/05Aug2015-v1/60000/42BCDC49-B73C-E511-9D27-0025905A6066.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
@@ -88,31 +87,31 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #configurable options =======================================================================
 runOnData=True #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
-useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+usePrivateSQlite=False #use external JECs (sqlite file)
+useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
+applyResiduals=True  #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
-    from CondCore.DBCommon.CondDBSetup_cfi import *
-    import os
-    era="Summer15_50nsV4_DATA"
-    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-                               connect = cms.string( "sqlite_file:"+era+".db" ),
-                               toGet =  cms.VPSet(
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
-                label= cms.untracked.string("AK4PF")
-                ),
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-                label= cms.untracked.string("AK4PFchs")
-                ),
-            )
-                               )
-    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
+   from CondCore.DBCommon.CondDBSetup_cfi import *
+   import os
+   era="Summer15_50nsV4_DATA"
+   process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
+                              connect = cms.string( "sqlite_file:"+era+".db" ),
+                              toGet =  cms.VPSet(
+           cms.PSet(
+               record = cms.string("JetCorrectionsRecord"),
+               tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
+               label= cms.untracked.string("AK4PF")
+               ),
+           cms.PSet(
+               record = cms.string("JetCorrectionsRecord"),
+               tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
+               label= cms.untracked.string("AK4PFchs")
+               ),
+           )
+                              )
+   process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
 
 ### =====================================================================================================
 
@@ -129,21 +128,31 @@ if not useHFCandidates:
 #jets are rebuilt from those candidates by the tools, no need to do anything else
 ### =================================================================================
 
-from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+#from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
 
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
 #for a full met computation, remove the pfCandColl input
-runMetCorAndUncFromMiniAOD(process,
-                           isData=runOnData,
-                           )
+pt.runMETCorrectionsAndUncertainties(process,
+      addToPatDefaultSequence=False, #This seems to crash if true
+      pfCandCollection=cms.InputTag('particleFlow'),
+      onMiniAOD=True 
+)
 
 if not useHFCandidates:
-    runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               pfCandColl=cms.InputTag("noHFCands"),
-                               postfix="NoHF"
-                               )
+    pt.runMETCorrectionsAndUncertainties(process,
+      addToPatDefaultSequence=False, #This seems to crash if true
+      pfCandCollection=cms.InputTag('noHFCands'),
+      onMiniAOD=True 
+    )
+      #runOnData=True);
+#process,
+#      "PF", [""], True, False, cms.InputTag('selectedPatElectrons'), None, cms.InputTag('selectedPatMuons'), cms.InputTag('selectedPatTaus'), cms.InputTag('selectedPatJets'), cms.InputTag('patJets'), 'PhysicsTools/PatUtils/data/Summer13_V1_DATA_UncertaintySources_AK5PF.txt',  #all these are defaults, don't get excited.  See https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePATTools#MET_Systematics_Tools
+#      cms.InputTag('noHFCands'), #This is the PF CandCollection, only difference between this and above
+#      'LepClean',  #I think the twiki forgot the quotes, otherwise this is default
+#      True, #default
+#     True, True, #This are isMINIAOD and isData, respectively. 
+#     ''); #Default for postfix (or potsfix, with bug)
 
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing data
@@ -185,12 +194,12 @@ process.p = cms.Path(
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  process.METToolboxJetMaker *
+  # process.METToolboxJetMaker * # take this out for 75X validation
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.T1pfmetMaker *
-  process.T1pfmetNoHFMaker *
+  # process.T1pfmetMaker *       # take this out for 75X validation
+  # process.T1pfmetNoHFMaker *   # take this out for 75X validation
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *

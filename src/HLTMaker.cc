@@ -24,7 +24,15 @@ void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::Lorent
 }
 */
 
-HLTMaker::HLTMaker(const edm::ParameterSet& iConfig){
+
+
+HLTMaker::HLTMaker(const edm::ParameterSet& iConfig) : 
+hltConfig_(iConfig, consumesCollector(), *this) {
+
+//HLTPrescaleProvider(iConfig, 
+//edm::ConsumesCollector&& iC,
+//T& module);
+
   processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
   fillTriggerObjects_ = iConfig.getUntrackedParameter<bool>           ("fillTriggerObjects");
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
