@@ -75,9 +75,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/17Jul2015-v1/30000/3226AF16-C22E-E511-B9D7-0025905A613C.root')
-                            # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
+  fileNames = cms.untracked.vstring('/store/data/Run2015B/DoubleEG/MINIAOD/05Aug2015-v1/60000/42BCDC49-B73C-E511-9D27-0025905A6066.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
