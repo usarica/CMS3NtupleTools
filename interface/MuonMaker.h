@@ -41,6 +41,8 @@
 // class declaration
 //
 
+typedef math::XYZTLorentzVectorF LorentzVector;
+
 class MuonMaker : public edm::EDProducer {
 public:
      explicit MuonMaker (const edm::ParameterSet&);
@@ -58,6 +60,7 @@ private:
   edm::EDGetTokenT<edm::View<pat::Muon> > muonsToken;
   edm::InputTag beamSpotInputTag;
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
+  edm::EDGetTokenT<LorentzVector> beamSpotToken;
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
 

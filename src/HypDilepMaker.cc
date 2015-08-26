@@ -42,7 +42,6 @@ ee:3
 #include "TMath.h"
 
 
-typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -54,8 +53,14 @@ HypDilepMaker::HypDilepMaker(const edm::ParameterSet& iConfig) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
   
-  muonsInputTag            = iConfig.getParameter<InputTag>("muonsInputTag"    );
-  electronsInputTag        = iConfig.getParameter<InputTag>("electronsInputTag");
+  musChargeToken = consumes<std::vector<int> >(iConfig.getParameter<InputTag>("musChargeInputTag"    ));
+  musTypeToken   = consumes<std::vector<int> >(iConfig.getParameter<InputTag>("musTypeInputTag"    ));
+  musp4Token     = consumes<std::vector<LorentzVector> >(iConfig.getParameter<InputTag>("musp4InputTag"    ));
+
+  elsChargeToken = consumes<std::vector<int> >(iConfig.getParameter<InputTag>("elsChargeInputTag"    ));
+  elsTypeToken   = consumes<std::vector<int> >(iConfig.getParameter<InputTag>("elsTypeInputTag"    ));
+  elsp4Token     = consumes<std::vector<LorentzVector> >(iConfig.getParameter<InputTag>("elsp4InputTag"    ));
+
   tightptcut               = iConfig.getParameter<double>  ("TightLepton_PtCut");
   looseptcut               = iConfig.getParameter<double>  ("LooseLepton_PtCut");
 
@@ -92,35 +97,35 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<LorentzVector> > hyp_ll_p4                   (new vector<LorentzVector>   );
   
   // muon charge
-  edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
+  // edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
   edm::Handle<std::vector<int> > mus_charge_h;
-  iEvent.getByLabel(mus_charge_tag, mus_charge_h);
+  iEvent.getByToken(musChargeToken, mus_charge_h);
   const vector<int> *mus_charge = mus_charge_h.product();
 
   //muon p4
-  InputTag mus_p4_tag(muonsInputTag.label(),"musp4");
+  // InputTag mus_p4_tag(muonsInputTag.label(),"musp4");
   Handle<vector<LorentzVector> > mus_p4_h;
-  iEvent.getByLabel(mus_p4_tag, mus_p4_h);
+  iEvent.getByToken(musp4Token, mus_p4_h);
   const vector<LorentzVector> *mus_p4 = mus_p4_h.product();
 
   //muon type
-  InputTag mus_type_tag(muonsInputTag.label(), "mustype");
+  // InputTag mus_type_tag(muonsInputTag.label(), "mustype");
   Handle<vector<int> > mus_type_h;
-  iEvent.getByLabel(mus_type_tag, mus_type_h);
+  iEvent.getByToken(musTypeToken, mus_type_h);
   const vector<int> *mus_type = mus_type_h.product();
 
   //-----------------------------------------------------------
   // electron variables
   //-----------------------------------------------------------
-  InputTag els_charge_tag(electronsInputTag.label(),"elscharge");
+  // InputTag els_charge_tag(electronsInputTag.label(),"elscharge");
   Handle<vector<int> > els_charge_h;
-  iEvent.getByLabel(els_charge_tag, els_charge_h);
+  iEvent.getByToken(elsChargeToken, els_charge_h);
   const vector<int> *els_charge = els_charge_h.product();
 
   // electron p4
-  InputTag els_p4_tag(electronsInputTag.label(),"elsp4");
+  // InputTag els_p4_tag(electronsInputTag.label(),"elsp4");
   Handle<vector<LorentzVector> > els_p4_h;
-  iEvent.getByLabel(els_p4_tag, els_p4_h);
+  iEvent.getByToken(elsp4Token, els_p4_h);
   const vector<LorentzVector> *els_p4 = els_p4_h.product();
 
   unsigned int nmus = mus_p4->size();

@@ -18,4 +18,5 @@ hltMaker = cms.EDProducer("HLTMaker",
         "HLT*MET*",
     ),
     triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
+    triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
 )

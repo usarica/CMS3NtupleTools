@@ -38,7 +38,8 @@ hltConfig_(iConfig, consumesCollector(), *this) {
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
   aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
-  triggerObjectsNameToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<string>("triggerObjectsName"));
+  triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
+  triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<string>("triggerObjectsName"));
 
   produces<TBits>                           (Form("%sbits"        ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
@@ -84,12 +85,12 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
-  iEvent.getByToken(triggerObjectsNameToken, triggerObjectStandAlonesH_);
+  iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
   if (!triggerObjectStandAlonesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
-  iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+  iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
   if (!triggerPrescalesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 

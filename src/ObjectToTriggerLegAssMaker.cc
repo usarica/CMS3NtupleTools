@@ -44,6 +44,7 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
     objectToken = consumes<std::vector<LorentzVector> >(iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag"));
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
     processName_        = iConfig.getUntrackedParameter<std::string>("processName");
+    triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
     triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<std::string>("triggerObjectsName"));
 
     // get the branch prefix and remove spurious _s
@@ -120,7 +121,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     // find versions for the triggers requested
     getTriggerVersions(triggers_, triggerVersions_);
 
-    iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+    iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
     if (! triggerPrescalesH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 

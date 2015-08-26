@@ -61,7 +61,6 @@ Implementation:
 // typedefs //
 //////////////
 
-typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
 
@@ -93,7 +92,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   //////////////////////
 
   muonsToken    = consumes<View<pat::Muon> >(iConfig.getParameter<InputTag> ("muonsInputTag"   ));
-  beamSpotInputTag = iConfig.getParameter<InputTag> ("beamSpotInputTag");
+  beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
   pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<InputTag> ("pfCandsInputTag" ));
   vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
@@ -862,9 +861,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Get BeamSpot from BeamSpotMaker //
   /////////////////////////////////////
 
-  InputTag beamSpot_tag( beamSpotInputTag.label(), "evtbsp4" );
   Handle<LorentzVector> beamSpotH;
-  iEvent.getByLabel( beamSpot_tag, beamSpotH );
+  iEvent.getByToken(beamSpotToken, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
   //std::cout << __LINE__ <<"Get beamspot in muonMaker" <<std::endl;
   

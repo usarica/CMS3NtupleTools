@@ -30,6 +30,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/METReco/interface/CaloMET.h"
+
 //
 // class decleration
 //
@@ -45,20 +47,21 @@ private:
      virtual void endJob() ;
 
      // ----------member data ---------------------------  
-     edm::InputTag met_tag;       
-     edm::InputTag metHO_tag;     
-     edm::InputTag metNoHF_tag;   
-     edm::InputTag metNoHFHO_tag; 
-     edm::InputTag metOpt_tag;       
-     edm::InputTag metOptHO_tag;     
-     edm::InputTag metOptNoHF_tag;   
-     edm::InputTag metOptNoHFHO_tag; 
-     edm::InputTag corMetGlobalMuons_tag;
-     edm::InputTag MuonJEScorMET_tag;
-     edm::InputTag muon_vm_tag;
-     edm::InputTag muon_tag;
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > met_token;       
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metHO_token;     
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metNoHF_token;   
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metNoHFHO_token; 
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metOpt_token;       
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metOptHO_token;     
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metOptNoHF_token;   
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > metOptNoHFHO_token; 
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > corMetGlobalMuons_token;
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > MuonJEScorMET_token;
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > muon_vm_token;
+     edm::EDGetTokenT<edm::View<reco::CaloMET> > muon_token;
+     edm::EDGetTokenT<bool> hbheNoiseFilterToken;
      edm::InputTag caloTowerInputTag;
-     edm::InputTag hbheNoiseFilterInputTag;
+
      double towerEtThreshold;
      bool make_eta_rings;
      std::string aliasprefix_;

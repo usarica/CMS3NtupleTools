@@ -42,6 +42,8 @@ Implementation:
 // class decleration
 //
 
+typedef math::XYZTLorentzVectorF LorentzVector;
+
 class HypDilepMaker : public edm::EDProducer {
 public:
   
@@ -60,6 +62,14 @@ private:
   edm::InputTag electronsInputTag;
   double        tightptcut;
   double        looseptcut;
+
+  edm::EDGetTokenT<std::vector<int> > musChargeToken;
+  edm::EDGetTokenT<std::vector<int> > musTypeToken;
+  edm::EDGetTokenT<std::vector<LorentzVector> > musp4Token;
+
+  edm::EDGetTokenT<std::vector<int> > elsChargeToken;
+  edm::EDGetTokenT<std::vector<int> > elsTypeToken;
+  edm::EDGetTokenT<std::vector<LorentzVector> > elsp4Token;
     
   std::string aliasprefix_;
 };

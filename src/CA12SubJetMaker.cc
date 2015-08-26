@@ -48,7 +48,7 @@ CA12SubJetMaker::CA12SubJetMaker(const edm::ParameterSet& iConfig){
  // produces<vector<float> >   ("ca12jetstrackCountingHighPurBJetTag"         ).setBranchAlias("ca12jets_trackCountingHighPurBJetTag"	 );
 //  srcJet_ = (consumes<pat::Jet>(iConfig.getParameter<edm::InputTag>("srcJet")));
   // srcJet_   =     consumes<std::vector<pat::Jet>>(iConfig.getParameter<edm::InputTag>("srcJet"));
-  pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
+  pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
   //pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
 }
 
@@ -96,7 +96,7 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 //////////////////  edm::Handle<std::vector<pat::Jet> >            jets;
   Handle<View<pat::Jet> > pfJetsHandle;
   //edm::Handle<std::vector<pat::Jet> >  pfJetsHandle;//jets;
-  iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
+  iEvent.getByToken(pfJetsToken, pfJetsHandle);
   //iEvent.getByToken(srcJet_, jets);
   //std::cout << __LINE__ <<"reading jets 1" <<jets->size()<<std::endl;
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
