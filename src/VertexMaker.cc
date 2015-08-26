@@ -26,9 +26,6 @@
 
 #include "CMS3/NtupleMaker/interface/VertexMaker.h"
 
-#include "DataFormats/Common/interface/ValueMap.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -59,7 +56,8 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
   produces<std::vector<std::vector<float > > >(branchprefix+"covMatrix"         ).setBranchAlias(aliasprefix_+"_covMatrix"         );
 
   // vertex collection input tag
-  primaryVertexInputTag_ = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
+  primaryVertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertexInputTag"));
+  primaryVertexScoreToken = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("primaryVertexInputTag"));
 }
 
 void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -76,7 +74,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //  edm::LogError("VertexMakerError") << "Error! can't get the primary vertex";
  // }
 
-    iEvent.getByLabel(primaryVertexInputTag_, vertexHandle);
+    iEvent.getByToken(primaryVertexToken, vertexHandle);
     if( !vertexHandle.isValid() ) {
       throw cms::Exception("VertexMaker::produce: error getting vertices from Event!");
     }
@@ -99,7 +97,7 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   edm::Handle<edm::ValueMap<float> > vertexScoreHandle;
   try {
-    iEvent.getByLabel(primaryVertexInputTag_, vertexScoreHandle);
+    iEvent.getByToken(primaryVertexScoreToken, vertexScoreHandle);
   }
   catch ( cms::Exception& ex ) {
     edm::LogError("VertexMakerError") << "Error! can't get the score of primary vertices";

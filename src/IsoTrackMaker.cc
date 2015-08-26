@@ -27,7 +27,7 @@ using namespace std;
 
 IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
 
-  pfCandidatesTag_  = iConfig.getParameter<InputTag> ("pfCandidatesTag");
+  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
   isotrack_dz_cut_  = iConfig.getParameter<double>    ("isotrack_dz_cut");//dz of the isolated track
   isolation_dz_cut_ = iConfig.getParameter<double>    ("isolation_dz_cut");//dz of pfcands considered in the isolation
   pflep_pt_cut_     = iConfig.getParameter<double>    ("pflep_pt_cut");
@@ -70,7 +70,7 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
-  iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
+  iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
   pfCandidates  = pfCandidatesHandle.product();
 
   for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {

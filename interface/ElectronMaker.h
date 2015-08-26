@@ -88,14 +88,16 @@ private:
 
 
     // ----------member data ---------------------------
-    edm::InputTag electronsInputTag_;
     edm::InputTag beamSpotInputTag_;
     edm::InputTag trksInputTag_;
     edm::InputTag gsftracksInputTag_;
     edm::InputTag eidLHTag_;
     edm::InputTag cms2scsseeddetidInputTag_;
-    edm::InputTag pfCandsInputTag;
-    edm::InputTag vtxInputTag;
+
+    edm::EDGetTokenT<reco::VertexCollection> vtxToken;
+    edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
+    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
+
 
     edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken_;

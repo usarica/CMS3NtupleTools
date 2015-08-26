@@ -89,14 +89,14 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
     electronTightIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
 
-    electronsInputTag_           = iConfig.getParameter<edm::InputTag> ("electronsInputTag"            );
+    electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
+    vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
+    pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
     beamSpotInputTag_            = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag"             );
     trksInputTag_                = iConfig.getParameter<edm::InputTag> ("trksInputTag"                 );
     gsftracksInputTag_           = iConfig.getParameter<edm::InputTag> ("gsftracksInputTag"            );
     cms2scsseeddetidInputTag_    = iConfig.getParameter<edm::InputTag> ("cms2scsseeddetidInputTag"     );
     eidLHTag_                    = iConfig.getParameter<edm::InputTag> ("eidLHTag"                     );
-    pfCandsInputTag              = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"              );
-    vtxInputTag                  = iConfig.getParameter<edm::InputTag> ("vtxInputTag"                  );
     ebReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("ebReducedRecHitCollectionTag" );
     eeReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("eeReducedRecHitCollectionTag" );
     esReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("esReducedRecHitCollectionTag" );
@@ -113,6 +113,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     esReducedRecHitCollection = mayConsume<EcalRecHitCollection>(esReducedRecHitCollectionTag);
 
     recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
+    edm::Handle<reco::ConversionCollection> convs_h;
     rhoInputTag_              = iConfig.getParameter<edm::InputTag> ("rhoInputTag"              );
     beamSpot_tag_             = iConfig.getParameter<edm::InputTag> ("beamSpotTag"              );
 
@@ -744,7 +745,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////
 
     Handle<View<pat::Electron> > els_h;
-    iEvent.getByLabel(electronsInputTag_, els_h);
+    iEvent.getByToken(electronsToken, els_h);
     if( !els_h.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
     }
@@ -759,7 +760,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Cands //
     //////////////
 
-     iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+     iEvent.getByToken(pfCandsToken, packPfCand_h);
       if( !packPfCand_h.isValid() ) {
         throw cms::Exception("ElectronMaker::produce: error getting packed pfcands from Event!");
       }
@@ -787,7 +788,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex //
     ////////////
 
-    iEvent.getByLabel(vtxInputTag, vertexHandle);
+    iEvent.getByToken(vtxToken, vertexHandle);
     if( !vertexHandle.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
     }

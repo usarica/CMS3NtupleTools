@@ -48,7 +48,7 @@ private:
   // ----------member data ---------------------------
   //double minDR_electron_;
   //edm::InputTag pfElectronsTag_;
-  edm::InputTag pfCandidatesTag_;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
   //edm::InputTag tracksInputTag_;
   //edm::InputTag vertexInputTag_;
 

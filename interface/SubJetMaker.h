@@ -30,6 +30,8 @@ Implementation:
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 //
 // class decleration
@@ -46,7 +48,7 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag pfJetsInputTag_;
+  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;

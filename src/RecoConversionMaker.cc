@@ -10,7 +10,6 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 #include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
@@ -27,7 +26,7 @@ typedef math::XYZPointF Point;
 RecoConversionMaker::RecoConversionMaker(const edm::ParameterSet& iConfig) {
        
   recoConversionInputTag_ = iConfig.getParameter<edm::InputTag>("recoConversionInputTag");
-  beamSpotInputTag_       = iConfig.getParameter<edm::InputTag>("beamSpotInputTag");
+  beamSpotToken = consumes<BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
 
 
   produces<vector<int> >		("convsisConverted"	).setBranchAlias("convs_isConverted"	);
@@ -63,7 +62,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.getByLabel("reducedEgamma", recoConversionInputTag_.label(), convs_h);
   
   Handle<BeamSpot> beamSpotH;
-  iEvent.getByLabel(beamSpotInputTag_, beamSpotH);
+  iEvent.getByToken(beamSpotToken, beamSpotH);
 
   for(View<Conversion>::const_iterator it = convs_h->begin(); it != convs_h->end(); it++){ 
 

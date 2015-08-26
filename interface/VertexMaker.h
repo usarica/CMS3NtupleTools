@@ -24,7 +24,10 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Common/interface/ValueMap.h"
 
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 //
 // class declaration
 //
@@ -39,7 +42,8 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  edm::InputTag primaryVertexInputTag_;
+  edm::EDGetTokenT<reco::VertexCollection> primaryVertexToken;
+  edm::EDGetTokenT<edm::ValueMap<float> > primaryVertexScoreToken;
 
 	std::string aliasprefix_;
 };

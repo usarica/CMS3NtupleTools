@@ -92,9 +92,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // Input Parameters //
   //////////////////////
 
-  muonsInputTag    = iConfig.getParameter<InputTag> ("muonsInputTag"   );
+  muonsToken    = consumes<View<pat::Muon> >(iConfig.getParameter<InputTag> ("muonsInputTag"   ));
   beamSpotInputTag = iConfig.getParameter<InputTag> ("beamSpotInputTag");
-  pfCandsInputTag  = iConfig.getParameter<InputTag> ("pfCandsInputTag" );
+  pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<InputTag> ("pfCandsInputTag" ));
   vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
   //src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
@@ -816,7 +816,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////
 
   Handle<View<pat::Muon> > muon_h;
-  iEvent.getByLabel( muonsInputTag , muon_h );
+  iEvent.getByToken( muonsToken , muon_h );
 
   /////////////////////////////////
   // Get Muon Shower Information //
@@ -854,7 +854,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////////////
 
   //iEvent.getByLabel( pfCandsInputTag , pfCand_h );
-  iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+  iEvent.getByToken(pfCandsToken, packPfCand_h);
   pfCandidates  = packPfCand_h.product();
 
 

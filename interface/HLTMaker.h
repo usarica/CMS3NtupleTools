@@ -62,6 +62,8 @@ private:
 			     std::vector<bool>&,
 			     std::vector<TString>&) const;
   bool doPruneTriggerName(const std::string&) const;
+
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsNameToken;
   
   edm::Handle<edm::TriggerResults> triggerResultsH_;
   edm::Handle<trigger::TriggerEvent> triggerEventH_; 
@@ -71,7 +73,6 @@ private:
   HLTPrescaleProvider hltConfig_;
   
   std::string processName_;
-  std::string triggerObjectsName_;
   bool fillTriggerObjects_;
   std::vector<std::string> prunedTriggerNames_;
   TString processNamePrefix_;

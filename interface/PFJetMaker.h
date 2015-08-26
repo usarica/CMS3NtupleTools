@@ -35,6 +35,9 @@ Implementation:
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 class PFJetMaker : public edm::EDProducer {
 public:
   explicit PFJetMaker(const edm::ParameterSet&);
@@ -46,7 +49,7 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag pfJetsInputTag_;
+  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;
   std::string aliasprefix_;

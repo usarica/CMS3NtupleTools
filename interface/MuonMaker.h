@@ -55,9 +55,9 @@ private:
   void muMiniIso( edm::View<pat::Muon>::const_iterator& mu, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso);
   
       // ----------member data ---------------------------
-  edm::InputTag muonsInputTag;
+  edm::EDGetTokenT<edm::View<pat::Muon> > muonsToken;
   edm::InputTag beamSpotInputTag;
-  edm::InputTag pfCandsInputTag;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
 

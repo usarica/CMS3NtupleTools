@@ -27,7 +27,6 @@ Implementation:
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "CMS3/NtupleMaker/interface/ObjectToTriggerLegAssMaker.h"
@@ -42,10 +41,10 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
 
     // get configuration from event
     cone_               = iConfig.getUntrackedParameter<double>("cone");
-    objectInputTag_     = iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag");
+    objectToken = consumes<std::vector<LorentzVector> >(iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag"));
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
     processName_        = iConfig.getUntrackedParameter<std::string>("processName");
-    triggerObjectsName_ = iConfig.getUntrackedParameter<std::string>("triggerObjectsName");
+    triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<std::string>("triggerObjectsName"));
 
     // get the branch prefix and remove spurious _s
     std::string aliasprefix = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
@@ -90,7 +89,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     //
 
     edm::Handle<std::vector<LorentzVector> > obj_p4_h;
-    iEvent.getByLabel(objectInputTag_, obj_p4_h);  
+    iEvent.getByToken(objectToken, obj_p4_h);  
     if( !obj_p4_h.isValid() ) {
       throw cms::Exception("ObjectToTriggerLegAssMaker::produce: error getting obj_p4_h from Event!");
     }
@@ -132,7 +131,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     // online objects for all triggers
 //AOD    const trigger::TriggerObjectCollection &allObjects = triggerEvent_->getObjects();
     
-    iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
+    iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
     if (! triggerObjectStandAlonesH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
     const pat::TriggerObjectStandAloneCollection * allObjects = triggerObjectStandAlonesH_.product();

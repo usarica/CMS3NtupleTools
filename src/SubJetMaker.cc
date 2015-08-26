@@ -10,8 +10,6 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/BTauReco/interface/CATopJetTagInfo.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -39,7 +37,7 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<float> >         ( "ak8jetsfilteredMass"                     ).setBranchAlias( "ak8jets_filteredMass"              );
   produces<vector<float> >         ( "ak8jetssoftdropMass"                     ).setBranchAlias( "ak8jets_softdropMass"              );
 
-  pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
+  pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
   pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
 }
 
@@ -78,7 +76,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         ak8jets_softdropMass             (new vector<float>          );  
 
   Handle<View<pat::Jet> > pfJetsHandle;
-  iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
+  iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
 
