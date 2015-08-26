@@ -25,14 +25,8 @@
 #include "CMS3/NtupleMaker/interface/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
-#include "DataFormats/Math/interface/LorentzVector.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 
 #include "TMath.h"
@@ -48,8 +42,8 @@ using namespace std;
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
-  genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  packedGenParticlesInputTag_ = iConfig.getParameter<InputTag>                  ("packedGenParticlesInputTag" );
+  genParticlesToken = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTag"));
+  packedGenParticlesToken = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("packedGenParticlesInputTag"));
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
@@ -169,7 +163,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
-  iEvent.getByLabel(genParticlesInputTag_, genpsHandle);
+  iEvent.getByToken(genParticlesToken, genpsHandle);
 
   if( !genpsHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen particle collection";
@@ -182,7 +176,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
   edm::Handle<pat::PackedGenParticleCollection> packedGenParticleHandle;
-  iEvent.getByLabel(packedGenParticlesInputTag_, packedGenParticleHandle);
+  iEvent.getByToken(packedGenParticlesToken, packedGenParticleHandle);
   if( !packedGenParticleHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve packed gen particle collection";
     edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";

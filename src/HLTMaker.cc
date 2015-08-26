@@ -40,6 +40,7 @@ hltConfig_(iConfig, consumesCollector(), *this) {
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
   triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
   triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<string>("triggerObjectsName"));
+  triggerResultsToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",       "", processName_));
 
   produces<TBits>                           (Form("%sbits"        ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
@@ -80,7 +81,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // produce is called processName_ should be set.
 
   //Now using a single processName_ (set to "HLT" in the configuration file). Is this OK? Do we need the flexibility we had before?
-  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+  iEvent.getByToken(triggerResultsToken, triggerResultsH_);
   if (! triggerResultsH_.isValid()) throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?

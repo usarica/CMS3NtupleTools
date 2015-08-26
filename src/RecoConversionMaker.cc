@@ -25,7 +25,7 @@ typedef math::XYZPointF Point;
 
 RecoConversionMaker::RecoConversionMaker(const edm::ParameterSet& iConfig) {
        
-  recoConversionInputTag_ = iConfig.getParameter<edm::InputTag>("recoConversionInputTag");
+  recoConversionToken = consumes<edm::View<Conversion> >(iConfig.getParameter<edm::InputTag>("recoConversionInputTag"));
   beamSpotToken = consumes<BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
 
 
@@ -59,7 +59,7 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   // get reco Conversions
   Handle<View<Conversion> > convs_h;
-  iEvent.getByLabel("reducedEgamma", recoConversionInputTag_.label(), convs_h);
+  iEvent.getByToken(recoConversionToken, convs_h);
   
   Handle<BeamSpot> beamSpotH;
   iEvent.getByToken(beamSpotToken, beamSpotH);

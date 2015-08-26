@@ -64,6 +64,7 @@ private:
   bool doPruneTriggerName(const std::string&) const;
 
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
+  edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
   
   edm::Handle<edm::TriggerResults> triggerResultsH_;

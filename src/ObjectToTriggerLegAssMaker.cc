@@ -44,6 +44,9 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
     objectToken = consumes<std::vector<LorentzVector> >(iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag"));
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
     processName_        = iConfig.getUntrackedParameter<std::string>("processName");
+
+    triggerResultsToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",       "", processName_));
+
     triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
     triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<std::string>("triggerObjectsName"));
 
@@ -114,7 +117,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
 //AOD        hltConfig_.init(iEvent.getRun(), iSetup, processName_, changed);
 //AOD    }
 
-    iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+    iEvent.getByToken(triggerResultsToken, triggerResultsH_);
     if (! triggerResultsH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
     triggerNames_ = iEvent.triggerNames(*triggerResultsH_);

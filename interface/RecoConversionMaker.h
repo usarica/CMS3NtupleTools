@@ -48,8 +48,8 @@ private:
       
   // ----------member data ---------------------------
   std::string   aliasprefix_;
-  edm::InputTag recoConversionInputTag_;
   edm::EDGetTokenT<reco::BeamSpot> beamSpotToken;
+  edm::EDGetTokenT<edm::View<reco::Conversion> > recoConversionToken;
   
 
 

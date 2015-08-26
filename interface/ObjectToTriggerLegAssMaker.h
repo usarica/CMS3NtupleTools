@@ -67,6 +67,7 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
 
         // electrons and muons
         edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
+        edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
         edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
         edm::EDGetTokenT<std::vector<LorentzVector> > objectToken;
 
