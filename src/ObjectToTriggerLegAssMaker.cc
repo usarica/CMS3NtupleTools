@@ -308,13 +308,16 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
     for (unsigned int t = 0; t < trigNames.size(); ++t) {
         TString trigName = trigNames[t].label();
 
-        // loop on triggers in menu
-	  unsigned int nTriggers = triggerResultsH_->size();
+          // default value of 9999 if we don't find a match
+          versions[t] = 9999;
+          // loop on triggers in menu
+          unsigned int nTriggers = triggerResultsH_->size();
           for(unsigned int i = 0; i < nTriggers; ++i) {
 
             // get name of ith trigger
             TString hltTrigName(triggerNames_.triggerName(i));
             hltTrigName.ToLower();
+
 
             // test if it matches this trigger name
             // with any version
@@ -326,14 +329,14 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
             // then extract version number
             if (hltTrigName.Index(reg) >= 0) {
 
-                TObjArray *substrArr = re.MatchS(hltTrigName);
-                if (substrArr->GetLast() == 1) {
-                    versions[t] = ((TObjString*)substrArr->At(1))->GetString().Atoi();
-                } else {
-                    versions[t] = 0;
-                }
-		delete substrArr;
-		
+              TObjArray *substrArr = re.MatchS(hltTrigName);
+              if (substrArr->GetLast() == 1) {
+                versions[t] = ((TObjString*)substrArr->At(1))->GetString().Atoi();
+                break; // if we found a match, break
+              } else {
+                versions[t] = 0;
+              }
+              delete substrArr;
             }
         }
 
