@@ -157,6 +157,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   // produces<vector<int> >   ( branchprefix + "scindex"         ).setBranchAlias( aliasprefix_ + "_scindex"        );
   // produces<vector<float> > ( branchprefix + "swissSeed"       ).setBranchAlias( aliasprefix_ + "_swissSeed"      ); //The swiss cross about the seed crystal--missing in sc
   produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
+  produces<vector<bool> >  ( branchprefix + "passElectronVeto").setBranchAlias( aliasprefix_ + "_passElectronVeto"); //for electron matching
 
   produces<vector<float> > ( branchprefix + "ecalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_ecalPFClusterIso");
   produces<vector<float> > ( branchprefix + "hcalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_hcalPFClusterIso");
@@ -331,6 +332,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
 
   auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
+  auto_ptr<vector<bool> >  photons_passElectronVeto ( new vector<bool>  );
 
   auto_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
   auto_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
@@ -637,6 +639,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		
 	// //pixel seeds
 	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
+	photons_passElectronVeto   ->push_back( photon->passElectronVeto()         );
 
 	photons_ecalPFClusterIso       ->push_back( photon->ecalPFClusterIso()             );
 	photons_hcalPFClusterIso       ->push_back( photon->hcalPFClusterIso()             );
@@ -997,6 +1000,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
+  iEvent.put( photons_passElectronVeto   , branchprefix+"passElectronVeto"    );
 
   iEvent.put( photons_ecalPFClusterIso  , branchprefix+"ecalPFClusterIso"    );
   iEvent.put( photons_hcalPFClusterIso  , branchprefix+"hcalPFClusterIso"    );
