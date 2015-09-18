@@ -75,9 +75,7 @@ process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
                             # fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
                             fileNames = cms.untracked.vstring(
-                                'file:/nfs-7/userdata/cwelke/TTTo2L2Nu_13TeV-powheg_MINIAODSIM_Asympt50ns_MCRUN2_74_V9A-v2/04C26C81-A30C-E511-8A0D-B083FED76C6C.root',
-                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/00EFF2EE-E60B-E511-B422-B499BAAC0A22.root",
-                                "file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTTo2L2Nu_13TeV-powheg/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v2/60000/02C1F466-EE0B-E511-877D-00074305CC91.root",
+                                'file:/nfs-6/userdata/cwelke/reminiAOD_Version2/miniAOD-TTJets_madgraphMLM_25ns-40k_PAT.root',
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )

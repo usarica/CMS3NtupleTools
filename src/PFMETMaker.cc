@@ -115,17 +115,17 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if( onlySaveTwoVector_ ){
     *evt_pfmet        = ( met_h->front() ).pt();
     *evt_pfmetPhi     = ( met_h->front() ).phi();
-    *evt_pfmet_raw    = ( met_h->front() ).shiftedPt( pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
-    *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *evt_pfmet_raw    = ( met_h->front() ).shiftedPt( pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+    *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
   }else{
     *evt_pfmet    = ( met_h->front() ).pt();
     *evt_pfmetPhi = ( met_h->front() ).phi();
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
 
-    *evt_pfmet_raw    = ( met_h->front() ).shiftedPt(   pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
-    *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(  pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
-    *evt_pfsumet_raw  = ( met_h->front() ).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METUncertaintyLevel::Raw);
+    *evt_pfmet_raw    = ( met_h->front() ).shiftedPt(   pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+    *evt_pfmetPhi_raw = ( met_h->front() ).shiftedPhi(  pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+    *evt_pfsumet_raw  = ( met_h->front() ).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
     
     if ( !isData_ ) {
       *gen_met      = ( genmet_h->front()).genMET()->pt();

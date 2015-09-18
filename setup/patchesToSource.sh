@@ -6,18 +6,6 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-# #############
-# # MET tools #
-# #############
-
-mkdir $CMSSW_BASE/previous_code
-mv $CMSSW_BASE/src/* $CMSSW_BASE/previous_code/
-pushd $CMSSW_BASE/src/
-git cms-merge-topic -u cms-met:METCorUnc74X
-mv $CMSSW_BASE/previous_code/* $CMSSW_BASE/src/
-popd
-rmdir $CMSSW_BASE/previous_code
-
 #############
 # MVA JetId #
 #############
