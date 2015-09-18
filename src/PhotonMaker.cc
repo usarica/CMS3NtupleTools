@@ -648,7 +648,17 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  v_PFCand_idx.push_back(ref.key());
 	photons_PFCand_idx->push_back(v_PFCand_idx);
 
- 	if (photon->r9()>0.8 || photon->chargedHadronIso()<20 || photon->chargedHadronIso()<0.3*photon->p4().pt()) {
+
+	//This is a fix for accessing SC information in reminiAOD_V2
+	int numberOfClusters =  photon->superCluster()->clusters().size();
+	bool missing_clusters = false;
+	if( numberOfClusters > 0 ) missing_clusters = !photon->superCluster()->clusters()[numberOfClusters-1].isAvailable();
+	  
+	int numberOfPSClusters =  photon->superCluster()->preshowerClusters().size();
+	bool missing_PSclusters = false;
+	if( numberOfPSClusters > 0 ) missing_PSclusters = !photon->superCluster()->preshowerClusters()[numberOfPSClusters-1].isAvailable();
+
+	if( !(missing_clusters || missing_PSclusters) && (photon->r9()>0.8 || photon->chargedHadronIso()<20 || photon->chargedHadronIso()<0.3*photon->p4().pt()) ){
 
 	  const int N_ECAL = photon->superCluster()->clustersEnd() - photon->superCluster()->clustersBegin();
 	  const int N_PS   = photon->superCluster()->preshowerClustersEnd() - photon->superCluster()->preshowerClustersBegin();

@@ -1055,22 +1055,21 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_e2x5Max_full5x5        ->push_back( el->full5x5_e2x5Max()         );
 
 
-        ///////////////////////////////////////////////////////
-        // Get cluster info that is not stored in the object //
-        ///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	// Get cluster info that is not stored in the object //
+	///////////////////////////////////////////////////////
 
-	if (el->p4().pt() > 5) {
 
-	  //This is a fix for accessing SC information in reminiAOD_V2
-	  int numberOfClusters =  el->superCluster()->clusters().size();
-	  bool missing_clusters = false;
-	  if( numberOfClusters > 0 ) missing_clusters = !el->superCluster()->clusters()[numberOfClusters-1].isAvailable();
+	//This is a fix for accessing SC information in reminiAOD_V2
+	int numberOfClusters =  el->superCluster()->clusters().size();
+	bool missing_clusters = false;
+	if( numberOfClusters > 0 ) missing_clusters = !el->superCluster()->clusters()[numberOfClusters-1].isAvailable();
 	  
-	  int numberOfPSClusters =  el->superCluster()->preshowerClusters().size();
-	  bool missing_PSclusters = false;
-	  if( numberOfPSClusters > 0 ) missing_PSclusters = !el->superCluster()->preshowerClusters()[numberOfPSClusters-1].isAvailable();
+	int numberOfPSClusters =  el->superCluster()->preshowerClusters().size();
+	bool missing_PSclusters = false;
+	if( numberOfPSClusters > 0 ) missing_PSclusters = !el->superCluster()->preshowerClusters()[numberOfPSClusters-1].isAvailable();
 
-	  if( missing_clusters || missing_PSclusters ) continue;
+	if( !(missing_clusters || missing_PSclusters) && (el->p4().pt() > 5) ){
 
 	  const int N_ECAL = el->superCluster()->clustersEnd() - el->superCluster()->clustersBegin();
 	  const int N_PS   = el->superCluster()->preshowerClustersEnd() - el->superCluster()->preshowerClustersBegin();
