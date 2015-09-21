@@ -32,7 +32,7 @@ process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True
 
 #Output
 process.out = cms.OutputModule("PoolOutputModule",
-  fileName     = cms.untracked.string('ntuple.root'),
+  fileName     = cms.untracked.string('ntuple_promptdata_test.root'),
   dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath = cms.EndPath(process.out)
@@ -76,13 +76,13 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/PromptReco-v1/000/251/162/00000/12284DB9-4227-E511-A438-02163E013674.root')
+  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015D/DoubleEG/MINIAOD/PromptReco-v3/000/256/728/00000/8A63A81B-3F5F-E511-8A28-02163E0128CE.root')
                             # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 #Run corrected MET maker
 
@@ -130,7 +130,6 @@ if not useHFCandidates:
 ### =================================================================================
 
 from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-
 
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
 #for a full met computation, remove the pfCandColl input
@@ -211,3 +210,7 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(True)
 process.pfmetMaker.isData                        = process.eventMaker.isData
 
+
+# redefine
+process.slimmedMETs.t01Variation = cms.InputTag("slimmedMETs","",configProcessName.name)
+process.slimmedMETsNoHF.t01Variation = cms.InputTag("slimmedMETsNoHF","",configProcessName.name)
