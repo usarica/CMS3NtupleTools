@@ -24,7 +24,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "MCRUN2_74_V9A"
+process.GlobalTag.globaltag = "MCRUN2_74_V9"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -75,7 +75,7 @@ process.source = cms.Source("PoolSource",
                             #fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
                             # fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
                             fileNames = cms.untracked.vstring(
-                                'file:/nfs-6/userdata/cwelke/reminiAOD_Version2/miniAOD-TTJets_madgraphMLM_25ns-40k_PAT.root',
+                                'file:/nfs-6/userdata/cwelke/reminiAOD_Version2/miniAOD-WJetsToLNu-50ns-40k_PAT.root',
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -98,7 +98,7 @@ applyResiduals=False #application of residual corrections. Have to be set to Tru
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV4_MC"
+    era="Summer15_25nsV5_MC"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
@@ -198,6 +198,8 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.pfmetNoHFMaker *
+  process.pfmetpuppiMaker *
   process.T1pfmetMaker *
   process.T1pfmetNoHFMaker *
   process.hltMakerSequence *

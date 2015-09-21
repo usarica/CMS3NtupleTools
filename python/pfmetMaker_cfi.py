@@ -7,6 +7,18 @@ pfmetMaker = cms.EDProducer("PFMETMaker",
                             onlySaveTwoVector   = cms.bool(False)
 )
 
+pfmetNoHFMaker = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_NoHF"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsNoHF","",configProcessName.name),
+                            onlySaveTwoVector   = cms.bool(False)
+)
+
+pfmetpuppiMaker = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_puppi"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsPuppi","",configProcessName.name),
+                            onlySaveTwoVector   = cms.bool(False)
+)
+
 # this module gets the jets used by the MET tool box to recalculate T1 MET with OTF corrections
 T1pfmetMaker = cms.EDProducer("PFMETMaker",
                               aliasPrefix = cms.untracked.string("evt_METToolbox"),

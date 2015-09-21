@@ -24,7 +24,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v0"
+process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v2"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -76,13 +76,13 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015B/DoubleMuon/MINIAOD/17Jul2015-v1/30000/3226AF16-C22E-E511-B9D7-0025905A613C.root')
+  fileNames = cms.untracked.vstring('file:/nfs-6/userdata/cwelke/reminiAOD_Version2/miniAOD-data-SingleElectron-251252_PAT_job1.root')
                             # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 #Run corrected MET maker
 
@@ -96,7 +96,7 @@ applyResiduals=True  #application of residual corrections. Have to be set to Tru
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV4_DATA"
+    era="Summer15_25nsV3_DATA"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
@@ -189,6 +189,8 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.pfmetNoHFMaker *
+  process.pfmetpuppiMaker *
   process.T1pfmetMaker *
   process.T1pfmetNoHFMaker *
   process.hltMakerSequence *

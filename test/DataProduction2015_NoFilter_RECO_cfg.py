@@ -24,7 +24,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v0"
+process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v2"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -96,7 +96,7 @@ applyResiduals=True #application of residual corrections. Have to be set to True
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_50nsV4_DATA"
+    era="Summer15_25nsV3_DATA"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
@@ -189,6 +189,8 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.pfmetNoHFMaker *
+  process.pfmetpuppiMaker *
   process.T1pfmetMaker *
   process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
