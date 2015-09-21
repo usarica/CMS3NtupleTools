@@ -471,16 +471,18 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //loop over photon collection
   size_t photonsIndex = 0;
+  unsigned int photonsIndexCMS3 = -1;
   View<pat::Photon>::const_iterator photon;
   for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
 	// throw out photons below minEt
 	if (photon->et() < minEt_)
 	  //instead of photon et, use sc et for alignment purposes (?)
 	  continue;
+	photonsIndexCMS3++; // this index is the one for CMS3 variables. Increments with the push_backs below
 
 	// Get photon and track objects
 	const edm::RefToBase<pat::Photon> photonRef = photons_h->refAt(photonsIndex);
-		
+
 	// Lorentz Vectors	
 	photons_p4                 ->push_back( LorentzVector( photon->p4() )    );
 
@@ -543,7 +545,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	//	cout<<" components were: photon->hadTowDepth1OverEm() "<<photon->hadTowDepth1OverEm()<<", photon->hadTowDepth2OverEm() "<<photon->hadTowDepth2OverEm()<<", SCE "<<SCE<<", e5x5noZS "<<e5x5noZS<<endl;
 	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
 	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
-	
+
 	// Isolation  (all 0.3 cone size)
 	photons_ecalIso03          ->push_back(	photon->ecalRecHitSumEtConeDR03() );
 	photons_hcalIso03          ->push_back(	photon->hcalTowerSumEtConeDR03()  );	
@@ -703,11 +705,10 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_scSeedE2x5Right        ->push_back(clusterTools_->e2x5Right(*(photon->superCluster()->seed())));
 	  photons_scSeedE2x5Top          ->push_back(clusterTools_->e2x5Top(*(photon->superCluster()->seed())));
 	  photons_scSeedE2x5Bottom       ->push_back(clusterTools_->e2x5Bottom(*(photon->superCluster()->seed())));
-
-	  photons_scSeedLeftRightAsym    ->push_back((photons_scSeedELeft->at(photonsIndex)+photons_scSeedERight->at(photonsIndex)!=0. ? (photons_scSeedELeft->at(photonsIndex)-photons_scSeedERight->at(photonsIndex))/(photons_scSeedELeft->at(photonsIndex)+photons_scSeedERight->at(photonsIndex)) : 0.));
-	  photons_scSeedTopBottomAsym    ->push_back((photons_scSeedETop->at(photonsIndex)+photons_scSeedEBottom->at(photonsIndex)!=0. ? (photons_scSeedETop->at(photonsIndex)-photons_scSeedEBottom->at(photonsIndex))/(photons_scSeedETop->at(photonsIndex)+photons_scSeedEBottom->at(photonsIndex)) : 0.));
-	  photons_scSeed2x5LeftRightAsym ->push_back((photons_scSeedE2x5Left->at(photonsIndex)+photons_scSeedE2x5Right->at(photonsIndex)!=0. ? (photons_scSeedE2x5Left->at(photonsIndex)-photons_scSeedE2x5Right->at(photonsIndex))/(photons_scSeedE2x5Left->at(photonsIndex)+photons_scSeedE2x5Right->at(photonsIndex)) : 0.));
-	  photons_scSeed2x5TopBottomAsym ->push_back((photons_scSeedE2x5Top->at(photonsIndex)+photons_scSeedE2x5Bottom->at(photonsIndex)!=0. ? (photons_scSeedE2x5Top->at(photonsIndex)-photons_scSeedE2x5Bottom->at(photonsIndex))/(photons_scSeedE2x5Top->at(photonsIndex)+photons_scSeedE2x5Bottom->at(photonsIndex)) : 0.));
+	  photons_scSeedLeftRightAsym    ->push_back((photons_scSeedELeft->at(photonsIndexCMS3)+photons_scSeedERight->at(photonsIndexCMS3)!=0. ? (photons_scSeedELeft->at(photonsIndexCMS3)-photons_scSeedERight->at(photonsIndexCMS3))/(photons_scSeedELeft->at(photonsIndexCMS3)+photons_scSeedERight->at(photonsIndexCMS3)) : 0.));
+	  photons_scSeedTopBottomAsym    ->push_back((photons_scSeedETop->at(photonsIndexCMS3)+photons_scSeedEBottom->at(photonsIndexCMS3)!=0. ? (photons_scSeedETop->at(photonsIndexCMS3)-photons_scSeedEBottom->at(photonsIndexCMS3))/(photons_scSeedETop->at(photonsIndexCMS3)+photons_scSeedEBottom->at(photonsIndexCMS3)) : 0.));
+	  photons_scSeed2x5LeftRightAsym ->push_back((photons_scSeedE2x5Left->at(photonsIndexCMS3)+photons_scSeedE2x5Right->at(photonsIndexCMS3)!=0. ? (photons_scSeedE2x5Left->at(photonsIndexCMS3)-photons_scSeedE2x5Right->at(photonsIndexCMS3))/(photons_scSeedE2x5Left->at(photonsIndexCMS3)+photons_scSeedE2x5Right->at(photonsIndexCMS3)) : 0.));
+	  photons_scSeed2x5TopBottomAsym ->push_back((photons_scSeedE2x5Top->at(photonsIndexCMS3)+photons_scSeedE2x5Bottom->at(photonsIndexCMS3)!=0. ? (photons_scSeedE2x5Top->at(photonsIndexCMS3)-photons_scSeedE2x5Bottom->at(photonsIndexCMS3))/(photons_scSeedE2x5Top->at(photonsIndexCMS3)+photons_scSeedE2x5Bottom->at(photonsIndexCMS3)) : 0.));
 
 	  std::vector<float> vCov  = clusterTools_->localCovariances(*(photon->superCluster()->seed()));
 	  
@@ -759,7 +760,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	    photons_scSeedCryIeta        ->push_back(0);
 	    photons_scSeedCryIphi        ->push_back(0);
 	  }
-	  
+
 	  ///////////////////////////////////
 	  // Information about subclusters //
 	  ///////////////////////////////////
@@ -812,7 +813,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	      partialsum_photons_clusterMaxDRDEta = partial_photons_clusterDEtaToSeed[iclus];
 	      partialsum_photons_clusterMaxDRRawEnergy = partial_photons_clusterRawEnergy[iclus];
 	    }
-	  
+
 	    partialsum_photons_subclustersRawEnergy += (*clus)->energy();
 	    partialsum_photons_clustersMeanDRToSeed   = reco::deltaR(*(*clus), *(photon->superCluster()->seed()))*(*clus)->energy();
 	    partialsum_photons_clustersMeanDEtaToSeed = ((*clus)->eta() - photon->superCluster()->seed()->eta())*(*clus)->energy();
@@ -822,9 +823,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	    partial_photons_clusterInDynDPhi.push_back((int) reco::MustacheKernel::inDynamicDPhiWindow(photon->superCluster()->seed()->hitsAndFractions().at(0).first.subdetId()==EcalBarrel,photon->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
 	    ++iclus;
 	  }
-				       
-	  partialsum_photons_clustersMeanRawEnergy /= (double)(photons_N_ECALClusters->at(photonsIndex)+1);
-	  partialsum_photons_clustersMeanSquareRawEnergy /= (double)(photons_N_ECALClusters->at(photonsIndex)+1);
+
+	  partialsum_photons_clustersMeanRawEnergy /= (double)(photons_N_ECALClusters->at(photonsIndexCMS3)+1);
+	  partialsum_photons_clustersMeanSquareRawEnergy /= (double)(photons_N_ECALClusters->at(photonsIndexCMS3)+1);
 	  partialsum_photons_clustersRMSRawEnergy = sqrt(partialsum_photons_clustersMeanSquareRawEnergy - partialsum_photons_clustersMeanRawEnergy*partialsum_photons_clustersMeanRawEnergy);
 
 	  if(partialsum_photons_subclustersRawEnergy>0.) {
@@ -940,7 +941,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_psClusterRawEnergy     ->push_back(vector<float>{-999.});
 	  photons_psClusterEta           ->push_back(vector<float>{-999.});
 	  photons_psClusterPhi           ->push_back(vector<float>{-999.});
-    
+
 	  photons_isEB                   ->push_back(-999);
 	}
 
