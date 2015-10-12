@@ -24,7 +24,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "MCRUN2_74_V9"
+process.GlobalTag.globaltag = "74X_mcRun2_asymptotic_v2"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -72,10 +72,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-                            #fileNames = cms.untracked.vstring('file:///home/users/gzevi/ntupling/CMSSW_7_4_1/src/CMS3/NtupleMaker/QCD_Pt_1400to1800_Asympt50ns_MCRUN2_74_V9A-v1.root')
-                            # fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/mc/RunIISpring15DR74/TTJets_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/Asympt50ns_MCRUN2_74_V9A-v1/00000/20AD8065-31FD-E411-9D75-00259073E2F2.root')
                             fileNames = cms.untracked.vstring(
-                                'file:/nfs-6/userdata/cwelke/reminiAOD_Version2/miniAOD-WJetsToLNu-50ns-40k_PAT.root',
+                                'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
