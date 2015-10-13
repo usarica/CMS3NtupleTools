@@ -45,6 +45,7 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig){
   produces<vector<int> >           (branchprefix+"IdAssociatedPV"       ).setBranchAlias(aliasprefix_+"_IdAssociatedPV"       );
   produces<vector<float> >         (branchprefix+"dzAssociatedPV"       ).setBranchAlias(aliasprefix_+"_dzAssociatedPV"       );
   produces<vector<float> >         (branchprefix+"puppiWeight"          ).setBranchAlias(aliasprefix_+"_puppiWeight"          );
+  produces<vector<float> >         (branchprefix+"puppiWeightNoLep"     ).setBranchAlias(aliasprefix_+"_puppiWeightNoLep"     );
 
   produces<float>                  ("evtfixgridrhoctr" ).setBranchAlias("evt_fixgrid_rho_ctr");
   produces<float>                  ("evtfixgridrhofwd" ).setBranchAlias("evt_fixgrid_rho_fwd");
@@ -70,6 +71,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<int> >            pfcands_IdAssociatedPV      (new vector<int>           );
   auto_ptr<vector<float> >          pfcands_dzAssociatedPV      (new vector<float>         );
   auto_ptr<vector<float> >          pfcands_puppiWeight         (new vector<float>         );
+  auto_ptr<vector<float> >          pfcands_puppiWeightNoLep    (new vector<float>         );
 
   auto_ptr<float >                  evt_fixgrid_rho_ctr      (new float               );
   auto_ptr<float >                  evt_fixgrid_rho_fwd      (new float               );
@@ -101,6 +103,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     pfcands_particleId       -> push_back( pf_it->pdgId()            );
     pfcands_fromPV           -> push_back( pf_it->fromPV()           );
 	pfcands_puppiWeight      -> push_back( pf_it->puppiWeight()      );
+	pfcands_puppiWeightNoLep -> push_back( pf_it->puppiWeightNoLep() );
     pfcands_isStandAloneMuon -> push_back( pf_it->isStandAloneMuon() );
     pfcands_isGlobalMuon     -> push_back( pf_it->isGlobalMuon()     );
   }//loop over candidate collection
@@ -140,6 +143,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.put(pfcands_IdAssociatedPV       , branchprefix+"IdAssociatedPV"      );
   iEvent.put(pfcands_dzAssociatedPV       , branchprefix+"dzAssociatedPV"      );
   iEvent.put(pfcands_puppiWeight          , branchprefix+"puppiWeight"         );
+  iEvent.put(pfcands_puppiWeightNoLep     , branchprefix+"puppiWeightNoLep"    );
 
   iEvent.put(evt_fixgrid_rho_ctr      , "evtfixgridrhoctr");
   iEvent.put(evt_fixgrid_rho_fwd      , "evtfixgridrhofwd");

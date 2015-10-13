@@ -63,6 +63,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
   produces<vector<float> >         ( branchprefix+"area"                             ).setBranchAlias( aliasprefix_+"_area"                             );
   produces<vector<float> >         ( branchprefix+"pileupJetId"                      ).setBranchAlias( aliasprefix_+"_pileupJetId"                      );
   produces<vector<int> >           ( branchprefix+"partonFlavour"                    ).setBranchAlias( aliasprefix_+"_partonFlavour"                    );
+  produces<vector<int> >           ( branchprefix+"hadronFlavour"                    ).setBranchAlias( aliasprefix_+"_hadronFlavour"                    );
 
   // Embedded b-tagging information (miniAOD only)
   produces<vector<float> >         (branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag" ).setBranchAlias(aliasprefix_+"_pfCombinedInclusiveSecondaryVertexV2BJetTag");
@@ -155,6 +156,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
   auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
   auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
+  auto_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
 
   auto_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
   auto_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
@@ -202,6 +204,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if ( pfjet_it->hasUserFloat("fullDiscriminant") ) pileupJetId = pfjet_it->userFloat("fullDiscriminant");
     pfjets_pileupJetId               ->push_back( pileupJetId                          );
     pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
+    pfjets_hadronFlavour             ->push_back(pfjet_it->hadronFlavour()             );
 
     //
     int idx = pfjet_it - pfJetsHandle->begin();
@@ -272,6 +275,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_area                      , branchprefix+"area"                      );
   iEvent.put(pfjets_pileupJetId               , branchprefix+"pileupJetId"               );
   iEvent.put(pfjets_partonFlavour             , branchprefix+"partonFlavour"             );
+  iEvent.put(pfjets_hadronFlavour             , branchprefix+"hadronFlavour"             );
 
   iEvent.put(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag, branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
   iEvent.put(pfjets_bDiscriminatorNames                                    , branchprefix+"bDiscriminatorNames"     );
