@@ -2,7 +2,7 @@
 
 ###Installation
 1.  curl https://raw.githubusercontent.com/cmstas/NtupleMaker/master/install.sh > install.sh
-2.  Specify the global tag and CMS3 tag you want to use at the top of install.sh.  
+2.  Specify the CMSSW_release and CMS3 tag you want to use at the top of install.sh.  
 3.  source install.sh
 
 ###How to develop
