@@ -78,7 +78,7 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     if(pf_it->charge() == 0) continue;
     if(fabs(pf_it->dz()) > isotrack_dz_cut_) continue;
   
-    bool isPFLep = (pf_it->pdgId() == 11 || pf_it->pdgId() == 13);
+    bool isPFLep = (fabs(pf_it->pdgId()) == 11 || fabs(pf_it->pdgId()) == 13);
     if( isPFLep && pf_it->pt() < pflep_pt_cut_) continue;
     if( !isPFLep && pf_it->pt() < pfhad_pt_cut_) continue;
 
