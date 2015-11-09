@@ -217,5 +217,5 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
-process.sParmMaker.vsparms                       = cms.untracked.vstring("mGluino", "mLSP")
-process.p.insert( -1, process.sParmMakerSequence )
+#process.sParmMaker.vsparms                       = cms.untracked.vstring("mGluino", "mLSP")
+#process.p.insert( -1, process.sParmMakerSequence )
