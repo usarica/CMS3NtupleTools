@@ -3,7 +3,8 @@ from Configuration.EventContent.EventContent_cff   import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
-configProcessName.isFastSim=False
+configProcessName.fastSimName="HLT"
+configProcessName.isFastSim=True
 
 # CMS3
 process = cms.Process("CMS3")
@@ -25,7 +26,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_mcRun2_asymptotic_v2"
+process.GlobalTag.globaltag = "MCRUN2_74_V9"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -74,13 +75,13 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-                                'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
+                                'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/80000/68A49080-8674-E511-8DBF-0025905AF57C.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
@@ -89,7 +90,7 @@ process.out.outputCommands = cms.untracked.vstring( 'keep *' )
 
 #configurable options =======================================================================
 runOnData=False #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
+usePrivateSQlite=False #use external JECs (sqlite file)
 useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
@@ -97,7 +98,7 @@ applyResiduals=False #application of residual corrections. Have to be set to Tru
 if usePrivateSQlite:
     from CondCore.DBCommon.CondDBSetup_cfi import *
     import os
-    era="Summer15_25nsV5_MC"
+    era="Summer15_25nsV2_MC"
     process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
                                connect = cms.string( "sqlite_file:"+era+".db" ),
                                toGet =  cms.VPSet(
@@ -177,9 +178,8 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'
 process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS3*'))
 process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS3*'))
 
-
 process.p = cms.Path( 
-  process.metFilterMaker *
+  # process.metFilterMaker *
   process.hcalNoiseSummaryMaker *
   process.egmGsfElectronIDSequence *     
   process.beamSpotMaker *
@@ -197,8 +197,6 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.pfmetNoHFMaker *
-  process.pfmetpuppiMaker *
   process.T1pfmetMaker *
   process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
@@ -219,3 +217,5 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
+process.sParmMaker.vsparms                       = cms.untracked.vstring("mGluino", "mLSP")
+process.p.insert( -1, process.sParmMakerSequence )

@@ -1,5 +1,6 @@
 #Contains the core CMS2 makers. Does not contain Gen or PAT makers
 import FWCore.ParameterSet.Config as cms
+import CMS3.NtupleMaker.configProcessName as configProcessName
 
 from CMS3.NtupleMaker.beamSpotMaker_cfi            import *
 from CMS3.NtupleMaker.pftauMaker_cfi               import *
@@ -19,5 +20,6 @@ from CMS3.NtupleMaker.pfJetMaker_cfi               import *
 from CMS3.NtupleMaker.subJetMaker_cfi              import *
 from CMS3.NtupleMaker.muToTrigAssMaker_cfi         import *
 from CMS3.NtupleMaker.elToTrigAssMaker_cfi         import *
-from CMS3.NtupleMaker.metFilterMaker_cfi           import *
+if configProcessName.isFastSim == False:
+  from CMS3.NtupleMaker.metFilterMaker_cfi           import *
 from CMS3.NtupleMaker.sParmMaker_cff               import * # doesn't always get loaded
