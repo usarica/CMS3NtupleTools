@@ -55,6 +55,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
   kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
+  LHEInputTag_ =               iConfig.getParameter<InputTag>                   ("LHEInputTag" );
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"              );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"       );
@@ -204,18 +205,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
 
   Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByLabel("externalLHEProducer", LHEEventInfo); 
-  if (LHEEventInfo.isValid()){
-    vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
-    for (unsigned int i = 0; i < weightsTemp.size(); i++){
-       genweights->push_back(weightsTemp.at(i).wgt);
-       genweightsID->push_back(weightsTemp.at(i).id);
-    }
+  iEvent.getByLabel(LHEInputTag_, LHEEventInfo); 
+  //if (LHEEventInfo.isValid()){
+  vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+  for (unsigned int i = 0; i < weightsTemp.size(); i++){
+    genweights->push_back(weightsTemp.at(i).wgt);
+    genweightsID->push_back(weightsTemp.at(i).id);
   }
-  else {
-    genweights->push_back(-999999); 
-    genweightsID->push_back("noneFound"); 
-  }
+  // }
+  // else {
+  //   genweights->push_back(-999999); 
+  //   genweightsID->push_back("noneFound"); 
+  // }
 
   HepMC::WeightContainer wc;
 
