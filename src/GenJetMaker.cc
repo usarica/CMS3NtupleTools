@@ -29,9 +29,6 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
-#include "DataFormats/JetReco/interface/GenJet.h"
-
 #include "CMS3/NtupleMaker/interface/GenJetMaker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -52,7 +49,7 @@ GenJetMaker::GenJetMaker(const edm::ParameterSet& iConfig)
   produces<std::vector<LorentzVector> > ("genjetsp4"+aliaspostfix_).setBranchAlias("genjets_p4"+aliaspostfix_); // p4 of the jet
 
   // parameters from configuration
-  genJetsInputTag = iConfig.getParameter<edm::InputTag>("genJetsInputTag");
+  genJetsToken = consumes<edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("genJetsInputTag"));
   genJetMinPtCut  = iConfig.getParameter<double>       ("genJetMinPtCut" );
 }
 
@@ -67,7 +64,7 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   // get GenJet Collection
   edm::Handle<edm::View<reco::GenJet> > genJets;
-  iEvent.getByLabel(genJetsInputTag, genJets);
+  iEvent.getByToken(genJetsToken, genJets);
 
   if ( !genJets.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen jets collection";

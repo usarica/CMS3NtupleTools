@@ -32,9 +32,6 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-
 #include "CMS3/NtupleMaker/interface/PDFInfoMaker.h"
 
 using namespace edm;
@@ -46,8 +43,8 @@ using namespace std;
 
 PDFInfoMaker::PDFInfoMaker(const edm::ParameterSet& iConfig) {
 
-  genEventInfoInputTag_ = iConfig.getParameter<std::string>("genEventInfoInputTag");
-  hepmcHandle_          = iConfig.getParameter<std::string>("hepmcHandle");
+  genEventInfoToken = consumes<GenEventInfoProduct>(iConfig.getParameter<std::string>("genEventInfoInputTag"));
+  hepmcToken = consumes<edm::HepMCProduct>(iConfig.getParameter<std::string>("hepmcHandle"));
   
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
@@ -92,11 +89,11 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //get the GenEventInfoProduct
   Handle<GenEventInfoProduct> hEvtInfo;
-  iEvent.getByLabel(genEventInfoInputTag_, hEvtInfo);
+  iEvent.getByToken(genEventInfoToken, hEvtInfo);
 
   // get MC particle collection
   edm::Handle<edm::HepMCProduct> hepmcHandle;
-  iEvent.getByLabel( hepmcHandle_, hepmcHandle ); 
+  iEvent.getByToken( hepmcToken, hepmcHandle ); 
 
   const HepMC::GenEvent* evt = 0;
   const HepMC::PdfInfo* pdfinfo = 0;

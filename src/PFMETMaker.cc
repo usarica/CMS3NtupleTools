@@ -29,8 +29,6 @@
 
 #include "CMS3/NtupleMaker/interface/PFMETMaker.h"
 
-#include "DataFormats/METReco/interface/PFMET.h"
-#include "DataFormats/PatCandidates/interface/MET.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -66,7 +64,7 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> ("genmetPhi"                   ).setBranchAlias("gen_metPhi"                 );
   }
   
-  pfMetInputTag = iConfig.getParameter<edm::InputTag>("pfMetInputTag_");
+  pfMetToken = consumes<edm::View<pat::MET> >(iConfig.getParameter<edm::InputTag>("pfMetInputTag_"));
 
 }
 
@@ -96,7 +94,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_calometPhi    (new float   );
   
   edm::Handle<edm::View<pat::MET> > met_h;
-  iEvent.getByLabel(pfMetInputTag, met_h);
+  iEvent.getByToken(pfMetToken, met_h);
 
   isData_ = iEvent.isRealData();
 
@@ -105,7 +103,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   }
 
   edm::Handle<edm::View<pat::MET> > genmet_h;
-  iEvent.getByLabel(pfMetInputTag, genmet_h);
+  iEvent.getByToken(pfMetToken, genmet_h);
     
 
   if( !isData_ && !genmet_h.isValid() ) {

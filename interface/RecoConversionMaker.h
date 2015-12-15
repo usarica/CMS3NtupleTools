@@ -29,6 +29,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Math/interface/Point3D.h"
 
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
 #include "DataFormats/EgammaCandidates/interface/Conversion.h"
 
 //
@@ -47,8 +48,8 @@ private:
       
   // ----------member data ---------------------------
   std::string   aliasprefix_;
-  edm::InputTag recoConversionInputTag_;
-  edm::InputTag beamSpotInputTag_;
+  edm::EDGetTokenT<reco::BeamSpot> beamSpotToken;
+  edm::EDGetTokenT<edm::View<reco::Conversion> > recoConversionToken;
   
 
 

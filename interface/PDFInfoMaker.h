@@ -29,6 +29,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+
 //
 // class decleration
 //
@@ -45,8 +48,9 @@ private:
 
   // ----------member data ---------------------------
   std::string genEventInfoInputTag_;
+  edm::EDGetTokenT<GenEventInfoProduct> genEventInfoToken;
+  edm::EDGetTokenT<edm::HepMCProduct> hepmcToken;
   std::string aliasprefix_;
-  std::string hepmcHandle_;
 };
 
 #endif

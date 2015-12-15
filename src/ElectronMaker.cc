@@ -58,8 +58,6 @@
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "MagneticField/Engine/interface/MagneticField.h"
 
-#include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
-#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 #include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
 #include "RecoEcal/EgammaCoreTools/interface/Mustache.h"
 
@@ -75,7 +73,6 @@ using namespace reco;
 using namespace edm;
 using namespace std;
 
-typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 typedef Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
 typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
@@ -89,14 +86,15 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronMediumIdMap"));
     electronTightIdMapToken_  = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronTightIdMap"));
 
-    electronsInputTag_           = iConfig.getParameter<edm::InputTag> ("electronsInputTag"            );
-    beamSpotInputTag_            = iConfig.getParameter<edm::InputTag> ("beamSpotInputTag"             );
+    electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
+    vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
+    pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
+    bFieldToken  = consumes<float>(iConfig.getParameter<edm::InputTag>("bFieldInputTag"));
+    beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
     trksInputTag_                = iConfig.getParameter<edm::InputTag> ("trksInputTag"                 );
     gsftracksInputTag_           = iConfig.getParameter<edm::InputTag> ("gsftracksInputTag"            );
     cms2scsseeddetidInputTag_    = iConfig.getParameter<edm::InputTag> ("cms2scsseeddetidInputTag"     );
     eidLHTag_                    = iConfig.getParameter<edm::InputTag> ("eidLHTag"                     );
-    pfCandsInputTag              = iConfig.getParameter<edm::InputTag> ("pfCandsInputTag"              );
-    vtxInputTag                  = iConfig.getParameter<edm::InputTag> ("vtxInputTag"                  );
     ebReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("ebReducedRecHitCollectionTag" );
     eeReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("eeReducedRecHitCollectionTag" );
     esReducedRecHitCollectionTag = iConfig.getParameter<edm::InputTag> ("esReducedRecHitCollectionTag" );
@@ -112,7 +110,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     eeReducedRecHitCollection = mayConsume<EcalRecHitCollection>(eeReducedRecHitCollectionTag);
     esReducedRecHitCollection = mayConsume<EcalRecHitCollection>(esReducedRecHitCollectionTag);
 
-    recoConversionInputTag_   = iConfig.getParameter<edm::InputTag> ("recoConversionInputTag"   );
+    recoConversionToken = consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("recoConversionInputTag"));
     rhoInputTag_              = iConfig.getParameter<edm::InputTag> ("rhoInputTag"              );
     beamSpot_tag_             = iConfig.getParameter<edm::InputTag> ("beamSpotTag"              );
 
@@ -732,7 +730,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////////
 
     Handle<float> evt_bField_h;
-    iEvent.getByLabel("eventMaker", "evtbField", evt_bField_h);
+    iEvent.getByToken(bFieldToken, evt_bField_h);
     if( !evt_bField_h.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting bfield from Event!");
     }
@@ -744,7 +742,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////
 
     Handle<View<pat::Electron> > els_h;
-    iEvent.getByLabel(electronsInputTag_, els_h);
+    iEvent.getByToken(electronsToken, els_h);
     if( !els_h.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
     }
@@ -759,7 +757,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Cands //
     //////////////
 
-     iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+     iEvent.getByToken(pfCandsToken, packPfCand_h);
       if( !packPfCand_h.isValid() ) {
         throw cms::Exception("ElectronMaker::produce: error getting packed pfcands from Event!");
       }
@@ -787,7 +785,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Vertex //
     ////////////
 
-    iEvent.getByLabel(vtxInputTag, vertexHandle);
+    iEvent.getByToken(vtxToken, vertexHandle);
     if( !vertexHandle.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
     }
@@ -796,7 +794,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Conversions //
     /////////////////
     
-    iEvent.getByLabel(recoConversionInputTag_, convs_h);
+    iEvent.getByToken(recoConversionToken, convs_h);
     if( !convs_h.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting conversion collection");
     }
@@ -824,9 +822,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Beamspot //
     //////////////
 
-    InputTag beamSpot_tag(beamSpotInputTag_.label(),"evtbsp4");
     Handle<LorentzVector> beamSpotH;
-    iEvent.getByLabel(beamSpot_tag, beamSpotH);
+    iEvent.getByToken(beamSpotToken, beamSpotH);
     const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
 
     //Handle<reco::BeamSpot> beamspot_h;

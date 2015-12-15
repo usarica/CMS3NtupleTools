@@ -6,9 +6,24 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
+<<<<<<< HEAD
 #############
 # MVA JetId #
 #############
+=======
+# #############
+# # MET tools #
+# #############
+
+pushd $CMSSW_BASE/src/
+git cms-addpkg PhysicsTools/PatUtils
+sed -i '147s/potsfix/postfix/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+popd
+
+##############
+## MVA JetId #
+##############
+>>>>>>> master
  
 git clone https://github.com/latinos/UserCode-CMG-CMGTools-External $CMSSW_BASE/src/CMGTools/External
 pushd $CMSSW_BASE/src/CMGTools/External
@@ -17,15 +32,15 @@ rm plugins/PileupJetIdProducer.cc
 popd
 
 
-#######################
-# LCG dictionaries #
-#######################
+# #######################
+# # LCG dictionaries #
+# #######################
 
 git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionaries
 
-####################
-# jet tool box     #
-####################
+# ####################
+# # jet tool box     #
+# ####################
 
 git clone https://github.com/cms-jet/JetToolbox $CMSSW_BASE/src/JMEAnalysis/JetToolbox -b jetToolbox_74X
 pushd $CMSSW_BASE/src/JMEAnalysis/JetToolbox

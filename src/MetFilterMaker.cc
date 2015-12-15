@@ -24,8 +24,10 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     //
     aliasprefix_     = iConfig.getUntrackedParameter<string>("aliasPrefix");
     branchprefix_    = aliasprefix_;
-    filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
     processName_     = iConfig.getUntrackedParameter<string> ("processName" );
+    filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
+    filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_)
+);
 
     //
     produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
@@ -81,7 +83,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // Assign MET Filters //
   ////////////////////////
   
-  iEvent.getByLabel(edm::InputTag(filtersInputTag_.label(), "", processName_), metFilterResultsH_);
+  iEvent.getByToken(filtersToken, metFilterResultsH_);
   if (! metFilterResultsH_.isValid())
     throw cms::Exception("MetFilterMaker::produce: error getting TriggerResults_PAT product from Event!");
   

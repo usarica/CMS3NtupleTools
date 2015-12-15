@@ -61,7 +61,6 @@ Implementation:
 // typedefs //
 //////////////
 
-typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
 
@@ -92,9 +91,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   // Input Parameters //
   //////////////////////
 
-  muonsInputTag    = iConfig.getParameter<InputTag> ("muonsInputTag"   );
-  beamSpotInputTag = iConfig.getParameter<InputTag> ("beamSpotInputTag");
-  pfCandsInputTag  = iConfig.getParameter<InputTag> ("pfCandsInputTag" );
+  muonsToken    = consumes<View<pat::Muon> >(iConfig.getParameter<InputTag> ("muonsInputTag"   ));
+  beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
+  pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<InputTag> ("pfCandsInputTag" ));
   vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
   tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
   //src_             = iConfig.getParameter<InputTag> ("cosmicCompat"    ); 
@@ -816,7 +815,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////
 
   Handle<View<pat::Muon> > muon_h;
-  iEvent.getByLabel( muonsInputTag , muon_h );
+  iEvent.getByToken( muonsToken , muon_h );
 
   /////////////////////////////////
   // Get Muon Shower Information //
@@ -854,7 +853,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////////////
 
   //iEvent.getByLabel( pfCandsInputTag , pfCand_h );
-  iEvent.getByLabel(pfCandsInputTag, packPfCand_h);
+  iEvent.getByToken(pfCandsToken, packPfCand_h);
   pfCandidates  = packPfCand_h.product();
 
 
@@ -862,9 +861,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   // Get BeamSpot from BeamSpotMaker //
   /////////////////////////////////////
 
-  InputTag beamSpot_tag( beamSpotInputTag.label(), "evtbsp4" );
   Handle<LorentzVector> beamSpotH;
-  iEvent.getByLabel( beamSpot_tag, beamSpotH );
+  iEvent.getByToken(beamSpotToken, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0,0,0);
   //std::cout << __LINE__ <<"Get beamspot in muonMaker" <<std::endl;
   

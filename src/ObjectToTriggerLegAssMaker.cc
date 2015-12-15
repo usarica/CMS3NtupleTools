@@ -27,7 +27,6 @@ Implementation:
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
 #include "CMS3/NtupleMaker/interface/ObjectToTriggerLegAssMaker.h"
@@ -42,10 +41,14 @@ ObjectToTriggerLegAssMaker::ObjectToTriggerLegAssMaker(const edm::ParameterSet& 
 
     // get configuration from event
     cone_               = iConfig.getUntrackedParameter<double>("cone");
-    objectInputTag_     = iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag");
+    objectToken = consumes<std::vector<LorentzVector> >(iConfig.getUntrackedParameter<edm::InputTag>("objectInputTag"));
     triggers_           = iConfig.getUntrackedParameter<std::vector<edm::InputTag> >("triggers");
     processName_        = iConfig.getUntrackedParameter<std::string>("processName");
-    triggerObjectsName_ = iConfig.getUntrackedParameter<std::string>("triggerObjectsName");
+
+    triggerResultsToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",       "", processName_));
+
+    triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
+    triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<std::string>("triggerObjectsName"));
 
     // get the branch prefix and remove spurious _s
     std::string aliasprefix = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
@@ -90,7 +93,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     //
 
     edm::Handle<std::vector<LorentzVector> > obj_p4_h;
-    iEvent.getByLabel(objectInputTag_, obj_p4_h);  
+    iEvent.getByToken(objectToken, obj_p4_h);  
     if( !obj_p4_h.isValid() ) {
       throw cms::Exception("ObjectToTriggerLegAssMaker::produce: error getting obj_p4_h from Event!");
     }
@@ -114,14 +117,14 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
 //AOD        hltConfig_.init(iEvent.getRun(), iSetup, processName_, changed);
 //AOD    }
 
-    iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+    iEvent.getByToken(triggerResultsToken, triggerResultsH_);
     if (! triggerResultsH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
     triggerNames_ = iEvent.triggerNames(*triggerResultsH_);
     // find versions for the triggers requested
     getTriggerVersions(triggers_, triggerVersions_);
 
-    iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+    iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
     if (! triggerPrescalesH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 
@@ -132,7 +135,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     // online objects for all triggers
 //AOD    const trigger::TriggerObjectCollection &allObjects = triggerEvent_->getObjects();
     
-    iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
+    iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
     if (! triggerObjectStandAlonesH_.isValid())
       throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
     const pat::TriggerObjectStandAloneCollection * allObjects = triggerObjectStandAlonesH_.product();
@@ -305,13 +308,16 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
     for (unsigned int t = 0; t < trigNames.size(); ++t) {
         TString trigName = trigNames[t].label();
 
-        // loop on triggers in menu
-	  unsigned int nTriggers = triggerResultsH_->size();
+          // default value of 9999 if we don't find a match
+          versions[t] = 9999;
+          // loop on triggers in menu
+          unsigned int nTriggers = triggerResultsH_->size();
           for(unsigned int i = 0; i < nTriggers; ++i) {
 
             // get name of ith trigger
             TString hltTrigName(triggerNames_.triggerName(i));
             hltTrigName.ToLower();
+
 
             // test if it matches this trigger name
             // with any version
@@ -323,14 +329,14 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
             // then extract version number
             if (hltTrigName.Index(reg) >= 0) {
 
-                TObjArray *substrArr = re.MatchS(hltTrigName);
-                if (substrArr->GetLast() == 1) {
-                    versions[t] = ((TObjString*)substrArr->At(1))->GetString().Atoi();
-                } else {
-                    versions[t] = 0;
-                }
-		delete substrArr;
-		
+              TObjArray *substrArr = re.MatchS(hltTrigName);
+              if (substrArr->GetLast() == 1) {
+                versions[t] = ((TObjString*)substrArr->At(1))->GetString().Atoi();
+                break; // if we found a match, break
+              } else {
+                versions[t] = 0;
+              }
+              delete substrArr;
             }
         }
 

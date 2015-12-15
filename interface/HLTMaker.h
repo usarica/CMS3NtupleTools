@@ -29,7 +29,8 @@
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
-#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+//#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
+#include "CommonTools/TriggerUtils/interface/PrescaleWeightProvider.h"
 
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -61,16 +62,19 @@ private:
 			     std::vector<bool>&,
 			     std::vector<TString>&) const;
   bool doPruneTriggerName(const std::string&) const;
+
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
+  edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
   
   edm::Handle<edm::TriggerResults> triggerResultsH_;
   edm::Handle<trigger::TriggerEvent> triggerEventH_; 
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjectStandAlonesH_;
   edm::TriggerNames triggerNames_;
 
-  HLTConfigProvider hltConfig_;
+  HLTPrescaleProvider hltConfig_;
   
   std::string processName_;
-  std::string triggerObjectsName_;
   bool fillTriggerObjects_;
   std::vector<std::string> prunedTriggerNames_;
   TString processNamePrefix_;

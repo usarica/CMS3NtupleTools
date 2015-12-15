@@ -66,7 +66,10 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
         // ----------member data ---------------------------
 
         // electrons and muons
-        edm::InputTag objectInputTag_;
+        edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
+        edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
+        edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
+        edm::EDGetTokenT<std::vector<LorentzVector> > objectToken;
 
         // triggers to match to
         std::vector<edm::InputTag>      triggers_;    
@@ -77,12 +80,9 @@ class ObjectToTriggerLegAssMaker : public edm::EDProducer {
         edm::Handle<edm::TriggerResults> triggerResultsH_;
         edm::TriggerNames triggerNames_;
 
-
-
         const trigger::TriggerEvent*    triggerEvent_;
         HLTConfigProvider               hltConfig_;
         std::string                     processName_;
-        std::string                     triggerObjectsName_;
         double                          cone_;
 
 };

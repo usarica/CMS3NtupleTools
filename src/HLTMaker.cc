@@ -24,13 +24,23 @@ void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::Lorent
 }
 */
 
-HLTMaker::HLTMaker(const edm::ParameterSet& iConfig){
+
+
+HLTMaker::HLTMaker(const edm::ParameterSet& iConfig) : 
+hltConfig_(iConfig, consumesCollector(), *this) {
+
+//HLTPrescaleProvider(iConfig, 
+//edm::ConsumesCollector&& iC,
+//T& module);
+
   processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
   fillTriggerObjects_ = iConfig.getUntrackedParameter<bool>           ("fillTriggerObjects");
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
   aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
-  triggerObjectsName_ = iConfig.getUntrackedParameter<string>         ("triggerObjectsName");
+  triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
+  triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<string>("triggerObjectsName"));
+  triggerResultsToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",       "", processName_));
 
   produces<TBits>                           (Form("%sbits"        ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
@@ -71,17 +81,17 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // produce is called processName_ should be set.
 
   //Now using a single processName_ (set to "HLT" in the configuration file). Is this OK? Do we need the flexibility we had before?
-  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+  iEvent.getByToken(triggerResultsToken, triggerResultsH_);
   if (! triggerResultsH_.isValid()) throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
-  iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
+  iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
   if (!triggerObjectStandAlonesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
-  iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+  iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
   if (!triggerPrescalesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 

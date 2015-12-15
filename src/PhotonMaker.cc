@@ -166,7 +166,7 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
 
 
   //
-  photonsInputTag_          = iConfig.getParameter<InputTag>("photonsInputTag");
+  photonsToken = consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
   minEt_                    = iConfig.getParameter<double>("minEt");
 //  ecalRecHitsInputTag_EE_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EE");
 //  ecalRecHitsInputTag_EB_   = iConfig.getParameter<edm::InputTag>("ecalRecHitsInputTag_EB");
@@ -415,7 +415,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   /////////////////////
    // Handle<View<reco::Photon> > photons_h;
    Handle<View<pat::Photon> > photons_h;
-  iEvent.getByLabel(photonsInputTag_, photons_h);
+  iEvent.getByToken(photonsToken, photons_h);
   // View<reco::Photon> photonColl = *(photons_h.product());
 
   // //get cms2scsseeddetid 

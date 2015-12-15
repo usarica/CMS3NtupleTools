@@ -58,7 +58,7 @@ SParmMaker::SParmMaker(const edm::ParameterSet& iConfig) {
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 	
   // parameters from configuration
-  sparm_inputTag = iConfig.getParameter<edm::InputTag>("sparm_inputTag");
+  sparmToken = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("sparm_inputTag"));
 
   // sparm names from configuration
   vsparms_ = iConfig.getUntrackedParameter<std::vector<std::string> >("vsparms");
@@ -105,7 +105,7 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     // first try cms sparm comments
     edm::Handle<LHEEventProduct> sparm_handle;  
-    iEvent.getByLabel(sparm_inputTag, sparm_handle);
+    iEvent.getByToken(sparmToken, sparm_handle);
     if( sparm_handle.isValid() ){
         for (std::vector<std::string>::const_iterator it = sparm_handle->comments_begin(); it != sparm_handle->comments_end(); it++) {      
             TString model_comment(*it);

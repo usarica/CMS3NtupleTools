@@ -30,6 +30,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/TauReco/interface/PFTau.h"
+#include "DataFormats/PatCandidates/interface/Tau.h"
 //
 // class decleration
 //
@@ -48,7 +49,7 @@ private:
   
   // ----------member data ---------------------------
   bool identify(const edm::RefToBase<reco::PFTau> &tau_pf);
-  edm::InputTag pftausInputTag_;
+  edm::EDGetTokenT<edm::View<pat::Tau> > pftausToken;
   
   // edm::InputTag cms2PFJetsTag_;
   // edm::InputTag referencePFJetsTag_;

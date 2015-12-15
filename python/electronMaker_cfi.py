@@ -11,13 +11,15 @@ electronMaker = cms.EDProducer(
     electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-medium"),
     electronTightIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-PHYS14-PU20bx25-V2-standalone-tight"),
     # Beamspot
-    beamSpotInputTag  = cms.InputTag("beamSpotMaker"),
+    beamSpotInputTag  = cms.InputTag("beamSpotMaker","evtbsp4"),
     # reco Track collection
     trksInputTag      = cms.InputTag("generalTracks"),
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
     pfCandsInputTag = cms.InputTag("packedPFCandidates"),
     vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+    
+    bFieldInputTag = cms.InputTag("eventMaker", "evtbField"),
 
     # isolations from external
     # pfIsoCharged03InputTag = cms.InputTag("elPFIsoValueCharged03PFIdPFIso"),

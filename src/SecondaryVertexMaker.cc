@@ -54,8 +54,8 @@ private:
   double angle(const reco::Vertex& final, const reco::Vertex& original, LorentzVector p4);
 
   // ----------member data ---------------------------
-  edm::InputTag primaryVertexInputTag_;
-  edm::InputTag inclusiveVertexInputTag_;
+  edm::EDGetTokenT<reco::VertexCollection> primaryVertexToken;
+  edm::EDGetTokenT<reco::VertexCompositePtrCandidateCollection> inclusiveVertexToken;
   std::string aliasprefix_;
   const reco::Vertex* primaryVertex_;
 };
@@ -90,8 +90,8 @@ SecondaryVertexMaker::SecondaryVertexMaker(const edm::ParameterSet& iConfig) {
   //produces<std::vector<int> >                 (branchprefix+"mc3id"     ).setBranchAlias(aliasprefix_+"_mc3_id"     ); // direction matching for hard scatter gen particles
   //produces<std::vector<LorentzVector> >       (branchprefix+"mc3p4"     ).setBranchAlias(aliasprefix_+"_mc3_p4"     ); //   --- // ---
 
-  primaryVertexInputTag_   = iConfig.getParameter<edm::InputTag>("primaryVertexInputTag");
-  inclusiveVertexInputTag_ = iConfig.getParameter<edm::InputTag>("inclusiveVertexInputTag");
+  primaryVertexToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("primaryVertexInputTag"));
+  inclusiveVertexToken = consumes<reco::VertexCompositePtrCandidateCollection>(iConfig.getParameter<edm::InputTag>("inclusiveVertexInputTag"));
 }
 
 
@@ -99,7 +99,7 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
 
   // get the primary vertices
   edm::Handle<reco::VertexCollection> primaryVertices;
-  iEvent.getByLabel(primaryVertexInputTag_, primaryVertices);
+  iEvent.getByToken(primaryVertexToken, primaryVertices);
   if (!primaryVertices.isValid() ) {
     edm::LogError("SecondaryVertexMakerError") << "Error! can't get the primary vertices";
     edm::LogInfo("OutputInfo") << " failed to retrieve primary vertices collection";
@@ -111,9 +111,9 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
 
   // get the secondary vertices
   edm::Handle<reco::VertexCompositePtrCandidateCollection> secVertices;
-  iEvent.getByLabel( inclusiveVertexInputTag_ , secVertices);
+  iEvent.getByToken( inclusiveVertexToken , secVertices);
   if (!secVertices.isValid() ) {
-    edm::LogError("SecondaryVertexMakerError") << "Error! can't get the secondary vertices associated with label: " << inclusiveVertexInputTag_;
+    edm::LogError("SecondaryVertexMakerError") << "Error! can't get the secondary vertices";
     edm::LogInfo("OutputInfo") << " failed to retrieve secondary vertices collection";
     edm::LogInfo("OutputInfo") << " SecondaryVertexMaker cannot continue...!";
     std::cout << " SecondaryVertexMaker cannot continue...!  Secondary vertex problem" << std::endl;

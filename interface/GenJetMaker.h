@@ -33,6 +33,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+
 class GenJetMaker : public edm::EDProducer {
 public:
   explicit GenJetMaker (const edm::ParameterSet&);
@@ -44,7 +47,7 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  edm::InputTag genJetsInputTag;
+  edm::EDGetTokenT<edm::View<reco::GenJet> > genJetsToken;
 
   double genJetMinPtCut;
   std::string aliasprefix_;

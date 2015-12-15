@@ -149,15 +149,16 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
 //  produces<vector<float>         >("trkmc3dr"           	).setBranchAlias("trk_mc3dr"          		);
   
   
-  genParticlesInputTagPacked_ = iConfig.getParameter<edm::InputTag>("genParticlesInputTagPacked");
-  genParticlesInputTagPruned_ = iConfig.getParameter<edm::InputTag>("genParticlesInputTagPruned");
-  genJetsInputTag_      = iConfig.getParameter<edm::InputTag>("genJetsInputTag"     );	
-  muonsInputTag_        = iConfig.getParameter<edm::InputTag>("muonsInputTag"       );
-  electronsInputTag_    = iConfig.getParameter<edm::InputTag>("electronsInputTag"   );
-  photonsInputTag_      = iConfig.getParameter<edm::InputTag>("photonsInputTag"     );
+  genParticlesTokenPacked_ = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTagPacked"));
+  genParticlesTokenPruned_ = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTagPruned"));
+  genJetsToken_      = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetsInputTag"     ));
+  muonsToken_        = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("muonsInputTag"       ));
+  electronsToken_    = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("electronsInputTag"   ));
+  photonsToken_      = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"     ));
+  pfJetsToken_       = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"      ));
+  ak8JetsToken_       = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("ak8JetsInputTag"      ));
+
   jetsInputTag_         = iConfig.getParameter<edm::InputTag>("jetsInputTag"        );
-  pfJetsInputTag_       = iConfig.getParameter<edm::InputTag>("pfJetsInputTag"      );
-  ak8JetsInputTag_       = iConfig.getParameter<edm::InputTag>("ak8JetsInputTag"      );
   tracksInputTag_       = iConfig.getParameter<edm::InputTag>("tracksInputTag"      );
   vPIDsToExclude_       = iConfig.getUntrackedParameter<std::vector<int> >("vPIDsToExclude"   );
 }
@@ -279,63 +280,58 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
   edm::Handle<pat::PackedGenParticleCollection> genParticlesHandleStatus1;
-  iEvent.getByLabel(genParticlesInputTagPacked_, genParticlesHandleStatus1);
+  iEvent.getByToken(genParticlesTokenPacked_, genParticlesHandleStatus1);
   if( !genParticlesHandleStatus1.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting genParticlesHandleStatus1 from Event!");
   }
    const vector<pat::PackedGenParticle> *v_genParticlesS1 = genParticlesHandleStatus1.product();
 
   // get Pruned Gen Particle collection (miniAOD) (all status 3, and some others)
-  edm::Handle<GenParticleCollection> genParticlesHandleStatus3;
-  iEvent.getByLabel(genParticlesInputTagPruned_, genParticlesHandleStatus3);
+  edm::Handle<reco::GenParticleCollection> genParticlesHandleStatus3;
+  iEvent.getByToken(genParticlesTokenPruned_, genParticlesHandleStatus3);
   if( !genParticlesHandleStatus3.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting genParticlesHandleStatus3 from Event!");
   }
    const vector<GenParticle> *v_genParticlesS3 = genParticlesHandleStatus3.product();
 
   //get MC Jets
-  Handle<GenJetCollection> genJetsHandle;
-  iEvent.getByLabel(genJetsInputTag_, genJetsHandle);
+  Handle<reco::GenJetCollection> genJetsHandle;
+  iEvent.getByToken(genJetsToken_, genJetsHandle);
   if( !genJetsHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting genJets from Event!");
   }
 
   // get muons
-  InputTag mus_p4_tag(muonsInputTag_);
   Handle<vector<LorentzVector> > muonHandle;
-  iEvent.getByLabel(mus_p4_tag, muonHandle);     
+  iEvent.getByToken(muonsToken_, muonHandle);     
   if( !muonHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting muons from Event!");
   }
 
   // get electrons
-  InputTag els_p4_tag(electronsInputTag_);
   Handle<vector<LorentzVector> > electronHandle;
-  iEvent.getByLabel(els_p4_tag, electronHandle);     
+  iEvent.getByToken(electronsToken_, electronHandle);     
   if( !electronHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting electrons from Event!");
   }
 
   // get pf jets
-  InputTag pfJets_p4_tag(pfJetsInputTag_);
   Handle<vector<LorentzVector> > pfJetsHandle;
-  iEvent.getByLabel(pfJets_p4_tag, pfJetsHandle);
+  iEvent.getByToken(pfJetsToken_, pfJetsHandle);
   if( !pfJetsHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting pfJets from Event!");
   }
 
   // get ak8 pf jets
-  InputTag ak8Jets_p4_tag(ak8JetsInputTag_);
   Handle<vector<LorentzVector> > ak8JetsHandle;
-  iEvent.getByLabel(ak8Jets_p4_tag, ak8JetsHandle);
+  iEvent.getByToken(ak8JetsToken_, ak8JetsHandle);
   if( !ak8JetsHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting ak8Jets from Event!");
   }
 
   //get the photons
-  InputTag photons_p4_tag(photonsInputTag_);
   Handle<vector<LorentzVector> > photonsHandle;
-  iEvent.getByLabel(photons_p4_tag, photonsHandle);
+  iEvent.getByToken(photonsToken_, photonsHandle);
   if( !photonsHandle.isValid() ) {
     throw cms::Exception("CandToGenAssMaker::produce: error getting ak8Jets from Event!");
   }
