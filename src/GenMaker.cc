@@ -45,7 +45,6 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   genParticlesToken = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTag"));
   genEvtInfoToken = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"));
   packedGenParticlesToken = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("packedGenParticlesInputTag"));
-  LHEEventInfoToken = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
 
   consumesMany<HepMCProduct>();
   
@@ -54,6 +53,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
   kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
+  LHEEventInfoToken = consumes<LHEEventProduct >(iConfig.getParameter<edm::InputTag>("LHEInputTag"));
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"              );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"       );
@@ -203,18 +203,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
 
   Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByToken(LHEEventInfoToken, LHEEventInfo); // "externalLHEProducer"
-  if (LHEEventInfo.isValid()){
-    vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
-    for (unsigned int i = 0; i < weightsTemp.size(); i++){
-       genweights->push_back(weightsTemp.at(i).wgt);
-       genweightsID->push_back(weightsTemp.at(i).id);
-    }
+  iEvent.getByToken(LHEEventInfoToken, LHEEventInfo);
+  //if (LHEEventInfo.isValid()){
+  vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+  for (unsigned int i = 0; i < weightsTemp.size(); i++){
+    genweights->push_back(weightsTemp.at(i).wgt);
+    genweightsID->push_back(weightsTemp.at(i).id);
   }
-  else {
-    genweights->push_back(-999999); 
-    genweightsID->push_back("noneFound"); 
-  }
+  // }
+  // else {
+  //   genweights->push_back(-999999); 
+  //   genweightsID->push_back("noneFound"); 
+  // }
 
   HepMC::WeightContainer wc;
 

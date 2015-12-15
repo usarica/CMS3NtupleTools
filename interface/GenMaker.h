@@ -62,6 +62,7 @@ private:
      bool ntupleDaughters_;
      bool ntuplePackedGenParticles_;
      std::vector<int> vmetPIDs_;
+     edm::InputTag LHEInputTag_;
 
      double inclusiveCrossSectionValue_;
      double exclusiveCrossSectionValue_;

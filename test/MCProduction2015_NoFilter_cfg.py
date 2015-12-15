@@ -81,7 +81,7 @@ process.source = cms.Source("PoolSource",
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
