@@ -172,6 +172,8 @@ if not applyResiduals:
 # #Run jet tool box
 # jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
 
+# Useful for timing statistics
+# process.Timing = cms.Service("Timing")
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
@@ -220,5 +222,3 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
-# Useful for timing statistics
-# process.Timing = cms.Service("Timing")
