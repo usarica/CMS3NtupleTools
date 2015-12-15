@@ -29,6 +29,7 @@ private:
 
   // ----------member data ---------------------------
   edm::InputTag PUInfoInputTag_;
+  edm::EDGetTokenT<std::vector<PileupSummaryInfo> > PUInfoToken;
   std::string aliasprefix_;
 };
 

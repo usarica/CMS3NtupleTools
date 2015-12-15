@@ -8,9 +8,9 @@ fixedGridRhoFastJetAllMaker = cms.EDProducer("EnergyDensityMaker",
                                              input = cms.InputTag("fixedGridRhoFastjetAll","", "RECO"),
                                              alias = cms.untracked.string("evt_fixgridfastjet_all_rho"))
 
-fixedGridRhoFastJetAllMakerMETTools = cms.EDProducer("EnergyDensityMaker",
-                                             input = cms.InputTag("fixedGridRhoFastjetAll","", "CMS3"),
-                                             alias = cms.untracked.string("evt_fixgridfastjetMETTools_all_rho"))
+# fixedGridRhoFastJetAllMakerMETTools = cms.EDProducer("EnergyDensityMaker",
+#                                              input = cms.InputTag("fixedGridRhoFastjetAll","", "CMS3"),
+#                                              alias = cms.untracked.string("evt_fixgridfastjetMETTools_all_rho"))
 
 fixedGridRhoFastJetAllCaloMaker = cms.EDProducer("EnergyDensityMaker",
                                              input = cms.InputTag("fixedGridRhoFastjetAllCalo","", "RECO"),

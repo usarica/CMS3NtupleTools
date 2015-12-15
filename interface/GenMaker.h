@@ -54,7 +54,9 @@ private:
 
      // ----------member data ---------------------------
      edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken;
+     edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;
      edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
+     edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
 	 edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;

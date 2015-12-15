@@ -25,11 +25,11 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_mcRun2_asymptotic_v2"
+process.GlobalTag.globaltag = "76X_mcRun2_asymptotic_v12"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 process.out = cms.OutputModule("PoolOutputModule",
   fileName     = cms.untracked.string('ntuple.root'),
@@ -74,13 +74,14 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-                                'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
+                                # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
+                                'file:/home/users/namin/2015/76x/CMSSW_7_6_1/src/CMS3/NtupleMaker/test/MC76X.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
@@ -193,14 +194,14 @@ process.p = cms.Path(
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  process.METToolboxJetMaker *
+  # process.METToolboxJetMaker *
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.pfmetNoHFMaker *
-  process.pfmetpuppiMaker *
-  process.T1pfmetMaker *
-  process.T1pfmetNoHFMaker *
+  # process.pfmetNoHFMaker *
+  # process.pfmetpuppiMaker *
+  # process.T1pfmetMaker *
+  # process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
@@ -219,3 +220,5 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
+# Useful for timing statistics
+# process.Timing = cms.Service("Timing")

@@ -43,7 +43,12 @@ using namespace std;
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
   genParticlesToken = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTag"));
+  genEvtInfoToken = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"));
   packedGenParticlesToken = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("packedGenParticlesInputTag"));
+  LHEEventInfoToken = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
+
+  consumesMany<HepMCProduct>();
+  
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
@@ -187,7 +192,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
-  iEvent.getByLabel("generator", genEvtInfo);
+  iEvent.getByToken(genEvtInfoToken, genEvtInfo);
   *genps_signalProcessID = genEvtInfo->signalProcessID();
   *genps_qScale          = genEvtInfo->qScale();
   *genps_alphaQCD        = genEvtInfo->alphaQCD();
@@ -198,7 +203,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
 
   Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByLabel("externalLHEProducer", LHEEventInfo); 
+  iEvent.getByToken(LHEEventInfoToken, LHEEventInfo); // "externalLHEProducer"
   if (LHEEventInfo.isValid()){
     vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
     for (unsigned int i = 0; i < weightsTemp.size(); i++){
