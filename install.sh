@@ -4,7 +4,7 @@
 CMS3Tag=master
 CMSSW_release=CMSSW_7_6_1
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc6_amd64_gcc491
+export SCRAM_ARCH=slc6_amd64_gcc493
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch

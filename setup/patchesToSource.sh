@@ -6,11 +6,6 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-<<<<<<< HEAD
-#############
-# MVA JetId #
-#############
-=======
 # #############
 # # MET tools #
 # #############
@@ -23,7 +18,6 @@ popd
 ##############
 ## MVA JetId #
 ##############
->>>>>>> master
  
 git clone https://github.com/latinos/UserCode-CMG-CMGTools-External $CMSSW_BASE/src/CMGTools/External
 pushd $CMSSW_BASE/src/CMGTools/External
