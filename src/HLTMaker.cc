@@ -68,7 +68,8 @@ void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   // HLT config _should no longer_ change within runs :)
   if (processName_ != "") {
 	bool changed(true);
-	if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+	// if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+	if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
 	} 
     else throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
   }

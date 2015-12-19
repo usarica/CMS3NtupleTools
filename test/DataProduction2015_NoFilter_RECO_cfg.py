@@ -3,7 +3,7 @@ import PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties as pt
 from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="RECO"
+configProcessName.name="reRECO"
 configProcessName.isFastSim=False
 
 #CMS3
@@ -26,15 +26,15 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "75X_dataRun2_Prompt_v0"
+process.GlobalTag.globaltag = "76X_dataRun2_v10"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 #Output
 process.out = cms.OutputModule("PoolOutputModule",
-  fileName     = cms.untracked.string('ntuple_promptdata_test.root'),
+  fileName     = cms.untracked.string('ntuple.root'),
   dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath = cms.EndPath(process.out)
@@ -77,7 +77,10 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring('/store/data/Run2015B/DoubleEG/MINIAOD/05Aug2015-v1/60000/42BCDC49-B73C-E511-9D27-0025905A6066.root')
+  fileNames = cms.untracked.vstring(
+      '/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
+      '/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
+      )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
@@ -210,5 +213,5 @@ process.pfmetMaker.isData                        = process.eventMaker.isData
 
 
 # redefine
-process.slimmedMETs.t01Variation = cms.InputTag("slimmedMETs","",configProcessName.name)
-process.slimmedMETsNoHF.t01Variation = cms.InputTag("slimmedMETsNoHF","",configProcessName.name)
+# process.slimmedMETs.t01Variation = cms.InputTag("slimmedMETs","",configProcessName.name)
+# process.slimmedMETsNoHF.t01Variation = cms.InputTag("slimmedMETsNoHF","",configProcessName.name)
