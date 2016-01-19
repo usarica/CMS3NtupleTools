@@ -55,7 +55,10 @@ from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
@@ -75,13 +78,14 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
                                 # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
-                                'file:/home/users/namin/2015/76x/CMSSW_7_6_1/src/CMS3/NtupleMaker/test/MC76X.root'
+                                # 'root://cmsxrootd.fnal.gov//store/mc/RunIIFall15MiniAODv1/WWTo2L2Nu_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/0E47EC63-7B9D-E511-B714-B083FED426E5.root
+                                'file:MC_76X.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )

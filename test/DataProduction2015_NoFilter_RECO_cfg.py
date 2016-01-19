@@ -63,7 +63,10 @@ from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
@@ -78,14 +81,15 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-      '/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
-      '/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
+      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
+      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
+      'file:DATA_76X.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
