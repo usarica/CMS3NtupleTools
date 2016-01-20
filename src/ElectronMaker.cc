@@ -89,7 +89,11 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronVIDNonTrigMvaWP80IdMapToken_   = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaWP80IdMap"));
     electronVIDNonTrigMvaWP90IdMapToken_   = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaWP90IdMap"));
     electronVIDTrigMvaWP80IdMapToken_      = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaWP80IdMap"));
-    electronVIDTrigMvaWP90IdMapToken_      = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaWP90IdMap"));
+    electronVIDTrigMvaWP90IdMapToken_      = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaWP90IdMap"));   
+    electronVIDNonTrigMvaValueMapToken_    = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaValueMap"));
+    electronVIDTrigMvaValueMapToken_       = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaValueMap"));
+    electronVIDNonTrigMvaCatMapToken_      = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaCatMap"));
+    electronVIDTrigMvaCatMapToken_         = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaCatMap"));
 
     electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
     vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
@@ -193,7 +197,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
     produces<vector<int> >       ("elsclass"                   ).setBranchAlias("els_class"                  );
 
-    // Phys 14 predefined ID decisions
+    // Spring 15 predefined ID decisions
     produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
     produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
     produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
@@ -203,6 +207,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("passVIDNonTrigMvaWP90Id"    ).setBranchAlias("els_passVIDNonTrigMvaWP90Id"    );
     produces<vector<int> >       ("passVIDTrigMvaWP80Id"       ).setBranchAlias("els_passVIDTrigMvaWP80Id"       );
     produces<vector<int> >       ("passVIDTrigMvaWP90Id"       ).setBranchAlias("els_passVIDTrigMvaWP90Id"       );
+    produces<vector<float> >     ("VIDNonTrigMvaValue"         ).setBranchAlias("els_VIDNonTrigMvaValue"         );
+    produces<vector<float> >     ("VIDTrigMvaValue"            ).setBranchAlias("els_VIDTrigMvaValue"            );
+    produces<vector<int> >       ("VIDNonTrigMvaCat"           ).setBranchAlias("els_VIDNonTrigMvaCat"           );
+    produces<vector<int> >       ("VIDTrigMvaCat"              ).setBranchAlias("els_VIDTrigMvaCat"              );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -531,6 +539,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<int> > passVIDNonTrigMvaWP90Id     (new vector<int>);
     auto_ptr<vector<int> > passVIDTrigMvaWP80Id        (new vector<int>);
     auto_ptr<vector<int> > passVIDTrigMvaWP90Id        (new vector<int>);
+    auto_ptr<vector<float> > VIDNonTrigMvaValue        (new vector<float>);
+    auto_ptr<vector<float> > VIDTrigMvaValue           (new vector<float>);
+    auto_ptr<vector<int> > VIDNonTrigMvaCat            (new vector<int>   );
+    auto_ptr<vector<int> > VIDTrigMvaCat               (new vector<int>   );
 
     // isolation variables
     //
@@ -870,6 +882,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP90_id_decisions;
   edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP80_id_decisions;
   edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP90_id_decisions;
+  edm::Handle<edm::ValueMap<float> > VIDNonTrigMva_values;
+  edm::Handle<edm::ValueMap<float> > VIDTrigMva_values;
+  edm::Handle<edm::ValueMap<int> >  VIDNonTrigMva_cats;
+  edm::Handle<edm::ValueMap<int> >  VIDTrigMva_cats;
   iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
   iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
   iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
@@ -879,7 +895,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.getByToken(electronVIDNonTrigMvaWP90IdMapToken_,VIDNonTrigMvaWP90_id_decisions);
   iEvent.getByToken(electronVIDTrigMvaWP80IdMapToken_,VIDTrigMvaWP80_id_decisions);
   iEvent.getByToken(electronVIDTrigMvaWP90IdMapToken_,VIDTrigMvaWP90_id_decisions);
-
+  iEvent.getByToken(electronVIDNonTrigMvaValueMapToken_,VIDNonTrigMva_values);
+  iEvent.getByToken(electronVIDTrigMvaValueMapToken_,VIDTrigMva_values);
+  iEvent.getByToken(electronVIDNonTrigMvaCatMapToken_,VIDNonTrigMva_cats);
+  iEvent.getByToken(electronVIDTrigMvaCatMapToken_,VIDTrigMva_cats);
 
     //////////////////////////
     // get cms2scsseeddetid //
@@ -1001,6 +1020,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         passVIDNonTrigMvaWP90Id  ->push_back( (*VIDNonTrigMvaWP90_id_decisions)[ elPtr ] );
         passVIDTrigMvaWP80Id     ->push_back( (*VIDTrigMvaWP80_id_decisions)[ elPtr ] );
         passVIDTrigMvaWP90Id     ->push_back( (*VIDTrigMvaWP90_id_decisions)[ elPtr ] );
+        VIDNonTrigMvaValue       ->push_back( (*VIDNonTrigMva_values)[ elPtr ] );
+        VIDTrigMvaValue          ->push_back( (*VIDTrigMva_values)[ elPtr ] );
+        VIDNonTrigMvaCat         ->push_back( (*VIDNonTrigMva_cats)[ elPtr ] );
+        VIDTrigMvaCat            ->push_back( (*VIDTrigMva_cats)[ elPtr ] );
 
 
         //////////////
@@ -1418,7 +1441,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_fbrem                         ->push_back( el->fbrem()                          );
 	//        els_lh                            ->push_back( eidLHMap[gsfElRef]                   );
         //els_mva                           ->push_back( el->mva()                            );
-        els_mva                           ->push_back( el->mvaOutput().mva_Isolated                  );
+        els_mva                           ->push_back( el->mvaOutput().mva_Isolated         );
 
         els_dEtaIn                        ->push_back( el->deltaEtaSuperClusterTrackAtVtx() );
         els_dEtaOut                       ->push_back( el->deltaEtaSeedClusterTrackAtCalo() );
@@ -1771,6 +1794,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(passVIDNonTrigMvaWP90Id,   "passVIDNonTrigMvaWP90Id"  );
     iEvent.put(passVIDTrigMvaWP80Id,      "passVIDTrigMvaWP80Id"  );
     iEvent.put(passVIDTrigMvaWP90Id,      "passVIDTrigMvaWP90Id"  );
+    iEvent.put(VIDNonTrigMvaValue,        "VIDNonTrigMvaValue"  );
+    iEvent.put(VIDTrigMvaValue,           "VIDTrigMvaValue"  );
+    iEvent.put(VIDNonTrigMvaCat,          "VIDNonTrigMvaCat"  );
+    iEvent.put(VIDTrigMvaCat,             "VIDTrigMvaCat"  );
 
     // Track parameters
     //

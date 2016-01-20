@@ -15,6 +15,11 @@ electronMaker = cms.EDProducer(
     electronVIDNonTrigMvaWP90IdMap   = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
     electronVIDTrigMvaWP80IdMap      = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
     electronVIDTrigMvaWP90IdMap      = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
+    electronVIDNonTrigMvaValueMap    = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"),
+    electronVIDTrigMvaValueMap       = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15Trig25nsV1Values"),
+    electronVIDNonTrigMvaCatMap      = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Categories"),
+    electronVIDTrigMvaCatMap         = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15Trig25nsV1Categories"),
+    
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker","evtbsp4"),
     # reco Track collection

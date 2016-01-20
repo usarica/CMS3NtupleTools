@@ -116,6 +116,10 @@ private:
     edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDNonTrigMvaWP90IdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP80IdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP90IdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDNonTrigMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDTrigMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDNonTrigMvaCatMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDTrigMvaCatMapToken_;
 
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
@@ -141,6 +145,10 @@ private:
     std::vector<Int_t> passVIDNonTrigMvaWP90Id_;
     std::vector<Int_t> passVIDTrigMvaWP80Id_;
     std::vector<Int_t> passVIDTrigMvaWP90Id_;
+    std::vector<Float_t> VIDNonTrigMvaValue_;
+    std::vector<Float_t> VIDTrigMvaValue_;
+    std::vector<Int_t> VIDNonTrigMvaCat_;
+    std::vector<Int_t> VIDTrigMvaCat_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
     edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
