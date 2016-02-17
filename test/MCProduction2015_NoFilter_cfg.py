@@ -2,7 +2,8 @@ import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff   import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="PAT"
+# configProcessName.name="PAT"
+configProcessName.name="RECO" # FIXME NJA go back to PAT after relval
 configProcessName.isFastSim=False
 
 # CMS3
@@ -25,7 +26,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "76X_mcRun2_asymptotic_v12"
+process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_v4"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -81,7 +82,7 @@ process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
                                 # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
                                 # 'root://cmsxrootd.fnal.gov//store/mc/RunIIFall15MiniAODv1/WWTo2L2Nu_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/0E47EC63-7B9D-E511-B714-B083FED426E5.root
-                                'file:MC_76X.root'
+                                'file:RelValProdQCD_Pt_3000_3500_13.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -213,7 +214,7 @@ process.p = cms.Path(
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
-  process.genMaker *
+  # process.genMaker * # FIXME NJA re-introduce
   process.genJetMaker *
   process.muToTrigAssMaker *  # requires muonMaker
   process.elToTrigAssMaker *  # requires electronMaker

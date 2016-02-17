@@ -26,7 +26,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "76X_dataRun2_v10"
+process.GlobalTag.globaltag = "80X_dataRun2_v4"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -85,7 +85,8 @@ process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
       #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
       #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
-      'file:DATA_76X.root',
+      # 'file:DATA_76X.root',
+      'file:SinglePhoton_800pre6.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
