@@ -13,7 +13,9 @@ cd $CMSSW_BASE/src/CMS3/NtupleMaker
 pushd $CMSSW_BASE/src/
 git cms-addpkg PhysicsTools/PatUtils
 sed -i '1195s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+sed -i '1196s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
 sed -i '1203s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+sed -i '1204s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
 popd
 
 ##############
