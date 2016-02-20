@@ -204,11 +204,12 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   Handle<LHEEventProduct> LHEEventInfo;
   iEvent.getByToken(LHEEventInfoToken, LHEEventInfo);
-  //if (LHEEventInfo.isValid()){
-  vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
-  for (unsigned int i = 0; i < weightsTemp.size(); i++){
-    genweights->push_back(weightsTemp.at(i).wgt);
-    genweightsID->push_back(weightsTemp.at(i).id);
+  if (LHEEventInfo.isValid()){
+    vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+    for (unsigned int i = 0; i < weightsTemp.size(); i++){
+      genweights->push_back(weightsTemp.at(i).wgt);
+      genweightsID->push_back(weightsTemp.at(i).id);
+    }
   }
   // }
   // else {

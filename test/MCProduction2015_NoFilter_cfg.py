@@ -215,7 +215,7 @@ process.p = cms.Path(
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
-  # process.genMaker * # FIXME NJA re-introduce after relval. argh.
+  process.genMaker *
   process.genJetMaker *
   process.muToTrigAssMaker *  # requires muonMaker
   process.elToTrigAssMaker *  # requires electronMaker
