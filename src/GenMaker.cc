@@ -210,12 +210,10 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       genweights->push_back(weightsTemp.at(i).wgt);
       genweightsID->push_back(weightsTemp.at(i).id);
     }
+  } else {
+    genweights->push_back(-999999); 
+    genweightsID->push_back("noneFound"); 
   }
-  // }
-  // else {
-  //   genweights->push_back(-999999); 
-  //   genweightsID->push_back("noneFound"); 
-  // }
 
   HepMC::WeightContainer wc;
 
