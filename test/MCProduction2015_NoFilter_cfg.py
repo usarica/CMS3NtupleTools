@@ -2,8 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff   import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-# configProcessName.name="PAT"
-configProcessName.name="RECO" # FIXME NJA go back to PAT after relval
+configProcessName.name="PAT"
 configProcessName.isFastSim=False
 
 # CMS3

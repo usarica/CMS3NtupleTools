@@ -3,7 +3,7 @@ import PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties as pt
 from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="reRECO"
+configProcessName.name="RECO"
 configProcessName.isFastSim=False
 
 #CMS3
