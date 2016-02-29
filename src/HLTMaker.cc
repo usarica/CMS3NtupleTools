@@ -249,8 +249,9 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   const string& name = triggerNames_.triggerName(triggerIndex);
 
   // 2. Loop over StandAloneTriggerObjects 
+  pat::TriggerObjectStandAlone TO;
   for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
-    pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
+    TO = triggerObjectStandAlonesH_->at(i);
     TO.unpackPathNames( triggerNames_ );
     // 3. OLD: Check hasPathName( triggerName, true). 
     // This makes sure that the TriggerObjects belongs to the LAST filter in a path. 

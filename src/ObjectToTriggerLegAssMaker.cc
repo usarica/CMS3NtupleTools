@@ -140,10 +140,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
       throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
     const pat::TriggerObjectStandAloneCollection * allObjects = triggerObjectStandAlonesH_.product();
 
-
-
-
-
+    /*
     // loop on triggers
     std::vector<LorentzVector>::const_iterator obj_it = obj_p4_h->begin();
     for (unsigned int t = 0; t < triggers_.size(); ++t) {
@@ -160,6 +157,11 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
         // push back the results for this trigger
         prescales.push_back(triggerPrescales);
 
+    }
+    */
+
+    for (unsigned int t = 0; t < triggers_.size(); ++t) {
+      prescales.push_back(matchTriggerObject2(iEvent, iSetup, triggers_[t].label(), triggers_[t].instance(), t, allObjects, obj_p4_h));
     }
 
     //
@@ -220,6 +222,49 @@ ObjectToTriggerLegAssMaker::endRun(edm::Run&, edm::EventSetup const&)
 {
 }
 
+std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
+    const std::string triggerName, const std::string filterName, unsigned int triggerIndex,
+    const  pat::TriggerObjectStandAloneCollection* allObjects,
+    const edm::Handle<std::vector<LorentzVector> > &offlineObjects)
+{
+  std::vector<unsigned int> triggerPrescales;
+
+  unsigned int prescale = 0;
+
+  std::map<int, unsigned int> offlineObjectsPrescales; // map object index to prescale
+  for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
+    offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = 0;
+  }
+
+  // loop over trigger objects
+  pat::TriggerObjectStandAlone TO;
+  for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
+    TO = triggerObjectStandAlonesH_->at(i);
+    TO.unpackPathNames( triggerNames_ );
+    if ( TO.hasPathName(triggerName, false) ) { 
+      if ( (filterName == "" && TO.hasPathName(triggerName, true) ) || TO.hasFilterLabel(filterName) ) { 
+
+        // loop over leptons
+        for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
+          if(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] != 0) continue; // if we already matched this object, skip it in the subsequent loops
+          if (deltaR(TO.eta(), TO.phi(), (*obj_it).eta(), (*obj_it).phi()) < cone_) {
+            prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
+            offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = prescale;
+          }
+        }
+
+      }
+    }
+  }
+
+  for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
+    triggerPrescales.push_back(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)]);
+  }
+  return triggerPrescales;
+
+}
+
+/*
 unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iEvent, const edm::EventSetup &iSetup,
         const std::string triggerName, const std::string filterName, unsigned int triggerIndex,
 	//const trigger::TriggerObjectCollection &allObjects,
@@ -297,6 +342,7 @@ unsigned int ObjectToTriggerLegAssMaker::matchTriggerObject(const edm::Event &iE
     return prescale;
 
 }
+*/
 
 void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::InputTag> &trigNames, 
         std::vector<unsigned int> &versions)
