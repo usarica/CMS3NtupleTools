@@ -26,10 +26,16 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
 
 //
 // class declaration
 //
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 class CandToGenAssMaker : public edm::EDProducer {
 public:
@@ -41,16 +47,17 @@ private:
      virtual void endJob() ;
       
       // ----------member data ---------------------------
-  edm::InputTag genParticlesInputTagPacked_;
-  edm::InputTag genParticlesInputTagPruned_;
-  edm::InputTag genJetsInputTag_;
-  edm::InputTag muonsInputTag_;
-  edm::InputTag electronsInputTag_;
+     edm::EDGetTokenT<pat::PackedGenParticleCollection> genParticlesTokenPacked_;
+     edm::EDGetTokenT<reco::GenParticleCollection> genParticlesTokenPruned_;
+     edm::EDGetTokenT<reco::GenJetCollection> genJetsToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > muonsToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > electronsToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > photonsToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > pfJetsToken_;
+     edm::EDGetTokenT<std::vector<LorentzVector> > ak8JetsToken_;
+
   edm::InputTag jetsInputTag_;
   edm::InputTag tracksInputTag_;
-  edm::InputTag photonsInputTag_;
-  edm::InputTag pfJetsInputTag_;
-  edm::InputTag ak8JetsInputTag_;
   std::vector<int> vPIDsToExclude_;
   
 };

@@ -28,7 +28,6 @@
 #include "CMS3/NtupleMaker/interface/PFTauMaker.h"
 #include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
-#include "DataFormats/PatCandidates/interface/Tau.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
@@ -66,7 +65,7 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
 
   /////get setup parameters
-  pftausInputTag_                      = iConfig.getParameter<edm::InputTag>("pftausInputTag"   );
+  pftausToken = consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("pftausInputTag"));
   // cms2PFJetsTag_                       = iConfig.getParameter<edm::InputTag>("cms2PFJetsTag"     );
   // referencePFJetsTag_                  = iConfig.getParameter<edm::InputTag>("referencePFJetsTag");
   // particleFlowTag_                     = iConfig.getParameter<edm::InputTag>("particleFlowTag"   );
@@ -128,7 +127,7 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     
   //get PAT taus
   Handle<View<pat::Tau> > taus_h;
-  iEvent.getByLabel(pftausInputTag_, taus_h);
+  iEvent.getByToken(pftausToken, taus_h);
   // View<pat::Tau> *TauColl = taus_h.product();
 
   //loop over taus

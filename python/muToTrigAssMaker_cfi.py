@@ -67,5 +67,6 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
 
         processName = cms.untracked.string("HLT"),
         triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
+        triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
 
 )

@@ -41,9 +41,7 @@ void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
 	*rho = *rhoH; 
   }
   else {
-    edm::LogInfo("OutputInfo") << " failed to retrieve rho collection";
-    edm::LogInfo("OutputInfo") << " EnergyDensityMaker cannot continue...!";
-    std::cout << " EnergyDensityMaker cannot continue...!" << std::endl;
+    throw cms::Exception("EnergyDensityMaker: error getting rho collection!");
     return;
   }
   iEvent.put(rho, m_branch);

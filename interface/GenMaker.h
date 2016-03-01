@@ -28,7 +28,14 @@
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-//#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/Math/interface/LorentzVector.h"
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 //
 // class decleration
@@ -46,8 +53,10 @@ private:
      virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
      // ----------member data ---------------------------
-     edm::InputTag genParticlesInputTag_;
-     edm::InputTag packedGenParticlesInputTag_;
+     edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken;
+     edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;
+     edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
+     edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
 	 edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;

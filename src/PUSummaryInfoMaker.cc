@@ -19,7 +19,7 @@ using namespace std;
 PUSummaryInfoMaker::PUSummaryInfoMaker(const edm::ParameterSet& iConfig){
 
   aliasprefix_		= iConfig.getUntrackedParameter	<std::string>	("aliasPrefix"		);
-  PUInfoInputTag_	= iConfig.getParameter		<edm::InputTag>	("PUInfoInputTag"	);
+  PUInfoToken = consumes<std::vector<PileupSummaryInfo> >(iConfig.getParameter<edm::InputTag>("PUInfoInputTag"));
   
   produces<vector<int> >	        (aliasprefix_ + "nPUvertices"	     ).setBranchAlias(aliasprefix_ + "_nPUvertices"	       );
   produces<vector<int> >	        (aliasprefix_ + "bunchCrossing"	     ).setBranchAlias(aliasprefix_ + "_bunchCrossing"      );
@@ -46,7 +46,7 @@ void PUSummaryInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
   auto_ptr<vector<float> >	        puInfo_trueninteractions ( new vector<float> );
 
   Handle<vector<PileupSummaryInfo> > puInfoH;
-  bool bPuInfo=iEvent.getByLabel(PUInfoInputTag_, puInfoH); 
+  bool bPuInfo=iEvent.getByToken(PUInfoToken, puInfoH); 
 
   if(bPuInfo){
 	for (vector<PileupSummaryInfo>::const_iterator itr = puInfoH->begin(); itr != puInfoH->end(); ++itr){

@@ -42,6 +42,9 @@
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 
+#include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
@@ -59,6 +62,8 @@
 //
 // class decleration
 //
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 class ElectronMaker : public edm::EDProducer {
 public:
@@ -88,19 +93,33 @@ private:
 
 
     // ----------member data ---------------------------
-    edm::InputTag electronsInputTag_;
     edm::InputTag beamSpotInputTag_;
     edm::InputTag trksInputTag_;
     edm::InputTag gsftracksInputTag_;
     edm::InputTag eidLHTag_;
     edm::InputTag cms2scsseeddetidInputTag_;
-    edm::InputTag pfCandsInputTag;
-    edm::InputTag vtxInputTag;
+
+    edm::EDGetTokenT<reco::VertexCollection> vtxToken;
+    edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
+    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
+    edm::EDGetTokenT<float> bFieldToken;
+    edm::EDGetTokenT<LorentzVector> beamSpotToken;
+    edm::EDGetTokenT<reco::ConversionCollection> recoConversionToken;
+
 
     edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
     edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronHEEPIdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDNonTrigMvaWP80IdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDNonTrigMvaWP90IdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP80IdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP90IdMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDNonTrigMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDTrigMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDNonTrigMvaCatMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDTrigMvaCatMapToken_;
 
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
@@ -108,8 +127,6 @@ private:
   edm::InputTag pfIsoCharged04InputTag;
   edm::InputTag pfIsoGamma04InputTag;
   edm::InputTag pfIsoNeutral04InputTag;
-
-    edm::InputTag recoConversionInputTag_;
 
     EcalClusterLazyTools* clusterTools_;
     MultiTrajectoryStateTransform *mtsTransform_;
@@ -123,6 +140,15 @@ private:
     std::vector<Int_t> passLooseId_;
     std::vector<Int_t> passMediumId_;
     std::vector<Int_t> passTightId_;
+    std::vector<Int_t> passHEEPId_;
+    std::vector<Int_t> passVIDNonTrigMvaWP80Id_;
+    std::vector<Int_t> passVIDNonTrigMvaWP90Id_;
+    std::vector<Int_t> passVIDTrigMvaWP80Id_;
+    std::vector<Int_t> passVIDTrigMvaWP90Id_;
+    std::vector<Float_t> VIDNonTrigMvaValue_;
+    std::vector<Float_t> VIDTrigMvaValue_;
+    std::vector<Int_t> VIDNonTrigMvaCat_;
+    std::vector<Int_t> VIDTrigMvaCat_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
     edm::Handle<pat::PackedCandidateCollection> packPfCand_h;

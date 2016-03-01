@@ -28,7 +28,7 @@ private:
   virtual void endJob() ;
 
   // ----------member data ---------------------------
-  edm::InputTag pfCandidatesTag_;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
   double isotrack_dz_cut_;
   double isolation_dz_cut_;
   double pflep_pt_cut_;

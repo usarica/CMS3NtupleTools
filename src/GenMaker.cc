@@ -25,14 +25,8 @@
 #include "CMS3/NtupleMaker/interface/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
-#include "DataFormats/Math/interface/LorentzVector.h"
-#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
 
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 
 #include "TMath.h"
@@ -48,14 +42,18 @@ using namespace std;
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
 
-  genParticlesInputTag_       = iConfig.getParameter<InputTag>                  ("genParticlesInputTag" );
-  packedGenParticlesInputTag_ = iConfig.getParameter<InputTag>                  ("packedGenParticlesInputTag" );
+  genParticlesToken = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTag"));
+  genEvtInfoToken = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"));
+  packedGenParticlesToken = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("packedGenParticlesInputTag"));
+
+  consumesMany<HepMCProduct>();
+  
   ntupleOnlyStatus3_          = iConfig.getParameter<bool>                      ("ntupleOnlyStatus3"    );
   ntupleDaughters_            = iConfig.getParameter<bool>                      ("ntupleDaughters"      );
   ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
   vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
   kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
-  LHEInputTag_ =               iConfig.getParameter<InputTag>                   ("LHEInputTag" );
+  LHEEventInfoToken = consumes<LHEEventProduct >(iConfig.getParameter<edm::InputTag>("LHEInputTag"));
 
   produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"              );
   produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"       );
@@ -170,7 +168,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
   // get MC particle collection
   edm::Handle<reco::GenParticleCollection> genpsHandle;
-  iEvent.getByLabel(genParticlesInputTag_, genpsHandle);
+  iEvent.getByToken(genParticlesToken, genpsHandle);
 
   if( !genpsHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve gen particle collection";
@@ -183,7 +181,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
   edm::Handle<pat::PackedGenParticleCollection> packedGenParticleHandle;
-  iEvent.getByLabel(packedGenParticlesInputTag_, packedGenParticleHandle);
+  iEvent.getByToken(packedGenParticlesToken, packedGenParticleHandle);
   if( !packedGenParticleHandle.isValid() ) {
     edm::LogInfo("OutputInfo") << " failed to retrieve packed gen particle collection";
     edm::LogInfo("OutputInfo") << " GenMaker cannot continue...!";
@@ -194,7 +192,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   //get the signal processID
   edm::Handle<GenEventInfoProduct> genEvtInfo;
-  iEvent.getByLabel("generator", genEvtInfo);
+  iEvent.getByToken(genEvtInfoToken, genEvtInfo);
   *genps_signalProcessID = genEvtInfo->signalProcessID();
   *genps_qScale          = genEvtInfo->qScale();
   *genps_alphaQCD        = genEvtInfo->alphaQCD();
@@ -205,12 +203,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.getManyByType(hepmc_vect);
 
   Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByLabel(LHEInputTag_, LHEEventInfo); 
-  //if (LHEEventInfo.isValid()){
-  vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
-  for (unsigned int i = 0; i < weightsTemp.size(); i++){
-    genweights->push_back(weightsTemp.at(i).wgt);
-    genweightsID->push_back(weightsTemp.at(i).id);
+  iEvent.getByToken(LHEEventInfoToken, LHEEventInfo);
+  if (LHEEventInfo.isValid()){
+    vector <gen::WeightsInfo> weightsTemp = LHEEventInfo->weights();
+    for (unsigned int i = 0; i < weightsTemp.size(); i++){
+      genweights->push_back(weightsTemp.at(i).wgt);
+      genweightsID->push_back(weightsTemp.at(i).id);
+    }
+  } else {
+    genweights->push_back(-999999); 
+    genweightsID->push_back("noneFound"); 
   }
   // }
   // else {

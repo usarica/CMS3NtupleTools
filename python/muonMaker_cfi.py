@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 muonMaker = cms.EDProducer("MuonMaker",
   aliasPrefix      = cms.untracked.string("mus"),
   muonsInputTag    = cms.InputTag("slimmedMuons"        ),                         
-  beamSpotInputTag = cms.InputTag("beamSpotMaker"),
+  beamSpotInputTag  = cms.InputTag("beamSpotMaker","evtbsp4"),
   pfCandsInputTag  = cms.InputTag("packedPFCandidates"),
   vtxInputTag      = cms.InputTag("offlineSlimmedPrimaryVertices"),
   tevMuonsName     = cms.string("tevMuons"),

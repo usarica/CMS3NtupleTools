@@ -27,7 +27,7 @@ using namespace std;
 
 PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig){
 
-  pfCandidatesTag_  = iConfig.getParameter<InputTag> ("pfCandidatesTag");
+  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
 
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
@@ -79,7 +79,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
-  iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
+  iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
   pfCandidates  = pfCandidatesHandle.product();
 
   for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {

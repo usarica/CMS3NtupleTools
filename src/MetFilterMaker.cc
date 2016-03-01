@@ -24,15 +24,19 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     //
     aliasprefix_     = iConfig.getUntrackedParameter<string>("aliasPrefix");
     branchprefix_    = aliasprefix_;
-    filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
     processName_     = iConfig.getUntrackedParameter<string> ("processName" );
+    filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
+    filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_)
+);
 
     //
     produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
+    produces <bool> ( branchprefix_ + "cscBeamHalo2015"                ).setBranchAlias( aliasprefix_ + "_cscBeamHalo2015"                );
     produces <bool> ( branchprefix_ + "hbheNoise"                      ).setBranchAlias( aliasprefix_ + "_hbheNoise"                      );
     produces <bool> ( branchprefix_ + "ecalTP"                         ).setBranchAlias( aliasprefix_ + "_ecalTP"                         );
     produces <bool> ( branchprefix_ + "hcalLaser"                      ).setBranchAlias( aliasprefix_ + "_hcalLaser"                      );
     produces <bool> ( branchprefix_ + "trackingFailure"                ).setBranchAlias( aliasprefix_ + "_trackingFailure"                );
+    produces <bool> ( branchprefix_ + "chargedHadronTrackResolution"   ).setBranchAlias( aliasprefix_ + "_chargedHadronTrackResolution"   );
     produces <bool> ( branchprefix_ + "eeBadSc"                        ).setBranchAlias( aliasprefix_ + "_eeBadSc"                        );
     produces <bool> ( branchprefix_ + "ecalLaser"                      ).setBranchAlias( aliasprefix_ + "_ecalLaser"                      );
     produces <bool> ( branchprefix_ + "metfilter"                      ).setBranchAlias( aliasprefix_ + "_metfilter"                      );
@@ -61,10 +65,12 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //////////////
   
   auto_ptr <bool> filt_cscBeamHalo                   ( new bool(false) );
+  auto_ptr <bool> filt_cscBeamHalo2015               ( new bool(false) );
   auto_ptr <bool> filt_hbheNoise                     ( new bool(false) );
   auto_ptr <bool> filt_ecalTP                        ( new bool(false) );
   auto_ptr <bool> filt_hcalLaserEvent                ( new bool(false) );
   auto_ptr <bool> filt_trackingFailure               ( new bool(false) );
+  auto_ptr <bool> filt_chargedHadronTrackResolution  ( new bool(false) );
   auto_ptr <bool> filt_eeBadSc                       ( new bool(false) );
   auto_ptr <bool> filt_ecalLaser                     ( new bool(false) );
   auto_ptr <bool> filt_metfilter                     ( new bool(false) );
@@ -81,15 +87,17 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // Assign MET Filters //
   ////////////////////////
   
-  iEvent.getByLabel(edm::InputTag(filtersInputTag_.label(), "", processName_), metFilterResultsH_);
+  iEvent.getByToken(filtersToken, metFilterResultsH_);
   if (! metFilterResultsH_.isValid())
     throw cms::Exception("MetFilterMaker::produce: error getting TriggerResults_PAT product from Event!");
   
   int idx_cscBeamHalo                     = -1;
+  int idx_cscBeamHalo2015                 = -1;
   int idx_hbheNoise                       = -1;
   int idx_ecalTP                          = -1;
   int idx_hcalLaserEvent                  = -1;
   int idx_trackingFailure                 = -1;
+  int idx_chargedHadronTrackResolution    = -1;
   int idx_eeBadSc                         = -1;
   int idx_ecalLaser                       = -1;
   int idx_metfilter                       = -1;
@@ -103,10 +111,12 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   edm::TriggerNames metFilterNames_ = iEvent.triggerNames(*metFilterResultsH_); 
   for (unsigned int i=0; i<metFilterNames_.size(); i++) {
     if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHaloFilter"	              )  idx_cscBeamHalo                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHalo2015Filter"	              )  idx_cscBeamHalo2015                    = i;
     if (  metFilterNames_.triggerName(i) == "Flag_HBHENoiseFilter"		      )  idx_hbheNoise                      = i;
     if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellTriggerPrimitiveFilter" )  idx_ecalTP                         = i;
     if (  metFilterNames_.triggerName(i) == "Flag_hcalLaserEventFilter"               )  idx_hcalLaserEvent                 = i;
     if (  metFilterNames_.triggerName(i) == "Flag_trackingFailureFilter"	      )  idx_trackingFailure                = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_chargedHadronTrackResolutionFilter"	      )  idx_chargedHadronTrackResolution                = i;
     if (  metFilterNames_.triggerName(i) == "Flag_eeBadScFilter"		      )  idx_eeBadSc                        = i;
     if (  metFilterNames_.triggerName(i) == "Flag_ecalLaserCorrFilter"	              )  idx_ecalLaser                      = i;
     if (  metFilterNames_.triggerName(i) == "Flag_METFilters"                         )  idx_metfilter                      = i;
@@ -119,10 +129,12 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
 
   
   *filt_cscBeamHalo                          = (idx_cscBeamHalo                    < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
+  *filt_cscBeamHalo2015                      = (idx_cscBeamHalo2015                < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo2015                 );
   *filt_hbheNoise                            = (idx_hbheNoise                      < 0) ? false : metFilterResultsH_->accept(idx_hbheNoise                       );
   *filt_ecalTP                               = (idx_ecalTP                         < 0) ? false : metFilterResultsH_->accept(idx_ecalTP                          );
   *filt_hcalLaserEvent                       = (idx_hcalLaserEvent                 < 0) ? false : metFilterResultsH_->accept(idx_hcalLaserEvent                  );
   *filt_trackingFailure                      = (idx_trackingFailure                < 0) ? false : metFilterResultsH_->accept(idx_trackingFailure                 );
+  *filt_chargedHadronTrackResolution         = (idx_chargedHadronTrackResolution   < 0) ? false : metFilterResultsH_->accept(idx_chargedHadronTrackResolution    );
   *filt_eeBadSc                              = (idx_eeBadSc                        < 0) ? false : metFilterResultsH_->accept(idx_eeBadSc                         );
   *filt_ecalLaser                            = (idx_ecalLaser                      < 0) ? false : metFilterResultsH_->accept(idx_ecalLaser                       );
   *filt_metfilter                            = (idx_metfilter                      < 0) ? false : metFilterResultsH_->accept(idx_metfilter                       );
@@ -140,10 +152,12 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   //////////////////
 
   iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
+  iEvent.put( filt_cscBeamHalo2015                , branchprefix_ + "cscBeamHalo2015"                );
   iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
   iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
   iEvent.put( filt_hcalLaserEvent                 , branchprefix_ + "hcalLaser"                      );
   iEvent.put( filt_trackingFailure                , branchprefix_ + "trackingFailure"                );
+  iEvent.put( filt_chargedHadronTrackResolution   , branchprefix_ + "chargedHadronTrackResolution"   );
   iEvent.put( filt_eeBadSc                        , branchprefix_ + "eeBadSc"                        );
   iEvent.put( filt_ecalLaser                      , branchprefix_ + "ecalLaser"                      );
   iEvent.put( filt_metfilter                      , branchprefix_ + "metfilter"                      );

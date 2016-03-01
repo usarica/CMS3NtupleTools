@@ -37,6 +37,7 @@ private:
  
     std::string   processName_;
     edm::InputTag filtersInputTag_;
+    edm::EDGetTokenT<edm::TriggerResults> filtersToken;
 
     edm::Handle<edm::TriggerResults> metFilterResultsH_;
 

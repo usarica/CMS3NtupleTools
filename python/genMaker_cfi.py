@@ -11,6 +11,7 @@ genMaker = cms.EDProducer("GenMaker",
     ntupleOnlyStatus3     = cms.bool(False), # just get everything since Pythia8 has weird status codes
     ntupleDaughters       = cms.bool(True),
     genParticlesInputTag  = cms.InputTag("prunedGenParticles" ),
+    genEvtInfoInputTag  = cms.InputTag("generator" ),
     ntuplePackedGenParticles    = cms.bool(False), # default is False                          
     packedGenParticlesInputTag  = cms.InputTag("packedGenParticles" ), # Assign Status "1111" to these to avoid duplication. Only save p4, ID, status
     #genRunInfoInputTag    = cms.InputTag("generator"),

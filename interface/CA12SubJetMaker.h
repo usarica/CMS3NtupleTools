@@ -48,7 +48,7 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag pfJetsInputTag_;
+  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::InputTag pfCandidatesTag_;
   //edm::EDGetTokenT<pat::Jet> srcJet_;
   edm::EDGetTokenT<std::vector<pat::Jet>> srcJet_;

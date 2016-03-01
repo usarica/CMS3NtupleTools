@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+import PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties as pt
 from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
@@ -25,15 +26,15 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "74X_dataRun2_Prompt_v2"
+process.GlobalTag.globaltag = "80X_dataRun2_v4"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 #Output
 process.out = cms.OutputModule("PoolOutputModule",
-  fileName     = cms.untracked.string('ntuple_promptdata_test.root'),
+  fileName     = cms.untracked.string('ntuple.root'),
   dropMetaData = cms.untracked.string("NONE")
 )
 process.outpath = cms.EndPath(process.out)
@@ -60,9 +61,14 @@ process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
+process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
-process.egmGsfElectronIDSequence = cms.Sequence(process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_PHYS14_PU20bx25_V2_cff']
+process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
+process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
+my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff']
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
@@ -76,22 +82,25 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  # fileNames = cms.untracked.vstring('file:/nfs-7/userdata/jgran/74x_sync/1294BDDB-B7FE-E411-8028-002590596490.root')
-  fileNames = cms.untracked.vstring('file:/hadoop/cms/phedex/store/data/Run2015D/DoubleEG/MINIAOD/PromptReco-v3/000/256/728/00000/8A63A81B-3F5F-E511-8A28-02163E0128CE.root')
-                            # fileNames = cms.untracked.vstring('file:44D79135-C525-E511-AB13-02163E013619.root')
+  fileNames = cms.untracked.vstring(
+      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
+      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
+      '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
+      # 'file:SinglePhoton_800pre6.root',
+      )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
 #configurable options =======================================================================
 runOnData=True #data/MC switch
-usePrivateSQlite=True #use external JECs (sqlite file)
-useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
-applyResiduals=True #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+usePrivateSQlite=False #use external JECs (sqlite file)
+useHFCandidates=True #create an additionnal NoHF slimmed MET collection if the option is set to false
+applyResiduals=True  #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
@@ -134,16 +143,18 @@ from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMet
 
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
 #for a full met computation, remove the pfCandColl input
-runMetCorAndUncFromMiniAOD(process,
-                           isData=runOnData,
-                           )
+pt.runMETCorrectionsAndUncertainties(process,
+      addToPatDefaultSequence=False, #This seems to crash if true
+      pfCandCollection=cms.InputTag('particleFlow'),
+      onMiniAOD=True 
+)
 
 if not useHFCandidates:
-    runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               pfCandColl=cms.InputTag("noHFCands"),
-                               postfix="NoHF"
-                               )
+    pt.runMETCorrectionsAndUncertainties(process,
+      addToPatDefaultSequence=False, #This seems to crash if true
+      pfCandCollection=cms.InputTag('noHFCands'),
+      onMiniAOD=True 
+    )
 
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing data
@@ -185,14 +196,10 @@ process.p = cms.Path(
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  process.METToolboxJetMaker *
+  # process.METToolboxJetMaker * # take this out for 75X validation
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.pfmetNoHFMaker *
-  process.pfmetpuppiMaker *
-  process.T1pfmetMaker *
-  process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
@@ -213,5 +220,5 @@ process.pfmetMaker.isData                        = process.eventMaker.isData
 
 
 # redefine
-process.slimmedMETs.t01Variation = cms.InputTag("slimmedMETs","",configProcessName.name)
-process.slimmedMETsNoHF.t01Variation = cms.InputTag("slimmedMETsNoHF","",configProcessName.name)
+# process.slimmedMETs.t01Variation = cms.InputTag("slimmedMETs","",configProcessName.name)
+# process.slimmedMETsNoHF.t01Variation = cms.InputTag("slimmedMETsNoHF","",configProcessName.name)

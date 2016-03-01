@@ -6,9 +6,21 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-#############
-# MVA JetId #
-#############
+#########################################
+# FIXME NJA delete after added to cmssw #
+# https://github.com/cms-sw/cmssw/pull/13352
+#########################################
+pushd $CMSSW_BASE/src/
+git cms-addpkg PhysicsTools/PatUtils
+sed -i '1195s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+sed -i '1196s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+sed -i '1203s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+sed -i '1204s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
+popd
+
+##############
+## MVA JetId #
+##############
  
 git clone https://github.com/latinos/UserCode-CMG-CMGTools-External $CMSSW_BASE/src/CMGTools/External
 pushd $CMSSW_BASE/src/CMGTools/External
@@ -17,15 +29,15 @@ rm plugins/PileupJetIdProducer.cc
 popd
 
 
-#######################
-# LCG dictionaries #
-#######################
+# #######################
+# # LCG dictionaries #
+# #######################
 
 git clone https://github.com/cmstas/Dictionaries $CMSSW_BASE/src/CMS3/Dictionaries
 
-####################
-# jet tool box     #
-####################
+# ####################
+# # jet tool box     #
+# ####################
 
 git clone https://github.com/cms-jet/JetToolbox $CMSSW_BASE/src/JMEAnalysis/JetToolbox -b jetToolbox_74X
 pushd $CMSSW_BASE/src/JMEAnalysis/JetToolbox

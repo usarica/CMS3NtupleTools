@@ -32,6 +32,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
+#include "DataFormats/PatCandidates/interface/Photon.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
@@ -50,7 +51,7 @@ private:
      virtual void endJob() ;
 
      // ----------member data ---------------------------
-     edm::InputTag photonsInputTag_;
+     edm::EDGetTokenT<edm::View<pat::Photon> > photonsToken;
   //   edm::InputTag cms2scsseeddetidInputTag_; 
 //     edm::InputTag ecalRecHitsInputTag_EE_;
 //     edm::InputTag ecalRecHitsInputTag_EB_; 

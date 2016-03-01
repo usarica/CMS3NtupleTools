@@ -12,14 +12,9 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "CMS3/NtupleMaker/interface/T1CHSMETJets.h"
-#include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
-#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -55,8 +50,8 @@ T1CHSMETJets::T1CHSMETJets(const edm::ParameterSet& iConfig){
   produces<vector<vector<int> >  > ( branchprefix+"pfcandIndicies"                   ).setBranchAlias( aliasprefix_+"_pfcandIndicies"                   );
   produces<vector<float> >         ( branchprefix+"area"                             ).setBranchAlias( aliasprefix_+"_area"                             );
 
-  pfJetsInputTag_                   = iConfig.getParameter<InputTag>   ( "pfJetsInputTag"                   );
- pfCandidatesTag_		            = iConfig.getParameter<InputTag>   ("pfCandidatesTag"                   );
+  pfJetsToken = consumes<edm::View<reco::PFJet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
+  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
   pfJetPtCut_                       = iConfig.getParameter<double>     ( "pfJetPtCut"                       );
 
 }
@@ -101,10 +96,10 @@ void T1CHSMETJets::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   //PfJets
   Handle<View<reco::PFJet> > pfJetsHandle;
-  iEvent.getByLabel(pfJetsInputTag_, pfJetsHandle);
+  iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
-  iEvent.getByLabel(pfCandidatesTag_, pfCandidatesHandle);
+  iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
   const pat::PackedCandidateCollection *pfCandidates = pfCandidatesHandle.product();
 
 

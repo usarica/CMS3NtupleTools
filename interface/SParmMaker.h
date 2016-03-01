@@ -31,6 +31,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+
 //
 // class declaration
 //
@@ -46,7 +48,7 @@ private:
     virtual void endJob() ;
       
     // ----------member data ---------------------------
-    edm::InputTag sparm_inputTag;
+    edm::EDGetTokenT<LHEEventProduct> sparmToken;
     std::string aliasprefix_;
   std::vector<std::string> vsparms_;
 };

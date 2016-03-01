@@ -1,5 +1,4 @@
 #include "CMS3/NtupleMaker/interface/HLTMaker.h"
-#include <map>
 //#include <fstream>
 #include "TBits.h"
 
@@ -24,13 +23,23 @@ void PrintTriggerObjectInfo( ofstream& outfile, int id, const ROOT::Math::Lorent
 }
 */
 
-HLTMaker::HLTMaker(const edm::ParameterSet& iConfig){
+
+
+HLTMaker::HLTMaker(const edm::ParameterSet& iConfig) : 
+hltConfig_(iConfig, consumesCollector(), *this) {
+
+//HLTPrescaleProvider(iConfig, 
+//edm::ConsumesCollector&& iC,
+//T& module);
+
   processName_        = iConfig.getUntrackedParameter<string>         ("processName"       );
   fillTriggerObjects_ = iConfig.getUntrackedParameter<bool>           ("fillTriggerObjects");
   prunedTriggerNames_ = iConfig.getUntrackedParameter<vector<string> >("prunedTriggerNames");
   aliasprefix_        = iConfig.getUntrackedParameter<string>         ("aliasPrefix"       );
   processNamePrefix_  = TString(aliasprefix_); //just easier this way....instead of replace processNamePrefix_ everywhere
-  triggerObjectsName_ = iConfig.getUntrackedParameter<string>         ("triggerObjectsName");
+  triggerPrescaleToken= consumes<pat::PackedTriggerPrescales>(iConfig.getUntrackedParameter<std::string>("triggerPrescaleInputTag"));
+  triggerObjectsToken = consumes<pat::TriggerObjectStandAloneCollection>(iConfig.getUntrackedParameter<string>("triggerObjectsName"));
+  triggerResultsToken = consumes<edm::TriggerResults>(edm::InputTag("TriggerResults",       "", processName_));
 
   produces<TBits>                           (Form("%sbits"        ,processNamePrefix_.Data())).setBranchAlias(Form("%s_bits"       ,processNamePrefix_.Data()));
   produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
@@ -58,7 +67,8 @@ void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   // HLT config _should no longer_ change within runs :)
   if (processName_ != "") {
 	bool changed(true);
-	if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+	// if (hltConfig_.init(iRun,iSetup,"*",changed)) {
+	if (hltConfig_.init(iRun,iSetup,processName_,changed)) {
 	} 
     else throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
   }
@@ -71,17 +81,17 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // produce is called processName_ should be set.
 
   //Now using a single processName_ (set to "HLT" in the configuration file). Is this OK? Do we need the flexibility we had before?
-  iEvent.getByLabel(edm::InputTag("TriggerResults",       "", processName_), triggerResultsH_);
+  iEvent.getByToken(triggerResultsToken, triggerResultsH_);
   if (! triggerResultsH_.isValid()) throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
-  iEvent.getByLabel(triggerObjectsName_, triggerObjectStandAlonesH_);
+  iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
   if (!triggerObjectStandAlonesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
-  iEvent.getByLabel( "patTrigger", triggerPrescalesH_);
+  iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
   if (!triggerPrescalesH_.isValid())
     throw cms::Exception("HLTMaker::produce: error getting PackedTriggerPrescales product from Event!");
 
@@ -142,17 +152,16 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   trigObjspassLast->reserve(nTriggers);
   trigObjsfilters->reserve(nTriggers);
 
+  std::vector<bool> doFillTrigger; // map trigger index to decision to fill triggerobjects for it
+
   for(unsigned int i = 0; i < nTriggers; ++i){
-      // Create now because must exist regardless of the accept
-      vector<LorentzVector> p4V;
-      vector<int> idV;
-      vector<bool> passLastV;
-      vector<TString> filtersV;
 
 
       // What is your name?
       const string& name = triggerNames_.triggerName(i);
       trigNames->push_back(name);
+
+      doFillTrigger.push_back(fillTriggerObjects_ && doPruneTriggerName(name));
 
       //What is your prescale?
 	  //Buggy way in miniAOD
@@ -187,17 +196,75 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  if (triggerResultsH_->accept(i)){
 		bits->SetBitNumber(i);
 	  }
-	  // Collect desired trigger objects 
-	  if (fillTriggerObjects_ && doPruneTriggerName(name)) {
-	    fillTriggerObjectInfo(i, idV, p4V, passLastV, filtersV);
-	  }
-
-
-      trigObjsid->push_back(idV);
-      trigObjsp4->push_back(p4V);
-      trigObjspassLast->push_back(passLastV);
-      trigObjsfilters->push_back(filtersV);
     }
+
+
+  for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
+    // first index is [itrig], second is [iobj]
+    trigObjsid->push_back(vector<int>());
+    trigObjsp4->push_back(vector<LorentzVector>());
+    trigObjspassLast->push_back(vector<bool>());
+    trigObjsfilters->push_back(vector<TString>());
+  }
+
+  pat::TriggerObjectStandAlone TO;
+  for ( uint iobj = 0; iobj < triggerObjectStandAlonesH_->size(); iobj++ ) {
+
+    TO = triggerObjectStandAlonesH_->at(iobj);
+    TO.unpackPathNames( triggerNames_ );
+
+    for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
+      const string& name = triggerNames_.triggerName(itrig);
+
+      if(!doFillTrigger[itrig]) continue;
+
+      // save all objects associated to path, regardless of final result. And save filter names 
+      if ( TO.hasPathName(name, false, false ) ) {  
+        int storeID = 0;
+        std::vector<int> IDs = TO.filterIds();
+        if (IDs.size() == 1) storeID = IDs[0];
+        else if (IDs.size() > 1) {
+          // Making some arbitrary choices
+          if ( IDs[0]==85 || IDs[1]==85 ) storeID = 85; // when in doubt call it jet (and not the bjet, 86)
+          if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
+        }
+
+        bool saveFilters = false;
+        TString filterslist = "";
+        if ( IDs.size() > 0 ) {
+          int id = abs(IDs[0]);
+          // From: TriggerTypeDefs.h
+          //	 TriggerL1Mu           = -81,
+          //       TriggerL1NoIsoEG      = -82,
+          //       TriggerL1IsoEG        = -83,
+          //       TriggerPhoton         = +81,
+          //       TriggerElectron       = +82,
+          //       TriggerMuon           = +83,
+          //       TriggerCluster        = +92,
+          if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
+          if ( IDs.size() > 1 ) {
+            int id = abs(IDs[1]);
+            if ( id == 81 || id == 82 || id == 83 || IDs[1] == 92) saveFilters = true;
+          }
+        }
+        if (saveFilters) {
+          std::vector< std::string > filter_labels = TO.filterLabels();
+          for (uint j  = 0; j < filter_labels.size(); j++) {
+            filterslist += filter_labels[j];
+            filterslist += " ";
+          }
+        }
+
+
+        trigObjsid->at(itrig).push_back(storeID);
+        trigObjsp4->at(itrig).push_back(LorentzVector(TO.p4()));
+        trigObjspassLast->at(itrig).push_back(TO.hasPathName(name, true));
+        trigObjsfilters->at(itrig).push_back(filterslist);
+      } // hasPathName
+
+    } // End of loop over triggers
+
+  } // end of loop over trigger objects
 	
   // strip upper zeros
   bits->Compact();
@@ -228,6 +295,8 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
   return false;
 }
 
+
+/*
 void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V, vector<bool>& passLastV, vector<TString>& filtersV) const {
 
   // Triggers from miniAOD. 
@@ -238,8 +307,9 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   const string& name = triggerNames_.triggerName(triggerIndex);
 
   // 2. Loop over StandAloneTriggerObjects 
+  pat::TriggerObjectStandAlone TO;
   for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
-    pat::TriggerObjectStandAlone TO = triggerObjectStandAlonesH_->at(i);
+    TO = triggerObjectStandAlonesH_->at(i);
     TO.unpackPathNames( triggerNames_ );
     // 3. OLD: Check hasPathName( triggerName, true). 
     // This makes sure that the TriggerObjects belongs to the LAST filter in a path. 
@@ -297,6 +367,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   // End of Triggers from miniAOD
 
 } // end HLTMaker::fillTriggerObjectInfo()
+*/
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(HLTMaker);

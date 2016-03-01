@@ -34,6 +34,11 @@ Implementation:
 #include "DataFormats/PatCandidates/interface/JetCorrFactors.h"
 #include "CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+#include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 class T1CHSMETJets : public edm::EDProducer {
 public:
@@ -46,8 +51,8 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
-  edm::InputTag pfJetsInputTag_;
-  edm::InputTag pfCandidatesTag_;
+  edm::EDGetTokenT<edm::View<reco::PFJet> > pfJetsToken;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
   double         pfJetPtCut_;
   std::string aliasprefix_;
   std::string PFJetCorrectorL2L3_;

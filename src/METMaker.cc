@@ -31,7 +31,6 @@
 
 #include "CMS3/NtupleMaker/interface/METMaker.h"
 
-#include "DataFormats/METReco/interface/CaloMET.h"
 #include "DataFormats/METReco/interface/MET.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
@@ -150,26 +149,26 @@ METMaker::METMaker(const edm::ParameterSet& iConfig) {
      produces<float> (branchprefix+"metPhiEtGt3").setBranchAlias(aliasprefix_+"_metPhi_EtGt3");
      produces<float> (branchprefix+"sumetEtGt3").setBranchAlias(aliasprefix_+"_sumet_EtGt3");
 
-     met_tag               = iConfig.getParameter<edm::InputTag>("met_tag_"               );       
-     metHO_tag             = iConfig.getParameter<edm::InputTag>("metHO_tag_"             );     
-     metNoHF_tag           = iConfig.getParameter<edm::InputTag>("metNoHF_tag_"           );   
-     metNoHFHO_tag         = iConfig.getParameter<edm::InputTag>("metNoHFHO_tag_"         ); 
+     met_token                = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("met_tag_"));
+     metHO_token              = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metHO_tag_"));
+     metNoHF_token            = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metNoHF_tag_"));
+     metNoHFHO_token          = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metNoHFHO_tag_"));
 
-     metOpt_tag            = iConfig.getParameter<edm::InputTag>("metOpt_tag_"            );       
-     metOptHO_tag          = iConfig.getParameter<edm::InputTag>("metOptHO_tag_"          );     
-     metOptNoHF_tag        = iConfig.getParameter<edm::InputTag>("metOptNoHF_tag_"        );   
-     metOptNoHFHO_tag      = iConfig.getParameter<edm::InputTag>("metOptNoHFHO_tag_"      ); 
+     metOpt_token             = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metOpt_tag_"));
+     metOptHO_token           = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metOptHO_tag_"));
+     metOptNoHF_token         = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metOptNoHF_tag_"));
+     metOptNoHFHO_token       = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("metOptNoHFHO_tag_"));
   
-     MuonJEScorMET_tag     = iConfig.getParameter<edm::InputTag>("MuonJEScorMET_tag_"     );
-     corMetGlobalMuons_tag = iConfig.getParameter<edm::InputTag>("corMetGlobalMuons_tag_" );
+     MuonJEScorMET_token      = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("MuonJEScorMET_tag_"));
+     corMetGlobalMuons_token  = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("corMetGlobalMuons_tag_"));
 
-     muon_vm_tag           = iConfig.getParameter<edm::InputTag>("muon_vm_tag_");
-     muon_tag              = iConfig.getParameter<edm::InputTag>("muon_tag_"   );
+     muon_vm_token            = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("muon_vm_tag_"));
+     muon_token               = consumes<edm::View<reco::CaloMET> >(iConfig.getParameter<edm::InputTag>("muon_tag_"));
 
      caloTowerInputTag     = iConfig.getParameter<edm::InputTag>("caloTower_tag_");
      towerEtThreshold      = iConfig.getParameter<double>       ("towerEtThreshold_");
      make_eta_rings        = iConfig.getParameter<bool>         ("make_eta_rings_");
-     hbheNoiseFilterInputTag = iConfig.getParameter<edm::InputTag>("hbheNoiseFilterInputTag_");
+     hbheNoiseFilterToken               = consumes<bool>(iConfig.getParameter<edm::InputTag>("hbheNoiseFilterInputTag_"));
 
      if( make_eta_rings ) {
 	  produces<vector<float> > (branchprefix+"towermetetaslice"         ).setBranchAlias(aliasprefix_+"_towermet_etaslice"         );
@@ -295,19 +294,19 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      edm::Handle< reco::MuonCollection > muon_h;
      edm::Handle<bool> filter_h;     
 
-     iEvent.getByLabel(hbheNoiseFilterInputTag, filter_h);
-     iEvent.getByLabel(met_tag      , met_h       );
-     iEvent.getByLabel(metHO_tag    , metHO_h     );
-     iEvent.getByLabel(metNoHF_tag  , metNoHF_h   );
-     iEvent.getByLabel(metNoHFHO_tag, metNoHFHO_h );
-     iEvent.getByLabel(metOpt_tag      , metOpt_h       );
-     iEvent.getByLabel(metOptHO_tag    , metOptHO_h     );
-     iEvent.getByLabel(metOptNoHF_tag  , metOptNoHF_h   );
-     iEvent.getByLabel(metOptNoHFHO_tag, metOptNoHFHO_h );
-     iEvent.getByLabel(corMetGlobalMuons_tag, metMuonCorr_h      );
-     iEvent.getByLabel(MuonJEScorMET_tag,     metMuonJESCorr_h   );
-     iEvent.getByLabel(muon_vm_tag, muon_vm_h );
-     iEvent.getByLabel(muon_tag   , muon_h    );
+     iEvent.getByToken(hbheNoiseFilterToken, filter_h);
+     iEvent.getByToken(met_token      , met_h       );
+     iEvent.getByToken(metHO_token    , metHO_h     );
+     iEvent.getByToken(metNoHF_token  , metNoHF_h   );
+     iEvent.getByToken(metNoHFHO_token, metNoHFHO_h );
+     iEvent.getByToken(metOpt_token      , metOpt_h       );
+     iEvent.getByToken(metOptHO_token    , metOptHO_h     );
+     iEvent.getByToken(metOptNoHF_token  , metOptNoHF_h   );
+     iEvent.getByToken(metOptNoHFHO_token, metOptNoHFHO_h );
+     iEvent.getByToken(corMetGlobalMuons_token, metMuonCorr_h      );
+     iEvent.getByToken(MuonJEScorMET_token,     metMuonJESCorr_h   );
+     iEvent.getByToken(muon_vm_token, muon_vm_h );
+     iEvent.getByToken(muon_token   , muon_h    );
 
      if (!met_h.isValid()) throw cms::Exception("GenMaker: Could not load met_h handle");
      if (!metHO_h.isValid()) throw cms::Exception("GenMaker: Could not load metHO_h handle");
