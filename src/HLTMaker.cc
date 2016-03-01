@@ -1,5 +1,6 @@
 #include "CMS3/NtupleMaker/interface/HLTMaker.h"
 #include <map>
+#include <unordered_map>
 //#include <fstream>
 #include "TBits.h"
 
@@ -153,17 +154,16 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   trigObjspassLast->reserve(nTriggers);
   trigObjsfilters->reserve(nTriggers);
 
+  std::unordered_map<unsigned int, bool> doFillTrigger; // map trigger index to decision to fill triggerobjects for it
+
   for(unsigned int i = 0; i < nTriggers; ++i){
-      // Create now because must exist regardless of the accept
-      vector<LorentzVector> p4V;
-      vector<int> idV;
-      vector<bool> passLastV;
-      vector<TString> filtersV;
 
 
       // What is your name?
       const string& name = triggerNames_.triggerName(i);
       trigNames->push_back(name);
+
+      doFillTrigger[i] = fillTriggerObjects_ && doPruneTriggerName(name);
 
       //What is your prescale?
 	  //Buggy way in miniAOD
@@ -198,17 +198,65 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  if (triggerResultsH_->accept(i)){
 		bits->SetBitNumber(i);
 	  }
-	  // Collect desired trigger objects 
-	  if (fillTriggerObjects_ && doPruneTriggerName(name)) {
-	    fillTriggerObjectInfo(i, idV, p4V, passLastV, filtersV);
-	  }
-
-
-      trigObjsid->push_back(idV);
-      trigObjsp4->push_back(p4V);
-      trigObjspassLast->push_back(passLastV);
-      trigObjsfilters->push_back(filtersV);
     }
+
+
+  for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
+    // first index is [itrig], second is [iobj]
+    trigObjsid->push_back(vector<int>());
+    trigObjsp4->push_back(vector<LorentzVector>());
+    trigObjspassLast->push_back(vector<bool>());
+    trigObjsfilters->push_back(vector<TString>());
+  }
+
+  pat::TriggerObjectStandAlone TO;
+  for ( uint iobj = 0; iobj < triggerObjectStandAlonesH_->size(); iobj++ ) {
+
+    TO = triggerObjectStandAlonesH_->at(iobj);
+    TO.unpackPathNames( triggerNames_ );
+
+    for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
+      const string& name = triggerNames_.triggerName(itrig);
+
+      if(!doFillTrigger[itrig]) continue;
+
+      if ( TO.hasPathName(name, false, false ) ) {  
+        int storeID = 0;
+        std::vector<int> IDs = TO.filterIds();
+        if (IDs.size() == 1) storeID = IDs[0];
+        else if (IDs.size() > 1) {
+          if ( IDs[0]==85 || IDs[1]==85 ) storeID = 85; // when in doubt call it jet (and not the bjet, 86)
+          if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
+        }
+
+        bool saveFilters = false;
+        TString filterslist = "";
+        if ( IDs.size() > 0 ) {
+          int id = abs(IDs[0]);
+          if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
+          if ( IDs.size() > 1 ) {
+            int id = abs(IDs[1]);
+            if ( id == 81 || id == 82 || id == 83 || IDs[1] == 92) saveFilters = true;
+          }
+        }
+        if (saveFilters) {
+          std::vector< std::string > filter_labels = TO.filterLabels();
+          for (uint j  = 0; j < filter_labels.size(); j++) {
+            filterslist += filter_labels[j];
+            filterslist += " ";
+          }
+        }
+
+
+        trigObjsid->at(itrig).push_back(storeID);
+        trigObjsp4->at(itrig).push_back(LorentzVector(TO.p4()));
+        trigObjspassLast->at(itrig).push_back(TO.hasPathName(name, true));
+        trigObjsfilters->at(itrig).push_back(filterslist);
+      } // hasPathName
+
+    } // End of loop over triggers
+
+  } // end of loop over trigger objects
 	
   // strip upper zeros
   bits->Compact();
@@ -239,6 +287,8 @@ bool HLTMaker::doPruneTriggerName(const string& name) const
   return false;
 }
 
+
+/*
 void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV, vector<LorentzVector>& p4V, vector<bool>& passLastV, vector<TString>& filtersV) const {
 
   // Triggers from miniAOD. 
@@ -309,6 +359,7 @@ void HLTMaker::fillTriggerObjectInfo(unsigned int triggerIndex, vector<int>& idV
   // End of Triggers from miniAOD
 
 } // end HLTMaker::fillTriggerObjectInfo()
+*/
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(HLTMaker);

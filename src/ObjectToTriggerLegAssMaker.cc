@@ -20,6 +20,7 @@ Implementation:
 
 // system include files
 #include <memory>
+#include <unordered_map>
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -161,7 +162,7 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
     */
 
     for (unsigned int t = 0; t < triggers_.size(); ++t) {
-      prescales.push_back(matchTriggerObject2(iEvent, iSetup, triggers_[t].label(), triggers_[t].instance(), t, allObjects, obj_p4_h));
+      prescales.push_back(matchTriggerObject(iEvent, iSetup, triggers_[t].label(), triggers_[t].instance(), t, allObjects, obj_p4_h));
     }
 
     //
@@ -231,7 +232,7 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
 
   unsigned int prescale = 0;
 
-  std::map<int, unsigned int> offlineObjectsPrescales; // map object index to prescale
+  std::unordered_map<int, unsigned int> offlineObjectsPrescales; // map object index to prescale (unordered has O(1) lookup)
   for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
     offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = 0;
   }
