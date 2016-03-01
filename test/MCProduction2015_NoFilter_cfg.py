@@ -5,6 +5,9 @@ import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
 configProcessName.isFastSim=False
 
+relval = False
+if relval: configProcessName.name="RECO"
+
 # CMS3
 process = cms.Process("CMS3")
 
