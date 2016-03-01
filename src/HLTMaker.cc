@@ -1,6 +1,4 @@
 #include "CMS3/NtupleMaker/interface/HLTMaker.h"
-#include <map>
-#include <unordered_map>
 //#include <fstream>
 #include "TBits.h"
 
@@ -154,7 +152,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   trigObjspassLast->reserve(nTriggers);
   trigObjsfilters->reserve(nTriggers);
 
-  std::unordered_map<unsigned int, bool> doFillTrigger; // map trigger index to decision to fill triggerobjects for it
+  std::vector<bool> doFillTrigger; // map trigger index to decision to fill triggerobjects for it
 
   for(unsigned int i = 0; i < nTriggers; ++i){
 
@@ -163,7 +161,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       const string& name = triggerNames_.triggerName(i);
       trigNames->push_back(name);
 
-      doFillTrigger[i] = fillTriggerObjects_ && doPruneTriggerName(name);
+      doFillTrigger.push_back(fillTriggerObjects_ && doPruneTriggerName(name));
 
       //What is your prescale?
 	  //Buggy way in miniAOD
@@ -220,11 +218,13 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
       if(!doFillTrigger[itrig]) continue;
 
+      // save all objects associated to path, regardless of final result. And save filter names 
       if ( TO.hasPathName(name, false, false ) ) {  
         int storeID = 0;
         std::vector<int> IDs = TO.filterIds();
         if (IDs.size() == 1) storeID = IDs[0];
         else if (IDs.size() > 1) {
+          // Making some arbitrary choices
           if ( IDs[0]==85 || IDs[1]==85 ) storeID = 85; // when in doubt call it jet (and not the bjet, 86)
           if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
         }
@@ -233,6 +233,14 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         TString filterslist = "";
         if ( IDs.size() > 0 ) {
           int id = abs(IDs[0]);
+          // From: TriggerTypeDefs.h
+          //	 TriggerL1Mu           = -81,
+          //       TriggerL1NoIsoEG      = -82,
+          //       TriggerL1IsoEG        = -83,
+          //       TriggerPhoton         = +81,
+          //       TriggerElectron       = +82,
+          //       TriggerMuon           = +83,
+          //       TriggerCluster        = +92,
           if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
           if ( IDs.size() > 1 ) {
             int id = abs(IDs[1]);

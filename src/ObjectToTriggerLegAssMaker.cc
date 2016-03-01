@@ -228,13 +228,14 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
     const  pat::TriggerObjectStandAloneCollection* allObjects,
     const edm::Handle<std::vector<LorentzVector> > &offlineObjects)
 {
-  std::vector<unsigned int> triggerPrescales;
+  // std::vector<unsigned int> triggerPrescales;
 
   unsigned int prescale = 0;
 
-  std::unordered_map<int, unsigned int> offlineObjectsPrescales; // map object index to prescale (unordered has O(1) lookup)
+  // map object index to prescale
+  std::vector<unsigned int> offlineObjectsPrescales; 
   for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
-    offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = 0;
+    offlineObjectsPrescales.push_back(0);
   }
 
   // loop over trigger objects
@@ -242,14 +243,22 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
   for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
     TO = triggerObjectStandAlonesH_->at(i);
     TO.unpackPathNames( triggerNames_ );
+    // TO.hasPathName(triggerName, false) : TO belongs to any of the filters on this path
     if ( TO.hasPathName(triggerName, false) ) { 
+      // TO.hasPathName(triggerName, true) : TO belongs to the last EDFilter on this path
+      //std::cout<<"TriggerObject belongs to path "<<triggerName<<std::endl;
       if ( (filterName == "" && TO.hasPathName(triggerName, true) ) || TO.hasFilterLabel(filterName) ) { 
+	  //std::cout<<"... and to filter: "<<filterName<<". If not specified, belongs to last EDFilter of this path."<<std::endl;
+	  //std::cout<<"Trigger object has eta/phi "<<TO.eta()<<"/"<<TO.phi()<<". Offline object has eta/phi "<<offlineObject.eta()<<"/"<< offlineObject.phi() <<std::endl;
 
         // loop over leptons
         for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
-          if(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] != 0) continue; // if we already matched this object, skip it in the subsequent loops
+          // if we already matched this object, skip it in the subsequent loops
+          if(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] != 0) continue; 
+
           if (deltaR(TO.eta(), TO.phi(), (*obj_it).eta(), (*obj_it).phi()) < cone_) {
             prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
+            //std::cout<<"Match!! Prescale is "<<prescale<<std::endl;
             offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = prescale;
           }
         }
@@ -258,10 +267,7 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
     }
   }
 
-  for (std::vector<LorentzVector>::const_iterator obj_it = offlineObjects->begin(); obj_it != offlineObjects->end(); ++obj_it) {
-    triggerPrescales.push_back(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)]);
-  }
-  return triggerPrescales;
+  return offlineObjectsPrescales;
 
 }
 

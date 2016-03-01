@@ -56,11 +56,11 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() {}
   
-  void fillTriggerObjectInfo(unsigned int,
+  /*void fillTriggerObjectInfo(unsigned int,
 			     std::vector<int>&,
 			     std::vector<math::XYZTLorentzVectorF>&,
 			     std::vector<bool>&,
-			     std::vector<TString>&) const;
+			     std::vector<TString>&) const;*/
   bool doPruneTriggerName(const std::string&) const;
 
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
