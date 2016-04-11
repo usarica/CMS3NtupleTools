@@ -6,18 +6,6 @@
 #cd
 cd $CMSSW_BASE/src/CMS3/NtupleMaker
 
-#########################################
-# FIXME NJA delete after added to cmssw #
-# https://github.com/cms-sw/cmssw/pull/13352
-#########################################
-pushd $CMSSW_BASE/src/
-git cms-addpkg PhysicsTools/PatUtils
-sed -i '1195s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
-sed -i '1196s/patJetCorrFactorsUpdated/updatedPatJetCorrFactors/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
-sed -i '1203s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
-sed -i '1204s/patJetsUpdated/updatedPatJets/' PhysicsTools/PatUtils/python/tools/runMETCorrectionsAndUncertainties.py 
-popd
-
 ##############
 ## MVA JetId #
 ##############

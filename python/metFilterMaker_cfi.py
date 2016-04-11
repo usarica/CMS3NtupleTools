@@ -5,5 +5,5 @@ metFilterMaker = cms.EDProducer(
   "MetFilterMaker",
   aliasPrefix      = cms.untracked.string("filt"),
   filtersInputTag  = cms.InputTag("TriggerResults"),
-  processName      = cms.untracked.string(configProcessName.name)
+  processName      = cms.untracked.string(configProcessName.name2)
 )
