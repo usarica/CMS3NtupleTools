@@ -27,11 +27,14 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/LuminosityBlock.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Utilities/interface/BranchType.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
 
 //
 // class declaration
@@ -49,6 +52,7 @@ private:
       
     // ----------member data ---------------------------
     edm::EDGetTokenT<LHEEventProduct> sparmToken;
+    edm::EDGetTokenT<GenLumiInfoHeader> configToken;
     std::string aliasprefix_;
   std::vector<std::string> vsparms_;
 };
