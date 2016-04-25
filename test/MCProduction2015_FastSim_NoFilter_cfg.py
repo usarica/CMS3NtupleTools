@@ -4,6 +4,7 @@ from Configuration.EventContent.EventContent_cff   import *
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
 configProcessName.fastSimName="HLT"
+configProcessName.name2=configProcessName.fastSimName
 configProcessName.isFastSim=True
 
 # CMS3
@@ -26,7 +27,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "MCRUN2_74_V9"
+process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_v9"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -81,6 +82,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
                                 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/80000/68A49080-8674-E511-8DBF-0025905AF57C.root'
+                                # 'file:/nfs-7/userdata/fgolf/forNick/newSusyWorkFlowRelVal.root' # test new sparm location
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -198,12 +200,12 @@ process.p = cms.Path(
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  process.METToolboxJetMaker *
+  # process.METToolboxJetMaker *
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
-  process.T1pfmetMaker *
-  process.T1pfmetNoHFMaker *
+  # process.T1pfmetMaker *
+  # process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *

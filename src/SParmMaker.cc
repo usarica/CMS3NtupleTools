@@ -59,6 +59,7 @@ SParmMaker::SParmMaker(const edm::ParameterSet& iConfig) {
 	
   // parameters from configuration
   sparmToken = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("sparm_inputTag"));
+  configToken = consumes<GenLumiInfoHeader, edm::InLumi>(iConfig.getParameter<edm::InputTag>("config_inputTag"));
 
   // sparm names from configuration
   vsparms_ = iConfig.getUntrackedParameter<std::vector<std::string> >("vsparms");
@@ -103,12 +104,36 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         sparm_names->push_back( TString(vsparms_[i].c_str()) );
     }
 
-    // first try cms sparm comments
+    edm::Handle<GenLumiInfoHeader> config_handle;  
+    iEvent.getLuminosityBlock().getByToken(configToken, config_handle);
+
     edm::Handle<LHEEventProduct> sparm_handle;  
     iEvent.getByToken(sparmToken, sparm_handle);
-    if( sparm_handle.isValid() ){
+
+    bool found_sparms = false;
+    if ( config_handle.isValid() ) {
+      TString model_comment(config_handle->configDescription());
+
+      // example: TChiSlepSnu-0p5_700_275
+      if(model_comment.Contains("_") && !model_comment.Contains(" ")) {
+
+        (*sparm_comment)[0] = model_comment;
+
+        TObjArray* tokens = model_comment.Tokenize("_");
+        for(int i = 0; i < tokens->GetEntries(); i++) {
+          TString mass = ((TObjString*)tokens->At(i))->GetString();
+          if (mass.IsFloat()) {
+            sparm_values->push_back(mass.Atof());
+            found_sparms = true;
+          }
+        }
+      }
+    }
+
+    if( sparm_handle.isValid() && !found_sparms ){
         for (std::vector<std::string>::const_iterator it = sparm_handle->comments_begin(); it != sparm_handle->comments_end(); it++) {      
             TString model_comment(*it);
+            std::cout << model_comment << std::endl;
             if( !model_comment.Contains("model") ){ continue; }
 
             // check if sparm comment is in expected format
@@ -162,6 +187,17 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             delete space_tokens;
             delete tokens;
         }
+    }
+    else{ // next try our custom susy branches if sparm comment is not present
+        edm::Handle<double> susyScan_handles[6];
+        for(int i=0; i<6; i++){
+            iEvent.getByLabel(Form("susyScanP%i",(i+1)), susyScan_handles[i]);
+            if( !susyScan_handles[i].isValid() ){ break; }
+            sparm_values->push_back(*(susyScan_handles[i]));
+        }
+    }
+
+    if( sparm_handle.isValid() ){
 
         // now, get info about this event
         const lhef::HEPEUP lhe_info = sparm_handle->hepeup();
@@ -176,14 +212,6 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         }
         else {
             *sparm_pdfScale = lhe_info.SCALUP;
-        }
-    }
-    else{ // next try our custom susy branches if sparm comment is not present
-        edm::Handle<double> susyScan_handles[6];
-        for(int i=0; i<6; i++){
-            iEvent.getByLabel(Form("susyScanP%i",(i+1)), susyScan_handles[i]);
-            if( !susyScan_handles[i].isValid() ){ break; }
-            sparm_values->push_back(*(susyScan_handles[i]));
         }
     }
 
