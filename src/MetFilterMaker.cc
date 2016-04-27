@@ -45,6 +45,11 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     produces <bool> ( branchprefix_ + "trkPOGlogErrorTooManyClusters"  ).setBranchAlias( aliasprefix_ + "_trkPOG_logErrorTooManyClusters" );
     produces <bool> ( branchprefix_ + "trkPOGmanystripclus53X"	       ).setBranchAlias( aliasprefix_ + "_trkPOG_manystripclus53X"        );
     produces <bool> ( branchprefix_ + "trkPOGtoomanystripclus53X"      ).setBranchAlias( aliasprefix_ + "_trkPOG_toomanystripclus53X"     );
+    produces <bool> ( branchprefix_ + "hbheNoiseIso"                   ).setBranchAlias( aliasprefix_ + "_hbheNoiseIso"                   );
+    produces <bool> ( branchprefix_ + "cscBeamHaloTrkMuUnveto"         ).setBranchAlias( aliasprefix_ + "_cscBeamHaloTrkMuUnveto"         );
+    produces <bool> ( branchprefix_ + "hcalStrip"                      ).setBranchAlias( aliasprefix_ + "_hcalStrip"                      );
+    produces <bool> ( branchprefix_ + "ecalBoundaryEnergy"             ).setBranchAlias( aliasprefix_ + "_ecalBoundaryEnergy"             );
+    produces <bool> ( branchprefix_ + "muonBadTrack"                   ).setBranchAlias( aliasprefix_ + "_muonBadTrack"                   );
 
     // For compatibility with CMS2 variable names
     produces <bool> ( "evtcscTightHaloId"                 ).setBranchAlias( "evt_cscTightHaloId"                 );
@@ -79,6 +84,14 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   auto_ptr <bool> filt_trkPOG_logErrorTooManyClusters( new bool(false) );
   auto_ptr <bool> filt_trkPOG_manystripclus53X       ( new bool(false) );
   auto_ptr <bool> filt_trkPOG_toomanystripclus53X    ( new bool(false) );
+  auto_ptr <bool> filt_hbheNoiseIso                  ( new bool(false) );
+  auto_ptr <bool> filt_cscBeamHaloTrkMuUnveto        ( new bool(false) );
+  auto_ptr <bool> filt_hcalStrip                     ( new bool(false) );
+  auto_ptr <bool> filt_ecalBoundaryEnergy            ( new bool(false) );
+  auto_ptr <bool> filt_muonBadTrack                  ( new bool(false) );
+
+
+
   // For compatibility with CMS2 variable names
   auto_ptr <bool> filt_cscTightHaloId                ( new bool(false) );
   auto_ptr <bool> filt_hbheFilter                    ( new bool(false) );
@@ -104,8 +117,16 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   int idx_goodVertices                    = -1;
   int idx_trkPOGFilters                   = -1;
   int idx_trkPOG_logErrorTooManyClusters  = -1;
-  int idx_trkPOG_manystripclus53X	  = -1;
+  int idx_trkPOG_manystripclus53X	      = -1;
   int idx_trkPOG_toomanystripclus53X      = -1; 
+  int idx_hbheNoiseIso                    = -1;
+  int idx_cscBeamHaloTrkMuUnveto          = -1;
+  int idx_hcalStrip                       = -1;
+  int idx_ecalBoundaryEnergy              = -1;
+  int idx_muonBadTrack                    = -1;
+
+
+
   
   
   edm::TriggerNames metFilterNames_ = iEvent.triggerNames(*metFilterResultsH_); 
@@ -125,6 +146,11 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_logErrorTooManyClusters"     )  idx_trkPOG_logErrorTooManyClusters = i;
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_manystripclus53X"            )  idx_trkPOG_manystripclus53X	    = i;
     if (  metFilterNames_.triggerName(i) == "Flag_trkPOG_toomanystripclus53X"         )  idx_trkPOG_toomanystripclus53X     = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_HBHENoiseIsoFilter"                 ) idx_hbheNoiseIso                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHaloTrkMuUnvetoFilter"      ) idx_cscBeamHaloTrkMuUnveto          = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_HcalStripHaloFilter"                ) idx_hcalStrip                       = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellBoundaryEnergyFilter"   ) idx_ecalBoundaryEnergy              = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_muonBadTrackFilter"                 ) idx_muonBadTrack                    = i;
   }
 
   
@@ -141,8 +167,15 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   *filt_goodVertices                         = (idx_goodVertices                   < 0) ? false : metFilterResultsH_->accept(idx_goodVertices                    );
   *filt_trkPOGFilters                        = (idx_trkPOGFilters                  < 0) ? false : metFilterResultsH_->accept(idx_trkPOGFilters                   );
   *filt_trkPOG_logErrorTooManyClusters       = (idx_trkPOG_logErrorTooManyClusters < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_logErrorTooManyClusters  );
-  *filt_trkPOG_manystripclus53X	             = (idx_trkPOG_manystripclus53X        < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_manystripclus53X	 );
+  *filt_trkPOG_manystripclus53X	             = (idx_trkPOG_manystripclus53X        < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_manystripclus53X	     );
   *filt_trkPOG_toomanystripclus53X           = (idx_trkPOG_toomanystripclus53X     < 0) ? false : metFilterResultsH_->accept(idx_trkPOG_toomanystripclus53X      );
+  *filt_hbheNoiseIso                         = (idx_hbheNoiseIso                   < 0) ? false : metFilterResultsH_->accept(idx_hbheNoiseIso                    );
+  *filt_cscBeamHaloTrkMuUnveto               = (idx_cscBeamHaloTrkMuUnveto         < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHaloTrkMuUnveto          );
+  *filt_hcalStrip                            = (idx_hcalStrip                      < 0) ? false : metFilterResultsH_->accept(idx_hcalStrip                       );
+  *filt_ecalBoundaryEnergy                   = (idx_ecalBoundaryEnergy             < 0) ? false : metFilterResultsH_->accept(idx_ecalBoundaryEnergy              );
+  *filt_muonBadTrack                         = (idx_muonBadTrack                   < 0) ? false : metFilterResultsH_->accept(idx_muonBadTrack                    );
+
+
   // For compatibility with CMS2 variable names
   *filt_cscTightHaloId                       = (idx_cscBeamHalo < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
   *filt_hbheFilter                           = (idx_hbheNoise < 0) ? false : metFilterResultsH_->accept(idx_hbheNoise                       );
@@ -164,8 +197,13 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put( filt_goodVertices                   , branchprefix_ + "goodVertices"                   );
   iEvent.put( filt_trkPOGFilters                  , branchprefix_ + "trkPOGFilters"                  );
   iEvent.put( filt_trkPOG_logErrorTooManyClusters , branchprefix_ + "trkPOGlogErrorTooManyClusters"  );
-  iEvent.put( filt_trkPOG_manystripclus53X	  , branchprefix_ + "trkPOGmanystripclus53X"	     );
+  iEvent.put( filt_trkPOG_manystripclus53X	      , branchprefix_ + "trkPOGmanystripclus53X"	     );
   iEvent.put( filt_trkPOG_toomanystripclus53X     , branchprefix_ + "trkPOGtoomanystripclus53X"      );
+  iEvent.put( filt_hbheNoiseIso                   , branchprefix_ + "hbheNoiseIso"                   );
+  iEvent.put( filt_cscBeamHaloTrkMuUnveto         , branchprefix_ + "cscBeamHaloTrkMuUnveto"         );
+  iEvent.put( filt_hcalStrip                      , branchprefix_ + "hcalStrip"                      );
+  iEvent.put( filt_ecalBoundaryEnergy             , branchprefix_ + "ecalBoundaryEnergy"             );
+  iEvent.put( filt_muonBadTrack                   , branchprefix_ + "muonBadTrack"                   );
 
   // For compatibility with CMS2 variable names
   iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );

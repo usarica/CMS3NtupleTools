@@ -3,7 +3,9 @@ import PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties as pt
 from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="RECO"
+
+is_relval = True
+configProcessName.name = configProcessName.name2 = "reRECO" if is_relval else "RECO"
 configProcessName.isFastSim=False
 
 #CMS3
@@ -83,10 +85,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/3E92522D-2080-E511-A958-00261894396D.root',
-      #'/store/relval/CMSSW_7_6_0/DoubleEG/MINIAOD/76X_dataRun2_v10_RelVal_dbEGPrpt2015C-v1/00000/40AA9A2F-2080-E511-B29B-00261894397B.root',
-      '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
-      # 'file:SinglePhoton_800pre6.root',
+      # '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
+      '/store/relval/CMSSW_8_0_4/SingleMuon/MINIAOD/80X_dataRun2_relval_v4_RelVal_sgMuPrpt2015D-v1/00000/1C958636-FA04-E611-8398-0025905B857E.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
