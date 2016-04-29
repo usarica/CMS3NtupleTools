@@ -27,7 +27,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_v9"
+process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_v12"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -81,14 +81,14 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-                                'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/80000/68A49080-8674-E511-8DBF-0025905AF57C.root'
-                                # 'file:/nfs-7/userdata/fgolf/forNick/newSusyWorkFlowRelVal.root' # test new sparm location
+                                # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/SMS-T1bbbb_mGluino-1000_mLSP-900_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/80000/68A49080-8674-E511-8DBF-0025905AF57C.root'
+                                '/store/relval/CMSSW_8_0_5/RelValSusySignalTest2/MINIAODSIM/PUpmx25ns_80X_mcRun2_asymptotic_v12_FastSim-v1/00000/C2155CF4-4B08-E611-A8D8-0025905A60A6.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
@@ -224,5 +224,5 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
-#process.sParmMaker.vsparms                       = cms.untracked.vstring("mGluino", "mLSP")
-#process.p.insert( -1, process.sParmMakerSequence )
+# process.sParmMaker.vsparms                       = cms.untracked.vstring("mGluino", "mLSP")
+# process.p.insert( -1, process.sParmMakerSequence )
