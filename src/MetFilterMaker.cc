@@ -31,6 +31,8 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
 
     //
     produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
+    produces <bool> ( branchprefix_ + "globalTightHalo2016"            ).setBranchAlias( aliasprefix_ + "_globalTightHalo2016"            );
+    produces <bool> ( branchprefix_ + "globalSuperTightHalo2016"       ).setBranchAlias( aliasprefix_ + "_globalSuperTightHalo2016"       );
     produces <bool> ( branchprefix_ + "cscBeamHalo2015"                ).setBranchAlias( aliasprefix_ + "_cscBeamHalo2015"                );
     produces <bool> ( branchprefix_ + "hbheNoise"                      ).setBranchAlias( aliasprefix_ + "_hbheNoise"                      );
     produces <bool> ( branchprefix_ + "ecalTP"                         ).setBranchAlias( aliasprefix_ + "_ecalTP"                         );
@@ -71,6 +73,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   
   auto_ptr <bool> filt_cscBeamHalo                   ( new bool(false) );
   auto_ptr <bool> filt_cscBeamHalo2015               ( new bool(false) );
+  auto_ptr <bool> filt_globalTightHalo2016           ( new bool(false) );
+  auto_ptr <bool> filt_globalSuperTightHalo2016      ( new bool(false) );
   auto_ptr <bool> filt_hbheNoise                     ( new bool(false) );
   auto_ptr <bool> filt_ecalTP                        ( new bool(false) );
   auto_ptr <bool> filt_hcalLaserEvent                ( new bool(false) );
@@ -106,6 +110,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   
   int idx_cscBeamHalo                     = -1;
   int idx_cscBeamHalo2015                 = -1;
+  int idx_globalTightHalo2016             = -1;
+  int idx_globalSuperTightHalo2016        = -1;
   int idx_hbheNoise                       = -1;
   int idx_ecalTP                          = -1;
   int idx_hcalLaserEvent                  = -1;
@@ -133,6 +139,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   for (unsigned int i=0; i<metFilterNames_.size(); i++) {
     if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHaloFilter"	              )  idx_cscBeamHalo                    = i;
     if (  metFilterNames_.triggerName(i) == "Flag_CSCTightHalo2015Filter"	              )  idx_cscBeamHalo2015                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_globalTightHalo2016Filter"	              )  idx_globalTightHalo2016                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_globalSuperTightHalo2016Filter"	              )  idx_globalSuperTightHalo2016                    = i;
     if (  metFilterNames_.triggerName(i) == "Flag_HBHENoiseFilter"		      )  idx_hbheNoise                      = i;
     if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellTriggerPrimitiveFilter" )  idx_ecalTP                         = i;
     if (  metFilterNames_.triggerName(i) == "Flag_hcalLaserEventFilter"               )  idx_hcalLaserEvent                 = i;
@@ -156,6 +164,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   
   *filt_cscBeamHalo                          = (idx_cscBeamHalo                    < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
   *filt_cscBeamHalo2015                      = (idx_cscBeamHalo2015                < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo2015                 );
+  *filt_globalTightHalo2016                  = (idx_globalTightHalo2016            < 0) ? false : metFilterResultsH_->accept(idx_globalTightHalo2016             );
+  *filt_globalSuperTightHalo2016             = (idx_globalSuperTightHalo2016       < 0) ? false : metFilterResultsH_->accept(idx_globalSuperTightHalo2016        );
   *filt_hbheNoise                            = (idx_hbheNoise                      < 0) ? false : metFilterResultsH_->accept(idx_hbheNoise                       );
   *filt_ecalTP                               = (idx_ecalTP                         < 0) ? false : metFilterResultsH_->accept(idx_ecalTP                          );
   *filt_hcalLaserEvent                       = (idx_hcalLaserEvent                 < 0) ? false : metFilterResultsH_->accept(idx_hcalLaserEvent                  );
@@ -186,6 +196,8 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
 
   iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
   iEvent.put( filt_cscBeamHalo2015                , branchprefix_ + "cscBeamHalo2015"                );
+  iEvent.put( filt_globalTightHalo2016            , branchprefix_ + "globalTightHalo2016"            );
+  iEvent.put( filt_globalSuperTightHalo2016       , branchprefix_ + "globalSuperTightHalo2016"       );
   iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
   iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
   iEvent.put( filt_hcalLaserEvent                 , branchprefix_ + "hcalLaser"                      );
