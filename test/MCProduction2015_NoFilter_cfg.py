@@ -29,7 +29,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_v12"
+process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -86,7 +86,7 @@ process.source = cms.Source("PoolSource",
                                 # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
                                 # 'root://cmsxrootd.fnal.gov//store/mc/RunIIFall15MiniAODv1/WWTo2L2Nu_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/0E47EC63-7B9D-E511-B714-B083FED426E5.root
                                 # 'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv1/ttbb_4FS_ckm_amcatnlo_madspin_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/60000/F4EA8D09-9002-E611-9D1B-1CC1DE19274E.root',
-                                '/store/relval/CMSSW_8_0_5/RelValQCD_FlatPt_15_3000HS_13/MINIAODSIM/80X_mcRun2_asymptotic_v12_gs7120p2-v1/00000/36421D55-F208-E611-874F-0CC47A4C8E38.root',
+                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
                             )
 )
