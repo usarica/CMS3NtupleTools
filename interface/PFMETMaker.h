@@ -53,6 +53,7 @@ private:
 
   bool isData_;
   bool onlySaveTwoVector_;
+  bool doUncertainties_;
 };
 
 
