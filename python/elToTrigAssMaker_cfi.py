@@ -39,14 +39,16 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle33CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele33_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle23CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele23_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle18CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele18_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle17CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele17_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*:hltEle12CaloIdLTrackIdLIsoVLTrackIsoFilter:HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_ElectronLeg'),
         cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p5PF_ElectronLeg'),  #Spring15 MC version
         cms.InputTag('HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p54PF_v*:hltSingleEle10CaloIdMTrackIdMDphiFilter:HLT_Ele10_CaloIdM_TrackIdM_CentralPFJet30_BTagCSV0p54PF_ElectronLeg'),#data version       
-        cms.InputTag('HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v*:hltEle33CaloIdMTrkIdMDPhiFilter:HLT_Ele33_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
-        cms.InputTag('HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v*:hltEle23CaloIdMTrkIdMDPhiFilter:HLT_Ele23_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
-        cms.InputTag('HLT_Ele18_CaloIdM_TrackIdM_PFJet30_v*:hltEle18CaloIdMTrkIdMDPhiFilter:HLT_Ele18_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
-        cms.InputTag('HLT_Ele12_CaloIdM_TrackIdM_PFJet30_v*:hltEle12CaloIdMTrkIdMDPhiFilter:HLT_Ele12_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
-        cms.InputTag('HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*:hltEle8CaloIdMTrkIdMDPhiFilter:HLT_Ele8_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele33_CaloIdM_TrackIdM_PFJet30_v*:hltEle33CaloIdMGsfTrackIdMDphiFilter:HLT_Ele33_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele23_CaloIdM_TrackIdM_PFJet30_v*:hltEle23CaloIdMGsfTrackIdMDphiFilter:HLT_Ele23_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele18_CaloIdM_TrackIdM_PFJet30_v*:hltEle18CaloIdMGsfTrackIdMDphiFilter:HLT_Ele18_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele17_CaloIdM_TrackIdM_PFJet30_v*:hltEle17CaloIdMGsfTrackIdMDphiFilter:HLT_Ele17_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele12_CaloIdM_TrackIdM_PFJet30_v*:hltEle12CaloIdMGsfTrackIdMDphiFilter:HLT_Ele12_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
+        cms.InputTag('HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*:hltEle8CaloIdMGsfTrackIdMDphiFilter:HLT_Ele8_CaloIdM_TrackIdM_PFJet30_ElectronLeg'),
 
         ### RUN I ###
         # HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*
