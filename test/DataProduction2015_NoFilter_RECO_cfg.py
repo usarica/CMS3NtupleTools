@@ -86,7 +86,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
       # '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
-      '/store/data/Run2016B/DoubleEG/MINIAOD/PromptReco-v2/000/273/411/00000/44C8009C-6C1B-E611-9A60-02163E0146E4.root',
+      '/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/447/00000/B20D35CE-101C-E611-B915-02163E011C2A.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )

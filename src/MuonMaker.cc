@@ -322,6 +322,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<float> >          ( branchprefix_ + "d0phiCov"       		  ).setBranchAlias( aliasprefix_ + "_d0phiCov"       	  );
   produces<vector<int> >            ( branchprefix_ + "qualityMask"    		  ).setBranchAlias( aliasprefix_ + "_qualityMask"    	  );
   produces<vector<int> >            ( branchprefix_ + "algo"           		  ).setBranchAlias( aliasprefix_ + "_algo"           	  );
+  produces<vector<int> >            ( branchprefix_ + "algoOrig"           		  ).setBranchAlias( aliasprefix_ + "_algoOrig"           	  );
   produces<vector<int> >            ( branchprefix_ + "nlayers"        		  ).setBranchAlias( aliasprefix_ + "_nlayers"        	  );
   produces<vector<int> >            ( branchprefix_ + "nlayers3D"      		  ).setBranchAlias( aliasprefix_ + "_nlayers3D"      	  );
   produces<vector<int> >            ( branchprefix_ + "nlayersLost"    		  ).setBranchAlias( aliasprefix_ + "_nlayersLost"    	  );
@@ -678,6 +679,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<float> >         vector_mus_d0phiCov            ( new vector<float>          );
   auto_ptr<vector<int> >           vector_mus_qualityMask         ( new vector<int>            );
   auto_ptr<vector<int> >           vector_mus_algo                ( new vector<int>            );
+  auto_ptr<vector<int> >           vector_mus_algoOrig                ( new vector<int>            );
   auto_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );
   auto_ptr<vector<int> >           vector_mus_nlayers3D           ( new vector<int>            );
   auto_ptr<vector<int> >           vector_mus_nlayersLost         ( new vector<int>            );
@@ -1191,6 +1193,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_d0phiCov           -> push_back( siTrack.isNonnull()     ?  -1.* siTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
     vector_mus_qualityMask        -> push_back( siTrack.isNonnull()     ? siTrack->qualityMask()                               : -9999.        );
     vector_mus_algo               -> push_back( siTrack.isNonnull()     ? siTrack->algo       ()                               : -9999.        );
+    vector_mus_algoOrig               -> push_back( siTrack.isNonnull()     ? siTrack->originalAlgo       ()                               : -9999.        );
     vector_mus_nlayers            -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
     vector_mus_nlayers3D          -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().pixelLayersWithMeasurement()  + siTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
     vector_mus_nlayersLost        -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) :  -9999     );
@@ -1640,6 +1643,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_d0phiCov           , branchprefix_ + "d0phiCov"       	   );
   iEvent.put( vector_mus_qualityMask        , branchprefix_ + "qualityMask"    	   );
   iEvent.put( vector_mus_algo               , branchprefix_ + "algo"           	   );
+  iEvent.put( vector_mus_algoOrig               , branchprefix_ + "algoOrig"           	   );
   iEvent.put( vector_mus_nlayers            , branchprefix_ + "nlayers"        	   );
   iEvent.put( vector_mus_nlayers3D          , branchprefix_ + "nlayers3D"      	   );
   iEvent.put( vector_mus_nlayersLost        , branchprefix_ + "nlayersLost"    	   );
