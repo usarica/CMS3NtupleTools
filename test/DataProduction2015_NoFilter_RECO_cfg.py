@@ -28,7 +28,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_dataRun2_Prompt_v8"
+process.GlobalTag.globaltag = "80X_dataRun2_Prompt_v9"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -86,7 +86,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
       # '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
-      '/store/data/Run2016B/SingleElectron/MINIAOD/PromptReco-v2/000/273/447/00000/B20D35CE-101C-E611-B915-02163E011C2A.root',
+      '/store/data/Run2016C/SingleElectron/MINIAOD/PromptReco-v2/000/275/769/00000/349EFD01-373C-E611-B105-02163E0144FD.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
