@@ -169,6 +169,43 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "gfitphiErr"                ).setBranchAlias( aliasprefix_ + "_gfit_phiErr"        );
   produces<vector<int> >            ( branchprefix_ + "gfittrkcharge"             ).setBranchAlias( aliasprefix_ + "_gfit_trk_charge"    );
 
+  
+  ////////////
+  // Best   //
+  ////////////
+
+  produces<vector<float> >          ( branchprefix_ + "bfitd0"                    ).setBranchAlias( aliasprefix_ + "_bfit_d0"            ); // d0 from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitz0"                    ).setBranchAlias( aliasprefix_ + "_bfit_z0"            ); // z0 from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitd0Err"                 ).setBranchAlias( aliasprefix_ + "_bfit_d0Err"         ); // d0Err from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitz0Err"                 ).setBranchAlias( aliasprefix_ + "_bfit_z0Err"         ); // z0Err from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitd0corr"                ).setBranchAlias( aliasprefix_ + "_bfit_d0corr"        ); // Beamspot corrected d0 from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitz0corr"                ).setBranchAlias( aliasprefix_ + "_bfit_z0corr"        ); // Beamspot corrected z0 from global fit, if it exists
+  produces<vector<float> >          ( branchprefix_ + "bfitqoverp"                ).setBranchAlias( aliasprefix_ + "_bfit_qoverp"        ); // global track qoverp
+  produces<vector<float> >          ( branchprefix_ + "bfitqoverpError"           ).setBranchAlias( aliasprefix_ + "_bfit_qoverpError"   ); // global track qoverp error  
+  produces<vector<float> >          ( branchprefix_ + "bfitchi2"                  ).setBranchAlias( aliasprefix_ + "_bfit_chi2"          ); // chi2 of the global muon fit 
+  produces<vector<float> >          ( branchprefix_ + "bfitndof"                  ).setBranchAlias( aliasprefix_ + "_bfit_ndof"          ); // number of degree of freedom of the global muon fit 
+  produces<vector<int> >            ( branchprefix_ + "bfitvalidHits"             ).setBranchAlias( aliasprefix_ + "_bfit_validHits"     ); // number of valid hits of the global muon fit 
+  produces<vector<int> >            ( branchprefix_ + "bfitvalidSTAHits"          ).setBranchAlias( aliasprefix_ + "_bfit_validSTAHits"  ); // number of hits in the stand alone fit that made it into the bfit
+  produces<vector<int> >            ( branchprefix_ + "bfitvalidSiHits"           ).setBranchAlias( aliasprefix_ + "_bfit_validSiHits"   ); // number of hits in the Si fit that made it into the bfit
+  produces<vector<LorentzVector> >  ( branchprefix_ + "bfitp4"                    ).setBranchAlias( aliasprefix_ + "_bfit_p4"            ); // global fit p4, if global fit exists
+  produces<vector<LorentzVector> >  ( branchprefix_ + "bfitvertexp4"              ).setBranchAlias( aliasprefix_ + "_bfit_vertex_p4"     );
+  produces<vector<float> >          ( branchprefix_ + "bfitd0corrPhi"             ).setBranchAlias( aliasprefix_ + "_bfit_d0corrPhi"     );
+  produces<vector<float> >          ( branchprefix_ + "bfitd0phiCov"              ).setBranchAlias( aliasprefix_ + "_bfit_d0phiCov"      );
+  produces<vector<int> >            ( branchprefix_ + "bfitqualityMask"           ).setBranchAlias( aliasprefix_ + "_bfit_qualityMask"   );
+  produces<vector<int> >            ( branchprefix_ + "bfitalgo"                  ).setBranchAlias( aliasprefix_ + "_bfit_algo"          );
+  produces<vector<int> >            ( branchprefix_ + "bfitnlayers"               ).setBranchAlias( aliasprefix_ + "_bfit_nlayers"       );
+  produces<vector<int> >            ( branchprefix_ + "bfitnlayers3D"             ).setBranchAlias( aliasprefix_ + "_bfit_nlayers3D"     );
+  produces<vector<int> >            ( branchprefix_ + "bfitnlayersLost"           ).setBranchAlias( aliasprefix_ + "_bfit_nlayersLost"   );
+  produces<vector<int> >            ( branchprefix_ + "bfitvalidPixelHits"        ).setBranchAlias( aliasprefix_ + "_bfit_validPixelHits");
+  produces<vector<int> >            ( branchprefix_ + "bfitlostPixelHits"         ).setBranchAlias( aliasprefix_ + "_bfit_lostPixelHits" );
+  produces<vector<int> >            ( branchprefix_ + "bfitexpinnerlayer"         ).setBranchAlias( aliasprefix_ + "_bfit_exp_innerlayer");
+  produces<vector<int> >            ( branchprefix_ + "bfitexpouterlayer"         ).setBranchAlias( aliasprefix_ + "_bfit_exp_outerlayer");
+  produces<vector<int> >            ( branchprefix_ + "bfitlostHits"              ).setBranchAlias( aliasprefix_ + "_bfit_lostHits"      );
+  produces<vector<int> >            ( branchprefix_ + "bfitptErr"                 ).setBranchAlias( aliasprefix_ + "_bfit_ptErr"         );
+  produces<vector<int> >            ( branchprefix_ + "bfitetaErr"                ).setBranchAlias( aliasprefix_ + "_bfit_etaErr"        );
+  produces<vector<int> >            ( branchprefix_ + "bfitphiErr"                ).setBranchAlias( aliasprefix_ + "_bfit_phiErr"        );
+  produces<vector<int> >            ( branchprefix_ + "bfittrkcharge"             ).setBranchAlias( aliasprefix_ + "_bfit_trk_charge"    );
+
   /////////////
   // Quality //
   /////////////
@@ -247,6 +284,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> >            ( branchprefix_ + "pidTMLastStationTight"     ).setBranchAlias( aliasprefix_ + "_pid_TMLastStationTight"     ); // tight tracker muon identification based on muon/hadron penetration depth difference       
   produces<vector<int> >            ( branchprefix_ + "pidTM2DCompatibilityLoose" ).setBranchAlias( aliasprefix_ + "_pid_TM2DCompatibilityLoose" ); // loose tracker muon likelihood identification based on muon matches and calo depositions   
   produces<vector<int> >            ( branchprefix_ + "pidTM2DCompatibilityTight" ).setBranchAlias( aliasprefix_ + "_pid_TM2DCompatibilityTight" ); // tight tracker muon likelihood identification based on muon matches and calo depositions
+  produces<vector<int> >            ( branchprefix_ + "pidTMOneStationTight" ).setBranchAlias( aliasprefix_ + "_pid_TMOneStationTight" ); //
+  
   produces<vector<int> >            ( branchprefix_ + "pidPFMuon" ).setBranchAlias( aliasprefix_ + "_pid_PFMuon" ); // is particle flow muon
 
   ////////////
@@ -524,6 +563,42 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_gfit_phiErr                 ( new vector<int>           );
   auto_ptr<vector<int> >           vector_mus_gfit_trk_charge             ( new vector<int>           );   
 
+  ////////////  
+  // Best   //
+  ////////////
+
+  auto_ptr<vector<float> >         vector_mus_bfit_d0                     ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_z0                     ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_d0Err                  ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_z0Err                  ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_d0corr                 ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_z0corr                 ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_qoverp                 ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_qoverpError            ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_chi2                   ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_ndof                   ( new vector<float>         );
+  auto_ptr<vector<int> >           vector_mus_bfit_validHits              ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_validSTAHits           ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_validSiHits            ( new vector<int>           );
+  auto_ptr<vector<LorentzVector> > vector_mus_bfit_p4                     ( new vector<LorentzVector> );
+  auto_ptr<vector<LorentzVector> > vector_mus_bfit_vertex_p4              ( new vector<LorentzVector> );
+  auto_ptr<vector<float> >         vector_mus_bfit_d0corrPhi              ( new vector<float>         );
+  auto_ptr<vector<float> >         vector_mus_bfit_d0phiCov               ( new vector<float>         );
+  auto_ptr<vector<int> >           vector_mus_bfit_qualityMask            ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_algo                   ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_nlayers                ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_nlayers3D              ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_nlayersLost            ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_validPixelHits         ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_lostPixelHits          ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_exp_innerlayers        ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_exp_outerlayers        ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_lostHits               ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_ptErr                  ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_etaErr                 ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_phiErr                 ( new vector<int>           );
+  auto_ptr<vector<int> >           vector_mus_bfit_trk_charge             ( new vector<int>           );   
+
   /////////////
   // Quality //
   /////////////
@@ -602,6 +677,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_pid_TMLastStationTight      ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityLoose  ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityTight  ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_pid_TMOneStationTight       ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_pid_PFMuon                  ( new vector<int>     );
 
 
@@ -985,6 +1061,47 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_gfit_phiErr          -> push_back( globalTrack.isNonnull()     ? globalTrack->phiError()                                  :  -9999.       );
     vector_mus_gfit_trk_charge      -> push_back( globalTrack.isNonnull()     ? globalTrack->charge()                                    :  -9999        );
 
+    //--
+    //    std::cout << __LINE__ <<std::endl;
+    ////////////
+    // Best //
+    ////////////
+    vector_mus_bfit_d0           -> push_back( bestTrack.isNonnull() ? bestTrack->d0()                 :  -9999.        );
+    vector_mus_bfit_z0           -> push_back( bestTrack.isNonnull() ? bestTrack->dz()                 :  -9999.        );
+    vector_mus_bfit_d0Err        -> push_back( bestTrack.isNonnull() ? bestTrack->d0Error()            :  -9999.        );
+    vector_mus_bfit_z0Err        -> push_back( bestTrack.isNonnull() ? bestTrack->dzError()            :  -9999.        );
+    vector_mus_bfit_d0corr       -> push_back( bestTrack.isNonnull() ? -1*(bestTrack->dxy(beamSpot))   :  -9999.        );
+    vector_mus_bfit_z0corr       -> push_back( bestTrack.isNonnull() ? bestTrack->dz(beamSpot)         :  -9999.        );
+    vector_mus_bfit_qoverp       -> push_back( bestTrack.isNonnull() ? bestTrack->qoverp()             :  -9999.        );
+
+    vector_mus_bfit_qoverpError  -> push_back( bestTrack.isNonnull() ? bestTrack->qoverpError()        :  -9999.        );
+    vector_mus_bfit_chi2         -> push_back( bestTrack.isNonnull() ? bestTrack->chi2()               :  -9999.        );
+    vector_mus_bfit_ndof         -> push_back( bestTrack.isNonnull() ? bestTrack->ndof()               :  -9999         );
+    vector_mus_bfit_validHits    -> push_back( bestTrack.isNonnull() ? bestTrack->numberOfValidHits()  :  -9999         );
+
+    vector_mus_bfit_validSTAHits -> push_back( bestTrack.isNonnull() ? bestTrack->hitPattern().numberOfValidMuonHits()    : -9999         );
+    vector_mus_bfit_validSiHits  -> push_back( bestTrack.isNonnull() ? bestTrack->hitPattern().numberOfValidTrackerHits() : -9999         );
+
+    vector_mus_bfit_p4           -> push_back( bestTrack.isNonnull() ? LorentzVector( bestTrack->px(), bestTrack->py(), bestTrack->pz(), bestTrack->p() ) : LorentzVector(0.0,0.0,0.0,0.0) );
+    vector_mus_bfit_vertex_p4    -> push_back( bestTrack.isNonnull() ? LorentzVector( bestTrack->vx(), bestTrack->vy(), bestTrack->vz(),  0.0 ) : LorentzVector( -9999.0, -9999.0, -9999.0, -9999.0) );
+  // Embedding all trackMaker details
+    vector_mus_bfit_d0corrPhi       -> push_back( bestTrack.isNonnull()     ?  atan2( (bestTrack->dxy(beamSpot) * sin( bestTrack->phi() )), -1 * bestTrack->dxy(beamSpot) * cos( bestTrack->phi() ) ) : -9999.        );
+    vector_mus_bfit_d0phiCov        -> push_back( bestTrack.isNonnull()     ?  -1.* bestTrack->covariance(TrackBase::i_phi, TrackBase::i_dxy) : -9999. );
+    vector_mus_bfit_qualityMask     -> push_back( bestTrack.isNonnull()     ? bestTrack->qualityMask()                               : -9999.        );
+    vector_mus_bfit_algo            -> push_back( bestTrack.isNonnull()     ? bestTrack->algo()                                      : -9999.        );
+    vector_mus_bfit_nlayers         -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
+    vector_mus_bfit_nlayers3D       -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().pixelLayersWithMeasurement()  + bestTrack->hitPattern().numberOfValidStripLayersWithMonoAndStereo():  -9999        );
+    vector_mus_bfit_nlayersLost     -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS) :  -9999     );
+    vector_mus_bfit_validPixelHits  -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
+    vector_mus_bfit_lostPixelHits   -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)        :  -9999        );
+    vector_mus_bfit_exp_innerlayers -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+    vector_mus_bfit_exp_outerlayers -> push_back( bestTrack.isNonnull()     ? bestTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
+    vector_mus_bfit_lostHits        -> push_back( bestTrack.isNonnull()     ? bestTrack->numberOfLostHits()                          :  -9999        );
+    vector_mus_bfit_ptErr           -> push_back( bestTrack.isNonnull()     ? bestTrack->ptError()                                   :  -9999.       );
+    vector_mus_bfit_etaErr          -> push_back( bestTrack.isNonnull()     ? bestTrack->etaError()                                  :  -9999.       );
+    vector_mus_bfit_phiErr          -> push_back( bestTrack.isNonnull()     ? bestTrack->phiError()                                  :  -9999.       );
+    vector_mus_bfit_trk_charge      -> push_back( bestTrack.isNonnull()     ? bestTrack->charge()                                    :  -9999        );
+
 
 
     //////////////////
@@ -1109,6 +1226,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_pid_TMLastStationTight     -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TMLastStationTight     ) : -9999  );
     vector_mus_pid_TM2DCompatibilityLoose -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TM2DCompatibilityLoose ) : -9999  );
     vector_mus_pid_TM2DCompatibilityTight -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TM2DCompatibilityTight ) : -9999  );
+    vector_mus_pid_TMOneStationTight      -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TMOneStationTight      ) : -9999  );
     vector_mus_pid_PFMuon                 -> push_back( muon->isPFMuon() );
 
     ////////////
@@ -1490,6 +1608,42 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_gfit_phiErr          	      , branchprefix_ + "gfitphiErr"          );
   iEvent.put( vector_mus_gfit_trk_charge              , branchprefix_ + "gfittrkcharge"       );
 
+  ////////////                                                                       
+  // Best   //
+  ////////////
+
+  iEvent.put( vector_mus_bfit_d0                      , branchprefix_ + "bfitd0"             );
+  iEvent.put( vector_mus_bfit_z0                      , branchprefix_ + "bfitz0"             );
+  iEvent.put( vector_mus_bfit_d0Err                   , branchprefix_ + "bfitd0Err"          );
+  iEvent.put( vector_mus_bfit_z0Err                   , branchprefix_ + "bfitz0Err"          );
+  iEvent.put( vector_mus_bfit_d0corr                  , branchprefix_ + "bfitd0corr"         );
+  iEvent.put( vector_mus_bfit_z0corr                  , branchprefix_ + "bfitz0corr"         );
+  iEvent.put( vector_mus_bfit_qoverp                  , branchprefix_ + "bfitqoverp"         );
+  iEvent.put( vector_mus_bfit_qoverpError             , branchprefix_ + "bfitqoverpError"    );
+  iEvent.put( vector_mus_bfit_chi2                    , branchprefix_ + "bfitchi2"           );
+  iEvent.put( vector_mus_bfit_ndof                    , branchprefix_ + "bfitndof"           );
+  iEvent.put( vector_mus_bfit_validHits               , branchprefix_ + "bfitvalidHits"      );
+  iEvent.put( vector_mus_bfit_validSTAHits            , branchprefix_ + "bfitvalidSTAHits"   );
+  iEvent.put( vector_mus_bfit_validSiHits             , branchprefix_ + "bfitvalidSiHits"    );
+  iEvent.put( vector_mus_bfit_p4                      , branchprefix_ + "bfitp4"             );
+  iEvent.put( vector_mus_bfit_vertex_p4               , branchprefix_ + "bfitvertexp4"             );
+  iEvent.put( vector_mus_bfit_d0corrPhi               , branchprefix_ + "bfitd0corrPhi"       );
+  iEvent.put( vector_mus_bfit_d0phiCov        	      , branchprefix_ + "bfitd0phiCov"        );
+  iEvent.put( vector_mus_bfit_qualityMask     	      , branchprefix_ + "bfitqualityMask"     );
+  iEvent.put( vector_mus_bfit_algo             	      , branchprefix_ + "bfitalgo"            );
+  iEvent.put( vector_mus_bfit_nlayers         	      , branchprefix_ + "bfitnlayers"         );
+  iEvent.put( vector_mus_bfit_nlayers3D       	      , branchprefix_ + "bfitnlayers3D"       );
+  iEvent.put( vector_mus_bfit_nlayersLost     	      , branchprefix_ + "bfitnlayersLost"     );
+  iEvent.put( vector_mus_bfit_validPixelHits  	      , branchprefix_ + "bfitvalidPixelHits"  );
+  iEvent.put( vector_mus_bfit_lostPixelHits   	      , branchprefix_ + "bfitlostPixelHits"   );
+  iEvent.put( vector_mus_bfit_exp_innerlayers 	      , branchprefix_ + "bfitexpinnerlayer"  );
+  iEvent.put( vector_mus_bfit_exp_outerlayers 	      , branchprefix_ + "bfitexpouterlayer"  );
+  iEvent.put( vector_mus_bfit_lostHits        	      , branchprefix_ + "bfitlostHits"        );
+  iEvent.put( vector_mus_bfit_ptErr           	      , branchprefix_ + "bfitptErr"           );
+  iEvent.put( vector_mus_bfit_etaErr          	      , branchprefix_ + "bfitetaErr"          );
+  iEvent.put( vector_mus_bfit_phiErr          	      , branchprefix_ + "bfitphiErr"          );
+  iEvent.put( vector_mus_bfit_trk_charge              , branchprefix_ + "bfittrkcharge"       );
+
   //////////////////
   // Muon Quality //
   //////////////////
@@ -1567,6 +1721,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_pid_TMLastStationTight       , branchprefix_ + "pidTMLastStationTight"    );
   iEvent.put( vector_mus_pid_TM2DCompatibilityLoose   , branchprefix_ + "pidTM2DCompatibilityLoose");
   iEvent.put( vector_mus_pid_TM2DCompatibilityTight   , branchprefix_ + "pidTM2DCompatibilityTight");
+  iEvent.put( vector_mus_pid_TMOneStationTight        , branchprefix_ + "pidTMOneStationTight");
   iEvent.put( vector_mus_pid_PFMuon                   , branchprefix_ + "pidPFMuon");
 
 
