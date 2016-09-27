@@ -86,7 +86,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
       # '/store/relval/CMSSW_8_0_0_pre6/SinglePhoton/MINIAOD/80X_dataRun2_v4_multiCore_RelVal_sigPh2015C-v1/10000/125F5CB4-64D2-E511-B76F-0CC47A4D760A.root',
-      '/store/data/Run2016C/SingleElectron/MINIAOD/PromptReco-v2/000/275/769/00000/349EFD01-373C-E611-B105-02163E0144FD.root',
+      # '/store/data/Run2016C/SingleElectron/MINIAOD/PromptReco-v2/000/275/769/00000/349EFD01-373C-E611-B105-02163E0144FD.root',
+      '/store/data/Run2016H/SingleMuon/MINIAOD/PromptReco-v2/000/281/231/00000/F85CC211-6C82-E611-960C-02163E011F5F.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -200,6 +201,7 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.pfmetpuppiMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *

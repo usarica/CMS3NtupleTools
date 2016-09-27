@@ -193,6 +193,7 @@ process.p = cms.Path(
   process.subJetMaker *
 #  process.ca12subJetMaker *
   process.pfmetMaker *
+  process.pfmetpuppiMaker *
   # process.T1pfmetMaker *
   # process.T1pfmetNoHFMaker *
   process.hltMakerSequence *

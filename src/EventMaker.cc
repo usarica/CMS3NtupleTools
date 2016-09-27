@@ -60,6 +60,12 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
     produces< vector< TString > >          (branchprefix+"dataset"        ).setBranchAlias(aliasprefix_+"_dataset"       );
     produces< vector< TString > >          (branchprefix+"CMS3tag"        ).setBranchAlias(aliasprefix_+"_CMS3tag"       );
     produces<float>                        (branchprefix+"bField"         ).setBranchAlias(aliasprefix_+"_bField"        );
+    produces<float>                        (branchprefix+"instantLumi"    ).setBranchAlias(aliasprefix_+"_instantLumi"   );
+    produces<float>                        (branchprefix+"instantLumiErr" ).setBranchAlias(aliasprefix_+"_instantLumiErr");
+    produces<float>                        (branchprefix+"lumiFill"       ).setBranchAlias(aliasprefix_+"_lumiFill"      );
+    produces<float>                        (branchprefix+"lumiRun"        ).setBranchAlias(aliasprefix_+"_lumiRun"       );
+    produces<float>                        (branchprefix+"pileup"         ).setBranchAlias(aliasprefix_+"_pileup"        );
+    produces<float>                        (branchprefix+"pileupRMS"      ).setBranchAlias(aliasprefix_+"_pileupRMS"     );
     produces<unsigned int>                 (branchprefix+"detectorStatus" ).setBranchAlias(aliasprefix_+"_detectorStatus");
     produces<int>                          (branchprefix+"isRealData"     ).setBranchAlias(aliasprefix_+"_isRealData"    );
   
@@ -67,6 +73,7 @@ EventMaker::EventMaker(const edm::ParameterSet& iConfig) {
     CMS3tag_     = iConfig.getParameter<std::string>("CMS3tag");
 
     dcsTag_ = consumes<DcsStatusCollection>(iConfig.getParameter<edm::InputTag>("dcsTag"));
+    scalersTag_ = consumes<LumiScalersCollection>(iConfig.getParameter<edm::InputTag>("scalersTag"));
     isData_ = iConfig.getParameter<bool>("isData") ;
 }
 
@@ -97,6 +104,12 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     auto_ptr<vector<TString>>             evt_dataset         (new vector<TString>           );
     auto_ptr<vector<TString>>             evt_CMS3tag         (new vector<TString>           );
     auto_ptr<float>                       evt_bField          (new float                     );
+    auto_ptr<float>                       evt_instantLumi     (new float                     );
+    auto_ptr<float>                       evt_instantLumiErr  (new float                     );
+    auto_ptr<float>                       evt_lumiFill        (new float                     );
+    auto_ptr<float>                       evt_lumiRun         (new float                     );
+    auto_ptr<float>                       evt_pileup          (new float                     );
+    auto_ptr<float>                       evt_pileupRMS       (new float                     );
     auto_ptr<unsigned int>                evt_detectorStatus  (new unsigned int              );
     auto_ptr<int>                         evt_isRealData      (new int                       );
      
@@ -118,6 +131,9 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     edm::Handle<DcsStatusCollection> dcsHandle;
     iEvent.getByToken(dcsTag_, dcsHandle);
 
+    edm::Handle<LumiScalersCollection> scalersHandle;
+    iEvent.getByToken(scalersTag_, scalersHandle);
+
     // need the magnetic field
     //
     // if isData then derive bfield using the
@@ -136,6 +152,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         }
 	 
         *evt_bField = current*currentToBFieldScaleFactor;
+
     }
     else
     {
@@ -143,6 +160,22 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
 
         *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
+    }
+
+    if (isData_ && scalersHandle.isValid() && scalersHandle->size()) {
+        *evt_instantLumi = (*scalersHandle)[0].instantLumi();
+        *evt_instantLumiErr = (*scalersHandle)[0].instantLumiErr();
+        *evt_lumiFill = (*scalersHandle)[0].lumiFill();
+        *evt_lumiRun = (*scalersHandle)[0].lumiRun();
+        *evt_pileup = (*scalersHandle)[0].pileup();
+        *evt_pileupRMS = (*scalersHandle)[0].pileupRMS();
+    } else {
+        *evt_instantLumi = 0.;
+        *evt_instantLumiErr = 0.;
+        *evt_lumiFill = 0.;
+        *evt_lumiRun = 0.;
+        *evt_pileup = 0.;
+        *evt_pileupRMS = 0.;
     }
 
     std::string branchprefix = aliasprefix_;
@@ -164,6 +197,12 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_dataset          ,branchprefix+"dataset"         );
     iEvent.put(evt_CMS3tag          ,branchprefix+"CMS3tag"         );
     iEvent.put(evt_bField           ,branchprefix+"bField"          );
+    iEvent.put(evt_instantLumi      ,branchprefix+"instantLumi"   );
+    iEvent.put(evt_instantLumiErr   ,branchprefix+"instantLumiErr");
+    iEvent.put(evt_lumiFill         ,branchprefix+"lumiFill"      );
+    iEvent.put(evt_lumiRun          ,branchprefix+"lumiRun"       );
+    iEvent.put(evt_pileup           ,branchprefix+"pileup"        );
+    iEvent.put(evt_pileupRMS        ,branchprefix+"pileupRMS"     );
     iEvent.put(evt_isRealData       ,branchprefix+"isRealData"      );
     iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );
 }

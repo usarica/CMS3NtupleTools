@@ -6,6 +6,7 @@ eventMaker = cms.EDProducer(
   datasetName = cms.string("undefined"),
   CMS3tag     = cms.string("V02-00-05"),
   dcsTag      = cms.InputTag("scalersRawToDigi"),
+  scalersTag  = cms.InputTag("scalersRawToDigi"),
   isData      = cms.bool(False)
 )
 

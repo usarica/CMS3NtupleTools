@@ -29,6 +29,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Scalers/interface/DcsStatus.h"
+#include "DataFormats/Scalers/interface/LumiScalers.h"
+#include "DataFormats/Scalers/interface/ScalersRaw.h"
+
 
 #include "TString.h"
 //
@@ -50,6 +53,7 @@ private:
     std::string CMS3tag_;
 
     edm::EDGetTokenT<DcsStatusCollection> dcsTag_;
+    edm::EDGetTokenT<LumiScalersCollection> scalersTag_;
     std::string aliasprefix_;
     bool isData_;
 };
