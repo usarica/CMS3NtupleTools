@@ -57,6 +57,7 @@ PFMETMaker::PFMETMaker(const edm::ParameterSet& iConfig) {
     produces<float> (branchprefix+"pfmetraw"       ).setBranchAlias(aliasprefix_+"_pfmet_raw"    );
     produces<float> (branchprefix+"pfmetPhiraw"    ).setBranchAlias(aliasprefix_+"_pfmetPhi_raw" );
     produces<float> (branchprefix+"pfmetSig"       ).setBranchAlias(aliasprefix_+"_pfmetSig"     ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this
+    produces<float> (branchprefix+"pfmetSignificance"       ).setBranchAlias(aliasprefix_+"_pfmetSignificance"     );
     produces<float> (branchprefix+"pfsumet"        ).setBranchAlias(aliasprefix_+"_pfsumet"      );
     produces<float> (branchprefix+"pfsumetraw"     ).setBranchAlias(aliasprefix_+"_pfsumet_raw"  );
     produces<float> (branchprefix+"calomet"        ).setBranchAlias(aliasprefix_+"_calomet"      );
@@ -116,6 +117,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::auto_ptr<float>   evt_pfmet         (new float   );
     std::auto_ptr<float>   evt_pfmetPhi      (new float   );
     std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
+    std::auto_ptr<float>   evt_pfmetSignificance      (new float   ); // correct met significance
     std::auto_ptr<float>   evt_pfsumet       (new float   );
     std::auto_ptr<float>   evt_pfmet_raw     (new float   );
     std::auto_ptr<float>   evt_pfmetPhi_raw  (new float   );
@@ -180,6 +182,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     *evt_pfmet    = ( met_h->front() ).pt();
     *evt_pfmetPhi = ( met_h->front() ).phi();
     *evt_pfmetSig = ( met_h->front() ).mEtSig();
+    *evt_pfmetSignificance = ( met_h->front() ).metSignificance();
     *evt_pfsumet  = ( met_h->front() ).sumEt();       
 
     *evt_pfmet_raw    = ( met_h->front() ).shiftedPt(   pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
@@ -243,7 +246,6 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 	
-  //iEvent.put(evt_pfmetSignificance , "evtpfmetSignificance" );  
   if( onlySaveTwoVector_ ){
     iEvent.put(evt_pfmet        , branchprefix+"pfmet"       );
     iEvent.put(evt_pfmetPhi     , branchprefix+"pfmetPhi"    );
@@ -254,6 +256,7 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(evt_pfmet        , branchprefix+"pfmet"       );
     iEvent.put(evt_pfmetPhi     , branchprefix+"pfmetPhi"    );
     iEvent.put(evt_pfmetSig     , branchprefix+"pfmetSig"    );
+    iEvent.put(evt_pfmetSignificance , branchprefix+"pfmetSignificance" );  
     iEvent.put(evt_pfsumet      , branchprefix+"pfsumet"     );  
     iEvent.put(evt_pfmet_raw    , branchprefix+"pfmetraw"    );
     iEvent.put(evt_pfmetPhi_raw , branchprefix+"pfmetPhiraw" );
