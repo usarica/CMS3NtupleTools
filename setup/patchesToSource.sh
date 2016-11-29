@@ -58,6 +58,30 @@ fi
 printf "\nchecking deps:\n"
 git cms-checkdeps -a
 
+########################
+#  EGM MVA ID 80X (must be run after checkdeps to avoid checking out useless packages)
+#######################
+cd $CMSSW_BASE
+mkdir $CMSSW_BASE/bullshit  
+mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
+git cms-merge-topic ikrav:egm_id_80X_v2
+mv $CMSSW_BASE/src/RecoEgamma/ $CMSSW_BASE/bullshit/
+rm -rf $CMSSW_BASE/src/*
+mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/
+rmdir $CMSSW_BASE/bullshit
+
+cd $CMSSW_BASE/src/RecoEgamma/ElectronIdentification/data/
+git clone https://github.com/ikrav/RecoEgamma-ElectronIdentification.git new
+cd new
+git checkout egm_id_80X_v1
+mv Spring16* ../
+cd ../
+rm -rf new
+cd $CMSSW_BASE/src
+
+### End of EGM MVA ID 80X ###
+
+
 # compile
 cd $CMSSW_BASE/src
 scram b -j 20

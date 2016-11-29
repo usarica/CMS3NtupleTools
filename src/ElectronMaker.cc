@@ -91,9 +91,14 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronVIDTrigMvaWP80IdMapToken_      = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaWP80IdMap"));
     electronVIDTrigMvaWP90IdMapToken_      = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaWP90IdMap"));   
     electronVIDNonTrigMvaValueMapToken_    = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaValueMap"));
-    electronVIDTrigMvaValueMapToken_       = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaValueMap"));
     electronVIDNonTrigMvaCatMapToken_      = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("electronVIDNonTrigMvaCatMap"));
+    electronVIDTrigMvaValueMapToken_       = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaValueMap"));
     electronVIDTrigMvaCatMapToken_         = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("electronVIDTrigMvaCatMap"));
+
+    electronVIDSpring16GPMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16GPMvaValueMap"));
+    electronVIDSpring16GPMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16GPMvaCatMap"));
+    electronVIDSpring16HZZMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16HZZMvaValueMap"));
+    electronVIDSpring16HZZMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16HZZMvaCatMap"));
 
     electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
     vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
@@ -212,6 +217,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("VIDTrigMvaValue"            ).setBranchAlias("els_VIDTrigMvaValue"            );
     produces<vector<int> >       ("VIDNonTrigMvaCat"           ).setBranchAlias("els_VIDNonTrigMvaCat"           );
     produces<vector<int> >       ("VIDTrigMvaCat"              ).setBranchAlias("els_VIDTrigMvaCat"              );
+    produces<vector<float> >     ("VIDSpring16GPMvaValue"      ).setBranchAlias("els_VIDSpring16GPMvaValue"         );
+    produces<vector<int> >       ("VIDSpring16GPMvaCat"        ).setBranchAlias("els_VIDSpring16GPMvaCat"           );
+    produces<vector<float> >     ("VIDSpring16HZZMvaValue"     ).setBranchAlias("els_VIDSpring16HZZMvaValue"         );
+    produces<vector<int> >       ("VIDSpring16HZZMvaCat"       ).setBranchAlias("els_VIDSpring16HZZMvaCat"           );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -544,6 +553,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > VIDTrigMvaValue           (new vector<float>);
     auto_ptr<vector<int> > VIDNonTrigMvaCat            (new vector<int>   );
     auto_ptr<vector<int> > VIDTrigMvaCat               (new vector<int>   );
+    auto_ptr<vector<float> > VIDSpring16GPMvaValue     (new vector<float>);
+    auto_ptr<vector<int> >   VIDSpring16GPMvaCat       (new vector<int>   );
+    auto_ptr<vector<float> > VIDSpring16HZZMvaValue    (new vector<float>);
+    auto_ptr<vector<int> >   VIDSpring16HZZMvaCat      (new vector<int>   );
 
     // isolation variables
     //
@@ -886,6 +899,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   edm::Handle<edm::ValueMap<float> > VIDTrigMva_values;
   edm::Handle<edm::ValueMap<int> >  VIDNonTrigMva_cats;
   edm::Handle<edm::ValueMap<int> >  VIDTrigMva_cats;
+  edm::Handle<edm::ValueMap<float> > VIDSpring16GPMva_values;
+  edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
+  edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
+  edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
   iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
   iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
   iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
@@ -899,6 +916,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.getByToken(electronVIDTrigMvaValueMapToken_,VIDTrigMva_values);
   iEvent.getByToken(electronVIDNonTrigMvaCatMapToken_,VIDNonTrigMva_cats);
   iEvent.getByToken(electronVIDTrigMvaCatMapToken_,VIDTrigMva_cats);
+  iEvent.getByToken(electronVIDSpring16GPMvaValueMapToken_,VIDSpring16GPMva_values);
+  iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
+  iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
+  iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
 
     //////////////////////////
     // get cms2scsseeddetid //
@@ -1024,6 +1045,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VIDTrigMvaValue          ->push_back( (*VIDTrigMva_values)[ elPtr ] );
         VIDNonTrigMvaCat         ->push_back( (*VIDNonTrigMva_cats)[ elPtr ] );
         VIDTrigMvaCat            ->push_back( (*VIDTrigMva_cats)[ elPtr ] );
+        VIDSpring16GPMvaValue    ->push_back( (*VIDSpring16GPMva_values)[ elPtr ] );
+        VIDSpring16GPMvaCat      ->push_back( (*VIDSpring16GPMva_cats)[ elPtr ] );
+        VIDSpring16HZZMvaValue   ->push_back( (*VIDSpring16HZZMva_values)[ elPtr ] );
+        VIDSpring16HZZMvaCat     ->push_back( (*VIDSpring16HZZMva_cats)[ elPtr ] );
 
 
         //////////////
@@ -1799,6 +1824,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(VIDTrigMvaValue,           "VIDTrigMvaValue"  );
     iEvent.put(VIDNonTrigMvaCat,          "VIDNonTrigMvaCat"  );
     iEvent.put(VIDTrigMvaCat,             "VIDTrigMvaCat"  );
+    iEvent.put(VIDSpring16GPMvaValue,     "VIDSpring16GPMvaValue"  );
+    iEvent.put(VIDSpring16GPMvaCat,       "VIDSpring16GPMvaCat"  );
+    iEvent.put(VIDSpring16HZZMvaValue,    "VIDSpring16HZZMvaValue"  );
+    iEvent.put(VIDSpring16HZZMvaCat,      "VIDSpring16HZZMvaCat"  );
 
     // Track parameters
     //
