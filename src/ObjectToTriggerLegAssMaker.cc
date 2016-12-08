@@ -257,9 +257,11 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
           if(offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] != 0) continue; 
 
           if (deltaR(TO.eta(), TO.phi(), (*obj_it).eta(), (*obj_it).phi()) < cone_) {
-            prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
-            //std::cout<<"Match!! Prescale is "<<prescale<<std::endl;
-            offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = prescale;
+            // prescale = triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(triggerIndex) : -1;
+            // //std::cout<<"Match!! Prescale is "<<prescale<<std::endl;
+            // offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = prescale;
+	    //// store just pass/fail instead of prescale value, to avoid issues with some (L1) prescales
+            offlineObjectsPrescales[std::distance(offlineObjects->begin(), obj_it)] = 1;
           }
         }
 
