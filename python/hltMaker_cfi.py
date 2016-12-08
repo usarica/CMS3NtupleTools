@@ -8,7 +8,7 @@ hltMaker = cms.EDProducer("HLTMaker",
     # for the latest HLT products
     #processName = cms.untracked.string(""),
     aliasPrefix = cms.untracked.string("hlt"),                       
-    fillTriggerObjects = cms.untracked.bool(True),
+    fillTriggerObjects = cms.untracked.bool(False),
     prunedTriggerNames = cms.untracked.vstring(
         "HLT*Mu*",
         "HLT*Ele*",

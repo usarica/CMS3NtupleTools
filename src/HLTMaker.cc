@@ -45,11 +45,13 @@ hltConfig_(iConfig, consumesCollector(), *this) {
   produces<vector<TString> >                (Form("%strigNames"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigNames"  ,processNamePrefix_.Data()));
   produces<vector<unsigned int> >           (Form("%sprescales"   ,processNamePrefix_.Data())).setBranchAlias(Form("%s_prescales"  ,processNamePrefix_.Data()));
   produces<vector<unsigned int> >           (Form("%sl1prescales" ,processNamePrefix_.Data())).setBranchAlias(Form("%s_l1prescales",processNamePrefix_.Data()));
-  produces<vector<vector<int> > >           (Form("%strigObjsid"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
+  if (fillTriggerObjects_) {
+    produces<vector<vector<int> > >           (Form("%strigObjsid"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_id",processNamePrefix_.Data()));
 
-  produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
-  produces<vector<vector<bool> > >          (Form("%strigObjspassLast"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_passLast",processNamePrefix_.Data()));
-  produces<vector<vector<TString> > >       (Form("%strigObjsfilters"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_filters",processNamePrefix_.Data()));
+    produces<vector<vector<LorentzVector> > > (Form("%strigObjsp4"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_p4",processNamePrefix_.Data()));
+    produces<vector<vector<bool> > >          (Form("%strigObjspassLast"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_passLast",processNamePrefix_.Data()));
+    produces<vector<vector<TString> > >       (Form("%strigObjsfilters"  ,processNamePrefix_.Data())).setBranchAlias(Form("%s_trigObjs_filters",processNamePrefix_.Data()));
+  }
   
   // isData_ = iConfig.getParameter<bool>("isData");
   
@@ -86,9 +88,11 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   
   triggerNames_ = iEvent.triggerNames(*triggerResultsH_); // Does this have to be done for every event?
 
-  iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
-  if (!triggerObjectStandAlonesH_.isValid())
-    throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
+  if (fillTriggerObjects_) {
+    iEvent.getByToken(triggerObjectsToken, triggerObjectStandAlonesH_);
+    if (!triggerObjectStandAlonesH_.isValid())
+      throw cms::Exception("HLTMaker::produce: error getting TriggerObjectsStandAlone product from Event!");
+  }
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesH_; 
   iEvent.getByToken( triggerPrescaleToken, triggerPrescalesH_);
@@ -199,72 +203,74 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
 
 
-  for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
-    // first index is [itrig], second is [iobj]
-    trigObjsid->push_back(vector<int>());
-    trigObjsp4->push_back(vector<LorentzVector>());
-    trigObjspassLast->push_back(vector<bool>());
-    trigObjsfilters->push_back(vector<TString>());
-  }
-
-  pat::TriggerObjectStandAlone TO;
-  for ( uint iobj = 0; iobj < triggerObjectStandAlonesH_->size(); iobj++ ) {
-
-    TO = triggerObjectStandAlonesH_->at(iobj);
-    TO.unpackPathNames( triggerNames_ );
-
+  if (fillTriggerObjects_) {
     for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
-      const string& name = triggerNames_.triggerName(itrig);
+      // first index is [itrig], second is [iobj]
+      trigObjsid->push_back(vector<int>());
+      trigObjsp4->push_back(vector<LorentzVector>());
+      trigObjspassLast->push_back(vector<bool>());
+      trigObjsfilters->push_back(vector<TString>());
+    }
 
-      if(!doFillTrigger[itrig]) continue;
+    pat::TriggerObjectStandAlone TO;
+    for ( uint iobj = 0; iobj < triggerObjectStandAlonesH_->size(); iobj++ ) {
 
-      // save all objects associated to path, regardless of final result. And save filter names 
-      if ( TO.hasPathName(name, false, false ) ) {  
-        int storeID = 0;
-        std::vector<int> IDs = TO.filterIds();
-        if (IDs.size() == 1) storeID = IDs[0];
-        else if (IDs.size() > 1) {
-          // Making some arbitrary choices
-          if ( IDs[0]==85 || IDs[1]==85 ) storeID = 85; // when in doubt call it jet (and not the bjet, 86)
-          if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
-        }
+      TO = triggerObjectStandAlonesH_->at(iobj);
+      TO.unpackPathNames( triggerNames_ );
 
-        bool saveFilters = false;
-        TString filterslist = "";
-        if ( IDs.size() > 0 ) {
-          int id = abs(IDs[0]);
-          // From: TriggerTypeDefs.h
-          //	 TriggerL1Mu           = -81,
-          //       TriggerL1NoIsoEG      = -82,
-          //       TriggerL1IsoEG        = -83,
-          //       TriggerPhoton         = +81,
-          //       TriggerElectron       = +82,
-          //       TriggerMuon           = +83,
-          //       TriggerCluster        = +92,
-          if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
-          if ( IDs.size() > 1 ) {
-            int id = abs(IDs[1]);
-            if ( id == 81 || id == 82 || id == 83 || IDs[1] == 92) saveFilters = true;
-          }
-        }
-        if (saveFilters) {
-          std::vector< std::string > filter_labels = TO.filterLabels();
-          for (uint j  = 0; j < filter_labels.size(); j++) {
-            filterslist += filter_labels[j];
-            filterslist += " ";
-          }
-        }
+      for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
+	const string& name = triggerNames_.triggerName(itrig);
+
+	if(!doFillTrigger[itrig]) continue;
+
+	// save all objects associated to path, regardless of final result. And save filter names 
+	if ( TO.hasPathName(name, false, false ) ) {  
+	  int storeID = 0;
+	  std::vector<int> IDs = TO.filterIds();
+	  if (IDs.size() == 1) storeID = IDs[0];
+	  else if (IDs.size() > 1) {
+	    // Making some arbitrary choices
+	    if ( IDs[0]==85 || IDs[1]==85 ) storeID = 85; // when in doubt call it jet (and not the bjet, 86)
+	    if ( IDs[0]==92 || IDs[1]==92 ) storeID = 92; // when in doubt call it cluster (and not Photon, 81, or Electron, 82)
+	  }
+
+	  bool saveFilters = false;
+	  TString filterslist = "";
+	  if ( IDs.size() > 0 ) {
+	    int id = abs(IDs[0]);
+	    // From: TriggerTypeDefs.h
+	    //	 TriggerL1Mu           = -81,
+	    //       TriggerL1NoIsoEG      = -82,
+	    //       TriggerL1IsoEG        = -83,
+	    //       TriggerPhoton         = +81,
+	    //       TriggerElectron       = +82,
+	    //       TriggerMuon           = +83,
+	    //       TriggerCluster        = +92,
+	    if ( id == 81 || id == 82 || id == 83 || IDs[0] == 92) saveFilters = true;
+	    if ( IDs.size() > 1 ) {
+	      int id = abs(IDs[1]);
+	      if ( id == 81 || id == 82 || id == 83 || IDs[1] == 92) saveFilters = true;
+	    }
+	  }
+	  if (saveFilters) {
+	    std::vector< std::string > filter_labels = TO.filterLabels();
+	    for (uint j  = 0; j < filter_labels.size(); j++) {
+	      filterslist += filter_labels[j];
+	      filterslist += " ";
+	    }
+	  }
 
 
-        trigObjsid->at(itrig).push_back(storeID);
-        trigObjsp4->at(itrig).push_back(LorentzVector(TO.p4()));
-        trigObjspassLast->at(itrig).push_back(TO.hasPathName(name, true));
-        trigObjsfilters->at(itrig).push_back(filterslist);
-      } // hasPathName
+	  trigObjsid->at(itrig).push_back(storeID);
+	  trigObjsp4->at(itrig).push_back(LorentzVector(TO.p4()));
+	  trigObjspassLast->at(itrig).push_back(TO.hasPathName(name, true));
+	  trigObjsfilters->at(itrig).push_back(filterslist);
+	} // hasPathName
 
-    } // End of loop over triggers
+      } // End of loop over triggers
 
-  } // end of loop over trigger objects
+    } // end of loop over trigger objects
+  }
 	
   // strip upper zeros
   bits->Compact();
@@ -273,10 +279,13 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(prescales  , Form("%sprescales"   , processNamePrefix_.Data() ) );
   iEvent.put(l1prescales, Form("%sl1prescales" , processNamePrefix_.Data() ) );
   iEvent.put(trigNames  , Form("%strigNames"   , processNamePrefix_.Data() ) );
-  iEvent.put(trigObjsid , Form("%strigObjsid"  , processNamePrefix_.Data() ) );
-  iEvent.put(trigObjsp4 , Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
-  iEvent.put(trigObjspassLast , Form("%strigObjspassLast"  , processNamePrefix_.Data() ) );
-  iEvent.put(trigObjsfilters , Form("%strigObjsfilters"  , processNamePrefix_.Data() ) );
+  
+  if (fillTriggerObjects_) {
+    iEvent.put(trigObjsid , Form("%strigObjsid"  , processNamePrefix_.Data() ) );
+    iEvent.put(trigObjsp4 , Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
+    iEvent.put(trigObjspassLast , Form("%strigObjspassLast"  , processNamePrefix_.Data() ) );
+    iEvent.put(trigObjsfilters , Form("%strigObjsfilters"  , processNamePrefix_.Data() ) );
+  }
 }
 
 bool HLTMaker::doPruneTriggerName(const string& name) const
