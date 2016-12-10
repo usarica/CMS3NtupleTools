@@ -230,7 +230,7 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
 {
   // std::vector<unsigned int> triggerPrescales;
 
-  unsigned int prescale = 0;
+  //unsigned int prescale = 0;
 
   // map object index to prescale
   std::vector<unsigned int> offlineObjectsPrescales; 
