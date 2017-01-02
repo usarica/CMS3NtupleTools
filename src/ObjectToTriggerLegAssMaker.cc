@@ -357,7 +357,7 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
         std::vector<unsigned int> &versions)
 {
 
-    TPRegexp re("._v(.*)");
+    TPRegexp re("._v([0-9]*)");
 
     // loop on trigger names
     for (unsigned int t = 0; t < trigNames.size(); ++t) {
@@ -383,16 +383,16 @@ void ObjectToTriggerLegAssMaker::getTriggerVersions(const std::vector<edm::Input
             // if trigger matches
             // then extract version number
             if (hltTrigName.Index(reg) >= 0) {
-
-              TObjArray *substrArr = re.MatchS(hltTrigName);
-              if (substrArr->GetLast() == 1) {
-                versions[t] = ((TObjString*)substrArr->At(1))->GetString().Atoi();
-                break; // if we found a match, break
-              } else {
-                versions[t] = 0;
-              }
-              delete substrArr;
+                if (hltTrigName.Index(re) >= 0) {
+                    // select 5 chars from 3rd char onwards (this cuts out the ._v part of the regex)
+                    // and yes, then version # must be <1e5, but come on
+                    versions[t] = TString(TString(hltTrigName(re))(3,5)).Atoi();
+                    break;
+                } else {
+                    versions[t] = 0;
+                }
             }
+
         }
 
     }
