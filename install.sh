@@ -20,3 +20,6 @@ source setup/patchesToSource.sh
 cd $CMSSW_BASE/src
 scram b -j 20
 cd ..
+
+# see comment in patchesToSource.sh
+rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
