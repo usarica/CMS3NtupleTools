@@ -33,7 +33,7 @@ process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 process.out = cms.OutputModule("PoolOutputModule",
   fileName     = cms.untracked.string('ntuple.root'),
@@ -44,7 +44,7 @@ process.outpath = cms.EndPath(process.out)
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-from JMEAnalysis.JetToolbox.jetToolbox_cff import *
+# from JMEAnalysis.JetToolbox.jetToolbox_cff import *
 #from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
@@ -73,10 +73,31 @@ for idmod in my_id_modules:
 #process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
 #process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
 
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+from PhysicsTools.PatAlgos.tools.jetTools import *
+deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
+updateJetCollection(
+    process,
+    jetSource = cms.InputTag('slimmedJets'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+updateJetCollection(
+    process,
+    labelName = 'Puppi',
+    jetSource = cms.InputTag('slimmedJetsPuppi'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
+
+# Needed for the above updateJetCollection() calls
+process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
@@ -90,7 +111,7 @@ process.source = cms.Source("PoolSource",
 #         'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv1/ttbb_4FS_ckm_amcatnlo_madspin_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/60000/F4EA8D09-9002-E611-9D1B-1CC1DE19274E.root',
 #                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
-        'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv2/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v4/00000/107D4288-EE2B-E611-8CDA-02163E0114CC.root'
+        '/store/mc/RunIISummer16MiniAODv2/WZ_TuneCUETP8M1_13TeV-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/60000/546E888D-C1D7-E611-B5B3-0CC47A0AD48A.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )

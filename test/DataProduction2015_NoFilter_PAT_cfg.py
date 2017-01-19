@@ -73,9 +73,31 @@ my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElect
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+from PhysicsTools.PatAlgos.tools.jetTools import *
+deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
+updateJetCollection(
+    process,
+    jetSource = cms.InputTag('slimmedJets'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+updateJetCollection(
+    process,
+    labelName = 'Puppi',
+    jetSource = cms.InputTag('slimmedJetsPuppi'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+
+
 #Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
+
+# Needed for the above updateJetCollection() calls
+process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)

@@ -65,6 +65,11 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
 
   // Embedded b-tagging information (miniAOD only)
   produces<vector<float> >         (branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag" ).setBranchAlias(aliasprefix_+"_pfCombinedInclusiveSecondaryVertexV2BJetTag");
+  produces<vector<float> >         (branchprefix+"deepFlavourJetTagsProbudsg" ).setBranchAlias(aliasprefix_+"_deepFlavourJetTagsProbudsg");
+  produces<vector<float> >         (branchprefix+"deepFlavourJetTagsProbb" ).setBranchAlias(aliasprefix_+"_deepFlavourJetTagsProbb");
+  produces<vector<float> >         (branchprefix+"deepFlavourJetTagsProbc" ).setBranchAlias(aliasprefix_+"_deepFlavourJetTagsProbc");
+  produces<vector<float> >         (branchprefix+"deepFlavourJetTagsProbbb" ).setBranchAlias(aliasprefix_+"_deepFlavourJetTagsProbbb");
+  produces<vector<float> >         (branchprefix+"deepFlavourJetTagsProbcc" ).setBranchAlias(aliasprefix_+"_deepFlavourJetTagsProbcc");
   produces<vector<TString> >       (branchprefix+"bDiscriminatorNames"                         ).setBranchAlias(aliasprefix_+"_bDiscriminatorNames"                     );
   produces<vector<vector<float>> > (branchprefix+"bDiscriminators"                             ).setBranchAlias(aliasprefix_+"_bDiscriminators"                         );
 
@@ -157,6 +162,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
 
   auto_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_deepFlavourJetTagsProbudsg (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_deepFlavourJetTagsProbb (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_deepFlavourJetTagsProbc (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_deepFlavourJetTagsProbbb (new vector<float>  );
+  auto_ptr<vector<float> >     pfjets_deepFlavourJetTagsProbcc (new vector<float>  );
   auto_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
   auto_ptr<vector <vector <float>   > >    pfjets_bDiscriminators                        (new vector<vector<float> > );
 
@@ -242,6 +252,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pfjets_bDiscriminators->push_back(bDiscriminatorPerjet);
     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") );
 
+    pfjets_deepFlavourJetTagsProbudsg->push_back( pfjet_it->bDiscriminator("deepFlavourJetTags:probudsg") );
+    pfjets_deepFlavourJetTagsProbb->push_back( pfjet_it->bDiscriminator("deepFlavourJetTags:probb") );
+    pfjets_deepFlavourJetTagsProbc->push_back( pfjet_it->bDiscriminator("deepFlavourJetTags:probc") );
+    pfjets_deepFlavourJetTagsProbbb->push_back( pfjet_it->bDiscriminator("deepFlavourJetTags:probbb") );
+    pfjets_deepFlavourJetTagsProbcc->push_back( pfjet_it->bDiscriminator("deepFlavourJetTags:probcc") );
+
+
   }
 
   std::string branchprefix = aliasprefix_;
@@ -276,6 +293,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(pfjets_hadronFlavour             , branchprefix+"hadronFlavour"             );
 
   iEvent.put(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag, branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
+  iEvent.put(pfjets_deepFlavourJetTagsProbudsg, branchprefix+"deepFlavourJetTagsProbudsg");  
+  iEvent.put(pfjets_deepFlavourJetTagsProbb, branchprefix+"deepFlavourJetTagsProbb");  
+  iEvent.put(pfjets_deepFlavourJetTagsProbc, branchprefix+"deepFlavourJetTagsProbc");  
+  iEvent.put(pfjets_deepFlavourJetTagsProbbb, branchprefix+"deepFlavourJetTagsProbbb");  
+  iEvent.put(pfjets_deepFlavourJetTagsProbcc, branchprefix+"deepFlavourJetTagsProbcc");  
   iEvent.put(pfjets_bDiscriminatorNames                                    , branchprefix+"bDiscriminatorNames"     );
   iEvent.put(pfjets_bDiscriminators                                        , branchprefix+"bDiscriminators"         );
 

@@ -81,7 +81,26 @@ cd $CMSSW_BASE/src
 
 ### End of EGM MVA ID 80X ###
 
+######################
+## # DeepFlavour # ###
+######################
+#  Btagging DeepFlavour recipe for 80X (from https://twiki.cern.ch/twiki/bin/viewauth/CMS/DeepFlavour)
+pushd $CMSSW_BASE/src
+git cms-merge-topic -u mverzett:DeepFlavour-from-CMSSW_8_0_21
+scram b -j 20
+mkdir -p RecoBTag/DeepFlavour/data/
+cd RecoBTag/DeepFlavour/data/
+wget http://home.fnal.gov/~verzetti//DeepFlavour/training/DeepFlavourNoSL.json
+popd
+### END of DeepFlavour ###
+
 
 # compile
 cd $CMSSW_BASE/src
 scram b -j 20
+
+# If you see an error with the words "poisoned" and "plugin", then this is what you need to do
+# I don't know what the hell it does, but you just need to do it
+# ...after...every...single...scram b...before you can run
+rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
+
