@@ -286,6 +286,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
   produces<vector<int> > ( branchprefix_ + "pidTM2DCompatibilityTight" ).setBranchAlias( aliasprefix_ + "_pid_TM2DCompatibilityTight" ); // tight tracker muon likelihood identification based on muon matches and calo depositions
   produces<vector<int> > ( branchprefix_ + "pidTMOneStationTight"      ).setBranchAlias( aliasprefix_ + "_pid_TMOneStationTight"      ); //  
   produces<vector<int> > ( branchprefix_ + "pidPFMuon"                 ).setBranchAlias( aliasprefix_ + "_pid_PFMuon"                 ); // is particle flow muon
+  produces<vector<int> > ( branchprefix_ + "pidoldPFMuon"                 ).setBranchAlias( aliasprefix_ + "_pid_oldPFMuon"                 ); // is particle flow muon
 
   ////////////
   // Energy //
@@ -675,6 +676,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityTight  ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_pid_TMOneStationTight       ( new vector<int>     );
   auto_ptr<vector<int> >           vector_mus_pid_PFMuon                  ( new vector<int>     );
+  auto_ptr<vector<int> >           vector_mus_pid_oldPFMuon                  ( new vector<int>     );
 
 
   ////////////
@@ -1216,6 +1218,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     vector_mus_pid_TMOneStationTight      -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TMOneStationTight      ) : -9999  );
     vector_mus_pid_PFMuon                 -> push_back( muon->isPFMuon() );
 
+    if (muon->hasUserInt("muonsCleaned:oldPF")) {
+        vector_mus_pid_oldPFMuon->push_back(muon->userInt("muonsCleaned:oldPF"));
+    } else {
+        std::cout << "[!] didn't find the old isPFMuon flag!" << std::endl;
+    }
+
     ////////////
     // Energy //
     ////////////
@@ -1710,6 +1718,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.put( vector_mus_pid_TM2DCompatibilityTight   , branchprefix_ + "pidTM2DCompatibilityTight");
   iEvent.put( vector_mus_pid_TMOneStationTight        , branchprefix_ + "pidTMOneStationTight");
   iEvent.put( vector_mus_pid_PFMuon                   , branchprefix_ + "pidPFMuon");
+  iEvent.put( vector_mus_pid_oldPFMuon                   , branchprefix_ + "pidoldPFMuon");
 
 
   ////////////
