@@ -203,6 +203,12 @@ if not applyResiduals:
           process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
+# store the collection of discarded pfcandidates with different prefix
+process.pfCandidateDiscardedMaker = process.pfCandidateMaker.clone(
+        aliasPrefix         = cms.untracked.string("pfcandsdiscard"),
+        pfCandidatesTag     = cms.InputTag("packedPFCandidatesDiscarded","",configProcessName.name),
+        )
+
 # end Run corrected MET maker
 
 # #Run jet tool box
@@ -226,6 +232,7 @@ process.p = cms.Path(
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
+  process.pfCandidateDiscardedMaker *
   process.isoTrackMaker *
   process.recoConversionMaker *
   process.electronMaker *

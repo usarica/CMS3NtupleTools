@@ -28,7 +28,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_dataRun2_Prompt_v9"
+process.GlobalTag.globaltag = "80X_dataRun2_2016SeptRepro_v7"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -50,7 +50,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-from JMEAnalysis.JetToolbox.jetToolbox_cff import *
+# from JMEAnalysis.JetToolbox.jetToolbox_cff import *
 #from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
@@ -76,9 +76,31 @@ my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElect
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
+from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+from PhysicsTools.PatAlgos.tools.jetTools import *
+deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
+updateJetCollection(
+    process,
+    jetSource = cms.InputTag('slimmedJets'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+updateJetCollection(
+    process,
+    labelName = 'Puppi',
+    jetSource = cms.InputTag('slimmedJetsPuppi'),
+   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+    btagDiscriminators = deep_discriminators
+)
+
+
 #Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
+
+# Needed for the above updateJetCollection() calls
+process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
@@ -91,7 +113,8 @@ process.source = cms.Source("PoolSource",
       # '/store/data/Run2016C/SingleElectron/MINIAOD/PromptReco-v2/000/275/769/00000/349EFD01-373C-E611-B105-02163E0144FD.root',
       # '/store/data/Run2016H/SingleMuon/MINIAOD/PromptReco-v2/000/281/231/00000/F85CC211-6C82-E611-960C-02163E011F5F.root',
       # 'file:28861171-6E82-E611-9CAF-02163E0141FA.root',
-      '/store/data/Run2016H/SingleMuon/MINIAOD/PromptReco-v2/000/281/641/00000/540C93ED-A185-E611-A6A0-02163E0140F5.root',
+      # '/store/data/Run2016H/SingleMuon/MINIAOD/PromptReco-v2/000/281/641/00000/540C93ED-A185-E611-A6A0-02163E0140F5.root',
+      '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -182,6 +205,12 @@ if not applyResiduals:
           process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
+# store the collection of discarded pfcandidates with different prefix
+process.pfCandidateDiscardedMaker = process.pfCandidateMaker.clone(
+        aliasPrefix         = cms.untracked.string("pfcandsdiscard"),
+        pfCandidatesTag     = cms.InputTag("packedPFCandidatesDiscarded","",configProcessName.name),
+        )
+
 # end Run corrected MET maker
 
 # #Run jet tool box
@@ -196,6 +225,7 @@ process.p = cms.Path(
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
+  process.pfCandidateDiscardedMaker *
   process.isoTrackMaker *
   process.recoConversionMaker *
   process.electronMaker *

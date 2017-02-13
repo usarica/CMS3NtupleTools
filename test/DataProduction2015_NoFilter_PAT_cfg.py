@@ -3,6 +3,7 @@ from Configuration.EventContent.EventContent_cff        import *
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
+configProcessName.name2="RECO"
 configProcessName.isFastSim=False
 
 #CMS3
@@ -25,7 +26,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 #services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "75X_dataRun2_Prompt_v0"
+process.GlobalTag.globaltag = "80X_dataRun2_2016SeptRepro_v7"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -47,7 +48,7 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-from JMEAnalysis.JetToolbox.jetToolbox_cff import *
+# from JMEAnalysis.JetToolbox.jetToolbox_cff import *
 #from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
@@ -105,12 +106,14 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
-  fileNames = cms.untracked.vstring('/store/data/Run2015B/DoubleEG/MINIAOD/17Jul2015-v1/40000/02FC1E69-AF2E-E511-ABA6-0025905B858E.root')
+  fileNames = cms.untracked.vstring(
+      '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
+      )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
@@ -193,6 +196,12 @@ if not applyResiduals:
           process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
+# store the collection of discarded pfcandidates with different prefix
+process.pfCandidateDiscardedMaker = process.pfCandidateMaker.clone(
+        aliasPrefix         = cms.untracked.string("pfcandsdiscard"),
+        pfCandidatesTag     = cms.InputTag("packedPFCandidatesDiscarded","",configProcessName.name),
+        )
+
 # end Run corrected MET maker
 
 # #Run jet tool box
@@ -207,6 +216,7 @@ process.p = cms.Path(
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
+  process.pfCandidateDiscardedMaker *
   process.isoTrackMaker *
   process.recoConversionMaker *
   process.electronMaker *
