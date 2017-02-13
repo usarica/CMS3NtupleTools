@@ -52,6 +52,9 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     produces <bool> ( branchprefix_ + "hcalStrip"                      ).setBranchAlias( aliasprefix_ + "_hcalStrip"                      );
     produces <bool> ( branchprefix_ + "ecalBoundaryEnergy"             ).setBranchAlias( aliasprefix_ + "_ecalBoundaryEnergy"             );
     produces <bool> ( branchprefix_ + "muonBadTrack"                   ).setBranchAlias( aliasprefix_ + "_muonBadTrack"                   );
+    produces <bool> ( branchprefix_ + "badMuons"                       ).setBranchAlias( aliasprefix_ + "_badMuons"                       );
+    produces <bool> ( branchprefix_ + "duplicateMuons"                 ).setBranchAlias( aliasprefix_ + "_duplicateMuons"                 );
+    produces <bool> ( branchprefix_ + "noBadMuons"                     ).setBranchAlias( aliasprefix_ + "_noBadMuons"                     );
 
     // For compatibility with CMS2 variable names
     produces <bool> ( "evtcscTightHaloId"                 ).setBranchAlias( "evt_cscTightHaloId"                 );
@@ -93,6 +96,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   auto_ptr <bool> filt_hcalStrip                     ( new bool(false) );
   auto_ptr <bool> filt_ecalBoundaryEnergy            ( new bool(false) );
   auto_ptr <bool> filt_muonBadTrack                  ( new bool(false) );
+  auto_ptr <bool> filt_badMuons                      ( new bool(false) );
+  auto_ptr <bool> filt_duplicateMuons                ( new bool(false) );
+  auto_ptr <bool> filt_noBadMuons                    ( new bool(false) );
 
 
 
@@ -130,6 +136,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   int idx_hcalStrip                       = -1;
   int idx_ecalBoundaryEnergy              = -1;
   int idx_muonBadTrack                    = -1;
+  int idx_badMuons                        = -1;
+  int idx_duplicateMuons                  = -1;
+  int idx_noBadMuons                      = -1;
 
 
 
@@ -159,6 +168,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_HcalStripHaloFilter"                ) idx_hcalStrip                       = i;
     if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellBoundaryEnergyFilter"   ) idx_ecalBoundaryEnergy              = i;
     if (  metFilterNames_.triggerName(i) == "Flag_muonBadTrackFilter"                 ) idx_muonBadTrack                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_badMuons"                           ) idx_badMuons                        = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_duplicateMuons"                     ) idx_duplicateMuons                  = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_noBadMuons"                         ) idx_noBadMuons                      = i;
   }
 
   
@@ -184,6 +196,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   *filt_hcalStrip                            = (idx_hcalStrip                      < 0) ? false : metFilterResultsH_->accept(idx_hcalStrip                       );
   *filt_ecalBoundaryEnergy                   = (idx_ecalBoundaryEnergy             < 0) ? false : metFilterResultsH_->accept(idx_ecalBoundaryEnergy              );
   *filt_muonBadTrack                         = (idx_muonBadTrack                   < 0) ? false : metFilterResultsH_->accept(idx_muonBadTrack                    );
+  *filt_badMuons                             = (idx_badMuons                       < 0) ? false : metFilterResultsH_->accept(idx_badMuons                        );
+  *filt_duplicateMuons                       = (idx_duplicateMuons                 < 0) ? false : metFilterResultsH_->accept(idx_duplicateMuons                  );
+  *filt_noBadMuons                           = (idx_noBadMuons                     < 0) ? false : metFilterResultsH_->accept(idx_noBadMuons                      );
 
 
   // For compatibility with CMS2 variable names
@@ -216,6 +231,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put( filt_hcalStrip                      , branchprefix_ + "hcalStrip"                      );
   iEvent.put( filt_ecalBoundaryEnergy             , branchprefix_ + "ecalBoundaryEnergy"             );
   iEvent.put( filt_muonBadTrack                   , branchprefix_ + "muonBadTrack"                   );
+  iEvent.put( filt_badMuons                   , branchprefix_ + "badMuons"                   );
+  iEvent.put( filt_duplicateMuons                   , branchprefix_ + "duplicateMuons"                   );
+  iEvent.put( filt_noBadMuons                   , branchprefix_ + "noBadMuons"                   );
 
   // For compatibility with CMS2 variable names
   iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );
