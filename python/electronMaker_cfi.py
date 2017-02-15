@@ -6,6 +6,7 @@ electronMaker = cms.EDProducer(
     aliasPrefix = cms.untracked.string("els"),
     # Electron collection
     electronsInputTag   = cms.InputTag("slimmedElectrons"),
+    useVID   = cms.bool(True),
     electronVetoIdMap   = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
     electronLooseIdMap  = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
     electronMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
@@ -61,3 +62,10 @@ electronMaker = cms.EDProducer(
 
 )
 
+electronBeforeGSFixMaker = electronMaker.clone()
+electronBeforeGSFixMaker.aliasPrefix = cms.untracked.string("elsBeforeGSFix")
+electronBeforeGSFixMaker.electronsInputTag   = cms.InputTag("slimmedElectronsBeforeGSFix")
+electronBeforeGSFixMaker.useVID   = cms.bool(False)
+electronBeforeGSFixMaker.ebReducedRecHitCollectionTag = cms.InputTag("reducedEgammaBeforeGSFix:reducedEBRecHits")
+electronBeforeGSFixMaker.eeReducedRecHitCollectionTag = cms.InputTag("reducedEgammaBeforeGSFix:reducedEERecHits")
+electronBeforeGSFixMaker.esReducedRecHitCollectionTag = cms.InputTag("reducedEgammaBeforeGSFix:reducedESRecHits")

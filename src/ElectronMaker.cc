@@ -118,7 +118,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // pfIsoCharged04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   );
     // pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
     // pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
-    
+
 
     ebReducedRecHitCollection = mayConsume<EcalRecHitCollection>(ebReducedRecHitCollectionTag);
     eeReducedRecHitCollection = mayConsume<EcalRecHitCollection>(eeReducedRecHitCollectionTag);
@@ -132,202 +132,206 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     minAbsDcot_               = iConfig.getParameter<double>          ("minAbsDcot"              );
     minSharedFractionOfHits_  = iConfig.getParameter<double>          ("minSharedFractionOfHits" );
     aliasprefix_              = iConfig.getUntrackedParameter<string> ("aliasPrefix"             );
+    useVID_                   = iConfig.getParameter<bool>            ("useVID"                  );
 
+    std::string branchprefix = aliasprefix_;
+    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+    
     mtsTransform_ = 0;
     clusterTools_ = 0;
  
 
-    produces<unsigned int>       ("evtnels"                    ).setBranchAlias("evt_nels"                   ); //number of electrons in event
+    produces<unsigned int>   ( "evtn" + branchprefix            ).setBranchAlias( "evt_n"      + branchprefix      ); //number of electrons in event
 
     // ECAL related (superCluster) variables
-    produces<vector<int> >       ("elsnSeed"                   ).setBranchAlias("els_nSeed"                  );
-    produces<vector<float> >     ("elseSC"                     ).setBranchAlias("els_eSC"                    );
-    produces<vector<float> >     ("elsetaSC"                   ).setBranchAlias("els_etaSC"                  );
-    produces<vector<float> >     ("elsphiSC"                   ).setBranchAlias("els_phiSC"                  );
-    produces<vector<float> >     ("elseSCRaw"                  ).setBranchAlias("els_eSCRaw"                 );
-    produces<vector<float> >     ("elseSCPresh"                ).setBranchAlias("els_eSCPresh"               );
-    produces<vector<int> >       ("elsfiduciality"             ).setBranchAlias("els_fiduciality"            );
-    produces<vector<int> >       ("elstype"                    ).setBranchAlias("els_type"                   );
-//    produces<vector<int> >       ("elsscindex"                 ).setBranchAlias("els_scindex"                );
-    produces<vector<float> >     ("elsetaSCwidth"              ).setBranchAlias("els_etaSCwidth"             );
-    produces<vector<float> >     ("elsphiSCwidth"              ).setBranchAlias("els_phiSCwidth"             );
+    produces<vector<int> >       (branchprefix+"nSeed"                   ).setBranchAlias(aliasprefix_+"_nSeed"                  );
+    produces<vector<float> >     (branchprefix+"eSC"                     ).setBranchAlias(aliasprefix_+"_eSC"                    );
+    produces<vector<float> >     (branchprefix+"etaSC"                   ).setBranchAlias(aliasprefix_+"_etaSC"                  );
+    produces<vector<float> >     (branchprefix+"phiSC"                   ).setBranchAlias(aliasprefix_+"_phiSC"                  );
+    produces<vector<float> >     (branchprefix+"eSCRaw"                  ).setBranchAlias(aliasprefix_+"_eSCRaw"                 );
+    produces<vector<float> >     (branchprefix+"eSCPresh"                ).setBranchAlias(aliasprefix_+"_eSCPresh"               );
+    produces<vector<int> >       (branchprefix+"fiduciality"             ).setBranchAlias(aliasprefix_+"_fiduciality"            );
+    produces<vector<int> >       (branchprefix+"type"                    ).setBranchAlias(aliasprefix_+"_type"                   );
+//    produces<vector<int> >       (branchprefix+"scindex"                 ).setBranchAlias(aliasprefix_+"_scindex"                );
+    produces<vector<float> >     (branchprefix+"etaSCwidth"              ).setBranchAlias(aliasprefix_+"_etaSCwidth"             );
+    produces<vector<float> >     (branchprefix+"phiSCwidth"              ).setBranchAlias(aliasprefix_+"_phiSCwidth"             );
 
     // Corrections and uncertainties
     //
-    produces<vector<float> >     ("elsecalEnergy"              ).setBranchAlias("els_ecalEnergy"             );
-    produces<vector<float> >     ("elsecalEnergyError"         ).setBranchAlias("els_ecalEnergyError"        );
-    produces<vector<float> >     ("elstrackMomentumError"      ).setBranchAlias("els_trackMomentumError"     );
+    produces<vector<float> >     (branchprefix+"ecalEnergy"              ).setBranchAlias(aliasprefix_+"_ecalEnergy"             );
+    produces<vector<float> >     (branchprefix+"ecalEnergyError"         ).setBranchAlias(aliasprefix_+"_ecalEnergyError"        );
+    produces<vector<float> >     (branchprefix+"trackMomentumError"      ).setBranchAlias(aliasprefix_+"_trackMomentumError"     );
 
     // ID variables
     //
-    //produces<vector<float> >     ("elslh"                      ).setBranchAlias("els_lh"                     );
-    produces<vector<float> >     ("elsmva"                     ).setBranchAlias("els_mva"                    );
+    //produces<vector<float> >     (branchprefix+"lh"                      ).setBranchAlias(aliasprefix_+"_lh"                     );
+    produces<vector<float> >     (branchprefix+"mva"                     ).setBranchAlias(aliasprefix_+"_mva"                    );
 
-    produces<vector<float> >     ("elsdEtaIn"                  ).setBranchAlias("els_dEtaIn"                 );
-    produces<vector<float> >     ("elsdEtaOut"                 ).setBranchAlias("els_dEtaOut"                );
-    produces<vector<float> >     ("elsdPhiIn"                  ).setBranchAlias("els_dPhiIn"                 );
-    produces<vector<float> >     ("elsdPhiOut"                 ).setBranchAlias("els_dPhiOut"                );
-    produces<vector<float> >     ("elsdPhiInPhiOut"            ).setBranchAlias("els_dPhiInPhiOut"           );
-    produces<vector<float> >     ("elsfbrem"                   ).setBranchAlias("els_fbrem"                  );
-    produces<vector<float> >     ("elseSeed"                   ).setBranchAlias("els_eSeed"                  );
-    produces<vector<float> >     ("elseOverPIn"                ).setBranchAlias("els_eOverPIn"               );
-    produces<vector<float> >     ("elseSeedOverPOut"           ).setBranchAlias("els_eSeedOverPOut"          );
-    produces<vector<float> >     ("elseSeedOverPIn"            ).setBranchAlias("els_eSeedOverPIn"           );
-    produces<vector<float> >     ("elseOverPOut"               ).setBranchAlias("els_eOverPOut"              );
+    produces<vector<float> >     (branchprefix+"dEtaIn"                  ).setBranchAlias(aliasprefix_+"_dEtaIn"                 );
+    produces<vector<float> >     (branchprefix+"dEtaOut"                 ).setBranchAlias(aliasprefix_+"_dEtaOut"                );
+    produces<vector<float> >     (branchprefix+"dPhiIn"                  ).setBranchAlias(aliasprefix_+"_dPhiIn"                 );
+    produces<vector<float> >     (branchprefix+"dPhiOut"                 ).setBranchAlias(aliasprefix_+"_dPhiOut"                );
+    produces<vector<float> >     (branchprefix+"dPhiInPhiOut"            ).setBranchAlias(aliasprefix_+"_dPhiInPhiOut"           );
+    produces<vector<float> >     (branchprefix+"fbrem"                   ).setBranchAlias(aliasprefix_+"_fbrem"                  );
+    produces<vector<float> >     (branchprefix+"eSeed"                   ).setBranchAlias(aliasprefix_+"_eSeed"                  );
+    produces<vector<float> >     (branchprefix+"eOverPIn"                ).setBranchAlias(aliasprefix_+"_eOverPIn"               );
+    produces<vector<float> >     (branchprefix+"eSeedOverPOut"           ).setBranchAlias(aliasprefix_+"_eSeedOverPOut"          );
+    produces<vector<float> >     (branchprefix+"eSeedOverPIn"            ).setBranchAlias(aliasprefix_+"_eSeedOverPIn"           );
+    produces<vector<float> >     (branchprefix+"eOverPOut"               ).setBranchAlias(aliasprefix_+"_eOverPOut"              );
 
-    produces<vector<float> >     ("elshOverE"                  ).setBranchAlias("els_hOverE"                 );
-    produces<vector<float> >     ("elsfull5x5hOverE"           ).setBranchAlias("els_full5x5_hOverE"                 );
-    produces<vector<float> >     ("elshOverEBC"                ).setBranchAlias("els_hOverEBC"               );
-    produces<vector<float> >     ("elshcalDepth1OverEcal"      ).setBranchAlias("els_hcalDepth1OverEcal"     );
-    produces<vector<float> >     ("elshcalDepth2OverEcal"      ).setBranchAlias("els_hcalDepth2OverEcal"     );
+    produces<vector<float> >     (branchprefix+"hOverE"                  ).setBranchAlias(aliasprefix_+"_hOverE"                 );
+    produces<vector<float> >     (branchprefix+"full5x5hOverE"           ).setBranchAlias(aliasprefix_+"_full5x5_hOverE"                 );
+    produces<vector<float> >     (branchprefix+"hOverEBC"                ).setBranchAlias(aliasprefix_+"_hOverEBC"               );
+    produces<vector<float> >     (branchprefix+"hcalDepth1OverEcal"      ).setBranchAlias(aliasprefix_+"_hcalDepth1OverEcal"     );
+    produces<vector<float> >     (branchprefix+"hcalDepth2OverEcal"      ).setBranchAlias(aliasprefix_+"_hcalDepth2OverEcal"     );
 
-    //produces<vector<float> >     ("elssigmaPhiPhi"             ).setBranchAlias("els_sigmaPhiPhi"            );
-    produces<vector<float> >     ("elssigmaIPhiIPhi"           ).setBranchAlias("els_sigmaIPhiIPhi"          );
-    //produces<vector<float> >     ("elssigmaIEtaIPhi"           ).setBranchAlias("els_sigmaIEtaIPhi"          );
-    produces<vector<float> >     ("elssigmaEtaEta"             ).setBranchAlias("els_sigmaEtaEta"            );
-    produces<vector<float> >     ("elssigmaIEtaIEta"           ).setBranchAlias("els_sigmaIEtaIEta"          );
-    //produces<vector<float> >     ("elssigmaIPhiIPhiSC"         ).setBranchAlias("els_sigmaIPhiIPhiSC"        );
-    //produces<vector<float> >     ("elssigmaIEtaIEtaSC"         ).setBranchAlias("els_sigmaIEtaIEtaSC"        );
+    //produces<vector<float> >     (branchprefix+"sigmaPhiPhi"             ).setBranchAlias(aliasprefix_+"_sigmaPhiPhi"            );
+    produces<vector<float> >     (branchprefix+"sigmaIPhiIPhi"           ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi"          );
+    //produces<vector<float> >     (branchprefix+"sigmaIEtaIPhi"           ).setBranchAlias(aliasprefix_+"_sigmaIEtaIPhi"          );
+    produces<vector<float> >     (branchprefix+"sigmaEtaEta"             ).setBranchAlias(aliasprefix_+"_sigmaEtaEta"            );
+    produces<vector<float> >     (branchprefix+"sigmaIEtaIEta"           ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta"          );
+    //produces<vector<float> >     (branchprefix+"sigmaIPhiIPhiSC"         ).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhiSC"        );
+    //produces<vector<float> >     (branchprefix+"sigmaIEtaIEtaSC"         ).setBranchAlias(aliasprefix_+"_sigmaIEtaIEtaSC"        );
 
-    produces<vector<float> >     ("else2x5Max"                 ).setBranchAlias("els_e2x5Max"                );
-    produces<vector<float> >     ("else1x5"                    ).setBranchAlias("els_e1x5"                   );
-    produces<vector<float> >     ("else5x5"                    ).setBranchAlias("els_e5x5"                   );
-//    produces<vector<float> >     ("else3x3"                    ).setBranchAlias("els_e3x3"                   );
-//    produces<vector<float> >     ("elseMax"                    ).setBranchAlias("els_eMax"                   );
+    produces<vector<float> >     (branchprefix+"e2x5Max"                 ).setBranchAlias(aliasprefix_+"_e2x5Max"                );
+    produces<vector<float> >     (branchprefix+"e1x5"                    ).setBranchAlias(aliasprefix_+"_e1x5"                   );
+    produces<vector<float> >     (branchprefix+"e5x5"                    ).setBranchAlias(aliasprefix_+"_e5x5"                   );
+//    produces<vector<float> >     (branchprefix+"e3x3"                    ).setBranchAlias(aliasprefix_+"_e3x3"                   );
+//    produces<vector<float> >     (branchprefix+"eMax"                    ).setBranchAlias(aliasprefix_+"_eMax"                   );
 
-    produces<vector<float> >     ("elsdeltaEtaEleClusterTrackAtCalo").setBranchAlias("els_deltaEtaEleClusterTrackAtCalo");
-    produces<vector<float> >     ("elsdeltaPhiEleClusterTrackAtCalo").setBranchAlias("els_deltaPhiEleClusterTrackAtCalo");
-    produces<vector<bool > >     ("elsisGsfCtfScPixChargeConsistent").setBranchAlias("els_isGsfCtfScPixChargeConsistent");
+    produces<vector<float> >     (branchprefix+"deltaEtaEleClusterTrackAtCalo").setBranchAlias(aliasprefix_+"_deltaEtaEleClusterTrackAtCalo");
+    produces<vector<float> >     (branchprefix+"deltaPhiEleClusterTrackAtCalo").setBranchAlias(aliasprefix_+"_deltaPhiEleClusterTrackAtCalo");
+    produces<vector<bool > >     (branchprefix+"isGsfCtfScPixChargeConsistent").setBranchAlias(aliasprefix_+"_isGsfCtfScPixChargeConsistent");
 
     // predefined ID decisions
     // http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
-    produces<vector<int> >       ("elsclass"                   ).setBranchAlias("els_class"                  );
-
+    produces<vector<int> >       (branchprefix+"class"                   ).setBranchAlias(aliasprefix_+"_class"                  );
+    if (useVID_) {
     // Spring 15 predefined ID decisions
-    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
-    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
-    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
-    produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
-    produces<vector<int> >       ("passHEEPId"                 ).setBranchAlias("els_passHEEPId"                 );
-    produces<vector<int> >       ("passVIDNonTrigMvaWP80Id"    ).setBranchAlias("els_passVIDNonTrigMvaWP80Id"    );
-    produces<vector<int> >       ("passVIDNonTrigMvaWP90Id"    ).setBranchAlias("els_passVIDNonTrigMvaWP90Id"    );
-    produces<vector<int> >       ("passVIDTrigMvaWP80Id"       ).setBranchAlias("els_passVIDTrigMvaWP80Id"       );
-    produces<vector<int> >       ("passVIDTrigMvaWP90Id"       ).setBranchAlias("els_passVIDTrigMvaWP90Id"       );
-    produces<vector<float> >     ("VIDNonTrigMvaValue"         ).setBranchAlias("els_VIDNonTrigMvaValue"         );
-    produces<vector<float> >     ("VIDTrigMvaValue"            ).setBranchAlias("els_VIDTrigMvaValue"            );
-    produces<vector<int> >       ("VIDNonTrigMvaCat"           ).setBranchAlias("els_VIDNonTrigMvaCat"           );
-    produces<vector<int> >       ("VIDTrigMvaCat"              ).setBranchAlias("els_VIDTrigMvaCat"              );
-    produces<vector<float> >     ("VIDSpring16GPMvaValue"      ).setBranchAlias("els_VIDSpring16GPMvaValue"         );
-    produces<vector<int> >       ("VIDSpring16GPMvaCat"        ).setBranchAlias("els_VIDSpring16GPMvaCat"           );
-    produces<vector<float> >     ("VIDSpring16HZZMvaValue"     ).setBranchAlias("els_VIDSpring16HZZMvaValue"         );
-    produces<vector<int> >       ("VIDSpring16HZZMvaCat"       ).setBranchAlias("els_VIDSpring16HZZMvaCat"           );
-
+    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias(aliasprefix_+"_passVetoId"                 );
+    produces<vector<int> >       ("passLooseId"                ).setBranchAlias(aliasprefix_+"_passLooseId"                );
+    produces<vector<int> >       ("passMediumId"               ).setBranchAlias(aliasprefix_+"_passMediumId"               );
+    produces<vector<int> >       ("passTightId"                ).setBranchAlias(aliasprefix_+"_passTightId"                );
+    produces<vector<int> >       ("passHEEPId"                 ).setBranchAlias(aliasprefix_+"_passHEEPId"                 );
+    produces<vector<int> >       ("passVIDNonTrigMvaWP80Id"    ).setBranchAlias(aliasprefix_+"_passVIDNonTrigMvaWP80Id"    );
+    produces<vector<int> >       ("passVIDNonTrigMvaWP90Id"    ).setBranchAlias(aliasprefix_+"_passVIDNonTrigMvaWP90Id"    );
+    produces<vector<int> >       ("passVIDTrigMvaWP80Id"       ).setBranchAlias(aliasprefix_+"_passVIDTrigMvaWP80Id"       );
+    produces<vector<int> >       ("passVIDTrigMvaWP90Id"       ).setBranchAlias(aliasprefix_+"_passVIDTrigMvaWP90Id"       );
+    produces<vector<float> >     ("VIDNonTrigMvaValue"         ).setBranchAlias(aliasprefix_+"_VIDNonTrigMvaValue"         );
+    produces<vector<float> >     ("VIDTrigMvaValue"            ).setBranchAlias(aliasprefix_+"_VIDTrigMvaValue"            );
+    produces<vector<int> >       ("VIDNonTrigMvaCat"           ).setBranchAlias(aliasprefix_+"_VIDNonTrigMvaCat"           );
+    produces<vector<int> >       ("VIDTrigMvaCat"              ).setBranchAlias(aliasprefix_+"_VIDTrigMvaCat"              );
+    produces<vector<float> >     ("VIDSpring16GPMvaValue"      ).setBranchAlias(aliasprefix_+"_VIDSpring16GPMvaValue"         );
+    produces<vector<int> >       ("VIDSpring16GPMvaCat"        ).setBranchAlias(aliasprefix_+"_VIDSpring16GPMvaCat"           );
+    produces<vector<float> >     ("VIDSpring16HZZMvaValue"     ).setBranchAlias(aliasprefix_+"_VIDSpring16HZZMvaValue"         );
+    produces<vector<int> >       ("VIDSpring16HZZMvaCat"       ).setBranchAlias(aliasprefix_+"_VIDSpring16HZZMvaCat"           );
+    }
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
-    produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
+    produces<vector<int> >       (branchprefix+"category"                ).setBranchAlias(aliasprefix_+"_category"               );
 
     // isolation variables
     //
-    produces<vector<float> >     ("elstkIso"                  ).setBranchAlias("els_tkIso"                  );
-    produces<vector<float> >     ("elsecalIso"                ).setBranchAlias("els_ecalIso"                );
-    produces<vector<float> >     ("elshcalIso"                ).setBranchAlias("els_hcalIso"                );
-    produces<vector<float> >     ("elshcalDepth1TowerSumEt"   ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
-    produces<vector<float> >     ("elshcalDepth2TowerSumEt"   ).setBranchAlias("els_hcalDepth2TowerSumEt"   );
+    produces<vector<float> >     (branchprefix+"tkIso"                  ).setBranchAlias(aliasprefix_+"_tkIso"                  );
+    produces<vector<float> >     (branchprefix+"ecalIso"                ).setBranchAlias(aliasprefix_+"_ecalIso"                );
+    produces<vector<float> >     (branchprefix+"hcalIso"                ).setBranchAlias(aliasprefix_+"_hcalIso"                );
+    produces<vector<float> >     (branchprefix+"hcalDepth1TowerSumEt"   ).setBranchAlias(aliasprefix_+"_hcalDepth1TowerSumEt"   );
+    produces<vector<float> >     (branchprefix+"hcalDepth2TowerSumEt"   ).setBranchAlias(aliasprefix_+"_hcalDepth2TowerSumEt"   );
 
-    produces<vector<float> >     ("elstkIso04"                ).setBranchAlias("els_tkIso04"                );
-    produces<vector<float> >     ("elsecalIso04"              ).setBranchAlias("els_ecalIso04"              );
-    produces<vector<float> >     ("elshcalIso04"              ).setBranchAlias("els_hcalIso04"              );
-    produces<vector<float> >     ("elshcalDepth1TowerSumEt04" ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
-    produces<vector<float> >     ("elshcalDepth2TowerSumEt04" ).setBranchAlias("els_hcalDepth2TowerSumEt04" );
-//    produces<vector<float> >     ("elsiso03pf"                ).setBranchAlias("els_iso03_pf"               ); // pf isolation in cone of 0.3, 1 GeV threshold
-//    produces<vector<float> >     ("elsiso04pf"                ).setBranchAlias("els_iso04_pf"               ); // pf isolation in cone of 0.4, 1 GeV threshold
+    produces<vector<float> >     (branchprefix+"tkIso04"                ).setBranchAlias(aliasprefix_+"_tkIso04"                );
+    produces<vector<float> >     (branchprefix+"ecalIso04"              ).setBranchAlias(aliasprefix_+"_ecalIso04"              );
+    produces<vector<float> >     (branchprefix+"hcalIso04"              ).setBranchAlias(aliasprefix_+"_hcalIso04"              );
+    produces<vector<float> >     (branchprefix+"hcalDepth1TowerSumEt04" ).setBranchAlias(aliasprefix_+"_hcalDepth1TowerSumEt04" );
+    produces<vector<float> >     (branchprefix+"hcalDepth2TowerSumEt04" ).setBranchAlias(aliasprefix_+"_hcalDepth2TowerSumEt04" );
+//    produces<vector<float> >     (branchprefix+"iso03pf"                ).setBranchAlias(aliasprefix_+"_iso03_pf"               ); // pf isolation in cone of 0.3, 1 GeV threshold
+//    produces<vector<float> >     (branchprefix+"iso04pf"                ).setBranchAlias(aliasprefix_+"_iso04_pf"               ); // pf isolation in cone of 0.4, 1 GeV threshold
 
-//    produces<vector<float> >     ("elsiso03pfch"              ).setBranchAlias("els_iso03_pf_ch"            ); // pf isolation in cone of 0.3, charged only
-//    produces<vector<float> >     ("elsiso03pfgamma05"         ).setBranchAlias("els_iso03_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
-//    produces<vector<float> >     ("elsiso03pfnhad05"          ).setBranchAlias("els_iso03_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
- //   produces<vector<float> >     ("elsiso04pfch"              ).setBranchAlias("els_iso04_pf_ch"            ); // pf isolation in cone of 0.3, charged only
-//    produces<vector<float> >     ("elsiso04pfgamma05"         ).setBranchAlias("els_iso04_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
-//    produces<vector<float> >     ("elsiso04pfnhad05"          ).setBranchAlias("els_iso04_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
+//    produces<vector<float> >     (branchprefix+"iso03pfch"              ).setBranchAlias(aliasprefix_+"_iso03_pf_ch"            ); // pf isolation in cone of 0.3, charged only
+//    produces<vector<float> >     (branchprefix+"iso03pfgamma05"         ).setBranchAlias(aliasprefix_+"_iso03_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
+//    produces<vector<float> >     (branchprefix+"iso03pfnhad05"          ).setBranchAlias(aliasprefix_+"_iso03_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
+ //   produces<vector<float> >     (branchprefix+"iso04pfch"              ).setBranchAlias(aliasprefix_+"_iso04_pf_ch"            ); // pf isolation in cone of 0.3, charged only
+//    produces<vector<float> >     (branchprefix+"iso04pfgamma05"         ).setBranchAlias(aliasprefix_+"_iso04_pf_gamma05"       ); // pf isolation in cone of 0.3, photons only with threshold 0.5 GeV
+//    produces<vector<float> >     (branchprefix+"iso04pfnhad05"          ).setBranchAlias(aliasprefix_+"_iso04_pf_nhad05"        ); // pf isolation in cone of 0.3, neutral hadrons only with threshold 0.5 GeV
 
 
     // pf isolation variables
-    produces<vector<float> >     ("elspfChargedHadronIso").setBranchAlias("els_pfChargedHadronIso");
-    produces<vector<float> >     ("elspfNeutralHadronIso").setBranchAlias("els_pfNeutralHadronIso");
-    produces<vector<float> >     ("elspfPhotonIso"       ).setBranchAlias("els_pfPhotonIso"       );
-    produces<vector<float> >     ("elspfPUIso"           ).setBranchAlias("els_pfPUIso"           );
+    produces<vector<float> >     (branchprefix+"pfChargedHadronIso").setBranchAlias(aliasprefix_+"_pfChargedHadronIso");
+    produces<vector<float> >     (branchprefix+"pfNeutralHadronIso").setBranchAlias(aliasprefix_+"_pfNeutralHadronIso");
+    produces<vector<float> >     (branchprefix+"pfPhotonIso"       ).setBranchAlias(aliasprefix_+"_pfPhotonIso"       );
+    produces<vector<float> >     (branchprefix+"pfPUIso"           ).setBranchAlias(aliasprefix_+"_pfPUIso"           );
 
 
     // track variables
     //
-    produces<vector<int> >       ("elscharge"        ).setBranchAlias("els_charge"         ); //candidate charge
-    produces<vector<int> >       ("elssccharge"      ).setBranchAlias("els_sccharge"       );
-    produces<vector<int> >       ("elstrkcharge"     ).setBranchAlias("els_trk_charge"     );
-    produces<vector<float> >     ("elschi2"          ).setBranchAlias("els_chi2"           );
-    produces<vector<float> >     ("elsndof"          ).setBranchAlias("els_ndof"           );
-    produces<vector<float> >     ("elsckfchi2"       ).setBranchAlias("els_ckf_chi2"       );
-    produces<vector<float> >     ("elsckfndof"       ).setBranchAlias("els_ckf_ndof"       );
-    produces<vector<int> >       ("elsvalidHits"     ).setBranchAlias("els_validHits"      ); //number of used hits in fit
-    produces<vector<int> >       ("elslostHits"      ).setBranchAlias("els_lostHits"       ); //number of lost hits in fit
-    produces<vector<float> >     ("elsd0"            ).setBranchAlias("els_d0"             );
-    produces<vector<float> >     ("elsz0"            ).setBranchAlias("els_z0"             );
-    produces<vector<float> >     ("elsdxyPV"         ).setBranchAlias("els_dxyPV"          );
-    produces<vector<float> >     ("elsdzPV"          ).setBranchAlias("els_dzPV"           );
-    produces<vector<float> >     ("elsd0Err"         ).setBranchAlias("els_d0Err"          );
-    produces<vector<float> >     ("elsz0Err"         ).setBranchAlias("els_z0Err"          );
-    produces<vector<float> >     ("elsd0corr"        ).setBranchAlias("els_d0corr"         );
-    produces<vector<float> >     ("elsd0corrPhi"     ).setBranchAlias("els_d0corrPhi"      );
-    produces<vector<float> >     ("elsd0phiCov"      ).setBranchAlias("els_d0phiCov"       );
-    produces<vector<float> >     ("elsz0corr"        ).setBranchAlias("els_z0corr"         );
-    produces<vector<float> >     ("elsptErr"         ).setBranchAlias("els_ptErr"          );
-    produces<vector<float> >     ("elsptErrGsf"      ).setBranchAlias("els_ptErrGsf"       );
-    produces<vector<float> >     ("elsetaErr"        ).setBranchAlias("els_etaErr"         );
-    produces<vector<float> >     ("elsphiErr"        ).setBranchAlias("els_phiErr"         );
-    produces<vector<float> >     ("elsip3d"          ).setBranchAlias("els_ip3d"           ); // Ip3d from normal vertex
-    produces<vector<float> >     ("elsip3derr"       ).setBranchAlias("els_ip3derr"        ); // Ip3d error from normal vertex
-    produces<vector<float> >     ("elsip2d"          ).setBranchAlias("els_ip2d"           ); // Ip2d from normal vertex
-    produces<vector<float> >     ("elsip2derr"       ).setBranchAlias("els_ip2derr"        ); // Ip2d error from normal vertex
-    produces<vector<float> >     ("elsbs3d"          ).setBranchAlias("els_bs3d"           ); // Ip3d from normal vertex
-    produces<vector<float> >     ("elsbs3derr"       ).setBranchAlias("els_bs3derr"        ); // Ip3d error from normal vertex
-    produces<vector<float> >     ("elsbs2d"          ).setBranchAlias("els_bs2d"           ); // Ip2d from normal vertex
-    produces<vector<float> >     ("elsbs2derr"       ).setBranchAlias("els_bs2derr"        ); // Ip2d error from normal vertex
-    produces<vector<int> >       ("elsckflaywithmeas").setBranchAlias("els_ckf_laywithmeas");
-    produces<vector<int> >       ("elsckfcharge"     ).setBranchAlias("els_ckf_charge"     );
+    produces<vector<int> >       (branchprefix+"charge"        ).setBranchAlias(aliasprefix_+"_charge"         ); //candidate charge
+    produces<vector<int> >       (branchprefix+"sccharge"      ).setBranchAlias(aliasprefix_+"_sccharge"       );
+    produces<vector<int> >       (branchprefix+"trkcharge"     ).setBranchAlias(aliasprefix_+"_trk_charge"     );
+    produces<vector<float> >     (branchprefix+"chi2"          ).setBranchAlias(aliasprefix_+"_chi2"           );
+    produces<vector<float> >     (branchprefix+"ndof"          ).setBranchAlias(aliasprefix_+"_ndof"           );
+    produces<vector<float> >     (branchprefix+"ckfchi2"       ).setBranchAlias(aliasprefix_+"_ckf_chi2"       );
+    produces<vector<float> >     (branchprefix+"ckfndof"       ).setBranchAlias(aliasprefix_+"_ckf_ndof"       );
+    produces<vector<int> >       (branchprefix+"validHits"     ).setBranchAlias(aliasprefix_+"_validHits"      ); //number of used hits in fit
+    produces<vector<int> >       (branchprefix+"lostHits"      ).setBranchAlias(aliasprefix_+"_lostHits"       ); //number of lost hits in fit
+    produces<vector<float> >     (branchprefix+"d0"            ).setBranchAlias(aliasprefix_+"_d0"             );
+    produces<vector<float> >     (branchprefix+"z0"            ).setBranchAlias(aliasprefix_+"_z0"             );
+    produces<vector<float> >     (branchprefix+"dxyPV"         ).setBranchAlias(aliasprefix_+"_dxyPV"          );
+    produces<vector<float> >     (branchprefix+"dzPV"          ).setBranchAlias(aliasprefix_+"_dzPV"           );
+    produces<vector<float> >     (branchprefix+"d0Err"         ).setBranchAlias(aliasprefix_+"_d0Err"          );
+    produces<vector<float> >     (branchprefix+"z0Err"         ).setBranchAlias(aliasprefix_+"_z0Err"          );
+    produces<vector<float> >     (branchprefix+"d0corr"        ).setBranchAlias(aliasprefix_+"_d0corr"         );
+    produces<vector<float> >     (branchprefix+"d0corrPhi"     ).setBranchAlias(aliasprefix_+"_d0corrPhi"      );
+    produces<vector<float> >     (branchprefix+"d0phiCov"      ).setBranchAlias(aliasprefix_+"_d0phiCov"       );
+    produces<vector<float> >     (branchprefix+"z0corr"        ).setBranchAlias(aliasprefix_+"_z0corr"         );
+    produces<vector<float> >     (branchprefix+"ptErr"         ).setBranchAlias(aliasprefix_+"_ptErr"          );
+    produces<vector<float> >     (branchprefix+"ptErrGsf"      ).setBranchAlias(aliasprefix_+"_ptErrGsf"       );
+    produces<vector<float> >     (branchprefix+"etaErr"        ).setBranchAlias(aliasprefix_+"_etaErr"         );
+    produces<vector<float> >     (branchprefix+"phiErr"        ).setBranchAlias(aliasprefix_+"_phiErr"         );
+    produces<vector<float> >     (branchprefix+"ip3d"          ).setBranchAlias(aliasprefix_+"_ip3d"           ); // Ip3d from normal vertex
+    produces<vector<float> >     (branchprefix+"ip3derr"       ).setBranchAlias(aliasprefix_+"_ip3derr"        ); // Ip3d error from normal vertex
+    produces<vector<float> >     (branchprefix+"ip2d"          ).setBranchAlias(aliasprefix_+"_ip2d"           ); // Ip2d from normal vertex
+    produces<vector<float> >     (branchprefix+"ip2derr"       ).setBranchAlias(aliasprefix_+"_ip2derr"        ); // Ip2d error from normal vertex
+    produces<vector<float> >     (branchprefix+"bs3d"          ).setBranchAlias(aliasprefix_+"_bs3d"           ); // Ip3d from normal vertex
+    produces<vector<float> >     (branchprefix+"bs3derr"       ).setBranchAlias(aliasprefix_+"_bs3derr"        ); // Ip3d error from normal vertex
+    produces<vector<float> >     (branchprefix+"bs2d"          ).setBranchAlias(aliasprefix_+"_bs2d"           ); // Ip2d from normal vertex
+    produces<vector<float> >     (branchprefix+"bs2derr"       ).setBranchAlias(aliasprefix_+"_bs2derr"        ); // Ip2d error from normal vertex
+    produces<vector<int> >       (branchprefix+"ckflaywithmeas").setBranchAlias(aliasprefix_+"_ckf_laywithmeas");
+    produces<vector<int> >       (branchprefix+"ckfcharge"     ).setBranchAlias(aliasprefix_+"_ckf_charge"     );
 
     // LorentzVectors
     //
-    produces<vector<LorentzVector> >  ("elsp4"    ).setBranchAlias("els_p4"     );
-    produces<vector<LorentzVector> >  ("elstrkp4" ).setBranchAlias("els_trk_p4" );
-    produces<vector<LorentzVector> >  ("elsp4In"  ).setBranchAlias("els_p4In"   );
-    produces<vector<LorentzVector> >  ("elsp4Out" ).setBranchAlias("els_p4Out"  );
+    produces<vector<LorentzVector> >  (branchprefix+"p4"    ).setBranchAlias(aliasprefix_+"_p4"     );
+    produces<vector<LorentzVector> >  (branchprefix+"trkp4" ).setBranchAlias(aliasprefix_+"_trk_p4" );
+    produces<vector<LorentzVector> >  (branchprefix+"p4In"  ).setBranchAlias(aliasprefix_+"_p4In"   );
+    produces<vector<LorentzVector> >  (branchprefix+"p4Out" ).setBranchAlias(aliasprefix_+"_p4Out"  );
 
     // Vertex
     //
-    produces<vector<LorentzVector> >  ("elsvertexp4").setBranchAlias("els_vertex_p4");
-    produces<vector<LorentzVector> >  ("elstrkvertexp4").setBranchAlias("els_trk_vertex_p4");
+    produces<vector<LorentzVector> >  (branchprefix+"vertexp4").setBranchAlias(aliasprefix_+"_vertex_p4");
+    produces<vector<LorentzVector> >  (branchprefix+"trkvertexp4").setBranchAlias(aliasprefix_+"_trk_vertex_p4");
 
     //Hit Pattern information
     //
-    //produces<vector<LorentzVector> >  ("elsinnerposition"  ).setBranchAlias("els_inner_position"  );
-    //produces<vector<LorentzVector> >  ("elsouterposition"  ).setBranchAlias("els_outer_position"  );
-    produces<vector<int> >            ("elsvalidpixelhits" ).setBranchAlias("els_valid_pixelhits" );
-    produces<vector<int> >            ("elslostpixelhits"  ).setBranchAlias("els_lost_pixelhits"  );
-    produces<vector<int> >            ("elsnlayers"        ).setBranchAlias("els_nlayers"         );
-    produces<vector<int> >            ("elsnlayers3D"      ).setBranchAlias("els_nlayers3D"       );
-    produces<vector<int> >            ("elsnlayersLost"    ).setBranchAlias("els_nlayersLost"     );
-    //produces<vector<int> >            ("elslayer1sizerphi" ).setBranchAlias("els_layer1_sizerphi" ); 
-    //produces<vector<int> >            ("elslayer1sizerz"   ).setBranchAlias("els_layer1_sizerz"   ); 
-    //produces<vector<float> >          ("elslayer1charge"   ).setBranchAlias("els_layer1_charge"   ); 
-    //produces<vector<int> >            ("elslayer1det"      ).setBranchAlias("els_layer1_det"      );
-    //produces<vector<int> >            ("elslayer1layer"    ).setBranchAlias("els_layer1_layer"    ); 
-    produces<vector<int> >            ("elsexpinnerlayers" ).setBranchAlias("els_exp_innerlayers" );
-    produces<vector<int> >            ("elsexpouterlayers" ).setBranchAlias("els_exp_outerlayers" );   
+    //produces<vector<LorentzVector> >  (branchprefix+"innerposition"  ).setBranchAlias(aliasprefix_+"_inner_position"  );
+    //produces<vector<LorentzVector> >  (branchprefix+"outerposition"  ).setBranchAlias(aliasprefix_+"_outer_position"  );
+    produces<vector<int> >            (branchprefix+"validpixelhits" ).setBranchAlias(aliasprefix_+"_valid_pixelhits" );
+    produces<vector<int> >            (branchprefix+"lostpixelhits"  ).setBranchAlias(aliasprefix_+"_lost_pixelhits"  );
+    produces<vector<int> >            (branchprefix+"nlayers"        ).setBranchAlias(aliasprefix_+"_nlayers"         );
+    produces<vector<int> >            (branchprefix+"nlayers3D"      ).setBranchAlias(aliasprefix_+"_nlayers3D"       );
+    produces<vector<int> >            (branchprefix+"nlayersLost"    ).setBranchAlias(aliasprefix_+"_nlayersLost"     );
+    //produces<vector<int> >            (branchprefix+"layer1sizerphi" ).setBranchAlias(aliasprefix_+"_layer1_sizerphi" ); 
+    //produces<vector<int> >            (branchprefix+"layer1sizerz"   ).setBranchAlias(aliasprefix_+"_layer1_sizerz"   ); 
+    //produces<vector<float> >          (branchprefix+"layer1charge"   ).setBranchAlias(aliasprefix_+"_layer1_charge"   ); 
+    //produces<vector<int> >            (branchprefix+"layer1det"      ).setBranchAlias(aliasprefix_+"_layer1_det"      );
+    //produces<vector<int> >            (branchprefix+"layer1layer"    ).setBranchAlias(aliasprefix_+"_layer1_layer"    ); 
+    produces<vector<int> >            (branchprefix+"expinnerlayers" ).setBranchAlias(aliasprefix_+"_exp_innerlayers" );
+    produces<vector<int> >            (branchprefix+"expouterlayers" ).setBranchAlias(aliasprefix_+"_exp_outerlayers" );   
 
     //CTF track matching stuff
-    produces<vector<float>  >    ("elstrkshFrac" ).setBranchAlias("els_trkshFrac" );
-    produces<vector<float>  >    ("elstrkdr"     ).setBranchAlias("els_trkdr"     );
+    produces<vector<float>  >    (branchprefix+"trkshFrac" ).setBranchAlias(aliasprefix_+"_trkshFrac" );
+    produces<vector<float>  >    (branchprefix+"trkdr"     ).setBranchAlias(aliasprefix_+"_trkdr"     );
 
-    produces<vector<bool>     >       ("elsconvvtxflag"        ).setBranchAlias("els_conv_vtx_flag"        );
-    produces<vector<float>    >       ("elsconvvtxprob"        ).setBranchAlias("els_conv_vtx_prob"        );
+    produces<vector<bool>     >       (branchprefix+"convvtxflag"        ).setBranchAlias(aliasprefix_+"_conv_vtx_flag"        );
+    produces<vector<float>    >       (branchprefix+"convvtxprob"        ).setBranchAlias(aliasprefix_+"_conv_vtx_prob"        );
  
     // predefined 2012 ID decisions
     // https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgammaCutBasedIdentification
@@ -338,106 +342,109 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // Added for 53x //
     ///////////////////
 
-    produces<vector<bool > >  ("elspassingMvaPreselection"  ).setBranchAlias("els_passingMvaPreselection"  );
-    produces<vector<bool > >  ("elspassingPflowPreselection").setBranchAlias("els_passingPflowPreselection");
-    produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
+    produces<vector<bool > >  (branchprefix+"passingMvaPreselection"  ).setBranchAlias(aliasprefix_+"_passingMvaPreselection"  );
+    produces<vector<bool > >  (branchprefix+"passingPflowPreselection").setBranchAlias(aliasprefix_+"_passingPflowPreselection");
+    produces<vector<float> >  (branchprefix+"r9"                      ).setBranchAlias(aliasprefix_+"_r9"                      );
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
-    produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
-    produces<vector<float>            >       ("elsmass"         ).setBranchAlias("els_mass"          );
+    produces<vector<vector<int>   >   >       (branchprefix+"pfcandidx"    ).setBranchAlias(aliasprefix_+"_PFCand_idx"    );
+    produces<vector<float>            >       (branchprefix+"mass"         ).setBranchAlias(aliasprefix_+"_mass"          );
 
     //////////////////////
     // genMatch miniAOD //
     //////////////////////
 
-    produces<vector<int>           >("elsmcpatMatchid"            	).setBranchAlias("els_mc_patMatch_id"          		); 
-    produces<vector<LorentzVector> >("elsmcpatMatchp4"            	).setBranchAlias("els_mc_patMatch_p4"          		);
-    produces<vector<float>         >("elsmcpatMatchdr"            	).setBranchAlias("els_mc_patMatch_dr"                  	);
+    produces<vector<int>           >(branchprefix+"mcpatMatchid"            	).setBranchAlias(aliasprefix_+"_mc_patMatch_id"          		); 
+    produces<vector<LorentzVector> >(branchprefix+"mcpatMatchp4"            	).setBranchAlias(aliasprefix_+"_mc_patMatch_p4"          		);
+    produces<vector<float>         >(branchprefix+"mcpatMatchdr"            	).setBranchAlias(aliasprefix_+"_mc_patMatch_dr"                  	);
 
-    produces<vector<float>         >("elssigmaIPhiIPhifull5x5"   	).setBranchAlias("els_sigmaIPhiIPhi_full5x5"                  	);
-    produces<vector<float>         >("elssigmaEtaEtafull5x5"     	).setBranchAlias("els_sigmaEtaEta_full5x5"                    	);
-    produces<vector<float>         >("elssigmaIEtaIEtafull5x5"   	).setBranchAlias("els_sigmaIEtaIEta_full5x5"                  	);
-    produces<vector<float>         >("elsr9full5x5"              	).setBranchAlias("els_r9_full5x5"                             	);
-    produces<vector<float>         >("else1x5full5x5"            	).setBranchAlias("els_e1x5_full5x5"                           	);
-    produces<vector<float>         >("else5x5full5x5"            	).setBranchAlias("els_e5x5_full5x5"                           	);
-    produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
+    produces<vector<float>         >(branchprefix+"sigmaIPhiIPhifull5x5"   	).setBranchAlias(aliasprefix_+"_sigmaIPhiIPhi_full5x5"                  	);
+    produces<vector<float>         >(branchprefix+"sigmaEtaEtafull5x5"     	).setBranchAlias(aliasprefix_+"_sigmaEtaEta_full5x5"                    	);
+    produces<vector<float>         >(branchprefix+"sigmaIEtaIEtafull5x5"   	).setBranchAlias(aliasprefix_+"_sigmaIEtaIEta_full5x5"                  	);
+    produces<vector<float>         >(branchprefix+"r9full5x5"              	).setBranchAlias(aliasprefix_+"_r9_full5x5"                             	);
+    produces<vector<float>         >(branchprefix+"e1x5full5x5"            	).setBranchAlias(aliasprefix_+"_e1x5_full5x5"                           	);
+    produces<vector<float>         >(branchprefix+"e5x5full5x5"            	).setBranchAlias(aliasprefix_+"_e5x5_full5x5"                           	);
+    produces<vector<float>         >(branchprefix+"e2x5Maxfull5x5"         	).setBranchAlias(aliasprefix_+"_e2x5Max_full5x5"                        	);
 
-    produces<vector<float>         >("elsminiIsouncor"       ).setBranchAlias("els_miniIso_uncor"                       	);
-    produces<vector<float>         >("elsminiIsoch"       ).setBranchAlias("els_miniIso_ch"                       	);
-    produces<vector<float>         >("elsminiIsonh"       ).setBranchAlias("els_miniIso_nh"                       	);
-    produces<vector<float>         >("elsminiIsoem"       ).setBranchAlias("els_miniIso_em"                       	);
-    produces<vector<float>         >("elsminiIsodb"       ).setBranchAlias("els_miniIso_db"                       	);
+    produces<vector<float>         >(branchprefix+"miniIsouncor"       ).setBranchAlias(aliasprefix_+"_miniIso_uncor"                       	);
+    produces<vector<float>         >(branchprefix+"miniIsoch"       ).setBranchAlias(aliasprefix_+"_miniIso_ch"                       	);
+    produces<vector<float>         >(branchprefix+"miniIsonh"       ).setBranchAlias(aliasprefix_+"_miniIso_nh"                       	);
+    produces<vector<float>         >(branchprefix+"miniIsoem"       ).setBranchAlias(aliasprefix_+"_miniIso_em"                       	);
+    produces<vector<float>         >(branchprefix+"miniIsodb"       ).setBranchAlias(aliasprefix_+"_miniIso_db"                       	);
 
-    produces<vector<float>         >("elsecalPFClusterIso"       ).setBranchAlias("els_ecalPFClusterIso"                       	);
-    produces<vector<float>         >("elshcalPFClusterIso"       ).setBranchAlias("els_hcalPFClusterIso"                       	);
+    produces<vector<float>         >(branchprefix+"ecalPFClusterIso"       ).setBranchAlias(aliasprefix_+"_ecalPFClusterIso"                       	);
+    produces<vector<float>         >(branchprefix+"hcalPFClusterIso"       ).setBranchAlias(aliasprefix_+"_hcalPFClusterIso"                       	);
 
     ////////////////////////////
     // For calibration in 7_X //
     ////////////////////////////
-    produces<vector<int> > ("elsNECALClusters").setBranchAlias("els_N_ECALClusters");
-    produces<vector<int> > ("elsNPSClusters").setBranchAlias("els_N_PSClusters");
-    produces<vector<int> > ("elsisEcalDriven").setBranchAlias("els_isEcalDriven");
-    produces<vector<int> > ("elsisTrackerDriven").setBranchAlias("els_isTrackerDriven");
-    produces<vector<int> > ("elsisEB").setBranchAlias("els_isEB");
+    produces<vector<int> > (branchprefix+"NECALClusters").setBranchAlias(aliasprefix_+"_N_ECALClusters");
+    produces<vector<int> > (branchprefix+"NPSClusters").setBranchAlias(aliasprefix_+"_N_PSClusters");
+    produces<vector<int> > (branchprefix+"isEcalDriven").setBranchAlias(aliasprefix_+"_isEcalDriven");
+    produces<vector<int> > (branchprefix+"isTrackerDriven").setBranchAlias(aliasprefix_+"_isTrackerDriven");
+    produces<vector<int> > (branchprefix+"isEB").setBranchAlias(aliasprefix_+"_isEB");
 
-    produces<vector<float> > ("elsscPreshowerEnergyPlane1").setBranchAlias("els_scPreshowerEnergyPlane1");
-    produces<vector<float> > ("elsscPreshowerEnergyPlane2").setBranchAlias("els_scPreshowerEnergyPlane2");
-    produces<vector<float> > ("elsscIsEB").setBranchAlias("els_scIsEB");
-    produces<vector<float> > ("elsscR").setBranchAlias("els_scR");
-    produces<vector<float> > ("elsscSeedEta").setBranchAlias("els_scSeedEta");
-    produces<vector<float> > ("elsscSeedPhi").setBranchAlias("els_scSeedPhi");
-    produces<vector<float> > ("elsscSeedSize").setBranchAlias("els_scSeedSize");
-    produces<vector<float> > ("elsscSeedE3x3").setBranchAlias("els_scSeedE3x3");
-    produces<vector<float> > ("elsscSeedEmax").setBranchAlias("els_scSeedEmax");
-    produces<vector<float> > ("elsscSeedE2nd").setBranchAlias("els_scSeedE2nd");
-    produces<vector<float> > ("elsscSeedELeft").setBranchAlias("els_scSeedELeft");
-    produces<vector<float> > ("elsscSeedERight").setBranchAlias("els_scSeedERight");
-    produces<vector<float> > ("elsscSeedETop").setBranchAlias("els_scSeedETop");
-    produces<vector<float> > ("elsscSeedEBottom").setBranchAlias("els_scSeedEBottom");
-    produces<vector<float> > ("elsscSeedE2x5Left").setBranchAlias("els_scSeedE2x5Left");
-    produces<vector<float> > ("elsscSeedE2x5Right").setBranchAlias("els_scSeedE2x5Right");
-    produces<vector<float> > ("elsscSeedE2x5Top").setBranchAlias("els_scSeedE2x5Top");
-    produces<vector<float> > ("elsscSeedE2x5Bottom").setBranchAlias("els_scSeedE2x5Bottom");
-    produces<vector<float> > ("elsscSeedLeftRightAsym").setBranchAlias("els_scSeedLeftRightAsym");
-    produces<vector<float> > ("elsscSeedTopBottomAsym").setBranchAlias("els_scSeedTopBottomAsym");
-    produces<vector<float> > ("elsscSeed2x5LeftRightAsym").setBranchAlias("els_scSeed2x5LeftRightAsym");
-    produces<vector<float> > ("elsscSeed2x5TopBottomAsym").setBranchAlias("els_scSeed2x5TopBottomAsym");
-    produces<vector<float> > ("elsscSeedSigmaIetaIphi").setBranchAlias("els_scSeedSigmaIetaIphi");
-    produces<vector<float> > ("elsscSeedCryEta").setBranchAlias("els_scSeedCryEta");
-    produces<vector<float> > ("elsscSeedCryPhi").setBranchAlias("els_scSeedCryPhi");
-    produces<vector<float> > ("elsscSeedCryIeta").setBranchAlias("els_scSeedCryIeta");
-    produces<vector<float> > ("elsscSeedCryIphi").setBranchAlias("els_scSeedCryIphi");
-    produces<vector<float> > ("elsscSeedCryX").setBranchAlias("els_scSeedCryX");
-    produces<vector<float> > ("elsscSeedCryY").setBranchAlias("els_scSeedCryY");
-    produces<vector<float> > ("elsscSeedCryIx").setBranchAlias("els_scSeedCryIx");
-    produces<vector<float> > ("elsscSeedCryIy").setBranchAlias("els_scSeedCryIy");
-    produces<vector<float> > ("elsclusterMaxDR").setBranchAlias("els_clusterMaxDR");
-    produces<vector<float> > ("elsclusterMaxDRDPhi").setBranchAlias("els_clusterMaxDRDPhi");
-    produces<vector<float> > ("elsclusterMaxDRDEta").setBranchAlias("els_clusterMaxDRDEta");
-    produces<vector<float> > ("elsclustersMeanDRToSeed").setBranchAlias("els_clustersMeanDRToSeed");
-    produces<vector<float> > ("elsclustersMeanDEtaToSeed").setBranchAlias("els_clustersMeanDEtaToSeed");
-    produces<vector<float> > ("elsclustersMeanDPhiToSeed").setBranchAlias("els_clustersMeanDPhiToSeed");
-    produces<vector<float> > ("elsclusterMaxDRRawEnergy").setBranchAlias("els_clusterMaxDRRawEnergy");
-    produces<vector<float> > ("elsclustersMeanRawEnergy").setBranchAlias("els_clustersMeanRawEnergy");
-    produces<vector<float> > ("elsclustersRMSRawEnergy").setBranchAlias("els_clustersRMSRawEnergy");
+    produces<vector<float> > (branchprefix+"scPreshowerEnergyPlane1").setBranchAlias(aliasprefix_+"_scPreshowerEnergyPlane1");
+    produces<vector<float> > (branchprefix+"scPreshowerEnergyPlane2").setBranchAlias(aliasprefix_+"_scPreshowerEnergyPlane2");
+    produces<vector<float> > (branchprefix+"scIsEB").setBranchAlias(aliasprefix_+"_scIsEB");
+    produces<vector<float> > (branchprefix+"scR").setBranchAlias(aliasprefix_+"_scR");
+    produces<vector<float> > (branchprefix+"scSeedEta").setBranchAlias(aliasprefix_+"_scSeedEta");
+    produces<vector<float> > (branchprefix+"scSeedPhi").setBranchAlias(aliasprefix_+"_scSeedPhi");
+    produces<vector<float> > (branchprefix+"scSeedSize").setBranchAlias(aliasprefix_+"_scSeedSize");
+    produces<vector<float> > (branchprefix+"scSeedE3x3").setBranchAlias(aliasprefix_+"_scSeedE3x3");
+    produces<vector<float> > (branchprefix+"scSeedEmax").setBranchAlias(aliasprefix_+"_scSeedEmax");
+    produces<vector<float> > (branchprefix+"scSeedE2nd").setBranchAlias(aliasprefix_+"_scSeedE2nd");
+    produces<vector<float> > (branchprefix+"scSeedELeft").setBranchAlias(aliasprefix_+"_scSeedELeft");
+    produces<vector<float> > (branchprefix+"scSeedERight").setBranchAlias(aliasprefix_+"_scSeedERight");
+    produces<vector<float> > (branchprefix+"scSeedETop").setBranchAlias(aliasprefix_+"_scSeedETop");
+    produces<vector<float> > (branchprefix+"scSeedEBottom").setBranchAlias(aliasprefix_+"_scSeedEBottom");
+    produces<vector<float> > (branchprefix+"scSeedE2x5Left").setBranchAlias(aliasprefix_+"_scSeedE2x5Left");
+    produces<vector<float> > (branchprefix+"scSeedE2x5Right").setBranchAlias(aliasprefix_+"_scSeedE2x5Right");
+    produces<vector<float> > (branchprefix+"scSeedE2x5Top").setBranchAlias(aliasprefix_+"_scSeedE2x5Top");
+    produces<vector<float> > (branchprefix+"scSeedE2x5Bottom").setBranchAlias(aliasprefix_+"_scSeedE2x5Bottom");
+    produces<vector<float> > (branchprefix+"scSeedLeftRightAsym").setBranchAlias(aliasprefix_+"_scSeedLeftRightAsym");
+    produces<vector<float> > (branchprefix+"scSeedTopBottomAsym").setBranchAlias(aliasprefix_+"_scSeedTopBottomAsym");
+    produces<vector<float> > (branchprefix+"scSeed2x5LeftRightAsym").setBranchAlias(aliasprefix_+"_scSeed2x5LeftRightAsym");
+    produces<vector<float> > (branchprefix+"scSeed2x5TopBottomAsym").setBranchAlias(aliasprefix_+"_scSeed2x5TopBottomAsym");
+    produces<vector<float> > (branchprefix+"scSeedSigmaIetaIphi").setBranchAlias(aliasprefix_+"_scSeedSigmaIetaIphi");
+    produces<vector<float> > (branchprefix+"scSeedCryEta").setBranchAlias(aliasprefix_+"_scSeedCryEta");
+    produces<vector<float> > (branchprefix+"scSeedCryPhi").setBranchAlias(aliasprefix_+"_scSeedCryPhi");
+    produces<vector<float> > (branchprefix+"scSeedCryIeta").setBranchAlias(aliasprefix_+"_scSeedCryIeta");
+    produces<vector<float> > (branchprefix+"scSeedCryIphi").setBranchAlias(aliasprefix_+"_scSeedCryIphi");
+    produces<vector<float> > (branchprefix+"scSeedCryX").setBranchAlias(aliasprefix_+"_scSeedCryX");
+    produces<vector<float> > (branchprefix+"scSeedCryY").setBranchAlias(aliasprefix_+"_scSeedCryY");
+    produces<vector<float> > (branchprefix+"scSeedCryIx").setBranchAlias(aliasprefix_+"_scSeedCryIx");
+    produces<vector<float> > (branchprefix+"scSeedCryIy").setBranchAlias(aliasprefix_+"_scSeedCryIy");
+    produces<vector<float> > (branchprefix+"clusterMaxDR").setBranchAlias(aliasprefix_+"_clusterMaxDR");
+    produces<vector<float> > (branchprefix+"clusterMaxDRDPhi").setBranchAlias(aliasprefix_+"_clusterMaxDRDPhi");
+    produces<vector<float> > (branchprefix+"clusterMaxDRDEta").setBranchAlias(aliasprefix_+"_clusterMaxDRDEta");
+    produces<vector<float> > (branchprefix+"clustersMeanDRToSeed").setBranchAlias(aliasprefix_+"_clustersMeanDRToSeed");
+    produces<vector<float> > (branchprefix+"clustersMeanDEtaToSeed").setBranchAlias(aliasprefix_+"_clustersMeanDEtaToSeed");
+    produces<vector<float> > (branchprefix+"clustersMeanDPhiToSeed").setBranchAlias(aliasprefix_+"_clustersMeanDPhiToSeed");
+    produces<vector<float> > (branchprefix+"clusterMaxDRRawEnergy").setBranchAlias(aliasprefix_+"_clusterMaxDRRawEnergy");
+    produces<vector<float> > (branchprefix+"clustersMeanRawEnergy").setBranchAlias(aliasprefix_+"_clustersMeanRawEnergy");
+    produces<vector<float> > (branchprefix+"clustersRMSRawEnergy").setBranchAlias(aliasprefix_+"_clustersRMSRawEnergy");
 
-    produces<vector<vector<int> > > ("elsclusterInMustache").setBranchAlias("els_clusterInMustache");
-    produces<vector<vector<int> > > ("elsclusterInDynDPhi").setBranchAlias("els_clusterInDynDPhi");
+    produces<vector<vector<int> > > (branchprefix+"clusterInMustache").setBranchAlias(aliasprefix_+"_clusterInMustache");
+    produces<vector<vector<int> > > (branchprefix+"clusterInDynDPhi").setBranchAlias(aliasprefix_+"_clusterInDynDPhi");
 
-    produces<vector<vector<float> > > ("elsclusterRawEnergy").setBranchAlias("els_clusterRawEnergy");
-    produces<vector<vector<float> > > ("elsclusterCalibEnergy").setBranchAlias("els_clusterCalibEnergy");
-    produces<vector<vector<float> > > ("elsclusterEta").setBranchAlias("els_clusterEta");
-    produces<vector<vector<float> > > ("elsclusterPhi").setBranchAlias("els_clusterPhi");
-    produces<vector<vector<float> > > ("elsclusterDPhiToSeed").setBranchAlias("els_clusterDPhiToSeed");
-    produces<vector<vector<float> > > ("elsclusterDEtaToSeed").setBranchAlias("els_clusterDEtaToSeed");
-    produces<vector<vector<float> > > ("elsclusterDPhiToCentroid").setBranchAlias("els_clusterDPhiToCentroid");
-    produces<vector<vector<float> > > ("elsclusterDEtaToCentroid").setBranchAlias("els_clusterDEtaToCentroid");
-    produces<vector<vector<float> > > ("elspsClusterRawEnergy").setBranchAlias("els_psClusterRawEnergy");
-    produces<vector<vector<float> > > ("elspsClusterEta").setBranchAlias("els_psClusterEta");
-    produces<vector<vector<float> > > ("elspsClusterPhi").setBranchAlias("els_psClusterPhi");
+    produces<vector<vector<float> > > (branchprefix+"clusterRawEnergy").setBranchAlias(aliasprefix_+"_clusterRawEnergy");
+    produces<vector<vector<float> > > (branchprefix+"clusterCalibEnergy").setBranchAlias(aliasprefix_+"_clusterCalibEnergy");
+    produces<vector<vector<float> > > (branchprefix+"clusterEta").setBranchAlias(aliasprefix_+"_clusterEta");
+    produces<vector<vector<float> > > (branchprefix+"clusterPhi").setBranchAlias(aliasprefix_+"_clusterPhi");
+    produces<vector<vector<float> > > (branchprefix+"clusterDPhiToSeed").setBranchAlias(aliasprefix_+"_clusterDPhiToSeed");
+    produces<vector<vector<float> > > (branchprefix+"clusterDEtaToSeed").setBranchAlias(aliasprefix_+"_clusterDEtaToSeed");
+    produces<vector<vector<float> > > (branchprefix+"clusterDPhiToCentroid").setBranchAlias(aliasprefix_+"_clusterDPhiToCentroid");
+    produces<vector<vector<float> > > (branchprefix+"clusterDEtaToCentroid").setBranchAlias(aliasprefix_+"_clusterDEtaToCentroid");
+    produces<vector<vector<float> > > (branchprefix+"psClusterRawEnergy").setBranchAlias(aliasprefix_+"_psClusterRawEnergy");
+    produces<vector<vector<float> > > (branchprefix+"psClusterEta").setBranchAlias(aliasprefix_+"_psClusterEta");
+    produces<vector<vector<float> > > (branchprefix+"psClusterPhi").setBranchAlias(aliasprefix_+"_psClusterPhi");
+
+    produces<vector<int> >            (branchprefix+"hasGainSwitchFlag" ).setBranchAlias(aliasprefix_+"_hasGainSwitchFlag" );   
+
 
     // for matching to vertices using the "PFNoPileup" method
     // hint: it is just track vertex association 
@@ -762,6 +769,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   auto_ptr<vector<vector<float> > > els_psClusterEta          (new vector<vector<float > >);
   auto_ptr<vector<vector<float> > > els_psClusterPhi          (new vector<vector<float > >);
 
+  auto_ptr<vector<int > > els_hasGainSwitchFlag          (new vector<int >);
+
 
     // --- Get Input Collections --- //
 
@@ -903,6 +912,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
   edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
   edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
+  if (useVID_) {
   iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
   iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
   iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
@@ -920,6 +930,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
   iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
   iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
+  }
 
     //////////////////////////
     // get cms2scsseeddetid //
@@ -1031,24 +1042,25 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_category           ->push_back( classify(gsfElRef)    ); // this is the sani classification
 
         const Ptr<pat::Electron> elPtr(els_h, el - els_h->begin() );
-  
-        passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
-        passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
-        passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
-        passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
-        passHEEPId               ->push_back( (*HEEP_id_decisions)[ elPtr ] );
-        passVIDNonTrigMvaWP80Id  ->push_back( (*VIDNonTrigMvaWP80_id_decisions)[ elPtr ] );
-        passVIDNonTrigMvaWP90Id  ->push_back( (*VIDNonTrigMvaWP90_id_decisions)[ elPtr ] );
-        passVIDTrigMvaWP80Id     ->push_back( (*VIDTrigMvaWP80_id_decisions)[ elPtr ] );
-        passVIDTrigMvaWP90Id     ->push_back( (*VIDTrigMvaWP90_id_decisions)[ elPtr ] );
-        VIDNonTrigMvaValue       ->push_back( (*VIDNonTrigMva_values)[ elPtr ] );
-        VIDTrigMvaValue          ->push_back( (*VIDTrigMva_values)[ elPtr ] );
-        VIDNonTrigMvaCat         ->push_back( (*VIDNonTrigMva_cats)[ elPtr ] );
-        VIDTrigMvaCat            ->push_back( (*VIDTrigMva_cats)[ elPtr ] );
-        VIDSpring16GPMvaValue    ->push_back( (*VIDSpring16GPMva_values)[ elPtr ] );
-        VIDSpring16GPMvaCat      ->push_back( (*VIDSpring16GPMva_cats)[ elPtr ] );
-        VIDSpring16HZZMvaValue   ->push_back( (*VIDSpring16HZZMva_values)[ elPtr ] );
-        VIDSpring16HZZMvaCat     ->push_back( (*VIDSpring16HZZMva_cats)[ elPtr ] );
+	if (useVID_) {
+	  passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
+	  passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
+	  passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
+	  passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
+	  passHEEPId               ->push_back( (*HEEP_id_decisions)[ elPtr ] );
+	  passVIDNonTrigMvaWP80Id  ->push_back( (*VIDNonTrigMvaWP80_id_decisions)[ elPtr ] );
+	  passVIDNonTrigMvaWP90Id  ->push_back( (*VIDNonTrigMvaWP90_id_decisions)[ elPtr ] );
+	  passVIDTrigMvaWP80Id     ->push_back( (*VIDTrigMvaWP80_id_decisions)[ elPtr ] );
+	  passVIDTrigMvaWP90Id     ->push_back( (*VIDTrigMvaWP90_id_decisions)[ elPtr ] );
+	  VIDNonTrigMvaValue       ->push_back( (*VIDNonTrigMva_values)[ elPtr ] );
+	  VIDTrigMvaValue          ->push_back( (*VIDTrigMva_values)[ elPtr ] );
+	  VIDNonTrigMvaCat         ->push_back( (*VIDNonTrigMva_cats)[ elPtr ] );
+	  VIDTrigMvaCat            ->push_back( (*VIDTrigMva_cats)[ elPtr ] );
+	  VIDSpring16GPMvaValue    ->push_back( (*VIDSpring16GPMva_values)[ elPtr ] );
+	  VIDSpring16GPMvaCat      ->push_back( (*VIDSpring16GPMva_cats)[ elPtr ] );
+	  VIDSpring16HZZMvaValue   ->push_back( (*VIDSpring16HZZMva_values)[ elPtr ] );
+	  VIDSpring16HZZMvaCat     ->push_back( (*VIDSpring16HZZMva_cats)[ elPtr ] );
+	}
 
 
         //////////////
@@ -1793,24 +1805,26 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_ecalPFClusterIso ->push_back(   el->ecalPFClusterIso()  );
 	els_hcalPFClusterIso ->push_back(   el->hcalPFClusterIso()  );
 
-
+	els_hasGainSwitchFlag ->push_back(   el->hasUserInt("hasGainSwitchFlag") ? el->userInt("hasGainSwitchFlag") : 0 );
 
     } // end Loop on Electrons
   
 
 
-
+    std::string branchprefix = aliasprefix_;
+    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
 
     // Put the results into the event
     //
-    iEvent.put(evt_nels, "evtnels");
+    iEvent.put(evt_nels, "evtn"+branchprefix);
+  
 
     // Predefined ID descisions 
     //
-    iEvent.put(els_class    , "elsclass"    );
-    iEvent.put(els_category , "elscategory" );
-  
+    iEvent.put(els_class    , branchprefix+"class"    );
+    iEvent.put(els_category , branchprefix+"category" );
+    if (useVID_) {
     iEvent.put(passVetoId,   "passVetoId"   );
     iEvent.put(passLooseId,  "passLooseId"  );
     iEvent.put(passMediumId, "passMediumId" );
@@ -1828,272 +1842,274 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(VIDSpring16GPMvaCat,       "VIDSpring16GPMvaCat"  );
     iEvent.put(VIDSpring16HZZMvaValue,    "VIDSpring16HZZMvaValue"  );
     iEvent.put(VIDSpring16HZZMvaCat,      "VIDSpring16HZZMvaCat"  );
+    }
 
     // Track parameters
     //
-    iEvent.put(els_d0         , "elsd0"        );
-    iEvent.put(els_z0         , "elsz0"        );
-    iEvent.put(els_dxyPV      , "elsdxyPV"    );
-    iEvent.put(els_dzPV       , "elsdzPV"     );
-    iEvent.put(els_d0corr     , "elsd0corr"    );
-    iEvent.put(els_d0corrPhi  , "elsd0corrPhi" );
-    iEvent.put(els_d0phiCov   , "elsd0phiCov"  );
-    iEvent.put(els_z0corr     , "elsz0corr"    );
-    iEvent.put(els_chi2       , "elschi2"      );
-    iEvent.put(els_ndof       , "elsndof"      );
-    iEvent.put(els_d0Err      , "elsd0Err"     );
-    iEvent.put(els_z0Err      , "elsz0Err"     );
-    iEvent.put(els_ptErr      , "elsptErr"     );
-    iEvent.put(els_ptErrGsf   , "elsptErrGsf"  );
-    iEvent.put(els_etaErr     , "elsetaErr"    );
-    iEvent.put(els_phiErr     , "elsphiErr"    );
-    iEvent.put(els_ip3d       , "elsip3d"      );
-    iEvent.put(els_ip3derr    , "elsip3derr"   );
-    iEvent.put(els_ip2d       , "elsip2d"      );
-    iEvent.put(els_ip2derr    , "elsip2derr"   );
-    iEvent.put(els_bs3d       , "elsbs3d"      );
-    iEvent.put(els_bs3derr    , "elsbs3derr"   );
-    iEvent.put(els_bs2d       , "elsbs2d"      );
-    iEvent.put(els_bs2derr    , "elsbs2derr"   );
+    iEvent.put(els_d0         , branchprefix+"d0"        );
+    iEvent.put(els_z0         , branchprefix+"z0"        );
+    iEvent.put(els_dxyPV      , branchprefix+"dxyPV"    );
+    iEvent.put(els_dzPV       , branchprefix+"dzPV"     );
+    iEvent.put(els_d0corr     , branchprefix+"d0corr"    );
+    iEvent.put(els_d0corrPhi  , branchprefix+"d0corrPhi" );
+    iEvent.put(els_d0phiCov   , branchprefix+"d0phiCov"  );
+    iEvent.put(els_z0corr     , branchprefix+"z0corr"    );
+    iEvent.put(els_chi2       , branchprefix+"chi2"      );
+    iEvent.put(els_ndof       , branchprefix+"ndof"      );
+    iEvent.put(els_d0Err      , branchprefix+"d0Err"     );
+    iEvent.put(els_z0Err      , branchprefix+"z0Err"     );
+    iEvent.put(els_ptErr      , branchprefix+"ptErr"     );
+    iEvent.put(els_ptErrGsf   , branchprefix+"ptErrGsf"  );
+    iEvent.put(els_etaErr     , branchprefix+"etaErr"    );
+    iEvent.put(els_phiErr     , branchprefix+"phiErr"    );
+    iEvent.put(els_ip3d       , branchprefix+"ip3d"      );
+    iEvent.put(els_ip3derr    , branchprefix+"ip3derr"   );
+    iEvent.put(els_ip2d       , branchprefix+"ip2d"      );
+    iEvent.put(els_ip2derr    , branchprefix+"ip2derr"   );
+    iEvent.put(els_bs3d       , branchprefix+"bs3d"      );
+    iEvent.put(els_bs3derr    , branchprefix+"bs3derr"   );
+    iEvent.put(els_bs2d       , branchprefix+"bs2d"      );
+    iEvent.put(els_bs2derr    , branchprefix+"bs2derr"   );
   
-    iEvent.put(els_validHits  , "elsvalidHits" );
-    iEvent.put(els_lostHits   , "elslostHits"  );
-    iEvent.put(els_charge     , "elscharge"    );
-    iEvent.put(els_trk_charge , "elstrkcharge" );
-    iEvent.put(els_sccharge   , "elssccharge"  );
+    iEvent.put(els_validHits  , branchprefix+"validHits" );
+    iEvent.put(els_lostHits   , branchprefix+"lostHits"  );
+    iEvent.put(els_charge     , branchprefix+"charge"    );
+    iEvent.put(els_trk_charge , branchprefix+"trkcharge" );
+    iEvent.put(els_sccharge   , branchprefix+"sccharge"  );
 
     // Supercluster parameters
     //
-    iEvent.put(els_nSeed       , "elsnSeed"       );
-    iEvent.put(els_etaSC       , "elsetaSC"       );
-    iEvent.put(els_phiSC       , "elsphiSC"       );
-    iEvent.put(els_eSC         , "elseSC"         );
-    iEvent.put(els_eSCRaw      , "elseSCRaw"      );
-    iEvent.put(els_eSCPresh    , "elseSCPresh"    );
-    iEvent.put(els_e1x5        , "else1x5"        );
-//    iEvent.put(els_e3x3        , "else3x3"        );
-    iEvent.put(els_e5x5        , "else5x5"        );
-    iEvent.put(els_e2x5Max     , "else2x5Max"     );
-//    iEvent.put(els_eMax        , "elseMax"        );
-    iEvent.put(els_eSeed       , "elseSeed"       );
-    iEvent.put(els_fiduciality , "elsfiduciality" );
-    iEvent.put(els_type        , "elstype"        );
-//    iEvent.put(els_scindex     , "elsscindex"     );
-    iEvent.put(els_etaSCwidth  , "elsetaSCwidth"  );
-    iEvent.put(els_phiSCwidth  , "elsphiSCwidth"  );
+    iEvent.put(els_nSeed       , branchprefix+"nSeed"       );
+    iEvent.put(els_etaSC       , branchprefix+"etaSC"       );
+    iEvent.put(els_phiSC       , branchprefix+"phiSC"       );
+    iEvent.put(els_eSC         , branchprefix+"eSC"         );
+    iEvent.put(els_eSCRaw      , branchprefix+"eSCRaw"      );
+    iEvent.put(els_eSCPresh    , branchprefix+"eSCPresh"    );
+    iEvent.put(els_e1x5        , branchprefix+"e1x5"        );
+//    iEvent.put(els_e3x3        , branchprefix+"e3x3"        );
+    iEvent.put(els_e5x5        , branchprefix+"e5x5"        );
+    iEvent.put(els_e2x5Max     , branchprefix+"e2x5Max"     );
+//    iEvent.put(els_eMax        , branchprefix+"eMax"        );
+    iEvent.put(els_eSeed       , branchprefix+"eSeed"       );
+    iEvent.put(els_fiduciality , branchprefix+"fiduciality" );
+    iEvent.put(els_type        , branchprefix+"type"        );
+//    iEvent.put(els_scindex     , branchprefix+"scindex"     );
+    iEvent.put(els_etaSCwidth  , branchprefix+"etaSCwidth"  );
+    iEvent.put(els_phiSCwidth  , branchprefix+"phiSCwidth"  );
 
     // Corrections and uncertainties
     //
-    iEvent.put(els_ecalEnergy         , "elsecalEnergy"         );
-    iEvent.put(els_ecalEnergyError    , "elsecalEnergyError"    );
-    iEvent.put(els_trackMomentumError , "elstrackMomentumError" );
+    iEvent.put(els_ecalEnergy         , branchprefix+"ecalEnergy"         );
+    iEvent.put(els_ecalEnergyError    , branchprefix+"ecalEnergyError"    );
+    iEvent.put(els_trackMomentumError , branchprefix+"trackMomentumError" );
 
     // Electron ID
     //
-    //iEvent.put(els_sigmaPhiPhi        , "elssigmaPhiPhi"        );
-    iEvent.put(els_sigmaIPhiIPhi      , "elssigmaIPhiIPhi"      );
-//    iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
-    iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
-    iEvent.put(els_sigmaIEtaIEta      , "elssigmaIEtaIEta"      );
-    //iEvent.put(els_sigmaIPhiIPhiSC    , "elssigmaIPhiIPhiSC"    );
-    //iEvent.put(els_sigmaIEtaIEtaSC    , "elssigmaIEtaIEtaSC"    );
-    iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
-    iEvent.put(els_hOverE             , "elshOverE"             );
-    iEvent.put(els_full5x5_hOverE      , "elsfull5x5hOverE"      );
-    iEvent.put(els_hOverEBC           , "elshOverEBC"           );
-    iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
-    iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
+    //iEvent.put(els_sigmaPhiPhi        , branchprefix+"sigmaPhiPhi"        );
+    iEvent.put(els_sigmaIPhiIPhi      , branchprefix+"sigmaIPhiIPhi"      );
+//    iEvent.put(els_sigmaIEtaIPhi      , branchprefix+"sigmaIEtaIPhi"      );
+    iEvent.put(els_sigmaEtaEta        , branchprefix+"sigmaEtaEta"        );
+    iEvent.put(els_sigmaIEtaIEta      , branchprefix+"sigmaIEtaIEta"      );
+    //iEvent.put(els_sigmaIPhiIPhiSC    , branchprefix+"sigmaIPhiIPhiSC"    );
+    //iEvent.put(els_sigmaIEtaIEtaSC    , branchprefix+"sigmaIEtaIEtaSC"    );
+    iEvent.put(els_dPhiInPhiOut       , branchprefix+"dPhiInPhiOut"       );
+    iEvent.put(els_hOverE             , branchprefix+"hOverE"             );
+    iEvent.put(els_full5x5_hOverE      , branchprefix+"full5x5hOverE"      );
+    iEvent.put(els_hOverEBC           , branchprefix+"hOverEBC"           );
+    iEvent.put(els_hcalDepth1OverEcal , branchprefix+"hcalDepth1OverEcal" );
+    iEvent.put(els_hcalDepth2OverEcal , branchprefix+"hcalDepth2OverEcal" );
 
-    iEvent.put(els_eOverPIn                      , "elseOverPIn"                      );
-    iEvent.put(els_eSeedOverPOut                 , "elseSeedOverPOut"                 );
-    iEvent.put(els_eSeedOverPIn                  , "elseSeedOverPIn"                  );
-    iEvent.put(els_eOverPOut                     , "elseOverPOut"                     );
-    iEvent.put(els_fbrem                         , "elsfbrem"                         );
-    //iEvent.put(els_lh                            , "elslh"                            );
-    iEvent.put(els_mva                           , "elsmva"                           );
-    iEvent.put(els_dEtaIn                        , "elsdEtaIn"                        );
-    iEvent.put(els_dEtaOut                       , "elsdEtaOut"                       );
-    iEvent.put(els_deltaEtaEleClusterTrackAtCalo , "elsdeltaEtaEleClusterTrackAtCalo" );
-    iEvent.put(els_dPhiIn                        , "elsdPhiIn"                        );
-    iEvent.put(els_dPhiOut                       , "elsdPhiOut"                       );
-    iEvent.put(els_deltaPhiEleClusterTrackAtCalo , "elsdeltaPhiEleClusterTrackAtCalo" );
-    iEvent.put(els_isGsfCtfScPixChargeConsistent , "elsisGsfCtfScPixChargeConsistent" );
+    iEvent.put(els_eOverPIn                      , branchprefix+"eOverPIn"                      );
+    iEvent.put(els_eSeedOverPOut                 , branchprefix+"eSeedOverPOut"                 );
+    iEvent.put(els_eSeedOverPIn                  , branchprefix+"eSeedOverPIn"                  );
+    iEvent.put(els_eOverPOut                     , branchprefix+"eOverPOut"                     );
+    iEvent.put(els_fbrem                         , branchprefix+"fbrem"                         );
+    //iEvent.put(els_lh                            , branchprefix+"lh"                            );
+    iEvent.put(els_mva                           , branchprefix+"mva"                           );
+    iEvent.put(els_dEtaIn                        , branchprefix+"dEtaIn"                        );
+    iEvent.put(els_dEtaOut                       , branchprefix+"dEtaOut"                       );
+    iEvent.put(els_deltaEtaEleClusterTrackAtCalo , branchprefix+"deltaEtaEleClusterTrackAtCalo" );
+    iEvent.put(els_dPhiIn                        , branchprefix+"dPhiIn"                        );
+    iEvent.put(els_dPhiOut                       , branchprefix+"dPhiOut"                       );
+    iEvent.put(els_deltaPhiEleClusterTrackAtCalo , branchprefix+"deltaPhiEleClusterTrackAtCalo" );
+    iEvent.put(els_isGsfCtfScPixChargeConsistent , branchprefix+"isGsfCtfScPixChargeConsistent" );
 
     // Lorentz vectors
     //
-    iEvent.put(els_p4     , "elsp4"    );
-    iEvent.put(els_trk_p4 , "elstrkp4" );
-    iEvent.put(els_p4In   , "elsp4In"  );
-    iEvent.put(els_p4Out  , "elsp4Out" );
+    iEvent.put(els_p4     , branchprefix+"p4"    );
+    iEvent.put(els_trk_p4 , branchprefix+"trkp4" );
+    iEvent.put(els_p4In   , branchprefix+"p4In"  );
+    iEvent.put(els_p4Out  , branchprefix+"p4Out" );
 
     // Vertex
     //
-    iEvent.put(els_vertex_p4, "elsvertexp4");
-    iEvent.put(els_trk_vertex_p4, "elstrkvertexp4");
+    iEvent.put(els_vertex_p4, branchprefix+"vertexp4");
+    iEvent.put(els_trk_vertex_p4, branchprefix+"trkvertexp4");
 
     // Isolation
     //
-    iEvent.put(els_tkIso                , "elstkIso"                );
-    iEvent.put(els_ecalIso              , "elsecalIso"              );
-    iEvent.put(els_hcalIso              , "elshcalIso"              );
-    iEvent.put(els_hcalDepth1TowerSumEt , "elshcalDepth1TowerSumEt" );
-    iEvent.put(els_hcalDepth2TowerSumEt , "elshcalDepth2TowerSumEt" );
+    iEvent.put(els_tkIso                , branchprefix+"tkIso"                );
+    iEvent.put(els_ecalIso              , branchprefix+"ecalIso"              );
+    iEvent.put(els_hcalIso              , branchprefix+"hcalIso"              );
+    iEvent.put(els_hcalDepth1TowerSumEt , branchprefix+"hcalDepth1TowerSumEt" );
+    iEvent.put(els_hcalDepth2TowerSumEt , branchprefix+"hcalDepth2TowerSumEt" );
 
-    iEvent.put(els_tkIso04                , "elstkIso04"                );
-    iEvent.put(els_ecalIso04              , "elsecalIso04"              );
-    iEvent.put(els_hcalIso04              , "elshcalIso04"              );
-    iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
-    iEvent.put(els_hcalDepth2TowerSumEt04 , "elshcalDepth2TowerSumEt04" );
+    iEvent.put(els_tkIso04                , branchprefix+"tkIso04"                );
+    iEvent.put(els_ecalIso04              , branchprefix+"ecalIso04"              );
+    iEvent.put(els_hcalIso04              , branchprefix+"hcalIso04"              );
+    iEvent.put(els_hcalDepth1TowerSumEt04 , branchprefix+"hcalDepth1TowerSumEt04" );
+    iEvent.put(els_hcalDepth2TowerSumEt04 , branchprefix+"hcalDepth2TowerSumEt04" );
 
-//    iEvent.put(els_iso03_pf, "elsiso03pf" );
-//    iEvent.put(els_iso04_pf, "elsiso04pf" );
+//    iEvent.put(els_iso03_pf, branchprefix+"iso03pf" );
+//    iEvent.put(els_iso04_pf, branchprefix+"iso04pf" );
 
-//    iEvent.put(els_iso03_pf_ch      , "elsiso03pfch"      );
-//    iEvent.put(els_iso03_pf_gamma05 , "elsiso03pfgamma05" );
-//    iEvent.put(els_iso03_pf_nhad05  , "elsiso03pfnhad05"  );
-//    iEvent.put(els_iso04_pf_ch      , "elsiso04pfch"      );
-//    iEvent.put(els_iso04_pf_gamma05 , "elsiso04pfgamma05" );
-//    iEvent.put(els_iso04_pf_nhad05  , "elsiso04pfnhad05"  );
+//    iEvent.put(els_iso03_pf_ch      , branchprefix+"iso03pfch"      );
+//    iEvent.put(els_iso03_pf_gamma05 , branchprefix+"iso03pfgamma05" );
+//    iEvent.put(els_iso03_pf_nhad05  , branchprefix+"iso03pfnhad05"  );
+//    iEvent.put(els_iso04_pf_ch      , branchprefix+"iso04pfch"      );
+//    iEvent.put(els_iso04_pf_gamma05 , branchprefix+"iso04pfgamma05" );
+//    iEvent.put(els_iso04_pf_nhad05  , branchprefix+"iso04pfnhad05"  );
 
-    iEvent.put(els_pfChargedHadronIso , "elspfChargedHadronIso" );
-    iEvent.put(els_pfNeutralHadronIso , "elspfNeutralHadronIso" );
-    iEvent.put(els_pfPhotonIso        , "elspfPhotonIso"        );
-    iEvent.put(els_pfPUIso            , "elspfPUIso"            );
+    iEvent.put(els_pfChargedHadronIso , branchprefix+"pfChargedHadronIso" );
+    iEvent.put(els_pfNeutralHadronIso , branchprefix+"pfNeutralHadronIso" );
+    iEvent.put(els_pfPhotonIso        , branchprefix+"pfPhotonIso"        );
+    iEvent.put(els_pfPUIso            , branchprefix+"pfPUIso"            );
 
     //Hit Pattern Information
-    //iEvent.put(els_inner_position  , "elsinnerposition"  );
-    //iEvent.put(els_outer_position  , "elsouterposition"  );
-    iEvent.put(els_valid_pixelhits , "elsvalidpixelhits" );
-    iEvent.put(els_lost_pixelhits  , "elslostpixelhits"  );
-    iEvent.put(els_nlayers         , "elsnlayers"        );
-    iEvent.put(els_nlayers3D       , "elsnlayers3D"      );
-    iEvent.put(els_nlayersLost     , "elsnlayersLost"    );
-    //iEvent.put(els_layer1_layer    , "elslayer1layer"    );
-    //iEvent.put(els_layer1_sizerphi , "elslayer1sizerphi" );
-    //iEvent.put(els_layer1_sizerz   , "elslayer1sizerz"   );
-    //iEvent.put(els_layer1_charge   , "elslayer1charge"   );
-    //iEvent.put(els_layer1_det      , "elslayer1det"      );
-    iEvent.put(els_exp_innerlayers , "elsexpinnerlayers" );
-    iEvent.put(els_exp_outerlayers , "elsexpouterlayers" );
+    //iEvent.put(els_inner_position  , branchprefix+"innerposition"  );
+    //iEvent.put(els_outer_position  , branchprefix+"outerposition"  );
+    iEvent.put(els_valid_pixelhits , branchprefix+"validpixelhits" );
+    iEvent.put(els_lost_pixelhits  , branchprefix+"lostpixelhits"  );
+    iEvent.put(els_nlayers         , branchprefix+"nlayers"        );
+    iEvent.put(els_nlayers3D       , branchprefix+"nlayers3D"      );
+    iEvent.put(els_nlayersLost     , branchprefix+"nlayersLost"    );
+    //iEvent.put(els_layer1_layer    , branchprefix+"layer1layer"    );
+    //iEvent.put(els_layer1_sizerphi , branchprefix+"layer1sizerphi" );
+    //iEvent.put(els_layer1_sizerz   , branchprefix+"layer1sizerz"   );
+    //iEvent.put(els_layer1_charge   , branchprefix+"layer1charge"   );
+    //iEvent.put(els_layer1_det      , branchprefix+"layer1det"      );
+    iEvent.put(els_exp_innerlayers , branchprefix+"expinnerlayers" );
+    iEvent.put(els_exp_outerlayers , branchprefix+"expouterlayers" );
 
     //CTF track info
     //
-    iEvent.put(els_trkdr           , "elstrkdr"         );
-    iEvent.put(els_trkshFrac       , "elstrkshFrac"     );
-    iEvent.put(els_ckf_chi2        ,"elsckfchi2"        );
-    iEvent.put(els_ckf_ndof        ,"elsckfndof"        );
-    iEvent.put(els_ckf_laywithmeas ,"elsckflaywithmeas" );
-    iEvent.put(els_ckf_charge      ,"elsckfcharge"      );
+    iEvent.put(els_trkdr           , branchprefix+"trkdr"         );
+    iEvent.put(els_trkshFrac       , branchprefix+"trkshFrac"     );
+    iEvent.put(els_ckf_chi2        ,branchprefix+"ckfchi2"        );
+    iEvent.put(els_ckf_ndof        ,branchprefix+"ckfndof"        );
+    iEvent.put(els_ckf_laywithmeas ,branchprefix+"ckflaywithmeas" );
+    iEvent.put(els_ckf_charge      ,branchprefix+"ckfcharge"      );
 
     //conversion
 
-    iEvent.put(els_conv_vtx_flag        , "elsconvvtxflag"        );
-    iEvent.put(els_conv_vtx_prob        , "elsconvvtxprob"        );
+    iEvent.put(els_conv_vtx_flag        , branchprefix+"convvtxflag"        );
+    iEvent.put(els_conv_vtx_prob        , branchprefix+"convvtxprob"        );
 
     ///////////////////
     // Added for 53x //
     ///////////////////
 
-    iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
-    iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
-    iEvent.put( els_r9                       , "elsr9"                       );
+    iEvent.put( els_passingMvaPreselection   , branchprefix+"passingMvaPreselection"   );
+    iEvent.put( els_passingPflowPreselection , branchprefix+"passingPflowPreselection" );
+    iEvent.put( els_r9                       , branchprefix+"r9"                       );
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
-    iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
-    iEvent.put(els_mass          , "elsmass"         );
+    iEvent.put(els_PFCand_idx    , branchprefix+"pfcandidx"    );
+    iEvent.put(els_mass          , branchprefix+"mass"         );
 
     /////////////////////////
     // Added for miniAOD   //
     /////////////////////////
 
     // genParticle matching from miniAOD
-    iEvent.put( els_mc_patMatch_id        , "elsmcpatMatchid"        	);
-    iEvent.put( els_mc_patMatch_p4        , "elsmcpatMatchp4"         );
-    iEvent.put( els_mc_patMatch_dr        , "elsmcpatMatchdr"         );
-    iEvent.put(els_sigmaIPhiIPhi_full5x5  , "elssigmaIPhiIPhifull5x5" );
-    iEvent.put(els_sigmaEtaEta_full5x5    , "elssigmaEtaEtafull5x5"   );
-    iEvent.put(els_sigmaIEtaIEta_full5x5  , "elssigmaIEtaIEtafull5x5" );
-    iEvent.put(els_r9_full5x5             , "elsr9full5x5"            );
-    iEvent.put(els_e1x5_full5x5           , "else1x5full5x5"          );
-    iEvent.put(els_e5x5_full5x5           , "else5x5full5x5"          );
-    iEvent.put(els_e2x5Max_full5x5        , "else2x5Maxfull5x5"       ); 
+    iEvent.put( els_mc_patMatch_id        , branchprefix+"mcpatMatchid"        	);
+    iEvent.put( els_mc_patMatch_p4        , branchprefix+"mcpatMatchp4"         );
+    iEvent.put( els_mc_patMatch_dr        , branchprefix+"mcpatMatchdr"         );
+    iEvent.put(els_sigmaIPhiIPhi_full5x5  , branchprefix+"sigmaIPhiIPhifull5x5" );
+    iEvent.put(els_sigmaEtaEta_full5x5    , branchprefix+"sigmaEtaEtafull5x5"   );
+    iEvent.put(els_sigmaIEtaIEta_full5x5  , branchprefix+"sigmaIEtaIEtafull5x5" );
+    iEvent.put(els_r9_full5x5             , branchprefix+"r9full5x5"            );
+    iEvent.put(els_e1x5_full5x5           , branchprefix+"e1x5full5x5"          );
+    iEvent.put(els_e5x5_full5x5           , branchprefix+"e5x5full5x5"          );
+    iEvent.put(els_e2x5Max_full5x5        , branchprefix+"e2x5Maxfull5x5"       ); 
     
-    iEvent.put(els_miniIso_uncor       , "elsminiIsouncor"    );
-    iEvent.put(els_miniIso_ch       , "elsminiIsoch"    );
-    iEvent.put(els_miniIso_nh       , "elsminiIsonh"    );
-    iEvent.put(els_miniIso_em       , "elsminiIsoem"    );
-    iEvent.put(els_miniIso_db       , "elsminiIsodb"    );
+    iEvent.put(els_miniIso_uncor       , branchprefix+"miniIsouncor"    );
+    iEvent.put(els_miniIso_ch       , branchprefix+"miniIsoch"    );
+    iEvent.put(els_miniIso_nh       , branchprefix+"miniIsonh"    );
+    iEvent.put(els_miniIso_em       , branchprefix+"miniIsoem"    );
+    iEvent.put(els_miniIso_db       , branchprefix+"miniIsodb"    );
     
-    iEvent.put(els_ecalPFClusterIso       , "elsecalPFClusterIso"    );
-    iEvent.put(els_hcalPFClusterIso       , "elshcalPFClusterIso"    );
+    iEvent.put(els_ecalPFClusterIso       , branchprefix+"ecalPFClusterIso"    );
+    iEvent.put(els_hcalPFClusterIso       , branchprefix+"hcalPFClusterIso"    );
     
     ///////////////////////////
     // Added for calibration //
     ///////////////////////////
-    iEvent.put(els_N_ECALClusters, "elsNECALClusters");
-    iEvent.put(els_N_PSClusters, "elsNPSClusters");
-    iEvent.put(els_isEcalDriven, "elsisEcalDriven");
-    iEvent.put(els_isTrackerDriven, "elsisTrackerDriven");
-    iEvent.put(els_isEB, "elsisEB");
+    iEvent.put(els_N_ECALClusters, branchprefix+"NECALClusters");
+    iEvent.put(els_N_PSClusters, branchprefix+"NPSClusters");
+    iEvent.put(els_isEcalDriven, branchprefix+"isEcalDriven");
+    iEvent.put(els_isTrackerDriven, branchprefix+"isTrackerDriven");
+    iEvent.put(els_isEB, branchprefix+"isEB");
 
-    iEvent.put(els_scPreshowerEnergyPlane1, "elsscPreshowerEnergyPlane1");
-    iEvent.put(els_scPreshowerEnergyPlane2, "elsscPreshowerEnergyPlane2");
-    iEvent.put(els_scIsEB, "elsscIsEB");
-    iEvent.put(els_scR, "elsscR");
-    iEvent.put(els_scSeedEta, "elsscSeedEta");
-    iEvent.put(els_scSeedPhi, "elsscSeedPhi");
-    iEvent.put(els_scSeedSize, "elsscSeedSize");
-    iEvent.put(els_scSeedE3x3, "elsscSeedE3x3");
-    iEvent.put(els_scSeedEmax, "elsscSeedEmax");
-    iEvent.put(els_scSeedE2nd, "elsscSeedE2nd");
-    iEvent.put(els_scSeedELeft, "elsscSeedELeft");
-    iEvent.put(els_scSeedERight, "elsscSeedERight");
-    iEvent.put(els_scSeedETop, "elsscSeedETop");
-    iEvent.put(els_scSeedEBottom, "elsscSeedEBottom");
-    iEvent.put(els_scSeedE2x5Left, "elsscSeedE2x5Left");
-    iEvent.put(els_scSeedE2x5Right, "elsscSeedE2x5Right");
-    iEvent.put(els_scSeedE2x5Top, "elsscSeedE2x5Top");
-    iEvent.put(els_scSeedE2x5Bottom, "elsscSeedE2x5Bottom");
-    iEvent.put(els_scSeedLeftRightAsym, "elsscSeedLeftRightAsym");
-    iEvent.put(els_scSeedTopBottomAsym, "elsscSeedTopBottomAsym");
-    iEvent.put(els_scSeed2x5LeftRightAsym, "elsscSeed2x5LeftRightAsym");
-    iEvent.put(els_scSeed2x5TopBottomAsym, "elsscSeed2x5TopBottomAsym");
-    iEvent.put(els_scSeedSigmaIetaIphi, "elsscSeedSigmaIetaIphi");
-    iEvent.put(els_scSeedCryEta, "elsscSeedCryEta");
-    iEvent.put(els_scSeedCryPhi, "elsscSeedCryPhi");
-    iEvent.put(els_scSeedCryIeta, "elsscSeedCryIeta");
-    iEvent.put(els_scSeedCryIphi, "elsscSeedCryIphi");
-    iEvent.put(els_scSeedCryX, "elsscSeedCryX");
-    iEvent.put(els_scSeedCryY, "elsscSeedCryY");
-    iEvent.put(els_scSeedCryIx, "elsscSeedCryIx");
-    iEvent.put(els_scSeedCryIy, "elsscSeedCryIy");
-    iEvent.put(els_clusterMaxDR, "elsclusterMaxDR");
-    iEvent.put(els_clusterMaxDRDPhi, "elsclusterMaxDRDPhi");
-    iEvent.put(els_clusterMaxDRDEta, "elsclusterMaxDRDEta");
-    iEvent.put(els_clustersMeanDRToSeed, "elsclustersMeanDRToSeed");
-    iEvent.put(els_clustersMeanDEtaToSeed, "elsclustersMeanDEtaToSeed");
-    iEvent.put(els_clustersMeanDPhiToSeed, "elsclustersMeanDPhiToSeed");
-    iEvent.put(els_clusterMaxDRRawEnergy, "elsclusterMaxDRRawEnergy");
-    iEvent.put(els_clustersMeanRawEnergy, "elsclustersMeanRawEnergy");
-    iEvent.put(els_clustersRMSRawEnergy, "elsclustersRMSRawEnergy");
+    iEvent.put(els_scPreshowerEnergyPlane1, branchprefix+"scPreshowerEnergyPlane1");
+    iEvent.put(els_scPreshowerEnergyPlane2, branchprefix+"scPreshowerEnergyPlane2");
+    iEvent.put(els_scIsEB, branchprefix+"scIsEB");
+    iEvent.put(els_scR, branchprefix+"scR");
+    iEvent.put(els_scSeedEta, branchprefix+"scSeedEta");
+    iEvent.put(els_scSeedPhi, branchprefix+"scSeedPhi");
+    iEvent.put(els_scSeedSize, branchprefix+"scSeedSize");
+    iEvent.put(els_scSeedE3x3, branchprefix+"scSeedE3x3");
+    iEvent.put(els_scSeedEmax, branchprefix+"scSeedEmax");
+    iEvent.put(els_scSeedE2nd, branchprefix+"scSeedE2nd");
+    iEvent.put(els_scSeedELeft, branchprefix+"scSeedELeft");
+    iEvent.put(els_scSeedERight, branchprefix+"scSeedERight");
+    iEvent.put(els_scSeedETop, branchprefix+"scSeedETop");
+    iEvent.put(els_scSeedEBottom, branchprefix+"scSeedEBottom");
+    iEvent.put(els_scSeedE2x5Left, branchprefix+"scSeedE2x5Left");
+    iEvent.put(els_scSeedE2x5Right, branchprefix+"scSeedE2x5Right");
+    iEvent.put(els_scSeedE2x5Top, branchprefix+"scSeedE2x5Top");
+    iEvent.put(els_scSeedE2x5Bottom, branchprefix+"scSeedE2x5Bottom");
+    iEvent.put(els_scSeedLeftRightAsym, branchprefix+"scSeedLeftRightAsym");
+    iEvent.put(els_scSeedTopBottomAsym, branchprefix+"scSeedTopBottomAsym");
+    iEvent.put(els_scSeed2x5LeftRightAsym, branchprefix+"scSeed2x5LeftRightAsym");
+    iEvent.put(els_scSeed2x5TopBottomAsym, branchprefix+"scSeed2x5TopBottomAsym");
+    iEvent.put(els_scSeedSigmaIetaIphi, branchprefix+"scSeedSigmaIetaIphi");
+    iEvent.put(els_scSeedCryEta, branchprefix+"scSeedCryEta");
+    iEvent.put(els_scSeedCryPhi, branchprefix+"scSeedCryPhi");
+    iEvent.put(els_scSeedCryIeta, branchprefix+"scSeedCryIeta");
+    iEvent.put(els_scSeedCryIphi, branchprefix+"scSeedCryIphi");
+    iEvent.put(els_scSeedCryX, branchprefix+"scSeedCryX");
+    iEvent.put(els_scSeedCryY, branchprefix+"scSeedCryY");
+    iEvent.put(els_scSeedCryIx, branchprefix+"scSeedCryIx");
+    iEvent.put(els_scSeedCryIy, branchprefix+"scSeedCryIy");
+    iEvent.put(els_clusterMaxDR, branchprefix+"clusterMaxDR");
+    iEvent.put(els_clusterMaxDRDPhi, branchprefix+"clusterMaxDRDPhi");
+    iEvent.put(els_clusterMaxDRDEta, branchprefix+"clusterMaxDRDEta");
+    iEvent.put(els_clustersMeanDRToSeed, branchprefix+"clustersMeanDRToSeed");
+    iEvent.put(els_clustersMeanDEtaToSeed, branchprefix+"clustersMeanDEtaToSeed");
+    iEvent.put(els_clustersMeanDPhiToSeed, branchprefix+"clustersMeanDPhiToSeed");
+    iEvent.put(els_clusterMaxDRRawEnergy, branchprefix+"clusterMaxDRRawEnergy");
+    iEvent.put(els_clustersMeanRawEnergy, branchprefix+"clustersMeanRawEnergy");
+    iEvent.put(els_clustersRMSRawEnergy, branchprefix+"clustersRMSRawEnergy");
 
-    iEvent.put(els_clusterInMustache, "elsclusterInMustache");
-    iEvent.put(els_clusterInDynDPhi, "elsclusterInDynDPhi");
+    iEvent.put(els_clusterInMustache, branchprefix+"clusterInMustache");
+    iEvent.put(els_clusterInDynDPhi, branchprefix+"clusterInDynDPhi");
 
-    iEvent.put(els_clusterRawEnergy, "elsclusterRawEnergy");
-    iEvent.put(els_clusterCalibEnergy, "elsclusterCalibEnergy");
-    iEvent.put(els_clusterEta, "elsclusterEta");
-    iEvent.put(els_clusterPhi, "elsclusterPhi");
-    iEvent.put(els_clusterDPhiToSeed, "elsclusterDPhiToSeed");
-    iEvent.put(els_clusterDEtaToSeed, "elsclusterDEtaToSeed");
-    iEvent.put(els_clusterDPhiToCentroid, "elsclusterDPhiToCentroid");
-    iEvent.put(els_clusterDEtaToCentroid, "elsclusterDEtaToCentroid");
-    iEvent.put(els_psClusterRawEnergy, "elspsClusterRawEnergy");
-    iEvent.put(els_psClusterEta, "elspsClusterEta");
-    iEvent.put(els_psClusterPhi, "elspsClusterPhi");
+    iEvent.put(els_clusterRawEnergy, branchprefix+"clusterRawEnergy");
+    iEvent.put(els_clusterCalibEnergy, branchprefix+"clusterCalibEnergy");
+    iEvent.put(els_clusterEta, branchprefix+"clusterEta");
+    iEvent.put(els_clusterPhi, branchprefix+"clusterPhi");
+    iEvent.put(els_clusterDPhiToSeed, branchprefix+"clusterDPhiToSeed");
+    iEvent.put(els_clusterDEtaToSeed, branchprefix+"clusterDEtaToSeed");
+    iEvent.put(els_clusterDPhiToCentroid, branchprefix+"clusterDPhiToCentroid");
+    iEvent.put(els_clusterDEtaToCentroid, branchprefix+"clusterDEtaToCentroid");
+    iEvent.put(els_psClusterRawEnergy, branchprefix+"psClusterRawEnergy");
+    iEvent.put(els_psClusterEta, branchprefix+"psClusterEta");
+    iEvent.put(els_psClusterPhi, branchprefix+"psClusterPhi");
+    iEvent.put(els_hasGainSwitchFlag, branchprefix+"hasGainSwitchFlag");
 
 }
 

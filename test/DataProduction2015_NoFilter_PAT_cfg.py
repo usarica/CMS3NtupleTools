@@ -107,7 +107,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-      '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
+#      '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
+        'file:Run2016F_DoubleMuon_MINIAOD_03Feb2017.root'
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -219,6 +220,7 @@ process.p = cms.Path(
   process.pfCandidateDiscardedMaker *
   process.isoTrackMaker *
   process.recoConversionMaker *
+  process.electronBeforeGSFixMaker *
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
@@ -232,6 +234,7 @@ process.p = cms.Path(
   # process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
+  process.photonBeforeGSFixMaker *
   process.photonMaker *
   #process.genMaker *
   #process.genJetMaker *

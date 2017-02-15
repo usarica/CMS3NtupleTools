@@ -258,6 +258,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
   produces<vector<vector<float> > > (branchprefix + "psClusterEta").setBranchAlias(aliasprefix_ + "_psClusterEta");
   produces<vector<vector<float> > > (branchprefix + "psClusterPhi").setBranchAlias(aliasprefix_ + "_psClusterPhi");
 
+  produces<vector<int> > (branchprefix + "hasGainSwitchFlag").setBranchAlias(aliasprefix_ + "_hasGainSwitchFlag");
+
 }
 
 PhotonMaker::~PhotonMaker() {
@@ -409,6 +411,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   auto_ptr<vector<vector<float> > > photons_psClusterRawEnergy    (new vector<vector<float > >);
   auto_ptr<vector<vector<float> > > photons_psClusterEta          (new vector<vector<float > >);
   auto_ptr<vector<vector<float> > > photons_psClusterPhi          (new vector<vector<float > >);
+  auto_ptr<vector<int> > photons_hasGainSwitchFlag          (new vector<int >);
  
   ///////////////////// 
   // Get the photons //
@@ -945,6 +948,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  photons_isEB                   ->push_back(-999);
 	}
 
+	photons_hasGainSwitchFlag ->push_back(   photon->hasUserInt("hasGainSwitchFlag") ? photon->userInt("hasGainSwitchFlag") : 0 );
+
+
   
   }
  
@@ -958,11 +964,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put( photons_mass           , branchprefix+"mass"            );
   iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
 
-  iEvent.put(photons_etaSC       , "photonsetaSC"       );
-  iEvent.put(photons_phiSC       , "photonsphiSC"       );
-  iEvent.put(photons_eSC         , "photonseSC"         );
-  iEvent.put(photons_eSCRaw      , "photonseSCRaw"      );
-  iEvent.put(photons_eSCPresh    , "photonseSCPresh"    );
+  iEvent.put(photons_etaSC       , branchprefix+"etaSC"       );
+  iEvent.put(photons_phiSC       , branchprefix+"phiSC"       );
+  iEvent.put(photons_eSC         , branchprefix+"eSC"         );
+  iEvent.put(photons_eSCRaw      , branchprefix+"eSCRaw"      );
+  iEvent.put(photons_eSCPresh    , branchprefix+"eSCPresh"    );
 
   iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
   iEvent.put( photons_hOverEtowBC    , branchprefix+"hOverEtowBC"     );
@@ -1088,6 +1094,8 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   iEvent.put(photons_psClusterRawEnergy, branchprefix + "psClusterRawEnergy");
   iEvent.put(photons_psClusterEta, branchprefix + "psClusterEta");
   iEvent.put(photons_psClusterPhi, branchprefix + "psClusterPhi");
+
+  iEvent.put(photons_hasGainSwitchFlag, branchprefix + "hasGainSwitchFlag");
     
   iEvent.put(photons_isEB, branchprefix + "isEB");
  

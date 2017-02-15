@@ -139,6 +139,7 @@ private:
     double minAbsDcot_;
     double minSharedFractionOfHits_;
     std::string aliasprefix_;
+  bool useVID_;
 
     std::vector<Int_t> passVetoId_;
     std::vector<Int_t> passLooseId_;
