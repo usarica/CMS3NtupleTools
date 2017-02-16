@@ -9,6 +9,27 @@ pfmetMaker = cms.EDProducer("PFMETMaker",
                             doUncertainties   = cms.bool(True)
 )
 
+pfmetMakerEGClean = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_egclean"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsEGClean","",configProcessName.name),
+                            onlySaveTwoVector   = cms.bool(False),
+                            doUncertainties   = cms.bool(True)
+)
+
+pfmetMakerMuEGClean = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_muegclean"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsMuEGClean","",configProcessName.name),
+                            onlySaveTwoVector   = cms.bool(False),
+                            doUncertainties   = cms.bool(True)
+)
+
+pfmetMakerUncorr = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_uncorr"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsUncorrected","",configProcessName.name),
+                            onlySaveTwoVector   = cms.bool(False),
+                            doUncertainties   = cms.bool(True)
+)
+
 pfmetNoHFMaker = cms.EDProducer("PFMETMaker",
                             aliasPrefix = cms.untracked.string("evt_NoHF"),
                             pfMetInputTag_ = cms.InputTag("slimmedMETsNoHF","",configProcessName.name),
