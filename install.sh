@@ -2,7 +2,7 @@
 
 #USER INPUTS
 CMS3Tag=master
-CMSSW_release=CMSSW_8_0_21
+CMSSW_release=CMSSW_8_0_26_patch1
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
 export SCRAM_ARCH=slc6_amd64_gcc530
 
@@ -18,7 +18,7 @@ cd CMS3/NtupleMaker
 git checkout $CMS3Tag
 source setup/patchesToSource.sh
 cd $CMSSW_BASE/src
-scram b -j 20
+scram b -j 30
 cd ..
 
 # see comment in patchesToSource.sh
