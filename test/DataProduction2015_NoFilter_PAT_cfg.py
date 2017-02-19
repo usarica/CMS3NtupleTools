@@ -107,14 +107,16 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
   fileNames = cms.untracked.vstring(
-     '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
+     # '/store/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/7055E48E-57EB-E611-97CA-0CC47A0AD6E4.root',
+     # '/store/data/Run2016E/MET/MINIAOD/03Feb2017-v1/110000/0A011AB6-82EB-E611-92FC-001E674FAEBF.root',
+     'file:METfile.root',
         # 'file:Run2016F_DoubleMuon_MINIAOD_03Feb2017.root'
       )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 #Run corrected MET maker
 
@@ -161,14 +163,14 @@ if not useHFCandidates:
 #jets are rebuilt from those candidates by the tools, no need to do anything else
 ### =================================================================================
 
-# from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
 
 
 #default configuration for miniAOD reprocessing, change the isData flag to run on data
 #for a full met computation, remove the pfCandColl input
-# runMetCorAndUncFromMiniAOD(process,
-#                            isData=runOnData,
-#                            )
+runMetCorAndUncFromMiniAOD(process,
+                           isData=runOnData,
+                           )
 
 # if not useHFCandidates:
 #     runMetCorAndUncFromMiniAOD(process,
@@ -203,6 +205,28 @@ process.pfCandidateDiscardedMaker = process.pfCandidateMaker.clone(
         pfCandidatesTag     = cms.InputTag("packedPFCandidatesDiscarded","",configProcessName.name),
         )
 
+# Now you are creating the e/g corrected MET on top of the bad muon corrected MET (on re-miniaod)
+from PhysicsTools.PatUtils.tools.corMETFromMuonAndEG import corMETFromMuonAndEG
+corMETFromMuonAndEG(process,
+        pfCandCollection="", #not needed                                                                                                                                \
+                          
+        electronCollection="slimmedElectronsBeforeGSFix",
+        photonCollection="slimmedPhotonsBeforeGSFix",
+        corElectronCollection="slimmedElectrons",
+        corPhotonCollection="slimmedPhotons",
+        allMETEGCorrected=True,
+        muCorrection=False,
+        eGCorrection=True,
+        runOnMiniAOD=True,
+        postfix="MuEGClean"
+                        )
+process.slimmedMETsMuEGClean = process.slimmedMETs.clone()
+process.slimmedMETsMuEGClean.src = cms.InputTag("patPFMetT1MuEGClean")
+process.slimmedMETsMuEGClean.rawVariation =  cms.InputTag("patPFMetRawMuEGClean")
+process.slimmedMETsMuEGClean.t1Uncertainties = cms.InputTag("patPFMetT1%sMuEGClean")
+del process.slimmedMETsMuEGClean.caloMET
+process.out.outputCommands.extend(cms.untracked.vstring('drop patMETs_patCaloMet__CMS3*'))
+
 # end Run corrected MET maker
 
 # #Run jet tool box
@@ -231,6 +255,7 @@ process.p = cms.Path(
   process.pfmetMaker *
   process.pfmetMakerEGClean * 
   process.pfmetMakerMuEGClean * 
+  process.pfmetMakerMuEGCleanFix * 
   process.pfmetMakerUncorr * 
   process.pfmetpuppiMaker *
   # process.T1pfmetMaker *

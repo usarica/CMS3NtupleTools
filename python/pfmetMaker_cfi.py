@@ -23,6 +23,13 @@ pfmetMakerMuEGClean = cms.EDProducer("PFMETMaker",
                             doUncertainties   = cms.bool(True)
 )
 
+pfmetMakerMuEGCleanFix = cms.EDProducer("PFMETMaker",
+                            aliasPrefix = cms.untracked.string("evt_muegcleanfix"),
+                            pfMetInputTag_ = cms.InputTag("slimmedMETsMuEGClean","","CMS3"),
+                            onlySaveTwoVector   = cms.bool(False),
+                            doUncertainties   = cms.bool(True)
+)
+
 pfmetMakerUncorr = cms.EDProducer("PFMETMaker",
                             aliasPrefix = cms.untracked.string("evt_uncorr"),
                             pfMetInputTag_ = cms.InputTag("slimmedMETsUncorrected","",configProcessName.name),

@@ -59,6 +59,11 @@ pushd $CMSSW_BASE/src
 git cms-merge-topic cms-met:METRecipe_8020 -u
 scram b -j 20
 popd
+
+pushd $CMSSW_BASE/src
+git cms-merge-topic cms-met:METRecipe_80X_part2 -u
+scram b -j 20
+popd
 ### END of MET stuff ###
 
 ######################
