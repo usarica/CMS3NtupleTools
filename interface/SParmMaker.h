@@ -56,6 +56,7 @@ private:
     // ----------member data ---------------------------
     edm::EDGetTokenT<LHEEventProduct> sparmToken;
     edm::EDGetTokenT<GenLumiInfoHeader> configToken;
+    edm::EDGetTokenT<GenFilterInfo> configToken_filt;
     std::string aliasprefix_;
     std::vector<std::string> vsparms_;
     float filtEff;

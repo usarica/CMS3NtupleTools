@@ -60,6 +60,7 @@ SParmMaker::SParmMaker(const edm::ParameterSet& iConfig) {
   // parameters from configuration
   sparmToken = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("sparm_inputTag"));
   configToken = consumes<GenLumiInfoHeader, edm::InLumi>(iConfig.getParameter<edm::InputTag>("config_inputTag"));
+  configToken_filt = consumes<GenFilterInfo, edm::InLumi>(edm::InputTag("genFilterEfficiencyProducer"));
 
   // sparm names from configuration
   vsparms_ = iConfig.getUntrackedParameter<std::vector<std::string> >("vsparms");
