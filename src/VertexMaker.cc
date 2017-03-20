@@ -145,10 +145,10 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
   iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
   iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
-  iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
+  // iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
   iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
   iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );
-  iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
+  // iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

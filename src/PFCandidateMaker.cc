@@ -83,6 +83,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   pfCandidates  = pfCandidatesHandle.product();
 
   for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
+      if (pf_it->p4().pt() < 5. && abs(pf_it->pdgId()) != 11 && abs(pf_it->pdgId()) != 13) continue;
 	pfcands_p4   -> push_back( LorentzVector(pf_it->p4()) );
     pfcands_mass -> push_back( pf_it->mass()              );
 
@@ -124,9 +125,9 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   for (int i=0;i<18;++i) etabins_all.push_back(-5.1+0.6*i);
 
   //compute it
-  *evt_fixgrid_rho_ctr = getFixGridRho(etabins_ctr,phibins);
-  *evt_fixgrid_rho_fwd = getFixGridRho(etabins_fwd,phibins);
-  *evt_fixgrid_rho_all = getFixGridRho(etabins_all,phibins);
+  // *evt_fixgrid_rho_ctr = getFixGridRho(etabins_ctr,phibins);
+  // *evt_fixgrid_rho_fwd = getFixGridRho(etabins_fwd,phibins);
+  // *evt_fixgrid_rho_all = getFixGridRho(etabins_all,phibins);
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
@@ -145,9 +146,9 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   iEvent.put(pfcands_puppiWeight          , branchprefix+"puppiWeight"         );
   iEvent.put(pfcands_puppiWeightNoLep     , branchprefix+"puppiWeightNoLep"    );
 
-  iEvent.put(evt_fixgrid_rho_ctr      , "evtfixgridrhoctr");
-  iEvent.put(evt_fixgrid_rho_fwd      , "evtfixgridrhofwd");
-  iEvent.put(evt_fixgrid_rho_all      , "evtfixgridrhoall");
+  // iEvent.put(evt_fixgrid_rho_ctr      , "evtfixgridrhoctr");
+  // iEvent.put(evt_fixgrid_rho_fwd      , "evtfixgridrhofwd");
+  // iEvent.put(evt_fixgrid_rho_all      , "evtfixgridrhoall");
  
 }
 

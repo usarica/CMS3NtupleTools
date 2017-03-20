@@ -9,7 +9,7 @@ pftauMaker = cms.EDProducer("PFTauMaker",
                             # PFTau collection
                             # pftausInputTag = cms.InputTag("hpsPFTauProducer"),
                             pftausInputTag = cms.InputTag("slimmedTaus"),
-
+                            do_full = cms.untracked.bool(False)
 )
 
 

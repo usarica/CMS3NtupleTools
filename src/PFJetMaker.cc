@@ -286,7 +286,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   //iEvent.put(pfjets_corL1FastL2L3             , branchprefix+"corL1FastL2L3"             );
   //iEvent.put(pfjets_corL2L3                   , branchprefix+"corL2L3"                   );
   //iEvent.put(pfjets_corL1Fast                 , branchprefix+"corL1Fast"                 );
-  iEvent.put(pfjets_pfcandIndicies            , branchprefix+"pfcandIndicies"            );
+  // iEvent.put(pfjets_pfcandIndicies            , branchprefix+"pfcandIndicies"            );
   iEvent.put(pfjets_area                      , branchprefix+"area"                      );
   iEvent.put(pfjets_pileupJetId               , branchprefix+"pileupJetId"               );
   iEvent.put(pfjets_partonFlavour             , branchprefix+"partonFlavour"             );

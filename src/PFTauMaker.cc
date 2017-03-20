@@ -44,25 +44,20 @@ PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
   aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-
+  do_full_ = iConfig.getUntrackedParameter<bool>("do_full");
 
   produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
-  produces<vector<float> >          (branchprefix+"mass"                          ).setBranchAlias(aliasprefix_+"_mass"                           );
   produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
-
-  // set DISCRIMINATORS from pftauMaker_cfi.py
   produces<vector<TString> >          (branchprefix+"IDnames"                    ).setBranchAlias(aliasprefix_+"_IDnames"                     );
   produces<vector<vector<float>> >    (branchprefix+"IDs"                        ).setBranchAlias(aliasprefix_+"_IDs"                         );
 
-
-  // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
   // produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
-
-  produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
-  produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
-
-  produces<vector<vector<LorentzVector> > > (branchprefix+"signalcandsp4"         ).setBranchAlias(aliasprefix_+"_signalcands_p4"                 );
-  produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
+  // produces<vector<float> >          (branchprefix+"mass"                          ).setBranchAlias(aliasprefix_+"_mass"                           );  
+  // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
+  // produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
+  // produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
+  // produces<vector<vector<LorentzVector> > > (branchprefix+"signalcandsp4"         ).setBranchAlias(aliasprefix_+"_signalcands_p4"                 );
+  // produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
 
   /////get setup parameters
   pftausToken = consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("pftausInputTag"));
@@ -260,13 +255,13 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
   iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
-  iEvent.put(taus_pf_mass                                 ,branchprefix+"mass"                                     );  
+  // iEvent.put(taus_pf_mass                                 ,branchprefix+"mass"                                     );  
   iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
 
-  iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
-  iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
-  iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
-  iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
+  // iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
+  // iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
+  // iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
+  // iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
   iEvent.put(taus_pf_IDs                                  ,branchprefix+"IDs"                                      ); 
   iEvent.put(taus_pf_IDnames                              ,branchprefix+"IDnames"                                  ); 
 

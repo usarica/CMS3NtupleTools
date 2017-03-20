@@ -36,8 +36,9 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilt
 process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 
 process.out = cms.OutputModule("PoolOutputModule",
-  fileName     = cms.untracked.string('ntuple.root'),
-  dropMetaData = cms.untracked.string("NONE")
+                               fileName     = cms.untracked.string('ntuple.root'),
+                               dropMetaData = cms.untracked.string("NONE"),
+                               basketSize = cms.untracked.int32(16384*100)
 )
 process.outpath = cms.EndPath(process.out)
 
@@ -111,13 +112,13 @@ process.source = cms.Source("PoolSource",
 #         'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv1/ttbb_4FS_ckm_amcatnlo_madspin_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/60000/F4EA8D09-9002-E611-9D1B-1CC1DE19274E.root',
 #                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
-        '/store/mc/RunIISummer16MiniAODv2/WZ_TuneCUETP8M1_13TeV-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/60000/546E888D-C1D7-E611-B5B3-0CC47A0AD48A.root'
+                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root'
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
 
 #Branches 
 process.out.outputCommands = cms.untracked.vstring( 'keep *' )
@@ -219,15 +220,15 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 
 process.p = cms.Path( 
   process.metFilterMaker *
-  process.hcalNoiseSummaryMaker *
+  # process.hcalNoiseSummaryMaker *
   process.egmGsfElectronIDSequence *     
-  process.beamSpotMaker *
+  # process.beamSpotMaker *
   process.vertexMaker *
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
   process.isoTrackMaker *
-  process.recoConversionMaker *
+  # process.recoConversionMaker *
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
@@ -245,14 +246,14 @@ process.p = cms.Path(
   process.photonMaker *
   process.genMaker *
   process.genJetMaker *
-  process.muToTrigAssMaker *  # requires muonMaker
-  process.elToTrigAssMaker *  # requires electronMaker
-  process.photonToTrigAssMaker *  # requires photonMaker
+  # process.muToTrigAssMaker *  # requires muonMaker
+  # process.elToTrigAssMaker *  # requires electronMaker
+  # process.photonToTrigAssMaker *  # requires photonMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
   process.puSummaryInfoMaker *
-  process.recoConversionMaker *
-  process.miniAODrhoSequence *
+  # process.recoConversionMaker *
+  # process.miniAODrhoSequence *
   process.hypDilepMaker
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100

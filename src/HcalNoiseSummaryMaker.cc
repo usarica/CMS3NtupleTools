@@ -262,70 +262,70 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   
 
 	// 
-	iEvent.put( hcalnoise_passLooseNoiseFilter      , branchprefix_ + "passLooseNoiseFilter"      );
-	iEvent.put( hcalnoise_passTightNoiseFilter      , branchprefix_ + "passTightNoiseFilter"      );
-	iEvent.put( hcalnoise_passHighLevelNoiseFilter  , branchprefix_ + "passHighLevelNoiseFilter"  );
-	iEvent.put( hcalnoise_noiseFilterStatus         , branchprefix_ + "noiseFilterStatus"         );
-	iEvent.put( hcalnoise_noiseType                 , branchprefix_ + "noiseType"                 );
-	iEvent.put( hcalnoise_eventEMEnergy             , branchprefix_ + "eventEMEnergy"             );
-	iEvent.put( hcalnoise_eventHadEnergy            , branchprefix_ + "eventHadEnergy"            );
-	iEvent.put( hcalnoise_eventTrackEnergy          , branchprefix_ + "eventTrackEnergy"          );
-	iEvent.put( hcalnoise_eventEMFraction           , branchprefix_ + "eventEMFraction"           );
-	iEvent.put( hcalnoise_eventChargeFraction       , branchprefix_ + "eventChargeFraction"       );
-	iEvent.put( hcalnoise_min10GeVHitTime           , branchprefix_ + "min10GeVHitTime"           );
-	iEvent.put( hcalnoise_max10GeVHitTime           , branchprefix_ + "max10GeVHitTime"           );
-	iEvent.put( hcalnoise_rms10GeVHitTime           , branchprefix_ + "rms10GeVHitTime"           );
-	iEvent.put( hcalnoise_min25GeVHitTime           , branchprefix_ + "min25GeVHitTime"           );
-	iEvent.put( hcalnoise_max25GeVHitTime           , branchprefix_ + "max25GeVHitTime"           );
-	iEvent.put( hcalnoise_rms25GeVHitTime           , branchprefix_ + "rms25GeVHitTime"           );
-	iEvent.put( hcalnoise_num10GeVHits              , branchprefix_ + "num10GeVHits"              );
-	iEvent.put( hcalnoise_num25GeVHits              , branchprefix_ + "num25GeVHits"              );
-	iEvent.put( hcalnoise_minE2TS                   , branchprefix_ + "minE2TS"                   );
-	iEvent.put( hcalnoise_minE10TS                  , branchprefix_ + "minE10TS"                  );
-	iEvent.put( hcalnoise_minE2Over10TS             , branchprefix_ + "minE2Over10TS"             );
+	// iEvent.put( hcalnoise_passLooseNoiseFilter      , branchprefix_ + "passLooseNoiseFilter"      );
+	// iEvent.put( hcalnoise_passTightNoiseFilter      , branchprefix_ + "passTightNoiseFilter"      );
+	// iEvent.put( hcalnoise_passHighLevelNoiseFilter  , branchprefix_ + "passHighLevelNoiseFilter"  );
+	// iEvent.put( hcalnoise_noiseFilterStatus         , branchprefix_ + "noiseFilterStatus"         );
+	// iEvent.put( hcalnoise_noiseType                 , branchprefix_ + "noiseType"                 );
+	// iEvent.put( hcalnoise_eventEMEnergy             , branchprefix_ + "eventEMEnergy"             );
+	// iEvent.put( hcalnoise_eventHadEnergy            , branchprefix_ + "eventHadEnergy"            );
+	// iEvent.put( hcalnoise_eventTrackEnergy          , branchprefix_ + "eventTrackEnergy"          );
+	// iEvent.put( hcalnoise_eventEMFraction           , branchprefix_ + "eventEMFraction"           );
+	// iEvent.put( hcalnoise_eventChargeFraction       , branchprefix_ + "eventChargeFraction"       );
+	// iEvent.put( hcalnoise_min10GeVHitTime           , branchprefix_ + "min10GeVHitTime"           );
+	// iEvent.put( hcalnoise_max10GeVHitTime           , branchprefix_ + "max10GeVHitTime"           );
+	// iEvent.put( hcalnoise_rms10GeVHitTime           , branchprefix_ + "rms10GeVHitTime"           );
+	// iEvent.put( hcalnoise_min25GeVHitTime           , branchprefix_ + "min25GeVHitTime"           );
+	// iEvent.put( hcalnoise_max25GeVHitTime           , branchprefix_ + "max25GeVHitTime"           );
+	// iEvent.put( hcalnoise_rms25GeVHitTime           , branchprefix_ + "rms25GeVHitTime"           );
+	// iEvent.put( hcalnoise_num10GeVHits              , branchprefix_ + "num10GeVHits"              );
+	// iEvent.put( hcalnoise_num25GeVHits              , branchprefix_ + "num25GeVHits"              );
+	// iEvent.put( hcalnoise_minE2TS                   , branchprefix_ + "minE2TS"                   );
+	// iEvent.put( hcalnoise_minE10TS                  , branchprefix_ + "minE10TS"                  );
+	// iEvent.put( hcalnoise_minE2Over10TS             , branchprefix_ + "minE2Over10TS"             );
 
 	// dbarge 2012
-	iEvent.put( hcalnoise_maxE2TS                   , branchprefix_ + "maxE2TS"                   );
-	iEvent.put( hcalnoise_maxE10TS                  , branchprefix_ + "maxE10TS"                  ); 
+	// iEvent.put( hcalnoise_maxE2TS                   , branchprefix_ + "maxE2TS"                   );
+	// iEvent.put( hcalnoise_maxE10TS                  , branchprefix_ + "maxE10TS"                  ); 
 
-	iEvent.put( hcalnoise_maxE2Over10TS             , branchprefix_ + "maxE2Over10TS"             );
+	// iEvent.put( hcalnoise_maxE2Over10TS             , branchprefix_ + "maxE2Over10TS"             );
 	iEvent.put( hcalnoise_maxZeros                  , branchprefix_ + "maxZeros"                  );
 	iEvent.put( hcalnoise_maxHPDHits                , branchprefix_ + "maxHPDHits"                );
-	iEvent.put( hcalnoise_maxRBXHits                , branchprefix_ + "maxRBXHits"                );
+	// iEvent.put( hcalnoise_maxRBXHits                , branchprefix_ + "maxRBXHits"                );
 	iEvent.put( hcalnoise_maxHPDNoOtherHits         , branchprefix_ + "maxHPDNoOtherHits"         );
-	iEvent.put( hcalnoise_minHPDEMF                 , branchprefix_ + "minHPDEMF"                 );
-	iEvent.put( hcalnoise_minRBXEMF                 , branchprefix_ + "minRBXEMF"                 );
-	iEvent.put( hcalnoise_numProblematicRBXs        , branchprefix_ + "numProblematicRBXs"        );
+	// iEvent.put( hcalnoise_minHPDEMF                 , branchprefix_ + "minHPDEMF"                 );
+	// iEvent.put( hcalnoise_minRBXEMF                 , branchprefix_ + "minRBXEMF"                 );
+	// iEvent.put( hcalnoise_numProblematicRBXs        , branchprefix_ + "numProblematicRBXs"        );
 	iEvent.put( hcalnoise_numIsolatedNoiseChannels  , branchprefix_ + "numIsolatedNoiseChannels"  );
 	iEvent.put( hcalnoise_isolatedNoiseSumE         , branchprefix_ + "isolatedNoiseSumE"         );
 	iEvent.put( hcalnoise_isolatedNoiseSumEt        , branchprefix_ + "isolatedNoiseSumEt"        );
  
 	// dbarge 2012
-	iEvent.put( hcalnoise_numFlatNoiseChannels      , branchprefix_ + "numFlatNoiseChannels"      );
-	iEvent.put( hcalnoise_flatNoiseSumE             , branchprefix_ + "flatNoiseSumE"             );
-	iEvent.put( hcalnoise_flatNoiseSumEt            , branchprefix_ + "flatNoiseSumEt"            );
-	iEvent.put( hcalnoise_numSpikeNoiseChannels     , branchprefix_ + "numSpikeNoiseChannels"     );
-	iEvent.put( hcalnoise_spikeNoiseSumE            , branchprefix_ + "spikeNoiseSumE"            );
-	iEvent.put( hcalnoise_spikeNoiseSumEt           , branchprefix_ + "spikeNoiseSumEt"           );
-	iEvent.put( hcalnoise_numTriangleNoiseChannels  , branchprefix_ + "numTriangleNoiseChannels"  );
-	iEvent.put( hcalnoise_triangleNoiseSumE         , branchprefix_ + "triangleNoiseSumE"         );
-	iEvent.put( hcalnoise_triangleNoiseSumEt        , branchprefix_ + "triangleNoiseSumEt"        );
-	iEvent.put( hcalnoise_numTS4TS5NoiseChannels    , branchprefix_ + "numTS4TS5NoiseChannels"    );
-	iEvent.put( hcalnoise_TS4TS5NoiseSumE           , branchprefix_ + "TS4TS5NoiseSumE"           );
-	iEvent.put( hcalnoise_TS4TS5NoiseSumEt          , branchprefix_ + "TS4TS5NoiseSumEt"          );
-	iEvent.put( hcalnoise_numNegativeNoiseChannels  , branchprefix_ + "numNegativeNoiseChannels"  );
-	iEvent.put( hcalnoise_NegativeNoiseSumE         , branchprefix_ + "NegativeNoiseSumE"         );
-	iEvent.put( hcalnoise_NegativeNoiseSumEt        , branchprefix_ + "NegativeNoiseSumEt"        );
-	iEvent.put( hcalnoise_GetRecHitCount            , branchprefix_ + "GetRecHitCount"            );
-	iEvent.put( hcalnoise_GetRecHitCount15          , branchprefix_ + "GetRecHitCount15"          );
-	iEvent.put( hcalnoise_GetRecHitEnergy           , branchprefix_ + "GetRecHitEnergy"           );
-	iEvent.put( hcalnoise_GetRecHitEnergy15         , branchprefix_ + "GetRecHitEnergy15"         );
-	iEvent.put( hcalnoise_GetTotalCalibCharge       , branchprefix_ + "GetTotalCalibCharge"       );
+	// iEvent.put( hcalnoise_numFlatNoiseChannels      , branchprefix_ + "numFlatNoiseChannels"      );
+	// iEvent.put( hcalnoise_flatNoiseSumE             , branchprefix_ + "flatNoiseSumE"             );
+	// iEvent.put( hcalnoise_flatNoiseSumEt            , branchprefix_ + "flatNoiseSumEt"            );
+	// iEvent.put( hcalnoise_numSpikeNoiseChannels     , branchprefix_ + "numSpikeNoiseChannels"     );
+	// iEvent.put( hcalnoise_spikeNoiseSumE            , branchprefix_ + "spikeNoiseSumE"            );
+	// iEvent.put( hcalnoise_spikeNoiseSumEt           , branchprefix_ + "spikeNoiseSumEt"           );
+	// iEvent.put( hcalnoise_numTriangleNoiseChannels  , branchprefix_ + "numTriangleNoiseChannels"  );
+	// iEvent.put( hcalnoise_triangleNoiseSumE         , branchprefix_ + "triangleNoiseSumE"         );
+	// iEvent.put( hcalnoise_triangleNoiseSumEt        , branchprefix_ + "triangleNoiseSumEt"        );
+	// iEvent.put( hcalnoise_numTS4TS5NoiseChannels    , branchprefix_ + "numTS4TS5NoiseChannels"    );
+	// iEvent.put( hcalnoise_TS4TS5NoiseSumE           , branchprefix_ + "TS4TS5NoiseSumE"           );
+	// iEvent.put( hcalnoise_TS4TS5NoiseSumEt          , branchprefix_ + "TS4TS5NoiseSumEt"          );
+	// iEvent.put( hcalnoise_numNegativeNoiseChannels  , branchprefix_ + "numNegativeNoiseChannels"  );
+	// iEvent.put( hcalnoise_NegativeNoiseSumE         , branchprefix_ + "NegativeNoiseSumE"         );
+	// iEvent.put( hcalnoise_NegativeNoiseSumEt        , branchprefix_ + "NegativeNoiseSumEt"        );
+	// iEvent.put( hcalnoise_GetRecHitCount            , branchprefix_ + "GetRecHitCount"            );
+	// iEvent.put( hcalnoise_GetRecHitCount15          , branchprefix_ + "GetRecHitCount15"          );
+	// iEvent.put( hcalnoise_GetRecHitEnergy           , branchprefix_ + "GetRecHitEnergy"           );
+	// iEvent.put( hcalnoise_GetRecHitEnergy15         , branchprefix_ + "GetRecHitEnergy15"         );
+	// iEvent.put( hcalnoise_GetTotalCalibCharge       , branchprefix_ + "GetTotalCalibCharge"       );
   
 	iEvent.put( hcalnoise_HasBadRBXTS4TS5           ,  branchprefix_ + "HasBadRBXTS4TS5"          );
 	iEvent.put( hcalnoise_HasBadRBXRechitR45Loose   ,  branchprefix_ + "HasBadRBXRechitR45Loose"  );
-	iEvent.put( hcalnoise_HasBadRBXRechitR45Tight   ,  branchprefix_ + "HasBadRBXRechitR45Tight"  );
-	iEvent.put( hcalnoise_goodJetFoundInLowBVRegion ,  branchprefix_ + "goodJetFoundInLowBVRegion");
+	// iEvent.put( hcalnoise_HasBadRBXRechitR45Tight   ,  branchprefix_ + "HasBadRBXRechitR45Tight"  );
+	// iEvent.put( hcalnoise_goodJetFoundInLowBVRegion ,  branchprefix_ + "goodJetFoundInLowBVRegion");
   }
 } // End Producer
 

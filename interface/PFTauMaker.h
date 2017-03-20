@@ -56,7 +56,8 @@ private:
   // edm::InputTag particleFlowTag_;
 
   std::string aliasprefix_;
-
+    bool do_full_;  
+    
   //store all tau discriminators here
   std::vector<std::string> tauIDCollection_;
 

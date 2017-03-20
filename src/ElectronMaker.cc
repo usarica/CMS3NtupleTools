@@ -1808,7 +1808,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Predefined ID descisions 
     //
-    iEvent.put(els_class    , "elsclass"    );
+    // iEvent.put(els_class    , "elsclass"    );
     iEvent.put(els_category , "elscategory" );
   
     iEvent.put(passVetoId,   "passVetoId"   );
@@ -1831,30 +1831,30 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Track parameters
     //
-    iEvent.put(els_d0         , "elsd0"        );
-    iEvent.put(els_z0         , "elsz0"        );
+    // iEvent.put(els_d0         , "elsd0"        );
+    // iEvent.put(els_z0         , "elsz0"        );
     iEvent.put(els_dxyPV      , "elsdxyPV"    );
     iEvent.put(els_dzPV       , "elsdzPV"     );
-    iEvent.put(els_d0corr     , "elsd0corr"    );
-    iEvent.put(els_d0corrPhi  , "elsd0corrPhi" );
-    iEvent.put(els_d0phiCov   , "elsd0phiCov"  );
-    iEvent.put(els_z0corr     , "elsz0corr"    );
+    // iEvent.put(els_d0corr     , "elsd0corr"    );
+    // iEvent.put(els_d0corrPhi  , "elsd0corrPhi" );
+    // iEvent.put(els_d0phiCov   , "elsd0phiCov"  );
+    // iEvent.put(els_z0corr     , "elsz0corr"    );
     iEvent.put(els_chi2       , "elschi2"      );
     iEvent.put(els_ndof       , "elsndof"      );
     iEvent.put(els_d0Err      , "elsd0Err"     );
     iEvent.put(els_z0Err      , "elsz0Err"     );
     iEvent.put(els_ptErr      , "elsptErr"     );
     iEvent.put(els_ptErrGsf   , "elsptErrGsf"  );
-    iEvent.put(els_etaErr     , "elsetaErr"    );
-    iEvent.put(els_phiErr     , "elsphiErr"    );
+    // iEvent.put(els_etaErr     , "elsetaErr"    );
+    // iEvent.put(els_phiErr     , "elsphiErr"    );
     iEvent.put(els_ip3d       , "elsip3d"      );
     iEvent.put(els_ip3derr    , "elsip3derr"   );
     iEvent.put(els_ip2d       , "elsip2d"      );
     iEvent.put(els_ip2derr    , "elsip2derr"   );
-    iEvent.put(els_bs3d       , "elsbs3d"      );
-    iEvent.put(els_bs3derr    , "elsbs3derr"   );
-    iEvent.put(els_bs2d       , "elsbs2d"      );
-    iEvent.put(els_bs2derr    , "elsbs2derr"   );
+    // iEvent.put(els_bs3d       , "elsbs3d"      );
+    // iEvent.put(els_bs3derr    , "elsbs3derr"   );
+    // iEvent.put(els_bs2d       , "elsbs2d"      );
+    // iEvent.put(els_bs2derr    , "elsbs2derr"   );
   
     iEvent.put(els_validHits  , "elsvalidHits" );
     iEvent.put(els_lostHits   , "elslostHits"  );
@@ -1864,20 +1864,20 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Supercluster parameters
     //
-    iEvent.put(els_nSeed       , "elsnSeed"       );
+    // iEvent.put(els_nSeed       , "elsnSeed"       );
     iEvent.put(els_etaSC       , "elsetaSC"       );
     iEvent.put(els_phiSC       , "elsphiSC"       );
     iEvent.put(els_eSC         , "elseSC"         );
     iEvent.put(els_eSCRaw      , "elseSCRaw"      );
     iEvent.put(els_eSCPresh    , "elseSCPresh"    );
-    iEvent.put(els_e1x5        , "else1x5"        );
+    // iEvent.put(els_e1x5        , "else1x5"        );
 //    iEvent.put(els_e3x3        , "else3x3"        );
-    iEvent.put(els_e5x5        , "else5x5"        );
-    iEvent.put(els_e2x5Max     , "else2x5Max"     );
+    // iEvent.put(els_e5x5        , "else5x5"        );
+    // iEvent.put(els_e2x5Max     , "else2x5Max"     );
 //    iEvent.put(els_eMax        , "elseMax"        );
-    iEvent.put(els_eSeed       , "elseSeed"       );
-    iEvent.put(els_fiduciality , "elsfiduciality" );
-    iEvent.put(els_type        , "elstype"        );
+    // iEvent.put(els_eSeed       , "elseSeed"       );
+    // iEvent.put(els_fiduciality , "elsfiduciality" );
+    // iEvent.put(els_type        , "elstype"        );
 //    iEvent.put(els_scindex     , "elsscindex"     );
     iEvent.put(els_etaSCwidth  , "elsetaSCwidth"  );
     iEvent.put(els_phiSCwidth  , "elsphiSCwidth"  );
@@ -1893,30 +1893,30 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //iEvent.put(els_sigmaPhiPhi        , "elssigmaPhiPhi"        );
     iEvent.put(els_sigmaIPhiIPhi      , "elssigmaIPhiIPhi"      );
 //    iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
-    iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
+    // iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
     iEvent.put(els_sigmaIEtaIEta      , "elssigmaIEtaIEta"      );
     //iEvent.put(els_sigmaIPhiIPhiSC    , "elssigmaIPhiIPhiSC"    );
     //iEvent.put(els_sigmaIEtaIEtaSC    , "elssigmaIEtaIEtaSC"    );
-    iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
+    // iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
     iEvent.put(els_hOverE             , "elshOverE"             );
     iEvent.put(els_full5x5_hOverE      , "elsfull5x5hOverE"      );
-    iEvent.put(els_hOverEBC           , "elshOverEBC"           );
-    iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
-    iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
+    // iEvent.put(els_hOverEBC           , "elshOverEBC"           );
+    // iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
+    // iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
 
     iEvent.put(els_eOverPIn                      , "elseOverPIn"                      );
-    iEvent.put(els_eSeedOverPOut                 , "elseSeedOverPOut"                 );
-    iEvent.put(els_eSeedOverPIn                  , "elseSeedOverPIn"                  );
+    // iEvent.put(els_eSeedOverPOut                 , "elseSeedOverPOut"                 );
+    // iEvent.put(els_eSeedOverPIn                  , "elseSeedOverPIn"                  );
     iEvent.put(els_eOverPOut                     , "elseOverPOut"                     );
     iEvent.put(els_fbrem                         , "elsfbrem"                         );
     //iEvent.put(els_lh                            , "elslh"                            );
-    iEvent.put(els_mva                           , "elsmva"                           );
+    // iEvent.put(els_mva                           , "elsmva"                           );
     iEvent.put(els_dEtaIn                        , "elsdEtaIn"                        );
     iEvent.put(els_dEtaOut                       , "elsdEtaOut"                       );
-    iEvent.put(els_deltaEtaEleClusterTrackAtCalo , "elsdeltaEtaEleClusterTrackAtCalo" );
+    // iEvent.put(els_deltaEtaEleClusterTrackAtCalo , "elsdeltaEtaEleClusterTrackAtCalo" );
     iEvent.put(els_dPhiIn                        , "elsdPhiIn"                        );
     iEvent.put(els_dPhiOut                       , "elsdPhiOut"                       );
-    iEvent.put(els_deltaPhiEleClusterTrackAtCalo , "elsdeltaPhiEleClusterTrackAtCalo" );
+    // iEvent.put(els_deltaPhiEleClusterTrackAtCalo , "elsdeltaPhiEleClusterTrackAtCalo" );
     iEvent.put(els_isGsfCtfScPixChargeConsistent , "elsisGsfCtfScPixChargeConsistent" );
 
     // Lorentz vectors
@@ -1936,14 +1936,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_tkIso                , "elstkIso"                );
     iEvent.put(els_ecalIso              , "elsecalIso"              );
     iEvent.put(els_hcalIso              , "elshcalIso"              );
-    iEvent.put(els_hcalDepth1TowerSumEt , "elshcalDepth1TowerSumEt" );
-    iEvent.put(els_hcalDepth2TowerSumEt , "elshcalDepth2TowerSumEt" );
+    // iEvent.put(els_hcalDepth1TowerSumEt , "elshcalDepth1TowerSumEt" );
+    // iEvent.put(els_hcalDepth2TowerSumEt , "elshcalDepth2TowerSumEt" );
 
     iEvent.put(els_tkIso04                , "elstkIso04"                );
     iEvent.put(els_ecalIso04              , "elsecalIso04"              );
     iEvent.put(els_hcalIso04              , "elshcalIso04"              );
-    iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
-    iEvent.put(els_hcalDepth2TowerSumEt04 , "elshcalDepth2TowerSumEt04" );
+    // iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
+    // iEvent.put(els_hcalDepth2TowerSumEt04 , "elshcalDepth2TowerSumEt04" );
 
 //    iEvent.put(els_iso03_pf, "elsiso03pf" );
 //    iEvent.put(els_iso04_pf, "elsiso04pf" );
@@ -1994,16 +1994,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Added for 53x //
     ///////////////////
 
-    iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
-    iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
-    iEvent.put( els_r9                       , "elsr9"                       );
+    // iEvent.put( els_passingMvaPreselection   , "elspassingMvaPreselection"   );
+    // iEvent.put( els_passingPflowPreselection , "elspassingPflowPreselection" );
+    // iEvent.put( els_r9                       , "elsr9"                       );
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
     iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
-    iEvent.put(els_mass          , "elsmass"         );
+    // iEvent.put(els_mass          , "elsmass"         );
 
     /////////////////////////
     // Added for miniAOD   //
@@ -2033,67 +2033,67 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////////////
     // Added for calibration //
     ///////////////////////////
-    iEvent.put(els_N_ECALClusters, "elsNECALClusters");
-    iEvent.put(els_N_PSClusters, "elsNPSClusters");
+    // iEvent.put(els_N_ECALClusters, "elsNECALClusters");
+    // iEvent.put(els_N_PSClusters, "elsNPSClusters");
     iEvent.put(els_isEcalDriven, "elsisEcalDriven");
     iEvent.put(els_isTrackerDriven, "elsisTrackerDriven");
     iEvent.put(els_isEB, "elsisEB");
 
-    iEvent.put(els_scPreshowerEnergyPlane1, "elsscPreshowerEnergyPlane1");
-    iEvent.put(els_scPreshowerEnergyPlane2, "elsscPreshowerEnergyPlane2");
-    iEvent.put(els_scIsEB, "elsscIsEB");
-    iEvent.put(els_scR, "elsscR");
+    // iEvent.put(els_scPreshowerEnergyPlane1, "elsscPreshowerEnergyPlane1");
+    // iEvent.put(els_scPreshowerEnergyPlane2, "elsscPreshowerEnergyPlane2");
+    // iEvent.put(els_scIsEB, "elsscIsEB");
+    // iEvent.put(els_scR, "elsscR");
     iEvent.put(els_scSeedEta, "elsscSeedEta");
-    iEvent.put(els_scSeedPhi, "elsscSeedPhi");
-    iEvent.put(els_scSeedSize, "elsscSeedSize");
-    iEvent.put(els_scSeedE3x3, "elsscSeedE3x3");
-    iEvent.put(els_scSeedEmax, "elsscSeedEmax");
-    iEvent.put(els_scSeedE2nd, "elsscSeedE2nd");
-    iEvent.put(els_scSeedELeft, "elsscSeedELeft");
-    iEvent.put(els_scSeedERight, "elsscSeedERight");
-    iEvent.put(els_scSeedETop, "elsscSeedETop");
-    iEvent.put(els_scSeedEBottom, "elsscSeedEBottom");
-    iEvent.put(els_scSeedE2x5Left, "elsscSeedE2x5Left");
-    iEvent.put(els_scSeedE2x5Right, "elsscSeedE2x5Right");
-    iEvent.put(els_scSeedE2x5Top, "elsscSeedE2x5Top");
-    iEvent.put(els_scSeedE2x5Bottom, "elsscSeedE2x5Bottom");
-    iEvent.put(els_scSeedLeftRightAsym, "elsscSeedLeftRightAsym");
-    iEvent.put(els_scSeedTopBottomAsym, "elsscSeedTopBottomAsym");
-    iEvent.put(els_scSeed2x5LeftRightAsym, "elsscSeed2x5LeftRightAsym");
-    iEvent.put(els_scSeed2x5TopBottomAsym, "elsscSeed2x5TopBottomAsym");
-    iEvent.put(els_scSeedSigmaIetaIphi, "elsscSeedSigmaIetaIphi");
-    iEvent.put(els_scSeedCryEta, "elsscSeedCryEta");
-    iEvent.put(els_scSeedCryPhi, "elsscSeedCryPhi");
-    iEvent.put(els_scSeedCryIeta, "elsscSeedCryIeta");
-    iEvent.put(els_scSeedCryIphi, "elsscSeedCryIphi");
-    iEvent.put(els_scSeedCryX, "elsscSeedCryX");
-    iEvent.put(els_scSeedCryY, "elsscSeedCryY");
-    iEvent.put(els_scSeedCryIx, "elsscSeedCryIx");
-    iEvent.put(els_scSeedCryIy, "elsscSeedCryIy");
-    iEvent.put(els_clusterMaxDR, "elsclusterMaxDR");
-    iEvent.put(els_clusterMaxDRDPhi, "elsclusterMaxDRDPhi");
-    iEvent.put(els_clusterMaxDRDEta, "elsclusterMaxDRDEta");
-    iEvent.put(els_clustersMeanDRToSeed, "elsclustersMeanDRToSeed");
-    iEvent.put(els_clustersMeanDEtaToSeed, "elsclustersMeanDEtaToSeed");
-    iEvent.put(els_clustersMeanDPhiToSeed, "elsclustersMeanDPhiToSeed");
-    iEvent.put(els_clusterMaxDRRawEnergy, "elsclusterMaxDRRawEnergy");
-    iEvent.put(els_clustersMeanRawEnergy, "elsclustersMeanRawEnergy");
-    iEvent.put(els_clustersRMSRawEnergy, "elsclustersRMSRawEnergy");
+    // iEvent.put(els_scSeedPhi, "elsscSeedPhi");
+    // iEvent.put(els_scSeedSize, "elsscSeedSize");
+    // iEvent.put(els_scSeedE3x3, "elsscSeedE3x3");
+    // iEvent.put(els_scSeedEmax, "elsscSeedEmax");
+    // iEvent.put(els_scSeedE2nd, "elsscSeedE2nd");
+    // iEvent.put(els_scSeedELeft, "elsscSeedELeft");
+    // iEvent.put(els_scSeedERight, "elsscSeedERight");
+    // iEvent.put(els_scSeedETop, "elsscSeedETop");
+    // iEvent.put(els_scSeedEBottom, "elsscSeedEBottom");
+    // iEvent.put(els_scSeedE2x5Left, "elsscSeedE2x5Left");
+    // iEvent.put(els_scSeedE2x5Right, "elsscSeedE2x5Right");
+    // iEvent.put(els_scSeedE2x5Top, "elsscSeedE2x5Top");
+    // iEvent.put(els_scSeedE2x5Bottom, "elsscSeedE2x5Bottom");
+    // iEvent.put(els_scSeedLeftRightAsym, "elsscSeedLeftRightAsym");
+    // iEvent.put(els_scSeedTopBottomAsym, "elsscSeedTopBottomAsym");
+    // iEvent.put(els_scSeed2x5LeftRightAsym, "elsscSeed2x5LeftRightAsym");
+    // iEvent.put(els_scSeed2x5TopBottomAsym, "elsscSeed2x5TopBottomAsym");
+    // iEvent.put(els_scSeedSigmaIetaIphi, "elsscSeedSigmaIetaIphi");
+    // iEvent.put(els_scSeedCryEta, "elsscSeedCryEta");
+    // iEvent.put(els_scSeedCryPhi, "elsscSeedCryPhi");
+    // iEvent.put(els_scSeedCryIeta, "elsscSeedCryIeta");
+    // iEvent.put(els_scSeedCryIphi, "elsscSeedCryIphi");
+    // iEvent.put(els_scSeedCryX, "elsscSeedCryX");
+    // iEvent.put(els_scSeedCryY, "elsscSeedCryY");
+    // iEvent.put(els_scSeedCryIx, "elsscSeedCryIx");
+    // iEvent.put(els_scSeedCryIy, "elsscSeedCryIy");
+    // iEvent.put(els_clusterMaxDR, "elsclusterMaxDR");
+    // iEvent.put(els_clusterMaxDRDPhi, "elsclusterMaxDRDPhi");
+    // iEvent.put(els_clusterMaxDRDEta, "elsclusterMaxDRDEta");
+    // iEvent.put(els_clustersMeanDRToSeed, "elsclustersMeanDRToSeed");
+    // iEvent.put(els_clustersMeanDEtaToSeed, "elsclustersMeanDEtaToSeed");
+    // iEvent.put(els_clustersMeanDPhiToSeed, "elsclustersMeanDPhiToSeed");
+    // iEvent.put(els_clusterMaxDRRawEnergy, "elsclusterMaxDRRawEnergy");
+    // iEvent.put(els_clustersMeanRawEnergy, "elsclustersMeanRawEnergy");
+    // iEvent.put(els_clustersRMSRawEnergy, "elsclustersRMSRawEnergy");
 
-    iEvent.put(els_clusterInMustache, "elsclusterInMustache");
-    iEvent.put(els_clusterInDynDPhi, "elsclusterInDynDPhi");
+    // iEvent.put(els_clusterInMustache, "elsclusterInMustache");
+    // iEvent.put(els_clusterInDynDPhi, "elsclusterInDynDPhi");
 
-    iEvent.put(els_clusterRawEnergy, "elsclusterRawEnergy");
-    iEvent.put(els_clusterCalibEnergy, "elsclusterCalibEnergy");
-    iEvent.put(els_clusterEta, "elsclusterEta");
-    iEvent.put(els_clusterPhi, "elsclusterPhi");
-    iEvent.put(els_clusterDPhiToSeed, "elsclusterDPhiToSeed");
-    iEvent.put(els_clusterDEtaToSeed, "elsclusterDEtaToSeed");
-    iEvent.put(els_clusterDPhiToCentroid, "elsclusterDPhiToCentroid");
-    iEvent.put(els_clusterDEtaToCentroid, "elsclusterDEtaToCentroid");
-    iEvent.put(els_psClusterRawEnergy, "elspsClusterRawEnergy");
-    iEvent.put(els_psClusterEta, "elspsClusterEta");
-    iEvent.put(els_psClusterPhi, "elspsClusterPhi");
+    // iEvent.put(els_clusterRawEnergy, "elsclusterRawEnergy");
+    // iEvent.put(els_clusterCalibEnergy, "elsclusterCalibEnergy");
+    // iEvent.put(els_clusterEta, "elsclusterEta");
+    // iEvent.put(els_clusterPhi, "elsclusterPhi");
+    // iEvent.put(els_clusterDPhiToSeed, "elsclusterDPhiToSeed");
+    // iEvent.put(els_clusterDEtaToSeed, "elsclusterDEtaToSeed");
+    // iEvent.put(els_clusterDPhiToCentroid, "elsclusterDPhiToCentroid");
+    // iEvent.put(els_clusterDEtaToCentroid, "elsclusterDEtaToCentroid");
+    // iEvent.put(els_psClusterRawEnergy, "elspsClusterRawEnergy");
+    // iEvent.put(els_psClusterEta, "elspsClusterEta");
+    // iEvent.put(els_psClusterPhi, "elspsClusterPhi");
 
 }
 

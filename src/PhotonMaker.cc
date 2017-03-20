@@ -955,66 +955,66 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   //
   iEvent.put( evt_nphotons           , "evtn"+branchprefix            );
   iEvent.put( photons_p4             , branchprefix+"p4"              );
-  iEvent.put( photons_mass           , branchprefix+"mass"            );
-  iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
+  // iEvent.put( photons_mass           , branchprefix+"mass"            );
+  // iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
 
-  iEvent.put(photons_etaSC       , "photonsetaSC"       );
-  iEvent.put(photons_phiSC       , "photonsphiSC"       );
-  iEvent.put(photons_eSC         , "photonseSC"         );
-  iEvent.put(photons_eSCRaw      , "photonseSCRaw"      );
-  iEvent.put(photons_eSCPresh    , "photonseSCPresh"    );
+  // iEvent.put(photons_etaSC       , "photonsetaSC"       );
+  // iEvent.put(photons_phiSC       , "photonsphiSC"       );
+  // iEvent.put(photons_eSC         , "photonseSC"         );
+  // iEvent.put(photons_eSCRaw      , "photonseSCRaw"      );
+  // iEvent.put(photons_eSCPresh    , "photonseSCPresh"    );
 
   iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
   iEvent.put( photons_hOverEtowBC    , branchprefix+"hOverEtowBC"     );
-  iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
-  iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
-  iEvent.put( photons_e5x5           , branchprefix+"e5x5"            );
-  iEvent.put( photons_e2x5Max        , branchprefix+"e2x5Max"         );
-  iEvent.put( photons_sigmaEtaEta    , branchprefix+"sigmaEtaEta"     );
+  // iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
+  // iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
+  // iEvent.put( photons_e5x5           , branchprefix+"e5x5"            );
+  // iEvent.put( photons_e2x5Max        , branchprefix+"e2x5Max"         );
+  // iEvent.put( photons_sigmaEtaEta    , branchprefix+"sigmaEtaEta"     );
   iEvent.put( photons_sigmaIEtaIEta  , branchprefix+"sigmaIEtaIEta"   );
 
   iEvent.put( photons_full5x5_hOverE         , branchprefix+"full5x5hOverE"          );
-  iEvent.put( photons_full5x5_e1x5           , branchprefix+"full5x5e1x5"            );
-  iEvent.put( photons_full3x3_e3x3           , branchprefix+"full3x3e3x3"            );
-  iEvent.put( photons_full5x5_e5x5           , branchprefix+"full5x5e5x5"            );
-  iEvent.put( photons_full5x5_e2x5Max        , branchprefix+"full5x5e2x5Max"         );
-  iEvent.put( photons_full5x5_sigmaEtaEta    , branchprefix+"full5x5sigmaEtaEta"     );
+  // iEvent.put( photons_full5x5_e1x5           , branchprefix+"full5x5e1x5"            );
+  // iEvent.put( photons_full3x3_e3x3           , branchprefix+"full3x3e3x3"            );
+  // iEvent.put( photons_full5x5_e5x5           , branchprefix+"full5x5e5x5"            );
+  // iEvent.put( photons_full5x5_e2x5Max        , branchprefix+"full5x5e2x5Max"         );
+  // iEvent.put( photons_full5x5_sigmaEtaEta    , branchprefix+"full5x5sigmaEtaEta"     );
   iEvent.put( photons_full5x5_sigmaIEtaIEta  , branchprefix+"full5x5sigmaIEtaIEta"   );
   iEvent.put( photons_full5x5_hOverEtowBC    , branchprefix+"full5x5hOverEtowBC"    );
   iEvent.put( photons_full5x5_r9             , branchprefix+"full5x5r9"             );
   iEvent.put( photons_photonID_loose         , branchprefix+"photonIDloose"         );
   iEvent.put( photons_photonID_tight         , branchprefix+"photonIDtight"         );		
 
-  iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
-  iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
-  iEvent.put( photons_ntkIsoHollow03 , branchprefix+"ntkIsoHollow03"  );
-  iEvent.put( photons_ntkIsoSolid03  , branchprefix+"ntkIsoSolid03"   );      
-  iEvent.put( photons_ecalIso03      , branchprefix+"ecalIso03"       );
-  iEvent.put( photons_hcalIso03      , branchprefix+"hcalIso03"       );
-  iEvent.put( photons_tkIsoHollow04  , branchprefix+"tkIsoHollow04"   );
-  iEvent.put( photons_tkIsoSolid04   , branchprefix+"tkIsoSolid04"    );      
-  iEvent.put( photons_ntkIsoHollow04 , branchprefix+"ntkIsoHollow04"  );
-  iEvent.put( photons_ntkIsoSolid04  , branchprefix+"ntkIsoSolid04"   );      
-  iEvent.put( photons_ecalIso04      , branchprefix+"ecalIso04"       );
-  iEvent.put( photons_hcalIso04      , branchprefix+"hcalIso04"       );  
-  iEvent.put( photons_chargedHadronIso, branchprefix+"chargedHadronIso");  
-  iEvent.put( photons_neutralHadronIso, branchprefix+"neutralHadronIso");  
-  iEvent.put( photons_photonIso       , branchprefix+"photonIso"       );  
+  // iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
+  // iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
+  // iEvent.put( photons_ntkIsoHollow03 , branchprefix+"ntkIsoHollow03"  );
+  // iEvent.put( photons_ntkIsoSolid03  , branchprefix+"ntkIsoSolid03"   );      
+  // iEvent.put( photons_ecalIso03      , branchprefix+"ecalIso03"       );
+  // iEvent.put( photons_hcalIso03      , branchprefix+"hcalIso03"       );
+  // iEvent.put( photons_tkIsoHollow04  , branchprefix+"tkIsoHollow04"   );
+  // iEvent.put( photons_tkIsoSolid04   , branchprefix+"tkIsoSolid04"    );      
+  // iEvent.put( photons_ntkIsoHollow04 , branchprefix+"ntkIsoHollow04"  );
+  // iEvent.put( photons_ntkIsoSolid04  , branchprefix+"ntkIsoSolid04"   );      
+  // iEvent.put( photons_ecalIso04      , branchprefix+"ecalIso04"       );
+  // iEvent.put( photons_hcalIso04      , branchprefix+"hcalIso04"       );  
+  // iEvent.put( photons_chargedHadronIso, branchprefix+"chargedHadronIso");  
+  // iEvent.put( photons_neutralHadronIso, branchprefix+"neutralHadronIso");  
+  // iEvent.put( photons_photonIso       , branchprefix+"photonIso"       );  
   iEvent.put( photons_recoChargedHadronIso, branchprefix+"recoChargedHadronIso");  
   iEvent.put( photons_recoNeutralHadronIso, branchprefix+"recoNeutralHadronIso");  
   iEvent.put( photons_recoPhotonIso       , branchprefix+"recoPhotonIso"       );  
 
-  iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
-  iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
-  iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR04 , branchprefix + "hcalDepth2TowerSumEtBcConeDR04");// Added for 53x //
-  iEvent.put( photons_hcalTowerSumEtBcConeDR03       , branchprefix + "hcalTowerSumEtBcConeDR03"      );// Added for 53x //
-  iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
-  iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
+  // iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
+  // iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
+  // iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR04 , branchprefix + "hcalDepth2TowerSumEtBcConeDR04");// Added for 53x //
+  // iEvent.put( photons_hcalTowerSumEtBcConeDR03       , branchprefix + "hcalTowerSumEtBcConeDR03"      );// Added for 53x //
+  // iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
+  // iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
   iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
   iEvent.put( photons_passElectronVeto   , branchprefix+"passElectronVeto"    );
 
-  iEvent.put( photons_ecalPFClusterIso  , branchprefix+"ecalPFClusterIso"    );
-  iEvent.put( photons_hcalPFClusterIso  , branchprefix+"hcalPFClusterIso"    );
+  // iEvent.put( photons_ecalPFClusterIso  , branchprefix+"ecalPFClusterIso"    );
+  // iEvent.put( photons_hcalPFClusterIso  , branchprefix+"hcalPFClusterIso"    );
 
   // iEvent.put( photons_scindex        , branchprefix+"scindex"         );
   // iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
