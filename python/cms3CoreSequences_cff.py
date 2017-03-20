@@ -6,7 +6,7 @@ import CMS3.NtupleMaker.configProcessName as configProcessName
 from CMS3.NtupleMaker.pftauMaker_cfi               import *
 from CMS3.NtupleMaker.electronMaker_cfi            import *
 from CMS3.NtupleMaker.eventMaker_cfi               import *
-from CMS3.NtupleMaker.hcalNoiseSummaryMaker_cfi    import *
+# from CMS3.NtupleMaker.hcalNoiseSummaryMaker_cfi    import *
 from CMS3.NtupleMaker.hltMaker_cff                 import *
 from CMS3.NtupleMaker.hypDilepMaker_cfi            import *
 #from CMS3.NtupleMaker.luminosityMaker_cfi          import *
