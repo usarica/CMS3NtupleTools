@@ -83,14 +83,8 @@ private:
     int classify(const edm::RefToBase<pat::Electron> &);
     template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
  
-    // for 2012 pf isolation
-    void PFIsolation2012(const reco::GsfElectron& el, const reco::VertexCollection* vertexCollection, 
-                         const int vertexIndex, const float &R, float &pfiso_ch, float &pfiso_em, float &pfiso_nh);
- 
   void elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
   void elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
-
-
 
     // ----------member data ---------------------------
     edm::InputTag beamSpotInputTag_;
@@ -132,9 +126,6 @@ private:
   edm::InputTag pfIsoGamma04InputTag;
   edm::InputTag pfIsoNeutral04InputTag;
 
-    EcalClusterLazyTools* clusterTools_;
-    MultiTrajectoryStateTransform *mtsTransform_;
-
     double minAbsDist_;
     double minAbsDcot_;
     double minSharedFractionOfHits_;
@@ -175,7 +166,6 @@ private:
   edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
   edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
 
-    PFPileUpAlgo *pfPileUpAlgo_;
 };
 
 #endif
