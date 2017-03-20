@@ -857,10 +857,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // PF Isolation //
         //////////////////
 
-        GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
-
-
-
         //////////////////
         // Supercluster //
         //////////////////
@@ -1210,12 +1206,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Tracks //
         ////////////
 
-        float pt       = el_track->pt();
-        float p        = el_track->p();
-        float q        = el_track->charge();
-        float pz       = el_track->pz();
-        float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0,0))+2*pt*p/q*pz*(el_track->covariance(0,1))+ pz*pz*(el_track->covariance(1,1) ) ) : -9999.;
-            
         els_etaErr                ->push_back( el_track->etaError()                      );
         els_phiErr                ->push_back( el_track->phiError()                      );  
         els_validHits             ->push_back( el_track->numberOfValidHits()             );
@@ -1398,14 +1388,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Conversions //
         /////////////////
 
-	reco::ConversionRef conv_ref = ConversionTools::matchedConversion(*el, convs_h, beamSpot);
-	float vertexFitProbability = -1.; 
-	if(!conv_ref.isNull()) {
-	  const reco::Vertex &vtx = conv_ref.get()->conversionVertex(); 
-	  if (vtx.isValid()) {
-	    vertexFitProbability = TMath::Prob( vtx.chi2(), vtx.ndof());
-	  } 
-	}
 	//cout<<"Found electron with pt eta phi "<<el->p4().pt() <<" "<< el->p4().eta() <<" "<< el->p4().phi()<<" and vertexFitProbability "<<vertexFitProbability<<endl;
 
 
