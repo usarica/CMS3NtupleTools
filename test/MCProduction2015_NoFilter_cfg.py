@@ -246,8 +246,8 @@ process.p = cms.Path(
   process.photonMaker *
   process.genMaker *
   process.genJetMaker *
-  # process.muToTrigAssMaker *  # requires muonMaker
-  # process.elToTrigAssMaker *  # requires electronMaker
+  process.muToTrigAssMaker *  # requires muonMaker
+  process.elToTrigAssMaker *  # requires electronMaker
   # process.photonToTrigAssMaker *  # requires photonMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
