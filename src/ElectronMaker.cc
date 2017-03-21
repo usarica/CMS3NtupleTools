@@ -172,6 +172,9 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     produces<vector<bool > >     ("elsisGsfCtfScPixChargeConsistent").setBranchAlias("els_isGsfCtfScPixChargeConsistent");
 
+    produces<vector<int> >       ("elstype"                    ).setBranchAlias("els_type"                   );
+    produces<vector<float> >     ("elseSeed"                   ).setBranchAlias("els_eSeed"                  );
+
     // predefined ID decisions
     // http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
 
@@ -352,6 +355,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_eSCPresh    (new vector<float> );
     auto_ptr<vector<float> > els_etaSCwidth  (new vector<float> );
     auto_ptr<vector<float> > els_phiSCwidth  (new vector<float> );
+    auto_ptr<vector<int> >   els_type        (new vector<int>   );
 
     // uncertainties and corrections
     // somewhat complicated: see 
@@ -365,6 +369,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   
     // ID variables
     //
+    auto_ptr<vector<float> > els_eSeed                         (new vector<float> );
     auto_ptr<vector<float> > els_dEtaIn                        (new vector<float> );
     auto_ptr<vector<float> > els_dEtaOut                       (new vector<float> );
     auto_ptr<vector<float> > els_dPhiIn                        (new vector<float> );
@@ -441,6 +446,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float> > els_ip3derr    (new vector<float> );
     auto_ptr<vector<float> > els_ip2d       (new vector<float> );
     auto_ptr<vector<float> > els_ip2derr    (new vector<float> );
+
   
     // LorentzVectors
     //
@@ -800,6 +806,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_p4Out              ->push_back( p4Out                                           );
         els_vertex_p4          ->push_back( LorentzVector(el->vx(), el->vy(), el->vz(), 0.) );
         els_trk_vertex_p4      ->push_back( LorentzVector(el_track->vx(), el_track->vy(), el_track->vz(), 0.) );
+        els_type               ->push_back( electronTypeMask                                );
 
 
         ///////////////
@@ -889,6 +896,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  
 	
 	  // The one below is kept for historical reasons
+
+	  els_eSeed                  ->push_back(el->superCluster()->seed()->energy());
 	  
 	  els_scSeedEta              ->push_back(el->superCluster()->seed()->eta());
 
@@ -980,6 +989,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 	  els_scSeedEta              ->push_back(-999.);
 
+	  els_eSeed                  ->push_back(-999.);	  
 
 
 
@@ -1359,6 +1369,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_eSCPresh    , "elseSCPresh"    );
     iEvent.put(els_etaSCwidth  , "elsetaSCwidth"  );
     iEvent.put(els_phiSCwidth  , "elsphiSCwidth"  );
+    iEvent.put(els_eSeed       , "elseSeed"       );
+    iEvent.put(els_type        , "elstype"        );
 
     // Corrections and uncertainties
     //

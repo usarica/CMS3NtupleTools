@@ -142,7 +142,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
     // ECAL related (superCluster) variables
     produces<vector<int> >       ("elsnSeed"                   ).setBranchAlias("els_nSeed"                  );
     produces<vector<int> >       ("elsfiduciality"             ).setBranchAlias("els_fiduciality"            );
-    produces<vector<int> >       ("elstype"                    ).setBranchAlias("els_type"                   );
 //    produces<vector<int> >       ("elsscindex"                 ).setBranchAlias("els_scindex"                );
 
     // Corrections and uncertainties
@@ -157,7 +156,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
     produces<vector<float> >     ("elsmva"                     ).setBranchAlias("els_mva"                    );
 
     produces<vector<float> >     ("elsdPhiInPhiOut"            ).setBranchAlias("els_dPhiInPhiOut"           );
-    produces<vector<float> >     ("elseSeed"                   ).setBranchAlias("els_eSeed"                  );
     produces<vector<float> >     ("elseSeedOverPOut"           ).setBranchAlias("els_eSeedOverPOut"          );
     produces<vector<float> >     ("elseSeedOverPIn"            ).setBranchAlias("els_eSeedOverPIn"           );
 
@@ -374,7 +372,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // ECAL related (superCluster) variables
     auto_ptr<vector<int> >   els_nSeed       (new vector<int>   );
     auto_ptr<vector<int> >   els_fiduciality (new vector<int>   );
-    auto_ptr<vector<int> >   els_type        (new vector<int>   );
 //    auto_ptr<vector<int> >   els_scindex     (new vector<int>   ); 
 
     // uncertainties and corrections
@@ -392,7 +389,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //auto_ptr<vector<float> > els_lh                            (new vector<float> );
     auto_ptr<vector<float> > els_mva                           (new vector<float> );
     auto_ptr<vector<float> > els_dPhiInPhiOut                  (new vector<float> );
-    auto_ptr<vector<float> > els_eSeed                         (new vector<float> );
     auto_ptr<vector<float> > els_eSeedOverPOut                 (new vector<float> );
     auto_ptr<vector<float> > els_eSeedOverPIn                  (new vector<float> );
     auto_ptr<vector<float> > els_deltaEtaEleClusterTrackAtCalo (new vector<float> );
@@ -834,7 +830,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //////////////
 
         els_fiduciality        ->push_back( fiducialityMask                                 );
-        els_type               ->push_back( electronTypeMask                                );
         //els_ecalEnergy         ->push_back( el->ecalEnergy()                                );  // energy corrections and uncertainties
         //els_ecalEnergyError    ->push_back( el->ecalEnergyError()                           );
         els_ecalEnergy         ->push_back( el->correctedEcalEnergy()                       );  // energy corrections and uncertainties
@@ -916,7 +911,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  els_scR                    ->push_back(el->superCluster()->position().R());
 	
 	  // The one below is kept for historical reasons
-	  els_eSeed                  ->push_back(el->superCluster()->seed()->energy());
 	  
 	  els_scSeedPhi              ->push_back(el->superCluster()->seed()->phi());
 	  els_scSeedSize             ->push_back(el->superCluster()->seed()->hitsAndFractions().size());
@@ -1106,7 +1100,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  els_scPreshowerEnergyPlane2->push_back(-999.);
 	  els_scIsEB                 ->push_back(-999.);
 	  els_scR                    ->push_back(-999.);
-	  els_eSeed                  ->push_back(-999.);	  
 	  els_scSeedPhi              ->push_back(-999.);
 	  els_scSeedSize             ->push_back(-999.);
 	  els_scSeedE3x3             ->push_back(-999.);
@@ -1494,9 +1487,7 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_e5x5        , "else5x5"        );
     iEvent.put(els_e2x5Max     , "else2x5Max"     );
 //    iEvent.put(els_eMax        , "elseMax"        );
-    iEvent.put(els_eSeed       , "elseSeed"       );
     iEvent.put(els_fiduciality , "elsfiduciality" );
-    iEvent.put(els_type        , "elstype"        );
 //    iEvent.put(els_scindex     , "elsscindex"     );
 
     // Corrections and uncertainties
