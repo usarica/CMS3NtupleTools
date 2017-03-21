@@ -1,6 +1,5 @@
 #include "CMS3/NtupleMaker/interface/HLTMaker.h"
 //#include <fstream>
-#include "TBits.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
@@ -55,6 +54,8 @@ hltConfig_(iConfig, consumesCollector(), *this) {
   
   // isData_ = iConfig.getParameter<bool>("isData");
   
+  doFillInformation = true;
+  // haveFilledInformation = false;
 }
 
 void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
@@ -74,6 +75,15 @@ void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
 	} 
     else throw cms::Exception("HLTMaker::beginRun: config extraction failure with process name " + processName_);
   }
+
+
+}
+
+void HLTMaker::beginLuminosityBlock(const edm::LuminosityBlock& iLuminosityBlock, const edm::EventSetup& iSetup){
+    doFillInformation = true;
+    // cached_prescales =   auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+    cached_prescales.clear();
+    cached_l1prescales.clear();
 }
 
 void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
@@ -138,11 +148,23 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 //  // sanity check
 //  assert(triggerResultsH_->size()==hltConfig_.size());
 
-  auto_ptr<vector<unsigned int> > prescales   (new vector<unsigned int>);
-  auto_ptr<vector<unsigned int> > l1prescales (new vector<unsigned int>);
+
+  // if (doFillInformation) {
+  //     doFillInformation = false;
 
   unsigned int nTriggers = triggerResultsH_->size();
   //if (nTriggers > 768) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 768 )", nTriggers) );
+
+
+  // bits = auto_ptr<TBits>                                 (new TBits(nTriggers));
+  // trigNames = auto_ptr<vector<TString> >                 (new vector<TString>);
+  // trigObjsid = auto_ptr<vector<vector<int> > >           (new vector<vector<int> >);
+  // trigObjsp4 = auto_ptr<vector<vector<LorentzVector> > > (new vector<vector<LorentzVector> >);
+  // trigObjspassLast = auto_ptr<vector<vector<bool> > >    (new vector<vector<bool> >);
+  // trigObjsfilters = auto_ptr<vector<vector<TString> > >  (new vector<vector<TString> >);
+  // prescales =   auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+  // l1prescales = auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+
 
   auto_ptr<TBits>                           bits      (new TBits(nTriggers));
   auto_ptr<vector<TString> >                trigNames (new vector<TString>);
@@ -150,11 +172,26 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto_ptr<vector<vector<LorentzVector> > > trigObjsp4(new vector<vector<LorentzVector> >);
   auto_ptr<vector<vector<bool> > >          trigObjspassLast(new vector<vector<bool> >);
   auto_ptr<vector<vector<TString> > >       trigObjsfilters(new vector<vector<TString> >);
-  trigNames ->reserve(nTriggers);
+  auto_ptr<vector<unsigned int> > prescales   (new vector<unsigned int>);
+  auto_ptr<vector<unsigned int> > l1prescales (new vector<unsigned int>);
+
+  trigNames->reserve(nTriggers);
   trigObjsid->reserve(nTriggers);
   trigObjsp4->reserve(nTriggers);
   trigObjspassLast->reserve(nTriggers);
   trigObjsfilters->reserve(nTriggers);
+  prescales->reserve(nTriggers);
+  l1prescales->reserve(nTriggers);
+
+  // if it's data, cache for only a single lumi block, otherwise cache for whole job
+  bool isdata = iEvent.isRealData();
+  // bool make_cache = isdata ? doFillInformation : !haveFilledInformation;
+  bool make_cache = doFillInformation;
+  if (make_cache) {
+      // and then mark these flags for subsequent events
+      doFillInformation = false;
+      // haveFilledInformation = true;
+  }
 
   std::vector<bool> doFillTrigger; // map trigger index to decision to fill triggerobjects for it
 
@@ -170,37 +207,41 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       //What is your prescale?
 	  //Buggy way in miniAOD
       // prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
-	  bool isdata = iEvent.isRealData();
 
 	  if(isdata){
 
-		//get prescale info from hltConfig_
-		std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
-		prescales->push_back( triggerPrescalesH_.isValid() ? detailedPrescaleInfo.second : -1 );
-	  
-		// save l1 prescale values in standalone vector
-		std::vector <int> l1prescalevals;
-		for( size_t varind = 0; varind < detailedPrescaleInfo.first.size(); varind++ ){
-		  l1prescalevals.push_back(detailedPrescaleInfo.first.at(varind).second);
-		}
+          //get prescale info from hltConfig_
+          if (make_cache) {
+              std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
+              cached_prescales.push_back( triggerPrescalesH_.isValid() ? detailedPrescaleInfo.second : -1 );
 
-		// find and save minimum l1 prescale of any ORed L1 that seeds the HLT
-		std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
-		size_t minind = std::distance(std::begin(l1prescalevals), result);
+              // save l1 prescale values in standalone vector
+              std::vector <int> l1prescalevals;
+              for( size_t varind = 0; varind < detailedPrescaleInfo.first.size(); varind++ ){
+                  l1prescalevals.push_back(detailedPrescaleInfo.first.at(varind).second);
+              }
+
+              // find and save minimum l1 prescale of any ORed L1 that seeds the HLT
+              std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
+              size_t minind = std::distance(std::begin(l1prescalevals), result);
+              cached_l1prescales.push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
+          }
 		// sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
-		l1prescales->push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
+        prescales->push_back( (cached_prescales).at(i) );
+		l1prescales->push_back( (cached_l1prescales).at(i) );
 	  }
       else {
-	  	prescales   -> push_back( hltConfig_.prescaleValue(iEvent, iSetup, name) );
+	  	if (make_cache) cached_prescales.push_back( hltConfig_.prescaleValue(iEvent, iSetup, name) );
+        prescales   -> push_back( (cached_prescales).at(i) );
 	  	l1prescales -> push_back( 1 );
 	  }
-	    
 
 	  // Passed... F+
 	  if (triggerResultsH_->accept(i)){
 		bits->SetBitNumber(i);
 	  }
     }
+
 
 
   if (fillTriggerObjects_) {
@@ -271,6 +312,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     } // end of loop over trigger objects
   }
+
+  // }
 	
   // strip upper zeros
   bits->Compact();

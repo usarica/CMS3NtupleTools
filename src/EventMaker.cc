@@ -139,7 +139,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // if isData then derive bfield using the
     // magnet current from DcsStatus
     // otherwise take it from the IdealMagneticFieldRecord
-    if (isData_)
+    if (iEvent.isRealData())
     {
         // scale factor = 3.801/18166.0 which are
         // average values taken over a stable two
@@ -162,7 +162,7 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
     }
 
-    if (isData_ && scalersHandle.isValid() && scalersHandle->size()) {
+    if (iEvent.isRealData() && scalersHandle.isValid() && scalersHandle->size()) {
         *evt_instantLumi = (*scalersHandle)[0].instantLumi();
         *evt_instantLumiErr = (*scalersHandle)[0].instantLumiErr();
         *evt_lumiFill = (*scalersHandle)[0].lumiFill();
