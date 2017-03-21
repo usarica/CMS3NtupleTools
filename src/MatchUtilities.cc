@@ -130,9 +130,14 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
   for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
 
     if ( status != 999 && itPart->status() != status ) continue;
-    if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
-      continue;
-    // if ( std::binary_search(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId() )) ) continue; // slower than regular find
+    // if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
+    //   continue;
+    int id = itPart->pdgId();
+    if (id == 12) continue;
+    if (id == 14) continue;
+    if (id == 16) continue;
+    if (id == 18) continue;
+    if (id == 1000022) continue;
 
     const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
