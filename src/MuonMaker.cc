@@ -807,10 +807,25 @@ void MuonMaker::muIsoCustomCone( edm::View<pat::Muon>::const_iterator& mu, float
     float deadcone_ph = 0.01;
     float deadcone_nh = 0.01;
 
+  double phi = mu->p4().Phi();
+  double eta = mu->p4().Eta();
+  double pi = 3.14159265;
+
     for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
         float id = pf_it->pdgId();
         if (fabs(id) != 211 && fabs(id) != 130 && fabs(id) != 22) continue;
-        float thisDR = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),mu->p4()));
+
+        double deltaPhi = phi-pf_it->p4().Phi();
+        if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
+        else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
+        deltaPhi = fabs(deltaPhi);
+        if (deltaPhi > dr) continue;
+        double deltaEta = fabs(pf_it->p4().Eta()-eta);
+        if (deltaEta > dr) continue;
+        double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+        // float thisDR_old = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),mu->p4()));
+        // std::cout << " thisDR: " << thisDR << " thisDR_old: " << thisDR_old << std::endl;
+
         if ( thisDR>dr ) continue;  
         float pt = pf_it->p4().pt();
         if ( fabs(id)==211 ) {

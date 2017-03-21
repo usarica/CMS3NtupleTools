@@ -536,7 +536,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     if( !els_h.isValid() ) {
       throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
     }
-    View<pat::Electron> gsfElColl = *(els_h.product());
 
 
 
@@ -888,20 +887,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	  els_eSeed                  ->push_back(el->superCluster()->seed()->energy());
 	  
 	  els_scSeedEta              ->push_back(el->superCluster()->seed()->eta());
-
-	  ///////////////////////////////////////////////////////
-	  // Get crystal info that is not stored in the object //
-	  ///////////////////////////////////////////////////////
-	  EcalClusterLocal ecalLocal;
-	  if(el->superCluster()->seed()->hitsAndFractions().at(0).first.subdetId()==EcalBarrel) {
-	    float cryPhi, cryEta, thetatilt, phitilt;
-	    int ieta, iphi;
-	    ecalLocal.localCoordsEB(*(el->superCluster()->seed()), iSetup, cryEta, cryPhi, ieta, iphi, thetatilt, phitilt);
-	  } else {
-	    float cryX, cryY, thetatilt, phitilt;
-	    int ix, iy;
-	    ecalLocal.localCoordsEE(*(el->superCluster()->seed()), iSetup, cryX, cryY, ix, iy, thetatilt, phitilt);
-	  }
 
 	  ///////////////////////////////////
 	  // Information about subclusters //
@@ -1582,6 +1567,11 @@ void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el
   float deadcone_ch = 0.;
   float deadcone_pu = 0.;
   float deadcone_ph = 0.;
+
+  double phi = el->p4().Phi();
+  double eta = el->p4().Eta();
+  double pi = 3.14159265;
+
   // veto cones only in the endcap for electrons
   if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) { 
     deadcone_ch = 0.015;
@@ -1591,7 +1581,18 @@ void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el
   for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
     float id = pf_it->pdgId();
     if (fabs(id) != 211 && fabs(id) != 130 && fabs(id) != 22) continue;
-    float thisDR = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),el->p4()));
+
+    double deltaPhi = phi-pf_it->p4().Phi();
+    if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
+    else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
+    deltaPhi = fabs(deltaPhi);
+    if (deltaPhi > dr) continue;
+    double deltaEta = fabs(pf_it->p4().Eta()-eta);
+    if (deltaEta > dr) continue;
+    double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+    // float thisDR_old = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),el->p4()));
+    // std::cout << " thisDR: " << thisDR << " thisDR_old: " << thisDR_old << std::endl;
+
     if ( thisDR>dr ) continue;  
     float pt = pf_it->p4().pt();
     if ( fabs(id)==211 ) {
