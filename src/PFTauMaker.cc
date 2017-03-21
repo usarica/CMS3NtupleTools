@@ -41,30 +41,17 @@ using namespace CommonUtils;
 
 PFTauMaker::PFTauMaker(const edm::ParameterSet& iConfig) {
 
-  aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
-  std::string branchprefix = aliasprefix_;
-  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-  do_full_ = iConfig.getUntrackedParameter<bool>("do_full");
+    aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
+    std::string branchprefix = aliasprefix_;
+    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
-  produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
-  produces<vector<TString> >          (branchprefix+"IDnames"                    ).setBranchAlias(aliasprefix_+"_IDnames"                     );
-  produces<vector<vector<float>> >    (branchprefix+"IDs"                        ).setBranchAlias(aliasprefix_+"_IDs"                         );
+    produces<vector<LorentzVector> >  (branchprefix+"p4"                            ).setBranchAlias(aliasprefix_+"_p4"                             );
+    produces<vector<int> >            (branchprefix+"charge"                        ).setBranchAlias(aliasprefix_+"_charge"                         );
+    produces<vector<TString> >          (branchprefix+"IDnames"                    ).setBranchAlias(aliasprefix_+"_IDnames"                     );
+    produces<vector<vector<float>> >    (branchprefix+"IDs"                        ).setBranchAlias(aliasprefix_+"_IDs"                         );
 
-  // produces<vector<int> >            (branchprefix+"pfjetIndex"                        ).setBranchAlias(aliasprefix_+"_pfjetIndex"                 );
-  // produces<vector<float> >          (branchprefix+"mass"                          ).setBranchAlias(aliasprefix_+"_mass"                           );  
-  // produces<vector<vector<int> >  >  (branchprefix+"pfcandIndicies"                ).setBranchAlias(aliasprefix_+"_pfcandIndicies"                 );
-  // produces<vector<LorentzVector> >  (branchprefix+"leadchargecandp4"              ).setBranchAlias(aliasprefix_+"_lead_chargecand_p4"             );
-  // produces<vector<LorentzVector> >  (branchprefix+"leadneutrcandp4"               ).setBranchAlias(aliasprefix_+"_lead_neutrcand_p4"              );
-  // produces<vector<vector<LorentzVector> > > (branchprefix+"signalcandsp4"         ).setBranchAlias(aliasprefix_+"_signalcands_p4"                 );
-  // produces<vector<vector<LorentzVector> > > (branchprefix+"isocandsp4"            ).setBranchAlias(aliasprefix_+"_isocands_p4"                    );
-
-  /////get setup parameters
-  pftausToken = consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("pftausInputTag"));
-  // cms2PFJetsTag_                       = iConfig.getParameter<edm::InputTag>("cms2PFJetsTag"     );
-  // referencePFJetsTag_                  = iConfig.getParameter<edm::InputTag>("referencePFJetsTag");
-  // particleFlowTag_                     = iConfig.getParameter<edm::InputTag>("particleFlowTag"   );
-
+    /////get setup parameters
+    pftausToken = consumes<edm::View<pat::Tau> >(iConfig.getParameter<edm::InputTag>("pftausInputTag"));
 }
             
 PFTauMaker::~PFTauMaker() {}
@@ -79,226 +66,51 @@ void PFTauMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
           
-  auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
-  auto_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
-  auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
-  auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
+    auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
+    auto_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
+    auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+    auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
 
-  auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);                          
-  // auto_ptr<vector<vector<int> >  > taus_pf_pfcandIndicies                                        (new vector<vector<int> >);
-  // auto_ptr<vector<int> >           taus_pf_pfjetIndex                                            (new vector<int>);
+    auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);                          
                               
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
-  auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
+    auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
+    auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
 
-  //set auto pointers for tau id container
-  auto_ptr<vector<vector<float>> >    taus_pf_IDs       (new vector<vector<float>>    ); 
-  auto_ptr<vector<TString> >          taus_pf_IDnames   (new vector<TString>           ); // Only set names once per event. All taus have same IDs
+    //set auto pointers for tau id container
+    auto_ptr<vector<vector<float>> >    taus_pf_IDs       (new vector<vector<float>>    ); 
+    auto_ptr<vector<TString> >          taus_pf_IDnames   (new vector<TString>           ); // Only set names once per event. All taus have same IDs
 
-
-  /////  cout << "run " << iEvent.run() << " lumi" << iEvent.luminosityBlock() << " event " <<  iEvent.id() << endl;
- 
-  //get pfcandidates and jet collection for matching
-  // Handle<PFCandidateCollection> pfCandidatesHandle;
-  // iEvent.getByLabel(particleFlowTag_, pfCandidatesHandle);
-  // const PFCandidateCollection *pfCandidates  = pfCandidatesHandle.product();
-
-  // edm::Handle<reco::PFJetCollection> referencePFJetsHandle;
-  // iEvent.getByLabel(referencePFJetsTag_, referencePFJetsHandle);
-  // const reco::PFJetCollection *referencePFJets = referencePFJetsHandle.product();
     
-  // // get the tauJets
-  // edm::Handle<reco::PFTauCollection> collectionHandle;
-  // iEvent.getByLabel(pftausInputTag_, collectionHandle);
-  // const reco::PFTauCollection *collection = collectionHandle.product();
+    //get PAT taus
+    Handle<View<pat::Tau> > taus_h;
+    iEvent.getByToken(pftausToken, taus_h);
+    // View<pat::Tau> *TauColl = taus_h.product();
 
-  // for ( int iTauJet = 0; iTauJet < (int)collection->size(); ++iTauJet) { //original                                                                              
+    //loop over taus
+    for( View<pat::Tau>::const_iterator tau = taus_h->begin(); tau != taus_h->end(); tau++/*, tausIndex++*/ ) {
+
+        taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
+        taus_pf_charge               -> push_back( tau->charge()              );
     
-  // const reco::PFTau& cand = collection->at(iTauJet);
-
-  // // reco::PFCandidate::tau
-    
-  // reco::PFTauRef theTauJetRef(collectionHandle, iTauJet);
-    
-  //get PAT taus
-  Handle<View<pat::Tau> > taus_h;
-  iEvent.getByToken(pftausToken, taus_h);
-  // View<pat::Tau> *TauColl = taus_h.product();
-
-  //loop over taus
-  // *evt_ntaus       = taus_h->size();
-  // size_t tausIndex = 0;
-  for( View<pat::Tau>::const_iterator tau = taus_h->begin(); tau != taus_h->end(); tau++/*, tausIndex++*/ ) {
-
-    taus_pf_p4                   -> push_back( LorentzVector( tau->p4() ) );
-    taus_pf_mass                 -> push_back( tau->mass()                );
-    taus_pf_charge               -> push_back( tau->charge()              );
-
-   // leadChargedHadrCand()
-   if( !tau->leadChargedHadrCand().isNull() ){ taus_pf_lead_chargecand_p4 -> push_back( LorentzVector( tau->leadChargedHadrCand() -> p4() ) );}
-   else                                      { taus_pf_lead_chargecand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                          }
-   // leadNeutralCand()
-   if( !tau->leadNeutralCand().isNull() ){ taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector( tau->leadNeutralCand() -> p4() ) );}
-   else                                  { taus_pf_lead_neutrcand_p4 -> push_back( LorentzVector(0, 0, 0, 0) );                      }
-
-   //  signalCands()
-   vector<LorentzVector> signalCandsPerTau;
-   for( size_t signalCandsInd = 0; signalCandsInd < tau->signalCands().size(); signalCandsInd++ ){
-     if( !tau->signalCands().isNull() ){ signalCandsPerTau  .  push_back( LorentzVector( tau->signalCands()[signalCandsInd] -> p4() ) );}
-     else                              { signalCandsPerTau  .  push_back( LorentzVector(0, 0, 0, 0) );                  }
-   }
-   taus_pf_signalcands_p4 -> push_back(signalCandsPerTau);
-
-   //  isolationCands()
-   vector<LorentzVector> isoCandsPerTau;
-   for( size_t isoCandsInd = 0; isoCandsInd < tau->isolationCands().size(); isoCandsInd++ ){
-     if( !tau->isolationCands().isNull() ){ isoCandsPerTau   .  push_back( LorentzVector( tau->isolationCands()[isoCandsInd] -> p4() ) );}
-     else                                 { isoCandsPerTau   .  push_back( LorentzVector(0, 0, 0, 0) );                     }
-   }
-   taus_pf_isocands_p4->push_back(isoCandsPerTau);
-
-    // std::cout<<"pfJetRef: ";
-    // std::cout<<tau->pfJetRef().get()->p4()<<std::endl;
-    
-    const vector<pair<string, float>> IDs = tau->tauIDs();
-    vector<float>  thisTauIds;
-    thisTauIds.clear();
-    for (size_t tauidind = 0; tauidind < IDs.size(); tauidind++ ){
-      //cout<<IDs.at(tauidind).first <<" "<<IDs.at(tauidind).second<<endl;
-      // Save names only once
-      if (tau == taus_h->begin()) taus_pf_IDnames->push_back(   IDs.at(tauidind).first   );
-      thisTauIds.push_back( IDs.at(tauidind).second );
+        const vector<pair<string, float>> IDs = tau->tauIDs();
+        vector<float>  thisTauIds;
+        thisTauIds.clear();
+        for (size_t tauidind = 0; tauidind < IDs.size(); tauidind++ ){
+            // Save names only once
+            if (tau == taus_h->begin()) taus_pf_IDnames->push_back(   IDs.at(tauidind).first   );
+            thisTauIds.push_back( IDs.at(tauidind).second );
+        }
+        taus_pf_IDs->push_back(   thisTauIds   ); 
     }
-    taus_pf_IDs->push_back(   thisTauIds   ); 
-  
-
-
-  
-    //use this to spit out the available discriminators in each event
-    // const std::vector< std::pair<std::string, float> > tau_IDPair = tau->tauIDs();
-    // for( size_t tauind = 0; tauind < tau_IDPair.size(); tauind++ ){
-    //   std::cout<<tau_IDPair.at(tauind).first<<" : "<<tau_IDPair.at(tauind).second<<std::endl;
-    // }
-
-    // everything beyond this point is not used in miniAOD
-
-    // for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
-
-    // }      
-
-  }
-  
-  /////////
-  //store indices of PFCandidates associated to this tau and the index of the jet itself
-  ////////
     
-  // vector<int> pfcandIndicies;
-  // int pfjetIndex;      
-    
-  // const reco::PFJetRef & myJet=cand.jetRef();
-    
-  // int ijet = 0;
+    std::string branchprefix = aliasprefix_;
+    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  // for(reco::PFJetCollection::const_iterator jet_it = referencePFJets->begin(); jet_it != referencePFJets->end(); ++jet_it){
-
-  //   reco::PFJetRef jet_new( referencePFJetsHandle , jet_it - referencePFJetsHandle->begin() );
-      
-  //   //if a match is found, store index in pfjet
-  //   if(  myJet.key() == jet_new.key() ) pfjetIndex=ijet;
-  //   //      if(  myJet.key() == jet_new.key() ) cout << "the matched jet " << jet_it->pt() << " the tau pt is " << cand.pt() << " jet index " << pfjetIndex << endl;
-  //   ijet++;      
-
-  // }
-    
-  // taus_pf_pfjetIndex->push_back( pfjetIndex );
-    
-  //    LorentzVector p4TAU;
-
-  // for(std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator pref_it = tau->signalPFCands().begin(); pref_it!=tau->signalPFCands().end(); ++pref_it) {
-
-  //   int ipf = 0;
-    
-  //   for(reco::PFCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); ++pf_it){
-    
-  //     reco::PFCandidateRef pref_new( pfCandidatesHandle , pf_it - pfCandidatesHandle->begin() );
-        
-  //     //if a match is found, store index in pfcandIndicies
-  //     if( pref_it->key() == pref_new.key() ) pfcandIndicies.push_back(ipf);
-
-  //     ++ipf;
-      
-  //   }
-          
-  // }
-      
-
-  // taus_pf_pfcandIndicies->push_back( pfcandIndicies );
-            
-  ///////////
-          
-
-
-
-  /*
-    if(theTauJetRef->pt()>10 && fabs(theTauJetRef->eta())<5) {
-    cout << "tauJet: pt " << theTauJetRef->pt() 
-    << " eta " << theTauJetRef->eta()
-    << " byLooseCombinedIsolationDeltaBetaCorr " << (*hpsTauDiscrbyLooseCombinedIsolationDeltaBetaCorr) [theTauJetRef] 
-    << " ByDecayModeFinding "  << (*hpsTauDiscrbyDecayModeFinding)[theTauJetRef] << endl;
-    }
-  */
-        
-  // }
-    
-  std::string branchprefix = aliasprefix_;
-  if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-
-
-  iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
-  // iEvent.put(taus_pf_mass                                 ,branchprefix+"mass"                                     );  
-  iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
-
-  // iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
-  // iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
-  // iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
-  // iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
-  iEvent.put(taus_pf_IDs                                  ,branchprefix+"IDs"                                      ); 
-  iEvent.put(taus_pf_IDnames                              ,branchprefix+"IDnames"                                  ); 
-
-  // iEvent.put(taus_pf_pfcandIndicies                                      , branchprefix+"pfcandIndicies"                                ) ;
-  // iEvent.put(taus_pf_pfjetIndex                                          , branchprefix+"pfjetIndex"                                    ) ;
-
-  //fill tau discriminator branches
-//  for( size_t tauidind = 0; tauidind < tauIDCollection_.size(); tauidind++ ){
-//    iEvent.put(taus_pf_ids[tauidind]                         , branchprefix+tauIDCollection_.at(tauidind)                       ) ;
-//  }
-
-
- 
+    iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
+    iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
+    iEvent.put(taus_pf_IDs                                  ,branchprefix+"IDs"                                      ); 
+    iEvent.put(taus_pf_IDnames                              ,branchprefix+"IDnames"                                  ); 
 }
-
-/*
-//---------------------------------------------------------------------------------------
-edm::RefToBase<reco::Jet> PFTauMaker::getReferenceJetRef(const edm::View<reco::Jet>* refJets, const reco::Jet* jet) {
-double mindR = 0.01;
-edm::RefToBase<reco::Jet> retRef = edm::RefToBase<reco::Jet>();
-for(edm::View<reco::Jet>::const_iterator it = refJets->begin();  
-it!= refJets->end(); it++) {
-double dR = ROOT::Math::VectorUtil::DeltaR(it->p4(), jet->p4());
-if(dR < mindR) {
-mindR = dR;
-unsigned int idx = it - refJets->begin();
-retRef = refJets->refAt(idx);
-}
-}
-if (mindR == 0.01)
-std::cout << "\n didn't find a match!\n";
-if(!retRef.isNonnull())
-throw cms::Exception("Reference jet not found in TauMaker");
-return retRef;
-    
-}
-*/
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(PFTauMaker);
