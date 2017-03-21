@@ -176,30 +176,12 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     // pfjets
     //info of matched genJet
     auto_ptr<vector<float>         > vector_pfjets_mcdr          (new vector<float>        );
-    auto_ptr<vector<int>           > vector_pfjets_mcidx         (new vector<int>          );
-    auto_ptr<vector<float>         > vector_pfjets_mc_emEnergy   (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_hadEnergy  (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_invEnergy  (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_otherEnergy(new vector<float>        ); 
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_p4         (new vector<LorentzVector>); 
     //info of matched gen particle
-    auto_ptr<vector<float>         > vector_pfjets_mc_gpdr       (new vector<float>        );
-    auto_ptr<vector<int>           > vector_pfjets_mc_gpidx      (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_gp_p4      (new vector<LorentzVector>); 
-    auto_ptr<vector<int>           > vector_pfjets_mc_id         (new vector<int>          );
     auto_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_motherp4   (new vector<LorentzVector>);
     //info of matched status 3 particle
     auto_ptr<vector<float>         > vector_pfjets_mc3dr         (new vector<float>        );
     auto_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
     auto_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
-
-    // ak8 pfjets
-    //info of matched genJet
-    auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_p4        (new vector<LorentzVector>); 
-    //info of matched gen particle
-    auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_gp_p4     (new vector<LorentzVector>); 
-    auto_ptr<vector<int>           > vector_ak8jets_mc_id        (new vector<int>          );
   
 
     // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
@@ -460,20 +442,8 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     
         if ( matchedGenJet != 0 ) {
             vector_pfjets_mcdr          ->push_back(ROOT::Math::VectorUtil::DeltaR(*pfjetsp4_it, (*matchedGenJet).p4() ));
-            vector_pfjets_mcidx         ->push_back(idx);
-            vector_pfjets_mc_emEnergy   ->push_back(matchedGenJet->emEnergy());
-            vector_pfjets_mc_hadEnergy  ->push_back(matchedGenJet->hadEnergy());
-            vector_pfjets_mc_invEnergy  ->push_back(matchedGenJet->invisibleEnergy());
-            vector_pfjets_mc_otherEnergy->push_back(matchedGenJet->auxiliaryEnergy());
-            vector_pfjets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
         } else {
             vector_pfjets_mcdr           ->push_back(-9999  );
-            vector_pfjets_mcidx          ->push_back(idx    );
-            vector_pfjets_mc_emEnergy    ->push_back(-9999.  );
-            vector_pfjets_mc_hadEnergy   ->push_back(-9999.  );
-            vector_pfjets_mc_invEnergy   ->push_back(-9999.  );
-            vector_pfjets_mc_otherEnergy ->push_back(-9999.  );
-            vector_pfjets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
         }
 
         int temp;
@@ -483,19 +453,9 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
         if ( matchedGenParticle != 0 ) {
             const GenParticle* matchedMotherParticle = MCUtilities::motherIDPacked(*matchedGenParticle			);
-            vector_pfjets_mc_gpdr   	->push_back(ROOT::Math::VectorUtil::DeltaR(*pfjetsp4_it, (*matchedGenParticle).p4() )	);
-            vector_pfjets_mc_gpidx  	->push_back(temp									);
-            vector_pfjets_mc_gp_p4  	->push_back(LorentzVector( matchedGenParticle->p4() ) 					);
-            vector_pfjets_mc_id     	->push_back(matchedGenParticle->pdgId()							);
             vector_pfjets_mc_motherid	->push_back(matchedMotherParticle != 0 ? matchedMotherParticle->pdgId()              : -9999	         	);
-            vector_pfjets_mc_motherp4	->push_back(matchedMotherParticle != 0 ? LorentzVector( matchedMotherParticle->p4()) : LorentzVector(0,0,0,0)      );
         } else {
-            vector_pfjets_mc_gpdr   	->push_back(-9999			);
-            vector_pfjets_mc_gpidx  	->push_back(-9999			);
-            vector_pfjets_mc_gp_p4  	->push_back(LorentzVector(0,0,0,0)	);
-            vector_pfjets_mc_id  	->push_back(-9999			);
             vector_pfjets_mc_motherid ->push_back(-9999);
-            vector_pfjets_mc_motherp4 ->push_back(LorentzVector(0,0,0,0));
         }
 
         const GenParticle* matchedGenParticleDoc = MatchUtilities::matchCandToGen(*pfjetsp4_it, 
@@ -512,37 +472,6 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         }
     
     }//jets 
-    // ****************************************************************************************//
-
-
-    // ***************************************  fill AK8PFJets *************************************************//
-    for(vector<LorentzVector>::const_iterator ak8jetsp4_it = ak8JetsHandle->begin();
-        ak8jetsp4_it != ak8JetsHandle->end();
-        ak8jetsp4_it++) {
-
-        int idx = -9999;
-        const GenJet* matchedGenJet = MatchUtilities::matchCandToGenJet(*ak8jetsp4_it,genJetsHandle.product(), idx);
-    
-        if ( matchedGenJet != 0 ) {
-            vector_ak8jets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
-        } else {
-            vector_ak8jets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
-        }
-
-        int temp;
-        const pat::PackedGenParticle* matchedGenParticle = MatchUtilities::matchCandToGen(*ak8jetsp4_it, 
-                                                                                          v_genParticlesS1,
-                                                                                          temp, 1, vPIDsToExclude_);
-
-        if ( matchedGenParticle != 0 ) {
-            vector_ak8jets_mc_gp_p4  	->push_back(LorentzVector( matchedGenParticle->p4() ) 					);
-            vector_ak8jets_mc_id     	->push_back(matchedGenParticle->pdgId()							);
-        } else {
-            vector_ak8jets_mc_gp_p4  	->push_back(LorentzVector(0,0,0,0)	);
-            vector_ak8jets_mc_id  	->push_back(-9999			);
-        }
-
-    }//ak8 jets 
     // ****************************************************************************************//
 
     iEvent.put(vector_els_mc_id          		,"elsmcid"          	);
@@ -582,25 +511,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     iEvent.put(vector_mus_mc3dr          		,"musmc3dr"         	);
 
     iEvent.put(vector_pfjets_mcdr          	,"pfjetsmcdr"         	);
-    iEvent.put(vector_pfjets_mcidx         	,"pfjetsmcidx"        	);
-    iEvent.put(vector_pfjets_mc_emEnergy   	,"pfjetsmcemEnergy"   	);
-    iEvent.put(vector_pfjets_mc_hadEnergy  	,"pfjetsmchadEnergy"  	);
-    iEvent.put(vector_pfjets_mc_invEnergy  	,"pfjetsmcinvEnergy"  	);
-    iEvent.put(vector_pfjets_mc_otherEnergy	,"pfjetsmcotherEnergy"	);
-    iEvent.put(vector_pfjets_mc_p4         	,"pfjetsmcp4"         	);
-    iEvent.put(vector_pfjets_mc_gpdr       	,"pfjetsmcgpdr"       	);
-    iEvent.put(vector_pfjets_mc_gpidx      	,"pfjetsmcgpidx"      	);
-    iEvent.put(vector_pfjets_mc_gp_p4      	,"pfjetsmcgpp4"       	);
-    iEvent.put(vector_pfjets_mc_id         	,"pfjetsmcid"      	);
     iEvent.put(vector_pfjets_mc_motherid   	,"pfjetsmcmotherid"   	);
-    iEvent.put(vector_pfjets_mc_motherp4   	,"pfjetsmcmotherp4"   	); 
     iEvent.put(vector_pfjets_mc3dr         	,"pfjetsmc3dr"        	);
     iEvent.put(vector_pfjets_mc3idx        	,"pfjetsmc3idx"       	);
     iEvent.put(vector_pfjets_mc3_id        	,"pfjetsmc3id"        	); // id of matched status ==3 particle
-
-    iEvent.put(vector_ak8jets_mc_p4        	,"ak8jetsmcp4"         	);
-    iEvent.put(vector_ak8jets_mc_gp_p4     	,"ak8jetsmcgpp4"       	);
-    iEvent.put(vector_ak8jets_mc_id        	,"ak8jetsmcid"        	);  
 }
 
 // ------------ method called once each job just before starting event loop  ------------
