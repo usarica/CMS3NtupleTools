@@ -22,6 +22,7 @@ candToGenAssMaker = cms.EDProducer("CandToGenAssMaker",
     tracksInputTag = cms.InputTag("trackMaker", "trkstrkp4"),
     #PIDs of particles to not match to
     #12,14,16->nus, 18->4th gen nu, 1000022->LSP                             
+    # must be sorted, since we use binary_search later
     vPIDsToExclude = cms.untracked.vint32(12,14,16,18,1000022)
 )
 

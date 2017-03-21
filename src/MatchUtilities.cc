@@ -112,6 +112,7 @@ const reco::GenParticle* MatchUtilities::matchCandToGen(const LorentzVector& can
 }
  
 //----------------------------------------------------------------------------------------------
+// THIS IS THE BAD GUY
 const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector& candp4, 
 							const std::vector<pat::PackedGenParticle>* genParticles, 
 							int& genidx, int status, const std::vector<int> v_PIDsToExclude) {
@@ -120,6 +121,10 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
   double dRmin = 0.2;
   unsigned int i = 0;
   genidx = -9999;
+
+  double phi = candp4.Phi();
+  double eta = candp4.Eta();
+  double pi = 3.14159265;
   
   std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
@@ -127,10 +132,23 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
     if ( status != 999 && itPart->status() != status ) continue;
     if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
       continue;
+    // if ( std::binary_search(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId() )) ) continue; // slower than regular find
 
     const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
-    double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+    double deltaPhi = phi-v1.Phi();
+    if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
+    else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
+    deltaPhi = fabs(deltaPhi);
+
+    if (deltaPhi > dRmin) continue;
+
+    double deltaEta = fabs(v1.Eta()-eta);
+    if (deltaEta > dRmin) continue;
+
+    double dR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+
+    // double dR_old = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
 
     if (dR < dRmin) {
       dRmin = dR;
