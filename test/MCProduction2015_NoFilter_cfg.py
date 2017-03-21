@@ -121,7 +121,9 @@ process.source.noEventSort = cms.untracked.bool( True )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
 
 #Branches 
-process.out.outputCommands = cms.untracked.vstring( 'keep *' )
+process.out.outputCommands = cms.untracked.vstring( 'keep *',
+                                                    'drop EventProductProvenance')
+
 
 #Run corrected MET maker
 
@@ -238,8 +240,6 @@ process.p = cms.Path(
   process.photonMaker *
   process.genMaker *
   process.genJetMaker *
-  process.muToTrigAssMaker *  # requires muonMaker
-  process.elToTrigAssMaker *  # requires electronMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
   process.puSummaryInfoMaker *
@@ -249,6 +249,4 @@ process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
 #process.luminosityMaker.isData                   = process.eventMaker.isData
 
-process.Timing = cms.Service("Timing",
-        summaryOnly = cms.untracked.bool(True)
-        )
+process.Timing = cms.Service("Timing")
