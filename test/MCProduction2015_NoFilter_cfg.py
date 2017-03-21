@@ -220,27 +220,19 @@ process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CM
 
 process.p = cms.Path( 
   process.metFilterMaker *
-  # process.hcalNoiseSummaryMaker *
   process.egmGsfElectronIDSequence *     
-  # process.beamSpotMaker *
   process.vertexMaker *
   process.secondaryVertexMaker *
   process.eventMaker *
   process.pfCandidateMaker *
   process.isoTrackMaker *
-  # process.recoConversionMaker *
   process.electronMaker *
   process.muonMaker *
   process.pfJetMaker *
   process.pfJetPUPPIMaker *
-  # process.METToolboxJetMaker *
   process.subJetMaker *
-#  process.ca12subJetMaker *
   process.pfmetMaker *
-  # process.pfmetNoHFMaker *
   process.pfmetpuppiMaker *
-  # process.T1pfmetMaker *
-  # process.T1pfmetNoHFMaker *
   process.hltMakerSequence *
   process.pftauMaker *
   process.photonMaker *
@@ -248,12 +240,9 @@ process.p = cms.Path(
   process.genJetMaker *
   process.muToTrigAssMaker *  # requires muonMaker
   process.elToTrigAssMaker *  # requires electronMaker
-  # process.photonToTrigAssMaker *  # requires photonMaker
   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
   process.pdfinfoMaker *
   process.puSummaryInfoMaker *
-  # process.recoConversionMaker *
-  # process.miniAODrhoSequence *
   process.hypDilepMaker
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100

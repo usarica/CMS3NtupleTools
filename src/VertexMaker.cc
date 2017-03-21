@@ -45,10 +45,6 @@ VertexMaker::VertexMaker(const edm::ParameterSet& iConfig) {
 
     produces<unsigned int>                      ("evtn"+branchprefix              ).setBranchAlias("evt_n"+aliasprefix_              );  // number of vertices in event
     produces<std::vector<LorentzVector> >       (branchprefix+"position"          ).setBranchAlias(aliasprefix_+"_position"          );  // position of vertices and associated errors
-    produces<std::vector<float> >               (branchprefix+"xError"            ).setBranchAlias(aliasprefix_+"_xError"            );
-    produces<std::vector<float> >               (branchprefix+"yError"            ).setBranchAlias(aliasprefix_+"_yError"            );
-    produces<std::vector<float> >               (branchprefix+"zError"            ).setBranchAlias(aliasprefix_+"_zError"            );
-    produces<std::vector<float> >               (branchprefix+"chi2"              ).setBranchAlias(aliasprefix_+"_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
     produces<std::vector<float> >               (branchprefix+"ndof"              ).setBranchAlias(aliasprefix_+"_ndof"              );
     produces<std::vector<int>   >               (branchprefix+"isFake"            ).setBranchAlias(aliasprefix_+"_isFake"            );
     produces<std::vector<int>   >               (branchprefix+"isValid"           ).setBranchAlias(aliasprefix_+"_isValid"           );
@@ -80,10 +76,6 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     std::auto_ptr<unsigned int>                      evt_nvtxs                     (new unsigned int                     );
     std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
     std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
     std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
     std::auto_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
@@ -95,10 +87,6 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     for (reco::VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++index) {
         vector_vtxs_position         ->push_back( LorentzVector( vtx->position().x(), vtx->position().y(), vtx->position().z(), 0 ) );
-        vector_vtxs_xError           ->push_back( vtx->xError()            );
-        vector_vtxs_yError           ->push_back( vtx->yError()            );
-        vector_vtxs_zError           ->push_back( vtx->zError()            );
-        vector_vtxs_chi2             ->push_back( vtx->chi2()              );
         vector_vtxs_ndof             ->push_back( vtx->ndof()              );
         vector_vtxs_isFake           ->push_back( vtx->isFake()            );
         vector_vtxs_isValid          ->push_back( vtx->isValid()           );    
@@ -110,10 +98,6 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     iEvent.put(evt_nvtxs,                     "evtn"+branchprefix              );
     iEvent.put(vector_vtxs_position,          branchprefix+"position"          );
-    iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
-    iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
-    iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
-    iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
     iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
     iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
     iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );

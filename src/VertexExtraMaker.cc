@@ -43,6 +43,10 @@ VertexExtraMaker::VertexExtraMaker(const edm::ParameterSet& iConfig) {
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
+    produces<std::vector<float> >               (branchprefix+"xError"            ).setBranchAlias(aliasprefix_+"_xError"            );
+    produces<std::vector<float> >               (branchprefix+"yError"            ).setBranchAlias(aliasprefix_+"_yError"            );
+    produces<std::vector<float> >               (branchprefix+"zError"            ).setBranchAlias(aliasprefix_+"_zError"            );
+    produces<std::vector<float> >               (branchprefix+"chi2"              ).setBranchAlias(aliasprefix_+"_chi2"              );   // chi2 and ndof. Tracks apparently can contribute with a weight so ndof may be non integral
     produces<std::vector<float> >               (branchprefix+"score"             ).setBranchAlias(aliasprefix_+"_score"             );
     produces<std::vector<std::vector<float > > >(branchprefix+"covMatrix"         ).setBranchAlias(aliasprefix_+"_covMatrix"         );
     
@@ -62,6 +66,10 @@ void VertexExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     }
     const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
+    std::auto_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
+    std::auto_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
+    std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
+    std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
     std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
     std::auto_ptr<std::vector<std::vector<float> > > vector_vtxs_covMatrix         (new std::vector<std::vector<float> > );
 
@@ -93,12 +101,21 @@ void VertexExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
         }
 
         vector_vtxs_covMatrix->push_back( temp_vec );
+
+        vector_vtxs_xError           ->push_back( vtx->xError()            );
+        vector_vtxs_yError           ->push_back( vtx->yError()            );
+        vector_vtxs_zError           ->push_back( vtx->zError()            );
+        vector_vtxs_chi2             ->push_back( vtx->chi2()              );        
     }
 
     // store into the event
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
+    iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
+    iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
+    iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
+    iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );    
     iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
     iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
 }
