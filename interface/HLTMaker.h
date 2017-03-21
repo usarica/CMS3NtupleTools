@@ -45,6 +45,9 @@
 
 #include "TRegexp.h"
 #include "TString.h"
+#include "TBits.h"
+
+typedef math::XYZTLorentzVectorF LorentzVector;
 
 class HLTMaker : public edm::EDProducer {
 public:
@@ -53,6 +56,7 @@ public:
   
 private:
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+  virtual void beginLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&);
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() {}
   
@@ -79,6 +83,23 @@ private:
   std::vector<std::string> prunedTriggerNames_;
   TString processNamePrefix_;
   std::string aliasprefix_;
+
+  // auto_ptr<vector<unsigned int> > cached_prescales   ;
+  vector<unsigned int> cached_prescales   ;
+  vector<unsigned int> cached_l1prescales   ;
+
+  // auto_ptr<vector<unsigned int> > prescales   ;
+  // auto_ptr<vector<unsigned int> > l1prescales ;
+  // auto_ptr<TBits>                           bits      ;
+  // auto_ptr<vector<TString> >                trigNames ;
+  // auto_ptr<vector<vector<int> > >           trigObjsid;
+  // auto_ptr<vector<vector<LorentzVector> > > trigObjsp4;
+  // auto_ptr<vector<vector<bool> > >          trigObjspassLast;
+  // auto_ptr<vector<vector<TString> > >       trigObjsfilters;
+
+  bool doFillInformation;
+  // bool haveFilledInformation;
+
 };
 
 #endif

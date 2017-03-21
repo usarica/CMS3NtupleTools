@@ -527,18 +527,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // --- Get Input Collections --- //
 
-    /////////////
-    // B Field //
-    /////////////
-
-    Handle<float> evt_bField_h;
-    iEvent.getByToken(bFieldToken, evt_bField_h);
-    if( !evt_bField_h.isValid() ) {
-      throw cms::Exception("ElectronMaker::produce: error getting bfield from Event!");
-    }
-    float evt_bField = *evt_bField_h.product();
-    if ( evt_bField == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
-    
     ///////////////
     // Electrons //
     ///////////////
