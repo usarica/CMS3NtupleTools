@@ -13,11 +13,11 @@
 //
 // Original Author:  pts/4
 //         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.h,v 1.6 2010/04/24 03:58:59 warren Exp $
+// $Id: PhotonExtraMaker.h,v 1.6 2010/04/24 03:58:59 warren Exp $
 //
 //
-#ifndef NTUPLEMAKER_PHOTONMAKER_H
-#define NTUPLEMAKER_PHOTONMAKER_H
+#ifndef NTUPLEMAKER_PHOTONEXTRAMAKER_H
+#define NTUPLEMAKER_PHOTONEXTRAMAKER_H
 
 // system include files
 #include <memory>
@@ -34,14 +34,16 @@
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
+
 //
 // class decleration
 //
 
-class PhotonMaker : public edm::EDProducer {
+class PhotonExtraMaker : public edm::EDProducer {
 public:
-    explicit PhotonMaker (const edm::ParameterSet&);
-    ~PhotonMaker();
+    explicit PhotonExtraMaker (const edm::ParameterSet&);
+    ~PhotonExtraMaker();
      
 private:
     virtual void beginJob() ;
@@ -52,6 +54,16 @@ private:
     edm::EDGetTokenT<edm::View<pat::Photon> > photonsToken;
     float minEt_;
 
+    EcalClusterLazyTools* clusterTools_;
+
+    edm::InputTag ebReducedRecHitCollectionTag;
+    edm::InputTag eeReducedRecHitCollectionTag;
+    edm::InputTag esReducedRecHitCollectionTag;
+  
+    edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
+    edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
+    edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
+     
     std::string aliasprefix_;
 };
 

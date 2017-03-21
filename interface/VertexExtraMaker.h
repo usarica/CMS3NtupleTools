@@ -1,9 +1,9 @@
 // -*- C++ -*-
 //
 // Package:    NtupleMaker
-// Class:      VertexMaker
+// Class:      VertexExtraMaker
 // 
-/**\class VertexMaker VertexMaker.cc CMS3/NtupleMaker/src/VertexMaker.cc
+/**\class VertexExtraMaker VertexExtraMaker.cc CMS3/NtupleMaker/src/VertexExtraMaker.cc
 
    Description: <one line class summary>
 
@@ -12,8 +12,8 @@
 */
 //
 //
-#ifndef CMS3_VERTEXMAKER_H
-#define CMS3_VERTEXMAKER_H
+#ifndef CMS3_VERTEXEXTRAMAKER_H
+#define CMS3_VERTEXEXTRAMAKER_H
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -32,10 +32,10 @@
 // class declaration
 //
 
-class VertexMaker : public edm::EDProducer {
+class VertexExtraMaker : public edm::EDProducer {
 public:
-    explicit VertexMaker (const edm::ParameterSet&);
-  
+    explicit VertexExtraMaker (const edm::ParameterSet&);
+    
 private:
     virtual void beginJob() ;
     virtual void produce(edm::Event&, const edm::EventSetup&);
@@ -43,6 +43,7 @@ private:
 
     // ----------member data ---------------------------
     edm::EDGetTokenT<reco::VertexCollection> primaryVertexToken;
+    edm::EDGetTokenT<edm::ValueMap<float> > primaryVertexScoreToken;
 
     std::string aliasprefix_;
 };

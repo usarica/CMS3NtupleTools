@@ -14,8 +14,8 @@
 // $Id: PFTauMaker.h,v 1.6 2013/01/28 14:19:13 dalfonso Exp $
 //
 //
-#ifndef NTUPLEMAKER_PFTAUMAKER_H
-#define NTUPLEMAKER_PFTAUMAKER_H
+#ifndef NTUPLEMAKER_PFTAUEXTRAMAKER_H
+#define NTUPLEMAKER_PFTAUEXTRAMAKER_H
 
 // system include files
 #include <memory>
@@ -35,10 +35,10 @@
 // class decleration
 //
 
-class PFTauMaker : public edm::EDProducer {
+class PFTauExtraMaker : public edm::EDProducer {
 public:
-    explicit PFTauMaker (const edm::ParameterSet&);
-    ~PFTauMaker();
+    explicit PFTauExtraMaker (const edm::ParameterSet&);
+    ~PFTauExtraMaker();
 
 private:
     virtual void beginJob() ;
@@ -47,12 +47,8 @@ private:
   
     // ----------member data ---------------------------
     edm::EDGetTokenT<edm::View<pat::Tau> > pftausToken;
-  
-    std::string aliasprefix_;
-    
-    //store all tau discriminators here
-    std::vector<std::string> tauIDCollection_;
 
+    std::string aliasprefix_;
 };
 
 #endif

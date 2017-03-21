@@ -60,7 +60,6 @@ private:
   edm::EDGetTokenT<edm::View<pat::Muon> > muonsToken;
   edm::InputTag beamSpotInputTag;
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
-  edm::EDGetTokenT<LorentzVector> beamSpotToken;
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
 
