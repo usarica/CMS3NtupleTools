@@ -278,17 +278,6 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/EGamma/EGammaAnalysisTools/interface/EGammaCutBasedEleId.h?revision=1.5&view=markup
     //
 
-    ///////////////////
-    // Added for 53x //
-    ///////////////////
-
-
-    ///////////////////
-    // Added for 7   //
-    ///////////////////
-
-    produces<vector<vector<int>   >   >       ("elspfcandidx"    ).setBranchAlias("els_PFCand_idx"    );
-
     //////////////////////
     // genMatch miniAOD //
     //////////////////////
@@ -478,49 +467,38 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<bool> >                   els_conv_vtx_flag        (new vector<bool>           );
     auto_ptr<vector<float> >                  els_conv_vtx_prob        (new vector<float>          );
 
-    ///////////////////
-    // Added for 53x //
-    ///////////////////
-
-
-    ///////////////////
-    // Added for 7   //
-    ///////////////////
-
-    auto_ptr<vector<vector<int> > >           els_PFCand_idx       (new vector<vector<int> >   );
-
     //////////////////////
     // Added miniAOD    //
     //////////////////////
-  auto_ptr<vector<int>           >       els_mc_patMatch_id          (new vector<int>          );
-  auto_ptr<vector<LorentzVector> >       els_mc_patMatch_p4          (new vector<LorentzVector>);
-  auto_ptr<vector<float>         >       els_mc_patMatch_dr          (new vector<float>        );
+    auto_ptr<vector<int>           >       els_mc_patMatch_id          (new vector<int>          );
+    auto_ptr<vector<LorentzVector> >       els_mc_patMatch_p4          (new vector<LorentzVector>);
+    auto_ptr<vector<float>         >       els_mc_patMatch_dr          (new vector<float>        );
 
-  auto_ptr<vector<float>   >       els_sigmaIPhiIPhi_full5x5             (new vector<float>        );
-  auto_ptr<vector<float>   >       els_sigmaEtaEta_full5x5               (new vector<float>        );
-  auto_ptr<vector<float>   >       els_sigmaIEtaIEta_full5x5             (new vector<float>        );
-  auto_ptr<vector<float>   >       els_r9_full5x5                        (new vector<float>        );
-  auto_ptr<vector<float>   >       els_e1x5_full5x5                      (new vector<float>        );
-  auto_ptr<vector<float>   >       els_e5x5_full5x5                      (new vector<float>        );
-  auto_ptr<vector<float>   >       els_e2x5Max_full5x5                   (new vector<float>        );
+    auto_ptr<vector<float>   >       els_sigmaIPhiIPhi_full5x5             (new vector<float>        );
+    auto_ptr<vector<float>   >       els_sigmaEtaEta_full5x5               (new vector<float>        );
+    auto_ptr<vector<float>   >       els_sigmaIEtaIEta_full5x5             (new vector<float>        );
+    auto_ptr<vector<float>   >       els_r9_full5x5                        (new vector<float>        );
+    auto_ptr<vector<float>   >       els_e1x5_full5x5                      (new vector<float>        );
+    auto_ptr<vector<float>   >       els_e5x5_full5x5                      (new vector<float>        );
+    auto_ptr<vector<float>   >       els_e2x5Max_full5x5                   (new vector<float>        );
 
-  auto_ptr<vector<float>   >       els_miniIso_uncor                  (new vector<float>        );  	
-  auto_ptr<vector<float>   >       els_miniIso_ch                  (new vector<float>        );  	
-  auto_ptr<vector<float>   >       els_miniIso_nh                  (new vector<float>        );  	
-  auto_ptr<vector<float>   >       els_miniIso_em                  (new vector<float>        );  	
-  auto_ptr<vector<float>   >       els_miniIso_db                  (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_miniIso_uncor                  (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_miniIso_ch                  (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_miniIso_nh                  (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_miniIso_em                  (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_miniIso_db                  (new vector<float>        );  	
 
-  auto_ptr<vector<float>   >       els_ecalPFClusterIso                (new vector<float>        );  	
-  auto_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_ecalPFClusterIso                (new vector<float>        );  	
+    auto_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
 
-  ///////////////////////////////
-  // Added for 7_X calibration //
-  ///////////////////////////////
-  auto_ptr<vector<int> > els_isEcalDriven              (new vector<int>);
-  auto_ptr<vector<int> > els_isTrackerDriven           (new vector<int>);
-  auto_ptr<vector<int> > els_isEB                      (new vector<int>);
+    ///////////////////////////////
+    // Added for 7_X calibration //
+    ///////////////////////////////
+    auto_ptr<vector<int> > els_isEcalDriven              (new vector<int>);
+    auto_ptr<vector<int> > els_isTrackerDriven           (new vector<int>);
+    auto_ptr<vector<int> > els_isEB                      (new vector<int>);
 
-  auto_ptr<vector<float> > els_scSeedEta               (new vector<float>);
+    auto_ptr<vector<float> > els_scSeedEta               (new vector<float>);
 
 
 
@@ -534,7 +512,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     Handle<View<pat::Electron> > els_h;
     iEvent.getByToken(electronsToken, els_h);
     if( !els_h.isValid() ) {
-      throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
+        throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
     }
 
 
@@ -546,11 +524,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // PF Cands //
     //////////////
 
-     iEvent.getByToken(pfCandsToken, packPfCand_h);
-      if( !packPfCand_h.isValid() ) {
+    iEvent.getByToken(pfCandsToken, packPfCand_h);
+    if( !packPfCand_h.isValid() ) {
         throw cms::Exception("ElectronMaker::produce: error getting packed pfcands from Event!");
-      }
-     pfCandidates  = packPfCand_h.product();
+    }
+    pfCandidates  = packPfCand_h.product();
 
 
   
@@ -560,7 +538,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.getByToken(vtxToken, vertexHandle);
     if( !vertexHandle.isValid() ) {
-      throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
+        throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
     }
 
     /////////////////
@@ -569,7 +547,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     
     iEvent.getByToken(recoConversionToken, convs_h);
     if( !convs_h.isValid() ) {
-      throw cms::Exception("ElectronMaker::produce: error getting conversion collection");
+        throw cms::Exception("ElectronMaker::produce: error getting conversion collection");
     }
 
 
@@ -614,40 +592,40 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 //    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
 
-  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > HEEP_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP80_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP90_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP80_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP90_id_decisions;
-  edm::Handle<edm::ValueMap<float> > VIDNonTrigMva_values;
-  edm::Handle<edm::ValueMap<float> > VIDTrigMva_values;
-  edm::Handle<edm::ValueMap<int> >  VIDNonTrigMva_cats;
-  edm::Handle<edm::ValueMap<int> >  VIDTrigMva_cats;
-  edm::Handle<edm::ValueMap<float> > VIDSpring16GPMva_values;
-  edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
-  edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
-  edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
-  iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
-  iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
-  iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
-  iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
-  iEvent.getByToken(electronHEEPIdMapToken_,HEEP_id_decisions);
-  iEvent.getByToken(electronVIDNonTrigMvaWP80IdMapToken_,VIDNonTrigMvaWP80_id_decisions);
-  iEvent.getByToken(electronVIDNonTrigMvaWP90IdMapToken_,VIDNonTrigMvaWP90_id_decisions);
-  iEvent.getByToken(electronVIDTrigMvaWP80IdMapToken_,VIDTrigMvaWP80_id_decisions);
-  iEvent.getByToken(electronVIDTrigMvaWP90IdMapToken_,VIDTrigMvaWP90_id_decisions);
-  iEvent.getByToken(electronVIDNonTrigMvaValueMapToken_,VIDNonTrigMva_values);
-  iEvent.getByToken(electronVIDTrigMvaValueMapToken_,VIDTrigMva_values);
-  iEvent.getByToken(electronVIDNonTrigMvaCatMapToken_,VIDNonTrigMva_cats);
-  iEvent.getByToken(electronVIDTrigMvaCatMapToken_,VIDTrigMva_cats);
-  iEvent.getByToken(electronVIDSpring16GPMvaValueMapToken_,VIDSpring16GPMva_values);
-  iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
-  iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
-  iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
+    edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > HEEP_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP80_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP90_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP80_id_decisions;
+    edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP90_id_decisions;
+    edm::Handle<edm::ValueMap<float> > VIDNonTrigMva_values;
+    edm::Handle<edm::ValueMap<float> > VIDTrigMva_values;
+    edm::Handle<edm::ValueMap<int> >  VIDNonTrigMva_cats;
+    edm::Handle<edm::ValueMap<int> >  VIDTrigMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDSpring16GPMva_values;
+    edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
+    edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
+    iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
+    iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
+    iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
+    iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
+    iEvent.getByToken(electronHEEPIdMapToken_,HEEP_id_decisions);
+    iEvent.getByToken(electronVIDNonTrigMvaWP80IdMapToken_,VIDNonTrigMvaWP80_id_decisions);
+    iEvent.getByToken(electronVIDNonTrigMvaWP90IdMapToken_,VIDNonTrigMvaWP90_id_decisions);
+    iEvent.getByToken(electronVIDTrigMvaWP80IdMapToken_,VIDTrigMvaWP80_id_decisions);
+    iEvent.getByToken(electronVIDTrigMvaWP90IdMapToken_,VIDTrigMvaWP90_id_decisions);
+    iEvent.getByToken(electronVIDNonTrigMvaValueMapToken_,VIDNonTrigMva_values);
+    iEvent.getByToken(electronVIDTrigMvaValueMapToken_,VIDTrigMva_values);
+    iEvent.getByToken(electronVIDNonTrigMvaCatMapToken_,VIDNonTrigMva_cats);
+    iEvent.getByToken(electronVIDTrigMvaCatMapToken_,VIDTrigMva_cats);
+    iEvent.getByToken(electronVIDSpring16GPMvaValueMapToken_,VIDSpring16GPMva_values);
+    iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
+    iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
+    iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
 
     //////////////////////////
     // get cms2scsseeddetid //
@@ -682,16 +660,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         ////////////////
         // References //
         ////////////////
-      const GsfTrackRef            el_track         = el->gsfTrack(); // Embedded GSF Track for miniAOD
-      const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
-      const TrackRef               ctfTkRef         = el->closestCtfTrackRef(); // Embedded CTF Track for miniAOD 
+        const GsfTrackRef            el_track         = el->gsfTrack(); // Embedded GSF Track for miniAOD
+        const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
+        const TrackRef               ctfTkRef         = el->closestCtfTrackRef(); // Embedded CTF Track for miniAOD 
 
 /*
-        const Track*                 el_track         = (const Track*)(el->gsfTrack().get());
-        const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
+  const Track*                 el_track         = (const Track*)(el->gsfTrack().get());
+  const RefToBase<pat::Electron> gsfElRef         = els_h->refAt(elsIndex);    
 
-        //const TrackRef               ctfTkRef         = el->closestCtfTrackRef();
-        const GsfTrackRef            gsfTkRef         = el->gsfTrack();
+  //const TrackRef               ctfTkRef         = el->closestCtfTrackRef();
+  const GsfTrackRef            gsfTkRef         = el->gsfTrack();
 
 */
 
@@ -702,12 +680,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
         int firstGoodVertexIdx = 0;
         for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx) {
-	  // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
-	  // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
-	  if (  /*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
+            // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
+            // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
+            if (  /*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
                 firstGoodVertex = vtx;
                 break;
-	  }
+            }
         }
 
         //////////////////////
@@ -865,111 +843,111 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 
 
-	  // The commented ones are already available above! Keeping it here for reference
+            // The commented ones are already available above! Keeping it here for reference
 	  
-	  //	els_scRawEnergy             = el->superCluster()->rawEnergy();
-	  //	els_scCalibratedEnergy      = el->superCluster()->energy();
-	  //	els_scPreshowerEnergy       = el->superCluster()->preshowerEnergy();
-	  //	els_scEta                   = el->superCluster()->position().Eta();
-	  //	els_scPhi                   = el->superCluster()->position().Phi();
-	  //	els_scPhiWidth              = el->superCluster()->phiWidth();
-	  //	els_scEtaWidth              = el->superCluster()->etaWidth();
-	  //	els_scSeedRawEnergy         = el->superCluster()->seed()->energy();
-	  //	els_scSeedCalibratedEnergy  = el->superCluster()->seed()->energy();
-	  //    els_scSeedE5x5             ->push_back(clusterTools_->e5x5(*(el->superCluster()->seed())));
-	  //	els_scSeedE2x5max          ->push_back(clusterTools_->e2x5Max(*(el->superCluster()->seed())));
-	  //    els_scSeedSigmaIetaIeta    ->push_back(see);
-	  //    els_scSeedSigmaIphiIphi    ->push_back(spp); 
+            //	els_scRawEnergy             = el->superCluster()->rawEnergy();
+            //	els_scCalibratedEnergy      = el->superCluster()->energy();
+            //	els_scPreshowerEnergy       = el->superCluster()->preshowerEnergy();
+            //	els_scEta                   = el->superCluster()->position().Eta();
+            //	els_scPhi                   = el->superCluster()->position().Phi();
+            //	els_scPhiWidth              = el->superCluster()->phiWidth();
+            //	els_scEtaWidth              = el->superCluster()->etaWidth();
+            //	els_scSeedRawEnergy         = el->superCluster()->seed()->energy();
+            //	els_scSeedCalibratedEnergy  = el->superCluster()->seed()->energy();
+            //    els_scSeedE5x5             ->push_back(clusterTools_->e5x5(*(el->superCluster()->seed())));
+            //	els_scSeedE2x5max          ->push_back(clusterTools_->e2x5Max(*(el->superCluster()->seed())));
+            //    els_scSeedSigmaIetaIeta    ->push_back(see);
+            //    els_scSeedSigmaIphiIphi    ->push_back(spp); 
 	  
 	
-	  // The one below is kept for historical reasons
+            // The one below is kept for historical reasons
 
-	  els_eSeed                  ->push_back(el->superCluster()->seed()->energy());
+            els_eSeed                  ->push_back(el->superCluster()->seed()->energy());
 	  
-	  els_scSeedEta              ->push_back(el->superCluster()->seed()->eta());
+            els_scSeedEta              ->push_back(el->superCluster()->seed()->eta());
 
-	  ///////////////////////////////////
-	  // Information about subclusters //
-	  ///////////////////////////////////
+            ///////////////////////////////////
+            // Information about subclusters //
+            ///////////////////////////////////
 	  
-	  // Containers for partial sums
+            // Containers for partial sums
 	  
-	  vector<float> partial_els_clusterRawEnergy;
-	  vector<float> partial_els_clusterCalibEnergy;
-	  vector<float> partial_els_clusterEta;
-	  vector<float> partial_els_clusterPhi;
-	  vector<float> partial_els_clusterDPhiToSeed;
-	  vector<float> partial_els_clusterDEtaToSeed;
-	  vector<float> partial_els_clusterDPhiToCentroid;
-	  vector<float> partial_els_clusterDEtaToCentroid;
+            vector<float> partial_els_clusterRawEnergy;
+            vector<float> partial_els_clusterCalibEnergy;
+            vector<float> partial_els_clusterEta;
+            vector<float> partial_els_clusterPhi;
+            vector<float> partial_els_clusterDPhiToSeed;
+            vector<float> partial_els_clusterDEtaToSeed;
+            vector<float> partial_els_clusterDPhiToCentroid;
+            vector<float> partial_els_clusterDEtaToCentroid;
 
-	  vector<int>  partial_els_clusterInMustache;
-	  vector<int>  partial_els_clusterInDynDPhi;
+            vector<int>  partial_els_clusterInMustache;
+            vector<int>  partial_els_clusterInDynDPhi;
 
-	  size_t iclus = 0;
-	  float maxDR = 0;
-	  for( auto clus = el->superCluster()->clustersBegin(); clus != el->superCluster()->clustersEnd(); ++clus ) {
+            size_t iclus = 0;
+            float maxDR = 0;
+            for( auto clus = el->superCluster()->clustersBegin(); clus != el->superCluster()->clustersEnd(); ++clus ) {
 
-	    if( el->superCluster()->seed() == (*clus) ) continue;
-	    partial_els_clusterRawEnergy.push_back((*clus)->energy());
-	    partial_els_clusterCalibEnergy.push_back((*clus)->energy());
-	    partial_els_clusterEta.push_back((*clus)->eta());
-	    partial_els_clusterPhi.push_back((*clus)->phi());
-	    partial_els_clusterDPhiToSeed.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->seed()->phi()));
-	    partial_els_clusterDEtaToSeed.push_back((*clus)->eta() - el->superCluster()->seed()->eta());
-	    partial_els_clusterDPhiToCentroid.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->phi()));
-	    partial_els_clusterDEtaToCentroid.push_back((*clus)->eta() - el->superCluster()->eta());
-	    // find cluster with max dR
-	    if(reco::deltaR(*(*clus), *(el->superCluster()->seed())) > maxDR) {
-	      maxDR = reco::deltaR(*(*clus), *(el->superCluster()->seed()));
-	    }
+                if( el->superCluster()->seed() == (*clus) ) continue;
+                partial_els_clusterRawEnergy.push_back((*clus)->energy());
+                partial_els_clusterCalibEnergy.push_back((*clus)->energy());
+                partial_els_clusterEta.push_back((*clus)->eta());
+                partial_els_clusterPhi.push_back((*clus)->phi());
+                partial_els_clusterDPhiToSeed.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->seed()->phi()));
+                partial_els_clusterDEtaToSeed.push_back((*clus)->eta() - el->superCluster()->seed()->eta());
+                partial_els_clusterDPhiToCentroid.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->phi()));
+                partial_els_clusterDEtaToCentroid.push_back((*clus)->eta() - el->superCluster()->eta());
+                // find cluster with max dR
+                if(reco::deltaR(*(*clus), *(el->superCluster()->seed())) > maxDR) {
+                    maxDR = reco::deltaR(*(*clus), *(el->superCluster()->seed()));
+                }
 	  
 	  
-	    partial_els_clusterInMustache.push_back((int) reco::MustacheKernel::inMustache(el->superCluster()->seed()->eta(),el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
-	    partial_els_clusterInDynDPhi.push_back((int) reco::MustacheKernel::inDynamicDPhiWindow(el->superCluster()->seed()->hitsAndFractions().at(0).first.subdetId()==EcalBarrel,el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
-	    ++iclus;
-	  }
+                partial_els_clusterInMustache.push_back((int) reco::MustacheKernel::inMustache(el->superCluster()->seed()->eta(),el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
+                partial_els_clusterInDynDPhi.push_back((int) reco::MustacheKernel::inDynamicDPhiWindow(el->superCluster()->seed()->hitsAndFractions().at(0).first.subdetId()==EcalBarrel,el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
+                ++iclus;
+            }
 				       
 
 
-	  // saves the information
+            // saves the information
 
 
 
-	  vector<float> partial_els_psClusterRawEnergy;
-	  vector<float> partial_els_psClusterEta;
-	  vector<float> partial_els_psClusterPhi;
+            vector<float> partial_els_psClusterRawEnergy;
+            vector<float> partial_els_psClusterEta;
+            vector<float> partial_els_psClusterPhi;
     
-	  // loop over all preshower clusters 
-	  size_t ipsclus = 0;
-	  for( auto psclus = el->superCluster()->preshowerClustersBegin(); psclus != el->superCluster()->preshowerClustersEnd(); ++psclus )  {
-	    partial_els_psClusterRawEnergy.push_back((*psclus)->energy());
-	    partial_els_psClusterEta.push_back((*psclus)->eta());
-	    partial_els_psClusterPhi.push_back((*psclus)->phi());
-	    ++ipsclus;
-	  }
+            // loop over all preshower clusters 
+            size_t ipsclus = 0;
+            for( auto psclus = el->superCluster()->preshowerClustersBegin(); psclus != el->superCluster()->preshowerClustersEnd(); ++psclus )  {
+                partial_els_psClusterRawEnergy.push_back((*psclus)->energy());
+                partial_els_psClusterEta.push_back((*psclus)->eta());
+                partial_els_psClusterPhi.push_back((*psclus)->phi());
+                ++ipsclus;
+            }
 
     
-	  /////////////////////////////
-	  // Electron classification //
-	  /////////////////////////////
+            /////////////////////////////
+            // Electron classification //
+            /////////////////////////////
 
-	  //	els_classification = -1;   
-	  els_isEcalDriven->push_back(el->ecalDriven());
-	  els_isTrackerDriven->push_back(el->trackerDrivenSeed());
-	  els_isEB->push_back(el->isEB());
+            //	els_classification = -1;   
+            els_isEcalDriven->push_back(el->ecalDriven());
+            els_isTrackerDriven->push_back(el->trackerDrivenSeed());
+            els_isEB->push_back(el->isEB());
 	} else {
 
-	  els_scSeedEta              ->push_back(-999.);
+            els_scSeedEta              ->push_back(-999.);
 
-	  els_eSeed                  ->push_back(-999.);	  
-
-
+            els_eSeed                  ->push_back(-999.);	  
 
 
-    	  els_isEcalDriven           ->push_back(-999);
-	  els_isTrackerDriven        ->push_back(-999);
-	  els_isEB                   ->push_back(-999);
+
+
+            els_isEcalDriven           ->push_back(-999);
+            els_isTrackerDriven        ->push_back(-999);
+            els_isEB                   ->push_back(-999);
 	}
 //
 //            //
@@ -1026,12 +1004,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         els_trk_charge            ->push_back( el_track->charge()                        );
         els_sccharge              ->push_back( el->scPixCharge()                         );
 	if (firstGoodVertex!=vertexCollection->end()) {
-	  els_dxyPV                 ->push_back( el_track->dxy( firstGoodVertex->position() )  );
-	  els_dzPV                  ->push_back( el_track->dz(  firstGoodVertex->position() )  );
+            els_dxyPV                 ->push_back( el_track->dxy( firstGoodVertex->position() )  );
+            els_dzPV                  ->push_back( el_track->dz(  firstGoodVertex->position() )  );
 	}
 	else {
-	  els_dxyPV ->push_back( -999. );
-	  els_dzPV  ->push_back( -999. );
+            els_dxyPV ->push_back( -999. );
+            els_dzPV  ->push_back( -999. );
 	}
 
         /////////
@@ -1074,7 +1052,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 //        }
 
 	
-    //Impact Parameters
+        //Impact Parameters
 	els_ip3d   -> push_back( el->dB(pat::Electron::PV3D) ); 
 	els_ip3derr-> push_back( el->edB(pat::Electron::PV3D) ); 
 	els_ip2d   -> push_back( el->dB(pat::Electron::PV2D) ); 
@@ -1175,13 +1153,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         
                     if( i_layer == 1 ) {
 
-                    //    //
+                        //    //
 
-                    //    //
-                    //    if( side == 0 ) {
-                    //    }
-                    //    else {
-                    //    }
+                        //    //
+                        //    if( side == 0 ) {
+                        //    }
+                        //    else {
+                        //    }
 
                         i_layer++;
 
@@ -1203,10 +1181,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	reco::ConversionRef conv_ref = ConversionTools::matchedConversion(*el, convs_h, beamSpot);
 	float vertexFitProbability = -1.; 
 	if(!conv_ref.isNull()) {
-	  const reco::Vertex &vtx = conv_ref.get()->conversionVertex(); 
-	  if (vtx.isValid()) {
-	    vertexFitProbability = TMath::Prob( vtx.chi2(), vtx.ndof());
-	  } 
+            const reco::Vertex &vtx = conv_ref.get()->conversionVertex(); 
+            if (vtx.isValid()) {
+                vertexFitProbability = TMath::Prob( vtx.chi2(), vtx.ndof());
+            } 
 	}
 	els_conv_vtx_prob         -> push_back( vertexFitProbability );
 	//cout<<"Found electron with pt eta phi "<<el->p4().pt() <<" "<< el->p4().eta() <<" "<< el->p4().phi()<<" and vertexFitProbability "<<vertexFitProbability<<endl;
@@ -1219,24 +1197,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_conv_vtx_flag        -> push_back( !el->passConversionVeto() ); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
 
-
-
-        ///////////////////
-        // Added for 53x //
-        ///////////////////
-
-
-        ///////////////////
-        // Added for 7   //
-        ///////////////////
-
-
-	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
-	vector<int> v_PFCand_idx;
-	for( const edm::Ref<pat::PackedCandidateCollection> & ref : el->associatedPackedPFCandidates() )
-	  v_PFCand_idx.push_back(ref.key());
-	els_PFCand_idx->push_back(v_PFCand_idx);
-
 	//////////////////////
 	// genMatch miniAOD //
 	//////////////////////
@@ -1244,15 +1204,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	LorentzVector mc_p4(0,0,0,0);	 
 	const reco::GenParticle * gen = el->genParticle();
 	if (gen != 0) {
-	  mc_p4 = gen->p4();
-	  els_mc_patMatch_id      ->push_back( gen->pdgId()  );
-	  els_mc_patMatch_p4      ->push_back( mc_p4         );
-	  els_mc_patMatch_dr      ->push_back( ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4())  );
+            mc_p4 = gen->p4();
+            els_mc_patMatch_id      ->push_back( gen->pdgId()  );
+            els_mc_patMatch_p4      ->push_back( mc_p4         );
+            els_mc_patMatch_dr      ->push_back( ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4())  );
 	}
 	else {
-	  els_mc_patMatch_id      ->push_back( -999   );
-	  els_mc_patMatch_p4      ->push_back( mc_p4  );
-	  els_mc_patMatch_dr      ->push_back( -999.  );
+            els_mc_patMatch_id      ->push_back( -999   );
+            els_mc_patMatch_p4      ->push_back( mc_p4  );
+            els_mc_patMatch_dr      ->push_back( -999.  );
 	}
 
 	//////////////////////
@@ -1419,17 +1379,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_conv_vtx_flag        , "elsconvvtxflag"        );
     iEvent.put(els_conv_vtx_prob        , "elsconvvtxprob"        );
 
-    ///////////////////
-    // Added for 53x //
-    ///////////////////
-
-
-    ///////////////////
-    // Added for 7   //
-    ///////////////////
-
-    iEvent.put(els_PFCand_idx    , "elspfcandidx"    );
-
     /////////////////////////
     // Added for miniAOD   //
     /////////////////////////
@@ -1560,62 +1509,58 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
 }
 
 void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
-  chiso     = 0.;
-  nhiso     = 0.;
-  emiso     = 0.;
-  dbiso     = 0.;
-  float deadcone_ch = 0.;
-  float deadcone_pu = 0.;
-  float deadcone_ph = 0.;
+    chiso     = 0.;
+    nhiso     = 0.;
+    emiso     = 0.;
+    dbiso     = 0.;
+    float deadcone_ch = 0.;
+    float deadcone_pu = 0.;
+    float deadcone_ph = 0.;
 
-  double phi = el->p4().Phi();
-  double eta = el->p4().Eta();
-  double pi = 3.14159265;
+    double phi = el->p4().Phi();
+    double eta = el->p4().Eta();
+    double pi = 3.14159265;
 
-  // veto cones only in the endcap for electrons
-  if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) { 
-    deadcone_ch = 0.015;
-    deadcone_pu = 0.015;
-    deadcone_ph = 0.08;
-  }
-  for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
-    float id = pf_it->pdgId();
-    if (fabs(id) != 211 && fabs(id) != 130 && fabs(id) != 22) continue;
-
-    double deltaPhi = phi-pf_it->p4().Phi();
-    if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
-    else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
-    deltaPhi = fabs(deltaPhi);
-    if (deltaPhi > dr) continue;
-    double deltaEta = fabs(pf_it->p4().Eta()-eta);
-    if (deltaEta > dr) continue;
-    double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-    // float thisDR_old = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),el->p4()));
-    // std::cout << " thisDR: " << thisDR << " thisDR_old: " << thisDR_old << std::endl;
-
-    if ( thisDR>dr ) continue;  
-    float pt = pf_it->p4().pt();
-    if ( fabs(id)==211 ) {
-      if (pf_it->fromPV() > 1 && (!useVetoCones || thisDR > deadcone_ch) ) chiso+=pt;
-      else if ((pf_it->fromPV() <= 1) && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_pu)) dbiso+=pt;
+    // veto cones only in the endcap for electrons
+    if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) { 
+        deadcone_ch = 0.015;
+        deadcone_pu = 0.015;
+        deadcone_ph = 0.08;
     }
-    if ( fabs(id)==130 && (pt > ptthresh) ) nhiso+=pt;
-    if ( fabs(id)==22 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_ph) ) emiso+=pt;
-  }
-  //if (useDBcor) correction = 0.5 * deltaBeta;
-  //else if (useEAcor) correction = evt_fixgrid_all_rho() * elEA03(elIdx) * (dr/0.3) * (dr/0.3);
-  //float absiso = chiso + std::max(float(0.0), nhiso + emiso - correction);
-  return;
+    for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
+        float id = pf_it->pdgId();
+        if (fabs(id) != 211 && fabs(id) != 130 && fabs(id) != 22) continue;
+
+        double deltaPhi = phi-pf_it->p4().Phi();
+        if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
+        else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
+        deltaPhi = fabs(deltaPhi);
+        if (deltaPhi > dr) continue;
+        double deltaEta = fabs(pf_it->p4().Eta()-eta);
+        if (deltaEta > dr) continue;
+        double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
+
+        if ( thisDR>dr ) continue;  
+        float pt = pf_it->p4().pt();
+        if ( fabs(id)==211 ) {
+            if (pf_it->fromPV() > 1 && (!useVetoCones || thisDR > deadcone_ch) ) chiso+=pt;
+            else if ((pf_it->fromPV() <= 1) && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_pu)) dbiso+=pt;
+        }
+        if ( fabs(id)==130 && (pt > ptthresh) ) nhiso+=pt;
+        if ( fabs(id)==22 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_ph) ) emiso+=pt;
+    }
+
+    return;
 }
 
 void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso){
 
-  float pt = el->p4().pt();
-  float dr = 0.2;
-  if (pt>50) dr = 10./pt;
-  if (pt>200) dr = 0.05;
-  elIsoCustomCone(el,dr,useVetoCones,ptthresh, chiso, nhiso, emiso, dbiso);
-  return;
+    float pt = el->p4().pt();
+    float dr = 0.2;
+    if (pt>50) dr = 10./pt;
+    if (pt>200) dr = 0.05;
+    elIsoCustomCone(el,dr,useVetoCones,ptthresh, chiso, nhiso, emiso, dbiso);
+    return;
 }
 
 

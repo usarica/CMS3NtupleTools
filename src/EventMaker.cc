@@ -148,18 +148,13 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         float current = -9999/currentToBFieldScaleFactor;
         if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
             current = (*dcsHandle)[0].magnetCurrent();
-//	   cout << "dcsHandle is valid. The current: " << current << endl;
         }
 	 
         *evt_bField = current*currentToBFieldScaleFactor;
-
     }
     else
     {
-        ESHandle<MagneticField> magneticField;
-        iSetup.get<IdealMagneticFieldRecord>().get(magneticField);
-
-        *evt_bField = magneticField->inTesla(GlobalPoint(0.,0.,0.)).z();
+        *evt_bField = 3.801;
     }
 
     if (iEvent.isRealData() && scalersHandle.isValid() && scalersHandle->size()) {

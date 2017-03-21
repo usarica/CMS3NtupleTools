@@ -823,8 +823,6 @@ void MuonMaker::muIsoCustomCone( edm::View<pat::Muon>::const_iterator& mu, float
         double deltaEta = fabs(pf_it->p4().Eta()-eta);
         if (deltaEta > dr) continue;
         double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-        // float thisDR_old = fabs(ROOT::Math::VectorUtil::DeltaR(pf_it->p4(),mu->p4()));
-        // std::cout << " thisDR: " << thisDR << " thisDR_old: " << thisDR_old << std::endl;
 
         if ( thisDR>dr ) continue;  
         float pt = pf_it->p4().pt();

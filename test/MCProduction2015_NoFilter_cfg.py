@@ -40,19 +40,19 @@ process.out = cms.OutputModule("PoolOutputModule",
                                dropMetaData = cms.untracked.string("NONE"),
                                basketSize = cms.untracked.int32(16384*100)
 )
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 process.outpath = cms.EndPath(process.out)
 
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-# from JMEAnalysis.JetToolbox.jetToolbox_cff import *
-#from JetMETCorrections.Configuration.JetCorrectionProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
 from JetMETCorrections.Configuration.CorrectedJetProducersAllAlgos_cff import *
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
-process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
+# from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
+# process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
 
 #Electron Identification for PHYS 14
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *  
@@ -71,9 +71,11 @@ my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElect
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
-#process.globalPixelSeeds.OrderedHitsFactoryPSet.maxElement = cms.uint32(100000)
-#process.gsfElectrons.MaxElePtForOnlyMVA = cms.double(50.0)
-
+# Load Ntuple producer cff
+process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
+process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
+process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
+    
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
 from PhysicsTools.PatAlgos.tools.jetTools import *
 deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
@@ -90,11 +92,6 @@ updateJetCollection(
    jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
     btagDiscriminators = deep_discriminators
 )
-
-# Load Ntuple producer cff
-process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
-process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
-process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 
 # Needed for the above updateJetCollection() calls
 process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
@@ -120,17 +117,12 @@ process.source.noEventSort = cms.untracked.bool( True )
 #Max Events
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
 
-#Branches 
-process.out.outputCommands = cms.untracked.vstring( 'keep *',
-                                                    'drop EventProductProvenance')
-
 
 #Run corrected MET maker
 
 #configurable options =======================================================================
 runOnData=False #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
-useHFCandidates=False #create an additionnal NoHF slimmed MET collection if the option is set to false
 applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
@@ -155,18 +147,7 @@ if usePrivateSQlite:
                                )
     process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
 
-### =====================================================================================================
-
-
-### ---------------------------------------------------------------------------
-### Removing the HF from the MET computation
-### ---------------------------------------------------------------------------
-if not useHFCandidates:
-    process.noHFCands = cms.EDFilter("CandPtrSelector",
-                                     src=cms.InputTag("packedPFCandidates"),
-                                     cut=cms.string("abs(pdgId)!=1 && abs(pdgId)!=2 && abs(eta)<3.0")
-                                     )
-
+### =================================================================================
 #jets are rebuilt from those candidates by the tools, no need to do anything else
 ### =================================================================================
 
@@ -179,13 +160,6 @@ runMetCorAndUncFromMiniAOD(process,
                            isData=runOnData,
                            )
 
-if not useHFCandidates:
-    runMetCorAndUncFromMiniAOD(process,
-                               isData=runOnData,
-                               pfCandColl=cms.InputTag("noHFCands"),
-                               postfix="NoHF"
-                               )
-
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing data
 ### -------------------------------------------------------------------
@@ -196,57 +170,37 @@ if not applyResiduals:
     process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
     process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
     process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-
-    if not useHFCandidates:
-          process.patPFMetT1T2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-          process.patPFMetT1T2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-          process.patPFMetT2CorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-          process.patPFMetT2SmearCorrNoHF.jetCorrLabelRes = cms.InputTag("L3Absolute")
-          process.shiftedPatJetEnDownNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-          process.shiftedPatJetEnUpNoHF.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
 # end Run corrected MET maker
 
-# #Run jet tool box
-# jetToolbox( process, 'ak4', 'ak4JetSubs', 'out',PUMethod='',miniAOD=True,JETCorrLevels=['L1FastJet','L2Relative', 'L3Absolute'])
+# process.p = cms.Path( 
+#   process.metFilterMaker *
+#   process.egmGsfElectronIDSequence *     
+#   process.vertexMaker *
+#   process.secondaryVertexMaker *
+#   process.eventMaker *
+#   process.pfCandidateMaker *
+#   process.isoTrackMaker *
+#   process.electronMaker *
+#   process.muonMaker *
+#   process.pfJetMaker *
+#   process.pfJetPUPPIMaker *
+#   process.subJetMaker *
+#   process.pfmetMaker *
+#   process.pfmetpuppiMaker *
+#   process.hltMakerSequence *
+#   process.pftauMaker *
+#   process.photonMaker *
+#   process.genMaker *
+#   process.genJetMaker *
+#   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
+#   process.pdfinfoMaker *
+#   process.puSummaryInfoMaker *
+#   process.hypDilepMaker
+# )
 
-# Useful for timing statistics
-# process.Timing = cms.Service("Timing")
-
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop *_cms2towerMaker*_*_CMS3*'))
-process.out.outputCommands.extend(cms.untracked.vstring('drop CaloTowers*_*_*_CMS3*'))
-
-
-process.p = cms.Path( 
-  process.metFilterMaker *
-  process.egmGsfElectronIDSequence *     
-  process.vertexMaker *
-  process.secondaryVertexMaker *
-  process.eventMaker *
-  process.pfCandidateMaker *
-  process.isoTrackMaker *
-  process.electronMaker *
-  process.muonMaker *
-  process.pfJetMaker *
-  process.pfJetPUPPIMaker *
-  process.subJetMaker *
-  process.pfmetMaker *
-  process.pfmetpuppiMaker *
-  process.hltMakerSequence *
-  process.pftauMaker *
-  process.photonMaker *
-  process.genMaker *
-  process.genJetMaker *
-  process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-  process.pdfinfoMaker *
-  process.puSummaryInfoMaker *
-  process.hypDilepMaker
-)
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.eventMaker.isData                        = cms.bool(False)
-#process.luminosityMaker.isData                   = process.eventMaker.isData
 
 process.Timing = cms.Service("Timing")
