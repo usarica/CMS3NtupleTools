@@ -9,4 +9,6 @@ from CMS3.NtupleMaker.recoConversionMaker_cfi      import *
 from CMS3.NtupleMaker.muonExtraMaker_cfi           import *
 from CMS3.NtupleMaker.pftauExtraMaker_cfi          import *
 from CMS3.NtupleMaker.photonExtraMaker_cfi         import *
+from CMS3.NtupleMaker.muToTrigAssMaker_cfi         import *
+from CMS3.NtupleMaker.elToTrigAssMaker_cfi         import *
 from CMS3.NtupleMaker.photonToTrigAssMaker_cfi     import *
