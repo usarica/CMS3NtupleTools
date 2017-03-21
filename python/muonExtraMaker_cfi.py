@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-muonMaker = cms.EDProducer("MuonMaker",
+muonExtraMaker = cms.EDProducer("MuonExtraMaker",
   aliasPrefix      = cms.untracked.string("mus"),
   muonsInputTag    = cms.InputTag("slimmedMuons"        ),                         
   pfCandsInputTag  = cms.InputTag("packedPFCandidates"),

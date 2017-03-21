@@ -10,8 +10,6 @@ unpackedTracksAndVertices = cms.EDProducer('PATTrackAndVertexUnpacker',
 vertexMaker = cms.EDProducer(
   "VertexMaker",
   aliasPrefix           = cms.untracked.string("vtxs"),
-  #primaryVertexInputTag = cms.InputTag("offlinePrimaryVertices"),
   primaryVertexInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
-  #primaryVertexInputTag = cms.InputTag("unpackedTracksAndVertices")
 )
 
