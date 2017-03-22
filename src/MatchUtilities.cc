@@ -125,6 +125,7 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
   double phi = candp4.Phi();
   double eta = candp4.Eta();
   double pi = M_PI;
+
   
   std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {
@@ -132,7 +133,8 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
     if ( status != 999 && itPart->status() != status ) continue;
     // if ( find(v_PIDsToExclude.begin(), v_PIDsToExclude.end(), abs(itPart->pdgId()) ) != v_PIDsToExclude.end() ) 
     //   continue;
-    int id = itPart->pdgId();
+
+    int id = abs(itPart->pdgId());
     if (id == 12) continue;
     if (id == 14) continue;
     if (id == 16) continue;
@@ -142,19 +144,19 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
     const math::XYZVector v1(itPart->momentum().x(), itPart->momentum().y(), itPart->momentum().z());
 
 
+
+
     double deltaPhi = phi-v1.Phi();
     if ( deltaPhi > pi ) deltaPhi -= 2.0*pi;
     else if ( deltaPhi <= -pi ) deltaPhi += 2.0*pi;
     deltaPhi = fabs(deltaPhi);
-
     if (deltaPhi > dRmin) continue;
-
     double deltaEta = fabs(v1.Eta()-eta);
     if (deltaEta > dRmin) continue;
-
     double dR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
 
-    // double dR_old = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
+
+    // double dR = ROOT::Math::VectorUtil::DeltaR(v1,candp4);
 
     if (dR < dRmin) {
       dRmin = dR;
