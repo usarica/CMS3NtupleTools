@@ -87,31 +87,14 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
 
     //info of matched genJet
     produces<vector<float>         >("pfjetsmcdr"           	).setBranchAlias("pfjets_mcdr"          	);
-    produces<vector<int>           >("pfjetsmcidx"          	).setBranchAlias("pfjets_mcidx"         	);
-    produces<vector<float>         >("pfjetsmcemEnergy"     	).setBranchAlias("pfjets_mc_emEnergy"   	); // energy of electromagnetic particles of the matched GenJet
-    produces<vector<float>         >("pfjetsmchadEnergy"    	).setBranchAlias("pfjets_mc_hadEnergy"  	); // energy of hadronic particles of the matched GenJet
-    produces<vector<float>         >("pfjetsmcinvEnergy"    	).setBranchAlias("pfjets_mc_invEnergy"  	); // invisible energy of the matched GenJet
-    produces<vector<float>         >("pfjetsmcotherEnergy"  	).setBranchAlias("pfjets_mc_otherEnergy"	); // other energy (undecayed Sigmas etc.) of the matched GenJet
-    produces<vector<LorentzVector> >("pfjetsmcp4"           	).setBranchAlias("pfjets_mc_p4"         	); // p4 of the matched GenJet
     //info of matched gen particle
-    produces<vector<float>         >("pfjetsmcgpdr"         	).setBranchAlias("pfjets_mc_gpdr"       	);
-    produces<vector<int>           >("pfjetsmcgpidx"        	).setBranchAlias("pfjets_mc_gpidx"      	); // index of matched status==1 particle
-    produces<vector<LorentzVector> >("pfjetsmcgpp4"         	).setBranchAlias("pfjets_mc_gp_p4"      	); // p4 of the matched MC particle
-    produces<vector<int>           >("pfjetsmcid"           	).setBranchAlias("pfjets_mc_id"         	);
     produces<vector<int>           >("pfjetsmcmotherid"     	).setBranchAlias("pfjets_mc_motherid"   	); // id of the status=1 particle matched to the jet
-    produces<vector<LorentzVector> >("pfjetsmcmotherp4"     	).setBranchAlias("pfjets_mc_motherp4"   	); // id of the status=1 particle matched to the jet
     //info of matched status 3 particle
     produces<vector<float>         >("pfjetsmc3dr"          	).setBranchAlias("pfjets_mc3dr"         	); // index of matched status==3 particle
     produces<vector<int>           >("pfjetsmc3idx"         	).setBranchAlias("pfjets_mc3idx"        	); // index of matched status==3 particle
     produces<vector<int>           >("pfjetsmc3id"          	).setBranchAlias("pfjets_mc3_id"        	); // id of matched status ==3 particle
 
 
-    //info of matched genJet
-    produces<vector<LorentzVector> >("ak8jetsmcp4"           	).setBranchAlias("ak8jets_mc_p4"         	); // p4 of the matched GenJet
-    //info of matched gen particle
-    produces<vector<LorentzVector> >("ak8jetsmcgpp4"         	).setBranchAlias("ak8jets_mc_gp_p4"      	); // p4 of the matched MC particle
-    produces<vector<int>           >("ak8jetsmcid"           	).setBranchAlias("ak8jets_mc_id"         	);  
-  
     genParticlesTokenPacked_ = consumes<pat::PackedGenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTagPacked"));
     genParticlesTokenPruned_ = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTagPruned"));
     genJetsToken_      = consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("genJetsInputTag"     ));
@@ -119,7 +102,6 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
     electronsToken_    = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("electronsInputTag"   ));
     photonsToken_      = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"     ));
     pfJetsToken_       = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"      ));
-    ak8JetsToken_       = consumes<vector<LorentzVector> >(iConfig.getParameter<edm::InputTag>("ak8JetsInputTag"      ));
 
     jetsInputTag_         = iConfig.getParameter<edm::InputTag>("jetsInputTag"        );
     tracksInputTag_       = iConfig.getParameter<edm::InputTag>("tracksInputTag"      );
@@ -228,18 +210,11 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         throw cms::Exception("CandToGenAssMaker::produce: error getting pfJets from Event!");
     }
 
-    // get ak8 pf jets
-    Handle<vector<LorentzVector> > ak8JetsHandle;
-    iEvent.getByToken(ak8JetsToken_, ak8JetsHandle);
-    if( !ak8JetsHandle.isValid() ) {
-        throw cms::Exception("CandToGenAssMaker::produce: error getting ak8Jets from Event!");
-    }
-
     //get the photons
     Handle<vector<LorentzVector> > photonsHandle;
     iEvent.getByToken(photonsToken_, photonsHandle);
     if( !photonsHandle.isValid() ) {
-        throw cms::Exception("CandToGenAssMaker::produce: error getting ak8Jets from Event!");
+        throw cms::Exception("CandToGenAssMaker::produce: error getting photons from Event!");
     }
 
     // *********************************** Fill electrons ************************************//

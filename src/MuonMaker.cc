@@ -464,6 +464,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         vector_mus_type                    -> push_back( muon->type()                                              );
         vector_mus_charge                  -> push_back( muon->charge()                                            );
+        vector_mus_nmatches                -> push_back( muon->isMatchesValid() ? muon->numberOfMatches() :  -9999 );
         vector_mus_caloCompatibility       -> push_back( muon->caloCompatibility()                                 );
         vector_mus_segmCompatibility       -> push_back( muon::segmentCompatibility(*muon)                         );
         vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );

@@ -54,7 +54,6 @@ private:
      edm::EDGetTokenT<std::vector<LorentzVector> > electronsToken_;
      edm::EDGetTokenT<std::vector<LorentzVector> > photonsToken_;
      edm::EDGetTokenT<std::vector<LorentzVector> > pfJetsToken_;
-     edm::EDGetTokenT<std::vector<LorentzVector> > ak8JetsToken_;
 
   edm::InputTag jetsInputTag_;
   edm::InputTag tracksInputTag_;
