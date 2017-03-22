@@ -33,29 +33,24 @@
 
 class PFCandidateMaker : public edm::EDProducer {
 public:
-     explicit PFCandidateMaker (const edm::ParameterSet&);
-     ~PFCandidateMaker();
+    explicit PFCandidateMaker (const edm::ParameterSet&);
+    ~PFCandidateMaker();
 
 private:
-  //  virtual void beginJob() ;
-  virtual void beginJob() ;
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+    //  virtual void beginJob() ;
+    virtual void beginJob() ;
+    virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
+    virtual void produce(edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
 
-  float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
+    float getFixGridRho(std::vector<float>& etabins,std::vector<float>& phibins);
   
-  // ----------member data ---------------------------
-  //double minDR_electron_;
-  //edm::InputTag pfElectronsTag_;
-  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
-  //edm::InputTag tracksInputTag_;
-  //edm::InputTag vertexInputTag_;
+    // ----------member data ---------------------------
+    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
 
-  const pat::PackedCandidateCollection *pfCandidates;
+    const pat::PackedCandidateCollection *pfCandidates;
 
-  std::string aliasprefix_;
-
+    std::string aliasprefix_;
 };
 
 #endif

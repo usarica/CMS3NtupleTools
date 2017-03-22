@@ -5,10 +5,10 @@
 // 
 /**\class PFJetMaker PFJetMaker.cc temp/PFJetMaker/src/PFJetMaker.cc
 
-Description: <one line class summary>
+   Description: <one line class summary>
 
-Implementation:
-<Notes on implementation>
+   Implementation:
+   <Notes on implementation>
 */
 //
 // Original Author:  Puneeth Devanand KALAVASE
@@ -40,21 +40,19 @@ Implementation:
 
 class PFJetMaker : public edm::EDProducer {
 public:
-  explicit PFJetMaker(const edm::ParameterSet&);
-  ~PFJetMaker();
+    explicit PFJetMaker(const edm::ParameterSet&);
+    ~PFJetMaker();
 
 private:
-  virtual void beginJob() ;
-  virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+    virtual void beginJob() ;
+    virtual void produce(edm::Event&, const edm::EventSetup&);
+    virtual void endJob() ;
       
-  // ----------member data ---------------------------
-  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
-  edm::InputTag pfCandidatesTag_;
-  double         pfJetPtCut_;
-  std::string aliasprefix_;
-  std::string PFJetCorrectorL2L3_;
-  std::string PFJetCorrectorL1FastL2L3_;
-  std::string PFJetCorrectorL1Fast_;             
-  //std::string PFJetCorrectorL1FastL2L3residual_; 
+    // ----------member data ---------------------------
+    edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
+    edm::InputTag pfCandidatesTag_;
+    std::string aliasprefix_;
+    std::string PFJetCorrectorL2L3_;
+    std::string PFJetCorrectorL1FastL2L3_;
+    std::string PFJetCorrectorL1Fast_;             
 };
