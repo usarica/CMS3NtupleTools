@@ -1519,7 +1519,7 @@ void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el
 
     double phi = el->p4().Phi();
     double eta = el->p4().Eta();
-    double pi = 3.14159265;
+    double pi = M_PI;
 
     // veto cones only in the endcap for electrons
     if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) { 

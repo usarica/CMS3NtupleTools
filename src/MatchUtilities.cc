@@ -124,7 +124,7 @@ const pat::PackedGenParticle* MatchUtilities::matchCandToGen(const LorentzVector
 
   double phi = candp4.Phi();
   double eta = candp4.Eta();
-  double pi = 3.14159265;
+  double pi = M_PI;
   
   std::vector<pat::PackedGenParticle>::const_iterator itPartEnd = genParticles->end();
   for(std::vector<pat::PackedGenParticle>::const_iterator itPart=genParticles->begin(); itPart!=itPartEnd; ++itPart, ++i) {

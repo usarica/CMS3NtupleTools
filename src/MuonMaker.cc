@@ -464,9 +464,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         vector_mus_type                    -> push_back( muon->type()                                              );
         vector_mus_charge                  -> push_back( muon->charge()                                            );
-        vector_mus_nmatches                -> push_back( muon->isMatchesValid() ? muon->numberOfMatches() :  -9999 );
         vector_mus_caloCompatibility       -> push_back( muon->caloCompatibility()                                 );
         vector_mus_segmCompatibility       -> push_back( muon::segmentCompatibility(*muon)                         );
+        vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
         vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
 
         ////////
@@ -810,7 +810,7 @@ void MuonMaker::muIsoCustomCone( edm::View<pat::Muon>::const_iterator& mu, float
 
   double phi = mu->p4().Phi();
   double eta = mu->p4().Eta();
-  double pi = 3.14159265;
+  double pi = M_PI;
 
     for( pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++ ) {
         float id = pf_it->pdgId();
