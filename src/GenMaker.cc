@@ -62,7 +62,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
     produces<vector<int> >                    ("genpsidxmother"       ).setBranchAlias("genps_idx_mother"      );
     produces<vector<int> >                    ("genpsidxsimplemother" ).setBranchAlias("genps_idx_simplemother");
     produces<vector<LorentzVector> >          ("genpsp4"              ).setBranchAlias("genps_p4"              );
-    produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"            );
+    // produces<vector<float> >                  ("genpsmass"            ).setBranchAlias("genps_mass"            );
     produces<vector<int> >                    ("genpsstatus"          ).setBranchAlias("genps_status"          );
     produces<vector<float> >                  ("genpscharge"          ).setBranchAlias("genps_charge"          );
     produces<vector<float> >                  ("genpsiso"             ).setBranchAlias("genps_iso"             );
@@ -132,7 +132,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     auto_ptr<vector<int> >                    genps_idx_mother      (new vector<int>                   );
     auto_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                   );
     auto_ptr<vector<LorentzVector> >          genps_p4              (new vector<LorentzVector>         );
-    auto_ptr<vector<float> >                  genps_mass            (new vector<float>                 );
+    // auto_ptr<vector<float> >                  genps_mass            (new vector<float>                 );
     auto_ptr<vector<int> >                    genps_status          (new vector<int>                   );
     auto_ptr<vector<float> >                  genps_charge          (new vector<float>                 );
     auto_ptr<vector<float> >                  genps_iso             (new vector<float>                 );
@@ -345,7 +345,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
                                                    genps_it->p4().pz(),
                                                    genps_it->p4().e() ) );
 
-        genps_mass      ->push_back(genps_it->mass());
+        // genps_mass      ->push_back(genps_it->mass());
 
         // Gen Isolation with the packedGenParticles
         if ( genps_it->status() == 1 && 
@@ -399,7 +399,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             genps_idx_mother       ->push_back( -1 );
             genps_id_simplemother  ->push_back( -1 );
             genps_id_simplegrandma ->push_back( -1 );
-            genps_mass             ->push_back( -1 );
+            // genps_mass             ->push_back( -1 );
         }
     } // end of packedGenParticles  
 
@@ -412,7 +412,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(genps_idx_mother         , "genpsidxmother"       );
     iEvent.put(genps_idx_simplemother   , "genpsidxsimplemother" );
     iEvent.put(genps_p4                 , "genpsp4"              );
-    iEvent.put(genps_mass               , "genpsmass"            );
+    // iEvent.put(genps_mass               , "genpsmass"            );
     iEvent.put(genps_status             , "genpsstatus"          );
     iEvent.put(genps_charge             , "genpscharge"          );
     iEvent.put(genps_iso                , "genpsiso"             );
