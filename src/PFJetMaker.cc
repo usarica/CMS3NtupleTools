@@ -170,8 +170,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         for(std::vector<reco::CandidatePtr>::const_iterator cand_it = pfjet_cands.begin(); cand_it != pfjet_cands.end(); cand_it++){
             unsigned int ipf = cand_it->key();
             pat::PackedCandidate pfc = pfCandidates->at(ipf);
-            if (!pfc.isGlobalMuon()) continue;
-            if (!pfc.isStandAloneMuon()) continue;
+            if (!pfc.isGlobalMuon() && !pfc.isStandAloneMuon()) continue;
             LorentzVector pfmup4 = LorentzVector(pfc.p4());
             pfcandmup4.push_back(pfmup4);
             // idx aliasprefix_ ipf pfmup4.Pt() pfc.pdgId() pfc.isGlobalMuon() pfc.isStandAloneMuon()
