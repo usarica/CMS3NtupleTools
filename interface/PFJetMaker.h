@@ -49,6 +49,8 @@ private:
     virtual void endJob() ;
       
     // ----------member data ---------------------------
+    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
+    const pat::PackedCandidateCollection *pfCandidates;
     edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
     edm::InputTag pfCandidatesTag_;
     std::string aliasprefix_;
