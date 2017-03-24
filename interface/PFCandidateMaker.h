@@ -49,6 +49,7 @@ private:
     edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
 
     const pat::PackedCandidateCollection *pfCandidates;
+    double minPt_;
 
     std::string aliasprefix_;
 };

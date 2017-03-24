@@ -151,7 +151,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         pfjets_hadronFlavour             ->push_back(pfjet_it->hadronFlavour()             );
 
         //
-        int idx = pfjet_it - pfJetsHandle->begin();
+        // int idx = pfjet_it - pfJetsHandle->begin();
 
         // // Embedded b-tag info
         // // Default is set automatically to -1000. if no value is found
@@ -171,8 +171,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
             unsigned int ipf = cand_it->key();
             pat::PackedCandidate pfc = pfCandidates->at(ipf);
             if (!pfc.isGlobalMuon() && !pfc.isStandAloneMuon()) continue;
-            LorentzVector pfmup4 = LorentzVector(pfc.p4());
-            pfcandmup4.push_back(pfmup4);
+            // LorentzVector pfmup4 = LorentzVector(pfc.p4());
+            pfcandmup4.push_back(LorentzVector(pfc.p4()));
             // idx aliasprefix_ ipf pfmup4.Pt() pfc.pdgId() pfc.isGlobalMuon() pfc.isStandAloneMuon()
         } 
         pfjets_pfcandmup4->push_back( pfcandmup4 );
