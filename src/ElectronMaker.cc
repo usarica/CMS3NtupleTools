@@ -203,6 +203,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
 
     // isolation variables
     //
+    produces<vector<float> >     ("elshcalDepth1TowerSumEt"   ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
     produces<vector<float> >     ("elstkIso"                  ).setBranchAlias("els_tkIso"                  );
     produces<vector<float> >     ("elsecalIso"                ).setBranchAlias("els_ecalIso"                );
     produces<vector<float> >     ("elshcalIso"                ).setBranchAlias("els_hcalIso"                );
@@ -399,6 +400,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // isolation variables
     //
+    auto_ptr<vector<float> > els_hcalDepth1TowerSumEt   (new vector<float> );
     auto_ptr<vector<float> > els_tkIso                  (new vector<float> );
     auto_ptr<vector<float> > els_ecalIso                (new vector<float> );
     auto_ptr<vector<float> > els_hcalIso                (new vector<float> );
@@ -778,6 +780,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Isolation //
         ///////////////
 
+        els_hcalDepth1TowerSumEt  ->push_back( el->dr03HcalDepth1TowerSumEt()             );
         els_ecalIso               ->push_back( el->dr03EcalRecHitSumEt()                  );
         els_hcalIso               ->push_back( el->dr03HcalTowerSumEt()                   );
         els_tkIso                 ->push_back( el->dr03TkSumPt()                          );
@@ -1341,6 +1344,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Isolation
     //
+    iEvent.put(els_hcalDepth1TowerSumEt , "elshcalDepth1TowerSumEt" );
     iEvent.put(els_tkIso                , "elstkIso"                );
     iEvent.put(els_ecalIso              , "elsecalIso"              );
     iEvent.put(els_hcalIso              , "elshcalIso"              );

@@ -189,7 +189,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
 
     // isolation variables
     //
-    produces<vector<float> >     ("elshcalDepth1TowerSumEt"   ).setBranchAlias("els_hcalDepth1TowerSumEt"   );
     produces<vector<float> >     ("elshcalDepth2TowerSumEt"   ).setBranchAlias("els_hcalDepth2TowerSumEt"   );
 
     produces<vector<float> >     ("elshcalDepth1TowerSumEt04" ).setBranchAlias("els_hcalDepth1TowerSumEt04" );
@@ -417,7 +416,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // isolation variables
     //
-    auto_ptr<vector<float> > els_hcalDepth1TowerSumEt   (new vector<float> );
     auto_ptr<vector<float> > els_hcalDepth2TowerSumEt   (new vector<float> );
                              
     auto_ptr<vector<float> > els_hcalDepth1TowerSumEt04 (new vector<float> );
@@ -841,7 +839,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // Isolation //
         ///////////////
 
-        els_hcalDepth1TowerSumEt  ->push_back( el->dr03HcalDepth1TowerSumEt()             );
         els_hcalDepth2TowerSumEt  ->push_back( el->dr03HcalDepth2TowerSumEt()             );
 
         els_hcalDepth1TowerSumEt04->push_back( el->dr04HcalDepth1TowerSumEt()             );
@@ -1520,7 +1517,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Isolation
     //
-    iEvent.put(els_hcalDepth1TowerSumEt , "elshcalDepth1TowerSumEt" );
     iEvent.put(els_hcalDepth2TowerSumEt , "elshcalDepth2TowerSumEt" );
 
     iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
