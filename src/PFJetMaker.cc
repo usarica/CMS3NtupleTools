@@ -57,6 +57,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
     produces<vector<int> >           ( branchprefix+"partonFlavour"                    ).setBranchAlias( aliasprefix_+"_partonFlavour"                    );
     produces<vector<int> >           ( branchprefix+"hadronFlavour"                    ).setBranchAlias( aliasprefix_+"_hadronFlavour"                    );
   produces<vector<vector<LorentzVector> >  > ( branchprefix+"pfcandmup4"                   ).setBranchAlias( aliasprefix_+"_pfcandmup4"                   );
+  produces<vector<int>  > ( branchprefix+"npfcands"                   ).setBranchAlias( aliasprefix_+"_npfcands"                   );
 
     // Embedded b-tagging information (miniAOD only)
     produces<vector<float> >         (branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag" ).setBranchAlias(aliasprefix_+"_pfCombinedInclusiveSecondaryVertexV2BJetTag");
@@ -107,6 +108,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
     auto_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
     auto_ptr<vector<vector<LorentzVector> >  > pfjets_pfcandmup4            (new vector<vector<LorentzVector> >   );
+    auto_ptr<vector<int>  > pfjets_npfcands            (new vector<int>   );
 
     auto_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
     auto_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
@@ -176,6 +178,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
             // idx aliasprefix_ ipf pfmup4.Pt() pfc.pdgId() pfc.isGlobalMuon() pfc.isStandAloneMuon()
         } 
         pfjets_pfcandmup4->push_back( pfcandmup4 );
+        pfjets_npfcands->push_back(pfjet_cands.size());
 
 
     }
@@ -207,6 +210,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(pfjets_partonFlavour             , branchprefix+"partonFlavour"             );
     iEvent.put(pfjets_hadronFlavour             , branchprefix+"hadronFlavour"             );
     iEvent.put(pfjets_pfcandmup4            , branchprefix+"pfcandmup4"            );
+    iEvent.put(pfjets_npfcands            , branchprefix+"npfcands"            );
 
     iEvent.put(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag, branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
     iEvent.put(pfjets_bDiscriminatorNames                                    , branchprefix+"bDiscriminatorNames"     );
