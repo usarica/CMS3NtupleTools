@@ -87,6 +87,8 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
 
     //info of matched genJet
     produces<vector<float>         >("pfjetsmcdr"           	).setBranchAlias("pfjets_mcdr"          	);
+    produces<vector<LorentzVector> >("pfjetsmcp4"           	).setBranchAlias("pfjets_mc_p4"         	); // p4 of the matched GenJet
+
     //info of matched gen particle
     produces<vector<int>           >("pfjetsmcmotherid"     	).setBranchAlias("pfjets_mc_motherid"   	); // id of the status=1 particle matched to the jet
     //info of matched status 3 particle
@@ -158,6 +160,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     // pfjets
     //info of matched genJet
     auto_ptr<vector<float>         > vector_pfjets_mcdr          (new vector<float>        );
+    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_p4         (new vector<LorentzVector>); 
     //info of matched gen particle
     auto_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
     //info of matched status 3 particle
@@ -417,8 +420,10 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     
         if ( matchedGenJet != 0 ) {
             vector_pfjets_mcdr          ->push_back(ROOT::Math::VectorUtil::DeltaR(*pfjetsp4_it, (*matchedGenJet).p4() ));
+            vector_pfjets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
         } else {
             vector_pfjets_mcdr           ->push_back(-9999  );
+            vector_pfjets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
         }
 
         int temp;
@@ -486,6 +491,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     iEvent.put(vector_mus_mc3dr          		,"musmc3dr"         	);
 
     iEvent.put(vector_pfjets_mcdr          	,"pfjetsmcdr"         	);
+    iEvent.put(vector_pfjets_mc_p4         	,"pfjetsmcp4"         	);
     iEvent.put(vector_pfjets_mc_motherid   	,"pfjetsmcmotherid"   	);
     iEvent.put(vector_pfjets_mc3dr         	,"pfjetsmc3dr"        	);
     iEvent.put(vector_pfjets_mc3idx        	,"pfjetsmc3idx"       	);

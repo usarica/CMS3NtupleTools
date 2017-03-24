@@ -54,7 +54,6 @@ CandToGenAssExtraMaker::CandToGenAssExtraMaker(const edm::ParameterSet& iConfig)
     produces<vector<float>         >("pfjetsmchadEnergy"    	).setBranchAlias("pfjets_mc_hadEnergy"  	); // energy of hadronic particles of the matched GenJet
     produces<vector<float>         >("pfjetsmcinvEnergy"    	).setBranchAlias("pfjets_mc_invEnergy"  	); // invisible energy of the matched GenJet
     produces<vector<float>         >("pfjetsmcotherEnergy"  	).setBranchAlias("pfjets_mc_otherEnergy"	); // other energy (undecayed Sigmas etc.) of the matched GenJet
-    produces<vector<LorentzVector> >("pfjetsmcp4"           	).setBranchAlias("pfjets_mc_p4"         	); // p4 of the matched GenJet
     //info of matched gen particle
     produces<vector<float>         >("pfjetsmcgpdr"         	).setBranchAlias("pfjets_mc_gpdr"       	);
     produces<vector<int>           >("pfjetsmcgpidx"        	).setBranchAlias("pfjets_mc_gpidx"      	); // index of matched status==1 particle
@@ -94,7 +93,6 @@ void CandToGenAssExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
     auto_ptr<vector<float>         > vector_pfjets_mc_hadEnergy  (new vector<float>        ); 
     auto_ptr<vector<float>         > vector_pfjets_mc_invEnergy  (new vector<float>        ); 
     auto_ptr<vector<float>         > vector_pfjets_mc_otherEnergy(new vector<float>        ); 
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_p4         (new vector<LorentzVector>); 
     //info of matched gen particle
     auto_ptr<vector<float>         > vector_pfjets_mc_gpdr       (new vector<float>        );
     auto_ptr<vector<int>           > vector_pfjets_mc_gpidx      (new vector<int>          );
@@ -166,14 +164,12 @@ void CandToGenAssExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
             vector_pfjets_mc_hadEnergy  ->push_back(matchedGenJet->hadEnergy());
             vector_pfjets_mc_invEnergy  ->push_back(matchedGenJet->invisibleEnergy());
             vector_pfjets_mc_otherEnergy->push_back(matchedGenJet->auxiliaryEnergy());
-            vector_pfjets_mc_p4         ->push_back( LorentzVector( matchedGenJet->p4() ) );
         } else {
             vector_pfjets_mcidx          ->push_back(idx    );
             vector_pfjets_mc_emEnergy    ->push_back(-9999.  );
             vector_pfjets_mc_hadEnergy   ->push_back(-9999.  );
             vector_pfjets_mc_invEnergy   ->push_back(-9999.  );
             vector_pfjets_mc_otherEnergy ->push_back(-9999.  );
-            vector_pfjets_mc_p4          ->push_back(LorentzVector(0,0,0,0));
         }
 
         int temp;
@@ -236,7 +232,6 @@ void CandToGenAssExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
     iEvent.put(vector_pfjets_mc_hadEnergy  	,"pfjetsmchadEnergy"  	);
     iEvent.put(vector_pfjets_mc_invEnergy  	,"pfjetsmcinvEnergy"  	);
     iEvent.put(vector_pfjets_mc_otherEnergy	,"pfjetsmcotherEnergy"	);
-    iEvent.put(vector_pfjets_mc_p4         	,"pfjetsmcp4"         	);
     iEvent.put(vector_pfjets_mc_gpdr       	,"pfjetsmcgpdr"       	);
     iEvent.put(vector_pfjets_mc_gpidx      	,"pfjetsmcgpidx"      	);
     iEvent.put(vector_pfjets_mc_gp_p4      	,"pfjetsmcgpp4"       	);
