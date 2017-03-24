@@ -45,10 +45,12 @@ using std::vector;
 
 CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
 {
+    ntuplePackedGenParticles_   = iConfig.getParameter<bool>                      ("ntuplePackedGenParticles");
+
     // electron matched to gen particle
     produces<vector<int>           >("elsmcid"            	).setBranchAlias("els_mc_id"          		); 
     produces<vector<int>           >("elsmcmotherid"      	).setBranchAlias("els_mc_motherid"    		);
-    produces<vector<int>           >("elsmcidx"           	).setBranchAlias("els_mcidx"          		);
+    if (ntuplePackedGenParticles_) produces<vector<int>           >("elsmcidx"           	).setBranchAlias("els_mcidx"          		);
     produces<vector<LorentzVector> >("elsmcp4"            	).setBranchAlias("els_mc_p4"          		);
     produces<vector<LorentzVector> >("elsmcmotherp4"      	).setBranchAlias("els_mc_motherp4"    		);
     produces<vector<float>         >("elsmcdr"            	).setBranchAlias("els_mcdr"           		);
@@ -61,7 +63,7 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
     //photons matched to gen particles
     produces<vector<int>           >("photonsmcid"            	).setBranchAlias("photons_mc_id"          	); 
     produces<vector<int>           >("photonsmcmotherid"      	).setBranchAlias("photons_mc_motherid"    	);
-    produces<vector<int>           >("photonsmcidx"           	).setBranchAlias("photons_mcidx"          	);
+    if (ntuplePackedGenParticles_) produces<vector<int>           >("photonsmcidx"           	).setBranchAlias("photons_mcidx"          	);
     produces<vector<LorentzVector> >("photonsmcp4"            	).setBranchAlias("photons_mc_p4"          	);
     produces<vector<LorentzVector> >("photonsmcmotherp4"      	).setBranchAlias("photons_mc_motherp4"    	);
     produces<vector<float>         >("photonsmcdr"            	).setBranchAlias("photons_mcdr"           	);
@@ -75,7 +77,7 @@ CandToGenAssMaker::CandToGenAssMaker(const edm::ParameterSet& iConfig)
     // muon matched to gen particle
     produces<vector<int>           >("musmcid"            	).setBranchAlias("mus_mc_id"          		);
     produces<vector<int>           >("musmcmotherid"      	).setBranchAlias("mus_mc_motherid"    		);
-    produces<vector<int>           >("musmcidx"           	).setBranchAlias("mus_mcidx"          		);
+    if (ntuplePackedGenParticles_) produces<vector<int>           >("musmcidx"           	).setBranchAlias("mus_mcidx"          		);
     produces<vector<LorentzVector> >("musmcp4"            	).setBranchAlias("mus_mc_p4"          		);
     produces<vector<LorentzVector> >("musmcmotherp4"      	).setBranchAlias("mus_mc_motherp4"    		);
     produces<vector<float>         >("musmcdr"            	).setBranchAlias("mus_mcdr"           		);
@@ -250,7 +252,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         // fill vector
         vector_els_mc_id      ->push_back(mcid        );
         vector_els_mc_motherid->push_back(mom_mcid    );
-        vector_els_mcidx      ->push_back(genidx      );
+        if (ntuplePackedGenParticles_) vector_els_mcidx      ->push_back(genidx      );
         vector_els_mcp4       ->push_back(mc_p4       );
         vector_els_mc_motherp4->push_back(mc_motherp4 );
         vector_els_mcdr       ->push_back( dR         );
@@ -313,7 +315,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         // fill vector
         vector_photons_mc_id      ->push_back(mcid        );
         vector_photons_mc_motherid->push_back(mom_mcid    );
-        vector_photons_mcidx      ->push_back(genidx      );
+        if (ntuplePackedGenParticles_) vector_photons_mcidx      ->push_back(genidx      );
         vector_photons_mcp4       ->push_back(mc_p4       );
         vector_photons_mc_motherp4->push_back(mc_motherp4 );
         vector_photons_mcdr       ->push_back( dR         );
@@ -377,7 +379,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
         // fill vector
         vector_mus_mc_id      ->push_back(mcid        );
         vector_mus_mc_motherid->push_back(mom_mcid    );
-        vector_mus_mcidx      ->push_back(genidx      );
+        if (ntuplePackedGenParticles_) vector_mus_mcidx      ->push_back(genidx      );
         vector_mus_mcp4       ->push_back(mc_p4       );
         vector_mus_mc_motherp4->push_back(mc_motherp4 );
         vector_mus_mcdr       ->push_back( dR         );
@@ -456,7 +458,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     iEvent.put(vector_els_mc_id          		,"elsmcid"          	);
     iEvent.put(vector_els_mc_motherid    		,"elsmcmotherid"    	);
-    iEvent.put(vector_els_mcidx          		,"elsmcidx"         	);
+    if (ntuplePackedGenParticles_) iEvent.put(vector_els_mcidx          		,"elsmcidx"         	);
     iEvent.put(vector_els_mcp4           		,"elsmcp4"          	);
     iEvent.put(vector_els_mc_motherp4    		,"elsmcmotherp4"    	);
     iEvent.put(vector_els_mcdr           		,"elsmcdr"          	);
@@ -468,7 +470,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     iEvent.put(vector_photons_mc_id          	,"photonsmcid"          );
     iEvent.put(vector_photons_mc_motherid    	,"photonsmcmotherid"    );
-    iEvent.put(vector_photons_mcidx          	,"photonsmcidx"         );
+    if (ntuplePackedGenParticles_) iEvent.put(vector_photons_mcidx          	,"photonsmcidx"         );
     iEvent.put(vector_photons_mcp4           	,"photonsmcp4"          );
     iEvent.put(vector_photons_mc_motherp4    	,"photonsmcmotherp4"    );
     iEvent.put(vector_photons_mcdr           	,"photonsmcdr"          );
@@ -480,7 +482,7 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
 
     iEvent.put(vector_mus_mc_id          		,"musmcid"          	);
     iEvent.put(vector_mus_mc_motherid    		,"musmcmotherid"    	);
-    iEvent.put(vector_mus_mcidx          		,"musmcidx"         	);
+    if (ntuplePackedGenParticles_) iEvent.put(vector_mus_mcidx          		,"musmcidx"         	);
     iEvent.put(vector_mus_mcp4           		,"musmcp4"          	);
     iEvent.put(vector_mus_mc_motherp4    		,"musmcmotherp4"    	);
     iEvent.put(vector_mus_mcdr           		,"musmcdr"          	);

@@ -55,6 +55,7 @@ private:
      edm::EDGetTokenT<std::vector<LorentzVector> > photonsToken_;
      edm::EDGetTokenT<std::vector<LorentzVector> > pfJetsToken_;
 
+     bool ntuplePackedGenParticles_;
   edm::InputTag jetsInputTag_;
   edm::InputTag tracksInputTag_;
   std::vector<int> vPIDsToExclude_;
