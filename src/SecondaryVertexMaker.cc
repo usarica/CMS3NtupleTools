@@ -295,6 +295,8 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
 	//vector_vtxs_mc3p4  -> push_back( genp4     );
 	//vector_vtxs_flight -> push_back( flightDir );
 	
+        delete vertex;
+
       } // End loop on secondary vertices
       
   } // end if primary vertex
