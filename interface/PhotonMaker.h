@@ -24,7 +24,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -38,7 +38,7 @@
 // class decleration
 //
 
-class PhotonMaker : public edm::EDProducer {
+class PhotonMaker : public edm::stream::EDProducer<> {
 public:
     explicit PhotonMaker (const edm::ParameterSet&);
     ~PhotonMaker();

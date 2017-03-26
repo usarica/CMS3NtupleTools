@@ -5,13 +5,13 @@
 #include <memory>
 #include <iostream>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 
-class EnergyDensityMaker : public edm::EDProducer {
+class EnergyDensityMaker : public edm::stream::EDProducer<> {
 public:
   explicit EnergyDensityMaker (const edm::ParameterSet&);
   ~EnergyDensityMaker(){}

@@ -23,7 +23,7 @@ Implementation:
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -40,7 +40,7 @@ Implementation:
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
-class T1CHSMETJets : public edm::EDProducer {
+class T1CHSMETJets : public edm::stream::EDProducer<> {
 public:
   explicit T1CHSMETJets(const edm::ParameterSet&);
   ~T1CHSMETJets();

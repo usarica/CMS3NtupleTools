@@ -25,7 +25,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -65,7 +65,7 @@
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class ElectronExtraMaker : public edm::EDProducer {
+class ElectronExtraMaker : public edm::stream::EDProducer<> {
 public:
     explicit ElectronExtraMaker (const edm::ParameterSet&);
     ~ElectronExtraMaker();

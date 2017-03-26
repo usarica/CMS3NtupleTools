@@ -21,7 +21,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -37,7 +37,7 @@
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class CandToGenAssMaker : public edm::EDProducer {
+class CandToGenAssMaker : public edm::stream::EDProducer<> {
 public:
      explicit CandToGenAssMaker (const edm::ParameterSet&);
 

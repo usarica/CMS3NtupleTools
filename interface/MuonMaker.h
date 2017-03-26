@@ -24,7 +24,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
@@ -43,7 +43,7 @@
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class MuonMaker : public edm::EDProducer {
+class MuonMaker : public edm::stream::EDProducer<> {
 public:
      explicit MuonMaker (const edm::ParameterSet&);
 

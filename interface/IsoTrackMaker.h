@@ -6,7 +6,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -15,7 +15,7 @@
 
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
-class IsoTrackMaker : public edm::EDProducer {
+class IsoTrackMaker : public edm::stream::EDProducer<> {
 public:
      explicit IsoTrackMaker (const edm::ParameterSet&);
      ~IsoTrackMaker();

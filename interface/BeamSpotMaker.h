@@ -24,7 +24,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -37,7 +37,7 @@
 // class decleration
 //
 
-class BeamSpotMaker : public edm::EDProducer {
+class BeamSpotMaker : public edm::stream::EDProducer<> {
 public:
      explicit BeamSpotMaker (const edm::ParameterSet&);
       ~BeamSpotMaker();

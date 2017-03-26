@@ -25,7 +25,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/LuminosityBlock.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -40,7 +40,7 @@
 // class declaration
 //
 
-class SParmMaker : public edm::EDProducer {
+class SParmMaker : public edm::stream::EDProducer<> {
 public:
     explicit SParmMaker (const edm::ParameterSet&);
     ~SParmMaker();

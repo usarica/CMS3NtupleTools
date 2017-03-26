@@ -21,7 +21,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -29,7 +29,7 @@
 // class declaration
 //
 
-class PFElToElAssMaker : public edm::EDProducer {
+class PFElToElAssMaker : public edm::stream::EDProducer<> {
 public:
      explicit PFElToElAssMaker (const edm::ParameterSet&);
 

@@ -28,7 +28,7 @@ Implementation:
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -44,7 +44,7 @@ Implementation:
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class HypDilepMaker : public edm::EDProducer {
+class HypDilepMaker : public edm::stream::EDProducer<> {
 public:
   
     

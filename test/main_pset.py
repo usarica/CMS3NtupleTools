@@ -50,7 +50,7 @@ process.out = cms.OutputModule("PoolOutputModule",
                                dropMetaData = cms.untracked.string("NONE"),
                                # basketSize = cms.untracked.int32(16384*150)
                                # basketSize = cms.untracked.int32(16384*10)
-                               basketSize = cms.untracked.int32(16384*5)
+                               basketSize = cms.untracked.int32(16384*25)
 )
 
 
@@ -122,9 +122,9 @@ process.source = cms.Source("PoolSource",
 #                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
-                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
+                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test',
-                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
+                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
                                 # 'file:QCD_HT200to300.root',
                                 # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
                             )

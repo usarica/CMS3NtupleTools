@@ -32,7 +32,7 @@
 //#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
 #include "CommonTools/TriggerUtils/interface/PrescaleWeightProvider.h"
 
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -49,7 +49,7 @@
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class HLTMaker : public edm::EDProducer {
+class HLTMaker : public edm::stream::EDProducer<> {
 public:
   explicit HLTMaker(const edm::ParameterSet&);
   ~HLTMaker() {}

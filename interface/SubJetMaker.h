@@ -23,7 +23,7 @@ Implementation:
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -37,7 +37,7 @@ Implementation:
 // class decleration
 //
 
-class SubJetMaker : public edm::EDProducer {
+class SubJetMaker : public edm::stream::EDProducer<> {
 public:
   explicit SubJetMaker(const edm::ParameterSet&);
   ~SubJetMaker();

@@ -19,7 +19,7 @@ Description: make associations between jets and muons
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
+#include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -27,7 +27,7 @@ Description: make associations between jets and muons
 // class declaration
 //
 
-class JetToElAssMaker : public edm::EDProducer {
+class JetToElAssMaker : public edm::stream::EDProducer<> {
 public:
   explicit JetToElAssMaker (const edm::ParameterSet&);
 
