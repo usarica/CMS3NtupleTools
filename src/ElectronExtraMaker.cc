@@ -137,7 +137,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
     clusterTools_ = 0;
  
 
-    produces<unsigned int>       ("evtnels"                    ).setBranchAlias("evt_nels"                   ); //number of electrons in event
 
     // ECAL related (superCluster) variables
     produces<vector<int> >       ("elsnSeed"                   ).setBranchAlias("els_nSeed"                  );
@@ -146,9 +145,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
 
     // Corrections and uncertainties
     //
-    produces<vector<float> >     ("elsecalEnergy"              ).setBranchAlias("els_ecalEnergy"             );
-    produces<vector<float> >     ("elsecalEnergyError"         ).setBranchAlias("els_ecalEnergyError"        );
-    produces<vector<float> >     ("elstrackMomentumError"      ).setBranchAlias("els_trackMomentumError"     );
 
     // ID variables
     //
@@ -185,7 +181,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
-    produces<vector<int> >       ("elscategory"                ).setBranchAlias("els_category"               );
 
     // isolation variables
     //
@@ -209,11 +204,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
 
     // track variables
     //
-    produces<vector<int> >       ("elscharge"        ).setBranchAlias("els_charge"         ); //candidate charge
-    produces<vector<int> >       ("elssccharge"      ).setBranchAlias("els_sccharge"       );
-    produces<vector<int> >       ("elstrkcharge"     ).setBranchAlias("els_trk_charge"     );
-    produces<vector<int> >       ("elsvalidHits"     ).setBranchAlias("els_validHits"      ); //number of used hits in fit
-    produces<vector<int> >       ("elslostHits"      ).setBranchAlias("els_lostHits"       ); //number of lost hits in fit
     produces<vector<float> >     ("elsd0"            ).setBranchAlias("els_d0"             );
     produces<vector<float> >     ("elsz0"            ).setBranchAlias("els_z0"             );
     produces<vector<float> >     ("elsd0corr"        ).setBranchAlias("els_d0corr"         );
@@ -366,7 +356,6 @@ void ElectronExtraMaker::endJob() {
 void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Define vectors to be filled
-    auto_ptr<unsigned int>   evt_nels(new unsigned int) ;
 
     // ECAL related (superCluster) variables
     auto_ptr<vector<int> >   els_nSeed       (new vector<int>   );
@@ -378,10 +367,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // http://cms-service-sdtweb.web.cern.ch/cms-service-sdtweb/doxygen/CMSSW_3_1_2/doc/html/d5/d4b/GsfElectron_8h-source.html
     // note that if ecalEnergy == eSC depends on if further ecal corrections have been applied to the electron
     // after its construction
-    auto_ptr<vector<float> > els_ecalEnergy            (new vector<float>);
-    auto_ptr<vector<float> > els_ecalEnergyError       (new vector<float>);
-    auto_ptr<vector<float> > els_trackMomentumError    (new vector<float>);
-    auto_ptr<vector<float> > els_electronMomentumError (new vector<float>);
   
     // ID variables
     //
@@ -434,11 +419,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // track variables
     //
-    auto_ptr<vector<int> >   els_charge     (new vector<int>   );
-    auto_ptr<vector<int> >   els_trk_charge (new vector<int>   );
-    auto_ptr<vector<int> >   els_sccharge   (new vector<int>   );
-    auto_ptr<vector<int> >   els_validHits  (new vector<int>   );
-    auto_ptr<vector<int> >   els_lostHits   (new vector<int>   );
     auto_ptr<vector<float> > els_d0         (new vector<float> );
     auto_ptr<vector<float> > els_z0         (new vector<float> );
     auto_ptr<vector<float> > els_d0corr     (new vector<float> );
@@ -735,7 +715,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Loop Over Electrons //
     /////////////////////////
 
-    *evt_nels       = els_h->size();
     double mass     = 0.000510998918;
     size_t elsIndex = 0;
     for( View<pat::Electron>::const_iterator el = els_h->begin(); el != els_h->end(); el++, elsIndex++ ) {
@@ -828,11 +807,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //////////////
 
         els_fiduciality        ->push_back( fiducialityMask                                 );
-        //els_ecalEnergy         ->push_back( el->ecalEnergy()                                );  // energy corrections and uncertainties
-        //els_ecalEnergyError    ->push_back( el->ecalEnergyError()                           );
-        els_ecalEnergy         ->push_back( el->correctedEcalEnergy()                       );  // energy corrections and uncertainties
-        els_ecalEnergyError    ->push_back( el->correctedEcalEnergyError()                  );
-        els_trackMomentumError ->push_back( el->trackMomentumError()                        );
 
 
         ///////////////
@@ -1198,11 +1172,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_etaErr                ->push_back( el_track->etaError()                      );
         els_phiErr                ->push_back( el_track->phiError()                      );  
-        els_validHits             ->push_back( el_track->numberOfValidHits()             );
-        els_lostHits              ->push_back( el_track->numberOfLostHits()              );
-        els_charge                ->push_back( el->charge()                              );
-        els_trk_charge            ->push_back( el_track->charge()                        );
-        els_sccharge              ->push_back( el->scPixCharge()                         );
         els_d0                    ->push_back( el_track->d0()                            );
         els_z0                    ->push_back( el_track->dz()                            );
         els_d0corr                ->push_back( -1*(el_track->dxy(beamSpot))              );
@@ -1446,7 +1415,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Put the results into the event
     //
-    iEvent.put(evt_nels, "evtnels");
 
     // Predefined ID descisions 
     //
@@ -1469,11 +1437,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_bs2d       , "elsbs2d"      );
     iEvent.put(els_bs2derr    , "elsbs2derr"   );
   
-    iEvent.put(els_validHits  , "elsvalidHits" );
-    iEvent.put(els_lostHits   , "elslostHits"  );
-    iEvent.put(els_charge     , "elscharge"    );
-    iEvent.put(els_trk_charge , "elstrkcharge" );
-    iEvent.put(els_sccharge   , "elssccharge"  );
 
 
 
@@ -1489,9 +1452,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Corrections and uncertainties
     //
-    iEvent.put(els_ecalEnergy         , "elsecalEnergy"         );
-    iEvent.put(els_ecalEnergyError    , "elsecalEnergyError"    );
-    iEvent.put(els_trackMomentumError , "elstrackMomentumError" );
 
 
 
