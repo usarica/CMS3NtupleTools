@@ -34,7 +34,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
 
     // product of this EDProducer
     produces<vector<LorentzVector> > ( branchprefix+"p4"                               ).setBranchAlias( aliasprefix_+"_p4"                               );
-    produces<vector<float> >         ( branchprefix+"mass"                             ).setBranchAlias( aliasprefix_+"_mass"                             );
+    // produces<vector<float> >         ( branchprefix+"mass"                             ).setBranchAlias( aliasprefix_+"_mass"                             );
     produces<vector<float> >         ( branchprefix+"undoJEC"                          ).setBranchAlias( aliasprefix_+"_undoJEC"                          );
     produces<vector<float> >         ( branchprefix+"chargedHadronE"                   ).setBranchAlias( aliasprefix_+"_chargedHadronE"                   );
     produces<vector<float> >         ( branchprefix+"neutralHadronE"                   ).setBranchAlias( aliasprefix_+"_neutralHadronE"                   );
@@ -85,7 +85,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // create containers
     auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
-    auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
+    // auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
     auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
     auto_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
     auto_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
@@ -126,7 +126,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
         pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() )       );
-        pfjets_mass                      ->push_back( pfjet_it->mass()                      );
+        // pfjets_mass                      ->push_back( pfjet_it->mass()                      );
         pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")    );
         pfjets_chargedHadronE            ->push_back( pfjet_it->chargedHadronEnergy()       );
         pfjets_neutralHadronE            ->push_back( pfjet_it->neutralHadronEnergy()       );
@@ -187,7 +187,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     iEvent.put(pfjets_p4                        , branchprefix+"p4"                        );
-    iEvent.put(pfjets_mass                      , branchprefix+"mass"                      );
+    // iEvent.put(pfjets_mass                      , branchprefix+"mass"                      );
     iEvent.put(pfjets_undoJEC                   , branchprefix+"undoJEC"                   );
     iEvent.put(pfjets_chargedHadronE            , branchprefix+"chargedHadronE"            );
     iEvent.put(pfjets_neutralHadronE            , branchprefix+"neutralHadronE"            );
