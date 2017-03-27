@@ -247,7 +247,6 @@ ElectronExtraMaker::ElectronExtraMaker(const ParameterSet& iConfig) {
 
     produces<vector<bool > >  ("elspassingMvaPreselection"  ).setBranchAlias("els_passingMvaPreselection"  );
     produces<vector<bool > >  ("elspassingPflowPreselection").setBranchAlias("els_passingPflowPreselection");
-    produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
 
     ///////////////////
     // Added for 7   //
@@ -456,7 +455,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     auto_ptr<vector<bool > >  els_passingMvaPreselection   ( new vector<bool>  );
     auto_ptr<vector<bool > >  els_passingPflowPreselection ( new vector<bool>  );
-    auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
 
     ///////////////////
     // Added for 7   //
@@ -1364,7 +1362,6 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         els_passingMvaPreselection  ->push_back( el->passingMvaPreselection()   );
         els_passingPflowPreselection->push_back( el->passingPflowPreselection() );
-        els_r9                      ->push_back( el->r9()                       );
 
         ///////////////////
         // Added for 7   //
