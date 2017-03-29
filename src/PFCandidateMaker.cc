@@ -114,7 +114,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       // if (itpf->charge() == 0) continue; // skip neutrals
       if (abs(itpf->pdgId()) != 211) continue; // not considering leptons
       float dr = ROOT::Math::VectorUtil::DeltaR( itpf->p4(), pf_it->p4() );
-      if (itpf->pt() >= 0.0 && (itpf->dz() < 0.1 || itpf->fromPV() > 1)) { // dz cut at 0.1 and use PV info
+      if (itpf->pt() >= 0.0 && (fabs(itpf->dz()) < 0.1 || itpf->fromPV() > 1)) { // dz cut at 0.1 and use PV info
         if (dr < 0.3) absIso += itpf->pt();            // normal trackIso with cone size 0.3
         if (dr < miniDR) miniTkIso += itpf->pt();      // miniTrackIso
       }
