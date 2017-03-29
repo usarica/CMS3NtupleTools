@@ -291,6 +291,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float>         >("elssigmaEtaEtafull5x5"     	).setBranchAlias("els_sigmaEtaEta_full5x5"                    	);
     produces<vector<float>         >("elssigmaIEtaIEtafull5x5"   	).setBranchAlias("els_sigmaIEtaIEta_full5x5"                  	);
     produces<vector<float>         >("elsr9full5x5"              	).setBranchAlias("els_r9_full5x5"                             	);
+    produces<vector<float> >  ("elsr9"                      ).setBranchAlias("els_r9"                      );
     produces<vector<float>         >("else1x5full5x5"            	).setBranchAlias("els_e1x5_full5x5"                           	);
     produces<vector<float>         >("else5x5full5x5"            	).setBranchAlias("els_e5x5_full5x5"                           	);
     produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
@@ -480,6 +481,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     auto_ptr<vector<float>   >       els_sigmaEtaEta_full5x5               (new vector<float>        );
     auto_ptr<vector<float>   >       els_sigmaIEtaIEta_full5x5             (new vector<float>        );
     auto_ptr<vector<float>   >       els_r9_full5x5                        (new vector<float>        );
+    auto_ptr<vector<float> >  els_r9                       ( new vector<float> );
     auto_ptr<vector<float>   >       els_e1x5_full5x5                      (new vector<float>        );
     auto_ptr<vector<float>   >       els_e5x5_full5x5                      (new vector<float>        );
     auto_ptr<vector<float>   >       els_e2x5Max_full5x5                   (new vector<float>        );
@@ -823,6 +825,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_sigmaEtaEta_full5x5    ->push_back( el->full5x5_sigmaEtaEta()     );
 	els_sigmaIEtaIEta_full5x5  ->push_back( el->full5x5_sigmaIetaIeta()   );
 	els_r9_full5x5             ->push_back( el->full5x5_r9()              );
+    els_r9                      ->push_back( el->r9()                       );
 	els_e1x5_full5x5           ->push_back( el->full5x5_e1x5()            );
 	els_e5x5_full5x5           ->push_back( el->full5x5_e5x5()            );  
 	els_e2x5Max_full5x5        ->push_back( el->full5x5_e2x5Max()         );
@@ -873,64 +876,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             // Information about subclusters //
             ///////////////////////////////////
 	  
-            // Containers for partial sums
-	  
-            vector<float> partial_els_clusterRawEnergy;
-            vector<float> partial_els_clusterCalibEnergy;
-            vector<float> partial_els_clusterEta;
-            vector<float> partial_els_clusterPhi;
-            vector<float> partial_els_clusterDPhiToSeed;
-            vector<float> partial_els_clusterDEtaToSeed;
-            vector<float> partial_els_clusterDPhiToCentroid;
-            vector<float> partial_els_clusterDEtaToCentroid;
-
-            vector<int>  partial_els_clusterInMustache;
-            vector<int>  partial_els_clusterInDynDPhi;
-
-            size_t iclus = 0;
-            float maxDR = 0;
-            for( auto clus = el->superCluster()->clustersBegin(); clus != el->superCluster()->clustersEnd(); ++clus ) {
-
-                if( el->superCluster()->seed() == (*clus) ) continue;
-                partial_els_clusterRawEnergy.push_back((*clus)->energy());
-                partial_els_clusterCalibEnergy.push_back((*clus)->energy());
-                partial_els_clusterEta.push_back((*clus)->eta());
-                partial_els_clusterPhi.push_back((*clus)->phi());
-                partial_els_clusterDPhiToSeed.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->seed()->phi()));
-                partial_els_clusterDEtaToSeed.push_back((*clus)->eta() - el->superCluster()->seed()->eta());
-                partial_els_clusterDPhiToCentroid.push_back(TVector2::Phi_mpi_pi((*clus)->phi() - el->superCluster()->phi()));
-                partial_els_clusterDEtaToCentroid.push_back((*clus)->eta() - el->superCluster()->eta());
-                // find cluster with max dR
-                if(reco::deltaR(*(*clus), *(el->superCluster()->seed())) > maxDR) {
-                    maxDR = reco::deltaR(*(*clus), *(el->superCluster()->seed()));
-                }
-	  
-	  
-                partial_els_clusterInMustache.push_back((int) reco::MustacheKernel::inMustache(el->superCluster()->seed()->eta(),el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
-                partial_els_clusterInDynDPhi.push_back((int) reco::MustacheKernel::inDynamicDPhiWindow(el->superCluster()->seed()->hitsAndFractions().at(0).first.subdetId()==EcalBarrel,el->superCluster()->seed()->phi(),(*clus)->energy(),(*clus)->eta(),(*clus)->phi()));
-                ++iclus;
-            }
-				       
-
-
-            // saves the information
-
-
-
-            vector<float> partial_els_psClusterRawEnergy;
-            vector<float> partial_els_psClusterEta;
-            vector<float> partial_els_psClusterPhi;
-    
-            // loop over all preshower clusters 
-            size_t ipsclus = 0;
-            for( auto psclus = el->superCluster()->preshowerClustersBegin(); psclus != el->superCluster()->preshowerClustersEnd(); ++psclus )  {
-                partial_els_psClusterRawEnergy.push_back((*psclus)->energy());
-                partial_els_psClusterEta.push_back((*psclus)->eta());
-                partial_els_psClusterPhi.push_back((*psclus)->phi());
-                ++ipsclus;
-            }
-
-    
             /////////////////////////////
             // Electron classification //
             /////////////////////////////
@@ -1083,99 +1028,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_nlayers         -> push_back(pattern.trackerLayersWithMeasurement());
 	els_nlayers3D       -> push_back(pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
 	els_nlayersLost     -> push_back(pattern.trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS));
-
-        if( el_track->extra().isAvailable() ) {
-
-            bool valid_hit      = false;
-            uint32_t hit_pattern; 
-            int i_layer       = 1;
-            //int side = -1;
-            bool pixel_hit   = false;
-            bool strip_hit   = false;
-            //int pixel_sizeX;
-            //int pixel_sizeY;
-            //float pixel_charge;
-            //int det;
-            //int layer;
-
-            for( trackingRecHit_iterator ihit = el_track->recHitsBegin(); ihit != el_track->recHitsEnd(); ++ihit ) { 
-
-                if(i_layer > 1) break;
-
-                int k       = ihit-el_track->recHitsBegin();
-                hit_pattern = pattern.getHitPattern(reco::HitPattern::TRACK_HITS, k);
-                valid_hit   = pattern.validHitFilter(hit_pattern);
-                pixel_hit   = pattern.pixelHitFilter(hit_pattern);
-                strip_hit   = pattern.stripHitFilter(hit_pattern);
-                //side        = (int)pattern.getSide(hit_pattern);
-                //det         = (int)pattern.getSubStructure(hit_pattern);
-                //layer       = (int)pattern.getLayer(hit_pattern);
-
-                if(!valid_hit) continue;
-
-                if(pixel_hit){
-        
-                    const SiPixelRecHit *pixel_hit_cast = dynamic_cast<const SiPixelRecHit*>(&(**ihit));
-                    assert(pixel_hit_cast != 0);
-                    //pixel_ClusterRef const& pixel_cluster = pixel_hit_cast->cluster();
-
-                    //pixel_sizeX  = (int)pixel_cluster->sizeX(); 
-                    //pixel_sizeY  = (int)pixel_cluster->sizeY(); 
-                    //pixel_charge = (float)pixel_cluster->charge();
-        
-                    if( i_layer == 1 ) {
-                        i_layer++;
-                    }
-
-                } // end pixel hit
-        
-                else if (strip_hit){
-
-                    //
-                    const SiStripRecHit1D *strip_hit_cast   = dynamic_cast<const SiStripRecHit1D*>(&(**ihit));
-                    const SiStripRecHit2D *strip2d_hit_cast = dynamic_cast<const SiStripRecHit2D*>(&(**ihit));
-                    ClusterRef cluster;
-                    if(strip_hit_cast == NULL){
-                        cluster = strip2d_hit_cast->cluster();
-                    }
-                    else { 
-                        cluster = strip_hit_cast->cluster();
-                    }        
-
-                    //
-                    int cluster_size   = (int)cluster->amplitudes().size();
-                    int cluster_charge = 0;
-                    //int max_strip_i    = max_element(cluster->amplitudes().begin(),cluster->amplitudes().end())-cluster->amplitudes().begin();
-                    //double cluster_weight_size = 0.0;
-
-                    for( int istrip = 0; istrip < cluster_size; istrip++ ){
-                        cluster_charge += (int)cluster->amplitudes().at(istrip);
-                        //cluster_weight_size += (istrip-max_strip_i)*(istrip-max_strip_i)*(cluster->amplitudes().at(istrip));
-                    }
-                    //cluster_weight_size = sqrt(cluster_weight_size/cluster_charge);
-        
-                    if( i_layer == 1 ) {
-
-                        //    //
-
-                        //    //
-                        //    if( side == 0 ) {
-                        //    }
-                        //    else {
-                        //    }
-
-                        i_layer++;
-
-                    } // end layer = 1
-
-                } // end strip hit
-
-            } // end for loop
-
-        } // end if extra 
-        //else {
-        //}
-    
 
         /////////////////
         // Conversions //
@@ -1395,6 +1247,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(els_sigmaEtaEta_full5x5    , "elssigmaEtaEtafull5x5"   );
     iEvent.put(els_sigmaIEtaIEta_full5x5  , "elssigmaIEtaIEtafull5x5" );
     iEvent.put(els_r9_full5x5             , "elsr9full5x5"            );
+    iEvent.put(els_r9             , "elsr9"            );
     iEvent.put(els_e1x5_full5x5           , "else1x5full5x5"          );
     iEvent.put(els_e5x5_full5x5           , "else5x5full5x5"          );
     iEvent.put(els_e2x5Max_full5x5        , "else2x5Maxfull5x5"       ); 
