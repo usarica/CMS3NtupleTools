@@ -77,7 +77,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
   unique_ptr<vector<float>>       pfcands_helperPhi           (new vector<float>         );
   unique_ptr<vector<float>>       pfcands_helperEta           (new vector<float>         );
-  unique_ptr<vector<bool>>        pfcands_helperPVinfo        (new vector<bool>         );
+  unique_ptr<vector<bool>>        pfcands_helperPVinfo        (new vector<bool>          );
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -129,7 +129,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       float deltaPhi = fabs((*pfcands_helperPhi)[pf_it2-ibegin] - thisPhi);
       if (deltaPhi > M_PI) deltaPhi = fabs(deltaPhi - 2.0*M_PI);
       if (deltaPhi > baseDR) continue;
-      float deltaEta = fabs((*pfcands_helperPhi)[pf_it2-ibegin] - thisEta);
+      float deltaEta = fabs((*pfcands_helperEta)[pf_it2-ibegin] - thisEta);
       if (deltaEta > baseDR) continue;
       float dr = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
       if (dr > baseDR) continue;
