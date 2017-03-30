@@ -75,8 +75,9 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   auto_ptr<vector<float>>         pfcands_trackIso            (new vector<float>         );
   auto_ptr<vector<float>>         pfcands_miniTrackIso        (new vector<float>         );
 
-  auto_ptr<vector<float>>         pfcands_helperPhi           (new vector<float>         );
-  auto_ptr<vector<bool>>          pfcands_helperPVinfo        (new vector<bool>         );
+  unique_ptr<vector<float>>       pfcands_helperPhi           (new vector<float>         );
+  unique_ptr<vector<float>>       pfcands_helperEta           (new vector<float>         );
+  unique_ptr<vector<bool>>        pfcands_helperPVinfo        (new vector<bool>         );
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -85,6 +86,7 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
   for (pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
     pfcands_helperPhi    -> push_back( pf_it->p4().Phi() );
+    pfcands_helperEta    -> push_back( pf_it->p4().Eta() );
     pfcands_helperPVinfo -> push_back( (!pf_it->vertexRef().isNull() && fabs(pf_it->dz()) < 0.1) || pf_it->fromPV() > 1 );
     if (pf_it->p4().pt() < minPt_ && abs(pf_it->pdgId()) != 11 && abs(pf_it->pdgId()) != 13) continue;
     pfcands_p4   -> push_back( LorentzVector(pf_it->p4()) );
@@ -111,32 +113,32 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     pfcands_isGlobalMuon     -> push_back( pf_it->isGlobalMuon()     );
   }//loop over candidate collection
 
-  for (auto ibegin = pfCandidates->begin(), pf_it = ibegin; pf_it != pfCandidates->end(); pf_it++) {
-    if (pf_it->p4().pt() < minPt_ && abs(pf_it->pdgId()) != 11 && abs(pf_it->pdgId()) != 13) continue;
+  for (auto ibegin = pfCandidates->begin(), pf_it1 = ibegin; pf_it1 != pfCandidates->end(); pf_it1++) {
+    if (pf_it1->p4().pt() < minPt_ && abs(pf_it1->pdgId()) != 11 && abs(pf_it1->pdgId()) != 13) continue;
     // before Isolation are included in miniAOD, do all the iso calculations in 1 loop here
     float absIso = 0.0;
     float miniTkIso = 0.0;
-    float miniDR = (pf_it->pt() > 50)? (pf_it->pt() > 200)? 0.05 : 10./pf_it->pt() : 0.2; // compact version of miniDR calculation
+    float miniDR = (pf_it1->pt() > 50)? (pf_it1->pt() > 200)? 0.05 : 10./pf_it1->pt() : 0.2; // compact version of miniDR calculation
     float baseDR = max(0.3F, miniDR);
-    float thisPhi = pf_it->p4().Phi();
-    float thisEta = pf_it->p4().Eta();
-    for (auto itpf = ibegin; itpf != pfCandidates->end(); itpf++) {
-      if (itpf == pf_it) continue;
-      // if (itpf->charge() == 0) continue; // skip neutrals
-      if (abs(itpf->pdgId()) != 211) continue; // not considering leptons
-      float deltaPhi = fabs((*pfcands_helperPhi)[itpf-ibegin] - thisPhi);
+    float thisPhi = (*pfcands_helperPhi)[pf_it1-ibegin];
+    float thisEta = (*pfcands_helperEta)[pf_it1-ibegin];
+    for (auto pf_it2 = ibegin; pf_it2 != pfCandidates->end(); pf_it2++) {
+      if (pf_it2 == pf_it1) continue;
+      // if (pf_it2->charge() == 0) continue; // skip neutrals
+      if (abs(pf_it2->pdgId()) != 211) continue; // not considering leptons
+      float deltaPhi = fabs((*pfcands_helperPhi)[pf_it2-ibegin] - thisPhi);
       if (deltaPhi > M_PI) deltaPhi = fabs(deltaPhi - 2.0*M_PI);
       if (deltaPhi > baseDR) continue;
-      float deltaEta = fabs(itpf->p4().Eta() - thisEta);
+      float deltaEta = fabs((*pfcands_helperPhi)[pf_it2-ibegin] - thisEta);
       if (deltaEta > baseDR) continue;
       float dr = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
       if (dr > baseDR) continue;
 
       // use dz acceptance at 0.1, and accept if from PV
-      if (itpf->pt() >= 0.0 && (*pfcands_helperPVinfo)[itpf-ibegin]) {
-        // float dr = ROOT::Math::VectorUtil::DeltaR( itpf->p4(), pf_it->p4() );
-        if (dr < 0.3) absIso += itpf->pt();            // normal trackIso with cone size 0.3
-        if (dr < miniDR) miniTkIso += itpf->pt();      // miniTrackIso
+      if (pf_it2->pt() >= 0.0 && (*pfcands_helperPVinfo)[pf_it2-ibegin]) {
+        // float dr = ROOT::Math::VectorUtil::DeltaR( pf_it2->p4(), pf_it1->p4() );
+        if (dr < 0.3) absIso += pf_it2->pt();            // normal trackIso with cone size 0.3
+        if (dr < miniDR) miniTkIso += pf_it2->pt();      // miniTrackIso
       }
     }
     pfcands_trackIso     -> push_back( absIso    );
