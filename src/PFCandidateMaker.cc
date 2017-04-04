@@ -59,21 +59,21 @@ void PFCandidateMaker::endJob()   {}
 
 void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<vector<LorentzVector>> pfcands_p4                  (new vector<LorentzVector> );
-  auto_ptr<vector<float>>         pfcands_mass                (new vector<float>         );
-  auto_ptr<vector<float>>         pfcands_dz                  (new vector<float>         );
-  auto_ptr<vector<int>>           pfcands_charge              (new vector<int>           );
-  auto_ptr<vector<int>>           pfcands_particleId          (new vector<int>           );
-  auto_ptr<vector<bool>>          pfcands_isStandAloneMuon    (new vector<bool>          );
-  auto_ptr<vector<bool>>          pfcands_isGlobalMuon        (new vector<bool>          );
-  auto_ptr<vector<uint8_t>>       pfcands_fromPV              (new vector<uint8_t>       );
-  auto_ptr<vector<uint8_t>>       pfcands_pvAssociationQuality(new vector<uint8_t>       );
-  auto_ptr<vector<int>>           pfcands_IdAssociatedPV      (new vector<int>           );
-  auto_ptr<vector<float>>         pfcands_dzAssociatedPV      (new vector<float>         );
-  auto_ptr<vector<float>>         pfcands_puppiWeight         (new vector<float>         );
-  auto_ptr<vector<float>>         pfcands_puppiWeightNoLep    (new vector<float>         );
-  auto_ptr<vector<float>>         pfcands_trackIso            (new vector<float>         );
-  auto_ptr<vector<float>>         pfcands_miniTrackIso        (new vector<float>         );
+  unique_ptr<vector<LorentzVector>> pfcands_p4                  (new vector<LorentzVector> );
+  unique_ptr<vector<float>>         pfcands_mass                (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_dz                  (new vector<float>         );
+  unique_ptr<vector<int>>           pfcands_charge              (new vector<int>           );
+  unique_ptr<vector<int>>           pfcands_particleId          (new vector<int>           );
+  unique_ptr<vector<bool>>          pfcands_isStandAloneMuon    (new vector<bool>          );
+  unique_ptr<vector<bool>>          pfcands_isGlobalMuon        (new vector<bool>          );
+  unique_ptr<vector<uint8_t>>       pfcands_fromPV              (new vector<uint8_t>       );
+  unique_ptr<vector<uint8_t>>       pfcands_pvAssociationQuality(new vector<uint8_t>       );
+  unique_ptr<vector<int>>           pfcands_IdAssociatedPV      (new vector<int>           );
+  unique_ptr<vector<float>>         pfcands_dzAssociatedPV      (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_puppiWeight         (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_puppiWeightNoLep    (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_trackIso            (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_miniTrackIso        (new vector<float>         );
 
   unique_ptr<vector<float>>       pfcands_helperPhi           (new vector<float>         );
   unique_ptr<vector<float>>       pfcands_helperEta           (new vector<float>         );
@@ -165,21 +165,21 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   //Keep it
-  iEvent.put(pfcands_p4                   , branchprefix+"p4"                  );
-  iEvent.put(pfcands_mass                 , branchprefix+"mass"                );
-  iEvent.put(pfcands_dz                   , branchprefix+"dz"                  );
-  iEvent.put(pfcands_charge               , branchprefix+"charge"              );
-  iEvent.put(pfcands_particleId           , branchprefix+"particleId"          );
-  iEvent.put(pfcands_isGlobalMuon         , branchprefix+"isGlobalMuon"        );
-  iEvent.put(pfcands_isStandAloneMuon     , branchprefix+"isStandAloneMuon"    );
-  iEvent.put(pfcands_fromPV               , branchprefix+"fromPV"              );
-  iEvent.put(pfcands_pvAssociationQuality , branchprefix+"pvAssociationQuality");
-  iEvent.put(pfcands_IdAssociatedPV       , branchprefix+"IdAssociatedPV"      );
-  iEvent.put(pfcands_dzAssociatedPV       , branchprefix+"dzAssociatedPV"      );
-  iEvent.put(pfcands_puppiWeight          , branchprefix+"puppiWeight"         );
-  iEvent.put(pfcands_puppiWeightNoLep     , branchprefix+"puppiWeightNoLep"    );
-  iEvent.put(pfcands_trackIso             , branchprefix+"trackIso"            );
-  iEvent.put(pfcands_miniTrackIso         , branchprefix+"miniTrackIso"        );
+  iEvent.put(std::move(pfcands_p4                   ), branchprefix+"p4"                  );
+  iEvent.put(std::move(pfcands_mass                 ), branchprefix+"mass"                );
+  iEvent.put(std::move(pfcands_dz                   ), branchprefix+"dz"                  );
+  iEvent.put(std::move(pfcands_charge               ), branchprefix+"charge"              );
+  iEvent.put(std::move(pfcands_particleId           ), branchprefix+"particleId"          );
+  iEvent.put(std::move(pfcands_isGlobalMuon         ), branchprefix+"isGlobalMuon"        );
+  iEvent.put(std::move(pfcands_isStandAloneMuon     ), branchprefix+"isStandAloneMuon"    );
+  iEvent.put(std::move(pfcands_fromPV               ), branchprefix+"fromPV"              );
+  iEvent.put(std::move(pfcands_pvAssociationQuality ), branchprefix+"pvAssociationQuality");
+  iEvent.put(std::move(pfcands_IdAssociatedPV       ), branchprefix+"IdAssociatedPV"      );
+  iEvent.put(std::move(pfcands_dzAssociatedPV       ), branchprefix+"dzAssociatedPV"      );
+  iEvent.put(std::move(pfcands_puppiWeight          ), branchprefix+"puppiWeight"         );
+  iEvent.put(std::move(pfcands_puppiWeightNoLep     ), branchprefix+"puppiWeightNoLep"    );
+  iEvent.put(std::move(pfcands_trackIso             ), branchprefix+"trackIso"            );
+  iEvent.put(std::move(pfcands_miniTrackIso         ), branchprefix+"miniTrackIso"        );
 
 }
 

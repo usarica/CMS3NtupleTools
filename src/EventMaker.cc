@@ -93,25 +93,25 @@ void EventMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-    auto_ptr<unsigned int>                evt_run             (new unsigned int              );
-    auto_ptr<unsigned long long>          evt_event           (new unsigned long long        );
-    auto_ptr<unsigned int>                evt_lumiBlock       (new unsigned int              );
-    auto_ptr<int>                         evt_bunchCrossing   (new int                       );
-    auto_ptr<int>                         evt_orbitNumber     (new int                       );
-    auto_ptr<int>                         evt_storeNumber     (new int                       );
-    auto_ptr<int>                         evt_experimentType  (new int                       );
-    auto_ptr<vector<unsigned long long> > evt_timestamp       (new vector<unsigned long long>);
-    auto_ptr<vector<TString>>             evt_dataset         (new vector<TString>           );
-    auto_ptr<vector<TString>>             evt_CMS3tag         (new vector<TString>           );
-    auto_ptr<float>                       evt_bField          (new float                     );
-    auto_ptr<float>                       evt_instantLumi     (new float                     );
-    auto_ptr<float>                       evt_instantLumiErr  (new float                     );
-    auto_ptr<float>                       evt_lumiFill        (new float                     );
-    auto_ptr<float>                       evt_lumiRun         (new float                     );
-    auto_ptr<float>                       evt_pileup          (new float                     );
-    auto_ptr<float>                       evt_pileupRMS       (new float                     );
-    auto_ptr<unsigned int>                evt_detectorStatus  (new unsigned int              );
-    auto_ptr<int>                         evt_isRealData      (new int                       );
+    unique_ptr<unsigned int>                evt_run             (new unsigned int              );
+    unique_ptr<unsigned long long>          evt_event           (new unsigned long long        );
+    unique_ptr<unsigned int>                evt_lumiBlock       (new unsigned int              );
+    unique_ptr<int>                         evt_bunchCrossing   (new int                       );
+    unique_ptr<int>                         evt_orbitNumber     (new int                       );
+    unique_ptr<int>                         evt_storeNumber     (new int                       );
+    unique_ptr<int>                         evt_experimentType  (new int                       );
+    unique_ptr<vector<unsigned long long> > evt_timestamp       (new vector<unsigned long long>);
+    unique_ptr<vector<TString>>             evt_dataset         (new vector<TString>           );
+    unique_ptr<vector<TString>>             evt_CMS3tag         (new vector<TString>           );
+    unique_ptr<float>                       evt_bField          (new float                     );
+    unique_ptr<float>                       evt_instantLumi     (new float                     );
+    unique_ptr<float>                       evt_instantLumiErr  (new float                     );
+    unique_ptr<float>                       evt_lumiFill        (new float                     );
+    unique_ptr<float>                       evt_lumiRun         (new float                     );
+    unique_ptr<float>                       evt_pileup          (new float                     );
+    unique_ptr<float>                       evt_pileupRMS       (new float                     );
+    unique_ptr<unsigned int>                evt_detectorStatus  (new unsigned int              );
+    unique_ptr<int>                         evt_isRealData      (new int                       );
      
     *evt_run                       = iEvent.id().run()        ;
     *evt_event                     = iEvent.id().event()      ;
@@ -179,27 +179,27 @@ void EventMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     if( dcsHandle.isValid() && (*dcsHandle).size() > 0 ) {
         *evt_detectorStatus = (*dcsHandle)[0].ready();
        
-        iEvent.put(evt_detectorStatus   ,branchprefix+"detectorStatus"  );
+        iEvent.put(std::move(evt_detectorStatus   ),branchprefix+"detectorStatus"  );
     }
 
-    iEvent.put(evt_run              ,branchprefix+"run"             );
-    iEvent.put(evt_event            ,branchprefix+"event"           );
-    iEvent.put(evt_lumiBlock        ,branchprefix+"lumiBlock"       );
-    iEvent.put(evt_bunchCrossing    ,branchprefix+"bunchCrossing"   );
-    iEvent.put(evt_orbitNumber      ,branchprefix+"orbitNumber"     );
-    iEvent.put(evt_storeNumber      ,branchprefix+"storeNumber"     );
-    iEvent.put(evt_experimentType   ,branchprefix+"experimentType"  );
-    iEvent.put(evt_dataset          ,branchprefix+"dataset"         );
-    iEvent.put(evt_CMS3tag          ,branchprefix+"CMS3tag"         );
-    iEvent.put(evt_bField           ,branchprefix+"bField"          );
-    iEvent.put(evt_instantLumi      ,branchprefix+"instantLumi"   );
-    iEvent.put(evt_instantLumiErr   ,branchprefix+"instantLumiErr");
-    iEvent.put(evt_lumiFill         ,branchprefix+"lumiFill"      );
-    iEvent.put(evt_lumiRun          ,branchprefix+"lumiRun"       );
-    iEvent.put(evt_pileup           ,branchprefix+"pileup"        );
-    iEvent.put(evt_pileupRMS        ,branchprefix+"pileupRMS"     );
-    iEvent.put(evt_isRealData       ,branchprefix+"isRealData"      );
-    iEvent.put(evt_timestamp        ,branchprefix+"timestamp"       );
+    iEvent.put(std::move(evt_run              ),branchprefix+"run"             );
+    iEvent.put(std::move(evt_event            ),branchprefix+"event"           );
+    iEvent.put(std::move(evt_lumiBlock        ),branchprefix+"lumiBlock"       );
+    iEvent.put(std::move(evt_bunchCrossing    ),branchprefix+"bunchCrossing"   );
+    iEvent.put(std::move(evt_orbitNumber      ),branchprefix+"orbitNumber"     );
+    iEvent.put(std::move(evt_storeNumber      ),branchprefix+"storeNumber"     );
+    iEvent.put(std::move(evt_experimentType   ),branchprefix+"experimentType"  );
+    iEvent.put(std::move(evt_dataset          ),branchprefix+"dataset"         );
+    iEvent.put(std::move(evt_CMS3tag          ),branchprefix+"CMS3tag"         );
+    iEvent.put(std::move(evt_bField           ),branchprefix+"bField"          );
+    iEvent.put(std::move(evt_instantLumi      ),branchprefix+"instantLumi"   );
+    iEvent.put(std::move(evt_instantLumiErr   ),branchprefix+"instantLumiErr");
+    iEvent.put(std::move(evt_lumiFill         ),branchprefix+"lumiFill"      );
+    iEvent.put(std::move(evt_lumiRun          ),branchprefix+"lumiRun"       );
+    iEvent.put(std::move(evt_pileup           ),branchprefix+"pileup"        );
+    iEvent.put(std::move(evt_pileupRMS        ),branchprefix+"pileupRMS"     );
+    iEvent.put(std::move(evt_isRealData       ),branchprefix+"isRealData"      );
+    iEvent.put(std::move(evt_timestamp        ),branchprefix+"timestamp"       );
 }
 
 //define this as a plug-in

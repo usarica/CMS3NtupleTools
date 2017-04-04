@@ -114,47 +114,47 @@ void PFMETMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-    std::auto_ptr<float>   evt_pfmet         (new float   );
-    std::auto_ptr<float>   evt_pfmetPhi      (new float   );
-    std::auto_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
-    std::auto_ptr<float>   evt_pfmetSignificance      (new float   ); // correct met significance
-    std::auto_ptr<float>   evt_pfsumet       (new float   );
-    std::auto_ptr<float>   evt_pfmet_raw     (new float   );
-    std::auto_ptr<float>   evt_pfmetPhi_raw  (new float   );
-    std::auto_ptr<float>   evt_pfsumet_raw   (new float   );
-    std::auto_ptr<float>   gen_met           (new float   );
-    std::auto_ptr<float>   gen_metPhi        (new float   );
-    std::auto_ptr<float>   evt_calomet       (new float   );
-    std::auto_ptr<float>   evt_calometPhi    (new float   );
+    std::unique_ptr<float>   evt_pfmet         (new float   );
+    std::unique_ptr<float>   evt_pfmetPhi      (new float   );
+    std::unique_ptr<float>   evt_pfmetSig      (new float   ); //this is just MET/sqrt(sumET). Use evt_pfmetSignificance unless you really want this branch
+    std::unique_ptr<float>   evt_pfmetSignificance      (new float   ); // correct met significance
+    std::unique_ptr<float>   evt_pfsumet       (new float   );
+    std::unique_ptr<float>   evt_pfmet_raw     (new float   );
+    std::unique_ptr<float>   evt_pfmetPhi_raw  (new float   );
+    std::unique_ptr<float>   evt_pfsumet_raw   (new float   );
+    std::unique_ptr<float>   gen_met           (new float   );
+    std::unique_ptr<float>   gen_metPhi        (new float   );
+    std::unique_ptr<float>   evt_calomet       (new float   );
+    std::unique_ptr<float>   evt_calometPhi    (new float   );
 
-    std::auto_ptr<float>  evt_pfmet_JetResUp            (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_JetResUp         (new float   );
-    std::auto_ptr<float>  evt_pfmet_JetResDown          (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_JetResDown       (new float   );
-    std::auto_ptr<float>  evt_pfmet_JetEnUp             (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_JetEnUp          (new float   );
-    std::auto_ptr<float>  evt_pfmet_JetEnDown           (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_JetEnDown        (new float   );
-    std::auto_ptr<float>  evt_pfmet_MuonEnUp              (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_MuonEnUp           (new float   );
-    std::auto_ptr<float>  evt_pfmet_MuonEnDown            (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_MuonEnDown         (new float   );
-    std::auto_ptr<float>  evt_pfmet_ElectronEnUp          (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_ElectronEnUp       (new float   );
-    std::auto_ptr<float>  evt_pfmet_ElectronEnDown        (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_ElectronEnDown     (new float   );
-    std::auto_ptr<float>  evt_pfmet_TauEnUp               (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_TauEnUp            (new float   );
-    std::auto_ptr<float>  evt_pfmet_TauEnDown             (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_TauEnDown          (new float   );
-    std::auto_ptr<float>  evt_pfmet_UnclusteredEnUp       (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_UnclusteredEnUp    (new float   );
-    std::auto_ptr<float>  evt_pfmet_UnclusteredEnDown     (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_UnclusteredEnDown  (new float   );
-    std::auto_ptr<float>  evt_pfmet_PhotonEnUp            (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_PhotonEnUp         (new float   );
-    std::auto_ptr<float>  evt_pfmet_PhotonEnDown          (new float   );
-    std::auto_ptr<float>  evt_pfmetPhi_PhotonEnDown       (new float   );
+    std::unique_ptr<float>  evt_pfmet_JetResUp            (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_JetResUp         (new float   );
+    std::unique_ptr<float>  evt_pfmet_JetResDown          (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_JetResDown       (new float   );
+    std::unique_ptr<float>  evt_pfmet_JetEnUp             (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_JetEnUp          (new float   );
+    std::unique_ptr<float>  evt_pfmet_JetEnDown           (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_JetEnDown        (new float   );
+    std::unique_ptr<float>  evt_pfmet_MuonEnUp              (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_MuonEnUp           (new float   );
+    std::unique_ptr<float>  evt_pfmet_MuonEnDown            (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_MuonEnDown         (new float   );
+    std::unique_ptr<float>  evt_pfmet_ElectronEnUp          (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_ElectronEnUp       (new float   );
+    std::unique_ptr<float>  evt_pfmet_ElectronEnDown        (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_ElectronEnDown     (new float   );
+    std::unique_ptr<float>  evt_pfmet_TauEnUp               (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_TauEnUp            (new float   );
+    std::unique_ptr<float>  evt_pfmet_TauEnDown             (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_TauEnDown          (new float   );
+    std::unique_ptr<float>  evt_pfmet_UnclusteredEnUp       (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_UnclusteredEnUp    (new float   );
+    std::unique_ptr<float>  evt_pfmet_UnclusteredEnDown     (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_UnclusteredEnDown  (new float   );
+    std::unique_ptr<float>  evt_pfmet_PhotonEnUp            (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_PhotonEnUp         (new float   );
+    std::unique_ptr<float>  evt_pfmet_PhotonEnDown          (new float   );
+    std::unique_ptr<float>  evt_pfmetPhi_PhotonEnDown       (new float   );
         
   edm::Handle<edm::View<pat::MET> > met_h;
   iEvent.getByToken(pfMetToken, met_h);
@@ -247,55 +247,55 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 	
   if( onlySaveTwoVector_ ){
-    iEvent.put(evt_pfmet        , branchprefix+"pfmet"       );
-    iEvent.put(evt_pfmetPhi     , branchprefix+"pfmetPhi"    );
-    iEvent.put(evt_pfmet_raw    , branchprefix+"pfmetraw"    );
-    iEvent.put(evt_pfmetPhi_raw , branchprefix+"pfmetPhiraw" );
+    iEvent.put(std::move(evt_pfmet        ), branchprefix+"pfmet"       );
+    iEvent.put(std::move(evt_pfmetPhi     ), branchprefix+"pfmetPhi"    );
+    iEvent.put(std::move(evt_pfmet_raw    ), branchprefix+"pfmetraw"    );
+    iEvent.put(std::move(evt_pfmetPhi_raw ), branchprefix+"pfmetPhiraw" );
   }
   else{
-    iEvent.put(evt_pfmet        , branchprefix+"pfmet"       );
-    iEvent.put(evt_pfmetPhi     , branchprefix+"pfmetPhi"    );
-    iEvent.put(evt_pfmetSig     , branchprefix+"pfmetSig"    );
-    iEvent.put(evt_pfmetSignificance , branchprefix+"pfmetSignificance" );  
-    iEvent.put(evt_pfsumet      , branchprefix+"pfsumet"     );  
-    iEvent.put(evt_pfmet_raw    , branchprefix+"pfmetraw"    );
-    iEvent.put(evt_pfmetPhi_raw , branchprefix+"pfmetPhiraw" );
-    iEvent.put(evt_pfsumet_raw  , branchprefix+"pfsumetraw"  );  
-    iEvent.put(evt_calomet      , branchprefix+"calomet"     );
-    iEvent.put(evt_calometPhi   , branchprefix+"calometPhi"  );
-    iEvent.put(gen_met          , "genmet"                   );
-    iEvent.put(gen_metPhi       , "genmetPhi"                );
+    iEvent.put(std::move(evt_pfmet        ), branchprefix+"pfmet"       );
+    iEvent.put(std::move(evt_pfmetPhi     ), branchprefix+"pfmetPhi"    );
+    iEvent.put(std::move(evt_pfmetSig     ), branchprefix+"pfmetSig"    );
+    iEvent.put(std::move(evt_pfmetSignificance ), branchprefix+"pfmetSignificance" );  
+    iEvent.put(std::move(evt_pfsumet      ), branchprefix+"pfsumet"     );  
+    iEvent.put(std::move(evt_pfmet_raw    ), branchprefix+"pfmetraw"    );
+    iEvent.put(std::move(evt_pfmetPhi_raw ), branchprefix+"pfmetPhiraw" );
+    iEvent.put(std::move(evt_pfsumet_raw  ), branchprefix+"pfsumetraw"  );  
+    iEvent.put(std::move(evt_calomet      ), branchprefix+"calomet"     );
+    iEvent.put(std::move(evt_calometPhi   ), branchprefix+"calometPhi"  );
+    iEvent.put(std::move(gen_met          ), "genmet"                   );
+    iEvent.put(std::move(gen_metPhi       ), "genmetPhi"                );
   }
 
   if ( doUncertainties_ ) {
-    iEvent.put(evt_pfmet_JetResUp, branchprefix+"pfmetJetResUp");
-    iEvent.put(evt_pfmetPhi_JetResUp, branchprefix+"pfmetPhiJetResUp");
-    iEvent.put(evt_pfmet_JetResDown, branchprefix+"pfmetJetResDown");
-    iEvent.put(evt_pfmetPhi_JetResDown, branchprefix+"pfmetPhiJetResDown");
-    iEvent.put(evt_pfmet_JetEnUp, branchprefix+"pfmetJetEnUp");
-    iEvent.put(evt_pfmetPhi_JetEnUp, branchprefix+"pfmetPhiJetEnUp");
-    iEvent.put(evt_pfmet_JetEnDown, branchprefix+"pfmetJetEnDown");
-    iEvent.put(evt_pfmetPhi_JetEnDown, branchprefix+"pfmetPhiJetEnDown");
-    iEvent.put(evt_pfmet_MuonEnUp, branchprefix+"pfmetMuonEnUp");
-    iEvent.put(evt_pfmetPhi_MuonEnUp, branchprefix+"pfmetPhiMuonEnUp");
-    iEvent.put(evt_pfmet_MuonEnDown, branchprefix+"pfmetMuonEnDown");
-    iEvent.put(evt_pfmetPhi_MuonEnDown, branchprefix+"pfmetPhiMuonEnDown");
-    iEvent.put(evt_pfmet_ElectronEnUp, branchprefix+"pfmetElectronEnUp");
-    iEvent.put(evt_pfmetPhi_ElectronEnUp, branchprefix+"pfmetPhiElectronEnUp");
-    iEvent.put(evt_pfmet_ElectronEnDown, branchprefix+"pfmetElectronEnDown");
-    iEvent.put(evt_pfmetPhi_ElectronEnDown, branchprefix+"pfmetPhiElectronEnDown");
-    iEvent.put(evt_pfmet_TauEnUp, branchprefix+"pfmetTauEnUp");
-    iEvent.put(evt_pfmetPhi_TauEnUp, branchprefix+"pfmetPhiTauEnUp");
-    iEvent.put(evt_pfmet_TauEnDown, branchprefix+"pfmetTauEnDown");
-    iEvent.put(evt_pfmetPhi_TauEnDown, branchprefix+"pfmetPhiTauEnDown");
-    iEvent.put(evt_pfmet_UnclusteredEnUp, branchprefix+"pfmetUnclusteredEnUp");
-    iEvent.put(evt_pfmetPhi_UnclusteredEnUp, branchprefix+"pfmetPhiUnclusteredEnUp");
-    iEvent.put(evt_pfmet_UnclusteredEnDown, branchprefix+"pfmetUnclusteredEnDown");
-    iEvent.put(evt_pfmetPhi_UnclusteredEnDown, branchprefix+"pfmetPhiUnclusteredEnDown");
-    iEvent.put(evt_pfmet_PhotonEnUp, branchprefix+"pfmetPhotonEnUp");
-    iEvent.put(evt_pfmetPhi_PhotonEnUp, branchprefix+"pfmetPhiPhotonEnUp");
-    iEvent.put(evt_pfmet_PhotonEnDown, branchprefix+"pfmetPhotonEnDown");
-    iEvent.put(evt_pfmetPhi_PhotonEnDown, branchprefix+"pfmetPhiPhotonEnDown");
+    iEvent.put(std::move(evt_pfmet_JetResUp), branchprefix+"pfmetJetResUp");
+    iEvent.put(std::move(evt_pfmetPhi_JetResUp), branchprefix+"pfmetPhiJetResUp");
+    iEvent.put(std::move(evt_pfmet_JetResDown), branchprefix+"pfmetJetResDown");
+    iEvent.put(std::move(evt_pfmetPhi_JetResDown), branchprefix+"pfmetPhiJetResDown");
+    iEvent.put(std::move(evt_pfmet_JetEnUp), branchprefix+"pfmetJetEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_JetEnUp), branchprefix+"pfmetPhiJetEnUp");
+    iEvent.put(std::move(evt_pfmet_JetEnDown), branchprefix+"pfmetJetEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_JetEnDown), branchprefix+"pfmetPhiJetEnDown");
+    iEvent.put(std::move(evt_pfmet_MuonEnUp), branchprefix+"pfmetMuonEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_MuonEnUp), branchprefix+"pfmetPhiMuonEnUp");
+    iEvent.put(std::move(evt_pfmet_MuonEnDown), branchprefix+"pfmetMuonEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_MuonEnDown), branchprefix+"pfmetPhiMuonEnDown");
+    iEvent.put(std::move(evt_pfmet_ElectronEnUp), branchprefix+"pfmetElectronEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_ElectronEnUp), branchprefix+"pfmetPhiElectronEnUp");
+    iEvent.put(std::move(evt_pfmet_ElectronEnDown), branchprefix+"pfmetElectronEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_ElectronEnDown), branchprefix+"pfmetPhiElectronEnDown");
+    iEvent.put(std::move(evt_pfmet_TauEnUp), branchprefix+"pfmetTauEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_TauEnUp), branchprefix+"pfmetPhiTauEnUp");
+    iEvent.put(std::move(evt_pfmet_TauEnDown), branchprefix+"pfmetTauEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_TauEnDown), branchprefix+"pfmetPhiTauEnDown");
+    iEvent.put(std::move(evt_pfmet_UnclusteredEnUp), branchprefix+"pfmetUnclusteredEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_UnclusteredEnUp), branchprefix+"pfmetPhiUnclusteredEnUp");
+    iEvent.put(std::move(evt_pfmet_UnclusteredEnDown), branchprefix+"pfmetUnclusteredEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_UnclusteredEnDown), branchprefix+"pfmetPhiUnclusteredEnDown");
+    iEvent.put(std::move(evt_pfmet_PhotonEnUp), branchprefix+"pfmetPhotonEnUp");
+    iEvent.put(std::move(evt_pfmetPhi_PhotonEnUp), branchprefix+"pfmetPhiPhotonEnUp");
+    iEvent.put(std::move(evt_pfmet_PhotonEnDown), branchprefix+"pfmetPhotonEnDown");
+    iEvent.put(std::move(evt_pfmetPhi_PhotonEnDown), branchprefix+"pfmetPhiPhotonEnDown");
   }    
   
 }

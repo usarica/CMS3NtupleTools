@@ -98,28 +98,28 @@ void PhotonMaker::endJob() {}
 void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
     // Define vectors to be filled  
-    auto_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
-    auto_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
+    unique_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
+    unique_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
 
-    auto_ptr<vector<float> > photons_hOverE         ( new vector<float> );
-    auto_ptr<vector<float> > photons_hOverEtowBC    ( new vector<float> );
-    auto_ptr<vector<float> > photons_sigmaIEtaIEta  ( new vector<float> );
+    unique_ptr<vector<float> > photons_hOverE         ( new vector<float> );
+    unique_ptr<vector<float> > photons_hOverEtowBC    ( new vector<float> );
+    unique_ptr<vector<float> > photons_sigmaIEtaIEta  ( new vector<float> );
 
-    auto_ptr<vector<float> > photons_full5x5_hOverE         ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_sigmaIEtaIEta  ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_hOverEtowBC    ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_r9             ( new vector<float> );
-    auto_ptr<vector<int> >   photons_photonID_loose         ( new vector<int>   );
-    auto_ptr<vector<int> >   photons_photonID_tight         ( new vector<int>   );
+    unique_ptr<vector<float> > photons_full5x5_hOverE         ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_sigmaIEtaIEta  ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_hOverEtowBC    ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_r9             ( new vector<float> );
+    unique_ptr<vector<int> >   photons_photonID_loose         ( new vector<int>   );
+    unique_ptr<vector<int> >   photons_photonID_tight         ( new vector<int>   );
  
-    auto_ptr<vector<float> > photons_recoChargedHadronIso( new vector<float> );
-    auto_ptr<vector<float> > photons_recoNeutralHadronIso( new vector<float> );
-    auto_ptr<vector<float> > photons_recoPhotonIso       ( new vector<float> );
+    unique_ptr<vector<float> > photons_recoChargedHadronIso( new vector<float> );
+    unique_ptr<vector<float> > photons_recoNeutralHadronIso( new vector<float> );
+    unique_ptr<vector<float> > photons_recoPhotonIso       ( new vector<float> );
 
-    auto_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
-    auto_ptr<vector<bool> >  photons_passElectronVeto ( new vector<bool>  );
+    unique_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
+    unique_ptr<vector<bool> >  photons_passElectronVeto ( new vector<bool>  );
 
-    auto_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
+    unique_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
  
     ///////////////////// 
     // Get the photons //
@@ -179,28 +179,28 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     //
-    iEvent.put( evt_nphotons           , "evtn"+branchprefix            );
-    iEvent.put( photons_p4             , branchprefix+"p4"              );
+    iEvent.put(std::move( evt_nphotons           ), "evtn"+branchprefix            );
+    iEvent.put(std::move( photons_p4             ), branchprefix+"p4"              );
 
-    iEvent.put( photons_hOverE         , branchprefix+"hOverE"          );
-    iEvent.put( photons_hOverEtowBC    , branchprefix+"hOverEtowBC"     );
-    iEvent.put( photons_sigmaIEtaIEta  , branchprefix+"sigmaIEtaIEta"   );
+    iEvent.put(std::move( photons_hOverE         ), branchprefix+"hOverE"          );
+    iEvent.put(std::move( photons_hOverEtowBC    ), branchprefix+"hOverEtowBC"     );
+    iEvent.put(std::move( photons_sigmaIEtaIEta  ), branchprefix+"sigmaIEtaIEta"   );
 
-    iEvent.put( photons_full5x5_hOverE         , branchprefix+"full5x5hOverE"          );
-    iEvent.put( photons_full5x5_sigmaIEtaIEta  , branchprefix+"full5x5sigmaIEtaIEta"   );
-    iEvent.put( photons_full5x5_hOverEtowBC    , branchprefix+"full5x5hOverEtowBC"    );
-    iEvent.put( photons_full5x5_r9             , branchprefix+"full5x5r9"             );
-    iEvent.put( photons_photonID_loose         , branchprefix+"photonIDloose"         );
-    iEvent.put( photons_photonID_tight         , branchprefix+"photonIDtight"         );		
+    iEvent.put(std::move( photons_full5x5_hOverE         ), branchprefix+"full5x5hOverE"          );
+    iEvent.put(std::move( photons_full5x5_sigmaIEtaIEta  ), branchprefix+"full5x5sigmaIEtaIEta"   );
+    iEvent.put(std::move( photons_full5x5_hOverEtowBC    ), branchprefix+"full5x5hOverEtowBC"    );
+    iEvent.put(std::move( photons_full5x5_r9             ), branchprefix+"full5x5r9"             );
+    iEvent.put(std::move( photons_photonID_loose         ), branchprefix+"photonIDloose"         );
+    iEvent.put(std::move( photons_photonID_tight         ), branchprefix+"photonIDtight"         );		
 
-    iEvent.put( photons_recoChargedHadronIso, branchprefix+"recoChargedHadronIso");  
-    iEvent.put( photons_recoNeutralHadronIso, branchprefix+"recoNeutralHadronIso");  
-    iEvent.put( photons_recoPhotonIso       , branchprefix+"recoPhotonIso"       );  
+    iEvent.put(std::move( photons_recoChargedHadronIso), branchprefix+"recoChargedHadronIso");  
+    iEvent.put(std::move( photons_recoNeutralHadronIso), branchprefix+"recoNeutralHadronIso");  
+    iEvent.put(std::move( photons_recoPhotonIso       ), branchprefix+"recoPhotonIso"       );  
 
-    iEvent.put( photons_haspixelSeed   , branchprefix+"haspixelSeed"    );
-    iEvent.put( photons_passElectronVeto   , branchprefix+"passElectronVeto"    );
+    iEvent.put(std::move( photons_haspixelSeed   ), branchprefix+"haspixelSeed"    );
+    iEvent.put(std::move( photons_passElectronVeto   ), branchprefix+"passElectronVeto"    );
 
-    iEvent.put( photons_PFCand_idx    , branchprefix+"pfcandidx"    );
+    iEvent.put(std::move( photons_PFCand_idx    ), branchprefix+"pfcandidx"    );
 }
 
 //define this as a plug-in

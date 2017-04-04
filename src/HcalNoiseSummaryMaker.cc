@@ -122,70 +122,70 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   using namespace reco;
  
   // 
-  auto_ptr<int>     hcalnoise_passLooseNoiseFilter        ( new int    );
-  auto_ptr<int>     hcalnoise_passTightNoiseFilter        ( new int    );
-  auto_ptr<int>     hcalnoise_passHighLevelNoiseFilter    ( new int    );
-  auto_ptr<int>     hcalnoise_noiseFilterStatus           ( new int    );
-  auto_ptr<int>     hcalnoise_noiseType                   ( new int    );
-  auto_ptr<float>   hcalnoise_eventEMEnergy               ( new float  );
-  auto_ptr<float>   hcalnoise_eventHadEnergy              ( new float  );
-  auto_ptr<float>   hcalnoise_eventTrackEnergy            ( new float  );
-  auto_ptr<float>   hcalnoise_eventEMFraction             ( new float  );
-  auto_ptr<float>   hcalnoise_eventChargeFraction         ( new float  );
-  auto_ptr<float>   hcalnoise_min10GeVHitTime             ( new float  );
-  auto_ptr<float>   hcalnoise_max10GeVHitTime             ( new float  );
-  auto_ptr<float>   hcalnoise_rms10GeVHitTime             ( new float  );
-  auto_ptr<float>   hcalnoise_min25GeVHitTime             ( new float  );
-  auto_ptr<float>   hcalnoise_max25GeVHitTime             ( new float  );
-  auto_ptr<float>   hcalnoise_rms25GeVHitTime             ( new float  );
-  auto_ptr<int>     hcalnoise_num10GeVHits                ( new int    );
-  auto_ptr<int>     hcalnoise_num25GeVHits                ( new int    );
-  auto_ptr<float>   hcalnoise_minE2TS                     ( new float  );
-  auto_ptr<float>   hcalnoise_minE10TS                    ( new float  );
-  auto_ptr<float>   hcalnoise_minE2Over10TS               ( new float  );
+  unique_ptr<int>     hcalnoise_passLooseNoiseFilter        ( new int    );
+  unique_ptr<int>     hcalnoise_passTightNoiseFilter        ( new int    );
+  unique_ptr<int>     hcalnoise_passHighLevelNoiseFilter    ( new int    );
+  unique_ptr<int>     hcalnoise_noiseFilterStatus           ( new int    );
+  unique_ptr<int>     hcalnoise_noiseType                   ( new int    );
+  unique_ptr<float>   hcalnoise_eventEMEnergy               ( new float  );
+  unique_ptr<float>   hcalnoise_eventHadEnergy              ( new float  );
+  unique_ptr<float>   hcalnoise_eventTrackEnergy            ( new float  );
+  unique_ptr<float>   hcalnoise_eventEMFraction             ( new float  );
+  unique_ptr<float>   hcalnoise_eventChargeFraction         ( new float  );
+  unique_ptr<float>   hcalnoise_min10GeVHitTime             ( new float  );
+  unique_ptr<float>   hcalnoise_max10GeVHitTime             ( new float  );
+  unique_ptr<float>   hcalnoise_rms10GeVHitTime             ( new float  );
+  unique_ptr<float>   hcalnoise_min25GeVHitTime             ( new float  );
+  unique_ptr<float>   hcalnoise_max25GeVHitTime             ( new float  );
+  unique_ptr<float>   hcalnoise_rms25GeVHitTime             ( new float  );
+  unique_ptr<int>     hcalnoise_num10GeVHits                ( new int    );
+  unique_ptr<int>     hcalnoise_num25GeVHits                ( new int    );
+  unique_ptr<float>   hcalnoise_minE2TS                     ( new float  );
+  unique_ptr<float>   hcalnoise_minE10TS                    ( new float  );
+  unique_ptr<float>   hcalnoise_minE2Over10TS               ( new float  );
 
   // dbarge 2012
-  auto_ptr<float>   hcalnoise_maxE2TS                     ( new float  );
-  auto_ptr<float>   hcalnoise_maxE10TS                    ( new float  );
+  unique_ptr<float>   hcalnoise_maxE2TS                     ( new float  );
+  unique_ptr<float>   hcalnoise_maxE10TS                    ( new float  );
 
-  auto_ptr<float>   hcalnoise_maxE2Over10TS               ( new float  );
-  auto_ptr<int>     hcalnoise_maxZeros                    ( new int    );
-  auto_ptr<int>     hcalnoise_maxHPDHits                  ( new int    );
-  auto_ptr<int>     hcalnoise_maxRBXHits                  ( new int    );
-  auto_ptr<int>     hcalnoise_maxHPDNoOtherHits           ( new int    );
-  auto_ptr<float>   hcalnoise_minHPDEMF                   ( new float  );
-  auto_ptr<float>   hcalnoise_minRBXEMF                   ( new float  );
-  auto_ptr<int>     hcalnoise_numProblematicRBXs          ( new int    );
-  auto_ptr<int>     hcalnoise_numIsolatedNoiseChannels    ( new int    );
-  auto_ptr<float>   hcalnoise_isolatedNoiseSumE           ( new float  );
-  auto_ptr<float>   hcalnoise_isolatedNoiseSumEt          ( new float  );
+  unique_ptr<float>   hcalnoise_maxE2Over10TS               ( new float  );
+  unique_ptr<int>     hcalnoise_maxZeros                    ( new int    );
+  unique_ptr<int>     hcalnoise_maxHPDHits                  ( new int    );
+  unique_ptr<int>     hcalnoise_maxRBXHits                  ( new int    );
+  unique_ptr<int>     hcalnoise_maxHPDNoOtherHits           ( new int    );
+  unique_ptr<float>   hcalnoise_minHPDEMF                   ( new float  );
+  unique_ptr<float>   hcalnoise_minRBXEMF                   ( new float  );
+  unique_ptr<int>     hcalnoise_numProblematicRBXs          ( new int    );
+  unique_ptr<int>     hcalnoise_numIsolatedNoiseChannels    ( new int    );
+  unique_ptr<float>   hcalnoise_isolatedNoiseSumE           ( new float  );
+  unique_ptr<float>   hcalnoise_isolatedNoiseSumEt          ( new float  );
 
   // dbarge 2012
-  auto_ptr<int>     hcalnoise_numFlatNoiseChannels        ( new int    );
-  auto_ptr<float>   hcalnoise_flatNoiseSumE               ( new float  );
-  auto_ptr<float>   hcalnoise_flatNoiseSumEt              ( new float  );
-  auto_ptr<int>     hcalnoise_numSpikeNoiseChannels       ( new int    );
-  auto_ptr<float>   hcalnoise_spikeNoiseSumE              ( new float  );
-  auto_ptr<float>   hcalnoise_spikeNoiseSumEt             ( new float  );
-  auto_ptr<int>     hcalnoise_numTriangleNoiseChannels    ( new int    );
-  auto_ptr<float>   hcalnoise_triangleNoiseSumE           ( new float  );
-  auto_ptr<float>   hcalnoise_triangleNoiseSumEt          ( new float  );
-  auto_ptr<int>     hcalnoise_numTS4TS5NoiseChannels      ( new int    );
-  auto_ptr<float>   hcalnoise_TS4TS5NoiseSumE             ( new float  );
-  auto_ptr<float>   hcalnoise_TS4TS5NoiseSumEt            ( new float  );
-  auto_ptr<int>     hcalnoise_numNegativeNoiseChannels    ( new int    );
-  auto_ptr<float>   hcalnoise_NegativeNoiseSumE           ( new float  );
-  auto_ptr<float>   hcalnoise_NegativeNoiseSumEt          ( new float  );
-  auto_ptr<int>     hcalnoise_GetRecHitCount              ( new int    );
-  auto_ptr<int>     hcalnoise_GetRecHitCount15            ( new int    );
-  auto_ptr<float>   hcalnoise_GetRecHitEnergy             ( new float  );
-  auto_ptr<float>   hcalnoise_GetRecHitEnergy15           ( new float  );
-  auto_ptr<float>   hcalnoise_GetTotalCalibCharge         ( new float  );
+  unique_ptr<int>     hcalnoise_numFlatNoiseChannels        ( new int    );
+  unique_ptr<float>   hcalnoise_flatNoiseSumE               ( new float  );
+  unique_ptr<float>   hcalnoise_flatNoiseSumEt              ( new float  );
+  unique_ptr<int>     hcalnoise_numSpikeNoiseChannels       ( new int    );
+  unique_ptr<float>   hcalnoise_spikeNoiseSumE              ( new float  );
+  unique_ptr<float>   hcalnoise_spikeNoiseSumEt             ( new float  );
+  unique_ptr<int>     hcalnoise_numTriangleNoiseChannels    ( new int    );
+  unique_ptr<float>   hcalnoise_triangleNoiseSumE           ( new float  );
+  unique_ptr<float>   hcalnoise_triangleNoiseSumEt          ( new float  );
+  unique_ptr<int>     hcalnoise_numTS4TS5NoiseChannels      ( new int    );
+  unique_ptr<float>   hcalnoise_TS4TS5NoiseSumE             ( new float  );
+  unique_ptr<float>   hcalnoise_TS4TS5NoiseSumEt            ( new float  );
+  unique_ptr<int>     hcalnoise_numNegativeNoiseChannels    ( new int    );
+  unique_ptr<float>   hcalnoise_NegativeNoiseSumE           ( new float  );
+  unique_ptr<float>   hcalnoise_NegativeNoiseSumEt          ( new float  );
+  unique_ptr<int>     hcalnoise_GetRecHitCount              ( new int    );
+  unique_ptr<int>     hcalnoise_GetRecHitCount15            ( new int    );
+  unique_ptr<float>   hcalnoise_GetRecHitEnergy             ( new float  );
+  unique_ptr<float>   hcalnoise_GetRecHitEnergy15           ( new float  );
+  unique_ptr<float>   hcalnoise_GetTotalCalibCharge         ( new float  );
 
-  auto_ptr<bool>    hcalnoise_HasBadRBXTS4TS5             ( new bool   );
-  auto_ptr<bool>    hcalnoise_HasBadRBXRechitR45Loose     ( new bool   );
-  auto_ptr<bool>    hcalnoise_HasBadRBXRechitR45Tight     ( new bool   );
-  auto_ptr<bool>    hcalnoise_goodJetFoundInLowBVRegion   ( new bool   );
+  unique_ptr<bool>    hcalnoise_HasBadRBXTS4TS5             ( new bool   );
+  unique_ptr<bool>    hcalnoise_HasBadRBXRechitR45Loose     ( new bool   );
+  unique_ptr<bool>    hcalnoise_HasBadRBXRechitR45Tight     ( new bool   );
+  unique_ptr<bool>    hcalnoise_goodJetFoundInLowBVRegion   ( new bool   );
 
 
   //
@@ -262,70 +262,70 @@ void HcalNoiseSummaryMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   
 
 	// 
-	// iEvent.put( hcalnoise_passLooseNoiseFilter      , branchprefix_ + "passLooseNoiseFilter"      );
-	// iEvent.put( hcalnoise_passTightNoiseFilter      , branchprefix_ + "passTightNoiseFilter"      );
-	// iEvent.put( hcalnoise_passHighLevelNoiseFilter  , branchprefix_ + "passHighLevelNoiseFilter"  );
-	// iEvent.put( hcalnoise_noiseFilterStatus         , branchprefix_ + "noiseFilterStatus"         );
-	// iEvent.put( hcalnoise_noiseType                 , branchprefix_ + "noiseType"                 );
-	// iEvent.put( hcalnoise_eventEMEnergy             , branchprefix_ + "eventEMEnergy"             );
-	// iEvent.put( hcalnoise_eventHadEnergy            , branchprefix_ + "eventHadEnergy"            );
-	// iEvent.put( hcalnoise_eventTrackEnergy          , branchprefix_ + "eventTrackEnergy"          );
-	// iEvent.put( hcalnoise_eventEMFraction           , branchprefix_ + "eventEMFraction"           );
-	// iEvent.put( hcalnoise_eventChargeFraction       , branchprefix_ + "eventChargeFraction"       );
-	// iEvent.put( hcalnoise_min10GeVHitTime           , branchprefix_ + "min10GeVHitTime"           );
-	// iEvent.put( hcalnoise_max10GeVHitTime           , branchprefix_ + "max10GeVHitTime"           );
-	// iEvent.put( hcalnoise_rms10GeVHitTime           , branchprefix_ + "rms10GeVHitTime"           );
-	// iEvent.put( hcalnoise_min25GeVHitTime           , branchprefix_ + "min25GeVHitTime"           );
-	// iEvent.put( hcalnoise_max25GeVHitTime           , branchprefix_ + "max25GeVHitTime"           );
-	// iEvent.put( hcalnoise_rms25GeVHitTime           , branchprefix_ + "rms25GeVHitTime"           );
-	// iEvent.put( hcalnoise_num10GeVHits              , branchprefix_ + "num10GeVHits"              );
-	// iEvent.put( hcalnoise_num25GeVHits              , branchprefix_ + "num25GeVHits"              );
-	// iEvent.put( hcalnoise_minE2TS                   , branchprefix_ + "minE2TS"                   );
-	// iEvent.put( hcalnoise_minE10TS                  , branchprefix_ + "minE10TS"                  );
-	// iEvent.put( hcalnoise_minE2Over10TS             , branchprefix_ + "minE2Over10TS"             );
+	// iEvent.put(std::move( hcalnoise_passLooseNoiseFilter      ), branchprefix_ + "passLooseNoiseFilter"      );
+	// iEvent.put(std::move( hcalnoise_passTightNoiseFilter      ), branchprefix_ + "passTightNoiseFilter"      );
+	// iEvent.put(std::move( hcalnoise_passHighLevelNoiseFilter  ), branchprefix_ + "passHighLevelNoiseFilter"  );
+	// iEvent.put(std::move( hcalnoise_noiseFilterStatus         ), branchprefix_ + "noiseFilterStatus"         );
+	// iEvent.put(std::move( hcalnoise_noiseType                 ), branchprefix_ + "noiseType"                 );
+	// iEvent.put(std::move( hcalnoise_eventEMEnergy             ), branchprefix_ + "eventEMEnergy"             );
+	// iEvent.put(std::move( hcalnoise_eventHadEnergy            ), branchprefix_ + "eventHadEnergy"            );
+	// iEvent.put(std::move( hcalnoise_eventTrackEnergy          ), branchprefix_ + "eventTrackEnergy"          );
+	// iEvent.put(std::move( hcalnoise_eventEMFraction           ), branchprefix_ + "eventEMFraction"           );
+	// iEvent.put(std::move( hcalnoise_eventChargeFraction       ), branchprefix_ + "eventChargeFraction"       );
+	// iEvent.put(std::move( hcalnoise_min10GeVHitTime           ), branchprefix_ + "min10GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_max10GeVHitTime           ), branchprefix_ + "max10GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_rms10GeVHitTime           ), branchprefix_ + "rms10GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_min25GeVHitTime           ), branchprefix_ + "min25GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_max25GeVHitTime           ), branchprefix_ + "max25GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_rms25GeVHitTime           ), branchprefix_ + "rms25GeVHitTime"           );
+	// iEvent.put(std::move( hcalnoise_num10GeVHits              ), branchprefix_ + "num10GeVHits"              );
+	// iEvent.put(std::move( hcalnoise_num25GeVHits              ), branchprefix_ + "num25GeVHits"              );
+	// iEvent.put(std::move( hcalnoise_minE2TS                   ), branchprefix_ + "minE2TS"                   );
+	// iEvent.put(std::move( hcalnoise_minE10TS                  ), branchprefix_ + "minE10TS"                  );
+	// iEvent.put(std::move( hcalnoise_minE2Over10TS             ), branchprefix_ + "minE2Over10TS"             );
 
 	// dbarge 2012
-	// iEvent.put( hcalnoise_maxE2TS                   , branchprefix_ + "maxE2TS"                   );
-	// iEvent.put( hcalnoise_maxE10TS                  , branchprefix_ + "maxE10TS"                  ); 
+	// iEvent.put(std::move( hcalnoise_maxE2TS                   ), branchprefix_ + "maxE2TS"                   );
+	// iEvent.put(std::move( hcalnoise_maxE10TS                  ), branchprefix_ + "maxE10TS"                  ); 
 
-	// iEvent.put( hcalnoise_maxE2Over10TS             , branchprefix_ + "maxE2Over10TS"             );
-	iEvent.put( hcalnoise_maxZeros                  , branchprefix_ + "maxZeros"                  );
-	iEvent.put( hcalnoise_maxHPDHits                , branchprefix_ + "maxHPDHits"                );
-	// iEvent.put( hcalnoise_maxRBXHits                , branchprefix_ + "maxRBXHits"                );
-	iEvent.put( hcalnoise_maxHPDNoOtherHits         , branchprefix_ + "maxHPDNoOtherHits"         );
-	// iEvent.put( hcalnoise_minHPDEMF                 , branchprefix_ + "minHPDEMF"                 );
-	// iEvent.put( hcalnoise_minRBXEMF                 , branchprefix_ + "minRBXEMF"                 );
-	// iEvent.put( hcalnoise_numProblematicRBXs        , branchprefix_ + "numProblematicRBXs"        );
-	iEvent.put( hcalnoise_numIsolatedNoiseChannels  , branchprefix_ + "numIsolatedNoiseChannels"  );
-	iEvent.put( hcalnoise_isolatedNoiseSumE         , branchprefix_ + "isolatedNoiseSumE"         );
-	iEvent.put( hcalnoise_isolatedNoiseSumEt        , branchprefix_ + "isolatedNoiseSumEt"        );
+	// iEvent.put(std::move( hcalnoise_maxE2Over10TS             ), branchprefix_ + "maxE2Over10TS"             );
+	iEvent.put(std::move( hcalnoise_maxZeros                  ), branchprefix_ + "maxZeros"                  );
+	iEvent.put(std::move( hcalnoise_maxHPDHits                ), branchprefix_ + "maxHPDHits"                );
+	// iEvent.put(std::move( hcalnoise_maxRBXHits                ), branchprefix_ + "maxRBXHits"                );
+	iEvent.put(std::move( hcalnoise_maxHPDNoOtherHits         ), branchprefix_ + "maxHPDNoOtherHits"         );
+	// iEvent.put(std::move( hcalnoise_minHPDEMF                 ), branchprefix_ + "minHPDEMF"                 );
+	// iEvent.put(std::move( hcalnoise_minRBXEMF                 ), branchprefix_ + "minRBXEMF"                 );
+	// iEvent.put(std::move( hcalnoise_numProblematicRBXs        ), branchprefix_ + "numProblematicRBXs"        );
+	iEvent.put(std::move( hcalnoise_numIsolatedNoiseChannels  ), branchprefix_ + "numIsolatedNoiseChannels"  );
+	iEvent.put(std::move( hcalnoise_isolatedNoiseSumE         ), branchprefix_ + "isolatedNoiseSumE"         );
+	iEvent.put(std::move( hcalnoise_isolatedNoiseSumEt        ), branchprefix_ + "isolatedNoiseSumEt"        );
  
 	// dbarge 2012
-	// iEvent.put( hcalnoise_numFlatNoiseChannels      , branchprefix_ + "numFlatNoiseChannels"      );
-	// iEvent.put( hcalnoise_flatNoiseSumE             , branchprefix_ + "flatNoiseSumE"             );
-	// iEvent.put( hcalnoise_flatNoiseSumEt            , branchprefix_ + "flatNoiseSumEt"            );
-	// iEvent.put( hcalnoise_numSpikeNoiseChannels     , branchprefix_ + "numSpikeNoiseChannels"     );
-	// iEvent.put( hcalnoise_spikeNoiseSumE            , branchprefix_ + "spikeNoiseSumE"            );
-	// iEvent.put( hcalnoise_spikeNoiseSumEt           , branchprefix_ + "spikeNoiseSumEt"           );
-	// iEvent.put( hcalnoise_numTriangleNoiseChannels  , branchprefix_ + "numTriangleNoiseChannels"  );
-	// iEvent.put( hcalnoise_triangleNoiseSumE         , branchprefix_ + "triangleNoiseSumE"         );
-	// iEvent.put( hcalnoise_triangleNoiseSumEt        , branchprefix_ + "triangleNoiseSumEt"        );
-	// iEvent.put( hcalnoise_numTS4TS5NoiseChannels    , branchprefix_ + "numTS4TS5NoiseChannels"    );
-	// iEvent.put( hcalnoise_TS4TS5NoiseSumE           , branchprefix_ + "TS4TS5NoiseSumE"           );
-	// iEvent.put( hcalnoise_TS4TS5NoiseSumEt          , branchprefix_ + "TS4TS5NoiseSumEt"          );
-	// iEvent.put( hcalnoise_numNegativeNoiseChannels  , branchprefix_ + "numNegativeNoiseChannels"  );
-	// iEvent.put( hcalnoise_NegativeNoiseSumE         , branchprefix_ + "NegativeNoiseSumE"         );
-	// iEvent.put( hcalnoise_NegativeNoiseSumEt        , branchprefix_ + "NegativeNoiseSumEt"        );
-	// iEvent.put( hcalnoise_GetRecHitCount            , branchprefix_ + "GetRecHitCount"            );
-	// iEvent.put( hcalnoise_GetRecHitCount15          , branchprefix_ + "GetRecHitCount15"          );
-	// iEvent.put( hcalnoise_GetRecHitEnergy           , branchprefix_ + "GetRecHitEnergy"           );
-	// iEvent.put( hcalnoise_GetRecHitEnergy15         , branchprefix_ + "GetRecHitEnergy15"         );
-	// iEvent.put( hcalnoise_GetTotalCalibCharge       , branchprefix_ + "GetTotalCalibCharge"       );
+	// iEvent.put(std::move( hcalnoise_numFlatNoiseChannels      ), branchprefix_ + "numFlatNoiseChannels"      );
+	// iEvent.put(std::move( hcalnoise_flatNoiseSumE             ), branchprefix_ + "flatNoiseSumE"             );
+	// iEvent.put(std::move( hcalnoise_flatNoiseSumEt            ), branchprefix_ + "flatNoiseSumEt"            );
+	// iEvent.put(std::move( hcalnoise_numSpikeNoiseChannels     ), branchprefix_ + "numSpikeNoiseChannels"     );
+	// iEvent.put(std::move( hcalnoise_spikeNoiseSumE            ), branchprefix_ + "spikeNoiseSumE"            );
+	// iEvent.put(std::move( hcalnoise_spikeNoiseSumEt           ), branchprefix_ + "spikeNoiseSumEt"           );
+	// iEvent.put(std::move( hcalnoise_numTriangleNoiseChannels  ), branchprefix_ + "numTriangleNoiseChannels"  );
+	// iEvent.put(std::move( hcalnoise_triangleNoiseSumE         ), branchprefix_ + "triangleNoiseSumE"         );
+	// iEvent.put(std::move( hcalnoise_triangleNoiseSumEt        ), branchprefix_ + "triangleNoiseSumEt"        );
+	// iEvent.put(std::move( hcalnoise_numTS4TS5NoiseChannels    ), branchprefix_ + "numTS4TS5NoiseChannels"    );
+	// iEvent.put(std::move( hcalnoise_TS4TS5NoiseSumE           ), branchprefix_ + "TS4TS5NoiseSumE"           );
+	// iEvent.put(std::move( hcalnoise_TS4TS5NoiseSumEt          ), branchprefix_ + "TS4TS5NoiseSumEt"          );
+	// iEvent.put(std::move( hcalnoise_numNegativeNoiseChannels  ), branchprefix_ + "numNegativeNoiseChannels"  );
+	// iEvent.put(std::move( hcalnoise_NegativeNoiseSumE         ), branchprefix_ + "NegativeNoiseSumE"         );
+	// iEvent.put(std::move( hcalnoise_NegativeNoiseSumEt        ), branchprefix_ + "NegativeNoiseSumEt"        );
+	// iEvent.put(std::move( hcalnoise_GetRecHitCount            ), branchprefix_ + "GetRecHitCount"            );
+	// iEvent.put(std::move( hcalnoise_GetRecHitCount15          ), branchprefix_ + "GetRecHitCount15"          );
+	// iEvent.put(std::move( hcalnoise_GetRecHitEnergy           ), branchprefix_ + "GetRecHitEnergy"           );
+	// iEvent.put(std::move( hcalnoise_GetRecHitEnergy15         ), branchprefix_ + "GetRecHitEnergy15"         );
+	// iEvent.put(std::move( hcalnoise_GetTotalCalibCharge       ), branchprefix_ + "GetTotalCalibCharge"       );
   
-	iEvent.put( hcalnoise_HasBadRBXTS4TS5           ,  branchprefix_ + "HasBadRBXTS4TS5"          );
-	iEvent.put( hcalnoise_HasBadRBXRechitR45Loose   ,  branchprefix_ + "HasBadRBXRechitR45Loose"  );
-	// iEvent.put( hcalnoise_HasBadRBXRechitR45Tight   ,  branchprefix_ + "HasBadRBXRechitR45Tight"  );
-	// iEvent.put( hcalnoise_goodJetFoundInLowBVRegion ,  branchprefix_ + "goodJetFoundInLowBVRegion");
+	iEvent.put(std::move( hcalnoise_HasBadRBXTS4TS5           ),  branchprefix_ + "HasBadRBXTS4TS5"          );
+	iEvent.put(std::move( hcalnoise_HasBadRBXRechitR45Loose   ),  branchprefix_ + "HasBadRBXRechitR45Loose"  );
+	// iEvent.put(std::move( hcalnoise_HasBadRBXRechitR45Tight   ),  branchprefix_ + "HasBadRBXRechitR45Tight"  );
+	// iEvent.put(std::move( hcalnoise_goodJetFoundInLowBVRegion ),  branchprefix_ + "goodJetFoundInLowBVRegion");
   }
 } // End Producer
 

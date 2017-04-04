@@ -81,7 +81,7 @@ void HLTMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
 
 void HLTMaker::beginLuminosityBlock(const edm::LuminosityBlock& iLuminosityBlock, const edm::EventSetup& iSetup){
     doFillInformation = true;
-    // cached_prescales =   auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+    // cached_prescales =   unique_ptr<vector<unsigned int> >          (new vector<unsigned int>);
     cached_prescales.clear();
     cached_l1prescales.clear();
 }
@@ -156,24 +156,24 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   //if (nTriggers > 768) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 768 )", nTriggers) );
 
 
-  // bits = auto_ptr<TBits>                                 (new TBits(nTriggers));
-  // trigNames = auto_ptr<vector<TString> >                 (new vector<TString>);
-  // trigObjsid = auto_ptr<vector<vector<int> > >           (new vector<vector<int> >);
-  // trigObjsp4 = auto_ptr<vector<vector<LorentzVector> > > (new vector<vector<LorentzVector> >);
-  // trigObjspassLast = auto_ptr<vector<vector<bool> > >    (new vector<vector<bool> >);
-  // trigObjsfilters = auto_ptr<vector<vector<TString> > >  (new vector<vector<TString> >);
-  // prescales =   auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
-  // l1prescales = auto_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+  // bits = unique_ptr<TBits>                                 (new TBits(nTriggers));
+  // trigNames = unique_ptr<vector<TString> >                 (new vector<TString>);
+  // trigObjsid = unique_ptr<vector<vector<int> > >           (new vector<vector<int> >);
+  // trigObjsp4 = unique_ptr<vector<vector<LorentzVector> > > (new vector<vector<LorentzVector> >);
+  // trigObjspassLast = unique_ptr<vector<vector<bool> > >    (new vector<vector<bool> >);
+  // trigObjsfilters = unique_ptr<vector<vector<TString> > >  (new vector<vector<TString> >);
+  // prescales =   unique_ptr<vector<unsigned int> >          (new vector<unsigned int>);
+  // l1prescales = unique_ptr<vector<unsigned int> >          (new vector<unsigned int>);
 
 
-  auto_ptr<TBits>                           bits      (new TBits(nTriggers));
-  auto_ptr<vector<TString> >                trigNames (new vector<TString>);
-  auto_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
-  auto_ptr<vector<vector<LorentzVector> > > trigObjsp4(new vector<vector<LorentzVector> >);
-  auto_ptr<vector<vector<bool> > >          trigObjspassLast(new vector<vector<bool> >);
-  auto_ptr<vector<vector<TString> > >       trigObjsfilters(new vector<vector<TString> >);
-  auto_ptr<vector<unsigned int> > prescales   (new vector<unsigned int>);
-  auto_ptr<vector<unsigned int> > l1prescales (new vector<unsigned int>);
+  unique_ptr<TBits>                           bits      (new TBits(nTriggers));
+  unique_ptr<vector<TString> >                trigNames (new vector<TString>);
+  unique_ptr<vector<vector<int> > >           trigObjsid(new vector<vector<int> >);
+  unique_ptr<vector<vector<LorentzVector> > > trigObjsp4(new vector<vector<LorentzVector> >);
+  unique_ptr<vector<vector<bool> > >          trigObjspassLast(new vector<vector<bool> >);
+  unique_ptr<vector<vector<TString> > >       trigObjsfilters(new vector<vector<TString> >);
+  unique_ptr<vector<unsigned int> > prescales   (new vector<unsigned int>);
+  unique_ptr<vector<unsigned int> > l1prescales (new vector<unsigned int>);
 
   trigNames->reserve(nTriggers);
   trigObjsid->reserve(nTriggers);
@@ -317,17 +317,17 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	
   // strip upper zeros
   bits->Compact();
-  iEvent.put(bits,       Form("%sbits",       processNamePrefix_.Data() ) );
+  iEvent.put(std::move(bits),       Form("%sbits",       processNamePrefix_.Data() ) );
 
-  iEvent.put(prescales  , Form("%sprescales"   , processNamePrefix_.Data() ) );
-  iEvent.put(l1prescales, Form("%sl1prescales" , processNamePrefix_.Data() ) );
-  iEvent.put(trigNames  , Form("%strigNames"   , processNamePrefix_.Data() ) );
+  iEvent.put(std::move(prescales  ), Form("%sprescales"   , processNamePrefix_.Data() ) );
+  iEvent.put(std::move(l1prescales), Form("%sl1prescales" , processNamePrefix_.Data() ) );
+  iEvent.put(std::move(trigNames  ), Form("%strigNames"   , processNamePrefix_.Data() ) );
   
   if (fillTriggerObjects_) {
-    iEvent.put(trigObjsid , Form("%strigObjsid"  , processNamePrefix_.Data() ) );
-    iEvent.put(trigObjsp4 , Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
-    iEvent.put(trigObjspassLast , Form("%strigObjspassLast"  , processNamePrefix_.Data() ) );
-    iEvent.put(trigObjsfilters , Form("%strigObjsfilters"  , processNamePrefix_.Data() ) );
+    iEvent.put(std::move(trigObjsid ), Form("%strigObjsid"  , processNamePrefix_.Data() ) );
+    iEvent.put(std::move(trigObjsp4 ), Form("%strigObjsp4"  , processNamePrefix_.Data() ) );
+    iEvent.put(std::move(trigObjspassLast ), Form("%strigObjspassLast"  , processNamePrefix_.Data() ) );
+    iEvent.put(std::move(trigObjsfilters ), Form("%strigObjsfilters"  , processNamePrefix_.Data() ) );
   }
 }
 

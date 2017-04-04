@@ -40,10 +40,10 @@ void PUSummaryInfoMaker::endJob(){
 // ------------ method called to produce the data  ------------
 void PUSummaryInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<vector<int> >	        puInfo_nPUvertices	     ( new vector<int> );
-  auto_ptr<vector<int> >	        puInfo_bunchCrossing	 ( new vector<int> );
-  auto_ptr<vector<vector<float> > >	puInfo_instLumi          ( new vector<vector<float> > );
-  auto_ptr<vector<float> >	        puInfo_trueninteractions ( new vector<float> );
+  unique_ptr<vector<int> >	        puInfo_nPUvertices	     ( new vector<int> );
+  unique_ptr<vector<int> >	        puInfo_bunchCrossing	 ( new vector<int> );
+  unique_ptr<vector<vector<float> > >	puInfo_instLumi          ( new vector<vector<float> > );
+  unique_ptr<vector<float> >	        puInfo_trueninteractions ( new vector<float> );
 
   Handle<vector<PileupSummaryInfo> > puInfoH;
   bool bPuInfo=iEvent.getByToken(PUInfoToken, puInfoH); 
@@ -56,10 +56,10 @@ void PUSummaryInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
     }
   }
 	
-  iEvent.put(puInfo_nPUvertices,	    aliasprefix_ + "nPUvertices"	     );
-  iEvent.put(puInfo_bunchCrossing,	    aliasprefix_ + "bunchCrossing"       );
-  iEvent.put(puInfo_instLumi,		    aliasprefix_ + "instLumi"	         );
-  iEvent.put(puInfo_trueninteractions,	aliasprefix_ + "trueNumInteractions" );
+  iEvent.put(std::move(puInfo_nPUvertices),	    aliasprefix_ + "nPUvertices"	     );
+  iEvent.put(std::move(puInfo_bunchCrossing),	    aliasprefix_ + "bunchCrossing"       );
+  iEvent.put(std::move(puInfo_instLumi),		    aliasprefix_ + "instLumi"	         );
+  iEvent.put(std::move(puInfo_trueninteractions),	aliasprefix_ + "trueNumInteractions" );
 
 }
 

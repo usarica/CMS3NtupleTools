@@ -88,29 +88,29 @@ void CandToGenAssExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
 
     // pfjets
     //info of matched genJet
-    auto_ptr<vector<int>           > vector_pfjets_mcidx         (new vector<int>          );
-    auto_ptr<vector<float>         > vector_pfjets_mc_emEnergy   (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_hadEnergy  (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_invEnergy  (new vector<float>        ); 
-    auto_ptr<vector<float>         > vector_pfjets_mc_otherEnergy(new vector<float>        ); 
+    unique_ptr<vector<int>           > vector_pfjets_mcidx         (new vector<int>          );
+    unique_ptr<vector<float>         > vector_pfjets_mc_emEnergy   (new vector<float>        ); 
+    unique_ptr<vector<float>         > vector_pfjets_mc_hadEnergy  (new vector<float>        ); 
+    unique_ptr<vector<float>         > vector_pfjets_mc_invEnergy  (new vector<float>        ); 
+    unique_ptr<vector<float>         > vector_pfjets_mc_otherEnergy(new vector<float>        ); 
     //info of matched gen particle
-    auto_ptr<vector<float>         > vector_pfjets_mc_gpdr       (new vector<float>        );
-    auto_ptr<vector<int>           > vector_pfjets_mc_gpidx      (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_gp_p4      (new vector<LorentzVector>); 
-    auto_ptr<vector<int>           > vector_pfjets_mc_id         (new vector<int>          );
-    auto_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_motherp4   (new vector<LorentzVector>);
+    unique_ptr<vector<float>         > vector_pfjets_mc_gpdr       (new vector<float>        );
+    unique_ptr<vector<int>           > vector_pfjets_mc_gpidx      (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_pfjets_mc_gp_p4      (new vector<LorentzVector>); 
+    unique_ptr<vector<int>           > vector_pfjets_mc_id         (new vector<int>          );
+    unique_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_pfjets_mc_motherp4   (new vector<LorentzVector>);
     //info of matched status 3 particle
-    auto_ptr<vector<float>         > vector_pfjets_mc3dr         (new vector<float>        );
-    auto_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
-    auto_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
+    unique_ptr<vector<float>         > vector_pfjets_mc3dr         (new vector<float>        );
+    unique_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
+    unique_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
 
     // ak8 pfjets
     //info of matched genJet
-    auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_p4        (new vector<LorentzVector>); 
+    unique_ptr<vector<LorentzVector> > vector_ak8jets_mc_p4        (new vector<LorentzVector>); 
     //info of matched gen particle
-    auto_ptr<vector<LorentzVector> > vector_ak8jets_mc_gp_p4     (new vector<LorentzVector>); 
-    auto_ptr<vector<int>           > vector_ak8jets_mc_id        (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_ak8jets_mc_gp_p4     (new vector<LorentzVector>); 
+    unique_ptr<vector<int>           > vector_ak8jets_mc_id        (new vector<int>          );
   
 
     // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
@@ -227,20 +227,20 @@ void CandToGenAssExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& 
     }//ak8 jets 
     // ****************************************************************************************//
 
-    iEvent.put(vector_pfjets_mcidx         	,"pfjetsmcidx"        	);
-    iEvent.put(vector_pfjets_mc_emEnergy   	,"pfjetsmcemEnergy"   	);
-    iEvent.put(vector_pfjets_mc_hadEnergy  	,"pfjetsmchadEnergy"  	);
-    iEvent.put(vector_pfjets_mc_invEnergy  	,"pfjetsmcinvEnergy"  	);
-    iEvent.put(vector_pfjets_mc_otherEnergy	,"pfjetsmcotherEnergy"	);
-    iEvent.put(vector_pfjets_mc_gpdr       	,"pfjetsmcgpdr"       	);
-    iEvent.put(vector_pfjets_mc_gpidx      	,"pfjetsmcgpidx"      	);
-    iEvent.put(vector_pfjets_mc_gp_p4      	,"pfjetsmcgpp4"       	);
-    iEvent.put(vector_pfjets_mc_id         	,"pfjetsmcid"      	);
-    iEvent.put(vector_pfjets_mc_motherp4   	,"pfjetsmcmotherp4"   	); 
+    iEvent.put(std::move(vector_pfjets_mcidx         	),"pfjetsmcidx"        	);
+    iEvent.put(std::move(vector_pfjets_mc_emEnergy   	),"pfjetsmcemEnergy"   	);
+    iEvent.put(std::move(vector_pfjets_mc_hadEnergy  	),"pfjetsmchadEnergy"  	);
+    iEvent.put(std::move(vector_pfjets_mc_invEnergy  	),"pfjetsmcinvEnergy"  	);
+    iEvent.put(std::move(vector_pfjets_mc_otherEnergy	),"pfjetsmcotherEnergy"	);
+    iEvent.put(std::move(vector_pfjets_mc_gpdr       	),"pfjetsmcgpdr"       	);
+    iEvent.put(std::move(vector_pfjets_mc_gpidx      	),"pfjetsmcgpidx"      	);
+    iEvent.put(std::move(vector_pfjets_mc_gp_p4      	),"pfjetsmcgpp4"       	);
+    iEvent.put(std::move(vector_pfjets_mc_id         	),"pfjetsmcid"      	);
+    iEvent.put(std::move(vector_pfjets_mc_motherp4   	),"pfjetsmcmotherp4"   	); 
 
-    iEvent.put(vector_ak8jets_mc_p4        	,"ak8jetsmcp4"         	);
-    iEvent.put(vector_ak8jets_mc_gp_p4     	,"ak8jetsmcgpp4"       	);
-    iEvent.put(vector_ak8jets_mc_id        	,"ak8jetsmcid"        	);  
+    iEvent.put(std::move(vector_ak8jets_mc_p4        	),"ak8jetsmcp4"         	);
+    iEvent.put(std::move(vector_ak8jets_mc_gp_p4     	),"ak8jetsmcgpp4"       	);
+    iEvent.put(std::move(vector_ak8jets_mc_id        	),"ak8jetsmcid"        	);  
 }
 
 // ------------ method called once each job just before starting event loop  ------------

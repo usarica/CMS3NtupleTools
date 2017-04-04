@@ -84,22 +84,22 @@ void BeamSpotMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<LorentzVector>  evt_bs_p4          (new LorentzVector);
-  auto_ptr<int>            evt_bsType         (new int          );
-  auto_ptr<float>          evt_bs_xErr        (new float        );
-  auto_ptr<float>          evt_bs_yErr        (new float        );
-  auto_ptr<float>          evt_bs_zErr        (new float        );
-  auto_ptr<float>          evt_bs_sigmaZ      (new float        );
-  auto_ptr<float>          evt_bs_sigmaZErr   (new float        );
-  auto_ptr<float>          evt_bs_dxdz        (new float        );
-  auto_ptr<float>          evt_bs_dxdzErr     (new float        );
-  auto_ptr<float>          evt_bs_dydz        (new float        );
-  auto_ptr<float>          evt_bs_dydzErr     (new float        );
-  auto_ptr<float>          evt_bs_Xwidth      (new float        );
-  auto_ptr<float>          evt_bs_Ywidth      (new float        );
-  auto_ptr<float>          evt_bs_XwidthErr   (new float        );
-  auto_ptr<float>          evt_bs_YwidthErr   (new float        );
-  auto_ptr<vector<float> > evt_bs_covMatrix   (new vector<float>);
+  unique_ptr<LorentzVector>  evt_bs_p4          (new LorentzVector);
+  unique_ptr<int>            evt_bsType         (new int          );
+  unique_ptr<float>          evt_bs_xErr        (new float        );
+  unique_ptr<float>          evt_bs_yErr        (new float        );
+  unique_ptr<float>          evt_bs_zErr        (new float        );
+  unique_ptr<float>          evt_bs_sigmaZ      (new float        );
+  unique_ptr<float>          evt_bs_sigmaZErr   (new float        );
+  unique_ptr<float>          evt_bs_dxdz        (new float        );
+  unique_ptr<float>          evt_bs_dxdzErr     (new float        );
+  unique_ptr<float>          evt_bs_dydz        (new float        );
+  unique_ptr<float>          evt_bs_dydzErr     (new float        );
+  unique_ptr<float>          evt_bs_Xwidth      (new float        );
+  unique_ptr<float>          evt_bs_Ywidth      (new float        );
+  unique_ptr<float>          evt_bs_XwidthErr   (new float        );
+  unique_ptr<float>          evt_bs_YwidthErr   (new float        );
+  unique_ptr<vector<float> > evt_bs_covMatrix   (new vector<float>);
   
   edm::Handle<reco::BeamSpot> beamSpotH;
   iEvent.getByToken(beamSpotToken, beamSpotH);
@@ -140,24 +140,24 @@ void BeamSpotMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(evt_bs_p4           , branchprefix+"p4"        );
-  iEvent.put(evt_bsType          , branchprefix+"Type"      );
+  iEvent.put(std::move(evt_bs_p4           ), branchprefix+"p4"        );
+  iEvent.put(std::move(evt_bsType          ), branchprefix+"Type"      );
 
   if(haveBeamSpot) {
-    iEvent.put(evt_bs_xErr       , branchprefix+"xErr"      );
-    iEvent.put(evt_bs_yErr       , branchprefix+"yErr"      );
-    iEvent.put(evt_bs_zErr       , branchprefix+"zErr"      );
-    iEvent.put(evt_bs_sigmaZ     , branchprefix+"sigmaZ"    );
-    iEvent.put(evt_bs_sigmaZErr  , branchprefix+"sigmaZErr" );
-    iEvent.put(evt_bs_dxdz       , branchprefix+"dxdz"      );
-    iEvent.put(evt_bs_dxdzErr    , branchprefix+"dxdzErr"   );
-    iEvent.put(evt_bs_dydz       , branchprefix+"dydz"      );
-    iEvent.put(evt_bs_dydzErr    , branchprefix+"dydzErr"   );
-    iEvent.put(evt_bs_Xwidth     , branchprefix+"Xwidth"    );
-    iEvent.put(evt_bs_Ywidth     , branchprefix+"Ywidth"    );
-    iEvent.put(evt_bs_XwidthErr  , branchprefix+"XwidthErr" );
-    iEvent.put(evt_bs_YwidthErr  , branchprefix+"YwidthErr" );
-    iEvent.put(evt_bs_covMatrix  , branchprefix+"covMatrix" );
+    iEvent.put(std::move(evt_bs_xErr       ), branchprefix+"xErr"      );
+    iEvent.put(std::move(evt_bs_yErr       ), branchprefix+"yErr"      );
+    iEvent.put(std::move(evt_bs_zErr       ), branchprefix+"zErr"      );
+    iEvent.put(std::move(evt_bs_sigmaZ     ), branchprefix+"sigmaZ"    );
+    iEvent.put(std::move(evt_bs_sigmaZErr  ), branchprefix+"sigmaZErr" );
+    iEvent.put(std::move(evt_bs_dxdz       ), branchprefix+"dxdz"      );
+    iEvent.put(std::move(evt_bs_dxdzErr    ), branchprefix+"dxdzErr"   );
+    iEvent.put(std::move(evt_bs_dydz       ), branchprefix+"dydz"      );
+    iEvent.put(std::move(evt_bs_dydzErr    ), branchprefix+"dydzErr"   );
+    iEvent.put(std::move(evt_bs_Xwidth     ), branchprefix+"Xwidth"    );
+    iEvent.put(std::move(evt_bs_Ywidth     ), branchprefix+"Ywidth"    );
+    iEvent.put(std::move(evt_bs_XwidthErr  ), branchprefix+"XwidthErr" );
+    iEvent.put(std::move(evt_bs_YwidthErr  ), branchprefix+"YwidthErr" );
+    iEvent.put(std::move(evt_bs_covMatrix  ), branchprefix+"covMatrix" );
   }
   
 }

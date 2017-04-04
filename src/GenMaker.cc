@@ -125,44 +125,44 @@ void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
 // ------------ method called to produce the data  ------------
 void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-    auto_ptr<vector<int> >                    genps_id              (new vector<int>                   );
-    auto_ptr<vector<int> >                    genps_id_mother       (new vector<int>                   );
-    auto_ptr<vector<int> >                    genps_id_simplemother (new vector<int>                   );
-    auto_ptr<vector<int> >                    genps_id_simplegrandma(new vector<int>                   );
-    auto_ptr<vector<int> >                    genps_idx_mother      (new vector<int>                   );
-    auto_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                   );
-    auto_ptr<vector<LorentzVector> >          genps_p4              (new vector<LorentzVector>         );
-    // auto_ptr<vector<float> >                  genps_mass            (new vector<float>                 );
-    auto_ptr<vector<int> >                    genps_status          (new vector<int>                   );
-    auto_ptr<vector<float> >                  genps_charge          (new vector<float>                 );
-    auto_ptr<vector<float> >                  genps_iso             (new vector<float>                 );
-    auto_ptr<vector<vector<int> > >           genps_lepdaughter_id  (new vector<vector<int> >          );
-    auto_ptr<vector<vector<int> > >           genps_lepdaughter_idx (new vector<vector<int> >          );
-    auto_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4  (new vector<vector<LorentzVector> >);
-    auto_ptr<float>                           gen_sumEt             (new float                         );
-    auto_ptr<float>                           genps_pthat           (new float                         );
-    auto_ptr<float>                           genps_weight          (new float                         );
-    auto_ptr<unsigned int>                    genps_signalProcessID (new unsigned int                  );
-    auto_ptr<float>                           genps_qScale          (new float                         );
-    auto_ptr<float>                           genps_alphaQCD        (new float                         );
-    auto_ptr<float>                           evt_scale1fb          (new float                         );
-    auto_ptr<float>                           evt_xsec_incl         (new float                         );
-    auto_ptr<float>                           evt_xsec_excl         (new float                         );
-    auto_ptr<float>                           evt_kfactor           (new float                         );
-    auto_ptr<vector<float> >                  genweights            (new vector<float>                 );
-    auto_ptr<vector<string> >                 genweightsID          (new vector<string>                );
+    unique_ptr<vector<int> >                    genps_id              (new vector<int>                   );
+    unique_ptr<vector<int> >                    genps_id_mother       (new vector<int>                   );
+    unique_ptr<vector<int> >                    genps_id_simplemother (new vector<int>                   );
+    unique_ptr<vector<int> >                    genps_id_simplegrandma(new vector<int>                   );
+    unique_ptr<vector<int> >                    genps_idx_mother      (new vector<int>                   );
+    unique_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                   );
+    unique_ptr<vector<LorentzVector> >          genps_p4              (new vector<LorentzVector>         );
+    // unique_ptr<vector<float> >                  genps_mass            (new vector<float>                 );
+    unique_ptr<vector<int> >                    genps_status          (new vector<int>                   );
+    unique_ptr<vector<float> >                  genps_charge          (new vector<float>                 );
+    unique_ptr<vector<float> >                  genps_iso             (new vector<float>                 );
+    unique_ptr<vector<vector<int> > >           genps_lepdaughter_id  (new vector<vector<int> >          );
+    unique_ptr<vector<vector<int> > >           genps_lepdaughter_idx (new vector<vector<int> >          );
+    unique_ptr<vector<vector<LorentzVector> > > genps_lepdaughter_p4  (new vector<vector<LorentzVector> >);
+    unique_ptr<float>                           gen_sumEt             (new float                         );
+    unique_ptr<float>                           genps_pthat           (new float                         );
+    unique_ptr<float>                           genps_weight          (new float                         );
+    unique_ptr<unsigned int>                    genps_signalProcessID (new unsigned int                  );
+    unique_ptr<float>                           genps_qScale          (new float                         );
+    unique_ptr<float>                           genps_alphaQCD        (new float                         );
+    unique_ptr<float>                           evt_scale1fb          (new float                         );
+    unique_ptr<float>                           evt_xsec_incl         (new float                         );
+    unique_ptr<float>                           evt_xsec_excl         (new float                         );
+    unique_ptr<float>                           evt_kfactor           (new float                         );
+    unique_ptr<vector<float> >                  genweights            (new vector<float>                 );
+    unique_ptr<vector<string> >                 genweightsID          (new vector<string>                );
 
-    auto_ptr<vector<bool> >                   genps_isPromptFinalState                          (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_isPromptDecayed                             (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_isDirectPromptTauDecayProductFinalState     (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_isHardProcess								  (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_fromHardProcessFinalState					  (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_fromHardProcessDecayed					  (new vector<bool> );	  
-    auto_ptr<vector<bool> >                   genps_isDirectHardProcessTauDecayProductFinalState(new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_fromHardProcessBeforeFSR					  (new vector<bool> );
-    auto_ptr<vector<bool> >                   genps_isMostlyLikePythia6Status3				  (new vector<bool> );	  
-    auto_ptr<vector<bool> >                   genps_isLastCopy								  (new vector<bool> );	  
-    auto_ptr<vector<bool> >                   genps_isLastCopyBeforeFSR                         (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isPromptFinalState                          (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isPromptDecayed                             (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isDirectPromptTauDecayProductFinalState     (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isHardProcess								  (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessFinalState					  (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessDecayed					  (new vector<bool> );	  
+    unique_ptr<vector<bool> >                   genps_isDirectHardProcessTauDecayProductFinalState(new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessBeforeFSR					  (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isMostlyLikePythia6Status3				  (new vector<bool> );	  
+    unique_ptr<vector<bool> >                   genps_isLastCopy								  (new vector<bool> );	  
+    unique_ptr<vector<bool> >                   genps_isLastCopyBeforeFSR                         (new vector<bool> );
   
     // get MC particle collection
     edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -405,46 +405,46 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     *gen_sumEt  =   sumEt;
 
-    iEvent.put(genps_id                 , "genpsid"              );
-    iEvent.put(genps_id_mother          , "genpsidmother"        );
-    iEvent.put(genps_id_simplemother    , "genpsidsimplemother"  );
-    iEvent.put(genps_id_simplegrandma   , "genpsidsimplegrandma" );
-    iEvent.put(genps_idx_mother         , "genpsidxmother"       );
-    iEvent.put(genps_idx_simplemother   , "genpsidxsimplemother" );
-    iEvent.put(genps_p4                 , "genpsp4"              );
-    // iEvent.put(genps_mass               , "genpsmass"            );
-    iEvent.put(genps_status             , "genpsstatus"          );
-    iEvent.put(genps_charge             , "genpscharge"          );
-    iEvent.put(genps_iso                , "genpsiso"             );
-    iEvent.put(gen_sumEt                , "gensumEt"             );
-    iEvent.put(genps_pthat              , "genpspthat"           );
-    iEvent.put(genps_weight             , "genpsweight"          );
-    iEvent.put(genps_signalProcessID    , "genpssignalProcessID" );
-    iEvent.put(genps_qScale             , "genpsqScale"          );
-    iEvent.put(genps_alphaQCD           , "genpsalphaQCD"        );
-    iEvent.put(evt_xsec_incl            , "evtxsecincl"          );
-    iEvent.put(evt_xsec_excl            , "evtxsecexcl"          );
-    iEvent.put(evt_kfactor              , "evtkfactor"           );
-    iEvent.put(evt_scale1fb             , "evtscale1fb"          );
-    iEvent.put(genweights               , "genweights"           );
-    iEvent.put(genweightsID             , "genweightsID"         );
+    iEvent.put(std::move(genps_id                 ), "genpsid"              );
+    iEvent.put(std::move(genps_id_mother          ), "genpsidmother"        );
+    iEvent.put(std::move(genps_id_simplemother    ), "genpsidsimplemother"  );
+    iEvent.put(std::move(genps_id_simplegrandma   ), "genpsidsimplegrandma" );
+    iEvent.put(std::move(genps_idx_mother         ), "genpsidxmother"       );
+    iEvent.put(std::move(genps_idx_simplemother   ), "genpsidxsimplemother" );
+    iEvent.put(std::move(genps_p4                 ), "genpsp4"              );
+    // iEvent.put(std::move(genps_mass               ), "genpsmass"            );
+    iEvent.put(std::move(genps_status             ), "genpsstatus"          );
+    iEvent.put(std::move(genps_charge             ), "genpscharge"          );
+    iEvent.put(std::move(genps_iso                ), "genpsiso"             );
+    iEvent.put(std::move(gen_sumEt                ), "gensumEt"             );
+    iEvent.put(std::move(genps_pthat              ), "genpspthat"           );
+    iEvent.put(std::move(genps_weight             ), "genpsweight"          );
+    iEvent.put(std::move(genps_signalProcessID    ), "genpssignalProcessID" );
+    iEvent.put(std::move(genps_qScale             ), "genpsqScale"          );
+    iEvent.put(std::move(genps_alphaQCD           ), "genpsalphaQCD"        );
+    iEvent.put(std::move(evt_xsec_incl            ), "evtxsecincl"          );
+    iEvent.put(std::move(evt_xsec_excl            ), "evtxsecexcl"          );
+    iEvent.put(std::move(evt_kfactor              ), "evtkfactor"           );
+    iEvent.put(std::move(evt_scale1fb             ), "evtscale1fb"          );
+    iEvent.put(std::move(genweights               ), "genweights"           );
+    iEvent.put(std::move(genweightsID             ), "genweightsID"         );
 
-    iEvent.put(genps_isPromptFinalState                           , "genpsIsPromptFinalState"                          );
-    iEvent.put(genps_isPromptDecayed                              , "genpsIsPromptDecayed"                             );
-    iEvent.put(genps_isDirectPromptTauDecayProductFinalState      , "genpsIsDirectPromptTauDecayProductFinalState"     );
-    iEvent.put(genps_isHardProcess								, "genpsIsHardProcess"								 );   
-    iEvent.put(genps_fromHardProcessFinalState					, "genpsFromHardProcessFinalState"					 );   
-    iEvent.put(genps_fromHardProcessDecayed						, "genpsFromHardProcessDecayed"						 );   
-    iEvent.put(genps_isDirectHardProcessTauDecayProductFinalState , "genpsIsDirectHardProcessTauDecayProductFinalState"); 
-    iEvent.put(genps_fromHardProcessBeforeFSR					  	, "genpsFromHardProcessBeforeFSR"					 ); 
-    iEvent.put(genps_isMostlyLikePythia6Status3					, "genpsIsMostlyLikePythia6Status3"					 );   
-    iEvent.put(genps_isLastCopy									, "genpsIsLastCopy"									 );   
-    iEvent.put(genps_isLastCopyBeforeFSR                          , "genpsIsLastCopyBeforeFSR"                         ); 
+    iEvent.put(std::move(genps_isPromptFinalState                           ), "genpsIsPromptFinalState"                          );
+    iEvent.put(std::move(genps_isPromptDecayed                              ), "genpsIsPromptDecayed"                             );
+    iEvent.put(std::move(genps_isDirectPromptTauDecayProductFinalState      ), "genpsIsDirectPromptTauDecayProductFinalState"     );
+    iEvent.put(std::move(genps_isHardProcess								), "genpsIsHardProcess"								 );   
+    iEvent.put(std::move(genps_fromHardProcessFinalState					), "genpsFromHardProcessFinalState"					 );   
+    iEvent.put(std::move(genps_fromHardProcessDecayed						), "genpsFromHardProcessDecayed"						 );   
+    iEvent.put(std::move(genps_isDirectHardProcessTauDecayProductFinalState ), "genpsIsDirectHardProcessTauDecayProductFinalState"); 
+    iEvent.put(std::move(genps_fromHardProcessBeforeFSR					  	), "genpsFromHardProcessBeforeFSR"					 ); 
+    iEvent.put(std::move(genps_isMostlyLikePythia6Status3					), "genpsIsMostlyLikePythia6Status3"					 );   
+    iEvent.put(std::move(genps_isLastCopy									), "genpsIsLastCopy"									 );   
+    iEvent.put(std::move(genps_isLastCopyBeforeFSR                          ), "genpsIsLastCopyBeforeFSR"                         ); 
 
     if(ntupleDaughters_) {
-        iEvent.put(genps_lepdaughter_id , "genpslepdaughterid" );
-        iEvent.put(genps_lepdaughter_idx, "genpslepdaughteridx");
-        iEvent.put(genps_lepdaughter_p4 , "genpslepdaughterp4" );
+        iEvent.put(std::move(genps_lepdaughter_id ), "genpslepdaughterid" );
+        iEvent.put(std::move(genps_lepdaughter_idx), "genpslepdaughteridx");
+        iEvent.put(std::move(genps_lepdaughter_p4 ), "genpslepdaughterp4" );
     }
 
 }

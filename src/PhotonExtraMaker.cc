@@ -217,124 +217,124 @@ void PhotonExtraMaker::endJob() {}
 void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
     // Define vectors to be filled  
-    auto_ptr<vector<float> >          photons_mass            (new vector<float>          );
-    auto_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
+    unique_ptr<vector<float> >          photons_mass            (new vector<float>          );
+    unique_ptr<vector<int> >   photons_fiduciality    ( new vector<int>   );
 
-    auto_ptr<vector<float> > photons_etaSC       (new vector<float> );
-    auto_ptr<vector<float> > photons_phiSC       (new vector<float> );
-    auto_ptr<vector<float> > photons_eSC         (new vector<float> );
-    auto_ptr<vector<float> > photons_eSCRaw      (new vector<float> );
-    auto_ptr<vector<float> > photons_eSCPresh    (new vector<float> );
+    unique_ptr<vector<float> > photons_etaSC       (new vector<float> );
+    unique_ptr<vector<float> > photons_phiSC       (new vector<float> );
+    unique_ptr<vector<float> > photons_eSC         (new vector<float> );
+    unique_ptr<vector<float> > photons_eSCRaw      (new vector<float> );
+    unique_ptr<vector<float> > photons_eSCPresh    (new vector<float> );
 
-    auto_ptr<vector<float> > photons_e1x5           ( new vector<float> );
-    auto_ptr<vector<float> > photons_e3x3           ( new vector<float> );
-    auto_ptr<vector<float> > photons_e5x5           ( new vector<float> );
-    auto_ptr<vector<float> > photons_e2x5Max        ( new vector<float> );
-    auto_ptr<vector<float> > photons_sigmaEtaEta    ( new vector<float> );
+    unique_ptr<vector<float> > photons_e1x5           ( new vector<float> );
+    unique_ptr<vector<float> > photons_e3x3           ( new vector<float> );
+    unique_ptr<vector<float> > photons_e5x5           ( new vector<float> );
+    unique_ptr<vector<float> > photons_e2x5Max        ( new vector<float> );
+    unique_ptr<vector<float> > photons_sigmaEtaEta    ( new vector<float> );
 
-    auto_ptr<vector<float> > photons_full5x5_e1x5           ( new vector<float> );
-    auto_ptr<vector<float> > photons_full3x3_e3x3           ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_e5x5           ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_e2x5Max        ( new vector<float> );
-    auto_ptr<vector<float> > photons_full5x5_sigmaEtaEta    ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_e1x5           ( new vector<float> );
+    unique_ptr<vector<float> > photons_full3x3_e3x3           ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_e5x5           ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_e2x5Max        ( new vector<float> );
+    unique_ptr<vector<float> > photons_full5x5_sigmaEtaEta    ( new vector<float> );
  
-    auto_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
-    auto_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
-    auto_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
-    auto_ptr<vector<float> > photons_ntkIsoSolid03  ( new vector<float> );
-    auto_ptr<vector<float> > photons_ecalIso03      ( new vector<float> );
-    auto_ptr<vector<float> > photons_hcalIso03      ( new vector<float> );
-    auto_ptr<vector<float> > photons_tkIsoHollow04  ( new vector<float> );
-    auto_ptr<vector<float> > photons_tkIsoSolid04   ( new vector<float> );
-    auto_ptr<vector<float> > photons_ntkIsoHollow04 ( new vector<float> );
-    auto_ptr<vector<float> > photons_ntkIsoSolid04  ( new vector<float> );
-    auto_ptr<vector<float> > photons_ecalIso04      ( new vector<float> );
-    auto_ptr<vector<float> > photons_hcalIso04      ( new vector<float> );
-    auto_ptr<vector<float> > photons_chargedHadronIso( new vector<float> );
-    auto_ptr<vector<float> > photons_neutralHadronIso( new vector<float> );
-    auto_ptr<vector<float> > photons_photonIso       ( new vector<float> );
+    unique_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
+    unique_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
+    unique_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
+    unique_ptr<vector<float> > photons_ntkIsoSolid03  ( new vector<float> );
+    unique_ptr<vector<float> > photons_ecalIso03      ( new vector<float> );
+    unique_ptr<vector<float> > photons_hcalIso03      ( new vector<float> );
+    unique_ptr<vector<float> > photons_tkIsoHollow04  ( new vector<float> );
+    unique_ptr<vector<float> > photons_tkIsoSolid04   ( new vector<float> );
+    unique_ptr<vector<float> > photons_ntkIsoHollow04 ( new vector<float> );
+    unique_ptr<vector<float> > photons_ntkIsoSolid04  ( new vector<float> );
+    unique_ptr<vector<float> > photons_ecalIso04      ( new vector<float> );
+    unique_ptr<vector<float> > photons_hcalIso04      ( new vector<float> );
+    unique_ptr<vector<float> > photons_chargedHadronIso( new vector<float> );
+    unique_ptr<vector<float> > photons_neutralHadronIso( new vector<float> );
+    unique_ptr<vector<float> > photons_photonIso       ( new vector<float> );
 
-    auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR04       ( new vector<float> ); // Added for 53x //
-    auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
-    auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
-    auto_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR03       ( new vector<float> ); // Added for 53x //
-    auto_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
-    auto_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR04       ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR04 ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalTowerSumEtBcConeDR03       ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
+    unique_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
 
-    auto_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
-    auto_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
+    unique_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
+    unique_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
 
-    // auto_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
-    // auto_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
+    // unique_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
+    // unique_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
 
     ///////////////////////////////
     // Added for 7_X calibration //
     ///////////////////////////////
-    auto_ptr<vector<int> > photons_N_ECALClusters            (new vector<int>);
-    auto_ptr<vector<int> > photons_N_PSClusters              (new vector<int>);
-    auto_ptr<vector<int> > photons_isEB                      (new vector<int>);
+    unique_ptr<vector<int> > photons_N_ECALClusters            (new vector<int>);
+    unique_ptr<vector<int> > photons_N_PSClusters              (new vector<int>);
+    unique_ptr<vector<int> > photons_isEB                      (new vector<int>);
   
-    auto_ptr<vector<float> > photons_scPhiWidth              (new vector<float>);
-    auto_ptr<vector<float> > photons_scEtaWidth              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedRawEnergy         (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCalibratedEnergy  (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedSigmaIphiIphi     (new vector<float>);
+    unique_ptr<vector<float> > photons_scPhiWidth              (new vector<float>);
+    unique_ptr<vector<float> > photons_scEtaWidth              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedRawEnergy         (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCalibratedEnergy  (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedSigmaIphiIphi     (new vector<float>);
 
-    auto_ptr<vector<float> > photons_scPreshowerEnergyPlane1 (new vector<float>);
-    auto_ptr<vector<float> > photons_scPreshowerEnergyPlane2 (new vector<float>);
-    auto_ptr<vector<float> > photons_scIsEB                  (new vector<float>);
-    auto_ptr<vector<float> > photons_scR                     (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedEta               (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedPhi               (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedSize              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE3x3              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedEmax              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE2nd              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedELeft             (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedERight            (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedETop              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedEBottom           (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE2x5Left          (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE2x5Right         (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE2x5Top           (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedE2x5Bottom        (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedLeftRightAsym     (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedTopBottomAsym     (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeed2x5LeftRightAsym  (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeed2x5TopBottomAsym  (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedSigmaIetaIphi     (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryEta            (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryPhi            (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryIeta           (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryIphi           (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryX              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryY              (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryIx             (new vector<float>);
-    auto_ptr<vector<float> > photons_scSeedCryIy             (new vector<float>);
-    auto_ptr<vector<float> > photons_clusterMaxDR            (new vector<float>);
-    auto_ptr<vector<float> > photons_clusterMaxDRDPhi        (new vector<float>);
-    auto_ptr<vector<float> > photons_clusterMaxDRDEta        (new vector<float>);
-    auto_ptr<vector<float> > photons_clustersMeanDRToSeed    (new vector<float>);
-    auto_ptr<vector<float> > photons_clustersMeanDEtaToSeed  (new vector<float>);
-    auto_ptr<vector<float> > photons_clustersMeanDPhiToSeed  (new vector<float>);
-    auto_ptr<vector<float> > photons_clusterMaxDRRawEnergy   (new vector<float>);
-    auto_ptr<vector<float> > photons_clustersMeanRawEnergy   (new vector<float>);
-    auto_ptr<vector<float> > photons_clustersRMSRawEnergy    (new vector<float>);
+    unique_ptr<vector<float> > photons_scPreshowerEnergyPlane1 (new vector<float>);
+    unique_ptr<vector<float> > photons_scPreshowerEnergyPlane2 (new vector<float>);
+    unique_ptr<vector<float> > photons_scIsEB                  (new vector<float>);
+    unique_ptr<vector<float> > photons_scR                     (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedEta               (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedPhi               (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedSize              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE3x3              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedEmax              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE2nd              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedELeft             (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedERight            (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedETop              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedEBottom           (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE2x5Left          (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE2x5Right         (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE2x5Top           (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedE2x5Bottom        (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedLeftRightAsym     (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedTopBottomAsym     (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeed2x5LeftRightAsym  (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeed2x5TopBottomAsym  (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedSigmaIetaIphi     (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryEta            (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryPhi            (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryIeta           (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryIphi           (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryX              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryY              (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryIx             (new vector<float>);
+    unique_ptr<vector<float> > photons_scSeedCryIy             (new vector<float>);
+    unique_ptr<vector<float> > photons_clusterMaxDR            (new vector<float>);
+    unique_ptr<vector<float> > photons_clusterMaxDRDPhi        (new vector<float>);
+    unique_ptr<vector<float> > photons_clusterMaxDRDEta        (new vector<float>);
+    unique_ptr<vector<float> > photons_clustersMeanDRToSeed    (new vector<float>);
+    unique_ptr<vector<float> > photons_clustersMeanDEtaToSeed  (new vector<float>);
+    unique_ptr<vector<float> > photons_clustersMeanDPhiToSeed  (new vector<float>);
+    unique_ptr<vector<float> > photons_clusterMaxDRRawEnergy   (new vector<float>);
+    unique_ptr<vector<float> > photons_clustersMeanRawEnergy   (new vector<float>);
+    unique_ptr<vector<float> > photons_clustersRMSRawEnergy    (new vector<float>);
 
-    auto_ptr<vector<vector<int> > > photons_clusterInMustache       (new vector<vector<int > >);
-    auto_ptr<vector<vector<int> > > photons_clusterInDynDPhi        (new vector<vector<int > >);
+    unique_ptr<vector<vector<int> > > photons_clusterInMustache       (new vector<vector<int > >);
+    unique_ptr<vector<vector<int> > > photons_clusterInDynDPhi        (new vector<vector<int > >);
 
-    auto_ptr<vector<vector<float> > > photons_clusterRawEnergy      (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterCalibEnergy    (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterEta            (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterPhi            (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterDPhiToSeed     (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterDEtaToSeed     (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterDPhiToCentroid (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_clusterDEtaToCentroid (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_psClusterRawEnergy    (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_psClusterEta          (new vector<vector<float > >);
-    auto_ptr<vector<vector<float> > > photons_psClusterPhi          (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterRawEnergy      (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterCalibEnergy    (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterEta            (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterPhi            (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterDPhiToSeed     (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterDEtaToSeed     (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterDPhiToCentroid (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_clusterDEtaToCentroid (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_psClusterRawEnergy    (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_psClusterEta          (new vector<vector<float > >);
+    unique_ptr<vector<vector<float> > > photons_psClusterPhi          (new vector<vector<float > >);
  
     ///////////////////// 
     // Get the photons //
@@ -725,126 +725,126 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     //
-    iEvent.put( photons_mass           , branchprefix+"mass"            );
-    iEvent.put( photons_fiduciality    , branchprefix+"fiduciality"     );
+    iEvent.put(std::move( photons_mass           ), branchprefix+"mass"            );
+    iEvent.put(std::move( photons_fiduciality    ), branchprefix+"fiduciality"     );
 
-    iEvent.put(photons_etaSC       , "photonsetaSC"       );
-    iEvent.put(photons_phiSC       , "photonsphiSC"       );
-    iEvent.put(photons_eSC         , "photonseSC"         );
-    iEvent.put(photons_eSCRaw      , "photonseSCRaw"      );
-    iEvent.put(photons_eSCPresh    , "photonseSCPresh"    );
+    iEvent.put(std::move(photons_etaSC       ), "photonsetaSC"       );
+    iEvent.put(std::move(photons_phiSC       ), "photonsphiSC"       );
+    iEvent.put(std::move(photons_eSC         ), "photonseSC"         );
+    iEvent.put(std::move(photons_eSCRaw      ), "photonseSCRaw"      );
+    iEvent.put(std::move(photons_eSCPresh    ), "photonseSCPresh"    );
 
-    iEvent.put( photons_e1x5           , branchprefix+"e1x5"            );
-    iEvent.put( photons_e3x3           , branchprefix+"e3x3"            );
-    iEvent.put( photons_e5x5           , branchprefix+"e5x5"            );
-    iEvent.put( photons_e2x5Max        , branchprefix+"e2x5Max"         );
-    iEvent.put( photons_sigmaEtaEta    , branchprefix+"sigmaEtaEta"     );
+    iEvent.put(std::move( photons_e1x5           ), branchprefix+"e1x5"            );
+    iEvent.put(std::move( photons_e3x3           ), branchprefix+"e3x3"            );
+    iEvent.put(std::move( photons_e5x5           ), branchprefix+"e5x5"            );
+    iEvent.put(std::move( photons_e2x5Max        ), branchprefix+"e2x5Max"         );
+    iEvent.put(std::move( photons_sigmaEtaEta    ), branchprefix+"sigmaEtaEta"     );
 
-    iEvent.put( photons_full5x5_e1x5           , branchprefix+"full5x5e1x5"            );
-    iEvent.put( photons_full3x3_e3x3           , branchprefix+"full3x3e3x3"            );
-    iEvent.put( photons_full5x5_e5x5           , branchprefix+"full5x5e5x5"            );
-    iEvent.put( photons_full5x5_e2x5Max        , branchprefix+"full5x5e2x5Max"         );
-    iEvent.put( photons_full5x5_sigmaEtaEta    , branchprefix+"full5x5sigmaEtaEta"     );
+    iEvent.put(std::move( photons_full5x5_e1x5           ), branchprefix+"full5x5e1x5"            );
+    iEvent.put(std::move( photons_full3x3_e3x3           ), branchprefix+"full3x3e3x3"            );
+    iEvent.put(std::move( photons_full5x5_e5x5           ), branchprefix+"full5x5e5x5"            );
+    iEvent.put(std::move( photons_full5x5_e2x5Max        ), branchprefix+"full5x5e2x5Max"         );
+    iEvent.put(std::move( photons_full5x5_sigmaEtaEta    ), branchprefix+"full5x5sigmaEtaEta"     );
 
-    iEvent.put( photons_tkIsoHollow03  , branchprefix+"tkIsoHollow03"   );
-    iEvent.put( photons_tkIsoSolid03   , branchprefix+"tkIsoSolid03"    );      
-    iEvent.put( photons_ntkIsoHollow03 , branchprefix+"ntkIsoHollow03"  );
-    iEvent.put( photons_ntkIsoSolid03  , branchprefix+"ntkIsoSolid03"   );      
-    iEvent.put( photons_ecalIso03      , branchprefix+"ecalIso03"       );
-    iEvent.put( photons_hcalIso03      , branchprefix+"hcalIso03"       );
-    iEvent.put( photons_tkIsoHollow04  , branchprefix+"tkIsoHollow04"   );
-    iEvent.put( photons_tkIsoSolid04   , branchprefix+"tkIsoSolid04"    );      
-    iEvent.put( photons_ntkIsoHollow04 , branchprefix+"ntkIsoHollow04"  );
-    iEvent.put( photons_ntkIsoSolid04  , branchprefix+"ntkIsoSolid04"   );      
-    iEvent.put( photons_ecalIso04      , branchprefix+"ecalIso04"       );
-    iEvent.put( photons_hcalIso04      , branchprefix+"hcalIso04"       );  
-    iEvent.put( photons_chargedHadronIso, branchprefix+"chargedHadronIso");  
-    iEvent.put( photons_neutralHadronIso, branchprefix+"neutralHadronIso");  
-    iEvent.put( photons_photonIso       , branchprefix+"photonIso"       );  
+    iEvent.put(std::move( photons_tkIsoHollow03  ), branchprefix+"tkIsoHollow03"   );
+    iEvent.put(std::move( photons_tkIsoSolid03   ), branchprefix+"tkIsoSolid03"    );      
+    iEvent.put(std::move( photons_ntkIsoHollow03 ), branchprefix+"ntkIsoHollow03"  );
+    iEvent.put(std::move( photons_ntkIsoSolid03  ), branchprefix+"ntkIsoSolid03"   );      
+    iEvent.put(std::move( photons_ecalIso03      ), branchprefix+"ecalIso03"       );
+    iEvent.put(std::move( photons_hcalIso03      ), branchprefix+"hcalIso03"       );
+    iEvent.put(std::move( photons_tkIsoHollow04  ), branchprefix+"tkIsoHollow04"   );
+    iEvent.put(std::move( photons_tkIsoSolid04   ), branchprefix+"tkIsoSolid04"    );      
+    iEvent.put(std::move( photons_ntkIsoHollow04 ), branchprefix+"ntkIsoHollow04"  );
+    iEvent.put(std::move( photons_ntkIsoSolid04  ), branchprefix+"ntkIsoSolid04"   );      
+    iEvent.put(std::move( photons_ecalIso04      ), branchprefix+"ecalIso04"       );
+    iEvent.put(std::move( photons_hcalIso04      ), branchprefix+"hcalIso04"       );  
+    iEvent.put(std::move( photons_chargedHadronIso), branchprefix+"chargedHadronIso");  
+    iEvent.put(std::move( photons_neutralHadronIso), branchprefix+"neutralHadronIso");  
+    iEvent.put(std::move( photons_photonIso       ), branchprefix+"photonIso"       );  
 
-    iEvent.put( photons_hcalTowerSumEtBcConeDR04       , branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
-    iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR04 , branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
-    iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR04 , branchprefix + "hcalDepth2TowerSumEtBcConeDR04");// Added for 53x //
-    iEvent.put( photons_hcalTowerSumEtBcConeDR03       , branchprefix + "hcalTowerSumEtBcConeDR03"      );// Added for 53x //
-    iEvent.put( photons_hcalDepth1TowerSumEtBcConeDR03 , branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
-    iEvent.put( photons_hcalDepth2TowerSumEtBcConeDR03 , branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
+    iEvent.put(std::move( photons_hcalTowerSumEtBcConeDR04       ), branchprefix + "hcalTowerSumEtBcConeDR04"      );// Added for 53x //
+    iEvent.put(std::move( photons_hcalDepth1TowerSumEtBcConeDR04 ), branchprefix + "hcalDepth1TowerSumEtBcConeDR04");// Added for 53x //
+    iEvent.put(std::move( photons_hcalDepth2TowerSumEtBcConeDR04 ), branchprefix + "hcalDepth2TowerSumEtBcConeDR04");// Added for 53x //
+    iEvent.put(std::move( photons_hcalTowerSumEtBcConeDR03       ), branchprefix + "hcalTowerSumEtBcConeDR03"      );// Added for 53x //
+    iEvent.put(std::move( photons_hcalDepth1TowerSumEtBcConeDR03 ), branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
+    iEvent.put(std::move( photons_hcalDepth2TowerSumEtBcConeDR03 ), branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
 
-    iEvent.put( photons_ecalPFClusterIso  , branchprefix+"ecalPFClusterIso"    );
-    iEvent.put( photons_hcalPFClusterIso  , branchprefix+"hcalPFClusterIso"    );
+    iEvent.put(std::move( photons_ecalPFClusterIso  ), branchprefix+"ecalPFClusterIso"    );
+    iEvent.put(std::move( photons_hcalPFClusterIso  ), branchprefix+"hcalPFClusterIso"    );
 
-    // iEvent.put( photons_scindex        , branchprefix+"scindex"         );
-    // iEvent.put( photons_swissSeed      , branchprefix+"swissSeed"       );
+    // iEvent.put(std::move( photons_scindex        ), branchprefix+"scindex"         );
+    // iEvent.put(std::move( photons_swissSeed      ), branchprefix+"swissSeed"       );
 
     ////////////////////////////
     // For calibration in 7_X //
     ////////////////////////////
 
-    iEvent.put(photons_N_ECALClusters, branchprefix + "NECALClusters");
-    iEvent.put(photons_N_PSClusters, branchprefix + "NPSClusters");
-    iEvent.put(photons_scPreshowerEnergyPlane1, branchprefix + "scPreshowerEnergyPlane1");
-    iEvent.put(photons_scPreshowerEnergyPlane2, branchprefix + "scPreshowerEnergyPlane2");
-    iEvent.put(photons_scIsEB, branchprefix + "scIsEB");
-    iEvent.put(photons_scR, branchprefix + "scR");
-    iEvent.put(photons_scSeedEta, branchprefix + "scSeedEta");
-    iEvent.put(photons_scSeedPhi, branchprefix + "scSeedPhi");
-    iEvent.put(photons_scSeedSize, branchprefix + "scSeedSize");
-    iEvent.put(photons_scSeedE3x3, branchprefix + "scSeedE3x3");
-    iEvent.put(photons_scSeedEmax, branchprefix + "scSeedEmax");
-    iEvent.put(photons_scSeedE2nd, branchprefix + "scSeedE2nd");
-    iEvent.put(photons_scSeedELeft, branchprefix + "scSeedELeft");
-    iEvent.put(photons_scSeedERight, branchprefix + "scSeedERight");
-    iEvent.put(photons_scSeedETop, branchprefix + "scSeedETop");
-    iEvent.put(photons_scSeedEBottom, branchprefix + "scSeedEBottom");
-    iEvent.put(photons_scSeedE2x5Left, branchprefix + "scSeedE2x5Left");
-    iEvent.put(photons_scSeedE2x5Right, branchprefix + "scSeedE2x5Right");
-    iEvent.put(photons_scSeedE2x5Top, branchprefix + "scSeedE2x5Top");
-    iEvent.put(photons_scSeedE2x5Bottom, branchprefix + "scSeedE2x5Bottom");
-    iEvent.put(photons_scSeedLeftRightAsym, branchprefix + "scSeedLeftRightAsym");
-    iEvent.put(photons_scSeedTopBottomAsym, branchprefix + "scSeedTopBottomAsym");
-    iEvent.put(photons_scSeed2x5LeftRightAsym, branchprefix + "scSeed2x5LeftRightAsym");
-    iEvent.put(photons_scSeed2x5TopBottomAsym, branchprefix + "scSeed2x5TopBottomAsym");
-    iEvent.put(photons_scSeedSigmaIetaIphi, branchprefix + "scSeedSigmaIetaIphi");
-    iEvent.put(photons_scPhiWidth, branchprefix + "scPhiWidth");
-    iEvent.put(photons_scEtaWidth, branchprefix + "scEtaWidth");
-    iEvent.put(photons_scSeedRawEnergy, branchprefix + "scSeedRawEnergy");
-    iEvent.put(photons_scSeedCalibratedEnergy, branchprefix + "scSeedCalibratedEnergy");
-    iEvent.put(photons_scSeedSigmaIphiIphi, branchprefix + "scSeedSigmaIphiIphi");
-    iEvent.put(photons_scSeedCryEta, branchprefix + "scSeedCryEta");
-    iEvent.put(photons_scSeedCryPhi, branchprefix + "scSeedCryPhi");
-    iEvent.put(photons_scSeedCryIeta, branchprefix + "scSeedCryIeta");
-    iEvent.put(photons_scSeedCryIphi, branchprefix + "scSeedCryIphi");
-    iEvent.put(photons_scSeedCryX, branchprefix + "scSeedCryX");
-    iEvent.put(photons_scSeedCryY, branchprefix + "scSeedCryY");
-    iEvent.put(photons_scSeedCryIx, branchprefix + "scSeedCryIx");
-    iEvent.put(photons_scSeedCryIy, branchprefix + "scSeedCryIy");
+    iEvent.put(std::move(photons_N_ECALClusters), branchprefix + "NECALClusters");
+    iEvent.put(std::move(photons_N_PSClusters), branchprefix + "NPSClusters");
+    iEvent.put(std::move(photons_scPreshowerEnergyPlane1), branchprefix + "scPreshowerEnergyPlane1");
+    iEvent.put(std::move(photons_scPreshowerEnergyPlane2), branchprefix + "scPreshowerEnergyPlane2");
+    iEvent.put(std::move(photons_scIsEB), branchprefix + "scIsEB");
+    iEvent.put(std::move(photons_scR), branchprefix + "scR");
+    iEvent.put(std::move(photons_scSeedEta), branchprefix + "scSeedEta");
+    iEvent.put(std::move(photons_scSeedPhi), branchprefix + "scSeedPhi");
+    iEvent.put(std::move(photons_scSeedSize), branchprefix + "scSeedSize");
+    iEvent.put(std::move(photons_scSeedE3x3), branchprefix + "scSeedE3x3");
+    iEvent.put(std::move(photons_scSeedEmax), branchprefix + "scSeedEmax");
+    iEvent.put(std::move(photons_scSeedE2nd), branchprefix + "scSeedE2nd");
+    iEvent.put(std::move(photons_scSeedELeft), branchprefix + "scSeedELeft");
+    iEvent.put(std::move(photons_scSeedERight), branchprefix + "scSeedERight");
+    iEvent.put(std::move(photons_scSeedETop), branchprefix + "scSeedETop");
+    iEvent.put(std::move(photons_scSeedEBottom), branchprefix + "scSeedEBottom");
+    iEvent.put(std::move(photons_scSeedE2x5Left), branchprefix + "scSeedE2x5Left");
+    iEvent.put(std::move(photons_scSeedE2x5Right), branchprefix + "scSeedE2x5Right");
+    iEvent.put(std::move(photons_scSeedE2x5Top), branchprefix + "scSeedE2x5Top");
+    iEvent.put(std::move(photons_scSeedE2x5Bottom), branchprefix + "scSeedE2x5Bottom");
+    iEvent.put(std::move(photons_scSeedLeftRightAsym), branchprefix + "scSeedLeftRightAsym");
+    iEvent.put(std::move(photons_scSeedTopBottomAsym), branchprefix + "scSeedTopBottomAsym");
+    iEvent.put(std::move(photons_scSeed2x5LeftRightAsym), branchprefix + "scSeed2x5LeftRightAsym");
+    iEvent.put(std::move(photons_scSeed2x5TopBottomAsym), branchprefix + "scSeed2x5TopBottomAsym");
+    iEvent.put(std::move(photons_scSeedSigmaIetaIphi), branchprefix + "scSeedSigmaIetaIphi");
+    iEvent.put(std::move(photons_scPhiWidth), branchprefix + "scPhiWidth");
+    iEvent.put(std::move(photons_scEtaWidth), branchprefix + "scEtaWidth");
+    iEvent.put(std::move(photons_scSeedRawEnergy), branchprefix + "scSeedRawEnergy");
+    iEvent.put(std::move(photons_scSeedCalibratedEnergy), branchprefix + "scSeedCalibratedEnergy");
+    iEvent.put(std::move(photons_scSeedSigmaIphiIphi), branchprefix + "scSeedSigmaIphiIphi");
+    iEvent.put(std::move(photons_scSeedCryEta), branchprefix + "scSeedCryEta");
+    iEvent.put(std::move(photons_scSeedCryPhi), branchprefix + "scSeedCryPhi");
+    iEvent.put(std::move(photons_scSeedCryIeta), branchprefix + "scSeedCryIeta");
+    iEvent.put(std::move(photons_scSeedCryIphi), branchprefix + "scSeedCryIphi");
+    iEvent.put(std::move(photons_scSeedCryX), branchprefix + "scSeedCryX");
+    iEvent.put(std::move(photons_scSeedCryY), branchprefix + "scSeedCryY");
+    iEvent.put(std::move(photons_scSeedCryIx), branchprefix + "scSeedCryIx");
+    iEvent.put(std::move(photons_scSeedCryIy), branchprefix + "scSeedCryIy");
 
-    iEvent.put(photons_clusterMaxDR, branchprefix + "clusterMaxDR");
-    iEvent.put(photons_clusterMaxDRDPhi, branchprefix + "clusterMaxDRDPhi");
-    iEvent.put(photons_clusterMaxDRDEta, branchprefix + "clusterMaxDRDEta");
-    iEvent.put(photons_clustersMeanDRToSeed, branchprefix + "clustersMeanDRToSeed");
-    iEvent.put(photons_clustersMeanDEtaToSeed, branchprefix + "clustersMeanDEtaToSeed");
-    iEvent.put(photons_clustersMeanDPhiToSeed, branchprefix + "clustersMeanDPhiToSeed");
-    iEvent.put(photons_clusterMaxDRRawEnergy, branchprefix + "clusterMaxDRRawEnergy");
-    iEvent.put(photons_clustersMeanRawEnergy, branchprefix + "clustersMeanRawEnergy");
-    iEvent.put(photons_clustersRMSRawEnergy, branchprefix + "clustersRMSRawEnergy");
+    iEvent.put(std::move(photons_clusterMaxDR), branchprefix + "clusterMaxDR");
+    iEvent.put(std::move(photons_clusterMaxDRDPhi), branchprefix + "clusterMaxDRDPhi");
+    iEvent.put(std::move(photons_clusterMaxDRDEta), branchprefix + "clusterMaxDRDEta");
+    iEvent.put(std::move(photons_clustersMeanDRToSeed), branchprefix + "clustersMeanDRToSeed");
+    iEvent.put(std::move(photons_clustersMeanDEtaToSeed), branchprefix + "clustersMeanDEtaToSeed");
+    iEvent.put(std::move(photons_clustersMeanDPhiToSeed), branchprefix + "clustersMeanDPhiToSeed");
+    iEvent.put(std::move(photons_clusterMaxDRRawEnergy), branchprefix + "clusterMaxDRRawEnergy");
+    iEvent.put(std::move(photons_clustersMeanRawEnergy), branchprefix + "clustersMeanRawEnergy");
+    iEvent.put(std::move(photons_clustersRMSRawEnergy), branchprefix + "clustersRMSRawEnergy");
 
-    iEvent.put(photons_clusterInMustache, branchprefix + "clusterInMustache");
-    iEvent.put(photons_clusterInDynDPhi, branchprefix + "clusterInDynDPhi");
+    iEvent.put(std::move(photons_clusterInMustache), branchprefix + "clusterInMustache");
+    iEvent.put(std::move(photons_clusterInDynDPhi), branchprefix + "clusterInDynDPhi");
 
-    iEvent.put(photons_clusterRawEnergy, branchprefix + "clusterRawEnergy");
-    iEvent.put(photons_clusterCalibEnergy, branchprefix + "clusterCalibEnergy");
-    iEvent.put(photons_clusterEta, branchprefix + "clusterEta");
-    iEvent.put(photons_clusterPhi, branchprefix + "clusterPhi");
-    iEvent.put(photons_clusterDPhiToSeed, branchprefix + "clusterDPhiToSeed");
-    iEvent.put(photons_clusterDEtaToSeed, branchprefix + "clusterDEtaToSeed");
-    iEvent.put(photons_clusterDPhiToCentroid, branchprefix + "clusterDPhiToCentroid");
-    iEvent.put(photons_clusterDEtaToCentroid, branchprefix + "clusterDEtaToCentroid");
+    iEvent.put(std::move(photons_clusterRawEnergy), branchprefix + "clusterRawEnergy");
+    iEvent.put(std::move(photons_clusterCalibEnergy), branchprefix + "clusterCalibEnergy");
+    iEvent.put(std::move(photons_clusterEta), branchprefix + "clusterEta");
+    iEvent.put(std::move(photons_clusterPhi), branchprefix + "clusterPhi");
+    iEvent.put(std::move(photons_clusterDPhiToSeed), branchprefix + "clusterDPhiToSeed");
+    iEvent.put(std::move(photons_clusterDEtaToSeed), branchprefix + "clusterDEtaToSeed");
+    iEvent.put(std::move(photons_clusterDPhiToCentroid), branchprefix + "clusterDPhiToCentroid");
+    iEvent.put(std::move(photons_clusterDEtaToCentroid), branchprefix + "clusterDEtaToCentroid");
 
-    iEvent.put(photons_psClusterRawEnergy, branchprefix + "psClusterRawEnergy");
-    iEvent.put(photons_psClusterEta, branchprefix + "psClusterEta");
-    iEvent.put(photons_psClusterPhi, branchprefix + "psClusterPhi");
+    iEvent.put(std::move(photons_psClusterRawEnergy), branchprefix + "psClusterRawEnergy");
+    iEvent.put(std::move(photons_psClusterEta), branchprefix + "psClusterEta");
+    iEvent.put(std::move(photons_psClusterPhi), branchprefix + "psClusterPhi");
     
-    iEvent.put(photons_isEB, branchprefix + "isEB");
+    iEvent.put(std::move(photons_isEB), branchprefix + "isEB");
  
 }
 

@@ -155,26 +155,26 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
   } //
 
   
-  std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_prob              (new std::vector<float>               );
-  //std::auto_ptr<std::vector<int>   >               vector_vtxs_isKs              (new std::vector<int>                 );
-  //std::auto_ptr<std::vector<int>   >               vector_vtxs_isLambda          (new std::vector<int>                 );
-  std::auto_ptr<std::vector<int>   >               vector_vtxs_nTrk              (new std::vector<int>                 );
-  std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_p4                (new std::vector<LorentzVector>       );
-  //std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_flight            (new std::vector<LorentzVector>       );
-  //std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_refitp4           (new std::vector<LorentzVector>       );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_dist3Dval         (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_dist3Dsig         (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_distXYval         (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_distXYsig         (new std::vector<float>               );
-  std::auto_ptr<std::vector<float> >               vector_vtxs_anglePV           (new std::vector<float>               );
-  //std::auto_ptr<std::vector<int> >                 vector_vtxs_mc3id             (new std::vector<int>                 );
-  //std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_mc3p4             (new std::vector<LorentzVector>       );
+  std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_prob              (new std::vector<float>               );
+  //std::unique_ptr<std::vector<int>   >               vector_vtxs_isKs              (new std::vector<int>                 );
+  //std::unique_ptr<std::vector<int>   >               vector_vtxs_isLambda          (new std::vector<int>                 );
+  std::unique_ptr<std::vector<int>   >               vector_vtxs_nTrk              (new std::vector<int>                 );
+  std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_p4                (new std::vector<LorentzVector>       );
+  //std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_flight            (new std::vector<LorentzVector>       );
+  //std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_refitp4           (new std::vector<LorentzVector>       );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_dist3Dval         (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_dist3Dsig         (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_distXYval         (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_distXYsig         (new std::vector<float>               );
+  std::unique_ptr<std::vector<float> >               vector_vtxs_anglePV           (new std::vector<float>               );
+  //std::unique_ptr<std::vector<int> >                 vector_vtxs_mc3id             (new std::vector<int>                 );
+  //std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_mc3p4             (new std::vector<LorentzVector>       );
  
 
   ////////////////////////////////
@@ -309,26 +309,26 @@ void SecondaryVertexMaker::produce( edm::Event& iEvent, const edm::EventSetup& i
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(vector_vtxs_position,          branchprefix+"position"          );
-  iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
-  iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
-  iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
-  iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );
-  iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
-  iEvent.put(vector_vtxs_prob,              branchprefix+"prob"              );
-  //iEvent.put(vector_vtxs_isKs,              branchprefix+"isKs"              );
-  //iEvent.put(vector_vtxs_isLambda,          branchprefix+"isLambda"          );
-  iEvent.put(vector_vtxs_nTrk,              branchprefix+"nTrks"             );
-  iEvent.put(vector_vtxs_p4,                branchprefix+"p4"                );
-  //iEvent.put(vector_vtxs_flight,            branchprefix+"flight"            );
-  //iEvent.put(vector_vtxs_refitp4,           branchprefix+"refitp4"           );
-  iEvent.put(vector_vtxs_dist3Dval,         branchprefix+"dist3Dval"         );
-  iEvent.put(vector_vtxs_dist3Dsig,         branchprefix+"dist3Dsig"         );
-  iEvent.put(vector_vtxs_distXYval,         branchprefix+"distXYval"         );
-  iEvent.put(vector_vtxs_distXYsig,         branchprefix+"distXYsig"         );
-  iEvent.put(vector_vtxs_anglePV,           branchprefix+"anglePV"           );
-  //iEvent.put(vector_vtxs_mc3id,             branchprefix+"mc3id"             );
-  //iEvent.put(vector_vtxs_mc3p4,             branchprefix+"mc3p4"             );
+  iEvent.put(std::move(vector_vtxs_position),          branchprefix+"position"          );
+  iEvent.put(std::move(vector_vtxs_xError),            branchprefix+"xError"            );
+  iEvent.put(std::move(vector_vtxs_yError),            branchprefix+"yError"            );
+  iEvent.put(std::move(vector_vtxs_zError),            branchprefix+"zError"            );
+  iEvent.put(std::move(vector_vtxs_chi2),              branchprefix+"chi2"              );
+  iEvent.put(std::move(vector_vtxs_ndof),              branchprefix+"ndof"              );
+  iEvent.put(std::move(vector_vtxs_prob),              branchprefix+"prob"              );
+  //iEvent.put(std::move(vector_vtxs_isKs),              branchprefix+"isKs"              );
+  //iEvent.put(std::move(vector_vtxs_isLambda),          branchprefix+"isLambda"          );
+  iEvent.put(std::move(vector_vtxs_nTrk),              branchprefix+"nTrks"             );
+  iEvent.put(std::move(vector_vtxs_p4),                branchprefix+"p4"                );
+  //iEvent.put(std::move(vector_vtxs_flight),            branchprefix+"flight"            );
+  //iEvent.put(std::move(vector_vtxs_refitp4),           branchprefix+"refitp4"           );
+  iEvent.put(std::move(vector_vtxs_dist3Dval),         branchprefix+"dist3Dval"         );
+  iEvent.put(std::move(vector_vtxs_dist3Dsig),         branchprefix+"dist3Dsig"         );
+  iEvent.put(std::move(vector_vtxs_distXYval),         branchprefix+"distXYval"         );
+  iEvent.put(std::move(vector_vtxs_distXYsig),         branchprefix+"distXYsig"         );
+  iEvent.put(std::move(vector_vtxs_anglePV),           branchprefix+"anglePV"           );
+  //iEvent.put(std::move(vector_vtxs_mc3id),             branchprefix+"mc3id"             );
+  //iEvent.put(std::move(vector_vtxs_mc3p4),             branchprefix+"mc3p4"             );
 
 } // End Producer
 

@@ -85,16 +85,16 @@ HypDilepMaker::~HypDilepMaker() {}
 void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
 
   // output collections
-  auto_ptr<vector<int> >           hyp_type                    (new vector<int>             );
-  auto_ptr<vector<LorentzVector> > hyp_p4                      (new vector<LorentzVector>   );
-  auto_ptr<vector<int> >           hyp_lt_charge               (new vector<int>             );
-  auto_ptr<vector<int> >           hyp_lt_index                (new vector<int>             );
-  auto_ptr<vector<int> >           hyp_lt_id                   (new vector<int>             );
-  auto_ptr<vector<LorentzVector> > hyp_lt_p4                   (new vector<LorentzVector>   );
-  auto_ptr<vector<int> >           hyp_ll_charge               (new vector<int>             );
-  auto_ptr<vector<int> >           hyp_ll_index                (new vector<int>             );
-  auto_ptr<vector<int> >           hyp_ll_id                   (new vector<int>             );
-  auto_ptr<vector<LorentzVector> > hyp_ll_p4                   (new vector<LorentzVector>   );
+  unique_ptr<vector<int> >           hyp_type                    (new vector<int>             );
+  unique_ptr<vector<LorentzVector> > hyp_p4                      (new vector<LorentzVector>   );
+  unique_ptr<vector<int> >           hyp_lt_charge               (new vector<int>             );
+  unique_ptr<vector<int> >           hyp_lt_index                (new vector<int>             );
+  unique_ptr<vector<int> >           hyp_lt_id                   (new vector<int>             );
+  unique_ptr<vector<LorentzVector> > hyp_lt_p4                   (new vector<LorentzVector>   );
+  unique_ptr<vector<int> >           hyp_ll_charge               (new vector<int>             );
+  unique_ptr<vector<int> >           hyp_ll_index                (new vector<int>             );
+  unique_ptr<vector<int> >           hyp_ll_id                   (new vector<int>             );
+  unique_ptr<vector<LorentzVector> > hyp_ll_p4                   (new vector<LorentzVector>   );
   
   // muon charge
   // edm::InputTag mus_charge_tag(muonsInputTag.label(),"muscharge");
@@ -287,16 +287,16 @@ void HypDilepMaker::produce(Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(hyp_type                     ,branchprefix+"type"                     );
-  iEvent.put(hyp_p4                       ,branchprefix+"p4"                       );
-  iEvent.put(hyp_lt_charge                ,branchprefix+"ltcharge"                 );
-  iEvent.put(hyp_lt_index                 ,branchprefix+"ltindex"                  );
-  iEvent.put(hyp_lt_id                    ,branchprefix+"ltid"                     );
-  iEvent.put(hyp_lt_p4                    ,branchprefix+"ltp4"                     );
-  iEvent.put(hyp_ll_charge                ,branchprefix+"llcharge"                 );
-  iEvent.put(hyp_ll_index                 ,branchprefix+"llindex"                  );
-  iEvent.put(hyp_ll_id                    ,branchprefix+"llid"                     );
-  iEvent.put(hyp_ll_p4                    ,branchprefix+"llp4"                     );
+  iEvent.put(std::move(hyp_type                     ),branchprefix+"type"                     );
+  iEvent.put(std::move(hyp_p4                       ),branchprefix+"p4"                       );
+  iEvent.put(std::move(hyp_lt_charge                ),branchprefix+"ltcharge"                 );
+  iEvent.put(std::move(hyp_lt_index                 ),branchprefix+"ltindex"                  );
+  iEvent.put(std::move(hyp_lt_id                    ),branchprefix+"ltid"                     );
+  iEvent.put(std::move(hyp_lt_p4                    ),branchprefix+"ltp4"                     );
+  iEvent.put(std::move(hyp_ll_charge                ),branchprefix+"llcharge"                 );
+  iEvent.put(std::move(hyp_ll_index                 ),branchprefix+"llindex"                  );
+  iEvent.put(std::move(hyp_ll_id                    ),branchprefix+"llid"                     );
+  iEvent.put(std::move(hyp_ll_p4                    ),branchprefix+"llp4"                     );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

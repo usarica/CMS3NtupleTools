@@ -71,34 +71,34 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // Pointers //
   //////////////
   
-  auto_ptr <bool> filt_cscBeamHalo                   ( new bool(false) );
-  auto_ptr <bool> filt_cscBeamHalo2015               ( new bool(false) );
-  auto_ptr <bool> filt_globalTightHalo2016           ( new bool(false) );
-  auto_ptr <bool> filt_globalSuperTightHalo2016      ( new bool(false) );
-  auto_ptr <bool> filt_hbheNoise                     ( new bool(false) );
-  auto_ptr <bool> filt_ecalTP                        ( new bool(false) );
-  auto_ptr <bool> filt_hcalLaserEvent                ( new bool(false) );
-  auto_ptr <bool> filt_trackingFailure               ( new bool(false) );
-  auto_ptr <bool> filt_chargedHadronTrackResolution  ( new bool(false) );
-  auto_ptr <bool> filt_eeBadSc                       ( new bool(false) );
-  auto_ptr <bool> filt_ecalLaser                     ( new bool(false) );
-  auto_ptr <bool> filt_metfilter                     ( new bool(false) );
-  auto_ptr <bool> filt_goodVertices                  ( new bool(false) );
-  auto_ptr <bool> filt_trkPOGFilters                 ( new bool(false) );
-  auto_ptr <bool> filt_trkPOG_logErrorTooManyClusters( new bool(false) );
-  auto_ptr <bool> filt_trkPOG_manystripclus53X       ( new bool(false) );
-  auto_ptr <bool> filt_trkPOG_toomanystripclus53X    ( new bool(false) );
-  auto_ptr <bool> filt_hbheNoiseIso                  ( new bool(false) );
-  auto_ptr <bool> filt_cscBeamHaloTrkMuUnveto        ( new bool(false) );
-  auto_ptr <bool> filt_hcalStrip                     ( new bool(false) );
-  auto_ptr <bool> filt_ecalBoundaryEnergy            ( new bool(false) );
-  auto_ptr <bool> filt_muonBadTrack                  ( new bool(false) );
+  unique_ptr <bool> filt_cscBeamHalo                   ( new bool(false) );
+  unique_ptr <bool> filt_cscBeamHalo2015               ( new bool(false) );
+  unique_ptr <bool> filt_globalTightHalo2016           ( new bool(false) );
+  unique_ptr <bool> filt_globalSuperTightHalo2016      ( new bool(false) );
+  unique_ptr <bool> filt_hbheNoise                     ( new bool(false) );
+  unique_ptr <bool> filt_ecalTP                        ( new bool(false) );
+  unique_ptr <bool> filt_hcalLaserEvent                ( new bool(false) );
+  unique_ptr <bool> filt_trackingFailure               ( new bool(false) );
+  unique_ptr <bool> filt_chargedHadronTrackResolution  ( new bool(false) );
+  unique_ptr <bool> filt_eeBadSc                       ( new bool(false) );
+  unique_ptr <bool> filt_ecalLaser                     ( new bool(false) );
+  unique_ptr <bool> filt_metfilter                     ( new bool(false) );
+  unique_ptr <bool> filt_goodVertices                  ( new bool(false) );
+  unique_ptr <bool> filt_trkPOGFilters                 ( new bool(false) );
+  unique_ptr <bool> filt_trkPOG_logErrorTooManyClusters( new bool(false) );
+  unique_ptr <bool> filt_trkPOG_manystripclus53X       ( new bool(false) );
+  unique_ptr <bool> filt_trkPOG_toomanystripclus53X    ( new bool(false) );
+  unique_ptr <bool> filt_hbheNoiseIso                  ( new bool(false) );
+  unique_ptr <bool> filt_cscBeamHaloTrkMuUnveto        ( new bool(false) );
+  unique_ptr <bool> filt_hcalStrip                     ( new bool(false) );
+  unique_ptr <bool> filt_ecalBoundaryEnergy            ( new bool(false) );
+  unique_ptr <bool> filt_muonBadTrack                  ( new bool(false) );
 
 
 
   // For compatibility with CMS2 variable names
-  auto_ptr <bool> filt_cscTightHaloId                ( new bool(false) );
-  auto_ptr <bool> filt_hbheFilter                    ( new bool(false) );
+  unique_ptr <bool> filt_cscTightHaloId                ( new bool(false) );
+  unique_ptr <bool> filt_hbheFilter                    ( new bool(false) );
 
   ////////////////////////
   // Assign MET Filters //
@@ -194,32 +194,32 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // Write Output //
   //////////////////
 
-  iEvent.put( filt_cscBeamHalo                    , branchprefix_ + "cscBeamHalo"                    );
-  iEvent.put( filt_cscBeamHalo2015                , branchprefix_ + "cscBeamHalo2015"                );
-  iEvent.put( filt_globalTightHalo2016            , branchprefix_ + "globalTightHalo2016"            );
-  iEvent.put( filt_globalSuperTightHalo2016       , branchprefix_ + "globalSuperTightHalo2016"       );
-  iEvent.put( filt_hbheNoise                      , branchprefix_ + "hbheNoise"                      );
-  iEvent.put( filt_ecalTP                         , branchprefix_ + "ecalTP"                         );
-  iEvent.put( filt_hcalLaserEvent                 , branchprefix_ + "hcalLaser"                      );
-  iEvent.put( filt_trackingFailure                , branchprefix_ + "trackingFailure"                );
-  iEvent.put( filt_chargedHadronTrackResolution   , branchprefix_ + "chargedHadronTrackResolution"   );
-  iEvent.put( filt_eeBadSc                        , branchprefix_ + "eeBadSc"                        );
-  iEvent.put( filt_ecalLaser                      , branchprefix_ + "ecalLaser"                      );
-  iEvent.put( filt_metfilter                      , branchprefix_ + "metfilter"                      );
-  iEvent.put( filt_goodVertices                   , branchprefix_ + "goodVertices"                   );
-  iEvent.put( filt_trkPOGFilters                  , branchprefix_ + "trkPOGFilters"                  );
-  iEvent.put( filt_trkPOG_logErrorTooManyClusters , branchprefix_ + "trkPOGlogErrorTooManyClusters"  );
-  iEvent.put( filt_trkPOG_manystripclus53X	      , branchprefix_ + "trkPOGmanystripclus53X"	     );
-  iEvent.put( filt_trkPOG_toomanystripclus53X     , branchprefix_ + "trkPOGtoomanystripclus53X"      );
-  iEvent.put( filt_hbheNoiseIso                   , branchprefix_ + "hbheNoiseIso"                   );
-  iEvent.put( filt_cscBeamHaloTrkMuUnveto         , branchprefix_ + "cscBeamHaloTrkMuUnveto"         );
-  iEvent.put( filt_hcalStrip                      , branchprefix_ + "hcalStrip"                      );
-  iEvent.put( filt_ecalBoundaryEnergy             , branchprefix_ + "ecalBoundaryEnergy"             );
-  iEvent.put( filt_muonBadTrack                   , branchprefix_ + "muonBadTrack"                   );
+  iEvent.put(std::move( filt_cscBeamHalo                    ), branchprefix_ + "cscBeamHalo"                    );
+  iEvent.put(std::move( filt_cscBeamHalo2015                ), branchprefix_ + "cscBeamHalo2015"                );
+  iEvent.put(std::move( filt_globalTightHalo2016            ), branchprefix_ + "globalTightHalo2016"            );
+  iEvent.put(std::move( filt_globalSuperTightHalo2016       ), branchprefix_ + "globalSuperTightHalo2016"       );
+  iEvent.put(std::move( filt_hbheNoise                      ), branchprefix_ + "hbheNoise"                      );
+  iEvent.put(std::move( filt_ecalTP                         ), branchprefix_ + "ecalTP"                         );
+  iEvent.put(std::move( filt_hcalLaserEvent                 ), branchprefix_ + "hcalLaser"                      );
+  iEvent.put(std::move( filt_trackingFailure                ), branchprefix_ + "trackingFailure"                );
+  iEvent.put(std::move( filt_chargedHadronTrackResolution   ), branchprefix_ + "chargedHadronTrackResolution"   );
+  iEvent.put(std::move( filt_eeBadSc                        ), branchprefix_ + "eeBadSc"                        );
+  iEvent.put(std::move( filt_ecalLaser                      ), branchprefix_ + "ecalLaser"                      );
+  iEvent.put(std::move( filt_metfilter                      ), branchprefix_ + "metfilter"                      );
+  iEvent.put(std::move( filt_goodVertices                   ), branchprefix_ + "goodVertices"                   );
+  iEvent.put(std::move( filt_trkPOGFilters                  ), branchprefix_ + "trkPOGFilters"                  );
+  iEvent.put(std::move( filt_trkPOG_logErrorTooManyClusters ), branchprefix_ + "trkPOGlogErrorTooManyClusters"  );
+  iEvent.put(std::move( filt_trkPOG_manystripclus53X	      ), branchprefix_ + "trkPOGmanystripclus53X"	     );
+  iEvent.put(std::move( filt_trkPOG_toomanystripclus53X     ), branchprefix_ + "trkPOGtoomanystripclus53X"      );
+  iEvent.put(std::move( filt_hbheNoiseIso                   ), branchprefix_ + "hbheNoiseIso"                   );
+  iEvent.put(std::move( filt_cscBeamHaloTrkMuUnveto         ), branchprefix_ + "cscBeamHaloTrkMuUnveto"         );
+  iEvent.put(std::move( filt_hcalStrip                      ), branchprefix_ + "hcalStrip"                      );
+  iEvent.put(std::move( filt_ecalBoundaryEnergy             ), branchprefix_ + "ecalBoundaryEnergy"             );
+  iEvent.put(std::move( filt_muonBadTrack                   ), branchprefix_ + "muonBadTrack"                   );
 
   // For compatibility with CMS2 variable names
-  iEvent.put( filt_cscTightHaloId                 , "evtcscTightHaloId"                  );
-  iEvent.put( filt_hbheFilter                     , "evthbheFilter"                      );
+  iEvent.put(std::move( filt_cscTightHaloId                 ), "evtcscTightHaloId"                  );
+  iEvent.put(std::move( filt_hbheFilter                     ), "evthbheFilter"                      );
   
 } // End MetFilterMaker::produce()
 

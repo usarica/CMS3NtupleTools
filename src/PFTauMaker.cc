@@ -66,19 +66,19 @@ void PFTauMaker::endJob() {
 // ------------ method called to produce the data  ------------
 void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
           
-    auto_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
-    auto_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
-    auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
-    auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
+    unique_ptr<vector<LorentzVector> > taus_pf_p4                                                    (new vector<LorentzVector>);
+    unique_ptr<vector<float>         > taus_pf_mass                                                  (new vector<float>);
+    unique_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+    unique_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
 
-    auto_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);                          
+    unique_ptr<vector<int> >           taus_pf_charge                                                (new vector<int>);                          
                               
-    auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
-    auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
+    unique_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
+    unique_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
 
     //set auto pointers for tau id container
-    auto_ptr<vector<vector<float>> >    taus_pf_IDs       (new vector<vector<float>>    ); 
-    auto_ptr<vector<TString> >          taus_pf_IDnames   (new vector<TString>           ); // Only set names once per event. All taus have same IDs
+    unique_ptr<vector<vector<float>> >    taus_pf_IDs       (new vector<vector<float>>    ); 
+    unique_ptr<vector<TString> >          taus_pf_IDnames   (new vector<TString>           ); // Only set names once per event. All taus have same IDs
 
     
     //get PAT taus
@@ -106,10 +106,10 @@ void PFTauMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-    iEvent.put(taus_pf_p4                                   ,branchprefix+"p4"                                       );  
-    iEvent.put(taus_pf_charge                               ,branchprefix+"charge"                                   );  
-    iEvent.put(taus_pf_IDs                                  ,branchprefix+"IDs"                                      ); 
-    iEvent.put(taus_pf_IDnames                              ,branchprefix+"IDnames"                                  ); 
+    iEvent.put(std::move(taus_pf_p4                                   ),branchprefix+"p4"                                       );  
+    iEvent.put(std::move(taus_pf_charge                               ),branchprefix+"charge"                                   );  
+    iEvent.put(std::move(taus_pf_IDs                                  ),branchprefix+"IDs"                                      ); 
+    iEvent.put(std::move(taus_pf_IDnames                              ),branchprefix+"IDnames"                                  ); 
 }
 
 //define this as a plug-in

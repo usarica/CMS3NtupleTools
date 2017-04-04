@@ -34,7 +34,7 @@ EnergyDensityMaker::EnergyDensityMaker(const edm::ParameterSet& iConfig) {
 }
 
 void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  std::auto_ptr<float> rho(new float(-9999.));
+  std::unique_ptr<float> rho(new float(-9999.));
   edm::Handle<double> rhoH;
   iEvent.getByToken( inputToken , rhoH);
   if(rhoH.isValid()){
@@ -44,7 +44,7 @@ void EnergyDensityMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSet
     throw cms::Exception("EnergyDensityMaker: error getting rho collection!");
     return;
   }
-  iEvent.put(rho, m_branch);
+  iEvent.put(std::move(rho), m_branch);
 }
 
 //define this as a plug-in

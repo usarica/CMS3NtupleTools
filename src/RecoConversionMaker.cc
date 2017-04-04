@@ -45,17 +45,17 @@ RecoConversionMaker::RecoConversionMaker(const edm::ParameterSet& iConfig) {
 void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
-  auto_ptr<vector<int> >		convs_isConverted	(new vector<int>		);
-  auto_ptr<vector<int> >		convs_algo		(new vector<int>		);
-  auto_ptr<vector<int> >                convs_quality           (new vector<int>                );
+  unique_ptr<vector<int> >		convs_isConverted	(new vector<int>		);
+  unique_ptr<vector<int> >		convs_algo		(new vector<int>		);
+  unique_ptr<vector<int> >                convs_quality           (new vector<int>                );
   
-  auto_ptr<vector<vector<int> > >       convs_tkidx		(new vector<vector<int> >       );
-  auto_ptr<vector<vector<int> > >       convs_tkalgo            (new vector<vector<int> >       );
-  auto_ptr<vector<vector<int> > >       convs_nHitsBeforeVtx	(new vector<vector<int> >       );
+  unique_ptr<vector<vector<int> > >       convs_tkidx		(new vector<vector<int> >       );
+  unique_ptr<vector<vector<int> > >       convs_tkalgo            (new vector<vector<int> >       );
+  unique_ptr<vector<vector<int> > >       convs_nHitsBeforeVtx	(new vector<vector<int> >       );
   
-  auto_ptr<vector<float> >              convs_ndof              (new vector<float>              );          
-  auto_ptr<vector<float> >              convs_chi2              (new vector<float>              );            
-  auto_ptr<vector<float> >              convs_dl                (new vector<float>              );
+  unique_ptr<vector<float> >              convs_ndof              (new vector<float>              );          
+  unique_ptr<vector<float> >              convs_chi2              (new vector<float>              );            
+  unique_ptr<vector<float> >              convs_dl                (new vector<float>              );
 
   // get reco Conversions
   Handle<View<Conversion> > convs_h;
@@ -86,15 +86,15 @@ void RecoConversionMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSe
 
   }//reco conversion loop
 
-  iEvent.put(convs_isConverted		, "convsisConverted"	 );
-  iEvent.put(convs_quality          , "convsquality"         );
-  iEvent.put(convs_algo		      	, "convsalgo"		     );
-  iEvent.put(convs_tkidx	      	, "convstkidx"		     );
-  iEvent.put(convs_tkalgo	      	, "convstkalgo"		     );
-  iEvent.put(convs_nHitsBeforeVtx	, "convsnHitsBeforeVtx"	 );
-  iEvent.put(convs_ndof             , "convsndof"            );
-  iEvent.put(convs_chi2             , "convschi2"            );
-  iEvent.put(convs_dl               , "convsdl"              );
+  iEvent.put(std::move(convs_isConverted		), "convsisConverted"	 );
+  iEvent.put(std::move(convs_quality          ), "convsquality"         );
+  iEvent.put(std::move(convs_algo		      	), "convsalgo"		     );
+  iEvent.put(std::move(convs_tkidx	      	), "convstkidx"		     );
+  iEvent.put(std::move(convs_tkalgo	      	), "convstkalgo"		     );
+  iEvent.put(std::move(convs_nHitsBeforeVtx	), "convsnHitsBeforeVtx"	 );
+  iEvent.put(std::move(convs_ndof             ), "convsndof"            );
+  iEvent.put(std::move(convs_chi2             ), "convschi2"            );
+  iEvent.put(std::move(convs_dl               ), "convsdl"              );
   
 }
 

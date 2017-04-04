@@ -248,135 +248,135 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Global //
     ////////////
 
-    auto_ptr<vector<float> >         vector_mus_gfit_chi2                   ( new vector<float>         );
-    auto_ptr<vector<int> >           vector_mus_gfit_ndof                   ( new vector<int>           );
-    auto_ptr<vector<int> >           vector_mus_gfit_validSTAHits           ( new vector<int>           );
-    auto_ptr<vector<LorentzVector> > vector_mus_gfit_p4                     ( new vector<LorentzVector> );
-    auto_ptr<vector<int> >           vector_mus_gfit_algo                   ( new vector<int>           );
-    auto_ptr<vector<float> >         vector_mus_gfit_ptErr                  ( new vector<float>         );
+    unique_ptr<vector<float> >         vector_mus_gfit_chi2                   ( new vector<float>         );
+    unique_ptr<vector<int> >           vector_mus_gfit_ndof                   ( new vector<int>           );
+    unique_ptr<vector<int> >           vector_mus_gfit_validSTAHits           ( new vector<int>           );
+    unique_ptr<vector<LorentzVector> > vector_mus_gfit_p4                     ( new vector<LorentzVector> );
+    unique_ptr<vector<int> >           vector_mus_gfit_algo                   ( new vector<int>           );
+    unique_ptr<vector<float> >         vector_mus_gfit_ptErr                  ( new vector<float>         );
 
     ////////////  
     // Best   //
     ////////////
 
-    auto_ptr<vector<LorentzVector> > vector_mus_bfit_p4                     ( new vector<LorentzVector> );
-    auto_ptr<vector<int> >           vector_mus_bfit_algo                   ( new vector<int>           );
-    auto_ptr<vector<float> >         vector_mus_bfit_ptErr                  ( new vector<float>         );
+    unique_ptr<vector<LorentzVector> > vector_mus_bfit_p4                     ( new vector<LorentzVector> );
+    unique_ptr<vector<int> >           vector_mus_bfit_algo                   ( new vector<int>           );
+    unique_ptr<vector<float> >         vector_mus_bfit_ptErr                  ( new vector<float>         );
 
     /////////////
     // Quality //
     /////////////
 
-    auto_ptr<vector<float> >  vector_mus_trkKink             ( new vector<float>  );
-    auto_ptr<vector<float> >  vector_mus_chi2LocalPosition   ( new vector<float>  );
-    auto_ptr<vector<float> >  vector_mus_chi2LocalMomentum   ( new vector<float>  );
+    unique_ptr<vector<float> >  vector_mus_trkKink             ( new vector<float>  );
+    unique_ptr<vector<float> >  vector_mus_chi2LocalPosition   ( new vector<float>  );
+    unique_ptr<vector<float> >  vector_mus_chi2LocalMomentum   ( new vector<float>  );
 
     ///////////
     // Muons //
     ///////////
 
-    auto_ptr<vector<int> >           vector_mus_type                    ( new vector<int>           );        
-    auto_ptr<vector<int> >           vector_mus_charge                  ( new vector<int>           );        
-    auto_ptr<vector<float> >         vector_mus_caloCompatibility       ( new vector<float>         );
-    auto_ptr<vector<float> >         vector_mus_segmCompatibility       ( new vector<float>         );
-    auto_ptr<vector<LorentzVector> > vector_mus_p4                      ( new vector<LorentzVector> );
-    auto_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
+    unique_ptr<vector<int> >           vector_mus_type                    ( new vector<int>           );        
+    unique_ptr<vector<int> >           vector_mus_charge                  ( new vector<int>           );        
+    unique_ptr<vector<float> >         vector_mus_caloCompatibility       ( new vector<float>         );
+    unique_ptr<vector<float> >         vector_mus_segmCompatibility       ( new vector<float>         );
+    unique_ptr<vector<LorentzVector> > vector_mus_p4                      ( new vector<LorentzVector> );
+    unique_ptr<vector<int> >           vector_mus_numberOfMatchedStations ( new vector<int>           );
 
     ////////
     // ID //
     ////////
 
-    auto_ptr<vector<int> >           vector_mus_pid_TMLastStationLoose      ( new vector<int>     );
-    auto_ptr<vector<int> >           vector_mus_pid_TMLastStationTight      ( new vector<int>     );
-    auto_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityLoose  ( new vector<int>     );
-    auto_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityTight  ( new vector<int>     );
-    auto_ptr<vector<int> >           vector_mus_pid_TMOneStationTight       ( new vector<int>     );
-    auto_ptr<vector<int> >           vector_mus_pid_PFMuon                  ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_TMLastStationLoose      ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_TMLastStationTight      ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityLoose  ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_TM2DCompatibilityTight  ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_TMOneStationTight       ( new vector<int>     );
+    unique_ptr<vector<int> >           vector_mus_pid_PFMuon                  ( new vector<int>     );
 
     ////////////
     // Energy //
     ////////////
 
-    auto_ptr<vector<float> >         vector_mus_ecal_time           ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_hcal_time           ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_ecal_time           ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_hcal_time           ( new vector<float>          );
 
     ///////////////
     // Isolation //
     ///////////////
 
-    auto_ptr<vector<float> >         vector_mus_iso_trckvetoDep     ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso_ecalvetoDep     ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso_hcalvetoDep     ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso_hovetoDep       ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso03_sumPt         ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso03_emEt          ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_iso03_hadEt         ( new vector<float>          );
-    auto_ptr<vector<int> >           vector_mus_iso03_ntrk          ( new vector<int>            );
+    unique_ptr<vector<float> >         vector_mus_iso_trckvetoDep     ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso_ecalvetoDep     ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso_hcalvetoDep     ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso_hovetoDep       ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso03_sumPt         ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso03_emEt          ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_iso03_hadEt         ( new vector<float>          );
+    unique_ptr<vector<int> >           vector_mus_iso03_ntrk          ( new vector<int>            );
 
     ////////////
     // Tracks //
     ////////////
 
-    auto_ptr<vector<LorentzVector> > vector_mus_trk_p4              ( new vector<LorentzVector>  );
-    auto_ptr<vector<int> >           vector_mus_validHits           ( new vector<int>            );        
-    auto_ptr<vector<int> >           vector_mus_lostHits            ( new vector<int>            );        
-    auto_ptr<vector<float> >         vector_mus_d0Err               ( new vector<float>          );      
-    auto_ptr<vector<float> >         vector_mus_z0Err               ( new vector<float>          );      
-    auto_ptr<vector<float> >         vector_mus_ptErr               ( new vector<float>          );      
-    auto_ptr<vector<int> >           vector_mus_algo                ( new vector<int>            );
-    auto_ptr<vector<int> >           vector_mus_algoOrig            ( new vector<int>            );
-    auto_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );
-    auto_ptr<vector<int> >           vector_mus_validPixelHits      ( new vector<int>            );
-    auto_ptr<vector<int> >           vector_mus_exp_innerlayers     ( new vector<int>            );
-    auto_ptr<vector<int> >           vector_mus_exp_outerlayers     ( new vector<int>            );
-    auto_ptr<vector<float> >         vector_mus_dxyPV               ( new vector<float>          );
-    auto_ptr<vector<float> >         vector_mus_dzPV                ( new vector<float>          );
+    unique_ptr<vector<LorentzVector> > vector_mus_trk_p4              ( new vector<LorentzVector>  );
+    unique_ptr<vector<int> >           vector_mus_validHits           ( new vector<int>            );        
+    unique_ptr<vector<int> >           vector_mus_lostHits            ( new vector<int>            );        
+    unique_ptr<vector<float> >         vector_mus_d0Err               ( new vector<float>          );      
+    unique_ptr<vector<float> >         vector_mus_z0Err               ( new vector<float>          );      
+    unique_ptr<vector<float> >         vector_mus_ptErr               ( new vector<float>          );      
+    unique_ptr<vector<int> >           vector_mus_algo                ( new vector<int>            );
+    unique_ptr<vector<int> >           vector_mus_algoOrig            ( new vector<int>            );
+    unique_ptr<vector<int> >           vector_mus_nlayers             ( new vector<int>            );
+    unique_ptr<vector<int> >           vector_mus_validPixelHits      ( new vector<int>            );
+    unique_ptr<vector<int> >           vector_mus_exp_innerlayers     ( new vector<int>            );
+    unique_ptr<vector<int> >           vector_mus_exp_outerlayers     ( new vector<int>            );
+    unique_ptr<vector<float> >         vector_mus_dxyPV               ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_dzPV                ( new vector<float>          );
 
     ////////
     // PF //
     ////////
 
-    auto_ptr< vector< int> >           vector_mus_pfcharge              ( new vector<int>   );
-    auto_ptr< vector< int> >           vector_mus_pfidx                 ( new vector<int>   );
-    auto_ptr< vector< int> >           vector_mus_pfparticleId          ( new vector<int>   );
-    auto_ptr< vector< LorentzVector> > vector_mus_pfp4                  ( new vector<LorentzVector> );
+    unique_ptr< vector< int> >           vector_mus_pfcharge              ( new vector<int>   );
+    unique_ptr< vector< int> >           vector_mus_pfidx                 ( new vector<int>   );
+    unique_ptr< vector< int> >           vector_mus_pfparticleId          ( new vector<int>   );
+    unique_ptr< vector< LorentzVector> > vector_mus_pfp4                  ( new vector<LorentzVector> );
 
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedHadronPt                 ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedParticlePt               ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_NeutralHadronEt                 ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_PhotonEt                        ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR03_pf_PUPt                            ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedHadronPt                 ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_ChargedParticlePt               ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_NeutralHadronEt                 ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_PhotonEt                        ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR03_pf_PUPt                            ( new vector<float>   );
 
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedHadronPt                 ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedParticlePt               ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_NeutralHadronEt                 ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_PhotonEt                        ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
-    auto_ptr< vector<float> >         vector_mus_isoR04_pf_PUPt                            ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedHadronPt                 ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_ChargedParticlePt               ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_NeutralHadronEt                 ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_PhotonEt                        ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_sumPhotonEtHighThreshold        ( new vector<float>   );
+    unique_ptr< vector<float> >         vector_mus_isoR04_pf_PUPt                            ( new vector<float>   );
 
     ///////////
     // IP 3D //
     ///////////
 
-    auto_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
-    auto_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
-    auto_ptr<vector<float> >         vector_mus_ip2d                        ( new vector<float>   );
-    auto_ptr<vector<float> >         vector_mus_ip2derr                     ( new vector<float>   );
+    unique_ptr<vector<float> >         vector_mus_ip3d                        ( new vector<float>   );
+    unique_ptr<vector<float> >         vector_mus_ip3derr                     ( new vector<float>   );
+    unique_ptr<vector<float> >         vector_mus_ip2d                        ( new vector<float>   );
+    unique_ptr<vector<float> >         vector_mus_ip2derr                     ( new vector<float>   );
 
     //////////////////////
     // genMatch miniAOD //
     //////////////////////
-    auto_ptr<vector<int>           > mus_mc_patMatch_id ( new vector<int>           );
-    auto_ptr<vector<LorentzVector> > mus_mc_patMatch_p4 ( new vector<LorentzVector> );
-    auto_ptr<vector<float>         > mus_mc_patMatch_dr ( new vector<float>         );
-    auto_ptr<vector<float>         > mus_miniIso_uncor  ( new vector<float>         );   
-    auto_ptr<vector<float>         > mus_miniIso_ch     ( new vector<float>         );   
-    auto_ptr<vector<float>         > mus_miniIso_nh     ( new vector<float>         );   
-    auto_ptr<vector<float>         > mus_miniIso_em     ( new vector<float>         );   
-    auto_ptr<vector<float>         > mus_miniIso_db     ( new vector<float>         );   
+    unique_ptr<vector<int>           > mus_mc_patMatch_id ( new vector<int>           );
+    unique_ptr<vector<LorentzVector> > mus_mc_patMatch_p4 ( new vector<LorentzVector> );
+    unique_ptr<vector<float>         > mus_mc_patMatch_dr ( new vector<float>         );
+    unique_ptr<vector<float>         > mus_miniIso_uncor  ( new vector<float>         );   
+    unique_ptr<vector<float>         > mus_miniIso_ch     ( new vector<float>         );   
+    unique_ptr<vector<float>         > mus_miniIso_nh     ( new vector<float>         );   
+    unique_ptr<vector<float>         > mus_miniIso_em     ( new vector<float>         );   
+    unique_ptr<vector<float>         > mus_miniIso_db     ( new vector<float>         );   
 
 
     ////////////////////////////
@@ -622,134 +622,134 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Global //
     /////////////
 
-    iEvent.put( vector_mus_gfit_chi2                    , branchprefix_ + "gfitchi2"           );
-    iEvent.put( vector_mus_gfit_ndof                    , branchprefix_ + "gfitndof"           );
-    iEvent.put( vector_mus_gfit_validSTAHits            , branchprefix_ + "gfitvalidSTAHits"   );
-    iEvent.put( vector_mus_gfit_p4                      , branchprefix_ + "gfitp4"             );
-    iEvent.put( vector_mus_gfit_algo             	      , branchprefix_ + "gfitalgo"            );
-    iEvent.put( vector_mus_gfit_ptErr           	      , branchprefix_ + "gfitptErr"           );
+    iEvent.put(std::move( vector_mus_gfit_chi2                    ), branchprefix_ + "gfitchi2"           );
+    iEvent.put(std::move( vector_mus_gfit_ndof                    ), branchprefix_ + "gfitndof"           );
+    iEvent.put(std::move( vector_mus_gfit_validSTAHits            ), branchprefix_ + "gfitvalidSTAHits"   );
+    iEvent.put(std::move( vector_mus_gfit_p4                      ), branchprefix_ + "gfitp4"             );
+    iEvent.put(std::move( vector_mus_gfit_algo             	      ), branchprefix_ + "gfitalgo"            );
+    iEvent.put(std::move( vector_mus_gfit_ptErr           	      ), branchprefix_ + "gfitptErr"           );
 
     ////////////                                                                       
     // Best   //
     ////////////
 
-    iEvent.put( vector_mus_bfit_p4                      , branchprefix_ + "bfitp4"             );
-    iEvent.put( vector_mus_bfit_algo             	      , branchprefix_ + "bfitalgo"            );
-    iEvent.put( vector_mus_bfit_ptErr           	      , branchprefix_ + "bfitptErr"           );
+    iEvent.put(std::move( vector_mus_bfit_p4                      ), branchprefix_ + "bfitp4"             );
+    iEvent.put(std::move( vector_mus_bfit_algo             	      ), branchprefix_ + "bfitalgo"            );
+    iEvent.put(std::move( vector_mus_bfit_ptErr           	      ), branchprefix_ + "bfitptErr"           );
 
     //////////////////
     // Muon Quality //
     //////////////////
 
-    iEvent.put( vector_mus_trkKink            , branchprefix_ + "trkKink"            );
-    iEvent.put( vector_mus_chi2LocalPosition  , branchprefix_ + "chi2LocalPosition"  );
-    iEvent.put( vector_mus_chi2LocalMomentum  , branchprefix_ + "chi2LocalMomentum"  );
+    iEvent.put(std::move( vector_mus_trkKink            ), branchprefix_ + "trkKink"            );
+    iEvent.put(std::move( vector_mus_chi2LocalPosition  ), branchprefix_ + "chi2LocalPosition"  );
+    iEvent.put(std::move( vector_mus_chi2LocalMomentum  ), branchprefix_ + "chi2LocalMomentum"  );
 
     ///////////
     // Muons //
     ///////////
 
-    iEvent.put( vector_mus_type                    , branchprefix_ + "type"                    );
-    iEvent.put( vector_mus_charge                  , branchprefix_ + "charge"                  );
-    iEvent.put( vector_mus_caloCompatibility       , branchprefix_ + "caloCompatibility"       );
-    iEvent.put( vector_mus_segmCompatibility       , branchprefix_ + "segmCompatibility"       );
-    iEvent.put( vector_mus_p4                      , branchprefix_ + "p4"                      );
-    iEvent.put( vector_mus_numberOfMatchedStations , branchprefix_ + "numberOfMatchedStations" );
+    iEvent.put(std::move( vector_mus_type                    ), branchprefix_ + "type"                    );
+    iEvent.put(std::move( vector_mus_charge                  ), branchprefix_ + "charge"                  );
+    iEvent.put(std::move( vector_mus_caloCompatibility       ), branchprefix_ + "caloCompatibility"       );
+    iEvent.put(std::move( vector_mus_segmCompatibility       ), branchprefix_ + "segmCompatibility"       );
+    iEvent.put(std::move( vector_mus_p4                      ), branchprefix_ + "p4"                      );
+    iEvent.put(std::move( vector_mus_numberOfMatchedStations ), branchprefix_ + "numberOfMatchedStations" );
 
     ////////
     // ID //
     ////////
 
-    iEvent.put( vector_mus_pid_TMLastStationLoose       , branchprefix_ + "pidTMLastStationLoose"    );
-    iEvent.put( vector_mus_pid_TMLastStationTight       , branchprefix_ + "pidTMLastStationTight"    );
-    iEvent.put( vector_mus_pid_TM2DCompatibilityLoose   , branchprefix_ + "pidTM2DCompatibilityLoose");
-    iEvent.put( vector_mus_pid_TM2DCompatibilityTight   , branchprefix_ + "pidTM2DCompatibilityTight");
-    iEvent.put( vector_mus_pid_TMOneStationTight        , branchprefix_ + "pidTMOneStationTight");
-    iEvent.put( vector_mus_pid_PFMuon                   , branchprefix_ + "pidPFMuon");
+    iEvent.put(std::move( vector_mus_pid_TMLastStationLoose       ), branchprefix_ + "pidTMLastStationLoose"    );
+    iEvent.put(std::move( vector_mus_pid_TMLastStationTight       ), branchprefix_ + "pidTMLastStationTight"    );
+    iEvent.put(std::move( vector_mus_pid_TM2DCompatibilityLoose   ), branchprefix_ + "pidTM2DCompatibilityLoose");
+    iEvent.put(std::move( vector_mus_pid_TM2DCompatibilityTight   ), branchprefix_ + "pidTM2DCompatibilityTight");
+    iEvent.put(std::move( vector_mus_pid_TMOneStationTight        ), branchprefix_ + "pidTMOneStationTight");
+    iEvent.put(std::move( vector_mus_pid_PFMuon                   ), branchprefix_ + "pidPFMuon");
 
     ////////////
     // Energy //
     ////////////
 
-    iEvent.put( vector_mus_ecal_time          , branchprefix_ + "ecaltime"           );
-    iEvent.put( vector_mus_hcal_time          , branchprefix_ + "hcaltime"           );
+    iEvent.put(std::move( vector_mus_ecal_time          ), branchprefix_ + "ecaltime"           );
+    iEvent.put(std::move( vector_mus_hcal_time          ), branchprefix_ + "hcaltime"           );
   
     ///////////////
     // Isolation //
     ///////////////
 
-    iEvent.put( vector_mus_iso_trckvetoDep    , branchprefix_ + "isotrckvetoDep"     );
-    iEvent.put( vector_mus_iso_ecalvetoDep    , branchprefix_ + "isoecalvetoDep"     );
-    iEvent.put( vector_mus_iso_hcalvetoDep    , branchprefix_ + "isohcalvetoDep"     );
-    iEvent.put( vector_mus_iso_hovetoDep      , branchprefix_ + "isohovetoDep"       );
-    iEvent.put( vector_mus_iso03_sumPt        , branchprefix_ + "iso03sumPt"         );
-    iEvent.put( vector_mus_iso03_emEt         , branchprefix_ + "iso03emEt"          );
-    iEvent.put( vector_mus_iso03_hadEt        , branchprefix_ + "iso03hadEt"         );
-    iEvent.put( vector_mus_iso03_ntrk         , branchprefix_ + "iso03ntrk"          );
+    iEvent.put(std::move( vector_mus_iso_trckvetoDep    ), branchprefix_ + "isotrckvetoDep"     );
+    iEvent.put(std::move( vector_mus_iso_ecalvetoDep    ), branchprefix_ + "isoecalvetoDep"     );
+    iEvent.put(std::move( vector_mus_iso_hcalvetoDep    ), branchprefix_ + "isohcalvetoDep"     );
+    iEvent.put(std::move( vector_mus_iso_hovetoDep      ), branchprefix_ + "isohovetoDep"       );
+    iEvent.put(std::move( vector_mus_iso03_sumPt        ), branchprefix_ + "iso03sumPt"         );
+    iEvent.put(std::move( vector_mus_iso03_emEt         ), branchprefix_ + "iso03emEt"          );
+    iEvent.put(std::move( vector_mus_iso03_hadEt        ), branchprefix_ + "iso03hadEt"         );
+    iEvent.put(std::move( vector_mus_iso03_ntrk         ), branchprefix_ + "iso03ntrk"          );
 
     ////////////
     // Tracks //
     ////////////
 
-    iEvent.put( vector_mus_trk_p4             , branchprefix_ + "trkp4"              );
-    iEvent.put( vector_mus_validHits          , branchprefix_ + "validHits"          );
-    iEvent.put( vector_mus_lostHits           , branchprefix_ + "lostHits"           );
-    iEvent.put( vector_mus_d0Err              , branchprefix_ + "d0Err"              );
-    iEvent.put( vector_mus_z0Err              , branchprefix_ + "z0Err"              );
-    iEvent.put( vector_mus_ptErr              , branchprefix_ + "ptErr"              );
-    iEvent.put( vector_mus_algo               , branchprefix_ + "algo"           	   );
-    iEvent.put( vector_mus_algoOrig           , branchprefix_ + "algoOrig"           	   );
-    iEvent.put( vector_mus_nlayers            , branchprefix_ + "nlayers"        	   );
-    iEvent.put( vector_mus_validPixelHits     , branchprefix_ + "validPixelHits" 	   );
-    iEvent.put( vector_mus_exp_innerlayers    , branchprefix_ + "expinnerlayers"	   );
-    iEvent.put( vector_mus_exp_outerlayers    , branchprefix_ + "expouterlayers"     );
-    iEvent.put( vector_mus_dxyPV              , branchprefix_ + "dxyPV"      	   );
-    iEvent.put( vector_mus_dzPV               , branchprefix_ + "dzPV"      	   );
+    iEvent.put(std::move( vector_mus_trk_p4             ), branchprefix_ + "trkp4"              );
+    iEvent.put(std::move( vector_mus_validHits          ), branchprefix_ + "validHits"          );
+    iEvent.put(std::move( vector_mus_lostHits           ), branchprefix_ + "lostHits"           );
+    iEvent.put(std::move( vector_mus_d0Err              ), branchprefix_ + "d0Err"              );
+    iEvent.put(std::move( vector_mus_z0Err              ), branchprefix_ + "z0Err"              );
+    iEvent.put(std::move( vector_mus_ptErr              ), branchprefix_ + "ptErr"              );
+    iEvent.put(std::move( vector_mus_algo               ), branchprefix_ + "algo"           	   );
+    iEvent.put(std::move( vector_mus_algoOrig           ), branchprefix_ + "algoOrig"           	   );
+    iEvent.put(std::move( vector_mus_nlayers            ), branchprefix_ + "nlayers"        	   );
+    iEvent.put(std::move( vector_mus_validPixelHits     ), branchprefix_ + "validPixelHits" 	   );
+    iEvent.put(std::move( vector_mus_exp_innerlayers    ), branchprefix_ + "expinnerlayers"	   );
+    iEvent.put(std::move( vector_mus_exp_outerlayers    ), branchprefix_ + "expouterlayers"     );
+    iEvent.put(std::move( vector_mus_dxyPV              ), branchprefix_ + "dxyPV"      	   );
+    iEvent.put(std::move( vector_mus_dzPV               ), branchprefix_ + "dzPV"      	   );
   
     ////////                                  
     // PF //
     ////////
 
-    iEvent.put( vector_mus_pfcharge              , branchprefix_ + "pfcharge"             );
-    iEvent.put( vector_mus_pfidx                 , branchprefix_ + "pfidx"            );
-    iEvent.put( vector_mus_pfparticleId          , branchprefix_ + "pfparticleId"         );
-    iEvent.put( vector_mus_pfp4                  , branchprefix_ + "pfp4"                 );
+    iEvent.put(std::move( vector_mus_pfcharge              ), branchprefix_ + "pfcharge"             );
+    iEvent.put(std::move( vector_mus_pfidx                 ), branchprefix_ + "pfidx"            );
+    iEvent.put(std::move( vector_mus_pfparticleId          ), branchprefix_ + "pfparticleId"         );
+    iEvent.put(std::move( vector_mus_pfp4                  ), branchprefix_ + "pfp4"                 );
 
-    iEvent.put( vector_mus_isoR03_pf_ChargedHadronPt                , branchprefix_ + "isoR03pfChargedHadronPt"             );
-    iEvent.put( vector_mus_isoR03_pf_ChargedParticlePt              , branchprefix_ + "isoR03pfChargedParticlePt"           );
-    iEvent.put( vector_mus_isoR03_pf_NeutralHadronEt                , branchprefix_ + "isoR03pfNeutralHadronEt"             );
-    iEvent.put( vector_mus_isoR03_pf_PhotonEt                       , branchprefix_ + "isoR03pfPhotonEt"                    );
-    iEvent.put( vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoR03pfNeutralHadronEtHighThreshold");
-    iEvent.put( vector_mus_isoR03_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoR03pfPhotonEtHighThreshold"       );
-    iEvent.put( vector_mus_isoR03_pf_PUPt                           , branchprefix_ + "isoR03pfPUPt"                        );
+    iEvent.put(std::move( vector_mus_isoR03_pf_ChargedHadronPt                ), branchprefix_ + "isoR03pfChargedHadronPt"             );
+    iEvent.put(std::move( vector_mus_isoR03_pf_ChargedParticlePt              ), branchprefix_ + "isoR03pfChargedParticlePt"           );
+    iEvent.put(std::move( vector_mus_isoR03_pf_NeutralHadronEt                ), branchprefix_ + "isoR03pfNeutralHadronEt"             );
+    iEvent.put(std::move( vector_mus_isoR03_pf_PhotonEt                       ), branchprefix_ + "isoR03pfPhotonEt"                    );
+    iEvent.put(std::move( vector_mus_isoR03_pf_sumNeutralHadronEtHighThreshold), branchprefix_ + "isoR03pfNeutralHadronEtHighThreshold");
+    iEvent.put(std::move( vector_mus_isoR03_pf_sumPhotonEtHighThreshold       ), branchprefix_ + "isoR03pfPhotonEtHighThreshold"       );
+    iEvent.put(std::move( vector_mus_isoR03_pf_PUPt                           ), branchprefix_ + "isoR03pfPUPt"                        );
 
-    iEvent.put( vector_mus_isoR04_pf_ChargedHadronPt                , branchprefix_ + "isoR04pfChargedHadronPt"             );
-    iEvent.put( vector_mus_isoR04_pf_ChargedParticlePt              , branchprefix_ + "isoR04pfChargedParticlePt"           );
-    iEvent.put( vector_mus_isoR04_pf_NeutralHadronEt                , branchprefix_ + "isoR04pfNeutralHadronEt"             );
-    iEvent.put( vector_mus_isoR04_pf_PhotonEt                       , branchprefix_ + "isoR04pfPhotonEt"                    );
-    iEvent.put( vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold, branchprefix_ + "isoR04pfNeutralHadronEtHighThreshold");
-    iEvent.put( vector_mus_isoR04_pf_sumPhotonEtHighThreshold       , branchprefix_ + "isoR04pfPhotonEtHighThreshold"       );
-    iEvent.put( vector_mus_isoR04_pf_PUPt                           , branchprefix_ + "isoR04pfPUPt"                        );
+    iEvent.put(std::move( vector_mus_isoR04_pf_ChargedHadronPt                ), branchprefix_ + "isoR04pfChargedHadronPt"             );
+    iEvent.put(std::move( vector_mus_isoR04_pf_ChargedParticlePt              ), branchprefix_ + "isoR04pfChargedParticlePt"           );
+    iEvent.put(std::move( vector_mus_isoR04_pf_NeutralHadronEt                ), branchprefix_ + "isoR04pfNeutralHadronEt"             );
+    iEvent.put(std::move( vector_mus_isoR04_pf_PhotonEt                       ), branchprefix_ + "isoR04pfPhotonEt"                    );
+    iEvent.put(std::move( vector_mus_isoR04_pf_sumNeutralHadronEtHighThreshold), branchprefix_ + "isoR04pfNeutralHadronEtHighThreshold");
+    iEvent.put(std::move( vector_mus_isoR04_pf_sumPhotonEtHighThreshold       ), branchprefix_ + "isoR04pfPhotonEtHighThreshold"       );
+    iEvent.put(std::move( vector_mus_isoR04_pf_PUPt                           ), branchprefix_ + "isoR04pfPUPt"                        );
 
     ///////////
     // IP 3D //
     ///////////
 
-    iEvent.put( vector_mus_ip3d                         , branchprefix_ + "ip3d"               );
-    iEvent.put( vector_mus_ip3derr                      , branchprefix_ + "ip3derr"            );
-    iEvent.put( vector_mus_ip2d                         , branchprefix_ + "ip2d"               );
-    iEvent.put( vector_mus_ip2derr                      , branchprefix_ + "ip2derr"            );
+    iEvent.put(std::move( vector_mus_ip3d                         ), branchprefix_ + "ip3d"               );
+    iEvent.put(std::move( vector_mus_ip3derr                      ), branchprefix_ + "ip3derr"            );
+    iEvent.put(std::move( vector_mus_ip2d                         ), branchprefix_ + "ip2d"               );
+    iEvent.put(std::move( vector_mus_ip2derr                      ), branchprefix_ + "ip2derr"            );
 
     // genParticle matching from miniAOD
-    iEvent.put( mus_mc_patMatch_id          		,"musmcpatMatchid"          	);
-    iEvent.put( mus_mc_patMatch_p4           		,"musmcpatMatchp4"          	);
-    iEvent.put( mus_mc_patMatch_dr          		,"musmcpatMatchdr"          	);
+    iEvent.put(std::move( mus_mc_patMatch_id          		),"musmcpatMatchid"          	);
+    iEvent.put(std::move( mus_mc_patMatch_p4           		),"musmcpatMatchp4"          	);
+    iEvent.put(std::move( mus_mc_patMatch_dr          		),"musmcpatMatchdr"          	);
 
-    iEvent.put(mus_miniIso_uncor       , branchprefix_ + "miniIsouncor"    );
-    iEvent.put(mus_miniIso_ch       , "musminiIsoch"    );
-    iEvent.put(mus_miniIso_nh       , "musminiIsonh"    );
-    iEvent.put(mus_miniIso_em       , "musminiIsoem"    );
-    iEvent.put(mus_miniIso_db       , "musminiIsodb"    );
+    iEvent.put(std::move(mus_miniIso_uncor       ), branchprefix_ + "miniIsouncor"    );
+    iEvent.put(std::move(mus_miniIso_ch       ), "musminiIsoch"    );
+    iEvent.put(std::move(mus_miniIso_nh       ), "musminiIsonh"    );
+    iEvent.put(std::move(mus_miniIso_em       ), "musminiIsoem"    );
+    iEvent.put(std::move(mus_miniIso_db       ), "musminiIsodb"    );
 
 
 } //

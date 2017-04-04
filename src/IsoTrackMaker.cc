@@ -56,17 +56,17 @@ void IsoTrackMaker::endJob()   {}
 
 void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  auto_ptr<vector<LorentzVector> > isotracks_p4                  (new vector<LorentzVector> );
-  auto_ptr<vector<float> >         isotracks_mass                (new vector<float>         );
-  auto_ptr<vector<float> >         isotracks_dz                  (new vector<float>         );
-  auto_ptr<vector<int> >           isotracks_charge              (new vector<int>        );
-  auto_ptr<vector<int> >           isotracks_particleId          (new vector<int>        );
-  auto_ptr<vector<uint8_t> >       isotracks_fromPV              (new vector<uint8_t>       );
-  auto_ptr<vector<float> >         isotracks_relIso              (new vector<float>         );
-  auto_ptr<vector<uint8_t> >       isotracks_pvAssociationQuality(new vector<uint8_t>       );
-  auto_ptr<vector<int> >           isotracks_IdAssociatedPV      (new vector<int>   );
-  auto_ptr<vector<float> >         isotracks_dzAssociatedPV      (new vector<float> );
-  auto_ptr<vector<float> >         isotracks_puppiWeight         (new vector<float> );
+  unique_ptr<vector<LorentzVector> > isotracks_p4                  (new vector<LorentzVector> );
+  unique_ptr<vector<float> >         isotracks_mass                (new vector<float>         );
+  unique_ptr<vector<float> >         isotracks_dz                  (new vector<float>         );
+  unique_ptr<vector<int> >           isotracks_charge              (new vector<int>        );
+  unique_ptr<vector<int> >           isotracks_particleId          (new vector<int>        );
+  unique_ptr<vector<uint8_t> >       isotracks_fromPV              (new vector<uint8_t>       );
+  unique_ptr<vector<float> >         isotracks_relIso              (new vector<float>         );
+  unique_ptr<vector<uint8_t> >       isotracks_pvAssociationQuality(new vector<uint8_t>       );
+  unique_ptr<vector<int> >           isotracks_IdAssociatedPV      (new vector<int>   );
+  unique_ptr<vector<float> >         isotracks_dzAssociatedPV      (new vector<float> );
+  unique_ptr<vector<float> >         isotracks_puppiWeight         (new vector<float> );
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -121,17 +121,17 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   }//loop over candidate collection
 
-  iEvent.put(isotracks_p4,			   "isotracksp4"	      );
-  iEvent.put(isotracks_mass,		   "isotracksmass"	    );
-  iEvent.put(isotracks_dz,			   "isotracksdz"	      );
-  iEvent.put(isotracks_charge,		 "isotrackscharge"    );
-  iEvent.put(isotracks_particleId, "isotracksparticleId");
-  iEvent.put(isotracks_fromPV,		 "isotracksfromPV"    );
-  iEvent.put(isotracks_relIso,		 "isotracksrelIso"    );
-  iEvent.put(isotracks_pvAssociationQuality, "isotrackspvAssociationQuality");
-  iEvent.put(isotracks_IdAssociatedPV,	 "isotracksIdAssociatedPV"    );
-  iEvent.put(isotracks_dzAssociatedPV,	 "isotracksdzAssociatedPV"    );
-  iEvent.put(isotracks_puppiWeight,	 "isotrackspuppiWeight"       );
+  iEvent.put(std::move(isotracks_p4),			   "isotracksp4"	      );
+  iEvent.put(std::move(isotracks_mass),		   "isotracksmass"	    );
+  iEvent.put(std::move(isotracks_dz),			   "isotracksdz"	      );
+  iEvent.put(std::move(isotracks_charge),		 "isotrackscharge"    );
+  iEvent.put(std::move(isotracks_particleId), "isotracksparticleId");
+  iEvent.put(std::move(isotracks_fromPV),		 "isotracksfromPV"    );
+  iEvent.put(std::move(isotracks_relIso),		 "isotracksrelIso"    );
+  iEvent.put(std::move(isotracks_pvAssociationQuality), "isotrackspvAssociationQuality");
+  iEvent.put(std::move(isotracks_IdAssociatedPV),	 "isotracksIdAssociatedPV"    );
+  iEvent.put(std::move(isotracks_dzAssociatedPV),	 "isotracksdzAssociatedPV"    );
+  iEvent.put(std::move(isotracks_puppiWeight),	 "isotrackspuppiWeight"       );
 }
 
 //define this as a plug-in

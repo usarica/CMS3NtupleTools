@@ -68,32 +68,32 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   using namespace reco;
  
   // create containers
-  auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
-  auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
-  auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
-  auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
-  auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
-  auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
-  auto_ptr<vector<float> >         ak8jets_nJettinessTau1           (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_nJettinessTau2           (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_nJettinessTau3           (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_topMass                  (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_minMass                  (new vector<float>          );  
-  auto_ptr<vector<int> >           ak8jets_nSubJets                 (new vector<int>            );  
-  auto_ptr<vector<float> >         ak8jets_prunedMass               (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_trimmedMass              (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_filteredMass             (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_softdropMass             (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_nJettinessTau1     (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_nJettinessTau2     (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_nJettinessTau3     (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_pt                 (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_mass               (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_eta                (new vector<float>          );  
-  auto_ptr<vector<float> >         ak8jets_puppi_phi                (new vector<float>          );  
-  auto_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet1     (new vector<LorentzVector>  );
-  auto_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet2     (new vector<LorentzVector>  );
-  auto_ptr<vector<float> > ak8jets_puppi_softdropMass               (new vector<float>          );
+  unique_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
+  unique_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
+  unique_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
+  unique_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
+  unique_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+  unique_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
+  unique_ptr<vector<float> >         ak8jets_nJettinessTau1           (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_nJettinessTau2           (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_nJettinessTau3           (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_topMass                  (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_minMass                  (new vector<float>          );  
+  unique_ptr<vector<int> >           ak8jets_nSubJets                 (new vector<int>            );  
+  unique_ptr<vector<float> >         ak8jets_prunedMass               (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_trimmedMass              (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_filteredMass             (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_softdropMass             (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_nJettinessTau1     (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_nJettinessTau2     (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_nJettinessTau3     (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_pt                 (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_mass               (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_eta                (new vector<float>          );  
+  unique_ptr<vector<float> >         ak8jets_puppi_phi                (new vector<float>          );  
+  unique_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet1     (new vector<LorentzVector>  );
+  unique_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet2     (new vector<LorentzVector>  );
+  unique_ptr<vector<float> > ak8jets_puppi_softdropMass               (new vector<float>          );
 
   Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
@@ -186,32 +186,32 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   }
 
-  iEvent.put(pfjets_p4                        , "ak8jetsp4"                        );
-  iEvent.put(pfjets_mass                      , "ak8jetsmass"                      );
-  iEvent.put(pfjets_undoJEC                   , "ak8jetsundoJEC"                   );
-  iEvent.put(pfjets_pfcandIndicies            , "ak8jetspfcandIndicies"            );
-  iEvent.put(pfjets_area                      , "ak8jetsarea"                      );
-  iEvent.put(pfjets_partonFlavour             , "ak8jetspartonFlavour"             );
-  iEvent.put(ak8jets_nJettinessTau1           , "ak8jetsnJettinessTau1"            );
-  iEvent.put(ak8jets_nJettinessTau2           , "ak8jetsnJettinessTau2"            );
-  iEvent.put(ak8jets_nJettinessTau3           , "ak8jetsnJettinessTau3"            );
-  iEvent.put(ak8jets_topMass                  , "ak8jetstopMass"               );
-  iEvent.put(ak8jets_minMass                  , "ak8jetsminMass"               );
-  iEvent.put(ak8jets_nSubJets                 , "ak8jetsnSubJets"              );
-  iEvent.put(ak8jets_prunedMass               , "ak8jetsprunedMass"            );
-  iEvent.put(ak8jets_trimmedMass              , "ak8jetstrimmedMass"           );
-  iEvent.put(ak8jets_filteredMass             , "ak8jetsfilteredMass"          );
-  iEvent.put(ak8jets_softdropMass             , "ak8jetssoftdropMass"          );
-  iEvent.put(ak8jets_puppi_nJettinessTau1     , "ak8jetspuppinJettinessTau1"   );
-  iEvent.put(ak8jets_puppi_nJettinessTau2     , "ak8jetspuppinJettinessTau2"   );
-  iEvent.put(ak8jets_puppi_nJettinessTau3     , "ak8jetspuppinJettinessTau3"   );
-  iEvent.put(ak8jets_puppi_pt                 , "ak8jetspuppipt"               );
-  iEvent.put(ak8jets_puppi_mass               , "ak8jetspuppimass"             );
-  iEvent.put(ak8jets_puppi_eta                , "ak8jetspuppieta"              );
-  iEvent.put(ak8jets_puppi_phi                , "ak8jetspuppiphi"              );
-  iEvent.put(ak8jets_softdropPuppiSubjet1     , "ak8jetssoftdropPuppiSubjet1"  );
-  iEvent.put(ak8jets_softdropPuppiSubjet2     , "ak8jetssoftdropPuppiSubjet2"  );
-  iEvent.put(ak8jets_puppi_softdropMass       , "ak8jetspuppisoftdropMass"     );
+  iEvent.put(std::move(pfjets_p4                        ), "ak8jetsp4"                        );
+  iEvent.put(std::move(pfjets_mass                      ), "ak8jetsmass"                      );
+  iEvent.put(std::move(pfjets_undoJEC                   ), "ak8jetsundoJEC"                   );
+  iEvent.put(std::move(pfjets_pfcandIndicies            ), "ak8jetspfcandIndicies"            );
+  iEvent.put(std::move(pfjets_area                      ), "ak8jetsarea"                      );
+  iEvent.put(std::move(pfjets_partonFlavour             ), "ak8jetspartonFlavour"             );
+  iEvent.put(std::move(ak8jets_nJettinessTau1           ), "ak8jetsnJettinessTau1"            );
+  iEvent.put(std::move(ak8jets_nJettinessTau2           ), "ak8jetsnJettinessTau2"            );
+  iEvent.put(std::move(ak8jets_nJettinessTau3           ), "ak8jetsnJettinessTau3"            );
+  iEvent.put(std::move(ak8jets_topMass                  ), "ak8jetstopMass"               );
+  iEvent.put(std::move(ak8jets_minMass                  ), "ak8jetsminMass"               );
+  iEvent.put(std::move(ak8jets_nSubJets                 ), "ak8jetsnSubJets"              );
+  iEvent.put(std::move(ak8jets_prunedMass               ), "ak8jetsprunedMass"            );
+  iEvent.put(std::move(ak8jets_trimmedMass              ), "ak8jetstrimmedMass"           );
+  iEvent.put(std::move(ak8jets_filteredMass             ), "ak8jetsfilteredMass"          );
+  iEvent.put(std::move(ak8jets_softdropMass             ), "ak8jetssoftdropMass"          );
+  iEvent.put(std::move(ak8jets_puppi_nJettinessTau1     ), "ak8jetspuppinJettinessTau1"   );
+  iEvent.put(std::move(ak8jets_puppi_nJettinessTau2     ), "ak8jetspuppinJettinessTau2"   );
+  iEvent.put(std::move(ak8jets_puppi_nJettinessTau3     ), "ak8jetspuppinJettinessTau3"   );
+  iEvent.put(std::move(ak8jets_puppi_pt                 ), "ak8jetspuppipt"               );
+  iEvent.put(std::move(ak8jets_puppi_mass               ), "ak8jetspuppimass"             );
+  iEvent.put(std::move(ak8jets_puppi_eta                ), "ak8jetspuppieta"              );
+  iEvent.put(std::move(ak8jets_puppi_phi                ), "ak8jetspuppiphi"              );
+  iEvent.put(std::move(ak8jets_softdropPuppiSubjet1     ), "ak8jetssoftdropPuppiSubjet1"  );
+  iEvent.put(std::move(ak8jets_softdropPuppiSubjet2     ), "ak8jetssoftdropPuppiSubjet2"  );
+  iEvent.put(std::move(ak8jets_puppi_softdropMass       ), "ak8jetspuppisoftdropMass"     );
 
 }
 

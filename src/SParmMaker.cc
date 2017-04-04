@@ -87,16 +87,16 @@ SParmMaker::~SParmMaker() {}
 // ------------ method called to produce the data  ------------
 void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-    std::auto_ptr<std::vector<TString> > sparm_comment          (new std::vector<TString>(1) ); 
-    std::auto_ptr<std::vector<TString> > sparm_names            (new std::vector<TString>    );	
-    std::auto_ptr<std::vector<float> >   sparm_values           (new std::vector<float>      );
-    std::auto_ptr<int>                   sparm_subProcessId     (new int(-9999)              );
-    std::auto_ptr<float>                 sparm_weight           (new float(-9999.)           );
-    std::auto_ptr<float>                 sparm_pdfWeight1       (new float(-9999.)           );
-    std::auto_ptr<float>                 sparm_pdfWeight2       (new float(-9999.)           );  
-    std::auto_ptr<float>                 sparm_pdfScale         (new float(-9999.)           );
-    std::auto_ptr<float>                 sparm_filterEfficiency (new float(1.)               );
-    std::auto_ptr<float>                 sparm_xsec             (new float(-9999.)           );
+    std::unique_ptr<std::vector<TString> > sparm_comment          (new std::vector<TString>(1) ); 
+    std::unique_ptr<std::vector<TString> > sparm_names            (new std::vector<TString>    );	
+    std::unique_ptr<std::vector<float> >   sparm_values           (new std::vector<float>      );
+    std::unique_ptr<int>                   sparm_subProcessId     (new int(-9999)              );
+    std::unique_ptr<float>                 sparm_weight           (new float(-9999.)           );
+    std::unique_ptr<float>                 sparm_pdfWeight1       (new float(-9999.)           );
+    std::unique_ptr<float>                 sparm_pdfWeight2       (new float(-9999.)           );  
+    std::unique_ptr<float>                 sparm_pdfScale         (new float(-9999.)           );
+    std::unique_ptr<float>                 sparm_filterEfficiency (new float(1.)               );
+    std::unique_ptr<float>                 sparm_xsec             (new float(-9999.)           );
 
 
     // fill the user supplied parameter names
@@ -229,16 +229,16 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     // put containers into event
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-    iEvent.put(sparm_comment          ,branchprefix+"comment"          );
-    iEvent.put(sparm_names            ,branchprefix+"names"            );
-    iEvent.put(sparm_values           ,branchprefix+"values"           );
-    iEvent.put(sparm_weight           ,branchprefix+"weight"           );
-    iEvent.put(sparm_pdfWeight1       ,branchprefix+"pdfWeight1"       );
-    iEvent.put(sparm_pdfWeight2       ,branchprefix+"pdfWeight2"       );
-    iEvent.put(sparm_pdfScale         ,branchprefix+"pdfScale"         );
-    iEvent.put(sparm_subProcessId     ,branchprefix+"subProcessId"     );
-    iEvent.put(sparm_filterEfficiency ,branchprefix+"filterEfficiency" );
-    iEvent.put(sparm_xsec             ,branchprefix+"xsec"             );
+    iEvent.put(std::move(sparm_comment          ),branchprefix+"comment"          );
+    iEvent.put(std::move(sparm_names            ),branchprefix+"names"            );
+    iEvent.put(std::move(sparm_values           ),branchprefix+"values"           );
+    iEvent.put(std::move(sparm_weight           ),branchprefix+"weight"           );
+    iEvent.put(std::move(sparm_pdfWeight1       ),branchprefix+"pdfWeight1"       );
+    iEvent.put(std::move(sparm_pdfWeight2       ),branchprefix+"pdfWeight2"       );
+    iEvent.put(std::move(sparm_pdfScale         ),branchprefix+"pdfScale"         );
+    iEvent.put(std::move(sparm_subProcessId     ),branchprefix+"subProcessId"     );
+    iEvent.put(std::move(sparm_filterEfficiency ),branchprefix+"filterEfficiency" );
+    iEvent.put(std::move(sparm_xsec             ),branchprefix+"xsec"             );
 }
 
 

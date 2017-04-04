@@ -120,55 +120,55 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     using namespace reco;
 
 
-    auto_ptr<vector<int>           > vector_els_mc_motherid    (new vector<int>          );
-    auto_ptr<vector<int>           > vector_els_mcidx          (new vector<int>          );
-    auto_ptr<vector<int>           > vector_els_mc_id          (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_els_mcp4           (new vector<LorentzVector>);
-    auto_ptr<vector<LorentzVector> > vector_els_mc_motherp4    (new vector<LorentzVector>);
-    auto_ptr<vector<float>         > vector_els_mcdr           (new vector<float>        );
-    auto_ptr<vector<int>           > vector_els_mc3_motherid   (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_els_mc3idx         (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_els_mc3_id         (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_els_mc3_motheridx  (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<float>         > vector_els_mc3dr          (new vector<float>        ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_els_mc_motherid    (new vector<int>          );
+    unique_ptr<vector<int>           > vector_els_mcidx          (new vector<int>          );
+    unique_ptr<vector<int>           > vector_els_mc_id          (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_els_mcp4           (new vector<LorentzVector>);
+    unique_ptr<vector<LorentzVector> > vector_els_mc_motherp4    (new vector<LorentzVector>);
+    unique_ptr<vector<float>         > vector_els_mcdr           (new vector<float>        );
+    unique_ptr<vector<int>           > vector_els_mc3_motherid   (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_els_mc3idx         (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_els_mc3_id         (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_els_mc3_motheridx  (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<float>         > vector_els_mc3dr          (new vector<float>        ); //matched status 3 part only
 
 
-    auto_ptr<vector<int>           > vector_photons_mc_motherid    (new vector<int>          );
-    auto_ptr<vector<int>           > vector_photons_mcidx          (new vector<int>          );
-    auto_ptr<vector<int>           > vector_photons_mc_id          (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_photons_mcp4           (new vector<LorentzVector>);
-    auto_ptr<vector<LorentzVector> > vector_photons_mc_motherp4    (new vector<LorentzVector>);
-    auto_ptr<vector<float>         > vector_photons_mcdr           (new vector<float>        );
-    auto_ptr<vector<int>           > vector_photons_mc3_motherid   (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_photons_mc3idx         (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_photons_mc3_id         (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<int>           > vector_photons_mc3_motheridx  (new vector<int>          ); //matched status 3 part only
-    auto_ptr<vector<float>         > vector_photons_mc3dr          (new vector<float>        ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_photons_mc_motherid    (new vector<int>          );
+    unique_ptr<vector<int>           > vector_photons_mcidx          (new vector<int>          );
+    unique_ptr<vector<int>           > vector_photons_mc_id          (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_photons_mcp4           (new vector<LorentzVector>);
+    unique_ptr<vector<LorentzVector> > vector_photons_mc_motherp4    (new vector<LorentzVector>);
+    unique_ptr<vector<float>         > vector_photons_mcdr           (new vector<float>        );
+    unique_ptr<vector<int>           > vector_photons_mc3_motherid   (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_photons_mc3idx         (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_photons_mc3_id         (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<int>           > vector_photons_mc3_motheridx  (new vector<int>          ); //matched status 3 part only
+    unique_ptr<vector<float>         > vector_photons_mc3dr          (new vector<float>        ); //matched status 3 part only
 
 
 
-    auto_ptr<vector<int>           > vector_mus_mc_id          (new vector<int>          );
-    auto_ptr<vector<int>           > vector_mus_mc_motherid    (new vector<int>          );
-    auto_ptr<vector<int>           > vector_mus_mcidx          (new vector<int>          );
-    auto_ptr<vector<LorentzVector> > vector_mus_mcp4           (new vector<LorentzVector>);
-    auto_ptr<vector<LorentzVector> > vector_mus_mc_motherp4    (new vector<LorentzVector>);
-    auto_ptr<vector<float>         > vector_mus_mcdr           (new vector<float>        );
-    auto_ptr<vector<int>           > vector_mus_mc3_id         (new vector<int>          );
-    auto_ptr<vector<int>           > vector_mus_mc3_motherid   (new vector<int>          );
-    auto_ptr<vector<int>           > vector_mus_mc3idx         (new vector<int>          );
-    auto_ptr<vector<int>           > vector_mus_mc3_motheridx  (new vector<int>          );
-    auto_ptr<vector<float>         > vector_mus_mc3dr          (new vector<float>        );
+    unique_ptr<vector<int>           > vector_mus_mc_id          (new vector<int>          );
+    unique_ptr<vector<int>           > vector_mus_mc_motherid    (new vector<int>          );
+    unique_ptr<vector<int>           > vector_mus_mcidx          (new vector<int>          );
+    unique_ptr<vector<LorentzVector> > vector_mus_mcp4           (new vector<LorentzVector>);
+    unique_ptr<vector<LorentzVector> > vector_mus_mc_motherp4    (new vector<LorentzVector>);
+    unique_ptr<vector<float>         > vector_mus_mcdr           (new vector<float>        );
+    unique_ptr<vector<int>           > vector_mus_mc3_id         (new vector<int>          );
+    unique_ptr<vector<int>           > vector_mus_mc3_motherid   (new vector<int>          );
+    unique_ptr<vector<int>           > vector_mus_mc3idx         (new vector<int>          );
+    unique_ptr<vector<int>           > vector_mus_mc3_motheridx  (new vector<int>          );
+    unique_ptr<vector<float>         > vector_mus_mc3dr          (new vector<float>        );
 
     // pfjets
     //info of matched genJet
-    auto_ptr<vector<float>         > vector_pfjets_mcdr          (new vector<float>        );
-    auto_ptr<vector<LorentzVector> > vector_pfjets_mc_p4         (new vector<LorentzVector>); 
+    unique_ptr<vector<float>         > vector_pfjets_mcdr          (new vector<float>        );
+    unique_ptr<vector<LorentzVector> > vector_pfjets_mc_p4         (new vector<LorentzVector>); 
     //info of matched gen particle
-    auto_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
+    unique_ptr<vector<int>           > vector_pfjets_mc_motherid   (new vector<int>          );
     //info of matched status 3 particle
-    auto_ptr<vector<float>         > vector_pfjets_mc3dr         (new vector<float>        );
-    auto_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
-    auto_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
+    unique_ptr<vector<float>         > vector_pfjets_mc3dr         (new vector<float>        );
+    unique_ptr<vector<int>           > vector_pfjets_mc3idx        (new vector<int>          );
+    unique_ptr<vector<int>           > vector_pfjets_mc3_id        (new vector<int>          );  
   
 
     // get Packed Gen Particle collection (miniAOD) (all status 1 particles, compressed)
@@ -456,48 +456,48 @@ void CandToGenAssMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetu
     }//jets 
     // ****************************************************************************************//
 
-    iEvent.put(vector_els_mc_id          		,"elsmcid"          	);
-    iEvent.put(vector_els_mc_motherid    		,"elsmcmotherid"    	);
-    if (ntuplePackedGenParticles_) iEvent.put(vector_els_mcidx          		,"elsmcidx"         	);
-    iEvent.put(vector_els_mcp4           		,"elsmcp4"          	);
-    iEvent.put(vector_els_mc_motherp4    		,"elsmcmotherp4"    	);
-    iEvent.put(vector_els_mcdr           		,"elsmcdr"          	);
-    iEvent.put(vector_els_mc3_id         		,"elsmc3id"         	);
-    iEvent.put(vector_els_mc3_motherid   		,"elsmc3motherid"   	);
-    iEvent.put(vector_els_mc3idx         		,"elsmc3idx"        	);
-    iEvent.put(vector_els_mc3_motheridx  		,"elsmc3motheridx"  	);
-    iEvent.put(vector_els_mc3dr          		,"elsmc3dr"         	);
+    iEvent.put(std::move(vector_els_mc_id          		),"elsmcid"          	);
+    iEvent.put(std::move(vector_els_mc_motherid    		),"elsmcmotherid"    	);
+    if (ntuplePackedGenParticles_) iEvent.put(std::move(vector_els_mcidx          		),"elsmcidx"         	);
+    iEvent.put(std::move(vector_els_mcp4           		),"elsmcp4"          	);
+    iEvent.put(std::move(vector_els_mc_motherp4    		),"elsmcmotherp4"    	);
+    iEvent.put(std::move(vector_els_mcdr           		),"elsmcdr"          	);
+    iEvent.put(std::move(vector_els_mc3_id         		),"elsmc3id"         	);
+    iEvent.put(std::move(vector_els_mc3_motherid   		),"elsmc3motherid"   	);
+    iEvent.put(std::move(vector_els_mc3idx         		),"elsmc3idx"        	);
+    iEvent.put(std::move(vector_els_mc3_motheridx  		),"elsmc3motheridx"  	);
+    iEvent.put(std::move(vector_els_mc3dr          		),"elsmc3dr"         	);
 
-    iEvent.put(vector_photons_mc_id          	,"photonsmcid"          );
-    iEvent.put(vector_photons_mc_motherid    	,"photonsmcmotherid"    );
-    if (ntuplePackedGenParticles_) iEvent.put(vector_photons_mcidx          	,"photonsmcidx"         );
-    iEvent.put(vector_photons_mcp4           	,"photonsmcp4"          );
-    iEvent.put(vector_photons_mc_motherp4    	,"photonsmcmotherp4"    );
-    iEvent.put(vector_photons_mcdr           	,"photonsmcdr"          );
-    iEvent.put(vector_photons_mc3_id         	,"photonsmc3id"         );
-    iEvent.put(vector_photons_mc3_motherid   	,"photonsmc3motherid"   );
-    iEvent.put(vector_photons_mc3idx         	,"photonsmc3idx"        );
-    iEvent.put(vector_photons_mc3_motheridx  	,"photonsmc3motheridx"  );
-    iEvent.put(vector_photons_mc3dr          	,"photonsmc3dr"         );
+    iEvent.put(std::move(vector_photons_mc_id          	),"photonsmcid"          );
+    iEvent.put(std::move(vector_photons_mc_motherid    	),"photonsmcmotherid"    );
+    if (ntuplePackedGenParticles_) iEvent.put(std::move(vector_photons_mcidx          	),"photonsmcidx"         );
+    iEvent.put(std::move(vector_photons_mcp4           	),"photonsmcp4"          );
+    iEvent.put(std::move(vector_photons_mc_motherp4    	),"photonsmcmotherp4"    );
+    iEvent.put(std::move(vector_photons_mcdr           	),"photonsmcdr"          );
+    iEvent.put(std::move(vector_photons_mc3_id         	),"photonsmc3id"         );
+    iEvent.put(std::move(vector_photons_mc3_motherid   	),"photonsmc3motherid"   );
+    iEvent.put(std::move(vector_photons_mc3idx         	),"photonsmc3idx"        );
+    iEvent.put(std::move(vector_photons_mc3_motheridx  	),"photonsmc3motheridx"  );
+    iEvent.put(std::move(vector_photons_mc3dr          	),"photonsmc3dr"         );
 
-    iEvent.put(vector_mus_mc_id          		,"musmcid"          	);
-    iEvent.put(vector_mus_mc_motherid    		,"musmcmotherid"    	);
-    if (ntuplePackedGenParticles_) iEvent.put(vector_mus_mcidx          		,"musmcidx"         	);
-    iEvent.put(vector_mus_mcp4           		,"musmcp4"          	);
-    iEvent.put(vector_mus_mc_motherp4    		,"musmcmotherp4"    	);
-    iEvent.put(vector_mus_mcdr           		,"musmcdr"          	);
-    iEvent.put(vector_mus_mc3_id         		,"musmc3id"         	);
-    iEvent.put(vector_mus_mc3_motherid   		,"musmc3motherid"   	);
-    iEvent.put(vector_mus_mc3idx         		,"musmc3idx"        	);
-    iEvent.put(vector_mus_mc3_motheridx  		,"musmc3motheridx"  	);
-    iEvent.put(vector_mus_mc3dr          		,"musmc3dr"         	);
+    iEvent.put(std::move(vector_mus_mc_id          		),"musmcid"          	);
+    iEvent.put(std::move(vector_mus_mc_motherid    		),"musmcmotherid"    	);
+    if (ntuplePackedGenParticles_) iEvent.put(std::move(vector_mus_mcidx          		),"musmcidx"         	);
+    iEvent.put(std::move(vector_mus_mcp4           		),"musmcp4"          	);
+    iEvent.put(std::move(vector_mus_mc_motherp4    		),"musmcmotherp4"    	);
+    iEvent.put(std::move(vector_mus_mcdr           		),"musmcdr"          	);
+    iEvent.put(std::move(vector_mus_mc3_id         		),"musmc3id"         	);
+    iEvent.put(std::move(vector_mus_mc3_motherid   		),"musmc3motherid"   	);
+    iEvent.put(std::move(vector_mus_mc3idx         		),"musmc3idx"        	);
+    iEvent.put(std::move(vector_mus_mc3_motheridx  		),"musmc3motheridx"  	);
+    iEvent.put(std::move(vector_mus_mc3dr          		),"musmc3dr"         	);
 
-    iEvent.put(vector_pfjets_mcdr          	,"pfjetsmcdr"         	);
-    iEvent.put(vector_pfjets_mc_p4         	,"pfjetsmcp4"         	);
-    iEvent.put(vector_pfjets_mc_motherid   	,"pfjetsmcmotherid"   	);
-    iEvent.put(vector_pfjets_mc3dr         	,"pfjetsmc3dr"        	);
-    iEvent.put(vector_pfjets_mc3idx        	,"pfjetsmc3idx"       	);
-    iEvent.put(vector_pfjets_mc3_id        	,"pfjetsmc3id"        	); // id of matched status ==3 particle
+    iEvent.put(std::move(vector_pfjets_mcdr          	),"pfjetsmcdr"         	);
+    iEvent.put(std::move(vector_pfjets_mc_p4         	),"pfjetsmcp4"         	);
+    iEvent.put(std::move(vector_pfjets_mc_motherid   	),"pfjetsmcmotherid"   	);
+    iEvent.put(std::move(vector_pfjets_mc3dr         	),"pfjetsmc3dr"        	);
+    iEvent.put(std::move(vector_pfjets_mc3idx        	),"pfjetsmc3idx"       	);
+    iEvent.put(std::move(vector_pfjets_mc3_id        	),"pfjetsmc3id"        	); // id of matched status ==3 particle
 }
 
 // ------------ method called once each job just before starting event loop  ------------

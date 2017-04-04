@@ -78,13 +78,13 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   using namespace edm;
   
-  auto_ptr<float> pdfinfo_x1   ( new float );
-  auto_ptr<float> pdfinfo_x2   ( new float );
-  auto_ptr<float> pdfinfo_scale( new float );
-  auto_ptr<float> pdfinfo_pdf1 ( new float ); 
-  auto_ptr<float> pdfinfo_pdf2 ( new float ); 
-  auto_ptr<int>   pdfinfo_id1  ( new int   );
-  auto_ptr<int>   pdfinfo_id2  ( new int   );
+  unique_ptr<float> pdfinfo_x1   ( new float );
+  unique_ptr<float> pdfinfo_x2   ( new float );
+  unique_ptr<float> pdfinfo_scale( new float );
+  unique_ptr<float> pdfinfo_pdf1 ( new float ); 
+  unique_ptr<float> pdfinfo_pdf2 ( new float ); 
+  unique_ptr<int>   pdfinfo_id1  ( new int   );
+  unique_ptr<int>   pdfinfo_id2  ( new int   );
 
 
   //get the GenEventInfoProduct
@@ -147,13 +147,13 @@ void PDFInfoMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  iEvent.put(pdfinfo_x1   ,branchprefix+"x1"    );
-  iEvent.put(pdfinfo_x2   ,branchprefix+"x2"    );
-  iEvent.put(pdfinfo_scale,branchprefix+"scale" );
-  iEvent.put(pdfinfo_pdf1 ,branchprefix+"pdf1"  );
-  iEvent.put(pdfinfo_pdf2 ,branchprefix+"pdf2"  );
-  iEvent.put(pdfinfo_id1  ,branchprefix+"id1"   );
-  iEvent.put(pdfinfo_id2  ,branchprefix+"id2"   );
+  iEvent.put(std::move(pdfinfo_x1   ),branchprefix+"x1"    );
+  iEvent.put(std::move(pdfinfo_x2   ),branchprefix+"x2"    );
+  iEvent.put(std::move(pdfinfo_scale),branchprefix+"scale" );
+  iEvent.put(std::move(pdfinfo_pdf1 ),branchprefix+"pdf1"  );
+  iEvent.put(std::move(pdfinfo_pdf2 ),branchprefix+"pdf2"  );
+  iEvent.put(std::move(pdfinfo_id1  ),branchprefix+"id1"   );
+  iEvent.put(std::move(pdfinfo_id2  ),branchprefix+"id2"   );
 
 }
 

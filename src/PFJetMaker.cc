@@ -84,35 +84,35 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     using namespace reco;
 
     // create containers
-    auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
-    // auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
-    auto_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_chargedEmE                (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_neutralEmE                (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_photonE                   (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_electronE                 (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_muonE                     (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_hfHadronE                 (new vector<float>          );
-    auto_ptr<vector<float> >         pfjets_hfEmE                     (new vector<float>          );
-    auto_ptr<vector<int>   >         pfjets_chargedHadronMultiplicity (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_neutralHadronMultiplicity (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_chargedMultiplicity       (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_neutralMultiplicity       (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_photonMultiplicity        (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_electronMultiplicity      (new vector<int>            );
-    auto_ptr<vector<int>   >         pfjets_muonMultiplicity          (new vector<int>            );
-    auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
-    auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
-    auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
-    auto_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
-    auto_ptr<vector<vector<LorentzVector> >  > pfjets_pfcandmup4            (new vector<vector<LorentzVector> >   );
-    auto_ptr<vector<int>  > pfjets_npfcands            (new vector<int>   );
+    unique_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
+    // unique_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
+    unique_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_chargedEmE                (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_neutralEmE                (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_photonE                   (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_electronE                 (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_muonE                     (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_hfHadronE                 (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_hfEmE                     (new vector<float>          );
+    unique_ptr<vector<int>   >         pfjets_chargedHadronMultiplicity (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_neutralHadronMultiplicity (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_chargedMultiplicity       (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_neutralMultiplicity       (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_photonMultiplicity        (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_electronMultiplicity      (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_muonMultiplicity          (new vector<int>            );
+    unique_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+    unique_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
+    unique_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
+    unique_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
+    unique_ptr<vector<vector<LorentzVector> >  > pfjets_pfcandmup4            (new vector<vector<LorentzVector> >   );
+    unique_ptr<vector<int>  > pfjets_npfcands            (new vector<int>   );
 
-    auto_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
-    auto_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
-    auto_ptr<vector <vector <float>   > >    pfjets_bDiscriminators                        (new vector<vector<float> > );
+    unique_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
+    unique_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
+    unique_ptr<vector <vector <float>   > >    pfjets_bDiscriminators                        (new vector<vector<float> > );
     
     //get pfcandidates
     Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -186,35 +186,35 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-    iEvent.put(pfjets_p4                        , branchprefix+"p4"                        );
-    // iEvent.put(pfjets_mass                      , branchprefix+"mass"                      );
-    iEvent.put(pfjets_undoJEC                   , branchprefix+"undoJEC"                   );
-    iEvent.put(pfjets_chargedHadronE            , branchprefix+"chargedHadronE"            );
-    iEvent.put(pfjets_neutralHadronE            , branchprefix+"neutralHadronE"            );
-    iEvent.put(pfjets_chargedEmE                , branchprefix+"chargedEmE"                );
-    iEvent.put(pfjets_neutralEmE                , branchprefix+"neutralEmE"                );
-    iEvent.put(pfjets_photonE                   , branchprefix+"photonE"                   );
-    iEvent.put(pfjets_electronE                 , branchprefix+"electronE"                 );
-    iEvent.put(pfjets_muonE                     , branchprefix+"muonE"                     );
-    iEvent.put(pfjets_hfHadronE                 , branchprefix+"hfHadronE"                 );
-    iEvent.put(pfjets_hfEmE                     , branchprefix+"hfEmE"                     );  
-    iEvent.put(pfjets_chargedMultiplicity       , branchprefix+"chargedMultiplicity"       );
-    iEvent.put(pfjets_neutralMultiplicity       , branchprefix+"neutralMultiplicity"       );
-    iEvent.put(pfjets_chargedHadronMultiplicity , branchprefix+"chargedHadronMultiplicity" );
-    iEvent.put(pfjets_neutralHadronMultiplicity , branchprefix+"neutralHadronMultiplicity" );
-    iEvent.put(pfjets_photonMultiplicity        , branchprefix+"photonMultiplicity"        );
-    iEvent.put(pfjets_electronMultiplicity      , branchprefix+"electronMultiplicity"      );
-    iEvent.put(pfjets_muonMultiplicity          , branchprefix+"muonMultiplicity"          );
-    iEvent.put(pfjets_area                      , branchprefix+"area"                      );
-    iEvent.put(pfjets_pileupJetId               , branchprefix+"pileupJetId"               );
-    iEvent.put(pfjets_partonFlavour             , branchprefix+"partonFlavour"             );
-    iEvent.put(pfjets_hadronFlavour             , branchprefix+"hadronFlavour"             );
-    iEvent.put(pfjets_pfcandmup4            , branchprefix+"pfcandmup4"            );
-    iEvent.put(pfjets_npfcands            , branchprefix+"npfcands"            );
+    iEvent.put(std::move(pfjets_p4                        ), branchprefix+"p4"                        );
+    // iEvent.put(std::move(pfjets_mass                      ), branchprefix+"mass"                      );
+    iEvent.put(std::move(pfjets_undoJEC                   ), branchprefix+"undoJEC"                   );
+    iEvent.put(std::move(pfjets_chargedHadronE            ), branchprefix+"chargedHadronE"            );
+    iEvent.put(std::move(pfjets_neutralHadronE            ), branchprefix+"neutralHadronE"            );
+    iEvent.put(std::move(pfjets_chargedEmE                ), branchprefix+"chargedEmE"                );
+    iEvent.put(std::move(pfjets_neutralEmE                ), branchprefix+"neutralEmE"                );
+    iEvent.put(std::move(pfjets_photonE                   ), branchprefix+"photonE"                   );
+    iEvent.put(std::move(pfjets_electronE                 ), branchprefix+"electronE"                 );
+    iEvent.put(std::move(pfjets_muonE                     ), branchprefix+"muonE"                     );
+    iEvent.put(std::move(pfjets_hfHadronE                 ), branchprefix+"hfHadronE"                 );
+    iEvent.put(std::move(pfjets_hfEmE                     ), branchprefix+"hfEmE"                     );  
+    iEvent.put(std::move(pfjets_chargedMultiplicity       ), branchprefix+"chargedMultiplicity"       );
+    iEvent.put(std::move(pfjets_neutralMultiplicity       ), branchprefix+"neutralMultiplicity"       );
+    iEvent.put(std::move(pfjets_chargedHadronMultiplicity ), branchprefix+"chargedHadronMultiplicity" );
+    iEvent.put(std::move(pfjets_neutralHadronMultiplicity ), branchprefix+"neutralHadronMultiplicity" );
+    iEvent.put(std::move(pfjets_photonMultiplicity        ), branchprefix+"photonMultiplicity"        );
+    iEvent.put(std::move(pfjets_electronMultiplicity      ), branchprefix+"electronMultiplicity"      );
+    iEvent.put(std::move(pfjets_muonMultiplicity          ), branchprefix+"muonMultiplicity"          );
+    iEvent.put(std::move(pfjets_area                      ), branchprefix+"area"                      );
+    iEvent.put(std::move(pfjets_pileupJetId               ), branchprefix+"pileupJetId"               );
+    iEvent.put(std::move(pfjets_partonFlavour             ), branchprefix+"partonFlavour"             );
+    iEvent.put(std::move(pfjets_hadronFlavour             ), branchprefix+"hadronFlavour"             );
+    iEvent.put(std::move(pfjets_pfcandmup4            ), branchprefix+"pfcandmup4"            );
+    iEvent.put(std::move(pfjets_npfcands            ), branchprefix+"npfcands"            );
 
-    iEvent.put(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag, branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
-    iEvent.put(pfjets_bDiscriminatorNames                                    , branchprefix+"bDiscriminatorNames"     );
-    iEvent.put(pfjets_bDiscriminators                                        , branchprefix+"bDiscriminators"         );
+    iEvent.put(std::move(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag), branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
+    iEvent.put(std::move(pfjets_bDiscriminatorNames                                    ), branchprefix+"bDiscriminatorNames"     );
+    iEvent.put(std::move(pfjets_bDiscriminators                                        ), branchprefix+"bDiscriminators"         );
 }
 
 //define this as a plug-in

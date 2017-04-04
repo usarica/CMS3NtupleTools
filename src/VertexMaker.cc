@@ -65,12 +65,12 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
     const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
-    std::auto_ptr<unsigned int>                      evt_nvtxs                     (new unsigned int                     );
-    std::auto_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
-    std::auto_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
-    std::auto_ptr<std::vector<int>   >               vector_vtxs_isValid           (new std::vector<int>                 );
+    std::unique_ptr<unsigned int>                      evt_nvtxs                     (new unsigned int                     );
+    std::unique_ptr<std::vector<LorentzVector> >       vector_vtxs_position          (new std::vector<LorentzVector>       );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_ndof              (new std::vector<float>               );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
+    std::unique_ptr<std::vector<int>   >               vector_vtxs_isFake            (new std::vector<int>                 );
+    std::unique_ptr<std::vector<int>   >               vector_vtxs_isValid           (new std::vector<int>                 );
      
     *evt_nvtxs = vertexCollection->size();
 
@@ -87,11 +87,11 @@ void VertexMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-    iEvent.put(evt_nvtxs,                     "evtn"+branchprefix              );
-    iEvent.put(vector_vtxs_position,          branchprefix+"position"          );
-    iEvent.put(vector_vtxs_ndof,              branchprefix+"ndof"              );
-    iEvent.put(vector_vtxs_isFake,            branchprefix+"isFake"            );
-    iEvent.put(vector_vtxs_isValid,           branchprefix+"isValid"           );
+    iEvent.put(std::move(evt_nvtxs),                     "evtn"+branchprefix              );
+    iEvent.put(std::move(vector_vtxs_position),          branchprefix+"position"          );
+    iEvent.put(std::move(vector_vtxs_ndof),              branchprefix+"ndof"              );
+    iEvent.put(std::move(vector_vtxs_isFake),            branchprefix+"isFake"            );
+    iEvent.put(std::move(vector_vtxs_isValid),           branchprefix+"isValid"           );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

@@ -357,9 +357,9 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Define vectors to be filled
 
     // ECAL related (superCluster) variables
-    auto_ptr<vector<int> >   els_nSeed       (new vector<int>   );
-    auto_ptr<vector<int> >   els_fiduciality (new vector<int>   );
-//    auto_ptr<vector<int> >   els_scindex     (new vector<int>   ); 
+    unique_ptr<vector<int> >   els_nSeed       (new vector<int>   );
+    unique_ptr<vector<int> >   els_fiduciality (new vector<int>   );
+//    unique_ptr<vector<int> >   els_scindex     (new vector<int>   ); 
 
     // uncertainties and corrections
     // somewhat complicated: see 
@@ -369,67 +369,67 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   
     // ID variables
     //
-    //auto_ptr<vector<float> > els_lh                            (new vector<float> );
-    auto_ptr<vector<float> > els_mva                           (new vector<float> );
-    auto_ptr<vector<float> > els_dPhiInPhiOut                  (new vector<float> );
-    auto_ptr<vector<float> > els_eSeedOverPOut                 (new vector<float> );
-    auto_ptr<vector<float> > els_eSeedOverPIn                  (new vector<float> );
-    auto_ptr<vector<float> > els_deltaEtaEleClusterTrackAtCalo (new vector<float> );
-    auto_ptr<vector<float> > els_deltaPhiEleClusterTrackAtCalo (new vector<float> );
+    //unique_ptr<vector<float> > els_lh                            (new vector<float> );
+    unique_ptr<vector<float> > els_mva                           (new vector<float> );
+    unique_ptr<vector<float> > els_dPhiInPhiOut                  (new vector<float> );
+    unique_ptr<vector<float> > els_eSeedOverPOut                 (new vector<float> );
+    unique_ptr<vector<float> > els_eSeedOverPIn                  (new vector<float> );
+    unique_ptr<vector<float> > els_deltaEtaEleClusterTrackAtCalo (new vector<float> );
+    unique_ptr<vector<float> > els_deltaPhiEleClusterTrackAtCalo (new vector<float> );
                              
-    auto_ptr<vector<float> > els_hOverEBC                      (new vector<float> );
-    auto_ptr<vector<float> > els_hcalDepth1OverEcal            (new vector<float> );
-    auto_ptr<vector<float> > els_hcalDepth2OverEcal            (new vector<float> );
+    unique_ptr<vector<float> > els_hOverEBC                      (new vector<float> );
+    unique_ptr<vector<float> > els_hcalDepth1OverEcal            (new vector<float> );
+    unique_ptr<vector<float> > els_hcalDepth2OverEcal            (new vector<float> );
                              
-    // auto_ptr<vector<float> > els_sigmaPhiPhi                   (new vector<float> );
-    // auto_ptr<vector<float> > els_sigmaIEtaIPhi                 (new vector<float> );
-    auto_ptr<vector<float> > els_sigmaEtaEta                   (new vector<float> );
-    // auto_ptr<vector<float> > els_sigmaIPhiIPhiSC               (new vector<float> );
-    // auto_ptr<vector<float> > els_sigmaIEtaIEtaSC               (new vector<float> );
+    // unique_ptr<vector<float> > els_sigmaPhiPhi                   (new vector<float> );
+    // unique_ptr<vector<float> > els_sigmaIEtaIPhi                 (new vector<float> );
+    unique_ptr<vector<float> > els_sigmaEtaEta                   (new vector<float> );
+    // unique_ptr<vector<float> > els_sigmaIPhiIPhiSC               (new vector<float> );
+    // unique_ptr<vector<float> > els_sigmaIEtaIEtaSC               (new vector<float> );
                              
-    auto_ptr<vector<float> > els_e2x5Max                       (new vector<float> );
-    auto_ptr<vector<float> > els_e1x5                          (new vector<float> );
-    auto_ptr<vector<float> > els_e5x5                          (new vector<float> );
-//    auto_ptr<vector<float> > els_e3x3                          (new vector<float> );
-//    auto_ptr<vector<float> > els_eMax                          (new vector<float> );
+    unique_ptr<vector<float> > els_e2x5Max                       (new vector<float> );
+    unique_ptr<vector<float> > els_e1x5                          (new vector<float> );
+    unique_ptr<vector<float> > els_e5x5                          (new vector<float> );
+//    unique_ptr<vector<float> > els_e3x3                          (new vector<float> );
+//    unique_ptr<vector<float> > els_eMax                          (new vector<float> );
 
     // predefined ID decisions
     //
-    auto_ptr<vector<int> > els_class    (new vector<int>);
+    unique_ptr<vector<int> > els_class    (new vector<int>);
 
 
     // isolation variables
     //
-    auto_ptr<vector<float> > els_hcalDepth2TowerSumEt   (new vector<float> );
+    unique_ptr<vector<float> > els_hcalDepth2TowerSumEt   (new vector<float> );
                              
-    auto_ptr<vector<float> > els_hcalDepth1TowerSumEt04 (new vector<float> );
-    auto_ptr<vector<float> > els_hcalDepth2TowerSumEt04 (new vector<float> );
+    unique_ptr<vector<float> > els_hcalDepth1TowerSumEt04 (new vector<float> );
+    unique_ptr<vector<float> > els_hcalDepth2TowerSumEt04 (new vector<float> );
 
-//    auto_ptr<vector<float> > els_iso03_pf               (new vector<float> );
-//    auto_ptr<vector<float> > els_iso04_pf               (new vector<float> );
+//    unique_ptr<vector<float> > els_iso03_pf               (new vector<float> );
+//    unique_ptr<vector<float> > els_iso04_pf               (new vector<float> );
 
-//    auto_ptr<vector<float> > els_iso03_pf_ch            (new vector<float> );
-//    auto_ptr<vector<float> > els_iso03_pf_gamma05       (new vector<float> );
-//    auto_ptr<vector<float> > els_iso03_pf_nhad05        (new vector<float> );
-//    auto_ptr<vector<float> > els_iso04_pf_ch            (new vector<float> );
-//    auto_ptr<vector<float> > els_iso04_pf_gamma05       (new vector<float> );
-//    auto_ptr<vector<float> > els_iso04_pf_nhad05        (new vector<float> );
+//    unique_ptr<vector<float> > els_iso03_pf_ch            (new vector<float> );
+//    unique_ptr<vector<float> > els_iso03_pf_gamma05       (new vector<float> );
+//    unique_ptr<vector<float> > els_iso03_pf_nhad05        (new vector<float> );
+//    unique_ptr<vector<float> > els_iso04_pf_ch            (new vector<float> );
+//    unique_ptr<vector<float> > els_iso04_pf_gamma05       (new vector<float> );
+//    unique_ptr<vector<float> > els_iso04_pf_nhad05        (new vector<float> );
 
 
     // track variables
     //
-    auto_ptr<vector<float> > els_d0         (new vector<float> );
-    auto_ptr<vector<float> > els_z0         (new vector<float> );
-    auto_ptr<vector<float> > els_d0corr     (new vector<float> );
-    auto_ptr<vector<float> > els_d0corrPhi  (new vector<float> );
-    auto_ptr<vector<float> > els_d0phiCov   (new vector<float> );
-    auto_ptr<vector<float> > els_z0corr     (new vector<float> );
-    auto_ptr<vector<float> > els_etaErr     (new vector<float> );
-    auto_ptr<vector<float> > els_phiErr     (new vector<float> );
-    auto_ptr<vector<float> > els_bs3d       (new vector<float> );
-    auto_ptr<vector<float> > els_bs3derr    (new vector<float> );
-    auto_ptr<vector<float> > els_bs2d       (new vector<float> );
-    auto_ptr<vector<float> > els_bs2derr    (new vector<float> );
+    unique_ptr<vector<float> > els_d0         (new vector<float> );
+    unique_ptr<vector<float> > els_z0         (new vector<float> );
+    unique_ptr<vector<float> > els_d0corr     (new vector<float> );
+    unique_ptr<vector<float> > els_d0corrPhi  (new vector<float> );
+    unique_ptr<vector<float> > els_d0phiCov   (new vector<float> );
+    unique_ptr<vector<float> > els_z0corr     (new vector<float> );
+    unique_ptr<vector<float> > els_etaErr     (new vector<float> );
+    unique_ptr<vector<float> > els_phiErr     (new vector<float> );
+    unique_ptr<vector<float> > els_bs3d       (new vector<float> );
+    unique_ptr<vector<float> > els_bs3derr    (new vector<float> );
+    unique_ptr<vector<float> > els_bs2d       (new vector<float> );
+    unique_ptr<vector<float> > els_bs2derr    (new vector<float> );
   
     // LorentzVectors
     //
@@ -439,13 +439,13 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     //HitPattern information
     //
-    //auto_ptr<vector<LorentzVector> >          els_inner_position       (new vector<LorentzVector> );
-    //auto_ptr<vector<LorentzVector> >          els_outer_position       (new vector<LorentzVector> );
-    //auto_ptr<vector<int> >                    els_layer1_sizerphi      (new vector<int>           ); 
-    //auto_ptr<vector<int> >                    els_layer1_sizerz        (new vector<int>           ); 
-    //auto_ptr<vector<float> >                  els_layer1_charge        (new vector<float>         );
-    //auto_ptr<vector<int> >                    els_layer1_det           (new vector<int>           );
-    //auto_ptr<vector<int> >                    els_layer1_layer         (new vector<int>           );
+    //unique_ptr<vector<LorentzVector> >          els_inner_position       (new vector<LorentzVector> );
+    //unique_ptr<vector<LorentzVector> >          els_outer_position       (new vector<LorentzVector> );
+    //unique_ptr<vector<int> >                    els_layer1_sizerphi      (new vector<int>           ); 
+    //unique_ptr<vector<int> >                    els_layer1_sizerz        (new vector<int>           ); 
+    //unique_ptr<vector<float> >                  els_layer1_charge        (new vector<float>         );
+    //unique_ptr<vector<int> >                    els_layer1_det           (new vector<int>           );
+    //unique_ptr<vector<int> >                    els_layer1_layer         (new vector<int>           );
 
 
 
@@ -453,14 +453,14 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Added for 53x //
     ///////////////////
 
-    auto_ptr<vector<bool > >  els_passingMvaPreselection   ( new vector<bool>  );
-    auto_ptr<vector<bool > >  els_passingPflowPreselection ( new vector<bool>  );
+    unique_ptr<vector<bool > >  els_passingMvaPreselection   ( new vector<bool>  );
+    unique_ptr<vector<bool > >  els_passingPflowPreselection ( new vector<bool>  );
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
-    auto_ptr<vector<float> >                  els_mass             (new vector<float>          );
+    unique_ptr<vector<float> >                  els_mass             (new vector<float>          );
 
     //////////////////////
     // Added miniAOD    //
@@ -472,63 +472,63 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
   ///////////////////////////////
   // Added for 7_X calibration //
   ///////////////////////////////
-  auto_ptr<vector<int> > els_N_ECALClusters            (new vector<int>);
-  auto_ptr<vector<int> > els_N_PSClusters              (new vector<int>);
+  unique_ptr<vector<int> > els_N_ECALClusters            (new vector<int>);
+  unique_ptr<vector<int> > els_N_PSClusters              (new vector<int>);
 
-  auto_ptr<vector<float> > els_scPreshowerEnergyPlane1 (new vector<float>);
-  auto_ptr<vector<float> > els_scPreshowerEnergyPlane2 (new vector<float>);
-  auto_ptr<vector<float> > els_scIsEB                  (new vector<float>);
-  auto_ptr<vector<float> > els_scR                     (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedPhi               (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedSize              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE3x3              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedEmax              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE2nd              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedELeft             (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedERight            (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedETop              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedEBottom           (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE2x5Left          (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE2x5Right         (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE2x5Top           (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedE2x5Bottom        (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedLeftRightAsym     (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedTopBottomAsym     (new vector<float>);
-  auto_ptr<vector<float> > els_scSeed2x5LeftRightAsym  (new vector<float>);
-  auto_ptr<vector<float> > els_scSeed2x5TopBottomAsym  (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedSigmaIetaIphi     (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryEta            (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryPhi            (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryIeta           (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryIphi           (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryX              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryY              (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryIx             (new vector<float>);
-  auto_ptr<vector<float> > els_scSeedCryIy             (new vector<float>);
-  auto_ptr<vector<float> > els_clusterMaxDR            (new vector<float>);
-  auto_ptr<vector<float> > els_clusterMaxDRDPhi        (new vector<float>);
-  auto_ptr<vector<float> > els_clusterMaxDRDEta        (new vector<float>);
-  auto_ptr<vector<float> > els_clustersMeanDRToSeed    (new vector<float>);
-  auto_ptr<vector<float> > els_clustersMeanDEtaToSeed  (new vector<float>);
-  auto_ptr<vector<float> > els_clustersMeanDPhiToSeed  (new vector<float>);
-  auto_ptr<vector<float> > els_clusterMaxDRRawEnergy   (new vector<float>);
-  auto_ptr<vector<float> > els_clustersMeanRawEnergy   (new vector<float>);
-  auto_ptr<vector<float> > els_clustersRMSRawEnergy    (new vector<float>);
+  unique_ptr<vector<float> > els_scPreshowerEnergyPlane1 (new vector<float>);
+  unique_ptr<vector<float> > els_scPreshowerEnergyPlane2 (new vector<float>);
+  unique_ptr<vector<float> > els_scIsEB                  (new vector<float>);
+  unique_ptr<vector<float> > els_scR                     (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedPhi               (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedSize              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE3x3              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedEmax              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE2nd              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedELeft             (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedERight            (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedETop              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedEBottom           (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE2x5Left          (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE2x5Right         (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE2x5Top           (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedE2x5Bottom        (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedLeftRightAsym     (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedTopBottomAsym     (new vector<float>);
+  unique_ptr<vector<float> > els_scSeed2x5LeftRightAsym  (new vector<float>);
+  unique_ptr<vector<float> > els_scSeed2x5TopBottomAsym  (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedSigmaIetaIphi     (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryEta            (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryPhi            (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryIeta           (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryIphi           (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryX              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryY              (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryIx             (new vector<float>);
+  unique_ptr<vector<float> > els_scSeedCryIy             (new vector<float>);
+  unique_ptr<vector<float> > els_clusterMaxDR            (new vector<float>);
+  unique_ptr<vector<float> > els_clusterMaxDRDPhi        (new vector<float>);
+  unique_ptr<vector<float> > els_clusterMaxDRDEta        (new vector<float>);
+  unique_ptr<vector<float> > els_clustersMeanDRToSeed    (new vector<float>);
+  unique_ptr<vector<float> > els_clustersMeanDEtaToSeed  (new vector<float>);
+  unique_ptr<vector<float> > els_clustersMeanDPhiToSeed  (new vector<float>);
+  unique_ptr<vector<float> > els_clusterMaxDRRawEnergy   (new vector<float>);
+  unique_ptr<vector<float> > els_clustersMeanRawEnergy   (new vector<float>);
+  unique_ptr<vector<float> > els_clustersRMSRawEnergy    (new vector<float>);
 
-  auto_ptr<vector<vector<int> > > els_clusterInMustache       (new vector<vector<int > >);
-  auto_ptr<vector<vector<int> > > els_clusterInDynDPhi        (new vector<vector<int > >);
+  unique_ptr<vector<vector<int> > > els_clusterInMustache       (new vector<vector<int > >);
+  unique_ptr<vector<vector<int> > > els_clusterInDynDPhi        (new vector<vector<int > >);
 
-  auto_ptr<vector<vector<float> > > els_clusterRawEnergy      (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterCalibEnergy    (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterEta            (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterPhi            (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterDPhiToSeed     (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterDEtaToSeed     (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterDPhiToCentroid (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_clusterDEtaToCentroid (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_psClusterRawEnergy    (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_psClusterEta          (new vector<vector<float > >);
-  auto_ptr<vector<vector<float> > > els_psClusterPhi          (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterRawEnergy      (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterCalibEnergy    (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterEta            (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterPhi            (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterDPhiToSeed     (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterDEtaToSeed     (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterDPhiToCentroid (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_clusterDEtaToCentroid (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_psClusterRawEnergy    (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_psClusterEta          (new vector<vector<float > >);
+  unique_ptr<vector<vector<float> > > els_psClusterPhi          (new vector<vector<float > >);
 
 
     // --- Get Input Collections --- //
@@ -1415,37 +1415,37 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Predefined ID descisions 
     //
-    iEvent.put(els_class    , "elsclass"    );
+    iEvent.put(std::move(els_class    ), "elsclass"    );
   
 
 
     // Track parameters
     //
-    iEvent.put(els_d0         , "elsd0"        );
-    iEvent.put(els_z0         , "elsz0"        );
-    iEvent.put(els_d0corr     , "elsd0corr"    );
-    iEvent.put(els_d0corrPhi  , "elsd0corrPhi" );
-    iEvent.put(els_d0phiCov   , "elsd0phiCov"  );
-    iEvent.put(els_z0corr     , "elsz0corr"    );
-    iEvent.put(els_etaErr     , "elsetaErr"    );
-    iEvent.put(els_phiErr     , "elsphiErr"    );
-    iEvent.put(els_bs3d       , "elsbs3d"      );
-    iEvent.put(els_bs3derr    , "elsbs3derr"   );
-    iEvent.put(els_bs2d       , "elsbs2d"      );
-    iEvent.put(els_bs2derr    , "elsbs2derr"   );
+    iEvent.put(std::move(els_d0         ), "elsd0"        );
+    iEvent.put(std::move(els_z0         ), "elsz0"        );
+    iEvent.put(std::move(els_d0corr     ), "elsd0corr"    );
+    iEvent.put(std::move(els_d0corrPhi  ), "elsd0corrPhi" );
+    iEvent.put(std::move(els_d0phiCov   ), "elsd0phiCov"  );
+    iEvent.put(std::move(els_z0corr     ), "elsz0corr"    );
+    iEvent.put(std::move(els_etaErr     ), "elsetaErr"    );
+    iEvent.put(std::move(els_phiErr     ), "elsphiErr"    );
+    iEvent.put(std::move(els_bs3d       ), "elsbs3d"      );
+    iEvent.put(std::move(els_bs3derr    ), "elsbs3derr"   );
+    iEvent.put(std::move(els_bs2d       ), "elsbs2d"      );
+    iEvent.put(std::move(els_bs2derr    ), "elsbs2derr"   );
   
 
 
 
     // Supercluster parameters
     //
-    iEvent.put(els_nSeed       , "elsnSeed"       );
-    iEvent.put(els_e1x5        , "else1x5"        );
-    iEvent.put(els_e5x5        , "else5x5"        );
-    iEvent.put(els_e2x5Max     , "else2x5Max"     );
-//    iEvent.put(els_eMax        , "elseMax"        );
-    iEvent.put(els_fiduciality , "elsfiduciality" );
-//    iEvent.put(els_scindex     , "elsscindex"     );
+    iEvent.put(std::move(els_nSeed       ), "elsnSeed"       );
+    iEvent.put(std::move(els_e1x5        ), "else1x5"        );
+    iEvent.put(std::move(els_e5x5        ), "else5x5"        );
+    iEvent.put(std::move(els_e2x5Max     ), "else2x5Max"     );
+//    iEvent.put(std::move(els_eMax        ), "elseMax"        );
+    iEvent.put(std::move(els_fiduciality ), "elsfiduciality" );
+//    iEvent.put(std::move(els_scindex     ), "elsscindex"     );
 
     // Corrections and uncertainties
     //
@@ -1455,35 +1455,35 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     // Electron ID
     //
-    //iEvent.put(els_sigmaPhiPhi        , "elssigmaPhiPhi"        );
-//    iEvent.put(els_sigmaIEtaIPhi      , "elssigmaIEtaIPhi"      );
-    iEvent.put(els_sigmaEtaEta        , "elssigmaEtaEta"        );
-    //iEvent.put(els_sigmaIPhiIPhiSC    , "elssigmaIPhiIPhiSC"    );
-    //iEvent.put(els_sigmaIEtaIEtaSC    , "elssigmaIEtaIEtaSC"    );
-    iEvent.put(els_dPhiInPhiOut       , "elsdPhiInPhiOut"       );
-    iEvent.put(els_hOverEBC           , "elshOverEBC"           );
-    iEvent.put(els_hcalDepth1OverEcal , "elshcalDepth1OverEcal" );
-    iEvent.put(els_hcalDepth2OverEcal , "elshcalDepth2OverEcal" );
+    //iEvent.put(std::move(els_sigmaPhiPhi        ), "elssigmaPhiPhi"        );
+//    iEvent.put(std::move(els_sigmaIEtaIPhi      ), "elssigmaIEtaIPhi"      );
+    iEvent.put(std::move(els_sigmaEtaEta        ), "elssigmaEtaEta"        );
+    //iEvent.put(std::move(els_sigmaIPhiIPhiSC    ), "elssigmaIPhiIPhiSC"    );
+    //iEvent.put(std::move(els_sigmaIEtaIEtaSC    ), "elssigmaIEtaIEtaSC"    );
+    iEvent.put(std::move(els_dPhiInPhiOut       ), "elsdPhiInPhiOut"       );
+    iEvent.put(std::move(els_hOverEBC           ), "elshOverEBC"           );
+    iEvent.put(std::move(els_hcalDepth1OverEcal ), "elshcalDepth1OverEcal" );
+    iEvent.put(std::move(els_hcalDepth2OverEcal ), "elshcalDepth2OverEcal" );
 
-    iEvent.put(els_eSeedOverPOut                 , "elseSeedOverPOut"                 );
-    iEvent.put(els_eSeedOverPIn                  , "elseSeedOverPIn"                  );
-    //iEvent.put(els_lh                            , "elslh"                            );
-    iEvent.put(els_mva                           , "elsmva"                           );
-    iEvent.put(els_deltaEtaEleClusterTrackAtCalo , "elsdeltaEtaEleClusterTrackAtCalo" );
-    iEvent.put(els_deltaPhiEleClusterTrackAtCalo , "elsdeltaPhiEleClusterTrackAtCalo" );
+    iEvent.put(std::move(els_eSeedOverPOut                 ), "elseSeedOverPOut"                 );
+    iEvent.put(std::move(els_eSeedOverPIn                  ), "elseSeedOverPIn"                  );
+    //iEvent.put(std::move(els_lh                            ), "elslh"                            );
+    iEvent.put(std::move(els_mva                           ), "elsmva"                           );
+    iEvent.put(std::move(els_deltaEtaEleClusterTrackAtCalo ), "elsdeltaEtaEleClusterTrackAtCalo" );
+    iEvent.put(std::move(els_deltaPhiEleClusterTrackAtCalo ), "elsdeltaPhiEleClusterTrackAtCalo" );
 
     // Isolation
     //
-    iEvent.put(els_hcalDepth2TowerSumEt , "elshcalDepth2TowerSumEt" );
+    iEvent.put(std::move(els_hcalDepth2TowerSumEt ), "elshcalDepth2TowerSumEt" );
 
-    iEvent.put(els_hcalDepth1TowerSumEt04 , "elshcalDepth1TowerSumEt04" );
-    iEvent.put(els_hcalDepth2TowerSumEt04 , "elshcalDepth2TowerSumEt04" );
+    iEvent.put(std::move(els_hcalDepth1TowerSumEt04 ), "elshcalDepth1TowerSumEt04" );
+    iEvent.put(std::move(els_hcalDepth2TowerSumEt04 ), "elshcalDepth2TowerSumEt04" );
 
     ///////////////////
     // Added for 7   //
     ///////////////////
 
-    iEvent.put(els_mass          , "elsmass"         );
+    iEvent.put(std::move(els_mass          ), "elsmass"         );
 
     /////////////////////////
     // Added for miniAOD   //
@@ -1493,63 +1493,63 @@ void ElectronExtraMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     ///////////////////////////
     // Added for calibration //
     ///////////////////////////
-    iEvent.put(els_N_ECALClusters, "elsNECALClusters");
-    iEvent.put(els_N_PSClusters, "elsNPSClusters");
+    iEvent.put(std::move(els_N_ECALClusters), "elsNECALClusters");
+    iEvent.put(std::move(els_N_PSClusters), "elsNPSClusters");
 
-    iEvent.put(els_scPreshowerEnergyPlane1, "elsscPreshowerEnergyPlane1");
-    iEvent.put(els_scPreshowerEnergyPlane2, "elsscPreshowerEnergyPlane2");
-    iEvent.put(els_scIsEB, "elsscIsEB");
-    iEvent.put(els_scR, "elsscR");
-    iEvent.put(els_scSeedPhi, "elsscSeedPhi");
-    iEvent.put(els_scSeedSize, "elsscSeedSize");
-    iEvent.put(els_scSeedE3x3, "elsscSeedE3x3");
-    iEvent.put(els_scSeedEmax, "elsscSeedEmax");
-    iEvent.put(els_scSeedE2nd, "elsscSeedE2nd");
-    iEvent.put(els_scSeedELeft, "elsscSeedELeft");
-    iEvent.put(els_scSeedERight, "elsscSeedERight");
-    iEvent.put(els_scSeedETop, "elsscSeedETop");
-    iEvent.put(els_scSeedEBottom, "elsscSeedEBottom");
-    iEvent.put(els_scSeedE2x5Left, "elsscSeedE2x5Left");
-    iEvent.put(els_scSeedE2x5Right, "elsscSeedE2x5Right");
-    iEvent.put(els_scSeedE2x5Top, "elsscSeedE2x5Top");
-    iEvent.put(els_scSeedE2x5Bottom, "elsscSeedE2x5Bottom");
-    iEvent.put(els_scSeedLeftRightAsym, "elsscSeedLeftRightAsym");
-    iEvent.put(els_scSeedTopBottomAsym, "elsscSeedTopBottomAsym");
-    iEvent.put(els_scSeed2x5LeftRightAsym, "elsscSeed2x5LeftRightAsym");
-    iEvent.put(els_scSeed2x5TopBottomAsym, "elsscSeed2x5TopBottomAsym");
-    iEvent.put(els_scSeedSigmaIetaIphi, "elsscSeedSigmaIetaIphi");
-    iEvent.put(els_scSeedCryEta, "elsscSeedCryEta");
-    iEvent.put(els_scSeedCryPhi, "elsscSeedCryPhi");
-    iEvent.put(els_scSeedCryIeta, "elsscSeedCryIeta");
-    iEvent.put(els_scSeedCryIphi, "elsscSeedCryIphi");
-    iEvent.put(els_scSeedCryX, "elsscSeedCryX");
-    iEvent.put(els_scSeedCryY, "elsscSeedCryY");
-    iEvent.put(els_scSeedCryIx, "elsscSeedCryIx");
-    iEvent.put(els_scSeedCryIy, "elsscSeedCryIy");
-    iEvent.put(els_clusterMaxDR, "elsclusterMaxDR");
-    iEvent.put(els_clusterMaxDRDPhi, "elsclusterMaxDRDPhi");
-    iEvent.put(els_clusterMaxDRDEta, "elsclusterMaxDRDEta");
-    iEvent.put(els_clustersMeanDRToSeed, "elsclustersMeanDRToSeed");
-    iEvent.put(els_clustersMeanDEtaToSeed, "elsclustersMeanDEtaToSeed");
-    iEvent.put(els_clustersMeanDPhiToSeed, "elsclustersMeanDPhiToSeed");
-    iEvent.put(els_clusterMaxDRRawEnergy, "elsclusterMaxDRRawEnergy");
-    iEvent.put(els_clustersMeanRawEnergy, "elsclustersMeanRawEnergy");
-    iEvent.put(els_clustersRMSRawEnergy, "elsclustersRMSRawEnergy");
+    iEvent.put(std::move(els_scPreshowerEnergyPlane1), "elsscPreshowerEnergyPlane1");
+    iEvent.put(std::move(els_scPreshowerEnergyPlane2), "elsscPreshowerEnergyPlane2");
+    iEvent.put(std::move(els_scIsEB), "elsscIsEB");
+    iEvent.put(std::move(els_scR), "elsscR");
+    iEvent.put(std::move(els_scSeedPhi), "elsscSeedPhi");
+    iEvent.put(std::move(els_scSeedSize), "elsscSeedSize");
+    iEvent.put(std::move(els_scSeedE3x3), "elsscSeedE3x3");
+    iEvent.put(std::move(els_scSeedEmax), "elsscSeedEmax");
+    iEvent.put(std::move(els_scSeedE2nd), "elsscSeedE2nd");
+    iEvent.put(std::move(els_scSeedELeft), "elsscSeedELeft");
+    iEvent.put(std::move(els_scSeedERight), "elsscSeedERight");
+    iEvent.put(std::move(els_scSeedETop), "elsscSeedETop");
+    iEvent.put(std::move(els_scSeedEBottom), "elsscSeedEBottom");
+    iEvent.put(std::move(els_scSeedE2x5Left), "elsscSeedE2x5Left");
+    iEvent.put(std::move(els_scSeedE2x5Right), "elsscSeedE2x5Right");
+    iEvent.put(std::move(els_scSeedE2x5Top), "elsscSeedE2x5Top");
+    iEvent.put(std::move(els_scSeedE2x5Bottom), "elsscSeedE2x5Bottom");
+    iEvent.put(std::move(els_scSeedLeftRightAsym), "elsscSeedLeftRightAsym");
+    iEvent.put(std::move(els_scSeedTopBottomAsym), "elsscSeedTopBottomAsym");
+    iEvent.put(std::move(els_scSeed2x5LeftRightAsym), "elsscSeed2x5LeftRightAsym");
+    iEvent.put(std::move(els_scSeed2x5TopBottomAsym), "elsscSeed2x5TopBottomAsym");
+    iEvent.put(std::move(els_scSeedSigmaIetaIphi), "elsscSeedSigmaIetaIphi");
+    iEvent.put(std::move(els_scSeedCryEta), "elsscSeedCryEta");
+    iEvent.put(std::move(els_scSeedCryPhi), "elsscSeedCryPhi");
+    iEvent.put(std::move(els_scSeedCryIeta), "elsscSeedCryIeta");
+    iEvent.put(std::move(els_scSeedCryIphi), "elsscSeedCryIphi");
+    iEvent.put(std::move(els_scSeedCryX), "elsscSeedCryX");
+    iEvent.put(std::move(els_scSeedCryY), "elsscSeedCryY");
+    iEvent.put(std::move(els_scSeedCryIx), "elsscSeedCryIx");
+    iEvent.put(std::move(els_scSeedCryIy), "elsscSeedCryIy");
+    iEvent.put(std::move(els_clusterMaxDR), "elsclusterMaxDR");
+    iEvent.put(std::move(els_clusterMaxDRDPhi), "elsclusterMaxDRDPhi");
+    iEvent.put(std::move(els_clusterMaxDRDEta), "elsclusterMaxDRDEta");
+    iEvent.put(std::move(els_clustersMeanDRToSeed), "elsclustersMeanDRToSeed");
+    iEvent.put(std::move(els_clustersMeanDEtaToSeed), "elsclustersMeanDEtaToSeed");
+    iEvent.put(std::move(els_clustersMeanDPhiToSeed), "elsclustersMeanDPhiToSeed");
+    iEvent.put(std::move(els_clusterMaxDRRawEnergy), "elsclusterMaxDRRawEnergy");
+    iEvent.put(std::move(els_clustersMeanRawEnergy), "elsclustersMeanRawEnergy");
+    iEvent.put(std::move(els_clustersRMSRawEnergy), "elsclustersRMSRawEnergy");
 
-    iEvent.put(els_clusterInMustache, "elsclusterInMustache");
-    iEvent.put(els_clusterInDynDPhi, "elsclusterInDynDPhi");
+    iEvent.put(std::move(els_clusterInMustache), "elsclusterInMustache");
+    iEvent.put(std::move(els_clusterInDynDPhi), "elsclusterInDynDPhi");
 
-    iEvent.put(els_clusterRawEnergy, "elsclusterRawEnergy");
-    iEvent.put(els_clusterCalibEnergy, "elsclusterCalibEnergy");
-    iEvent.put(els_clusterEta, "elsclusterEta");
-    iEvent.put(els_clusterPhi, "elsclusterPhi");
-    iEvent.put(els_clusterDPhiToSeed, "elsclusterDPhiToSeed");
-    iEvent.put(els_clusterDEtaToSeed, "elsclusterDEtaToSeed");
-    iEvent.put(els_clusterDPhiToCentroid, "elsclusterDPhiToCentroid");
-    iEvent.put(els_clusterDEtaToCentroid, "elsclusterDEtaToCentroid");
-    iEvent.put(els_psClusterRawEnergy, "elspsClusterRawEnergy");
-    iEvent.put(els_psClusterEta, "elspsClusterEta");
-    iEvent.put(els_psClusterPhi, "elspsClusterPhi");
+    iEvent.put(std::move(els_clusterRawEnergy), "elsclusterRawEnergy");
+    iEvent.put(std::move(els_clusterCalibEnergy), "elsclusterCalibEnergy");
+    iEvent.put(std::move(els_clusterEta), "elsclusterEta");
+    iEvent.put(std::move(els_clusterPhi), "elsclusterPhi");
+    iEvent.put(std::move(els_clusterDPhiToSeed), "elsclusterDPhiToSeed");
+    iEvent.put(std::move(els_clusterDEtaToSeed), "elsclusterDEtaToSeed");
+    iEvent.put(std::move(els_clusterDPhiToCentroid), "elsclusterDPhiToCentroid");
+    iEvent.put(std::move(els_clusterDEtaToCentroid), "elsclusterDEtaToCentroid");
+    iEvent.put(std::move(els_psClusterRawEnergy), "elspsClusterRawEnergy");
+    iEvent.put(std::move(els_psClusterEta), "elspsClusterEta");
+    iEvent.put(std::move(els_psClusterPhi), "elspsClusterPhi");
 
 }
 

@@ -66,12 +66,12 @@ void VertexExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     }
     const reco::VertexCollection *vertexCollection = vertexHandle.product();
 
-    std::auto_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
-    std::auto_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
-    std::auto_ptr<std::vector<std::vector<float> > > vector_vtxs_covMatrix         (new std::vector<std::vector<float> > );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_xError            (new std::vector<float>               );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_yError            (new std::vector<float>               );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_zError            (new std::vector<float>               );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_chi2              (new std::vector<float>               );
+    std::unique_ptr<std::vector<float> >               vector_vtxs_score             (new std::vector<float>               );
+    std::unique_ptr<std::vector<std::vector<float> > > vector_vtxs_covMatrix         (new std::vector<std::vector<float> > );
 
     edm::Handle<edm::ValueMap<float> > vertexScoreHandle;
     try {
@@ -112,12 +112,12 @@ void VertexExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-    iEvent.put(vector_vtxs_xError,            branchprefix+"xError"            );
-    iEvent.put(vector_vtxs_yError,            branchprefix+"yError"            );
-    iEvent.put(vector_vtxs_zError,            branchprefix+"zError"            );
-    iEvent.put(vector_vtxs_chi2,              branchprefix+"chi2"              );    
-    iEvent.put(vector_vtxs_score,             branchprefix+"score"             );
-    iEvent.put(vector_vtxs_covMatrix,         branchprefix+"covMatrix"         );
+    iEvent.put(std::move(vector_vtxs_xError),            branchprefix+"xError"            );
+    iEvent.put(std::move(vector_vtxs_yError),            branchprefix+"yError"            );
+    iEvent.put(std::move(vector_vtxs_zError),            branchprefix+"zError"            );
+    iEvent.put(std::move(vector_vtxs_chi2),              branchprefix+"chi2"              );    
+    iEvent.put(std::move(vector_vtxs_score),             branchprefix+"score"             );
+    iEvent.put(std::move(vector_vtxs_covMatrix),         branchprefix+"covMatrix"         );
 }
 
 // ------------ method called once each job just before starting event loop  ------------

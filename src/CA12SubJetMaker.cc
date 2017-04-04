@@ -69,29 +69,29 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace reco;
  
   // create containers
-  auto_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
-  auto_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
-  auto_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
-  //auto_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
-  //auto_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
-  //auto_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
-  //auto_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
-  auto_ptr<vector<float> >         pfjets_nJettinessTau1           (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_nJettinessTau2           (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_nJettinessTau3           (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_nJettinessTau4           (new vector<float>          );  
-  //auto_ptr<vector<float> >         pfjets_qJetsVolatility          (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_topJetMass               (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_prunedMass               (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_trimmedMass              (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_filteredMass             (new vector<float>          );  
-  auto_ptr<vector<float> >         pfjets_massDropFilteredMass     (new vector<float>          );  
-  //auto_ptr<vector<float> >     pfjets_jetBProbabilityBJetTag               (new vector<float>  );
-  //auto_ptr<vector<float> >     pfjets_jetProbabilityBJetTag                (new vector<float>  );
-  //auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighEffBJetTag  (new vector<float>  );
-  //auto_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighPurBJetTag  (new vector<float>  );  
-  //auto_ptr<vector<float> >     pfjets_trackCountingHighEffBJetTag          (new vector<float>  );
-  //auto_ptr<vector<float> >     pfjets_trackCountingHighPurBJetTag          (new vector<float>  );
+  unique_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
+  unique_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
+  unique_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
+  //unique_ptr<vector<vector<int> >  > pfjets_pfcandIndicies            (new vector<vector<int> >   );
+  //unique_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
+  //unique_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
+  //unique_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
+  unique_ptr<vector<float> >         pfjets_nJettinessTau1           (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_nJettinessTau2           (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_nJettinessTau3           (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_nJettinessTau4           (new vector<float>          );  
+  //unique_ptr<vector<float> >         pfjets_qJetsVolatility          (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_topJetMass               (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_prunedMass               (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_trimmedMass              (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_filteredMass             (new vector<float>          );  
+  unique_ptr<vector<float> >         pfjets_massDropFilteredMass     (new vector<float>          );  
+  //unique_ptr<vector<float> >     pfjets_jetBProbabilityBJetTag               (new vector<float>  );
+  //unique_ptr<vector<float> >     pfjets_jetProbabilityBJetTag                (new vector<float>  );
+  //unique_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighEffBJetTag  (new vector<float>  );
+  //unique_ptr<vector<float> >     pfjets_simpleSecondaryVertexHighPurBJetTag  (new vector<float>  );  
+  //unique_ptr<vector<float> >     pfjets_trackCountingHighEffBJetTag          (new vector<float>  );
+  //unique_ptr<vector<float> >     pfjets_trackCountingHighPurBJetTag          (new vector<float>  );
 
 //////////////////  edm::Handle<std::vector<pat::Jet> >            jets;
   Handle<View<pat::Jet> > pfJetsHandle;
@@ -125,17 +125,17 @@ void CA12SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     pfjets_massDropFilteredMass     ->push_back( massDropFilteredMass                 );
 
    }
-  iEvent.put(pfjets_p4                                  , "ca12jetsp4"              );
-  iEvent.put(pfjets_mass                                , "ca12jetsmass"            );
-  iEvent.put(pfjets_undoJEC                             , "ca12jetsundoJEC"         );
-  iEvent.put(pfjets_nJettinessTau1                      , "ca12jetsnJettinessTau1"  );
-  iEvent.put(pfjets_nJettinessTau2                      , "ca12jetsnJettinessTau2"  );
-  iEvent.put(pfjets_nJettinessTau3                      , "ca12jetsnJettinessTau3"  );
-  iEvent.put(pfjets_nJettinessTau4                      , "ca12jetsnJettinessTau4"  );
-  iEvent.put(pfjets_prunedMass                          , "ca12jetsprunedMass"      );
-  iEvent.put(pfjets_trimmedMass                         , "ca12jetstrimmedMass"     );
-  iEvent.put(pfjets_filteredMass                        , "ca12jetsfilteredMass"    );
-  iEvent.put(pfjets_massDropFilteredMass                , "ca12jetsmassDropFilteredMass");
+  iEvent.put(std::move(pfjets_p4                                  ), "ca12jetsp4"              );
+  iEvent.put(std::move(pfjets_mass                                ), "ca12jetsmass"            );
+  iEvent.put(std::move(pfjets_undoJEC                             ), "ca12jetsundoJEC"         );
+  iEvent.put(std::move(pfjets_nJettinessTau1                      ), "ca12jetsnJettinessTau1"  );
+  iEvent.put(std::move(pfjets_nJettinessTau2                      ), "ca12jetsnJettinessTau2"  );
+  iEvent.put(std::move(pfjets_nJettinessTau3                      ), "ca12jetsnJettinessTau3"  );
+  iEvent.put(std::move(pfjets_nJettinessTau4                      ), "ca12jetsnJettinessTau4"  );
+  iEvent.put(std::move(pfjets_prunedMass                          ), "ca12jetsprunedMass"      );
+  iEvent.put(std::move(pfjets_trimmedMass                         ), "ca12jetstrimmedMass"     );
+  iEvent.put(std::move(pfjets_filteredMass                        ), "ca12jetsfilteredMass"    );
+  iEvent.put(std::move(pfjets_massDropFilteredMass                ), "ca12jetsmassDropFilteredMass");
 }
 
 //define this as a plug-in

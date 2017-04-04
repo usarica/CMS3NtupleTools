@@ -196,83 +196,83 @@ void METMaker::endJob()
 // ------------ method called to produce the data  ------------
 void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
-     auto_ptr<bool>    evt_hbheFilter          (new bool      );
-     auto_ptr<float>   evt_met                 (new float     );
-     auto_ptr<float>   evt_metPhi              (new float     );
-     auto_ptr<float>   evt_metSig              (new float     );
-     auto_ptr<float>   evt_metHO               (new float     );
-     auto_ptr<float>   evt_metHOPhi            (new float     );
-     auto_ptr<float>   evt_metHOSig            (new float     );
-     auto_ptr<float>   evt_metNoHF             (new float     );
-     auto_ptr<float>   evt_metNoHFPhi          (new float     );
-     auto_ptr<float>   evt_metNoHFSig          (new float     );
-     auto_ptr<float>   evt_metNoHFHO           (new float     );
-     auto_ptr<float>   evt_metNoHFHOPhi        (new float     );
-     auto_ptr<float>   evt_metNoHFHOSig        (new float     );
+     unique_ptr<bool>    evt_hbheFilter          (new bool      );
+     unique_ptr<float>   evt_met                 (new float     );
+     unique_ptr<float>   evt_metPhi              (new float     );
+     unique_ptr<float>   evt_metSig              (new float     );
+     unique_ptr<float>   evt_metHO               (new float     );
+     unique_ptr<float>   evt_metHOPhi            (new float     );
+     unique_ptr<float>   evt_metHOSig            (new float     );
+     unique_ptr<float>   evt_metNoHF             (new float     );
+     unique_ptr<float>   evt_metNoHFPhi          (new float     );
+     unique_ptr<float>   evt_metNoHFSig          (new float     );
+     unique_ptr<float>   evt_metNoHFHO           (new float     );
+     unique_ptr<float>   evt_metNoHFHOPhi        (new float     );
+     unique_ptr<float>   evt_metNoHFHOSig        (new float     );
 
-     auto_ptr<float>   evt_metOpt              (new float     );
-     auto_ptr<float>   evt_metOptPhi           (new float     );
-     auto_ptr<float>   evt_metOptSig           (new float     );
-     auto_ptr<float>   evt_metOptHO            (new float     );
-     auto_ptr<float>   evt_metOptHOPhi         (new float     );
-     auto_ptr<float>   evt_metOptHOSig         (new float     );
-     auto_ptr<float>   evt_metOptNoHF          (new float     );
-     auto_ptr<float>   evt_metOptNoHFPhi       (new float     );
-     auto_ptr<float>   evt_metOptNoHFSig       (new float     );
-     auto_ptr<float>   evt_metOptNoHFHO        (new float     );
-     auto_ptr<float>   evt_metOptNoHFHOPhi     (new float     );
-     auto_ptr<float>   evt_metOptNoHFHOSig     (new float     );
+     unique_ptr<float>   evt_metOpt              (new float     );
+     unique_ptr<float>   evt_metOptPhi           (new float     );
+     unique_ptr<float>   evt_metOptSig           (new float     );
+     unique_ptr<float>   evt_metOptHO            (new float     );
+     unique_ptr<float>   evt_metOptHOPhi         (new float     );
+     unique_ptr<float>   evt_metOptHOSig         (new float     );
+     unique_ptr<float>   evt_metOptNoHF          (new float     );
+     unique_ptr<float>   evt_metOptNoHFPhi       (new float     );
+     unique_ptr<float>   evt_metOptNoHFSig       (new float     );
+     unique_ptr<float>   evt_metOptNoHFHO        (new float     );
+     unique_ptr<float>   evt_metOptNoHFHOPhi     (new float     );
+     unique_ptr<float>   evt_metOptNoHFHOSig     (new float     );
   
-     auto_ptr<float>   evt_metMuonCorr         (new float     );
-     auto_ptr<float>   evt_metMuonCorrPhi      (new float     );
-     auto_ptr<float>   evt_metMuonCorrSig      (new float     );
-     auto_ptr<float>   evt_metMuonJESCorr      (new float     );
-     auto_ptr<float>   evt_metMuonJESCorrPhi   (new float     );
-     auto_ptr<float>   evt_metMuonJESCorrSig   (new float     );
+     unique_ptr<float>   evt_metMuonCorr         (new float     );
+     unique_ptr<float>   evt_metMuonCorrPhi      (new float     );
+     unique_ptr<float>   evt_metMuonCorrSig      (new float     );
+     unique_ptr<float>   evt_metMuonJESCorr      (new float     );
+     unique_ptr<float>   evt_metMuonJESCorrPhi   (new float     );
+     unique_ptr<float>   evt_metMuonJESCorrSig   (new float     );
 
-     auto_ptr<float>   evt_sumet               (new float     );
-     auto_ptr<float>   evt_sumetHO	       (new float     );
-     auto_ptr<float>   evt_sumetNoHF           (new float     );
-     auto_ptr<float>   evt_sumetNoHFHO         (new float     );
-     auto_ptr<float>   evt_sumetOpt            (new float     );
-     auto_ptr<float>   evt_sumetOptHO          (new float     );
-     auto_ptr<float>   evt_sumetOptNoHF        (new float     );
-     auto_ptr<float>   evt_sumetOptNoHFHO      (new float     );
-     auto_ptr<float>   evt_sumetMuonCorr       (new float     );
-     auto_ptr<float>   evt_sumetMuonJESCorr    (new float     );
+     unique_ptr<float>   evt_sumet               (new float     );
+     unique_ptr<float>   evt_sumetHO	       (new float     );
+     unique_ptr<float>   evt_sumetNoHF           (new float     );
+     unique_ptr<float>   evt_sumetNoHFHO         (new float     );
+     unique_ptr<float>   evt_sumetOpt            (new float     );
+     unique_ptr<float>   evt_sumetOptHO          (new float     );
+     unique_ptr<float>   evt_sumetOptNoHF        (new float     );
+     unique_ptr<float>   evt_sumetOptNoHFHO      (new float     );
+     unique_ptr<float>   evt_sumetMuonCorr       (new float     );
+     unique_ptr<float>   evt_sumetMuonJESCorr    (new float     );
 
-     auto_ptr<vector<int>   > mus_met_flag   ( new vector<int>   );
-     auto_ptr<vector<float> > mus_met_deltax ( new vector<float> );
-     auto_ptr<vector<float> > mus_met_deltay ( new vector<float> );
+     unique_ptr<vector<int>   > mus_met_flag   ( new vector<int>   );
+     unique_ptr<vector<float> > mus_met_deltax ( new vector<float> );
+     unique_ptr<vector<float> > mus_met_deltay ( new vector<float> );
 
-     auto_ptr<float> evt_ecalmet         (new float     );
-     auto_ptr<float> evt_hcalmet         (new float     );
-     auto_ptr<float> evt_ecalmetPhi      (new float     );
-     auto_ptr<float> evt_hcalmetPhi      (new float     );
+     unique_ptr<float> evt_ecalmet         (new float     );
+     unique_ptr<float> evt_hcalmet         (new float     );
+     unique_ptr<float> evt_ecalmetPhi      (new float     );
+     unique_ptr<float> evt_hcalmetPhi      (new float     );
 
-     auto_ptr<float> evt_endcapp_met         (new float );
-     auto_ptr<float> evt_endcapm_met      	  (new float );
-     auto_ptr<float> evt_ecalendcapp_met  	  (new float );
-     auto_ptr<float> evt_ecalendcapm_met  	  (new float );
-     auto_ptr<float> evt_hcalendcapp_met  	  (new float );
-     auto_ptr<float> evt_hcalendcapm_met  	  (new float );
-     auto_ptr<float> evt_endcapp_metPhi   	  (new float );
-     auto_ptr<float> evt_endcapm_metPhi   	  (new float );
-     auto_ptr<float> evt_ecalendcapp_metPhi  (new float );
-     auto_ptr<float> evt_ecalendcapm_metPhi  (new float );
-     auto_ptr<float> evt_hcalendcapp_metPhi  (new float );
-     auto_ptr<float> evt_hcalendcapm_metPhi  (new float );
+     unique_ptr<float> evt_endcapp_met         (new float );
+     unique_ptr<float> evt_endcapm_met      	  (new float );
+     unique_ptr<float> evt_ecalendcapp_met  	  (new float );
+     unique_ptr<float> evt_ecalendcapm_met  	  (new float );
+     unique_ptr<float> evt_hcalendcapp_met  	  (new float );
+     unique_ptr<float> evt_hcalendcapm_met  	  (new float );
+     unique_ptr<float> evt_endcapp_metPhi   	  (new float );
+     unique_ptr<float> evt_endcapm_metPhi   	  (new float );
+     unique_ptr<float> evt_ecalendcapp_metPhi  (new float );
+     unique_ptr<float> evt_ecalendcapm_metPhi  (new float );
+     unique_ptr<float> evt_hcalendcapp_metPhi  (new float );
+     unique_ptr<float> evt_hcalendcapm_metPhi  (new float );
 
-     auto_ptr<vector<float> > evt_towermet_etaslice        (new vector<float>     ); //towermet = ecalmet + hcalmet
-     auto_ptr<vector<float> > evt_ecalmet_etaslice         (new vector<float>     );
-     auto_ptr<vector<float> > evt_hcalmet_etaslice         (new vector<float>     );
-     auto_ptr<vector<float> > evt_towermet_etaslicePhi     (new vector<float>     ); //towermet = ecalmet + hcalmet
-     auto_ptr<vector<float> > evt_ecalmet_etaslicePhi      (new vector<float>     );
-     auto_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
+     unique_ptr<vector<float> > evt_towermet_etaslice        (new vector<float>     ); //towermet = ecalmet + hcalmet
+     unique_ptr<vector<float> > evt_ecalmet_etaslice         (new vector<float>     );
+     unique_ptr<vector<float> > evt_hcalmet_etaslice         (new vector<float>     );
+     unique_ptr<vector<float> > evt_towermet_etaslicePhi     (new vector<float>     ); //towermet = ecalmet + hcalmet
+     unique_ptr<vector<float> > evt_ecalmet_etaslicePhi      (new vector<float>     );
+     unique_ptr<vector<float> > evt_hcalmet_etaslicePhi      (new vector<float>     );
 
-     auto_ptr<float> evt_met_EtGt3 (new float);
-     auto_ptr<float> evt_metPhi_EtGt3 (new float);
-     auto_ptr<float> evt_sumet_EtGt3 (new float);
+     unique_ptr<float> evt_met_EtGt3 (new float);
+     unique_ptr<float> evt_metPhi_EtGt3 (new float);
+     unique_ptr<float> evt_sumet_EtGt3 (new float);
 
      edm::Handle<CaloTowerCollection> h_caloTowers;
      iEvent.getByLabel("towerMaker", h_caloTowers);
@@ -517,92 +517,92 @@ void METMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
      if(branchprefix.find("_") != std::string::npos)
 	  branchprefix.replace(branchprefix.find("_"),1,"");
 
-     iEvent.put(evt_hbheFilter        ,branchprefix+"hbheFilter"       );
-     iEvent.put(evt_met               ,branchprefix+"met"              );
-     iEvent.put(evt_metPhi            ,branchprefix+"metPhi"           );
-     iEvent.put(evt_metSig            ,branchprefix+"metSig"           );
-     iEvent.put(evt_metHO             ,branchprefix+"metHO"            );
-     iEvent.put(evt_metHOPhi          ,branchprefix+"metHOPhi"         );
-     iEvent.put(evt_metHOSig          ,branchprefix+"metHOSig"         );
-     iEvent.put(evt_metNoHF           ,branchprefix+"metNoHF"          );
-     iEvent.put(evt_metNoHFPhi        ,branchprefix+"metNoHFPhi"       );
-     iEvent.put(evt_metNoHFSig        ,branchprefix+"metNoHFSig"       );
-     iEvent.put(evt_metNoHFHO         ,branchprefix+"metNoHFHO"        );
-     iEvent.put(evt_metNoHFHOPhi      ,branchprefix+"metNoHFHOPhi"     );
-     iEvent.put(evt_metNoHFHOSig      ,branchprefix+"metNoHFHOSig"     );
+     iEvent.put(std::move(evt_hbheFilter        ),branchprefix+"hbheFilter"       );
+     iEvent.put(std::move(evt_met               ),branchprefix+"met"              );
+     iEvent.put(std::move(evt_metPhi            ),branchprefix+"metPhi"           );
+     iEvent.put(std::move(evt_metSig            ),branchprefix+"metSig"           );
+     iEvent.put(std::move(evt_metHO             ),branchprefix+"metHO"            );
+     iEvent.put(std::move(evt_metHOPhi          ),branchprefix+"metHOPhi"         );
+     iEvent.put(std::move(evt_metHOSig          ),branchprefix+"metHOSig"         );
+     iEvent.put(std::move(evt_metNoHF           ),branchprefix+"metNoHF"          );
+     iEvent.put(std::move(evt_metNoHFPhi        ),branchprefix+"metNoHFPhi"       );
+     iEvent.put(std::move(evt_metNoHFSig        ),branchprefix+"metNoHFSig"       );
+     iEvent.put(std::move(evt_metNoHFHO         ),branchprefix+"metNoHFHO"        );
+     iEvent.put(std::move(evt_metNoHFHOPhi      ),branchprefix+"metNoHFHOPhi"     );
+     iEvent.put(std::move(evt_metNoHFHOSig      ),branchprefix+"metNoHFHOSig"     );
 
-     iEvent.put(evt_metOpt            ,branchprefix+"metOpt"           );
-     iEvent.put(evt_metOptPhi         ,branchprefix+"metOptPhi"        );
-     iEvent.put(evt_metOptSig         ,branchprefix+"metOptSig"        );
-     iEvent.put(evt_metOptHO          ,branchprefix+"metOptHO"         );
-     iEvent.put(evt_metOptHOPhi       ,branchprefix+"metOptHOPhi"      );
-     iEvent.put(evt_metOptHOSig       ,branchprefix+"metOptHOSig"      );
-     iEvent.put(evt_metOptNoHF        ,branchprefix+"metOptNoHF"       );
-     iEvent.put(evt_metOptNoHFPhi     ,branchprefix+"metOptNoHFPhi"    );
-     iEvent.put(evt_metOptNoHFSig     ,branchprefix+"metOptNoHFSig"    );
-     iEvent.put(evt_metOptNoHFHO      ,branchprefix+"metOptNoHFHO"     );
-     iEvent.put(evt_metOptNoHFHOPhi   ,branchprefix+"metOptNoHFHOPhi"  );
-     iEvent.put(evt_metOptNoHFHOSig   ,branchprefix+"metOptNoHFHOSig"  );
+     iEvent.put(std::move(evt_metOpt            ),branchprefix+"metOpt"           );
+     iEvent.put(std::move(evt_metOptPhi         ),branchprefix+"metOptPhi"        );
+     iEvent.put(std::move(evt_metOptSig         ),branchprefix+"metOptSig"        );
+     iEvent.put(std::move(evt_metOptHO          ),branchprefix+"metOptHO"         );
+     iEvent.put(std::move(evt_metOptHOPhi       ),branchprefix+"metOptHOPhi"      );
+     iEvent.put(std::move(evt_metOptHOSig       ),branchprefix+"metOptHOSig"      );
+     iEvent.put(std::move(evt_metOptNoHF        ),branchprefix+"metOptNoHF"       );
+     iEvent.put(std::move(evt_metOptNoHFPhi     ),branchprefix+"metOptNoHFPhi"    );
+     iEvent.put(std::move(evt_metOptNoHFSig     ),branchprefix+"metOptNoHFSig"    );
+     iEvent.put(std::move(evt_metOptNoHFHO      ),branchprefix+"metOptNoHFHO"     );
+     iEvent.put(std::move(evt_metOptNoHFHOPhi   ),branchprefix+"metOptNoHFHOPhi"  );
+     iEvent.put(std::move(evt_metOptNoHFHOSig   ),branchprefix+"metOptNoHFHOSig"  );
   
-     iEvent.put(evt_metMuonCorr       ,branchprefix+"metMuonCorr"      );
-     iEvent.put(evt_metMuonCorrPhi    ,branchprefix+"metMuonCorrPhi"   );
-     iEvent.put(evt_metMuonCorrSig    ,branchprefix+"metMuonCorrSig"   );
-     iEvent.put(evt_metMuonJESCorr    ,branchprefix+"metMuonJESCorr"   );
-     iEvent.put(evt_metMuonJESCorrPhi ,branchprefix+"metMuonJESCorrPhi");
-     iEvent.put(evt_metMuonJESCorrSig ,branchprefix+"metMuonJESCorrSig");
+     iEvent.put(std::move(evt_metMuonCorr       ),branchprefix+"metMuonCorr"      );
+     iEvent.put(std::move(evt_metMuonCorrPhi    ),branchprefix+"metMuonCorrPhi"   );
+     iEvent.put(std::move(evt_metMuonCorrSig    ),branchprefix+"metMuonCorrSig"   );
+     iEvent.put(std::move(evt_metMuonJESCorr    ),branchprefix+"metMuonJESCorr"   );
+     iEvent.put(std::move(evt_metMuonJESCorrPhi ),branchprefix+"metMuonJESCorrPhi");
+     iEvent.put(std::move(evt_metMuonJESCorrSig ),branchprefix+"metMuonJESCorrSig");
 
-     iEvent.put(evt_sumet             ,branchprefix+"sumet"            );  
-     iEvent.put(evt_sumetHO           ,branchprefix+"sumetHO"	       );
-     iEvent.put(evt_sumetNoHF         ,branchprefix+"sumetNoHF"        );
-     iEvent.put(evt_sumetNoHFHO       ,branchprefix+"sumetNoHFHO"      );
-     iEvent.put(evt_sumetOpt          ,branchprefix+"sumetOpt"         );
-     iEvent.put(evt_sumetOptHO        ,branchprefix+"sumetOptHO"       );
-     iEvent.put(evt_sumetOptNoHF      ,branchprefix+"sumetOptNoHF"     );
-     iEvent.put(evt_sumetOptNoHFHO    ,branchprefix+"sumetOptNoHFHO"   );
-     iEvent.put(evt_sumetMuonCorr     ,branchprefix+"sumetMuonCorr"    );
-     iEvent.put(evt_sumetMuonJESCorr  ,branchprefix+"sumetMuonJESCorr" );
+     iEvent.put(std::move(evt_sumet             ),branchprefix+"sumet"            );  
+     iEvent.put(std::move(evt_sumetHO           ),branchprefix+"sumetHO"	       );
+     iEvent.put(std::move(evt_sumetNoHF         ),branchprefix+"sumetNoHF"        );
+     iEvent.put(std::move(evt_sumetNoHFHO       ),branchprefix+"sumetNoHFHO"      );
+     iEvent.put(std::move(evt_sumetOpt          ),branchprefix+"sumetOpt"         );
+     iEvent.put(std::move(evt_sumetOptHO        ),branchprefix+"sumetOptHO"       );
+     iEvent.put(std::move(evt_sumetOptNoHF      ),branchprefix+"sumetOptNoHF"     );
+     iEvent.put(std::move(evt_sumetOptNoHFHO    ),branchprefix+"sumetOptNoHFHO"   );
+     iEvent.put(std::move(evt_sumetMuonCorr     ),branchprefix+"sumetMuonCorr"    );
+     iEvent.put(std::move(evt_sumetMuonJESCorr  ),branchprefix+"sumetMuonJESCorr" );
 
      if(aliasprefix_ == "evt") {
-	  iEvent.put(mus_met_flag          ,"musmetflag"          );
-	  iEvent.put(mus_met_deltax        ,"musmetdeltax"        );
-	  iEvent.put(mus_met_deltay        ,"musmetdeltay"        );
+	  iEvent.put(std::move(mus_met_flag          ),"musmetflag"          );
+	  iEvent.put(std::move(mus_met_deltax        ),"musmetdeltax"        );
+	  iEvent.put(std::move(mus_met_deltay        ),"musmetdeltay"        );
      }
      else {
-	  iEvent.put(mus_met_flag          ,branchprefix+"musmetflag"          );
-	  iEvent.put(mus_met_deltax        ,branchprefix+"musmetdeltax"        );
-	  iEvent.put(mus_met_deltay        ,branchprefix+"musmetdeltay"        );
+	  iEvent.put(std::move(mus_met_flag          ),branchprefix+"musmetflag"          );
+	  iEvent.put(std::move(mus_met_deltax        ),branchprefix+"musmetdeltax"        );
+	  iEvent.put(std::move(mus_met_deltay        ),branchprefix+"musmetdeltay"        );
      }
 
-     iEvent.put(evt_ecalmet           ,branchprefix+"ecalmet"          );
-     iEvent.put(evt_hcalmet           ,branchprefix+"hcalmet"          );
-     iEvent.put(evt_ecalmetPhi        ,branchprefix+"ecalmetPhi"       );
-     iEvent.put(evt_hcalmetPhi        ,branchprefix+"hcalmetPhi"       );
+     iEvent.put(std::move(evt_ecalmet           ),branchprefix+"ecalmet"          );
+     iEvent.put(std::move(evt_hcalmet           ),branchprefix+"hcalmet"          );
+     iEvent.put(std::move(evt_ecalmetPhi        ),branchprefix+"ecalmetPhi"       );
+     iEvent.put(std::move(evt_hcalmetPhi        ),branchprefix+"hcalmetPhi"       );
 
-     iEvent.put(evt_endcapp_met       ,  branchprefix+"endcappmet"  );
-     iEvent.put(evt_endcapm_met       ,  branchprefix+"endcapmmet"  );
-     iEvent.put(evt_ecalendcapp_met   ,  branchprefix+"ecalendcappmet"  );
-     iEvent.put(evt_ecalendcapm_met   ,  branchprefix+"ecalendcapmmet"  );
-     iEvent.put(evt_hcalendcapp_met   ,  branchprefix+"hcalendcappmet"  );
-     iEvent.put(evt_hcalendcapm_met   ,  branchprefix+"hcalendcapmmet"  );
-     iEvent.put(evt_endcapp_metPhi    ,  branchprefix+"endcappmetPhi"  );
-     iEvent.put(evt_endcapm_metPhi    ,  branchprefix+"endcapmmetPhi"  );
-     iEvent.put(evt_ecalendcapp_metPhi,  branchprefix+"ecalendcappmetPhi"  );
-     iEvent.put(evt_ecalendcapm_metPhi,  branchprefix+"ecalendcapmmetPhi"  );
-     iEvent.put(evt_hcalendcapp_metPhi,  branchprefix+"hcalendcappmetPhi"  );
-     iEvent.put(evt_hcalendcapm_metPhi,  branchprefix+"hcalendcapmmetPhi"  );
+     iEvent.put(std::move(evt_endcapp_met       ),  branchprefix+"endcappmet"  );
+     iEvent.put(std::move(evt_endcapm_met       ),  branchprefix+"endcapmmet"  );
+     iEvent.put(std::move(evt_ecalendcapp_met   ),  branchprefix+"ecalendcappmet"  );
+     iEvent.put(std::move(evt_ecalendcapm_met   ),  branchprefix+"ecalendcapmmet"  );
+     iEvent.put(std::move(evt_hcalendcapp_met   ),  branchprefix+"hcalendcappmet"  );
+     iEvent.put(std::move(evt_hcalendcapm_met   ),  branchprefix+"hcalendcapmmet"  );
+     iEvent.put(std::move(evt_endcapp_metPhi    ),  branchprefix+"endcappmetPhi"  );
+     iEvent.put(std::move(evt_endcapm_metPhi    ),  branchprefix+"endcapmmetPhi"  );
+     iEvent.put(std::move(evt_ecalendcapp_metPhi),  branchprefix+"ecalendcappmetPhi"  );
+     iEvent.put(std::move(evt_ecalendcapm_metPhi),  branchprefix+"ecalendcapmmetPhi"  );
+     iEvent.put(std::move(evt_hcalendcapp_metPhi),  branchprefix+"hcalendcappmetPhi"  );
+     iEvent.put(std::move(evt_hcalendcapm_metPhi),  branchprefix+"hcalendcapmmetPhi"  );
 
      if( make_eta_rings ) {
-	  iEvent.put(evt_towermet_etaslice   ,branchprefix+"towermetetaslice" );
-	  iEvent.put(evt_ecalmet_etaslice    ,branchprefix+"ecalmetetaslice"  );
-	  iEvent.put(evt_hcalmet_etaslice    ,branchprefix+"hcalmetetaslice"  );
-	  iEvent.put(evt_towermet_etaslicePhi,branchprefix+"towermetetaslicePhi" );
-	  iEvent.put(evt_ecalmet_etaslicePhi ,branchprefix+"ecalmetetaslicePhi"  );
-	  iEvent.put(evt_hcalmet_etaslicePhi ,branchprefix+"hcalmetetaslicePhi"  );
+	  iEvent.put(std::move(evt_towermet_etaslice   ),branchprefix+"towermetetaslice" );
+	  iEvent.put(std::move(evt_ecalmet_etaslice    ),branchprefix+"ecalmetetaslice"  );
+	  iEvent.put(std::move(evt_hcalmet_etaslice    ),branchprefix+"hcalmetetaslice"  );
+	  iEvent.put(std::move(evt_towermet_etaslicePhi),branchprefix+"towermetetaslicePhi" );
+	  iEvent.put(std::move(evt_ecalmet_etaslicePhi ),branchprefix+"ecalmetetaslicePhi"  );
+	  iEvent.put(std::move(evt_hcalmet_etaslicePhi ),branchprefix+"hcalmetetaslicePhi"  );
      }
 
-     iEvent.put(evt_met_EtGt3, branchprefix+"metEtGt3");
-     iEvent.put(evt_metPhi_EtGt3, branchprefix+"metPhiEtGt3");
-     iEvent.put(evt_sumet_EtGt3, branchprefix+"sumetEtGt3");
+     iEvent.put(std::move(evt_met_EtGt3), branchprefix+"metEtGt3");
+     iEvent.put(std::move(evt_metPhi_EtGt3), branchprefix+"metPhiEtGt3");
+     iEvent.put(std::move(evt_sumet_EtGt3), branchprefix+"sumetEtGt3");
   
 }
 

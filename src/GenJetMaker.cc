@@ -74,8 +74,8 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   
   // create containers
-  std::auto_ptr<unsigned int>                evt_ngenjets     (new unsigned int(genJets->size()) );
-  std::auto_ptr<std::vector<LorentzVector> > vector_genjets_p4(new std::vector<LorentzVector>    );
+  std::unique_ptr<unsigned int>                evt_ngenjets     (new unsigned int(genJets->size()) );
+  std::unique_ptr<std::vector<LorentzVector> > vector_genjets_p4(new std::vector<LorentzVector>    );
   
   // loop over jets and fill containers
   edm::View<reco::GenJet>::const_iterator jetsEnd = genJets->end();
@@ -90,8 +90,8 @@ GenJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   std::sort(vector_genjets_p4->begin(), vector_genjets_p4->end(), sortByPt);
 
   // put containers into event
-  iEvent.put(evt_ngenjets     , "evtngenjets"+aliaspostfix_);
-  iEvent.put(vector_genjets_p4, "genjetsp4"+aliaspostfix_);
+  iEvent.put(std::move(evt_ngenjets     ), "evtngenjets"+aliaspostfix_);
+  iEvent.put(std::move(vector_genjets_p4), "genjetsp4"+aliaspostfix_);
 
 }
 

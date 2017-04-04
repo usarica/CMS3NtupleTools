@@ -66,11 +66,11 @@ void PFTauExtraMaker::endJob() {
                               
 // ------------ method called to produce the data  ------------
 void PFTauExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {          
-    auto_ptr<vector<float>         > taus_pf_mass                            (new vector<float>);
-    auto_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
-    auto_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
-    auto_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
-    auto_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
+    unique_ptr<vector<float>         > taus_pf_mass                            (new vector<float>);
+    unique_ptr<vector<LorentzVector> > taus_pf_lead_chargecand_p4              (new vector<LorentzVector>            ) ;
+    unique_ptr<vector<LorentzVector> > taus_pf_lead_neutrcand_p4               (new vector<LorentzVector>            ) ;  
+    unique_ptr<vector<vector<LorentzVector> > > taus_pf_signalcands_p4         (new vector<vector<LorentzVector> >   ) ;  
+    unique_ptr<vector<vector<LorentzVector> > > taus_pf_isocands_p4            (new vector<vector<LorentzVector> >   ) ;  
  
     //get PAT taus
     Handle<View<pat::Tau> > taus_h;
@@ -111,11 +111,11 @@ void PFTauExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-    iEvent.put(taus_pf_mass                                 ,branchprefix+"mass"                                     );  
-    iEvent.put(taus_pf_lead_chargecand_p4                   ,branchprefix+"leadchargecandp4"                         ); 
-    iEvent.put(taus_pf_lead_neutrcand_p4                    ,branchprefix+"leadneutrcandp4"                          ); 
-    iEvent.put(taus_pf_signalcands_p4                       ,branchprefix+"signalcandsp4"                            ); 
-    iEvent.put(taus_pf_isocands_p4                          ,branchprefix+"isocandsp4"                               ); 
+    iEvent.put(std::move(taus_pf_mass                                 ),branchprefix+"mass"                                     );  
+    iEvent.put(std::move(taus_pf_lead_chargecand_p4                   ),branchprefix+"leadchargecandp4"                         ); 
+    iEvent.put(std::move(taus_pf_lead_neutrcand_p4                    ),branchprefix+"leadneutrcandp4"                          ); 
+    iEvent.put(std::move(taus_pf_signalcands_p4                       ),branchprefix+"signalcandsp4"                            ); 
+    iEvent.put(std::move(taus_pf_isocands_p4                          ),branchprefix+"isocandsp4"                               ); 
 }
 
 //define this as a plug-in

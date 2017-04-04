@@ -176,12 +176,12 @@ void ObjectToTriggerLegAssMaker::produce(edm::Event& iEvent, const edm::EventSet
 
         // create auto ptrs to hold matches (prescales) of this trigger to each electron
         // and version number of this trigger
-        std::auto_ptr<std::vector<unsigned int> >   autoptr_prescales   (new std::vector<unsigned int> (prescales[i].begin(), prescales[i].end()));
-        std::auto_ptr<unsigned int>                 autoptr_version     (new unsigned int (triggerVersions_[i]));
+        std::unique_ptr<std::vector<unsigned int> >   autoptr_prescales   (new std::vector<unsigned int> (prescales[i].begin(), prescales[i].end()));
+        std::unique_ptr<unsigned int>                 autoptr_version     (new unsigned int (triggerVersions_[i]));
 
         // put into the event
-        iEvent.put(autoptr_prescales,           branchNames_[i]);
-        iEvent.put(autoptr_version,             branchNames_[i]+"version");
+        iEvent.put(std::move(autoptr_prescales),           branchNames_[i]);
+        iEvent.put(std::move(autoptr_version),             branchNames_[i]+"version");
     }
 
 }
