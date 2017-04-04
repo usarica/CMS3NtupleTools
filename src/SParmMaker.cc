@@ -60,6 +60,7 @@ SParmMaker::SParmMaker(const edm::ParameterSet& iConfig) {
   // parameters from configuration
   sparmToken = consumes<LHEEventProduct>(iConfig.getParameter<edm::InputTag>("sparm_inputTag"));
   configToken = consumes<GenLumiInfoHeader, edm::InLumi>(iConfig.getParameter<edm::InputTag>("config_inputTag"));
+  configToken_filt = consumes<GenFilterInfo, edm::InLumi>(edm::InputTag("genFilterEfficiencyProducer"));
 
   // sparm names from configuration
   vsparms_ = iConfig.getUntrackedParameter<std::vector<std::string> >("vsparms");
@@ -75,6 +76,8 @@ SParmMaker::SParmMaker(const edm::ParameterSet& iConfig) {
   produces<float>                 (branchprefix+"pdfScale"         ).setBranchAlias(aliasprefix_+"_pdfScale"         );
   produces<float>                 (branchprefix+"filterEfficiency" ).setBranchAlias(aliasprefix_+"_filterEfficiency" );
   produces<float>                 (branchprefix+"xsec"             ).setBranchAlias(aliasprefix_+"_xsec"             );
+
+  filtEff = 1.;
  
 }
 
@@ -83,6 +86,17 @@ SParmMaker::~SParmMaker() {}
 //
 // member functions
 //
+
+void SParmMaker::beginLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const& iSetup) {
+
+    edm::Handle<GenFilterInfo> config_handle_filter;  
+    iLumi.getByLabel("genFilterEfficiencyProducer", config_handle_filter);
+    filtEff = config_handle_filter->filterEfficiency();
+
+}
+
+void SParmMaker::endLuminosityBlock(edm::LuminosityBlock const& iLumi, edm::EventSetup const& iSetup) {
+}
 
 // ------------ method called to produce the data  ------------
 void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -129,6 +143,8 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         }
       }
     }
+
+    *sparm_filterEfficiency = filtEff;
 
     if( sparm_handle.isValid() && !found_sparms ){
         for (std::vector<std::string>::const_iterator it = sparm_handle->comments_begin(); it != sparm_handle->comments_end(); it++) {      

@@ -35,6 +35,7 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenLumiInfoHeader.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenFilterInfo.h"
 
 //
 // class declaration
@@ -47,14 +48,18 @@ public:
 
 private:
     virtual void beginJob() ;
+    virtual void beginLuminosityBlock(edm::LuminosityBlock const&, const edm::EventSetup&) ;
+    virtual void endLuminosityBlock(edm::LuminosityBlock const&, const edm::EventSetup&) ;
     virtual void produce(edm::Event&, const edm::EventSetup&);
     virtual void endJob() ;
       
     // ----------member data ---------------------------
     edm::EDGetTokenT<LHEEventProduct> sparmToken;
     edm::EDGetTokenT<GenLumiInfoHeader> configToken;
+    edm::EDGetTokenT<GenFilterInfo> configToken_filt;
     std::string aliasprefix_;
-  std::vector<std::string> vsparms_;
+    std::vector<std::string> vsparms_;
+    float filtEff;
 };
 
 
