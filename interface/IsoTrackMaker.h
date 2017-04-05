@@ -17,8 +17,8 @@
 
 class IsoTrackMaker : public edm::stream::EDProducer<> {
 public:
-     explicit IsoTrackMaker (const edm::ParameterSet&);
-     ~IsoTrackMaker();
+  explicit IsoTrackMaker (const edm::ParameterSet&);
+  ~IsoTrackMaker();
 
 private:
   //  virtual void beginJob() ;
@@ -40,4 +40,3 @@ private:
 };
 
 #endif
-

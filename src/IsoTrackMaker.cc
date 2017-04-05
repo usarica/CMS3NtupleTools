@@ -34,7 +34,6 @@ IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
   pfhad_pt_cut_     = iConfig.getParameter<double>    ("pfhad_pt_cut");
   coneR_            = iConfig.getParameter<double>    ("coneR");//cone size for isolation calculation
 
-
   produces<vector<LorentzVector> > ("isotracksp4"         ).setBranchAlias("isotracks_p4"         );
   produces<vector<float> >         ("isotracksmass"       ).setBranchAlias("isotracks_mass"       );
   produces<vector<float> >         ("isotracksdz"         ).setBranchAlias("isotracks_dz"         );
@@ -50,7 +49,7 @@ IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
 }
 
 IsoTrackMaker::~IsoTrackMaker(){}
-void  IsoTrackMaker::beginRun(const edm::Run&, const edm::EventSetup& es){}
+void IsoTrackMaker::beginRun(const edm::Run&, const edm::EventSetup& es){}
 void IsoTrackMaker::beginJob() {}
 void IsoTrackMaker::endJob()   {}
 
@@ -96,10 +95,10 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
       isotracks_dzAssociatedPV    ->push_back( -9999. );
       isotracks_IdAssociatedPV    ->push_back( -9999  );
     }
-    isotracks_charge->push_back( pf_it->charge() );
-    isotracks_particleId->push_back( pf_it->pdgId() );
-    isotracks_fromPV->push_back( pf_it->fromPV() );
-    isotracks_puppiWeight       ->push_back( pf_it->puppiWeight());
+    isotracks_charge      ->push_back( pf_it->charge() );
+    isotracks_particleId  ->push_back( pf_it->pdgId() );
+    isotracks_fromPV      ->push_back( pf_it->fromPV() );
+    isotracks_puppiWeight ->push_back( pf_it->puppiWeight());
 
     //calculate isolation from other pfcandidates
     float absIso = 0.0;
@@ -121,17 +120,18 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
   }//loop over candidate collection
 
-  iEvent.put(std::move(isotracks_p4),			   "isotracksp4"	      );
-  iEvent.put(std::move(isotracks_mass),		   "isotracksmass"	    );
-  iEvent.put(std::move(isotracks_dz),			   "isotracksdz"	      );
-  iEvent.put(std::move(isotracks_charge),		 "isotrackscharge"    );
-  iEvent.put(std::move(isotracks_particleId), "isotracksparticleId");
-  iEvent.put(std::move(isotracks_fromPV),		 "isotracksfromPV"    );
-  iEvent.put(std::move(isotracks_relIso),		 "isotracksrelIso"    );
+  iEvent.put(std::move(isotracks_p4),                   "isotracksp4"       );
+  iEvent.put(std::move(isotracks_mass),                 "isotracksmass"     );
+  iEvent.put(std::move(isotracks_dz),                   "isotracksdz"       );
+  iEvent.put(std::move(isotracks_charge),               "isotrackscharge"    );
+  iEvent.put(std::move(isotracks_particleId),           "isotracksparticleId");
+  iEvent.put(std::move(isotracks_fromPV),               "isotracksfromPV"    );
+  iEvent.put(std::move(isotracks_relIso),               "isotracksrelIso"    );
   iEvent.put(std::move(isotracks_pvAssociationQuality), "isotrackspvAssociationQuality");
-  iEvent.put(std::move(isotracks_IdAssociatedPV),	 "isotracksIdAssociatedPV"    );
-  iEvent.put(std::move(isotracks_dzAssociatedPV),	 "isotracksdzAssociatedPV"    );
-  iEvent.put(std::move(isotracks_puppiWeight),	 "isotrackspuppiWeight"       );
+  iEvent.put(std::move(isotracks_IdAssociatedPV),       "isotracksIdAssociatedPV"    );
+  iEvent.put(std::move(isotracks_dzAssociatedPV),       "isotracksdzAssociatedPV"    );
+  iEvent.put(std::move(isotracks_puppiWeight),          "isotrackspuppiWeight"       );
+
 }
 
 //define this as a plug-in

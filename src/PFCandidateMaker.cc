@@ -34,21 +34,33 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig){
   std::string branchprefix = aliasprefix_;
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
-  produces<vector<LorentzVector>> (branchprefix+"p4"                   ).setBranchAlias(aliasprefix_+"_p4"                   );
-  produces<vector<float>>         (branchprefix+"mass"                 ).setBranchAlias(aliasprefix_+"_mass"                 );
-  produces<vector<float>>         (branchprefix+"dz"                   ).setBranchAlias(aliasprefix_+"_dz"                   );
-  produces<vector<int>>           (branchprefix+"charge"               ).setBranchAlias(aliasprefix_+"_charge"               );
-  produces<vector<int>>           (branchprefix+"particleId"           ).setBranchAlias(aliasprefix_+"_particleId"           );
-  produces<vector<uint8_t>>       (branchprefix+"fromPV"               ).setBranchAlias(aliasprefix_+"_fromPV"               );
-  produces<vector<bool>>          (branchprefix+"isStandAloneMuon"     ).setBranchAlias(aliasprefix_+"_isStandAloneMuon"     );
-  produces<vector<bool>>          (branchprefix+"isGlobalMuon"         ).setBranchAlias(aliasprefix_+"_isGlobalMuon"         );
-  produces<vector<uint8_t>>       (branchprefix+"pvAssociationQuality" ).setBranchAlias(aliasprefix_+"_pvAssociationQuality" );
-  produces<vector<int>>           (branchprefix+"IdAssociatedPV"       ).setBranchAlias(aliasprefix_+"_IdAssociatedPV"       );
-  produces<vector<float>>         (branchprefix+"dzAssociatedPV"       ).setBranchAlias(aliasprefix_+"_dzAssociatedPV"       );
-  produces<vector<float>>         (branchprefix+"puppiWeight"          ).setBranchAlias(aliasprefix_+"_puppiWeight"          );
-  produces<vector<float>>         (branchprefix+"puppiWeightNoLep"     ).setBranchAlias(aliasprefix_+"_puppiWeightNoLep"     );
-  produces<vector<float>>         (branchprefix+"trackIso"             ).setBranchAlias(aliasprefix_+"_trackIso"             );
-  produces<vector<float>>         (branchprefix+"miniTrackIso"         ).setBranchAlias(aliasprefix_+"_miniTrackIso"         );
+  produces<vector<LorentzVector>> (branchprefix+"p4"                         ).setBranchAlias(aliasprefix_+"_p4"                         );
+  produces<vector<float>>         (branchprefix+"mass"                       ).setBranchAlias(aliasprefix_+"_mass"                       );
+  produces<vector<float>>         (branchprefix+"dz"                         ).setBranchAlias(aliasprefix_+"_dz"                         );
+  produces<vector<float>>         (branchprefix+"dxy"                        ).setBranchAlias(aliasprefix_+"_dxy"                        );
+  produces<vector<float>>         (branchprefix+"dzError"                    ).setBranchAlias(aliasprefix_+"_dzError"                    );
+  produces<vector<float>>         (branchprefix+"dxyError"                   ).setBranchAlias(aliasprefix_+"_dxyError"                   );
+  produces<vector<int>>           (branchprefix+"charge"                     ).setBranchAlias(aliasprefix_+"_charge"                     );
+  produces<vector<int>>           (branchprefix+"particleId"                 ).setBranchAlias(aliasprefix_+"_particleId"                 );
+  produces<vector<uint8_t>>       (branchprefix+"fromPV"                     ).setBranchAlias(aliasprefix_+"_fromPV"                     );
+  produces<vector<bool>>          (branchprefix+"isStandAloneMuon"           ).setBranchAlias(aliasprefix_+"_isStandAloneMuon"           );
+  produces<vector<bool>>          (branchprefix+"isGlobalMuon"               ).setBranchAlias(aliasprefix_+"_isGlobalMuon"               );
+  produces<vector<uint8_t>>       (branchprefix+"pvAssociationQuality"       ).setBranchAlias(aliasprefix_+"_pvAssociationQuality"       );
+  produces<vector<int>>           (branchprefix+"IdAssociatedPV"             ).setBranchAlias(aliasprefix_+"_IdAssociatedPV"             );
+  produces<vector<float>>         (branchprefix+"dzAssociatedPV"             ).setBranchAlias(aliasprefix_+"_dzAssociatedPV"             );
+  produces<vector<float>>         (branchprefix+"puppiWeight"                ).setBranchAlias(aliasprefix_+"_puppiWeight"                );
+  produces<vector<float>>         (branchprefix+"puppiWeightNoLep"           ).setBranchAlias(aliasprefix_+"_puppiWeightNoLep"           );
+  produces<vector<float>>         (branchprefix+"trackIso"                   ).setBranchAlias(aliasprefix_+"_trackIso"                   );
+  produces<vector<float>>         (branchprefix+"miniTrackIso"               ).setBranchAlias(aliasprefix_+"_miniTrackIso"               );
+  produces<vector<uint8_t>>       (branchprefix+"packedHits"                 ).setBranchAlias(aliasprefix_+"_packedHits"                 );
+  produces<vector<uint8_t>>       (branchprefix+"packedLayers"               ).setBranchAlias(aliasprefix_+"_packedLayers"               );
+  produces<vector<uint16_t>>      (branchprefix+"qualityFlags"               ).setBranchAlias(aliasprefix_+"_qualityFlags"               );
+  produces<vector<uint8_t>>       (branchprefix+"normalizedChi2"             ).setBranchAlias(aliasprefix_+"_normalizedChi2"             );
+  produces<vector<int>>           (branchprefix+"numberOfPixelHits"          ).setBranchAlias(aliasprefix_+"_numberOfPixelHits"          );
+  produces<vector<int>>           (branchprefix+"numberOfHits"               ).setBranchAlias(aliasprefix_+"_numberOfHits"               );
+  produces<vector<int>>           (branchprefix+"pixelLayersWithMeasurement" ).setBranchAlias(aliasprefix_+"_pixelLayersWithMeasurement" );
+  produces<vector<int>>           (branchprefix+"stripLayersWithMeasurement" ).setBranchAlias(aliasprefix_+"_stripLayersWithMeasurement" );
+  produces<vector<bool>>          (branchprefix+"trackHighPurity"            ).setBranchAlias(aliasprefix_+"_trackHighPurity"            );
 
 }
 
@@ -59,25 +71,38 @@ void PFCandidateMaker::endJob()   {}
 
 void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
-  unique_ptr<vector<LorentzVector>> pfcands_p4                  (new vector<LorentzVector> );
-  unique_ptr<vector<float>>         pfcands_mass                (new vector<float>         );
-  unique_ptr<vector<float>>         pfcands_dz                  (new vector<float>         );
-  unique_ptr<vector<int>>           pfcands_charge              (new vector<int>           );
-  unique_ptr<vector<int>>           pfcands_particleId          (new vector<int>           );
-  unique_ptr<vector<bool>>          pfcands_isStandAloneMuon    (new vector<bool>          );
-  unique_ptr<vector<bool>>          pfcands_isGlobalMuon        (new vector<bool>          );
-  unique_ptr<vector<uint8_t>>       pfcands_fromPV              (new vector<uint8_t>       );
-  unique_ptr<vector<uint8_t>>       pfcands_pvAssociationQuality(new vector<uint8_t>       );
-  unique_ptr<vector<int>>           pfcands_IdAssociatedPV      (new vector<int>           );
-  unique_ptr<vector<float>>         pfcands_dzAssociatedPV      (new vector<float>         );
-  unique_ptr<vector<float>>         pfcands_puppiWeight         (new vector<float>         );
-  unique_ptr<vector<float>>         pfcands_puppiWeightNoLep    (new vector<float>         );
-  unique_ptr<vector<float>>         pfcands_trackIso            (new vector<float>         );
-  unique_ptr<vector<float>>         pfcands_miniTrackIso        (new vector<float>         );
+  unique_ptr<vector<LorentzVector>> pfcands_p4                         (new vector<LorentzVector> );
+  unique_ptr<vector<float>>         pfcands_mass                       (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_dz                         (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_dxy                        (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_dzError                    (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_dxyError                   (new vector<float>         );
+  unique_ptr<vector<int>>           pfcands_charge                     (new vector<int>           );
+  unique_ptr<vector<int>>           pfcands_particleId                 (new vector<int>           );
+  unique_ptr<vector<bool>>          pfcands_isStandAloneMuon           (new vector<bool>          );
+  unique_ptr<vector<bool>>          pfcands_isGlobalMuon               (new vector<bool>          );
+  unique_ptr<vector<uint8_t>>       pfcands_fromPV                     (new vector<uint8_t>       );
+  unique_ptr<vector<uint8_t>>       pfcands_pvAssociationQuality       (new vector<uint8_t>       );
+  unique_ptr<vector<int>>           pfcands_IdAssociatedPV             (new vector<int>           );
+  unique_ptr<vector<float>>         pfcands_dzAssociatedPV             (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_puppiWeight                (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_puppiWeightNoLep           (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_trackIso                   (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_miniTrackIso               (new vector<float>         );
+  unique_ptr<vector<int>>           pfcands_numberOfPixelHits          (new vector<int>           );
+  unique_ptr<vector<int>>           pfcands_numberOfHits               (new vector<int>           );
+  unique_ptr<vector<int>>           pfcands_pixelLayersWithMeasurement (new vector<int>           );
+  unique_ptr<vector<int>>           pfcands_stripLayersWithMeasurement (new vector<int>           );
+  unique_ptr<vector<bool>>          pfcands_trackHighPurity            (new vector<bool>          );
 
-  unique_ptr<vector<float>>       pfcands_helperPhi           (new vector<float>         );
-  unique_ptr<vector<float>>       pfcands_helperEta           (new vector<float>         );
-  unique_ptr<vector<bool>>        pfcands_helperPVinfo        (new vector<bool>          );
+  // unique_ptr<vector<uint8_t>>       pfcands_packedHits          (new vector<uint8_t>       );
+  // unique_ptr<vector<uint8_t>>       pfcands_packedLayers        (new vector<uint8_t>       );
+  // unique_ptr<vector<uint16_t>>      pfcands_qualityFlags        (new vector<uint16_t>      );
+  // unique_ptr<vector<uint8_t>>       pfcands_normalizedChi2      (new vector<uint8_t>       );
+
+  unique_ptr<vector<float>>         pfcands_helperPhi           (new vector<float>         );
+  unique_ptr<vector<float>>         pfcands_helperEta           (new vector<float>         );
+  unique_ptr<vector<bool>>          pfcands_helperPVinfo        (new vector<bool>          );
 
   //get pfcandidates
   Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -94,6 +119,9 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 
     if (!pf_it->vertexRef().isNull()){
       pfcands_dz                   -> push_back( pf_it->dz()                   );
+      pfcands_dxy                  -> push_back( pf_it->dxy()                  );
+      pfcands_dzError              -> push_back( pf_it->dzError()              );
+      pfcands_dxyError             -> push_back( pf_it->dxyError()             );
       pfcands_pvAssociationQuality -> push_back( pf_it->pvAssociationQuality() );
       pfcands_dzAssociatedPV       -> push_back( pf_it->dzAssociatedPV()       );
       pfcands_IdAssociatedPV       -> push_back( pf_it->vertexRef().key()      );
@@ -104,13 +132,19 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
       pfcands_IdAssociatedPV       -> push_back( -9999                         );
     }
 
-    pfcands_charge           -> push_back( pf_it->charge()           );
-    pfcands_particleId       -> push_back( pf_it->pdgId()            );
-    pfcands_fromPV           -> push_back( pf_it->fromPV()           );
-    pfcands_puppiWeight      -> push_back( pf_it->puppiWeight()      );
-    pfcands_puppiWeightNoLep -> push_back( pf_it->puppiWeightNoLep() );
-    pfcands_isStandAloneMuon -> push_back( pf_it->isStandAloneMuon() );
-    pfcands_isGlobalMuon     -> push_back( pf_it->isGlobalMuon()     );
+    pfcands_charge                     -> push_back( pf_it->charge()                     );
+    pfcands_particleId                 -> push_back( pf_it->pdgId()                      );
+    pfcands_fromPV                     -> push_back( pf_it->fromPV()                     );
+    pfcands_puppiWeight                -> push_back( pf_it->puppiWeight()                );
+    pfcands_puppiWeightNoLep           -> push_back( pf_it->puppiWeightNoLep()           );
+    pfcands_isStandAloneMuon           -> push_back( pf_it->isStandAloneMuon()           );
+    pfcands_isGlobalMuon               -> push_back( pf_it->isGlobalMuon()               );
+    pfcands_numberOfPixelHits          -> push_back( pf_it->numberOfPixelHits()          );
+    pfcands_numberOfHits               -> push_back( pf_it->numberOfHits()               );
+    pfcands_pixelLayersWithMeasurement -> push_back( pf_it->pixelLayersWithMeasurement() );
+    pfcands_stripLayersWithMeasurement -> push_back( pf_it->stripLayersWithMeasurement() );
+    pfcands_trackHighPurity            -> push_back( pf_it->trackHighPurity()            );
+
   }//loop over candidate collection
 
   for (auto ibegin = pfCandidates->begin(), pf_it1 = ibegin; pf_it1 != pfCandidates->end(); pf_it1++) {
@@ -165,21 +199,29 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
   if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
   //Keep it
-  iEvent.put(std::move(pfcands_p4                   ), branchprefix+"p4"                  );
-  iEvent.put(std::move(pfcands_mass                 ), branchprefix+"mass"                );
-  iEvent.put(std::move(pfcands_dz                   ), branchprefix+"dz"                  );
-  iEvent.put(std::move(pfcands_charge               ), branchprefix+"charge"              );
-  iEvent.put(std::move(pfcands_particleId           ), branchprefix+"particleId"          );
-  iEvent.put(std::move(pfcands_isGlobalMuon         ), branchprefix+"isGlobalMuon"        );
-  iEvent.put(std::move(pfcands_isStandAloneMuon     ), branchprefix+"isStandAloneMuon"    );
-  iEvent.put(std::move(pfcands_fromPV               ), branchprefix+"fromPV"              );
-  iEvent.put(std::move(pfcands_pvAssociationQuality ), branchprefix+"pvAssociationQuality");
-  iEvent.put(std::move(pfcands_IdAssociatedPV       ), branchprefix+"IdAssociatedPV"      );
-  iEvent.put(std::move(pfcands_dzAssociatedPV       ), branchprefix+"dzAssociatedPV"      );
-  iEvent.put(std::move(pfcands_puppiWeight          ), branchprefix+"puppiWeight"         );
-  iEvent.put(std::move(pfcands_puppiWeightNoLep     ), branchprefix+"puppiWeightNoLep"    );
-  iEvent.put(std::move(pfcands_trackIso             ), branchprefix+"trackIso"            );
-  iEvent.put(std::move(pfcands_miniTrackIso         ), branchprefix+"miniTrackIso"        );
+  iEvent.put(std::move(pfcands_p4                        ), branchprefix+"p4"                         );
+  iEvent.put(std::move(pfcands_mass                      ), branchprefix+"mass"                       );
+  iEvent.put(std::move(pfcands_dz                        ), branchprefix+"dz"                         );
+  iEvent.put(std::move(pfcands_dxy                       ), branchprefix+"dxy"                        );
+  iEvent.put(std::move(pfcands_dzError                   ), branchprefix+"dzError"                    );
+  iEvent.put(std::move(pfcands_dxyError                  ), branchprefix+"dxyError"                   );
+  iEvent.put(std::move(pfcands_charge                    ), branchprefix+"charge"                     );
+  iEvent.put(std::move(pfcands_particleId                ), branchprefix+"particleId"                 );
+  iEvent.put(std::move(pfcands_isGlobalMuon              ), branchprefix+"isGlobalMuon"               );
+  iEvent.put(std::move(pfcands_isStandAloneMuon          ), branchprefix+"isStandAloneMuon"           );
+  iEvent.put(std::move(pfcands_fromPV                    ), branchprefix+"fromPV"                     );
+  iEvent.put(std::move(pfcands_pvAssociationQuality      ), branchprefix+"pvAssociationQuality"       );
+  iEvent.put(std::move(pfcands_IdAssociatedPV            ), branchprefix+"IdAssociatedPV"             );
+  iEvent.put(std::move(pfcands_dzAssociatedPV            ), branchprefix+"dzAssociatedPV"             );
+  iEvent.put(std::move(pfcands_puppiWeight               ), branchprefix+"puppiWeight"                );
+  iEvent.put(std::move(pfcands_puppiWeightNoLep          ), branchprefix+"puppiWeightNoLep"           );
+  iEvent.put(std::move(pfcands_trackIso                  ), branchprefix+"trackIso"                   );
+  iEvent.put(std::move(pfcands_miniTrackIso              ), branchprefix+"miniTrackIso"               );
+  iEvent.put(std::move(pfcands_numberOfPixelHits         ), branchprefix+"numberOfPixelHits"          );
+  iEvent.put(std::move(pfcands_numberOfHits              ), branchprefix+"numberOfHits"               );
+  iEvent.put(std::move(pfcands_pixelLayersWithMeasurement), branchprefix+"pixelLayersWithMeasurement" );
+  iEvent.put(std::move(pfcands_stripLayersWithMeasurement), branchprefix+"stripLayersWithMeasurement" );
+  iEvent.put(std::move(pfcands_trackHighPurity           ), branchprefix+"trackHighPurity"            );
 
 }
 
