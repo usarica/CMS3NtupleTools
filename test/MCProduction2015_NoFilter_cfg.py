@@ -1,13 +1,20 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.EventContent.EventContent_cff   import *
 
+
+is_data = False
+is_fastsim = False
+is_relval = False
+do_deepbtag = True
+
+
+
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
 configProcessName.name2="RECO"
-configProcessName.isFastSim=False
+configProcessName.isFastSim=is_fastsim
 
-relval = False
-if relval: configProcessName.name="RECO"
+if is_relval: configProcessName.name="RECO"
 
 # CMS3
 process = cms.Process("CMS3")
@@ -37,12 +44,14 @@ process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
+                               # fileName     = cms.untracked.string('ntuple2.root'),
                                dropMetaData = cms.untracked.string("NONE"),
-                               basketSize = cms.untracked.int32(16384*100)
+                               # basketSize = cms.untracked.int32(16384*150)
+                               # basketSize = cms.untracked.int32(16384*10)
+                               basketSize = cms.untracked.int32(16384*25)
 )
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
-process.outpath = cms.EndPath(process.out)
+
+
 
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
@@ -62,40 +71,43 @@ process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi"
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
-my_id_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff']
+my_id_modules = [
+        # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+        # 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff',
+                 ]
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
-process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
+if not is_data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
+process.eventMaker.isData                        = cms.bool(is_data)
     
-from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-from PhysicsTools.PatAlgos.tools.jetTools import *
-deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
-updateJetCollection(
-    process,
-    jetSource = cms.InputTag('slimmedJets'),
-   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-    btagDiscriminators = deep_discriminators
-)
-updateJetCollection(
-    process,
-    labelName = 'Puppi',
-    jetSource = cms.InputTag('slimmedJetsPuppi'),
-   jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-    btagDiscriminators = deep_discriminators
-)
+if do_deepbtag:
+    from PhysicsTools.PatAlgos.tools.jetTools import *
+    deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
+    updateJetCollection(
+        process,
+        jetSource = cms.InputTag('slimmedJets'),
+       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+        btagDiscriminators = deep_discriminators
+    )
+    updateJetCollection(
+        process,
+        labelName = 'Puppi',
+        jetSource = cms.InputTag('slimmedJetsPuppi'),
+       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+        btagDiscriminators = deep_discriminators
+    )
 
-# Needed for the above updateJetCollection() calls
-process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
-process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
+    # Needed for the above updateJetCollection() calls
+    process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+    process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
@@ -109,21 +121,28 @@ process.source = cms.Source("PoolSource",
 #         'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv1/ttbb_4FS_ckm_amcatnlo_madspin_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/60000/F4EA8D09-9002-E611-9D1B-1CC1DE19274E.root',
 #                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
-                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root'
+                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
+                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
+                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test',
+                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
+                                # 'file:DataDoubleEG2016C.root',
+                                # 'file:QCD_HT200to300.root',
+                                # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
+# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
+# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 
 #Run corrected MET maker
 
 #configurable options =======================================================================
-runOnData=False #data/MC switch
 usePrivateSQlite=False #use external JECs (sqlite file)
-applyResiduals=False #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=is_data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
@@ -151,14 +170,19 @@ if usePrivateSQlite:
 #jets are rebuilt from those candidates by the tools, no need to do anything else
 ### =================================================================================
 
-from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+process.outpath = cms.EndPath(process.out)
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 
+if not is_data:
+    from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+    #default configuration for miniAOD reprocessing, change the isData flag to run on data
+    #for a full met computation, remove the pfCandColl input
+    runMetCorAndUncFromMiniAOD(process,
+                               isData=is_data,
+                               )
 
-#default configuration for miniAOD reprocessing, change the isData flag to run on data
-#for a full met computation, remove the pfCandColl input
-runMetCorAndUncFromMiniAOD(process,
-                           isData=runOnData,
-                           )
+process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing data
@@ -200,7 +224,35 @@ if not applyResiduals:
 #   process.hypDilepMaker
 # )
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
-process.eventMaker.isData                        = cms.bool(False)
 
-process.Timing = cms.Service("Timing")
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
+process.Timing = cms.Service("Timing",
+        summaryOnly = cms.untracked.bool(True)
+        )
+
+
+# for use with Valgrind. After enabling, can do
+# $ valgrind --leak-check=yes  cmsRun main_pset.py >& log.txt
+# $ valgrindMemcheckParser.pl --preset=prod,-prod1+ log.txt  > blah.html
+# process.ProfilerService = cms.Service (
+#         "ProfilerService",
+#         firstEvent = cms.untracked.int32(2),
+#         lastEvent = cms.untracked.int32(10),
+#         paths = cms.untracked.vstring('p1')
+# )
+
+
+# process.GlobalTag.globaltag = "SUPPLY_GLOBAL_TAG"
+# process.out.fileName = cms.untracked.string('SUPPLY_OUTPUT_FILE_NAME'),
+# process.source.fileNames = cms.untracked.vstring('SUPPLY_INPUT_FILE_NAME')
+# process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
+# process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
+# process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
+
+# process.GlobalTag.globaltag = "80X_dataRun2_2016SeptRepro_v7"
+# process.out.fileName = cms.untracked.string('ntuple.root')
+# process.source.fileNames = cms.untracked.vstring('file:DataDoubleEG2016C.root')
+# process.eventMaker.CMS3tag = cms.string('V08-00-18')
+# process.eventMaker.datasetName = cms.string('/DoubleEG/Run2016C-03Feb2017-v1/MINIAOD')
+# process.maxEvents.input = cms.untracked.int32(3000)
