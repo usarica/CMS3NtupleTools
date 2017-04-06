@@ -179,11 +179,11 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // http://cmslxr.fnal.gov/lxr/source/DataFormats/EgammaCandidates/interface/GsfElectron.h
 
     // Spring 15 predefined ID decisions
-    produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
-    produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
-    produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
-    produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
-    produces<vector<int> >       ("passHEEPId"                 ).setBranchAlias("els_passHEEPId"                 );
+    // produces<vector<int> >       ("passVetoId"                 ).setBranchAlias("els_passVetoId"                 );
+    // produces<vector<int> >       ("passLooseId"                ).setBranchAlias("els_passLooseId"                );
+    // produces<vector<int> >       ("passMediumId"               ).setBranchAlias("els_passMediumId"               );
+    // produces<vector<int> >       ("passTightId"                ).setBranchAlias("els_passTightId"                );
+    // produces<vector<int> >       ("passHEEPId"                 ).setBranchAlias("els_passHEEPId"                 );
     produces<vector<int> >       ("passVIDNonTrigMvaWP80Id"    ).setBranchAlias("els_passVIDNonTrigMvaWP80Id"    );
     produces<vector<int> >       ("passVIDNonTrigMvaWP90Id"    ).setBranchAlias("els_passVIDNonTrigMvaWP90Id"    );
     produces<vector<int> >       ("passVIDTrigMvaWP80Id"       ).setBranchAlias("els_passVIDTrigMvaWP80Id"       );
@@ -381,11 +381,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     unique_ptr<vector<int> > els_category (new vector<int>);
 
-    unique_ptr<vector<int> > passVetoId     (new vector<int>);
-    unique_ptr<vector<int> > passLooseId    (new vector<int>);
-    unique_ptr<vector<int> > passMediumId   (new vector<int>);
-    unique_ptr<vector<int> > passTightId    (new vector<int>);
-    unique_ptr<vector<int> > passHEEPId                  (new vector<int>);
+    // unique_ptr<vector<int> > passVetoId     (new vector<int>);
+    // unique_ptr<vector<int> > passLooseId    (new vector<int>);
+    // unique_ptr<vector<int> > passMediumId   (new vector<int>);
+    // unique_ptr<vector<int> > passTightId    (new vector<int>);
+    // unique_ptr<vector<int> > passHEEPId                  (new vector<int>);
     unique_ptr<vector<int> > passVIDNonTrigMvaWP80Id     (new vector<int>);
     unique_ptr<vector<int> > passVIDNonTrigMvaWP90Id     (new vector<int>);
     unique_ptr<vector<int> > passVIDTrigMvaWP80Id        (new vector<int>);
@@ -596,11 +596,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
 //    const ValueMap<float>&  eidLHMap = getValueMap<float>(iEvent, eidLHTag_);
 
-    edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-    edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-    edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-    edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
-    edm::Handle<edm::ValueMap<bool> > HEEP_id_decisions;
+    // edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+    // edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
+    // edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
+    // edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
+    // edm::Handle<edm::ValueMap<bool> > HEEP_id_decisions;
     edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP80_id_decisions;
     edm::Handle<edm::ValueMap<bool> > VIDNonTrigMvaWP90_id_decisions;
     edm::Handle<edm::ValueMap<bool> > VIDTrigMvaWP80_id_decisions;
@@ -613,11 +613,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
     edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
     edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
-    iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
-    iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
-    iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
-    iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
-    iEvent.getByToken(electronHEEPIdMapToken_,HEEP_id_decisions);
+
+    // iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
+    // iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
+    // iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
+    // iEvent.getByToken(electronTightIdMapToken_,tight_id_decisions);
+    // iEvent.getByToken(electronHEEPIdMapToken_,HEEP_id_decisions);
     iEvent.getByToken(electronVIDNonTrigMvaWP80IdMapToken_,VIDNonTrigMvaWP80_id_decisions);
     iEvent.getByToken(electronVIDNonTrigMvaWP90IdMapToken_,VIDNonTrigMvaWP90_id_decisions);
     iEvent.getByToken(electronVIDTrigMvaWP80IdMapToken_,VIDTrigMvaWP80_id_decisions);
@@ -741,11 +742,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         const Ptr<pat::Electron> elPtr(els_h, el - els_h->begin() );
   
-        passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
-        passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
-        passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
-        passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
-        passHEEPId               ->push_back( (*HEEP_id_decisions)[ elPtr ] );
+        // passVetoId  ->push_back( (*veto_id_decisions)[ elPtr ] );
+        // passLooseId ->push_back( (*loose_id_decisions)[ elPtr ] );
+        // passMediumId->push_back( (*medium_id_decisions)[ elPtr ] );
+        // passTightId ->push_back( (*tight_id_decisions)[ elPtr ] );
+        // passHEEPId               ->push_back( (*HEEP_id_decisions)[ elPtr ] );
         passVIDNonTrigMvaWP80Id  ->push_back( (*VIDNonTrigMvaWP80_id_decisions)[ elPtr ] );
         passVIDNonTrigMvaWP90Id  ->push_back( (*VIDNonTrigMvaWP90_id_decisions)[ elPtr ] );
         passVIDTrigMvaWP80Id     ->push_back( (*VIDTrigMvaWP80_id_decisions)[ elPtr ] );
@@ -1109,11 +1110,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     iEvent.put(std::move(els_category ), "elscategory" );
   
-    iEvent.put(std::move(passVetoId),   "passVetoId"   );
-    iEvent.put(std::move(passLooseId),  "passLooseId"  );
-    iEvent.put(std::move(passMediumId), "passMediumId" );
-    iEvent.put(std::move(passTightId),  "passTightId"  );
-    iEvent.put(std::move(passHEEPId),                "passHEEPId"  );
+    // iEvent.put(std::move(passVetoId),   "passVetoId"   );
+    // iEvent.put(std::move(passLooseId),  "passLooseId"  );
+    // iEvent.put(std::move(passMediumId), "passMediumId" );
+    // iEvent.put(std::move(passTightId),  "passTightId"  );
+    // iEvent.put(std::move(passHEEPId),                "passHEEPId"  );
     iEvent.put(std::move(passVIDNonTrigMvaWP80Id),   "passVIDNonTrigMvaWP80Id"  );
     iEvent.put(std::move(passVIDNonTrigMvaWP90Id),   "passVIDNonTrigMvaWP90Id"  );
     iEvent.put(std::move(passVIDTrigMvaWP80Id),      "passVIDTrigMvaWP80Id"  );
