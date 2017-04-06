@@ -54,6 +54,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 )
 
 
+
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
 from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
@@ -73,8 +74,8 @@ process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_id_modules = [
-        'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
+        # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
+        # 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
@@ -123,9 +124,10 @@ process.source = cms.Source("PoolSource",
 #                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
                                 # 'file:RelValProdQCD_Pt_3000_3500_13.root'
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
-                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
+                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test',
-                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
+                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
+                                # 'file:DataDoubleEG2016C.root',
                                 # 'file:QCD_HT200to300.root',
                                 # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
                             )
@@ -134,8 +136,8 @@ process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
 # process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
-# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
+# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 
 #Run corrected MET maker
