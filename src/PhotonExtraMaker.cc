@@ -85,9 +85,7 @@ PhotonExtraMaker::PhotonExtraMaker(const edm::ParameterSet& iConfig) {
     produces<vector<int>   > ( branchprefix + "photonIDloose"          ).setBranchAlias( aliasprefix_ + "_photonID_loose"         );
     produces<vector<int>   > ( branchprefix + "photonIDtight"          ).setBranchAlias( aliasprefix_ + "_photonID_tight"         );	
 
-    produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );
     produces<vector<float> > ( branchprefix + "tkIsoSolid03"    ).setBranchAlias( aliasprefix_ + "_tkIsoSolid03"   );
-    produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );
     produces<vector<float> > ( branchprefix + "ntkIsoSolid03"   ).setBranchAlias( aliasprefix_ + "_ntkIsoSolid03"  );
     produces<vector<float> > ( branchprefix + "ecalIso03"       ).setBranchAlias( aliasprefix_ + "_ecalIso03"      );
     produces<vector<float> > ( branchprefix + "hcalIso03"       ).setBranchAlias( aliasprefix_ + "_hcalIso03"      );
@@ -111,8 +109,6 @@ PhotonExtraMaker::PhotonExtraMaker(const edm::ParameterSet& iConfig) {
     produces<vector<float> > ( branchprefix + "hcalDepth1TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth1TowerSumEtBcConeDR03");
     produces<vector<float> > ( branchprefix + "hcalDepth2TowerSumEtBcConeDR03").setBranchAlias( aliasprefix_ + "_hcalDepth2TowerSumEtBcConeDR03");
 
-    produces<vector<float> > ( branchprefix + "ecalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_ecalPFClusterIso");
-    produces<vector<float> > ( branchprefix + "hcalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_hcalPFClusterIso");
 
 
     //
@@ -238,9 +234,7 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     unique_ptr<vector<float> > photons_full5x5_e2x5Max        ( new vector<float> );
     unique_ptr<vector<float> > photons_full5x5_sigmaEtaEta    ( new vector<float> );
  
-    unique_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
     unique_ptr<vector<float> > photons_tkIsoSolid03   ( new vector<float> );
-    unique_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
     unique_ptr<vector<float> > photons_ntkIsoSolid03  ( new vector<float> );
     unique_ptr<vector<float> > photons_ecalIso03      ( new vector<float> );
     unique_ptr<vector<float> > photons_hcalIso03      ( new vector<float> );
@@ -261,8 +255,6 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     unique_ptr<vector<float> > photons_hcalDepth1TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
     unique_ptr<vector<float> > photons_hcalDepth2TowerSumEtBcConeDR03 ( new vector<float> ); // Added for 53x //
 
-    unique_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
-    unique_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
 
     // unique_ptr<vector<int> >   photons_scindex        ( new vector<int>   );   
     // unique_ptr<vector<float> > photons_swissSeed      ( new vector<float> );
@@ -395,9 +387,7 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	// Isolation  (all 0.3 cone size)
 	photons_ecalIso03          ->push_back(	photon->ecalRecHitSumEtConeDR03() );
 	photons_hcalIso03          ->push_back(	photon->hcalTowerSumEtConeDR03()  );	
-	photons_tkIsoHollow03      ->push_back(	photon->trkSumPtHollowConeDR03()  );
 	photons_tkIsoSolid03       ->push_back(	photon->trkSumPtSolidConeDR03()	  );
-	photons_ntkIsoHollow03     ->push_back(	photon->nTrkHollowConeDR03()	  );
 	photons_ntkIsoSolid03      ->push_back(	photon->nTrkSolidConeDR03()		  );
 
 	// Isolation  (all 0.4 cone size)
@@ -422,8 +412,6 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
 	photons_hcalDepth1TowerSumEtBcConeDR03 ->push_back( photon->hcalDepth1TowerSumEtBcConeDR03() );
 	photons_hcalDepth2TowerSumEtBcConeDR03 ->push_back( photon->hcalDepth2TowerSumEtBcConeDR03() );
 
-	photons_ecalPFClusterIso       ->push_back( photon->ecalPFClusterIso()             );
-	photons_hcalPFClusterIso       ->push_back( photon->hcalPFClusterIso()             );
 
 
 	//This is a fix for accessing SC information in reminiAOD_V2
@@ -746,9 +734,7 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     iEvent.put(std::move( photons_full5x5_e2x5Max        ), branchprefix+"full5x5e2x5Max"         );
     iEvent.put(std::move( photons_full5x5_sigmaEtaEta    ), branchprefix+"full5x5sigmaEtaEta"     );
 
-    iEvent.put(std::move( photons_tkIsoHollow03  ), branchprefix+"tkIsoHollow03"   );
     iEvent.put(std::move( photons_tkIsoSolid03   ), branchprefix+"tkIsoSolid03"    );      
-    iEvent.put(std::move( photons_ntkIsoHollow03 ), branchprefix+"ntkIsoHollow03"  );
     iEvent.put(std::move( photons_ntkIsoSolid03  ), branchprefix+"ntkIsoSolid03"   );      
     iEvent.put(std::move( photons_ecalIso03      ), branchprefix+"ecalIso03"       );
     iEvent.put(std::move( photons_hcalIso03      ), branchprefix+"hcalIso03"       );
@@ -769,8 +755,6 @@ void PhotonExtraMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     iEvent.put(std::move( photons_hcalDepth1TowerSumEtBcConeDR03 ), branchprefix + "hcalDepth1TowerSumEtBcConeDR03");// Added for 53x //
     iEvent.put(std::move( photons_hcalDepth2TowerSumEtBcConeDR03 ), branchprefix + "hcalDepth2TowerSumEtBcConeDR03");// Added for 53x //
 
-    iEvent.put(std::move( photons_ecalPFClusterIso  ), branchprefix+"ecalPFClusterIso"    );
-    iEvent.put(std::move( photons_hcalPFClusterIso  ), branchprefix+"hcalPFClusterIso"    );
 
     // iEvent.put(std::move( photons_scindex        ), branchprefix+"scindex"         );
     // iEvent.put(std::move( photons_swissSeed      ), branchprefix+"swissSeed"       );

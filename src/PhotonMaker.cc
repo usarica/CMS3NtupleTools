@@ -82,6 +82,12 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
 
     produces<vector<vector<int>   >   >       ( branchprefix + "pfcandidx"    ).setBranchAlias( branchprefix + "_PFCand_idx"    );
 
+    produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );
+    produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );
+    produces<vector<float> > ( branchprefix + "ecalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_ecalPFClusterIso");
+    produces<vector<float> > ( branchprefix + "hcalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_hcalPFClusterIso");
+
+
     photonsToken = consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
     minEt_                    = iConfig.getParameter<double>("minEt");
 }
@@ -120,6 +126,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<vector<bool> >  photons_passElectronVeto ( new vector<bool>  );
 
     unique_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
+
+    unique_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
+    unique_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
+    unique_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
+    unique_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
  
     ///////////////////// 
     // Get the photons //
@@ -167,6 +178,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
 	photons_passElectronVeto   ->push_back( photon->passElectronVeto()         );
 
+	photons_tkIsoHollow03      ->push_back(	photon->trkSumPtHollowConeDR03()  );
+	photons_ntkIsoHollow03     ->push_back(	photon->nTrkHollowConeDR03()	  );
+	photons_ecalPFClusterIso       ->push_back( photon->ecalPFClusterIso()             );
+	photons_hcalPFClusterIso       ->push_back( photon->hcalPFClusterIso()             );
+
 	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
 	vector<int> v_PFCand_idx;
 	for( const edm::Ref<pat::PackedCandidateCollection> & ref : photon->associatedPackedPFCandidates() )
@@ -201,6 +217,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move( photons_passElectronVeto   ), branchprefix+"passElectronVeto"    );
 
     iEvent.put(std::move( photons_PFCand_idx    ), branchprefix+"pfcandidx"    );
+
+    iEvent.put(std::move( photons_tkIsoHollow03  ), branchprefix+"tkIsoHollow03"   );
+    iEvent.put(std::move( photons_ntkIsoHollow03 ), branchprefix+"ntkIsoHollow03"  );
+    iEvent.put(std::move( photons_ecalPFClusterIso  ), branchprefix+"ecalPFClusterIso"    );
+    iEvent.put(std::move( photons_hcalPFClusterIso  ), branchprefix+"hcalPFClusterIso"    );
 }
 
 //define this as a plug-in
