@@ -1,2 +1,9 @@
 *.pyc
 *~
+*.root
+*.log
+*.gz
+*.pdf
+*.txt
+*.sh
+
