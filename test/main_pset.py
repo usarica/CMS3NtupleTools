@@ -92,7 +92,7 @@ process.eventMaker.isData                        = cms.bool(is_data)
     
 if do_deepbtag:
     from PhysicsTools.PatAlgos.tools.jetTools import *
-    deep_discriminators = ["deepFlavourJetTags:probudsg", "deepFlavourJetTags:probb", "deepFlavourJetTags:probc", "deepFlavourJetTags:probbb", "deepFlavourJetTags:probcc" ]
+    deep_discriminators = ["pfDeepCSVJetTags:probudsg", "pfDeepCSVJetTags:probb", "pfDeepCSVJetTags:probc", "pfDeepCSVJetTags:probbb", "pfDeepCSVJetTags:probcc" ]
     updateJetCollection(
         process,
         jetSource = cms.InputTag('slimmedJets'),
@@ -126,11 +126,13 @@ process.source = cms.Source("PoolSource",
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
                                 # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test',
-                                'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
+                                #'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
                                 # 'file:DataDoubleEG2016C.root',
                                 # 'file:QCD_HT200to300.root',
                                 # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
-                            )
+                               # 'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016E-v1/10000/5C79F5F3-B13C-E711-AEFD-0CC47A4D762A.root'
+                                'root://cmsxrootd.fnal.gov//store/mc/PhaseISpring17MiniAOD/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/FlatPU28to62_90X_upgrade2017_realistic_v20-v1/00000/02781287-E22A-E711-8EF8-A0000420FE80.root',
+                                )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
