@@ -38,7 +38,9 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0"
+process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
+#process.GlobalTag.globaltag = "90X_upgrade2017_realistic_v20" #MC
+#process.GlobalTag.globaltag = "91X_dataRun2_relval_v6" #data
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -108,8 +110,8 @@ if do_deepbtag:
     )
 
     # Needed for the above updateJetCollection() calls
-    process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
-    process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
+    # process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+    # process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
 
 # Hypothesis cuts
 process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
@@ -130,8 +132,11 @@ process.source = cms.Source("PoolSource",
                                 # 'file:DataDoubleEG2016C.root',
                                 # 'file:QCD_HT200to300.root',
                                 # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
-                               # 'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016E-v1/10000/5C79F5F3-B13C-E711-AEFD-0CC47A4D762A.root'
-                                'root://cmsxrootd.fnal.gov//store/mc/PhaseISpring17MiniAOD/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/FlatPU28to62_90X_upgrade2017_realistic_v20-v1/00000/02781287-E22A-E711-8EF8-A0000420FE80.root',
+
+#                                'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016B-v1/10000/746430BE-773C-E711-8419-0CC47A745298.root',
+                                #'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016E-v1/10000/5C79F5F3-B13C-E711-AEFD-0CC47A4D762A.root',
+                                #'root://cmsxrootd.fnal.gov//store/mc/PhaseISpring17MiniAOD/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/FlatPU28to62_90X_upgrade2017_realistic_v20-v1/00000/02781287-E22A-E711-8EF8-A0000420FE80.root',
+                                'file:/home/users/mderdzinski/ntupling/CMSSW_8_0_26_patch1_CMS4_V00-00-02/src/CMS3/NtupleMaker/TTJets_HT-1200to2500.root',
                                 )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -201,32 +206,33 @@ if not applyResiduals:
 ### ------------------------------------------------------------------
 
 # end Run corrected MET maker
-
-# process.p = cms.Path( 
-#   process.metFilterMaker *
-#   process.egmGsfElectronIDSequence *     
-#   process.vertexMaker *
-#   process.secondaryVertexMaker *
-#   process.eventMaker *
-#   process.pfCandidateMaker *
-#   process.isoTrackMaker *
-#   process.electronMaker *
-#   process.muonMaker *
-#   process.pfJetMaker *
-#   process.pfJetPUPPIMaker *
-#   process.subJetMaker *
-#   process.pfmetMaker *
-#   process.pfmetpuppiMaker *
-#   process.hltMakerSequence *
-#   process.pftauMaker *
-#   process.photonMaker *
-#   process.genMaker *
-#   process.genJetMaker *
-#   process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-#   process.pdfinfoMaker *
-#   process.puSummaryInfoMaker *
-#   process.hypDilepMaker
-# )
+    
+process.p = cms.Path( 
+  process.metFilterMaker *
+  process.egmGsfElectronIDSequence *     
+  process.vertexMaker *
+  process.secondaryVertexMaker *
+  process.eventMaker *
+  process.pfCandidateMaker *
+#  process.isoTrackMaker *
+  process.electronMaker *
+  process.muonMaker *
+  process.pfJetMaker *
+  process.pfJetPUPPIMaker *
+  process.subJetMaker *
+  process.pfmetMaker *
+  process.pfmetpuppiMaker *
+  # process.hltMakerSequence *
+  process.miniAODrhoSequence *
+  process.pftauMaker *
+  process.photonMaker *
+  process.genMaker *
+  process.genJetMaker *
+  process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
+  process.pdfinfoMaker *
+  process.puSummaryInfoMaker *
+  process.hypDilepMaker
+)
 
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
