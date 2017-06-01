@@ -92,22 +92,22 @@ if not is_data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.eventMaker.isData                        = cms.bool(is_data)
     
-if do_deepbtag:
-    from PhysicsTools.PatAlgos.tools.jetTools import *
-    deep_discriminators = ["pfDeepCSVJetTags:probudsg", "pfDeepCSVJetTags:probb", "pfDeepCSVJetTags:probc", "pfDeepCSVJetTags:probbb", "pfDeepCSVJetTags:probcc" ]
-    updateJetCollection(
-        process,
-        jetSource = cms.InputTag('slimmedJets'),
-       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-        btagDiscriminators = deep_discriminators
-    )
-    updateJetCollection(
-        process,
-        labelName = 'Puppi',
-        jetSource = cms.InputTag('slimmedJetsPuppi'),
-       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-        btagDiscriminators = deep_discriminators
-    )
+# if do_deepbtag:
+#     from PhysicsTools.PatAlgos.tools.jetTools import *
+#     deep_discriminators = ["pfDeepCSVJetTags:probudsg", "pfDeepCSVJetTags:probb", "pfDeepCSVJetTags:probc", "pfDeepCSVJetTags:probbb", "pfDeepCSVJetTags:probcc" ]
+#     updateJetCollection(
+#         process,
+#         jetSource = cms.InputTag('slimmedJets'),
+#        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+#         btagDiscriminators = deep_discriminators
+#     )
+#     updateJetCollection(
+#         process,
+#         labelName = 'Puppi',
+#         jetSource = cms.InputTag('slimmedJetsPuppi'),
+#        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+#         btagDiscriminators = deep_discriminators
+#     )
 
     # Needed for the above updateJetCollection() calls
     # process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
