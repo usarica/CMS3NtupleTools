@@ -41,7 +41,7 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
-#process.GlobalTag.globaltag = "90X_upgrade2017_realistic_v20" #MC
+#process.GlobalTag.globaltag = "91X_upgrade2017_realistic_v5" #MC
 #process.GlobalTag.globaltag = "91X_dataRun2_relval_v6" #data
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
