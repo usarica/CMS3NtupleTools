@@ -206,33 +206,61 @@ if not applyResiduals:
 ### ------------------------------------------------------------------
 
 # end Run corrected MET maker
-    
-process.p = cms.Path( 
-  process.metFilterMaker *
-  process.egmGsfElectronIDSequence *     
-  process.vertexMaker *
-  process.secondaryVertexMaker *
-  process.eventMaker *
-  process.pfCandidateMaker *
-#  process.isoTrackMaker *
-  process.electronMaker *
-  process.muonMaker *
-  process.pfJetMaker *
-  process.pfJetPUPPIMaker *
-  process.subJetMaker *
-  process.pfmetMaker *
-  process.pfmetpuppiMaker *
-  # process.hltMakerSequence *
-  process.miniAODrhoSequence *
-  process.pftauMaker *
-  process.photonMaker *
-  process.genMaker *
-  process.genJetMaker *
-  process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-  process.pdfinfoMaker *
-  process.puSummaryInfoMaker *
-  process.hypDilepMaker
-)
+
+if is_data:
+    process.p = cms.Path( 
+        process.metFilterMaker *
+        process.egmGsfElectronIDSequence *     
+        process.vertexMaker *
+        process.secondaryVertexMaker *
+        process.eventMaker *
+        process.pfCandidateMaker *
+        #  process.isoTrackMaker *
+        process.electronMaker *
+        process.muonMaker *
+        process.pfJetMaker *
+        process.pfJetPUPPIMaker *
+        process.subJetMaker *
+        process.pfmetMaker *
+        process.pfmetpuppiMaker *
+        process.hltMakerSequence *
+        process.miniAODrhoSequence *
+        process.pftauMaker *
+        process.photonMaker *
+        # process.genMaker *
+        # process.genJetMaker *
+        # process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
+        # process.pdfinfoMaker *
+        # process.puSummaryInfoMaker *
+        process.hypDilepMaker
+    )
+else:
+    process.p = cms.Path( 
+        process.metFilterMaker *
+        process.egmGsfElectronIDSequence *     
+        process.vertexMaker *
+        process.secondaryVertexMaker *
+        process.eventMaker *
+        process.pfCandidateMaker *
+        #  process.isoTrackMaker *
+        process.electronMaker *
+        process.muonMaker *
+        process.pfJetMaker *
+        process.pfJetPUPPIMaker *
+        process.subJetMaker *
+        process.pfmetMaker *
+        process.pfmetpuppiMaker *
+        process.hltMakerSequence *
+        process.miniAODrhoSequence *
+        process.pftauMaker *
+        process.photonMaker *
+        process.genMaker *
+        process.genJetMaker *
+        process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
+        process.pdfinfoMaker *
+        process.puSummaryInfoMaker *
+        process.hypDilepMaker
+    )
 
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
