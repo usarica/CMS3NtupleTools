@@ -16,7 +16,9 @@ configProcessName.name="PAT"
 configProcessName.name2="RECO"
 configProcessName.isFastSim=is_fastsim
 
-if is_relval: configProcessName.name="RECO"
+if is_relval:
+    configProcessName.name="reRECO"
+    configProcessName.name2="reRECO"
 
 # CMS3
 process = cms.Process("CMS3")
