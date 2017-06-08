@@ -14,11 +14,15 @@ do_deepbtag = True
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
 configProcessName.name2="RECO"
-configProcessName.isFastSim=is_fastsim
 
 if is_relval:
     configProcessName.name="reRECO"
     configProcessName.name2="reRECO"
+
+if is_fastsim:
+    configProcessName.fastSimName="HLT"
+    configProcessName.name2=configProcessName.fastSimName
+    configProcessName.isFastSim=True
 
 # CMS3
 process = cms.Process("CMS3")
