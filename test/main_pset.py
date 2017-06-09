@@ -3,16 +3,17 @@ from Configuration.EventContent.EventContent_cff   import *
 
 
 is_data = False
+is_prompt = False
 is_fastsim = False
 is_relval = False
 
-
 do_deepbtag = True
-
-
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
+if is_data and is_prompt:
+    configProcessName.name="RECO"
+
 configProcessName.name2="RECO"
 
 if is_relval:
@@ -22,7 +23,7 @@ if is_relval:
 if is_fastsim:
     configProcessName.fastSimName="HLT"
     configProcessName.name2=configProcessName.fastSimName
-    configProcessName.isFastSim=True
+configProcessName.isFastSim=is_fastsim
 
 # CMS3
 process = cms.Process("CMS3")
