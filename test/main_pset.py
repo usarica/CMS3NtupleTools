@@ -56,7 +56,7 @@ process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
                                # fileName     = cms.untracked.string('ntuple2.root'),
-                               dropMetaData = cms.untracked.string("NONE"),
+                               dropMetaData = cms.untracked.string("ALL"),
                                # basketSize = cms.untracked.int32(16384*150)
                                # basketSize = cms.untracked.int32(16384*10)
                                basketSize = cms.untracked.int32(16384*23)
