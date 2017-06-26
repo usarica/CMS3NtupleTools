@@ -120,8 +120,13 @@ void PFCandidateMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup
     if (!pf_it->vertexRef().isNull()){
       pfcands_dz                   -> push_back( pf_it->dz()                   );
       pfcands_dxy                  -> push_back( pf_it->dxy()                  );
-      pfcands_dzError              -> push_back( pf_it->dzError()              );
-      pfcands_dxyError             -> push_back( pf_it->dxyError()             );
+      if (pf_it->hasTrackDetails()) {
+          pfcands_dzError              -> push_back( pf_it->dzError()              );
+          pfcands_dxyError             -> push_back( pf_it->dxyError()             );
+      } else {
+          pfcands_dzError              -> push_back(0.);
+          pfcands_dxyError             -> push_back(0.);
+      }
       pfcands_pvAssociationQuality -> push_back( pf_it->pvAssociationQuality() );
       pfcands_dzAssociatedPV       -> push_back( pf_it->dzAssociatedPV()       );
       pfcands_IdAssociatedPV       -> push_back( pf_it->vertexRef().key()      );
