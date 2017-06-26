@@ -62,7 +62,22 @@ process.out = cms.OutputModule("PoolOutputModule",
                                basketSize = cms.untracked.int32(16384*23)
 )
 
-
+########    override the GT for MC     ########
+### ESPrefer for L1TGlobalPrescalesVetosRcd ###
+if not is_data:
+    process.load("CondCore.CondDB.CondDB_cfi")
+    process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
+    process.l1tPS = cms.ESSource("PoolDBESSource",
+        process.CondDB,
+        toGet = cms.VPSet(
+            cms.PSet(
+            record = cms.string("L1TGlobalPrescalesVetosRcd"),
+            tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc")
+            )
+        )
+    )
+    process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
+# tag from https://cms-conddb.cern.ch/cmsDbBrowser/list/Prod/gts/92X_upgrade2017_realistic_v2
 
 #load cff and third party tools
 from JetMETCorrections.Configuration.DefaultJEC_cff import *
