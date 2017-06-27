@@ -25,6 +25,7 @@ photonToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Photon120_R9Id90_HE10_IsoM_v*::HLT_Photon120_R9Id90_HE10_IsoM'),
         cms.InputTag('HLT_Photon165_R9Id90_HE10_IsoM_v*::HLT_Photon165_R9Id90_HE10_IsoM'),
         cms.InputTag('HLT_Photon165_HE10_v*::HLT_Photon165_HE10'),
+        cms.InputTag('HLT_Photon200_v*::HLT_Photon200'),
     ),
 
     processName = cms.untracked.string("HLT"),

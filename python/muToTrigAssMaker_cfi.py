@@ -69,11 +69,14 @@ muToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Mu8_v*::HLT_Mu8'),
         cms.InputTag('HLT_Mu17_v*::HLT_Mu17'),
         cms.InputTag('HLT_Mu8_TrkIsoVVL_v*::HLT_Mu8_TrkIsoVVL'),
-        cms.InputTag('HLT_Mu17_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL') ),
+        cms.InputTag('HLT_Mu17_TrkIsoVVL_v*::HLT_Mu17_TrkIsoVVL'),
 
+        # single muon triggers 2017 (in addition to some of the above)
+        cms.InputTag('HLT_IsoMu27_v*::HLT_IsoMu27'),
+    ),
                                   
-        processName = cms.untracked.string("HLT"),
-        triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
-        triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
+    processName = cms.untracked.string("HLT"),
+    triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
+    triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
 
 )

@@ -56,10 +56,17 @@ elToTrigAssMaker = cms.EDProducer("ObjectToTriggerLegAssMaker",
         cms.InputTag('HLT_Ele27_eta2p1_WPTight_Gsf_v*::HLT_Ele27_eta2p1_WPTight_Gsf'),
         cms.InputTag('HLT_Ele32_eta2p1_WPTight_Gsf_v*::HLT_Ele32_eta2p1_WPTight_Gsf'),
         cms.InputTag('HLT_Ele105_CaloIdVT_GsfTrkIdT_v*::HLT_Ele105_CaloIdVT_GsfTrkIdT'),
-        cms.InputTag('HLT_Ele115_CaloIdVT_GsfTrkIdT_v*::HLT_Ele115_CaloIdVT_GsfTrkIdT') ),
-        
+        cms.InputTag('HLT_Ele115_CaloIdVT_GsfTrkIdT_v*::HLT_Ele115_CaloIdVT_GsfTrkIdT'),
 
-        processName = cms.untracked.string("HLT"),
-        triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
-        triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
+        # single electron triggers 2017
+        cms.InputTag('HLT_Ele27_WPTight_Gsf_v*::HLT_Ele27_WPTight_Gsf'),
+        cms.InputTag('HLT_Ele32_WPTight_Gsf_L1DoubleEG_v*::HLT_Ele32_WPTight_Gsf_L1DoubleEG'),
+        cms.InputTag('HLT_Ele35_WPTight_Gsf_v*::HLT_Ele35_WPTight_Gsf'),
+        cms.InputTag('HLT_Ele38_WPTight_Gsf_v*::HLT_Ele38_WPTight_Gsf'),
+        cms.InputTag('HLT_Ele40_WPTight_Gsf_v*::HLT_Ele40_WPTight_Gsf'),
+    ),
+                                  
+    processName = cms.untracked.string("HLT"),
+    triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
+    triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
 )
