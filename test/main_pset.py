@@ -1,29 +1,44 @@
 import FWCore.ParameterSet.Config as cms
-from Configuration.EventContent.EventContent_cff   import *
 
-
-is_data = False
-is_prompt = False
-is_fastsim = False
-is_relval = False
-
-do_deepbtag = True
+# https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideAboutPythonConfigFile#VarParsing_Documentation
+# Allow command line options like
+#     cmsRun main_pset.py data=True prompt=False   # prompt data
+#     cmsRun main_pset.py data=False               # MC
+#     cmsRun main_pset.py fastsim=True             # fastsim
+import FWCore.ParameterSet.VarParsing as VarParsing
+opts = VarParsing.VarParsing('python')
+vpbool = VarParsing.VarParsing.varType.bool
+opts.register('data'    , True  , mytype=vpbool)
+opts.register('prompt'  , True  , mytype=vpbool)
+opts.register('fastsim' , False , mytype=vpbool)
+opts.register('relval'  , False , mytype=vpbool)
+opts.parseArguments()
+# be smart. if fastsim, it's obviously MC
+# if it's MC, it's obviously not prompt
+if opts.fastsim: opts.data = False
+if not opts.data: opts.prompt = False
+print """PSet is assuming:
+   data? {}
+   prompt? {}
+   fastsim? {}
+   relval? {}
+""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval))
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
-if is_data and is_prompt:
+if opts.data and opts.is_prompt:
     configProcessName.name="RECO"
 
 configProcessName.name2="RECO"
 
-if is_relval:
+if opts.relval:
     configProcessName.name="reRECO"
     configProcessName.name2="reRECO"
 
-if is_fastsim:
+if opts.fastsim:
     configProcessName.fastSimName="HLT"
     configProcessName.name2=configProcessName.fastSimName
-configProcessName.isFastSim=is_fastsim
+configProcessName.isFastSim=opts.fastsim
 
 # CMS3
 process = cms.Process("CMS3")
@@ -34,6 +49,8 @@ process.configurationMetadata = cms.untracked.PSet(
         annotation = cms.untracked.string('CMS3'),
         name       = cms.untracked.string('CMS3 test configuration')
 )
+
+from Configuration.EventContent.EventContent_cff   import *
 
 # load event level configurations
 process.load('Configuration/EventContent/EventContent_cff')
@@ -64,7 +81,7 @@ process.out = cms.OutputModule("PoolOutputModule",
 
 ########    override the GT for MC     ########
 ### ESPrefer for L1TGlobalPrescalesVetosRcd ###
-if not is_data:
+if not opts.data:
     process.load("CondCore.CondDB.CondDB_cfi")
     process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
     process.l1tPS = cms.ESSource("PoolDBESSource",
@@ -110,9 +127,9 @@ for idmod in my_id_modules:
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
-if not is_data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
+if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
-process.eventMaker.isData                        = cms.bool(is_data)
+process.eventMaker.isData                        = cms.bool(opts.data)
     
 # if do_deepbtag:
 #     from PhysicsTools.PatAlgos.tools.jetTools import *
@@ -173,7 +190,7 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 #configurable options =======================================================================
 usePrivateSQlite=False #use external JECs (sqlite file)
-applyResiduals=is_data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
+applyResiduals=opts.data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
 
 if usePrivateSQlite:
@@ -204,12 +221,12 @@ if usePrivateSQlite:
 process.outpath = cms.EndPath(process.out)
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 
-if not is_data:
+if not opts.data:
     from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
     #default configuration for miniAOD reprocessing, change the isData flag to run on data
     #for a full met computation, remove the pfCandColl input
     runMetCorAndUncFromMiniAOD(process,
-                               isData=is_data,
+                               isData=opts.data,
                                )
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -229,7 +246,7 @@ if not applyResiduals:
 
 # end Run corrected MET maker
 
-if is_data:
+if opts.data:
     process.p = cms.Path( 
         process.metFilterMaker *
         process.egmGsfElectronIDSequence *     
