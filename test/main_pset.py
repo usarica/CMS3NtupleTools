@@ -26,7 +26,7 @@ print """PSet is assuming:
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
-if opts.data and opts.is_prompt:
+if opts.data and opts.prompt:
     configProcessName.name="RECO"
 
 configProcessName.name2="RECO"
