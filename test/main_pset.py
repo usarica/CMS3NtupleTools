@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideAboutPythonConfigFile#VarParsing_Documentation
 # Allow command line options like
-#     cmsRun main_pset.py data=True prompt=False   # prompt data
+#     cmsRun main_pset.py data=True prompt=True   # prompt data
 #     cmsRun main_pset.py data=False               # MC
 #     cmsRun main_pset.py fastsim=True             # fastsim
 import FWCore.ParameterSet.VarParsing as VarParsing
