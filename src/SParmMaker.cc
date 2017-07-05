@@ -233,10 +233,16 @@ void SParmMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 
 
-    if(sparm_values->size() != sparm_names->size()){
-        // We want to make damn sure that the 2 vectors have a 1 to 1 mapping. If the user doesn't screw up, this exception should never be encountered.
-        throw cms::Exception(Form("SParmMaker: Size of the vector containing sparm values (size=%i) does not match size of the vector containing sparm names (size=%i).",int(sparm_values->size()),int(sparm_names->size())) );
-    }
+    // NJA - took this out July 4, 2017 because it's a pain to have the user
+    // input the sparm names for many fastsim samples. I don't think they are even
+    // used in babymakers anyways, since I had been putting dummy "m1","m2",etc. strings
+    // the past ~year fix the crashes due to the following lines
+    // [!] All that matters is the sparm_values, but send me hate mail if you think otherwise.
+    // if(sparm_values->size() != sparm_names->size()){
+    //     // We want to make damn sure that the 2 vectors have a 1 to 1 mapping. If the user doesn't screw up, this exception should never be encountered.
+    //     throw cms::Exception(Form("SParmMaker: Size of the vector containing sparm values (size=%i) does not match size of the vector containing sparm names (size=%i).",int(sparm_values->size()),int(sparm_names->size())) );
+    // }
+
     if(sparm_comment->size() != 1){
         throw cms::Exception(Form("SparmMaker: Some Jabroney tried to store too many values in the sparm_comment vector (size=%i). This should always be a size of 1.",int(sparm_comment->size())));
     }
