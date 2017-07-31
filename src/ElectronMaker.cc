@@ -1075,16 +1075,23 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	// mini-isolation   //
 	//////////////////////
 
-	float minichiso     = 0.;
-	float mininhiso     = 0.;
-	float miniemiso     = 0.;
-	float minidbiso     = 0.;
-	elMiniIso(el, true, 0.0, minichiso, mininhiso, miniemiso, minidbiso);
-	els_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
-	els_miniIso_ch      ->push_back( minichiso );
-	els_miniIso_nh      ->push_back( mininhiso );
-	els_miniIso_em      ->push_back( miniemiso );
-	els_miniIso_db      ->push_back( minidbiso );
+	// float minichiso     = 0.;
+	// float mininhiso     = 0.;
+	// float miniemiso     = 0.;
+	// float minidbiso     = 0.;
+	// elMiniIso(el, true, 0.0, minichiso, mininhiso, miniemiso, minidbiso);
+	// els_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
+	// els_miniIso_ch      ->push_back( minichiso );
+	// els_miniIso_nh      ->push_back( mininhiso );
+	// els_miniIso_em      ->push_back( miniemiso );
+	// els_miniIso_db      ->push_back( minidbiso );
+
+        const pat::PFIsolation miniiso = (el->clone())->miniPFIsolation();
+        els_miniIso_uncor ->push_back(miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
+        els_miniIso_ch    ->push_back(miniiso.chargedHadronIso()); 
+        els_miniIso_nh    ->push_back(miniiso.neutralHadronIso()); 
+        els_miniIso_em    ->push_back(miniiso.photonIso()); 
+        els_miniIso_db    ->push_back(miniiso.puChargedHadronIso()); 
 
 	///////////////////////////
 	// PFCluster isolation   //

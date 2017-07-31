@@ -41,6 +41,7 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackToTrackMap.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/PatCandidates/interface/PFIsolation.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -603,16 +604,23 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // mini-isolation   //
         //////////////////////
     
-        float minichiso     = 0.;
-        float mininhiso     = 0.;
-        float miniemiso     = 0.;
-        float minidbiso     = 0.;
-        muMiniIso(muon, true, 0.5, minichiso, mininhiso, miniemiso, minidbiso);
-        mus_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
-        mus_miniIso_ch      ->push_back( minichiso );
-        mus_miniIso_nh      ->push_back( mininhiso );
-        mus_miniIso_em      ->push_back( miniemiso );
-        mus_miniIso_db      ->push_back( minidbiso );
+        // float minichiso     = 0.;
+        // float mininhiso     = 0.;
+        // float miniemiso     = 0.;
+        // float minidbiso     = 0.;
+        // muMiniIso(muon, true, 0.5, minichiso, mininhiso, miniemiso, minidbiso);
+        // mus_miniIso_uncor   ->push_back( minichiso + mininhiso + miniemiso );
+        // mus_miniIso_ch      ->push_back( minichiso );
+        // mus_miniIso_nh      ->push_back( mininhiso );
+        // mus_miniIso_em      ->push_back( miniemiso );
+        // mus_miniIso_db      ->push_back( minidbiso );
+
+        const pat::PFIsolation miniiso = (muon->clone())->miniPFIsolation();
+        mus_miniIso_uncor ->push_back(miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
+        mus_miniIso_ch    ->push_back(miniiso.chargedHadronIso()); 
+        mus_miniIso_nh    ->push_back(miniiso.neutralHadronIso()); 
+        mus_miniIso_em    ->push_back(miniiso.photonIso()); 
+        mus_miniIso_db    ->push_back(miniiso.puChargedHadronIso()); 
     
         muonIndex++;
 
