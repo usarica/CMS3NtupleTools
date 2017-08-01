@@ -254,7 +254,7 @@ if opts.data:
         process.secondaryVertexMaker *
         process.eventMaker *
         process.pfCandidateMaker *
-        #  process.isoTrackMaker *
+        process.isoTrackMaker *
         process.electronMaker *
         process.muonMaker *
         process.pfJetMaker *
@@ -281,7 +281,7 @@ else:
         process.secondaryVertexMaker *
         process.eventMaker *
         process.pfCandidateMaker *
-        #  process.isoTrackMaker *
+        process.isoTrackMaker *
         process.electronMaker *
         process.muonMaker *
         process.pfJetMaker *
