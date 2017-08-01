@@ -11,6 +11,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/PatCandidates/interface/PFIsolation.h"
+#include "DataFormats/TrackReco/interface/HitPattern.h"
 
 #include "CMS3/NtupleMaker/interface/IsoTrackMaker.h"
 #include "TMath.h"
@@ -53,8 +54,14 @@ IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
     produces<vector<float> >         ("isotracksdedxpixel").setBranchAlias("isotracks_dEdxPixel" );
     produces<vector<float> >         ("isotracksdeltaeta").setBranchAlias("isotracks_deltaEta" );
     produces<vector<float> >         ("isotracksdeltaphi").setBranchAlias("isotracks_deltaPhi" );
-    // produces<vector<vector<uint16_t> > >("isotrackscrossedecalstatus").setBranchAlias("isotracks_crossedEcalStatus" );
-    // produces<vector<vector<uint32_t> > >("isotrackscrossedhcalstatus").setBranchAlias("isotracks_crossedHcalStatus" );
+    produces<vector<vector<uint16_t> > >("isotrackscrossedecalstatus").setBranchAlias("isotracks_crossedEcalStatus" );
+    produces<vector<vector<uint32_t> > >("isotrackscrossedhcalstatus").setBranchAlias("isotracks_crossedHcalStatus" );
+    produces<vector<int> >           ("isotrackstrackerLayersWithMeasurement" ).setBranchAlias("isotracks_trackerLayersWithMeasurement"  );
+    produces<vector<int> >           ("isotrackspixelLayersWithMeasurement" ).setBranchAlias("isotracks_pixelLayersWithMeasurement"  );
+    produces<vector<int> >           ("isotracksnumberOfValidPixelHits" ).setBranchAlias("isotracks_numberOfValidPixelHits"  );
+    produces<vector<int> >           ("isotracksnumberOfLostPixelHitsInner" ).setBranchAlias("isotracks_numberOfLostPixelHitsInner"  );
+    produces<vector<int> >           ("isotracksnumberOfLostHitsInner" ).setBranchAlias("isotracks_numberOfLostHitsInner"  );
+    produces<vector<int> >           ("isotracksnumberOfLostHitsOuter" ).setBranchAlias("isotracks_numberOfLostHitsOuter"  );
 
 
 }
@@ -91,8 +98,14 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<vector<float> >         isotracks_dEdxPixel           (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_deltaEta            (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_deltaPhi            (new vector<float>         );
-    // unique_ptr<vector<vector<uint16_t> > >  isotracks_crossedEcalStatus  (new vector<vector<uint16_t> >   );
-    // unique_ptr<vector<vector<uint32_t> > >  isotracks_crossedHcalStatus  (new vector<vector<uint32_t> >   );
+    unique_ptr<vector<vector<uint16_t> > >  isotracks_crossedEcalStatus  (new vector<vector<uint16_t> >   );
+    unique_ptr<vector<vector<uint32_t> > >  isotracks_crossedHcalStatus  (new vector<vector<uint32_t> >   );
+    unique_ptr<vector<int> >  isotracks_trackerLayersWithMeasurement (new vector<int>   );
+    unique_ptr<vector<int> >  isotracks_pixelLayersWithMeasurement   (new vector<int>   );
+    unique_ptr<vector<int> >  isotracks_numberOfValidPixelHits       (new vector<int>   );
+    unique_ptr<vector<int> >  isotracks_numberOfLostPixelHitsInner   (new vector<int>   );
+    unique_ptr<vector<int> >  isotracks_numberOfLostHitsInner        (new vector<int>   );
+    unique_ptr<vector<int> >  isotracks_numberOfLostHitsOuter        (new vector<int>   );
 
     //get pfcandidates
     Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -140,8 +153,14 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         isotracks_dEdxPixel   ->push_back(it->dEdxPixel() );
         isotracks_deltaEta    ->push_back(it->deltaEta() );
         isotracks_deltaPhi    ->push_back(it->deltaPhi() );
-        // isotracks_crossedEcalStatus ->push_back(it->crossedEcalStatus() );
-        // isotracks_crossedHcalStatus ->push_back(it->crossedHcalStatus() );
+        isotracks_crossedEcalStatus ->push_back(it->crossedEcalStatus() );
+        isotracks_crossedHcalStatus ->push_back(it->crossedHcalStatus() );
+        isotracks_trackerLayersWithMeasurement    ->push_back(it->hitPattern().trackerLayersWithMeasurement() );
+        isotracks_pixelLayersWithMeasurement    ->push_back(it->hitPattern().pixelLayersWithMeasurement() );
+        isotracks_numberOfValidPixelHits    ->push_back(it->hitPattern().numberOfValidPixelHits() );
+        isotracks_numberOfLostPixelHitsInner    ->push_back(it->hitPattern().numberOfLostPixelHits(reco::HitPattern::MISSING_INNER_HITS) );
+        isotracks_numberOfLostHitsInner    ->push_back(it->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) );
+        isotracks_numberOfLostHitsOuter    ->push_back(it->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS) );
 
     }//loop over candidate collection
 
@@ -170,8 +189,14 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move(isotracks_dEdxPixel),            "isotracksdedxpixel"    );
     iEvent.put(std::move(isotracks_deltaEta),            "isotracksdeltaeta"    );
     iEvent.put(std::move(isotracks_deltaPhi),            "isotracksdeltaphi"    );
-    // iEvent.put(std::move(isotracks_crossedEcalStatus),   "isotrackscrossedecalstatus"    );
-    // iEvent.put(std::move(isotracks_crossedHcalStatus),   "isotrackscrossedhcalstatus"    );
+    iEvent.put(std::move(isotracks_crossedEcalStatus),   "isotrackscrossedecalstatus"    );
+    iEvent.put(std::move(isotracks_crossedHcalStatus),   "isotrackscrossedhcalstatus"    );
+    iEvent.put(std::move(isotracks_trackerLayersWithMeasurement), "isotrackstrackerLayersWithMeasurement"    );
+    iEvent.put(std::move(isotracks_pixelLayersWithMeasurement),   "isotrackspixelLayersWithMeasurement"    );
+    iEvent.put(std::move(isotracks_numberOfValidPixelHits),       "isotracksnumberOfValidPixelHits"    );
+    iEvent.put(std::move(isotracks_numberOfLostPixelHitsInner),   "isotracksnumberOfLostPixelHitsInner"    );
+    iEvent.put(std::move(isotracks_numberOfLostHitsInner),        "isotracksnumberOfLostHitsInner"    );
+    iEvent.put(std::move(isotracks_numberOfLostHitsOuter),        "isotracksnumberOfLostHitsOuter"    );
 }
 
 //define this as a plug-in
