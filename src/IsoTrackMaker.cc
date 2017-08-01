@@ -115,52 +115,60 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.getByToken(isoTracksToken, isoTracksHandle);
     const pat::IsolatedTrackCollection *isoTracks = isoTracksHandle.product();
 
+    // sort by isotrack pt
+    vector<std::pair<int, float> > pts;
     for( pat::IsolatedTrackCollection::const_iterator it = isoTracks->begin(); it != isoTracks->end(); it++ ) {
+        pts.push_back(std::pair<int, float>((int)(it-isoTracks->begin()), it->pt()));
+    }
+    sort(pts.begin(), pts.end(), [](const std::pair<int, float>& v1, const std::pair<int, float>& v2) { return v1.second > v2.second; } );
 
-        float pt = it->pt();
+    for(unsigned int iit=0; iit<pts.size(); iit++){
+        const pat::IsolatedTrack& it = isoTracks->at(pts[iit].first);
+
+        float pt = it.pt();
 
         // use same definition of isolated as miniAOD
-        bool isIsolated = it->pfIsolationDR03().chargedHadronIso() < 5.0 ||
-            it->pfIsolationDR03().chargedHadronIso() / pt < 0.2 ||
-            it->miniPFIsolation().chargedHadronIso() / pt < 0.2;
+        bool isIsolated = it.pfIsolationDR03().chargedHadronIso() < 5.0 ||
+            it.pfIsolationDR03().chargedHadronIso() / pt < 0.2 ||
+            it.miniPFIsolation().chargedHadronIso() / pt < 0.2;
         if(pt < pt_cut_ || (!isIsolated && pt < pt_cut_noIso_))
             continue;
 
-        bool isPFCand = it->packedCandRef().isNonnull() && it->packedCandRef().id()==pfCandidatesHandle.id();
+        bool isPFCand = it.packedCandRef().isNonnull() && it.packedCandRef().id()==pfCandidatesHandle.id();
 
-        isotracks_p4          ->push_back( LorentzVector( it->p4()) );
-        isotracks_charge      ->push_back( it->charge() );
-        isotracks_particleId  ->push_back( it->pdgId() );
-        isotracks_fromPV      ->push_back( it->fromPV() );
+        isotracks_p4          ->push_back( LorentzVector( it.p4()) );
+        isotracks_charge      ->push_back( it.charge() );
+        isotracks_particleId  ->push_back( it.pdgId() );
+        isotracks_fromPV      ->push_back( it.fromPV() );
         isotracks_isPFCand    ->push_back( isPFCand );
-        isotracks_dz          ->push_back( it->dz() );
-        isotracks_dxy         ->push_back( it->dxy() );
-        isotracks_dzError     ->push_back( it->dzError() );
-        isotracks_dxyError    ->push_back( it->dxyError() );
-        isotracks_pfIso_ch    ->push_back( it->pfIsolationDR03().chargedHadronIso() );
-        isotracks_pfIso_nh    ->push_back( it->pfIsolationDR03().neutralHadronIso() );
-        isotracks_pfIso_em    ->push_back( it->pfIsolationDR03().photonIso() );
-        isotracks_pfIso_db    ->push_back( it->pfIsolationDR03().puChargedHadronIso() );
-        isotracks_miniIso_ch  ->push_back( it->miniPFIsolation().chargedHadronIso() );
-        isotracks_miniIso_nh  ->push_back( it->miniPFIsolation().neutralHadronIso() );
-        isotracks_miniIso_em  ->push_back( it->miniPFIsolation().photonIso() );
-        isotracks_miniIso_db  ->push_back( it->miniPFIsolation().puChargedHadronIso() );
-        isotracks_isHighPurityTrack ->push_back(it->isHighPurityTrack() );
-        isotracks_isTightTrack      ->push_back(it->isTightTrack() );
-        isotracks_matchedCaloJetEmEnergy  ->push_back(it->matchedCaloJetEmEnergy() );
-        isotracks_matchedCaloJetHadEnergy ->push_back(it->matchedCaloJetHadEnergy() );
-        isotracks_dEdxStrip   ->push_back(it->dEdxStrip() );
-        isotracks_dEdxPixel   ->push_back(it->dEdxPixel() );
-        isotracks_deltaEta    ->push_back(it->deltaEta() );
-        isotracks_deltaPhi    ->push_back(it->deltaPhi() );
-        isotracks_crossedEcalStatus ->push_back(it->crossedEcalStatus() );
-        isotracks_crossedHcalStatus ->push_back(it->crossedHcalStatus() );
-        isotracks_trackerLayersWithMeasurement    ->push_back(it->hitPattern().trackerLayersWithMeasurement() );
-        isotracks_pixelLayersWithMeasurement    ->push_back(it->hitPattern().pixelLayersWithMeasurement() );
-        isotracks_numberOfValidPixelHits    ->push_back(it->hitPattern().numberOfValidPixelHits() );
-        isotracks_numberOfLostPixelHitsInner    ->push_back(it->hitPattern().numberOfLostPixelHits(reco::HitPattern::MISSING_INNER_HITS) );
-        isotracks_numberOfLostHitsInner    ->push_back(it->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) );
-        isotracks_numberOfLostHitsOuter    ->push_back(it->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS) );
+        isotracks_dz          ->push_back( it.dz() );
+        isotracks_dxy         ->push_back( it.dxy() );
+        isotracks_dzError     ->push_back( it.dzError() );
+        isotracks_dxyError    ->push_back( it.dxyError() );
+        isotracks_pfIso_ch    ->push_back( it.pfIsolationDR03().chargedHadronIso() );
+        isotracks_pfIso_nh    ->push_back( it.pfIsolationDR03().neutralHadronIso() );
+        isotracks_pfIso_em    ->push_back( it.pfIsolationDR03().photonIso() );
+        isotracks_pfIso_db    ->push_back( it.pfIsolationDR03().puChargedHadronIso() );
+        isotracks_miniIso_ch  ->push_back( it.miniPFIsolation().chargedHadronIso() );
+        isotracks_miniIso_nh  ->push_back( it.miniPFIsolation().neutralHadronIso() );
+        isotracks_miniIso_em  ->push_back( it.miniPFIsolation().photonIso() );
+        isotracks_miniIso_db  ->push_back( it.miniPFIsolation().puChargedHadronIso() );
+        isotracks_isHighPurityTrack ->push_back(it.isHighPurityTrack() );
+        isotracks_isTightTrack      ->push_back(it.isTightTrack() );
+        isotracks_matchedCaloJetEmEnergy  ->push_back(it.matchedCaloJetEmEnergy() );
+        isotracks_matchedCaloJetHadEnergy ->push_back(it.matchedCaloJetHadEnergy() );
+        isotracks_dEdxStrip   ->push_back(it.dEdxStrip() );
+        isotracks_dEdxPixel   ->push_back(it.dEdxPixel() );
+        isotracks_deltaEta    ->push_back(it.deltaEta() );
+        isotracks_deltaPhi    ->push_back(it.deltaPhi() );
+        isotracks_crossedEcalStatus ->push_back(it.crossedEcalStatus() );
+        isotracks_crossedHcalStatus ->push_back(it.crossedHcalStatus() );
+        isotracks_trackerLayersWithMeasurement    ->push_back(it.hitPattern().trackerLayersWithMeasurement() );
+        isotracks_pixelLayersWithMeasurement    ->push_back(it.hitPattern().pixelLayersWithMeasurement() );
+        isotracks_numberOfValidPixelHits    ->push_back(it.hitPattern().numberOfValidPixelHits() );
+        isotracks_numberOfLostPixelHitsInner    ->push_back(it.hitPattern().numberOfLostPixelHits(reco::HitPattern::MISSING_INNER_HITS) );
+        isotracks_numberOfLostHitsInner    ->push_back(it.hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS) );
+        isotracks_numberOfLostHitsOuter    ->push_back(it.hitPattern().numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS) );
 
     }//loop over candidate collection
 
