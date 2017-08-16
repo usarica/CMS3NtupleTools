@@ -243,6 +243,7 @@ std::vector<unsigned int> ObjectToTriggerLegAssMaker::matchTriggerObject(const e
   for ( uint i = 0; i < triggerObjectStandAlonesH_->size(); i++ ) {
     TO = triggerObjectStandAlonesH_->at(i);
     TO.unpackPathNames( triggerNames_ );
+    TO.unpackFilterLabels( iEvent,*triggerResultsH_ );
     // TO.hasPathName(triggerName, false) : TO belongs to any of the filters on this path
     if ( TO.hasPathName(triggerName, false) ) { 
       // TO.hasPathName(triggerName, true) : TO belongs to the last EDFilter on this path

@@ -258,6 +258,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
       TO = triggerObjectStandAlonesH_->at(iobj);
       TO.unpackPathNames( triggerNames_ );
+      TO.unpackFilterLabels( iEvent,*triggerResultsH_ );
 
       for(unsigned int itrig = 0; itrig < nTriggers; ++itrig){
 	const string& name = triggerNames_.triggerName(itrig);

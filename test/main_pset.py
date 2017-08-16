@@ -12,6 +12,7 @@ opts.register('data'    , True  , mytype=vpbool)
 opts.register('prompt'  , True  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
+opts.register('triginfo'  , False , mytype=vpbool)
 opts.parseArguments()
 # be smart. if fastsim, it's obviously MC
 # if it's MC, it's obviously not prompt
@@ -22,7 +23,8 @@ print """PSet is assuming:
    prompt? {}
    fastsim? {}
    relval? {}
-""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval))
+   triginfo? {}
+""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo))
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -246,6 +248,18 @@ if not applyResiduals:
 
 # end Run corrected MET maker
 
+# Extra trigger information (matching)
+if opts.triginfo:
+    process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
+    process.load("CMS3.NtupleMaker.elToTrigAssMaker_cfi")
+    if opts.data and opts.prompt:
+        # process.muToTrigAssMaker.processName = cms.untracked.string("RECO")
+        # process.elToTrigAssMaker.processName = cms.untracked.string("RECO")
+        process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+        process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+        process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+    process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
+
 if opts.data:
     process.p = cms.Path( 
         process.metFilterMaker *
@@ -266,6 +280,8 @@ if opts.data:
         process.miniAODrhoSequence *
         process.pftauMaker *
         process.photonMaker *
+        # process.muToTrigAssMaker * # Note these are hacked in below
+        # process.elToTrigAssMaker * # Note these are hacked in below
         # process.genMaker *
         # process.genJetMaker *
         # process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
@@ -300,6 +316,11 @@ else:
         process.puSummaryInfoMaker *
         process.hypDilepMaker
     )
+if opts.triginfo:
+    # Now insert the xToTrigAssMakers into the path
+    # Hooray for hacky operations
+    process.p.insert(process.p.index(process.photonMaker)+1,process.muToTrigAssMaker)
+    process.p.insert(process.p.index(process.photonMaker)+1,process.elToTrigAssMaker)
 
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
@@ -333,3 +354,28 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.CMS3tag = cms.string('V08-00-18')
 # process.eventMaker.datasetName = cms.string('/DoubleEG/Run2016C-03Feb2017-v1/MINIAOD')
 # process.maxEvents.input = cms.untracked.int32(3000)
+
+
+if hasattr(process,"eventMaker"):
+    process.eventMaker.CMS3tag = cms.string('CMS4_V00-00-06')
+    process.eventMaker.datasetName = cms.string('/SingleElectron/Run2017C-PromptReco-v2/MINIAOD')
+    process.out.dropMetaData = cms.untracked.string("NONE")
+    process.GlobalTag.globaltag = "92X_dataRun2_Prompt_v7"
+    process.MessageLogger.cerr.FwkReport.reportEvery = 100
+
+def set_output_name(outputname):
+    for attr in dir(process):
+        if not hasattr(process,attr): continue
+        if type(getattr(process,attr)) != cms.OutputModule: continue
+        getattr(process,attr).fileName = outputname
+
+
+process.maxEvents.input = cms.untracked.int32(500)
+set_output_name("merged_ntuple.root")
+process.source.fileNames = cms.untracked.vstring([
+# "/store/data/Run2017C/SingleElectron/MINIAOD/PromptReco-v2/000/300/400/00000/EE0DAD86-DD7C-E711-A965-02163E014780.root",
+# "/store/data/Run2017C/SingleElectron/MINIAOD/PromptReco-v2/000/300/516/00000/766D0E5A-D07C-E711-A59E-02163E01263A.root",
+"file:EE0DAD86-DD7C-E711-A965-02163E014780.root",
+# "file:766D0E5A-D07C-E711-A59E-02163E01263A.root",
+])
+
