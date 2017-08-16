@@ -354,28 +354,3 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.CMS3tag = cms.string('V08-00-18')
 # process.eventMaker.datasetName = cms.string('/DoubleEG/Run2016C-03Feb2017-v1/MINIAOD')
 # process.maxEvents.input = cms.untracked.int32(3000)
-
-
-if hasattr(process,"eventMaker"):
-    process.eventMaker.CMS3tag = cms.string('CMS4_V00-00-06')
-    process.eventMaker.datasetName = cms.string('/SingleElectron/Run2017C-PromptReco-v2/MINIAOD')
-    process.out.dropMetaData = cms.untracked.string("NONE")
-    process.GlobalTag.globaltag = "92X_dataRun2_Prompt_v7"
-    process.MessageLogger.cerr.FwkReport.reportEvery = 100
-
-def set_output_name(outputname):
-    for attr in dir(process):
-        if not hasattr(process,attr): continue
-        if type(getattr(process,attr)) != cms.OutputModule: continue
-        getattr(process,attr).fileName = outputname
-
-
-process.maxEvents.input = cms.untracked.int32(500)
-set_output_name("merged_ntuple.root")
-process.source.fileNames = cms.untracked.vstring([
-# "/store/data/Run2017C/SingleElectron/MINIAOD/PromptReco-v2/000/300/400/00000/EE0DAD86-DD7C-E711-A965-02163E014780.root",
-# "/store/data/Run2017C/SingleElectron/MINIAOD/PromptReco-v2/000/300/516/00000/766D0E5A-D07C-E711-A59E-02163E01263A.root",
-"file:EE0DAD86-DD7C-E711-A965-02163E014780.root",
-# "file:766D0E5A-D07C-E711-A59E-02163E01263A.root",
-])
-
