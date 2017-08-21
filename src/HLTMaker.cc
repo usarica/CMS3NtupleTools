@@ -205,11 +205,11 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       doFillTrigger.push_back(fillTriggerObjects_ && doPruneTriggerName(name));
 
       //What is your prescale?
-	  //Buggy way in miniAOD
+      //Buggy way in miniAOD
       // prescales->push_back( triggerPrescalesH_.isValid() ? triggerPrescalesH_->getPrescaleForIndex(i) : -1 );
 
-	  if(isdata){
-
+      if(isdata){
+          
           //get prescale info from hltConfig_
           if (make_cache) {
               std::pair<std::vector<std::pair<std::string,int> >,int> detailedPrescaleInfo = hltConfig_.prescaleValuesInDetail(iEvent, iSetup, name);	 
@@ -222,25 +222,33 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
               }
 
               // find and save minimum l1 prescale of any ORed L1 that seeds the HLT
-              std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), std::end(l1prescalevals));
-              size_t minind = std::distance(std::begin(l1prescalevals), result);
-              cached_l1prescales.push_back( minind < l1prescalevals.size() ? l1prescalevals.at(minind) : -1 );
+              bool isAllZeros = std::all_of(l1prescalevals.begin(), l1prescalevals.end(), [](int i) { return i==0; });
+              if(isAllZeros)
+                  cached_l1prescales.push_back(0);
+              else{
+                  // first remove all values that are 0
+                  std::vector<int>::iterator new_end = std::remove(l1prescalevals.begin(), l1prescalevals.end(), 0);
+                  // now find the minimum
+                  std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), new_end);
+                  int minind = std::distance(l1prescalevals.begin(), result);
+                  cached_l1prescales.push_back( minind < std::distance(l1prescalevals.begin(), new_end) ? l1prescalevals.at(minind) : -1 );
+              }
           }
-		// sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
-        prescales->push_back( (cached_prescales).at(i) );
-		l1prescales->push_back( (cached_l1prescales).at(i) );
-	  }
+          // sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
+          prescales->push_back( (cached_prescales).at(i) );
+          l1prescales->push_back( (cached_l1prescales).at(i) );
+      }
       else {
-	  	if (make_cache) cached_prescales.push_back( hltConfig_.prescaleValue(iEvent, iSetup, name) );
-        prescales   -> push_back( (cached_prescales).at(i) );
-	  	l1prescales -> push_back( 1 );
-	  }
+          if (make_cache) cached_prescales.push_back( hltConfig_.prescaleValue(iEvent, iSetup, name) );
+          prescales   -> push_back( (cached_prescales).at(i) );
+          l1prescales -> push_back( 1 );
+      }
 
-	  // Passed... F+
-	  if (triggerResultsH_->accept(i)){
-		bits->SetBitNumber(i);
-	  }
-    }
+      // Passed... F+
+      if (triggerResultsH_->accept(i)){
+          bits->SetBitNumber(i);
+      }
+  }
 
 
 
