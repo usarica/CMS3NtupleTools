@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #USER INPUTS
-CMS3Tag=diet
-CMSSW_release=CMSSW_9_2_4
+CMS3Tag=master
+CMSSW_release=CMSSW_9_2_8
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
 export SCRAM_ARCH=slc6_amd64_gcc530
 
