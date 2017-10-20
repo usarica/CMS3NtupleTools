@@ -27,14 +27,13 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
     using namespace std;
     using namespace edm;
 
-  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
+    pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
     aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
     std::string branchprefix = aliasprefix_;
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     // product of this EDProducer
     produces<vector<LorentzVector> > ( branchprefix+"p4"                               ).setBranchAlias( aliasprefix_+"_p4"                               );
-    // produces<vector<float> >         ( branchprefix+"mass"                             ).setBranchAlias( aliasprefix_+"_mass"                             );
     produces<vector<float> >         ( branchprefix+"undoJEC"                          ).setBranchAlias( aliasprefix_+"_undoJEC"                          );
     produces<vector<float> >         ( branchprefix+"chargedHadronE"                   ).setBranchAlias( aliasprefix_+"_chargedHadronE"                   );
     produces<vector<float> >         ( branchprefix+"neutralHadronE"                   ).setBranchAlias( aliasprefix_+"_neutralHadronE"                   );
@@ -56,11 +55,15 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
     produces<vector<float> >         ( branchprefix+"pileupJetId"                      ).setBranchAlias( aliasprefix_+"_pileupJetId"                      );
     produces<vector<int> >           ( branchprefix+"partonFlavour"                    ).setBranchAlias( aliasprefix_+"_partonFlavour"                    );
     produces<vector<int> >           ( branchprefix+"hadronFlavour"                    ).setBranchAlias( aliasprefix_+"_hadronFlavour"                    );
-  produces<vector<vector<LorentzVector> >  > ( branchprefix+"pfcandmup4"                   ).setBranchAlias( aliasprefix_+"_pfcandmup4"                   );
-  produces<vector<int>  > ( branchprefix+"npfcands"                   ).setBranchAlias( aliasprefix_+"_npfcands"                   );
+    produces<vector<vector<LorentzVector> > > ( branchprefix+"pfcandmup4"              ).setBranchAlias( aliasprefix_+"_pfcandmup4"                       );
+    produces<vector<int>  >          ( branchprefix+"npfcands"                         ).setBranchAlias( aliasprefix_+"_npfcands"                         );
+    produces<vector<int>   >         ( branchprefix+"totalMultiplicity"                ).setBranchAlias( aliasprefix_+"_totalMultiplicity"                );
+    produces<vector<float> >         ( branchprefix+"ptDistribution"                   ).setBranchAlias( aliasprefix_+"_ptDistribution"                   );
+    produces<vector<float> >         ( branchprefix+"axis1"                            ).setBranchAlias( aliasprefix_+"_axis1"                            );
 
     // Embedded b-tagging information (miniAOD only)
     produces<vector<float> >         (branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag" ).setBranchAlias(aliasprefix_+"_pfCombinedInclusiveSecondaryVertexV2BJetTag");
+    produces<vector<float> >         (branchprefix+"pfDeepCSVJetTagsprobbPlusprobbb"             ).setBranchAlias(aliasprefix_+"_pfDeepCSVJetTagsprobbPlusprobbb"            );
     produces<vector<TString> >       (branchprefix+"bDiscriminatorNames"                         ).setBranchAlias(aliasprefix_+"_bDiscriminatorNames"                     );
     produces<vector<vector<float>> > (branchprefix+"bDiscriminators"                             ).setBranchAlias(aliasprefix_+"_bDiscriminators"                         );
 
@@ -85,7 +88,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // create containers
     unique_ptr<vector<LorentzVector> > pfjets_p4                        (new vector<LorentzVector>  );
-    // unique_ptr<vector<float> >         pfjets_mass                      (new vector<float>          );
     unique_ptr<vector<float> >         pfjets_undoJEC                   (new vector<float>          );
     unique_ptr<vector<float> >         pfjets_chargedHadronE            (new vector<float>          );  
     unique_ptr<vector<float> >         pfjets_neutralHadronE            (new vector<float>          );
@@ -105,14 +107,18 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<int>   >         pfjets_muonMultiplicity          (new vector<int>            );
     unique_ptr<vector<float> >         pfjets_area                      (new vector<float>          );  
     unique_ptr<vector<float> >         pfjets_pileupJetId               (new vector<float>          );  
-    unique_ptr<vector<int> >           pfjets_partonFlavour             (new vector<int>            );  
-    unique_ptr<vector<int> >           pfjets_hadronFlavour             (new vector<int>            );  
-    unique_ptr<vector<vector<LorentzVector> >  > pfjets_pfcandmup4            (new vector<vector<LorentzVector> >   );
-    unique_ptr<vector<int>  > pfjets_npfcands            (new vector<int>   );
+    unique_ptr<vector<int>   >         pfjets_partonFlavour             (new vector<int>            );  
+    unique_ptr<vector<int>   >         pfjets_hadronFlavour             (new vector<int>            );  
+    unique_ptr<vector<int>   >         pfjets_npfcands                  (new vector<int>            );
+    unique_ptr<vector<int>   >         pfjets_totalMultiplicity         (new vector<int>            );
+    unique_ptr<vector<float> >         pfjets_ptDistribution            (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_axis1                     (new vector<float>          );
+    unique_ptr<vector<vector<LorentzVector> > > pfjets_pfcandmup4       (new vector<vector<LorentzVector> > );
 
-    unique_ptr<vector<float> >     pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
-    unique_ptr<        vector <TString> >      pfjets_bDiscriminatorNames                    (new vector<TString>        );
-    unique_ptr<vector <vector <float>   > >    pfjets_bDiscriminators                        (new vector<vector<float> > );
+    unique_ptr<vector<float> >           pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
+    unique_ptr<vector<float> >           pfjets_pfDeepCSVJetTagsprobbPlusprobbb             (new vector<float>  );
+    unique_ptr<vector<TString> >         pfjets_bDiscriminatorNames                         (new vector<TString>        );
+    unique_ptr<vector<vector<float> > >  pfjets_bDiscriminators                             (new vector<vector<float> > );
     
     //get pfcandidates
     Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
@@ -166,6 +172,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         }
         pfjets_bDiscriminators->push_back(bDiscriminatorPerjet);
         pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag->push_back( pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags") );
+        pfjets_pfDeepCSVJetTagsprobbPlusprobbb->push_back( pfjet_it->bDiscriminator("pfDeepCSVJetTags:probb") + pfjet_it->bDiscriminator("pfDeepCSVJetTags:probbb") );
 
         std::vector <reco::CandidatePtr> pfjet_cands = pfjet_it->daughterPtrVector(); 
         vector<LorentzVector> pfcandmup4;
@@ -180,6 +187,68 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         pfjets_pfcandmup4->push_back( pfcandmup4 );
         pfjets_npfcands->push_back(pfjet_cands.size());
 
+        // Do calculation of top-tagger variables
+        const bool computeTopTaggerVariables = true;
+        if (computeTopTaggerVariables) {
+            int totalMult = 0;
+            float ptD     = 0;
+            float axis1   = 0;
+            // float axis2   = 0;
+            if (pfjet_it->numberOfDaughters() != 0) {
+                float sum_weight(0.0), sum_dEta(0.0), sum_dPhi(0.0), sum_dEta2(0.0), sum_dPhi2(0.0), sum_dEta_dPhi(0.0), sum_pt(0.0);
+
+                // loop over the jet constituents (packed candidate situation)
+                for (auto part : pfjet_it->getJetConstituentsQuick()) {
+                    if (part->charge()) { // charged particles
+                        auto p = dynamic_cast<const pat::PackedCandidate*>(part);
+                        if (!p) std::cout << "ERROR: QGTagging variables cannot be computed for these jets!" << std::endl;
+                        if (!(p->fromPV() > 1 && p->trackHighPurity())) continue;
+                        ++totalMult;
+                    } else { // neutral particles
+                        if (part->pt() < 1.0) continue;
+                        ++totalMult;
+                    } // charged, neutral particles
+
+                    float dEta   = part->eta() - pfjet_it->eta();
+                    float dPhi   = reco::deltaPhi(part->phi(), pfjet_it->phi());
+                    float partPt = part->pt();
+                    float weight = partPt*partPt;
+
+                    sum_weight    += weight;
+                    sum_pt        += partPt;
+                    sum_dEta      += dEta      * weight;
+                    sum_dPhi      += dPhi      * weight;
+                    sum_dEta2     += dEta*dEta * weight;
+                    sum_dEta_dPhi += dEta*dPhi * weight;
+                    sum_dPhi2     += dPhi*dPhi * weight;
+                } // pfjet_it->getJetConstituentsQuick()
+
+                // calculate axis2 and ptD
+                if (sum_weight > 0) {
+                    ptD = sqrt(sum_weight)/sum_pt;
+                    float ave_dEta  = sum_dEta  / sum_weight;
+                    float ave_dPhi  = sum_dPhi  / sum_weight;
+                    float ave_dEta2 = sum_dEta2 / sum_weight;
+                    float ave_dPhi2 = sum_dPhi2 / sum_weight;
+                    float a = ave_dEta2 - ave_dEta*ave_dEta;
+                    float b = ave_dPhi2 - ave_dPhi*ave_dPhi;
+                    float c = -(sum_dEta_dPhi/sum_weight - ave_dEta*ave_dPhi);
+                    float delta = sqrt(fabs( (a-b)*(a-b) + 4*c*c ));
+                    // if(a+b-delta > 0) axis2 = sqrt(0.5*(a+b-delta));
+                    // else              axis2 = 0.0;
+                    if(a+b+delta > 0) axis1 = sqrt(0.5*(a+b+delta));
+                    else              axis1 = 0.0;
+                }
+            }
+
+            pfjets_totalMultiplicity->push_back(totalMult);
+            pfjets_ptDistribution   ->push_back(ptD);
+            pfjets_axis1            ->push_back(axis1);
+        } else {
+            pfjets_ptDistribution   ->push_back(pfjet_it->constituentPtDistribution());
+            pfjets_totalMultiplicity->push_back(pfjet_it->numberOfDaughters());
+            pfjets_axis1            ->push_back(-1);
+        }
 
     }
 
@@ -187,7 +256,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
 
     iEvent.put(std::move(pfjets_p4                        ), branchprefix+"p4"                        );
-    // iEvent.put(std::move(pfjets_mass                      ), branchprefix+"mass"                      );
     iEvent.put(std::move(pfjets_undoJEC                   ), branchprefix+"undoJEC"                   );
     iEvent.put(std::move(pfjets_chargedHadronE            ), branchprefix+"chargedHadronE"            );
     iEvent.put(std::move(pfjets_neutralHadronE            ), branchprefix+"neutralHadronE"            );
@@ -209,12 +277,17 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(pfjets_pileupJetId               ), branchprefix+"pileupJetId"               );
     iEvent.put(std::move(pfjets_partonFlavour             ), branchprefix+"partonFlavour"             );
     iEvent.put(std::move(pfjets_hadronFlavour             ), branchprefix+"hadronFlavour"             );
-    iEvent.put(std::move(pfjets_pfcandmup4            ), branchprefix+"pfcandmup4"            );
-    iEvent.put(std::move(pfjets_npfcands            ), branchprefix+"npfcands"            );
+    iEvent.put(std::move(pfjets_pfcandmup4                ), branchprefix+"pfcandmup4"                );
+    iEvent.put(std::move(pfjets_npfcands                  ), branchprefix+"npfcands"                  );
+    iEvent.put(std::move(pfjets_totalMultiplicity         ), branchprefix+"totalMultiplicity"         );
+    iEvent.put(std::move(pfjets_ptDistribution            ), branchprefix+"ptDistribution"            );
+    iEvent.put(std::move(pfjets_axis1                     ), branchprefix+"axis1"                     );
 
     iEvent.put(std::move(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag), branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
-    iEvent.put(std::move(pfjets_bDiscriminatorNames                                    ), branchprefix+"bDiscriminatorNames"     );
-    iEvent.put(std::move(pfjets_bDiscriminators                                        ), branchprefix+"bDiscriminators"         );
+    iEvent.put(std::move(pfjets_pfDeepCSVJetTagsprobbPlusprobbb            ), branchprefix+"pfDeepCSVJetTagsprobbPlusprobbb"            );
+    iEvent.put(std::move(pfjets_bDiscriminatorNames                        ), branchprefix+"bDiscriminatorNames"     );
+    iEvent.put(std::move(pfjets_bDiscriminators                            ), branchprefix+"bDiscriminators"         );
+
 }
 
 //define this as a plug-in
