@@ -1,7 +1,7 @@
 # Miscellaneous NtupleMaker profiling tools
 
 ## Time profiling (CPU) - IgProf
-### First time setup,
+### First time setup
 * IgProf comes with a nice web GUI which requires some setup. In your `~/public_html/.htaccess` file, ensure you have the following
 ```
 AddHandler cgi-script .cgi .py
@@ -12,7 +12,8 @@ and do
 mkdir -p ~/public_html/cgi-bin/data/
 cp igprof-navigator.py ~/public_html/cgi-bin/
 chmod 755 -R ~/public_html/cgi-bin/
-```. Note that permissions for cgi scripts and folders they reside in are _very_ annoying to get right. If you see issues with the web site, try making the permissions on the data files within `data/` 644.
+```
+Note that permissions for cgi scripts and folders they reside in are _very_ annoying to get right. If you see issues with the web site, try making the permissions on the data files within `data/` 644.
 
 ### Running
 * Modify the pset to run over the desired number of events. If you run over less than a few thousand, your profiling will be dominated by startup overhead.
@@ -39,7 +40,7 @@ process.ProfilerService = cms.Service (
 ```
 * Execute the following, tweaking it to match your local setup
 ```bash
-valgrind --leak-check=yes  cmsRun main_pset.py >& log.txt
+valgrind --leak-check=yes  cmsRun main_pset.py data=False >& log.txt
 valgrindMemcheckParser.pl --preset=prod,-prod1+ log.txt  > memory_profiling.html
 cp memory_profiling.html ~/public_html/
 ```
