@@ -17,16 +17,15 @@ Note that permissions for cgi scripts and folders they reside in are _very_ anno
 
 ### Running
 * Modify the pset to run over the desired number of events. If you run over less than a few thousand, your profiling will be dominated by startup overhead.
-And 
 * Modify the parameters in `run_igprof.sh` to reproduce your local running. Be sure the path to the pset is correct, and it can't hurt to read the script before running it...
 * `./run_igprof.sh`
-* Visit link that gets printed out.
+* Visit the link that gets printed out.
 
 ## Time profiling (user time)
 The poor man's profiling is to run on many events and calculate the event rate from the `Begin processing` lines. Use the script `print_timing.py` to do this after you've redirected such output into a log file. The script has other features to be discovered.
 
 ## Memory profiling (Valgrind)
-A good reference is for Valgrind with CMSSW is [here](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideValgrindMemcheckParser#valgrind_MemcheckGraph_pl_graphi).
+A good reference for Valgrind with CMSSW is [here](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideValgrindMemcheckParser#valgrind_MemcheckGraph_pl_graphi).
 
 ### Instructions
 * Modify the pset to run over only a _handful_ of events, as this kind of profiling is quite intensive. Then, put this into the pset:
@@ -38,7 +37,7 @@ process.ProfilerService = cms.Service (
         paths = cms.untracked.vstring('p1')
         )
 ```
-* Execute the following, tweaking it to match your local setup
+* Execute the following, tweaking the `cmsRun` statement and arguments to match your local setup
 ```bash
 valgrind --leak-check=yes  cmsRun main_pset.py data=False >& log.txt
 valgrindMemcheckParser.pl --preset=prod,-prod1+ log.txt  > memory_profiling.html
