@@ -615,12 +615,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // mus_miniIso_em      ->push_back( miniemiso );
         // mus_miniIso_db      ->push_back( minidbiso );
 
-        const pat::PFIsolation miniiso = (muon->clone())->miniPFIsolation();
+        auto mu2 = muon->clone();
+        auto miniiso = mu2->miniPFIsolation();
         mus_miniIso_uncor ->push_back(miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
         mus_miniIso_ch    ->push_back(miniiso.chargedHadronIso()); 
         mus_miniIso_nh    ->push_back(miniiso.neutralHadronIso()); 
         mus_miniIso_em    ->push_back(miniiso.photonIso()); 
         mus_miniIso_db    ->push_back(miniiso.puChargedHadronIso()); 
+        delete mu2;
     
         muonIndex++;
 
