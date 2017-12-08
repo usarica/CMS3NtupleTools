@@ -34,8 +34,12 @@ if opts.data and opts.prompt:
 configProcessName.name2="RECO"
 
 if opts.relval:
-    configProcessName.name="reRECO"
-    configProcessName.name2="reRECO"
+    if opts.data:
+        configProcessName.name="reRECO"
+        configProcessName.name2="reRECO"
+    else:
+        configProcessName.name="RECO"
+        configProcessName.name2="RECO"
 
 if opts.fastsim:
     configProcessName.fastSimName="HLT"
