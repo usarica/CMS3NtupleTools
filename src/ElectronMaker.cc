@@ -1022,8 +1022,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         //const HitPattern& p_inner = el_track->trackerExpectedHitsInner(); 
         //const HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
 
-        els_exp_innerlayers -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_INNER_HITS));
-        els_exp_outerlayers -> push_back(pattern.numberOfHits(reco::HitPattern::MISSING_OUTER_HITS));
+        els_exp_innerlayers -> push_back(pattern.numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS));
+        els_exp_outerlayers -> push_back(pattern.numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS));
         els_valid_pixelhits -> push_back(pattern.numberOfValidPixelHits());
         els_lost_pixelhits  -> push_back(pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
 	els_nlayers         -> push_back(pattern.trackerLayersWithMeasurement());

@@ -36,6 +36,7 @@
 #include "DataFormats/MuonReco/interface/MuonPFIsolation.h"
 #include "DataFormats/MuonReco/interface/MuonQuality.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
+#include "DataFormats/MuonReco/interface/MuonSimInfo.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/Track.h"
@@ -232,6 +233,10 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<float>         >("musminiIsoem"       ).setBranchAlias("mus_miniIso_em"     );
     produces<vector<float>         >("musminiIsodb"       ).setBranchAlias("mus_miniIso_db"     );
 
+    produces<vector<unsigned int>         >("musselectors"       ).setBranchAlias("mus_selectors"     );
+    produces<vector<int>         >("mussimType"       ).setBranchAlias("mus_simType"     );
+    produces<vector<int>         >("mussimExtType"       ).setBranchAlias("mus_simExtType"     );
+
 } // end Constructor
 
 void MuonMaker::beginJob () {}  // method called once each job just before starting event loop
@@ -379,6 +384,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>         > mus_miniIso_em     ( new vector<float>         );   
     unique_ptr<vector<float>         > mus_miniIso_db     ( new vector<float>         );   
 
+    unique_ptr<vector<unsigned int>         > mus_selectors     ( new vector<unsigned int>         );   
+    unique_ptr<vector<int>         > mus_simType     ( new vector<int>         );   
+    unique_ptr<vector<int>         > mus_simExtType     ( new vector<int>         );   
+
 
     ////////////////////////////
     // --- Fill Muon Data --- //
@@ -430,6 +439,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
                 break;
             }
         }
+
+        mus_selectors->push_back( muon->selectors() ); // DataFormats/MuonReco/interface/Muon.h
+        mus_simType->push_back( muon->simType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
+        mus_simExtType->push_back( muon->simExtType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
 
         ////////////
         // Global //
@@ -519,8 +532,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_algoOrig               -> push_back( siTrack.isNonnull()     ? siTrack->originalAlgo       ()                               : -9999.        );
         vector_mus_nlayers            -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
         vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
-        vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
-        vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
+        vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+        vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
         if (firstGoodVertex!=vertexCollection->end()) { 
             vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
             vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
@@ -760,6 +773,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(mus_miniIso_nh       ), "musminiIsonh"    );
     iEvent.put(std::move(mus_miniIso_em       ), "musminiIsoem"    );
     iEvent.put(std::move(mus_miniIso_db       ), "musminiIsodb"    );
+
+    iEvent.put(std::move(mus_selectors       ), "musselectors"    );
+    iEvent.put(std::move(mus_simType       ), "mussimType"    );
+    iEvent.put(std::move(mus_simExtType       ), "mussimExtType"    );
 
 
 } //
