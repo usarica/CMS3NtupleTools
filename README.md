@@ -25,17 +25,17 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
 
 
 ### Some quickstart parameters
-In `install.sh`, use `CMS3Tag=CMS4_V00-00-06` and `CMSSW_release=CMSSW_9_2_8` to run on the RunIISummer17 sample for `/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer17MiniAOD-92X_upgrade2017_realistic_v10-v1/MINIAODSIM`
+In `install.sh`, use `CMS3Tag=CMS4_V00-00-07` and `CMSSW_release=CMSSW_9_4_0` to run on the RunII 2017 re-reco sample for `/DoubleEG/Run2017F-17Nov2017-v1/MINIAOD`
 
 And paste the following at the end of `main_pset.py`.
 
 ```
-process.GlobalTag.globaltag = "92X_upgrade2017_realistic_v10"
+process.GlobalTag.globaltag = "94X_dataRun2_ReReco_EOY17_v2"
 process.out.fileName = cms.untracked.string('ntuple.root') # output
-process.source.fileNames = cms.untracked.vstring(['/store/mc/RunIISummer17MiniAOD/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/92X_upgrade2017_realistic_v10-v1/90000/DAC03321-BD91-E711-BACC-24BE05C636E1.root']) # input
-process.eventMaker.CMS3tag = cms.string('CMS4_V00-00-06') # doesn't affect ntupling, only for bookkeeping later on
-process.eventMaker.datasetName = cms.string('/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer17MiniAOD-92X_upgrade2017_realistic_v10-v1/MINIAODSIM') # doesn't affect ntupling, only for bookkeeping later on
+process.source.fileNames = cms.untracked.vstring(['/store/data/Run2017F/DoubleEG/MINIAOD/17Nov2017-v1/60000/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root']) # input
+process.eventMaker.CMS3tag = cms.string('CMS4_V00-00-07') # doesn't affect ntupling, only for bookkeeping later on
+process.eventMaker.datasetName = cms.string('/DoubleEG/Run2017F-17Nov2017-v1/MINIAOD') # doesn't affect ntupling, only for bookkeeping later on
 process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note that crab overrides this to -1
 ```
 
-Run it with `cmsRun main_pset.py data=False`.
+Run it with `cmsRun main_pset.py data=True`.
