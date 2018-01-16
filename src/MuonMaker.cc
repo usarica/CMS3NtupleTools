@@ -54,6 +54,7 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "CMS3/NtupleMaker/interface/MuonMaker.h"
+#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
 
 #include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
 #include "DataFormats/MuonReco/interface/MuonShower.h"
@@ -95,6 +96,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
 
     muonsToken    = consumes<View<pat::Muon> >(iConfig.getParameter<InputTag> ("muonsInputTag"   ));
     pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<InputTag> ("pfCandsInputTag" ));
+    pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
     vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
 
@@ -236,6 +238,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<unsigned int>         >("musselectors"       ).setBranchAlias("mus_selectors"     );
     produces<vector<int>         >("mussimType"       ).setBranchAlias("mus_simType"     );
     produces<vector<int>         >("mussimExtType"       ).setBranchAlias("mus_simExtType"     );
+
+    produces<vector<int>         >("musjetNDauChargedMVASel"         	).setBranchAlias("mus_jetNDauChargedMVASel"                        	);
 
 } // end Constructor
 
@@ -388,6 +392,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int>         > mus_simType     ( new vector<int>         );   
     unique_ptr<vector<int>         > mus_simExtType     ( new vector<int>         );   
 
+    unique_ptr<vector<int>   >       mus_jetNDauChargedMVASel                   (new vector<int>        );
 
     ////////////////////////////
     // --- Fill Muon Data --- //
@@ -412,6 +417,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.getByToken(pfCandsToken, packPfCand_h);
     pfCandidates  = packPfCand_h.product();
+
+    // Jets
+    Handle<View<pat::Jet> > pfJetsHandle;
+    iEvent.getByToken(pfJetsToken, pfJetsHandle);
   
     ///////////
     // Muons // 
@@ -429,6 +438,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         const TrackRef                bestTrack               = muon->muonBestTrack();
         const MuonQuality             quality                 = muon->combinedQuality();
         const VertexCollection*       vertexCollection        = vertexHandle.product();
+
+        const Ptr<pat::Muon> muPtr(muon_h, muon - muon_h->begin() );
 
         // Iterators
         VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
@@ -613,6 +624,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             mus_mc_patMatch_dr      ->push_back( -999.  );
         }
 
+        /////////////////////////////
+        // LeptonMVA jet daughters //
+        /////////////////////////////
+
+        const auto & pv = (*vertexHandle)[0];
+        int jetNDauChargedMVASel = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
+        mus_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
+
+
         //////////////////////
         // mini-isolation   //
         //////////////////////
@@ -778,6 +798,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(mus_simType       ), "mussimType"    );
     iEvent.put(std::move(mus_simExtType       ), "mussimExtType"    );
 
+    iEvent.put(std::move(mus_jetNDauChargedMVASel        ), "musjetNDauChargedMVASel"       ); 
 
 } //
 

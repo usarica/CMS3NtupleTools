@@ -306,3 +306,31 @@ const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::Ca
 }
 
   
+const int MatchUtilities::getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Handle<edm::View<pat::Jet> > pfJetsHandle, const reco::Vertex &vtx) {
+    // Taken from https://github.com/cms-sw/cmssw/blob/70922db3413f0934414865c37e735a97add7daef/PhysicsTools/NanoAOD/plugins/LeptonJetVarProducer.cc#L175
+    int jetNDauChargedMVASel = 0;
+    for (unsigned int ij = 0; ij<pfJetsHandle->size(); ij++){
+        auto jet = pfJetsHandle->ptrAt(ij);
+        if(matchByCommonSourceCandidatePtr(*lep,*jet)){
+            unsigned int jndau = 0;
+            for(const auto _d : jet->daughterPtrVector()) {
+                const auto d = dynamic_cast<const pat::PackedCandidate*>(_d.get());
+                if (d->charge()==0) continue;
+                if (d->fromPV()<=1) continue;
+                if (reco::deltaR(*d,*lep)>0.4) continue;
+                if (!(d->hasTrackDetails())) continue;
+                auto tk = d->pseudoTrack();
+                if(tk.pt()>1 &&
+                        tk.hitPattern().numberOfValidHits()>=8 &&
+                        tk.hitPattern().numberOfValidPixelHits()>=2 &&
+                        tk.normalizedChi2()<5 &&
+                        fabs(tk.dxy(vtx.position()))<0.2 &&
+                        fabs(tk.dz(vtx.position()))<17
+                  ) jndau++;
+            }
+            jetNDauChargedMVASel = jndau;
+            break; // take leading jet with shared source candidates
+        }
+    }
+    return jetNDauChargedMVASel;
+}

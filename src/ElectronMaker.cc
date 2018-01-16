@@ -103,6 +103,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
     vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
+    pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
     bFieldToken  = consumes<float>(iConfig.getParameter<edm::InputTag>("bFieldInputTag"));
     beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
     trksInputTag_                = iConfig.getParameter<edm::InputTag> ("trksInputTag"                 );
@@ -295,6 +296,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float>         >("else1x5full5x5"            	).setBranchAlias("els_e1x5_full5x5"                           	);
     produces<vector<float>         >("else5x5full5x5"            	).setBranchAlias("els_e5x5_full5x5"                           	);
     produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
+
+    produces<vector<int>         >("elsjetNDauChargedMVASel"         	).setBranchAlias("els_jetNDauChargedMVASel"                        	);
 
     produces<vector<float>         >("elsminiIsouncor"       ).setBranchAlias("els_miniIso_uncor"                       	);
     produces<vector<float>         >("elsminiIsoch"       ).setBranchAlias("els_miniIso_ch"                       	);
@@ -495,6 +498,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>   >       els_ecalPFClusterIso                (new vector<float>        );  	
     unique_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
 
+    unique_ptr<vector<int>   >       els_jetNDauChargedMVASel                   (new vector<int>        );
+
     ///////////////////////////////
     // Added for 7_X calibration //
     ///////////////////////////////
@@ -520,6 +525,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     }
 
 
+    // Jets
+    Handle<View<pat::Jet> > pfJetsHandle;
+    iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
 //    Handle<GsfElectronCollection> els_coll_h;
 //    iEvent.getByLabel(electronsInputTag_, els_coll_h);    
@@ -831,6 +839,13 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 	els_e5x5_full5x5           ->push_back( el->full5x5_e5x5()            );  
 	els_e2x5Max_full5x5        ->push_back( el->full5x5_e2x5Max()         );
 
+    /////////////////////////////
+    // LeptonMVA jet daughters //
+    /////////////////////////////
+
+    const auto & pv = (*vertexHandle)[0];
+    int jetNDauChargedMVASel = MatchUtilities::getLepMVAInfo(elPtr, pfJetsHandle, pv);
+	els_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
 
 	///////////////////////////////////////////////////////
 	// Get cluster info that is not stored in the object //
@@ -1261,6 +1276,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(els_e1x5_full5x5           ), "else1x5full5x5"          );
     iEvent.put(std::move(els_e5x5_full5x5           ), "else5x5full5x5"          );
     iEvent.put(std::move(els_e2x5Max_full5x5        ), "else2x5Maxfull5x5"       ); 
+
+    iEvent.put(std::move(els_jetNDauChargedMVASel        ), "elsjetNDauChargedMVASel"       ); 
     
     iEvent.put(std::move(els_miniIso_uncor       ), "elsminiIsouncor"    );
     iEvent.put(std::move(els_miniIso_ch       ), "elsminiIsoch"    );
@@ -1429,7 +1446,6 @@ void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool
     elIsoCustomCone(el,dr,useVetoCones,ptthresh, chiso, nhiso, emiso, dbiso);
     return;
 }
-
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(ElectronMaker);

@@ -35,6 +35,7 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 
 
 //
@@ -62,6 +63,8 @@ private:
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
+
+  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
 
   std::string aliasprefix_;
   std::string branchprefix_;

@@ -28,6 +28,9 @@
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/Math/interface/deltaR.h"
+
+#include "PhysicsTools/NanoAOD/interface/MatchingUtils.h"
 
 #include <Math/VectorUtil.h>
 
@@ -70,6 +73,8 @@ public:
   static const void alignJPTcaloJetCollections(const std::vector<reco::CaloJet>&,
 					       std::vector<reco::CaloJet>&);
   
+
+  static const int getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Handle<edm::View<pat::Jet> > pfJetsHandle, const reco::Vertex &vtx);
 					       
   
   template <class T1, class T2> static const void alignCollections(const std::vector<T1>& v_ref, std::vector<T2>& v_toAllign) {

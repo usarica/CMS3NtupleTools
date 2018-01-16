@@ -57,6 +57,7 @@
 #include "Math/VectorUtil.h"
 
 #include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 //
@@ -85,6 +86,7 @@ private:
  
   void elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
   void elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
+
 
     // ----------member data ---------------------------
     edm::InputTag beamSpotInputTag_;
@@ -118,6 +120,8 @@ private:
     edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDSpring16GPMvaCatMapToken_;
     edm::EDGetTokenT<edm::ValueMap<float> > electronVIDSpring16HZZMvaValueMapToken_;
     edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDSpring16HZZMvaCatMapToken_;
+
+    edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
 
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
