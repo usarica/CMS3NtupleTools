@@ -306,11 +306,23 @@ const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::Ca
 }
 
   
-const int MatchUtilities::getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Handle<edm::View<pat::Jet> > pfJetsHandle, const reco::Vertex &vtx) {
+const std::tuple<float,float,int,float> MatchUtilities::getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Handle<edm::View<pat::Jet> > pfJetsHandle, const reco::Vertex &vtx) {
     // Taken from https://github.com/cms-sw/cmssw/blob/70922db3413f0934414865c37e735a97add7daef/PhysicsTools/NanoAOD/plugins/LeptonJetVarProducer.cc#L175
     int jetNDauChargedMVASel = 0;
+    float ptratio = 1.0;
+    float ptrel = 0.0;
+    float disc = -99.;
     for (unsigned int ij = 0; ij<pfJetsHandle->size(); ij++){
         auto jet = pfJetsHandle->ptrAt(ij);
+
+        auto rawp4 = jet->correctedP4("Uncorrected");
+        auto lepp4 = lep->p4();
+        if ((rawp4-lepp4).R()<1e-4) break;
+        auto jetp4 = (rawp4 - lepp4*(1.0/jet->jecFactor("L1FastJet")))*(jet->pt()/rawp4.pt())+lepp4;
+        ptratio = lepp4.pt()/jetp4.pt();
+        ptrel = lepp4.Vect().Cross((jetp4-lepp4).Vect().Unit()).R();
+        disc = jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
+
         if(matchByCommonSourceCandidatePtr(*lep,*jet)){
             unsigned int jndau = 0;
             for(const auto _d : jet->daughterPtrVector()) {
@@ -332,5 +344,5 @@ const int MatchUtilities::getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Hand
             break; // take leading jet with shared source candidates
         }
     }
-    return jetNDauChargedMVASel;
+    return std::tuple<float,float,int,float>(ptratio,ptrel,jetNDauChargedMVASel,disc);
 }

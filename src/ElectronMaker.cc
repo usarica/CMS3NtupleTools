@@ -298,6 +298,9 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float>         >("else2x5Maxfull5x5"         	).setBranchAlias("els_e2x5Max_full5x5"                        	);
 
     produces<vector<int>         >("elsjetNDauChargedMVASel"         	).setBranchAlias("els_jetNDauChargedMVASel"                        	);
+    produces<vector<float>         >("elsptRatio"         	).setBranchAlias("els_ptRatio"                        	);
+    produces<vector<float>         >("elsptRel"         	).setBranchAlias("els_ptRel"                        	);
+    produces<vector<float>         >("elsjetBTagCSV"         	).setBranchAlias("els_jetBTagCSV"                        	);
 
     produces<vector<float>         >("elsminiIsouncor"       ).setBranchAlias("els_miniIso_uncor"                       	);
     produces<vector<float>         >("elsminiIsoch"       ).setBranchAlias("els_miniIso_ch"                       	);
@@ -499,6 +502,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
 
     unique_ptr<vector<int>   >       els_jetNDauChargedMVASel                   (new vector<int>        );
+    unique_ptr<vector<float>   >       els_ptRatio                   (new vector<float>        );
+    unique_ptr<vector<float>   >       els_ptRel                   (new vector<float>        );
+    unique_ptr<vector<float>   >       els_jetBTagCSV                   (new vector<float>        );
 
     ///////////////////////////////
     // Added for 7_X calibration //
@@ -844,8 +850,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     /////////////////////////////
 
     const auto & pv = (*vertexHandle)[0];
-    int jetNDauChargedMVASel = MatchUtilities::getLepMVAInfo(elPtr, pfJetsHandle, pv);
-	els_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
+    auto infotuple = MatchUtilities::getLepMVAInfo(elPtr, pfJetsHandle, pv);
+    float ptRatio = std::get<0>(infotuple);
+    float ptRel = std::get<1>(infotuple);
+    int jetNDauChargedMVASel = std::get<2>(infotuple);
+    float jetBTagCSV = std::get<3>(infotuple);
+    els_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
+    els_ptRatio->push_back(ptRatio);
+    els_ptRel->push_back(ptRel);
+    els_jetBTagCSV->push_back(jetBTagCSV);
 
 	///////////////////////////////////////////////////////
 	// Get cluster info that is not stored in the object //
@@ -1278,6 +1291,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(els_e2x5Max_full5x5        ), "else2x5Maxfull5x5"       ); 
 
     iEvent.put(std::move(els_jetNDauChargedMVASel        ), "elsjetNDauChargedMVASel"       ); 
+    iEvent.put(std::move(els_ptRatio        ), "elsptRatio"       ); 
+    iEvent.put(std::move(els_ptRel        ), "elsptRel"       ); 
+    iEvent.put(std::move(els_jetBTagCSV        ), "elsjetBTagCSV"       ); 
     
     iEvent.put(std::move(els_miniIso_uncor       ), "elsminiIsouncor"    );
     iEvent.put(std::move(els_miniIso_ch       ), "elsminiIsoch"    );

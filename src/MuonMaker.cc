@@ -240,6 +240,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<int>         >("mussimExtType"       ).setBranchAlias("mus_simExtType"     );
 
     produces<vector<int>         >("musjetNDauChargedMVASel"         	).setBranchAlias("mus_jetNDauChargedMVASel"                        	);
+    produces<vector<float>         >("musptRatio"         	).setBranchAlias("mus_ptRatio"                        	);
+    produces<vector<float>         >("musptRel"         	).setBranchAlias("mus_ptRel"                        	);
+    produces<vector<float>         >("musjetBTagCSV"         	).setBranchAlias("mus_jetBTagCSV"                        	);
 
 } // end Constructor
 
@@ -393,6 +396,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int>         > mus_simExtType     ( new vector<int>         );   
 
     unique_ptr<vector<int>   >       mus_jetNDauChargedMVASel                   (new vector<int>        );
+    unique_ptr<vector<float>   >       mus_ptRatio                   (new vector<float>        );
+    unique_ptr<vector<float>   >       mus_ptRel                   (new vector<float>        );
+    unique_ptr<vector<float>   >       mus_jetBTagCSV                   (new vector<float>        );
 
     ////////////////////////////
     // --- Fill Muon Data --- //
@@ -629,9 +635,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         /////////////////////////////
 
         const auto & pv = (*vertexHandle)[0];
-        int jetNDauChargedMVASel = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
+        auto infotuple = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
+        float ptRatio = std::get<0>(infotuple);
+        float ptRel = std::get<1>(infotuple);
+        int jetNDauChargedMVASel = std::get<2>(infotuple);
+        float jetBTagCSV = std::get<3>(infotuple);
         mus_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
-
+        mus_ptRatio->push_back(ptRatio);
+        mus_ptRel->push_back(ptRel);
+        mus_jetBTagCSV->push_back(jetBTagCSV);
 
         //////////////////////
         // mini-isolation   //
@@ -799,6 +811,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(mus_simExtType       ), "mussimExtType"    );
 
     iEvent.put(std::move(mus_jetNDauChargedMVASel        ), "musjetNDauChargedMVASel"       ); 
+    iEvent.put(std::move(mus_ptRatio        ), "musptRatio"       ); 
+    iEvent.put(std::move(mus_ptRel        ), "musptRel"       ); 
+    iEvent.put(std::move(mus_jetBTagCSV        ), "musjetBTagCSV"       ); 
 
 } //
 
