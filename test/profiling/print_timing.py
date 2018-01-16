@@ -93,7 +93,7 @@ if __name__ == "__main__":
     # print "Average event rate: {0:.1f}Hz (reported by TimeEvent)".format(tot_avg_time**-1.0)
     # print "Average event rate: {0:.1f}Hz (manual sum of module times)".format(tot_avg_time_weird**-1.0)
     print "Average event rate: {0:.1f}Hz (linear fit to Begin Processing lines)".format(1.0/m)
-    print merr/m
+    # print merr/m
     # avgs = sorted(avgs,reverse=True)
     # print "{0:50s} {1:10s}".format("Module", "frac real time")
     # print "-"*70

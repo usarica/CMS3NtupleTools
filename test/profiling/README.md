@@ -14,6 +14,7 @@ cp igprof-navigator.py ~/public_html/cgi-bin/
 chmod 755 -R ~/public_html/cgi-bin/
 ```
 Note that permissions for cgi scripts and folders they reside in are _very_ annoying to get right. If you see issues with the web site, try making the permissions on the data files within `data/` 644.
+Another note, if you get an "Internal error", make sure your gcc in SCRAM_ARCH isn't 630. Going back to 493 works for me.
 
 ### Running
 * Modify the pset to run over the desired number of events. If you run over less than a few thousand, your profiling will be dominated by startup overhead.
