@@ -35,3 +35,5 @@ cd ..
 
 # see comment in patchesToSource.sh
 rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
+
+cd $CMSSW_BASE/src/CMS3/NtupleMaker/test/
