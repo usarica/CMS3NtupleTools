@@ -121,6 +121,9 @@ private:
     edm::EDGetTokenT<edm::ValueMap<float> > electronVIDSpring16HZZMvaValueMapToken_;
     edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDSpring16HZZMvaCatMapToken_;
 
+    edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
+
     edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
 
   edm::InputTag pfIsoCharged03InputTag;

@@ -24,6 +24,9 @@ electronMaker = cms.EDProducer(
     electronVIDSpring16GPMvaCatMap      = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Categories"),
     electronVIDSpring16HZZMvaValueMap   = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16HZZV1Values"),
     electronVIDSpring16HZZMvaCatMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16HZZV1Categories"),
+
+    miniIsoChgValueMap     = cms.InputTag("isoForEle:miniIsoChg"),
+    miniIsoAllValueMap     = cms.InputTag("isoForEle:miniIsoAll"),
     
     # Beamspot
     beamSpotInputTag  = cms.InputTag("beamSpotMaker","evtbsp4"),

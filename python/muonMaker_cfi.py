@@ -10,6 +10,8 @@ muonMaker = cms.EDProducer("MuonMaker",
   cosmicCompat     = cms.InputTag("muons", "cosmicsVeto"),
   pfNoPileUpInputTag_ = cms.InputTag("pfNoPileUp"),
   pfJetsInputTag = cms.InputTag("slimmedJets","",configProcessName.name),
+  miniIsoChgValueMap     = cms.InputTag("isoForMu:miniIsoChg"),
+  miniIsoAllValueMap     = cms.InputTag("isoForMu:miniIsoAll"),
 )
 
 

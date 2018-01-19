@@ -64,6 +64,9 @@ private:
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   std::string tevMuonsName;
 
+  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
+
   edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
 
   std::string aliasprefix_;

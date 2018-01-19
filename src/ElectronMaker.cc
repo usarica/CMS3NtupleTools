@@ -120,6 +120,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     // pfIsoGamma04InputTag      = iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     );
     // pfIsoNeutral04InputTag    = iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   );
     
+    miniIsoChgValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoChgValueMap"));
+    miniIsoAllValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoAllValueMap"));
 
     ebReducedRecHitCollection = mayConsume<EcalRecHitCollection>(ebReducedRecHitCollectionTag);
     eeReducedRecHitCollection = mayConsume<EcalRecHitCollection>(eeReducedRecHitCollectionTag);
@@ -307,6 +309,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<float>         >("elsminiIsonh"       ).setBranchAlias("els_miniIso_nh"                       	);
     produces<vector<float>         >("elsminiIsoem"       ).setBranchAlias("els_miniIso_em"                       	);
     produces<vector<float>         >("elsminiIsodb"       ).setBranchAlias("els_miniIso_db"                       	);
+
+    produces<vector<float>         >("elsminiRelIsochg"       ).setBranchAlias("els_miniRelIso_chg"                       	);
+    produces<vector<float>         >("elsminiRelIsoall"       ).setBranchAlias("els_miniRelIso_all"                       	);
+
 
     produces<vector<float>         >("elsecalPFClusterIso"       ).setBranchAlias("els_ecalPFClusterIso"                       	);
     produces<vector<float>         >("elshcalPFClusterIso"       ).setBranchAlias("els_hcalPFClusterIso"                       	);
@@ -498,6 +504,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>   >       els_miniIso_em                  (new vector<float>        );  	
     unique_ptr<vector<float>   >       els_miniIso_db                  (new vector<float>        );  	
 
+    unique_ptr<vector<float>   >       els_miniRelIso_chg                  (new vector<float>        );  	
+    unique_ptr<vector<float>   >       els_miniRelIso_all                  (new vector<float>        );  	
+
     unique_ptr<vector<float>   >       els_ecalPFClusterIso                (new vector<float>        );  	
     unique_ptr<vector<float>   >       els_hcalPFClusterIso                (new vector<float>        );  	
 
@@ -628,6 +637,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
     edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
 
+    edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
+    edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
+
     // iEvent.getByToken(electronVetoIdMapToken_,veto_id_decisions);
     // iEvent.getByToken(electronLooseIdMapToken_,loose_id_decisions);
     // iEvent.getByToken(electronMediumIdMapToken_,medium_id_decisions);
@@ -645,6 +657,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
     iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
     iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
+
+    // Corrected Isolation using NanoAOD
+    iEvent.getByToken(miniIsoChgValueMapToken_,miniIsoChg_values);
+    iEvent.getByToken(miniIsoAllValueMapToken_,miniIsoAll_values);
 
     //////////////////////////
     // get cms2scsseeddetid //
@@ -774,6 +790,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VIDSpring16HZZMvaValue   ->push_back( (*VIDSpring16HZZMva_values)[ elPtr ] );
         VIDSpring16HZZMvaCat     ->push_back( (*VIDSpring16HZZMva_cats)[ elPtr ] );
 
+        float isopt = el->p4().pt();
+        els_miniRelIso_chg->push_back((*miniIsoChg_values)[elPtr]/isopt);
+        els_miniRelIso_all->push_back((*miniIsoAll_values)[elPtr]/isopt);
 
         //////////////
         // Electron //
@@ -1300,6 +1319,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(els_miniIso_nh       ), "elsminiIsonh"    );
     iEvent.put(std::move(els_miniIso_em       ), "elsminiIsoem"    );
     iEvent.put(std::move(els_miniIso_db       ), "elsminiIsodb"    );
+
+    iEvent.put(std::move(els_miniRelIso_chg       ), "elsminiRelIsochg"    );
+    iEvent.put(std::move(els_miniRelIso_all       ), "elsminiRelIsoall"    );
     
     iEvent.put(std::move(els_ecalPFClusterIso       ), "elsecalPFClusterIso"    );
     iEvent.put(std::move(els_hcalPFClusterIso       ), "elshcalPFClusterIso"    );

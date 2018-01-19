@@ -74,7 +74,8 @@ process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+# process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False) )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
@@ -264,6 +265,24 @@ if opts.triginfo:
         process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
+# python -c "from PhysicsTools.NanoAOD.electrons_cff import isoForEle; print 'process.isoForEle = {}'.format(repr(isoForEle))"
+process.isoForEle = cms.EDProducer("EleIsoValueMapProducer",
+    EAFile_MiniIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt'),
+    EAFile_PFIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
+    relative = cms.bool(False),
+    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+    rho_PFIso = cms.InputTag("fixedGridRhoFastjetAll"),
+    src = cms.InputTag("slimmedElectrons")
+)
+# python -c "from PhysicsTools.NanoAOD.muons_cff import isoForMu; print 'process.isoForMu = {}'.format(repr(isoForMu))"
+process.isoForMu = cms.EDProducer("MuonIsoValueMapProducer",
+    EAFile_MiniIso = cms.FileInPath('PhysicsTools/NanoAOD/data/effAreaMuons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
+    relative = cms.bool(False),
+    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+    src = cms.InputTag("slimmedMuons")
+)
+
+
 if opts.data:
     process.p = cms.Path( 
         process.metFilterMaker *
@@ -273,6 +292,8 @@ if opts.data:
         process.eventMaker *
         process.pfCandidateMaker *
         process.isoTrackMaker *
+        process.isoForEle * 
+        process.isoForMu *
         process.electronMaker *
         process.muonMaker *
         process.pfJetMaker *
@@ -302,6 +323,8 @@ else:
         process.eventMaker *
         process.pfCandidateMaker *
         process.isoTrackMaker *
+        process.isoForEle * 
+        process.isoForMu *
         process.electronMaker *
         process.muonMaker *
         process.pfJetMaker *
@@ -358,3 +381,4 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.CMS3tag = cms.string('V08-00-18')
 # process.eventMaker.datasetName = cms.string('/DoubleEG/Run2016C-03Feb2017-v1/MINIAOD')
 # process.maxEvents.input = cms.untracked.int32(3000)
+

@@ -100,6 +100,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
 
+    miniIsoChgValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoChgValueMap"));
+    miniIsoAllValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoAllValueMap"));
+
     ////////////
     // Global //
     ////////////
@@ -234,6 +237,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<float>         >("musminiIsonh"       ).setBranchAlias("mus_miniIso_nh"     );
     produces<vector<float>         >("musminiIsoem"       ).setBranchAlias("mus_miniIso_em"     );
     produces<vector<float>         >("musminiIsodb"       ).setBranchAlias("mus_miniIso_db"     );
+
+    produces<vector<float>         >("musminiRelIsochg"       ).setBranchAlias("mus_miniRelIso_chg"                       	);
+    produces<vector<float>         >("musminiRelIsoall"       ).setBranchAlias("mus_miniRelIso_all"                       	);
 
     produces<vector<unsigned int>         >("musselectors"       ).setBranchAlias("mus_selectors"     );
     produces<vector<int>         >("mussimType"       ).setBranchAlias("mus_simType"     );
@@ -391,6 +397,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>         > mus_miniIso_em     ( new vector<float>         );   
     unique_ptr<vector<float>         > mus_miniIso_db     ( new vector<float>         );   
 
+    unique_ptr<vector<float>   >       mus_miniRelIso_chg                  (new vector<float>        );  	
+    unique_ptr<vector<float>   >       mus_miniRelIso_all                  (new vector<float>        );  	
+
     unique_ptr<vector<unsigned int>         > mus_selectors     ( new vector<unsigned int>         );   
     unique_ptr<vector<int>         > mus_simType     ( new vector<int>         );   
     unique_ptr<vector<int>         > mus_simExtType     ( new vector<int>         );   
@@ -399,6 +408,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<float>   >       mus_ptRatio                   (new vector<float>        );
     unique_ptr<vector<float>   >       mus_ptRel                   (new vector<float>        );
     unique_ptr<vector<float>   >       mus_jetBTagCSV                   (new vector<float>        );
+
 
     ////////////////////////////
     // --- Fill Muon Data --- //
@@ -427,6 +437,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // Jets
     Handle<View<pat::Jet> > pfJetsHandle;
     iEvent.getByToken(pfJetsToken, pfJetsHandle);
+
+    // Corrected Isolation using NanoAOD
+    edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
+    edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
+    iEvent.getByToken(miniIsoChgValueMapToken_,miniIsoChg_values);
+    iEvent.getByToken(miniIsoAllValueMapToken_,miniIsoAll_values);
   
     ///////////
     // Muons // 
@@ -456,6 +472,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
                 break;
             }
         }
+
+        float isopt = muon->p4().pt();
+        mus_miniRelIso_chg->push_back((*miniIsoChg_values)[muPtr]/isopt);
+        mus_miniRelIso_all->push_back((*miniIsoAll_values)[muPtr]/isopt);
 
         mus_selectors->push_back( muon->selectors() ); // DataFormats/MuonReco/interface/Muon.h
         mus_simType->push_back( muon->simType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
@@ -741,6 +761,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move( vector_mus_iso03_emEt         ), branchprefix_ + "iso03emEt"          );
     iEvent.put(std::move( vector_mus_iso03_hadEt        ), branchprefix_ + "iso03hadEt"         );
     iEvent.put(std::move( vector_mus_iso03_ntrk         ), branchprefix_ + "iso03ntrk"          );
+
+    iEvent.put(std::move(mus_miniRelIso_chg       ), "musminiRelIsochg"    );
+    iEvent.put(std::move(mus_miniRelIso_all       ), "musminiRelIsoall"    );
 
     ////////////
     // Tracks //
