@@ -309,15 +309,17 @@ const void MatchUtilities::alignJPTcaloJetCollections(const std::vector<reco::Ca
 const std::tuple<float,float,int,float> MatchUtilities::getLepMVAInfo(edm::Ptr<reco::Candidate> lep, edm::Handle<edm::View<pat::Jet> > pfJetsHandle, const reco::Vertex &vtx) {
     // Taken from https://github.com/cms-sw/cmssw/blob/70922db3413f0934414865c37e735a97add7daef/PhysicsTools/NanoAOD/plugins/LeptonJetVarProducer.cc#L175
     int jetNDauChargedMVASel = 0;
-    float ptratio = 1.0;
-    float ptrel = 0.0;
+    float ptratio = -1.0;
+    float ptrel = -1.0;
     float disc = -99.; // -99 if not found: https://github.com/cms-sw/cmssw/blob/1fed0702c9db78ad3f8c2b1e53967c2b6c8ae939/PhysicsTools/NanoAOD/python/electrons_cff.py#L123
     for (unsigned int ij = 0; ij<pfJetsHandle->size(); ij++){
         auto jet = pfJetsHandle->ptrAt(ij);
 
         auto rawp4 = jet->correctedP4("Uncorrected");
         auto lepp4 = lep->p4();
-        if ((rawp4-lepp4).R()<1e-4) break;
+        if ((rawp4-lepp4).R()<1e-4) {
+            return std::tuple<float,float,int,float>(1.0f,0.0f,jetNDauChargedMVASel,disc);
+        }
 
         if(matchByCommonSourceCandidatePtr(*lep,*jet)) {
             unsigned int jndau = 0;
