@@ -311,19 +311,15 @@ const std::tuple<float,float,int,float> MatchUtilities::getLepMVAInfo(edm::Ptr<r
     int jetNDauChargedMVASel = 0;
     float ptratio = 1.0;
     float ptrel = 0.0;
-    float disc = -99.;
+    float disc = -99.; // -99 if not found: https://github.com/cms-sw/cmssw/blob/1fed0702c9db78ad3f8c2b1e53967c2b6c8ae939/PhysicsTools/NanoAOD/python/electrons_cff.py#L123
     for (unsigned int ij = 0; ij<pfJetsHandle->size(); ij++){
         auto jet = pfJetsHandle->ptrAt(ij);
 
         auto rawp4 = jet->correctedP4("Uncorrected");
         auto lepp4 = lep->p4();
         if ((rawp4-lepp4).R()<1e-4) break;
-        auto jetp4 = (rawp4 - lepp4*(1.0/jet->jecFactor("L1FastJet")))*(jet->pt()/rawp4.pt())+lepp4;
-        ptratio = lepp4.pt()/jetp4.pt();
-        ptrel = lepp4.Vect().Cross((jetp4-lepp4).Vect().Unit()).R();
-        disc = jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
 
-        if(matchByCommonSourceCandidatePtr(*lep,*jet)){
+        if(matchByCommonSourceCandidatePtr(*lep,*jet)) {
             unsigned int jndau = 0;
             for(const auto _d : jet->daughterPtrVector()) {
                 const auto d = dynamic_cast<const pat::PackedCandidate*>(_d.get());
@@ -341,6 +337,10 @@ const std::tuple<float,float,int,float> MatchUtilities::getLepMVAInfo(edm::Ptr<r
                   ) jndau++;
             }
             jetNDauChargedMVASel = jndau;
+            auto jetp4 = (rawp4 - lepp4*(1.0/jet->jecFactor("L1FastJet")))*(jet->pt()/rawp4.pt())+lepp4;
+            ptratio = lepp4.pt()/jetp4.pt();
+            ptrel = lepp4.Vect().Cross((jetp4-lepp4).Vect().Unit()).R();
+            disc = jet->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags");
             break; // take leading jet with shared source candidates
         }
     }
