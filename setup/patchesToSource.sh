@@ -110,7 +110,7 @@ scram setup mxnet
 rm $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet.so
 cp NNKit/misc/lib/libmxnet.so $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet.so
 # copy json files to test directory (or wherever you are doing cmsRun)
-cp ../../../NNKit/data/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
+cp NNKit/data/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
 # #######################
 
 
