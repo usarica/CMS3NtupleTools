@@ -52,10 +52,10 @@ PFCandidateMaker::PFCandidateMaker(const edm::ParameterSet& iConfig){
   produces<vector<float>>         (branchprefix+"puppiWeightNoLep"           ).setBranchAlias(aliasprefix_+"_puppiWeightNoLep"           );
   produces<vector<float>>         (branchprefix+"trackIso"                   ).setBranchAlias(aliasprefix_+"_trackIso"                   );
   produces<vector<float>>         (branchprefix+"miniTrackIso"               ).setBranchAlias(aliasprefix_+"_miniTrackIso"               );
-  produces<vector<uint8_t>>       (branchprefix+"packedHits"                 ).setBranchAlias(aliasprefix_+"_packedHits"                 );
-  produces<vector<uint8_t>>       (branchprefix+"packedLayers"               ).setBranchAlias(aliasprefix_+"_packedLayers"               );
-  produces<vector<uint16_t>>      (branchprefix+"qualityFlags"               ).setBranchAlias(aliasprefix_+"_qualityFlags"               );
-  produces<vector<uint8_t>>       (branchprefix+"normalizedChi2"             ).setBranchAlias(aliasprefix_+"_normalizedChi2"             );
+  // produces<vector<uint8_t>>       (branchprefix+"packedHits"                 ).setBranchAlias(aliasprefix_+"_packedHits"                 );
+  // produces<vector<uint8_t>>       (branchprefix+"packedLayers"               ).setBranchAlias(aliasprefix_+"_packedLayers"               );
+  // produces<vector<uint16_t>>      (branchprefix+"qualityFlags"               ).setBranchAlias(aliasprefix_+"_qualityFlags"               );
+  // produces<vector<uint8_t>>       (branchprefix+"normalizedChi2"             ).setBranchAlias(aliasprefix_+"_normalizedChi2"             );
   produces<vector<int>>           (branchprefix+"numberOfPixelHits"          ).setBranchAlias(aliasprefix_+"_numberOfPixelHits"          );
   produces<vector<int>>           (branchprefix+"numberOfHits"               ).setBranchAlias(aliasprefix_+"_numberOfHits"               );
   produces<vector<int>>           (branchprefix+"pixelLayersWithMeasurement" ).setBranchAlias(aliasprefix_+"_pixelLayersWithMeasurement" );
