@@ -33,6 +33,8 @@ Implementation:
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
+#include "NNKit/FatJetNN/interface/FatJetNN.h"
+
 //
 // class decleration
 //
@@ -48,6 +50,9 @@ private:
   virtual void endJob() ;
       
   // ----------member data ---------------------------
+
+  deepntuples::FatJetNN* fatjetNN_;
+
   edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::InputTag pfCandidatesTag_;
   double         pfJetPtCut_;

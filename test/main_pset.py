@@ -282,6 +282,9 @@ process.isoForMu = cms.EDProducer("MuonIsoValueMapProducer",
     src = cms.InputTag("slimmedMuons")
 )
 
+process.TransientTrackBuilderESProducer = cms.ESProducer("TransientTrackBuilderESProducer",
+    ComponentName=cms.string('TransientTrackBuilder')
+)
 
 if opts.data:
     process.p = cms.Path( 
@@ -375,10 +378,10 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 # process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
 
-# process.GlobalTag.globaltag = "80X_dataRun2_2016SeptRepro_v7"
-# process.out.fileName = cms.untracked.string('ntuple.root')
-# process.source.fileNames = cms.untracked.vstring('file:DataDoubleEG2016C.root')
-# process.eventMaker.CMS3tag = cms.string('V08-00-18')
-# process.eventMaker.datasetName = cms.string('/DoubleEG/Run2016C-03Feb2017-v1/MINIAOD')
-# process.maxEvents.input = cms.untracked.int32(3000)
-
+process.GlobalTag.globaltag = "94X_dataRun2_ReReco_EOY17_v2"
+process.out.fileName = cms.untracked.string('ntuple.root')
+# process.source.fileNames = cms.untracked.vstring('file:/home/users/namin/2017/lepmvacms4/CMSSW_9_4_0/src/CMS3/NtupleMaker/test/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
+process.source.fileNames = cms.untracked.vstring('/store/data/Run2017F/DoubleEG/MINIAOD/17Nov2017-v1/60000/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
+process.eventMaker.CMS3tag = cms.string('blah')
+process.eventMaker.datasetName = cms.string('blah')
+process.maxEvents.input = cms.untracked.int32(300)

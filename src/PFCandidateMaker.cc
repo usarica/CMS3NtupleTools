@@ -10,7 +10,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
-#include "RecoParticleFlow/PFProducer/interface/PFMuonAlgo.h"
+// #include "RecoParticleFlow/PFProducer/interface/PFMuonAlgo.h"
 #include "DataFormats/ParticleFlowReco/interface/PFBlock.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 

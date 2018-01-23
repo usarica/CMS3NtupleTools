@@ -2,7 +2,7 @@
 <use   name="FWCore/PluginManager"/>
 <use   name="FWCore/ParameterSet"/>
 <use   name="FWCore/Utilities"/>
-<use   name="CalibCalorimetry/EcalTPGTools"/>
+<!-- <use   name="CalibCalorimetry/EcalTPGTools"/> -->
 <use   name="CondFormats/JetMETObjects"/>
 <use   name="CondFormats/EcalObjects"/>
 <use   name="DataFormats/TauReco"/>
@@ -25,8 +25,8 @@
 <use   name="Geometry/TrackerGeometryBuilder"/>
 <use   name="Geometry/EcalAlgo"/>
 <use   name="RecoMuon/MuonIsolation"/>
-<use   name="RecoMuon/MuonIdentification"/>
-<use   name="RecoParticleFlow/PFProducer"/>
+<!-- <use   name="RecoMuon/MuonIdentification"/> -->
+<!-- <use   name="RecoParticleFlow/PFProducer"/> -->
 <use   name="CommonTools/ParticleFlow"/>
 <use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="RecoEgamma/EgammaTools"/>
@@ -35,8 +35,8 @@
 <use   name="CondFormats/L1TObjects"/>
 <use   name="CondFormats/DataRecord"/>
 <use   name="JetMETCorrections/Objects"/>
-<use   name="TrackingTools/TrackAssociator"/>
-<use   name="TrackingTools/TrajectoryState"/>
+<!-- <use   name="TrackingTools/TrackAssociator"/> -->
+<!-- <use   name="TrackingTools/TrajectoryState"/> -->
 <use   name="PhysicsTools/IsolationAlgos"/>
 <use   name="DataFormats/RecoCandidate"/>
 <use   name="RecoEgamma/EgammaIsolationAlgos"/>
@@ -52,9 +52,10 @@
 <use   name="RecoTracker/TransientTrackingRecHit"/>
 <use   name="DataFormats/Luminosity"/>
 <use   name="RecoVertex/PrimaryVertexProducer"/>
-<use   name="TrackingTools/IPTools"/>
+<!-- <use   name="TrackingTools/IPTools"/> -->
 <use   name="EgammaAnalysis/ElectronTools"/>
 <use   name="PhysicsTools/NanoAOD"/>
+<use   name="NNKit/FatJetNN"/>
 <use   name="root"/>
 <use   name="clhep"/>
 <lib   name="EG"/>
