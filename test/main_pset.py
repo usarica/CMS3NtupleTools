@@ -270,7 +270,7 @@ process.isoForEle = cms.EDProducer("EleIsoValueMapProducer",
     EAFile_MiniIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt'),
     EAFile_PFIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
     relative = cms.bool(False),
-    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetAll"),
     rho_PFIso = cms.InputTag("fixedGridRhoFastjetAll"),
     src = cms.InputTag("slimmedElectrons")
 )
@@ -278,7 +278,7 @@ process.isoForEle = cms.EDProducer("EleIsoValueMapProducer",
 process.isoForMu = cms.EDProducer("MuonIsoValueMapProducer",
     EAFile_MiniIso = cms.FileInPath('PhysicsTools/NanoAOD/data/effAreaMuons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
     relative = cms.bool(False),
-    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetCentralNeutral"),
+    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetAll"),
     src = cms.InputTag("slimmedMuons")
 )
 
