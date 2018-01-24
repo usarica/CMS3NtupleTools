@@ -139,12 +139,16 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   for(View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
 
-    // jets from toolbox are uncorrected, so we need to correct them here
-    pfjets_p4                        ->push_back( LorentzVector( pfjet_it->p4() ) * pfjet_it->jecFactor("Uncorrected")     );
-    pfjets_mass                      ->push_back( pfjet_it->mass()                     );
+    auto p4 = LorentzVector( pfjet_it->p4() );
 
-    // jets from toolbox are uncorrected, so we need to correct them here => flip undoJEC
-    pfjets_undoJEC                   ->push_back( 1.0 / pfjet_it->jecFactor("Uncorrected")   );
+    // 17Nov2017 rereco had ak8jets down to 50GeV. The 2017 miniAOD twiki states only jets down to 170 will be stored
+    // so putting a temporary speed optimization here. When the miniAOD pt cut gets fixed, this line will do nothing
+    // and get removed.
+    if (p4.pt() < 170) continue;
+
+    pfjets_p4                        ->push_back( p4     );
+    pfjets_mass                      ->push_back( pfjet_it->mass()                     );
+    pfjets_undoJEC                   ->push_back( pfjet_it->jecFactor("Uncorrected")   );
     pfjets_area                      ->push_back(pfjet_it->jetArea()                   );
     pfjets_partonFlavour             ->push_back(pfjet_it->partonFlavour()             );
 
@@ -244,7 +248,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(std::move(pfjets_p4                        ), "ak8jetsp4"                        );
   iEvent.put(std::move(pfjets_mass                      ), "ak8jetsmass"                      );
   iEvent.put(std::move(pfjets_undoJEC                   ), "ak8jetsundoJEC"                   );
-  iEvent.put(std::move(pfjets_npfcands            ), "ak8jetsnpfcands"            );
+  iEvent.put(std::move(pfjets_npfcands                  ), "ak8jetsnpfcands"                  );
   iEvent.put(std::move(pfjets_area                      ), "ak8jetsarea"                      );
   iEvent.put(std::move(pfjets_partonFlavour             ), "ak8jetspartonFlavour"             );
   iEvent.put(std::move(ak8jets_nJettinessTau1           ), "ak8jetsnJettinessTau1"            );
