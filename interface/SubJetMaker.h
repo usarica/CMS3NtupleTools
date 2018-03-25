@@ -2,7 +2,7 @@
 //
 // Package:    SubJetMaker
 // Class:      SubJetMaker
-// 
+//
 /**\class SubJetMaker SubJetMaker.cc temp/SubJetMaker/src/SubJetMaker.cc
 
 Description: <one line class summary>
@@ -48,14 +48,15 @@ private:
   virtual void beginJob() ;
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob() ;
-      
+
   // ----------member data ---------------------------
 
   deepntuples::FatJetNN* fatjetNN_;
 
   edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::InputTag pfCandidatesTag_;
-  double         pfJetPtCut_;
+  double pfJetPtCut_;
+  bool keepless_;
   std::string aliasprefix_;
   std::string PFJetCorrectorL2L3_;
   std::string PFJetCorrectorL1L2L3_;

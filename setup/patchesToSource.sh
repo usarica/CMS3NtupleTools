@@ -102,15 +102,15 @@ cd $CMSSW_BASE/src
 # because this is top secret code that needs to be password protected apparently
 # and thus, the user must either configure ssh keys or manually type their password.
 # the latter ruins the whole "run this install script, get a coffee, use the ntuplemaker" workflow.
-git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git
+git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-01-25
 # setup mxnet library
 cp NNKit/misc/*.xml $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected
 scram setup openblas
-scram setup mxnet
-rm $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet.so
-cp NNKit/misc/lib/libmxnet.so $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet.so
+scram setup mxnet_predict
+rm $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
+cp NNKit/misc/lib/libmxnet_predict.so $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
 # copy json files to test directory (or wherever you are doing cmsRun)
-cp NNKit/data/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
+# cp NNKit/data/ak8/*.{json,params} $CMSSW_BASE/src/CMS3/NtupleMaker/test/
 # #######################
 
 
@@ -122,5 +122,5 @@ scram b -j 20
 # If you see an error with the words "poisoned" and "plugin", then this is what you need to do
 # I don't know what the hell it does, but you just need to do it
 # ...after...every...single...scram b...before you can run
-rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
+[ -f $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache ] && rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
 
