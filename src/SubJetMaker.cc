@@ -58,6 +58,9 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >         ( "ak8jetsdeeprawdischbb"                   ).setBranchAlias( "ak8jets_deep_rawdisc_hbb"          );
   produces<vector<float> >         ( "ak8jetsdeeprawdisch4q"                   ).setBranchAlias( "ak8jets_deep_rawdisc_h4q"          );
 
+  produces<vector<TString> >       ( "ak8jetsbDiscriminatorNames"              ).setBranchAlias( "ak8jets_bDiscriminatorNames"       );
+  produces<vector<vector<float>> > ( "ak8jetsbDiscriminators"                  ).setBranchAlias( "ak8jets_bDiscriminators"           );
+
   if (!keepless_) {
     produces<vector<float> >         ( "ak8jetschsnJettinessTau1"                ).setBranchAlias( "ak8jets_chs_nJettinessTau1"        );
     produces<vector<float> >         ( "ak8jetschsnJettinessTau2"                ).setBranchAlias( "ak8jets_chs_nJettinessTau2"        );
@@ -110,6 +113,9 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   unique_ptr<vector<float> >         ak8jets_deep_rawdisc_hbb         (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_deep_rawdisc_h4q         (new vector<float>          );
 
+  unique_ptr<vector<TString> >       ak8jets_bDiscriminatorNames      (new vector<TString>        );
+  unique_ptr<vector<vector<float>> > ak8jets_bDiscriminators          (new vector<vector<float> > );
+
   unique_ptr<vector<float> >         ak8jets_chs_nJettinessTau1       (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_chs_nJettinessTau2       (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_chs_nJettinessTau3       (new vector<float>          );
@@ -147,6 +153,15 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     ak8jets_deep_rawdisc_zbb ->push_back( nnhelper.get_raw_score_zbb()       );
     ak8jets_deep_rawdisc_hbb ->push_back( nnhelper.get_raw_score_hbb()       );
     ak8jets_deep_rawdisc_h4q ->push_back( nnhelper.get_raw_score_h4q()       );
+
+    const vector<pair<string,float>> bDiscriminatorPairs = pfjet_it->getPairDiscri();
+    vector<float> bDiscriminatorPerjet;
+    for (auto& ipair : bDiscriminatorPairs) {
+      if (pfjet_it == pfJetsHandle->begin())
+        ak8jets_bDiscriminatorNames->push_back( ipair.first );
+      bDiscriminatorPerjet.push_back( ipair.second );
+    }
+    ak8jets_bDiscriminators->push_back(bDiscriminatorPerjet);
 
     float nJettinessTau1 = -999, nJettinessTau2 = -999, nJettinessTau3 = -999;
     // float topMass = -999, minMass = -999, nSubJets = -999;
@@ -240,6 +255,9 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(std::move(ak8jets_deep_rawdisc_zbb         ), "ak8jetsdeeprawdisczbb"      );
   iEvent.put(std::move(ak8jets_deep_rawdisc_hbb         ), "ak8jetsdeeprawdischbb"      );
   iEvent.put(std::move(ak8jets_deep_rawdisc_h4q         ), "ak8jetsdeeprawdisch4q"      );
+
+  iEvent.put(std::move(ak8jets_bDiscriminatorNames      ), "ak8jetsbDiscriminatorNames" );
+  iEvent.put(std::move(ak8jets_bDiscriminators          ), "ak8jetsbDiscriminators"     );
 
   if (!keepless_) {
     iEvent.put(std::move(ak8jets_chs_nJettinessTau1       ), "ak8jetschsnJettinessTau1"   );
