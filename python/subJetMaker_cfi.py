@@ -7,6 +7,6 @@ subJetMaker = cms.EDProducer("SubJetMaker",
   pfJetsInputTag                   = cms.InputTag("slimmedJetsAK8"),
   pfCandidatesTag                  = cms.InputTag("packedPFCandidates"),
   pfJetPtCut                       = cms.double(200),
-  lessBranches                     = cms.bool(True),
+  lessBranches                     = cms.bool(False),
 
 )

@@ -65,8 +65,8 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig) {
     produces<vector<float> >         ( "ak8jetschsnJettinessTau1"                ).setBranchAlias( "ak8jets_chs_nJettinessTau1"        );
     produces<vector<float> >         ( "ak8jetschsnJettinessTau2"                ).setBranchAlias( "ak8jets_chs_nJettinessTau2"        );
     produces<vector<float> >         ( "ak8jetschsnJettinessTau3"                ).setBranchAlias( "ak8jets_chs_nJettinessTau3"        );
-    produces<vector<float> >         ( "ak8jetsprunedMass"                       ).setBranchAlias( "ak8jets_chs_prunedMass"            );
-    produces<vector<float> >         ( "ak8jetssoftdropMass"                     ).setBranchAlias( "ak8jets_chs_softdropMass"          );
+    produces<vector<float> >         ( "ak8jetschsprunedMass"                    ).setBranchAlias( "ak8jets_chs_prunedMass"            );
+    produces<vector<float> >         ( "ak8jetschssoftdropMass"                  ).setBranchAlias( "ak8jets_chs_softdropMass"          );
 
     produces<vector<LorentzVector> > ( "ak8jetssoftdropPuppiSubjet1"             ).setBranchAlias( "ak8jets_softdropPuppiSubjet1"      );
     produces<vector<LorentzVector> > ( "ak8jetssoftdropPuppiSubjet2"             ).setBranchAlias( "ak8jets_softdropPuppiSubjet2"      );
