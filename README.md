@@ -39,3 +39,10 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
 ```
 
 Run it with `cmsRun main_pset.py data=True`.
+
+### ProjectMetis details
+To make a tarfile for use with Metis, the current string looks something like this
+```bash
+mtarfile lib_CMS4_V09-04-11_945cand1.tar.gz -e $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected/{mxnet_predict,openblas}.xml
+```
+due to the presence of the heavy object tagger, which unfortunately requires us to copy .so files :( So messy.
