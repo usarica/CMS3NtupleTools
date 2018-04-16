@@ -24,6 +24,10 @@ electronMaker = cms.EDProducer(
     electronVIDSpring16GPMvaCatMap      = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Categories"),
     electronVIDSpring16HZZMvaValueMap   = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16HZZV1Values"),
     electronVIDSpring16HZZMvaCatMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16HZZV1Categories"),
+    electronVIDFall17NoIsoMvaValueMap   = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Values"),
+    electronVIDFall17NoIsoMvaCatMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17NoIsoV1Categories"),
+    electronVIDFall17IsoMvaValueMap   = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17IsoV1Values"),
+    electronVIDFall17IsoMvaCatMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Fall17IsoV1Categories"),
 
     miniIsoChgValueMap     = cms.InputTag("isoForEle:miniIsoChg"),
     miniIsoAllValueMap     = cms.InputTag("isoForEle:miniIsoAll"),

@@ -100,6 +100,11 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronVIDSpring16HZZMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16HZZMvaValueMap"));
     electronVIDSpring16HZZMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDSpring16HZZMvaCatMap"));
 
+    electronVIDFall17NoIsoMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDFall17NoIsoMvaValueMap"));
+    electronVIDFall17NoIsoMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDFall17NoIsoMvaCatMap"));
+    electronVIDFall17IsoMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDFall17IsoMvaValueMap"));
+    electronVIDFall17IsoMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDFall17IsoMvaCatMap"));
+
     electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
     vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
@@ -199,6 +204,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("VIDSpring16GPMvaCat"        ).setBranchAlias("els_VIDSpring16GPMvaCat"           );
     produces<vector<float> >     ("VIDSpring16HZZMvaValue"     ).setBranchAlias("els_VIDSpring16HZZMvaValue"         );
     produces<vector<int> >       ("VIDSpring16HZZMvaCat"       ).setBranchAlias("els_VIDSpring16HZZMvaCat"           );
+    produces<vector<float> >     ("VIDFall17NoIsoMvaValue"     ).setBranchAlias("els_VIDFall17NoIsoMvaValue"         );
+    produces<vector<int> >       ("VIDFall17NoIsoMvaCat"       ).setBranchAlias("els_VIDFall17NoIsoMvaCat"           );
+    produces<vector<float> >     ("VIDFall17IsoMvaValue"     ).setBranchAlias("els_VIDFall17IsoMvaValue"         );
+    produces<vector<int> >       ("VIDFall17IsoMvaCat"       ).setBranchAlias("els_VIDFall17IsoMvaCat"           );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -410,6 +419,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int> >   VIDSpring16GPMvaCat       (new vector<int>   );
     unique_ptr<vector<float> > VIDSpring16HZZMvaValue    (new vector<float>);
     unique_ptr<vector<int> >   VIDSpring16HZZMvaCat      (new vector<int>   );
+
+    unique_ptr<vector<float> > VIDFall17NoIsoMvaValue    (new vector<float>);
+    unique_ptr<vector<int> >   VIDFall17NoIsoMvaCat      (new vector<int>   );
+    unique_ptr<vector<float> > VIDFall17IsoMvaValue    (new vector<float>);
+    unique_ptr<vector<int> >   VIDFall17IsoMvaCat      (new vector<int>   );
 
     // isolation variables
     //
@@ -636,6 +650,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     edm::Handle<edm::ValueMap<int> >  VIDSpring16GPMva_cats;
     edm::Handle<edm::ValueMap<float> > VIDSpring16HZZMva_values;
     edm::Handle<edm::ValueMap<int> >  VIDSpring16HZZMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDFall17NoIsoMva_values;
+    edm::Handle<edm::ValueMap<int> >   VIDFall17NoIsoMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDFall17IsoMva_values;
+    edm::Handle<edm::ValueMap<int> >   VIDFall17IsoMva_cats;
 
     edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
     edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
@@ -657,6 +675,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByToken(electronVIDSpring16GPMvaCatMapToken_,VIDSpring16GPMva_cats);
     iEvent.getByToken(electronVIDSpring16HZZMvaValueMapToken_,VIDSpring16HZZMva_values);
     iEvent.getByToken(electronVIDSpring16HZZMvaCatMapToken_,VIDSpring16HZZMva_cats);
+    iEvent.getByToken(electronVIDFall17NoIsoMvaValueMapToken_,VIDFall17NoIsoMva_values);
+    iEvent.getByToken(electronVIDFall17NoIsoMvaCatMapToken_,  VIDFall17NoIsoMva_cats);
+    iEvent.getByToken(electronVIDFall17IsoMvaValueMapToken_,VIDFall17IsoMva_values);
+    iEvent.getByToken(electronVIDFall17IsoMvaCatMapToken_,  VIDFall17IsoMva_cats);
 
     // Corrected Isolation using NanoAOD
     iEvent.getByToken(miniIsoChgValueMapToken_,miniIsoChg_values);
@@ -789,6 +811,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VIDSpring16GPMvaCat      ->push_back( (*VIDSpring16GPMva_cats)[ elPtr ] );
         VIDSpring16HZZMvaValue   ->push_back( (*VIDSpring16HZZMva_values)[ elPtr ] );
         VIDSpring16HZZMvaCat     ->push_back( (*VIDSpring16HZZMva_cats)[ elPtr ] );
+        VIDFall17NoIsoMvaValue   ->push_back( (*VIDFall17NoIsoMva_values)[ elPtr ] );
+        VIDFall17NoIsoMvaCat     ->push_back( (*VIDFall17NoIsoMva_cats)[ elPtr ] );
+        VIDFall17IsoMvaValue   ->push_back( (*VIDFall17IsoMva_values)[ elPtr ] );
+        VIDFall17IsoMvaCat     ->push_back( (*VIDFall17IsoMva_cats)[ elPtr ] );
 
         float isopt = el->p4().pt();
         els_miniRelIso_chg->push_back((*miniIsoChg_values)[elPtr]/isopt);
@@ -1183,6 +1209,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(VIDSpring16GPMvaCat),       "VIDSpring16GPMvaCat"  );
     iEvent.put(std::move(VIDSpring16HZZMvaValue),    "VIDSpring16HZZMvaValue"  );
     iEvent.put(std::move(VIDSpring16HZZMvaCat),      "VIDSpring16HZZMvaCat"  );
+    iEvent.put(std::move(VIDFall17NoIsoMvaValue),    "VIDFall17NoIsoMvaValue"  );
+    iEvent.put(std::move(VIDFall17NoIsoMvaCat),      "VIDFall17NoIsoMvaCat"  );
+    iEvent.put(std::move(VIDFall17IsoMvaValue),    "VIDFall17IsoMvaValue"  );
+    iEvent.put(std::move(VIDFall17IsoMvaCat),      "VIDFall17IsoMvaCat"  );
 
     // Track parameters
     //

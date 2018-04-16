@@ -128,6 +128,8 @@ my_id_modules = [
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V1_cff',
+        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V1_cff',
                  ]
 for idmod in my_id_modules:
     setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
@@ -382,8 +384,10 @@ process.Timing = cms.Service("Timing",
 process.out.fileName = cms.untracked.string('ntuple.root')
 # process.source.fileNames = cms.untracked.vstring('file:/home/users/namin/2017/lepmvacms4/CMSSW_9_4_0/src/CMS3/NtupleMaker/test/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
 # process.source.fileNames = cms.untracked.vstring('/store/data/Run2017F/DoubleEG/MINIAOD/17Nov2017-v1/60000/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
-process.source.fileNames = cms.untracked.vstring('/store/mc/RunIIFall17MiniAOD/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/168DB50F-B5F8-E711-86C4-901B0E5427B0.root')
-process.GlobalTag.globaltag = '94X_mc2017_realistic_v10'
+# process.source.fileNames = cms.untracked.vstring('/store/data/Run2017E/HTMHT/MINIAOD/31Mar2018-v1/90000/D2735DEC-0D37-E811-AE40-A4BF0115947C.root')
+process.source.fileNames = cms.untracked.vstring('/store/data/Run2017D/SingleMuon/MINIAOD/31Mar2018-v1/80000/1E703527-F436-E811-80A7-E0DB55FC1055.root')
+# process.source.fileNames = cms.untracked.vstring('file:1E703527-F436-E811-80A7-E0DB55FC1055.root')
+process.GlobalTag.globaltag = '94X_dataRun2_ReReco_EOY17_v6'
 process.eventMaker.CMS3tag = cms.string('blah')
 process.eventMaker.datasetName = cms.string('blah')
-process.maxEvents.input = cms.untracked.int32(300)
+process.maxEvents.input = cms.untracked.int32(1000)
