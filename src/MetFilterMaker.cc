@@ -52,6 +52,9 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     produces <bool> ( branchprefix_ + "hcalStrip"                      ).setBranchAlias( aliasprefix_ + "_hcalStrip"                      );
     produces <bool> ( branchprefix_ + "ecalBoundaryEnergy"             ).setBranchAlias( aliasprefix_ + "_ecalBoundaryEnergy"             );
     produces <bool> ( branchprefix_ + "muonBadTrack"                   ).setBranchAlias( aliasprefix_ + "_muonBadTrack"                   );
+    produces <bool> ( branchprefix_ + "BadPFMuonFilter"                   ).setBranchAlias( aliasprefix_ + "_BadPFMuonFilter"                   );
+    produces <bool> ( branchprefix_ + "BadChargedCandidateFilter"                   ).setBranchAlias( aliasprefix_ + "_BadChargedCandidateFilter"                   );
+    produces <bool> ( branchprefix_ + "ecalBadCalibFilter"                   ).setBranchAlias( aliasprefix_ + "_ecalBadCalibFilter"                   );
 
     // For compatibility with CMS2 variable names
     produces <bool> ( "evtcscTightHaloId"                 ).setBranchAlias( "evt_cscTightHaloId"                 );
@@ -93,6 +96,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   unique_ptr <bool> filt_hcalStrip                     ( new bool(false) );
   unique_ptr <bool> filt_ecalBoundaryEnergy            ( new bool(false) );
   unique_ptr <bool> filt_muonBadTrack                  ( new bool(false) );
+  unique_ptr <bool> filt_BadPFMuonFilter                  ( new bool(false) );
+  unique_ptr <bool> filt_BadChargedCandidateFilter                  ( new bool(false) );
+  unique_ptr <bool> filt_ecalBadCalibFilter                  ( new bool(false) );
 
 
 
@@ -130,6 +136,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   int idx_hcalStrip                       = -1;
   int idx_ecalBoundaryEnergy              = -1;
   int idx_muonBadTrack                    = -1;
+  int idx_BadPFMuonFilter                 = -1;
+  int idx_BadChargedCandidateFilter       = -1;
+  int idx_ecalBadCalibFilter              = -1;
 
 
 
@@ -159,6 +168,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_HcalStripHaloFilter"                ) idx_hcalStrip                       = i;
     if (  metFilterNames_.triggerName(i) == "Flag_EcalDeadCellBoundaryEnergyFilter"   ) idx_ecalBoundaryEnergy              = i;
     if (  metFilterNames_.triggerName(i) == "Flag_muonBadTrackFilter"                 ) idx_muonBadTrack                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_BadPFMuonFilter"                 ) idx_BadPFMuonFilter                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_BadChargedCandidateFilter"                 ) idx_BadChargedCandidateFilter                    = i;
+    if (  metFilterNames_.triggerName(i) == "Flag_ecalBadCalibFilter"                 ) idx_ecalBadCalibFilter                    = i;
   }
 
   
@@ -184,7 +196,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   *filt_hcalStrip                            = (idx_hcalStrip                      < 0) ? false : metFilterResultsH_->accept(idx_hcalStrip                       );
   *filt_ecalBoundaryEnergy                   = (idx_ecalBoundaryEnergy             < 0) ? false : metFilterResultsH_->accept(idx_ecalBoundaryEnergy              );
   *filt_muonBadTrack                         = (idx_muonBadTrack                   < 0) ? false : metFilterResultsH_->accept(idx_muonBadTrack                    );
-
+  *filt_BadPFMuonFilter                         = (idx_BadPFMuonFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadPFMuonFilter                    );
+  *filt_BadChargedCandidateFilter                         = (idx_BadChargedCandidateFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadChargedCandidateFilter                    );
+  *filt_ecalBadCalibFilter                         = (idx_ecalBadCalibFilter                   < 0) ? false : metFilterResultsH_->accept(idx_ecalBadCalibFilter                    );
 
   // For compatibility with CMS2 variable names
   *filt_cscTightHaloId                       = (idx_cscBeamHalo < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
@@ -216,6 +230,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put(std::move( filt_hcalStrip                      ), branchprefix_ + "hcalStrip"                      );
   iEvent.put(std::move( filt_ecalBoundaryEnergy             ), branchprefix_ + "ecalBoundaryEnergy"             );
   iEvent.put(std::move( filt_muonBadTrack                   ), branchprefix_ + "muonBadTrack"                   );
+  iEvent.put(std::move( filt_BadPFMuonFilter                ), branchprefix_ + "BadPFMuonFilter"                );
+  iEvent.put(std::move( filt_BadChargedCandidateFilter      ), branchprefix_ + "BadChargedCandidateFilter"      );
+  iEvent.put(std::move( filt_ecalBadCalibFilter             ), branchprefix_ + "ecalBadCalibFilter"             );
 
   // For compatibility with CMS2 variable names
   iEvent.put(std::move( filt_cscTightHaloId                 ), "evtcscTightHaloId"                  );
