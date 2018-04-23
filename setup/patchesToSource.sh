@@ -102,10 +102,9 @@ cd $CMSSW_BASE/src
 # because this is top secret code that needs to be password protected apparently
 # and thus, the user must either configure ssh keys or manually type their password.
 # the latter ruins the whole "run this install script, get a coffee, use the ntuplemaker" workflow.
-git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-01-25
+git clone ssh://git@gitlab.cern.ch:7999/DeepAK8/NNKit.git -b ver_2018-03-08
 # setup mxnet library
-cp NNKit/misc/*.xml $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected
-scram setup openblas
+cp NNKit/misc/mxnet_predict.xml $CMSSW_BASE/config/toolbox/$SCRAM_ARCH/tools/selected
 scram setup mxnet_predict
 rm $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
 cp NNKit/misc/lib/libmxnet_predict.so $CMSSW_BASE/external/$SCRAM_ARCH/lib/libmxnet_predict.so
