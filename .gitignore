@@ -7,3 +7,4 @@
 *.txt
 *.sh
 test/crabConfig.py
+crab_projects/*
