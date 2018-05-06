@@ -7,4 +7,5 @@
 *.txt
 *.sh
 test/crabConfig.py
-crab_projects/*
+test/crab_projects/*
+test/crab_projects/crab_CMS4_from_MINIAOD_test/
