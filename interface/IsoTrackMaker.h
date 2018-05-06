@@ -29,6 +29,7 @@ private:
 
     // ----------member data ---------------------------
     edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
+    edm::EDGetTokenT<pat::PackedCandidateCollection> lostTracksToken;
     edm::EDGetTokenT<pat::IsolatedTrackCollection> isoTracksToken;
     double pt_cut_;
     double pt_cut_noIso_;

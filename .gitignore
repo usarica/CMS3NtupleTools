@@ -6,4 +6,4 @@
 *.pdf
 *.txt
 *.sh
-
+test/crabConfig.py

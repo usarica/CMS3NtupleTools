@@ -8,8 +8,8 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 opts = VarParsing.VarParsing('python')
 vpbool = VarParsing.VarParsing.varType.bool
-opts.register('data'    , True  , mytype=vpbool)
-opts.register('prompt'  , True  , mytype=vpbool)
+opts.register('data'    , False  , mytype=vpbool)
+opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
 opts.register('triginfo'  , False , mytype=vpbool)
@@ -68,9 +68,10 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
+#process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
 #process.GlobalTag.globaltag = "91X_upgrade2017_realistic_v5" #MC
 #process.GlobalTag.globaltag = "91X_dataRun2_relval_v6" #data
+process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
@@ -168,23 +169,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-                                # 'file:/hadoop/cms/phedex/store/mc/RunIISpring15MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/74X_mcRun2_asymptotic_v2-v1/60000/7AEAFCAD-266F-E511-8A2A-001E67A3F3DF.root',
-                                # 'root://cmsxrootd.fnal.gov//store/mc/RunIIFall15MiniAODv1/WWTo2L2Nu_13TeV-powheg/MINIAODSIM/PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/50000/0E47EC63-7B9D-E511-B714-B083FED426E5.root
-#         'file:/hadoop/cms/phedex/store/mc/RunIISpring16MiniAODv1/ttbb_4FS_ckm_amcatnlo_madspin_pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_v3-v1/60000/F4EA8D09-9002-E611-9D1B-1CC1DE19274E.root',
-#                                '/store/mc/RunIISpring16MiniAODv2/WZTo3LNu_TuneCUETP8M1_13TeV-powheg-pythia8/MINIAODSIM/PUSpring16_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/60000/D63C4E53-D91B-E611-AC83-FA163E5810F7.root',
-                                # 'file:RelValProdQCD_Pt_3000_3500_13.root'
-                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
-                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/A8B84A69-C1D7-E611-831F-5065F382B2D1.root',
-                                # 'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test',
-                                #'file:/home/users/namin/2017/slimming/CMSSW_8_0_26_patch1/src/CMS3/NtupleMaker/test/TTJets_HT-1200to2500.root',
-                                # 'file:DataDoubleEG2016C.root',
-                                # 'file:QCD_HT200to300.root',
-                                # 'file:20457CC1-74D7-E611-A445-24BE05CE2E81.root',
-
-#                                'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016B-v1/10000/746430BE-773C-E711-8419-0CC47A745298.root',
-                                #'root://cmsxrootd.fnal.gov//store/relval/CMSSW_9_2_0/SingleMuon/MINIAOD/91X_dataRun2_relval_v6_RelVal_sigMu2016E-v1/10000/5C79F5F3-B13C-E711-AEFD-0CC47A4D762A.root',
-                                #'root://cmsxrootd.fnal.gov//store/mc/PhaseISpring17MiniAOD/TTJets_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/FlatPU28to62_90X_upgrade2017_realistic_v20-v1/00000/02781287-E22A-E711-8EF8-A0000420FE80.root',
-                                'file:/home/users/mderdzinski/ntupling/CMSSW_8_0_26_patch1_CMS4_V00-00-02/src/CMS3/NtupleMaker/TTJets_HT-1200to2500.root',
+        'file:/home/users/dpgilber/2017/12CEC8EA-0743-E811-BE6A-0CC47A7C3430.root' # From: /DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM
                                 )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -382,12 +367,8 @@ process.Timing = cms.Service("Timing",
 
 # process.GlobalTag.globaltag = "94X_dataRun2_ReReco_EOY17_v2"
 process.out.fileName = cms.untracked.string('ntuple.root')
-# process.source.fileNames = cms.untracked.vstring('file:/home/users/namin/2017/lepmvacms4/CMSSW_9_4_0/src/CMS3/NtupleMaker/test/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
-# process.source.fileNames = cms.untracked.vstring('/store/data/Run2017F/DoubleEG/MINIAOD/17Nov2017-v1/60000/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root')
-# process.source.fileNames = cms.untracked.vstring('/store/data/Run2017E/HTMHT/MINIAOD/31Mar2018-v1/90000/D2735DEC-0D37-E811-AE40-A4BF0115947C.root')
-process.source.fileNames = cms.untracked.vstring('/store/data/Run2017D/SingleMuon/MINIAOD/31Mar2018-v1/80000/1E703527-F436-E811-80A7-E0DB55FC1055.root')
+#process.source.fileNames = cms.untracked.vstring('/store/data/Run2017D/SingleMuon/MINIAOD/31Mar2018-v1/80000/1E703527-F436-E811-80A7-E0DB55FC1055.root')
 # process.source.fileNames = cms.untracked.vstring('file:1E703527-F436-E811-80A7-E0DB55FC1055.root')
-process.GlobalTag.globaltag = '94X_dataRun2_ReReco_EOY17_v6'
-process.eventMaker.CMS3tag = cms.string('blah')
-process.eventMaker.datasetName = cms.string('blah')
-process.maxEvents.input = cms.untracked.int32(1000)
+process.eventMaker.CMS3tag = cms.string('V04')
+process.eventMaker.datasetName = cms.string('/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM')
+#process.maxEvents.input = cms.untracked.int32(1000)
