@@ -209,15 +209,13 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             genweights->push_back(weightsTemp.at(i).wgt);
             genweightsID->push_back(weightsTemp.at(i).id);
         }
-    } else if (genEvtInfo.isValid()) {
+    }
+    if (genEvtInfo.isValid()) {
         for (unsigned int i = 0; i < genEvtInfo->weights().size(); i++) {
             genweights->push_back(genEvtInfo->weights()[i]);
+            genweightsID->push_back("");
         }
-        genweightsID->push_back(""); 
 
-    } else {
-        genweights->push_back(-999999); 
-        genweightsID->push_back("noneFound"); 
     }
     // }
     // else {
