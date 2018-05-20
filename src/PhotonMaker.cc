@@ -173,7 +173,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
             );  		
 	photons_photonID_tight             ->push_back(
             photon->isPhotonIDAvailable("PhotonCutBasedIDTight") ?
-                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-tight") :
+                photon->photonID("PhotonCutBasedIDTight") :
                 photon->photonID("cutBasedPhotonID-Fall17-94X-V1-tight")
             );  		
 
