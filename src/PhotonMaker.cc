@@ -166,8 +166,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	photons_full5x5_hOverEtowBC        ->push_back( photon->hadTowOverEm()          	 );  		
 	photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  
 	
-	photons_photonID_loose             ->push_back( photon->photonID("PhotonCutBasedIDLoose"));  		
-	photons_photonID_tight             ->push_back( photon->photonID("PhotonCutBasedIDTight"));  		
+	photons_photonID_loose             ->push_back( 
+            photon->isPhotonIDAvailable("PhotonCutBasedIDLoose") ?
+                photon->photonID("PhotonCutBasedIDLoose") :
+                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-loose")
+            );  		
+	photons_photonID_tight             ->push_back(
+            photon->isPhotonIDAvailable("PhotonCutBasedIDTight") ?
+                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-tight") :
+                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-tight")
+            );  		
 
 	// Testing PFIso of reco::photon
 	photons_recoChargedHadronIso   ->push_back(photon->reco::Photon::chargedHadronIso()  );	

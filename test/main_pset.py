@@ -125,8 +125,8 @@ process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAValueMapProdu
 my_id_modules = [
         # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
         # 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
+        # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
+        # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V1_cff',
@@ -365,10 +365,9 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 # process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
 
-# process.GlobalTag.globaltag = "94X_dataRun2_ReReco_EOY17_v2"
+process.GlobalTag.globaltag = "101X_dataRun2_Prompt_v9"
 process.out.fileName = cms.untracked.string('ntuple.root')
-#process.source.fileNames = cms.untracked.vstring('/store/data/Run2017D/SingleMuon/MINIAOD/31Mar2018-v1/80000/1E703527-F436-E811-80A7-E0DB55FC1055.root')
-# process.source.fileNames = cms.untracked.vstring('file:1E703527-F436-E811-80A7-E0DB55FC1055.root')
-process.eventMaker.CMS3tag = cms.string('V04')
-process.eventMaker.datasetName = cms.string('/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM')
-#process.maxEvents.input = cms.untracked.int32(1000)
+process.source.fileNames = cms.untracked.vstring('/store/data/Run2018A/DoubleMuon/MINIAOD/PromptReco-v1/000/315/252/00000/8C755FB3-474B-E811-997F-FA163E376102.root')
+process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
+process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
+process.maxEvents.input = cms.untracked.int32(1000)
