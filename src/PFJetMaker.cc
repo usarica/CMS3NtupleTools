@@ -60,6 +60,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig){
     produces<vector<int>   >         ( branchprefix+"totalMultiplicity"                ).setBranchAlias( aliasprefix_+"_totalMultiplicity"                );
     produces<vector<float> >         ( branchprefix+"ptDistribution"                   ).setBranchAlias( aliasprefix_+"_ptDistribution"                   );
     produces<vector<float> >         ( branchprefix+"axis1"                            ).setBranchAlias( aliasprefix_+"_axis1"                            );
+    produces<vector<float> >         ( branchprefix+"axis2"                            ).setBranchAlias( aliasprefix_+"_axis2"                            );
 
     // Embedded b-tagging information (miniAOD only)
     produces<vector<float> >         (branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag" ).setBranchAlias(aliasprefix_+"_pfCombinedInclusiveSecondaryVertexV2BJetTag");
@@ -113,6 +114,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     unique_ptr<vector<int>   >         pfjets_totalMultiplicity         (new vector<int>            );
     unique_ptr<vector<float> >         pfjets_ptDistribution            (new vector<float>          );
     unique_ptr<vector<float> >         pfjets_axis1                     (new vector<float>          );
+    unique_ptr<vector<float> >         pfjets_axis2                     (new vector<float>          );
     unique_ptr<vector<vector<LorentzVector> > > pfjets_pfcandmup4       (new vector<vector<LorentzVector> > );
 
     unique_ptr<vector<float> >           pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag (new vector<float>  );
@@ -193,7 +195,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
             int totalMult = 0;
             float ptD     = 0;
             float axis1   = 0;
-            // float axis2   = 0;
+            float axis2   = 0;
             if (pfjet_it->numberOfDaughters() != 0) {
                 float sum_weight(0.0), sum_dEta(0.0), sum_dPhi(0.0), sum_dEta2(0.0), sum_dPhi2(0.0), sum_dEta_dPhi(0.0), sum_pt(0.0);
 
@@ -234,8 +236,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                     float b = ave_dPhi2 - ave_dPhi*ave_dPhi;
                     float c = -(sum_dEta_dPhi/sum_weight - ave_dEta*ave_dPhi);
                     float delta = sqrt(fabs( (a-b)*(a-b) + 4*c*c ));
-                    // if(a+b-delta > 0) axis2 = sqrt(0.5*(a+b-delta));
-                    // else              axis2 = 0.0;
+                    if(a+b-delta > 0) axis2 = sqrt(0.5*(a+b-delta));
+                    else              axis2 = 0.0;
                     if(a+b+delta > 0) axis1 = sqrt(0.5*(a+b+delta));
                     else              axis1 = 0.0;
                 }
@@ -244,10 +246,12 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
             pfjets_totalMultiplicity->push_back(totalMult);
             pfjets_ptDistribution   ->push_back(ptD);
             pfjets_axis1            ->push_back(axis1);
+            pfjets_axis2            ->push_back(axis2);
         } else {
             pfjets_ptDistribution   ->push_back(pfjet_it->constituentPtDistribution());
             pfjets_totalMultiplicity->push_back(pfjet_it->numberOfDaughters());
             pfjets_axis1            ->push_back(-1);
+            pfjets_axis2            ->push_back(-1);
         }
 
     }
@@ -282,6 +286,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(pfjets_totalMultiplicity         ), branchprefix+"totalMultiplicity"         );
     iEvent.put(std::move(pfjets_ptDistribution            ), branchprefix+"ptDistribution"            );
     iEvent.put(std::move(pfjets_axis1                     ), branchprefix+"axis1"                     );
+    iEvent.put(std::move(pfjets_axis2                     ), branchprefix+"axis2"                     );
 
     iEvent.put(std::move(pfjets_pfCombinedInclusiveSecondaryVertexV2BJetTag), branchprefix+"pfCombinedInclusiveSecondaryVertexV2BJetTag");  
     iEvent.put(std::move(pfjets_pfDeepCSVJetTagsprobbPlusprobbb            ), branchprefix+"pfDeepCSVJetTagsprobbPlusprobbb"            );

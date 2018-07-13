@@ -169,8 +169,8 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-        'file:/home/users/dpgilber/2017/12CEC8EA-0743-E811-BE6A-0CC47A7C3430.root' # From: /DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM
-                                )
+                                '/store/mc/RunIIFall17MiniAODv2/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/20000/107259EC-3D42-E811-9ECA-0CC47A4C8F12.root',
+                            )
 )
 process.source.noEventSort = cms.untracked.bool( True )
 
