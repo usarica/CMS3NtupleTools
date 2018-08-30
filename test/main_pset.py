@@ -121,7 +121,7 @@ process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
-process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
+process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_id_modules = [
         # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
         # 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
@@ -365,9 +365,9 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 # process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
 
-process.GlobalTag.globaltag = "101X_dataRun2_Prompt_v9"
+process.GlobalTag.globaltag = "101X_dataRun2_Prompt_v11"
 process.out.fileName = cms.untracked.string('ntuple.root')
-process.source.fileNames = cms.untracked.vstring('/store/data/Run2018A/DoubleMuon/MINIAOD/PromptReco-v1/000/315/252/00000/8C755FB3-474B-E811-997F-FA163E376102.root')
+process.source.fileNames = cms.untracked.vstring('/store/data/Run2018C/MuonEG/MINIAOD/PromptReco-v1/000/319/337/00000/8AA0A1A2-A984-E811-9C77-FA163EA7E2FA.root')
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 process.maxEvents.input = cms.untracked.int32(1000)
