@@ -11,7 +11,7 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/BTauReco/interface/CATopJetTagInfo.h"
-#include "NNKit/FatJetNN/interface/FatJetNNHelper.h"
+// #include "NNKit/FatJetNN/interface/FatJetNNHelper.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
@@ -24,16 +24,16 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig) {
   pfJetPtCut_ = iConfig.getParameter<double> ( "pfJetPtCut"   );
   keepless_   = iConfig.getParameter<bool>   ( "lessBranches" );
 
-  // initialize the FatJetNN class in the constructor
-  auto cc = consumesCollector();
-  // use the full path or put the file in the current working directory <-- doing the latter
-  fatjetNN_ = new deepntuples::FatJetNN(iConfig, cc);
-  // load json for input variable transformation and DNN model and parameter files
-  string nnparampath = iConfig.getUntrackedParameter<std::string>("nndatapath", "NNKit/data/ak8");
-  fatjetNN_->load_json(edm::FileInPath(nnparampath+"/full/preprocessing.json").fullPath());
-  fatjetNN_->load_model(edm::FileInPath(nnparampath+"/full/resnet-symbol.json").fullPath(), edm::FileInPath(nnparampath+"/full/resnet.params").fullPath());
-  // fatjetNN_->load_json("preprocessing.json");                   // load json for input variable transformation
-  // fatjetNN_->load_model("resnet-symbol.json", "resnet.params"); // load DNN model and parameter files
+  // // initialize the FatJetNN class in the constructor
+  // auto cc = consumesCollector();
+  // // use the full path or put the file in the current working directory <-- doing the latter
+  // fatjetNN_ = new deepntuples::FatJetNN(iConfig, cc);
+  // // load json for input variable transformation and DNN model and parameter files
+  // string nnparampath = iConfig.getUntrackedParameter<std::string>("nndatapath", "NNKit/data/ak8");
+  // fatjetNN_->load_json(edm::FileInPath(nnparampath+"/full/preprocessing.json").fullPath());
+  // fatjetNN_->load_model(edm::FileInPath(nnparampath+"/full/resnet-symbol.json").fullPath(), edm::FileInPath(nnparampath+"/full/resnet.params").fullPath());
+  // // fatjetNN_->load_json("preprocessing.json");                   // load json for input variable transformation
+  // // fatjetNN_->load_model("resnet-symbol.json", "resnet.params"); // load DNN model and parameter files
 
   // product of this EDProducer
   produces<vector<LorentzVector> > ( "ak8jetsp4"                               ).setBranchAlias( "ak8jets_p4"                        );
@@ -129,7 +129,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
-  fatjetNN_->readEvent(iEvent, iSetup);
+  // fatjetNN_->readEvent(iEvent, iSetup);
 
   for (View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++) {
 
@@ -143,16 +143,16 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     ak8jets_area          -> push_back( pfjet_it->jetArea()                  );
     ak8jets_partonFlavour -> push_back( pfjet_it->partonFlavour()            );
 
-    const auto& nnpreds = fatjetNN_->predict( *pfjet_it );
-    deepntuples::FatJetNNHelper nnhelper( nnpreds );
+    // const auto& nnpreds = fatjetNN_->predict( *pfjet_it );
+    // deepntuples::FatJetNNHelper nnhelper( nnpreds );
 
-    ak8jets_deep_rawdisc_qcd ->push_back( nnhelper.get_raw_score_qcd()       );
-    ak8jets_deep_rawdisc_top ->push_back( nnhelper.get_raw_score_top()       );
-    ak8jets_deep_rawdisc_w   ->push_back( nnhelper.get_raw_score_w()         );
-    ak8jets_deep_rawdisc_z   ->push_back( nnhelper.get_raw_score_z()         );
-    ak8jets_deep_rawdisc_zbb ->push_back( nnhelper.get_raw_score_zbb()       );
-    ak8jets_deep_rawdisc_hbb ->push_back( nnhelper.get_raw_score_hbb()       );
-    ak8jets_deep_rawdisc_h4q ->push_back( nnhelper.get_raw_score_h4q()       );
+    // ak8jets_deep_rawdisc_qcd ->push_back( nnhelper.get_raw_score_qcd()       );
+    // ak8jets_deep_rawdisc_top ->push_back( nnhelper.get_raw_score_top()       );
+    // ak8jets_deep_rawdisc_w   ->push_back( nnhelper.get_raw_score_w()         );
+    // ak8jets_deep_rawdisc_z   ->push_back( nnhelper.get_raw_score_z()         );
+    // ak8jets_deep_rawdisc_zbb ->push_back( nnhelper.get_raw_score_zbb()       );
+    // ak8jets_deep_rawdisc_hbb ->push_back( nnhelper.get_raw_score_hbb()       );
+    // ak8jets_deep_rawdisc_h4q ->push_back( nnhelper.get_raw_score_h4q()       );
 
     const vector<pair<string,float>> bDiscriminatorPairs = pfjet_it->getPairDiscri();
     vector<float> bDiscriminatorPerjet;
