@@ -43,6 +43,9 @@ Run it with `cmsRun main_pset.py data=True`.
 ### ProjectMetis details
 To make a tarfile for use with Metis, the current command (for 10X+) to execute after setup is
 ```bash
-mtarfile lib_CMS4_V10-01-01_1024.tar.gz
+# -b uses bz2 algorithm instead of gzip for factor of 2 reduction in size
+# means that it will need to be extracted by `tar xf` (now the default
+# in metis executables) not `tar xzf`
+mtarfile -b lib_CMS4_V10-01-01_1024.tar.gz
 ```
 
