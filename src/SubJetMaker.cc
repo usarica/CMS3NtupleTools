@@ -44,6 +44,7 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig) {
   produces<vector<float> >         ( "ak8jetsnJettinessTau1"                   ).setBranchAlias( "ak8jets_nJettinessTau1"            );
   produces<vector<float> >         ( "ak8jetsnJettinessTau2"                   ).setBranchAlias( "ak8jets_nJettinessTau2"            );
   produces<vector<float> >         ( "ak8jetsnJettinessTau3"                   ).setBranchAlias( "ak8jets_nJettinessTau3"            );
+  produces<vector<float> >         ( "ak8jetssoftdropMass"                     ).setBranchAlias( "ak8jets_softdropMass"              );
 
   produces<vector<float> >         ( "ak8jetschspt"                            ).setBranchAlias( "ak8jets_chs_pt"                    );
   produces<vector<float> >         ( "ak8jetschseta"                           ).setBranchAlias( "ak8jets_chs_eta"                   );
@@ -99,6 +100,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   unique_ptr<vector<float> >         ak8jets_nJettinessTau1           (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_nJettinessTau2           (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_nJettinessTau3           (new vector<float>          );
+  unique_ptr<vector<float> >         ak8jets_softdropMass             (new vector<float>          );
 
   unique_ptr<vector<float> >         ak8jets_chs_pt                   (new vector<float>          );
   unique_ptr<vector<float> >         ak8jets_chs_mass                 (new vector<float>          );
@@ -169,6 +171,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if ( pfjet_it->hasUserFloat("NjettinessAK8Puppi:tau1") ) nJettinessTau1 = pfjet_it->userFloat("NjettinessAK8Puppi:tau1");
     if ( pfjet_it->hasUserFloat("NjettinessAK8Puppi:tau2") ) nJettinessTau2 = pfjet_it->userFloat("NjettinessAK8Puppi:tau2");
     if ( pfjet_it->hasUserFloat("NjettinessAK8Puppi:tau3") ) nJettinessTau3 = pfjet_it->userFloat("NjettinessAK8Puppi:tau3");
+    if ( pfjet_it->hasUserFloat("ak8PFJetsPuppiSoftDropMass") ) softdropMass = pfjet_it->userFloat("ak8PFJetsPuppiSoftDropMass");
 
     float chs_pt = -999, chs_mass = -999, chs_eta = -999, chs_phi = -999;
     if ( pfjet_it->hasUserFloat("ak8PFJetsCHSValueMap:pt")   )  chs_pt   = pfjet_it->userFloat("ak8PFJetsCHSValueMap:pt"   );
@@ -179,6 +182,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     ak8jets_nJettinessTau1         ->push_back( nJettinessTau1     );
     ak8jets_nJettinessTau2         ->push_back( nJettinessTau2     );
     ak8jets_nJettinessTau3         ->push_back( nJettinessTau3     );
+    ak8jets_softdropMass           ->push_back( softdropMass       );
     ak8jets_chs_pt                 ->push_back( chs_pt             );
     ak8jets_chs_eta                ->push_back( chs_eta            );
     ak8jets_chs_phi                ->push_back( chs_phi            );
@@ -242,6 +246,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(std::move(ak8jets_nJettinessTau1           ), "ak8jetsnJettinessTau1"      );
   iEvent.put(std::move(ak8jets_nJettinessTau2           ), "ak8jetsnJettinessTau2"      );
   iEvent.put(std::move(ak8jets_nJettinessTau3           ), "ak8jetsnJettinessTau3"      );
+  iEvent.put(std::move(ak8jets_softdropMass             ), "ak8jetssoftdropMass"        );
 
   iEvent.put(std::move(ak8jets_chs_pt                   ), "ak8jetschspt"               );
   iEvent.put(std::move(ak8jets_chs_mass                 ), "ak8jetschsmass"             );
