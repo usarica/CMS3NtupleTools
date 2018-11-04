@@ -32,11 +32,15 @@ IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig){
     pt_cut_noIso_  = iConfig.getParameter<double>("pT_cut_noIso");
 
     produces<vector<LorentzVector> > ("isotracksp4"         ).setBranchAlias("isotracks_p4"         );
+    produces<vector<float> >         ("isotrackspttrk"      ).setBranchAlias("isotracks_pttrk"      );
+    produces<vector<float> >         ("isotracksetatrk"      ).setBranchAlias("isotracks_etatrk"      );
+    produces<vector<float> >         ("isotracksphitrk"      ).setBranchAlias("isotracks_phitrk"      );
     produces<vector<float> >         ("isotrackspterr"      ).setBranchAlias("isotracks_pterr"      );
     produces<vector<float> >         ("isotracksdz"         ).setBranchAlias("isotracks_dz"         );
     produces<vector<float> >         ("isotracksdxy"        ).setBranchAlias("isotracks_dxy"         );
     produces<vector<float> >         ("isotracksdzError"    ).setBranchAlias("isotracks_dzError"         );
     produces<vector<float> >         ("isotracksdxyError"   ).setBranchAlias("isotracks_dxyError"         );
+    produces<vector<float> >         ("isotracksnchi2"      ).setBranchAlias("isotracks_normChi2"   );
     produces<vector<int> >           ("isotrackscharge"     ).setBranchAlias("isotracks_charge"     );
     produces<vector<int> >           ("isotracksparticleId" ).setBranchAlias("isotracks_particleId" );
     produces<vector<int> >           ("isotracksfromPV"     ).setBranchAlias("isotracks_fromPV"	    );
@@ -83,11 +87,15 @@ void IsoTrackMaker::endJob()   {}
 void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
     unique_ptr<vector<LorentzVector> > isotracks_p4                  (new vector<LorentzVector> );
+    unique_ptr<vector<float> >         isotracks_pttrk               (new vector<float>         );
+    unique_ptr<vector<float> >         isotracks_etatrk               (new vector<float>         );
+    unique_ptr<vector<float> >         isotracks_phitrk               (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_pterr               (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_dz                  (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_dxy                 (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_dzError             (new vector<float>         );
     unique_ptr<vector<float> >         isotracks_dxyError            (new vector<float>         );
+    unique_ptr<vector<float> >         isotracks_normChi2            (new vector<float>         );
     unique_ptr<vector<int> >           isotracks_charge              (new vector<int>           );
     unique_ptr<vector<int> >           isotracks_particleId          (new vector<int>           );
     unique_ptr<vector<int> >           isotracks_fromPV              (new vector<int>           );
@@ -162,8 +170,9 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  nearestPF_pt = (*it.nearestPFPackedCandRef()).pt();
 	  nearestPF_id = (*it.nearestPFPackedCandRef()).pdgId();
 	}
-	// Only available if in lostTrack/PFCand collections, and even then sometimes unavailable
-	const float pterr = it.packedCandRef().isNonnull() && (*it.packedCandRef()).hasTrackDetails() ? (*it.packedCandRef()).pseudoTrack().ptError() : -1;
+	// Only available if in lostTrack/PFCand collections, and even then sometimes unavailable.
+	const float pterr = it.packedCandRef().isNonnull() && (*it.packedCandRef()).hasTrackDetails() ? (*it.packedCandRef()).bestTrack()->ptError() : -1;
+	const float nChi2 = it.packedCandRef().isNonnull() && (*it.packedCandRef()).hasTrackDetails() ? (*it.packedCandRef()).bestTrack()->normalizedChi2() : -1;
 
 	int signature = 0; int lastLayer = -1; int lastSubdet = -1; int overallLayer = -1;
 	const HitPattern &hp = it.hitPattern();
@@ -177,7 +186,25 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	  if (hp.validHitFilter(hit)) signature |= (1 << overallLayer); // If missing, there'll end up being a 0 in this bit
 	}
 
+	// Extract track kinematics
+	float ptTrk = -999.0; float etaTrk = -999.0; float phiTrk = -999.0;
+	// If an isotrack has no packedCandRef, it is from the general tracks collection, so it.p4() is already track p4(). 
+	if ( R__unlikely(it.packedCandRef().isNull()) ) {
+	  ptTrk = it.p4().pt();
+	  etaTrk = it.p4().eta();
+	  phiTrk = it.p4().phi();
+	}
+	// Sometimes, an isotrack is from a candidate that has no track.
+	else if ( (*it.packedCandRef()).hasTrackDetails() ) {
+	  ptTrk = (*it.packedCandRef()).ptTrk();
+	  etaTrk = (*it.packedCandRef()).etaAtVtx();
+	  phiTrk = (*it.packedCandRef()).phiAtVtx();
+	}
+
         isotracks_p4          ->push_back( LorentzVector( it.p4()) );
+	isotracks_pttrk->push_back( ptTrk );
+	isotracks_etatrk->push_back( etaTrk );
+	isotracks_phitrk->push_back( phiTrk );	  
 	isotracks_pterr       ->push_back( pterr );
         isotracks_charge      ->push_back( it.charge() );
         isotracks_particleId  ->push_back( it.pdgId() );
@@ -193,6 +220,7 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         isotracks_dxy         ->push_back( it.dxy() );
         isotracks_dzError     ->push_back( it.dzError() );
         isotracks_dxyError    ->push_back( it.dxyError() );
+	isotracks_normChi2    ->push_back( nChi2 );
         isotracks_pfIso_ch    ->push_back( it.pfIsolationDR03().chargedHadronIso() );
         isotracks_pfIso_nh    ->push_back( it.pfIsolationDR03().neutralHadronIso() );
         isotracks_pfIso_em    ->push_back( it.pfIsolationDR03().photonIso() );
@@ -222,11 +250,15 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     }//loop over candidate collection
 
     iEvent.put(std::move(isotracks_p4),                   "isotracksp4"       );
+    iEvent.put(std::move(isotracks_pttrk),                "isotrackspttrk"    );
+    iEvent.put(std::move(isotracks_etatrk),               "isotracksetatrk"   );
+    iEvent.put(std::move(isotracks_phitrk),               "isotracksphitrk"   );
     iEvent.put(std::move(isotracks_pterr),                "isotrackspterr"    );
     iEvent.put(std::move(isotracks_dz),                   "isotracksdz"       );
     iEvent.put(std::move(isotracks_dxy),                  "isotracksdxy"       );
     iEvent.put(std::move(isotracks_dzError),              "isotracksdzError"   );
     iEvent.put(std::move(isotracks_dxyError),             "isotracksdxyError"  );
+    iEvent.put(std::move(isotracks_normChi2),             "isotracksnchi2"     );
     iEvent.put(std::move(isotracks_charge),               "isotrackscharge"    );
     iEvent.put(std::move(isotracks_particleId),           "isotracksparticleId");
     iEvent.put(std::move(isotracks_fromPV),               "isotracksfromPV"    );

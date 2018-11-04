@@ -2,9 +2,9 @@
 
 #USER INPUTS
 CMS3Tag=master
-CMSSW_release=CMSSW_10_1_2_patch2
+CMSSW_release=CMSSW_10_2_4_patch1
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc6_amd64_gcc630
+export SCRAM_ARCH=slc6_amd64_gcc700
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
@@ -13,15 +13,8 @@ scramv1 p -n ${CMSSW_release}${CMSSW_release_name} CMSSW $CMSSW_release
 cd ${CMSSW_release}${CMSSW_release_name}
 eval `scramv1 runtime -sh`
 
-# # SLOW -- default
-# git cms-init
-
-# FAST -- because there's a million tags to fetch nowadays
-curl -O "https://raw.githubusercontent.com/cms-sw/cms-git-tools/master/git-cms-init"
-chmod u+x git-cms-init
-sed -i 's/--tags//' git-cms-init
-sed -i 's/git fetch/git fetch --no-tags/' git-cms-init
-./git-cms-init
+# new upstream-only ignores user's cmssw, but makes cms-init much, much faster
+git cms-init --upstream-only
 
 cd src
 

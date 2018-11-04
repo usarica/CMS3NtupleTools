@@ -25,27 +25,35 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
 
 
 ### Some quickstart parameters
-In `install.sh`, use `CMS3Tag=CMS4_V00-00-07` and `CMSSW_release=CMSSW_9_4_0` to run on the RunII 2017 re-reco sample for `/DoubleEG/Run2017F-17Nov2017-v1/MINIAOD`
+In `install.sh`, use `CMS3Tag=CMS4_V10-02-01` and `CMSSW_release=CMSSW_10_2_4_patch1` to run on the RunII 2018 data re-reco sample for `/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD`
 
 And paste the following at the end of `main_pset.py`.
 
 ```
-process.GlobalTag.globaltag = "94X_dataRun2_ReReco_EOY17_v2"
+process.GlobalTag.globaltag = "102X_dataRun2_Sep2018Rereco_v1"
 process.out.fileName = cms.untracked.string('ntuple.root') # output
-process.source.fileNames = cms.untracked.vstring(['/store/data/Run2017F/DoubleEG/MINIAOD/17Nov2017-v1/60000/EAED912B-F7DE-E711-8E9B-0242AC1C0500.root']) # input
-process.eventMaker.CMS3tag = cms.string('CMS4_V00-00-07') # doesn't affect ntupling, only for bookkeeping later on
-process.eventMaker.datasetName = cms.string('/DoubleEG/Run2017F-17Nov2017-v1/MINIAOD') # doesn't affect ntupling, only for bookkeeping later on
+process.source.fileNames = cms.untracked.vstring(['/store/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root']) # input
+process.eventMaker.CMS3tag = cms.string('CMS4_V10-02-01') # doesn't affect ntupling, only for bookkeeping later on
+process.eventMaker.datasetName = cms.string('/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD') # doesn't affect ntupling, only for bookkeeping later on
 process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note that crab overrides this to -1
 ```
 
-Run it with `cmsRun main_pset.py data=True`.
+
+Run it with `cmsRun main_pset.py data=True prompt=True`. Yes, you did see
+`prompt=True` when this is a re-reco data file. `edmDumpEventContent` shows
+that all the collections have `RECO` process instead of `PAT` (which is what we
+should expect for a re-reco campaign), so we tell the pset this is PromptReco
+to use `RECO` instead. 
+
+In an ideal world, we would be free from hardcoded process names
+(i.e., don't specify that parameter in all the InputTag objects), and then the last
+(and hopefully only) process name will be used. If you choose to sacrifice a few hours
+of time, I'll throw in some cookies as a reward.
 
 ### ProjectMetis details
 To make a tarfile for use with Metis, the current command (for 10X+) to execute after setup is
 ```bash
-# -b uses bz2 algorithm instead of gzip for factor of 2 reduction in size
-# means that it will need to be extracted by `tar xf` (now the default
-# in metis executables) not `tar xzf`
-mtarfile -b lib_CMS4_V10-01-01_1024.tar.gz
+mtarfile lib_CMS4_V10-02-01_1024p1.tar.xz --xz
+# note, extract with `tar xf` to detect the compression algorithm automatically
 ```
 

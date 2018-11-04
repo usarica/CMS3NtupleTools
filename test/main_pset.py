@@ -8,11 +8,13 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 opts = VarParsing.VarParsing('python')
 vpbool = VarParsing.VarParsing.varType.bool
+vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
 opts.register('triginfo'  , False , mytype=vpbool)
+opts.register('name'  , "" , mytype=vpstring) # hacky variable to override name for samples where last path/process is "DQM"
 opts.parseArguments()
 # be smart. if fastsim, it's obviously MC
 # if it's MC, it's obviously not prompt
@@ -24,7 +26,8 @@ print """PSet is assuming:
    fastsim? {}
    relval? {}
    triginfo? {}
-""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo))
+   name = {}
+""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo), str(opts.name))
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -45,6 +48,9 @@ if opts.fastsim:
     configProcessName.fastSimName="HLT"
     configProcessName.name2=configProcessName.fastSimName
 configProcessName.isFastSim=opts.fastsim
+
+if str(opts.name).strip():
+    configProcessName.name = str(opts.name).strip()
 
 # CMS3
 process = cms.Process("CMS3")
@@ -365,9 +371,9 @@ process.Timing = cms.Service("Timing",
 # process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 # process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
 
-process.GlobalTag.globaltag = "101X_dataRun2_Prompt_v11"
+process.GlobalTag.globaltag = "102X_dataRun2_Sep2018Rereco_v1"
 process.out.fileName = cms.untracked.string('ntuple.root')
-process.source.fileNames = cms.untracked.vstring('/store/data/Run2018C/MuonEG/MINIAOD/PromptReco-v1/000/319/337/00000/8AA0A1A2-A984-E811-9C77-FA163EA7E2FA.root')
+process.source.fileNames = cms.untracked.vstring("/store/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root")
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 process.maxEvents.input = cms.untracked.int32(1000)

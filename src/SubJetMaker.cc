@@ -165,7 +165,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
     ak8jets_bDiscriminators->push_back(bDiscriminatorPerjet);
 
-    float nJettinessTau1 = -999, nJettinessTau2 = -999, nJettinessTau3 = -999;
+    float nJettinessTau1 = -999, nJettinessTau2 = -999, nJettinessTau3 = -999, softdropMass = -999;
     // float topMass = -999, minMass = -999, nSubJets = -999;
     // some values dropped. see https://indico.cern.ch/event/530683/contributions/2166094/attachments/1271776/1884873/80XminiAODv2.pdf
     if ( pfjet_it->hasUserFloat("NjettinessAK8Puppi:tau1") ) nJettinessTau1 = pfjet_it->userFloat("NjettinessAK8Puppi:tau1");
