@@ -11,25 +11,13 @@
 // $Id: GenMaker.cc,v 1.30 2012/12/18 18:03:21 linacre Exp $
 
 // system include files
-#include <memory>
 
 // user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "FWCore/Framework/interface/Run.h"
-
 #include "CMS3/NtupleMaker/interface/GenMaker.h" 
 #include "CMS3/NtupleMaker/interface/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-
-
-
-
-
 #include "TMath.h"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace reco;
@@ -40,7 +28,10 @@ using namespace std;
 // constructors and destructor
 //
 
-GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
+GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
+  inputPSet(iConfig),
+  year(inputPSet.getParameter<int>("year"))
+{
 
     genParticlesToken = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genParticlesInputTag"));
     genEvtInfoToken = consumes<GenEventInfoProduct>(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag"));
@@ -54,6 +45,17 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
     vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
     kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
     LHEEventInfoToken = consumes<LHEEventProduct >(iConfig.getParameter<edm::InputTag>("LHEInputTag"));
+
+    lheHandler = std::make_shared<LHEHandler>(
+      -1, -1,
+      (false ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
+      year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder
+      );
+    lheHandler_NNPDF30_NLO = std::make_shared<LHEHandler>(
+      -1, -1,
+      (false ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
+      year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO
+      );
 
     produces<vector<int> >                    ("genpsid"              ).setBranchAlias("genps_id"              );
     produces<vector<int> >                    ("genpsidmother"        ).setBranchAlias("genps_id_mother"       );
@@ -78,6 +80,27 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) {
     produces<float>                           ("evtscale1fb"          ).setBranchAlias("evt_scale1fb"          );
     produces<std::vector<float> >             ("genweights"           ).setBranchAlias("genweights"            );
     produces<std::vector<std::string> >       ("genweightsID"         ).setBranchAlias("genweightsID"          );
+
+    produces<float>("genHEPMCweight").setBranchAlias("genHEPMCweight");
+    produces<float>("genHEPMCweight2016").setBranchAlias("genHEPMCweight_2016");
+    produces<float>("genLHEweightQCDscalemuR1muF1").setBranchAlias("gen_LHEweight_QCDscale_muR1_muF1");
+    produces<float>("genLHEweightQCDscalemuR1muF2").setBranchAlias("gen_LHEweight_QCDscale_muR1_muF2");
+    produces<float>("genLHEweightQCDscalemuR1muF0p5").setBranchAlias("gen_LHEweight_QCDscale_muR1_muF0p5");
+    produces<float>("genLHEweightQCDscalemuR2muF1").setBranchAlias("gen_LHEweight_QCDscale_muR2_muF1");
+    produces<float>("genLHEweightQCDscalemuR2muF2").setBranchAlias("gen_LHEweight_QCDscale_muR2_muF2");
+    produces<float>("genLHEweightQCDscalemuR2muF0p5").setBranchAlias("gen_LHEweight_QCDscale_muR2_muF0p5");
+    produces<float>("genLHEweightQCDscalemuR0p5muF1").setBranchAlias("gen_LHEweight_QCDscale_muR0p5_muF1");
+    produces<float>("genLHEweightQCDscalemuR0p5muF2").setBranchAlias("gen_LHEweight_QCDscale_muR0p5_muF2");
+    produces<float>("genLHEweightQCDscalemuR0p5muF0p5").setBranchAlias("gen_LHEweight_QCDscale_muR0p5_muF0p5");
+    produces<float>("genLHEweightPDFVariationUp").setBranchAlias("gen_LHEweight_PDFVariation_Up");
+    produces<float>("genLHEweightPDFVariationDn").setBranchAlias("gen_LHEweight_PDFVariation_Dn");
+    produces<float>("genLHEweightAsMZUp").setBranchAlias("gen_LHEweight_AsMZ_Up");
+    produces<float>("genLHEweightAsMZDn").setBranchAlias("gen_LHEweight_AsMZ_Dn");
+    produces<float>("genLHEweightPDFVariationUp2016").setBranchAlias("gen_LHEweight_PDFVariation_Up_2016");
+    produces<float>("genLHEweightPDFVariationDn2016").setBranchAlias("gen_LHEweight_PDFVariation_Dn_2016");
+    produces<float>("genLHEweightAsMZUp2016").setBranchAlias("gen_LHEweight_AsMZ_Up_2016");
+    produces<float>("genLHEweightAsMZDn2016").setBranchAlias("gen_LHEweight_AsMZ_Dn_2016");
+
 
     //MCUtils in MINIAOD 74X and beyond
     //"robust" functions
@@ -115,11 +138,21 @@ void GenMaker::endJob()
 }
 
 void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup) {
+    static bool firstRun=true;
 
     //These get filled later
     inclusiveCrossSectionValue_ = 0;
     exclusiveCrossSectionValue_ = 0;
 
+    if (firstRun){ // Do these only at the first run
+      // Extract LHE header
+      edm::Handle<LHERunInfoProduct> lhe_runinfo;
+      iRun.getByLabel(inputPSet.getParameter<edm::InputTag>("LHEInputTag"), lhe_runinfo);
+      lheHandler->setHeaderFromRunInfo(&lhe_runinfo);
+      lheHandler_NNPDF30_NLO->setHeaderFromRunInfo(&lhe_runinfo);
+
+      firstRun=false;
+    }
 }
 
 // ------------ method called to produce the data  ------------
@@ -151,6 +184,27 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<float>                           evt_kfactor           (new float                         );
     unique_ptr<vector<float> >                  genweights            (new vector<float>                 );
     unique_ptr<vector<string> >                 genweightsID          (new vector<string>                );
+
+    unique_ptr<float> genHEPMCweight=make_unique<float>(0.f);
+    unique_ptr<float> genHEPMCweight_2016=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR1_muF1=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR1_muF2=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR1_muF0p5=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR2_muF1=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR2_muF2=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR2_muF0p5=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR0p5_muF1=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR0p5_muF2=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_QCDscale_muR0p5_muF0p5=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_PDFVariation_Up=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_PDFVariation_Dn=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_AsMZ_Up=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_AsMZ_Dn=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_PDFVariation_Up_2016=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_PDFVariation_Dn_2016=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_AsMZ_Up_2016=make_unique<float>(0.f);
+    unique_ptr<float> gen_LHEweight_AsMZ_Dn_2016=make_unique<float>(0.f);
+
 
     unique_ptr<vector<bool> >                   genps_isPromptFinalState                          (new vector<bool> );
     unique_ptr<vector<bool> >                   genps_isPromptDecayed                             (new vector<bool> );
@@ -250,6 +304,48 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     else
         *genps_weight = genEvtInfo->weight();
     //  *genps_weight = 1.;
+
+    if (LHEEventInfo.isValid()){
+      lheHandler->setHandle(&LHEEventInfo);
+      lheHandler->extract();
+
+      lheHandler_NNPDF30_NLO->setHandle(&LHEEventInfo);
+      lheHandler_NNPDF30_NLO->extract();
+
+      if (genEvtInfo.isValid()) *genHEPMCweight = genEvtInfo->weight();
+      else *genHEPMCweight = lheHandler->getLHEOriginalWeight(); // Default was also 1, so if !genEvtInfo.isValid(), the statement still passes
+      *genHEPMCweight_2016 = *genHEPMCweight; // lheHandler_NNPDF30_NLO->getLHEOriginalWeight() should give the same value
+      *genHEPMCweight *= lheHandler->getWeightRescale();
+      *genHEPMCweight_2016 *= lheHandler_NNPDF30_NLO->getWeightRescale();
+
+      *gen_LHEweight_QCDscale_muR1_muF1 = lheHandler->getLHEWeight(0, 1.);
+      *gen_LHEweight_QCDscale_muR1_muF2 = lheHandler->getLHEWeight(1, 1.);
+      *gen_LHEweight_QCDscale_muR1_muF0p5 = lheHandler->getLHEWeight(2, 1.);
+      *gen_LHEweight_QCDscale_muR2_muF1 = lheHandler->getLHEWeight(3, 1.);
+      *gen_LHEweight_QCDscale_muR2_muF2 = lheHandler->getLHEWeight(4, 1.);
+      *gen_LHEweight_QCDscale_muR2_muF0p5 = lheHandler->getLHEWeight(5, 1.);
+      *gen_LHEweight_QCDscale_muR0p5_muF1 = lheHandler->getLHEWeight(6, 1.);
+      *gen_LHEweight_QCDscale_muR0p5_muF2 = lheHandler->getLHEWeight(7, 1.);
+      *gen_LHEweight_QCDscale_muR0p5_muF0p5 = lheHandler->getLHEWeight(8, 1.);
+
+      *gen_LHEweight_PDFVariation_Up = lheHandler->getLHEWeight_PDFVariationUpDn(1, 1.);
+      *gen_LHEweight_PDFVariation_Dn = lheHandler->getLHEWeight_PDFVariationUpDn(-1, 1.);
+      *gen_LHEweight_AsMZ_Up = lheHandler->getLHEWeigh_AsMZUpDn(1, 1.);
+      *gen_LHEweight_AsMZ_Dn = lheHandler->getLHEWeigh_AsMZUpDn(-1, 1.);
+
+      *gen_LHEweight_PDFVariation_Up_2016 = lheHandler_NNPDF30_NLO->getLHEWeight_PDFVariationUpDn(1, 1.);
+      *gen_LHEweight_PDFVariation_Dn_2016 = lheHandler_NNPDF30_NLO->getLHEWeight_PDFVariationUpDn(-1, 1.);
+      *gen_LHEweight_AsMZ_Up_2016 = lheHandler_NNPDF30_NLO->getLHEWeigh_AsMZUpDn(1, 1.);
+      *gen_LHEweight_AsMZ_Dn_2016 = lheHandler_NNPDF30_NLO->getLHEWeigh_AsMZUpDn(-1, 1.);
+
+      lheHandler->clear();
+      lheHandler_NNPDF30_NLO->clear();
+    }
+    else{
+      if (genEvtInfo.isValid()) *genHEPMCweight = genEvtInfo->weight();
+      else *genHEPMCweight = *genps_weight;
+      *genHEPMCweight_2016 = *genHEPMCweight; // No other choice really
+    }
 
     *evt_scale1fb  = 1.; // this value is a placeholder; it will be filled during post-processing
     *evt_xsec_incl = inclusiveCrossSectionValue_;
@@ -426,6 +522,26 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move(evt_scale1fb             ), "evtscale1fb"          );
     iEvent.put(std::move(genweights               ), "genweights"           );
     iEvent.put(std::move(genweightsID             ), "genweightsID"         );
+
+    iEvent.put(std::move(genHEPMCweight), "genHEPMCweight");
+    iEvent.put(std::move(genHEPMCweight_2016), "genHEPMCweight2016");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR1_muF1), "genLHEweightQCDscalemuR1muF1");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR1_muF2), "genLHEweightQCDscalemuR1muF2");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR1_muF0p5), "genLHEweightQCDscalemuR1muF0p5");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR2_muF1), "genLHEweightQCDscalemuR2muF1");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR2_muF2), "genLHEweightQCDscalemuR2muF2");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR2_muF0p5), "genLHEweightQCDscalemuR2muF0p5");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR0p5_muF1), "genLHEweightQCDscalemuR0p5muF1");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR0p5_muF2), "genLHEweightQCDscalemuR0p5muF2");
+    iEvent.put(std::move(gen_LHEweight_QCDscale_muR0p5_muF0p5), "genLHEweightQCDscalemuR0p5muF0p5");
+    iEvent.put(std::move(gen_LHEweight_PDFVariation_Up), "genLHEweightPDFVariationUp");
+    iEvent.put(std::move(gen_LHEweight_PDFVariation_Dn), "genLHEweightPDFVariationDn");
+    iEvent.put(std::move(gen_LHEweight_AsMZ_Up), "genLHEweightAsMZUp");
+    iEvent.put(std::move(gen_LHEweight_AsMZ_Dn), "genLHEweightAsMZDn");
+    iEvent.put(std::move(gen_LHEweight_PDFVariation_Up_2016), "genLHEweightPDFVariationUp2016");
+    iEvent.put(std::move(gen_LHEweight_PDFVariation_Dn_2016), "genLHEweightPDFVariationDn2016");
+    iEvent.put(std::move(gen_LHEweight_AsMZ_Up_2016), "genLHEweightAsMZUp2016");
+    iEvent.put(std::move(gen_LHEweight_AsMZ_Dn_2016), "genLHEweightAsMZDn2016");
 
     iEvent.put(std::move(genps_isPromptFinalState                           ), "genpsIsPromptFinalState"                          );
     iEvent.put(std::move(genps_isPromptDecayed                              ), "genpsIsPromptDecayed"                             );

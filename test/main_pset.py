@@ -8,8 +8,10 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.ParameterSet.VarParsing as VarParsing
 opts = VarParsing.VarParsing('python')
 vpbool = VarParsing.VarParsing.varType.bool
+vpint = VarParsing.VarParsing.varType.int
 vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
+opts.register('setup'    , -1  , mytype=vpint)
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
@@ -21,13 +23,17 @@ opts.parseArguments()
 if opts.fastsim: opts.data = False
 if not opts.data: opts.prompt = False
 print """PSet is assuming:
+   setup? {}
    data? {}
    prompt? {}
    fastsim? {}
    relval? {}
    triginfo? {}
    name = {}
-""".format(bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo), str(opts.name))
+""".format(int(opts.setup), bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo), str(opts.name))
+
+if not opts.data and opts.setup<2016:
+  raise RuntimeError("MC processing must define a setup>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -121,7 +127,7 @@ process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 # process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
 
 #Electron Identification for PHYS 14
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *  
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
@@ -146,7 +152,8 @@ process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.eventMaker.isData                        = cms.bool(opts.data)
-    
+process.genMaker.year = cms.int32(opts.setup)
+
 # if do_deepbtag:
 #     from PhysicsTools.PatAlgos.tools.jetTools import *
 #     deep_discriminators = ["pfDeepCSVJetTags:probudsg", "pfDeepCSVJetTags:probb", "pfDeepCSVJetTags:probc", "pfDeepCSVJetTags:probbb", "pfDeepCSVJetTags:probcc" ]
@@ -175,7 +182,7 @@ process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-                                '/store/mc/RunIIFall17MiniAODv2/DYJetsToLL_M-50_HT-800to1200_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/20000/107259EC-3D42-E811-9ECA-0CC47A4C8F12.root',
+                                'file:C6BB52E8-F341-E811-8A2F-001E677927EC.root',
                             )
 )
 process.source.noEventSort = cms.untracked.bool( True )
@@ -280,15 +287,15 @@ process.TransientTrackBuilderESProducer = cms.ESProducer("TransientTrackBuilderE
 )
 
 if opts.data:
-    process.p = cms.Path( 
+    process.p = cms.Path(
         process.metFilterMaker *
-        process.egmGsfElectronIDSequence *     
+        process.egmGsfElectronIDSequence *
         process.vertexMaker *
         process.secondaryVertexMaker *
         process.eventMaker *
         process.pfCandidateMaker *
         process.isoTrackMaker *
-        process.isoForEle * 
+        process.isoForEle *
         process.isoForMu *
         process.electronMaker *
         process.muonMaker *
@@ -311,15 +318,15 @@ if opts.data:
         process.hypDilepMaker
     )
 else:
-    process.p = cms.Path( 
+    process.p = cms.Path(
         process.metFilterMaker *
-        process.egmGsfElectronIDSequence *     
+        process.egmGsfElectronIDSequence *
         process.vertexMaker *
         process.secondaryVertexMaker *
         process.eventMaker *
         process.pfCandidateMaker *
         process.isoTrackMaker *
-        process.isoForEle * 
+        process.isoForEle *
         process.isoForMu *
         process.electronMaker *
         process.muonMaker *
@@ -376,4 +383,3 @@ process.out.fileName = cms.untracked.string('ntuple.root')
 process.source.fileNames = cms.untracked.vstring("/store/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root")
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
-process.maxEvents.input = cms.untracked.int32(1000)

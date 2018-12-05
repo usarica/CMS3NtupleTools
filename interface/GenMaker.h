@@ -26,6 +26,7 @@
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -34,8 +35,10 @@
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
-#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
+#include "CommonLHETools/LHEHandler/interface/LHEHandler.h" 
+
 
 //
 // class decleration
@@ -53,11 +56,15 @@ private:
      virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
      // ----------member data ---------------------------
+     const edm::ParameterSet inputPSet;
+
+     int year;
+
      edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken;
      edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;
      edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
      edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
-	 edm::InputTag genRunInfoInputTag_;
+     edm::InputTag genRunInfoInputTag_;
      bool ntupleOnlyStatus3_;
      bool ntupleDaughters_;
      bool ntuplePackedGenParticles_;
@@ -67,6 +74,10 @@ private:
      double inclusiveCrossSectionValue_;
      double exclusiveCrossSectionValue_;
      double kfactorValue_;
+
+     shared_ptr<LHEHandler> lheHandler; // LHEHandler for default PDFs
+     shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
+
 };
 
 #endif
