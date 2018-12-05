@@ -124,6 +124,10 @@ private:
     edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17NoIsoMvaCatMapToken_;
     edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17IsoMvaValueMapToken_;
     edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17IsoMvaCatMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17V2NoIsoMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17V2NoIsoMvaCatMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17V2IsoMvaValueMapToken_;
+    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17V2IsoMvaCatMapToken_;
 
     edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
     edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
@@ -164,6 +168,10 @@ private:
     std::vector<Int_t>   VIDFall17NoIsoMvaCat_;
     std::vector<Float_t> VIDFall17IsoMvaValue_;
     std::vector<Int_t>   VIDFall17IsoMvaCat_;
+    std::vector<Float_t> VIDFall17V2NoIsoMvaValue_;
+    std::vector<Int_t>   VIDFall17V2NoIsoMvaCat_;
+    std::vector<Float_t> VIDFall17V2IsoMvaValue_;
+    std::vector<Int_t>   VIDFall17V2IsoMvaCat_;
 
     edm::Handle<reco::PFCandidateCollection> pfCand_h;
     edm::Handle<pat::PackedCandidateCollection> packPfCand_h;

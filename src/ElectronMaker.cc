@@ -105,6 +105,11 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     electronVIDFall17IsoMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDFall17IsoMvaValueMap"));
     electronVIDFall17IsoMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDFall17IsoMvaCatMap"));
 
+    electronVIDFall17V2NoIsoMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDFall17V2NoIsoMvaValueMap"));
+    electronVIDFall17V2NoIsoMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDFall17V2NoIsoMvaCatMap"));
+    electronVIDFall17V2IsoMvaValueMapToken_  = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("electronVIDFall17V2IsoMvaValueMap"));
+    electronVIDFall17V2IsoMvaCatMapToken_    = consumes<edm::ValueMap<int>   >(iConfig.getParameter<edm::InputTag>("electronVIDFall17V2IsoMvaCatMap"));
+
     electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
     vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
@@ -208,6 +213,10 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("VIDFall17NoIsoMvaCat"       ).setBranchAlias("els_VIDFall17NoIsoMvaCat"           );
     produces<vector<float> >     ("VIDFall17IsoMvaValue"     ).setBranchAlias("els_VIDFall17IsoMvaValue"         );
     produces<vector<int> >       ("VIDFall17IsoMvaCat"       ).setBranchAlias("els_VIDFall17IsoMvaCat"           );
+    produces<vector<float> >     ("VIDFall17V2NoIsoMvaValue"     ).setBranchAlias("els_VIDFall17V2NoIsoMvaValue"         );
+    produces<vector<int> >       ("VIDFall17V2NoIsoMvaCat"       ).setBranchAlias("els_VIDFall17V2NoIsoMvaCat"           );
+    produces<vector<float> >     ("VIDFall17V2IsoMvaValue"     ).setBranchAlias("els_VIDFall17V2IsoMvaValue"         );
+    produces<vector<int> >       ("VIDFall17V2IsoMvaCat"       ).setBranchAlias("els_VIDFall17V2IsoMvaCat"           );
 
     // for the ID definitions, see https://twiki.cern.ch/twiki/bin/view/CMS/SWGuideElectronID
     // the decisions should be the SAME as the els_pat_*id branches made by PATElectronMaker
@@ -424,6 +433,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int> >   VIDFall17NoIsoMvaCat      (new vector<int>   );
     unique_ptr<vector<float> > VIDFall17IsoMvaValue    (new vector<float>);
     unique_ptr<vector<int> >   VIDFall17IsoMvaCat      (new vector<int>   );
+
+    unique_ptr<vector<float> > VIDFall17V2NoIsoMvaValue    (new vector<float>);
+    unique_ptr<vector<int> >   VIDFall17V2NoIsoMvaCat      (new vector<int>   );
+    unique_ptr<vector<float> > VIDFall17V2IsoMvaValue    (new vector<float>);
+    unique_ptr<vector<int> >   VIDFall17V2IsoMvaCat      (new vector<int>   );
 
     // isolation variables
     //
@@ -654,6 +668,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     edm::Handle<edm::ValueMap<int> >   VIDFall17NoIsoMva_cats;
     edm::Handle<edm::ValueMap<float> > VIDFall17IsoMva_values;
     edm::Handle<edm::ValueMap<int> >   VIDFall17IsoMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDFall17V2NoIsoMva_values;
+    edm::Handle<edm::ValueMap<int> >   VIDFall17V2NoIsoMva_cats;
+    edm::Handle<edm::ValueMap<float> > VIDFall17V2IsoMva_values;
+    edm::Handle<edm::ValueMap<int> >   VIDFall17V2IsoMva_cats;
 
     edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
     edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
@@ -679,6 +697,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.getByToken(electronVIDFall17NoIsoMvaCatMapToken_,  VIDFall17NoIsoMva_cats);
     iEvent.getByToken(electronVIDFall17IsoMvaValueMapToken_,VIDFall17IsoMva_values);
     iEvent.getByToken(electronVIDFall17IsoMvaCatMapToken_,  VIDFall17IsoMva_cats);
+    iEvent.getByToken(electronVIDFall17V2NoIsoMvaValueMapToken_,VIDFall17V2NoIsoMva_values);
+    iEvent.getByToken(electronVIDFall17V2NoIsoMvaCatMapToken_,  VIDFall17V2NoIsoMva_cats);
+    iEvent.getByToken(electronVIDFall17V2IsoMvaValueMapToken_,VIDFall17V2IsoMva_values);
+    iEvent.getByToken(electronVIDFall17V2IsoMvaCatMapToken_,  VIDFall17V2IsoMva_cats);
 
     // Corrected Isolation using NanoAOD
     iEvent.getByToken(miniIsoChgValueMapToken_,miniIsoChg_values);
@@ -815,6 +837,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VIDFall17NoIsoMvaCat     ->push_back( (*VIDFall17NoIsoMva_cats)[ elPtr ] );
         VIDFall17IsoMvaValue   ->push_back( (*VIDFall17IsoMva_values)[ elPtr ] );
         VIDFall17IsoMvaCat     ->push_back( (*VIDFall17IsoMva_cats)[ elPtr ] );
+        VIDFall17V2NoIsoMvaValue   ->push_back( (*VIDFall17V2NoIsoMva_values)[ elPtr ] );
+        VIDFall17V2NoIsoMvaCat     ->push_back( (*VIDFall17V2NoIsoMva_cats)[ elPtr ] );
+        VIDFall17V2IsoMvaValue   ->push_back( (*VIDFall17V2IsoMva_values)[ elPtr ] );
+        VIDFall17V2IsoMvaCat     ->push_back( (*VIDFall17V2IsoMva_cats)[ elPtr ] );
 
         float isopt = el->p4().pt();
         els_miniRelIso_chg->push_back((*miniIsoChg_values)[elPtr]/isopt);
@@ -1213,6 +1239,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(VIDFall17NoIsoMvaCat),      "VIDFall17NoIsoMvaCat"  );
     iEvent.put(std::move(VIDFall17IsoMvaValue),    "VIDFall17IsoMvaValue"  );
     iEvent.put(std::move(VIDFall17IsoMvaCat),      "VIDFall17IsoMvaCat"  );
+    iEvent.put(std::move(VIDFall17V2NoIsoMvaValue),    "VIDFall17V2NoIsoMvaValue"  );
+    iEvent.put(std::move(VIDFall17V2NoIsoMvaCat),      "VIDFall17V2NoIsoMvaCat"  );
+    iEvent.put(std::move(VIDFall17V2IsoMvaValue),    "VIDFall17V2IsoMvaValue"  );
+    iEvent.put(std::move(VIDFall17V2IsoMvaCat),      "VIDFall17V2IsoMvaCat"  );
 
     // Track parameters
     //
