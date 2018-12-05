@@ -20,8 +20,8 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
 ```
 4. Finally, 
   * `cmsRun main_pset.py data=True prompt=True` to run on _prompt_ data
-  * `cmsRun main_pset.py data=False` to run on _FullSim_ MC
-  * `cmsRun main_pset.py fastsim=True` to run on _FastSim_ MC
+  * `cmsRun main_pset.py data=False year=2018` to run on _FullSim_ MC; note the year is needed for genMaker to pick the right weights
+  * `cmsRun main_pset.py fastsim=True year=2018` to run on _FastSim_ MC; note the year is needed for genMaker to pick the right weights
 
 
 ### Some quickstart parameters
