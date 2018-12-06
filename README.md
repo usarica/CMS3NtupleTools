@@ -53,7 +53,8 @@ of time, I'll throw in some cookies as a reward.
 ### ProjectMetis details
 To make a tarfile for use with Metis, the current command (for 10X+) to execute after setup is
 ```bash
-mtarfile lib_CMS4_V10-02-01_1024p1.tar.xz --xz
+mtarfile lib_CMS4_V10-02-02_1025.tar.xz --xz --xz_level 9 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 # note, extract with `tar xf` to detect the compression algorithm automatically
 ```
+...ignoring some files due to their filesize.
 
