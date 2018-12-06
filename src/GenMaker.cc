@@ -45,6 +45,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
     vmetPIDs_                   = iConfig.getUntrackedParameter<std::vector<int> >("vmetPIDs"             );
     kfactorValue_               = iConfig.getUntrackedParameter<double>           ("kfactor"              );
     LHEEventInfoToken = consumes<LHEEventProduct >(iConfig.getParameter<edm::InputTag>("LHEInputTag"));
+    LHERunInfoToken = consumes<LHERunInfoProduct, edm::InRun>(inputPSet.getParameter<edm::InputTag>("LHEInputTag"));
 
     lheHandler = std::make_shared<LHEHandler>(
       -1, -1,
