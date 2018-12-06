@@ -43,10 +43,6 @@ cd $CMSSW_BASE/src
 scram b -j 25
 cd ..
 
-# some cleanup of unnecessary files to cut tarball size in half
-rm -rf $CMSSW_BASE/src/ZZMatrixElement/MELA/data/*.root
-rm -rf $CMSSW_BASE/src/ZZMatrixElement/MELA/data/Pdfdata/*.LHgrid
-
 # see comment in patchesToSource.sh
 rm $CMSSW_BASE/lib/$SCRAM_ARCH/.poisonededmplugincache
 
