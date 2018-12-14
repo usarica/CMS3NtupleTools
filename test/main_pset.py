@@ -16,6 +16,7 @@ opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
 opts.register('triginfo'  , False , mytype=vpbool)
+opts.register('eventmakeronly'  , False , mytype=vpbool)
 opts.register('name'  , "" , mytype=vpstring) # hacky variable to override name for samples where last path/process is "DQM"
 opts.parseArguments()
 # be smart. if fastsim, it's obviously MC
@@ -154,7 +155,8 @@ process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.eventMaker.isData                        = cms.bool(opts.data)
-process.genMaker.year = cms.int32(opts.setup)
+if not opts.data:
+    process.genMaker.year = cms.int32(opts.setup)
 
 # if do_deepbtag:
 #     from PhysicsTools.PatAlgos.tools.jetTools import *
@@ -361,6 +363,8 @@ process.Timing = cms.Service("Timing",
         summaryOnly = cms.untracked.bool(True)
         )
 
+if opts.eventmakeronly:
+    process.p = cms.Path(process.eventMaker)
 
 # for use with Valgrind. After enabling, can do
 # $ valgrind --leak-check=yes  cmsRun main_pset.py >& log.txt
