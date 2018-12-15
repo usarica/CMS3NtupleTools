@@ -16,6 +16,9 @@ eval `scramv1 runtime -sh`
 # new upstream-only ignores user's cmssw, but makes cms-init much, much faster
 git cms-init --upstream-only
 
+# For MET recipe for 2017 EE noise fix
+git cms-merge-topic cms-met:METFixEE2017_949_v2_backport_to_102X
+
 cd src
 
 git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker
