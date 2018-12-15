@@ -842,9 +842,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         VIDFall17V2IsoMvaValue   ->push_back( (*VIDFall17V2IsoMva_values)[ elPtr ] );
         VIDFall17V2IsoMvaCat     ->push_back( (*VIDFall17V2IsoMva_cats)[ elPtr ] );
 
-        float isopt = el->p4().pt();
-        els_miniRelIso_chg->push_back((*miniIsoChg_values)[elPtr]/isopt);
-        els_miniRelIso_all->push_back((*miniIsoAll_values)[elPtr]/isopt);
+        // float isopt = el->p4().pt();
+        // els_miniRelIso_chg->push_back((*miniIsoChg_values)[elPtr]/isopt);
+        // els_miniRelIso_all->push_back((*miniIsoAll_values)[elPtr]/isopt);
 
         //////////////
         // Electron //
@@ -920,16 +920,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     // LeptonMVA jet daughters //
     /////////////////////////////
 
-    const auto & pv = (*vertexHandle)[0];
-    auto infotuple = MatchUtilities::getLepMVAInfo(elPtr, pfJetsHandle, pv);
-    float ptRatio = std::get<0>(infotuple);
-    float ptRel = std::get<1>(infotuple);
-    int jetNDauChargedMVASel = std::get<2>(infotuple);
-    float jetBTagCSV = std::get<3>(infotuple);
-    els_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
-    els_ptRatio->push_back(ptRatio);
-    els_ptRel->push_back(ptRel);
-    els_jetBTagCSV->push_back(jetBTagCSV);
+    // const auto & pv = (*vertexHandle)[0];
+    // auto infotuple = MatchUtilities::getLepMVAInfo(elPtr, pfJetsHandle, pv);
+    // float ptRatio = std::get<0>(infotuple);
+    // float ptRel = std::get<1>(infotuple);
+    // int jetNDauChargedMVASel = std::get<2>(infotuple);
+    // float jetBTagCSV = std::get<3>(infotuple);
+    // els_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
+    // els_ptRatio->push_back(ptRatio);
+    // els_ptRel->push_back(ptRel);
+    // els_jetBTagCSV->push_back(jetBTagCSV);
 
 	///////////////////////////////////////////////////////
 	// Get cluster info that is not stored in the object //

@@ -473,9 +473,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             }
         }
 
-        float isopt = muon->p4().pt();
-        mus_miniRelIso_chg->push_back((*miniIsoChg_values)[muPtr]/isopt);
-        mus_miniRelIso_all->push_back((*miniIsoAll_values)[muPtr]/isopt);
+        // float isopt = muon->p4().pt();
+        // mus_miniRelIso_chg->push_back((*miniIsoChg_values)[muPtr]/isopt);
+        // mus_miniRelIso_all->push_back((*miniIsoAll_values)[muPtr]/isopt);
 
         mus_selectors->push_back( muon->selectors() ); // DataFormats/MuonReco/interface/Muon.h
         mus_simType->push_back( muon->simType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
@@ -654,16 +654,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         // LeptonMVA jet daughters //
         /////////////////////////////
 
-        const auto & pv = (*vertexHandle)[0];
-        auto infotuple = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
-        float ptRatio = std::get<0>(infotuple);
-        float ptRel = std::get<1>(infotuple);
-        int jetNDauChargedMVASel = std::get<2>(infotuple);
-        float jetBTagCSV = std::get<3>(infotuple);
-        mus_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
-        mus_ptRatio->push_back(ptRatio);
-        mus_ptRel->push_back(ptRel);
-        mus_jetBTagCSV->push_back(jetBTagCSV);
+        // const auto & pv = (*vertexHandle)[0];
+        // auto infotuple = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
+        // float ptRatio = std::get<0>(infotuple);
+        // float ptRel = std::get<1>(infotuple);
+        // int jetNDauChargedMVASel = std::get<2>(infotuple);
+        // float jetBTagCSV = std::get<3>(infotuple);
+        // mus_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
+        // mus_ptRatio->push_back(ptRatio);
+        // mus_ptRel->push_back(ptRel);
+        // mus_jetBTagCSV->push_back(jetBTagCSV);
 
         //////////////////////
         // mini-isolation   //

@@ -11,11 +11,14 @@ vpbool = VarParsing.VarParsing.varType.bool
 vpint = VarParsing.VarParsing.varType.int
 vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
+opts.register('globaltag'    , ""  , mytype=vpstring)
+opts.register('inputs'    , ""  , mytype=vpstring)
 opts.register('setup'    , -1  , mytype=vpint)
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
 opts.register('triginfo'  , False , mytype=vpbool)
+opts.register('metrecipe'  , False , mytype=vpbool)
 opts.register('eventmakeronly'  , False , mytype=vpbool)
 opts.register('name'  , "" , mytype=vpstring) # hacky variable to override name for samples where last path/process is "DQM"
 opts.parseArguments()
@@ -33,8 +36,8 @@ print """PSet is assuming:
    name = {}
 """.format(int(opts.setup), bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo), str(opts.name))
 
-if not opts.data and opts.setup<2016:
-  raise RuntimeError("MC processing must define a setup>=2016!")
+# if not opts.data and opts.setup<2016:
+#   raise RuntimeError("MC processing must define a setup>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -81,22 +84,14 @@ process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-#process.GlobalTag.globaltag = "80X_mcRun2_asymptotic_2016_miniAODv2_v0" #80X
-#process.GlobalTag.globaltag = "91X_upgrade2017_realistic_v5" #MC
-#process.GlobalTag.globaltag = "91X_dataRun2_relval_v6" #data
 process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
-process.MessageLogger.suppressWarning = cms.untracked.vstring('ecalLaserCorrFilter','manystripclus53X','toomanystripclus53X')
-# process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(True),SkipEvent = cms.untracked.vstring('ProductNotFound') )
 process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False) )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
-                               # fileName     = cms.untracked.string('ntuple2.root'),
                                dropMetaData = cms.untracked.string("ALL"),
-                               # basketSize = cms.untracked.int32(16384*150)
-                               # basketSize = cms.untracked.int32(16384*10)
                                basketSize = cms.untracked.int32(16384*23)
 )
 
@@ -118,14 +113,7 @@ if not opts.data:
 # tag from https://cms-conddb.cern.ch/cmsDbBrowser/list/Prod/gts/92X_upgrade2017_realistic_v2
 
 #load cff and third party tools
-from JetMETCorrections.Configuration.DefaultJEC_cff import *
-from JetMETCorrections.Configuration.JetCorrectionServices_cff import *
-from JetMETCorrections.Configuration.CorrectedJetProducersDefault_cff import *
-from JetMETCorrections.Configuration.CorrectedJetProducers_cff import *
-from JetMETCorrections.Configuration.CorrectedJetProducersAllAlgos_cff import *
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-# from RecoJets.JetProducers.fixedGridRhoProducerFastjet_cfi import *
-# process.fixedGridRhoFastjetAll = fixedGridRhoFastjetAll.clone(pfCandidatesTag = 'packedPFCandidates')
 
 #Electron Identification for PHYS 14
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
@@ -136,10 +124,6 @@ process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
 process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_id_modules = [
-        # 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-        # 'RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV60_cff',
-        # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-        # 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff',
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V1_cff',
@@ -158,31 +142,6 @@ process.eventMaker.isData                        = cms.bool(opts.data)
 if not opts.data:
     process.genMaker.year = cms.int32(opts.setup)
 
-# if do_deepbtag:
-#     from PhysicsTools.PatAlgos.tools.jetTools import *
-#     deep_discriminators = ["pfDeepCSVJetTags:probudsg", "pfDeepCSVJetTags:probb", "pfDeepCSVJetTags:probc", "pfDeepCSVJetTags:probbb", "pfDeepCSVJetTags:probcc" ]
-#     updateJetCollection(
-#         process,
-#         jetSource = cms.InputTag('slimmedJets'),
-#        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-#         btagDiscriminators = deep_discriminators
-#     )
-#     updateJetCollection(
-#         process,
-#         labelName = 'Puppi',
-#         jetSource = cms.InputTag('slimmedJetsPuppi'),
-#        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-#         btagDiscriminators = deep_discriminators
-#     )
-
-    # Needed for the above updateJetCollection() calls
-    # process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
-    # process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
-
-# Hypothesis cuts
-process.hypDilepMaker.TightLepton_PtCut  = cms.double(10.0)
-process.hypDilepMaker.LooseLepton_PtCut  = cms.double(10.0)
-
 #Options for Input
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
@@ -192,38 +151,14 @@ process.source = cms.Source("PoolSource",
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50) )
-# process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(3000) )
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 
 #Run corrected MET maker
 
 #configurable options =======================================================================
-usePrivateSQlite=False #use external JECs (sqlite file)
 applyResiduals=opts.data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 #===================================================================
-
-if usePrivateSQlite:
-    from CondCore.DBCommon.CondDBSetup_cfi import *
-    import os
-    era="Summer15_25nsV5_MC"
-    process.jec = cms.ESSource("PoolDBESSource",CondDBSetup,
-                               connect = cms.string( "sqlite_file:"+era+".db" ),
-                               toGet =  cms.VPSet(
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PF"),
-                label= cms.untracked.string("AK4PF")
-                ),
-            cms.PSet(
-                record = cms.string("JetCorrectionsRecord"),
-                tag = cms.string("JetCorrectorParametersCollection_"+era+"_AK4PFchs"),
-                label= cms.untracked.string("AK4PFchs")
-                ),
-            )
-                               )
-    process.es_prefer_jec = cms.ESPrefer("PoolDBESSource",'jec')
 
 ### =================================================================================
 #jets are rebuilt from those candidates by the tools, no need to do anything else
@@ -232,27 +167,41 @@ if usePrivateSQlite:
 process.outpath = cms.EndPath(process.out)
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 
-if not opts.data:
-    from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-    #default configuration for miniAOD reprocessing, change the isData flag to run on data
-    #for a full met computation, remove the pfCandColl input
-    runMetCorAndUncFromMiniAOD(process,
-                               isData=opts.data,
-                               )
+extra = {}
+if opts.metrecipe:
+    process.pfmetMakerModifiedMET = process.pfmetMaker.clone()
+    process.pfmetMakerModifiedMET.pfMetInputTag_ = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
+    process.pfmetMaker.aliasPrefix = cms.untracked.string("evt_old")
+    print process.pfmetMaker.aliasPrefix
+    print process.pfmetMakerModifiedMET.aliasPrefix
+    print process.pfmetMaker.pfMetInputTag_
+    print process.pfmetMakerModifiedMET.pfMetInputTag_
+    extra = dict(
+            fixEE2017=True,
+            fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
+            postfix="ModifiedMET",
+            )
+
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+print "extra:",extra
+runMetCorAndUncFromMiniAOD(process,
+                           isData=opts.data,
+                           **extra
+                           )
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 
 ### -------------------------------------------------------------------
-### the lines below remove the L2L3 residual corrections when processing data
+### the lines below remove the L2L3 residual corrections when processing MC
 ### -------------------------------------------------------------------
 if not applyResiduals:
     process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
     process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
     process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
     process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    # process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
+    # process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
 ### ------------------------------------------------------------------
 
 # end Run corrected MET maker
@@ -262,109 +211,67 @@ if opts.triginfo:
     process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
     process.load("CMS3.NtupleMaker.elToTrigAssMaker_cfi")
     if opts.data and opts.prompt:
-        # process.muToTrigAssMaker.processName = cms.untracked.string("RECO")
-        # process.elToTrigAssMaker.processName = cms.untracked.string("RECO")
         process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
         process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
         process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
-# python -c "from PhysicsTools.NanoAOD.electrons_cff import isoForEle; print 'process.isoForEle = {}'.format(repr(isoForEle))"
-process.isoForEle = cms.EDProducer("EleIsoValueMapProducer",
-    EAFile_MiniIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt'),
-    EAFile_PFIso = cms.FileInPath('RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
-    relative = cms.bool(False),
-    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetAll"),
-    rho_PFIso = cms.InputTag("fixedGridRhoFastjetAll"),
-    src = cms.InputTag("slimmedElectrons")
-)
-# python -c "from PhysicsTools.NanoAOD.muons_cff import isoForMu; print 'process.isoForMu = {}'.format(repr(isoForMu))"
-process.isoForMu = cms.EDProducer("MuonIsoValueMapProducer",
-    EAFile_MiniIso = cms.FileInPath('PhysicsTools/NanoAOD/data/effAreaMuons_cone03_pfNeuHadronsAndPhotons_80X.txt'),
-    relative = cms.bool(False),
-    rho_MiniIso = cms.InputTag("fixedGridRhoFastjetAll"),
-    src = cms.InputTag("slimmedMuons")
-)
+# process.TransientTrackBuilderESProducer = cms.ESProducer("TransientTrackBuilderESProducer",
+#     ComponentName=cms.string('TransientTrackBuilder')
+# )
 
-process.TransientTrackBuilderESProducer = cms.ESProducer("TransientTrackBuilderESProducer",
-    ComponentName=cms.string('TransientTrackBuilder')
-)
+producers = [
+        process.metFilterMaker,
+        process.egmGsfElectronIDSequence,
+        process.vertexMaker,
+        process.secondaryVertexMaker,
+        process.eventMaker,
+        process.pfCandidateMaker,
+        process.isoTrackMaker,
+        process.electronMaker,
+        process.muonMaker,
+        process.pfJetMaker,
+        process.pfJetPUPPIMaker,
+        process.subJetMaker,
+        process.pfmetMaker,
+        process.pfmetpuppiMaker,
+        process.hltMakerSequence,
+        process.miniAODrhoSequence,
+        process.pftauMaker,
+        process.photonMaker,
+        process.muToTrigAssMaker if opts.triginfo else None,
+        process.elToTrigAssMaker if opts.triginfo else None,
+        process.genMaker if not opts.data else None,
+        process.genJetMaker if not opts.data else None,
+        process.candToGenAssMaker if not opts.data else None,
+        process.pdfinfoMaker if not opts.data else None,
+        process.puSummaryInfoMaker if not opts.data else None,
+        process.hypDilepMaker,
+        ]
+total_path = None
+for ip,producer in enumerate(producers):
+    if producer is None: continue
+    if ip == 0:
+        total_path = producer
+        continue
 
-if opts.data:
-    process.p = cms.Path(
-        process.metFilterMaker *
-        process.egmGsfElectronIDSequence *
-        process.vertexMaker *
-        process.secondaryVertexMaker *
-        process.eventMaker *
-        process.pfCandidateMaker *
-        process.isoTrackMaker *
-        process.isoForEle *
-        process.isoForMu *
-        process.electronMaker *
-        process.muonMaker *
-        process.pfJetMaker *
-        process.pfJetPUPPIMaker *
-        process.subJetMaker *
-        process.pfmetMaker *
-        process.pfmetpuppiMaker *
-        process.hltMakerSequence *
-        process.miniAODrhoSequence *
-        process.pftauMaker *
-        process.photonMaker *
-        # process.muToTrigAssMaker * # Note these are hacked in below
-        # process.elToTrigAssMaker * # Note these are hacked in below
-        # process.genMaker *
-        # process.genJetMaker *
-        # process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-        # process.pdfinfoMaker *
-        # process.puSummaryInfoMaker *
-        process.hypDilepMaker
-    )
-else:
-    process.p = cms.Path(
-        process.metFilterMaker *
-        process.egmGsfElectronIDSequence *
-        process.vertexMaker *
-        process.secondaryVertexMaker *
-        process.eventMaker *
-        process.pfCandidateMaker *
-        process.isoTrackMaker *
-        process.isoForEle *
-        process.isoForMu *
-        process.electronMaker *
-        process.muonMaker *
-        process.pfJetMaker *
-        process.pfJetPUPPIMaker *
-        process.subJetMaker *
-        process.pfmetMaker *
-        process.pfmetpuppiMaker *
-        process.hltMakerSequence *
-        process.miniAODrhoSequence *
-        process.pftauMaker *
-        process.photonMaker *
-        process.genMaker *
-        process.genJetMaker *
-        process.candToGenAssMaker * # requires electronMaker, muonMaker, pfJetMaker, photonMaker
-        process.pdfinfoMaker *
-        process.puSummaryInfoMaker *
-        process.hypDilepMaker
-    )
-if opts.triginfo:
-    # Now insert the xToTrigAssMakers into the path
-    # Hooray for hacky operations
-    process.p.insert(process.p.index(process.photonMaker)+1,process.muToTrigAssMaker)
-    process.p.insert(process.p.index(process.photonMaker)+1,process.elToTrigAssMaker)
+    if opts.eventmakeronly and producer not in [
+            process.eventMaker
+            ]: continue
 
+    if opts.metrecipe and producer == process.pfmetMaker:
+        total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
+        continue
 
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+    total_path *= producer
+
+process.p = cms.Path(total_path)
+# print total_path
+# print process.p
 
 process.Timing = cms.Service("Timing",
         summaryOnly = cms.untracked.bool(True)
         )
-
-if opts.eventmakeronly:
-    process.p = cms.Path(process.eventMaker)
 
 # for use with Valgrind. After enabling, can do
 # $ valgrind --leak-check=yes  cmsRun main_pset.py >& log.txt
@@ -376,16 +283,16 @@ if opts.eventmakeronly:
 #         paths = cms.untracked.vstring('p1')
 # )
 
-
-# process.GlobalTag.globaltag = "SUPPLY_GLOBAL_TAG"
-# process.out.fileName = cms.untracked.string('SUPPLY_OUTPUT_FILE_NAME'),
-# process.source.fileNames = cms.untracked.vstring('SUPPLY_INPUT_FILE_NAME')
-# process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
-# process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
-# process.maxEvents.input = cms.untracked.int32(SUPPLY_MAX_NEVENTS)
-
-process.GlobalTag.globaltag = "102X_upgrade2018_realistic_v15"
+if not opts.globaltag:
+    process.GlobalTag.globaltag = "102X_upgrade2018_realistic_v15"
+else:
+    process.GlobalTag.globaltag = opts.globaltag
+if not opts.inputs:
+    process.source.fileNames = cms.untracked.vstring("/store/mc/RunIIAutumn18MiniAOD/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/60000/84347EC0-60B4-5145-8F92-37F1975CA79D.root")
+else:
+    inputs = opts.inputs.split(",")
+    print "Running on inputs: {}".format(inputs)
+    process.source.fileNames = cms.untracked.vstring(inputs)
 process.out.fileName = cms.untracked.string('ntuple.root')
-process.source.fileNames = cms.untracked.vstring("/store/mc/RunIIAutumn18MiniAOD/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/60000/84347EC0-60B4-5145-8F92-37F1975CA79D.root")
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
