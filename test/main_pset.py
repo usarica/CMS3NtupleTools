@@ -13,6 +13,8 @@ vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('globaltag'    , ""  , mytype=vpstring)
 opts.register('inputs'    , ""  , mytype=vpstring)
+opts.register('output'    , "ntuple.root"  , mytype=vpstring)
+opts.register('nevents'    , -1  , mytype=vpint)
 opts.register('setup'    , -1  , mytype=vpint)
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
@@ -27,17 +29,32 @@ opts.parseArguments()
 if opts.fastsim: opts.data = False
 if not opts.data: opts.prompt = False
 print """PSet is assuming:
-   setup? {}
-   data? {}
-   prompt? {}
-   fastsim? {}
-   relval? {}
-   triginfo? {}
-   name = {}
-""".format(int(opts.setup), bool(opts.data), bool(opts.prompt), bool(opts.fastsim), bool(opts.relval), bool(opts.triginfo), str(opts.name))
+   data? {data} prompt? {prompt} fastsim? {fastsim} relval? {relval}
+   triginfo? {triginfo} metrecipe? {metrecipe} eventmakeronly? {eventmakeronly}
+   setup = {setup}
+   nevents = {nevents}
+   output = {output}
+   name = {name}
+   globaltag = {globaltag}
+   inputs = {inputs}
+""".format(
+   data = opts.data,
+   prompt = opts.prompt,
+   fastsim = opts.fastsim,
+   relval = opts.relval,
+   triginfo = opts.triginfo,
+   metrecipe = opts.metrecipe,
+   eventmakeronly = opts.eventmakeronly,
+   setup = opts.setup,
+   nevents = opts.nevents,
+   output = opts.output,
+   name = opts.name,
+   globaltag = opts.globaltag,
+   inputs = opts.inputs,
+        )
 
-# if not opts.data and opts.setup<2016:
-#   raise RuntimeError("MC processing must define a setup>=2016!")
+if not opts.data and opts.setup<2016:
+  raise RuntimeError("MC processing must define a setup>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -116,7 +133,7 @@ if not opts.data:
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 
 #Electron Identification for PHYS 14
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
@@ -151,7 +168,7 @@ process.source = cms.Source("PoolSource",
 process.source.noEventSort = cms.untracked.bool( True )
 
 #Max Events
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents) )
 
 
 #Run corrected MET maker
@@ -172,10 +189,6 @@ if opts.metrecipe:
     process.pfmetMakerModifiedMET = process.pfmetMaker.clone()
     process.pfmetMakerModifiedMET.pfMetInputTag_ = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
     process.pfmetMaker.aliasPrefix = cms.untracked.string("evt_old")
-    print process.pfmetMaker.aliasPrefix
-    print process.pfmetMakerModifiedMET.aliasPrefix
-    print process.pfmetMaker.pfMetInputTag_
-    print process.pfmetMakerModifiedMET.pfMetInputTag_
     extra = dict(
             fixEE2017=True,
             fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
@@ -183,7 +196,6 @@ if opts.metrecipe:
             )
 
 from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-print "extra:",extra
 runMetCorAndUncFromMiniAOD(process,
                            isData=opts.data,
                            **extra
@@ -266,8 +278,6 @@ for ip,producer in enumerate(producers):
     total_path *= producer
 
 process.p = cms.Path(total_path)
-# print total_path
-# print process.p
 
 process.Timing = cms.Service("Timing",
         summaryOnly = cms.untracked.bool(True)
@@ -293,6 +303,6 @@ else:
     inputs = opts.inputs.split(",")
     print "Running on inputs: {}".format(inputs)
     process.source.fileNames = cms.untracked.vstring(inputs)
-process.out.fileName = cms.untracked.string('ntuple.root')
+process.out.fileName = cms.untracked.string(opts.output)
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
