@@ -4,7 +4,9 @@ cmd=cmsRun
 # cmd=python
 pset=main_pset.py
 nevents=500
-outputdir=./
+outputdir=outputs/
+
+mkdir -p $outputdir
 
 # 2016 Re-reco Data MiniAODv3
 # /DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD
@@ -80,3 +82,11 @@ $cmd $pset \
     inputs=/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/100000/042C8EE9-9431-5443-88C8-77F1D910B3A5.root \
     nevents=$nevents \
     output=$outputdir/ntuple_2018_mc.root >& $outputdir/log_2018_mc.txt &
+
+
+    # goldenjson=Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt
+
+echo "After they are done, check the appropriate logs and root files manually if you"
+echo "want echo to be sure that your change worked. For simple checks, just do the"
+echo "following when they finish to check just the event counts:"
+echo '   for output in $(ls '${outputdir}'/*.root); do edmFileUtil $output; done'

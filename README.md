@@ -22,10 +22,24 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
   * `cmsRun main_pset.py data=True prompt=True` to run on _prompt_ data
   * `cmsRun main_pset.py data=False year=2018` to run on _FullSim_ MC; note the year is needed for genMaker to pick the right weights
   * `cmsRun main_pset.py fastsim=True year=2018` to run on _FastSim_ MC; note the year is needed for genMaker to pick the right weights
+  * There are more options explained inside `main_pset.py`
 
+### Testing
+With `./run_tests.sh`, one can test the following campaigns
+* 2016
+   * 94X Re-reco Data (`/*/*17Jul2018*/MINIAOD`)
+   * 94X (MiniAODv3) Re-reco MC (`/*/*RunIISummer16MiniAODv3*/MINIAODSIM`)
+* 2017
+   * Re-reco Data (`/*/*31Mar2018*/MINIAOD`)
+   * MiniAODv2 MC (`/*/*RunIIFall17MiniAODv2*/MINIAODSIM`)
+* 2018
+   * Prompt-reco Data (`/*/Run2018D-PromptReco-v2/MINIAOD`)
+   * Re-reco Data (`/*/*17Sep2018*/MINIAOD`)
+   * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
+When I wrote this sentence, they all worked.
 
 ### Some quickstart parameters
-In `install.sh`, use `CMS3Tag=CMS4_V10-02-01` and `CMSSW_release=CMSSW_10_2_4_patch1` to run on the RunII 2018 data re-reco sample for `/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD`
+In this `install.sh`, point to this tag or branch and `CMSSW_release=CMSSW_10_2_5` to run on the RunII 2018 data re-reco sample for `/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD`
 
 And paste the following at the end of `main_pset.py`.
 
@@ -37,7 +51,6 @@ process.eventMaker.CMS3tag = cms.string('CMS4_V10-02-01') # doesn't affect ntupl
 process.eventMaker.datasetName = cms.string('/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD') # doesn't affect ntupling, only for bookkeeping later on
 process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note that crab overrides this to -1
 ```
-
 
 Run it with `cmsRun main_pset.py data=True prompt=True`. Yes, you did see
 `prompt=True` when this is a re-reco data file. `edmDumpEventContent` shows
@@ -53,8 +66,11 @@ of time, I'll throw in some cookies as a reward.
 ### ProjectMetis details
 To make a tarfile for use with Metis, the current command (for 10X+) to execute after setup is
 ```bash
-mtarfile lib_CMS4_V10-02-02_1025.tar.xz --xz --xz_level 9 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
+mtarfile lib_CMS4_V10-02-03_1025.tar.xz --xz --xz_level 9 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 # note, extract with `tar xf` to detect the compression algorithm automatically
 ```
 ...ignoring some files due to their filesize.
 
+### Misc notes
+* `cmsRun` options (`cmsRun -h`) must be put before the pset or else the VarParsing library intercepts it and crashes
+* Locally, 4 threads (`cmsRun -n 4 main_pset.py ...`) gives best results
