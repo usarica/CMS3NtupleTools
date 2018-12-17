@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #USER INPUTS
-CMS3Tag=10x
+CMS3Tag=combined
 CMSSW_release=CMSSW_10_2_5
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
 export SCRAM_ARCH=slc6_amd64_gcc700
