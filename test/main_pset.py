@@ -12,23 +12,24 @@ vpint = VarParsing.VarParsing.varType.int
 vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('globaltag'    , ""  , mytype=vpstring)
-opts.register('inputs'    , ""  , mytype=vpstring)
+opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of input files
 opts.register('output'    , "ntuple.root"  , mytype=vpstring)
 opts.register('nevents'    , -1  , mytype=vpint)
-opts.register('setup'    , -1  , mytype=vpint)
+opts.register('setup'    , -1  , mytype=vpint) # year for MC weight purposes (2016,2017,2018); defaults to 2017
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
 opts.register('triginfo'  , False , mytype=vpbool)
-opts.register('metrecipe'  , False , mytype=vpbool)
+opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('eventmakeronly'  , False , mytype=vpbool)
+opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('name'  , "" , mytype=vpstring) # hacky variable to override name for samples where last path/process is "DQM"
 opts.parseArguments()
 # be smart. if fastsim, it's obviously MC
 # if it's MC, it's obviously not prompt
 if opts.fastsim: opts.data = False
 if not opts.data: opts.prompt = False
-print """PSet is assuming:
+print("""PSet is assuming:
    data? {data} prompt? {prompt} fastsim? {fastsim} relval? {relval}
    triginfo? {triginfo} metrecipe? {metrecipe} eventmakeronly? {eventmakeronly}
    setup = {setup}
@@ -37,6 +38,7 @@ print """PSet is assuming:
    name = {name}
    globaltag = {globaltag}
    inputs = {inputs}
+   goldenjson = {goldenjson}
 """.format(
    data = opts.data,
    prompt = opts.prompt,
@@ -51,10 +53,13 @@ print """PSet is assuming:
    name = opts.name,
    globaltag = opts.globaltag,
    inputs = opts.inputs,
-        )
+   goldenjson = opts.goldenjson,
+        ))
 
 if not opts.data and opts.setup<2016:
-  raise RuntimeError("MC processing must define a setup>=2016!")
+    print(("#"*100+"\n")*2+"[!] This is MC but you've not defined setup. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
+    opts.setup=2017
+  # raise RuntimeError("MC processing must define a setup>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -104,7 +109,8 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False) )
+# OtherCMS exception thrown by eventmaker if run-lumi is excluded
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('OtherCMS') )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
@@ -165,21 +171,30 @@ process.source = cms.Source("PoolSource",
                                 'file:C6BB52E8-F341-E811-8A2F-001E677927EC.root',
                             )
 )
-process.source.noEventSort = cms.untracked.bool( True )
+def find_up(fname):
+    d = os.getcwd()
+    while d != "/":
+        t, d = os.path.join(d,fname), os.path.dirname(d)
+        if os.path.exists(t): return t
+
+if opts.goldenjson:
+    # if we filter in the process.source, then the events are just skipped
+    # so we use a custom lumiFilter to skip *after* the EventMaker to keep
+    # total event counts in agreement with DBS, but also have evt_event,run,lumiBlock
+    # for babymakers to filter
+    skip_event = False
+    import FWCore.PythonUtilities.LumiList as LumiList
+    # JSONfile = "Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
+    lumilist = LumiList.LumiList(filename=opts.goldenjson).getCMSSWString().split(',')
+    print("Got json list of lumis to process with {} lumi sections".format(len(lumilist)))
+    print("Skipping {} if they're not in the lumi list".format("events entirely" if skip_event else "anything after eventMaker"))
+    if skip_event:
+        process.source.lumisToProcess = cms.untracked(cms.VLuminosityBlockRange()+lumilist)
+    else:
+        process.lumiFilter.lumisToProcess = cms.untracked(cms.VLuminosityBlockRange()+lumilist)
 
 #Max Events
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents) )
-
-
-#Run corrected MET maker
-
-#configurable options =======================================================================
-applyResiduals=opts.data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
-#===================================================================
-
-### =================================================================================
-#jets are rebuilt from those candidates by the tools, no need to do anything else
-### =================================================================================
 
 process.outpath = cms.EndPath(process.out)
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
@@ -207,6 +222,8 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'
 ### -------------------------------------------------------------------
 ### the lines below remove the L2L3 residual corrections when processing MC
 ### -------------------------------------------------------------------
+#Run corrected MET maker
+applyResiduals=opts.data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
 if not applyResiduals:
     process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
     process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
@@ -228,16 +245,13 @@ if opts.triginfo:
         process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
-# process.TransientTrackBuilderESProducer = cms.ESProducer("TransientTrackBuilderESProducer",
-#     ComponentName=cms.string('TransientTrackBuilder')
-# )
-
 producers = [
+        process.eventMaker,
+        process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
         process.metFilterMaker,
         process.egmGsfElectronIDSequence,
         process.vertexMaker,
         process.secondaryVertexMaker,
-        process.eventMaker,
         process.pfCandidateMaker,
         process.isoTrackMaker,
         process.electronMaker,
@@ -301,7 +315,7 @@ if not opts.inputs:
     process.source.fileNames = cms.untracked.vstring("/store/mc/RunIIAutumn18MiniAOD/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/60000/84347EC0-60B4-5145-8F92-37F1975CA79D.root")
 else:
     inputs = opts.inputs.split(",")
-    print "Running on inputs: {}".format(inputs)
+    print("Running on inputs: {}".format(inputs))
     process.source.fileNames = cms.untracked.vstring(inputs)
 process.out.fileName = cms.untracked.string(opts.output)
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
