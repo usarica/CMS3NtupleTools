@@ -177,7 +177,8 @@ def find_up(fname):
         t, d = os.path.join(d,fname), os.path.dirname(d)
         if os.path.exists(t): return t
 
-if opts.goldenjson:
+if opts.goldenjson and find_up(opts.goldenjson):
+    goldenjson = find_up(opts.goldenjson)
     # if we filter in the process.source, then the events are just skipped
     # so we use a custom lumiFilter to skip *after* the EventMaker to keep
     # total event counts in agreement with DBS, but also have evt_event,run,lumiBlock
@@ -185,8 +186,8 @@ if opts.goldenjson:
     skip_event = False
     import FWCore.PythonUtilities.LumiList as LumiList
     # JSONfile = "Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
-    lumilist = LumiList.LumiList(filename=opts.goldenjson).getCMSSWString().split(',')
-    print("Got json list of lumis to process with {} lumi sections".format(len(lumilist)))
+    lumilist = LumiList.LumiList(filename=goldenjson).getCMSSWString().split(',')
+    print("Found json list of lumis to process with {} lumi sections from {}".format(len(lumilist),goldenjson))
     print("Skipping {} if they're not in the lumi list".format("events entirely" if skip_event else "anything after eventMaker"))
     if skip_event:
         process.source.lumisToProcess = cms.untracked(cms.VLuminosityBlockRange()+lumilist)
