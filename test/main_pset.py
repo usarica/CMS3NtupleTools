@@ -172,6 +172,7 @@ process.source = cms.Source("PoolSource",
                             )
 )
 def find_up(fname):
+    import os
     d = os.getcwd()
     while d != "/":
         t, d = os.path.join(d,fname), os.path.dirname(d)
