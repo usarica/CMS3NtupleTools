@@ -26,8 +26,8 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     branchprefix_    = aliasprefix_;
     processName_     = iConfig.getUntrackedParameter<string> ("processName" );
     filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
-    filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_)
-);
+    filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_));
+    ecalBadCalibFilterUpdate_token= consumes< bool >(edm::InputTag("ecalBadCalibReducedMINIAODFilter"));
 
     //
     produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
@@ -55,6 +55,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     produces <bool> ( branchprefix_ + "BadPFMuonFilter"                   ).setBranchAlias( aliasprefix_ + "_BadPFMuonFilter"                   );
     produces <bool> ( branchprefix_ + "BadChargedCandidateFilter"                   ).setBranchAlias( aliasprefix_ + "_BadChargedCandidateFilter"                   );
     produces <bool> ( branchprefix_ + "ecalBadCalibFilter"                   ).setBranchAlias( aliasprefix_ + "_ecalBadCalibFilter"                   );
+    produces <bool> ( branchprefix_ + "ecalBadCalibFilterUpdate"             ).setBranchAlias( aliasprefix_ + "_ecalBadCalibFilterUpdate"             );
 
     // For compatibility with CMS2 variable names
     produces <bool> ( "evtcscTightHaloId"                 ).setBranchAlias( "evt_cscTightHaloId"                 );
@@ -99,6 +100,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   unique_ptr <bool> filt_BadPFMuonFilter                  ( new bool(false) );
   unique_ptr <bool> filt_BadChargedCandidateFilter                  ( new bool(false) );
   unique_ptr <bool> filt_ecalBadCalibFilter                  ( new bool(false) );
+  unique_ptr <bool> filt_ecalBadCalibFilterUpdate            ( new bool(false) );
 
 
 
@@ -173,6 +175,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
     if (  metFilterNames_.triggerName(i) == "Flag_ecalBadCalibFilter"                 ) idx_ecalBadCalibFilter                    = i;
   }
 
+
   
   *filt_cscBeamHalo                          = (idx_cscBeamHalo                    < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
   *filt_cscBeamHalo2015                      = (idx_cscBeamHalo2015                < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo2015                 );
@@ -199,6 +202,9 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   *filt_BadPFMuonFilter                         = (idx_BadPFMuonFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadPFMuonFilter                    );
   *filt_BadChargedCandidateFilter                         = (idx_BadChargedCandidateFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadChargedCandidateFilter                    );
   *filt_ecalBadCalibFilter                         = (idx_ecalBadCalibFilter                   < 0) ? false : metFilterResultsH_->accept(idx_ecalBadCalibFilter                    );
+  edm::Handle< bool > passecalBadCalibFilterUpdate ;
+  iEvent.getByToken(ecalBadCalibFilterUpdate_token,passecalBadCalibFilterUpdate);
+  *filt_ecalBadCalibFilterUpdate                         = (*passecalBadCalibFilterUpdate );
 
   // For compatibility with CMS2 variable names
   *filt_cscTightHaloId                       = (idx_cscBeamHalo < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );
@@ -233,6 +239,7 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   iEvent.put(std::move( filt_BadPFMuonFilter                ), branchprefix_ + "BadPFMuonFilter"                );
   iEvent.put(std::move( filt_BadChargedCandidateFilter      ), branchprefix_ + "BadChargedCandidateFilter"      );
   iEvent.put(std::move( filt_ecalBadCalibFilter             ), branchprefix_ + "ecalBadCalibFilter"             );
+  iEvent.put(std::move( filt_ecalBadCalibFilterUpdate       ), branchprefix_ + "ecalBadCalibFilterUpdate"       );
 
   // For compatibility with CMS2 variable names
   iEvent.put(std::move( filt_cscTightHaloId                 ), "evtcscTightHaloId"                  );

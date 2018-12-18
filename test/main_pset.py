@@ -119,30 +119,27 @@ process.out = cms.OutputModule("PoolOutputModule",
                                basketSize = cms.untracked.int32(16384*23)
 )
 
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-print "FIXME do we need this?"
-########    override the GT for MC     ########
-### ESPrefer for L1TGlobalPrescalesVetosRcd ###
-if not opts.data:
-    process.load("CondCore.CondDB.CondDB_cfi")
-    process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
-    process.l1tPS = cms.ESSource("PoolDBESSource",
-        process.CondDB,
-        toGet = cms.VPSet(
-            cms.PSet(
-            record = cms.string("L1TGlobalPrescalesVetosRcd"),
-            tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc")
-            )
-        )
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#How_to_run_ecal_BadCalibReducedM
+process.load('RecoMET.METFilters.ecalBadCalibFilter_cfi')
+baddetEcallist = cms.vuint32(
+    [872439604,872422825,872420274,872423218,
+     872423215,872416066,872435036,872439336,
+     872420273,872436907,872420147,872439731,
+     872436657,872420397,872439732,872439339,
+     872439603,872422436,872439861,872437051,
+     872437052,872420649,872422436,872421950,
+     872437185,872422564,872421566,872421695,
+     872421955,872421567,872437184,872421951,
+     872421694,872437056,872437057,872437313])
+process.ecalBadCalibReducedMINIAODFilter = cms.EDFilter(
+    "EcalBadCalibFilter",
+    EcalRecHitSource = cms.InputTag("reducedEgamma:reducedEERecHits"),
+    ecalMinEt        = cms.double(50.),
+    baddetEcal    = baddetEcallist,
+    taggingMode = cms.bool(True),
+    debug = cms.bool(False)
     )
-    process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
-# tag from https://cms-conddb.cern.ch/cmsDbBrowser/list/Prod/gts/92X_upgrade2017_realistic_v2
+
 
 #load cff and third party tools
 process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
@@ -315,6 +312,9 @@ for ip,producer in enumerate(producers):
 
     if opts.is80x and producer in [process.isoTrackMaker]:
         continue
+
+    if opts.year >= 2017 and producer in [process.metFilterMaker]:
+        total_path *= process.ecalBadCalibReducedMINIAODFilter
 
     if opts.eventmakeronly and producer not in [
             process.eventMaker
