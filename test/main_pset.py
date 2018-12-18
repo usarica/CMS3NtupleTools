@@ -15,7 +15,8 @@ opts.register('globaltag'    , ""  , mytype=vpstring)
 opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of input files
 opts.register('output'    , "ntuple.root"  , mytype=vpstring)
 opts.register('nevents'    , -1  , mytype=vpint)
-opts.register('setup'    , -1  , mytype=vpint) # year for MC weight purposes (2016,2017,2018); defaults to 2017
+opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other purposes (2016,2017,2018); defaults to 2017
+opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('prompt'  , False  , mytype=vpbool)
 opts.register('fastsim' , False , mytype=vpbool)
 opts.register('relval'  , False , mytype=vpbool)
@@ -30,9 +31,9 @@ opts.parseArguments()
 if opts.fastsim: opts.data = False
 if not opts.data: opts.prompt = False
 print("""PSet is assuming:
-   data? {data} prompt? {prompt} fastsim? {fastsim} relval? {relval}
+   data? {data} prompt? {prompt} fastsim? {fastsim} relval? {relval} is80x? {is80x}
    triginfo? {triginfo} metrecipe? {metrecipe} eventmakeronly? {eventmakeronly}
-   setup = {setup}
+   year = {year}
    nevents = {nevents}
    output = {output}
    name = {name}
@@ -45,9 +46,10 @@ print("""PSet is assuming:
    fastsim = opts.fastsim,
    relval = opts.relval,
    triginfo = opts.triginfo,
+   is80x = opts.is80x,
    metrecipe = opts.metrecipe,
    eventmakeronly = opts.eventmakeronly,
-   setup = opts.setup,
+   year = opts.year,
    nevents = opts.nevents,
    output = opts.output,
    name = opts.name,
@@ -56,10 +58,10 @@ print("""PSet is assuming:
    goldenjson = opts.goldenjson,
         ))
 
-if not opts.data and opts.setup<2016:
-    print(("#"*100+"\n")*2+"[!] This is MC but you've not defined setup. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
-    opts.setup=2017
-  # raise RuntimeError("MC processing must define a setup>=2016!")
+if not opts.data and opts.year<2016:
+    print(("#"*100+"\n")*2+"[!] This is MC but you've not defined year. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
+    opts.year=2017
+  # raise RuntimeError("MC processing must define a year>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.name="PAT"
@@ -109,8 +111,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
-# OtherCMS exception thrown by eventmaker if run-lumi is excluded
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False),SkipEvent = cms.untracked.vstring('OtherCMS') )
+process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False) )
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
@@ -118,6 +119,14 @@ process.out = cms.OutputModule("PoolOutputModule",
                                basketSize = cms.untracked.int32(16384*23)
 )
 
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
+print "FIXME do we need this?"
 ########    override the GT for MC     ########
 ### ESPrefer for L1TGlobalPrescalesVetosRcd ###
 if not opts.data:
@@ -163,7 +172,7 @@ if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.eventMaker.isData                        = cms.bool(opts.data)
 if not opts.data:
-    process.genMaker.year = cms.int32(opts.setup)
+    process.genMaker.year = cms.int32(opts.year)
 
 #Options for Input
 process.source = cms.Source("PoolSource",
@@ -218,6 +227,26 @@ runMetCorAndUncFromMiniAOD(process,
                            **extra
                            )
 
+do_deepbtag = opts.is80x
+if do_deepbtag:
+    from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+    deep_discriminators = ['pfDeepCSVJetTags:probb','pfDeepCSVJetTags:probbb','pfDeepCSVJetTags:probc']
+    updateJetCollection(
+        process,
+        jetSource = cms.InputTag('slimmedJets'),
+       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+        btagDiscriminators = deep_discriminators
+    )
+    updateJetCollection(
+        process,
+        labelName = 'Puppi',
+        jetSource = cms.InputTag('slimmedJetsPuppi'),
+       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
+        btagDiscriminators = deep_discriminators
+    )
+    process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
+    process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
+
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 
@@ -247,6 +276,7 @@ if opts.triginfo:
         process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
+# steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
         process.eventMaker,
         process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
@@ -281,6 +311,9 @@ for ip,producer in enumerate(producers):
     if producer is None: continue
     if ip == 0:
         total_path = producer
+        continue
+
+    if opts.is80x and producer in [process.isoTrackMaker]:
         continue
 
     if opts.eventmakeronly and producer not in [

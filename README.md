@@ -27,8 +27,11 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
 ### Testing
 With `./run_tests.sh`, one can test the following campaigns
 * 2016
-   * 94X Re-reco Data (`/*/*17Jul2018*/MINIAOD`)
-   * 94X (MiniAODv3) Re-reco MC (`/*/*RunIISummer16MiniAODv3*/MINIAODSIM`)
+   * 80X MiniAODv2 Re-reco Data (`/*/*03Feb2017*/MINIAOD`)
+   * 80X MiniAODv2 MC (`/*/*RunIISummer16MiniAODv2*/MINIAODSIM`)
+   * 80X FastSim MC (`/*/*Spring16Fast*/MINIAODSIM`)
+   * 94X MiniAODv3 Re-reco Data (`/*/*17Jul2018*/MINIAOD`)
+   * 94X MiniAODv3 MC (`/*/*RunIISummer16MiniAODv3*/MINIAODSIM`)
 * 2017
    * Re-reco Data (`/*/*31Mar2018*/MINIAOD`)
    * MiniAODv2 MC (`/*/*RunIIFall17MiniAODv2*/MINIAODSIM`)
@@ -37,7 +40,7 @@ With `./run_tests.sh`, one can test the following campaigns
    * Re-reco Data (`/*/*17Sep2018*/MINIAOD`)
    * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
 
-*When I wrote this sentence, they all worked.*
+*When I wrote this sentence, they all worked except for 80X.*
 
 ### Some quickstart parameters
 In this `install.sh`, point to this tag or branch and `CMSSW_release=CMSSW_10_2_5` to run on the RunII 2018 data re-reco sample for `/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD`
