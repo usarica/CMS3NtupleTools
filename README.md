@@ -1,7 +1,7 @@
 # NtupleMaker
 
 ### Installing
-1. `curl https://raw.githubusercontent.com/cmstas/NtupleMaker/master/install.sh > install.sh`.
+1. Copy the install.sh locally.
 2. Specify the CMSSW_release and CMS3Tag (branch name or tag name) you want to use at the top of `install.sh`.
 3. `source install.sh` will check out the CMSSW release and NtupleMaker repository, and build everything.
 
