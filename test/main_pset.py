@@ -2,7 +2,6 @@ import FWCore.ParameterSet.Config as cms
 
 # https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideAboutPythonConfigFile#VarParsing_Documentation
 # Allow command line options like
-#     cmsRun main_pset.py data=True prompt=True   # prompt data
 #     cmsRun main_pset.py data=False               # MC
 #     cmsRun main_pset.py fastsim=True             # fastsim
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -17,42 +16,39 @@ opts.register('output'    , "ntuple.root"  , mytype=vpstring)
 opts.register('nevents'    , -1  , mytype=vpint)
 opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other purposes (2016,2017,2018); defaults to 2017
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
-opts.register('prompt'  , False  , mytype=vpbool)
-opts.register('fastsim' , False , mytype=vpbool)
-opts.register('relval'  , False , mytype=vpbool)
-opts.register('triginfo'  , False , mytype=vpbool)
+opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
+opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
-opts.register('eventmakeronly'  , False , mytype=vpbool)
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
-opts.register('name'  , "" , mytype=vpstring) # hacky variable to override name for samples where last path/process is "DQM"
 opts.parseArguments()
-# be smart. if fastsim, it's obviously MC
-# if it's MC, it's obviously not prompt
+
+# this is the section where we try to be a bit smart for the purpose of laziness
 if opts.fastsim: opts.data = False
-if not opts.data: opts.prompt = False
+if any(x in opts.inputs for x in ["/store/data/","/Run201"]): opts.data = True
+if any(x in opts.inputs for x in ["/store/mc/","MINIAODSIM"]): opts.data = False
+if any(x in opts.inputs for x in ["Summer16MiniAODv2","Spring16MiniAODv2","03Feb2017"]): opts.is80x = True
+if any(x in opts.inputs for x in ["16MiniAOD","Run2016"]): opts.year = 2016
+if any(x in opts.inputs for x in ["17MiniAOD","Run2017"]): opts.year = 2017
+if any(x in opts.inputs for x in ["18MiniAOD","Run2018"]): opts.year = 2018
+
 print("""PSet is assuming:
-   data? {data} prompt? {prompt} fastsim? {fastsim} relval? {relval} is80x? {is80x}
-   triginfo? {triginfo} metrecipe? {metrecipe} eventmakeronly? {eventmakeronly}
+   data? {data} fastsim? {fastsim} is80x? {is80x}
+   triginfo? {triginfo} metrecipe? {metrecipe}
    year = {year}
    nevents = {nevents}
    output = {output}
-   name = {name}
    globaltag = {globaltag}
    inputs = {inputs}
    goldenjson = {goldenjson}
 """.format(
    data = opts.data,
-   prompt = opts.prompt,
    fastsim = opts.fastsim,
-   relval = opts.relval,
    triginfo = opts.triginfo,
    is80x = opts.is80x,
    metrecipe = opts.metrecipe,
-   eventmakeronly = opts.eventmakeronly,
    year = opts.year,
    nevents = opts.nevents,
    output = opts.output,
-   name = opts.name,
    globaltag = opts.globaltag,
    inputs = opts.inputs,
    goldenjson = opts.goldenjson,
@@ -64,27 +60,7 @@ if not opts.data and opts.year<2016:
   # raise RuntimeError("MC processing must define a year>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
-configProcessName.name="PAT"
-if opts.data and opts.prompt:
-    configProcessName.name="RECO"
-
-configProcessName.name2="RECO"
-
-if opts.relval:
-    if opts.data:
-        configProcessName.name="reRECO"
-        configProcessName.name2="reRECO"
-    else:
-        configProcessName.name="RECO"
-        configProcessName.name2="RECO"
-
-if opts.fastsim:
-    configProcessName.fastSimName="HLT"
-    configProcessName.name2=configProcessName.fastSimName
 configProcessName.isFastSim=opts.fastsim
-
-if str(opts.name).strip():
-    configProcessName.name = str(opts.name).strip()
 
 # CMS3
 process = cms.Process("CMS3")
@@ -98,9 +74,7 @@ process.configurationMetadata = cms.untracked.PSet(
 
 
 # load event level configurations
-# process.load('Configuration.EventContent.EventContent_cff')
 process.load("Configuration.StandardSequences.Services_cff")
-# process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
@@ -144,17 +118,13 @@ if not opts.is80x:
         debug = cms.bool(False)
         )
 
-
-##load cff and third party tools
-#process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
-
 #Electron Identification for PHYS 14
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
 from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
 process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
 process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
-process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons',"",configProcessName.name)
-process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons',"",configProcessName.name)
+process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
+process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
 process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_id_modules = [
         'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
@@ -255,11 +225,13 @@ process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'
 if opts.triginfo:
     process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
     process.load("CMS3.NtupleMaker.elToTrigAssMaker_cfi")
-    if opts.data and opts.prompt:
-        process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
-        process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
-        process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+    process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+    process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+    process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
+
+if opts.fastsim:
+    process.genMaker.LHEInputTag = cms.InputTag("source"),
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
@@ -290,6 +262,7 @@ producers = [
         process.pdfinfoMaker if not opts.data else None,
         process.puSummaryInfoMaker if not opts.data else None,
         process.hypDilepMaker,
+        process.sParmMaker if opts.fastsim else None,
         ]
 total_path = None
 for ip,producer in enumerate(producers):
@@ -300,9 +273,9 @@ for ip,producer in enumerate(producers):
 
     if opts.is80x and producer in [process.isoTrackMaker]: continue
 
-    if not opts.is80x and producer in [process.metFilterMaker]: total_path *= process.ecalBadCalibReducedMINIAODFilter
+    if opts.fastsim and producer in [process.metFilterMaker]: continue
 
-    if opts.eventmakeronly and producer not in [process.eventMaker]: continue
+    if not opts.is80x and producer in [process.metFilterMaker]: total_path *= process.ecalBadCalibReducedMINIAODFilter
 
     if opts.metrecipe and producer == process.pfmetMaker:
         total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET

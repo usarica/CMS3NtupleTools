@@ -15,7 +15,5 @@ from CMS3.NtupleMaker.vertexMaker_cfi              import *
 from CMS3.NtupleMaker.pfJetMaker_cfi               import *
 from CMS3.NtupleMaker.subJetMaker_cfi              import *
 from CMS3.NtupleMaker.fastJetSequence_cff          import *
-if configProcessName.isFastSim == False:
-    from CMS3.NtupleMaker.metFilterMaker_cfi           import *
-else:
-    from CMS3.NtupleMaker.sParmMaker_cff               import * # doesn't always get loaded
+from CMS3.NtupleMaker.sParmMaker_cff               import * # doesn't always get loaded
+from CMS3.NtupleMaker.metFilterMaker_cfi           import *

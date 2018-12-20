@@ -35,9 +35,10 @@ private:
     std::string   aliasprefix_;
     std::string   branchprefix_;
  
-    std::string   processName_;
+    // std::string   processName_;
     edm::InputTag filtersInputTag_;
-    edm::EDGetTokenT<edm::TriggerResults> filtersToken;
+    edm::EDGetTokenT<edm::TriggerResults> filtersTokenRECO;
+    edm::EDGetTokenT<edm::TriggerResults> filtersTokenPAT;
     edm::EDGetTokenT< bool >ecalBadCalibFilterUpdate_token ;
 
     edm::Handle<edm::TriggerResults> metFilterResultsH_;

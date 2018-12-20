@@ -1,9 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-import CMS3.NtupleMaker.configProcessName as configProcessName
-
-LHEtag = "externalLHEProducer"
-if configProcessName.isFastSim: LHEtag = "source"
 
 #genMaker = cms.EDFilter("GenMaker",
 genMaker = cms.EDProducer("GenMaker",
@@ -19,7 +15,7 @@ genMaker = cms.EDProducer("GenMaker",
     exclusiveCrossSection = cms.untracked.double(0.0),
     inclusiveCrossSection = cms.untracked.double(0.0),
     kfactor               = cms.untracked.double(1.0),
-    LHEInputTag = cms.InputTag( LHEtag ),
+    LHEInputTag = cms.InputTag("externalLHEProducer"),
 
     #PID of LSP, or MET particles besides nu's (which are always included)
     #For all LM points (msugra), LSP = 1000022. For GMSB, LSP = 1000039

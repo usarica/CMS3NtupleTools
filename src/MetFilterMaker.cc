@@ -24,9 +24,11 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     //
     aliasprefix_     = iConfig.getUntrackedParameter<string>("aliasPrefix");
     branchprefix_    = aliasprefix_;
-    processName_     = iConfig.getUntrackedParameter<string> ("processName" );
+    // processName_     = iConfig.getUntrackedParameter<string> ("processName" );
     filtersInputTag_ = iConfig.getParameter<InputTag> ("filtersInputTag" );
-    filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_));
+    // filtersToken = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", processName_));
+    filtersTokenRECO = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", "RECO"));
+    filtersTokenPAT = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", "PAT"));
     ecalBadCalibFilterUpdate_token= consumes< bool >(edm::InputTag("ecalBadCalibReducedMINIAODFilter"));
 
     //
@@ -112,7 +114,12 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   // Assign MET Filters //
   ////////////////////////
   
-  iEvent.getByToken(filtersToken, metFilterResultsH_);
+
+  iEvent.getByToken(filtersTokenPAT,metFilterResultsH_);
+  if(!metFilterResultsH_.isValid()) {
+      iEvent.getByToken(filtersTokenRECO,metFilterResultsH_);
+  }
+
   if (! metFilterResultsH_.isValid())
     throw cms::Exception("MetFilterMaker::produce: error getting TriggerResults_PAT product from Event!");
   

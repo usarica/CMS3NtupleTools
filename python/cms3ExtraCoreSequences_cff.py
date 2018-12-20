@@ -1,6 +1,5 @@
 #Contains the core CMS2 makers. Does not contain Gen or PAT makers
 import FWCore.ParameterSet.Config as cms
-import CMS3.NtupleMaker.configProcessName as configProcessName
 
 from CMS3.NtupleMaker.beamSpotMaker_cfi            import *
 from CMS3.NtupleMaker.vertexExtraMaker_cfi         import *

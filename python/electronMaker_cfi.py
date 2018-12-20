@@ -1,5 +1,4 @@
 import FWCore.ParameterSet.Config as cms
-import CMS3.NtupleMaker.configProcessName as configProcessName
 
 
 electronMaker = cms.EDProducer(   
@@ -42,7 +41,7 @@ electronMaker = cms.EDProducer(
     trksInputTag      = cms.InputTag("generalTracks"),
     gsftracksInputTag = cms.InputTag("electronGsfTracks"),
     # pfCandidate and Vertex collection
-    pfJetsInputTag = cms.InputTag("slimmedJets","",configProcessName.name),
+    pfJetsInputTag = cms.InputTag("slimmedJets"),
     pfCandsInputTag = cms.InputTag("packedPFCandidates"),
     vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
     
