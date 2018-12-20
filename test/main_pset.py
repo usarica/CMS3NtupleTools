@@ -96,12 +96,11 @@ process.configurationMetadata = cms.untracked.PSet(
         name       = cms.untracked.string('CMS3 test configuration')
 )
 
-from Configuration.EventContent.EventContent_cff   import *
 
 # load event level configurations
-process.load('Configuration/EventContent/EventContent_cff')
+# process.load('Configuration.EventContent.EventContent_cff')
 process.load("Configuration.StandardSequences.Services_cff")
-process.load('Configuration.Geometry.GeometryRecoDB_cff')
+# process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
@@ -111,7 +110,10 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
-process.options = cms.untracked.PSet( allowUnscheduled = cms.untracked.bool(False) )
+# hide warning ::getByLabel: An attempt was made to read a Run product before endRun() was called.
+process.MessageLogger.suppressWarning = cms.untracked.vstring("genMaker")
+
+process.options = cms.untracked.PSet()
 
 process.out = cms.OutputModule("PoolOutputModule",
                                fileName     = cms.untracked.string('ntuple.root'),
@@ -119,30 +121,32 @@ process.out = cms.OutputModule("PoolOutputModule",
                                basketSize = cms.untracked.int32(16384*23)
 )
 
-# https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#How_to_run_ecal_BadCalibReducedM
-process.load('RecoMET.METFilters.ecalBadCalibFilter_cfi')
-baddetEcallist = cms.vuint32(
-    [872439604,872422825,872420274,872423218,
-     872423215,872416066,872435036,872439336,
-     872420273,872436907,872420147,872439731,
-     872436657,872420397,872439732,872439339,
-     872439603,872422436,872439861,872437051,
-     872437052,872420649,872422436,872421950,
-     872437185,872422564,872421566,872421695,
-     872421955,872421567,872437184,872421951,
-     872421694,872437056,872437057,872437313])
-process.ecalBadCalibReducedMINIAODFilter = cms.EDFilter(
-    "EcalBadCalibFilter",
-    EcalRecHitSource = cms.InputTag("reducedEgamma:reducedEERecHits"),
-    ecalMinEt        = cms.double(50.),
-    baddetEcal    = baddetEcallist,
-    taggingMode = cms.bool(True),
-    debug = cms.bool(False)
-    )
+# TODO need to also disable reading this filter decision in the source code for 80x samples
+if not opts.is80x:
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#How_to_run_ecal_BadCalibReducedM
+    process.load('RecoMET.METFilters.ecalBadCalibFilter_cfi')
+    baddetEcallist = cms.vuint32(
+        [872439604,872422825,872420274,872423218,
+         872423215,872416066,872435036,872439336,
+         872420273,872436907,872420147,872439731,
+         872436657,872420397,872439732,872439339,
+         872439603,872422436,872439861,872437051,
+         872437052,872420649,872422436,872421950,
+         872437185,872422564,872421566,872421695,
+         872421955,872421567,872437184,872421951,
+         872421694,872437056,872437057,872437313])
+    process.ecalBadCalibReducedMINIAODFilter = cms.EDFilter(
+        "EcalBadCalibFilter",
+        EcalRecHitSource = cms.InputTag("reducedEgamma:reducedEERecHits"),
+        ecalMinEt        = cms.double(50.),
+        baddetEcal    = baddetEcallist,
+        taggingMode = cms.bool(True),
+        debug = cms.bool(False)
+        )
 
 
-#load cff and third party tools
-process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
+##load cff and third party tools
+#process.load('JetMETCorrections.Configuration.DefaultJEC_cff')
 
 #Electron Identification for PHYS 14
 from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
@@ -247,22 +251,6 @@ if do_deepbtag:
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 
-### -------------------------------------------------------------------
-### the lines below remove the L2L3 residual corrections when processing MC
-### -------------------------------------------------------------------
-#Run corrected MET maker
-applyResiduals=opts.data #application of residual corrections. Have to be set to True once the 13 TeV residual corrections are available. False to be kept meanwhile. Can be kept to False later for private tests or for analysis checks and developments (not the official recommendation!).
-if not applyResiduals:
-    process.patPFMetT1T2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT1T2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2Corr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    process.patPFMetT2SmearCorr.jetCorrLabelRes = cms.InputTag("L3Absolute")
-    # process.shiftedPatJetEnDown.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-    # process.shiftedPatJetEnUp.jetCorrLabelUpToL3Res = cms.InputTag("ak4PFCHSL1FastL2L3Corrector")
-### ------------------------------------------------------------------
-
-# end Run corrected MET maker
-
 # Extra trigger information (matching)
 if opts.triginfo:
     process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
@@ -310,15 +298,11 @@ for ip,producer in enumerate(producers):
         total_path = producer
         continue
 
-    if opts.is80x and producer in [process.isoTrackMaker]:
-        continue
+    if opts.is80x and producer in [process.isoTrackMaker]: continue
 
-    if opts.year >= 2017 and producer in [process.metFilterMaker]:
-        total_path *= process.ecalBadCalibReducedMINIAODFilter
+    if not opts.is80x and producer in [process.metFilterMaker]: total_path *= process.ecalBadCalibReducedMINIAODFilter
 
-    if opts.eventmakeronly and producer not in [
-            process.eventMaker
-            ]: continue
+    if opts.eventmakeronly and producer not in [process.eventMaker]: continue
 
     if opts.metrecipe and producer == process.pfmetMaker:
         total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
