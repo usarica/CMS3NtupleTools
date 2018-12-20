@@ -16,40 +16,42 @@ mkdir -p $outputdir
 # I just copied them to my hadoop because xrootd somehow became the suckiest
 # mechanism in the world, and I don't have 30 minutes to wait for a file to open
 
-# 2016 Re-reco Data 80X MiniAODv2
-# /DoubleMuon/Run2016F-03Feb2017-v1/MINIAOD
-$cmd $pset \
-    data=True \
-    prompt=False \
-    year=2016 \
-    is80x=True \
-    globaltag=80X_dataRun2_2016SeptRepro_v7 \
-    inputs=/store/user/namin/localcache/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/201B07A6-57EB-E611-B690-0CC47A57D066.root \
-    nevents=$nevents \
-    output=$outputdir/ntuple_2016_data_80xminiaodv2.root >& $outputdir/log_2016_data_80xminiaodv2.txt &
+# NOTE 80X  doesn't work yet. TODO
 
-# 2016 MC 80X MiniAODv2
-# /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-$cmd $pset \
-    data=False \
-    year=2016 \
-    is80x=True \
-    globaltag=80X_mcRun2_asymptotic_2016_TrancheIV_v8 \
-    inputs=/store/user/namin/localcache/mc/RunIISummer16MiniAODv2/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/1C8BFCBE-26B6-E611-80E5-A0000420FE80.root \
-    nevents=$nevents \
-    output=$outputdir/ntuple_2016_mc_80xminiaodv2.root >& $outputdir/log_2016_mc_80xminiaodv2.txt &
+# # 2016 Re-reco Data 80X MiniAODv2
+# # /DoubleMuon/Run2016F-03Feb2017-v1/MINIAOD
+# $cmd $pset \
+#     data=True \
+#     prompt=False \
+#     year=2016 \
+#     is80x=True \
+#     globaltag=80X_dataRun2_2016SeptRepro_v7 \
+#     inputs=/store/user/namin/localcache/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/201B07A6-57EB-E611-B690-0CC47A57D066.root \
+#     nevents=$nevents \
+#     output=$outputdir/ntuple_2016_data_80xminiaodv2.root >& $outputdir/log_2016_data_80xminiaodv2.txt &
 
-# 2016 MC Fastsim 80X MiniAODv2
-# /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-$cmd $pset \
-    data=False \
-    fastsim=True \
-    year=2016 \
-    is80x=True \
-    globaltag=80X_mcRun2_asymptotic_2016_miniAODv2_v0 \
-    inputs=/store/user/namin/localcache/mc/RunIISpring16MiniAODv2/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/5A5E2A72-4F2D-E611-B2F5-02163E017638.root \
-    nevents=$nevents \
-    output=$outputdir/ntuple_2016_mc_80xfastsim.root >& $outputdir/log_2016_mc_80xfastsim.txt &
+# # 2016 MC 80X MiniAODv2
+# # /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
+# $cmd $pset \
+#     data=False \
+#     year=2016 \
+#     is80x=True \
+#     globaltag=80X_mcRun2_asymptotic_2016_TrancheIV_v8 \
+#     inputs=/store/user/namin/localcache/mc/RunIISummer16MiniAODv2/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/1C8BFCBE-26B6-E611-80E5-A0000420FE80.root \
+#     nevents=$nevents \
+#     output=$outputdir/ntuple_2016_mc_80xminiaodv2.root >& $outputdir/log_2016_mc_80xminiaodv2.txt &
+
+# # 2016 MC Fastsim 80X MiniAODv2
+# # /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
+# $cmd $pset \
+#     data=False \
+#     fastsim=True \
+#     year=2016 \
+#     is80x=True \
+#     globaltag=80X_mcRun2_asymptotic_2016_miniAODv2_v0 \
+#     inputs=/store/user/namin/localcache/mc/RunIISpring16MiniAODv2/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/5A5E2A72-4F2D-E611-B2F5-02163E017638.root \
+#     nevents=$nevents \
+#     output=$outputdir/ntuple_2016_mc_80xfastsim.root >& $outputdir/log_2016_mc_80xfastsim.txt &
 
 # 2016 Re-reco Data 94X MiniAODv3
 # /DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD
@@ -115,7 +117,7 @@ $cmd $pset \
     prompt=True \
     year=2018 \
     globaltag=102X_dataRun2_Prompt_v11 \
-    inputs=/store/user/namin/localcache/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/320/500/00000/F6727085-F895-E811-A2FE-FA163ED11D1B.root \
+    inputs=/store/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/322/204/00000/F09A218A-71B3-E811-9A04-02163E013E33.root \
     nevents=$nevents \
     output=$outputdir/ntuple_2018_data_prompt.root >& $outputdir/log_2018_data_prompt.txt &
 
