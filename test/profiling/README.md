@@ -52,3 +52,12 @@ valgrindMemcheckParser.pl --preset=prod,-prod1+ log.txt  > memory_profiling.html
 cp memory_profiling.html ~/public_html/
 ```
 * Finally, check the output in your browser.
+
+## Storage space
+* `./top_branches.py` prints event size and largest branches. Run `./top_branches.py -h` for more options.
+* Note, it can be used to see if two ROOT files are identical without actually printing branch content. You can do something like
+```bash
+# use 4 decimals of precision and show the top 2000 branches (should be everything)
+# if the diff turns up nothing, then it's highly likely the branches are identical
+vimdiff <(top_branches.py  outputs_after/ntuple_2016_mc_94xminiaodv3.root -p 4 -n 2000) <(top_branches.py outputstest/ntuple_2016_mc_94xminiaodv3.root -p 4 -n 2000)
+```
