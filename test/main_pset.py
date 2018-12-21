@@ -85,7 +85,7 @@ process.GlobalTag.globaltag = "94X_mc2017_realistic_v14"
 process.MessageLogger.cerr.FwkReport.reportEvery = 100
 process.MessageLogger.cerr.threshold  = ''
 # hide warning ::getByLabel: An attempt was made to read a Run product before endRun() was called.
-process.MessageLogger.suppressWarning = cms.untracked.vstring("genMaker")
+process.MessageLogger.suppressWarning = cms.untracked.vstring(["genMaker","sParmMaker"])
 
 process.options = cms.untracked.PSet()
 
