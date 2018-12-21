@@ -6,4 +6,5 @@ metFilterMaker = cms.EDProducer(
   aliasPrefix      = cms.untracked.string("filt"),
   filtersInputTag  = cms.InputTag("TriggerResults"),
   # processName      = cms.untracked.string(configProcessName.name)
+  doEcalFilterUpdate = cms.bool(True),
 )

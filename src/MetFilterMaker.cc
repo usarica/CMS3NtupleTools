@@ -30,6 +30,7 @@ MetFilterMaker::MetFilterMaker( const ParameterSet& iConfig ) {
     filtersTokenRECO = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", "RECO"));
     filtersTokenPAT = consumes<edm::TriggerResults>(edm::InputTag(filtersInputTag_.label(), "", "PAT"));
     ecalBadCalibFilterUpdate_token= consumes< bool >(edm::InputTag("ecalBadCalibReducedMINIAODFilter"));
+    doEcalFilterUpdate = iConfig.getParameter<bool> ("doEcalFilterUpdate");
 
     //
     produces <bool> ( branchprefix_ + "cscBeamHalo"                    ).setBranchAlias( aliasprefix_ + "_cscBeamHalo"                    );
@@ -209,9 +210,14 @@ void MetFilterMaker::produce( Event& iEvent, const edm::EventSetup& iSetup ) {
   *filt_BadPFMuonFilter                         = (idx_BadPFMuonFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadPFMuonFilter                    );
   *filt_BadChargedCandidateFilter                         = (idx_BadChargedCandidateFilter                   < 0) ? false : metFilterResultsH_->accept(idx_BadChargedCandidateFilter                    );
   *filt_ecalBadCalibFilter                         = (idx_ecalBadCalibFilter                   < 0) ? false : metFilterResultsH_->accept(idx_ecalBadCalibFilter                    );
-  edm::Handle< bool > passecalBadCalibFilterUpdate ;
-  iEvent.getByToken(ecalBadCalibFilterUpdate_token,passecalBadCalibFilterUpdate);
-  *filt_ecalBadCalibFilterUpdate                         = (*passecalBadCalibFilterUpdate );
+
+  if (doEcalFilterUpdate) {
+      edm::Handle< bool > passecalBadCalibFilterUpdate ;
+      iEvent.getByToken(ecalBadCalibFilterUpdate_token,passecalBadCalibFilterUpdate);
+      *filt_ecalBadCalibFilterUpdate = (*passecalBadCalibFilterUpdate);
+  } else {
+      *filt_ecalBadCalibFilterUpdate = true;
+  }
 
   // For compatibility with CMS2 variable names
   *filt_cscTightHaloId                       = (idx_cscBeamHalo < 0) ? false : metFilterResultsH_->accept(idx_cscBeamHalo                     );

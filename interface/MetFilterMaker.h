@@ -40,6 +40,7 @@ private:
     edm::EDGetTokenT<edm::TriggerResults> filtersTokenRECO;
     edm::EDGetTokenT<edm::TriggerResults> filtersTokenPAT;
     edm::EDGetTokenT< bool >ecalBadCalibFilterUpdate_token ;
+    bool doEcalFilterUpdate;
 
     edm::Handle<edm::TriggerResults> metFilterResultsH_;
 

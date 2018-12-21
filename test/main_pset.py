@@ -198,25 +198,24 @@ runMetCorAndUncFromMiniAOD(process,
                            **extra
                            )
 
-do_deepbtag = opts.is80x
-if do_deepbtag:
+if opts.is80x:
+    # DeepCSV computation needed for 80X
     from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
+    from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
     deep_discriminators = ['pfDeepCSVJetTags:probb','pfDeepCSVJetTags:probbb','pfDeepCSVJetTags:probc']
-    updateJetCollection(
-        process,
+    updateJetCollection( process, btagDiscriminators = deep_discriminators,
         jetSource = cms.InputTag('slimmedJets'),
-       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-        btagDiscriminators = deep_discriminators
+        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
     )
-    updateJetCollection(
-        process,
+    updateJetCollection( process, btagDiscriminators = deep_discriminators,
         labelName = 'Puppi',
         jetSource = cms.InputTag('slimmedJetsPuppi'),
-       jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-        btagDiscriminators = deep_discriminators
+        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
     )
     process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
     process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
+    patAlgosToolsTask = getPatAlgosToolsTask(process)
+
 
 process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
@@ -231,7 +230,17 @@ if opts.triginfo:
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
 if opts.fastsim:
-    process.genMaker.LHEInputTag = cms.InputTag("source"),
+    process.genMaker.LHEInputTag = cms.InputTag("source")
+
+if opts.year == 2016:
+    process.metFilterMaker.doEcalFilterUpdate = False
+
+if opts.is80x and not opts.data:
+    process.load("CondCore.CondDB.CondDB_cfi")
+    process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
+    process.l1tPS = cms.ESSource("PoolDBESSource", process.CondDB,
+        toGet = cms.VPSet(cms.PSet(record = cms.string("L1TGlobalPrescalesVetosRcd"), tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc"))))
+    process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
@@ -284,6 +293,10 @@ for ip,producer in enumerate(producers):
     total_path *= producer
 
 process.p = cms.Path(total_path)
+
+if opts.is80x:
+    from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
+    process.p = cms.Path(process.p._seq,patAlgosToolsTask)
 
 process.Timing = cms.Service("Timing",
         summaryOnly = cms.untracked.bool(True)
