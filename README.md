@@ -34,13 +34,14 @@ With `./run_tests.sh`, one can test the following campaigns
    * 94X MiniAODv3 MC (`/*/*RunIISummer16MiniAODv3*/MINIAODSIM`)
 * 2017
    * Re-reco Data (`/*/*31Mar2018*/MINIAOD`)
+   * Re-reco Data EraF (`/*/*09May2018*/MINIAOD`)
    * MiniAODv2 MC (`/*/*RunIIFall17MiniAODv2*/MINIAODSIM`)
 * 2018
    * Prompt-reco Data (`/*/Run2018D-PromptReco-v2/MINIAOD`)
    * Re-reco Data (`/*/*17Sep2018*/MINIAOD`)
    * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
 
-*When I wrote this sentence, they all worked except for 80X.*
+*When I wrote this sentence, all 11 campaigns worked"
 
 ### Some quickstart parameters
 In this `install.sh`, point to this tag or branch and `CMSSW_release=CMSSW_10_2_5` to run on the RunII 2018 data re-reco sample for `/DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD`
