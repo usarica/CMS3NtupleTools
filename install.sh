@@ -19,6 +19,11 @@ git cms-init --upstream-only
 # For MET recipe for 2017 EE noise fix
 git cms-merge-topic cms-met:METFixEE2017_949_v2_backport_to_102X
 
+# For reading 2 electron iso branches in 102X from 94X sample
+# https://github.com/cms-sw/cmssw/issues/25573
+# NOTE this should be taken out once merged/backported into CMSSW
+git cms-merge-topic Sam-Harper:IORulesForPFClusIso_1025
+
 cd src
 
 git clone git@github.com:cmstas/NtupleMaker.git CMS3/NtupleMaker

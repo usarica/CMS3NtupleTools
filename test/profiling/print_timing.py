@@ -90,13 +90,14 @@ if __name__ == "__main__":
         avg = sum(d_times[maker])/tot_avg_time_weird/len(d_times[maker])
         avgs.append( [avg,maker] )
 
-    # print "Average event rate: {0:.1f}Hz (reported by TimeEvent)".format(tot_avg_time**-1.0)
-    # print "Average event rate: {0:.1f}Hz (manual sum of module times)".format(tot_avg_time_weird**-1.0)
+    print "Total events: {}".format(int(processingpairs[-1][0]))
     print "Average event rate: {0:.1f}Hz (linear fit to Begin Processing lines)".format(1.0/m)
-    # print merr/m
-    # avgs = sorted(avgs,reverse=True)
-    # print "{0:50s} {1:10s}".format("Module", "frac real time")
-    # print "-"*70
-    # for tavg,module in avgs:
-    #     print "{0:50s} {1:10.2f}".format(module, tavg)
+    if eventtimes:
+        print "Average event rate: {0:.1f}Hz (reported by TimeEvent)".format(tot_avg_time**-1.0)
+        print "Average event rate: {0:.1f}Hz (manual sum of module times)".format(tot_avg_time_weird**-1.0)
+        avgs = sorted(avgs,reverse=True)
+        print "{0:50s} {1:10s}".format("Module", "frac real time")
+        print "-"*70
+        for tavg,module in avgs:
+            print "{0:50s} {1:10.2f}".format(module, tavg)
 

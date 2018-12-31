@@ -25,7 +25,8 @@ process.maxEvents.input = cms.untracked.int32(3000) # max number of events; note
   * There are more options explained inside `main_pset.py`
 
 ### Testing
-With `./run_tests.sh`, one can test the following campaigns
+With `./run_tests.sh` (*actually* that's outdated, and you should
+use `python py_run_tests.py`), one can test the following campaigns:
 * 2016
    * 80X MiniAODv2 Re-reco Data (`/*/*03Feb2017*/MINIAOD`)
    * 80X MiniAODv2 MC (`/*/*RunIISummer16MiniAODv2*/MINIAODSIM`)

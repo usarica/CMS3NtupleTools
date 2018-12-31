@@ -12,13 +12,13 @@ mkdir -p $outputdir
 # https://indico.cern.ch/event/778476/contributions/3239228/attachments/1770992/2877831/18-12-13_News_PPD.pdf
 # https://indico.cern.ch/event/778476/contributions/3239274/attachments/1771132/2878044/xpog_ppd_13dec18.pdf
 
+# NOTE 0. Use the python version of this instead...
+
 # NOTE 1. If you want to use the "central" files, remove "/user/namin/localcache".
 # I just copied them to my hadoop because xrootd somehow became the suckiest
 # mechanism in the world, and I don't have 30 minutes to wait for a file to open
 
-# NOTE 2. 80X  doesn't work yet. TODO
-
-# NOTE 3. It's better to be explicit about all the arguments like the example below.
+# NOTE 2. It's better to be explicit about all the arguments like the example below.
 # I just put in some simple checks based on the input names for convenience.
 
 # cmsRun main_pset.py \
