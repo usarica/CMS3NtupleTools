@@ -231,7 +231,28 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
                   // now find the minimum
                   std::vector<int>::iterator result = std::min_element(std::begin(l1prescalevals), new_end);
                   int minind = std::distance(l1prescalevals.begin(), result);
-                  cached_l1prescales.push_back( minind < std::distance(l1prescalevals.begin(), new_end) ? l1prescalevals.at(minind) : -1 );
+                  int l1prescale = (minind < std::distance(l1prescalevals.begin(), new_end) ? l1prescalevals.at(minind) : -1);
+                  // Now, IFF (the l1prescale isn't 1 and there's more than 1 nonzero L1 feeding into a HLT path),
+                  // compute the harmonic mean (or whatever it's called -- think "resistors in parallel") of the L1 prescales
+                  // and use that as the `l1prescale`.
+                  // E.g., In 2017, HLT_Mu8_v8 has Mu pt 3, 5, 7 L1 seeds with prescales 16000, 3600, 1500.
+                  // Taking the minimum gives a prescale of 1500, but the harmonic mean gives 993, so that we are
+                  // overestimating the rate in Data by ~50%. This showed up when comparing Z peak integrals with MC.
+                  // Checking on some 2017 data, the condition to use the harmonic mean instead of the minimum
+                  // only happens for some prescaled single muon and electron triggers used for RA5 fake rate derivation
+                  // and results in 15-40% differences in Z peak ratios.
+                  int harmonicmean = 1;
+                  if (l1prescale != 1 and (new_end-std::begin(l1prescalevals) > 1)) {
+                      float s = 0.;
+                      for (auto it = l1prescalevals.begin(); it != new_end; it++) {
+                          s += 1./(*it);
+                      }
+                      harmonicmean = (int)(1./s);
+                  }
+                  if ((harmonicmean != 1) and (harmonicmean != l1prescale)) {
+                      l1prescale = harmonicmean;
+                  }
+                  cached_l1prescales.push_back(l1prescale);
               }
           }
           // sometimes there are no L1s associated with a HLT. In that case, this branch stores -1 for the l1prescale
