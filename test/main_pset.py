@@ -20,6 +20,7 @@ opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
 opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
+opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
@@ -242,6 +243,7 @@ if opts.is80x and not opts.data:
         toGet = cms.VPSet(cms.PSet(record = cms.string("L1TGlobalPrescalesVetosRcd"), tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc"))))
     process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
+
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
         process.eventMaker,
@@ -273,6 +275,9 @@ producers = [
         process.hypDilepMaker,
         process.sParmMaker if opts.fastsim else None,
         ]
+if opts.genxsecanalyzer and not opts.data:
+    process.genxsecanalyzer = cms.EDAnalyzer("GenXSecAnalyzer")
+    producers = [process.genxsecanalyzer]
 total_path = None
 for ip,producer in enumerate(producers):
     if producer is None: continue
