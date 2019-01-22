@@ -35,8 +35,11 @@ use `python py_run_tests.py`), one can test the following campaigns:
    * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
 
 *When I wrote this sentence, all 11 campaigns worked* -- though, with the caveat(s) in the GitHub issues page.
+
 Also, the test script just runs the ntuples and checks that they don't crash. But you should still check branch outputs.
 Adding another function to diff two sets is a todo.
+
+Finally, for your own mental safety, I highly recommend locally downloading files first, rather than using xrootd while testing, via [this script](test/profiling/copy_to_local_hadoop.sh).
 
 ### Profiling
 Details in [here](test/profiling/README.md).
