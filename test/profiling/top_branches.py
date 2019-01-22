@@ -64,8 +64,9 @@ def main(fname_in, treename, maxnum, precision, groupmakers):
         f = r.TFile(fname_in)
         if not treename: treename = get_treename_from_file(f)
 
-        os.system("edmEventSize -n {0} -a -d {1} -o /tmp/branchsizes_{2}.txt >& /dev/null".format(treename,fname_in, uid))
-        with open("/tmp/branchsizes_{0}.txt".format(uid), "r") as fhin:
+        tmp_name = "/tmp/branchsizes_{}_{}.txt".format(uid,str(hash(fname_in))[:10])
+        os.system("edmEventSize -n {} -a -d {} -o {} >& /dev/null".format(treename,fname_in,tmp_name))
+        with open(tmp_name, "r") as fhin:
             line1 = fhin.readline()
             events = int(line1.split()[-1])
             fhin.readline()
@@ -98,7 +99,7 @@ def main(fname_in, treename, maxnum, precision, groupmakers):
             else: d_info[name] = [z+d_info[name][0],uz+d_info[name][1]]
 
     tot_z = sum(x[0] for x in d_info.values())
-    tot_uz = sum(x[1] for x in d_info.values())
+    # tot_uz = sum(x[1] for x in d_info.values())
     branches = []
     for n, (z,uz) in d_info.items():
         branches.append({"bname": n, "frac": 1.0*z/tot_z, "uncompBytes": uz, "compBytes": z})
