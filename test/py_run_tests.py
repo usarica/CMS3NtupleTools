@@ -147,6 +147,7 @@ if __name__ == "__main__":
 
     nevents = 2000
     cts = [
+
             CampaignTest(tag="data_2016_80x_v2",
                 globaltag="80X_dataRun2_2016SeptRepro_v7",
                 nevents=nevents,
@@ -160,6 +161,7 @@ if __name__ == "__main__":
                 year=2016,
                 data=True,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/data/Run2016C/DoubleMuon/MINIAOD/17Jul2018-v1/50000/D229CC30-1E8B-E811-844A-A0369FD0B228.root"),
+
             CampaignTest(tag="data_2017_94x_rereco1",
                 globaltag="94X_dataRun2_v11",
                 nevents=nevents,
@@ -173,6 +175,7 @@ if __name__ == "__main__":
                 year=2017,
                 data=True,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/data/Run2017F/DoubleEG/MINIAOD/09May2018-v1/10000/444E03EB-B75F-E811-AFBA-F01FAFD8F16A.root"),
+
             CampaignTest(tag="data_2018_102x_rereco1",
                 globaltag="102X_dataRun2_Sep2018Rereco_v1",
                 nevents=nevents,
@@ -185,6 +188,7 @@ if __name__ == "__main__":
                 year=2018,
                 data=True,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/322/204/00000/F09A218A-71B3-E811-9A04-02163E013E33.root"),
+
             CampaignTest(tag="mc_2016_80x_v2",
                 globaltag="80X_mcRun2_asymptotic_2016_TrancheIV_v8",
                 nevents=nevents,
@@ -203,17 +207,33 @@ if __name__ == "__main__":
                 nevents=nevents,
                 year=2016,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIISummer16MiniAODv3/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/100000/6053E770-34E9-E811-98D2-246E96D10C28.root"),
+            CampaignTest(tag="mc_2016_94x_v3_fastsim",
+                globaltag="94X_mcRun2_asymptotic_v3",
+                nevents=nevents,
+                year=2016,
+                fastsim=True,
+                inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIISummer16MiniAODv3/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSummer16v3Fast_94X_mcRun2_asymptotic_v3-v1/280000/0C904713-131A-E911-A634-001E67DFFF5F.root"),
+
             CampaignTest(tag="mc_2017_94x_v2",
                 globaltag="94X_mc2017_realistic_v17",
                 nevents=nevents,
                 year=2017,
                 metrecipe=True,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root"),
+            CampaignTest(tag="mc_2017_94x_v2_fastsim",
+                globaltag="94X_mc2017_realistic_v17",
+                nevents=nevents,
+                year=2017,
+                metrecipe=True,
+                fastsim=True,
+                inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIIFall17MiniAODv2/SMS-T1tttt_TuneCP2_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUFall17Fast_pilot_94X_mc2017_realistic_v15-v3/80000/ECCB16E5-DE18-E911-9819-A0369FD0B1E8.root"),
+            
             CampaignTest(tag="mc_2018_102x_v1",
                 globaltag="102X_upgrade2018_realistic_v12",
                 nevents=nevents,
                 year=2018,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/100000/042C8EE9-9431-5443-88C8-77F1D910B3A5.root"),
+
             ]
 
     run_tests(cts)

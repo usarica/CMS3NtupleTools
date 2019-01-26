@@ -231,7 +231,8 @@ if opts.triginfo:
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 
 if opts.fastsim:
-    process.genMaker.LHEInputTag = cms.InputTag("source")
+    if opts.is80x:
+        process.genMaker.LHEInputTag = cms.InputTag("source")
 
 if opts.year == 2016:
     process.metFilterMaker.doEcalFilterUpdate = False
@@ -261,7 +262,7 @@ producers = [
         process.subJetMaker,
         process.pfmetMaker,
         process.pfmetpuppiMaker,
-        process.hltMakerSequence,
+        process.hltMakerSequence if not opts.fastsim else None,
         process.miniAODrhoSequence,
         process.pftauMaker,
         process.photonMaker,
@@ -287,7 +288,8 @@ for ip,producer in enumerate(producers):
 
     if opts.is80x and producer in [process.isoTrackMaker]: continue
 
-    if opts.fastsim and producer in [process.metFilterMaker]: continue
+    if opts.fastsim:
+        if opts.is80x and producer in [process.metFilterMaker]: continue
 
     if not opts.is80x and producer in [process.metFilterMaker]: total_path *= process.ecalBadCalibReducedMINIAODFilter
 

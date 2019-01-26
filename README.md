@@ -25,16 +25,18 @@ use `python py_run_tests.py`), one can test the following campaigns:
    * 80X FastSim MC (`/*/*Spring16Fast*/MINIAODSIM`)
    * 94X MiniAODv3 Re-reco Data (`/*/*17Jul2018*/MINIAOD`)
    * 94X MiniAODv3 MC (`/*/*RunIISummer16MiniAODv3*/MINIAODSIM`)
+   * 94X MiniAODv3 FastSim MC (`/*/*Summer16v3Fast*/MINIAODSIM`)
 * 2017
    * Re-reco Data (`/*/*31Mar2018*/MINIAOD`)
    * Re-reco Data EraF (`/*/*09May2018*/MINIAOD`)
    * MiniAODv2 MC (`/*/*RunIIFall17MiniAODv2*/MINIAODSIM`)
+   * MiniAODv2 FastSim MC (`/*/*Fall17Fast*/MINIAODSIM`)
 * 2018
    * Prompt-reco Data (`/*/Run2018D-PromptReco-v2/MINIAOD`)
    * Re-reco Data (`/*/*17Sep2018*/MINIAOD`)
    * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
 
-*When I wrote this sentence, all 11 campaigns worked* -- though, with the caveat(s) in the GitHub issues page.
+*When I wrote this sentence, all 13 campaigns worked* -- though, with the caveat(s) in the GitHub issues page.
 
 Also, the test script just runs the ntuples and checks that they don't crash. But you should still check branch outputs.
 Adding another function to diff two sets is a todo.
