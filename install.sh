@@ -45,7 +45,7 @@ git clone git@github.com:usarica/MelaAnalytics.git
 
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
-(cd CommonLHETools; git checkout -b from-v123 v1.2.3)
+(cd CommonLHETools; git checkout -b from-v123 v1.2.4)
 
 cd $CMSSW_BASE/src
 scram b -j 25
