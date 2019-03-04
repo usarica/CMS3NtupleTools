@@ -426,16 +426,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	if (abs(genps_it->pdgId()) == 1000024) {
 	  edm::RefVector<std::vector<reco::GenParticle> > daus = genps_it->daughterRefVector();
 	  if (daus.size() < 2) {
-	    cout << "WARNING: Chargino has fewer than 2 daughters" << endl;
+	    // cout << "WARNING: Chargino has fewer than 2 daughters" << endl;
 	    if (daus.size() == 1) {
-	      cout << "Still has 1. Will proceed." << endl;
+	      // cout << "Still has 1. Will proceed." << endl;
 	      reco::GenParticle dau0 = *(daus.at(0));
 	      const float daux = dau0.vertex().x();
 	      const float dauy = dau0.vertex().y();
 	      const float chx  = genps_it->vertex().x();
 	      const float chy  = genps_it->vertex().y();
 	      decayXY = sqrt( (daux-chx)*(daux-chx) + (dauy-chy)*(dauy-chy) );
-	      cout << "Result is " << decayXY << endl;
+	      // cout << "Result is " << decayXY << endl;
 	    }
 	  }
 	  else {
