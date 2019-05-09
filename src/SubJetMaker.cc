@@ -213,6 +213,12 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
       if (count_pup > 1) puppi_softdropMass = (sd_pup0+sd_pup1).M();
 
+      if(puppi_softdropMass >= 0)
+      {
+          std::cout<<"puppi_softdropmass from NtupleMaker="<<puppi_softdropMass<<std::endl;
+          std::cout<<"puppi_softdropmass from CMSSW="<<groomedMass('SoftDropPuppi')<<std::endl;
+      }
+
       ak8jets_chs_nJettinessTau1     ->push_back( chs_nJettinessTau1 );
       ak8jets_chs_nJettinessTau2     ->push_back( chs_nJettinessTau2 );
       ak8jets_chs_nJettinessTau3     ->push_back( chs_nJettinessTau3 );
