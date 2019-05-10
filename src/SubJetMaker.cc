@@ -216,7 +216,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       if(puppi_softdropMass >= 0)
       {
           std::cout<<"puppi_softdropmass from NtupleMaker="<<puppi_softdropMass<<std::endl;
-          std::cout<<"puppi_softdropmass from CMSSW="<<groomedMass('SoftDropPuppi')<<std::endl;
+          std::cout<<"puppi_softdropmass from CMSSW="<<pfjet_it->groomedMass('SoftDropPuppi')<<std::endl;
       }
 
       ak8jets_chs_nJettinessTau1     ->push_back( chs_nJettinessTau1 );
