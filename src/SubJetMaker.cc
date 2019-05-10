@@ -217,7 +217,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       {
           std::cout<<"puppi_softdropmass from NtupleMaker="<<puppi_softdropMass<<std::endl;
           std::cout<<"puppi_softdropmass from CMSSW="<<pfjet_it->groomedMass("SoftDropPuppi")<<std::endl;
-          std::cout<<"chs_softdropMass="<<chs_softdropMass<std::endl;
+          std::cout<<"chs_softdropMass="<<chs_softdropMass<<std::endl;
           std::cout<<"softdropMass="<<softdropMass<<std::endl;
       }
 
