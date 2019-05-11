@@ -82,6 +82,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
     produces<std::vector<float> >             ("genweights"           ).setBranchAlias("genweights"            );
     produces<std::vector<std::string> >       ("genweightsID"         ).setBranchAlias("genweightsID"          );
     produces<std::vector<float> >             ("genpsdecayXY"         ).setBranchAlias("genps_decayXY"         );
+    produces<std::vector<float> >             ("genpsdecayZ"          ).setBranchAlias("genps_decayZ"          );
 
     produces<float>("genHEPMCweight").setBranchAlias("genHEPMCweight");
     produces<float>("genHEPMCweight2016").setBranchAlias("genHEPMCweight_2016");
@@ -187,6 +188,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<vector<float> >                  genweights            (new vector<float>                 );
     unique_ptr<vector<string> >                 genweightsID          (new vector<string>                );
     unique_ptr<vector<float> >                  genps_decayXY         (new vector<float>                 );
+    unique_ptr<vector<float> >                  genps_decayZ          (new vector<float>                 );
 
     unique_ptr<float> genHEPMCweight=make_unique<float>(0.f);
     unique_ptr<float> genHEPMCweight_2016=make_unique<float>(0.f);
@@ -421,33 +423,27 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
         genps_charge    ->push_back( genps_it->charge()                        );
         genps_id        ->push_back( genps_it->pdgId()                         );
 
-	float decayXY = -1.0;
+	float decayXY = -1.0; float decayZ = -1.0;
 	// calculate transverse decay length for charginos
 	if (abs(genps_it->pdgId()) == 1000024) {
 	  edm::RefVector<std::vector<reco::GenParticle> > daus = genps_it->daughterRefVector();
-	  if (daus.size() < 2) {
-	    // cout << "WARNING: Chargino has fewer than 2 daughters" << endl;
-	    if (daus.size() == 1) {
-	      // cout << "Still has 1. Will proceed." << endl;
-	      reco::GenParticle dau0 = *(daus.at(0));
-	      const float daux = dau0.vertex().x();
-	      const float dauy = dau0.vertex().y();
-	      const float chx  = genps_it->vertex().x();
-	      const float chy  = genps_it->vertex().y();
-	      decayXY = sqrt( (daux-chx)*(daux-chx) + (dauy-chy)*(dauy-chy) );
-	      // cout << "Result is " << decayXY << endl;
-	    }
-	  }
-	  else {
+	  if (daus.size() == 2) {
 	    reco::GenParticle dau0 = *(daus.at(0));
 	    const float daux = dau0.vertex().x();
 	    const float dauy = dau0.vertex().y();
+	    const float dauz = dau0.vertex().z();
 	    const float chx  = genps_it->vertex().x();
 	    const float chy  = genps_it->vertex().y();
+	    const float chz  = genps_it->vertex().z();
 	    decayXY = sqrt( (daux-chx)*(daux-chx) + (dauy-chy)*(dauy-chy) );
+	    decayZ = fabs(dauz - chz);
+	    if (abs(dau0.status()) != 1000022) {
+	      cout << "Chargino with 2 daughters and first daughter is not LSP. Strange. decayXY is " << decayXY << endl;
+	    }
 	  }
 	}
 	genps_decayXY->push_back( decayXY );
+	genps_decayZ->push_back( decayZ );
 
         const reco::GenParticle *  mother = MCUtilities::motherID(*genps_it);
         int index = MatchUtilities::getMatchedGenIndex(*mother, genps_coll, mother->status());
@@ -558,6 +554,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move(genweights               ), "genweights"           );
     iEvent.put(std::move(genweightsID             ), "genweightsID"         );
     iEvent.put(std::move(genps_decayXY            ), "genpsdecayXY"         );
+    iEvent.put(std::move(genps_decayZ             ), "genpsdecayZ"         );
 
     iEvent.put(std::move(genHEPMCweight), "genHEPMCweight");
     iEvent.put(std::move(genHEPMCweight_2016), "genHEPMCweight2016");
