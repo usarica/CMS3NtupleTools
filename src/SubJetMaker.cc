@@ -215,12 +215,12 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
       if (count_pup > 1) puppi_softdropMass = (sd_pup0+sd_pup1).M();
 
-      ak8jets_chs_nJettinessTau1     ->push_back( chs_nJettinessTau1                      );
-      ak8jets_chs_nJettinessTau2     ->push_back( chs_nJettinessTau2                      );
-      ak8jets_chs_nJettinessTau3     ->push_back( chs_nJettinessTau3                      );
-      ak8jets_chs_prunedMass         ->push_back( chs_prunedMass                          );
-      ak8jets_chs_softdropMass       ->push_back( chs_softdropMass                        );
 
+      ak8jets_chs_nJettinessTau1     ->push_back( chs_nJettinessTau1 );
+      ak8jets_chs_nJettinessTau2     ->push_back( chs_nJettinessTau2 );
+      ak8jets_chs_nJettinessTau3     ->push_back( chs_nJettinessTau3 );
+      ak8jets_chs_prunedMass         ->push_back( chs_prunedMass     );
+      ak8jets_chs_softdropMass       ->push_back( chs_softdropMass   );
       ak8jets_softdropPuppiSubjet1   ->push_back( sd_pup0                                 );
       ak8jets_softdropPuppiSubjet2   ->push_back( sd_pup1                                 );
       ak8jets_puppi_softdropMass     ->push_back( puppi_softdropMass                      );
