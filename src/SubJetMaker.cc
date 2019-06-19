@@ -72,6 +72,7 @@ SubJetMaker::SubJetMaker(const edm::ParameterSet& iConfig) {
     produces<vector<LorentzVector> > ( "ak8jetssoftdropPuppiSubjet1"             ).setBranchAlias( "ak8jets_softdropPuppiSubjet1"      );
     produces<vector<LorentzVector> > ( "ak8jetssoftdropPuppiSubjet2"             ).setBranchAlias( "ak8jets_softdropPuppiSubjet2"      );
     produces<vector<float> >         ( "ak8jetspuppisoftdropMass"                ).setBranchAlias( "ak8jets_puppi_softdropMass"        );
+    produces<vector<float> >         ( "ak8jetsgroomedsoftdropMass"              ).setBranchAlias( "ak8jets_groomed_softdropMass"      );
   }
 }
 
@@ -127,6 +128,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   unique_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet1     (new vector<LorentzVector>  );
   unique_ptr<vector<LorentzVector> > ak8jets_softdropPuppiSubjet2     (new vector<LorentzVector>  );
   unique_ptr<vector<float> >         ak8jets_puppi_softdropMass       (new vector<float>          );
+  unique_ptr<vector<float> >         ak8jets_groomed_softdropMass     (new    vector<float>          );
 
   Handle<View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
@@ -213,15 +215,16 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
       if (count_pup > 1) puppi_softdropMass = (sd_pup0+sd_pup1).M();
 
+
       ak8jets_chs_nJettinessTau1     ->push_back( chs_nJettinessTau1 );
       ak8jets_chs_nJettinessTau2     ->push_back( chs_nJettinessTau2 );
       ak8jets_chs_nJettinessTau3     ->push_back( chs_nJettinessTau3 );
       ak8jets_chs_prunedMass         ->push_back( chs_prunedMass     );
       ak8jets_chs_softdropMass       ->push_back( chs_softdropMass   );
-
-      ak8jets_softdropPuppiSubjet1   ->push_back( sd_pup0            );
-      ak8jets_softdropPuppiSubjet2   ->push_back( sd_pup1            );
-      ak8jets_puppi_softdropMass     ->push_back( puppi_softdropMass );
+      ak8jets_softdropPuppiSubjet1   ->push_back( sd_pup0                                 );
+      ak8jets_softdropPuppiSubjet2   ->push_back( sd_pup1                                 );
+      ak8jets_puppi_softdropMass     ->push_back( puppi_softdropMass                      );
+      ak8jets_groomed_softdropMass   ->push_back( pfjet_it->groomedMass("SoftDropPuppi")           );
     }
 
     // store indices of PFCandidates associated to this jet
@@ -274,6 +277,7 @@ void SubJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     iEvent.put(std::move(ak8jets_softdropPuppiSubjet1     ), "ak8jetssoftdropPuppiSubjet1"  );
     iEvent.put(std::move(ak8jets_softdropPuppiSubjet2     ), "ak8jetssoftdropPuppiSubjet2"  );
     iEvent.put(std::move(ak8jets_puppi_softdropMass       ), "ak8jetspuppisoftdropMass"     );
+    iEvent.put(std::move(ak8jets_groomed_softdropMass     ), "ak8jetsgroomedsoftdropMass"   );
   }
 
 }
