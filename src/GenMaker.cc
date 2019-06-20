@@ -107,18 +107,18 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
 
     //MCUtils in MINIAOD 74X and beyond
     //"robust" functions
-    produces<vector<bool> >                    ("genpsIsPromptFinalState"                           ).setBranchAlias("genps_isPromptFinalState"                          );
-    produces<vector<bool> >                    ("genpsIsPromptDecayed"                              ).setBranchAlias("genps_isPromptDecayed"                             );
-    produces<vector<bool> >                    ("genpsIsDirectPromptTauDecayProductFinalState"      ).setBranchAlias("genps_isDirectPromptTauDecayProductFinalState"     );
+    produces<vector<bool> > ("genpsIsPromptFinalState"                           ).setBranchAlias("genps_isPromptFinalState"                          );
+    produces<vector<bool> > ("genpsIsPromptDecayed"                              ).setBranchAlias("genps_isPromptDecayed"                             );
+    produces<vector<bool> > ("genpsIsDirectPromptTauDecayProductFinalState"      ).setBranchAlias("genps_isDirectPromptTauDecayProductFinalState"     );
     //"non-robust" functions
-    produces<vector<bool> >                    ("genpsIsHardProcess"                                ).setBranchAlias("genps_isHardProcess"                               );
-    produces<vector<bool> >                    ("genpsFromHardProcessFinalState"					  ).setBranchAlias("genps_fromHardProcessFinalState"                   );
-    produces<vector<bool> >                    ("genpsFromHardProcessDecayed"					      ).setBranchAlias("genps_fromHardProcessDecayed"                      );
-    produces<vector<bool> >                    ("genpsIsDirectHardProcessTauDecayProductFinalState" ).setBranchAlias("genps_isDirectHardProcessTauDecayProductFinalState");
-    produces<vector<bool> >                    ("genpsFromHardProcessBeforeFSR"					  ).setBranchAlias("genps_fromHardProcessBeforeFSR"                    );
-    produces<vector<bool> >                    ("genpsIsMostlyLikePythia6Status3"				      ).setBranchAlias("genps_isMostlyLikePythia6Status3"                  );
-    produces<vector<bool> >                    ("genpsIsLastCopy"								      ).setBranchAlias("genps_isLastCopy"                                  );
-    produces<vector<bool> >                    ("genpsIsLastCopyBeforeFSR"                          ).setBranchAlias("genps_isLastCopyBeforeFSR"                         );
+    produces<vector<bool> > ("genpsFromHardProcess"                              ).setBranchAlias("genps_fromHardProcess"                             );
+    produces<vector<bool> > ("genpsIsHardProcess"                                ).setBranchAlias("genps_isHardProcess"                               );
+    produces<vector<bool> > ("genpsFromHardProcessFinalState"                    ).setBranchAlias("genps_fromHardProcessFinalState"                   );
+    produces<vector<bool> > ("genpsFromHardProcessDecayed"                       ).setBranchAlias("genps_fromHardProcessDecayed"                      );
+    produces<vector<bool> > ("genpsIsDirectHardProcessTauDecayProductFinalState" ).setBranchAlias("genps_isDirectHardProcessTauDecayProductFinalState");
+    produces<vector<bool> > ("genpsFromHardProcessBeforeFSR"                     ).setBranchAlias("genps_fromHardProcessBeforeFSR"                    );
+    produces<vector<bool> > ("genpsIsLastCopy"                                   ).setBranchAlias("genps_isLastCopy"                                  );
+    produces<vector<bool> > ("genpsIsLastCopyBeforeFSR"                          ).setBranchAlias("genps_isLastCopyBeforeFSR"                         );
   
     if(ntupleDaughters_) {
         produces<vector<vector<int> > >           ("genpslepdaughterid" ).setBranchAlias("genps_lepdaughter_id" );
@@ -168,7 +168,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<vector<int> >                    genps_idx_mother      (new vector<int>                   );
     unique_ptr<vector<int> >                    genps_idx_simplemother(new vector<int>                   );
     unique_ptr<vector<LorentzVector> >          genps_p4              (new vector<LorentzVector>         );
-    // unique_ptr<vector<float> >                  genps_mass            (new vector<float>                 );
     unique_ptr<vector<int> >                    genps_status          (new vector<int>                   );
     unique_ptr<vector<float> >                  genps_charge          (new vector<float>                 );
     unique_ptr<vector<float> >                  genps_iso             (new vector<float>                 );
@@ -211,17 +210,17 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     unique_ptr<float> gen_LHEweight_AsMZ_Dn_2016=make_unique<float>(0.f);
 
 
-    unique_ptr<vector<bool> >                   genps_isPromptFinalState                          (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_isPromptDecayed                             (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_isDirectPromptTauDecayProductFinalState     (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_isHardProcess								  (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_fromHardProcessFinalState					  (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_fromHardProcessDecayed					  (new vector<bool> );	  
-    unique_ptr<vector<bool> >                   genps_isDirectHardProcessTauDecayProductFinalState(new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_fromHardProcessBeforeFSR					  (new vector<bool> );
-    unique_ptr<vector<bool> >                   genps_isMostlyLikePythia6Status3				  (new vector<bool> );	  
-    unique_ptr<vector<bool> >                   genps_isLastCopy								  (new vector<bool> );	  
-    unique_ptr<vector<bool> >                   genps_isLastCopyBeforeFSR                         (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isPromptFinalState                           (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isPromptDecayed                              (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isDirectPromptTauDecayProductFinalState      (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isHardProcess                                (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcess                              (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessFinalState                    (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessDecayed                       (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isDirectHardProcessTauDecayProductFinalState (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_fromHardProcessBeforeFSR                     (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isLastCopy                                   (new vector<bool> );
+    unique_ptr<vector<bool> >                   genps_isLastCopyBeforeFSR                          (new vector<bool> );
   
     // get MC particle collection
     edm::Handle<reco::GenParticleCollection> genpsHandle;
@@ -389,18 +388,18 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
   
         if( ntupleOnlyStatus3_ && (genps_it->status() !=3) ) continue;
 
-	//start here
-	genps_isPromptFinalState                          ->push_back(genps_it->isPromptFinalState()                           );
-	genps_isPromptDecayed                             ->push_back(genps_it->isPromptDecayed()                              );
-	genps_isDirectPromptTauDecayProductFinalState     ->push_back(genps_it->isDirectPromptTauDecayProductFinalState()      );
-	genps_isHardProcess								  ->push_back(genps_it->isHardProcess()                                ); 
-	genps_fromHardProcessFinalState					  ->push_back(genps_it->fromHardProcessFinalState()                    ); 
-	genps_fromHardProcessDecayed					  ->push_back(genps_it->fromHardProcessDecayed()                       ); 	  
-	genps_isDirectHardProcessTauDecayProductFinalState->push_back(genps_it->isDirectHardProcessTauDecayProductFinalState() ); 
-	genps_fromHardProcessBeforeFSR					  ->push_back(genps_it->fromHardProcessBeforeFSR()                     ); 
-	genps_isMostlyLikePythia6Status3				  ->push_back(genps_it->fromHardProcessBeforeFSR()                     ); 	  
-	genps_isLastCopy								  ->push_back(genps_it->isLastCopy()                                   ); 	  
-	genps_isLastCopyBeforeFSR                         ->push_back(genps_it->isLastCopyBeforeFSR()                          ); 
+        //start here
+        genps_isPromptFinalState                           ->push_back(genps_it->isPromptFinalState()                           );
+        genps_isPromptDecayed                              ->push_back(genps_it->isPromptDecayed()                              );
+        genps_isDirectPromptTauDecayProductFinalState      ->push_back(genps_it->isDirectPromptTauDecayProductFinalState()      );
+        genps_isHardProcess                                ->push_back(genps_it->isHardProcess()                                );
+        genps_fromHardProcess                              ->push_back(genps_it->statusFlags().fromHardProcess()                );
+        genps_fromHardProcessFinalState                    ->push_back(genps_it->fromHardProcessFinalState()                    );
+        genps_fromHardProcessDecayed                       ->push_back(genps_it->fromHardProcessDecayed()                       );
+        genps_isDirectHardProcessTauDecayProductFinalState ->push_back(genps_it->isDirectHardProcessTauDecayProductFinalState() );
+        genps_fromHardProcessBeforeFSR                     ->push_back(genps_it->fromHardProcessBeforeFSR()                     );
+        genps_isLastCopy                                   ->push_back(genps_it->isLastCopy()                                   );
+        genps_isLastCopyBeforeFSR                          ->push_back(genps_it->isLastCopyBeforeFSR()                          );
 
 	//fill daughter branches
         if( ntupleDaughters_ ) { 
@@ -537,7 +536,6 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move(genps_idx_mother         ), "genpsidxmother"       );
     iEvent.put(std::move(genps_idx_simplemother   ), "genpsidxsimplemother" );
     iEvent.put(std::move(genps_p4                 ), "genpsp4"              );
-    // iEvent.put(std::move(genps_mass               ), "genpsmass"            );
     iEvent.put(std::move(genps_status             ), "genpsstatus"          );
     iEvent.put(std::move(genps_charge             ), "genpscharge"          );
     iEvent.put(std::move(genps_iso                ), "genpsiso"             );
@@ -576,17 +574,17 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
     iEvent.put(std::move(gen_LHEweight_AsMZ_Up_2016), "genLHEweightAsMZUp2016");
     iEvent.put(std::move(gen_LHEweight_AsMZ_Dn_2016), "genLHEweightAsMZDn2016");
 
-    iEvent.put(std::move(genps_isPromptFinalState                           ), "genpsIsPromptFinalState"                          );
-    iEvent.put(std::move(genps_isPromptDecayed                              ), "genpsIsPromptDecayed"                             );
-    iEvent.put(std::move(genps_isDirectPromptTauDecayProductFinalState      ), "genpsIsDirectPromptTauDecayProductFinalState"     );
-    iEvent.put(std::move(genps_isHardProcess								), "genpsIsHardProcess"								 );   
-    iEvent.put(std::move(genps_fromHardProcessFinalState					), "genpsFromHardProcessFinalState"					 );   
-    iEvent.put(std::move(genps_fromHardProcessDecayed						), "genpsFromHardProcessDecayed"						 );   
-    iEvent.put(std::move(genps_isDirectHardProcessTauDecayProductFinalState ), "genpsIsDirectHardProcessTauDecayProductFinalState"); 
-    iEvent.put(std::move(genps_fromHardProcessBeforeFSR					  	), "genpsFromHardProcessBeforeFSR"					 ); 
-    iEvent.put(std::move(genps_isMostlyLikePythia6Status3					), "genpsIsMostlyLikePythia6Status3"					 );   
-    iEvent.put(std::move(genps_isLastCopy									), "genpsIsLastCopy"									 );   
-    iEvent.put(std::move(genps_isLastCopyBeforeFSR                          ), "genpsIsLastCopyBeforeFSR"                         ); 
+    iEvent.put(std::move(genps_isPromptFinalState                           ), "genpsIsPromptFinalState"                           );
+    iEvent.put(std::move(genps_isPromptDecayed                              ), "genpsIsPromptDecayed"                              );
+    iEvent.put(std::move(genps_isDirectPromptTauDecayProductFinalState      ), "genpsIsDirectPromptTauDecayProductFinalState"      );
+    iEvent.put(std::move(genps_isHardProcess                                ), "genpsIsHardProcess"                                );
+    iEvent.put(std::move(genps_fromHardProcess                              ), "genpsFromHardProcess"                              );
+    iEvent.put(std::move(genps_fromHardProcessFinalState                    ), "genpsFromHardProcessFinalState"                    );
+    iEvent.put(std::move(genps_fromHardProcessDecayed                       ), "genpsFromHardProcessDecayed"                       );
+    iEvent.put(std::move(genps_isDirectHardProcessTauDecayProductFinalState ), "genpsIsDirectHardProcessTauDecayProductFinalState" );
+    iEvent.put(std::move(genps_fromHardProcessBeforeFSR                     ), "genpsFromHardProcessBeforeFSR"                     );
+    iEvent.put(std::move(genps_isLastCopy                                   ), "genpsIsLastCopy"                                   );
+    iEvent.put(std::move(genps_isLastCopyBeforeFSR                          ), "genpsIsLastCopyBeforeFSR"                          );
 
     if(ntupleDaughters_) {
         iEvent.put(std::move(genps_lepdaughter_id ), "genpslepdaughterid" );
