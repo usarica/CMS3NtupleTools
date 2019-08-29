@@ -255,6 +255,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) {
     produces<vector<int> >       ("elslostHits"      ).setBranchAlias("els_lostHits"       ); //number of lost hits in fit
     produces<vector<float> >     ("elsdxyPV"         ).setBranchAlias("els_dxyPV"          );
     produces<vector<float> >     ("elsdzPV"          ).setBranchAlias("els_dzPV"           );
+    produces<vector<float> >     ("elsdzfirstPV"     ).setBranchAlias("els_dz_firstPV"     );
+    produces<vector<float> >     ("elsdxyfirstPV"    ).setBranchAlias("els_dxy_firstPV"    );
     produces<vector<float> >     ("elsd0Err"         ).setBranchAlias("els_d0Err"          );
     produces<vector<float> >     ("elsz0Err"         ).setBranchAlias("els_z0Err"          );
     produces<vector<float> >     ("elsptErr"         ).setBranchAlias("els_ptErr"          );
@@ -470,6 +472,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int> >   els_lostHits   (new vector<int>   );
     unique_ptr<vector<float> > els_dxyPV      (new vector<float> );
     unique_ptr<vector<float> > els_dzPV       (new vector<float> );
+    unique_ptr<vector<float> > els_dz_firstPV (new vector<float> );
+    unique_ptr<vector<float> > els_dxy_firstPV(new vector<float> );
     unique_ptr<vector<float> > els_d0Err      (new vector<float> );
     unique_ptr<vector<float> > els_z0Err      (new vector<float> );
     unique_ptr<vector<float> > els_ptErr      (new vector<float> );
@@ -1060,6 +1064,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             els_dzPV  ->push_back( -999. );
 	}
 
+    els_dz_firstPV->push_back(el_track->dz((vertexCollection->begin())->position()));
+    els_dxy_firstPV->push_back(el_track->dxy((vertexCollection->begin())->position()));
+
         /////////
         // CTF //
         /////////
@@ -1248,6 +1255,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     //
     iEvent.put(std::move(els_dxyPV      ), "elsdxyPV"    );
     iEvent.put(std::move(els_dzPV       ), "elsdzPV"     );
+    iEvent.put(std::move(els_dz_firstPV), "elsdzfirstPV");
+    iEvent.put(std::move(els_dxy_firstPV), "elsdxyfirstPV");
     iEvent.put(std::move(els_chi2       ), "elschi2"      );
     iEvent.put(std::move(els_ndof       ), "elsndof"      );
     iEvent.put(std::move(els_d0Err      ), "elsd0Err"     );

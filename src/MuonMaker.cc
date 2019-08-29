@@ -190,6 +190,8 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<int> >           ( branchprefix_ + "expouterlayers"    ).setBranchAlias( aliasprefix_ + "_exp_outerlayers"   );
     produces<vector<float> >         ( branchprefix_ + "dxyPV"             ).setBranchAlias( aliasprefix_ + "_dxyPV"             );
     produces<vector<float> >         ( branchprefix_ + "dzPV"              ).setBranchAlias( aliasprefix_ + "_dzPV"              );
+    produces<vector<float> >         (branchprefix_  + "dzfirstPV"        ).    setBranchAlias( aliasprefix_ + "_dz_firstPV" );
+    produces<vector<float> >         (branchprefix_  + "dxyfirstPV"        ).    setBranchAlias( aliasprefix_ + "_dxy_firstPV" );
 
     ////////
     // PF //
@@ -350,6 +352,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int> >           vector_mus_exp_outerlayers     ( new vector<int>            );
     unique_ptr<vector<float> >         vector_mus_dxyPV               ( new vector<float>          );
     unique_ptr<vector<float> >         vector_mus_dzPV                ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_dz_firstPV          ( new vector<float>          );
+    unique_ptr<vector<float> >         vector_mus_dxy_firstPV         ( new vector<float>          );
 
     ////////
     // PF //
@@ -580,6 +584,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             vector_mus_dzPV        ->push_back( -999. );
         }
 
+        vector_mus_dz_firstPV->push_back( siTrack.isNonnull() ? siTrack->dz((vertexCollection->begin())->position()) );
+        vector_mus_dxy_firstPV->push_back( siTrack.isNonnull() ? siTrack->dxy((vertexCollection->begin())->position()) );
+
         ////////
         // PF //
         ////////
@@ -783,6 +790,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move( vector_mus_exp_outerlayers    ), branchprefix_ + "expouterlayers"     );
     iEvent.put(std::move( vector_mus_dxyPV              ), branchprefix_ + "dxyPV"      	   );
     iEvent.put(std::move( vector_mus_dzPV               ), branchprefix_ + "dzPV"      	   );
+    iEvent.put(std::move( vector_mus_dz_firstPV         ), branchprefix_ +     "dzfirstPV"     );
+    iEvent.put(std::move( vector_mus_dxy_firstPV        ), branchprefix_ +   "dxyfirstPV"    );
+
+    
   
     ////////                                  
     // PF //
