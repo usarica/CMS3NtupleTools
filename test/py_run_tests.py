@@ -233,6 +233,12 @@ if __name__ == "__main__":
                 nevents=nevents,
                 year=2018,
                 inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/100000/042C8EE9-9431-5443-88C8-77F1D910B3A5.root"),
+            CampaignTest(tag="mc_2018_102x_v1_fastsim",
+                globaltag="102X_upgrade2018_realistic_v12",
+                nevents=nevents,
+                year=2018,
+                fastsim=True,
+                inputs="file:/hadoop/cms/store/user/namin/localcache/mc/RunIIAutumn18MiniAOD/SMS-T1tttt_TuneCP2_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUFall18Fast_pilot_102X_upgrade2018_realistic_v15-v1/60000/C2897730-D1B8-9D49-8F0D-FBD8D9C44BD7.root"),
 
             ]
 

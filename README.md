@@ -35,8 +35,9 @@ use `python py_run_tests.py`), one can test the following campaigns:
    * Prompt-reco Data (`/*/Run2018D-PromptReco-v2/MINIAOD`)
    * Re-reco Data (`/*/*17Sep2018*/MINIAOD`)
    * MiniAODv1 MC (`/*/*RunIIAutumn18MiniAOD*/MINIAODSIM`)
+   * MiniAODv1 FastSim MC (`/*/*Fall18Fast*/MINIAODSIM`)
 
-*When I wrote this sentence, all 13 campaigns worked* -- though, with the caveat(s) in the GitHub issues page.
+*When I wrote this sentence, all 14 campaigns worked* -- though, with the caveat(s) in the GitHub issues page.
 
 Also, the test script just runs the ntuples and checks that they don't crash. But you should still check branch outputs.
 Adding another function to diff two sets is a todo.
