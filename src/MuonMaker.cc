@@ -584,8 +584,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             vector_mus_dzPV        ->push_back( -999. );
         }
 
-        vector_mus_dz_firstPV->push_back(siTrack->dz((vertexCollection->begin())->position()) );
-        vector_mus_dxy_firstPV->push_back(siTrack->dxy((vertexCollection->begin())->position()) );
+        vector_mus_dz_firstPV->push_back(siTrack.isNonnull() ? siTrack->dz((vertexCollection->begin())->position()) : -999. );
+        vector_mus_dxy_firstPV->push_back(siTrack.isNonnull() ? siTrack->dxy((vertexCollection->begin())->position()) : -999. );
 
         ////////
         // PF //
