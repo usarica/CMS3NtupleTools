@@ -437,7 +437,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	    decayXY = sqrt( (daux-chx)*(daux-chx) + (dauy-chy)*(dauy-chy) );
 	    decayZ = fabs(dauz - chz);
 	    if (abs(dau0.status()) != 1000022) {
-	      cout << "Chargino with 2 daughters and first daughter is not LSP. Strange. decayXY is " << decayXY << endl;
+	      // cout << "Chargino with 2 daughters and first daughter is not LSP. Strange. decayXY is " << decayXY << endl;
 	    }
 	  }
 	}
