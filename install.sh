@@ -37,15 +37,15 @@ source setup/patchesToSource.sh
 
 # MELA
 git clone git@github.com:cms-analysis/HiggsAnalysis-ZZMatrixElement.git ZZMatrixElement
-(cd ZZMatrixElement; git checkout -b from-v217b1 v2.1.7b1; source setup.sh -j 12;)
+(cd ZZMatrixElement; git fetch; git checkout -b from-v222 v2.2.2; source setup.sh -j 12;)
 
 # MELA Analytics
 git clone git@github.com:usarica/MelaAnalytics.git
-(cd MelaAnalytics; git checkout -b from-v11 v1.1)
+(cd MelaAnalytics; git fetch; git checkout -b from-v19 v1.9)
 
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
-(cd CommonLHETools; git checkout -b from-v125 v1.2.5)
+(cd CommonLHETools; git fetch; git checkout -b from-v132 v1.3.2)
 
 cd $CMSSW_BASE/src
 scram b -j 25
