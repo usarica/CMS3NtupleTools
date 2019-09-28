@@ -76,8 +76,8 @@ private:
      double exclusiveCrossSectionValue_;
      double kfactorValue_;
 
-     shared_ptr<LHEHandler> lheHandler; // LHEHandler for default PDFs
-     shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
+     std::shared_ptr<LHEHandler> lheHandler; // LHEHandler for default PDFs
+     std::shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
 
 };
 

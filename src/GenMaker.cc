@@ -48,12 +48,12 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
     LHERunInfoToken = consumes<LHERunInfoProduct, edm::InRun>(inputPSet.getParameter<edm::InputTag>("LHEInputTag"));
 
     lheHandler = std::make_shared<LHEHandler>(
-      -1, -1,
+      MELAEvent::nCandidateVVModes, -1,
       (false ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
       year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder
       );
     lheHandler_NNPDF30_NLO = std::make_shared<LHEHandler>(
-      -1, -1,
+      MELAEvent::nCandidateVVModes, -1,
       (false ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
       year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO
       );
