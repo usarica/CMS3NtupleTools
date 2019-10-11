@@ -18,6 +18,7 @@ opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other pur
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
 opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
+opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sparm if fastsim=True isn't specified
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
@@ -274,7 +275,7 @@ producers = [
         process.pdfinfoMaker if not opts.data else None,
         process.puSummaryInfoMaker if not opts.data else None,
         process.hypDilepMaker,
-        process.sParmMaker if opts.fastsim else None,
+        process.sParmMaker if (opts.fastsim or opts.sparminfo) else None,
         ]
 if opts.genxsecanalyzer and not opts.data:
     process.genxsecanalyzer = cms.EDAnalyzer("GenXSecAnalyzer")
