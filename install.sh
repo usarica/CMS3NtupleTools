@@ -58,6 +58,11 @@ git clone git@github.com:usarica/MelaAnalytics.git
 git clone git@github.com:usarica/CommonLHETools.git
 #(cd CommonLHETools; git fetch; git checkout -b from-v132 v1.3.2)
 
+# CMSDataTools
+git clone git@github.com:usarica/CMSDataTools.git
+#(cd CMSDataTools; git fetch; git checkout -b from-v11 v1.1)
+
+
 cd $CMSSW_BASE/src
 scram b -j
 cd ..

@@ -34,12 +34,13 @@
 <use   name="CMSDataTools/AnalysisTree"/>
 <use   name="root"/>
 <use   name="clhep"/>
+<use   name="CMS3/NtupleMaker"/>
 
-<Flags CPPDEFINES="CMSSW_VERSION=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_//g -e s/patch\.//)"/>
-<Flags CPPDEFINES="CMSSW_VERSION_MAJOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_.*//g)"/>
-<flags CPPFLAGS="-I$(CMSSW_BASE)/src/ZZMatrixElement/MELA/interface/" />
-<flags CXXFLAGS="-g -O3"/>
 
-<export>
-   <lib name="1"/>
-</export>
+<library   file="*.cc" name="CMS3NtupleMakerPlugins">
+  <Flags CPPDEFINES="CMSSW_VERSION=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_//g -e s/patch\.//)"/>
+  <Flags CPPDEFINES="CMSSW_VERSION_MAJOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_.*//g)"/>
+  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/ZZMatrixElement/MELA/interface/" />
+  <flags CXXFLAGS="-g -O3"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
