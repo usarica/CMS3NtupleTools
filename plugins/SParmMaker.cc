@@ -37,7 +37,7 @@
 
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h"
 
-#include "CMS3/NtupleMaker/interface/SParmMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/SParmMaker.h"
 
 #include "TString.h"
 #include "TObjArray.h"

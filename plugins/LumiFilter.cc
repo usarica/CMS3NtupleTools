@@ -15,7 +15,7 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 
-#include "CMS3/NtupleMaker/interface/LumiFilter.h"
+#include "CMS3/NtupleMaker/interface/plugins/LumiFilter.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;

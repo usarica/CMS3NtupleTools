@@ -29,7 +29,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "CMS3/NtupleMaker/interface/GenJetMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/GenJetMaker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 

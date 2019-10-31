@@ -20,9 +20,9 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-#include "CMS3/NtupleMaker/interface/ElectronExtraMaker.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/ElectronExtraMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"

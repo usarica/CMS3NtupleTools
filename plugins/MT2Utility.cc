@@ -32,7 +32,7 @@
               
 #include <iostream>
 #include <math.h>
-#include "CMS3/NtupleMaker/interface/MT2Utility.h"
+#include "CMS3/NtupleMaker/interface/plugins/MT2Utility.h"
 
 using namespace std;
 

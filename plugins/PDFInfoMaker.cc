@@ -32,7 +32,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/PDFInfoMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/PDFInfoMaker.h"
 
 using namespace edm;
 using namespace std;

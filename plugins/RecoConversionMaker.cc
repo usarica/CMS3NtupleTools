@@ -14,7 +14,7 @@
 
 #include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
 
-#include "CMS3/NtupleMaker/interface/RecoConversionMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/RecoConversionMaker.h"
 
 using namespace std;
 using namespace reco;

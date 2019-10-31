@@ -1,4 +1,4 @@
-#include "CMS3/NtupleMaker/interface/HLTMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/HLTMaker.h"
 //#include <fstream>
 
 typedef math::XYZTLorentzVectorF LorentzVector;

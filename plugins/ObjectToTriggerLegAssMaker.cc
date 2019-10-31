@@ -30,7 +30,7 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
-#include "CMS3/NtupleMaker/interface/ObjectToTriggerLegAssMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/ObjectToTriggerLegAssMaker.h"
 
 #include "TRegexp.h"
 #include "TPRegexp.h"

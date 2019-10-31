@@ -27,7 +27,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/PFMETMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/PFMETMaker.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;

@@ -3,7 +3,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS3/NtupleMaker/interface/CA12SubJetMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/CA12SubJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"

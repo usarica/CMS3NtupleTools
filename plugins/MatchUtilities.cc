@@ -1,4 +1,4 @@
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "FWCore/Utilities/interface/Exception.h"
 

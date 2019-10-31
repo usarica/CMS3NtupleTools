@@ -11,7 +11,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS3/NtupleMaker/interface/T1CHSMETJets.h"
+#include "CMS3/NtupleMaker/interface/plugins/T1CHSMETJets.h"
 #include "JetMETCorrections/Objects/interface/JetCorrector.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"

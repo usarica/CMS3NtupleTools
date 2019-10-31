@@ -25,7 +25,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/PFTauExtraMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/PFTauExtraMaker.h"
 #include "CMS3/NtupleMaker/interface/CommonUtils.h"
 
 

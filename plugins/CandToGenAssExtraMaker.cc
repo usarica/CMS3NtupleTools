@@ -29,15 +29,15 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/CandToGenAssExtraMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/CandToGenAssExtraMaker.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "Math/VectorUtil.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;

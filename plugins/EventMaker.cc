@@ -32,7 +32,7 @@
 
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 
-#include "CMS3/NtupleMaker/interface/EventMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/EventMaker.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;

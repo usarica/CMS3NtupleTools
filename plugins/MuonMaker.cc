@@ -53,8 +53,8 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
-#include "CMS3/NtupleMaker/interface/MuonMaker.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MuonMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 
 #include "DataFormats/MuonReco/interface/MuonChamberMatch.h"
 #include "DataFormats/MuonReco/interface/MuonShower.h"

@@ -29,7 +29,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/METMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/METMaker.h"
 
 #include "DataFormats/METReco/interface/MET.h"
 #include "DataFormats/MuonReco/interface/Muon.h"

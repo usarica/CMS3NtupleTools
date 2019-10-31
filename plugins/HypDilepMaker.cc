@@ -35,8 +35,8 @@ ee:3
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-#include "CMS3/NtupleMaker/interface/HypDilepMaker.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/HypDilepMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 
 #include "Math/VectorUtil.h"
 #include "TMath.h"

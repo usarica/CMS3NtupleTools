@@ -13,9 +13,9 @@
 // system include files
 
 // user include files
-#include "CMS3/NtupleMaker/interface/GenMaker.h" 
-#include "CMS3/NtupleMaker/interface/MCUtilities.h"
-#include "CMS3/NtupleMaker/interface/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/GenMaker.h" 
+#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 #include "TMath.h"
 
 

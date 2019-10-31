@@ -25,7 +25,7 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 
 // Header
-#include "CMS3/NtupleMaker/interface/HcalNoiseSummaryMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/HcalNoiseSummaryMaker.h"
 
 // Namespaces
 using namespace edm;

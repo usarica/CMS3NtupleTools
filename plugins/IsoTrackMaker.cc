@@ -14,7 +14,7 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/TrackReco/interface/HitPattern.h"
 
-#include "CMS3/NtupleMaker/interface/IsoTrackMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/IsoTrackMaker.h"
 #include "TMath.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;

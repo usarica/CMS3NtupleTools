@@ -24,7 +24,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/VertexExtraMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/VertexExtraMaker.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 

@@ -1,4 +1,4 @@
-#include "CMS3/NtupleMaker/interface/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
