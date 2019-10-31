@@ -60,7 +60,7 @@ git clone git@github.com:usarica/CommonLHETools.git
 
 # CMSDataTools
 git clone git@github.com:usarica/CMSDataTools.git
-#(cd CMSDataTools; git fetch; git checkout -b from-v11 v1.1)
+#(cd CMSDataTools; git fetch; git checkout -b from-v111 v1.1.1)
 
 
 cd $CMSSW_BASE/src
