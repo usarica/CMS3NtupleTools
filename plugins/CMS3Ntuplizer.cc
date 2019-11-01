@@ -8,7 +8,8 @@ using namespace edm;
 
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
-  outtree(nullptr)
+  outtree(nullptr),
+  treename(pset.getUntrackedParameter<std::string>("treename"))
 {
 
 }

@@ -68,124 +68,78 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 
 class ElectronMaker : public edm::stream::EDProducer<> {
 public:
-    explicit ElectronMaker (const edm::ParameterSet&);
-    ~ElectronMaker();
+  explicit ElectronMaker(const edm::ParameterSet&);
+  ~ElectronMaker();
 
 private:
-//  virtual void beginJob() ;
-    virtual void beginJob() ;
-    virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
-    virtual void produce(edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
+  //  virtual void beginJob() ;
+  virtual void beginJob();
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+  virtual void endJob();
 
-    double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
-                              float footprintdr, float gammastripveto, float elestripveto, int filterId);
-  
-    int classify(const edm::RefToBase<pat::Electron> &);
-    template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
- 
+  double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
+                            float footprintdr, float gammastripveto, float elestripveto, int filterId);
+
+  int classify(const edm::RefToBase<pat::Electron> &);
+  template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
+
   void elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
   void elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
 
-
-    // ----------member data ---------------------------
-    edm::InputTag beamSpotInputTag_;
-    edm::InputTag trksInputTag_;
-    edm::InputTag gsftracksInputTag_;
-    edm::InputTag eidLHTag_;
-    edm::InputTag cms2scsseeddetidInputTag_;
-
-    edm::EDGetTokenT<reco::VertexCollection> vtxToken;
-    edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
-    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
-    edm::EDGetTokenT<float> bFieldToken;
-    edm::EDGetTokenT<LorentzVector> beamSpotToken;
-    edm::EDGetTokenT<reco::ConversionCollection> recoConversionToken;
+  void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator&, pat::Electron&, std::string const&, std::string const&) const;
+  void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator&, pat::Electron&, std::string const&, std::string const&) const;
 
 
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronVetoIdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronLooseIdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronMediumIdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronTightIdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronHEEPIdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDNonTrigMvaWP80IdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDNonTrigMvaWP90IdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP80IdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<bool> > electronVIDTrigMvaWP90IdMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDNonTrigMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDTrigMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDNonTrigMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDTrigMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDSpring16GPMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDSpring16GPMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDSpring16HZZMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  > electronVIDSpring16HZZMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17NoIsoMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17NoIsoMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17IsoMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17IsoMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17V2NoIsoMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17V2NoIsoMvaCatMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > electronVIDFall17V2IsoMvaValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<int>  >  electronVIDFall17V2IsoMvaCatMapToken_;
+  // ----------member data ---------------------------
+  std::string aliasprefix_;
+  int year_;
 
-    edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
-    edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
+  //edm::InputTag beamSpot_tag_;
 
-    edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
+  edm::InputTag trksInputTag_;
+  edm::InputTag gsftracksInputTag_;
 
+  edm::InputTag eidLHTag_;
+  //edm::InputTag cms2scsseeddetidInputTag_;
+
+  edm::InputTag ebReducedRecHitCollectionTag;
+  edm::InputTag eeReducedRecHitCollectionTag;
+  edm::InputTag esReducedRecHitCollectionTag;
+
+  edm::InputTag rhoInputTag_;
+
+
+  edm::EDGetTokenT<reco::VertexCollection> vtxToken;
+  edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
+  //edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
+  edm::EDGetTokenT<float> bFieldToken;
+  edm::EDGetTokenT<LorentzVector> beamSpotToken;
+  edm::EDGetTokenT<reco::ConversionCollection> recoConversionToken;
+
+  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
+  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
+
+  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
+  /*
   edm::InputTag pfIsoCharged03InputTag;
   edm::InputTag pfIsoGamma03InputTag;
   edm::InputTag pfIsoNeutral03InputTag;
   edm::InputTag pfIsoCharged04InputTag;
   edm::InputTag pfIsoGamma04InputTag;
   edm::InputTag pfIsoNeutral04InputTag;
+  */
 
-    double minAbsDist_;
-    double minAbsDcot_;
-    double minSharedFractionOfHits_;
-    std::string aliasprefix_;
+  double minAbsDist_;
+  double minAbsDcot_;
+  double minSharedFractionOfHits_;
 
-    std::vector<Int_t> passVetoId_;
-    std::vector<Int_t> passLooseId_;
-    std::vector<Int_t> passMediumId_;
-    std::vector<Int_t> passTightId_;
-    std::vector<Int_t> passHEEPId_;
-    std::vector<Int_t> passVIDNonTrigMvaWP80Id_;
-    std::vector<Int_t> passVIDNonTrigMvaWP90Id_;
-    std::vector<Int_t> passVIDTrigMvaWP80Id_;
-    std::vector<Int_t> passVIDTrigMvaWP90Id_;
-    std::vector<Float_t> VIDNonTrigMvaValue_;
-    std::vector<Float_t> VIDTrigMvaValue_;
-    std::vector<Float_t> VIDSpring16GPMvaValue_;
-    std::vector<Float_t> VIDSpring16HZZMvaValue_;
-    std::vector<Int_t> VIDNonTrigMvaCat_;
-    std::vector<Int_t> VIDTrigMvaCat_;
-    std::vector<Int_t> VIDSpring16GPMvaCat_;
-    std::vector<Int_t> VIDSpring16HZZMvaCat_;
+  edm::Handle<reco::PFCandidateCollection> pfCand_h;
+  edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
+  const pat::PackedCandidateCollection* pfCandidates;
+  edm::Handle<reco::VertexCollection> vertexHandle;
+  edm::Handle<reco::ConversionCollection> convs_h;
 
-    std::vector<Float_t> VIDFall17NoIsoMvaValue_;
-    std::vector<Int_t>   VIDFall17NoIsoMvaCat_;
-    std::vector<Float_t> VIDFall17IsoMvaValue_;
-    std::vector<Int_t>   VIDFall17IsoMvaCat_;
-    std::vector<Float_t> VIDFall17V2NoIsoMvaValue_;
-    std::vector<Int_t>   VIDFall17V2NoIsoMvaCat_;
-    std::vector<Float_t> VIDFall17V2IsoMvaValue_;
-    std::vector<Int_t>   VIDFall17V2IsoMvaCat_;
-
-    edm::Handle<reco::PFCandidateCollection> pfCand_h;
-    edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
-    const pat::PackedCandidateCollection *pfCandidates;
-    edm::Handle<reco::VertexCollection> vertexHandle;
-    edm::Handle<reco::ConversionCollection> convs_h;
-
-    edm::InputTag rhoInputTag_;
-    edm::InputTag beamSpot_tag_;
-
-  edm::InputTag ebReducedRecHitCollectionTag;
-  edm::InputTag eeReducedRecHitCollectionTag;
-  edm::InputTag esReducedRecHitCollectionTag;
-  
   edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
   edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
   edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;

@@ -22,6 +22,7 @@ opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sp
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
+opts.register('applyEGscalesmear', True , mytype=vpbool) #to enable e/gamma scale and smear corrections
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
@@ -57,9 +58,9 @@ print("""PSet is assuming:
         ))
 
 if not opts.data and opts.year<2016:
-    print(("#"*100+"\n")*2+"[!] This is MC but you've not defined year. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
-    opts.year=2017
-  # raise RuntimeError("MC processing must define a year>=2016!")
+   # print(("#"*100+"\n")*2+"[!] This is MC but you've not defined year. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
+   # opts.year=2017
+   raise RuntimeError("MC processing must define a year>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.isFastSim=opts.fastsim
@@ -128,22 +129,25 @@ process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi"
 process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
 process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
 process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
-my_id_modules = [
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_HZZ_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V1_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff',
-        'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
-                 ]
-for idmod in my_id_modules:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+my_eleid_modules = [
+    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
+    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
+    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
+]
+my_phoid_modules = [
+    'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'
+    'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
+]
+
+#for idmod in my_id_modules:
+#    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
-process.eventMaker.isData                        = cms.bool(opts.data)
+process.eventMaker.isData = cms.bool(opts.data)
+process.electronMaker.year = cms.int32(opts.year)
 if not opts.data:
     process.genMaker.year = cms.int32(opts.year)
 
@@ -245,6 +249,61 @@ if opts.is80x and not opts.data:
         toGet = cms.VPSet(cms.PSet(record = cms.string("L1TGlobalPrescalesVetosRcd"), tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc"))))
     process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
+# E/Gamma corrections
+if opts.applyEGscalesmear:
+   if (LEPTON_SETUP == 2016):
+      if not opts.is80x:
+         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+         setupEgammaPostRecoSeq(process,
+                                runEnergyCorrections=True,
+                                runVID=True,
+                                eleIDModules = my_eleid_modules,
+                                phoIDModules = my_phoid_modules,
+                                #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                                #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
+                                #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                                era='2016-Legacy')
+      else:
+         # See
+         # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2016_MiniAOD_V1
+         # and
+         # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2017_MiniAOD_V1
+         process.load("Geometry.CaloEventSetup.CaloTowerConstituents_cfi")
+         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+         setupEgammaPostRecoSeq(process,
+                                runEnergyCorrections=True,
+                                runVID=True,
+                                eleIDModules = my_eleid_modules,
+                                phoIDModules = my_phoid_modules,
+                                #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                                #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
+                                #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                                era='2016-Legacy')
+
+
+   if (LEPTON_SETUP == 2017):
+      from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+      setupEgammaPostRecoSeq(process,
+                             runEnergyCorrections=True,
+                             runVID=True,
+                             eleIDModules = my_eleid_modules,
+                             phoIDModules = my_phoid_modules,
+                             #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                             #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                             era='2017-Nov17ReReco')
+
+   if (LEPTON_SETUP == 2018):
+      from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+      setupEgammaPostRecoSeq(process,
+                             runEnergyCorrections=True,
+                             runVID=True,
+                             eleIDModules = my_eleid_modules,
+                             phoIDModules = my_phoid_modules,
+                             #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                             #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
+                             #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                             era='2018-Prompt')
+
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
@@ -297,6 +356,12 @@ for ip,producer in enumerate(producers):
     if opts.metrecipe and producer == process.pfmetMaker:
         total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
         continue
+
+    if opts.applyEGscalesmear:
+       if producer == process.electronMaker:
+          total_path *= process.egammaPostRecoSeq * process.electronMaker
+          continue
+
 
     total_path *= producer
 

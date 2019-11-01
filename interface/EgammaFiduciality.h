@@ -1,4 +1,3 @@
-
 //
 // This is an enum to describe the fiduciality 
 // of Egamma objects (electrons and photons)
@@ -30,8 +29,8 @@ enum EgammaElectronType {
 	ISMOMENTUMCORRECTED,  	// has E-p combination been applied
 	ISECALDRIVEN,
 	ISTRACKERDRIVEN,
-    ISCUTPRESELECTED,
-    ISMVAPRESELECTED
+  ISCUTPRESELECTED,
+  ISMVAPRESELECTED
 };
 
 #endif
