@@ -797,9 +797,9 @@ void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool
 }
 
 void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator& el, pat::Electron& el_result, std::string const& id_name, std::string const& id_identifier) const{
-  if (el->hasUserFloat(id_name+"RawValues")){
-    el_result.addUserFloat("id_"+id_identifier+"_RawVal", el->userFloat(id_name+"RawValues"));
-    el_result.addUserInt("id_"+id_identifier+"_Cat", el->userFloat(id_name+"Categories"));
+  if (el->hasUserInt(id_name+"Categories")){
+    el_result.addUserFloat("id_"+id_identifier+"_Val", el->userFloat(id_name+"Values"));
+    el_result.addUserInt("id_"+id_identifier+"_Cat", el->userInt(id_name+"Categories"));
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }

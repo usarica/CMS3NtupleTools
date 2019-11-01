@@ -122,10 +122,10 @@ if not opts.is80x:
         )
 
 #Electron Identification for PHYS 14
-#from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
-#from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
-#process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-#process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection, setupVIDPhotonSelection
+from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
+process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
+process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
 #process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
 #process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
 #process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
@@ -138,9 +138,6 @@ my_phoid_modules = [
     'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
     'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
 ]
-
-#for idmod in my_id_modules:
-#    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
@@ -307,6 +304,11 @@ elif (opts.year == 2018):
                           #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
                           #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
                           era='2018-Prompt')
+
+#for idmod in my_eleid_modules:
+#    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+#for idmod in my_phoid_modules:
+#    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
 
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
