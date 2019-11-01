@@ -325,7 +325,7 @@ producers = [
         process.hltMakerSequence if not opts.fastsim else None,
         process.miniAODrhoSequence,
         process.pftauMaker,
-        process.photonMaker,
+        #process.photonMaker,
         process.muToTrigAssMaker if opts.triginfo else None,
         process.elToTrigAssMaker if opts.triginfo else None,
         process.genMaker if not opts.data else None,
