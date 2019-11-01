@@ -122,20 +122,20 @@ if not opts.is80x:
         )
 
 #Electron Identification for PHYS 14
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
-from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
-process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
-process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
-process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
-process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
-process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
+#from PhysicsTools.SelectorUtils.tools.vid_id_tools import setupAllVIDIdsInModule, setupVIDElectronSelection
+#from PhysicsTools.SelectorUtils.centralIDRegistry import central_id_registry
+#process.load("RecoEgamma.ElectronIdentification.egmGsfElectronIDs_cfi")
+#process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi")
+#process.egmGsfElectronIDs.physicsObjectSrc = cms.InputTag('slimmedElectrons')
+#process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
+#process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_eleid_modules = [
     'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
 ]
 my_phoid_modules = [
-    'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'
+    'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
     'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
 ]
 
@@ -249,60 +249,64 @@ if opts.is80x and not opts.data:
         toGet = cms.VPSet(cms.PSet(record = cms.string("L1TGlobalPrescalesVetosRcd"), tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc"))))
     process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
-# E/Gamma corrections
-if opts.applyEGscalesmear:
-   if (LEPTON_SETUP == 2016):
-      if not opts.is80x:
-         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
-         setupEgammaPostRecoSeq(process,
-                                runEnergyCorrections=True,
-                                runVID=True,
-                                eleIDModules = my_eleid_modules,
-                                phoIDModules = my_phoid_modules,
-                                #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
-                                #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
-                                #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
-                                era='2016-Legacy')
-      else:
-         # See
-         # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2016_MiniAOD_V1
-         # and
-         # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2017_MiniAOD_V1
-         process.load("Geometry.CaloEventSetup.CaloTowerConstituents_cfi")
-         from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
-         setupEgammaPostRecoSeq(process,
-                                runEnergyCorrections=True,
-                                runVID=True,
-                                eleIDModules = my_eleid_modules,
-                                phoIDModules = my_phoid_modules,
-                                #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
-                                #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
-                                #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
-                                era='2016-Legacy')
-
-
-   if (LEPTON_SETUP == 2017):
+# Apply E/Gamma corrections if needed
+process.load("RecoEgamma.ElectronIdentification.heepIdVarValueMapProducer_cfi")
+if (opts.year == 2016):
+   if not opts.is80x:
       from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
       setupEgammaPostRecoSeq(process,
-                             runEnergyCorrections=True,
+                             runEnergyCorrections=opts.applyEGscalesmear,
                              runVID=True,
+                             autoAdjustParams=False,
                              eleIDModules = my_eleid_modules,
                              phoIDModules = my_phoid_modules,
                              #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                             #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
                              #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
-                             era='2017-Nov17ReReco')
-
-   if (LEPTON_SETUP == 2018):
+                             era='2016-Legacy')
+   else:
+      # See
+      # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2016_MiniAOD_V1
+      # and
+      # https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPostRecoRecipes#Running_on_2017_MiniAOD_V1
+      process.load("Geometry.CaloEventSetup.CaloTowerConstituents_cfi")
       from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
       setupEgammaPostRecoSeq(process,
-                             runEnergyCorrections=True,
+                             runEnergyCorrections=opts.applyEGscalesmear,
                              runVID=True,
+                             autoAdjustParams=False,
                              eleIDModules = my_eleid_modules,
                              phoIDModules = my_phoid_modules,
                              #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
-                             #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
+                             #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
                              #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
-                             era='2018-Prompt')
+                             era='2016-Legacy')
+
+
+elif (opts.year == 2017):
+   from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+   setupEgammaPostRecoSeq(process,
+                          runEnergyCorrections=opts.applyEGscalesmear,
+                          runVID=True,
+                          autoAdjustParams=False,
+                          eleIDModules = my_eleid_modules,
+                          phoIDModules = my_phoid_modules,
+                          #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                          #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                          era='2017-Nov17ReReco')
+
+elif (opts.year == 2018):
+   from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+   setupEgammaPostRecoSeq(process,
+                          runEnergyCorrections=opts.applyEGscalesmear,
+                          runVID=True,
+                          autoAdjustParams=False,
+                          eleIDModules = my_eleid_modules,
+                          phoIDModules = my_phoid_modules,
+                          #Below is from https://github.com/CJLST/ZZAnalysis/blob/Run2Legacy/AnalysisStep/test/MasterPy/ZZ4lAnalysis.py
+                          #eleIDModules=['RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff','RecoEgamma.ElectronIdentification.Identification.heepElectronID_HEEPV70_cff'],
+                          #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
+                          era='2018-Prompt')
 
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
@@ -310,7 +314,7 @@ producers = [
         process.eventMaker,
         process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
         process.metFilterMaker,
-        process.egmGsfElectronIDSequence,
+        #process.egmGsfElectronIDSequence,
         process.vertexMaker,
         process.secondaryVertexMaker,
         process.pfCandidateMaker,
@@ -325,16 +329,17 @@ producers = [
         process.hltMakerSequence if not opts.fastsim else None,
         process.miniAODrhoSequence,
         process.pftauMaker,
+        # Disable these temporarily until they are renewed
         #process.photonMaker,
-        process.muToTrigAssMaker if opts.triginfo else None,
-        process.elToTrigAssMaker if opts.triginfo else None,
+        #process.muToTrigAssMaker if opts.triginfo else None,
+        #process.elToTrigAssMaker if opts.triginfo else None,
         process.genMaker if not opts.data else None,
         process.genJetMaker if not opts.data else None,
-        process.candToGenAssMaker if not opts.data else None,
-        process.pdfinfoMaker if not opts.data else None,
+        #process.candToGenAssMaker if not opts.data else None,
+        #process.pdfinfoMaker if not opts.data else None,
         process.puSummaryInfoMaker if not opts.data else None,
-        process.hypDilepMaker,
-        process.sParmMaker if (opts.fastsim or opts.sparminfo) else None,
+        #process.hypDilepMaker,
+        #process.sParmMaker if (opts.fastsim or opts.sparminfo) else None,
         ]
 if opts.genxsecanalyzer and not opts.data:
     process.genxsecanalyzer = cms.EDAnalyzer("GenXSecAnalyzer")
@@ -357,10 +362,9 @@ for ip,producer in enumerate(producers):
         total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
         continue
 
-    if opts.applyEGscalesmear:
-       if producer == process.electronMaker:
-          total_path *= process.egammaPostRecoSeq * process.electronMaker
-          continue
+    if producer == process.electronMaker:
+       total_path *= process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker
+       continue
 
 
     total_path *= producer
@@ -398,3 +402,7 @@ else:
 process.out.fileName = cms.untracked.string(opts.output)
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
+
+fprocdump = open(opts.output.replace('.root','_run_cfg.py'),'w')
+fprocdump.write(process.dumpPython())
+fprocdump.close()
