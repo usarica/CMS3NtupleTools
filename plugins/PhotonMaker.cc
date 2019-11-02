@@ -51,186 +51,126 @@ using namespace std;
 //
 // constructors and destructor
 //
-PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) {
-         
-    //
-    aliasprefix_ = iConfig.getUntrackedParameter<std::string>("aliasPrefix");
-    std::string branchprefix = aliasprefix_;
-    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
+PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
+  aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasPrefix")),
+  year_(iConfig.getParameter<int>("year"))
+{
+  photonsToken = consumes< edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
 
-    // 
-    produces<unsigned int>   ( "evtn" + branchprefix            ).setBranchAlias( "evt_n"      + branchprefix      ); //number of photons in event--NO ET cut // works
-    produces<vector<LorentzVector> >  (branchprefix + "p4"      ).setBranchAlias( aliasprefix_ + "_p4"             );// works
-    
-    produces<vector<float> > ( branchprefix + "hOverE"          ).setBranchAlias( aliasprefix_ + "_hOverE"         );
-    produces<vector<float> > ( branchprefix + "hOverEtowBC"     ).setBranchAlias( aliasprefix_ + "_hOverEtowBC"    );
-    produces<vector<float> > ( branchprefix + "sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_sigmaIEtaIEta"  );
-
-    produces<vector<float> > ( branchprefix + "full5x5hOverE"          ).setBranchAlias( aliasprefix_ + "_full5x5_hOverE"         );
-    produces<vector<float> > ( branchprefix + "full5x5sigmaIEtaIEta"   ).setBranchAlias( aliasprefix_ + "_full5x5_sigmaIEtaIEta"  );
-    produces<vector<float> > ( branchprefix + "full5x5hOverEtowBC"     ).setBranchAlias( aliasprefix_ + "_full5x5_hOverEtowBC"    );
-    produces<vector<float> > ( branchprefix + "full5x5r9"              ).setBranchAlias( aliasprefix_ + "_full5x5_r9"             );
-    produces<vector<int>   > ( branchprefix + "photonIDloose"          ).setBranchAlias( aliasprefix_ + "_photonID_loose"         );
-    produces<vector<int>   > ( branchprefix + "photonIDtight"          ).setBranchAlias( aliasprefix_ + "_photonID_tight"         );	
-
-    produces<vector<float> > ( branchprefix + "recoChargedHadronIso").setBranchAlias( aliasprefix_ + "_recoChargedHadronIso");
-    produces<vector<float> > ( branchprefix + "recoNeutralHadronIso").setBranchAlias( aliasprefix_ + "_recoNeutralHadronIso");
-    produces<vector<float> > ( branchprefix + "recoPhotonIso"       ).setBranchAlias( aliasprefix_ + "_recoPhotonIso");
-
-    produces<vector<bool> >  ( branchprefix + "haspixelSeed"    ).setBranchAlias( aliasprefix_ + "_haspixelSeed"   ); //for electron matching
-    produces<vector<bool> >  ( branchprefix + "passElectronVeto").setBranchAlias( aliasprefix_ + "_passElectronVeto"); //for electron matching
-
-    produces<vector<vector<int>   >   >       ( branchprefix + "pfcandidx"    ).setBranchAlias( branchprefix + "_PFCand_idx"    );
-
-    produces<vector<float> > ( branchprefix + "tkIsoHollow03"   ).setBranchAlias( aliasprefix_ + "_tkIsoHollow03"  );
-    produces<vector<float> > ( branchprefix + "ntkIsoHollow03"  ).setBranchAlias( aliasprefix_ + "_ntkIsoHollow03" );
-    produces<vector<float> > ( branchprefix + "ecalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_ecalPFClusterIso");
-    produces<vector<float> > ( branchprefix + "hcalPFClusterIso"       ).setBranchAlias( aliasprefix_ + "_hcalPFClusterIso");
-
-
-    photonsToken = consumes<edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
-    minEt_                    = iConfig.getParameter<double>("minEt");
+  produces<pat::PhotonCollection>().setBranchAlias(aliasprefix_);
 }
 
-PhotonMaker::~PhotonMaker() {
+PhotonMaker::~PhotonMaker(){}
+
+void PhotonMaker::beginJob(){}
+void PhotonMaker::endJob(){}
+
+void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  auto result = std::make_unique<pat::PhotonCollection>();
+
+  //////////////////// 
+  // Get the inputs //
+  ////////////////////
+
+  // Photons
+  Handle< View<pat::Photon> > photons_h;
+  iEvent.getByToken(photonsToken, photons_h);
+
+  size_t nTotalPhotons = photons_h->size(); result->reserve(nTotalPhotons);
+  //size_t photonIndex = 0;
+  for (View<pat::Photon>::const_iterator photon = photons_h->begin(); photon != photons_h->end(); photon++/*, photonIndex++*/) {
+    pat::Photon photon_result(*photon);
+
+    // Get the reference to reco::Photon
+    //const edm::RefToBase<pat::Photon> recoPhoton = photons_h->refAt(photonIndex);
+
+    // Scale and smearing corrections are now stored in the miniAOD https://twiki.cern.ch/twiki/bin/view/CMS/EgammaMiniAODV2#Energy_Scale_and_Smearing
+    float uncorrected_pt = photon->pt();
+    float uncorrected_mass = photon->mass();
+    float uncorrected_energy = photon->energy();
+    photon_result.addUserFloat("scale_smear_corr", photon->userFloat("ecalEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
+
+    // The p4 of the photon is the uncorrected one
+    photon_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, photon->eta(), photon->phi(), uncorrected_mass));
+
+    // Get scale uncertainties and their breakdown
+    photon_result.addUserFloat("scale_smear_corr_scale_totalUp", photon->userFloat("energyScaleUp") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_statUp", photon->userFloat("energyScaleStatUp") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_systUp", photon->userFloat("energyScaleSystUp") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_gainUp", photon->userFloat("energyScaleGainUp") / uncorrected_energy);
+
+    photon_result.addUserFloat("scale_smear_corr_scale_totalDn", photon->userFloat("energyScaleDown") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_statDn", photon->userFloat("energyScaleStatDown") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_systDn", photon->userFloat("energyScaleSystDown") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_scale_gainDn", photon->userFloat("energyScaleGainDown") / uncorrected_energy);
+
+    // Get smearing uncertainties and their breakdown
+    photon_result.addUserFloat("scale_smear_corr_smear_totalUp", photon->userFloat("energySigmaUp") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_smear_rhoUp", photon->userFloat("energySigmaRhoUp") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_smear_phiUp", photon->userFloat("energySigmaPhiUp") / uncorrected_energy);
+
+    photon_result.addUserFloat("scale_smear_corr_smear_totalDn", photon->userFloat("energySigmaDown") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_smear_rhoDn", photon->userFloat("energySigmaRhoDown") / uncorrected_energy);
+    photon_result.addUserFloat("scale_smear_corr_smear_phiDn", photon->userFloat("energySigmaPhiDown") / uncorrected_energy);
+
+    // Id variables
+    photon_result.addUserFloat("hOverE", photon->hadronicOverEm());
+    photon_result.addUserFloat("hOverEtowBC", photon->hadTowOverEm());
+    photon_result.addUserFloat("sigmaIEtaIEta", photon->sigmaIetaIeta());
+    //photon_result.addUserFloat("full5x5_hOverE", photon->hadronicOverEm());
+    //photon_result.addUserFloat("full5x5_hOverEtowBC", photon->hadTowOverEm());
+    photon_result.addUserFloat("full5x5_sigmaIEtaIEta", photon->full5x5_sigmaIetaIeta());
+    photon_result.addUserFloat("full5x5_r9", photon->full5x5_r9());
+
+    setMVAIdUserVariables(photon, photon_result, "PhotonMVAEstimatorRunIIFall17v2", "Fall17V2"); // Yes, RunII and v2 as opposed to Run2 and V2 like electrons...
+    setCutBasedIdUserVariables(photon, photon_result, "cutBasedPhotonID-Fall17-94X-V2-loose", "Fall17V2_Loose");
+    setCutBasedIdUserVariables(photon, photon_result, "cutBasedPhotonID-Fall17-94X-V2-medium", "Fall17V2_Medium");
+    setCutBasedIdUserVariables(photon, photon_result, "cutBasedPhotonID-Fall17-94X-V2-tight", "Fall17V2_Tight");
+
+    // Isolation
+    photon_result.addUserFloat("tkIsoHollow03", photon->trkSumPtHollowConeDR03());
+    photon_result.addUserFloat("ntkIsoHollow03", photon->nTrkHollowConeDR03());
+    photon_result.addUserFloat("ecalPFClusterIso", photon->ecalPFClusterIso());
+    photon_result.addUserFloat("hcalPFClusterIso", photon->hcalPFClusterIso());
+
+    // PFIso of reco::Photon
+    photon_result.addUserFloat("recoChargedHadronIso", photon->reco::Photon::chargedHadronIso());
+    photon_result.addUserFloat("recoNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
+    photon_result.addUserFloat("recoPhotonIso", photon->reco::Photon::photonIso());
+
+    // Pixel seeds
+    photon_result.addUserInt("hasPixelSeed", photon->hasPixelSeed());
+    photon_result.addUserInt("passElectronVeto", photon->passElectronVeto());
+
+    /*
+    // Loop over PF candidates and find those associated by the map to the gedGsfElectron1
+    vector<int> v_PFCand_idx;
+    for (const edm::Ref<pat::PackedCandidateCollection>& ref:photon->associatedPackedPFCandidates()) v_PFCand_idx.push_back(ref.key());
+    photons_PFCand_idx->push_back(v_PFCand_idx);
+    */
+
+    // Put the object into the result collection
+    result->emplace_back(photon_result);
+  }
+
+  // Put the result collection into the event
+  iEvent.put(std::move(result));
 }
 
-void  PhotonMaker::beginJob() {}
-
-void PhotonMaker::endJob() {}
-
-
-// ------------ method called to produce the data  ------------
-void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  
-    // Define vectors to be filled  
-    unique_ptr<unsigned int>   evt_nphotons           ( new unsigned int  );
-    unique_ptr<vector<LorentzVector> >  photons_p4              (new vector<LorentzVector>  );
-
-    unique_ptr<vector<float> > photons_hOverE         ( new vector<float> );
-    unique_ptr<vector<float> > photons_hOverEtowBC    ( new vector<float> );
-    unique_ptr<vector<float> > photons_sigmaIEtaIEta  ( new vector<float> );
-
-    unique_ptr<vector<float> > photons_full5x5_hOverE         ( new vector<float> );
-    unique_ptr<vector<float> > photons_full5x5_sigmaIEtaIEta  ( new vector<float> );
-    unique_ptr<vector<float> > photons_full5x5_hOverEtowBC    ( new vector<float> );
-    unique_ptr<vector<float> > photons_full5x5_r9             ( new vector<float> );
-    unique_ptr<vector<int> >   photons_photonID_loose         ( new vector<int>   );
-    unique_ptr<vector<int> >   photons_photonID_tight         ( new vector<int>   );
- 
-    unique_ptr<vector<float> > photons_recoChargedHadronIso( new vector<float> );
-    unique_ptr<vector<float> > photons_recoNeutralHadronIso( new vector<float> );
-    unique_ptr<vector<float> > photons_recoPhotonIso       ( new vector<float> );
-
-    unique_ptr<vector<bool> >  photons_haspixelSeed   ( new vector<bool>  );
-    unique_ptr<vector<bool> >  photons_passElectronVeto ( new vector<bool>  );
-
-    unique_ptr<vector<vector<int> > >           photons_PFCand_idx       (new vector<vector<int> >   );
-
-    unique_ptr<vector<float> > photons_tkIsoHollow03  ( new vector<float> );
-    unique_ptr<vector<float> > photons_ntkIsoHollow03 ( new vector<float> );
-    unique_ptr<vector<float> > photons_ecalPFClusterIso       ( new vector<float> );
-    unique_ptr<vector<float> > photons_hcalPFClusterIso       ( new vector<float> );
- 
-    ///////////////////// 
-    // Get the photons //
-    /////////////////////
-    Handle<View<pat::Photon> > photons_h;
-    iEvent.getByToken(photonsToken, photons_h);
-
-    // fill number of photons variable : NO ET CUT
-    *evt_nphotons = photons_h->size();
-
-    //loop over photon collection
-    size_t photonsIndex = 0;
-    unsigned int photonsIndexCMS3 = -1;
-    View<pat::Photon>::const_iterator photon;
-    for(photon = photons_h->begin(); photon != photons_h->end(); photon++, photonsIndex++) {
-	// throw out photons below minEt
-	if (photon->et() < minEt_)            
-            continue; //instead of photon et, use sc et for alignment purposes (?)
-	photonsIndexCMS3++; // this index is the one for CMS3 variables. Increments with the push_backs below
-
-	// Get photon and track objects
-	const edm::RefToBase<pat::Photon> photonRef = photons_h->refAt(photonsIndex);
-
-	// Lorentz Vectors	
-	photons_p4                 ->push_back( LorentzVector( photon->p4() )    );
-
-	photons_hOverE             ->push_back( photon->hadronicOverEm()       	 );
-	photons_hOverEtowBC        ->push_back( photon->hadTowOverEm()           );
-	photons_sigmaIEtaIEta      ->push_back( photon->sigmaIetaIeta()        	 );  		
-
-	photons_full5x5_hOverE             ->push_back( photon->hadronicOverEm()            	 );
-	photons_full5x5_sigmaIEtaIEta      ->push_back( photon->full5x5_sigmaIetaIeta()       	 );
-	photons_full5x5_hOverEtowBC        ->push_back( photon->hadTowOverEm()          	 );  		
-	photons_full5x5_r9                 ->push_back( photon->full5x5_r9()               	 );  
-	
-	photons_photonID_loose             ->push_back( 
-            photon->isPhotonIDAvailable("PhotonCutBasedIDLoose") ?
-                photon->photonID("PhotonCutBasedIDLoose") :
-                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-loose")
-            );  		
-	photons_photonID_tight             ->push_back(
-            photon->isPhotonIDAvailable("PhotonCutBasedIDTight") ?
-                photon->photonID("PhotonCutBasedIDTight") :
-                photon->photonID("cutBasedPhotonID-Fall17-94X-V1-tight")
-            );  		
-
-	// Testing PFIso of reco::photon
-	photons_recoChargedHadronIso   ->push_back(photon->reco::Photon::chargedHadronIso()  );	
-	photons_recoNeutralHadronIso   ->push_back(photon->reco::Photon::neutralHadronIso()  );	
-	photons_recoPhotonIso          ->push_back(photon->reco::Photon::photonIso()         );	
-		
-	// //pixel seeds
-	photons_haspixelSeed       ->push_back( photon->hasPixelSeed()             );
-	photons_passElectronVeto   ->push_back( photon->passElectronVeto()         );
-
-	photons_tkIsoHollow03      ->push_back(	photon->trkSumPtHollowConeDR03()  );
-	photons_ntkIsoHollow03     ->push_back(	photon->nTrkHollowConeDR03()	  );
-	photons_ecalPFClusterIso       ->push_back( photon->ecalPFClusterIso()             );
-	photons_hcalPFClusterIso       ->push_back( photon->hcalPFClusterIso()             );
-
-	// Loop over PF candidates and find those associated by the map to the gedGsfElectron1
-	vector<int> v_PFCand_idx;
-	for( const edm::Ref<pat::PackedCandidateCollection> & ref : photon->associatedPackedPFCandidates() )
-            v_PFCand_idx.push_back(ref.key());
-	photons_PFCand_idx->push_back(v_PFCand_idx);
-    }
- 
-    // Put the results into the event
-    std::string branchprefix = aliasprefix_;
-    if(branchprefix.find("_") != std::string::npos) branchprefix.replace(branchprefix.find("_"),1,"");
-
-    //
-    iEvent.put(std::move( evt_nphotons           ), "evtn"+branchprefix            );
-    iEvent.put(std::move( photons_p4             ), branchprefix+"p4"              );
-
-    iEvent.put(std::move( photons_hOverE         ), branchprefix+"hOverE"          );
-    iEvent.put(std::move( photons_hOverEtowBC    ), branchprefix+"hOverEtowBC"     );
-    iEvent.put(std::move( photons_sigmaIEtaIEta  ), branchprefix+"sigmaIEtaIEta"   );
-
-    iEvent.put(std::move( photons_full5x5_hOverE         ), branchprefix+"full5x5hOverE"          );
-    iEvent.put(std::move( photons_full5x5_sigmaIEtaIEta  ), branchprefix+"full5x5sigmaIEtaIEta"   );
-    iEvent.put(std::move( photons_full5x5_hOverEtowBC    ), branchprefix+"full5x5hOverEtowBC"    );
-    iEvent.put(std::move( photons_full5x5_r9             ), branchprefix+"full5x5r9"             );
-    iEvent.put(std::move( photons_photonID_loose         ), branchprefix+"photonIDloose"         );
-    iEvent.put(std::move( photons_photonID_tight         ), branchprefix+"photonIDtight"         );		
-
-    iEvent.put(std::move( photons_recoChargedHadronIso), branchprefix+"recoChargedHadronIso");  
-    iEvent.put(std::move( photons_recoNeutralHadronIso), branchprefix+"recoNeutralHadronIso");  
-    iEvent.put(std::move( photons_recoPhotonIso       ), branchprefix+"recoPhotonIso"       );  
-
-    iEvent.put(std::move( photons_haspixelSeed   ), branchprefix+"haspixelSeed"    );
-    iEvent.put(std::move( photons_passElectronVeto   ), branchprefix+"passElectronVeto"    );
-
-    iEvent.put(std::move( photons_PFCand_idx    ), branchprefix+"pfcandidx"    );
-
-    iEvent.put(std::move( photons_tkIsoHollow03  ), branchprefix+"tkIsoHollow03"   );
-    iEvent.put(std::move( photons_ntkIsoHollow03 ), branchprefix+"ntkIsoHollow03"  );
-    iEvent.put(std::move( photons_ecalPFClusterIso  ), branchprefix+"ecalPFClusterIso"    );
-    iEvent.put(std::move( photons_hcalPFClusterIso  ), branchprefix+"hcalPFClusterIso"    );
+void PhotonMaker::setMVAIdUserVariables(edm::View<pat::Photon>::const_iterator const& photon, pat::Photon& photon_result, std::string const& id_name, std::string const& id_identifier) const{
+  if (photon->hasUserInt(id_name+"Categories")){
+    photon_result.addUserFloat("id_MVA_"+id_identifier+"_Val", photon->userFloat(id_name+"Values"));
+    photon_result.addUserInt("id_MVA_"+id_identifier+"_Cat", photon->userInt(id_name+"Categories"));
+  }
+  else throw cms::Exception("PhotonMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }
+void PhotonMaker::setCutBasedIdUserVariables(edm::View<pat::Photon>::const_iterator const& photon, pat::Photon& photon_result, std::string const& id_name, std::string const& id_identifier) const{
+  if (photon->isPhotonIDAvailable(id_name)){
+    photon_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", photon->userInt(id_name));
+  }
+  else throw cms::Exception("PhotonMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(PhotonMaker);

@@ -241,17 +241,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   /////////////////////////
 
   size_t evt_nels = els_h->size(); result->reserve(evt_nels);
-  size_t elsIndex = 0;
-  for (View<pat::Electron>::const_iterator el = els_h->begin(); el != els_h->end(); el++, elsIndex++){
-    //pat::Electron el_result(*(el->get<reco::GsfElectron const*>())); // Clone the gsfElectron. This is the single electron to be put into the resultant collection
-    pat::Electron el_result(*el); // Clone the gsfElectron. This is the single electron to be put into the resultant collection
+  size_t electronIndex = 0;
+  for (View<pat::Electron>::const_iterator el = els_h->begin(); el != els_h->end(); el++, electronIndex++){
+    pat::Electron electron_result(*el); // Clone the gsfElectron. This is the single electron to be put into the resultant collection
 
     ////////////////
     // References //
     ////////////////
-    const GsfTrackRef el_track = el->gsfTrack(); // Embedded GSF Track for miniAOD
-    const RefToBase<pat::Electron> gsfElRef = els_h->refAt(elsIndex);
-    const TrackRef ctfTkRef = el->closestCtfTrackRef(); // Embedded CTF Track for miniAOD 
+    const GsfTrackRef gsfTrack = el->gsfTrack(); // Embedded GSF Track for miniAOD
+    const RefToBase<pat::Electron> gsfElectron = els_h->refAt(electronIndex);
+    const TrackRef ctfTrack = el->closestCtfTrackRef(); // Embedded CTF Track for miniAOD 
 
     ////////////
     // Vertex //
@@ -262,7 +261,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx){
       // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
       // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
-      if (  /*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0){
+      if (/*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0){
         firstGoodVertex = vtx;
         break;
       }
@@ -281,7 +280,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     if (el->isEEDeeGap()) fiducialityMask |= 1 << ISEEDEEGAP;
     if (el->isEERingGap()) fiducialityMask |= 1 << ISEERINGGAP;
     if (el->isGap()) fiducialityMask |= 1 << ISGAP;
-    el_result.addUserInt("fid_mask", fiducialityMask);
+    electron_result.addUserInt("fid_mask", fiducialityMask);
 
     ///////////////////////////
     // Corrections & Seeding //
@@ -294,126 +293,131 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // el->ecalDriven() == el->ecalDrivenSeed() && el->passingCutBasedPreselection()
     if (el->passingMvaPreselection()) electronTypeMask |= 1 << ISMVAPRESELECTED;
     //if ( el->isMomentumCorrected() ) electronTypeMask |= 1 << ISMOMENTUMCORRECTED; // Depricated in CMSSW_4_2x ( DataFormats/EgammaCandidates/interface/GsfElectron.h )
-    el_result.addUserInt("type_mask", electronTypeMask);
+    electron_result.addUserInt("type_mask", electronTypeMask);
 
     ///////////////////
     // Predefined ID //
     ///////////////////
-    // el_result.addUserInt("category", classify(gsfElRef)); // this is the sani classification
-    setMVAIdUserVariables(el, el_result, "ElectronMVAEstimatorRun2Fall17IsoV2", "Fall17V2_Iso");
-    setMVAIdUserVariables(el, el_result, "ElectronMVAEstimatorRun2Fall17NoIsoV2", "Fall17V2_NoIso");
-    setCutBasedIdUserVariables(el, el_result, "cutBasedElectronID-Fall17-94X-V2-veto", "Fall17V2_CutBased_Veto");
-    setCutBasedIdUserVariables(el, el_result, "cutBasedElectronID-Fall17-94X-V2-loose", "Fall17V2_CutBased_Loose");
-    setCutBasedIdUserVariables(el, el_result, "cutBasedElectronID-Fall17-94X-V2-medium", "Fall17V2_CutBased_Medium");
-    setCutBasedIdUserVariables(el, el_result, "cutBasedElectronID-Fall17-94X-V2-tight", "Fall17V2_CutBased_Tight");
+    // electron_result.addUserInt("category", classify(gsfElectron)); // this is the sani classification
+    setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Fall17IsoV2", "Fall17V2_Iso");
+    setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Fall17NoIsoV2", "Fall17V2_NoIso");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-veto", "Fall17V2_Veto");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-loose", "Fall17V2_Loose");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-medium", "Fall17V2_Medium");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-tight", "Fall17V2_Tight");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-veto", "Fall17V1_Veto");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-loose", "Fall17V1_Loose");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-medium", "Fall17V1_Medium");
+    setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-tight", "Fall17V1_Tight");
 
     //////////////
     // Electron //
     //////////////
-    //el_result.addUserFloat("ecalEnergy", el->ecalEnergy());  // energy corrections and uncertainties
-    //el_result.addUserFloat("ecalEnergyError", el->ecalEnergyError());
-    el_result.addUserFloat("ecalEnergy", el->correctedEcalEnergy());  // energy corrections and uncertainties
-    el_result.addUserFloat("ecalEnergyError", el->correctedEcalEnergyError());
-    el_result.addUserFloat("trackMomentumError", el->trackMomentumError());
+    //electron_result.addUserFloat("ecalEnergy", el->ecalEnergy());  // energy corrections and uncertainties
+    //electron_result.addUserFloat("ecalEnergyError", el->ecalEnergyError());
+    electron_result.addUserFloat("ecalEnergy", el->correctedEcalEnergy());  // energy corrections and uncertainties
+    electron_result.addUserFloat("ecalEnergyError", el->correctedEcalEnergyError());
+    electron_result.addUserFloat("trackMomentumError", el->trackMomentumError());
 
     //-- Scale and smearing corrections are now stored in the miniAOD https://twiki.cern.ch/twiki/bin/view/CMS/EgammaMiniAODV2#Energy_Scale_and_Smearing
     float uncorrected_pt = el->pt();
+    float uncorrected_mass = el->mass();
     float uncorrected_energy = el->energy();
-    el_result.addUserFloat("scale_smear_corr", el->userFloat("ecalTrkEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
+    electron_result.addUserFloat("scale_smear_corr", el->userFloat("ecalTrkEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
 
     // the p4 of the electron is the uncorrected one
-    el_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, el->eta(), el->phi(), el->mass()));
+    electron_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, el->eta(), el->phi(), uncorrected_mass));
 
-    //get all scale uncertainties and their breakdown
-    el_result.addUserFloat("scale_smear_corr_scale_totalUp", el->userFloat("energyScaleUp") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_statUp", el->userFloat("energyScaleStatUp") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_systUp", el->userFloat("energyScaleSystUp") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_gainUp", el->userFloat("energyScaleGainUp") / uncorrected_energy);
+    // get scale uncertainties and their breakdown
+    electron_result.addUserFloat("scale_smear_corr_scale_totalUp", el->userFloat("energyScaleUp") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_statUp", el->userFloat("energyScaleStatUp") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_systUp", el->userFloat("energyScaleSystUp") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_gainUp", el->userFloat("energyScaleGainUp") / uncorrected_energy);
 
-    el_result.addUserFloat("scale_smear_corr_scale_totalDn", el->userFloat("energyScaleDown") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_statDn", el->userFloat("energyScaleStatDown") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_systDn", el->userFloat("energyScaleSystDown") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_scale_gainDn", el->userFloat("energyScaleGainDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_totalDn", el->userFloat("energyScaleDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_statDn", el->userFloat("energyScaleStatDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_systDn", el->userFloat("energyScaleSystDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_scale_gainDn", el->userFloat("energyScaleGainDown") / uncorrected_energy);
 
-    //get all smearing uncertainties and their breakdown
-    el_result.addUserFloat("scale_smear_corr_smear_totalUp", el->userFloat("energySigmaUp") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_smear_rhoUp", el->userFloat("energySigmaRhoUp") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_smear_phiUp", el->userFloat("energySigmaPhiUp") / uncorrected_energy);
+    // get smearing uncertainties and their breakdown
+    electron_result.addUserFloat("scale_smear_corr_smear_totalUp", el->userFloat("energySigmaUp") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_smear_rhoUp", el->userFloat("energySigmaRhoUp") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_smear_phiUp", el->userFloat("energySigmaPhiUp") / uncorrected_energy);
 
-    el_result.addUserFloat("scale_smear_corr_smear_totalDn", el->userFloat("energySigmaDown") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_smear_rhoDn", el->userFloat("energySigmaRhoDown") / uncorrected_energy);
-    el_result.addUserFloat("scale_smear_corr_smear_phiDn", el->userFloat("energySigmaPhiDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_smear_totalDn", el->userFloat("energySigmaDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_smear_rhoDn", el->userFloat("energySigmaRhoDown") / uncorrected_energy);
+    electron_result.addUserFloat("scale_smear_corr_smear_phiDn", el->userFloat("energySigmaPhiDown") / uncorrected_energy);
 
     /////////////
     // Vectors //
     /////////////
-    el_result.addUserFloat("trk_pt", el_track->pt());
-    el_result.addUserFloat("trk_eta", el_track->eta());
-    el_result.addUserFloat("trk_phi", el_track->phi());
+    electron_result.addUserFloat("trk_pt", gsfTrack->pt());
+    electron_result.addUserFloat("trk_eta", gsfTrack->eta());
+    electron_result.addUserFloat("trk_phi", gsfTrack->phi());
 
     math::XYZVectorF p3In  = el->trackMomentumAtVtx();
-    el_result.addUserFloat("trk_atvtx_pt", p3In.R());
-    el_result.addUserFloat("trk_atvtx_eta", p3In.Eta());
-    el_result.addUserFloat("trk_atvtx_phi", p3In.Phi());
+    electron_result.addUserFloat("trk_atvtx_pt", p3In.R());
+    electron_result.addUserFloat("trk_atvtx_eta", p3In.Eta());
+    electron_result.addUserFloat("trk_atvtx_phi", p3In.Phi());
 
     math::XYZVectorF p3Out = el->trackMomentumOut();
-    el_result.addUserFloat("trk_out_pt", p3Out.R());
-    el_result.addUserFloat("trk_out_eta", p3Out.Eta());
-    el_result.addUserFloat("trk_out_phi", p3Out.Phi());
+    electron_result.addUserFloat("trk_out_pt", p3Out.R());
+    electron_result.addUserFloat("trk_out_eta", p3Out.Eta());
+    electron_result.addUserFloat("trk_out_phi", p3Out.Phi());
 
-    el_result.addUserFloat("vtx_x", el->vx());
-    el_result.addUserFloat("vtx_y", el->vy());
-    el_result.addUserFloat("vtx_z", el->vz());
+    electron_result.addUserFloat("vtx_x", el->vx());
+    electron_result.addUserFloat("vtx_y", el->vy());
+    electron_result.addUserFloat("vtx_z", el->vz());
 
-    el_result.addUserFloat("trk_vtx_x", el_track->vx());
-    el_result.addUserFloat("trk_vtx_y", el_track->vy());
-    el_result.addUserFloat("trk_vtx_z", el_track->vz());
+    electron_result.addUserFloat("trk_vtx_x", gsfTrack->vx());
+    electron_result.addUserFloat("trk_vtx_y", gsfTrack->vy());
+    electron_result.addUserFloat("trk_vtx_z", gsfTrack->vz());
 
     ///////////////
     // Isolation //
     ///////////////
-    el_result.addUserFloat("hcalDepth1TowerSumEt", el->dr03HcalDepth1TowerSumEt());
-    el_result.addUserFloat("ecalIso", el->dr03EcalRecHitSumEt());
-    el_result.addUserFloat("hcalIso", el->dr03HcalTowerSumEt());
-    el_result.addUserFloat("tkIso", el->dr03TkSumPt());
+    electron_result.addUserFloat("hcalDepth1TowerSumEt", el->dr03HcalDepth1TowerSumEt());
+    electron_result.addUserFloat("ecalIso", el->dr03EcalRecHitSumEt());
+    electron_result.addUserFloat("hcalIso", el->dr03HcalTowerSumEt());
+    electron_result.addUserFloat("tkIso", el->dr03TkSumPt());
 
-    el_result.addUserFloat("ecalIso04", el->dr04EcalRecHitSumEt());
-    el_result.addUserFloat("hcalIso04", el->dr04HcalTowerSumEt());
-    el_result.addUserFloat("tkIso04", el->dr04TkSumPt());
+    electron_result.addUserFloat("ecalIso04", el->dr04EcalRecHitSumEt());
+    electron_result.addUserFloat("hcalIso04", el->dr04HcalTowerSumEt());
+    electron_result.addUserFloat("tkIso04", el->dr04TkSumPt());
 
     //////////////////
     // PF Isolation //
     //////////////////
     GsfElectron::PflowIsolationVariables pfIso = el->pfIsolationVariables();
-    el_result.addUserFloat("pfChargedHadronIso", pfIso.sumChargedHadronPt);
-    el_result.addUserFloat("pfNeutralHadronIso", pfIso.sumNeutralHadronEt);
-    el_result.addUserFloat("pfPhotonIso", pfIso.sumPhotonEt);
-    el_result.addUserFloat("pfPUIso", pfIso.sumPUPt);
+    electron_result.addUserFloat("pfChargedHadronIso", pfIso.sumChargedHadronPt);
+    electron_result.addUserFloat("pfNeutralHadronIso", pfIso.sumNeutralHadronEt);
+    electron_result.addUserFloat("pfPhotonIso", pfIso.sumPhotonEt);
+    electron_result.addUserFloat("pfPUIso", pfIso.sumPUPt);
 
     //////////////////
     // Supercluster //
     //////////////////
-    el_result.addUserFloat("etaSC", el->superCluster()->eta());
-    el_result.addUserFloat("phiSC", el->superCluster()->phi());
-    el_result.addUserFloat("eSC", el->superCluster()->energy());
-    el_result.addUserFloat("eSCRaw", el->superCluster()->rawEnergy());
-    el_result.addUserFloat("eSCPresh", el->superCluster()->preshowerEnergy());
-    el_result.addUserFloat("sigmaIEtaIEta", el->sigmaIetaIeta());
-    el_result.addUserFloat("etaSCwidth", el->superCluster()->etaWidth());
-    el_result.addUserFloat("phiSCwidth", el->superCluster()->phiWidth());
+    electron_result.addUserFloat("etaSC", el->superCluster()->eta());
+    electron_result.addUserFloat("phiSC", el->superCluster()->phi());
+    electron_result.addUserFloat("energySC", el->superCluster()->energy());
+    electron_result.addUserFloat("rawEnergySC", el->superCluster()->rawEnergy());
+    electron_result.addUserFloat("preshowerEnergySC", el->superCluster()->preshowerEnergy());
+    electron_result.addUserFloat("sigmaIEtaIEta", el->sigmaIetaIeta());
+    electron_result.addUserFloat("etaWidthSC", el->superCluster()->etaWidth());
+    electron_result.addUserFloat("phiWidthSC", el->superCluster()->phiWidth());
 
     // We used to make these using the cluster tools, but now we can take them directly from RECO electron
-    el_result.addUserFloat("sigmaIPhiIPhi", el->sigmaIphiIphi());
+    electron_result.addUserFloat("sigmaIPhiIPhi", el->sigmaIphiIphi());
 
     // Take these directly from the PAT electron of the miniAOD
-    el_result.addUserFloat("sigmaIPhiIPhi_full5x5", el->full5x5_sigmaIphiIphi());
-    el_result.addUserFloat("sigmaEtaEta_full5x5", el->full5x5_sigmaEtaEta());
-    el_result.addUserFloat("sigmaIEtaIEta_full5x5", el->full5x5_sigmaIetaIeta());
-    el_result.addUserFloat("r9_full5x5", el->full5x5_r9());
-    el_result.addUserFloat("r9", el->r9());
-    el_result.addUserFloat("e1x5_full5x5", el->full5x5_e1x5());
-    el_result.addUserFloat("e5x5_full5x5", el->full5x5_e5x5());
-    el_result.addUserFloat("e2x5Max_full5x5", el->full5x5_e2x5Max());
+    electron_result.addUserFloat("full5x5_sigmaIPhiIPhi", el->full5x5_sigmaIphiIphi());
+    electron_result.addUserFloat("full5x5_sigmaEtaEta", el->full5x5_sigmaEtaEta());
+    electron_result.addUserFloat("full5x5_sigmaIEtaIEta", el->full5x5_sigmaIetaIeta());
+    electron_result.addUserFloat("full5x5_r9", el->full5x5_r9());
+    electron_result.addUserFloat("r9", el->r9());
+    electron_result.addUserFloat("full5x5_e1x5", el->full5x5_e1x5());
+    electron_result.addUserFloat("full5x5_e5x5", el->full5x5_e5x5());
+    electron_result.addUserFloat("full5x5_e2x5Max", el->full5x5_e2x5Max());
 
     ///////////////////////////////////////////////////////
     // Get cluster info that is not stored in the object //
@@ -441,19 +445,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       //	els_scEtaWidth              = el->superCluster()->etaWidth();
       //	els_scSeedRawEnergy         = el->superCluster()->seed()->energy();
       //	els_scSeedCalibratedEnergy  = el->superCluster()->seed()->energy();
-      //  el_result.addUserFloat("scSeedE5x5", clusterTools_->e5x5(*(el->superCluster()->seed())));
-      //	el_result.addUserFloat("scSeedE2x5max", clusterTools_->e2x5Max(*(el->superCluster()->seed())));
-      //  el_result.addUserFloat("scSeedSigmaIetaIeta", see);
-      //  el_result.addUserFloat("scSeedSigmaIphiIphi", spp); 
+      //  electron_result.addUserFloat("scSeedE5x5", clusterTools_->e5x5(*(el->superCluster()->seed())));
+      //	electron_result.addUserFloat("scSeedE2x5max", clusterTools_->e2x5Max(*(el->superCluster()->seed())));
+      //  electron_result.addUserFloat("scSeedSigmaIetaIeta", see);
+      //  electron_result.addUserFloat("scSeedSigmaIphiIphi", spp); 
 
 
       // The one below is kept for historical reasons
-      el_result.addUserFloat("SC_seed_energy", el->superCluster()->seed()->energy());
-      el_result.addUserFloat("SC_seed_eta", el->superCluster()->seed()->eta());
+      electron_result.addUserFloat("SC_seed_energy", el->superCluster()->seed()->energy());
+      electron_result.addUserFloat("SC_seed_eta", el->superCluster()->seed()->eta());
     }
     else{
-      el_result.addUserFloat("SC_seed_energy", -1.);
-      el_result.addUserFloat("SC_seed_eta", -1.);
+      electron_result.addUserFloat("SC_seed_energy", -1.);
+      electron_result.addUserFloat("SC_seed_eta", -1.);
     }
     //
     //            //
@@ -463,7 +467,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //            const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
     //
     //            //
-    //get from RECO            el_result.addUserFloat("sigmaIPhiIPhi   ",  isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -1. );
+    //get from RECO            electron_result.addUserFloat("sigmaIPhiIPhi", isfinite(lcovs[2]) ? lcovs[2] > 0 ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2]) : -1. );
     //
     //            //
 
@@ -471,16 +475,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////
     // ID //
     ////////
-    //el_result.addUserFloat("hOverE                        ",  el->hadronicOverEm()                 );
-    el_result.addUserFloat("hOverE", el->hcalOverEcal());
-    el_result.addUserFloat("full5x5_hOverE", el->full5x5_hcalOverEcal());
-    el_result.addUserFloat("eOverPIn", el->eSuperClusterOverP());
-    el_result.addUserFloat("eOverPOut", el->eEleClusterOverPout());
-    el_result.addUserFloat("fbrem", el->fbrem());
-    el_result.addUserFloat("dEtaIn", el->deltaEtaSuperClusterTrackAtVtx());
-    el_result.addUserFloat("dEtaOut", el->deltaEtaSeedClusterTrackAtCalo());
-    el_result.addUserFloat("dPhiIn", el->deltaPhiSuperClusterTrackAtVtx());
-    el_result.addUserFloat("dPhiOut", el->deltaPhiSeedClusterTrackAtCalo());
+    //electron_result.addUserFloat("hOverE", el->hadronicOverEm());
+    electron_result.addUserFloat("hOverE", el->hcalOverEcal());
+    electron_result.addUserFloat("full5x5_hOverE", el->full5x5_hcalOverEcal());
+    electron_result.addUserFloat("eOverPIn", el->eSuperClusterOverP());
+    electron_result.addUserFloat("eOverPOut", el->eEleClusterOverPout());
+    electron_result.addUserFloat("fbrem", el->fbrem());
+    electron_result.addUserFloat("dEtaIn", el->deltaEtaSuperClusterTrackAtVtx());
+    electron_result.addUserFloat("dEtaOut", el->deltaEtaSeedClusterTrackAtCalo());
+    electron_result.addUserFloat("dPhiIn", el->deltaPhiSuperClusterTrackAtVtx());
+    electron_result.addUserFloat("dPhiOut", el->deltaPhiSeedClusterTrackAtCalo());
 
     ////////////
     // Charge //
@@ -488,62 +492,70 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     bool isGsfCtfScPixChargeConsistent = el->isGsfCtfScPixChargeConsistent();
     bool isGsfScPixChargeConsistent = el->isGsfScPixChargeConsistent();
     bool isGsfCtfChargeConsistent = el->isGsfCtfChargeConsistent();
-    int trk_q        = el_track->charge();
-    el_result.addUserInt("charge", el->charge());
-    //el_result.addUserInt("threeCharge", el->threeCharge());
-    el_result.addUserInt("trk_charge", trk_q);
-    el_result.addUserInt("SC_pixCharge", el->scPixCharge());
-    el_result.addUserInt("isGsfCtfScPixChargeConsistent", static_cast<int>(isGsfCtfScPixChargeConsistent)); // Used also in id
-    el_result.addUserInt("isGsfScPixChargeConsistent", static_cast<int>(isGsfScPixChargeConsistent));
-    el_result.addUserInt("isGsfCtfChargeConsistent", static_cast<int>(isGsfCtfChargeConsistent));
+    int trk_q = gsfTrack->charge();
+    electron_result.addUserInt("charge", el->charge());
+    //electron_result.addUserInt("threeCharge", el->threeCharge());
+    electron_result.addUserInt("trk_charge", trk_q);
+    electron_result.addUserInt("SC_pixCharge", el->scPixCharge());
+    electron_result.addUserInt("isGsfCtfScPixChargeConsistent", static_cast<int>(isGsfCtfScPixChargeConsistent)); // Used also in id
+    electron_result.addUserInt("isGsfScPixChargeConsistent", static_cast<int>(isGsfScPixChargeConsistent));
+    electron_result.addUserInt("isGsfCtfChargeConsistent", static_cast<int>(isGsfCtfChargeConsistent));
 
     ////////////
     // Tracks //
     ////////////
-    float pt       = el_track->pt();
-    float p        = el_track->p();
-    float pz       = el_track->pz();
-    float trkpterr = (trk_q!=0 ? sqrt(pt*pt*p*p/pow(trk_q, 2)*(el_track->covariance(0, 0))+2*pt*p/trk_q*pz*(el_track->covariance(0, 1))+ pz*pz*(el_track->covariance(1, 1))) : -1.);
-    el_result.addUserFloat("chi2", el_track->chi2());
-    el_result.addUserFloat("ndof", el_track->ndof());
-    el_result.addUserFloat("d0Err", el_track->d0Error());
-    el_result.addUserFloat("z0Err", el_track->dzError());
-    el_result.addUserFloat("ptErr", trkpterr);
-    el_result.addUserFloat("ptErrGsf", el_track->ptError());
-    el_result.addUserFloat("validHits", el_track->numberOfValidHits());
-    el_result.addUserFloat("lostHits", el_track->numberOfLostHits());
-    if (firstGoodVertex!=vertexCollection->end()){
-      el_result.addUserFloat("dxyPV", el_track->dxy(firstGoodVertex->position()));
-      el_result.addUserFloat("dzPV", el_track->dz(firstGoodVertex->position()));
-    }
-    else{
-      el_result.addUserFloat("dxyPV", -1.);
-      el_result.addUserFloat("dzPV", -1.);
+    {
+      float pt       = gsfTrack->pt();
+      float p        = gsfTrack->p();
+      float pz       = gsfTrack->pz();
+      float pterr = (trk_q!=0 ? sqrt(pt*pt*p*p/pow(trk_q, 2)*(gsfTrack->covariance(0, 0))+2*pt*p/trk_q*pz*(gsfTrack->covariance(0, 1))+ pz*pz*(gsfTrack->covariance(1, 1))) : -1.);
+      electron_result.addUserFloat("chi2", gsfTrack->chi2());
+      electron_result.addUserFloat("ndof", gsfTrack->ndof());
+      electron_result.addUserFloat("d0Err", gsfTrack->d0Error());
+      electron_result.addUserFloat("z0Err", gsfTrack->dzError());
+      electron_result.addUserFloat("ptErr", pterr);
+      electron_result.addUserFloat("ptErr_gsf", gsfTrack->ptError());
+      electron_result.addUserFloat("validHits", gsfTrack->numberOfValidHits());
+      electron_result.addUserFloat("lostHits", gsfTrack->numberOfLostHits());
     }
 
-    el_result.addUserFloat("dz_firstPV", el_track->dz((vertexCollection->begin())->position()));
-    el_result.addUserFloat("dxy_firstPV", el_track->dxy((vertexCollection->begin())->position()));
+    // Vertex dxy and dz
+    if (firstGoodVertex!=vertexCollection->end()){
+      electron_result.addUserFloat("dxy_PV", gsfTrack->dxy(firstGoodVertex->position()));
+      electron_result.addUserFloat("dz_PV", gsfTrack->dz(firstGoodVertex->position()));
+    }
+    else{
+      electron_result.addUserFloat("dxy_PV", -1.);
+      electron_result.addUserFloat("dz_PV", -1.);
+    }
+    if (vertexCollection->begin()!=vertexCollection->end()){
+      electron_result.addUserFloat("dz_firstPV", gsfTrack->dz(vertexCollection->begin()->position()));
+      electron_result.addUserFloat("dxy_firstPV", gsfTrack->dxy(vertexCollection->begin()->position()));
+    }
+    else{
+      electron_result.addUserFloat("dz_firstPV", -1.);
+      electron_result.addUserFloat("dxy_firstPV", -1.);
+    }
 
     /////////
     // CTF //
     /////////
-
-    if (ctfTkRef.isNonnull()){
-      //el_result.addUserFloat("trkshFrac", static_cast<float>( el->shFracInnerHits() )                                  );
-      el_result.addUserFloat("trkshFrac", static_cast<float>(el->ctfGsfOverlap()));
-      el_result.addUserFloat("trkdr", deltaR(el_track->eta(), el_track->phi(), ctfTkRef->eta(), ctfTkRef->phi()));
-      el_result.addUserFloat("ckf_chi2", ctfTkRef->chi2());
-      el_result.addUserFloat("ckf_ndof", ctfTkRef->ndof());
-      el_result.addUserInt("ckf_laywithmeas", ctfTkRef->hitPattern().trackerLayersWithMeasurement());
-      el_result.addUserInt("ckf_charge", ctfTkRef->charge());
+    if (ctfTrack.isNonnull()){
+      //electron_result.addUserFloat("trkshFrac", static_cast<float>( el->shFracInnerHits() )                                  );
+      electron_result.addUserFloat("trkshFrac", static_cast<float>(el->ctfGsfOverlap()));
+      electron_result.addUserFloat("trkdr", deltaR(gsfTrack->eta(), gsfTrack->phi(), ctfTrack->eta(), ctfTrack->phi()));
+      electron_result.addUserFloat("ckf_chi2", ctfTrack->chi2());
+      electron_result.addUserFloat("ckf_ndof", ctfTrack->ndof());
+      electron_result.addUserInt("ckf_laywithmeas", ctfTrack->hitPattern().trackerLayersWithMeasurement());
+      electron_result.addUserInt("ckf_charge", ctfTrack->charge());
     }
     else{
-      el_result.addUserFloat("trkshFrac", -1.);
-      el_result.addUserFloat("trkdr", -1.);
-      el_result.addUserFloat("ckf_chi2", -1.);
-      el_result.addUserFloat("ckf_ndof", -1.);
-      el_result.addUserInt("ckf_laywithmeas", -1.);
-      el_result.addUserInt("ckf_charge", 0);
+      electron_result.addUserFloat("trkshFrac", -1.);
+      electron_result.addUserFloat("trkdr", -1.);
+      electron_result.addUserFloat("ckf_chi2", -1.);
+      electron_result.addUserFloat("ckf_ndof", -1.);
+      electron_result.addUserInt("ckf_laywithmeas", -1.);
+      electron_result.addUserInt("ckf_charge", 0);
     }
 
 
@@ -555,54 +567,53 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //        if ( firstGoodVertex!=vertexCollection->end() ) {
     //            Measurement1D ip3D_regular = IPTools::absoluteImpactParameter3D(tt, *firstGoodVertex).second;
     //            //
-    //            el_result.addUserFloat("ip3d", ip3D_regular.value() );
-    //            el_result.addUserFloat("ip3derr", ip3D_regular.error() );
+    //            electron_result.addUserFloat("ip3d", ip3D_regular.value() );
+    //            electron_result.addUserFloat("ip3derr", ip3D_regular.error() );
     //        } else {
     //            //
-    //            el_result.addUserFloat("ip3d", -999. );
-    //            el_result.addUserFloat("ip3derr", -1. );
+    //            electron_result.addUserFloat("ip3d", -999. );
+    //            electron_result.addUserFloat("ip3derr", -1. );
     //        }
 
 
     //Impact Parameters
-    el_result.addUserFloat("ip3d", el->dB(pat::Electron::PV3D));
-    el_result.addUserFloat("ip3derr", el->edB(pat::Electron::PV3D));
-    el_result.addUserFloat("ip2d", el->dB(pat::Electron::PV2D));
-    el_result.addUserFloat("ip2derr", el->edB(pat::Electron::PV2D));
-    //el_result.addUserFloat("ip3d", el->ip3d()); // miniAOD
-
+    //electron_result.addUserFloat("IP3D", el->ip3d()); // miniAOD
+    electron_result.addUserFloat("IP3D", el->dB(pat::Electron::PV3D));
+    electron_result.addUserFloat("IP3Derr", el->edB(pat::Electron::PV3D));
+    electron_result.addUserFloat("IP2D", el->dB(pat::Electron::PV2D));
+    electron_result.addUserFloat("IP2Derr", el->edB(pat::Electron::PV2D));
 
     /////////////////
     // Hit Pattern //
     /////////////////
     // Redesign according to https://twiki.cern.ch/twiki/bin/viewauth/CMS/TrackingHitPatternRedesign
-    const HitPattern& pattern = el_track->hitPattern();
-    //const HitPattern& p_inner = el_track->trackerExpectedHitsInner(); 
-    //const HitPattern& p_outer = el_track->trackerExpectedHitsOuter();
-    el_result.addUserInt("n_missing_inner_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
-    el_result.addUserInt("n_missing_outer_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS));
-    el_result.addUserInt("n_valid_pixel_hits", pattern.numberOfValidPixelHits());
-    el_result.addUserInt("n_lost_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
-    el_result.addUserInt("n_tracker_layers", pattern.trackerLayersWithMeasurement());
-    el_result.addUserInt("n_tracker_layers_3D", pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
-    el_result.addUserInt("n_tracker_layers_lost", pattern.trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS));
+    const HitPattern& pattern = gsfTrack->hitPattern();
+    //const HitPattern& p_inner = gsfTrack->trackerExpectedHitsInner(); 
+    //const HitPattern& p_outer = gsfTrack->trackerExpectedHitsOuter();
+    electron_result.addUserInt("n_missing_inner_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
+    electron_result.addUserInt("n_missing_outer_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS));
+    electron_result.addUserInt("n_valid_pixel_hits", pattern.numberOfValidPixelHits());
+    electron_result.addUserInt("n_lost_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
+    electron_result.addUserInt("n_tracker_layers", pattern.trackerLayersWithMeasurement());
+    electron_result.addUserInt("n_tracker_layers_3D", pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
+    electron_result.addUserInt("n_tracker_layers_lost", pattern.trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS));
 
     /////////////////
     // Conversions //
     /////////////////
     reco::ConversionRef conv_ref = ConversionTools::matchedConversion(*el, convs_h, beamSpot);
     float vertexFitProbability = -1;
-    if (!conv_ref.isNull()) {
+    if (!conv_ref.isNull()){
       const reco::Vertex &vtx = conv_ref.get()->conversionVertex();
       if (vtx.isValid()) vertexFitProbability = TMath::Prob(vtx.chi2(), vtx.ndof());
     }
-    el_result.addUserFloat("conv_vtx_prob", vertexFitProbability);
+    electron_result.addUserFloat("conv_vtx_prob", vertexFitProbability);
     //cout<<"Found electron with pt eta phi "<<el->p4().pt() <<" "<< el->p4().eta() <<" "<< el->p4().phi()<<" and vertexFitProbability "<<vertexFitProbability<<endl;
 
     //////////////////////////////////////////////
     // Flag For Vertex Fit Conversion Rejection //
     //////////////////////////////////////////////
-    el_result.addUserInt("conv_vtx_flag", static_cast<int>(!el->passConversionVeto())); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
+    electron_result.addUserInt("conv_vtx_flag", static_cast<int>(!el->passConversionVeto())); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
 
     //////////////////////
     // genMatch miniAOD //
@@ -611,62 +622,62 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const reco::GenParticle* gen = el->genParticle();
     if (gen){
       mc_p4 = gen->p4();
-      el_result.addUserInt("mc_patMatch_id", gen->pdgId());
-      el_result.addUserFloat("mc_patMatch_pt", mc_p4.pt());
-      el_result.addUserFloat("mc_patMatch_eta", mc_p4.eta());
-      el_result.addUserFloat("mc_patMatch_phi", mc_p4.phi());
-      el_result.addUserFloat("mc_patMatch_mass", mc_p4.mass());
-      el_result.addUserFloat("mc_patMatch_dr", ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4()));
+      electron_result.addUserInt("mc_patMatch_id", gen->pdgId());
+      electron_result.addUserFloat("mc_patMatch_pt", mc_p4.pt());
+      electron_result.addUserFloat("mc_patMatch_eta", mc_p4.eta());
+      electron_result.addUserFloat("mc_patMatch_phi", mc_p4.phi());
+      electron_result.addUserFloat("mc_patMatch_mass", mc_p4.mass());
+      electron_result.addUserFloat("mc_patMatch_dr", ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4()));
     }
     else{
-      el_result.addUserInt("mc_patMatch_id", 0);
-      el_result.addUserFloat("mc_patMatch_pt", -1);
-      el_result.addUserFloat("mc_patMatch_eta", 0);
-      el_result.addUserFloat("mc_patMatch_phi", 0);
-      el_result.addUserFloat("mc_patMatch_mass", 0);
-      el_result.addUserFloat("mc_patMatch_dr", -1);
+      electron_result.addUserInt("mc_patMatch_id", 0);
+      electron_result.addUserFloat("mc_patMatch_pt", -1);
+      electron_result.addUserFloat("mc_patMatch_eta", 0);
+      electron_result.addUserFloat("mc_patMatch_phi", 0);
+      electron_result.addUserFloat("mc_patMatch_mass", 0);
+      electron_result.addUserFloat("mc_patMatch_dr", -1);
     }
 
     //////////////////////
     // mini-isolation   //
     //////////////////////
-
     // float minichiso     = 0.;
     // float mininhiso     = 0.;
     // float miniemiso     = 0.;
     // float minidbiso     = 0.;
     // elMiniIso(el, true, 0.0, minichiso, mininhiso, miniemiso, minidbiso);
-    // el_result.addUserFloat("miniIso_uncor   ",  minichiso + mininhiso + miniemiso );
-    // el_result.addUserFloat("miniIso_ch      ",  minichiso );
-    // el_result.addUserFloat("miniIso_nh      ",  mininhiso );
-    // el_result.addUserFloat("miniIso_em      ",  miniemiso );
-    // el_result.addUserFloat("miniIso_db      ",  minidbiso );
+    // electron_result.addUserFloat("miniIso_uncor   ",  minichiso + mininhiso + miniemiso );
+    // electron_result.addUserFloat("miniIso_ch      ",  minichiso );
+    // electron_result.addUserFloat("miniIso_nh      ",  mininhiso );
+    // electron_result.addUserFloat("miniIso_em      ",  miniemiso );
+    // electron_result.addUserFloat("miniIso_db      ",  minidbiso );
     auto el2 = el->clone();
     auto miniiso = el2->miniPFIsolation();
-    el_result.addUserFloat("miniIso_uncor", miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
-    el_result.addUserFloat("miniIso_ch", miniiso.chargedHadronIso());
-    el_result.addUserFloat("miniIso_nh", miniiso.neutralHadronIso());
-    el_result.addUserFloat("miniIso_em", miniiso.photonIso());
-    el_result.addUserFloat("miniIso_db", miniiso.puChargedHadronIso());
+    electron_result.addUserFloat("miniIso_uncor", miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
+    electron_result.addUserFloat("miniIso_ch", miniiso.chargedHadronIso());
+    electron_result.addUserFloat("miniIso_nh", miniiso.neutralHadronIso());
+    electron_result.addUserFloat("miniIso_em", miniiso.photonIso());
+    electron_result.addUserFloat("miniIso_db", miniiso.puChargedHadronIso());
     delete el2;
 
     ///////////////////////////
     // PFCluster isolation   //
     ///////////////////////////
-    el_result.addUserFloat("ecalPFClusterIso", el->ecalPFClusterIso());
-    el_result.addUserFloat("hcalPFClusterIso", el->hcalPFClusterIso());
+    electron_result.addUserFloat("ecalPFClusterIso", el->ecalPFClusterIso());
+    electron_result.addUserFloat("hcalPFClusterIso", el->hcalPFClusterIso());
 
-    result->emplace_back(el_result);
-  } // end Loop on Electrons
+    // Put the object into the result collection
+    result->emplace_back(electron_result);
+  }
 
-  // Put the electron collection into the event
+  // Put the result collection into the event
   iEvent.put(std::move(result));
 }
 
 //----------------------------------------------------------------------------
 // Electron Id classification function (a flag for the Sani type class)
 //----------------------------------------------------------------------------
-int ElectronMaker::classify(const RefToBase<pat::Electron> &electron) {
+int ElectronMaker::classify(RefToBase<pat::Electron> const& electron) {
   double eOverP = electron->eSuperClusterOverP();
   double fbrem = electron->fbrem();
 
@@ -678,13 +689,13 @@ int ElectronMaker::classify(const RefToBase<pat::Electron> &electron) {
 }
 
 //little labour-saving function to get the reference to the ValueMap
-template<typename T> const ValueMap<T>& ElectronMaker::getValueMap(const Event& iEvent, InputTag& inputTag){
-  Handle<ValueMap<T> > handle;
+template<typename T> const ValueMap<T>& ElectronMaker::getValueMap(Event const& iEvent, InputTag const& inputTag){
+  Handle< ValueMap<T> > handle;
   iEvent.getByLabel(inputTag, handle);
   return *(handle.product());
 }
 
-double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vtx, float coner, float minptn, float dzcut, float footprintdr, float gammastripveto, float elestripveto, int filterId){
+double ElectronMaker::electronIsoValuePF(GsfElectron const& el, Vertex const& vtx, float coner, float minptn, float dzcut, float footprintdr, float gammastripveto, float elestripveto, int filterId){
 
   float pfciso = 0.;
   float pfniso = 0.;
@@ -751,7 +762,7 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
   return pfciso+pfniso-pffootprint-pfjurveto-pfjurvetoq;
 }
 
-void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
+void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator const& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
   chiso     = 0.;
   nhiso     = 0.;
   emiso     = 0.;
@@ -796,7 +807,7 @@ void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el
   return;
 }
 
-void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso){
+void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator const& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso){
   float pt = el->p4().pt();
   float dr = 0.2;
   if (pt>50) dr = 10./pt;
@@ -805,16 +816,16 @@ void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool
   return;
 }
 
-void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator& el, pat::Electron& el_result, std::string const& id_name, std::string const& id_identifier) const{
+void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, std::string const& id_name, std::string const& id_identifier) const{
   if (el->hasUserInt(id_name+"Categories")){
-    el_result.addUserFloat("id_"+id_identifier+"_Val", el->userFloat(id_name+"Values"));
-    el_result.addUserInt("id_"+id_identifier+"_Cat", el->userInt(id_name+"Categories"));
+    electron_result.addUserFloat("id_MVA_"+id_identifier+"_Val", el->userFloat(id_name+"Values"));
+    electron_result.addUserInt("id_MVA_"+id_identifier+"_Cat", el->userInt(id_name+"Categories"));
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }
-void ElectronMaker::setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator& el, pat::Electron& el_result, std::string const& id_name, std::string const& id_identifier) const{
+void ElectronMaker::setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, std::string const& id_name, std::string const& id_identifier) const{
   if (el->isElectronIDAvailable(id_name)){
-    el_result.addUserInt("id_"+id_identifier+"_Bits", el->userInt(id_name));
+    electron_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", el->userInt(id_name));
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }

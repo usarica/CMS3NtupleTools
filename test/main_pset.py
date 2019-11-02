@@ -127,6 +127,7 @@ process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi"
 #process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_eleid_modules = [
     'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
+    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff',
     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
     'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
 ]
@@ -141,6 +142,7 @@ if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
 process.eventMaker.isData = cms.bool(opts.data)
 process.electronMaker.year = cms.int32(opts.year)
+process.photonMaker.year = cms.int32(opts.year)
 if not opts.data:
     process.genMaker.year = cms.int32(opts.year)
 
@@ -301,29 +303,31 @@ elif (opts.year == 2018):
 #for idmod in my_phoid_modules:
 #    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
 
+# Setup e/gamma sequence
+process.egammaMakerSeq = cms.Sequence( process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker * process.photonMaker )
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
         process.eventMaker,
         process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
+        process.hltMakerSequence if not opts.fastsim else None,
+        process.miniAODrhoSequence,
         process.metFilterMaker,
-        #process.egmGsfElectronIDSequence,
         process.vertexMaker,
-        process.secondaryVertexMaker,
+        #process.secondaryVertexMaker,
         process.pfCandidateMaker,
         process.isoTrackMaker,
-        process.electronMaker,
         process.muonMaker,
+        process.egammaMakerSeq,
+        process.electronMaker,
+        #process.photonMaker,
         process.pfJetMaker,
         process.pfJetPUPPIMaker,
         process.subJetMaker,
         process.pfmetMaker,
         process.pfmetpuppiMaker,
-        process.hltMakerSequence if not opts.fastsim else None,
-        process.miniAODrhoSequence,
         process.pftauMaker,
         # Disable these temporarily until they are renewed
-        #process.photonMaker,
         #process.muToTrigAssMaker if opts.triginfo else None,
         #process.elToTrigAssMaker if opts.triginfo else None,
         process.genMaker if not opts.data else None,
@@ -356,7 +360,8 @@ for ip,producer in enumerate(producers):
         continue
 
     if producer == process.electronMaker:
-       total_path *= process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker
+    #   total_path *= process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker
+       total_path *= process.egammaMakerSeq
        continue
 
 

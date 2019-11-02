@@ -6,6 +6,8 @@ cms3ntuple = cms.EDAnalyzer(
    year = cms.int32(-1), # Must be overriden by main_pset
    treename = cms.untracked.string("Events"),
 
-   electronSrc   = cms.InputTag("electronMaker")
+   electronSrc   = cms.InputTag("electronMaker"),
+   photonSrc   = cms.InputTag("photonMaker"),
+   #muonSrc   = cms.InputTag("muonMaker"),
 
 )

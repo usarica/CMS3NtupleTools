@@ -78,17 +78,20 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob();
 
-  double electronIsoValuePF(const reco::GsfElectron& el, const reco::Vertex& vtx, float coner, float minptn, float dzcut,
-                            float footprintdr, float gammastripveto, float elestripveto, int filterId);
+  double electronIsoValuePF(
+    reco::GsfElectron const&, reco::Vertex const&,
+    float, float, float, float, float, float,
+    int
+  );
 
-  int classify(const edm::RefToBase<pat::Electron> &);
-  template<typename T> const edm::ValueMap<T>& getValueMap(const edm::Event& iEvent, edm::InputTag& inputTag);
+  int classify(edm::RefToBase<pat::Electron> const&);
+  template<typename T> const edm::ValueMap<T>& getValueMap(edm::Event const&, edm::InputTag const&);
 
-  void elIsoCustomCone(edm::View<pat::Electron>::const_iterator& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
-  void elMiniIso(edm::View<pat::Electron>::const_iterator& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso);
+  void elIsoCustomCone(edm::View<pat::Electron>::const_iterator const&, float, bool, float, float&, float&, float&, float&);
+  void elMiniIso(edm::View<pat::Electron>::const_iterator const&, bool, float, float&, float&, float&, float&);
 
-  void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator&, pat::Electron&, std::string const&, std::string const&) const;
-  void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator&, pat::Electron&, std::string const&, std::string const&) const;
+  void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
+  void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
 
 
   // ----------member data ---------------------------

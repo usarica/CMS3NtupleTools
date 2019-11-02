@@ -34,26 +34,28 @@
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
-//
-// class decleration
-//
 
-class PhotonMaker : public edm::stream::EDProducer<> {
+class PhotonMaker : public edm::stream::EDProducer<>{
 public:
-    explicit PhotonMaker (const edm::ParameterSet&);
-    ~PhotonMaker();
-     
+  explicit PhotonMaker(const edm::ParameterSet&);
+  ~PhotonMaker();
+
+protected:
+  std::string aliasprefix_;
+  int year_;
+
+  edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
+
 private:
-    virtual void beginJob() ;
-    virtual void produce(edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
+  virtual void beginJob();
+  virtual void endJob();
 
-    // ----------member data ---------------------------
-    edm::EDGetTokenT<edm::View<pat::Photon> > photonsToken;
-    float minEt_;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
 
-    std::string aliasprefix_;
+  void setMVAIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
+  void setCutBasedIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
+
 };
 
-#endif
 
+#endif
