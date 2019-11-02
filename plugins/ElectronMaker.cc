@@ -452,8 +452,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       el_result.addUserFloat("SC_seed_eta", el->superCluster()->seed()->eta());
     }
     else{
-      el_result.addUserFloat("SC_seed_energy", -999.);
-      el_result.addUserFloat("SC_seed_eta", -999.);
+      el_result.addUserFloat("SC_seed_energy", -1.);
+      el_result.addUserFloat("SC_seed_eta", -1.);
     }
     //
     //            //
@@ -463,7 +463,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //            const vector<float>  localCovariancesSC = clusterTools_->scLocalCovariances(*(el->superCluster()));  // get the local covariances computed using all crystals in the SC
     //
     //            //
-    //get from RECO            el_result.addUserFloat("sigmaIPhiIPhi   ",  isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -9999. );
+    //get from RECO            el_result.addUserFloat("sigmaIPhiIPhi   ",  isfinite(lcovs[2])              ? lcovs[2] > 0               ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2])                             : -1. );
     //
     //            //
 
@@ -477,24 +477,33 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     el_result.addUserFloat("eOverPIn", el->eSuperClusterOverP());
     el_result.addUserFloat("eOverPOut", el->eEleClusterOverPout());
     el_result.addUserFloat("fbrem", el->fbrem());
-
     el_result.addUserFloat("dEtaIn", el->deltaEtaSuperClusterTrackAtVtx());
     el_result.addUserFloat("dEtaOut", el->deltaEtaSeedClusterTrackAtCalo());
     el_result.addUserFloat("dPhiIn", el->deltaPhiSuperClusterTrackAtVtx());
     el_result.addUserFloat("dPhiOut", el->deltaPhiSeedClusterTrackAtCalo());
-    el_result.addUserFloat("isGsfCtfScPixChargeConsistent", el->isGsfCtfScPixChargeConsistent());
+
+    ////////////
+    // Charge //
+    ////////////
+    bool isGsfCtfScPixChargeConsistent = el->isGsfCtfScPixChargeConsistent();
+    bool isGsfScPixChargeConsistent = el->isGsfScPixChargeConsistent();
+    bool isGsfCtfChargeConsistent = el->isGsfCtfChargeConsistent();
+    int trk_q        = el_track->charge();
+    el_result.addUserInt("charge", el->charge());
+    //el_result.addUserInt("threeCharge", el->threeCharge());
+    el_result.addUserInt("trk_charge", trk_q);
+    el_result.addUserInt("SC_pixCharge", el->scPixCharge());
+    el_result.addUserInt("isGsfCtfScPixChargeConsistent", static_cast<int>(isGsfCtfScPixChargeConsistent)); // Used also in id
+    el_result.addUserInt("isGsfScPixChargeConsistent", static_cast<int>(isGsfScPixChargeConsistent));
+    el_result.addUserInt("isGsfCtfChargeConsistent", static_cast<int>(isGsfCtfChargeConsistent));
 
     ////////////
     // Tracks //
     ////////////
     float pt       = el_track->pt();
     float p        = el_track->p();
-    float q        = el_track->charge();
     float pz       = el_track->pz();
-    float trkpterr = (el_track->charge()!=0) ? sqrt(pt*pt*p*p/pow(q, 2)*(el_track->covariance(0, 0))+2*pt*p/q*pz*(el_track->covariance(0, 1))+ pz*pz*(el_track->covariance(1, 1))) : -9999.;
-    el_result.addUserInt("charge", el->charge());
-    el_result.addUserInt("trk_charge", el_track->charge());
-    el_result.addUserInt("SCcharge", el->scPixCharge());
+    float trkpterr = (trk_q!=0 ? sqrt(pt*pt*p*p/pow(trk_q, 2)*(el_track->covariance(0, 0))+2*pt*p/trk_q*pz*(el_track->covariance(0, 1))+ pz*pz*(el_track->covariance(1, 1))) : -1.);
     el_result.addUserFloat("chi2", el_track->chi2());
     el_result.addUserFloat("ndof", el_track->ndof());
     el_result.addUserFloat("d0Err", el_track->d0Error());
@@ -508,8 +517,8 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       el_result.addUserFloat("dzPV", el_track->dz(firstGoodVertex->position()));
     }
     else{
-      el_result.addUserFloat("dxyPV", -999.);
-      el_result.addUserFloat("dzPV", -999.);
+      el_result.addUserFloat("dxyPV", -1.);
+      el_result.addUserFloat("dzPV", -1.);
     }
 
     el_result.addUserFloat("dz_firstPV", el_track->dz((vertexCollection->begin())->position()));
@@ -529,12 +538,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       el_result.addUserInt("ckf_charge", ctfTkRef->charge());
     }
     else{
-      el_result.addUserFloat("trkshFrac", -999.);
-      el_result.addUserFloat("trkdr", -999.);
-      el_result.addUserFloat("ckf_chi2", -999.);
-      el_result.addUserFloat("ckf_ndof", -999.);
-      el_result.addUserFloat("ckf_laywithmeas", -999.);
-      el_result.addUserFloat("ckf_charge", -999);
+      el_result.addUserFloat("trkshFrac", -1.);
+      el_result.addUserFloat("trkdr", -1.);
+      el_result.addUserFloat("ckf_chi2", -1.);
+      el_result.addUserFloat("ckf_ndof", -1.);
+      el_result.addUserInt("ckf_laywithmeas", -1.);
+      el_result.addUserInt("ckf_charge", 0);
     }
 
 
@@ -551,7 +560,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //        } else {
     //            //
     //            el_result.addUserFloat("ip3d", -999. );
-    //            el_result.addUserFloat("ip3derr", -999. );
+    //            el_result.addUserFloat("ip3derr", -1. );
     //        }
 
 
@@ -602,7 +611,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const reco::GenParticle* gen = el->genParticle();
     if (gen){
       mc_p4 = gen->p4();
-      el_result.addUserFloat("mc_patMatch_id", gen->pdgId());
+      el_result.addUserInt("mc_patMatch_id", gen->pdgId());
       el_result.addUserFloat("mc_patMatch_pt", mc_p4.pt());
       el_result.addUserFloat("mc_patMatch_eta", mc_p4.eta());
       el_result.addUserFloat("mc_patMatch_phi", mc_p4.phi());
@@ -610,12 +619,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       el_result.addUserFloat("mc_patMatch_dr", ROOT::Math::VectorUtil::DeltaR(gen->p4(), el->p4()));
     }
     else{
-      el_result.addUserFloat("mc_patMatch_id", -999);
-      el_result.addUserFloat("mc_patMatch_pt", 0);
+      el_result.addUserInt("mc_patMatch_id", 0);
+      el_result.addUserFloat("mc_patMatch_pt", -1);
       el_result.addUserFloat("mc_patMatch_eta", 0);
       el_result.addUserFloat("mc_patMatch_phi", 0);
       el_result.addUserFloat("mc_patMatch_mass", 0);
-      el_result.addUserFloat("mc_patMatch_dr", -999.);
+      el_result.addUserFloat("mc_patMatch_dr", -1);
     }
 
     //////////////////////
@@ -687,7 +696,7 @@ double ElectronMaker::electronIsoValuePF(const GsfElectron& el, const Vertex& vt
   TrackRef siTrack     = el.closestTrack();
   GsfTrackRef gsfTrack = el.gsfTrack();
 
-  if (gsfTrack.isNull() && siTrack.isNull()) return -9999.;
+  if (gsfTrack.isNull() && siTrack.isNull()) return -1.;
 
   float eldz = gsfTrack.isNonnull() ? gsfTrack->dz(vtx.position()) : siTrack->dz(vtx.position());
   float eleta = el.eta();

@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 cmd=cmsRun
-# cmd=python
 pset=main_pset.py
-nevents=500
+nevents=100
 outputdir=outputs/
 
 mkdir -p $outputdir
@@ -29,20 +28,15 @@ mkdir -p $outputdir
 #     inputs=/store/user/namin/localcache/mc/RunIISummer16MiniAODv2/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/1C8BFCBE-26B6-E611-80E5-A0000420FE80.root \
 #     nevents=-1
 
-# 2016 Re-reco Data 80X MiniAODv2 -- /DoubleMuon/Run2016F-03Feb2017-v1/MINIAOD
-$cmd $pset globaltag=80X_dataRun2_2016SeptRepro_v7 nevents=$nevents \
-    inputs=/store/user/namin/localcache/data/Run2016F/DoubleMuon/MINIAOD/03Feb2017-v1/100000/201B07A6-57EB-E611-B690-0CC47A57D066.root \
-    output=$outputdir/ntuple_2016_data_80xminiaodv2.root >& $outputdir/log_2016_data_80xminiaodv2.txt &
-
 # 2016 MC 80X MiniAODv2 -- /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-$cmd $pset globaltag=80X_mcRun2_asymptotic_2016_TrancheIV_v8 nevents=$nevents \
+$cmd $pset globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents \
     inputs=/store/user/namin/localcache/mc/RunIISummer16MiniAODv2/TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/70000/1C8BFCBE-26B6-E611-80E5-A0000420FE80.root \
     output=$outputdir/ntuple_2016_mc_80xminiaodv2.root >& $outputdir/log_2016_mc_80xminiaodv2.txt &
 
 # 2016 MC Fastsim 80X MiniAODv2 -- /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-$cmd $pset globaltag=80X_mcRun2_asymptotic_2016_miniAODv2_v0 nevents=$nevents fastsim=True \
-    inputs=/store/user/namin/localcache/mc/RunIISpring16MiniAODv2/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/5A5E2A72-4F2D-E611-B2F5-02163E017638.root \
-    output=$outputdir/ntuple_2016_mc_80xfastsim.root >& $outputdir/log_2016_mc_80xfastsim.txt &
+#$cmd $pset globaltag=80X_mcRun2_asymptotic_2016_miniAODv2_v0 nevents=$nevents fastsim=True \
+#    inputs=/store/user/namin/localcache/mc/RunIISpring16MiniAODv2/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/5A5E2A72-4F2D-E611-B2F5-02163E017638.root \
+#    output=$outputdir/ntuple_2016_mc_80xfastsim.root >& $outputdir/log_2016_mc_80xfastsim.txt &
 
 # 2016 Re-reco Data 94X MiniAODv3 -- /DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD
 $cmd $pset globaltag=94X_dataRun2_v10 nevents=$nevents \
@@ -70,17 +64,17 @@ $cmd $pset globaltag=94X_dataRun2_v11 nevents=$nevents \
     output=$outputdir/ntuple_2017_dataf.root >& $outputdir/log_2017_dataf.txt &
 
 # 2018 Re-reco Data -- /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD
-$cmd $pset globaltag=102X_dataRun2_Sep2018Rereco_v1 nevents=$nevents \
+$cmd $pset globaltag=102X_dataRun2_v4 nevents=$nevents \
     inputs=/store/user/namin/localcache/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root \
     output=$outputdir/ntuple_2018_data_rereco.root >& $outputdir/log_2018_data_rereco.txt &
 
 # 2018 Prompt Data -- /EGamma/Run2018D-PromptReco-v2/MINIAOD
-$cmd $pset globaltag=102X_dataRun2_Prompt_v11 nevents=$nevents \
+$cmd $pset globaltag=102X_dataRun2_Prompt_v14 nevents=$nevents \
     inputs=/store/user/namin/localcache/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/322/204/00000/F09A218A-71B3-E811-9A04-02163E013E33.root \
     output=$outputdir/ntuple_2018_data_prompt.root >& $outputdir/log_2018_data_prompt.txt &
 
 # 2018 MC -- /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM
-$cmd $pset globaltag=102X_upgrade2018_realistic_v12 nevents=$nevents \
+$cmd $pset globaltag=102X_upgrade2018_realistic_v19 nevents=$nevents \
     inputs=/store/user/namin/localcache/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/100000/042C8EE9-9431-5443-88C8-77F1D910B3A5.root \
     output=$outputdir/ntuple_2018_mc.root >& $outputdir/log_2018_mc.txt &
 

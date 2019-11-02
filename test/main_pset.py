@@ -22,7 +22,8 @@ opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sp
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
-opts.register('applyEGscalesmear', True , mytype=vpbool) #to enable e/gamma scale and smear corrections
+opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
+opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
@@ -92,11 +93,6 @@ process.MessageLogger.suppressWarning = cms.untracked.vstring(["genMaker","sParm
 
 process.options = cms.untracked.PSet()
 
-process.out = cms.OutputModule("PoolOutputModule",
-                               fileName     = cms.untracked.string('ntuple.root'),
-                               dropMetaData = cms.untracked.string("ALL"),
-                               basketSize = cms.untracked.int32(16384*23)
-)
 
 # TODO need to also disable reading this filter decision in the source code for 80x samples
 if not opts.is80x:
@@ -181,8 +177,6 @@ if opts.goldenjson and find_up(opts.goldenjson):
 #Max Events
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents) )
 
-process.outpath = cms.EndPath(process.out)
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
 
 extra = {}
 if opts.metrecipe:
@@ -219,9 +213,6 @@ if opts.is80x:
     process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
     patAlgosToolsTask = getPatAlgosToolsTask(process)
 
-
-process.out.outputCommands = cms.untracked.vstring( 'drop *' )
-process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
 
 # Extra trigger information (matching)
 if opts.triginfo:
@@ -401,9 +392,33 @@ else:
     inputs = opts.inputs.split(",")
     print("Running on inputs: {}".format(inputs))
     process.source.fileNames = cms.untracked.vstring(inputs)
-process.out.fileName = cms.untracked.string(opts.output)
+
+# Event maker
 process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
 process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
+
+# Final output
+if opts.dumpAllObjects:
+   process.out = cms.OutputModule(
+      "PoolOutputModule",
+      fileName     = cms.untracked.string(opts.output),
+      dropMetaData = cms.untracked.string("ALL"),
+      basketSize = cms.untracked.int32(16384*23)
+   )
+   process.out.outputCommands = cms.untracked.vstring( 'drop *' )
+   process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
+   process.outpath = cms.EndPath(process.out)
+
+else:
+   process.TFileService = cms.Service(
+      'TFileService',
+      fileName=cms.string(opts.output)
+   )
+
+   process.load("CMS3.NtupleMaker.cms3Ntuplizer_cfi")
+   process.cms3ntuple.year = cms.int32(opts.year)
+   process.outpath = cms.EndPath(process.cms3ntuple)
+
 
 fprocdump = open(opts.output.replace('.root','_run_cfg.py'),'w')
 fprocdump.write(process.dumpPython())
