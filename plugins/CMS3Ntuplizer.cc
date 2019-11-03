@@ -21,7 +21,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   electronsToken  = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
   photonsToken  = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
-  //muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
+  muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
 
   genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
 
