@@ -12,14 +12,18 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
   outtree(nullptr),
   firstEvent(true),
+
   year(pset.getParameter<int>("year")),
-  treename(pset.getUntrackedParameter<std::string>("treename"))
+  treename(pset.getUntrackedParameter<std::string>("treename")),
+  isMC(pset.getParameter<bool>("isMC"))
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
   electronsToken  = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
   photonsToken  = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
   //muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
+
+  genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
 
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
@@ -200,6 +204,15 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     PUSH_VECTOR_WITH_NAME(colName, type_mask);
   }
 
+  // GenInfo
+  if (isMC){
+    edm::Handle< GenInfo > genInfo;
+    iEvent.getByToken(genInfoToken, genInfo);
+    if (!genInfo.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the gen. info. from the event...");
+
+    recordGenInfo(*genInfo);
+
+  }
 
   // Undefine the convenience macros
 #undef PUSH_VECTOR_WITH_NAME
@@ -239,6 +252,67 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // No longer the first event...
   if (firstEvent) firstEvent = false;
 }
+
+void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
+
+#define SET_GENINFO_VARIABLE(var) commonEntry.setNamedVal(#var, genInfo.var);
+
+  SET_GENINFO_VARIABLE(xsec)
+  SET_GENINFO_VARIABLE(xsecerr)
+
+  SET_GENINFO_VARIABLE(qscale)
+  SET_GENINFO_VARIABLE(alphaS)
+
+  SET_GENINFO_VARIABLE(genMET)
+  SET_GENINFO_VARIABLE(genMETPhi)
+
+  SET_GENINFO_VARIABLE(sumEt)
+  SET_GENINFO_VARIABLE(pThat)
+
+  // LHE variations
+  SET_GENINFO_VARIABLE(genHEPMCweight_default)
+  SET_GENINFO_VARIABLE(genHEPMCweight_NNPDF30)
+
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF1)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF2)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF0p5)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF1)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF2)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF0p5)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF1)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF2)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF0p5)
+
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_default)
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_default)
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_default)
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_default)
+
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_NNPDF30)
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_NNPDF30)
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_NNPDF30)
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_NNPDF30)
+
+  // Pythis PS weights
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRoneoversqrt2)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRoneoversqrt2)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRsqrt2)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRsqrt2)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p5)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p5)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR2)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR2)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p25)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p25)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR4)
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR4)
+
+#undef SET_GENINFO_VARIABLE
+
+  for (auto const it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
+
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CMS3Ntuplizer);

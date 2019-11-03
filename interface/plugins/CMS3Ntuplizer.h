@@ -19,11 +19,11 @@
 
 #include <DataFormats/Common/interface/View.h>
 #include <DataFormats/Candidate/interface/Candidate.h>
-#include "DataFormats/PatCandidates/interface/Electron.h"
-#include "DataFormats/PatCandidates/interface/Photon.h"
-#include "DataFormats/PatCandidates/interface/Muon.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include <DataFormats/PatCandidates/interface/Electron.h>
+#include <DataFormats/PatCandidates/interface/Photon.h>
+#include <DataFormats/PatCandidates/interface/Muon.h>
+#include <DataFormats/PatCandidates/interface/Jet.h>
+#include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 #include <DataFormats/PatCandidates/interface/CompositeCandidate.h>
 
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
@@ -32,6 +32,8 @@
 
 #include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
 #include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
+
+#include "CMS3/NtupleMaker/interface/GenInfo.h" 
 
 
 class CMS3Ntuplizer : public edm::EDAnalyzer{
@@ -44,15 +46,19 @@ protected:
   BaseTree* outtree;
   SimpleEntry commonEntry;
   bool firstEvent;
-  int year;
 
+  int year;
   TString treename;
   //TString outfilename;
+  bool isMC;
 
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
 
+  edm::EDGetTokenT< GenInfo > genInfoToken;
+
+  void recordGenInfo(GenInfo const&);
 
 private:
   virtual void beginJob();
