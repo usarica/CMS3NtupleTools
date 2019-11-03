@@ -66,11 +66,9 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (!photonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the photon collection from the event...");
 
   // Muons
-  /*
   edm::Handle< edm::View<pat::Muon> > muonsHandle;
   iEvent.getByToken(muonsToken, muonsHandle);
   if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the muon collection from the event...");
-  */
 
 
   /********************************/
@@ -204,6 +202,373 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     PUSH_VECTOR_WITH_NAME(colName, type_mask);
   }
 
+  // Muons
+  {
+    //const char colName[] = "Muon"; // nanoAOD
+    const char colName[] = "muons";
+
+    size_t n_muons = muonsHandle->size();
+
+    MAKE_VECTOR_WITH_RESERVE(float, pt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, eta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, phi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mass, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(int, charge, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, type, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, caloCompatibility, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, segmentCompatibility, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, numberOfMatchedStations, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(int, selectors, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, simType, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, simExtType, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, gfit_chi2, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, gfit_ndof, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, gfit_validSTAHits, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, gfit_pt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, gfit_eta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, gfit_phi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, gfit_algo, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, gfit_ptErr, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, bfit_pt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, bfit_eta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, bfit_phi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, bfit_algo, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, bfit_ptErr, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, trkKink, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, chi2LocalPosition, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, chi2LocalMomentum, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(int, pid_TMLastStationLoose, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pid_TMLastStationTight, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pid_TM2DCompatibilityLoose, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pid_TM2DCompatibilityTight, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pid_TMOneStationTight, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pid_PFMuon, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, ecal_time, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, hcal_time, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, iso_trckvetoDep, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso_ecalvetoDep, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso_hcalvetoDep, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso_hovetoDep, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso03_sumPt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso03_emEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, iso03_hadEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, iso03_ntrk, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, trk_pt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, trk_eta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, trk_phi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, validHits, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, lostHits, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, d0Err, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, z0Err, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, ptErr, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, algo, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, algoOrig, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, nlayers, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, validPixelHits, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, exp_innerlayers, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, exp_outerlayers, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, dxyPV, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, dzPV, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, dxy_firstPV, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_ChargedHadronPt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_ChargedParticlePt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_NeutralHadronEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_PhotonEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_sumNeutralHadronEtHighThreshold, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_sumPhotonEtHighThreshold, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR03_pf_PUPt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_ChargedHadronPt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_ChargedParticlePt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_NeutralHadronEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_PhotonEt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_sumNeutralHadronEtHighThreshold, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_sumPhotonEtHighThreshold, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, isoR04_pf_PUPt, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, pfpt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, pfeta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, pfphi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, pfmass, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pfcharge, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pfparticleId, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(int, pfidx, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, ip3d, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, ip3derr, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, ip2d, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, ip2derr, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(int, mc_patMatch_id, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mc_patMatch_pt, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mc_patMatch_eta, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mc_patMatch_phi, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mc_patMatch_mass, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, mc_patMatch_dr, n_muons);
+
+    MAKE_VECTOR_WITH_RESERVE(float, miniIso_uncor, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, miniIso_ch, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, miniIso_nh, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, miniIso_em, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, miniIso_db, n_muons);
+
+    for (View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
+      // Core particle quantities
+      pt.push_back(obj->pt());
+      eta.push_back(obj->eta());
+      phi.push_back(obj->phi());
+      mass.push_back(obj->mass());
+      charge.push_back(obj->userInt("charge"));
+      type.push_back(obj->userInt("type"));
+      caloCompatibility.push_back(obj->userFloat("caloCompatibility"));
+      segmentCompatibility.push_back(obj->userFloat("segmentCompatibility"));
+      numberOfMatchedStations.push_back(obj->userInt("numberOfMatchedStations"));
+
+      // Selectors
+      selectors.push_back(obj->userInt("selectors"));
+      simType.push_back(obj->userInt("simType"));
+      simExtType.push_back(obj->userInt("simExtType"));
+
+      // Global fit track
+      gfit_chi2.push_back(obj->userFloat("gfit_chi2"));
+      gfit_ndof.push_back(obj->userInt("gfit_ndof"));
+      gfit_validSTAHits.push_back(obj->userInt("gfit_validSTAHits"));
+      gfit_pt.push_back(obj->userFloat("gfit_pt"));
+      gfit_eta.push_back(obj->userFloat("gfit_eta"));
+      gfit_phi.push_back(obj->userFloat("gfit_phi"));
+      gfit_algo.push_back(obj->userInt("gfit_algo"));
+      gfit_ptErr.push_back(obj->userFloat("gfit_ptErr"));
+
+      // Best fit track
+      bfit_pt.push_back(obj->userFloat("bfit_pt"));
+      bfit_eta.push_back(obj->userFloat("bfit_eta"));
+      bfit_phi.push_back(obj->userFloat("bfit_phi"));
+      bfit_algo.push_back(obj->userInt("bfit_algo"));
+      bfit_ptErr.push_back(obj->userFloat("bfit_ptErr"));
+
+      // Muon Quality
+      trkKink.push_back(obj->userFloat("trkKink"));
+      chi2LocalPosition.push_back(obj->userFloat("chi2LocalPosition"));
+      chi2LocalMomentum.push_back(obj->userFloat("chi2LocalMomentum"));
+
+      // ID
+      pid_TMLastStationLoose.push_back(obj->userInt("pid_TMLastStationLoose"));
+      pid_TMLastStationTight.push_back(obj->userInt("pid_TMLastStationTight"));
+      pid_TM2DCompatibilityLoose.push_back(obj->userInt("pid_TM2DCompatibilityLoose"));
+      pid_TM2DCompatibilityTight.push_back(obj->userInt("pid_TM2DCompatibilityTight"));
+      pid_TMOneStationTight.push_back(obj->userInt("pid_TMOneStationTight"));
+      pid_PFMuon.push_back(obj->userInt("pid_PFMuon"));
+
+      // Energy
+      ecal_time.push_back(obj->userFloat("ecal_time"));
+      hcal_time.push_back(obj->userFloat("hcal_time"));
+
+      // Isolation
+      iso_trckvetoDep.push_back(obj->userFloat("iso_trckvetoDep"));
+      iso_ecalvetoDep.push_back(obj->userFloat("iso_ecalvetoDep"));
+      iso_hcalvetoDep.push_back(obj->userFloat("iso_hcalvetoDep"));
+      iso_hovetoDep.push_back(obj->userFloat("iso_hovetoDep"));
+      iso03_sumPt.push_back(obj->userFloat("iso03_sumPt"));
+      iso03_emEt.push_back(obj->userFloat("iso03_emEt"));
+      iso03_hadEt.push_back(obj->userFloat("iso03_hadEt"));
+      iso03_ntrk.push_back(obj->userInt("iso03_ntrk"));
+
+      // Tracks
+      trk_pt.push_back(obj->userFloat("trk_pt"));
+      trk_eta.push_back(obj->userFloat("trk_eta"));
+      trk_phi.push_back(obj->userFloat("trk_phi"));
+      validHits.push_back(obj->userInt("validHits"));
+      lostHits.push_back(obj->userInt("lostHits"));
+      d0Err.push_back(obj->userFloat("d0Err"));
+      z0Err.push_back(obj->userFloat("z0Err"));
+      ptErr.push_back(obj->userFloat("ptErr"));
+      algo.push_back(obj->userInt("algo"));
+      algoOrig.push_back(obj->userInt("algoOrig"));
+      nlayers.push_back(obj->userInt("nlayers"));
+      validPixelHits.push_back(obj->userInt("validPixelHits"));
+      exp_innerlayers.push_back(obj->userInt("exp_innerlayers"));
+      exp_outerlayers.push_back(obj->userInt("exp_outerlayers"));
+      dxyPV.push_back(obj->userFloat("dxyPV"));
+      dzPV.push_back(obj->userFloat("dzPV"));
+      dz_firstPV.push_back(obj->userFloat("dz_firstPV"));
+      dxy_firstPV.push_back(obj->userFloat("dxy_firstPV"));
+
+      // PF isolation
+      isoR03_pf_ChargedHadronPt.push_back(obj->userFloat("isoR03_pf_ChargedHadronPt"));
+      isoR03_pf_ChargedParticlePt.push_back(obj->userFloat("isoR03_pf_ChargedParticlePt"));
+      isoR03_pf_NeutralHadronEt.push_back(obj->userFloat("isoR03_pf_NeutralHadronEt"));
+      isoR03_pf_PhotonEt.push_back(obj->userFloat("isoR03_pf_PhotonEt"));
+      isoR03_pf_sumNeutralHadronEtHighThreshold.push_back(obj->userFloat("isoR03_pf_sumNeutralHadronEtHighThreshold"));
+      isoR03_pf_sumPhotonEtHighThreshold.push_back(obj->userFloat("isoR03_pf_sumPhotonEtHighThreshold"));
+      isoR03_pf_PUPt.push_back(obj->userFloat("isoR03_pf_PUPt"));
+
+      isoR04_pf_ChargedHadronPt.push_back(obj->userFloat("isoR04_pf_ChargedHadronPt"));
+      isoR04_pf_ChargedParticlePt.push_back(obj->userFloat("isoR04_pf_ChargedParticlePt"));
+      isoR04_pf_NeutralHadronEt.push_back(obj->userFloat("isoR04_pf_NeutralHadronEt"));
+      isoR04_pf_PhotonEt.push_back(obj->userFloat("isoR04_pf_PhotonEt"));
+      isoR04_pf_sumNeutralHadronEtHighThreshold.push_back(obj->userFloat("isoR04_pf_sumNeutralHadronEtHighThreshold"));
+      isoR04_pf_sumPhotonEtHighThreshold.push_back(obj->userFloat("isoR04_pf_sumPhotonEtHighThreshold"));
+      isoR04_pf_PUPt.push_back(obj->userFloat("isoR04_pf_PUPt"));
+
+      // PF particle
+      pfpt.push_back(obj->userFloat("pfpt"));
+      pfeta.push_back(obj->userFloat("pfeta"));
+      pfphi.push_back(obj->userFloat("pfphi"));
+      pfmass.push_back(obj->userFloat("pfmass"));
+      pfcharge.push_back(obj->userInt("pfcharge"));
+      pfparticleId.push_back(obj->userInt("pfparticleId"));
+      pfidx.push_back(obj->userInt("pfidx"));
+
+      // IP 3D
+      ip3d.push_back(obj->userFloat("ip3d"));
+      ip3derr.push_back(obj->userFloat("ip3derr"));
+      ip2d.push_back(obj->userFloat("ip2d"));
+      ip2derr.push_back(obj->userFloat("ip2derr"));
+
+      // genMatch miniAOD
+      mc_patMatch_id.push_back(obj->userInt("mc_patMatch_id"));
+      mc_patMatch_pt.push_back(obj->userFloat("mc_patMatch_pt"));
+      mc_patMatch_eta.push_back(obj->userFloat("mc_patMatch_eta"));
+      mc_patMatch_phi.push_back(obj->userFloat("mc_patMatch_phi"));
+      mc_patMatch_mass.push_back(obj->userFloat("mc_patMatch_mass"));
+      mc_patMatch_dr.push_back(obj->userFloat("mc_patMatch_dr"));
+
+      // mini-isolation
+      miniIso_uncor.push_back(obj->userFloat("miniIso_uncor"));
+      miniIso_ch.push_back(obj->userFloat("miniIso_ch"));
+      miniIso_nh.push_back(obj->userFloat("miniIso_nh"));
+      miniIso_em.push_back(obj->userFloat("miniIso_em"));
+      miniIso_db.push_back(obj->userFloat("miniIso_db"));
+
+    }
+
+    // Pass collections to the communicator
+    PUSH_VECTOR_WITH_NAME(colName, pt);
+    PUSH_VECTOR_WITH_NAME(colName, eta);
+    PUSH_VECTOR_WITH_NAME(colName, phi);
+    PUSH_VECTOR_WITH_NAME(colName, mass);
+
+    PUSH_VECTOR_WITH_NAME(colName, charge);
+    PUSH_VECTOR_WITH_NAME(colName, type);
+
+    PUSH_VECTOR_WITH_NAME(colName, caloCompatibility);
+    PUSH_VECTOR_WITH_NAME(colName, segmentCompatibility);
+    PUSH_VECTOR_WITH_NAME(colName, numberOfMatchedStations);
+
+    PUSH_VECTOR_WITH_NAME(colName, selectors);
+    PUSH_VECTOR_WITH_NAME(colName, simType);
+    PUSH_VECTOR_WITH_NAME(colName, simExtType);
+
+    PUSH_VECTOR_WITH_NAME(colName, gfit_chi2);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_ndof);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_validSTAHits);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_pt);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_eta);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_phi);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_algo);
+    PUSH_VECTOR_WITH_NAME(colName, gfit_ptErr);
+
+    PUSH_VECTOR_WITH_NAME(colName, bfit_pt);
+    PUSH_VECTOR_WITH_NAME(colName, bfit_eta);
+    PUSH_VECTOR_WITH_NAME(colName, bfit_phi);
+    PUSH_VECTOR_WITH_NAME(colName, bfit_algo);
+    PUSH_VECTOR_WITH_NAME(colName, bfit_ptErr);
+
+    PUSH_VECTOR_WITH_NAME(colName, trkKink);
+    PUSH_VECTOR_WITH_NAME(colName, chi2LocalPosition);
+    PUSH_VECTOR_WITH_NAME(colName, chi2LocalMomentum);
+
+    PUSH_VECTOR_WITH_NAME(colName, pid_TMLastStationLoose);
+    PUSH_VECTOR_WITH_NAME(colName, pid_TMLastStationTight);
+    PUSH_VECTOR_WITH_NAME(colName, pid_TM2DCompatibilityLoose);
+    PUSH_VECTOR_WITH_NAME(colName, pid_TM2DCompatibilityTight);
+    PUSH_VECTOR_WITH_NAME(colName, pid_TMOneStationTight);
+    PUSH_VECTOR_WITH_NAME(colName, pid_PFMuon);
+
+    PUSH_VECTOR_WITH_NAME(colName, ecal_time);
+    PUSH_VECTOR_WITH_NAME(colName, hcal_time);
+
+    PUSH_VECTOR_WITH_NAME(colName, iso_trckvetoDep);
+    PUSH_VECTOR_WITH_NAME(colName, iso_ecalvetoDep);
+    PUSH_VECTOR_WITH_NAME(colName, iso_hcalvetoDep);
+    PUSH_VECTOR_WITH_NAME(colName, iso_hovetoDep);
+    PUSH_VECTOR_WITH_NAME(colName, iso03_sumPt);
+    PUSH_VECTOR_WITH_NAME(colName, iso03_emEt);
+    PUSH_VECTOR_WITH_NAME(colName, iso03_hadEt);
+    PUSH_VECTOR_WITH_NAME(colName, iso03_ntrk);
+
+    PUSH_VECTOR_WITH_NAME(colName, trk_pt);
+    PUSH_VECTOR_WITH_NAME(colName, trk_eta);
+    PUSH_VECTOR_WITH_NAME(colName, trk_phi);
+    PUSH_VECTOR_WITH_NAME(colName, validHits);
+    PUSH_VECTOR_WITH_NAME(colName, lostHits);
+    PUSH_VECTOR_WITH_NAME(colName, d0Err);
+    PUSH_VECTOR_WITH_NAME(colName, z0Err);
+    PUSH_VECTOR_WITH_NAME(colName, ptErr);
+    PUSH_VECTOR_WITH_NAME(colName, algo);
+    PUSH_VECTOR_WITH_NAME(colName, algoOrig);
+    PUSH_VECTOR_WITH_NAME(colName, nlayers);
+    PUSH_VECTOR_WITH_NAME(colName, validPixelHits);
+    PUSH_VECTOR_WITH_NAME(colName, exp_innerlayers);
+    PUSH_VECTOR_WITH_NAME(colName, exp_outerlayers);
+    PUSH_VECTOR_WITH_NAME(colName, dxyPV);
+    PUSH_VECTOR_WITH_NAME(colName, dzPV);
+    PUSH_VECTOR_WITH_NAME(colName, dz_firstPV);
+    PUSH_VECTOR_WITH_NAME(colName, dxy_firstPV);
+
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_ChargedHadronPt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_ChargedParticlePt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_NeutralHadronEt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_PhotonEt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_sumNeutralHadronEtHighThreshold);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_sumPhotonEtHighThreshold);
+    PUSH_VECTOR_WITH_NAME(colName, isoR03_pf_PUPt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_ChargedHadronPt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_ChargedParticlePt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_NeutralHadronEt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_PhotonEt);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_sumNeutralHadronEtHighThreshold);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_sumPhotonEtHighThreshold);
+    PUSH_VECTOR_WITH_NAME(colName, isoR04_pf_PUPt);
+
+    PUSH_VECTOR_WITH_NAME(colName, pfpt);
+    PUSH_VECTOR_WITH_NAME(colName, pfeta);
+    PUSH_VECTOR_WITH_NAME(colName, pfphi);
+    PUSH_VECTOR_WITH_NAME(colName, pfmass);
+    PUSH_VECTOR_WITH_NAME(colName, pfcharge);
+    PUSH_VECTOR_WITH_NAME(colName, pfparticleId);
+    PUSH_VECTOR_WITH_NAME(colName, pfidx);
+    PUSH_VECTOR_WITH_NAME(colName, ip3d);
+    PUSH_VECTOR_WITH_NAME(colName, ip3derr);
+    PUSH_VECTOR_WITH_NAME(colName, ip2d);
+    PUSH_VECTOR_WITH_NAME(colName, ip2derr);
+
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_id);
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_pt);
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_eta);
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_phi);
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_mass);
+    PUSH_VECTOR_WITH_NAME(colName, mc_patMatch_dr);
+
+    PUSH_VECTOR_WITH_NAME(colName, miniIso_uncor);
+    PUSH_VECTOR_WITH_NAME(colName, miniIso_ch);
+    PUSH_VECTOR_WITH_NAME(colName, miniIso_nh);
+    PUSH_VECTOR_WITH_NAME(colName, miniIso_em);
+    PUSH_VECTOR_WITH_NAME(colName, miniIso_db);
+
+  }
+
+
   // GenInfo
   if (isMC){
     edm::Handle< GenInfo > genInfo;
@@ -316,3 +681,4 @@ void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CMS3Ntuplizer);
+// vim: ts=2:sw=2

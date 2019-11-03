@@ -10,7 +10,7 @@ cms3ntuple = cms.EDAnalyzer(
 
    electronSrc   = cms.InputTag("electronMaker"),
    photonSrc   = cms.InputTag("photonMaker"),
-   #muonSrc   = cms.InputTag("muonMaker"),
+   muonSrc   = cms.InputTag("muonMaker"),
 
    genInfoSrc = cms.InputTag("genMaker"),
 
