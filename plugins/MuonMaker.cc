@@ -95,13 +95,9 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     //////////////////////
 
     muonsToken    = consumes<View<pat::Muon> >(iConfig.getParameter<InputTag> ("muonsInputTag"   ));
-    pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<InputTag> ("pfCandsInputTag" ));
-    pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
     vtxToken         = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
     tevMuonsName     = iConfig.getParameter<string>   ("tevMuonsName"    );
 
-    miniIsoChgValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoChgValueMap"));
-    miniIsoAllValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoAllValueMap"));
 
     ////////////
     // Global //
@@ -252,6 +248,7 @@ MuonMaker::MuonMaker( const ParameterSet& iConfig ) {
     produces<vector<float>         >("musptRel"         	).setBranchAlias("mus_ptRel"                        	);
     produces<vector<float>         >("musjetBTagCSV"         	).setBranchAlias("mus_jetBTagCSV"                        	);
 
+    produces<pat::MuonCollection>().setBranchAlias(aliasprefix_);
 } // end Constructor
 
 void MuonMaker::beginJob () {}  // method called once each job just before starting event loop
@@ -263,6 +260,7 @@ void MuonMaker::endJob   () {}  // method called once each job just after ending
 //////////////
 
 void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
+  auto result = std::make_unique<pat::MuonCollection>();
 
 
     ////////////  
@@ -408,11 +406,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     unique_ptr<vector<int>         > mus_simType     ( new vector<int>         );   
     unique_ptr<vector<int>         > mus_simExtType     ( new vector<int>         );   
 
-    unique_ptr<vector<int>   >       mus_jetNDauChargedMVASel                   (new vector<int>        );
-    unique_ptr<vector<float>   >       mus_ptRatio                   (new vector<float>        );
-    unique_ptr<vector<float>   >       mus_ptRel                   (new vector<float>        );
-    unique_ptr<vector<float>   >       mus_jetBTagCSV                   (new vector<float>        );
-
 
     ////////////////////////////
     // --- Fill Muon Data --- //
@@ -431,30 +424,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
     iEvent.getByToken( vtxToken , vertexHandle );
 
-    ///////////////////////
-    // Get PF Candidates //
-    ///////////////////////
 
-    iEvent.getByToken(pfCandsToken, packPfCand_h);
-    pfCandidates  = packPfCand_h.product();
-
-    // Jets
-    Handle<View<pat::Jet> > pfJetsHandle;
-    iEvent.getByToken(pfJetsToken, pfJetsHandle);
-
-    // Corrected Isolation using NanoAOD
-    edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
-    edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
-    iEvent.getByToken(miniIsoChgValueMapToken_,miniIsoChg_values);
-    iEvent.getByToken(miniIsoAllValueMapToken_,miniIsoAll_values);
-  
     ///////////
     // Muons // 
     ///////////
   
-    unsigned int muonIndex = 0;
-    View<pat::Muon>::const_iterator muons_end = muon_h->end();  // Iterator
-    for ( View<pat::Muon>::const_iterator muon = muon_h->begin(); muon != muons_end; ++muon ) {
+    size_t muonIndex = 0;
+    for ( View<pat::Muon>::const_iterator muon = muon_h->begin(); muon != muon_h->end(); muon++, muonIndex++ ) {
+    pat::Muon muon_result(*muon); // Clone the muon. This is the single muon to be put into the resultant collection
 
         // References
         const RefToBase<pat::Muon>    muonRef                 = muon_h->refAt(muonIndex); 
@@ -464,8 +441,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         const TrackRef                bestTrack               = muon->muonBestTrack();
         const MuonQuality             quality                 = muon->combinedQuality();
         const VertexCollection*       vertexCollection        = vertexHandle.product();
-
-        const Ptr<pat::Muon> muPtr(muon_h, muon - muon_h->begin() );
 
         // Iterators
         VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
@@ -477,13 +452,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             }
         }
 
-        // float isopt = muon->p4().pt();
-        // mus_miniRelIso_chg->push_back((*miniIsoChg_values)[muPtr]/isopt);
-        // mus_miniRelIso_all->push_back((*miniIsoAll_values)[muPtr]/isopt);
-
         mus_selectors->push_back( muon->selectors() ); // DataFormats/MuonReco/interface/Muon.h
         mus_simType->push_back( muon->simType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
         mus_simExtType->push_back( muon->simExtType() ); // DataFormats/MuonReco/interface/MuonSimInfo.h
+        muon_result.addUserInt("selectors", muon->selectors());
+        muon_result.addUserInt("simType", muon->simType());
+        muon_result.addUserInt("simExtType", muon->simExtType());
 
         ////////////
         // Global //
@@ -495,12 +469,27 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_gfit_algo            -> push_back( globalTrack.isNonnull() ? globalTrack->algo()                                                                     : -9999  );
         vector_mus_gfit_ptErr           -> push_back( globalTrack.isNonnull() ? globalTrack->ptError()                                                                  : -9999. );
 
-	//////////
+        muon_result.addUserFloat("gfit_chi2", globalTrack.isNonnull() ? globalTrack->chi2() : -9999. );
+        muon_result.addUserInt("gfit_ndof", globalTrack.isNonnull() ? globalTrack->ndof() : -9999  );
+        muon_result.addUserInt("gfit_validSTAHits", globalTrack.isNonnull() ? globalTrack->hitPattern().numberOfValidMuonHits() : -9999  );
+        muon_result.addUserFloat("gfit_pt", globalTrack.isNonnull() ? globalTrack->pt() : 0.0 );
+        muon_result.addUserFloat("gfit_eta", globalTrack.isNonnull() ? globalTrack->eta() : 0.0 );
+        muon_result.addUserFloat("gfit_phi", globalTrack.isNonnull() ? globalTrack->phi() : 0.0 );
+        muon_result.addUserInt("gfit_algo", globalTrack.isNonnull() ? globalTrack->algo() : -9999  );
+        muon_result.addUserFloat("gfit_ptErr", globalTrack.isNonnull() ? globalTrack->ptError() : -9999. );
+
+        //////////
         // Best //
         //////////
         vector_mus_bfit_p4           -> push_back( bestTrack.isNonnull() ? LorentzVector( bestTrack->px(), bestTrack->py(), bestTrack->pz(), bestTrack->p() ) : LorentzVector(0.0,0.0,0.0,0.0) );
         vector_mus_bfit_algo            -> push_back( bestTrack.isNonnull() ? bestTrack->algo()                                                                     : -9999. );
         vector_mus_bfit_ptErr           -> push_back( bestTrack.isNonnull() ? bestTrack->ptError()                                                                  : -9999. );
+
+        muon_result.addUserFloat("bfit_pt", bestTrack.isNonnull() ? bestTrack->pt() : 0.0 );
+        muon_result.addUserFloat("bfit_eta", bestTrack.isNonnull() ? bestTrack->eta() : 0.0 );
+        muon_result.addUserFloat("bfit_phi", bestTrack.isNonnull() ? bestTrack->phi() : 0.0 );
+        muon_result.addUserInt("bfit_algo", bestTrack.isNonnull() ? bestTrack->algo() : -9999  );
+        muon_result.addUserFloat("bfit_ptErr", bestTrack.isNonnull() ? bestTrack->ptError() : -9999. );
 
         //////////////////
         // Muon Quality //
@@ -508,6 +497,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_trkKink             -> push_back( quality.trkKink             );
         vector_mus_chi2LocalPosition   -> push_back( quality.chi2LocalPosition   );
         vector_mus_chi2LocalMomentum   -> push_back( quality.chi2LocalMomentum   );
+
+        muon_result.addUserFloat("trkKink", quality.trkKink);
+        muon_result.addUserFloat("chi2LocalPosition", quality.chi2LocalPosition);
+        muon_result.addUserFloat("chi2LocalMomentum", quality.chi2LocalMomentum);
+
 
         //////////
         // Muon //
@@ -524,6 +518,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_numberOfMatchedStations ->push_back( muon->numberOfMatchedStations()                            );
         vector_mus_p4                      -> push_back( LorentzVector( muon->p4()                              )  );
 
+        muon_result.addUserInt("type", muon->type());
+        muon_result.addUserInt("charge", muon->charge());
+        muon_result.addUserFloat("caloCompatibility", muon->caloCompatibility());
+        muon_result.addUserFloat("segmentCompatibility", muon::segmentCompatibility(*muon));
+        muon_result.addUserInt("numberOfMatchedStations", muon::segmentCompatibility(*muon));
+        muon_result.addUserFloat("pt", muon->pt());
+        muon_result.addUserFloat("eta", muon->eta());
+        muon_result.addUserFloat("phi", muon->phi());
+        muon_result.addUserFloat("mass", muon->mass());
+
         ////////
         // ID //
         ////////
@@ -537,6 +541,13 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_pid_TMOneStationTight      -> push_back( matchIsValid ? muon::isGoodMuon( *muon, muon::TMOneStationTight      ) : -9999  );
         vector_mus_pid_PFMuon                 -> push_back( muon->isPFMuon() );
 
+        muon_result.addUserInt("pid_TMLastStationLoose", matchIsValid ? muon::isGoodMuon( *muon, muon::TMLastStationLoose     ) : -9999  );
+        muon_result.addUserInt("pid_TMLastStationTight", matchIsValid ? muon::isGoodMuon( *muon, muon::TMLastStationTight     ) : -9999  );
+        muon_result.addUserInt("pid_TM2DCompatibilityLoose", matchIsValid ? muon::isGoodMuon( *muon, muon::TM2DCompatibilityLoose ) : -9999  );
+        muon_result.addUserInt("pid_TM2DCompatibilityTight", matchIsValid ? muon::isGoodMuon( *muon, muon::TM2DCompatibilityTight ) : -9999  );
+        muon_result.addUserInt("pid_TMOneStationTight", matchIsValid ? muon::isGoodMuon( *muon, muon::TMOneStationTight      ) : -9999  );
+        muon_result.addUserInt("pid_PFMuon", muon->isPFMuon() );
+
         ////////////
         // Energy //
         ////////////
@@ -545,6 +556,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
 
         vector_mus_ecal_time       -> push_back( energyIsValid ? muon->calEnergy().ecal_time                     : -9999. );
         vector_mus_hcal_time       -> push_back( energyIsValid ? muon->calEnergy().hcal_time                     : -9999. );
+
+        muon_result.addUserFloat("ecal_time",  energyIsValid ? muon->calEnergy().ecal_time : -9999. );
+        muon_result.addUserFloat("hcal_time",  energyIsValid ? muon->calEnergy().hcal_time : -9999. );
 
         ///////////////
         // Isolation //
@@ -558,6 +572,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_iso03_emEt         -> push_back( muon->isIsolationValid() ? muon->isolationR03().emEt           : -9999.        );
         vector_mus_iso03_hadEt        -> push_back( muon->isIsolationValid() ? muon->isolationR03().hadEt          : -9999.        );
         vector_mus_iso03_ntrk         -> push_back( muon->isIsolationValid() ? muon->isolationR03().nTracks        : -9999         );
+
+        muon_result.addUserFloat("iso_trckvetoDep", muon->isEnergyValid()    ? muon->isolationR03().trackerVetoPt  : -9999.        );
+        muon_result.addUserFloat("iso_ecalvetoDep", muon->isEnergyValid()    ? muon->isolationR03().emVetoEt       : -9999.        );
+        muon_result.addUserFloat("iso_hcalvetoDep", muon->isEnergyValid()    ? muon->isolationR03().hadVetoEt      : -9999.        );
+        muon_result.addUserFloat("iso_hovetoDep", muon->isEnergyValid()    ? muon->isolationR03().hoVetoEt       : -9999.        );
+        muon_result.addUserFloat("iso03_sumPt", muon->isIsolationValid() ? muon->isolationR03().sumPt          : -9999.        );
+        muon_result.addUserFloat("iso03_emEt", muon->isIsolationValid() ? muon->isolationR03().emEt           : -9999.        );
+        muon_result.addUserFloat("iso03_hadEt", muon->isIsolationValid() ? muon->isolationR03().hadEt          : -9999.        );
+        muon_result.addUserInt("iso03_ntrk", muon->isIsolationValid() ? muon->isolationR03().nTracks        : -9999         );
 
         ////////////
         // Tracks //
@@ -575,13 +598,39 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_validPixelHits     -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
         vector_mus_exp_innerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
         vector_mus_exp_outerlayers    -> push_back( siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
+
+        // 0imuon_result.addUserFloat("kjldf_.Ea",kjldt(x
+        // "wp -- to paste macro
+        // "wy -- to yank macro into w after selecting it
+
+        muon_result.addUserFloat("trk_pt", siTrack.isNonnull()     ? siTrack.get()->pt() : 0.);
+        muon_result.addUserFloat("trk_eta", siTrack.isNonnull()     ? siTrack.get()->eta() : 0.);
+        muon_result.addUserFloat("trk_phi", siTrack.isNonnull()     ? siTrack.get()->phi() : 0.);
+        muon_result.addUserInt("validHits", siTrack.isNonnull()     ? siTrack->numberOfValidHits()                         : -9999         );
+        muon_result.addUserInt("lostHits", siTrack.isNonnull()     ? siTrack->numberOfLostHits()                          : -9999         );
+        muon_result.addUserFloat("d0Err", siTrack.isNonnull()     ? siTrack->d0Error()                                   :  -9999.       );
+        muon_result.addUserFloat("z0Err", siTrack.isNonnull()     ? siTrack->dzError()                                   :  -9999.       );
+        muon_result.addUserFloat("ptErr", siTrack.isNonnull()     ? siTrack->ptError()                                   :  -9999.       );
+        muon_result.addUserInt("algo", siTrack.isNonnull()     ? siTrack->algo       ()                               : -9999.        );
+        muon_result.addUserInt("algoOrig", siTrack.isNonnull()     ? siTrack->originalAlgo       ()                               : -9999.        );
+        muon_result.addUserInt("nlayers", siTrack.isNonnull()     ? siTrack->hitPattern().trackerLayersWithMeasurement() :  -9999        );
+        muon_result.addUserInt("validPixelHits", siTrack.isNonnull()     ? siTrack->hitPattern().numberOfValidPixelHits()       :  -9999        );
+        muon_result.addUserInt("exp_innerlayers", siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS)   :  -9999        );
+        muon_result.addUserInt("exp_outerlayers", siTrack.isNonnull()     ? siTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS)   :  -9999        );
+
         if (firstGoodVertex!=vertexCollection->end()) { 
             vector_mus_dxyPV        ->push_back( siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
             vector_mus_dzPV         ->push_back( siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
+
+            muon_result.addUserFloat("dxyPV", siTrack.isNonnull()     ? siTrack->dxy( firstGoodVertex->position() )           : -9999.        );
+            muon_result.addUserFloat("dzPV", siTrack.isNonnull()     ? siTrack->dz(  firstGoodVertex->position() )           : -9999.        );
         }
         else {
             vector_mus_dxyPV       ->push_back( -999. );
             vector_mus_dzPV        ->push_back( -999. );
+
+            muon_result.addUserFloat("dxyPV", -999. );
+            muon_result.addUserFloat("dzPV", -999. );
         }
 
         vector_mus_dz_firstPV->push_back(siTrack.isNonnull() ? siTrack->dz((vertexCollection->begin())->position()) : -999. );
@@ -611,6 +660,22 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_isoR04_pf_sumPhotonEtHighThreshold        -> push_back( pfStructR04.sumPhotonEtHighThreshold        );
         vector_mus_isoR04_pf_PUPt                            -> push_back( pfStructR04.sumPUPt                         );
 
+        muon_result.addUserFloat("isoR03_pf_ChargedHadronPt", pfStructR03.sumChargedHadronPt              );
+        muon_result.addUserFloat("isoR03_pf_ChargedParticlePt", pfStructR03.sumChargedParticlePt            );
+        muon_result.addUserFloat("isoR03_pf_NeutralHadronEt", pfStructR03.sumNeutralHadronEt              );
+        muon_result.addUserFloat("isoR03_pf_PhotonEt", pfStructR03.sumPhotonEt                     );
+        muon_result.addUserFloat("isoR03_pf_sumNeutralHadronEtHighThreshold", pfStructR03.sumNeutralHadronEtHighThreshold );
+        muon_result.addUserFloat("isoR03_pf_sumPhotonEtHighThreshold", pfStructR03.sumPhotonEtHighThreshold        );
+        muon_result.addUserFloat("isoR03_pf_PUPt", pfStructR03.sumPUPt                         );
+
+        muon_result.addUserFloat("isoR04_pf_ChargedHadronPt", pfStructR04.sumChargedHadronPt              );
+        muon_result.addUserFloat("isoR04_pf_ChargedParticlePt", pfStructR04.sumChargedParticlePt            );
+        muon_result.addUserFloat("isoR04_pf_NeutralHadronEt", pfStructR04.sumNeutralHadronEt              );
+        muon_result.addUserFloat("isoR04_pf_PhotonEt", pfStructR04.sumPhotonEt                     );
+        muon_result.addUserFloat("isoR04_pf_sumNeutralHadronEtHighThreshold", pfStructR04.sumNeutralHadronEtHighThreshold );
+        muon_result.addUserFloat("isoR04_pf_sumPhotonEtHighThreshold", pfStructR04.sumPhotonEtHighThreshold        );
+        muon_result.addUserFloat("isoR04_pf_PUPt", pfStructR04.sumPUPt                         );
+
         // Other PF
         reco::CandidatePtr pfCandRef = muon->sourceCandidatePtr(0);
 
@@ -621,6 +686,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             vector_mus_pfcharge              ->push_back( pfCandRef->charge()                                                     );
             vector_mus_pfparticleId          ->push_back( pfCandRef->pdgId()                                                      );
             vector_mus_pfidx                 ->push_back( pfCandRef.key()                                                         );
+
+            muon_result.addUserFloat("pfpt", pfCandRef->p4().pt());
+            muon_result.addUserFloat("pfeta", pfCandRef->p4().eta());
+            muon_result.addUserFloat("pfphi", pfCandRef->p4().phi());
+            muon_result.addUserFloat("pfmass", pfCandRef->p4().mass());
+            muon_result.addUserInt("pfcharge", pfCandRef->charge()                                                     );
+            muon_result.addUserInt("pfparticleId", pfCandRef->pdgId()                                                      );
+            muon_result.addUserInt("pfidx", pfCandRef.key()                                                         );
         }
         else {
             
@@ -628,6 +701,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             vector_mus_pfcharge              ->push_back( -9999.0 );
             vector_mus_pfidx                 ->push_back( -9999.0 );
             vector_mus_pfparticleId          ->push_back( -9999.0 );
+
+            muon_result.addUserFloat("pfpt", 0.0);
+            muon_result.addUserFloat("pfeta", 0.0);
+            muon_result.addUserFloat("pfphi", 0.0);
+            muon_result.addUserFloat("pfmass", 0.0);
+            muon_result.addUserInt("pfcharge", -9999);
+            muon_result.addUserInt("pfparticleId", -9999);
+            muon_result.addUserInt("pfidx", -9999);
+
         } //
 
         ///////////
@@ -638,6 +720,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         vector_mus_ip3derr      -> push_back( muon->edB(pat::Muon::PV3D) );
         vector_mus_ip2d         -> push_back( muon->dB(pat::Muon::PV2D) ); 
         vector_mus_ip2derr      -> push_back( muon->edB(pat::Muon::PV2D) );
+
+        muon_result.addUserFloat("ip3d", muon->dB(pat::Muon::PV3D) ); 
+        muon_result.addUserFloat("ip3derr", muon->edB(pat::Muon::PV3D) );
+        muon_result.addUserFloat("ip2d", muon->dB(pat::Muon::PV2D) ); 
+        muon_result.addUserFloat("ip2derr", muon->edB(pat::Muon::PV2D) );
  
         //////////////////////
         // genMatch miniAOD //
@@ -650,27 +737,29 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
             mus_mc_patMatch_id      ->push_back( gen->pdgId()  );
             mus_mc_patMatch_p4      ->push_back( mc_p4         );
             mus_mc_patMatch_dr      ->push_back( ROOT::Math::VectorUtil::DeltaR(gen->p4(), muon->p4())  );
+
+            muon_result.addUserInt("mc_patMatch_id", gen->pdgId()  );
+            muon_result.addUserFloat("mc_patMatch_pt", mc_p4.pt()         );
+            muon_result.addUserFloat("mc_patMatch_eta", mc_p4.eta()         );
+            muon_result.addUserFloat("mc_patMatch_phi", mc_p4.phi()         );
+            muon_result.addUserFloat("mc_patMatch_mass", mc_p4.mass()         );
+            muon_result.addUserFloat("mc_patMatch_dr", ROOT::Math::VectorUtil::DeltaR(gen->p4(), muon->p4())  );
+
         }
         else {
             mus_mc_patMatch_id      ->push_back( -999   );
             mus_mc_patMatch_p4      ->push_back( mc_p4  );
             mus_mc_patMatch_dr      ->push_back( -999.  );
+
+            muon_result.addUserInt("mc_patMatch_id", -999);
+            muon_result.addUserFloat("mc_patMatch_pt", 0.);
+            muon_result.addUserFloat("mc_patMatch_eta", 0.);
+            muon_result.addUserFloat("mc_patMatch_phi", 0.);
+            muon_result.addUserFloat("mc_patMatch_mass", 0.);
+            muon_result.addUserFloat("mc_patMatch_dr", -999.);
+
         }
 
-        /////////////////////////////
-        // LeptonMVA jet daughters //
-        /////////////////////////////
-
-        // const auto & pv = (*vertexHandle)[0];
-        // auto infotuple = MatchUtilities::getLepMVAInfo(muPtr, pfJetsHandle, pv);
-        // float ptRatio = std::get<0>(infotuple);
-        // float ptRel = std::get<1>(infotuple);
-        // int jetNDauChargedMVASel = std::get<2>(infotuple);
-        // float jetBTagCSV = std::get<3>(infotuple);
-        // mus_jetNDauChargedMVASel->push_back(jetNDauChargedMVASel);
-        // mus_ptRatio->push_back(ptRatio);
-        // mus_ptRel->push_back(ptRel);
-        // mus_jetBTagCSV->push_back(jetBTagCSV);
 
         //////////////////////
         // mini-isolation   //
@@ -694,9 +783,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
         mus_miniIso_nh    ->push_back(miniiso.neutralHadronIso()); 
         mus_miniIso_em    ->push_back(miniiso.photonIso()); 
         mus_miniIso_db    ->push_back(miniiso.puChargedHadronIso()); 
+
+        muon_result.addUserFloat("miniIso_uncor",miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
+        muon_result.addUserFloat("miniIso_ch",miniiso.chargedHadronIso()); 
+        muon_result.addUserFloat("miniIso_nh",miniiso.neutralHadronIso()); 
+        muon_result.addUserFloat("miniIso_em",miniiso.photonIso()); 
+        muon_result.addUserFloat("miniIso_db",miniiso.puChargedHadronIso()); 
+
         delete mu2;
     
-        muonIndex++;
+        result->emplace_back(muon_result);
 
     } // end loop on muons
 
@@ -844,10 +940,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup) {
     iEvent.put(std::move(mus_simType       ), "mussimType"    );
     iEvent.put(std::move(mus_simExtType       ), "mussimExtType"    );
 
-    iEvent.put(std::move(mus_jetNDauChargedMVASel        ), "musjetNDauChargedMVASel"       ); 
-    iEvent.put(std::move(mus_ptRatio        ), "musptRatio"       ); 
-    iEvent.put(std::move(mus_ptRel        ), "musptRel"       ); 
-    iEvent.put(std::move(mus_jetBTagCSV        ), "musjetBTagCSV"       ); 
+
+    iEvent.put(std::move(result));
 
 } //
 
