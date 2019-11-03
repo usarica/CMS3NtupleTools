@@ -74,7 +74,6 @@ void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
 // ------------ method called to produce the data  ------------
 void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto result = std::make_unique<GenInfo>();
-  result->LHE_ME_weights["dummyME"]=99;
 
   edm::Handle<reco::GenParticleCollection> prunedGenParticlesHandle;
   iEvent.getByToken(prunedGenParticlesToken, prunedGenParticlesHandle);

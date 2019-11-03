@@ -16,8 +16,8 @@ genMaker = cms.EDProducer(
 
    ntuplePackedGenParticles    = cms.bool(False), # default is False
 
-   candVVmode = cms.int32(-1),
-   decayVVmode = cms.int32(-1),
+   candVVmode = cms.int32(7), # Has to correspond to MELAEvent::nCandidateVVModes
+   decayVVmode = cms.int32(-1), # -1 means any decay mode
    doHiggsKinematics = cms.bool(False),
    lheMElist = cms.vstring(),
 
