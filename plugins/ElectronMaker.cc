@@ -82,45 +82,22 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasPrefix")),
   year_(iConfig.getParameter<int>("year")),
 
-  //beamSpot_tag_                (iConfig.getParameter<edm::InputTag>("beamSpotTag")),
-
   trksInputTag_                (iConfig.getParameter<edm::InputTag>("trksInputTag")),
   gsftracksInputTag_           (iConfig.getParameter<edm::InputTag>("gsftracksInputTag")),
-
-  //cms2scsseeddetidInputTag_  (iConfig.getParameter<edm::InputTag> ("cms2scsseeddetidInputTag"     )),
-  eidLHTag_                    (iConfig.getParameter<edm::InputTag>("eidLHTag")),
 
   ebReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("ebReducedRecHitCollectionTag")),
   eeReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("eeReducedRecHitCollectionTag")),
   esReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("esReducedRecHitCollectionTag")),
-  //pfIsoCharged03InputTag       (iConfig.getParameter<edm::InputTag> ("pfIsoCharged03InputTag"   )),
-  //pfIsoGamma03InputTag         (iConfig.getParameter<edm::InputTag> ("pfIsoGamma03InputTag"     )),
-  //pfIsoNeutral03InputTag       (iConfig.getParameter<edm::InputTag> ("pfIsoNeutral03InputTag"   )),
-  //pfIsoCharged04InputTag       (iConfig.getParameter<edm::InputTag> ("pfIsoCharged04InputTag"   )),
-  //pfIsoGamma04InputTag         (iConfig.getParameter<edm::InputTag> ("pfIsoGamma04InputTag"     )),
-  //pfIsoNeutral04InputTag       (iConfig.getParameter<edm::InputTag> ("pfIsoNeutral04InputTag"   )),
-  rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag")),
 
-  minAbsDist_                  (iConfig.getParameter<double>("minAbsDist")),
-  minAbsDcot_                  (iConfig.getParameter<double>("minAbsDcot")),
-  minSharedFractionOfHits_     (iConfig.getParameter<double>("minSharedFractionOfHits")),
-
-  pfCandidates(nullptr)
+  rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag"))
 {
   //get setup parameters
 
   electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
 
-  miniIsoChgValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoChgValueMap"));
-  miniIsoAllValueMapToken_   = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("miniIsoAllValueMap"));
-
   beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
 
-  pfJetsToken = consumes<edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
-  //pfCandsToken  = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandsInputTag"));
   vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
-
-  bFieldToken  = consumes<float>(iConfig.getParameter<edm::InputTag>("bFieldInputTag"));
 
   recoConversionToken = consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("recoConversionInputTag"));
 
@@ -158,28 +135,17 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   iEvent.getByToken(electronsToken, els_h);
   if (!els_h.isValid()) throw cms::Exception("ElectronMaker::produce: error getting electron collection from Event!");
 
-  // Jets
-  Handle<View<pat::Jet> > pfJetsHandle;
-  iEvent.getByToken(pfJetsToken, pfJetsHandle);
-  //Handle<GsfElectronCollection> els_coll_h;
-  //iEvent.getByLabel(electronsInputTag_, els_coll_h);    
-
-  //////////////
-  // PF Cands //
-  //////////////
-  // iEvent.getByToken(pfCandsToken, packPfCand_h);
-  // if (!packPfCand_h.isValid()) throw cms::Exception("ElectronMaker::produce: error getting packed pfcands from Event!");
-  // pfCandidates  = packPfCand_h.product();
-
   ////////////
   // Vertex //
   ////////////
+  edm::Handle<reco::VertexCollection> vertexHandle;
   iEvent.getByToken(vtxToken, vertexHandle);
   if (!vertexHandle.isValid()) throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
 
   /////////////////
   // Conversions //
   /////////////////
+  edm::Handle<reco::ConversionCollection> convs_h;
   iEvent.getByToken(recoConversionToken, convs_h);
   if (!convs_h.isValid()) throw cms::Exception("ElectronMaker::produce: error getting conversion collection");
 
@@ -199,47 +165,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   Handle<LorentzVector> beamSpotH;
   iEvent.getByToken(beamSpotToken, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
-  //Handle<reco::BeamSpot> beamspot_h;
-  //iEvent.getByLabel(beamSpot_tag_, beamspot_h);
-  //const reco::BeamSpot &beamSpotreco = *(beamspot_h.product()); 
-  //if ( beamSpotreco.x0() == 1234567 ) ; // Avoid "unused variable" error while the function using this variable is inactive
 
-  ///////////////////////
-  // rho for isolation //
-  ///////////////////////
-  //edm::Handle<float> rhoIso_h;
-  //iEvent.getByLabel(rhoInputTag_, rhoIso_h);
-  //float rhoIso = *(rhoIso_h.product());
-
-  edm::Handle<edm::ValueMap<float> > miniIsoChg_values;
-  edm::Handle<edm::ValueMap<float> > miniIsoAll_values;
-
-  // Corrected Isolation using NanoAOD
-  iEvent.getByToken(miniIsoChgValueMapToken_, miniIsoChg_values);
-  iEvent.getByToken(miniIsoAllValueMapToken_, miniIsoAll_values);
-
-  //////////////////////////
-  // get cms2scsseeddetid //
-  //////////////////////////
-  // InputTag cms2scsseeddetid_tag(cms2scsseeddetidInputTag_.label(),"scsdetIdSeed");
-  // Handle<vector<int> > cms2scsseeddetid_h;
-  // iEvent.getByLabel(cms2scsseeddetid_tag, cms2scsseeddetid_h); 
-  // const vector<int> *cms2scsseeddetid = cms2scsseeddetid_h.product();
-
-  //////////////////////////////
-  // Get the ele<->PFCand map //
-  //////////////////////////////
-  // edm::Handle<edm::ValueMap<std::vector<reco::PFCandidateRef > > > eleToParticleBasedIsoMapHandle;
-  // InputTag particleBase(string("particleBasedIsolation"),string("gedGsfElectrons"));  
-  // iEvent.getByLabel(particleBase, eleToParticleBasedIsoMapHandle);    
-  // edm::ValueMap<std::vector<reco::PFCandidateRef > >   eleToParticleBasedIsoMap =  *(eleToParticleBasedIsoMapHandle.product());
-
-  // --- Fill --- //
 
   /////////////////////////
   // Loop Over Electrons //
   /////////////////////////
-
   size_t evt_nels = els_h->size(); result->reserve(evt_nels);
   size_t electronIndex = 0;
   for (View<pat::Electron>::const_iterator el = els_h->begin(); el != els_h->end(); el++, electronIndex++){
@@ -323,30 +253,33 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     float uncorrected_pt = el->pt();
     float uncorrected_mass = el->mass();
     float uncorrected_energy = el->energy();
-    electron_result.addUserFloat("scale_smear_corr", el->userFloat("ecalTrkEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
 
     // the p4 of the electron is the uncorrected one
     electron_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, el->eta(), el->phi(), uncorrected_mass));
 
-    // get scale uncertainties and their breakdown
-    electron_result.addUserFloat("scale_smear_corr_scale_totalUp", el->userFloat("energyScaleUp") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_statUp", el->userFloat("energyScaleStatUp") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_systUp", el->userFloat("energyScaleSystUp") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_gainUp", el->userFloat("energyScaleGainUp") / uncorrected_energy);
+    if (el->hasUserFloat("ecalTrkEnergyPostCorr")){
+      electron_result.addUserFloat("scale_smear_corr", el->userFloat("ecalTrkEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
 
-    electron_result.addUserFloat("scale_smear_corr_scale_totalDn", el->userFloat("energyScaleDown") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_statDn", el->userFloat("energyScaleStatDown") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_systDn", el->userFloat("energyScaleSystDown") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_scale_gainDn", el->userFloat("energyScaleGainDown") / uncorrected_energy);
+      // get scale uncertainties and their breakdown
+      electron_result.addUserFloat("scale_smear_corr_scale_totalUp", el->userFloat("energyScaleUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_statUp", el->userFloat("energyScaleStatUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_systUp", el->userFloat("energyScaleSystUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_gainUp", el->userFloat("energyScaleGainUp") / uncorrected_energy);
 
-    // get smearing uncertainties and their breakdown
-    electron_result.addUserFloat("scale_smear_corr_smear_totalUp", el->userFloat("energySigmaUp") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_smear_rhoUp", el->userFloat("energySigmaRhoUp") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_smear_phiUp", el->userFloat("energySigmaPhiUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_totalDn", el->userFloat("energyScaleDown") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_statDn", el->userFloat("energyScaleStatDown") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_systDn", el->userFloat("energyScaleSystDown") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_scale_gainDn", el->userFloat("energyScaleGainDown") / uncorrected_energy);
 
-    electron_result.addUserFloat("scale_smear_corr_smear_totalDn", el->userFloat("energySigmaDown") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_smear_rhoDn", el->userFloat("energySigmaRhoDown") / uncorrected_energy);
-    electron_result.addUserFloat("scale_smear_corr_smear_phiDn", el->userFloat("energySigmaPhiDown") / uncorrected_energy);
+      // get smearing uncertainties and their breakdown
+      electron_result.addUserFloat("scale_smear_corr_smear_totalUp", el->userFloat("energySigmaUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_smear_rhoUp", el->userFloat("energySigmaRhoUp") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_smear_phiUp", el->userFloat("energySigmaPhiUp") / uncorrected_energy);
+
+      electron_result.addUserFloat("scale_smear_corr_smear_totalDn", el->userFloat("energySigmaDown") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_smear_rhoDn", el->userFloat("energySigmaRhoDown") / uncorrected_energy);
+      electron_result.addUserFloat("scale_smear_corr_smear_phiDn", el->userFloat("energySigmaPhiDown") / uncorrected_energy);
+    }
 
     /////////////
     // Vectors //
@@ -513,10 +446,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("ndof", gsfTrack->ndof());
       electron_result.addUserFloat("d0Err", gsfTrack->d0Error());
       electron_result.addUserFloat("z0Err", gsfTrack->dzError());
-      electron_result.addUserFloat("ptErr", pterr);
+      electron_result.addUserFloat("ptErr_calc", pterr);
       electron_result.addUserFloat("ptErr_gsf", gsfTrack->ptError());
-      electron_result.addUserFloat("validHits", gsfTrack->numberOfValidHits());
-      electron_result.addUserFloat("lostHits", gsfTrack->numberOfLostHits());
+      electron_result.addUserInt("n_valid_hits", gsfTrack->numberOfValidHits());
+      electron_result.addUserInt("n_lost_hits", gsfTrack->numberOfLostHits());
     }
 
     // Vertex dxy and dz
@@ -546,7 +479,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("trkdr", deltaR(gsfTrack->eta(), gsfTrack->phi(), ctfTrack->eta(), ctfTrack->phi()));
       electron_result.addUserFloat("ckf_chi2", ctfTrack->chi2());
       electron_result.addUserFloat("ckf_ndof", ctfTrack->ndof());
-      electron_result.addUserInt("ckf_laywithmeas", ctfTrack->hitPattern().trackerLayersWithMeasurement());
+      electron_result.addUserInt("ckf_n_layers_with_measurement", ctfTrack->hitPattern().trackerLayersWithMeasurement());
       electron_result.addUserInt("ckf_charge", ctfTrack->charge());
     }
     else{
@@ -554,7 +487,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("trkdr", -1.);
       electron_result.addUserFloat("ckf_chi2", -1.);
       electron_result.addUserFloat("ckf_ndof", -1.);
-      electron_result.addUserInt("ckf_laywithmeas", -1.);
+      electron_result.addUserInt("ckf_n_layers_with_measurement", -1.);
       electron_result.addUserInt("ckf_charge", 0);
     }
 
@@ -686,134 +619,6 @@ int ElectronMaker::classify(RefToBase<pat::Electron> const& electron) {
   else if (eOverP < 1.2 && eOverP > 0.8) cat=0;
   else cat=2;
   return cat;
-}
-
-//little labour-saving function to get the reference to the ValueMap
-template<typename T> const ValueMap<T>& ElectronMaker::getValueMap(Event const& iEvent, InputTag const& inputTag){
-  Handle< ValueMap<T> > handle;
-  iEvent.getByLabel(inputTag, handle);
-  return *(handle.product());
-}
-
-double ElectronMaker::electronIsoValuePF(GsfElectron const& el, Vertex const& vtx, float coner, float minptn, float dzcut, float footprintdr, float gammastripveto, float elestripveto, int filterId){
-
-  float pfciso = 0.;
-  float pfniso = 0.;
-  float pffootprint = 0.;
-  float pfjurveto = 0.;
-  float pfjurvetoq = 0.;
-
-  //TrackRef siTrack     = el.closestCtfTrackRef();
-  TrackRef siTrack     = el.closestTrack();
-  GsfTrackRef gsfTrack = el.gsfTrack();
-
-  if (gsfTrack.isNull() && siTrack.isNull()) return -1.;
-
-  float eldz = gsfTrack.isNonnull() ? gsfTrack->dz(vtx.position()) : siTrack->dz(vtx.position());
-  float eleta = el.eta();
-
-  for (PFCandidateCollection::const_iterator pf=pfCand_h->begin(); pf<pfCand_h->end(); ++pf){
-
-    float pfeta = pf->eta();
-    float dR = deltaR(pfeta, pf->phi(), eleta, el.phi());
-    if (dR>coner) continue;
-
-    float deta = fabs(pfeta - eleta);
-    int pfid = abs(pf->pdgId());
-    float pfpt = pf->pt();
-
-    if (filterId!=0 && filterId!=pfid) continue;
-
-    if (pf->charge()==0) {
-      //neutrals
-      if (pfpt>minptn) {
-        pfniso+=pfpt;
-        if (dR<footprintdr && pfid==130) pffootprint+=pfpt;
-        if (deta<gammastripveto && pfid==22)  pfjurveto+=pfpt;
-      }
-    }
-    else {
-      //charged  
-      //avoid double counting of electron itself
-      //if either the gsf or the ctf track are shared with the candidate, skip it
-      const TrackRef pfTrack  = pf->trackRef();
-      if (siTrack.isNonnull()  && pfTrack.isNonnull() && siTrack.key()==pfTrack.key()) continue;
-      //below pfid==1 is commented out: in some cases the pfCand has a gsf even if it is not an electron... this is to improve the sync with MIT
-      if (/*pfid==11 &&*/ pf->gsfTrackRef().isNonnull()) {
-        if (gsfTrack.isNonnull() && gsfTrack.key()==pf->gsfTrackRef().key()) continue;
-      }
-      //check electrons with gsf track
-      if (pfid==11 && pf->gsfTrackRef().isNonnull()) {
-        if (fabs(pf->gsfTrackRef()->dz(vtx.position()) - eldz)<dzcut) {//dz cut
-          pfciso+=pfpt;
-          if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
-        }
-        continue;//and avoid double counting
-      }
-      //then check anything that has a ctf track
-      if (pfTrack.isNonnull()) {//charged (with a ctf track)
-        if (fabs(pfTrack->dz(vtx.position()) - eldz)<dzcut) {//dz cut
-          pfciso+=pfpt;
-          if (deta<elestripveto && pfid==11) pfjurvetoq+=pfpt;
-        }
-      }
-    }
-  }
-  return pfciso+pfniso-pffootprint-pfjurveto-pfjurvetoq;
-}
-
-void ElectronMaker::elIsoCustomCone(edm::View<pat::Electron>::const_iterator const& el, float dr, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float & dbiso){
-  chiso     = 0.;
-  nhiso     = 0.;
-  emiso     = 0.;
-  dbiso     = 0.;
-  float deadcone_ch = 0.;
-  float deadcone_pu = 0.;
-  float deadcone_ph = 0.;
-
-  double phi = el->p4().Phi();
-  double eta = el->p4().Eta();
-  double pi = M_PI;
-
-  // veto cones only in the endcap for electrons
-  if (useVetoCones && fabs(el->superCluster()->eta()) > 1.479) {
-    deadcone_ch = 0.015;
-    deadcone_pu = 0.015;
-    deadcone_ph = 0.08;
-  }
-  for (pat::PackedCandidateCollection::const_iterator pf_it = pfCandidates->begin(); pf_it != pfCandidates->end(); pf_it++) {
-    float id = pf_it->pdgId();
-    if (fabs(id) != 211 && fabs(id) != 130 && fabs(id) != 22) continue;
-
-    double deltaPhi = phi-pf_it->p4().Phi();
-    if (deltaPhi > pi) deltaPhi -= 2.0*pi;
-    else if (deltaPhi <= -pi) deltaPhi += 2.0*pi;
-    deltaPhi = fabs(deltaPhi);
-    if (deltaPhi > dr) continue;
-    double deltaEta = fabs(pf_it->p4().Eta()-eta);
-    if (deltaEta > dr) continue;
-    double thisDR = sqrt(deltaPhi*deltaPhi + deltaEta*deltaEta);
-
-    if (thisDR>dr) continue;
-    float pt = pf_it->p4().pt();
-    if (fabs(id)==211) {
-      if (pf_it->fromPV() > 1 && (!useVetoCones || thisDR > deadcone_ch)) chiso+=pt;
-      else if ((pf_it->fromPV() <= 1) && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_pu)) dbiso+=pt;
-    }
-    if (fabs(id)==130 && (pt > ptthresh)) nhiso+=pt;
-    if (fabs(id)==22 && (pt > ptthresh) && (!useVetoCones || thisDR > deadcone_ph)) emiso+=pt;
-  }
-
-  return;
-}
-
-void ElectronMaker::elMiniIso(edm::View<pat::Electron>::const_iterator const& el, bool useVetoCones, float ptthresh, float &chiso, float &nhiso, float &emiso, float &dbiso){
-  float pt = el->p4().pt();
-  float dr = 0.2;
-  if (pt>50) dr = 10./pt;
-  if (pt>200) dr = 0.05;
-  elIsoCustomCone(el, dr, useVetoCones, ptthresh, chiso, nhiso, emiso, dbiso);
-  return;
 }
 
 void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, std::string const& id_name, std::string const& id_identifier) const{

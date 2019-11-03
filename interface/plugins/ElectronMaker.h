@@ -78,33 +78,17 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
   virtual void endJob();
 
-  double electronIsoValuePF(
-    reco::GsfElectron const&, reco::Vertex const&,
-    float, float, float, float, float, float,
-    int
-  );
-
   int classify(edm::RefToBase<pat::Electron> const&);
-  template<typename T> const edm::ValueMap<T>& getValueMap(edm::Event const&, edm::InputTag const&);
-
-  void elIsoCustomCone(edm::View<pat::Electron>::const_iterator const&, float, bool, float, float&, float&, float&, float&);
-  void elMiniIso(edm::View<pat::Electron>::const_iterator const&, bool, float, float&, float&, float&, float&);
 
   void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
 
-
-  // ----------member data ---------------------------
+protected:
   std::string aliasprefix_;
   int year_;
 
-  //edm::InputTag beamSpot_tag_;
-
   edm::InputTag trksInputTag_;
   edm::InputTag gsftracksInputTag_;
-
-  edm::InputTag eidLHTag_;
-  //edm::InputTag cms2scsseeddetidInputTag_;
 
   edm::InputTag ebReducedRecHitCollectionTag;
   edm::InputTag eeReducedRecHitCollectionTag;
@@ -115,33 +99,8 @@ private:
 
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
-  //edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandsToken;
-  edm::EDGetTokenT<float> bFieldToken;
   edm::EDGetTokenT<LorentzVector> beamSpotToken;
   edm::EDGetTokenT<reco::ConversionCollection> recoConversionToken;
-
-  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoChgValueMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<float> > miniIsoAllValueMapToken_;
-
-  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
-  /*
-  edm::InputTag pfIsoCharged03InputTag;
-  edm::InputTag pfIsoGamma03InputTag;
-  edm::InputTag pfIsoNeutral03InputTag;
-  edm::InputTag pfIsoCharged04InputTag;
-  edm::InputTag pfIsoGamma04InputTag;
-  edm::InputTag pfIsoNeutral04InputTag;
-  */
-
-  double minAbsDist_;
-  double minAbsDcot_;
-  double minSharedFractionOfHits_;
-
-  edm::Handle<reco::PFCandidateCollection> pfCand_h;
-  edm::Handle<pat::PackedCandidateCollection> packPfCand_h;
-  const pat::PackedCandidateCollection* pfCandidates;
-  edm::Handle<reco::VertexCollection> vertexHandle;
-  edm::Handle<reco::ConversionCollection> convs_h;
 
   edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
   edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
