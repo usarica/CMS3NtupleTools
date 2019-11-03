@@ -30,12 +30,15 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include <DataFormats/Common/interface/View.h>
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
+
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
-#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 #include "CommonLHETools/LHEHandler/interface/LHEHandler.h" 
 
@@ -44,42 +47,50 @@
 // class decleration
 //
 
-class GenMaker : public edm::stream::EDProducer<> {
+class GenMaker : public edm::stream::EDProducer<>{
 public:
-     explicit GenMaker (const edm::ParameterSet&);
-     ~GenMaker();
+  explicit GenMaker(const edm::ParameterSet&);
+  ~GenMaker();
+
+protected:
+
+  // ----------member data ---------------------------
+  std::string aliasprefix_;
+  int year;
+
+  edm::InputTag LHEInputTag_;
+  edm::InputTag genEvtInfoInputTag_;
+  edm::InputTag prunedGenParticlesInputTag_;
+  edm::InputTag packedGenParticlesInputTag_;
+  edm::InputTag genMETInputTag_;
+  bool ntuplePackedGenParticles_;
+
+  bool doHiggsKinematics;
+  MELAEvent::CandidateVVMode candVVmode;
+  int decayVVmode;
+  std::vector<std::string> lheMElist;
+
+  edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
+  edm::EDGetTokenT<LHERunInfoProduct> LHERunInfoToken;
+
+  edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;
+
+  edm::EDGetTokenT<reco::GenParticleCollection> prunedGenParticlesToken;
+  edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
+  edm::EDGetTokenT< edm::View<pat::MET> > genMETToken;
+
+  std::shared_ptr<LHEHandler> lheHandler_default; // LHEHandler for default PDFs
+  std::shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
 
 private:
-     virtual void beginJob() ;
-     virtual void produce(edm::Event&, const edm::EventSetup&);
-     virtual void endJob() ;
-     virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+  virtual void beginJob();
+  virtual void endJob();
 
-     // ----------member data ---------------------------
-     const edm::ParameterSet inputPSet;
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
-     int year;
-
-     edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken;
-     edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;
-     edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
-     edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
-     edm::EDGetTokenT<LHERunInfoProduct> LHERunInfoToken;
-     edm::InputTag genRunInfoInputTag_;
-     bool ntupleOnlyStatus3_;
-     bool ntupleDaughters_;
-     bool ntuplePackedGenParticles_;
-     std::vector<int> vmetPIDs_;
-     edm::InputTag LHEInputTag_;
-
-     double inclusiveCrossSectionValue_;
-     double exclusiveCrossSectionValue_;
-     double kfactorValue_;
-
-     std::shared_ptr<LHEHandler> lheHandler; // LHEHandler for default PDFs
-     std::shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
+  virtual void produce(edm::Event&, const edm::EventSetup&);
 
 };
 
-#endif
 
+#endif

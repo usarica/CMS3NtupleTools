@@ -422,6 +422,7 @@ else:
 
    process.load("CMS3.NtupleMaker.cms3Ntuplizer_cfi")
    process.cms3ntuple.year = cms.int32(opts.year)
+   process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.outpath = cms.EndPath(process.cms3ntuple)
 
 
