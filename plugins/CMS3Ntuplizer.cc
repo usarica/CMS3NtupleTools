@@ -165,8 +165,8 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Tight_Bits);
 
       // Masks
-      PUSH_USERFLOAT_INTO_VECTOR(fid_mask);
-      PUSH_USERFLOAT_INTO_VECTOR(type_mask);
+      PUSH_USERINT_INTO_VECTOR(fid_mask);
+      PUSH_USERINT_INTO_VECTOR(type_mask);
     }
 
     // Pass collections to the communicator

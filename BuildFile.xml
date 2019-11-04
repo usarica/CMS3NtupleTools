@@ -32,6 +32,9 @@
 <use   name="MelaAnalytics/EventContainer"/>
 <use   name="CommonLHETools/LHEHandler"/>
 <use   name="CMSDataTools/AnalysisTree"/>
+<use   name="MelaAnalytics/EventContainer"/>
+<use   name="MelaAnalytics/GenericMEComputer"/>
+<use   name="MelaAnalytics/CandidateLOCaster"/>
 <use   name="root"/>
 <use   name="clhep"/>
 

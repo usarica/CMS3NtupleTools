@@ -82,6 +82,12 @@ protected:
   std::shared_ptr<LHEHandler> lheHandler_default; // LHEHandler for default PDFs
   std::shared_ptr<LHEHandler> lheHandler_NNPDF30_NLO; // LHEHandler for the 2016-like PDFs
 
+  /******************/
+  /* ME COMPUTATION */
+  /******************/
+
+
+
 private:
   virtual void beginJob();
   virtual void endJob();
