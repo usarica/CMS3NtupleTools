@@ -1,9 +1,9 @@
-#include "CMS3/NtupleMaker/interface/GenInfo.h" 
-#include "CMS3/NtupleMaker/interface/plugins/GenMaker.h" 
+#include "CMS3/NtupleMaker/interface/plugins/GenMaker.h"
 #include <ZZMatrixElement/MELA/interface/PDGHelpers.h>
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
+
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -20,6 +20,9 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   genMETInputTag_(iConfig.getParameter<edm::InputTag>("genMETInputTag")),
 
   ntuplePackedGenParticles_(iConfig.getParameter<bool>("ntuplePackedGenParticles")),
+
+  sqrts(iConfig.getParameter<int>("year")),
+  superMH(static_cast<float>(iConfig.getParameter<double>("superMH"))),
 
   doHiggsKinematics(iConfig.getParameter<bool>("doHiggsKinematics")),
   candVVmode(static_cast<MELAEvent::CandidateVVMode>(iConfig.getParameter<int>("candVVmode"))),
@@ -47,14 +50,18 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
     year, LHEHandler::tryNNPDF30, LHEHandler::tryNLO
     );
 
+  // Setup ME computation
+  setupMELA();
 
   produces<GenInfo>();
 }
 
-GenMaker::~GenMaker(){}
+GenMaker::~GenMaker(){
+  // Clear ME computations
+  cleanMELA();
+}
 
-void  GenMaker::beginJob(){}
-
+void GenMaker::beginJob(){}
 void GenMaker::endJob(){}
 
 void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
@@ -131,6 +138,12 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if (LHEEventInfo.isValid()){
     lheHandler_default->setHandle(&LHEEventInfo);
     lheHandler_default->extract();
+    // Special case for the default:
+    // Compute MEs
+    if (!lheMElist.empty()){
+      MELACandidate* cand = lheHandler_default->getBestCandidate();
+      doMELA(cand, *result);
+    }
 
     lheHandler_NNPDF30_NLO->setHandle(&LHEEventInfo);
     lheHandler_NNPDF30_NLO->extract();
@@ -224,6 +237,32 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 /******************/
 /* ME COMPUTATION */
 /******************/
+void GenMaker::setupMELA(){
+  if (lheMElist.empty()) return;
+
+  using namespace CMS3MELAHelpers;
+
+  setupMela(sqrts, superMH, TVar::ERROR); // Sets up MELA only once
+
+  lheMEblock.buildMELABranches(lheMElist, true);
+}
+void GenMaker::doMELA(MELACandidate* cand, GenInfo& genInfo){
+  using namespace CMS3MELAHelpers;
+  if (melaHandle && cand){
+    melaHandle->setCurrentCandidate(cand);
+
+    lheMEblock.computeMELABranches();
+    lheMEblock.pushMELABranches();
+    lheMEblock.getBranchValues(genInfo.LHE_ME_weights); // Record the MEs into the EDProducer product
+
+    melaHandle->resetInputEvent();
+  }
+}
+void GenMaker::cleanMELA(){
+  using namespace CMS3MELAHelpers;
+  // Shared pointer should be able to clear itself
+  //clearMela();
+}
 
 
 //define this as a plug-in

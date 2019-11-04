@@ -5,6 +5,7 @@
 #include <MelaAnalytics/EventContainer/interface/MELAEvent.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <memory>
 #include "TTree.h"
 
@@ -19,14 +20,6 @@ namespace CMS3MELAHelpers{
   using namespace BranchHelpers;
   class GMECBlock{
   protected:
-    std::vector<MELAOptionParser*> recome_originalopts; // Be careful: Only for reading
-    std::vector<MELAOptionParser*> recome_copyopts;
-    std::vector<MELAHypothesis*> recome_units;
-    std::vector<MELAHypothesis*> recome_aliased_units;
-    std::vector<MELAComputation*> recome_computers;
-    std::vector<MELACluster*> recome_clusters;
-    std::vector<MELABranch*> recome_branches;
-
     std::vector<MELAOptionParser*> lheme_originalopts; // Be careful: Only for reading
     std::vector<MELAOptionParser*> lheme_copyopts;
     std::vector<MELAHypothesis*> lheme_units;
@@ -35,17 +28,34 @@ namespace CMS3MELAHelpers{
     std::vector<MELACluster*> lheme_clusters;
     std::vector<MELABranch*> lheme_branches;
 
+    std::vector<MELAOptionParser*> recome_originalopts; // Be careful: Only for reading
+    std::vector<MELAOptionParser*> recome_copyopts;
+    std::vector<MELAHypothesis*> recome_units;
+    std::vector<MELAHypothesis*> recome_aliased_units;
+    std::vector<MELAComputation*> recome_computers;
+    std::vector<MELACluster*> recome_clusters;
+    std::vector<MELABranch*> recome_branches;
+
     std::vector<TTree*> reftrees;
 
   public:
-    GMECBlock(){}
-    ~GMECBlock(){}
+    GMECBlock();
+    ~GMECBlock();
 
     void setRefTrees(std::vector<TTree*> const& reftrees_);
 
-    void buildMELABranches(std::vector<std::string> const& lheMElist, std::vector<std::string> const& recoMElist);
-    void bookMELABranches(MELAOptionParser* me_opt, MELAComputation* computer, bool doCopy);
+    void buildMELABranches(std::vector<std::string> const& MElist, bool isGen);
     void clearMELABranches();
+
+    void computeMELABranches();
+    void pushMELABranches();
+
+    void getBranchValues(std::unordered_map<std::string, float>& io_rcd, bool isGen);
+    void getBranchValues(std::unordered_map<std::string, float>& io_rcd);
+
+  protected:
+    void bookMELABranches(MELAOptionParser* me_opt, MELAComputation* computer, bool doCopy);
+    void clearMELABranches(bool isGen);
 
     void computeMELABranches(bool isGen);
     void pushMELABranches(bool isGen);

@@ -40,7 +40,9 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
-#include "CommonLHETools/LHEHandler/interface/LHEHandler.h" 
+#include "CommonLHETools/LHEHandler/interface/LHEHandler.h"
+#include <CMS3/NtupleMaker/interface/CMS3MELAHelpers.h>
+#include <CMS3/NtupleMaker/interface/GenInfo.h>
 
 
 //
@@ -65,6 +67,9 @@ protected:
   edm::InputTag genMETInputTag_;
   bool ntuplePackedGenParticles_;
 
+  int sqrts;
+  float superMH;
+
   bool doHiggsKinematics;
   MELAEvent::CandidateVVMode candVVmode;
   int decayVVmode;
@@ -85,8 +90,10 @@ protected:
   /******************/
   /* ME COMPUTATION */
   /******************/
-
-
+  CMS3MELAHelpers::GMECBlock lheMEblock;
+  void setupMELA();
+  void doMELA(MELACandidate*, GenInfo&);
+  void cleanMELA();
 
 private:
   virtual void beginJob();

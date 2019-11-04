@@ -9,144 +9,160 @@ namespace CMS3MELAHelpers{
   std::shared_ptr<Mela> melaHandle(nullptr);
 
   void setupMela(int sqrts, float mh, TVar::VerbosityLevel verbosity){
-    if (sqrts>0 && mh>=0.f) melaHandle = make_shared<Mela>(sqrts, mh, verbosity);
+    if (!melaHandle && sqrts>0 && mh>=0.f) melaHandle = make_shared<Mela>(sqrts, mh, verbosity);
   }
   void clearMela(){ melaHandle.reset((Mela*) nullptr); }
 
 
+  GMECBlock::GMECBlock(){}
+  GMECBlock::~GMECBlock(){ clearMELABranches(); }
+
   void GMECBlock::setRefTrees(std::vector<TTree*> const& reftrees_){ reftrees = reftrees_; }
 
-  void GMECBlock::buildMELABranches(std::vector<std::string> const& lheMElist, std::vector<std::string> const& recoMElist){
+  void GMECBlock::buildMELABranches(std::vector<std::string> const& MElist, bool isGen){
     /***************************/
     /***** LHE ME BRANCHES *****/
     /***************************/
-    for (auto const& strLHEME:lheMElist){
-      MELAOptionParser* me_opt;
-      // First find out if the option has a copy specification
-      // These copy options will be evaulated in a separate loop
-      if (strLHEME.find("Copy")!=string::npos){
-        me_opt = new MELAOptionParser(strLHEME);
-        lheme_copyopts.push_back(me_opt);
-        continue;
+    if (isGen){
+      // Loop over the ME list to book the non-copy branches
+      for (auto const& strLHEME:MElist){
+        MELAOptionParser* me_opt;
+        // First find out if the option has a copy specification
+        // These copy options will be evaulated in a separate loop
+        if (strLHEME.find("Copy")!=string::npos){
+          me_opt = new MELAOptionParser(strLHEME);
+          lheme_copyopts.push_back(me_opt);
+          continue;
+        }
+
+        // Create a hypothesis for each option
+        MELAHypothesis* me_hypo = new MELAHypothesis(melaHandle.get(), strLHEME);
+        lheme_units.push_back(me_hypo);
+
+        // Check if the option is aliased
+        me_opt = me_hypo->getOption();
+        if (me_opt->isAliased()) lheme_aliased_units.push_back(me_hypo);
+
+        // Create a computation for each hypothesis
+        MELAComputation* me_computer = new MELAComputation(me_hypo);
+        lheme_computers.push_back(me_computer);
+
+        // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
+        GMECHelperFunctions::addToMELACluster(me_computer, lheme_clusters);
+
+        this->bookMELABranches(me_opt, me_computer, false);
       }
+      // Resolve copy options
+      for (MELAOptionParser* me_opt:lheme_copyopts){
+        MELAHypothesis* original_hypo=nullptr;
+        MELAOptionParser* original_opt=nullptr;
 
-      // Create a hypothesis for each option
-      MELAHypothesis* me_hypo = new MELAHypothesis(melaHandle.get(), strLHEME);
-      lheme_units.push_back(me_hypo);
+        // Find the original options
+        for (auto* me_aliased_unit:lheme_aliased_units){
+          if (me_opt->testCopyAlias(me_aliased_unit->getOption()->getAlias())){
+            original_hypo = me_aliased_unit;
+            original_opt = original_hypo->getOption();
+            break;
+          }
+        }
+        if (!original_opt) continue;
+        else me_opt->pickOriginalOptions(original_opt);
 
-      me_opt = me_hypo->getOption();
-      if (me_opt->isAliased()) lheme_aliased_units.push_back(me_hypo);
+        // Create a new computation for the copy options
+        MELAComputation* me_computer = new MELAComputation(original_hypo);
+        me_computer->setOption(me_opt);
+        lheme_computers.push_back(me_computer);
 
-      // Create a computation for each hypothesis
-      MELAComputation* me_computer = new MELAComputation(me_hypo);
-      lheme_computers.push_back(me_computer);
+        // The rest is the same story...
+        // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
+        GMECHelperFunctions::addToMELACluster(me_computer, lheme_clusters);
 
-      // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
-      GMECHelperFunctions::addToMELACluster(me_computer, lheme_clusters);
+        // Create the necessary branches for each computation
+        // Notice that no tree is passed, so no TBranches are created.
+        this->bookMELABranches(me_opt, me_computer, true);
+      }
+      // Loop over the computations to add any contingencies to aliased hypotheses
+      for (auto& me_computer:lheme_computers) me_computer->addContingencies(lheme_aliased_units);
 
-      this->bookMELABranches(me_opt, me_computer, false);
-    }
-    // Resolve copy options
-    for (MELAOptionParser* me_opt:lheme_copyopts){
-      MELAHypothesis* original_hypo=nullptr;
-      MELAOptionParser* original_opt=nullptr;
-      // Find the original options
-      for (auto* me_aliased_unit:lheme_aliased_units){
-        if (me_opt->testCopyAlias(me_aliased_unit->getOption()->getAlias())){
-          original_hypo = me_aliased_unit;
-          original_opt = original_hypo->getOption();
-          break;
+      if (!lheme_clusters.empty()){
+        cout << "GMECBlock::buildMELABranches: LHE ME clusters:" << endl;
+        for (auto const* me_cluster:lheme_clusters){
+          cout << "\t- Cluster " << me_cluster->getName() << " has " << me_cluster->getComputations()->size() << " computations registered." << endl;
         }
       }
-      if (!original_opt) continue;
-      else me_opt->pickOriginalOptions(original_opt);
-      // Create a new computation for the copy options
-      MELAComputation* me_computer = new MELAComputation(original_hypo);
-      me_computer->setOption(me_opt);
-      lheme_computers.push_back(me_computer);
-
-      // The rest is the same story...
-      // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
-      GMECHelperFunctions::addToMELACluster(me_computer, lheme_clusters);
-
-      // Create the necessary branches for each computation
-      // Notice that no tree is passed, so no TBranches are created.
-      this->bookMELABranches(me_opt, me_computer, true);
     }
-    // Loop over the computations to add any contingencies to aliased hypotheses
-    for (auto& me_computer:lheme_computers) me_computer->addContingencies(lheme_aliased_units);
-
     /****************************/
     /***** RECO ME BRANCHES *****/
     /****************************/
-    for (auto const& strRecoME:recoMElist){
-      MELAOptionParser* me_opt;
-      // First find out if the option has a copy specification
-      // These copy options will be evaulated in a separate loop
-      if (strRecoME.find("Copy")!=string::npos){
-        me_opt = new MELAOptionParser(strRecoME);
-        recome_copyopts.push_back(me_opt);
-        continue;
+    else{
+      // Loop over the ME list to book the non-copy branches
+      for (auto const& strRecoME:MElist){
+        MELAOptionParser* me_opt;
+        // First find out if the option has a copy specification
+        // These copy options will be evaulated in a separate loop
+        if (strRecoME.find("Copy")!=string::npos){
+          me_opt = new MELAOptionParser(strRecoME);
+          recome_copyopts.push_back(me_opt);
+          continue;
+        }
+
+        // Create a hypothesis for each option
+        MELAHypothesis* me_hypo = new MELAHypothesis(melaHandle.get(), strRecoME);
+        recome_units.push_back(me_hypo);
+
+        // Check if the option is aliased
+        me_opt = me_hypo->getOption();
+        if (me_opt->isAliased()) recome_aliased_units.push_back(me_hypo);
+
+        // Create a computation for each hypothesis
+        MELAComputation* me_computer = new MELAComputation(me_hypo);
+        recome_computers.push_back(me_computer);
+
+        // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
+        GMECHelperFunctions::addToMELACluster(me_computer, recome_clusters);
+
+        this->bookMELABranches(me_opt, me_computer, false);
       }
+      // Resolve copy options
+      for (MELAOptionParser* me_opt:recome_copyopts){
+        MELAHypothesis* original_hypo=nullptr;
+        MELAOptionParser* original_opt=nullptr;
 
-      // Create a hypothesis for each option
-      MELAHypothesis* me_hypo = new MELAHypothesis(melaHandle.get(), strRecoME);
-      recome_units.push_back(me_hypo);
+        // Find the original options
+        for (auto* me_aliased_unit:recome_aliased_units){
+          if (me_opt->testCopyAlias(me_aliased_unit->getOption()->getAlias())){
+            original_hypo = me_aliased_unit;
+            original_opt = original_hypo->getOption();
+            break;
+          }
+        }
+        if (!original_opt) continue;
+        else me_opt->pickOriginalOptions(original_opt);
 
-      me_opt = me_hypo->getOption();
-      if (me_opt->isAliased()) recome_aliased_units.push_back(me_hypo);
+        // Create a new computation for the copy options
+        MELAComputation* me_computer = new MELAComputation(original_hypo);
+        me_computer->setOption(me_opt);
+        recome_computers.push_back(me_computer);
 
-      // Create a computation for each hypothesis
-      MELAComputation* me_computer = new MELAComputation(me_hypo);
-      recome_computers.push_back(me_computer);
+        // The rest is the same story...
+        // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
+        GMECHelperFunctions::addToMELACluster(me_computer, recome_clusters);
 
-      // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
-      GMECHelperFunctions::addToMELACluster(me_computer, recome_clusters);
+        // Create the necessary branches for each computation
+        // Notice that no tree is passed, so no TBranches are created.
+        this->bookMELABranches(me_opt, me_computer, true);
+      }
+      // Loop over the computations to add any contingencies to aliased hypotheses
+      for (auto& me_computer:recome_computers) me_computer->addContingencies(recome_aliased_units);
 
-      this->bookMELABranches(me_opt, me_computer, false);
-    }
-    // Resolve copy options
-    for (MELAOptionParser* me_opt:recome_copyopts){
-      MELAHypothesis* original_hypo=nullptr;
-      MELAOptionParser* original_opt=nullptr;
-      // Find the original options
-      for (auto* me_aliased_unit:recome_aliased_units){
-        if (me_opt->testCopyAlias(me_aliased_unit->getOption()->getAlias())){
-          original_hypo = me_aliased_unit;
-          original_opt = original_hypo->getOption();
-          break;
+      if (!recome_clusters.empty()){
+        cout << "GMECBlock::buildMELABranches: Reco ME clusters:" << endl;
+        for (auto const* me_cluster:recome_clusters){
+          cout << "\t- Cluster " << me_cluster->getName() << " has " << me_cluster->getComputations()->size() << " computations registered." << endl;
         }
       }
-      if (!original_opt) continue;
-      else me_opt->pickOriginalOptions(original_opt);
-      // Create a new computation for the copy options
-      MELAComputation* me_computer = new MELAComputation(original_hypo);
-      me_computer->setOption(me_opt);
-      recome_computers.push_back(me_computer);
-
-      // The rest is the same story...
-      // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
-      GMECHelperFunctions::addToMELACluster(me_computer, recome_clusters);
-
-      // Create the necessary branches for each computation
-      // Notice that no tree is passed, so no TBranches are created.
-      this->bookMELABranches(me_opt, me_computer, true);
     }
-    // Loop over the computations to add any contingencies to aliased hypotheses
-    for (auto& me_computer:recome_computers) me_computer->addContingencies(recome_aliased_units);
 
-    if (!lheme_clusters.empty()){
-      cout << "GMECBlock::buildMELABranches: LHE ME clusters:" << endl;
-      for (auto const* me_cluster:lheme_clusters){
-        cout << "\t- Cluster " << me_cluster->getName() << " has " << me_cluster->getComputations()->size() << " computations registered." << endl;
-      }
-    }
-    if (!recome_clusters.empty()){
-      cout << "GMECBlock::buildMELABranches: Reco ME clusters:" << endl;
-      for (auto const* me_cluster:recome_clusters){
-        cout << "\t- Cluster " << me_cluster->getName() << " has " << me_cluster->getComputations()->size() << " computations registered." << endl;
-      }
-    }
   }
   void GMECBlock::bookMELABranches(MELAOptionParser* me_opt, MELAComputation* computer, bool doCopy){
     if (!me_opt){
@@ -190,28 +206,36 @@ namespace CMS3MELAHelpers{
       }
     }
   }
-  void GMECBlock::clearMELABranches(){
+
+  void GMECBlock::clearMELABranches(bool isGen){
 #define CLEAR_MELA_BRANCHES_CMD(thelist) \
 for (auto*& v:thelist) delete v; \
 thelist.clear();
 
-    CLEAR_MELA_BRANCHES_CMD(lheme_branches);
-    CLEAR_MELA_BRANCHES_CMD(lheme_clusters);
-    CLEAR_MELA_BRANCHES_CMD(lheme_computers);
-    CLEAR_MELA_BRANCHES_CMD(lheme_copyopts);
-    CLEAR_MELA_BRANCHES_CMD(lheme_originalopts);
-    // Do not delete me_aliased_units. They are deleted together with me_units.
-    CLEAR_MELA_BRANCHES_CMD(lheme_units);
-
-    CLEAR_MELA_BRANCHES_CMD(recome_branches);
-    CLEAR_MELA_BRANCHES_CMD(recome_clusters);
-    CLEAR_MELA_BRANCHES_CMD(recome_computers);
-    CLEAR_MELA_BRANCHES_CMD(recome_copyopts);
-    CLEAR_MELA_BRANCHES_CMD(recome_originalopts);
-    // Do not delete me_aliased_units. They are deleted together with me_units.
-    CLEAR_MELA_BRANCHES_CMD(recome_units);
+    if (isGen){
+      CLEAR_MELA_BRANCHES_CMD(lheme_branches);
+      CLEAR_MELA_BRANCHES_CMD(lheme_clusters);
+      CLEAR_MELA_BRANCHES_CMD(lheme_computers);
+      CLEAR_MELA_BRANCHES_CMD(lheme_copyopts);
+      CLEAR_MELA_BRANCHES_CMD(lheme_originalopts);
+      // Do not delete me_aliased_units. They are deleted together with me_units.
+      CLEAR_MELA_BRANCHES_CMD(lheme_units);
+    }
+    else{
+      CLEAR_MELA_BRANCHES_CMD(recome_branches);
+      CLEAR_MELA_BRANCHES_CMD(recome_clusters);
+      CLEAR_MELA_BRANCHES_CMD(recome_computers);
+      CLEAR_MELA_BRANCHES_CMD(recome_copyopts);
+      CLEAR_MELA_BRANCHES_CMD(recome_originalopts);
+      // Do not delete me_aliased_units. They are deleted together with me_units.
+      CLEAR_MELA_BRANCHES_CMD(recome_units);
+    }
 
 #undef CLEAR_MELA_BRANCHES_CMD
+  }
+  void GMECBlock::clearMELABranches(){
+    clearMELABranches(true);
+    clearMELABranches(false);
   }
 
   void GMECBlock::computeMELABranches(bool isGen){
@@ -249,6 +273,11 @@ thelist.clear();
     updateMELAClusters_J1JECJER("J1JECNominalLast", isGen); updateMELAClusters_J1JECJER("J1JECUpLast", isGen); updateMELAClusters_J1JECJER("J1JECDnLast", isGen);
     updateMELAClusters_Common("CommonLast", isGen);
   }
+  void GMECBlock::computeMELABranches(){
+    computeMELABranches(true);
+    computeMELABranches(false);
+  }
+
   void GMECBlock::pushMELABranches(bool isGen){
     std::vector<MELABranch*>& me_branches = (isGen ? lheme_branches : recome_branches);
     std::vector<MELACluster*>& me_clusters = (isGen ? lheme_clusters : recome_clusters);
@@ -257,6 +286,20 @@ thelist.clear();
     // ...then reset
     for (MELACluster* v:me_clusters) v->reset();
   }
+  void GMECBlock::pushMELABranches(){
+    pushMELABranches(true);
+    pushMELABranches(false);
+  }
+
+  void GMECBlock::getBranchValues(std::unordered_map<std::string, float>& io_rcd, bool isGen){
+    std::vector<MELABranch*> const& me_branches = (isGen ? lheme_branches : recome_branches);
+    for (MELABranch* const& br:me_branches) io_rcd[br->bname.Data()] = br->getVal();
+  }
+  void GMECBlock::getBranchValues(std::unordered_map<std::string, float>& io_rcd){
+    getBranchValues(io_rcd, true);
+    getBranchValues(io_rcd, false);
+  }
+
   // Common ME computations that do not manipulate the LHE candidate
   void GMECBlock::updateMELAClusters_Common(const string clustertype, bool isGen){
     MELACandidate* melaCand = melaHandle->getCurrentCandidate();
