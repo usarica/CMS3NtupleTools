@@ -24,7 +24,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/stream/EDProducer.h"
+#include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -49,7 +49,7 @@
 // class decleration
 //
 
-class GenMaker : public edm::stream::EDProducer<>{
+class GenMaker : public edm::one::EDProducer<>{
 public:
   explicit GenMaker(const edm::ParameterSet&);
   ~GenMaker();

@@ -309,6 +309,9 @@ elif (opts.year == 2018):
 # Sequences ################################################################################################################################################
 #############
 
+# Gen. sequence
+process.genMakerSeq = cms.Sequence( process.genMaker )
+
 # e/gamma sequence
 process.egammaMakerSeq = cms.Sequence( process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker * process.photonMaker )
 
@@ -381,8 +384,11 @@ for ip,producer in enumerate(producers):
         total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
         continue
 
+    if producer == process.genMaker:
+       total_path *= process.genMakerSeq
+       continue
+
     if producer == process.electronMaker:
-    #   total_path *= process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker
        total_path *= process.egammaMakerSeq
        continue
 

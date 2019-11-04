@@ -4,8 +4,8 @@
 *.log
 *.gz
 *.pdf
-*.txt
-*.sh
+test/*.txt
+test/*.sh
 test/crabConfig.py
 test/crab_projects/*
 test/crab_projects/crab_CMS4_from_MINIAOD_test/
