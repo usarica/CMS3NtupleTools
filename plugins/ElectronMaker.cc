@@ -280,6 +280,29 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("scale_smear_corr_smear_rhoDn", el->userFloat("energySigmaRhoDown") / uncorrected_energy);
       electron_result.addUserFloat("scale_smear_corr_smear_phiDn", el->userFloat("energySigmaPhiDown") / uncorrected_energy);
     }
+    else{ // Ensure that the user floats still exist
+      electron_result.addUserFloat("scale_smear_corr", 1);
+
+      electron_result.addUserFloat("scale_smear_corr_scale_totalUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_statUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_systUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_gainUp", 1);
+
+      electron_result.addUserFloat("scale_smear_corr_scale_totalDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_statDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_systDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_scale_gainDn", 1);
+
+      electron_result.addUserFloat("scale_smear_corr_smear_totalUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_statUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_systUp", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_gainUp", 1);
+
+      electron_result.addUserFloat("scale_smear_corr_smear_totalDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_statDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_systDn", 1);
+      electron_result.addUserFloat("scale_smear_corr_smear_gainDn", 1);
+    }
 
     /////////////
     // Vectors //

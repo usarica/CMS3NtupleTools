@@ -23,6 +23,7 @@ opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X dat
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
+opts.register('applyMuoncorr', True , mytype=vpbool) # to enable muon scale and smear corrections
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.parseArguments()
 
@@ -303,8 +304,29 @@ elif (opts.year == 2018):
 #for idmod in my_phoid_modules:
 #    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
 
-# Setup e/gamma sequence
+
+#############
+# Sequences ################################################################################################################################################
+#############
+
+# e/gamma sequence
 process.egammaMakerSeq = cms.Sequence( process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker * process.photonMaker )
+
+# muon sequence
+if opts.applyMuoncorr:
+   process.correctedMuons.identifier = cms.string("RoccoR{}".format(opts.year))
+   process.correctedMuons.isMC = cms.bool((not opts.data))
+
+   process.muonMaker.muonsInputTag = cms.InputTag("correctedMuons")
+
+   process.muonMakerSeq = cms.Sequence( process.correctedMuons * process.muonMaker )
+else:
+   process.muonMakerSeq = cms.Sequence( process.muonMaker )
+
+
+###################
+# Build the paths ##########################################################################################################################################
+###################
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
@@ -362,6 +384,10 @@ for ip,producer in enumerate(producers):
     if producer == process.electronMaker:
     #   total_path *= process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker
        total_path *= process.egammaMakerSeq
+       continue
+
+    if producer == process.muonMaker:
+       total_path *= process.muonMakerSeq
        continue
 
 

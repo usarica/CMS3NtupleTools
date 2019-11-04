@@ -74,7 +74,6 @@ void RochesterPATMuonCorrector::produce(edm::Event& iEvent, const edm::EventSetu
     pat::Muon mu(*muon); // Clone the muon. This is the single muon to be put into the resultant collection
 
     double oldpt = mu.pt();
-    int nl = mu.track()->hitPattern().trackerLayersWithMeasurement();
 
     auto gen_particle = mu.genParticle();
     double scale_factor = 1;
@@ -86,6 +85,8 @@ void RochesterPATMuonCorrector::produce(edm::Event& iEvent, const edm::EventSetu
     double u = rand.Rndm();
 
     if (calibrator  && mu.muonBestTrackType() == 1 && oldpt <= 200.){
+      int nl = mu.track()->hitPattern().trackerLayersWithMeasurement();
+
       ////Protection against muons with low number of layers, they are not used in the analysis anyway as we apply tight muon ID
       //if (isMC_ && nl > 5){
       if (isMC_){

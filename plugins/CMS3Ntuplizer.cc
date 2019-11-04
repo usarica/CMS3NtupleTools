@@ -81,11 +81,12 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // Convenience macros to easily make and push vector values
 #define MAKE_VECTOR_WITH_RESERVE(type_, name_, size_) std::vector<type_> name_; name_.reserve(size_);
+#define PUSH_USERINT_INTO_VECTOR(name_) name_.push_back(obj->userInt(#name_));
+#define PUSH_USERFLOAT_INTO_VECTOR(name_) name_.push_back(obj->userFloat(#name_));
 #define PUSH_VECTOR_WITH_NAME(name_, var_) commonEntry.setNamedVal(TString(name_)+"_"+#var_, var_);
 
   // Electrons
   {
-    //const char colName[] = "Electron"; // nanoAOD
     const char colName[] = "electrons";
 
     size_t n_electrons = electronsHandle->size();
@@ -131,41 +132,41 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       mass.push_back(obj->mass());
 
       // Charge: Can obtain pdgId from this, so no need to record pdgId again
-      charge.push_back(obj->userInt("charge"));
+      PUSH_USERINT_INTO_VECTOR(charge);
 
       // Scale and smear
       // Nominal value: Needs to multiply the uncorrected p4 at analysis level
-      scale_smear_corr.push_back(obj->userFloat("scale_smear_corr"));
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr);
       // Uncertainties: Only store total up/dn for the moment
-      scale_smear_corr_scale_totalUp.push_back(obj->userFloat("scale_smear_corr_scale_totalUp"));
-      scale_smear_corr_scale_totalDn.push_back(obj->userFloat("scale_smear_corr_scale_totalDn"));
-      scale_smear_corr_smear_totalUp.push_back(obj->userFloat("scale_smear_corr_smear_totalUp"));
-      scale_smear_corr_smear_totalDn.push_back(obj->userFloat("scale_smear_corr_smear_totalDn"));
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalDn);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
 
       // Id variables
       // Fall17V2_Iso MVA id
-      id_MVA_Fall17V2_Iso_Val.push_back(obj->userFloat("id_MVA_Fall17V2_Iso_Val"));
-      id_MVA_Fall17V2_Iso_Cat.push_back(obj->userInt("id_MVA_Fall17V2_Iso_Cat"));
+      PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Val);
+      PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Cat);
 
       // Fall17V2_NoIso MVA id
-      id_MVA_Fall17V2_NoIso_Val.push_back(obj->userFloat("id_MVA_Fall17V2_NoIso_Val"));
-      id_MVA_Fall17V2_NoIso_Cat.push_back(obj->userInt("id_MVA_Fall17V2_NoIso_Cat"));
+      PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Val);
+      PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Cat);
 
       // Fall17V2 cut-based ids
-      id_cutBased_Fall17V2_Veto_Bits.push_back(obj->userInt("id_cutBased_Fall17V2_Veto_Bits"));
-      id_cutBased_Fall17V2_Loose_Bits.push_back(obj->userInt("id_cutBased_Fall17V2_Loose_Bits"));
-      id_cutBased_Fall17V2_Medium_Bits.push_back(obj->userInt("id_cutBased_Fall17V2_Medium_Bits"));
-      id_cutBased_Fall17V2_Tight_Bits.push_back(obj->userInt("id_cutBased_Fall17V2_Tight_Bits"));
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Veto_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
 
       // Fall17V1 cut-based ids
-      id_cutBased_Fall17V1_Veto_Bits.push_back(obj->userInt("id_cutBased_Fall17V1_Veto_Bits"));
-      id_cutBased_Fall17V1_Loose_Bits.push_back(obj->userInt("id_cutBased_Fall17V1_Loose_Bits"));
-      id_cutBased_Fall17V1_Medium_Bits.push_back(obj->userInt("id_cutBased_Fall17V1_Medium_Bits"));
-      id_cutBased_Fall17V1_Tight_Bits.push_back(obj->userInt("id_cutBased_Fall17V1_Tight_Bits"));
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Veto_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Loose_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Medium_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Tight_Bits);
 
       // Masks
-      fid_mask.push_back(obj->userInt("fid_mask"));
-      type_mask.push_back(obj->userInt("type_mask"));
+      PUSH_USERFLOAT_INTO_VECTOR(fid_mask);
+      PUSH_USERFLOAT_INTO_VECTOR(type_mask);
     }
 
     // Pass collections to the communicator
@@ -200,6 +201,72 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     PUSH_VECTOR_WITH_NAME(colName, fid_mask);
     PUSH_VECTOR_WITH_NAME(colName, type_mask);
+
+  }
+
+  // Photons
+  {
+    const char colName[] = "photons";
+
+    size_t n_photons = photonsHandle->size();
+
+    MAKE_VECTOR_WITH_RESERVE(float, pt, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, eta, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, phi, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, mass, n_photons);
+
+    // Has no convention correspondence in nanoAOD
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_scale_totalUp, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_scale_totalDn, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_photons);
+
+    MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_photons);
+    MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, n_photons);
+
+    for (View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
+      // Core particle quantities
+      // Uncorrected p4
+      pt.push_back(obj->pt());
+      eta.push_back(obj->eta());
+      phi.push_back(obj->phi());
+      mass.push_back(obj->mass());
+
+      // Scale and smear
+      // Nominal value: Needs to multiply the uncorrected p4 at analysis level
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr);
+      // Uncertainties: Only store total up/dn for the moment
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalDn);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
+
+      // Id variables
+      // Fall17V2 cut-based ids
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
+      PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
+    }
+
+    // Pass collections to the communicator
+    PUSH_VECTOR_WITH_NAME(colName, pt);
+    PUSH_VECTOR_WITH_NAME(colName, eta);
+    PUSH_VECTOR_WITH_NAME(colName, phi);
+    PUSH_VECTOR_WITH_NAME(colName, mass);
+
+    // Has no convention correspondence in nanoAOD
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_scale_totalUp);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_scale_totalDn);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalUp);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalDn);
+
+    PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
+    PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
+    PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
+
   }
 
   // Muons
@@ -216,6 +283,13 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     MAKE_VECTOR_WITH_RESERVE(int, charge, n_muons);
 
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalDn, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalUp, n_muons);
+    MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalDn, n_muons);
+
+
     for (View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
       // Core particle quantities
       pt.push_back(obj->pt());
@@ -223,8 +297,13 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       phi.push_back(obj->phi());
       mass.push_back(obj->mass());
 
-      charge.push_back(obj->userInt("charge"));
+      PUSH_USERINT_INTO_VECTOR(charge);
 
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalDn);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalUp);
+      PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalDn);
 
     }
 
@@ -236,6 +315,11 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
     PUSH_VECTOR_WITH_NAME(colName, charge);
 
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalDn);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalUp);
+    PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalDn);
 
   }
 
@@ -252,6 +336,8 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // Undefine the convenience macros
 #undef PUSH_VECTOR_WITH_NAME
+#undef PUSH_USERFLOAT_INTO_VECTOR
+#undef PUSH_USERINT_INTO_VECTOR
 #undef MAKE_VECTOR_WITH_RESERVE
 
   /************************************************/

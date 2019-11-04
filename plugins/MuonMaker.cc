@@ -91,6 +91,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
         break;
       }
     }
+    bool hasVertex = (!vertexCollection->empty());
+    bool hasGoodVertex = (firstGoodVertex!=vertexCollection->end());
 
     muon_result.addUserInt("selectors", muon->selectors());
     muon_result.addUserInt("simType", muon->simType());
@@ -99,45 +101,27 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //////////////////
     // Global track //
     //////////////////
-    if (globalTrack.isNonnull()){
-      muon_result.addUserInt("globalTrack_ndof", globalTrack->ndof());
-      muon_result.addUserInt("globalTrack_nValidMuonHits", globalTrack->hitPattern().numberOfValidMuonHits());
-      muon_result.addUserInt("globalTrack_algo", globalTrack->algo());
-      muon_result.addUserFloat("globalTrack_chi2", globalTrack->chi2());
-      muon_result.addUserFloat("globalTrack_pt", globalTrack->pt());
-      muon_result.addUserFloat("globalTrack_eta", globalTrack->eta());
-      muon_result.addUserFloat("globalTrack_phi", globalTrack->phi());
-      muon_result.addUserFloat("globalTrack_ptErr", globalTrack->ptError());
-    }
-    else{
-      muon_result.addUserInt("globalTrack_ndof", -1);
-      muon_result.addUserInt("globalTrack_nValidMuonHits", -1);
-      muon_result.addUserInt("globalTrack_algo", -1);
-      muon_result.addUserFloat("globalTrack_chi2", -1);
-      muon_result.addUserFloat("globalTrack_pt", -1);
-      muon_result.addUserFloat("globalTrack_ptErr", -1);
-      muon_result.addUserFloat("globalTrack_eta", 0);
-      muon_result.addUserFloat("globalTrack_phi", 0);
-    }
+    bool validGlobalTrack = globalTrack.isNonnull();
+    muon_result.addUserInt("globalTrack_ndof", validGlobalTrack ? globalTrack->ndof() : -1);
+    muon_result.addUserInt("globalTrack_n_valid_muon_hits", validGlobalTrack ? globalTrack->hitPattern().numberOfValidMuonHits() : 0);
+    muon_result.addUserInt("globalTrack_algo", validGlobalTrack ? globalTrack->algo() : -1); // See DataFormats/TrackReco/interface/TrackBase.h
+    muon_result.addUserFloat("globalTrack_chi2", validGlobalTrack ? globalTrack->chi2() : -1.);
+    muon_result.addUserFloat("globalTrack_normchi2", validGlobalTrack ? globalTrack->normalizedChi2() : -1.);
+    muon_result.addUserFloat("globalTrack_pt", validGlobalTrack ? globalTrack->pt() : -1.);
+    muon_result.addUserFloat("globalTrack_ptErr", validGlobalTrack ? globalTrack->ptError() : -1.);
+    muon_result.addUserFloat("globalTrack_eta", validGlobalTrack ? globalTrack->eta() : 0.);
+    muon_result.addUserFloat("globalTrack_phi", validGlobalTrack ? globalTrack->phi() : 0.);
 
     ////////////////
     // Best track //
     ////////////////
 
-    if (bestTrack.isNonnull()){
-      muon_result.addUserInt("bestTrack_algo", bestTrack->algo());
-      muon_result.addUserFloat("bestTrack_pt", bestTrack->pt());
-      muon_result.addUserFloat("bestTrack_ptErr", bestTrack->ptError());
-      muon_result.addUserFloat("bestTrack_eta", bestTrack->eta());
-      muon_result.addUserFloat("bestTrack_phi", bestTrack->phi());
-    }
-    else{
-      muon_result.addUserInt("bestTrack_algo", -1);
-      muon_result.addUserFloat("bestTrack_pt", -1);
-      muon_result.addUserFloat("bestTrack_ptErr", -1);
-      muon_result.addUserFloat("bestTrack_eta", 0);
-      muon_result.addUserFloat("bestTrack_phi", 0);
-    }
+    bool validBestTrack = bestTrack.isNonnull();
+    muon_result.addUserInt("bestTrack_algo", validBestTrack ? bestTrack->algo() : -1); // DataFormats/TrackReco/interface/TrackBase.h
+    muon_result.addUserFloat("bestTrack_pt", validBestTrack ? bestTrack->pt() : -1.);
+    muon_result.addUserFloat("bestTrack_ptErr", validBestTrack ? bestTrack->ptError() : -1.);
+    muon_result.addUserFloat("bestTrack_eta", validBestTrack ? bestTrack->eta() : 0.);
+    muon_result.addUserFloat("bestTrack_phi", validBestTrack ? bestTrack->phi() : 0.);
 
     //////////////////
     // Muon quality //
@@ -172,12 +156,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserFloat("scale_smear_pt_corr_smear_totalUp", muon->userFloat("scale_smear_pt_corr_smear_totalUp"));
       muon_result.addUserFloat("scale_smear_pt_corr_smear_totalDn", muon->userFloat("scale_smear_pt_corr_smear_totalDn"));
     }
+    else{ // Ensure that the user floats still exist
+      muon_result.addUserFloat("scale_smear_pt_corr", 1);
+
+      muon_result.addUserFloat("scale_smear_pt_corr_scale_totalUp", 1);
+      muon_result.addUserFloat("scale_smear_pt_corr_scale_totalDn", 1);
+
+      muon_result.addUserFloat("scale_smear_pt_corr_smear_totalUp", 1);
+      muon_result.addUserFloat("scale_smear_pt_corr_smear_totalDn", 1);
+    }
 
     // Other quantities
     muon_result.addUserInt("type", muon->type());
     muon_result.addUserInt("charge", muon->charge());
+    muon_result.addUserFloat("segmentCompatibility", muon::segmentCompatibility(*muon));
     muon_result.addUserFloat("caloCompatibility", muon->caloCompatibility());
-    muon_result.addUserInt("numberOfMatchedStations", muon::segmentCompatibility(*muon));
 
     ////////
     // ID //
@@ -189,13 +182,15 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserInt("pid_TM2DCompatibilityLoose", matchIsValid ? muon::isGoodMuon(*muon, muon::TM2DCompatibilityLoose) : 0);
     muon_result.addUserInt("pid_TM2DCompatibilityTight", matchIsValid ? muon::isGoodMuon(*muon, muon::TM2DCompatibilityTight) : 0);
     muon_result.addUserInt("pid_TMOneStationTight", matchIsValid ? muon::isGoodMuon(*muon, muon::TMOneStationTight) : 0);
-    muon_result.addUserInt("pid_PFMuon", muon->isPFMuon());
+    muon_result.addUserInt("pid_isPFMuon", muon->isPFMuon());
+    muon_result.addUserInt("pid_isGlobalMuon", muon->isGlobalMuon());
+    muon_result.addUserInt("pid_isGlobalMuon", muon->isGlobalMuon());
 
     ////////////
     // Energy //
     ////////////
     bool energyIsValid = muon->isEnergyValid();
-    muon_result.addUserInt("validEnergy", energyIsValid);
+    muon_result.addUserInt("hasValidEnergy", energyIsValid);
     muon_result.addUserFloat("ecal_time", energyIsValid ? muon->calEnergy().ecal_time : -9999.);
     muon_result.addUserFloat("hcal_time", energyIsValid ? muon->calEnergy().hcal_time : -9999.);
 
@@ -203,7 +198,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // Isolation //
     ///////////////
     bool isoIsValid = muon->isIsolationValid();
-    muon_result.addUserInt("validIso", isoIsValid);
+    muon_result.addUserInt("hasValidIso", isoIsValid);
     auto const& isoR03 = muon->isolationR03();
     muon_result.addUserInt("iso03_ntrk", isoIsValid ? isoR03.nTracks : 0);
     muon_result.addUserFloat("iso03_trkVetoPt", energyIsValid ? isoR03.trackerVetoPt : -1);
@@ -233,16 +228,17 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserInt("n_missing_inner_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS) : -1);
     muon_result.addUserInt("n_missing_outer_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS) : -1);
 
-    if (firstGoodVertex!=vertexCollection->end()){
-      muon_result.addUserFloat("dx_yPV", innerTrack.isNonnull() ? innerTrack->dxy(firstGoodVertex->position()) : -1.);
-      muon_result.addUserFloat("dz_PV", innerTrack.isNonnull() ? innerTrack->dz(firstGoodVertex->position()) : -1.);
-    }
-    else{
-      muon_result.addUserFloat("dxy_PV", -999.);
-      muon_result.addUserFloat("dz_PV", -999.);
-    }
-    muon_result.addUserFloat("dz_firstPV", innerTrack.isNonnull() ? innerTrack->dz((vertexCollection->begin())->position()) : -1);
-    muon_result.addUserFloat("dxy_firstPV", innerTrack.isNonnull() ? innerTrack->dxy((vertexCollection->begin())->position()) : -1.);
+    muon_result.addUserFloat("dxy_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -1.);
+    muon_result.addUserFloat("dz_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -1.);
+
+    muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy((vertexCollection->begin())->position()) : -1.);
+    muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz((vertexCollection->begin())->position()) : -1);
+
+    muon_result.addUserFloat("dxy_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -1.);
+    muon_result.addUserFloat("dz_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -1.);
+
+    muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy((vertexCollection->begin())->position()) : -1.);
+    muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz((vertexCollection->begin())->position()) : -1);
 
 
     ////////
@@ -296,6 +292,12 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("IP3Derr", muon->edB(pat::Muon::PV3D));
     muon_result.addUserFloat("IP2D", muon->dB(pat::Muon::PV2D));
     muon_result.addUserFloat("IP2Derr", muon->edB(pat::Muon::PV2D));
+
+    /////////////////
+    // Muon timing //
+    /////////////////
+    muon_result.addUserFloat("time_ndof", muon->time().nDof);
+    muon_result.addUserFloat("time_IPInOut", muon->time().timeAtIpInOut);
 
     //////////////////////
     // genMatch miniAOD //
