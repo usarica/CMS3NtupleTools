@@ -22,8 +22,10 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   electronsToken  = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
   photonsToken  = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
   muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
+  rhoToken  = consumes< double >(pset.getParameter<edm::InputTag>("rhoSrc"));
 
   genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
+  puInfoToken = consumes< std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoSrc"));
 
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
@@ -70,6 +72,17 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.getByToken(muonsToken, muonsHandle);
   if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the muon collection from the event...");
 
+  // Rho
+  edm::Handle< double > rhoHandle;
+  iEvent.getByToken(rhoToken, rhoHandle);
+  if (!rhoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the rho collection from the event...");
+
+  // Pileup info
+
+  edm::Handle< std::vector<PileupSummaryInfo> > puInfoHandle;
+  iEvent.getByToken(puInfoToken, puInfoHandle);
+  if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the PU info from the event...");
+
 
   /********************************/
   /* Set the communicator entries */
@@ -78,6 +91,19 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   When naeing variables, try to be conscious of the nanoAOD naming conventions, but do not make a big fuss about them either!
   The latest list of variables are documented at https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
   */
+
+  // Simple event-level variables
+  commonEntry.setNamedVal("event", iEvent.id().event());
+  commonEntry.setNamedVal("run", iEvent.id().run());
+  commonEntry.setNamedVal("luminosityBlock", iEvent.luminosityBlock());
+  commonEntry.setNamedVal("rho", (float)(*rhoHandle));
+  if (isMC) {
+    commonEntry.setNamedVal("nPUvertices", (int)((*puInfoHandle)[0].getPU_NumInteractions()));
+    commonEntry.setNamedVal("trueNumInteractions", (float)((*puInfoHandle)[0].getTrueNumInteractions()));
+  } else {
+    commonEntry.setNamedVal("nPUvertices", (int)0);
+    commonEntry.setNamedVal("trueNumInteractions", (float)0);
+  }
 
   // Convenience macros to easily make and push vector values
 #define MAKE_VECTOR_WITH_RESERVE(type_, name_, size_) std::vector<type_> name_; name_.reserve(size_);

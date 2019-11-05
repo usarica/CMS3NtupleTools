@@ -29,6 +29,7 @@
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
+#include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
 #include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
 #include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
@@ -55,8 +56,10 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
+  edm::EDGetTokenT< double > rhoToken;
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
+  edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoToken;
 
   void recordGenInfo(GenInfo const&);
 

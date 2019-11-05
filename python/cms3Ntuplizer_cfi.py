@@ -11,7 +11,8 @@ cms3ntuple = cms.EDAnalyzer(
    electronSrc   = cms.InputTag("electronMaker"),
    photonSrc   = cms.InputTag("photonMaker"),
    muonSrc   = cms.InputTag("muonMaker"),
-
+   rhoSrc   = cms.InputTag("fixedGridRhoFastjetAll"),
+   puInfoSrc = cms.InputTag("slimmedAddPileupInfo"),
    genInfoSrc = cms.InputTag("genMaker"),
 
 )
