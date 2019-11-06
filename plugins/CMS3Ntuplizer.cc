@@ -25,6 +25,8 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
   triggerInfoToken = consumes< edm::View<TriggerInfo> >(pset.getParameter<edm::InputTag>("triggerInfoSrc"));
+  puInfoToken = consumes< std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoSrc"));
+  rhoToken  = consumes< double >(pset.getParameter<edm::InputTag>("rhoSrc"));
 
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
@@ -342,6 +344,31 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     PUSH_VECTOR_WITH_NAME(colName, passTrigger);
     PUSH_VECTOR_WITH_NAME(colName, L1prescale);
     PUSH_VECTOR_WITH_NAME(colName, HLTprescale);
+  }
+
+  // Event info
+  {
+    edm::Handle< double > rhoHandle;
+    iEvent.getByToken(rhoToken, rhoHandle);
+    if (!rhoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the rho collection from the event...");
+
+    edm::Handle< std::vector<PileupSummaryInfo> > puInfoHandle;
+    iEvent.getByToken(puInfoToken, puInfoHandle);
+    if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the PU info from the event...");
+
+    // Simple event-level variables
+    commonEntry.setNamedVal("event", iEvent.id().event());
+    commonEntry.setNamedVal("run", iEvent.id().run());
+    commonEntry.setNamedVal("luminosityBlock", iEvent.luminosityBlock());
+    commonEntry.setNamedVal("rho", (float) (*rhoHandle));
+    if (isMC){
+      commonEntry.setNamedVal("nPUvertices", (int) ((*puInfoHandle)[0].getPU_NumInteractions()));
+      commonEntry.setNamedVal("trueNumInteractions", (float) ((*puInfoHandle)[0].getTrueNumInteractions()));
+    }
+    else{
+      commonEntry.setNamedVal("nPUvertices", (int) 0);
+      commonEntry.setNamedVal("trueNumInteractions", (float) 0);
+    }
   }
 
   // Undefine the convenience macros

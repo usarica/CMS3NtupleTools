@@ -32,6 +32,7 @@
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
+#include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
 #include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
 #include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
@@ -62,6 +63,8 @@ protected:
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
   edm::EDGetTokenT< edm::View<TriggerInfo> > triggerInfoToken;
+  edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoToken;
+  edm::EDGetTokenT< double > rhoToken;
 
   void recordGenInfo(GenInfo const&);
 

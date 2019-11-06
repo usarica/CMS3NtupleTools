@@ -14,5 +14,7 @@ cms3ntuple = cms.EDAnalyzer(
 
    genInfoSrc = cms.InputTag("genMaker"),
    triggerInfoSrc = cms.InputTag("hltMaker"),
+   puInfoSrc = cms.InputTag("slimmedAddPileupInfo"),
+   rhoSrc   = cms.InputTag("fixedGridRhoFastjetAll"),
 
 )

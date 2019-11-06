@@ -340,7 +340,7 @@ producers = [
         process.metFilterMaker,
         process.vertexMaker,
         #process.secondaryVertexMaker,
-        process.pfCandidateMaker,
+        # process.pfCandidateMaker,
         process.isoTrackMaker,
         process.muonMaker,
         process.egammaMakerSeq,
