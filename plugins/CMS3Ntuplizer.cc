@@ -24,6 +24,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
 
   genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
+  triggerInfoToken = consumes< edm::View<TriggerInfo> >(pset.getParameter<edm::InputTag>("triggerInfoSrc"));
 
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
@@ -51,26 +52,6 @@ void CMS3Ntuplizer::beginRun(edm::Run const&, edm::EventSetup const&){}
 void CMS3Ntuplizer::endRun(edm::Run const&, edm::EventSetup const&){}
 
 void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
-  /*****************/
-  /* Input handles */
-  /*****************/
-
-  // Electrons
-  edm::Handle< edm::View<pat::Electron> > electronsHandle;
-  iEvent.getByToken(electronsToken, electronsHandle);
-  if (!electronsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the electron collection from the event...");
-
-  // Photons
-  edm::Handle< edm::View<pat::Photon> > photonsHandle;
-  iEvent.getByToken(photonsToken, photonsHandle);
-  if (!photonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the photon collection from the event...");
-
-  // Muons
-  edm::Handle< edm::View<pat::Muon> > muonsHandle;
-  iEvent.getByToken(muonsToken, muonsHandle);
-  if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the muon collection from the event...");
-
-
   /********************************/
   /* Set the communicator entries */
   /********************************/
@@ -88,7 +69,9 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // Electrons
   {
     const char colName[] = "electrons";
-
+    edm::Handle< edm::View<pat::Electron> > electronsHandle;
+    iEvent.getByToken(electronsToken, electronsHandle);
+    if (!electronsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the electron collection from the event...");
     size_t n_electrons = electronsHandle->size();
 
     MAKE_VECTOR_WITH_RESERVE(float, pt, n_electrons);
@@ -207,7 +190,9 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   // Photons
   {
     const char colName[] = "photons";
-
+    edm::Handle< edm::View<pat::Photon> > photonsHandle;
+    iEvent.getByToken(photonsToken, photonsHandle);
+    if (!photonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the photon collection from the event...");
     size_t n_photons = photonsHandle->size();
 
     MAKE_VECTOR_WITH_RESERVE(float, pt, n_photons);
@@ -271,9 +256,10 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // Muons
   {
-    //const char colName[] = "Muon"; // nanoAOD
     const char colName[] = "muons";
-
+    edm::Handle< edm::View<pat::Muon> > muonsHandle;
+    iEvent.getByToken(muonsToken, muonsHandle);
+    if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the muon collection from the event...");
     size_t n_muons = muonsHandle->size();
 
     MAKE_VECTOR_WITH_RESERVE(float, pt, n_muons);
@@ -323,7 +309,6 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   }
 
-
   // GenInfo
   if (isMC){
     edm::Handle< GenInfo > genInfo;
@@ -331,7 +316,32 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     if (!genInfo.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the gen. info. from the event...");
 
     recordGenInfo(*genInfo);
+  }
 
+  // TriggerInfo
+  {
+    const char colName[] = "triggers";
+    edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
+    iEvent.getByToken(triggerInfoToken, triggerInfoHandle);
+    if (!triggerInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the trigger infos. from the event...");
+    size_t n_triggers = triggerInfoHandle->size();
+
+    MAKE_VECTOR_WITH_RESERVE(std::string, name, n_triggers);
+    MAKE_VECTOR_WITH_RESERVE(bool, passTrigger, n_triggers);
+    MAKE_VECTOR_WITH_RESERVE(int, L1prescale, n_triggers);
+    MAKE_VECTOR_WITH_RESERVE(int, HLTprescale, n_triggers);
+
+    for (View<TriggerInfo>::const_iterator obj = triggerInfoHandle->begin(); obj != triggerInfoHandle->end(); obj++){
+      name.emplace_back(obj->name);
+      passTrigger.emplace_back(obj->passTrigger);
+      L1prescale.emplace_back(obj->L1prescale);
+      HLTprescale.emplace_back(obj->HLTprescale);
+    }
+
+    PUSH_VECTOR_WITH_NAME(colName, name);
+    PUSH_VECTOR_WITH_NAME(colName, passTrigger);
+    PUSH_VECTOR_WITH_NAME(colName, L1prescale);
+    PUSH_VECTOR_WITH_NAME(colName, HLTprescale);
   }
 
   // Undefine the convenience macros
@@ -355,6 +365,8 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 #undef SIMPLE_DATA_OUTPUT_DIRECTIVE
 #undef VECTOR_DATA_OUTPUT_DIRECTIVE
 #undef DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE
+
+    outtree->getSelectedTree()->SetBasketSize("triggers_*", 16384*23);
   }
 
   // Record whatever is in commonEntry into the tree.
@@ -376,7 +388,6 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 }
 
 void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
-
 #define SET_GENINFO_VARIABLE(var) commonEntry.setNamedVal(#var, genInfo.var);
 
   SET_GENINFO_VARIABLE(xsec)
@@ -432,10 +443,8 @@ void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
 #undef SET_GENINFO_VARIABLE
 
   for (auto const it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
-
 }
 
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CMS3Ntuplizer);
-// vim: ts=2:sw=2

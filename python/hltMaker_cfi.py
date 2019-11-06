@@ -1,22 +1,18 @@
 import FWCore.ParameterSet.Config as cms
 
 hltMaker = cms.EDProducer("HLTMaker",
-    processName = cms.untracked.string("HLT"),
-    # HLT is the default process name, but it cannot be
-    # guaranteed to be there. Use an empty string to
-    # automatically choose the process name responsible
-    # for the latest HLT products
-    #processName = cms.untracked.string(""),
-    aliasPrefix = cms.untracked.string("hlt"),                       
-    fillTriggerObjects = cms.untracked.bool(False),
-    prunedTriggerNames = cms.untracked.vstring(
-        "HLT*Mu*",
-        "HLT*Ele*",
-        "HLT*EG*",
-        "HLT*Photon*",
-        "HLT*Jet*",
-        "HLT*MET*",
-    ),
-    triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
-    triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
+   aliasprefix = cms.untracked.string("hlt"),
+   processName = cms.untracked.string("HLT"),
+   prunedTriggerNames = cms.untracked.vstring(
+      "HLT*Mu*",
+      "HLT*Ele*",
+      "HLT*EG*",
+      "HLT*Photon*",
+      "HLT*Jet*",
+      "HLT*MET*",
+   ),
+   triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
+   #fillTriggerObjects = cms.untracked.bool(False),
+   #triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
 )
+

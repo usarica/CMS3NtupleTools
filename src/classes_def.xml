@@ -2,4 +2,9 @@
   <class name="std::unordered_map<std::string, float>"/>
   <class name="GenInfo"/>
   <class name="edm::Wrapper< GenInfo >" persistent="false"/>
+
+  <class name="TriggerInfo"/>
+  <class name="std::vector<TriggerInfo>"/>
+  <class name="edm::Wrapper< TriggerInfo >" persistent="false"/>
+  <class name="edm::Wrapper< std::vector<TriggerInfo> >" persistent="false"/>
 </lcgdict>

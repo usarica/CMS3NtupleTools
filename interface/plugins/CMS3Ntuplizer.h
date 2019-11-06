@@ -1,3 +1,6 @@
+#ifndef NTUPLEMAKER_CMS3NTUPLIZER_H
+#define NTUPLEMAKER_CMS3NTUPLIZER_H
+
 #include <cassert>
 #include <string>
 #include <vector>
@@ -34,6 +37,7 @@
 #include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
 
 #include "CMS3/NtupleMaker/interface/GenInfo.h" 
+#include "CMS3/NtupleMaker/interface/TriggerInfo.h" 
 
 
 class CMS3Ntuplizer : public edm::EDAnalyzer{
@@ -57,6 +61,7 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
+  edm::EDGetTokenT< edm::View<TriggerInfo> > triggerInfoToken;
 
   void recordGenInfo(GenInfo const&);
 
@@ -73,3 +78,6 @@ private:
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
 
 };
+
+
+#endif

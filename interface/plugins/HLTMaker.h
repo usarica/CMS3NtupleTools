@@ -1,30 +1,10 @@
-// -*- C++ -*-
-//
-// Package:    NtupleMaker
-// Class:      HLTMaker
-// 
-/**\class HLTMaker CMS3/NtupleMaker/src/HLTMaker.cc
-
- Description: <one line class summary>
-
- Implementation:
-     <Notes on implementation>
-*/
-//
-// Original Author:  pts/4
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: HLTMaker.h,v 1.9 2010/11/08 22:45:10 jribnik Exp $
-//
-//
 #ifndef NTUPLEMAKER_HLTMAKER_H
 #define NTUPLEMAKER_HLTMAKER_H
 
-// system include files
 #include <algorithm>
 #include <string>
 #include <vector>
 
-// user include files
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
@@ -43,63 +23,45 @@
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
+#include "CMS3/NtupleMaker/interface/TriggerInfo.h"
+
 #include "TRegexp.h"
 #include "TString.h"
 #include "TBits.h"
 
+
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-class HLTMaker : public edm::stream::EDProducer<> {
+
+class HLTMaker : public edm::stream::EDProducer<>{
 public:
   explicit HLTMaker(const edm::ParameterSet&);
-  ~HLTMaker() {}
-  
+  ~HLTMaker(){}
+
 private:
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
   virtual void beginLuminosityBlock(const edm::LuminosityBlock&, const edm::EventSetup&);
   virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() {}
-  
-  /*void fillTriggerObjectInfo(unsigned int,
-			     std::vector<int>&,
-			     std::vector<math::XYZTLorentzVectorF>&,
-			     std::vector<bool>&,
-			     std::vector<TString>&) const;*/
-  bool doPruneTriggerName(const std::string&) const;
 
-  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
-  edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
-  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
-  
-  edm::Handle<edm::TriggerResults> triggerResultsH_;
-  edm::Handle<trigger::TriggerEvent> triggerEventH_; 
-  edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjectStandAlonesH_;
-  edm::TriggerNames triggerNames_;
-
-  HLTPrescaleProvider hltConfig_;
-  
-  std::string processName_;
-  bool fillTriggerObjects_;
-  std::vector<std::string> prunedTriggerNames_;
-  TString processNamePrefix_;
+protected:
   std::string aliasprefix_;
 
-  // auto_ptr<vector<unsigned int> > cached_prescales   ;
-  vector<unsigned int> cached_prescales   ;
-  vector<unsigned int> cached_l1prescales   ;
+  std::string processName_;
+  TString processNamePrefix_;
 
-  // auto_ptr<vector<unsigned int> > prescales   ;
-  // auto_ptr<vector<unsigned int> > l1prescales ;
-  // auto_ptr<TBits>                           bits      ;
-  // auto_ptr<vector<TString> >                trigNames ;
-  // auto_ptr<vector<vector<int> > >           trigObjsid;
-  // auto_ptr<vector<vector<LorentzVector> > > trigObjsp4;
-  // auto_ptr<vector<vector<bool> > >          trigObjspassLast;
-  // auto_ptr<vector<vector<TString> > >       trigObjsfilters;
+  std::vector<std::string> prunedTriggerNames_;
 
+  HLTPrescaleProvider hltConfig_;
   bool doFillInformation;
-  // bool haveFilledInformation;
+
+  edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
+  edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
+
+  std::vector<TriggerInfo> cached_triggerinfos;
+
+  bool doPruneTriggerName(const std::string&) const;
 
 };
+
 
 #endif

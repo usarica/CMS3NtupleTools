@@ -1,29 +1,9 @@
-// -*- C++ -*-    
-//
-// Package:    NtupleMaker
-// Class:      NtupleMaker
-// 
-/**\class NtupleMaker NtupleMaker.cc CMS3/NtupleMaker/src/NtupleMaker.cc
-
-   Description: <one line class summary>
-
-   Implementation:
-   <Notes on implementation>
-*/
-//
-// Original Author:  pts/4
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.h,v 1.27 2012/08/16 00:00:26 slava77 Exp $
-//
-//
 #ifndef NTUPLEMAKER_ELECTRONMAKER_H
 #define NTUPLEMAKER_ELECTRONMAKER_H
 
-// system include files
 #include <memory>
 #include <vector>
 
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -60,9 +40,6 @@
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
-//
-// class decleration
-//
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 

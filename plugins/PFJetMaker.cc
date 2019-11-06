@@ -34,14 +34,16 @@ void PFJetMaker::endJob(){}
 void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto result = std::make_unique<pat::JetCollection>();
 
+  /*
   edm::Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
   iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
   const pat::PackedCandidateCollection* pfCandidates = pfCandidatesHandle.product();
+  */
 
   edm::Handle< edm::View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
-  result.reserve(pfJetsHandle->size());
+  result->reserve(pfJetsHandle->size());
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
 

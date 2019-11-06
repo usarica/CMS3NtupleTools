@@ -1,28 +1,8 @@
-// -*- C++ -*-
-//
-// Package:    NtupleMaker
-// Class:      GenMaker
-// 
-/**\class GenMaker GenMaker.cc CMS3/NtupleMaker/src/GenMaker.cc
-
-   Description: <one line class summary>
-
-   Implementation:
-   <Notes on implementation>
-*/
-//
-// Original Author:  pts/4
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: GenMaker.h,v 1.15 2011/01/20 22:05:13 fgolf Exp $
-//
-//
 #ifndef NTUPLEMAKER_GENMAKER_H
 #define NTUPLEMAKER_GENMAKER_H
 
-// system include files
 #include <memory>
 
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -45,18 +25,20 @@
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 
 
-//
-// class decleration
-//
-
 class GenMaker : public edm::one::EDProducer<>{
 public:
   explicit GenMaker(const edm::ParameterSet&);
   ~GenMaker();
 
-protected:
+private:
+  virtual void beginJob();
+  virtual void endJob();
 
-  // ----------member data ---------------------------
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+
+protected:
   std::string aliasprefix_;
   int year;
 
@@ -94,14 +76,6 @@ protected:
   void setupMELA();
   void doMELA(MELACandidate*, GenInfo&);
   void cleanMELA();
-
-private:
-  virtual void beginJob();
-  virtual void endJob();
-
-  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
-
-  virtual void produce(edm::Event&, const edm::EventSetup&);
 
 };
 

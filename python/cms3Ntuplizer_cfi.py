@@ -13,5 +13,6 @@ cms3ntuple = cms.EDAnalyzer(
    muonSrc   = cms.InputTag("muonMaker"),
 
    genInfoSrc = cms.InputTag("genMaker"),
+   triggerInfoSrc = cms.InputTag("hltMaker"),
 
 )
