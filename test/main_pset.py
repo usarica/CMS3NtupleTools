@@ -216,6 +216,66 @@ if opts.is80x:
     process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
     patAlgosToolsTask = getPatAlgosToolsTask(process)
 
+reapply_jec = True
+
+# FIXME
+if opts.is80x:
+    print("[!] Not *re*applying JEC for 2016 80X MC samples")
+    reapply_jec = False
+
+if reapply_jec:
+
+    year = opts.year
+    ismc = not opts.data
+
+    # don't need to make 2016 80x vs 94x distinction because 80x 2016 isn't considered for the analysis, and JEC twiki indicates
+    # to use same MC JECs for both, so this simplifies the lookup table to be a function of (year, ismc) only.
+    jec_tag, jec_connect = {
+            (2016, True): ['JetCorrectorParametersCollection_Summer16_07Aug2017_V11_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Summer16_07Aug2017_V11_MC.db'],
+            (2016, False): ['JetCorrectorParametersCollection_Summer16_07Aug2017All_V11_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Summer16_07Aug2017All_V11_DATA.db'],
+            (2017, True): ['JetCorrectorParametersCollection_Fall17_17Nov2017_V32_102X_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Fall17_17Nov2017_V32_102X_MC.db'],
+            (2017, False): ['JetCorrectorParametersCollection_Fall17_17Nov2017_V32_102X_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Fall17_17Nov2017_V32_102X_DATA.db'],
+            (2018, True): ['JetCorrectorParametersCollection_Autumn18_V19_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Autumn18_V19_MC.db'],
+            (2018, False): ['JetCorrectorParametersCollection_Autumn18_RunABCD_V19_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Autumn18_RunABCD_V19_DATA.db'],
+            }[(year,ismc)]
+
+    process.jec = cms.ESSource("PoolDBESSource",
+        DBParameters = cms.PSet( messageLevel = cms.untracked.int32(1)),
+        timetype = cms.string('runnumber'),
+        toGet = cms.VPSet(
+            cms.PSet(
+                record = cms.string('JetCorrectionsRecord'),
+                 tag    = cms.string(jec_tag),
+                label  = cms.untracked.string('AK4PFchs')
+                ),
+            ),
+          connect = cms.string(jec_connect),
+        )
+
+    ## add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
+    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+
+    ### reapply JEC
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
+    process.patJetCorrFactorsReapplyJEC = updatedPatJetCorrFactors.clone(
+        src = cms.InputTag("slimmedJets"),
+        levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual'],
+        payload = 'AK4PFchs' )
+
+    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
+    input_jets = "slimmedJets"
+    if opts.is80x:
+        input_jets = "selectedUpdatedPatJets"
+    process.patJetsReapplyJEC = updatedPatJets.clone(
+        jetSource = cms.InputTag(input_jets),
+        jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
+        )
+
+    ### Override maker inputs and make sure to put in a sequence before, since we don't use unscheduled mode
+    process.pfJetMaker.pfJetsInputTag = cms.InputTag( 'patJetsReapplyJEC')
+
+    process.jecSequence = cms.Sequence(process.patJetCorrFactorsReapplyJEC * process.patJetsReapplyJEC)
+
 
 # Extra trigger information (matching)
 if opts.triginfo:
@@ -316,8 +376,9 @@ elif (opts.year == 2018):
 # Sequences ################################################################################################################################################
 #############
 
-# Gen. sequence
-process.genMakerSeq = cms.Sequence( process.genMaker )
+if not opts.data:
+    # Gen. sequence
+    process.genMakerSeq = cms.Sequence( process.genMaker )
 
 # e/gamma sequence
 process.egammaMakerSeq = cms.Sequence( process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker * process.photonMaker )
@@ -389,36 +450,41 @@ if opts.genxsecanalyzer and not opts.data:
 
 total_path = None
 for ip,producer in enumerate(producers):
-   if producer is None: continue
-   if ip == 0:
-      total_path = producer
-      continue
+    if producer is None: continue
+    if ip == 0:
+        total_path = producer
+        continue
 
-   if opts.is80x and producer == process.isoTrackMaker:
-      continue
+    if opts.is80x and producer == process.isoTrackMaker:
+        continue
 
-   if producer == process.metFilterMaker:
-      if not (opts.fastsim and opts.is80x):
-         total_path *= process.metFilterMakerSeq
-      continue
+    if producer == process.pfJetMaker:
+        if reapply_jec:
+            total_path *= process.jecSequence
 
-   if producer == process.pfmetMaker:
-      total_path *= process.pfmetMakerSeq
-      continue
+    if producer == process.metFilterMaker:
+        if not (opts.fastsim and opts.is80x):
+            total_path *= process.metFilterMakerSeq
+        continue
 
-   if producer == process.genMaker:
-      total_path *= process.genMakerSeq
-      continue
+    if producer == process.pfmetMaker:
+        total_path *= process.pfmetMakerSeq
+        continue
 
-   if producer == process.electronMaker:
-      total_path *= process.egammaMakerSeq
-      continue
+    if not opts.data:
+        if producer == process.genMaker:
+            total_path *= process.genMakerSeq
+            continue
 
-   if producer == process.muonMaker:
-      total_path *= process.muonMakerSeq
-      continue
+    if producer == process.electronMaker:
+        total_path *= process.egammaMakerSeq
+        continue
 
-   total_path *= producer
+    if producer == process.muonMaker:
+        total_path *= process.muonMakerSeq
+        continue
+
+    total_path *= producer
 
 process.p = cms.Path(total_path)
 
