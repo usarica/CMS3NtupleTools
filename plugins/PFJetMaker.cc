@@ -48,6 +48,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     pat::Jet jet_result(*pfjet_it);
 
     float undoJEC = pfjet_it->jecFactor("Uncorrected");
+    float uncorrected_pt = pfjet_it->pt()*undoJEC;
+    float uncorrected_mass = pfjet_it->mass()*undoJEC;
+
+    jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, pfjet_it->eta(), pfjet_it->phi(), uncorrected_mass));
+
     jet_result.addUserFloat("undoJEC", undoJEC);
 
     jet_result.addUserInt("chargedMultiplicity", pfjet_it->chargedMultiplicity());
@@ -69,10 +74,19 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     jet_result.addUserFloat("hfEmEnergy", pfjet_it->HFEMEnergy());
     jet_result.addUserFloat("area", pfjet_it->jetArea());
 
-    float pileupJetId = -999;
-    if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetId = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
-    if (pfjet_it->hasUserFloat("fullDiscriminant")) pileupJetId = pfjet_it->userFloat("fullDiscriminant");
-    jet_result.addUserFloat("pileupJetId", pileupJetId);
+    float pileupJetIdScore = -999;
+    if (pfjet_it->hasUserFloat("pileupJetIdUpdated:fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("pileupJetIdUpdated:fullDiscriminant");
+    else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
+    else if (pfjet_it->hasUserFloat("fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("fullDiscriminant");
+    jet_result.addUserFloat("pileupJetIdScore", pileupJetIdScore);
+
+    int pileupJetId = -1;
+    if (pfjet_it->hasUserInt("pileupJetIdUpdated:fullId")) pileupJetId = pfjet_it->userInt("pileupJetIdUpdated:fullId");
+    else if (pfjet_it->hasUserInt("pileupJetId:fullId")) pileupJetId = pfjet_it->userInt("pileupJetId:fullId");
+    else if (pfjet_it->hasUserInt("fullId")) pileupJetId = pfjet_it->userInt("fullId");
+    if (pileupJetId>=0) pileupJetId = (pileupJetId & (1 << 0));
+    jet_result.addUserInt("pileupJetId", pileupJetId);
+
     jet_result.addUserInt("partonFlavour", pfjet_it->partonFlavour());
     jet_result.addUserInt("hadronFlavour", pfjet_it->hadronFlavour());
 

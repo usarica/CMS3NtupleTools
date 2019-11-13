@@ -1,29 +1,12 @@
-//-*- C++ -*- 
-//
-// Package:    ElectronMaker
-// Class:      ElectronMaker
-//
-// Original Author:  Puneeth Kalavase
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: ElectronMaker.cc,v 1.89 2012/08/16 00:00:27 slava77 Exp $
-
-
-//System include files
 #include <memory>
 #include <math.h>
 
-//User include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
-
-#include "CMS3/NtupleMaker/interface/plugins/ElectronMaker.h"
-#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"
@@ -69,6 +52,13 @@
 
 #include "EgammaAnalysis/ElectronTools/interface/EGammaCutBasedEleId.h"
 
+#include "CMS3/NtupleMaker/interface/plugins/ElectronMaker.h"
+#include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
+#include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
+
+
 using namespace reco;
 using namespace edm;
 using namespace std;
@@ -77,7 +67,7 @@ typedef math::XYZPoint Point;
 typedef Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
 typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
 
-// constructors and destructor
+
 ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasPrefix")),
   year_(iConfig.getParameter<int>("year")),
@@ -110,10 +100,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
 
 ElectronMaker::~ElectronMaker(){}
 
-void  ElectronMaker::beginRun(const edm::Run&, const EventSetup& es){}
-
+void ElectronMaker::beginRun(const edm::Run&, const EventSetup& es){}
 void ElectronMaker::beginJob(){}
-
 void ElectronMaker::endJob(){}
 
 // ------------ method called to produce the data  ------------
@@ -125,8 +113,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   // http://cms-service-sdtweb.web.cern.ch/cms-service-sdtweb/doxygen/CMSSW_3_1_2/doc/html/d5/d4b/GsfElectron_8h-source.html
   // note that if ecalEnergy == eSC depends on if further ecal corrections have been applied to the electron
   // after its construction
-
-  // --- Get Input Collections --- //
 
   ///////////////
   // Electrons //
@@ -140,7 +126,18 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   ////////////
   edm::Handle<reco::VertexCollection> vertexHandle;
   iEvent.getByToken(vtxToken, vertexHandle);
-  if (!vertexHandle.isValid()) throw cms::Exception("ElectronMaker::produce: error getting vertex collection from Event!");
+  if (!vertexHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting vertex collection from Event!");
+
+  const VertexCollection* vertexCollection = vertexHandle.product();
+  VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+  for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); vtx++){
+    if (VertexSelectionHelpers::testGoodVertex(*vtx)){
+      firstGoodVertex = vtx;
+      break;
+    }
+  }
+  bool hasVertex = (!vertexCollection->empty());
+  bool hasGoodVertex = (firstGoodVertex!=vertexCollection->end());
 
   /////////////////
   // Conversions //
@@ -166,7 +163,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   iEvent.getByToken(beamSpotToken, beamSpotH);
   const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
 
-
   /////////////////////////
   // Loop Over Electrons //
   /////////////////////////
@@ -181,21 +177,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const GsfTrackRef gsfTrack = el->gsfTrack(); // Embedded GSF Track for miniAOD
     const RefToBase<pat::Electron> gsfElectron = els_h->refAt(electronIndex);
     const TrackRef ctfTrack = el->closestCtfTrackRef(); // Embedded CTF Track for miniAOD 
-
-    ////////////
-    // Vertex //
-    ////////////
-    const VertexCollection* vertexCollection = vertexHandle.product();
-    VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
-    int firstGoodVertexIdx = 0;
-    for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx){
-      // Replace isFake() for miniAOD because it requires tracks and miniAOD vertices don't have tracks:
-      // Vertex.h: bool isFake() const {return (chi2_==0 && ndof_==0 && tracks_.empty());}
-      if (/*!vtx->isFake() &&*/ !(vtx->chi2()==0 && vtx->ndof()==0) &&  vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0){
-        firstGoodVertex = vtx;
-        break;
-      }
-    }
 
     //////////////////////
     // Fiduciality Mask //
@@ -476,21 +457,21 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     }
 
     // Vertex dxy and dz
-    if (firstGoodVertex!=vertexCollection->end()){
+    if (hasGoodVertex){
       electron_result.addUserFloat("dxy_PV", gsfTrack->dxy(firstGoodVertex->position()));
       electron_result.addUserFloat("dz_PV", gsfTrack->dz(firstGoodVertex->position()));
     }
     else{
-      electron_result.addUserFloat("dxy_PV", -1.);
-      electron_result.addUserFloat("dz_PV", -1.);
+      electron_result.addUserFloat("dxy_PV", -999.);
+      electron_result.addUserFloat("dz_PV", -999.);
     }
-    if (vertexCollection->begin()!=vertexCollection->end()){
+    if (hasVertex){
       electron_result.addUserFloat("dz_firstPV", gsfTrack->dz(vertexCollection->begin()->position()));
       electron_result.addUserFloat("dxy_firstPV", gsfTrack->dxy(vertexCollection->begin()->position()));
     }
     else{
-      electron_result.addUserFloat("dz_firstPV", -1.);
-      electron_result.addUserFloat("dxy_firstPV", -1.);
+      electron_result.addUserFloat("dz_firstPV", -999.);
+      electron_result.addUserFloat("dxy_firstPV", -999.);
     }
 
     /////////

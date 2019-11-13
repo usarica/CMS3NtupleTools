@@ -11,10 +11,21 @@ cms3ntuple = cms.EDAnalyzer(
    electronSrc   = cms.InputTag("electronMaker"),
    photonSrc   = cms.InputTag("photonMaker"),
    muonSrc   = cms.InputTag("muonMaker"),
+   ak4jetSrc   = cms.InputTag("pfJetMaker"),
 
-   genInfoSrc = cms.InputTag("genMaker"),
+   pfmetSrc = cms.InputTag("pfmetMaker"),
+   puppimetSrc = cms.InputTag("pfmetpuppiMaker"),
+
+   vtxSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
+   rhoSrc   = cms.InputTag("fixedGridRhoFastjetAll"),
    triggerInfoSrc = cms.InputTag("hltMaker"),
    puInfoSrc = cms.InputTag("slimmedAddPileupInfo"),
-   rhoSrc   = cms.InputTag("fixedGridRhoFastjetAll"),
+   metFilterInfoSrc = cms.InputTag("metFilterMaker"),
 
-)
+   genInfoSrc = cms.InputTag("genMaker"),
+   prunedGenParticlesSrc  = cms.InputTag("prunedGenParticles"),
+   genJetsSrc  = cms.InputTag("slimmedGenJets"),
+
+   )
+

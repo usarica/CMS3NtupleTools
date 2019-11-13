@@ -184,8 +184,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents
 extra = {}
 if opts.metrecipe:
     process.pfmetMakerModifiedMET = process.pfmetMaker.clone()
-    process.pfmetMakerModifiedMET.pfMetInputTag_ = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
-    process.pfmetMaker.aliasPrefix = cms.untracked.string("evt_old")
+    process.pfmetMakerModifiedMET.metSrc = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
+    process.pfmetMaker.aliasprefix = cms.untracked.string("pfmet_unmodified")
     extra = dict(
             fixEE2017=True,
             fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
@@ -234,11 +234,18 @@ if opts.year == 2016:
     process.metFilterMaker.doEcalFilterUpdate = False
 
 if opts.is80x and not opts.data:
-    process.load("CondCore.CondDB.CondDB_cfi")
-    process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
-    process.l1tPS = cms.ESSource("PoolDBESSource", process.CondDB,
-        toGet = cms.VPSet(cms.PSet(record = cms.string("L1TGlobalPrescalesVetosRcd"), tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc"))))
-    process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
+   process.load("CondCore.CondDB.CondDB_cfi")
+   process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
+   process.l1tPS = cms.ESSource(
+      "PoolDBESSource", process.CondDB,
+      toGet = cms.VPSet(
+         cms.PSet(
+            record = cms.string("L1TGlobalPrescalesVetosRcd"),
+            tag = cms.string("L1TGlobalPrescalesVetos_passThrough_mc")
+            )
+         )
+      )
+   process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
 # Apply E/Gamma corrections if needed
 process.load("RecoEgamma.ElectronIdentification.heepIdVarValueMapProducer_cfi")
@@ -326,6 +333,18 @@ if opts.applyMuoncorr:
 else:
    process.muonMakerSeq = cms.Sequence( process.muonMaker )
 
+# MET filter
+if not opts.is80x:
+   process.metFilterMakerSeq = cms.Sequence( process.ecalBadCalibReducedMINIAODFilter * process.metFilterMaker )
+else:
+   process.metFilterMakerSeq = cms.Sequence( process.metFilterMaker )
+
+# MET
+if opts.metrecipe:
+   process.pfmetMakerSeq = cms.Sequence( process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET )
+else:
+   process.pfmetMakerSeq = cms.Sequence( process.pfmetMaker )
+
 
 ###################
 # Build the paths ##########################################################################################################################################
@@ -335,6 +354,8 @@ else:
 producers = [
         process.eventMaker,
         process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
+        #process.muToTrigAssMaker if opts.triginfo else None,
+        #process.elToTrigAssMaker if opts.triginfo else None,
         process.hltMakerSequence if not opts.fastsim else None,
         process.miniAODrhoSequence,
         process.metFilterMaker,
@@ -345,7 +366,7 @@ producers = [
         process.muonMaker,
         process.egammaMakerSeq,
         process.electronMaker,
-        #process.photonMaker,
+        process.photonMaker,
         process.pfJetMaker,
         process.pfJetPUPPIMaker,
         process.subJetMaker,
@@ -353,8 +374,6 @@ producers = [
         process.pfmetpuppiMaker,
         process.pftauMaker,
         # Disable these temporarily until they are renewed
-        #process.muToTrigAssMaker if opts.triginfo else None,
-        #process.elToTrigAssMaker if opts.triginfo else None,
         process.genMaker if not opts.data else None,
         process.genJetMaker if not opts.data else None,
         #process.candToGenAssMaker if not opts.data else None,
@@ -363,41 +382,43 @@ producers = [
         #process.hypDilepMaker,
         #process.sParmMaker if (opts.fastsim or opts.sparminfo) else None,
         ]
+
 if opts.genxsecanalyzer and not opts.data:
     process.genxsecanalyzer = cms.EDAnalyzer("GenXSecAnalyzer")
     producers = [process.genxsecanalyzer]
+
 total_path = None
 for ip,producer in enumerate(producers):
-    if producer is None: continue
-    if ip == 0:
-        total_path = producer
-        continue
+   if producer is None: continue
+   if ip == 0:
+      total_path = producer
+      continue
 
-    if opts.is80x and producer in [process.isoTrackMaker]: continue
+   if opts.is80x and producer == process.isoTrackMaker:
+      continue
 
-    if opts.fastsim:
-        if opts.is80x and producer in [process.metFilterMaker]: continue
+   if producer == process.metFilterMaker:
+      if not (opts.fastsim and opts.is80x):
+         total_path *= process.metFilterMakerSeq
+      continue
 
-    if not opts.is80x and producer in [process.metFilterMaker]: total_path *= process.ecalBadCalibReducedMINIAODFilter
+   if producer == process.pfmetMaker:
+      total_path *= process.pfmetMakerSeq
+      continue
 
-    if opts.metrecipe and producer == process.pfmetMaker:
-        total_path *= process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET
-        continue
+   if producer == process.genMaker:
+      total_path *= process.genMakerSeq
+      continue
 
-    if producer == process.genMaker:
-       total_path *= process.genMakerSeq
-       continue
+   if producer == process.electronMaker:
+      total_path *= process.egammaMakerSeq
+      continue
 
-    if producer == process.electronMaker:
-       total_path *= process.egammaMakerSeq
-       continue
+   if producer == process.muonMaker:
+      total_path *= process.muonMakerSeq
+      continue
 
-    if producer == process.muonMaker:
-       total_path *= process.muonMakerSeq
-       continue
-
-
-    total_path *= producer
+   total_path *= producer
 
 process.p = cms.Path(total_path)
 

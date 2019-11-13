@@ -39,6 +39,8 @@
 
 #include "CMS3/NtupleMaker/interface/plugins/MuonMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
+#include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
+
 
 typedef math::XYZPoint Point;
 
@@ -64,7 +66,18 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
 
   edm::Handle<reco::VertexCollection> vertexHandle;
   iEvent.getByToken(vtxToken, vertexHandle);
+  if (!vertexHandle.isValid()) throw cms::Exception("MuonMaker::produce: Error getting vertex collection from Event!");
+
   const VertexCollection* vertexCollection = vertexHandle.product();
+  VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
+  for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); vtx++){
+    if (VertexSelectionHelpers::testGoodVertex(*vtx)){
+      firstGoodVertex = vtx;
+      break;
+    }
+  }
+  bool hasVertex = (!vertexCollection->empty());
+  bool hasGoodVertex = (firstGoodVertex!=vertexCollection->end());
 
   edm::Handle< edm::View<pat::Muon> > mus_h;
   iEvent.getByToken(muonsToken, mus_h);
@@ -82,18 +95,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const TrackRef bestTrack = muon->muonBestTrack();
     const MuonQuality quality = muon->combinedQuality();
 
-    // Iterators
-    VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
-    int firstGoodVertexIdx = 0;
-    for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); ++vtx, ++firstGoodVertexIdx) {
-      if (!vtx->isFake() && vtx->ndof()>=4. && vtx->position().Rho()<=2.0 && fabs(vtx->position().Z())<=24.0) {
-        firstGoodVertex = vtx;
-        break;
-      }
-    }
-    bool hasVertex = (!vertexCollection->empty());
-    bool hasGoodVertex = (firstGoodVertex!=vertexCollection->end());
-
+    // Some aux. quantities
     muon_result.addUserInt("selectors", muon->selectors());
     muon_result.addUserInt("simType", muon->simType());
     muon_result.addUserInt("simExtType", muon->simExtType());
@@ -228,17 +230,17 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserInt("n_missing_inner_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS) : -1);
     muon_result.addUserInt("n_missing_outer_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS) : -1);
 
-    muon_result.addUserFloat("dxy_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -1.);
-    muon_result.addUserFloat("dz_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -1.);
+    muon_result.addUserFloat("dxy_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -999.);
 
-    muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy((vertexCollection->begin())->position()) : -1.);
-    muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz((vertexCollection->begin())->position()) : -1);
+    muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy((vertexCollection->begin())->position()) : -999.);
+    muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz((vertexCollection->begin())->position()) : -999);
 
-    muon_result.addUserFloat("dxy_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -1.);
-    muon_result.addUserFloat("dz_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -1.);
+    muon_result.addUserFloat("dxy_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -999.);
 
-    muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy((vertexCollection->begin())->position()) : -1.);
-    muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz((vertexCollection->begin())->position()) : -1);
+    muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy((vertexCollection->begin())->position()) : -999.);
+    muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz((vertexCollection->begin())->position()) : -999);
 
 
     ////////
@@ -339,7 +341,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   } // end loop on muons
 
   iEvent.put(std::move(result));
-
 }
 
 

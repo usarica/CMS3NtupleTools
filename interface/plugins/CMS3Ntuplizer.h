@@ -22,12 +22,17 @@
 
 #include <DataFormats/Common/interface/View.h>
 #include <DataFormats/Candidate/interface/Candidate.h>
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 #include <DataFormats/PatCandidates/interface/CompositeCandidate.h>
+
+#include <DataFormats/HepMCCandidate/interface/GenParticle.h>
+#include <DataFormats/JetReco/interface/GenJet.h>
+#include <DataFormats/JetReco/interface/PFJet.h>
 
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h>
@@ -37,8 +42,10 @@
 #include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
 #include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
 
-#include "CMS3/NtupleMaker/interface/GenInfo.h" 
-#include "CMS3/NtupleMaker/interface/TriggerInfo.h" 
+#include <CMS3/NtupleMaker/interface/GenInfo.h>
+#include <CMS3/NtupleMaker/interface/TriggerInfo.h>
+#include <CMS3/NtupleMaker/interface/METFilterInfo.h>
+#include <CMS3/NtupleMaker/interface/METInfo.h>
 
 
 class CMS3Ntuplizer : public edm::EDAnalyzer{
@@ -60,13 +67,37 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
+  edm::EDGetTokenT< edm::View<pat::Jet> > ak4jetsToken;
 
-  edm::EDGetTokenT< GenInfo > genInfoToken;
+  edm::EDGetTokenT< METInfo > pfmetToken;
+  edm::EDGetTokenT< METInfo > puppimetToken;
+
+  edm::EDGetTokenT< reco::VertexCollection > vtxToken;
+
+  edm::EDGetTokenT< double > rhoToken;
   edm::EDGetTokenT< edm::View<TriggerInfo> > triggerInfoToken;
   edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoToken;
-  edm::EDGetTokenT< double > rhoToken;
+  edm::EDGetTokenT< METFilterInfo > metFilterInfoToken;
+
+  edm::EDGetTokenT< GenInfo > genInfoToken;
+  edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;
+  edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
+
 
   void recordGenInfo(GenInfo const&);
+
+  size_t fillElectrons(const edm::Event&, std::vector<pat::Electron const*>*);
+  size_t fillPhotons(const edm::Event&, std::vector<pat::Photon const*>*);
+  size_t fillMuons(const edm::Event&, std::vector<pat::Muon const*>*);
+  size_t fillAK4Jets(const edm::Event&, std::vector<pat::Jet const*>*);
+  size_t fillVertices(const edm::Event&, std::vector<reco::Vertex const*>*);
+
+  bool fillEventVariables(const edm::Event&);
+  bool fillTriggerInfo(const edm::Event&);
+  bool fillMETFilterVariables(const edm::Event&);
+  bool fillMETVariables(const edm::Event&);
+
+  bool fillGenVariables(const edm::Event&);
 
 private:
   virtual void beginJob();

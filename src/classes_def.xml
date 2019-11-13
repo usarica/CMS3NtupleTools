@@ -1,5 +1,7 @@
 <lcgdict>
+  <class name="std::unordered_map<std::string, bool>"/>
   <class name="std::unordered_map<std::string, float>"/>
+
   <class name="GenInfo"/>
   <class name="edm::Wrapper< GenInfo >" persistent="false"/>
 
@@ -7,4 +9,11 @@
   <class name="std::vector<TriggerInfo>"/>
   <class name="edm::Wrapper< TriggerInfo >" persistent="false"/>
   <class name="edm::Wrapper< std::vector<TriggerInfo> >" persistent="false"/>
+
+  <class name="METFilterInfo"/>
+  <class name="edm::Wrapper< METFilterInfo >" persistent="false"/>
+
+  <class name="METInfo"/>
+  <class name="edm::Wrapper< METInfo >" persistent="false"/>
+
 </lcgdict>
