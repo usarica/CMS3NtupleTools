@@ -580,8 +580,10 @@ bool CMS3Ntuplizer::fillEventVariables(const edm::Event& iEvent){
   if (!rhoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the rho collection from the event...");
 
   edm::Handle< std::vector<PileupSummaryInfo> > puInfoHandle;
-  iEvent.getByToken(puInfoToken, puInfoHandle);
-  if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the PU info from the event...");
+  if (isMC) {
+    iEvent.getByToken(puInfoToken, puInfoHandle);
+    if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the PU info from the event...");
+  }
 
   // Simple event-level variables
   commonEntry.setNamedVal("EventNumber", iEvent.id().event());
