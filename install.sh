@@ -29,7 +29,7 @@ git cms-addpkg EgammaAnalysis/ElectronTools
 git cms-merge-topic cms-met:METFixEE2017_949_v2_backport_to_102X
 
 # pT-dependent JERs and phi-dependent JECs
-git cms-merge-topic 09e9a17cb26020bc507dffec70137bacc6f124c6 # This is the commit id directly from cmssw
+#git cherry-pick 09e9a17cb26020bc507dffec70137bacc6f124c6 # This is the commit id directly from cmssw
 
 ## For reading 2 electron iso branches in 102X from 94X sample
 ## https://github.com/cms-sw/cmssw/issues/25573
