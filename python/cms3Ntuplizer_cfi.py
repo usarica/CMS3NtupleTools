@@ -8,6 +8,8 @@ cms3ntuple = cms.EDAnalyzer(
 
    isMC = cms.bool(False),
 
+   prefiringWeightsTag = cms.untracked.string(""),
+
    electronSrc   = cms.InputTag("electronMaker"),
    photonSrc   = cms.InputTag("photonMaker"),
    muonSrc   = cms.InputTag("muonMaker"),

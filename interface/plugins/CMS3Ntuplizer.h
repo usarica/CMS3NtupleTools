@@ -64,6 +64,9 @@ protected:
   //TString outfilename;
   bool isMC;
 
+  std::string prefiringWeightsTag;
+  bool applyPrefiringWeights;
+
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
@@ -78,6 +81,10 @@ protected:
   edm::EDGetTokenT< edm::View<TriggerInfo> > triggerInfoToken;
   edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoToken;
   edm::EDGetTokenT< METFilterInfo > metFilterInfoToken;
+
+  edm::EDGetTokenT< double > prefiringWeightToken;
+  edm::EDGetTokenT< double > prefiringWeightToken_Dn;
+  edm::EDGetTokenT< double > prefiringWeightToken_Up;
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
   edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;

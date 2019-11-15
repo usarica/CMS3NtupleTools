@@ -28,6 +28,9 @@ git cms-addpkg EgammaAnalysis/ElectronTools
 # Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription#Instructions_for_9_4_X_X_0_for_M
 git cms-merge-topic cms-met:METFixEE2017_949_v2_backport_to_102X
 
+# pT-dependent JERs and phi-dependent JECs
+git cms-merge-topic 09e9a17cb26020bc507dffec70137bacc6f124c6 # This is the commit id directly from cmssw
+
 ## For reading 2 electron iso branches in 102X from 94X sample
 ## https://github.com/cms-sw/cmssw/issues/25573
 ## NOTE this should be taken out once merged/backported into CMSSW
@@ -41,7 +44,7 @@ git clone git@github.com:usarica/CMS3-NtupleMaker.git CMS3/NtupleMaker
 
 git clone git@github.com:cmstas/Dictionaries CMS3/Dictionaries
 
-mkdir $CMSSW_BASE/bullshit  
+mkdir $CMSSW_BASE/bullshit
 mv $CMSSW_BASE/src/* $CMSSW_BASE/bullshit/
 git cms-addpkg RecoEcal/EgammaClusterProducers
 mv $CMSSW_BASE/bullshit/* $CMSSW_BASE/src/

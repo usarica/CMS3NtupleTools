@@ -1,27 +1,9 @@
-// -*- C++ -*-
-//
-// Package:    SubJetMaker
-// Class:      SubJetMaker
-//
-/**\class SubJetMaker SubJetMaker.cc temp/SubJetMaker/src/SubJetMaker.cc
+#ifndef NTUPLEMAKER_SUBJETMAKER_H
+#define NTUPLEMAKER_SUBJETMAKER_H
 
-Description: <one line class summary>
-
-Implementation:
-<Notes on implementation>
-*/
-//
-// Original Author:  Puneeth Devanand KALAVASE
-//         Created:  Tue Sep  1 22:18:18 CEST 2009
-// $Id: SubJetMaker.h,v 1.9 2012/05/13 04:22:36 fgolf Exp $
-//
-//
-
-
-// system include files
+#include <string>
 #include <memory>
 
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 
@@ -35,21 +17,20 @@ Implementation:
 
 #include "NNKit/FatJetNN/interface/FatJetNN.h"
 
-//
-// class decleration
-//
 
-class SubJetMaker : public edm::stream::EDProducer<> {
+class SubJetMaker : public edm::stream::EDProducer<>{
 public:
   explicit SubJetMaker(const edm::ParameterSet&);
   ~SubJetMaker();
 
 private:
-  virtual void beginJob() ;
+  virtual void beginJob();
   virtual void produce(edm::Event&, const edm::EventSetup&);
-  virtual void endJob() ;
+  virtual void endJob();
 
-  // ----------member data ---------------------------
+protected:
+  const std::string jetCollection_;
+  const bool isMC;
 
   deepntuples::FatJetNN* fatjetNN_;
 
@@ -64,3 +45,6 @@ private:
   std::string PFJetCorrectorL1Fast_;
   std::string PFJetCorrectorL1FastL2L3residual_;
 };
+
+
+#endif

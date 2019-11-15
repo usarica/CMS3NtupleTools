@@ -24,6 +24,7 @@ opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of r
 opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec analyzer
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
 opts.register('applyMuoncorr', True , mytype=vpbool) # to enable muon scale and smear corrections
+opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the pile-up jet id
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.parseArguments()
 
@@ -83,6 +84,9 @@ process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
+
+# Load the conditions database
+process.load("CondCore.CondDB.CondDB_cfi")
 
 # services
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
@@ -181,23 +185,6 @@ if opts.goldenjson and find_up(opts.goldenjson):
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents) )
 
 
-extra = {}
-if opts.metrecipe:
-    process.pfmetMakerModifiedMET = process.pfmetMaker.clone()
-    process.pfmetMakerModifiedMET.metSrc = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
-    process.pfmetMaker.aliasprefix = cms.untracked.string("pfmet_unmodified")
-    extra = dict(
-            fixEE2017=True,
-            fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
-            postfix="ModifiedMET",
-            )
-
-from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
-runMetCorAndUncFromMiniAOD(process,
-                           isData=opts.data,
-                           **extra
-                           )
-
 if opts.is80x:
     # DeepCSV computation needed for 80X
     from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
@@ -216,66 +203,6 @@ if opts.is80x:
     process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
     patAlgosToolsTask = getPatAlgosToolsTask(process)
 
-reapply_jec = True
-
-# FIXME
-if opts.is80x:
-    print("[!] Not *re*applying JEC for 2016 80X MC samples")
-    reapply_jec = False
-
-if reapply_jec:
-
-    year = opts.year
-    ismc = not opts.data
-
-    # don't need to make 2016 80x vs 94x distinction because 80x 2016 isn't considered for the analysis, and JEC twiki indicates
-    # to use same MC JECs for both, so this simplifies the lookup table to be a function of (year, ismc) only.
-    jec_tag, jec_connect = {
-            (2016, True): ['JetCorrectorParametersCollection_Summer16_07Aug2017_V11_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Summer16_07Aug2017_V11_MC.db'],
-            (2016, False): ['JetCorrectorParametersCollection_Summer16_07Aug2017All_V11_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Summer16_07Aug2017All_V11_DATA.db'],
-            (2017, True): ['JetCorrectorParametersCollection_Fall17_17Nov2017_V32_102X_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Fall17_17Nov2017_V32_102X_MC.db'],
-            (2017, False): ['JetCorrectorParametersCollection_Fall17_17Nov2017_V32_102X_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Fall17_17Nov2017_V32_102X_DATA.db'],
-            (2018, True): ['JetCorrectorParametersCollection_Autumn18_V19_MC_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Autumn18_V19_MC.db'],
-            (2018, False): ['JetCorrectorParametersCollection_Autumn18_RunABCD_V19_DATA_AK4PFchs', 'sqlite_fip:CMS3/NtupleMaker/data/JECs/Autumn18_RunABCD_V19_DATA.db'],
-            }[(year,ismc)]
-
-    process.jec = cms.ESSource("PoolDBESSource",
-        DBParameters = cms.PSet( messageLevel = cms.untracked.int32(1)),
-        timetype = cms.string('runnumber'),
-        toGet = cms.VPSet(
-            cms.PSet(
-                record = cms.string('JetCorrectionsRecord'),
-                 tag    = cms.string(jec_tag),
-                label  = cms.untracked.string('AK4PFchs')
-                ),
-            ),
-          connect = cms.string(jec_connect),
-        )
-
-    ## add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
-    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
-
-    ### reapply JEC
-    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
-    process.patJetCorrFactorsReapplyJEC = updatedPatJetCorrFactors.clone(
-        src = cms.InputTag("slimmedJets"),
-        levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual'],
-        payload = 'AK4PFchs' )
-
-    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
-    input_jets = "slimmedJets"
-    if opts.is80x:
-        input_jets = "selectedUpdatedPatJets"
-    process.patJetsReapplyJEC = updatedPatJets.clone(
-        jetSource = cms.InputTag(input_jets),
-        jetCorrFactorsSource = cms.VInputTag(cms.InputTag("patJetCorrFactorsReapplyJEC"))
-        )
-
-    ### Override maker inputs and make sure to put in a sequence before, since we don't use unscheduled mode
-    process.pfJetMaker.pfJetsInputTag = cms.InputTag( 'patJetsReapplyJEC')
-
-    process.jecSequence = cms.Sequence(process.patJetCorrFactorsReapplyJEC * process.patJetsReapplyJEC)
-
 
 # Extra trigger information (matching)
 if opts.triginfo:
@@ -293,8 +220,8 @@ if opts.fastsim:
 if opts.year == 2016:
     process.metFilterMaker.doEcalFilterUpdate = False
 
+# Need to load L1 prescales in 8.0.X MC
 if opts.is80x and not opts.data:
-   process.load("CondCore.CondDB.CondDB_cfi")
    process.CondDB.connect = "frontier://FrontierProd/CMS_CONDITIONS"
    process.l1tPS = cms.ESSource(
       "PoolDBESSource", process.CondDB,
@@ -307,7 +234,307 @@ if opts.is80x and not opts.data:
       )
    process.es_prefer_l1tPS = cms.ESPrefer("PoolDBESSource", "l1tPS")
 
+# L1 prefiring issue for 2016 and 2017 data
+## Recipe taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/L1ECALPrefiringWeightRecipe#Recipe_details_10_2_X_X_10_or_9
+prefiringWeightsTag=""
+if not opts.data and (opts.year == 2016 or opts.year == 2017):
+   from PhysicsTools.PatUtils.l1ECALPrefiringWeightProducer_cfi import l1ECALPrefiringWeightProducer
+   prefiringdataera=""
+   if opts.year == 2016:
+      prefiringdataera="2016BtoH"
+   else:
+      prefiringdataera="2017BtoF"
+   prefiringWeightsTag = "prefiringweight"
+   process.prefiringweight = l1ECALPrefiringWeightProducer.clone(
+      DataEra = cms.string(prefiringdataera),
+      UseJetEMPt = cms.bool(False),
+      PrefiringRateSystematicUncty = cms.double(0.2),
+      SkipWarnings = False
+      )
+   process.Prefiring = cms.Path(process.prefiringweight)
+
+
+# Update jet variables
+## Pile-up jet id
+process.load("RecoJets.JetProducers.PileupJetID_cfi")
+process.pileupJetIdUpdated = process.pileupJetId.clone(
+    jets=cms.InputTag("slimmedJets"),
+    inputIsCorrected=False,
+    applyJec=True,
+    vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
+    )
+ak4jetsTag="AK4PFchs"
+ak4puppijetsTag="AK4PFPuppi"
+ak8jetsTag="AK8PFPuppi"
+if opts.is80x:
+   ak8jetsTag="AK8PFchs"
+## Update the jet collection tags
+process.pfJetMaker.jetCollection = cms.untracked.string(ak4jetsTag)
+process.pfJetPUPPIMaker.jetCollection = cms.untracked.string(ak4puppijetsTag)
+process.subJetMaker.jetCollection = cms.untracked.string(ak8jetsTag)
+process.pfJetMaker.isMC = cms.bool((not opts.data))
+process.pfJetPUPPIMaker.isMC = cms.bool((not opts.data))
+process.subJetMaker.isMC = cms.bool((not opts.data))
+## Reapply JECs
+### Taken from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
+jecVersion=""
+if opts.year == 2016:
+   if opts.data:
+      jecVersion = "Summer16_07Aug2017All_V11_DATA"
+   else:
+      jecVersion = "Summer16_07Aug2017_V11_MC"
+elif opts.year == 2017:
+   if opts.data:
+      jecVersion = "Fall17_17Nov2017_V32_102X_DATA"
+   else:
+      jecVersion = "Fall17_17Nov2017_V32_102X_MC"
+elif opts.year == 2018:
+   if opts.data:
+      jecVersion = "Autumn18_RunABCD_V19_DATA"
+   else:
+      jecVersion = "Autumn18_V19_MC"
+if jecVersion != "":
+   process.jec = cms.ESSource(
+      "PoolDBESSource",
+      DBParameters = cms.PSet(
+         messageLevel = cms.untracked.int32(1)
+         ),
+      timetype = cms.string('runnumber'),
+      toGet = cms.VPSet(
+         cms.PSet(
+            record = cms.string('JetCorrectionsRecord'),
+            tag    = cms.string('JetCorrectorParametersCollection_{}_{}'.format(jecVersion, ak4jetsTag)),
+            label  = cms.untracked.string(ak4jetsTag)
+            ),
+         cms.PSet(
+            record = cms.string('JetCorrectionsRecord'),
+            tag    = cms.string('JetCorrectorParametersCollection_{}_{}'.format(jecVersion, ak4puppijetsTag)),
+            label  = cms.untracked.string(ak4puppijetsTag)
+            ),
+         cms.PSet(
+            record = cms.string('JetCorrectionsRecord'),
+            tag    = cms.string('JetCorrectorParametersCollection_{}_{}'.format(jecVersion, ak8jetsTag)),
+            label  = cms.untracked.string(ak8jetsTag)
+            ),
+         ),
+      connect = cms.string('sqlite_fip:CMS3/NtupleMaker/data/JECs/{}.db'.format(jecVersion)),
+      )
+
+   ## Add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
+   process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
+
+   from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
+   from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
+
+   ###################
+   ### AK4 PF JETS ###
+   ###################
+   ## Reapply JECs here
+   process.slimmedJetCorrFactors = updatedPatJetCorrFactors.clone(
+      src = cms.InputTag("slimmedJets"),
+      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      payload = ak4jetsTag
+      )
+   ## Data applies L2L3Residual corrections as well
+   if opts.data:
+      process.slimmedJetCorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+   ## This is the new input jet collection
+   process.slimmedCorrectedJets = updatedPatJets.clone(
+      jetSource = cms.InputTag("slimmedJets"),
+      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("slimmedJetCorrFactors"))
+      )
+   ## Add pileup id and discriminant to patJetsReapplyJEC
+   process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
+   process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
+   ## Replace inputs from slimmedJets
+   #process.QGTagger.srcJets = cms.InputTag('slimmedCorrectedJets')
+   process.pfJetMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJets')
+
+   ######################
+   ### AK4 PUPPI JETS ###
+   ######################
+   ## Reapply JECs here
+   process.slimmedPuppiJetCorrFactors = updatedPatJetCorrFactors.clone(
+      src = cms.InputTag("slimmedJetsPuppi"),
+      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      payload = ak4puppijetsTag
+      )
+   ## Data applies L2L3Residual corrections as well
+   if opts.data:
+      process.slimmedPuppiJetCorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+   ## This is the new input jet collection
+   process.slimmedCorrectedJetsPuppi = updatedPatJets.clone(
+      jetSource = cms.InputTag("slimmedJetsPuppi"),
+      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("slimmedPuppiJetCorrFactors"))
+      )
+   ## Replace inputs from slimmedJets
+   process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJetsPuppi')
+
+   ################
+   ### AK8 JETS ###
+   ################
+   ## Reapply JECs here
+   process.slimmedJetAK8CorrFactors = updatedPatJetCorrFactors.clone(
+      src = cms.InputTag("slimmedJetsAK8"),
+      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      payload = ak8jetsTag
+      )
+   ## Data applies L2L3Residual corrections as well
+   if opts.data:
+      process.slimmedJetAK8CorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+   ## This is the new input jet collection
+   process.slimmedCorrectedJetsAK8 = updatedPatJets.clone(
+      jetSource = cms.InputTag("slimmedJetsAK8"),
+      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("slimmedJetAK8CorrFactors"))
+      )
+   ## Replace inputs from slimmedJets
+   process.subJetMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJetsAK8')
+else:
+   raise RuntimeError("JEC version is unknown!")
+## Re-apply JERs
+### Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution#Smearing_procedures
+jerVersion=""
+if opts.year == 2016:
+   if opts.data:
+      jerVersion = "Summer16_25nsV1_DATA"
+   else:
+      jerVersion = "Summer16_25nsV1_MC"
+elif opts.year == 2017:
+   if opts.data:
+      jerVersion = "Fall17_V3_102X_DATA"
+   else:
+      jerVersion = "Fall17_V3_102X_MC"
+elif opts.year == 2018:
+   if opts.data:
+      jerVersion = "Autumn18_V7b_DATA"
+   else:
+      jerVersion = "Autumn18_V7b_MC"
+if jerVersion != "":
+   process.load("JetMETCorrections.Modules.JetResolutionESProducer_cfi")
+   process.jer = cms.ESSource(
+      "PoolDBESSource",
+      DBParameters = cms.PSet(
+         messageLevel = cms.untracked.int32(1)
+         ),
+      #timetype = cms.string('runnumber'),
+      toGet = cms.VPSet(
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak4jetsTag)),
+            label  = cms.untracked.string("{}_pt".format(ak4jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4jetsTag)),
+            label  = cms.untracked.string("{}_eta".format(ak4jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4jetsTag)),
+            label  = cms.untracked.string("{}_phi".format(ak4jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionScaleFactorRcd'),
+            tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak4jetsTag)),
+            label  = cms.untracked.string(ak4jetsTag)
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak4puppijetsTag)),
+            label  = cms.untracked.string("{}_pt".format(ak4puppijetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4puppijetsTag)),
+            label  = cms.untracked.string("{}_eta".format(ak4puppijetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4puppijetsTag)),
+            label  = cms.untracked.string("{}_phi".format(ak4puppijetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionScaleFactorRcd'),
+            tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak4puppijetsTag)),
+            label  = cms.untracked.string(ak4puppijetsTag)
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak8jetsTag)),
+            label  = cms.untracked.string("{}_pt".format(ak8jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak8jetsTag)),
+            label  = cms.untracked.string("{}_eta".format(ak8jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionRcd'),
+            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak8jetsTag)),
+            label  = cms.untracked.string("{}_phi".format(ak8jetsTag))
+            ),
+         cms.PSet(
+            record = cms.string('JetResolutionScaleFactorRcd'),
+            tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak8jetsTag)),
+            label  = cms.untracked.string(ak8jetsTag)
+            ),
+         ),
+      connect = cms.string('sqlite_fip:CMS3/NtupleMaker/data/JERs/{}.db'.format(jerVersion)),
+      )
+   process.es_prefer_jer = cms.ESPrefer('PoolDBESSource', 'jer')
+elif not opts.data:
+   raise RuntimeError("JER version is unknown!")
+
+
+
+# MET corrections and uncertainties
+## Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription#Instructions_for_9_4_X_X_9_or_10
+from PhysicsTools.PatUtils.tools.runMETCorrectionsAndUncertainties import runMetCorAndUncFromMiniAOD
+from PhysicsTools.PatAlgos.slimming.puppiForMET_cff import makePuppiesFromMiniAOD
+## PF MET
+extra = dict(
+   postfix = "ModifiedMET"
+   )
+### MET v2 recipe for 2017 PF MET
+if opts.metrecipe:
+   extra = dict(
+      fixEE2017 = True,
+      fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
+      postfix = "ModifiedMET",
+      )
+process.pfmetMaker.metSrc = cms.InputTag("slimmedMETsModifiedMET","","CMS3")
+runMetCorAndUncFromMiniAOD(
+   process,
+   isData=opts.data,
+   **extra
+   )
+## PUPPI MET
+### No MET recipes (?)
+makePuppiesFromMiniAOD( process, True ) # This function resets photon IDs!!!
+extra_puppi = dict(
+   metType = "Puppi",
+   jetFlavor = ak4puppijetsTag,
+   postfix = "ModifiedPuppiMET",
+   )
+process.pfmetpuppiMaker.metSrc = cms.InputTag("slimmedMETsModifiedPuppiMET","","CMS3")
+runMetCorAndUncFromMiniAOD(
+   process,
+   isData=opts.data,
+   **extra_puppi
+   )
+### Have no idea about what these things do, but safer to recompute weights I suppose...
+process.puppiNoLep.useExistingWeights = False
+process.puppi.useExistingWeights = False
+## These variables are somehow dropped
+#process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
+#process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
+
+
 # Apply E/Gamma corrections if needed
+## Do this after re-applying JECs on Puppi MET!!!
 process.load("RecoEgamma.ElectronIdentification.heepIdVarValueMapProducer_cfi")
 if (opts.year == 2016):
    if not opts.is80x:
@@ -376,14 +603,14 @@ elif (opts.year == 2018):
 # Sequences ################################################################################################################################################
 #############
 
+# Gen. sequence
 if not opts.data:
-    # Gen. sequence
-    process.genMakerSeq = cms.Sequence( process.genMaker )
+   process.genMakerSeq = cms.Sequence( process.genMaker )
 
 # e/gamma sequence
 process.egammaMakerSeq = cms.Sequence( process.heepIDVarValueMaps * process.egammaPostRecoSeq * process.electronMaker * process.photonMaker )
 
-# muon sequence
+# Muon sequence
 if opts.applyMuoncorr:
    process.correctedMuons.identifier = cms.string("RoccoR{}".format(opts.year))
    process.correctedMuons.isMC = cms.bool((not opts.data))
@@ -394,17 +621,34 @@ if opts.applyMuoncorr:
 else:
    process.muonMakerSeq = cms.Sequence( process.muonMaker )
 
+# ak4 PF jets
+if jecVersion != "":
+   # Input to pfJetMaker is already fixed above
+   process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.slimmedJetCorrFactors * process.slimmedCorrectedJets * process.pfJetMaker )
+   process.pfJetPUPPIMakerSeq = cms.Sequence( process.slimmedPuppiJetCorrFactors * process.slimmedCorrectedJetsPuppi * process.pfJetPUPPIMaker )
+else:
+   process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.pfJetMaker )
+   process.pfJetPUPPIMakerSeq = cms.Sequence( process.pfJetPUPPIMaker )
+
 # MET filter
 if not opts.is80x:
    process.metFilterMakerSeq = cms.Sequence( process.ecalBadCalibReducedMINIAODFilter * process.metFilterMaker )
 else:
    process.metFilterMakerSeq = cms.Sequence( process.metFilterMaker )
 
-# MET
-if opts.metrecipe:
-   process.pfmetMakerSeq = cms.Sequence( process.fullPatMetSequenceModifiedMET * process.pfmetMaker * process.pfmetMakerModifiedMET )
+# PF MET
+if hasattr(process, "fullPatMetSequenceModifiedMET"):
+   process.pfmetMakerSeq = cms.Sequence( process.fullPatMetSequenceModifiedMET * process.pfmetMaker )
 else:
    process.pfmetMakerSeq = cms.Sequence( process.pfmetMaker )
+process.PFMETPath = cms.Path(process.pfmetMakerSeq) # Make as separate path
+
+# Puppi MET
+if hasattr(process, "fullPatMetSequenceModifiedPuppiMET"):
+   process.pfmetpuppiMakerSeq = cms.Sequence( process.puppiMETSequence * process.fullPatMetSequenceModifiedPuppiMET * process.pfmetpuppiMaker )
+else:
+   process.pfmetpuppiMakerSeq = cms.Sequence( process.pfmetpuppiMaker )
+process.PFMETPuppiPath = cms.Path(process.pfmetpuppiMakerSeq) # Make as separate path
 
 
 ###################
@@ -413,33 +657,32 @@ else:
 
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
-        process.eventMaker,
+        #process.eventMaker,
         process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
         #process.muToTrigAssMaker if opts.triginfo else None,
         #process.elToTrigAssMaker if opts.triginfo else None,
-        process.hltMakerSequence if not opts.fastsim else None,
-        process.miniAODrhoSequence,
+        process.hltMaker if not opts.fastsim else None,
+        #process.miniAODrhoSequence,
         process.metFilterMaker,
         process.vertexMaker,
         #process.secondaryVertexMaker,
         # process.pfCandidateMaker,
-        process.isoTrackMaker,
         process.muonMaker,
-        process.egammaMakerSeq,
         process.electronMaker,
-        process.photonMaker,
         process.pfJetMaker,
-        process.pfJetPUPPIMaker,
-        process.subJetMaker,
-        process.pfmetMaker,
-        process.pfmetpuppiMaker,
-        process.pftauMaker,
+        #process.pfJetPUPPIMaker,
+        #process.subJetMaker,
+        #process.pfmetMaker,
+        #process.pfmetpuppiMaker,
+        #process.photonMaker,
+        #process.pftauMaker,
+        #process.isoTrackMaker,
         # Disable these temporarily until they are renewed
         process.genMaker if not opts.data else None,
         process.genJetMaker if not opts.data else None,
         #process.candToGenAssMaker if not opts.data else None,
         #process.pdfinfoMaker if not opts.data else None,
-        process.puSummaryInfoMaker if not opts.data else None,
+        #process.puSummaryInfoMaker if not opts.data else None,
         #process.hypDilepMaker,
         #process.sParmMaker if (opts.fastsim or opts.sparminfo) else None,
         ]
@@ -450,41 +693,49 @@ if opts.genxsecanalyzer and not opts.data:
 
 total_path = None
 for ip,producer in enumerate(producers):
-    if producer is None: continue
-    if ip == 0:
-        total_path = producer
-        continue
+   if producer is None: continue
+   if ip == 0:
+      total_path = producer
+      continue
 
-    if opts.is80x and producer == process.isoTrackMaker:
-        continue
+   if opts.is80x and producer == process.isoTrackMaker:
+      continue
 
-    if producer == process.pfJetMaker:
-        if reapply_jec:
-            total_path *= process.jecSequence
+   if not (opts.fastsim and opts.is80x):
+      if producer == process.metFilterMaker:
+         total_path *= process.metFilterMakerSeq
+         continue
 
-    if producer == process.metFilterMaker:
-        if not (opts.fastsim and opts.is80x):
-            total_path *= process.metFilterMakerSeq
-        continue
+   if producer == process.pfmetMaker:
+      total_path *= process.pfmetMakerSeq
+      continue
 
-    if producer == process.pfmetMaker:
-        total_path *= process.pfmetMakerSeq
-        continue
+   if producer == process.pfmetpuppiMaker:
+      total_path *= process.pfmetpuppiMakerSeq
+      continue
 
-    if not opts.data:
-        if producer == process.genMaker:
-            total_path *= process.genMakerSeq
-            continue
+   if not opts.data:
+      if producer == process.genMaker:
+         total_path *= process.genMakerSeq
+         continue
 
-    if producer == process.electronMaker:
-        total_path *= process.egammaMakerSeq
-        continue
+   if producer == process.electronMaker:
+      total_path *= process.egammaMakerSeq
+      continue
 
-    if producer == process.muonMaker:
-        total_path *= process.muonMakerSeq
-        continue
+   if producer == process.muonMaker:
+      total_path *= process.muonMakerSeq
+      continue
 
-    total_path *= producer
+   if producer == process.pfJetMaker:
+      total_path *= process.pfJetMakerSeq
+      continue
+
+   if producer == process.pfJetPUPPIMaker:
+      total_path *= process.pfJetPUPPIMakerSeq
+      continue
+
+   total_path *= producer
 
 process.p = cms.Path(total_path)
 
@@ -542,6 +793,7 @@ else:
    process.load("CMS3.NtupleMaker.cms3Ntuplizer_cfi")
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
+   process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.outpath = cms.EndPath(process.cms3ntuple)
 
 

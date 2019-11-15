@@ -1,6 +1,7 @@
 #ifndef NTUPLEMAKER_PFJETMAKER_H
 #define NTUPLEMAKER_PFJETMAKER_H
 
+#include <string>
 #include <memory>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -27,7 +28,9 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
 
 protected:
-  std::string aliasprefix_;
+  const std::string aliasprefix_;
+  const std::string jetCollection_;
+  const bool isMC;
 
   edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;

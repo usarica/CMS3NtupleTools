@@ -3,7 +3,11 @@
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "CMS3/NtupleMaker/interface/plugins/PFJetMaker.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
-#include "JetMETCorrections/Objects/interface/JetCorrector.h"
+#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
+#include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
+#include <JetMETCorrections/Objects/interface/JetCorrectionsRecord.h>
+//#include <JetMETCorrections/Objects/interface/JetCorrector.h>
+#include <JetMETCorrections/Modules/interface/JetResolution.h>
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
@@ -18,7 +22,10 @@ using namespace reco;
 
 
 PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
-  aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasprefix"))
+  aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasprefix")),
+  jetCollection_(iConfig.getUntrackedParameter<std::string>("jetCollection")),
+
+  isMC(iConfig.getParameter<bool>("isMC"))
 {
   pfJetsToken = consumes< edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
   pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
@@ -43,18 +50,43 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle< edm::View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
 
+  // JEC uncertanties 
+  ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  iSetup.get<JetCorrectionsRecord>().get(jetCollection_, JetCorParColl);
+  JetCorrectorParameters const& JetCorPar = (*JetCorParColl)["Uncertainty"];
+  JetCorrectionUncertainty jecUnc(JetCorPar);
+
   result->reserve(pfJetsHandle->size());
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
 
-    float undoJEC = pfjet_it->jecFactor("Uncorrected");
-    float uncorrected_pt = pfjet_it->pt()*undoJEC;
-    float uncorrected_mass = pfjet_it->mass()*undoJEC;
+    double undoJEC = pfjet_it->jecFactor("Uncorrected");
+    double JECval = 1./undoJEC;
+    double uncorrected_pt = pfjet_it->pt()*undoJEC;
+    double uncorrected_mass = pfjet_it->mass()*undoJEC;
+    double corrected_pt = pfjet_it->pt();
+    double jet_eta = pfjet_it->eta();
+    double jet_phi = pfjet_it->phi();
+    //double jet_abseta = std::abs(jet_eta);
 
-    jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, pfjet_it->eta(), pfjet_it->phi(), uncorrected_mass));
+    jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, jet_eta, jet_phi, uncorrected_mass));
 
-    jet_result.addUserFloat("undoJEC", undoJEC);
+    jet_result.addUserFloat("JECNominal", static_cast<float>(JECval));
 
+    // Get JEC uncertainties 
+    jecUnc.setJetEta(jet_eta);
+    jecUnc.setJetPt(corrected_pt);
+    double jec_unc = jecUnc.getUncertainty(true);
+    jet_result.addUserFloat("JECUp", static_cast<float>(JECval*(1.+jec_unc)));
+    jet_result.addUserFloat("JECDn", static_cast<float>(JECval*(1.-jec_unc)));
+
+    // JERs
+    if (isMC){
+
+    }
+
+
+    // Jet id variables
     jet_result.addUserInt("chargedMultiplicity", pfjet_it->chargedMultiplicity());
     jet_result.addUserInt("neutralMultiplicity", pfjet_it->neutralMultiplicity());
     jet_result.addUserInt("chargedHadronMultiplicity", pfjet_it->chargedHadronMultiplicity());

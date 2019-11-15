@@ -17,7 +17,10 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   year(pset.getParameter<int>("year")),
   treename(pset.getUntrackedParameter<std::string>("treename")),
-  isMC(pset.getParameter<bool>("isMC"))
+  isMC(pset.getParameter<bool>("isMC")),
+
+  prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
+  applyPrefiringWeights(prefiringWeightsTag!="")
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
@@ -35,6 +38,12 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   triggerInfoToken = consumes< edm::View<TriggerInfo> >(pset.getParameter<edm::InputTag>("triggerInfoSrc"));
   puInfoToken = consumes< std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoSrc"));
   metFilterInfoToken = consumes< METFilterInfo >(pset.getParameter<edm::InputTag>("metFilterInfoSrc"));
+
+  if (applyPrefiringWeights){
+    prefiringWeightToken = consumes< double >(edm::InputTag(prefiringWeightsTag, "nonPrefiringProb"));
+    prefiringWeightToken_Dn = consumes< double >(edm::InputTag(prefiringWeightsTag, "nonPrefiringProbDown"));
+    prefiringWeightToken_Up = consumes< double >(edm::InputTag(prefiringWeightsTag, "nonPrefiringProbUp"));
+  }
 
   genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
   prunedGenParticlesToken = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
@@ -480,6 +489,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_puId, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
+
   for (View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
     // Core particle quantities
     // These are the uncorrected momentum components!
@@ -491,6 +504,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
     pass_looseId.push_back(AK4JetSelectionHelpers::testLooseAK4Jet(*obj, this->year));
     pass_tightId.push_back(AK4JetSelectionHelpers::testTightAK4Jet(*obj, this->year));
     pass_puId.push_back(AK4JetSelectionHelpers::testPileUpAK4Jet(*obj, this->year));
+
+    PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
+    PUSH_USERFLOAT_INTO_VECTOR(JECUp);
+    PUSH_USERFLOAT_INTO_VECTOR(JECDn);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
   }
@@ -504,6 +521,10 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_puId);
+
+  PUSH_VECTOR_WITH_NAME(colName, JECNominal);
+  PUSH_VECTOR_WITH_NAME(colName, JECUp);
+  PUSH_VECTOR_WITH_NAME(colName, JECDn);
 
   return n_objects;
 }
@@ -579,24 +600,42 @@ bool CMS3Ntuplizer::fillEventVariables(const edm::Event& iEvent){
   iEvent.getByToken(rhoToken, rhoHandle);
   if (!rhoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the rho collection from the event...");
 
-  edm::Handle< std::vector<PileupSummaryInfo> > puInfoHandle;
-  if (isMC) {
-    iEvent.getByToken(puInfoToken, puInfoHandle);
-    if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the PU info from the event...");
-  }
-
   // Simple event-level variables
   commonEntry.setNamedVal("EventNumber", iEvent.id().event());
   commonEntry.setNamedVal("RunNumber", iEvent.id().run());
   commonEntry.setNamedVal("LuminosityBlock", iEvent.luminosityBlock());
   commonEntry.setNamedVal("event_rho", (float) (*rhoHandle));
   if (isMC){
+    edm::Handle< std::vector<PileupSummaryInfo> > puInfoHandle;
+    iEvent.getByToken(puInfoToken, puInfoHandle);
+    if (!puInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the PU info from the event...");
+
     commonEntry.setNamedVal("n_vtxs_PU", (int) ((*puInfoHandle)[0].getPU_NumInteractions()));
     commonEntry.setNamedVal("n_true_int", (float) ((*puInfoHandle)[0].getTrueNumInteractions()));
   }
   else{
-    commonEntry.setNamedVal("n_vtxs_PU", (int) 0);
-    commonEntry.setNamedVal("n_true_int", (float) 0);
+    commonEntry.setNamedVal("n_vtxs_PU", (int) -1);
+    commonEntry.setNamedVal("n_true_int", (float) -1);
+  }
+
+  if (applyPrefiringWeights){
+    edm::Handle< double > prefiringweight;
+    float prefiringweightval=0;
+
+    iEvent.getByToken(prefiringWeightToken, prefiringweight);
+    if (!prefiringweight.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the nominal prefiring weight from the event...");
+    prefiringweightval = (*prefiringweight);
+    commonEntry.setNamedVal("prefiringWeight_Nominal", prefiringweightval);
+
+    iEvent.getByToken(prefiringWeightToken_Dn, prefiringweight);
+    if (!prefiringweight.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the prefiring weight down variation from the event...");
+    prefiringweightval = (*prefiringweight);
+    commonEntry.setNamedVal("prefiringWeight_Dn", prefiringweightval);
+
+    iEvent.getByToken(prefiringWeightToken_Up, prefiringweight);
+    if (!prefiringweight.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the prefiring weight up variation from the event...");
+    prefiringweightval = (*prefiringweight);
+    commonEntry.setNamedVal("prefiringWeight_Up", prefiringweightval);
   }
 
   return true;
@@ -791,12 +830,13 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
   SET_MET_VARIABLE(metHandle, metPhi_PhotonEnDn, puppimetCollName);
   */
 
+  /*
   SET_MET_VARIABLE(metHandle, calo_met, puppimetCollName);
   SET_MET_VARIABLE(metHandle, calo_metPhi, puppimetCollName);
 
   SET_MET_VARIABLE(metHandle, gen_met, puppimetCollName);
   SET_MET_VARIABLE(metHandle, gen_metPhi, puppimetCollName);
-
+  */
 
 #undef SET_MET_VARIABLE
 
