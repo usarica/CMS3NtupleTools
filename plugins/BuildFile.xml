@@ -29,7 +29,6 @@
 <use   name="PhysicsTools/NanoAOD"/>
 <use   name="NNKit/FatJetNN"/>
 <use   name="ZZMatrixElement/MELA"/>
-<use   name="MelaAnalytics/EventContainer"/>
 <use   name="CommonLHETools/LHEHandler"/>
 <use   name="CMSDataTools/AnalysisTree"/>
 <use   name="MelaAnalytics/EventContainer"/>
