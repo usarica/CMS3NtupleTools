@@ -1,7 +1,9 @@
+#include <cmath>
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "CMS3/NtupleMaker/interface/plugins/PFJetMaker.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
 #include <CondFormats/JetMETObjects/interface/JetCorrectorParameters.h>
@@ -12,6 +14,7 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "TRandom3.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -27,8 +30,15 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
 
   isMC(iConfig.getParameter<bool>("isMC"))
 {
+  rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoTag"));
+  vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
+
   pfJetsToken = consumes< edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
-  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
+  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesInputTag"));
+
+  if (isMC){
+    genJetsToken = consumes< edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("genJetsInputTag"));
+  }
 
   produces<pat::JetCollection>().setBranchAlias(aliasprefix_);
 }
@@ -39,52 +49,149 @@ void PFJetMaker::beginJob(){}
 void PFJetMaker::endJob(){}
 
 void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  constexpr double ConeRadiusConstant = 0.4;
+
   auto result = std::make_unique<pat::JetCollection>();
 
-  /*
+  edm::Handle< double > rhoHandle;
+  iEvent.getByToken(rhoToken, rhoHandle);
+  if (!rhoHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting rho from the event...");
+  const double rho_event = *rhoHandle;
+
+  edm::Handle< reco::VertexCollection > vtxHandle;
+  iEvent.getByToken(vtxToken, vtxHandle);
+  if (!vtxHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting the vertex collection from the event...");
+
   edm::Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
   iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
-  const pat::PackedCandidateCollection* pfCandidates = pfCandidatesHandle.product();
-  */
+  if (!pfCandidatesHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting the PF candidate collection from the event...");
+  pat::PackedCandidateCollection const* pfCandidates = pfCandidatesHandle.product();
 
   edm::Handle< edm::View<pat::Jet> > pfJetsHandle;
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
+  if (!pfJetsHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting the jets from the event...");
 
   // JEC uncertanties 
   ESHandle<JetCorrectorParametersCollection> JetCorParColl;
   iSetup.get<JetCorrectionsRecord>().get(jetCollection_, JetCorParColl);
-  JetCorrectorParameters const& JetCorPar = (*JetCorParColl)["Uncertainty"];
-  JetCorrectionUncertainty jecUnc(JetCorPar);
+  JetCorrectorParameters const& JetCorParUnc = (*JetCorParColl)["Uncertainty"];
+  JetCorrectionUncertainty jecUnc(JetCorParUnc);
+
+  // JER and uncertainties
+  JME::JetResolution resolution_pt = JME::JetResolution::get(iSetup, jetCollection_+"_pt");
+  JME::JetResolutionScaleFactor resolution_sf;
+  if (isMC) resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetCollection_);
 
   result->reserve(pfJetsHandle->size());
+  std::unordered_map<pat::Jet const*, reco::GenJet const*> const reco_gen_map = get_reco_gen_matchMap(iEvent, pfJetsHandle);
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
 
-    double undoJEC = pfjet_it->jecFactor("Uncorrected");
-    double JECval = 1./undoJEC;
-    double uncorrected_pt = pfjet_it->pt()*undoJEC;
-    double uncorrected_mass = pfjet_it->mass()*undoJEC;
-    double corrected_pt = pfjet_it->pt();
-    double jet_eta = pfjet_it->eta();
-    double jet_phi = pfjet_it->phi();
-    //double jet_abseta = std::abs(jet_eta);
+    const double undoJEC = pfjet_it->jecFactor("Uncorrected");
+    const double JECval = 1./undoJEC;
+
+    auto const corrected_p4 = pfjet_it->p4();
+    const double corrected_pt = pfjet_it->pt();
+    const double jet_eta = pfjet_it->eta();
+    const double jet_phi = pfjet_it->phi();
+    //const double jet_abseta = std::abs(jet_eta);
+    const double uncorrected_pt = pfjet_it->pt()*undoJEC;
+    const double uncorrected_mass = pfjet_it->mass()*undoJEC;
 
     jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, jet_eta, jet_phi, uncorrected_mass));
 
-    jet_result.addUserFloat("JECNominal", static_cast<float>(JECval));
+    {
+      size_t n_mucands = 0;
+      LorentzVector p4_mucands(0, 0, 0, 0);
+      auto const& pfjet_cands = pfjet_it->daughterPtrVector();
+      for (auto cand_it = pfjet_cands.cbegin(); cand_it != pfjet_cands.cend(); cand_it++){
+        size_t ipf = cand_it->key();
+        pat::PackedCandidate const& pfc = pfCandidates->at(ipf);
+        if (!pfc.isGlobalMuon() && !pfc.isStandAloneMuon()) continue;
+        p4_mucands = p4_mucands + LorentzVector(pfc.p4());
+        n_mucands++;
+      }
+      jet_result.addUserInt("n_mucands", static_cast<int>(n_mucands));
+      jet_result.addUserFloat("mucands_px", p4_mucands.px());
+      jet_result.addUserFloat("mucands_py", p4_mucands.py());
+      jet_result.addUserFloat("mucands_pz", p4_mucands.pz());
+      jet_result.addUserFloat("mucands_E", p4_mucands.energy());
+    }
+
+    jet_result.addUserFloat("JECNominal", static_cast<const float>(JECval));
 
     // Get JEC uncertainties 
     jecUnc.setJetEta(jet_eta);
     jecUnc.setJetPt(corrected_pt);
-    double jec_unc = jecUnc.getUncertainty(true);
-    jet_result.addUserFloat("JECUp", static_cast<float>(JECval*(1.+jec_unc)));
-    jet_result.addUserFloat("JECDn", static_cast<float>(JECval*(1.-jec_unc)));
+    const double jec_unc = jecUnc.getUncertainty(true);
+    jet_result.addUserFloat("JECUp", static_cast<const float>(JECval*(1.+jec_unc)));
+    jet_result.addUserFloat("JECDn", static_cast<const float>(JECval*(1.-jec_unc)));
 
-    // JERs
-    if (isMC){
+    // Use the corrected pT, corrected_pt
+    double pt_jer = corrected_pt, pt_jerup = corrected_pt, pt_jerdn = corrected_pt;
+    JME::JetParameters res_sf_parameters ={ { JME::Binning::JetPt, corrected_pt },{ JME::Binning::JetEta, jet_eta },{ JME::Binning::Rho, rho_event } };
 
+    // pT resolution
+    double res_pt = resolution_pt.getResolution(res_sf_parameters); // Resolution/pT
+    jet_result.addUserFloat("pt_resolution", res_pt);
+
+    // dR-matched gen. jet
+    auto genjet_it = reco_gen_map.find(&(*pfjet_it));
+    reco::GenJet const* genjet = (genjet_it==reco_gen_map.cend() ? (reco::GenJet const*) nullptr : genjet_it->second);
+    bool hasMatched = (genjet!=nullptr);
+    bool isMatched = hasMatched;
+    double gen_pt=-1;
+    double gen_eta=0;
+    double gen_phi=0;
+    double gen_mass=-1;
+    double deltaR_genmatch = -1;
+    if (hasMatched){
+      deltaR_genmatch = reco::deltaR(genjet->p4(), corrected_p4);
+      gen_pt = genjet->pt();
+      gen_eta = genjet->eta();
+      gen_phi = genjet->phi();
+      gen_mass = genjet->mass();
+      const double diff_pt = std::abs(corrected_pt - gen_pt);
+      isMatched = (deltaR_genmatch < ConeRadiusConstant/2. && diff_pt < 3.*res_pt*corrected_pt);
     }
+    jet_result.addUserFloat("genJet_pt", gen_pt);
+    jet_result.addUserFloat("genJet_eta", gen_eta);
+    jet_result.addUserFloat("genJet_phi", gen_phi);
+    jet_result.addUserFloat("genJet_mass", gen_mass);
 
+    // JER smearing
+    if (isMC){
+      double sf    = resolution_sf.getScaleFactor(res_sf_parameters, Variation::NOMINAL);
+      double sf_up = resolution_sf.getScaleFactor(res_sf_parameters, Variation::UP);
+      double sf_dn = resolution_sf.getScaleFactor(res_sf_parameters, Variation::DOWN);
+
+      if (isMatched){
+        // Apply scaling
+        pt_jer   = max(0., gen_pt + sf   *(corrected_pt-gen_pt));
+        pt_jerup = max(0., gen_pt + sf_up*(corrected_pt-gen_pt));
+        pt_jerdn = max(0., gen_pt + sf_dn*(corrected_pt-gen_pt));
+      }
+      else{
+        // Apply smearing
+        TRandom3 rand;
+        rand.SetSeed(std::abs(static_cast<int>(std::sin(jet_phi)*100000)));
+        const double smear = rand.Gaus(0., 1.);
+        const double sigma   = sqrt(sf   *sf   -1.) * res_pt*corrected_pt;
+        const double sigmaup = sqrt(sf_up*sf_up-1.) * res_pt*corrected_pt;
+        const double sigmadn = sqrt(sf_dn*sf_dn-1.) * res_pt*corrected_pt;
+        pt_jer   = std::max(0., smear*sigma   + corrected_pt);
+        pt_jerup = std::max(0., smear*sigmaup + corrected_pt);
+        pt_jerdn = std::max(0., smear*sigmadn + corrected_pt);
+      }
+      jet_result.addUserFloat("JERNominal", static_cast<float>(pt_jer/corrected_pt));
+      jet_result.addUserFloat("JERUp", static_cast<float>(pt_jerup/corrected_pt));
+      jet_result.addUserFloat("JERDn", static_cast<float>(pt_jerdn/corrected_pt));
+    }
+    else{
+      jet_result.addUserFloat("JERNominal", 1.f);
+      jet_result.addUserFloat("JERUp", 1.f);
+      jet_result.addUserFloat("JERDn", 1.f);
+    }
 
     // Jet id variables
     jet_result.addUserInt("chargedMultiplicity", pfjet_it->chargedMultiplicity());
@@ -214,6 +321,46 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   iEvent.put(std::move(result));
 }
+
+std::unordered_map<pat::Jet const*, reco::GenJet const*> PFJetMaker::get_reco_gen_matchMap(edm::Event const& iEvent, edm::Handle< edm::View<pat::Jet> > const& pfJetsHandle) const{
+  std::unordered_map<pat::Jet const*, reco::GenJet const*> res;
+  if (!isMC || pfJetsHandle->empty()) return res;
+
+  edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
+  iEvent.getByToken(genJetsToken, genJetsHandle);
+  if (!genJetsHandle.isValid()) throw cms::Exception("PFJetMaker::get_reco_gen_matchMap: Error getting the gen. jets from the event...");
+  if (genJetsHandle->empty()) return res;
+
+  std::vector< edm::View<pat::Jet>::const_iterator > remaining_recojets; remaining_recojets.reserve(pfJetsHandle->size());
+  for (edm::View<pat::Jet>::const_iterator jet_it = pfJetsHandle->begin(); jet_it != pfJetsHandle->end(); jet_it++) remaining_recojets.push_back(jet_it);
+  std::vector< edm::View<reco::GenJet>::const_iterator > remaining_genjets; remaining_genjets.reserve(genJetsHandle->size());
+  for (edm::View<reco::GenJet>::const_iterator jet_it = genJetsHandle->begin(); jet_it != genJetsHandle->end(); jet_it++) remaining_genjets.push_back(jet_it);
+
+  while (!remaining_recojets.empty() && !remaining_genjets.empty()){
+    edm::View<pat::Jet>::const_iterator chosenRecoJet = pfJetsHandle->end();
+    edm::View<reco::GenJet>::const_iterator chosenGenJet = genJetsHandle->end();
+    double minDeltaR=-1;
+    for (auto const& rjet:remaining_recojets){
+      auto const pReco = rjet->p4();
+      for (auto const& gjet:remaining_genjets){
+        auto const pGen = gjet->p4();
+        double deltaR = std::abs(reco::deltaR(pGen, pReco));
+        if (minDeltaR==-1. || deltaR<minDeltaR){
+          minDeltaR=deltaR;
+          chosenRecoJet=rjet;
+          chosenGenJet=gjet;
+        }
+      }
+    }
+
+    if (chosenRecoJet!=pfJetsHandle->end() && chosenGenJet!=genJetsHandle->end()) res[&(*chosenRecoJet)] = &(*chosenGenJet);
+    for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if (*it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
+    for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if (*it == chosenGenJet){ remaining_genjets.erase(it); break; } }
+  }
+
+  return res;
+}
+
 
 
 DEFINE_FWK_MODULE(PFJetMaker);

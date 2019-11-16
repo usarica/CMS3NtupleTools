@@ -2,15 +2,15 @@
 
 
 METInfo::METInfo() :
-  met(-1),
-  metPhi(0),
-  sumEt(-1),
+  met_Nominal(-1),
+  metPhi_Nominal(0),
+  sumEt_Nominal(-1),
   metSignificance(0),
   met_over_sqrtSumEt(-1),
 
-  met_raw(-1),
-  metPhi_raw(0),
-  sumEt_raw(-1),
+  met_Raw(-1),
+  metPhi_Raw(0),
+  sumEt_Raw(-1),
 
   met_JERUp(-1),
   metPhi_JERUp(0),
@@ -37,15 +37,15 @@ METInfo::METInfo() :
   met_TauEnDn(-1),
   metPhi_TauEnDn(0),
 
-  met_UnclusteredEnUp(-1),
-  metPhi_UnclusteredEnUp(0),
-  met_UnclusteredEnDn(-1),
-  metPhi_UnclusteredEnDn(0),
-
   met_PhotonEnUp(-1),
   metPhi_PhotonEnUp(0),
   met_PhotonEnDn(-1),
   metPhi_PhotonEnDn(0),
+
+  met_UnclusteredEnUp(-1),
+  metPhi_UnclusteredEnUp(0),
+  met_UnclusteredEnDn(-1),
+  metPhi_UnclusteredEnDn(0),
 
   calo_met(-1),
   calo_metPhi(0),
@@ -55,15 +55,15 @@ METInfo::METInfo() :
 {}
 
 METInfo::METInfo(const METInfo& other) :
-  met(other.met),
-  metPhi(other.metPhi),
-  sumEt(other.sumEt),
+  met_Nominal(other.met_Nominal),
+  metPhi_Nominal(other.metPhi_Nominal),
+  sumEt_Nominal(other.sumEt_Nominal),
   metSignificance(other.metSignificance),
   met_over_sqrtSumEt(other.met_over_sqrtSumEt),
 
-  met_raw(other.met_raw),
-  metPhi_raw(other.metPhi_raw),
-  sumEt_raw(other.sumEt_raw),
+  met_Raw(other.met_Raw),
+  metPhi_Raw(other.metPhi_Raw),
+  sumEt_Raw(other.sumEt_Raw),
 
   met_JERUp(other.met_JERUp),
   metPhi_JERUp(other.metPhi_JERUp),
@@ -90,15 +90,15 @@ METInfo::METInfo(const METInfo& other) :
   met_TauEnDn(other.met_TauEnDn),
   metPhi_TauEnDn(other.metPhi_TauEnDn),
 
-  met_UnclusteredEnUp(other.met_UnclusteredEnUp),
-  metPhi_UnclusteredEnUp(other.metPhi_UnclusteredEnUp),
-  met_UnclusteredEnDn(other.met_UnclusteredEnDn),
-  metPhi_UnclusteredEnDn(other.metPhi_UnclusteredEnDn),
-
   met_PhotonEnUp(other.met_PhotonEnUp),
   metPhi_PhotonEnUp(other.metPhi_PhotonEnUp),
   met_PhotonEnDn(other.met_PhotonEnDn),
   metPhi_PhotonEnDn(other.metPhi_PhotonEnDn),
+
+  met_UnclusteredEnUp(other.met_UnclusteredEnUp),
+  metPhi_UnclusteredEnUp(other.metPhi_UnclusteredEnUp),
+  met_UnclusteredEnDn(other.met_UnclusteredEnDn),
+  metPhi_UnclusteredEnDn(other.metPhi_UnclusteredEnDn),
 
   calo_met(other.calo_met),
   calo_metPhi(other.calo_metPhi),

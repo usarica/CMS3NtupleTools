@@ -333,12 +333,12 @@ if jecVersion != "":
    process.slimmedJetCorrFactors = updatedPatJetCorrFactors.clone(
       src = cms.InputTag("slimmedJets"),
       primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
       payload = ak4jetsTag
       )
    ## Data applies L2L3Residual corrections as well
    if opts.data:
-      process.slimmedJetCorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+      process.slimmedJetCorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
    ## This is the new input jet collection
    process.slimmedCorrectedJets = updatedPatJets.clone(
       jetSource = cms.InputTag("slimmedJets"),
@@ -411,6 +411,7 @@ elif opts.year == 2018:
    if opts.data:
       jerVersion = "Autumn18_V7b_DATA"
    else:
+#      jerVersion = "Fall17_V3_102X_MC"
       jerVersion = "Autumn18_V7b_MC"
 if jerVersion != "":
    process.load("JetMETCorrections.Modules.JetResolutionESProducer_cfi")
@@ -512,13 +513,21 @@ runMetCorAndUncFromMiniAOD(
    **extra
    )
 ## PUPPI MET
-### No MET recipes (?)
 makePuppiesFromMiniAOD( process, True ) # This function resets photon IDs!!!
 extra_puppi = dict(
    metType = "Puppi",
    jetFlavor = ak4puppijetsTag,
    postfix = "ModifiedPuppiMET",
    )
+### MET v2 recipe for 2017 here as well, but it is not clear whether this is official or not
+if opts.metrecipe:
+   extra_puppi = dict(
+      metType = "Puppi",
+      jetFlavor = ak4puppijetsTag,
+      fixEE2017 = True,
+      fixEE2017Params = {'userawPt': True, 'ptThreshold':50.0, 'minEtaThreshold':2.65, 'maxEtaThreshold': 3.139},
+      postfix = "ModifiedPuppiMET",
+      )
 process.pfmetpuppiMaker.metSrc = cms.InputTag("slimmedMETsModifiedPuppiMET","","CMS3")
 runMetCorAndUncFromMiniAOD(
    process,

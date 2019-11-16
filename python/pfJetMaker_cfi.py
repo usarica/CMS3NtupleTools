@@ -7,9 +7,13 @@ pfJetMaker = cms.EDProducer(
 
    isMC = cms.bool(False),
 
-   pfJetsInputTag                   = cms.InputTag("slimmedJets"),
-   pfJetPtCut                       = cms.double(0.),
-   pfCandidatesTag     = cms.InputTag("packedPFCandidates")
+   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
+   pfJetsInputTag = cms.InputTag("slimmedJets"),
+   pfCandidatesInputTag = cms.InputTag("packedPFCandidates"),
+   genJetsInputTag = cms.InputTag("slimmedGenJets"),
+
    )
 
 pfJetPUPPIMaker = cms.EDProducer(
@@ -19,8 +23,12 @@ pfJetPUPPIMaker = cms.EDProducer(
 
    isMC = cms.bool(False),
 
-   pfJetsInputTag                   = cms.InputTag("slimmedJetsPuppi"),
-   pfJetPtCut                       = cms.double(0.), #miniAOD doesn't go lower than 20
-   pfCandidatesTag     = cms.InputTag("packedPFCandidates")
+   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
+   pfJetsInputTag = cms.InputTag("slimmedJetsPuppi"),
+   pfCandidatesInputTag = cms.InputTag("packedPFCandidates"),
+   genJetsInputTag = cms.InputTag("slimmedGenJets"),
+
    )
 

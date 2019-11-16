@@ -12,8 +12,11 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
 
 
 class PFJetMaker : public edm::stream::EDProducer<>{
@@ -32,8 +35,16 @@ protected:
   const std::string jetCollection_;
   const bool isMC;
 
-  edm::EDGetTokenT<edm::View<pat::Jet> > pfJetsToken;
+  edm::EDGetTokenT<double> rhoToken;
+  edm::EDGetTokenT< reco::VertexCollection > vtxToken;
+
+  edm::EDGetTokenT< edm::View<pat::Jet> > pfJetsToken;
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
+
+  edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
+
+
+  std::unordered_map<pat::Jet const*, reco::GenJet const*> get_reco_gen_matchMap(edm::Event const&, edm::Handle< edm::View<pat::Jet> > const&) const;
 
 };
 

@@ -22,6 +22,7 @@
 
 #include <DataFormats/Common/interface/View.h>
 #include <DataFormats/Candidate/interface/Candidate.h>
+#include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>

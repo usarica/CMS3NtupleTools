@@ -6,15 +6,15 @@
 
 
 struct METInfo{
-  float met;
-  float metPhi;
-  float sumEt;
+  float met_Nominal;
+  float metPhi_Nominal;
+  float sumEt_Nominal;
   float metSignificance;
   float met_over_sqrtSumEt;
 
-  float met_raw;
-  float metPhi_raw;
-  float sumEt_raw;
+  float met_Raw;
+  float metPhi_Raw;
+  float sumEt_Raw;
 
   float met_JERUp;
   float metPhi_JERUp;
@@ -41,15 +41,15 @@ struct METInfo{
   float met_TauEnDn;
   float metPhi_TauEnDn;
 
-  float met_UnclusteredEnUp;
-  float metPhi_UnclusteredEnUp;
-  float met_UnclusteredEnDn;
-  float metPhi_UnclusteredEnDn;
-
   float met_PhotonEnUp;
   float metPhi_PhotonEnUp;
   float met_PhotonEnDn;
   float metPhi_PhotonEnDn;
+
+  float met_UnclusteredEnUp;
+  float metPhi_UnclusteredEnUp;
+  float met_UnclusteredEnDn;
+  float metPhi_UnclusteredEnDn;
 
   float calo_met;
   float calo_metPhi;

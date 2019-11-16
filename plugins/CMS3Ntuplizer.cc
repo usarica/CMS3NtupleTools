@@ -489,9 +489,30 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_puId, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(size_t, n_mucands, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, area, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pt_resolution, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobbb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobc, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobg, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourproblepb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobuds, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, genJet_pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, genJet_eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, genJet_phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, genJet_mass, n_objects);
 
   for (View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
     // Core particle quantities
@@ -505,9 +526,30 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
     pass_tightId.push_back(AK4JetSelectionHelpers::testTightAK4Jet(*obj, this->year));
     pass_puId.push_back(AK4JetSelectionHelpers::testPileUpAK4Jet(*obj, this->year));
 
+    PUSH_USERINT_INTO_VECTOR(n_mucands);
+
+    PUSH_USERFLOAT_INTO_VECTOR(area);
+    PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
+
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobb);
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobbb);
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobc);
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobg);
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourproblepb);
+    PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobuds);
+
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
     PUSH_USERFLOAT_INTO_VECTOR(JECUp);
     PUSH_USERFLOAT_INTO_VECTOR(JECDn);
+
+    PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
+    PUSH_USERFLOAT_INTO_VECTOR(JERUp);
+    PUSH_USERFLOAT_INTO_VECTOR(JERDn);
+
+    PUSH_USERFLOAT_INTO_VECTOR(genJet_pt);
+    PUSH_USERFLOAT_INTO_VECTOR(genJet_eta);
+    PUSH_USERFLOAT_INTO_VECTOR(genJet_phi);
+    PUSH_USERFLOAT_INTO_VECTOR(genJet_mass);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
   }
@@ -522,9 +564,32 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_puId);
 
+  PUSH_VECTOR_WITH_NAME(colName, n_mucands);
+
+  PUSH_VECTOR_WITH_NAME(colName, area);
+  PUSH_VECTOR_WITH_NAME(colName, pt_resolution);
+
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobbb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobc);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobg);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourproblepb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobuds);
+
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
   PUSH_VECTOR_WITH_NAME(colName, JECUp);
   PUSH_VECTOR_WITH_NAME(colName, JECDn);
+
+  PUSH_VECTOR_WITH_NAME(colName, JERNominal);
+  PUSH_VECTOR_WITH_NAME(colName, JERUp);
+  PUSH_VECTOR_WITH_NAME(colName, JERDn);
+
+  if (this->isMC){
+    PUSH_VECTOR_WITH_NAME(colName, genJet_pt);
+    PUSH_VECTOR_WITH_NAME(colName, genJet_eta);
+    PUSH_VECTOR_WITH_NAME(colName, genJet_phi);
+    PUSH_VECTOR_WITH_NAME(colName, genJet_mass);
+  }
 
   return n_objects;
 }
@@ -725,15 +790,15 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
   iEvent.getByToken(pfmetToken, metHandle);
   if (!metHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET handle from the event...");
 
-  SET_MET_VARIABLE(metHandle, met, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, sumEt, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, met_Nominal, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_Nominal, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, sumEt_Nominal, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metSignificance, pfmetCollName);
   SET_MET_VARIABLE(metHandle, met_over_sqrtSumEt, pfmetCollName);
 
-  SET_MET_VARIABLE(metHandle, met_raw, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_raw, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, sumEt_raw, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, met_Raw, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_Raw, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, sumEt_Raw, pfmetCollName);
 
   SET_MET_VARIABLE(metHandle, met_JERUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JERUp, pfmetCollName);
@@ -783,15 +848,15 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
   iEvent.getByToken(puppimetToken, metHandle);
   if (!metHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PUPPI MET handle from the event...");
 
-  SET_MET_VARIABLE(metHandle, met, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, sumEt, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, met_Nominal, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_Nominal, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, sumEt_Nominal, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metSignificance, puppimetCollName);
   SET_MET_VARIABLE(metHandle, met_over_sqrtSumEt, puppimetCollName);
 
-  SET_MET_VARIABLE(metHandle, met_raw, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_raw, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, sumEt_raw, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, met_Raw, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_Raw, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, sumEt_Raw, puppimetCollName);
 
   SET_MET_VARIABLE(metHandle, met_JERUp, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JERUp, puppimetCollName);

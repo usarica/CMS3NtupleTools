@@ -42,50 +42,74 @@ void PFMETMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle<edm::View<pat::MET> >& genmet_h = met_h;
 
   // Construct MET variables
-  result->met = (met_h->front()).pt();
-  result->metPhi = (met_h->front()).phi();
-  result->sumEt = (met_h->front()).sumEt();
   result->metSignificance = (met_h->front()).metSignificance();
   result->met_over_sqrtSumEt = (met_h->front()).mEtSig(); // This is just MET/sqrt(sumET). Use metSignificance unless you really want this branch.
 
-  result->met_raw = (met_h->front()).shiftedPt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
-  result->metPhi_raw = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
-  result->sumEt_raw  = (met_h->front()).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+  auto const vmet_Nominal = (met_h->front()).shiftedP2(pat::MET::METUncertainty::NoShift);
+  result->met_Nominal = vmet_Nominal.pt();
+  result->metPhi_Nominal = vmet_Nominal.phi();
+  result->sumEt_Nominal = (met_h->front()).sumEt();
 
-  result->met_JERUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::JetResUp);
-  result->metPhi_JERUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::JetResUp);
-  result->met_JERDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::JetResDown);
-  result->metPhi_JERDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::JetResDown);
+  auto const vmet_Raw = (met_h->front()).shiftedP2(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
+  result->met_Raw = vmet_Raw.pt();
+  result->metPhi_Raw = vmet_Raw.phi();
+  result->sumEt_Raw  = (met_h->front()).shiftedSumEt(pat::MET::METUncertainty::NoShift, pat::MET::METCorrectionLevel::Raw);
 
-  result->met_JECUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::JetEnUp);
-  result->metPhi_JECUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::JetEnUp);
-  result->met_JECDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::JetEnDown);
-  result->metPhi_JECDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::JetEnDown);
+  auto const vmet_JERUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::JetResUp);
+  result->met_JERUp = vmet_JERUp.pt();
+  result->metPhi_JERUp = vmet_JERUp.phi();
 
-  result->met_MuonEnUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::MuonEnUp);
-  result->metPhi_MuonEnUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::MuonEnUp);
-  result->met_MuonEnDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::MuonEnDown);
-  result->metPhi_MuonEnDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::MuonEnDown);
+  auto const vmet_JERDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::JetResDown);
+  result->met_JERDn = vmet_JERDn.pt();
+  result->metPhi_JERDn = vmet_JERDn.phi();
 
-  result->met_ElectronEnUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::ElectronEnUp);
-  result->metPhi_ElectronEnUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::ElectronEnUp);
-  result->met_ElectronEnDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::ElectronEnDown);
-  result->metPhi_ElectronEnDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::ElectronEnDown);
+  auto const vmet_JECUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::JetEnUp);
+  result->met_JECUp = vmet_JECUp.pt();
+  result->metPhi_JECUp = vmet_JECUp.phi();
 
-  result->met_TauEnUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::TauEnUp);
-  result->metPhi_TauEnUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::TauEnUp);
-  result->met_TauEnDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::TauEnDown);
-  result->metPhi_TauEnDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::TauEnDown);
+  auto const vmet_JECDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::JetEnDown);
+  result->met_JECDn = vmet_JECDn.pt();
+  result->metPhi_JECDn = vmet_JECDn.phi();
 
-  result->met_UnclusteredEnUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::UnclusteredEnUp);
-  result->metPhi_UnclusteredEnUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::UnclusteredEnUp);
-  result->met_UnclusteredEnDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::UnclusteredEnDown);
-  result->metPhi_UnclusteredEnDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::UnclusteredEnDown);
+  auto const vmet_MuonEnUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::MuonEnUp);
+  result->met_MuonEnUp = vmet_MuonEnUp.pt();
+  result->metPhi_MuonEnUp = vmet_MuonEnUp.phi();
 
-  result->met_PhotonEnUp = (met_h->front()).shiftedPt(pat::MET::METUncertainty::PhotonEnUp);
-  result->metPhi_PhotonEnUp = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::PhotonEnUp);
-  result->met_PhotonEnDn = (met_h->front()).shiftedPt(pat::MET::METUncertainty::PhotonEnDown);
-  result->metPhi_PhotonEnDn = (met_h->front()).shiftedPhi(pat::MET::METUncertainty::PhotonEnDown);
+  auto const vmet_MuonEnDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::MuonEnDown);
+  result->met_MuonEnDn = vmet_MuonEnDn.pt();
+  result->metPhi_MuonEnDn = vmet_MuonEnDn.phi();
+
+  auto const vmet_ElectronEnUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::ElectronEnUp);
+  result->met_ElectronEnUp = vmet_ElectronEnUp.pt();
+  result->metPhi_ElectronEnUp = vmet_ElectronEnUp.phi();
+
+  auto const vmet_ElectronEnDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::ElectronEnDown);
+  result->met_ElectronEnDn = vmet_ElectronEnDn.pt();
+  result->metPhi_ElectronEnDn = vmet_ElectronEnDn.phi();
+
+  auto const vmet_TauEnUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::TauEnUp);
+  result->met_TauEnUp = vmet_TauEnUp.pt();
+  result->metPhi_TauEnUp = vmet_TauEnUp.phi();
+
+  auto const vmet_TauEnDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::TauEnDown);
+  result->met_TauEnDn = vmet_TauEnDn.pt();
+  result->metPhi_TauEnDn = vmet_TauEnDn.phi();
+
+  auto const vmet_PhotonEnUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::PhotonEnUp);
+  result->met_PhotonEnUp = vmet_PhotonEnUp.pt();
+  result->metPhi_PhotonEnUp = vmet_PhotonEnUp.phi();
+
+  auto const vmet_PhotonEnDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::PhotonEnDown);
+  result->met_PhotonEnDn = vmet_PhotonEnDn.pt();
+  result->metPhi_PhotonEnDn = vmet_PhotonEnDn.phi();
+
+  auto const vmet_UnclusteredEnUp = (met_h->front()).shiftedP2(pat::MET::METUncertainty::UnclusteredEnUp);
+  result->met_UnclusteredEnUp = vmet_UnclusteredEnUp.pt();
+  result->metPhi_UnclusteredEnUp = vmet_UnclusteredEnUp.phi();
+
+  auto const vmet_UnclusteredEnDn = (met_h->front()).shiftedP2(pat::MET::METUncertainty::UnclusteredEnDown);
+  result->met_UnclusteredEnDn = vmet_UnclusteredEnDn.pt();
+  result->metPhi_UnclusteredEnDn = vmet_UnclusteredEnDn.phi();
 
   try{
     result->calo_met = (met_h->front()).caloMETPt();

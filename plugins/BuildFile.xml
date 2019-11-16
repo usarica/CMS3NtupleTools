@@ -23,6 +23,7 @@
 <use   name="RecoEcal/EgammaCoreTools"/>
 <use   name="RecoEgamma/EgammaTools"/>
 <use   name="JetMETCorrections/Objects"/>
+<use   name="JetMETCorrections/Modules"/>
 <use   name="HLTrigger/HLTcore"/>
 <use   name="CMS3/Dictionaries"/>
 <use   name="EgammaAnalysis/ElectronTools"/>
