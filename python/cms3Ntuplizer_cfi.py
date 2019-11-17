@@ -14,6 +14,7 @@ cms3ntuple = cms.EDAnalyzer(
    photonSrc   = cms.InputTag("photonMaker"),
    muonSrc   = cms.InputTag("muonMaker"),
    ak4jetSrc   = cms.InputTag("pfJetMaker"),
+   ak8jetSrc   = cms.InputTag("subJetMaker"),
 
    pfmetSrc = cms.InputTag("pfmetMaker"),
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),

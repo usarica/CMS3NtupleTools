@@ -34,6 +34,8 @@ protected:
   const std::string aliasprefix_;
   const std::string jetCollection_;
   const bool isMC;
+  bool isFatJet;
+  bool isPuppi;
 
   edm::EDGetTokenT<double> rhoToken;
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;

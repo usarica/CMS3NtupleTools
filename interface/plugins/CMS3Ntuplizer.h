@@ -72,6 +72,7 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT< edm::View<pat::Jet> > ak4jetsToken;
+  edm::EDGetTokenT< edm::View<pat::Jet> > ak8jetsToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
   edm::EDGetTokenT< METInfo > puppimetToken;
@@ -98,6 +99,7 @@ protected:
   size_t fillPhotons(const edm::Event&, std::vector<pat::Photon const*>*);
   size_t fillMuons(const edm::Event&, std::vector<pat::Muon const*>*);
   size_t fillAK4Jets(const edm::Event&, std::vector<pat::Jet const*>*);
+  size_t fillAK8Jets(const edm::Event&, std::vector<pat::Jet const*>*);
   size_t fillVertices(const edm::Event&, std::vector<reco::Vertex const*>*);
 
   bool fillEventVariables(const edm::Event&);

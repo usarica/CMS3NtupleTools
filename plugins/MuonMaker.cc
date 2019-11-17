@@ -298,8 +298,13 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     /////////////////
     // Muon timing //
     /////////////////
-    muon_result.addUserFloat("time_ndof", muon->time().nDof);
+    // See DataFormats/MuonReco/interface/MuonTime.h
+    // Also https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookMuonAnalysis#reco_Muon_timing_information
+    muon_result.addUserInt("time_ndof", muon->time().nDof);
     muon_result.addUserFloat("time_IPInOut", muon->time().timeAtIpInOut);
+    muon_result.addUserFloat("time_IPOutIn", muon->time().timeAtIpOutIn);
+    muon_result.addUserFloat("time_IPInOut_err", muon->time().timeAtIpInOutErr);
+    muon_result.addUserFloat("time_IPOutIn_err", muon->time().timeAtIpOutInErr);
 
     //////////////////////
     // genMatch miniAOD //

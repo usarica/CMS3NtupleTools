@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 pfJetMaker = cms.EDProducer(
    "PFJetMaker",
-   aliasprefix = cms.untracked.string("pfjets"),
+   aliasprefix = cms.untracked.string("ak4pfjets_chs"),
    jetCollection = cms.untracked.string("AK4PFchs"),
 
    isMC = cms.bool(False),
@@ -18,7 +18,7 @@ pfJetMaker = cms.EDProducer(
 
 pfJetPUPPIMaker = cms.EDProducer(
    "PFJetMaker",
-   aliasprefix = cms.untracked.string("pfjets_puppi"),
+   aliasprefix = cms.untracked.string("ak4pfjets_puppi"),
    jetCollection = cms.untracked.string("AK4PFPuppi"),
 
    isMC = cms.bool(False),
@@ -32,3 +32,18 @@ pfJetPUPPIMaker = cms.EDProducer(
 
    )
 
+subJetMaker = cms.EDProducer(
+   "PFJetMaker",
+   aliasprefix = cms.untracked.string("ak8pfjets"),
+   jetCollection = cms.untracked.string("AK8PFPuppi"),
+
+   isMC = cms.bool(False),
+
+   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
+   pfJetsInputTag = cms.InputTag("slimmedJetsAK8"),
+   pfCandidatesInputTag = cms.InputTag("packedPFCandidates"),
+   genJetsInputTag = cms.InputTag("slimmedGenJetsAK8"),
+
+   )

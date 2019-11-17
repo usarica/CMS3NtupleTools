@@ -144,8 +144,7 @@ my_phoid_modules = [
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
-process.load("CMS3.NtupleMaker.cms3PFSequence_cff")
-process.eventMaker.isData = cms.bool(opts.data)
+#process.eventMaker.isData = cms.bool(opts.data)
 process.electronMaker.year = cms.int32(opts.year)
 process.photonMaker.year = cms.int32(opts.year)
 if not opts.data:
@@ -358,12 +357,12 @@ if jecVersion != "":
    process.slimmedPuppiJetCorrFactors = updatedPatJetCorrFactors.clone(
       src = cms.InputTag("slimmedJetsPuppi"),
       primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
       payload = ak4puppijetsTag
       )
    ## Data applies L2L3Residual corrections as well
    if opts.data:
-      process.slimmedPuppiJetCorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+      process.slimmedPuppiJetCorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
    ## This is the new input jet collection
    process.slimmedCorrectedJetsPuppi = updatedPatJets.clone(
       jetSource = cms.InputTag("slimmedJetsPuppi"),
@@ -379,12 +378,12 @@ if jecVersion != "":
    process.slimmedJetAK8CorrFactors = updatedPatJetCorrFactors.clone(
       src = cms.InputTag("slimmedJetsAK8"),
       primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = ['L1FastJet','L2Relative','L3Absolute'],
+      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
       payload = ak8jetsTag
       )
    ## Data applies L2L3Residual corrections as well
    if opts.data:
-      process.slimmedJetAK8CorrFactors.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
+      process.slimmedJetAK8CorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
    ## This is the new input jet collection
    process.slimmedCorrectedJetsAK8 = updatedPatJets.clone(
       jetSource = cms.InputTag("slimmedJetsAK8"),
@@ -411,7 +410,6 @@ elif opts.year == 2018:
    if opts.data:
       jerVersion = "Autumn18_V7b_DATA"
    else:
-#      jerVersion = "Fall17_V3_102X_MC"
       jerVersion = "Autumn18_V7b_MC"
 if jerVersion != "":
    process.load("JetMETCorrections.Modules.JetResolutionESProducer_cfi")
@@ -630,14 +628,16 @@ if opts.applyMuoncorr:
 else:
    process.muonMakerSeq = cms.Sequence( process.muonMaker )
 
-# ak4 PF jets
+# PF jets
 if jecVersion != "":
    # Input to pfJetMaker is already fixed above
    process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.slimmedJetCorrFactors * process.slimmedCorrectedJets * process.pfJetMaker )
    process.pfJetPUPPIMakerSeq = cms.Sequence( process.slimmedPuppiJetCorrFactors * process.slimmedCorrectedJetsPuppi * process.pfJetPUPPIMaker )
+   process.subJetMakerSeq = cms.Sequence( process.slimmedJetAK8CorrFactors * process.slimmedCorrectedJetsAK8 * process.subJetMaker )
 else:
    process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.pfJetMaker )
    process.pfJetPUPPIMakerSeq = cms.Sequence( process.pfJetPUPPIMaker )
+   process.subJetMakerSeq = cms.Sequence( process.subJetMaker )
 
 # MET filter
 if not opts.is80x:
@@ -680,7 +680,7 @@ producers = [
         process.electronMaker,
         process.pfJetMaker,
         #process.pfJetPUPPIMaker,
-        #process.subJetMaker,
+        process.subJetMaker,
         #process.pfmetMaker,
         #process.pfmetpuppiMaker,
         #process.photonMaker,
@@ -744,6 +744,10 @@ for ip,producer in enumerate(producers):
       total_path *= process.pfJetPUPPIMakerSeq
       continue
 
+   if producer == process.subJetMaker:
+      total_path *= process.subJetMakerSeq
+      continue
+
    total_path *= producer
 
 process.p = cms.Path(total_path)
@@ -778,8 +782,8 @@ else:
     process.source.fileNames = cms.untracked.vstring(inputs)
 
 # Event maker
-process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
-process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
+#process.eventMaker.CMS3tag = cms.string('SUPPLY_CMS3_TAG')
+#process.eventMaker.datasetName = cms.string('SUPPLY_DATASETNAME')
 
 # Final output
 if opts.dumpAllObjects:

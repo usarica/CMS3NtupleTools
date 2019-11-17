@@ -1,112 +1,173 @@
 #include <iostream>
+#include <cmath>
 #include <FWCore/Utilities/interface/Exception.h>
 #include <CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h>
 
 
 namespace AK4JetSelectionHelpers{
 
-  bool testLooseAK4Jet(pat::Jet const& obj, int const& year){
+  bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){
+    double uncorr_pt = obj.pt(); // Has to be the uncorrected one
+    double eta = std::abs(obj.eta());
+
+    double JECNominal = obj.userFloat("JECNominal");
+    double JECUp = obj.userFloat("JECUp");
+    double JECDn = obj.userFloat("JECDn");
+
+    double JERNominal = obj.userFloat("JERNominal");
+    double JERUp = obj.userFloat("JERUp");
+    double JERDn = obj.userFloat("JERDn");
+
+    if (eta>=selection_skim_eta) return false;
+    return (
+      uncorr_pt>=selection_skim_pt
+      ||
+      uncorr_pt*JECNominal*JERNominal>=selection_skim_pt
+      ||
+      uncorr_pt*JECNominal*JERUp>=selection_skim_pt
+      ||
+      uncorr_pt*JECNominal*JERDn>=selection_skim_pt
+      ||
+      uncorr_pt*JECUp*JERNominal>=selection_skim_pt
+      ||
+      uncorr_pt*JECDn*JERNominal>=selection_skim_pt
+      );
+  }
+  bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testLooseAK4Jet: Year " << year << " is not implemented!" << std::endl;
 
     if (year>2016) return true; // Loose id no longer needed in 2017 and 2018
 
     double uncorrE = obj.energy(); // Has to be the uncorrected one
-    double eta = fabs(obj.eta());
+    double eta = std::abs(obj.eta());
 
-    double nhf = obj.neutralHadronEnergy() / uncorrE;
-    double nef = obj.neutralEmEnergy() / uncorrE;
-    double chf = obj.chargedHadronEnergy() / uncorrE;
-    double cef = obj.chargedEmEnergy() / uncorrE;
-    double muf = obj.muonEnergy() / uncorrE;
+    double NHF = obj.neutralHadronEnergy() / uncorrE;
+    double NEMF = obj.neutralEmEnergy() / uncorrE;
+    double CHF = obj.chargedHadronEnergy() / uncorrE;
+    double CEMF = obj.chargedEmEnergy() / uncorrE;
+    //double MUF = obj.muonEnergy() / uncorrE; // Requirement for this variable is in loose id
 
-    int cm = obj.chargedMultiplicity();
-    int nm = obj.neutralMultiplicity();
+    int CM = obj.chargedMultiplicity();
+    int NM = obj.neutralMultiplicity();
+    int NumConst = CM+NM;
 
-    if (cm + nm < 2) return false;
-    if (nef >= 0.99) return false;
-    if (nhf >= 0.99) return false;
-    if (muf >= 0.8) return false;
-    if (eta < 2.4){
-      if (cm < 1) return false;
-      if (!(chf > 0.f)) return false;
-      if (cef >= 0.99) return false;
+    if (type==AK4PFCHS){
+      return (
+        ((NHF<0.99 && NEMF<0.99 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        ||
+        (NHF<0.98 && NEMF>0.01 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NM>10 && eta>3.0)
+        );
     }
+    else if (type==AK4PFPUPPI){
+      return (
+        ((NHF<0.99 && NEMF<0.99 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        );
+    }
+    else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testLooseAK4Jet: Type " << type << " is not implemented!" << std::endl;
 
     return true;
   }
-  bool testTightAK4Jet(pat::Jet const& obj, int const& year){
+  bool testTightAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testTightAK4Jet: Year " << year << " is not implemented!" << std::endl;
 
-    if (!testLooseAK4Jet(obj, year)) return false;
-
     double uncorrE = obj.energy(); // Has to be the uncorrected one
-    double eta = fabs(obj.eta());
+    double eta = std::abs(obj.eta());
 
-    double nhf = obj.neutralHadronEnergy() / uncorrE;
-    double nef = obj.neutralEmEnergy() / uncorrE;
-    double chf = obj.chargedHadronEnergy() / uncorrE;
-    double cef = obj.chargedEmEnergy() / uncorrE;
-    //double muf = obj.muonEnergy() / uncorrE; // Requirement for this variable is in loose id
+    double NHF = obj.neutralHadronEnergy() / uncorrE;
+    double NEMF = obj.neutralEmEnergy() / uncorrE;
+    double CHF = obj.chargedHadronEnergy() / uncorrE;
+    double CEMF = obj.chargedEmEnergy() / uncorrE;
+    //double MUF = obj.muonEnergy() / uncorrE; // Requirement for this variable is in loose id
 
-    int cm = obj.chargedMultiplicity();
-    int nm = obj.neutralMultiplicity();
-    int ncands = obj.userInt("npfcands");
+    int CM = obj.chargedMultiplicity();
+    int NM = obj.neutralMultiplicity();
+    int NumConst = CM+NM;
 
-    if (year==2016){
-      if (nef >= 0.90) return false;
-      if (nhf >= 0.90) return false;
-      if (eta < 2.4 && cef >= 0.90) return false;
+    // 2016: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
+    // 2017: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
+    // 2018: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
+    if (type==AK4PFCHS){
+      if (year==2016) return (
+        ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        ||
+        (NHF<0.98 && NEMF>0.01 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NM>10 && eta>3.0)
+        );
+      else if (year==2017) return (
+        ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0) || eta>2.4) && eta<=2.7)
+        ||
+        (NEMF<0.99 && NEMF>0.02 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NHF>0.02 && NM>10 && eta>3.0)
+        );
+      else if (year==2018) return (
+        (CM>0 && CHF>0. && NumConst>1 && NEMF<0.90 && NHF<0.90 && eta<=2.6)
+        ||
+        (CM>0 && NEMF<0.99 && NHF<0.90 && eta>2.6 && eta<=2.7)
+        ||
+        (NEMF>0.02 && NEMF<0.99 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NHF>0.2 && NM>10 && eta>3.0)
+        );
     }
-    else if (year==2017){
-      if (eta <= 2.4){
-        if (chf == 0.f) return false;
-        if (cm == 0) return false;
-      }
-      if (eta <= 2.7){
-        if (nhf >= 0.90) return false;
-        if (nef >= 0.90) return false;
-        if (ncands <= 1) return false;
-      }
-      if (eta > 2.7 && eta <= 3.0){
-        if (nef <= 0.02 || nef >= 0.99) return false;
-        if (nm <= 2) return false;
-      }
-      if (eta > 3.0){
-        if (nhf <= 0.02) return false;
-        if (nef >= 0.90) return false;
-        if (nm <= 10) return false;
-      }
+    else if (type==AK4PFPUPPI){
+      if (year==2016) return (
+        ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        );
+      else if (year==2017) return (
+        ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0) || eta>2.4) && eta<=2.7)
+        ||
+        (NHF<0.99 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NHF>0.02 && NM<15 && NM>2 && eta>3.0)
+        );
+      else if (year==2018) return (
+        (CM>0 && CHF>0. && NumConst>1 && NEMF<0.90 && NHF<0.90 && eta<=2.6)
+        ||
+        (NEMF<0.99 && NHF<0.90 && eta>2.6 && eta<=2.7)
+        ||
+        (NHF<0.99 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NHF>0.02 && NM>2 && NM<15 && eta>3.0)
+        );
     }
-    else if (year==2018){
-      // From https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
-      if (eta <= 2.6){
-        if (nhf >= 0.90) return false;
-        if (nef >= 0.90) return false;
-        if (ncands <= 1) return false;
-        if (chf <= 1e-6) return false;
-        if (cm == 0) return false;
-      }
-      if (eta > 2.6 && eta <= 2.7){
-        if (nhf >= 0.90) return false;
-        if (nef >= 0.99) return false;
-        if (cm == 0) return false;
-      }
-      if (eta > 2.7 && eta <= 3.0){
-        if (nef <= 0.02 || nef >= 0.99) return false;
-        if (nm <= 2) return false;
-      }
-      if (eta > 3.0){
-        if (nhf <= 0.02) return false;
-        if (nef >= 0.90) return false;
-        if (nm <= 10) return false;
-      }
-    }
+    else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testTightAK4Jet: Type " << type << " is not implemented!" << std::endl;
 
     return true;
   }
-  bool testPileUpAK4Jet(pat::Jet const& obj, int const& /*year*/){
-    int passPUJetId = obj.userInt("pileupJetId");
-    return (passPUJetId==1);
+  bool testLeptonVetoAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
+    if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testTightAK4Jet: Year " << year << " is not implemented!" << std::endl;
+
+    double uncorrE = obj.energy(); // Has to be the uncorrected one
+    double eta = std::abs(obj.eta());
+    double MUF = obj.muonEnergy() / uncorrE;
+
+    // 2016: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
+    // 2017: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
+    // 2018: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
+    if (type==AK4PFCHS || type==AK4PFPUPPI){
+      return (
+        (MUF<0.8 && eta<=2.7) || eta>2.7
+        );
+    }
+    else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testTightAK4Jet: Type " << type << " is not implemented!" << std::endl;
+
+    return true;
+  }
+  bool testPileUpAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& type){
+    if (type!=AK4PFCHS) return true;
+
+    const int passPUJetId = obj.userInt("pileupJetId");
+
+    // PU id only to be applied to jets with pT<50 and |eta|<5.
+    // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID#Information_for_13_TeV_data_anal
+    const double uncorr_pt = obj.pt(); // Has to be the uncorrected one, see main_pset.py for how the PU id is updated
+    const double eta = std::abs(obj.eta());
+
+    return (uncorr_pt<50. && eta<5. ? bool(passPUJetId==1) : bool(true));
   }
 
 }
