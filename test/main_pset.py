@@ -145,6 +145,7 @@ my_phoid_modules = [
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 #process.eventMaker.isData = cms.bool(opts.data)
+process.muonMaker.year = cms.int32(opts.year)
 process.electronMaker.year = cms.int32(opts.year)
 process.photonMaker.year = cms.int32(opts.year)
 if not opts.data:
@@ -703,6 +704,11 @@ if opts.genxsecanalyzer and not opts.data:
 total_path = None
 for ip,producer in enumerate(producers):
    if producer is None: continue
+
+   # Before adding the producers to the path, set the common attributes
+   if hasattr(producer, "year"):
+      setattr(producer, "year", cms.int32(opts.year))
+
    if ip == 0:
       total_path = producer
       continue
