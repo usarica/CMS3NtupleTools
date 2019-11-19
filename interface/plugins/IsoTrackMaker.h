@@ -1,10 +1,9 @@
 #ifndef NTUPLEMAKER_ISOTRACKMAKER_H
 #define NTUPLEMAKER_ISOTRACKMAKER_H
 
-// system include files
+#include <string>
 #include <memory>
 
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
@@ -15,27 +14,30 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/IsolatedTrack.h"
 
-class IsoTrackMaker : public edm::stream::EDProducer<> {
+#include <CMS3/NtupleMaker/interface/IsoTrackInfo.h>
+
+
+class IsoTrackMaker : public edm::stream::EDProducer<>{
 public:
-    explicit IsoTrackMaker (const edm::ParameterSet&);
-    ~IsoTrackMaker();
+  explicit IsoTrackMaker(const edm::ParameterSet&);
+  ~IsoTrackMaker();
 
 private:
-    //  virtual void beginJob() ;
-    virtual void beginJob() ;
-    virtual void beginRun(const edm::Run&, const edm::EventSetup&) ;
-    virtual void produce(edm::Event&, const edm::EventSetup&);
-    virtual void endJob() ;
+  virtual void beginJob();
+  virtual void endJob();
 
-    // ----------member data ---------------------------
-    edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
-    edm::EDGetTokenT<pat::PackedCandidateCollection> lostTracksToken;
-    edm::EDGetTokenT<pat::IsolatedTrackCollection> isoTracksToken;
-    double pt_cut_;
-    double pt_cut_noIso_;
+  virtual void beginRun(const edm::Run&, const edm::EventSetup&);
 
-    const pat::PackedCandidateCollection *pfCandidates;
+  virtual void produce(edm::Event&, const edm::EventSetup&);
+
+protected:
+  std::string aliasprefix_;
+
+  edm::EDGetTokenT<pat::IsolatedTrackCollection> isoTracksToken;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> lostTracksToken;
+  edm::EDGetTokenT<pat::PackedCandidateCollection> pfCandidatesToken;
 
 };
+
 
 #endif

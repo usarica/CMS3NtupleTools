@@ -18,19 +18,28 @@ namespace AK4JetSelectionHelpers{
     double JERUp = obj.userFloat("JERUp");
     double JERDn = obj.userFloat("JERDn");
 
-    if (eta>=selection_skim_eta) return false;
     return (
-      uncorr_pt>=selection_skim_pt
-      ||
-      uncorr_pt*JECNominal*JERNominal>=selection_skim_pt
-      ||
-      uncorr_pt*JECNominal*JERUp>=selection_skim_pt
-      ||
-      uncorr_pt*JECNominal*JERDn>=selection_skim_pt
-      ||
-      uncorr_pt*JECUp*JERNominal>=selection_skim_pt
-      ||
-      uncorr_pt*JECDn*JERNominal>=selection_skim_pt
+      eta<selection_skim_eta && (
+        uncorr_pt>=selection_skim_pt
+        ||
+        // Only JEC-applied jet momenta
+        uncorr_pt*JECNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECUp>=selection_skim_pt
+        ||
+        uncorr_pt*JECDn>=selection_skim_pt
+        ||
+        // JEC*JER
+        uncorr_pt*JECNominal*JERNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECNominal*JERUp>=selection_skim_pt
+        ||
+        uncorr_pt*JECNominal*JERDn>=selection_skim_pt
+        ||
+        uncorr_pt*JECUp*JERNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECDn*JERNominal>=selection_skim_pt
+        )
       );
   }
   bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){

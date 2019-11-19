@@ -1,6 +1,8 @@
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
 #include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
@@ -263,10 +265,17 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Tight_Bits, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
 
   for (View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
+    if (!ElectronSelectionHelpers::testSkimElectron(*obj, this->year)) continue;
+
     // Core particle quantities
     // Uncorrected p4
     pt.push_back(obj->pt());
@@ -307,6 +316,12 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Tight_Bits);
 
+    // Isolation variables
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
+
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
     PUSH_USERINT_INTO_VECTOR(type_mask);
@@ -343,6 +358,11 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Tight_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
@@ -435,6 +455,11 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
 
   MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(int, time_ndof, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_IPInOut, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_IPOutIn, n_objects);
@@ -448,6 +473,8 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalDn, n_objects);
 
   for (View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
+    if (!MuonSelectionHelpers::testSkimMuon(*obj, this->year)) continue;
+
     // Core particle quantities
     pt.push_back(obj->pt());
     eta.push_back(obj->eta());
@@ -455,6 +482,11 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
     mass.push_back(obj->mass());
 
     PUSH_USERINT_INTO_VECTOR(charge);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
     PUSH_USERINT_INTO_VECTOR(time_ndof);
     PUSH_USERFLOAT_INTO_VECTOR(time_IPInOut);
@@ -478,6 +510,11 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, mass);
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
   PUSH_VECTOR_WITH_NAME(colName, time_ndof);
   PUSH_VECTOR_WITH_NAME(colName, time_IPInOut);
@@ -544,7 +581,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
   for (View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
-    if (!testSkimAK4Jet(*obj, this->year, jetType)) continue;
+    if (!AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType)) continue;
 
     // Core particle quantities
     // These are the uncorrected momentum components!

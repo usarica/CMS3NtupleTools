@@ -5,6 +5,11 @@
   <class name="GenInfo"/>
   <class name="edm::Wrapper< GenInfo >" persistent="false"/>
 
+  <class name="IsoTrackInfo"/>
+  <class name="std::vector<IsoTrackInfo>"/>
+  <class name="edm::Wrapper< IsoTrackInfo>" persistent="false"/>
+  <class name="edm::Wrapper< std::vector<IsoTrackInfo> >" persistent="false"/>
+
   <class name="TriggerInfo"/>
   <class name="std::vector<TriggerInfo>"/>
   <class name="edm::Wrapper< TriggerInfo >" persistent="false"/>

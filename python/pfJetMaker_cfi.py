@@ -7,7 +7,7 @@ pfJetMaker = cms.EDProducer(
 
    isMC = cms.bool(False),
 
-   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
    pfJetsInputTag = cms.InputTag("slimmedJets"),
@@ -23,7 +23,7 @@ pfJetPUPPIMaker = cms.EDProducer(
 
    isMC = cms.bool(False),
 
-   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
    pfJetsInputTag = cms.InputTag("slimmedJetsPuppi"),
@@ -39,7 +39,7 @@ subJetMaker = cms.EDProducer(
 
    isMC = cms.bool(False),
 
-   rhoTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
    pfJetsInputTag = cms.InputTag("slimmedJetsAK8"),

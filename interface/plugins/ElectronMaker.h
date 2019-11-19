@@ -83,6 +83,8 @@ protected:
   edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
   edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
 
+  edm::EDGetTokenT< double > rhoToken;
+
 };
 
 #endif

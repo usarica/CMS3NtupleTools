@@ -33,7 +33,7 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
   isFatJet(jetCollection_.find("AK8")!=std::string::npos || jetCollection_.find("ak8")!=std::string::npos),
   isPuppi(jetCollection_.find("Puppi")!=std::string::npos || jetCollection_.find("puppi")!=std::string::npos)
 {
-  rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoTag"));
+  rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
   vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
 
   pfJetsToken = consumes< edm::View<pat::Jet> >(iConfig.getParameter<edm::InputTag>("pfJetsInputTag"));
@@ -84,8 +84,10 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   JME::JetResolutionScaleFactor resolution_sf;
   if (isMC) resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetCollection_);
 
-  result->reserve(pfJetsHandle->size());
+  // Get gen. jets matched to reco. jets
   std::unordered_map<pat::Jet const*, reco::GenJet const*> const reco_gen_map = get_reco_gen_matchMap(iEvent, pfJetsHandle);
+
+  result->reserve(pfJetsHandle->size());
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
 
