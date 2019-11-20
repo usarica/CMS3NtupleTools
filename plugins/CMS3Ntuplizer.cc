@@ -390,6 +390,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Val, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Cat, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, n_objects);
@@ -412,6 +415,10 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
 
     // Id variables
+    // Fall17V2 MVA id
+    PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Val);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Cat);
+
     // Fall17V2 cut-based ids
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
@@ -432,6 +439,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_scale_totalDn);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalUp);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalDn);
+
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Val);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Cat);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);

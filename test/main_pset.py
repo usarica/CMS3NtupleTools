@@ -602,6 +602,9 @@ elif (opts.year == 2018):
                           #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
                           era='2018-Prompt')
 
+from CMS3.NtupleMaker.utils.replaceMVAValuesByRaw import replaceMVAValuesByRaw # Needed to get Rawvalues instead of values
+replaceMVAValuesByRaw(process.slimmedElectrons)
+replaceMVAValuesByRaw(process.slimmedPhotons)
 #for idmod in my_eleid_modules:
 #    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 #for idmod in my_phoid_modules:
