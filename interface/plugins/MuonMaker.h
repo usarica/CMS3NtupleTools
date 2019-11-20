@@ -35,6 +35,8 @@ protected:
   std::string aliasprefix_;
   int year_;
 
+  bool refurbishSelections_;
+
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
 

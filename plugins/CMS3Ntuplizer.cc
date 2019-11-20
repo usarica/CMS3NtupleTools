@@ -455,16 +455,23 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
 
   MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, POG_selector_bits, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(int, time_ndof, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_IPInOut, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_IPOutIn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_IPInOut_err, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_IPOutIn_err, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutIn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOutError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutInError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, time_rpc_ndof, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOut, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutIn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOutError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutInError, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_objects);
@@ -483,16 +490,23 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
 
     PUSH_USERINT_INTO_VECTOR(charge);
 
+    PUSH_USERINT_INTO_VECTOR(POG_selector_bits);
+
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
-    PUSH_USERINT_INTO_VECTOR(time_ndof);
-    PUSH_USERFLOAT_INTO_VECTOR(time_IPInOut);
-    PUSH_USERFLOAT_INTO_VECTOR(time_IPOutIn);
-    PUSH_USERFLOAT_INTO_VECTOR(time_IPInOut_err);
-    PUSH_USERFLOAT_INTO_VECTOR(time_IPOutIn_err);
+    PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOut);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutIn);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOutError);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutInError);
+    PUSH_USERINT_INTO_VECTOR(time_rpc_ndof);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOut);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutIn);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOutError);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutInError);
 
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
@@ -511,16 +525,23 @@ size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon 
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
 
+  PUSH_VECTOR_WITH_NAME(colName, POG_selector_bits);
+
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
-  PUSH_VECTOR_WITH_NAME(colName, time_ndof);
-  PUSH_VECTOR_WITH_NAME(colName, time_IPInOut);
-  PUSH_VECTOR_WITH_NAME(colName, time_IPOutIn);
-  PUSH_VECTOR_WITH_NAME(colName, time_IPInOut_err);
-  PUSH_VECTOR_WITH_NAME(colName, time_IPOutIn_err);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOut);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutIn);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOutError);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutInError);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_ndof);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOut);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutIn);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOutError);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutInError);
 
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);

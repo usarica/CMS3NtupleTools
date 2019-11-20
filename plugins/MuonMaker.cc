@@ -51,7 +51,9 @@ using namespace edm;
 
 MuonMaker::MuonMaker(const ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasprefix")),
-  year_(iConfig.getParameter<int>("year"))
+  year_(iConfig.getParameter<int>("year")),
+
+  refurbishSelections_(iConfig.getParameter<bool>("refurbishSelections"))
 {
   muonsToken = consumes< edm::View<pat::Muon> >(iConfig.getParameter<InputTag>("muonsInputTag"));
   vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
@@ -96,6 +98,21 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   for (View<pat::Muon>::const_iterator muon = mus_h->begin(); muon != mus_h->end(); muon++, muonIndex++){
     pat::Muon muon_result(*muon); // Clone the muon. This is the single muon to be put into the resultant collection
 
+    uint64_t POG_selector_bits = muon->selectors();
+    // Do the refurbishment of selections before anything else
+    if (refurbishSelections_){
+      // The only ever reason to refurbish the selections is due to 94x MC not being available!
+      // This is why this flag is 'false' (data should have been 'true').
+#if CMSSW_VERSION_MAJOR<11 
+      muon::setCutBasedSelectorFlags(muon_result, (hasGoodVertex ? &(*(vertexCollection->begin())) : (reco::Vertex const*) nullptr), false);
+      POG_selector_bits = muon_result.selectors();
+#else
+      reco::Muon::Selector refurbished_bits = muon::makeSelectorBitset(*muon, (hasGoodVertex ? &(*(vertexCollection->begin())) : (reco::Vertex const*) nullptr), false);
+      POG_selector_bits = static_cast<uint64_t>(refurbished_bits);
+      muon_result.setSelectors(POG_selector_bits);
+#endif
+    }
+
     // References
     const RefToBase<pat::Muon> muonRef = mus_h->refAt(muonIndex);
     const TrackRef globalTrack = muon->globalTrack();
@@ -105,7 +122,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const MuonQuality quality = muon->combinedQuality();
 
     // Some aux. quantities
-    muon_result.addUserInt("selectors", muon->selectors());
+    muon_result.addUserInt("POG_selector_bits", POG_selector_bits);
     muon_result.addUserInt("simType", muon->simType());
     muon_result.addUserInt("simExtType", muon->simExtType());
 

@@ -146,6 +146,7 @@ process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
 if not opts.data: process.load("CMS3.NtupleMaker.cms3GENSequence_cff")
 #process.eventMaker.isData = cms.bool(opts.data)
 process.muonMaker.year = cms.int32(opts.year)
+process.muonMaker.refurbishSelections = cms.bool(opts.is80x and not opts.data)
 process.electronMaker.year = cms.int32(opts.year)
 process.photonMaker.year = cms.int32(opts.year)
 if not opts.data:
@@ -426,16 +427,16 @@ if jerVersion != "":
             tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak4jetsTag)),
             label  = cms.untracked.string("{}_pt".format(ak4jetsTag))
             ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4jetsTag)),
-            label  = cms.untracked.string("{}_eta".format(ak4jetsTag))
-            ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4jetsTag)),
-            label  = cms.untracked.string("{}_phi".format(ak4jetsTag))
-            ),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4jetsTag)),
+            #label  = cms.untracked.string("{}_eta".format(ak4jetsTag))
+            #),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4jetsTag)),
+            #label  = cms.untracked.string("{}_phi".format(ak4jetsTag))
+            #),
          cms.PSet(
             record = cms.string('JetResolutionScaleFactorRcd'),
             tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak4jetsTag)),
@@ -446,16 +447,16 @@ if jerVersion != "":
             tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak4puppijetsTag)),
             label  = cms.untracked.string("{}_pt".format(ak4puppijetsTag))
             ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4puppijetsTag)),
-            label  = cms.untracked.string("{}_eta".format(ak4puppijetsTag))
-            ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4puppijetsTag)),
-            label  = cms.untracked.string("{}_phi".format(ak4puppijetsTag))
-            ),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak4puppijetsTag)),
+            #label  = cms.untracked.string("{}_eta".format(ak4puppijetsTag))
+            #),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak4puppijetsTag)),
+            #label  = cms.untracked.string("{}_phi".format(ak4puppijetsTag))
+            #),
          cms.PSet(
             record = cms.string('JetResolutionScaleFactorRcd'),
             tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak4puppijetsTag)),
@@ -466,16 +467,16 @@ if jerVersion != "":
             tag    = cms.string('JR_{}_PtResolution_{}'.format(jerVersion, ak8jetsTag)),
             label  = cms.untracked.string("{}_pt".format(ak8jetsTag))
             ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak8jetsTag)),
-            label  = cms.untracked.string("{}_eta".format(ak8jetsTag))
-            ),
-         cms.PSet(
-            record = cms.string('JetResolutionRcd'),
-            tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak8jetsTag)),
-            label  = cms.untracked.string("{}_phi".format(ak8jetsTag))
-            ),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_EtaResolution_{}'.format(jerVersion, ak8jetsTag)),
+            #label  = cms.untracked.string("{}_eta".format(ak8jetsTag))
+            #),
+         #cms.PSet(
+            #record = cms.string('JetResolutionRcd'),
+            #tag    = cms.string('JR_{}_PhiResolution_{}'.format(jerVersion, ak8jetsTag)),
+            #label  = cms.untracked.string("{}_phi".format(ak8jetsTag))
+            #),
          cms.PSet(
             record = cms.string('JetResolutionScaleFactorRcd'),
             tag    = cms.string('JR_{}_SF_{}'.format(jerVersion, ak8jetsTag)),

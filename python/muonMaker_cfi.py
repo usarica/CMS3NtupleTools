@@ -5,6 +5,8 @@ muonMaker = cms.EDProducer(
    aliasprefix      = cms.untracked.string("mus"),
    year = cms.int32(-1), # Must be overriden by main_pset
 
+   refurbishSelections = cms.bool(False),
+
    muonsInputTag    = cms.InputTag("slimmedMuons"),
    vtxInputTag      = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
