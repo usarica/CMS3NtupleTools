@@ -29,6 +29,7 @@
 #include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include <DataFormats/PatCandidates/interface/CompositeCandidate.h>
 
 #include <DataFormats/HepMCCandidate/interface/GenParticle.h>
@@ -90,10 +91,14 @@ protected:
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
   edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;
-  edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
+  edm::EDGetTokenT< pat::PackedGenParticleCollection > packedGenParticlesToken;
+  edm::EDGetTokenT< edm::View<reco::GenJet> > genAK4JetsToken;
+  edm::EDGetTokenT< edm::View<reco::GenJet> > genAK8JetsToken;
 
 
-  void recordGenInfo(GenInfo const&);
+  void recordGenInfo(const edm::Event&);
+  void recordGenParticles(const edm::Event&, std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*);
+  void recordGenJets(const edm::Event&, bool const&, std::vector<reco::GenJet const*>*);
 
   size_t fillElectrons(const edm::Event&, std::vector<pat::Electron const*>*);
   size_t fillPhotons(const edm::Event&, std::vector<pat::Photon const*>*);
@@ -107,7 +112,13 @@ protected:
   bool fillMETFilterVariables(const edm::Event&);
   bool fillMETVariables(const edm::Event&);
 
-  bool fillGenVariables(const edm::Event&);
+  bool fillGenVariables(
+    const edm::Event&,
+    std::vector<reco::GenParticle const*>*,
+    std::vector<pat::PackedGenParticle const*>*,
+    std::vector<reco::GenJet const*>*,
+    std::vector<reco::GenJet const*>*
+  );
 
 private:
   virtual void beginJob();

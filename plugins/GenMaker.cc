@@ -88,16 +88,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     edm::LogError("GenMaker") << "GenMaker::produce: Failed to retrieve pruned gen. particle collection...";
     return;
   }
-  const std::vector<reco::GenParticle>* prunedGenParticles = prunedGenParticlesHandle.product();
+  std::vector<reco::GenParticle> const* prunedGenParticles = prunedGenParticlesHandle.product();
 
   /*
-  edm::Handle<pat::PackedGenParticleCollection> packedGenParticleHandle;
-  iEvent.getByToken(packedGenParticlesToken, packedGenParticleHandle);
-  if (!packedGenParticleHandle.isValid()){
+  edm::Handle<pat::PackedGenParticleCollection> packedGenParticlesHandle;
+  iEvent.getByToken(packedGenParticlesToken, packedGenParticlesHandle);
+  if (!packedGenParticlesHandle.isValid()){
     edm::LogError("GenMaker") << "GenMaker::produce: Failed to retrieve packed gen. particle collection...";
     return;
   }
-  const vector<pat::PackedGenParticle>* packedGenParticles = packedGenParticleHandle.product();
+  std::vector<pat::PackedGenParticle> const* packedGenParticles = packedGenParticlesHandle.product();
   */
 
   // Gen. MET

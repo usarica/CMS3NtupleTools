@@ -28,7 +28,9 @@ cms3ntuple = cms.EDAnalyzer(
 
    genInfoSrc = cms.InputTag("genMaker"),
    prunedGenParticlesSrc = cms.InputTag("prunedGenParticles"),
-   genJetsSrc  = cms.InputTag("slimmedGenJets"),
+   packedGenParticlesSrc = cms.InputTag("packedGenParticles"),
+   genAK4JetsSrc  = cms.InputTag("slimmedGenJets"),
+   genAK8JetsSrc  = cms.InputTag("slimmedGenJetsAK8"),
 
    )
 

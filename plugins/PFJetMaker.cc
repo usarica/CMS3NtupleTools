@@ -2,7 +2,6 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
-#include "CMS3/NtupleMaker/interface/plugins/PFJetMaker.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
@@ -14,6 +13,10 @@
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+
+#include <CMS3/NtupleMaker/interface/plugins/PFJetMaker.h>
+#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+
 #include "TRandom3.h"
 
 
@@ -85,7 +88,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if (isMC) resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetCollection_);
 
   // Get gen. jets matched to reco. jets
-  std::unordered_map<pat::Jet const*, reco::GenJet const*> const reco_gen_map = get_reco_gen_matchMap(iEvent, pfJetsHandle);
+  std::unordered_map<pat::Jet const*, reco::GenJet const*> reco_gen_map;
+  get_reco_gen_matchMap(iEvent, pfJetsHandle, reco_gen_map);
 
   result->reserve(pfJetsHandle->size());
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
@@ -372,43 +376,23 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(std::move(result));
 }
 
-std::unordered_map<pat::Jet const*, reco::GenJet const*> PFJetMaker::get_reco_gen_matchMap(edm::Event const& iEvent, edm::Handle< edm::View<pat::Jet> > const& pfJetsHandle) const{
-  std::unordered_map<pat::Jet const*, reco::GenJet const*> res;
-  if (!isMC || pfJetsHandle->empty()) return res;
+void PFJetMaker::get_reco_gen_matchMap(
+  edm::Event const& iEvent, edm::Handle< edm::View<pat::Jet> > const& pfJetsHandle,
+  std::unordered_map<pat::Jet const*, reco::GenJet const*>& res
+) const{
+  if (!isMC || pfJetsHandle->empty()) return;
 
   edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
   iEvent.getByToken(genJetsToken, genJetsHandle);
   if (!genJetsHandle.isValid()) throw cms::Exception("PFJetMaker::get_reco_gen_matchMap: Error getting the gen. jets from the event...");
-  if (genJetsHandle->empty()) return res;
+  if (genJetsHandle->empty()) return;
 
-  std::vector< edm::View<pat::Jet>::const_iterator > remaining_recojets; remaining_recojets.reserve(pfJetsHandle->size());
-  for (edm::View<pat::Jet>::const_iterator jet_it = pfJetsHandle->begin(); jet_it != pfJetsHandle->end(); jet_it++) remaining_recojets.push_back(jet_it);
-  std::vector< edm::View<reco::GenJet>::const_iterator > remaining_genjets; remaining_genjets.reserve(genJetsHandle->size());
-  for (edm::View<reco::GenJet>::const_iterator jet_it = genJetsHandle->begin(); jet_it != genJetsHandle->end(); jet_it++) remaining_genjets.push_back(jet_it);
-
-  while (!remaining_recojets.empty() && !remaining_genjets.empty()){
-    edm::View<pat::Jet>::const_iterator chosenRecoJet = pfJetsHandle->end();
-    edm::View<reco::GenJet>::const_iterator chosenGenJet = genJetsHandle->end();
-    double minDeltaR=-1;
-    for (auto const& rjet:remaining_recojets){
-      auto const pReco = rjet->p4();
-      for (auto const& gjet:remaining_genjets){
-        auto const pGen = gjet->p4();
-        double deltaR = std::abs(reco::deltaR(pGen, pReco));
-        if (minDeltaR==-1. || deltaR<minDeltaR){
-          minDeltaR=deltaR;
-          chosenRecoJet=rjet;
-          chosenGenJet=gjet;
-        }
-      }
-    }
-
-    if (chosenRecoJet!=pfJetsHandle->end() && chosenGenJet!=genJetsHandle->end()) res[&(*chosenRecoJet)] = &(*chosenGenJet);
-    for (auto it=remaining_recojets.begin(); it!=remaining_recojets.end(); it++){ if (*it == chosenRecoJet){ remaining_recojets.erase(it); break; } }
-    for (auto it=remaining_genjets.begin(); it!=remaining_genjets.end(); it++){ if (*it == chosenGenJet){ remaining_genjets.erase(it); break; } }
-  }
-
-  return res;
+  CMS3ObjectHelpers::matchParticles(
+    CMS3ObjectHelpers::kMatchBy_DeltaR,
+    pfJetsHandle->begin(), pfJetsHandle->end(),
+    genJetsHandle->begin(), genJetsHandle->end(),
+    res
+  );
 }
 
 

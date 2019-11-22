@@ -143,13 +143,13 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////////////
     // Best track //
     ////////////////
-
     bool validBestTrack = bestTrack.isNonnull();
     muon_result.addUserInt("bestTrack_algo", validBestTrack ? bestTrack->algo() : -1); // See DataFormats/TrackReco/interface/TrackBase.h
     muon_result.addUserFloat("bestTrack_pt", validBestTrack ? bestTrack->pt() : -1.);
     muon_result.addUserFloat("bestTrack_pterr", validBestTrack ? bestTrack->ptError() : -1.);
     muon_result.addUserFloat("bestTrack_eta", validBestTrack ? bestTrack->eta() : 0.);
     muon_result.addUserFloat("bestTrack_phi", validBestTrack ? bestTrack->phi() : 0.);
+    muon_result.addUserInt("bestTrack_type", static_cast<int>(muon->muonBestTrackType())); // enum MuonTrackType { None, InnerTrack, OuterTrack, CombinedTrack, TPFMS, Picky, DYT }; from DataFormats/MuonReco/interface/Muon.h
 
     //////////////////
     // Muon quality //
@@ -158,11 +158,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("chi2LocalPosition", quality.chi2LocalPosition);
     muon_result.addUserFloat("chi2LocalMomentum", quality.chi2LocalMomentum);
 
-
     //////////
     // Muon //
     //////////
-
     float uncorrected_pt = muon->pt();
     float uncorrected_eta = muon->eta();
     float uncorrected_phi = muon->phi();

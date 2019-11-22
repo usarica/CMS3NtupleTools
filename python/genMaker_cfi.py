@@ -10,7 +10,7 @@ genMaker = cms.EDProducer(
    LHEInputTag = cms.InputTag("externalLHEProducer"),
    genEvtInfoInputTag  = cms.InputTag("generator"),
    prunedGenParticlesInputTag  = cms.InputTag("prunedGenParticles"),
-   packedGenParticlesInputTag  = cms.InputTag("packedGenParticles"), # Assign Status "1111" to these to avoid duplication. Only save p4, ID, status
+   packedGenParticlesInputTag  = cms.InputTag("packedGenParticles"),
 
    genMETInputTag = cms.InputTag("slimmedMETs"), # For genMET
 

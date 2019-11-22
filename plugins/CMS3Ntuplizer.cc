@@ -1,9 +1,13 @@
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
+
+#include <CMS3/NtupleMaker/interface/plugins/MCUtilities.h>
 #include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
+#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+
 #include "MELAStreamHelpers.hh"
 
 
@@ -48,9 +52,11 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
     prefiringWeightToken_Up = consumes< double >(edm::InputTag(prefiringWeightsTag, "nonPrefiringProbUp"));
   }
 
-  genInfoToken = consumes<GenInfo>(pset.getParameter<edm::InputTag>("genInfoSrc"));
-  prunedGenParticlesToken = consumes<reco::GenParticleCollection>(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
-  genJetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genJetsSrc"));
+  genInfoToken = consumes< GenInfo >(pset.getParameter<edm::InputTag>("genInfoSrc"));
+  prunedGenParticlesToken = consumes< reco::GenParticleCollection >(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
+  packedGenParticlesToken = consumes< pat::PackedGenParticleCollection >(pset.getParameter<edm::InputTag>("packedGenParticlesSrc"));
+  genAK4JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK4JetsSrc"));
+  genAK8JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK8JetsSrc"));
 
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
@@ -94,6 +100,17 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   The latest list of variables are documented at https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
   */
 
+  // Gen. variables
+  std::vector<reco::GenParticle const*> filledPrunedGenParts;
+  std::vector<pat::PackedGenParticle const*> filledPackedGenParts;
+  std::vector<reco::GenJet const*> filledGenAK4Jets;
+  std::vector<reco::GenJet const*> filledGenAK8Jets;
+  if (this->isMC) isSelected &= this->fillGenVariables(
+    iEvent,
+    &filledPrunedGenParts, &filledPackedGenParts,
+    &filledGenAK4Jets, &filledGenAK8Jets
+  );
+
   // Vertices
   size_t n_vtxs = this->fillVertices(iEvent, nullptr);
   isSelected &= (n_vtxs>0);
@@ -127,9 +144,6 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // MET filters
   isSelected &= this->fillMETFilterVariables(iEvent);
-
-  // GenInfo
-  isSelected &= this->fillGenVariables(iEvent);
 
 
   /************************************************/
@@ -169,7 +183,12 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (firstEvent) firstEvent = false;
 }
 
-void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
+void CMS3Ntuplizer::recordGenInfo(const edm::Event& iEvent){
+  edm::Handle< GenInfo > genInfoHandle;
+  iEvent.getByToken(genInfoToken, genInfoHandle);
+  if (!genInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenInfo: Error getting the gen. info. from the event...");
+  const GenInfo& genInfo = *genInfoHandle;
+
 #define SET_GENINFO_VARIABLE(var) commonEntry.setNamedVal(#var, genInfo.var);
 
   SET_GENINFO_VARIABLE(xsec)
@@ -225,6 +244,244 @@ void CMS3Ntuplizer::recordGenInfo(GenInfo const& genInfo){
 #undef SET_GENINFO_VARIABLE
 
   for (auto const it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
+}
+void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<reco::GenParticle const*>* filledGenParts, std::vector<pat::PackedGenParticle const*>* filledPackedGenParts){
+  const char colName[] = "genparticles";
+
+  edm::Handle<reco::GenParticleCollection> prunedGenParticlesHandle;
+  iEvent.getByToken(prunedGenParticlesToken, prunedGenParticlesHandle);
+  if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the pruned gen. particles from the event...");
+  std::vector<reco::GenParticle> const* prunedGenParticles = prunedGenParticlesHandle.product();
+
+  edm::Handle<pat::PackedGenParticleCollection> packedGenParticlesHandle;
+  iEvent.getByToken(packedGenParticlesToken, packedGenParticlesHandle);
+  if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the packed gen. particles from the event...");
+  std::vector<pat::PackedGenParticle> const* packedGenParticles = packedGenParticlesHandle.product();
+
+  // Make a collection of all unique reco::GenParticle pointers
+  std::vector<reco::GenParticle const*> allGenParticles; allGenParticles.reserve(prunedGenParticles->size() + packedGenParticles->size());
+  // Fill with the pruned collection first
+  for (reco::GenParticle const& part:(*prunedGenParticles)) allGenParticles.push_back(&part);
+
+  // Get the packed gen. particles unique from the pruned collection
+  // Adapted from GeneratorInterface/RivetInterface/plugins/MergedGenParticleProducer.cc
+  std::vector<pat::PackedGenParticle const*> uniquePackedGenParticles; uniquePackedGenParticles.reserve(packedGenParticles->size());
+  for (pat::PackedGenParticle const& packedGenParticle:(*packedGenParticlesHandle)){
+    double match_ref = -1;
+
+    for (reco::GenParticle const& prunedGenParticle:(*prunedGenParticles)){
+      if (prunedGenParticle.status() != 1 || packedGenParticle.pdgId() != prunedGenParticle.pdgId()) continue;
+
+      double euc_dot_prod = packedGenParticle.px()*prunedGenParticle.px() + packedGenParticle.py()*prunedGenParticle.py() + packedGenParticle.pz()*prunedGenParticle.pz() + packedGenParticle.energy()*prunedGenParticle.energy();
+      double comp_ref = prunedGenParticle.px()*prunedGenParticle.px() + prunedGenParticle.py()*prunedGenParticle.py() + prunedGenParticle.pz()*prunedGenParticle.pz() + prunedGenParticle.energy()*prunedGenParticle.energy();
+      double match_ref_tmp = std::abs(euc_dot_prod/comp_ref - 1.);
+      if (match_ref_tmp<1e-5 && (match_ref<0. || match_ref_tmp<match_ref)) match_ref = match_ref_tmp;
+    }
+    if (match_ref>=0.) uniquePackedGenParticles.push_back(&packedGenParticle);
+  }
+
+  // Add the mothers of the packed gen. particles to the bigger collection
+  for (pat::PackedGenParticle const* part:uniquePackedGenParticles) MCUtilities::getAllMothers(part, allGenParticles);
+
+  // Make the variables to record
+  // Size of the variable collections are known at this point.
+  size_t n_objects = allGenParticles.size() + uniquePackedGenParticles.size();
+  if (filledGenParts) filledGenParts->reserve(allGenParticles.size());
+  if (filledPackedGenParts) filledPackedGenParts->reserve(uniquePackedGenParticles.size());
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, is_packed, n_objects);
+
+  // a) isPromptFinalState(): is particle prompt (not from hadron, muon, or tau decay) and final state
+  // b) isPromptDecayed(): is particle prompt (not from hadron, muon, or tau decay) and decayed
+  // c) isDirectPromptTauDecayProductFinalState(): this particle is a direct decay product of a prompt tau and is final state
+  //    (eg an electron or muon from a leptonic decay of a prompt tau)
+  // d) isHardProcess(): this particle is part of the hard process
+  // e) fromHardProcessFinalState(): this particle is the final state direct descendant of a hard process particle
+  // f) fromHardProcessDecayed(): this particle is the decayed direct descendant of a hard process particle such as a tau from the hard process
+  // g) isDirectHardProcessTauDecayProductFinalState(): this particle is a direct decay product of a hardprocess tau and is final state
+  //    (eg an electron or muon from a leptonic decay of a tau from the hard process)
+  // h) fromHardProcessBeforeFSR(): this particle is the direct descendant of a hard process particle of the same pdg id.
+  //    For outgoing particles the kinematics are those before QCD or QED FSR
+  //    This corresponds roughly to status code 3 in pythia 6
+  //    This is the most complex and error prone of all the flags and you are strongly encouraged
+  //    to consider using the others to fill your needs.
+  // i) isLastCopy(): this particle is the last copy of the particle in the chain  with the same pdg id
+  //    (and therefore is more likely, but not guaranteed, to carry the final physical momentum)
+  // j) isLastCopyBeforeFSR(): this particle is the last copy of the particle in the chain with the same pdg id
+  //    before QED or QCD FSR (and therefore is more likely, but not guaranteed, to carry the momentum after ISR)
+  MAKE_VECTOR_WITH_RESERVE(bool, isPromptFinalState, n_objects); // (a)
+  MAKE_VECTOR_WITH_RESERVE(bool, isPromptDecayed, n_objects); // (b)
+  MAKE_VECTOR_WITH_RESERVE(bool, isDirectPromptTauDecayProductFinalState, n_objects); // (c)
+  MAKE_VECTOR_WITH_RESERVE(bool, isHardProcess, n_objects); // (d)
+  MAKE_VECTOR_WITH_RESERVE(bool, fromHardProcessFinalState, n_objects); // (e)
+  MAKE_VECTOR_WITH_RESERVE(bool, fromHardProcessDecayed, n_objects); // (f)
+  MAKE_VECTOR_WITH_RESERVE(bool, isDirectHardProcessTauDecayProductFinalState, n_objects); // (g)
+  MAKE_VECTOR_WITH_RESERVE(bool, fromHardProcessBeforeFSR, n_objects); // (h)
+  MAKE_VECTOR_WITH_RESERVE(bool, isLastCopy, n_objects); // (i)
+  MAKE_VECTOR_WITH_RESERVE(bool, isLastCopyBeforeFSR, n_objects); // (j)
+
+  MAKE_VECTOR_WITH_RESERVE(int, id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, status, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, mom0_index, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, mom1_index, n_objects);
+
+  // Record all reco::GenParticle objects
+  for (reco::GenParticle const* obj:allGenParticles){
+    if (filledGenParts && obj->status()==1) filledGenParts->push_back(obj);
+
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+
+    is_packed.push_back(false);
+
+    isPromptFinalState.push_back(obj->isPromptFinalState()); // (a)
+    isPromptDecayed.push_back(obj->isPromptDecayed()); // (b)
+    isDirectPromptTauDecayProductFinalState.push_back(obj->isDirectPromptTauDecayProductFinalState()); // (c)
+    isHardProcess.push_back(obj->isHardProcess()); // (d)
+    fromHardProcessFinalState.push_back(obj->fromHardProcessFinalState()); // (e)
+    fromHardProcessDecayed.push_back(obj->fromHardProcessDecayed()); // (f)
+    isDirectHardProcessTauDecayProductFinalState.push_back(obj->isDirectHardProcessTauDecayProductFinalState()); // (g)
+    fromHardProcessBeforeFSR.push_back(obj->fromHardProcessBeforeFSR()); // (h)
+    isLastCopy.push_back(obj->isLastCopy()); // (i)
+    isLastCopyBeforeFSR.push_back(obj->isLastCopyBeforeFSR()); // (j)
+
+    id.push_back(obj->pdgId());
+    status.push_back(obj->status());
+
+    std::vector<const reco::GenParticle*> mothers;
+    MCUtilities::getAllMothers(obj, mothers);
+    if (mothers.size()>0){
+      const reco::GenParticle* mom = mothers.at(0);
+      int index=-1;
+      for (reco::GenParticle const* tmpobj:allGenParticles){
+        index++;
+        if (tmpobj == obj) continue;
+        if (mom == tmpobj) break;
+      }
+      mom0_index.push_back(index);
+    }
+    else mom0_index.push_back(-1);
+    if (mothers.size()>1){
+      const reco::GenParticle* mom = mothers.at(1);
+      int index=-1;
+      for (reco::GenParticle const* tmpobj:allGenParticles){
+        index++;
+        if (tmpobj == obj) continue;
+        if (mom == tmpobj) break;
+      }
+      mom1_index.push_back(index);
+    }
+    else mom1_index.push_back(-1);
+  }
+  // Record the remaining unique pat::PackedGenParticle objects
+  for (pat::PackedGenParticle const* obj:uniquePackedGenParticles){
+    if (filledPackedGenParts && obj->status()==1) filledPackedGenParts->push_back(obj);
+
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+
+    is_packed.push_back(true);
+
+    isPromptFinalState.push_back(false); // (a)
+    isPromptDecayed.push_back(false); // (b)
+    isDirectPromptTauDecayProductFinalState.push_back(false); // (c)
+    isHardProcess.push_back(false); // (d)
+    fromHardProcessFinalState.push_back(false); // (e)
+    fromHardProcessDecayed.push_back(false); // (f)
+    isDirectHardProcessTauDecayProductFinalState.push_back(false); // (g)
+    fromHardProcessBeforeFSR.push_back(false); // (h)
+    isLastCopy.push_back(false); // (i)
+    isLastCopyBeforeFSR.push_back(false); // (j)
+
+    id.push_back(obj->pdgId());
+    status.push_back(obj->status());
+
+    std::vector<const reco::GenParticle*> mothers;
+    MCUtilities::getAllMothers(obj, mothers);
+    if (mothers.size()>0){
+      const reco::GenParticle* mom = mothers.at(0);
+      int index=-1;
+      for (reco::GenParticle const* tmpobj:allGenParticles){
+        index++;
+        if (mom == tmpobj) break;
+      }
+      mom0_index.push_back(index);
+    }
+    else mom0_index.push_back(-1);
+    if (mothers.size()>1){
+      const reco::GenParticle* mom = mothers.at(1);
+      int index=-1;
+      for (reco::GenParticle const* tmpobj:allGenParticles){
+        index++;
+        if (mom == tmpobj) break;
+      }
+      mom1_index.push_back(index);
+    }
+    else mom1_index.push_back(-1);
+  }
+
+  PUSH_VECTOR_WITH_NAME(colName, pt);
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, is_packed);
+
+  PUSH_VECTOR_WITH_NAME(colName, isPromptFinalState); // (a)
+  PUSH_VECTOR_WITH_NAME(colName, isPromptDecayed); // (b)
+  PUSH_VECTOR_WITH_NAME(colName, isDirectPromptTauDecayProductFinalState); // (c)
+  PUSH_VECTOR_WITH_NAME(colName, isHardProcess); // (d)
+  PUSH_VECTOR_WITH_NAME(colName, fromHardProcessFinalState); // (e)
+  PUSH_VECTOR_WITH_NAME(colName, fromHardProcessDecayed); // (f)
+  PUSH_VECTOR_WITH_NAME(colName, isDirectHardProcessTauDecayProductFinalState); // (g)
+  PUSH_VECTOR_WITH_NAME(colName, fromHardProcessBeforeFSR); // (h)
+  PUSH_VECTOR_WITH_NAME(colName, isLastCopy); // (i)
+  PUSH_VECTOR_WITH_NAME(colName, isLastCopyBeforeFSR); // (j)
+
+  PUSH_VECTOR_WITH_NAME(colName, id);
+  PUSH_VECTOR_WITH_NAME(colName, status);
+  PUSH_VECTOR_WITH_NAME(colName, mom0_index);
+  PUSH_VECTOR_WITH_NAME(colName, mom1_index);
+
+}
+void CMS3Ntuplizer::recordGenJets(const edm::Event& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
+  std::string strColName = (isFatJet ? "genak4jets" : "genak8jets");
+  const char* colName = strColName.data();
+  edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
+  iEvent.getByToken((isFatJet ? genAK4JetsToken : genAK8JetsToken), genJetsHandle);
+  if (!genJetsHandle.isValid()) throw cms::Exception((std::string("CMS3Ntuplizer::recordGenJets: Error getting the gen. ") + (isFatJet ? "ak4" : "ak8") + " jets from the event...").data());
+
+  size_t n_objects = genJetsHandle->size();
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+
+  for (edm::View<reco::GenJet>::const_iterator obj = genJetsHandle->begin(); obj != genJetsHandle->end(); obj++){
+    if (filledObjects) filledObjects->push_back(&(*obj));
+
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+  }
+
+  // Pass collections to the communicator
+  PUSH_VECTOR_WITH_NAME(colName, pt);
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, mass);
 }
 
 size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::Electron const*>* filledObjects){
@@ -1171,14 +1428,24 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
   return true;
 }
 
-bool CMS3Ntuplizer::fillGenVariables(const edm::Event& iEvent){
+bool CMS3Ntuplizer::fillGenVariables(
+  const edm::Event& iEvent,
+  std::vector<reco::GenParticle const*>* filledPrunedGenParts,
+  std::vector<pat::PackedGenParticle const*>* filledPackedGenParts,
+  std::vector<reco::GenJet const*>* filledGenAK4Jets,
+  std::vector<reco::GenJet const*>* filledGenAK8Jets
+){
   if (!this->isMC) return true;
 
-  // Gen info.
-  edm::Handle< GenInfo > genInfo;
-  iEvent.getByToken(genInfoToken, genInfo);
-  if (!genInfo.isValid()) throw cms::Exception("CMS3Ntuplizer::fillGenVariables: Error getting the gen. info. from the event...");
-  recordGenInfo(*genInfo);
+  // Gen. info.
+  recordGenInfo(iEvent);
+
+  // Gen. particles
+  recordGenParticles(iEvent, filledPrunedGenParts, filledPackedGenParts);
+
+  // Gen. jets
+  recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
+  recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
 
   return true;
 }

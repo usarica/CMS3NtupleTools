@@ -46,7 +46,10 @@ protected:
   edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
 
 
-  std::unordered_map<pat::Jet const*, reco::GenJet const*> get_reco_gen_matchMap(edm::Event const&, edm::Handle< edm::View<pat::Jet> > const&) const;
+  void get_reco_gen_matchMap(
+    edm::Event const&, edm::Handle< edm::View<pat::Jet> > const&,
+    std::unordered_map<pat::Jet const*, reco::GenJet const*>&
+  ) const;
 
 };
 

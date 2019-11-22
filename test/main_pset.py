@@ -73,10 +73,10 @@ process = cms.Process("CMS3")
 
 # Version Control For Python Configuration Files
 process.configurationMetadata = cms.untracked.PSet(
-        version    = cms.untracked.string('$Revision: 1.11 $'),
-        annotation = cms.untracked.string('CMS3'),
-        name       = cms.untracked.string('CMS3 test configuration')
-)
+   version    = cms.untracked.string('$Revision: 1.11 $'),
+   annotation = cms.untracked.string('CMS3'),
+   name       = cms.untracked.string('CMS3 test configuration')
+   )
 
 
 # load event level configurations
@@ -131,15 +131,15 @@ process.load("RecoEgamma.ElectronIdentification.ElectronMVAValueMapProducer_cfi"
 #process.electronMVAValueMapProducer.srcMiniAOD = cms.InputTag('slimmedElectrons')
 #process.egmGsfElectronIDSequence = cms.Sequence(process.electronMVAVariableHelper * process.electronMVAValueMapProducer * process.egmGsfElectronIDs)
 my_eleid_modules = [
-    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
-    'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff',
-    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
-    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
-]
+   'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff',
+   'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff',
+   'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
+   'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
+   ]
 my_phoid_modules = [
-    'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
-    'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
-]
+   'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
+   'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'
+   ]
 
 # Load Ntuple producer cff
 process.load("CMS3.NtupleMaker.cms3CoreSequences_cff")
@@ -153,11 +153,13 @@ if not opts.data:
     process.genMaker.year = cms.int32(opts.year)
 
 #Options for Input
-process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring(
-                                'file:C6BB52E8-F341-E811-8A2F-001E677927EC.root',
-                            )
-)
+process.source = cms.Source(
+   "PoolSource",
+   fileNames = cms.untracked.vstring(
+      'file:C6BB52E8-F341-E811-8A2F-001E677927EC.root',
+      )
+   )
+
 def find_up(fname):
     import os
     d = os.getcwd()
@@ -576,7 +578,6 @@ if (opts.year == 2016):
                              #phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
                              era='2016-Legacy')
 
-
 elif (opts.year == 2017):
    from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
    setupEgammaPostRecoSeq(process,
@@ -611,6 +612,22 @@ replaceMVAValuesByRaw(process.slimmedPhotons)
 #    setupAllVIDIdsInModule(process,idmod,setupVIDPhotonSelection)
 
 
+##########################
+# Lepton post-processing #
+##########################
+# Muons
+# Ghost cleaning
+# See https://indico.cern.ch/event/203424/contributions/1489038/attachments/307148/428853/gpetrucc-ghosts-090812.pdf
+process.cleanedMuons = cms.EDProducer(
+   "PATMuonCleanerBySegments",
+   src = cms.InputTag("slimmedMuons"),
+   preselection = cms.string("track.isNonnull"), # Veto if this is not satisfied
+   passthrough = cms.string("isGlobalMuon && numberOfMatches >= 2"), # Avoid veto if these are satisfied
+   fractionOfSharedSegments = cms.double(0.499)
+   )
+process.muonMaker.muonsInputTag = cms.InputTag("cleanedMuons")
+
+
 #############
 # Sequences ################################################################################################################################################
 #############
@@ -627,11 +644,11 @@ if opts.applyMuoncorr:
    process.correctedMuons.identifier = cms.string("RoccoR{}".format(opts.year))
    process.correctedMuons.isMC = cms.bool((not opts.data))
 
-   process.muonMaker.muonsInputTag = cms.InputTag("correctedMuons")
+   process.cleanedMuons.src = cms.InputTag("correctedMuons")
 
-   process.muonMakerSeq = cms.Sequence( process.correctedMuons * process.muonMaker )
+   process.muonMakerSeq = cms.Sequence( process.correctedMuons * process.cleanedMuons * process.muonMaker )
 else:
-   process.muonMakerSeq = cms.Sequence( process.muonMaker )
+   process.muonMakerSeq = cms.Sequence( process.cleanedMuons * process.muonMaker )
 
 # PF jets
 if jecVersion != "":
@@ -773,12 +790,12 @@ process.Timing = cms.Service("Timing",
 # for use with Valgrind. After enabling, can do
 # $ valgrind --leak-check=yes  cmsRun main_pset.py >& log.txt
 # $ valgrindMemcheckParser.pl --preset=prod,-prod1+ log.txt  > blah.html
-# process.ProfilerService = cms.Service (
-#         "ProfilerService",
-#         firstEvent = cms.untracked.int32(2),
-#         lastEvent = cms.untracked.int32(10),
-#         paths = cms.untracked.vstring('p1')
-# )
+# process.ProfilerService = cms.Service(
+#    "ProfilerService",
+#    firstEvent = cms.untracked.int32(2),
+#    lastEvent = cms.untracked.int32(10),
+#    paths = cms.untracked.vstring('p1')
+#    )
 
 if not opts.globaltag:
     process.GlobalTag.globaltag = "102X_upgrade2018_realistic_v15"
