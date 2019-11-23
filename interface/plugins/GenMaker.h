@@ -42,6 +42,9 @@ protected:
   std::string aliasprefix_;
   int year;
 
+  float xsecOverride;
+  float brOverride;
+
   edm::InputTag LHEInputTag_;
   edm::InputTag genEvtInfoInputTag_;
   edm::InputTag prunedGenParticlesInputTag_;

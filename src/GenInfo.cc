@@ -5,6 +5,8 @@ GenInfo::GenInfo() :
   xsec(-1),
   xsecerr(-1),
 
+  xsec_lhe(-1),
+
   qscale(-1),
   alphaS(-1),
 

@@ -9,6 +9,8 @@ struct GenInfo{
   float xsec;
   float xsecerr;
 
+  float xsec_lhe;
+
   float qscale;
   float alphaS;
 

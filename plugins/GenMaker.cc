@@ -13,6 +13,9 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasprefix")),
   year(iConfig.getParameter<int>("year")),
 
+  xsecOverride(static_cast<float>(iConfig.getParameter<double>("xsec"))),
+  brOverride(static_cast<float>(iConfig.getParameter<double>("BR"))),
+
   LHEInputTag_(iConfig.getParameter<edm::InputTag>("LHEInputTag")),
   genEvtInfoInputTag_(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag")),
   prunedGenParticlesInputTag_(iConfig.getParameter<edm::InputTag>("prunedGenParticlesInputTag")),
@@ -78,7 +81,6 @@ void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
   }
 }
 
-// ------------ method called to produce the data  ------------
 void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   auto result = std::make_unique<GenInfo>();
 
@@ -118,6 +120,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     result->qscale = genEvtInfoHandle->qScale();
     result->alphaS = genEvtInfoHandle->alphaQCD();
   }
+
+  if (xsecOverride>0.f && brOverride>0.f) result->xsec = xsecOverride*brOverride;
+  else if (xsecOverride>0.f) result->xsec = xsecOverride;
 
   std::vector< edm::Handle<HepMCProduct> > HepMCProductHandles;
   iEvent.getManyByType(HepMCProductHandles);
@@ -176,6 +181,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     result->LHEweight_PDFVariation_Dn_NNPDF30 = lheHandler_NNPDF30_NLO->getLHEWeight_PDFVariationUpDn(-1, 1.);
     result->LHEweight_AsMZ_Up_NNPDF30 = lheHandler_NNPDF30_NLO->getLHEWeigh_AsMZUpDn(1, 1.);
     result->LHEweight_AsMZ_Dn_NNPDF30 = lheHandler_NNPDF30_NLO->getLHEWeigh_AsMZUpDn(-1, 1.);
+
+    result->xsec_lhe = LHEEventInfo->originalXWGTUP();
 
     lheHandler_default->clear();
     lheHandler_NNPDF30_NLO->clear();

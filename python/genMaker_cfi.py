@@ -7,6 +7,9 @@ genMaker = cms.EDProducer(
    aliasprefix = cms.untracked.string("genps"),
    year = cms.int32(-1),
 
+   xsec = cms.double(-1),
+   BR = cms.double(-1),
+
    LHEInputTag = cms.InputTag("externalLHEProducer"),
    genEvtInfoInputTag  = cms.InputTag("generator"),
    prunedGenParticlesInputTag  = cms.InputTag("prunedGenParticles"),

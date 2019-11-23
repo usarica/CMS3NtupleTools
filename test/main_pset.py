@@ -8,6 +8,7 @@ import FWCore.ParameterSet.VarParsing as VarParsing
 opts = VarParsing.VarParsing('python')
 vpbool = VarParsing.VarParsing.varType.bool
 vpint = VarParsing.VarParsing.varType.int
+vpfloat = VarParsing.VarParsing.varType.float
 vpstring = VarParsing.VarParsing.varType.string
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('globaltag'    , ""  , mytype=vpstring)
@@ -28,6 +29,8 @@ opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the 
 opts.register('keepGenParticles' , True , mytype=vpbool) # to keep gen. particles
 opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
+opts.register('xsec', -1, mytype=vpfloat) # xsec value of the MC sample in pb, hopefully
+opts.register('BR', -1, mytype=vpfloat) # BR value of the MC sample
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
@@ -152,7 +155,9 @@ process.muonMaker.refurbishSelections = cms.bool(opts.is80x and not opts.data)
 process.electronMaker.year = cms.int32(opts.year)
 process.photonMaker.year = cms.int32(opts.year)
 if not opts.data:
-    process.genMaker.year = cms.int32(opts.year)
+   process.genMaker.year = cms.int32(opts.year)
+   process.genMaker.xsec = cms.double(opts.xsec)
+   process.genMaker.BR = cms.double(opts.BR)
 
 #Options for Input
 process.source = cms.Source(

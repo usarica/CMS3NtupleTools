@@ -196,55 +196,57 @@ void CMS3Ntuplizer::recordGenInfo(const edm::Event& iEvent){
 
 #define SET_GENINFO_VARIABLE(var) commonEntry.setNamedVal(#var, genInfo.var);
 
-  SET_GENINFO_VARIABLE(xsec)
-  SET_GENINFO_VARIABLE(xsecerr)
+  SET_GENINFO_VARIABLE(xsec);
+  SET_GENINFO_VARIABLE(xsecerr);
 
-  SET_GENINFO_VARIABLE(qscale)
-  SET_GENINFO_VARIABLE(alphaS)
+  SET_GENINFO_VARIABLE(xsec_lhe);
 
-  SET_GENINFO_VARIABLE(genmet_met)
-  SET_GENINFO_VARIABLE(genmet_metPhi)
+  SET_GENINFO_VARIABLE(qscale);
+  SET_GENINFO_VARIABLE(alphaS);
 
-  SET_GENINFO_VARIABLE(sumEt)
-  SET_GENINFO_VARIABLE(pThat)
+  SET_GENINFO_VARIABLE(genmet_met);
+  SET_GENINFO_VARIABLE(genmet_metPhi);
+
+  SET_GENINFO_VARIABLE(sumEt);
+  SET_GENINFO_VARIABLE(pThat);
 
   // LHE variations
-  SET_GENINFO_VARIABLE(genHEPMCweight_default)
-  SET_GENINFO_VARIABLE(genHEPMCweight_NNPDF30)
+  SET_GENINFO_VARIABLE(genHEPMCweight_default);
+  SET_GENINFO_VARIABLE(genHEPMCweight_NNPDF30);
 
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF1)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF2)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF0p5)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF1)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF2)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF0p5)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF1)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF2)
-  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF0p5)
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF1);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF2);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF0p5);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF1);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF2);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR2_muF0p5);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF1);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF2);
+  SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR0p5_muF0p5);
 
-  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_default)
-  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_default)
-  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_default)
-  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_default)
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_default);
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_default);
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_default);
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_default);
 
-  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_NNPDF30)
-  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_NNPDF30)
-  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_NNPDF30)
-  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_NNPDF30)
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Up_NNPDF30);
+  SET_GENINFO_VARIABLE(LHEweight_PDFVariation_Dn_NNPDF30);
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Up_NNPDF30);
+  SET_GENINFO_VARIABLE(LHEweight_AsMZ_Dn_NNPDF30);
 
   // Pythis PS weights
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRoneoversqrt2)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRoneoversqrt2)
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRsqrt2)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRsqrt2)
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p5)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p5)
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR2)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR2)
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p25)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p25)
-  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR4)
-  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR4)
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRoneoversqrt2);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRoneoversqrt2);
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muRsqrt2);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muRsqrt2);
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p5);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p5);
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR2);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR2);
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR0p25);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR0p25);
+  SET_GENINFO_VARIABLE(PythiaWeight_isr_muR4);
+  SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR4);
 
 #undef SET_GENINFO_VARIABLE
 
