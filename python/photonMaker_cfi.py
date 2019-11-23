@@ -9,5 +9,7 @@ photonMaker = cms.EDProducer(
 
    photonsInputTag = cms.InputTag("slimmedPhotons"),
 
+   rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
+
    )
 

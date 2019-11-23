@@ -115,7 +115,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA
 
 
 # Compile CMSSW-dependent packages
-( cd ZZMatrixElement; ./setup.sh -j; cd - )
+( cd ZZMatrixElement; ./setup.sh clean; ./setup.sh -j; cd - )
 scramv1 b -j 12 &>> compilation.log
 CMSSW_COMPILE_STATUS=$?
 if [ $CMSSW_COMPILE_STATUS != 0 ];then

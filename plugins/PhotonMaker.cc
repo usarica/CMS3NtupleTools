@@ -37,25 +37,23 @@
 #include "Math/VectorUtil.h"
 
 #include "DataFormats/PatCandidates/interface/Photon.h"
+#include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
+
 using namespace reco;
 using namespace edm;
 using namespace std;
 
-//
-// class decleration
-//
 
-//
-// constructors and destructor
-//
 PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasPrefix")),
   year_(iConfig.getParameter<int>("year"))
 {
   photonsToken = consumes< edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
+
+  rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
 
   produces<pat::PhotonCollection>().setBranchAlias(aliasprefix_);
 }
@@ -72,9 +70,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // Get the inputs //
   ////////////////////
 
+  // Rho
+  edm::Handle< double > rhoHandle;
+  iEvent.getByToken(rhoToken, rhoHandle);
+  if (!rhoHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting rho from the event...");
+  const double& rho_event = *rhoHandle;
+
   // Photons
   Handle< View<pat::Photon> > photons_h;
   iEvent.getByToken(photonsToken, photons_h);
+  if (!photons_h.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting photons from the event...");
 
   size_t nTotalPhotons = photons_h->size(); result->reserve(nTotalPhotons);
   //size_t photonIndex = 0;
@@ -88,10 +93,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     float uncorrected_pt = photon->pt();
     float uncorrected_mass = photon->mass();
     float uncorrected_energy = photon->energy();
-    photon_result.addUserFloat("scale_smear_corr", photon->userFloat("ecalEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
 
     // The p4 of the photon is the uncorrected one
     photon_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, photon->eta(), photon->phi(), uncorrected_mass));
+
+    // Nominal energy correction
+    photon_result.addUserFloat("scale_smear_corr", photon->userFloat("ecalEnergyPostCorr") / uncorrected_energy); // get scale/smear correction factor directly from miniAOD
 
     // Get scale uncertainties and their breakdown
     photon_result.addUserFloat("scale_smear_corr_scale_totalUp", photon->userFloat("energyScaleUp") / uncorrected_energy);
@@ -134,9 +141,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserFloat("hcalPFClusterIso", photon->hcalPFClusterIso());
 
     // PFIso of reco::Photon
-    photon_result.addUserFloat("recoChargedHadronIso", photon->reco::Photon::chargedHadronIso());
-    photon_result.addUserFloat("recoNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
-    photon_result.addUserFloat("recoPhotonIso", photon->reco::Photon::photonIso());
+    photon_result.addUserFloat("pfChargedHadronIso", photon->reco::Photon::chargedHadronIso());
+    photon_result.addUserFloat("pfNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
+    photon_result.addUserFloat("pfPhotonIso", photon->reco::Photon::photonIso());
+    photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoCharged(*photon, year_, rho_event));
+    photon_result.addUserFloat("pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(*photon, year_, rho_event));
 
     // Pixel seeds
     photon_result.addUserInt("hasPixelSeed", photon->hasPixelSeed());
@@ -172,5 +181,4 @@ void PhotonMaker::setCutBasedIdUserVariables(edm::View<pat::Photon>::const_itera
 }
 
 
-//define this as a plug-in
 DEFINE_FWK_MODULE(PhotonMaker);

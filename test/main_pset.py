@@ -163,14 +163,19 @@ process.source = cms.Source(
    )
 
 def find_up(fname):
-    import os
-    d = os.getcwd()
-    while d != "/":
-        t, d = os.path.join(d,fname), os.path.dirname(d)
-        if os.path.exists(t): return t
+   import os
+   d = os.getcwd()
+   while d != "/":
+      t, d = os.path.join(d,fname), os.path.dirname(d)
+      if os.path.exists(t): return t
+   return None
 
-if opts.goldenjson and find_up(opts.goldenjson):
+if opts.data and opts.goldenjson:
     goldenjson = find_up(opts.goldenjson)
+    if goldenjson is None:
+       goldenjson = find_up('data/LumiJSON/'+opts.goldenjson)
+    if goldenjson is None:
+       raise RuntimeError("Golden JSON file {} cannot be found!".format(opts.goldenjson))
     # if we filter in the process.source, then the events are just skipped
     # so we use a custom lumiFilter to skip *after* the EventMaker to keep
     # total event counts in agreement with DBS, but also have evt_event,run,lumiBlock

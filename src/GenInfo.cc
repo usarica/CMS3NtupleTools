@@ -8,8 +8,8 @@ GenInfo::GenInfo() :
   qscale(-1),
   alphaS(-1),
 
-  genMET(-1),
-  genMETPhi(0),
+  genmet_met(-1),
+  genmet_metPhi(0),
 
   sumEt(-1),
   pThat(-1),

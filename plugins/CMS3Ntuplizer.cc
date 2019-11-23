@@ -5,7 +5,9 @@
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 #include "MELAStreamHelpers.hh"
@@ -200,8 +202,8 @@ void CMS3Ntuplizer::recordGenInfo(const edm::Event& iEvent){
   SET_GENINFO_VARIABLE(qscale)
   SET_GENINFO_VARIABLE(alphaS)
 
-  SET_GENINFO_VARIABLE(genMET)
-  SET_GENINFO_VARIABLE(genMETPhi)
+  SET_GENINFO_VARIABLE(genmet_met)
+  SET_GENINFO_VARIABLE(genmet_metPhi)
 
   SET_GENINFO_VARIABLE(sumEt)
   SET_GENINFO_VARIABLE(pThat)
@@ -657,6 +659,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
+
   for (View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
     // Core particle quantities
     // Uncorrected p4
@@ -684,6 +689,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
 
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
+    PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
+
     if (filledObjects) filledObjects->push_back(&(*obj));
   }
 
@@ -706,6 +714,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
+  PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
 
   return n_objects;
 }
@@ -1016,6 +1027,8 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
   for (View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
+    if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
+
     // Core particle quantities
     // These are the uncorrected momentum components!
     pt.push_back(obj->pt());
@@ -1144,27 +1157,45 @@ size_t CMS3Ntuplizer::fillVertices(const edm::Event& iEvent, std::vector<reco::V
   MAKE_VECTOR_WITH_RESERVE(float, pos_dz, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pos_dt, n_objects);
 
+  bool didFirstVertex = false;
+  bool didFirstGoodVertex = false;
+  unsigned int nvtxs=0, nvtxs_good=0;
   for (reco::VertexCollection::const_iterator obj = vtxHandle->begin(); obj != vtxHandle->end(); obj++){
-    auto const& pos = obj->position();
+    bool isGoodVtx = VertexSelectionHelpers::testGoodVertex(*obj);
 
-    is_fake.push_back(obj->isFake());
-    is_valid.push_back(obj->isValid());
-    is_good.push_back(VertexSelectionHelpers::testGoodVertex(*obj));
+    // Avoid recording all vertices
+    if (!didFirstVertex || (!didFirstGoodVertex && isGoodVtx)){
+      auto const& pos = obj->position();
 
-    ndof.push_back(obj->ndof());
+      is_fake.push_back(obj->isFake());
+      is_valid.push_back(obj->isValid());
+      is_good.push_back(isGoodVtx);
 
-    pos_x.push_back(pos.x());
-    pos_y.push_back(pos.y());
-    pos_z.push_back(pos.z());
-    pos_t.push_back(obj->t());
+      ndof.push_back(obj->ndof());
 
-    pos_dx.push_back(obj->xError());
-    pos_dy.push_back(obj->yError());
-    pos_dz.push_back(obj->zError());
-    pos_dt.push_back(obj->tError());
+      pos_x.push_back(pos.x());
+      pos_y.push_back(pos.y());
+      pos_z.push_back(pos.z());
+      pos_t.push_back(obj->t());
 
-    if (filledObjects) filledObjects->push_back(&(*obj));
+      pos_dx.push_back(obj->xError());
+      pos_dy.push_back(obj->yError());
+      pos_dz.push_back(obj->zError());
+      pos_dt.push_back(obj->tError());
+
+      if (filledObjects) filledObjects->push_back(&(*obj));
+
+      if (!didFirstVertex) didFirstVertex=true;
+      if (isGoodVtx) didFirstGoodVertex=true;
+    }
+
+    if (isGoodVtx) nvtxs_good++;
+    nvtxs++;
   }
+
+  // Record the counts
+  commonEntry.setNamedVal(TString(colName)+"_nvtxs", nvtxs);
+  commonEntry.setNamedVal(TString(colName)+"_nvtxs_good", nvtxs_good);
 
   // Pass collections to the communicator
   PUSH_VECTOR_WITH_NAME(colName, is_fake);
@@ -1366,8 +1397,10 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
   SET_MET_VARIABLE(metHandle, calo_met, pfmetCollName);
   SET_MET_VARIABLE(metHandle, calo_metPhi, pfmetCollName);
 
+  /*
   SET_MET_VARIABLE(metHandle, gen_met, pfmetCollName);
   SET_MET_VARIABLE(metHandle, gen_metPhi, pfmetCollName);
+  */
 
   // PUPPI MET
   const char puppimetCollName[] = "puppimet";

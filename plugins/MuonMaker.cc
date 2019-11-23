@@ -72,7 +72,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   edm::Handle< double > rhoHandle;
   iEvent.getByToken(rhoToken, rhoHandle);
   if (!rhoHandle.isValid()) throw cms::Exception("MuonMaker::produce: Error getting rho from the event...");
-  const double rho_event = *rhoHandle;
+  const double& rho_event = *rhoHandle;
 
   edm::Handle<reco::VertexCollection> vertexHandle;
   iEvent.getByToken(vtxToken, vertexHandle);

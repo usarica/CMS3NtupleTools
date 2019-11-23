@@ -25,6 +25,7 @@ protected:
   int year_;
 
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
+  edm::EDGetTokenT< double > rhoToken;
 
 private:
   virtual void beginJob();

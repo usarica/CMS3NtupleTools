@@ -104,8 +104,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle< edm::View<pat::MET> > genMETHandle;
   iEvent.getByToken(genMETToken, genMETHandle);
   if (!genMETHandle.isValid()) throw cms::Exception("GenMaker::produce: Error getting the gen. MET handle...");
-  result->genMET = (genMETHandle->front()).genMET()->pt();
-  result->genMETPhi = (genMETHandle->front()).genMET()->phi();
+  result->genmet_met = (genMETHandle->front()).genMET()->pt();
+  result->genmet_metPhi = (genMETHandle->front()).genMET()->phi();
 
   // Gen. and LHE weights
   edm::Handle<GenEventInfoProduct> genEvtInfoHandle;

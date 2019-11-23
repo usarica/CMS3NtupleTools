@@ -12,8 +12,8 @@ struct GenInfo{
   float qscale;
   float alphaS;
 
-  float genMET;
-  float genMETPhi;
+  float genmet_met;
+  float genmet_metPhi;
 
   float sumEt;
   float pThat;
