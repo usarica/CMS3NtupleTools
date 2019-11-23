@@ -1,2 +1,17 @@
-# Sample name,Dataset,xsec x BR,options
-DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8_RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1,/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,6225.4,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 goldenjson=Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
+#Dataset,xsec,BR,options
+/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,6225.4,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018
+/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,687.1,0.333333,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018
+/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/MINIAODSIM,18.502,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenParticles=none
+/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/MINIAODSIM,20.248,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenParticles=none
+#/TTZToLLNuNu_M-10_TuneCP5_13TeV-amcatnlo-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM,0.2432,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenParticles=none
+/WZTo3LNu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM,4.658,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenParticles=none
+/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,9.24,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenParticles=none
+/ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM,6.008,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018
+/WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,11.08,-1,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018
+## Signals,,,
+/GluGluHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,2.89E+01,2.27E-02,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0
+/GluGluHToWWTo2L2Nu_M500_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,3.13E+00,0.06849,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0
+/GluGluHToWWTo2L2Nu_M3000_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,1.04E-03,0.082935849,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0
+/GluGluHToZZTo2L2Nu_M200_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM,1.30E+01,4.18E-02,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0
+/GluGluHToZZTo2L2Nu_M500_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM,3.13E+00,3.28E-02,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0
+/GluGluHToZZTo2L2Nu_M3000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM,1.04E-03,0.0398,globaltag=102X_upgrade2018_realistic_v19 nevents=-1 year=2018 keepGenJets=0

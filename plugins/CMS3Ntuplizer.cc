@@ -1,3 +1,6 @@
+#include <cctype>
+#include <algorithm>
+
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
 
 #include <CMS3/NtupleMaker/interface/plugins/MCUtilities.h>
@@ -9,6 +12,8 @@
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
 
 #include "MELAStreamHelpers.hh"
 
@@ -30,7 +35,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
 
-  keepGenParticles(pset.getParameter<bool>("keepGenParticles")),
+  keepGenParticles(CMS3Ntuplizer::getParticleRecordLevel(pset.getUntrackedParameter<std::string>("keepGenParticles"))),
   keepGenJets(pset.getParameter<bool>("keepGenJets"))
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
@@ -268,27 +273,71 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
   // Make a collection of all unique reco::GenParticle pointers
   std::vector<reco::GenParticle const*> allGenParticles; allGenParticles.reserve(prunedGenParticles->size() + packedGenParticles->size());
   // Fill with the pruned collection first
-  for (reco::GenParticle const& part:(*prunedGenParticles)) allGenParticles.push_back(&part);
+  for (reco::GenParticle const& part:(*prunedGenParticles)){
+    int st = part.status();
+    int id = std::abs(part.pdgId());
+    if (
+      (this->keepGenParticles==kReducedFinalStatesAndHardProcesses && !part.isHardProcess() && st!=1)
+      ||
+      ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates) && st!=1)
+      ) continue;
+    else if (
+      (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
+      &&
+      st==1
+      && !(
+        (id>=11 && id<=16) // Neutral or charged leptons
+        ||
+        id==22 // Photons
+        )
+      ) continue;
+    allGenParticles.push_back(&part);
+  }
 
   // Get the packed gen. particles unique from the pruned collection
   // Adapted from GeneratorInterface/RivetInterface/plugins/MergedGenParticleProducer.cc
   std::vector<pat::PackedGenParticle const*> uniquePackedGenParticles; uniquePackedGenParticles.reserve(packedGenParticles->size());
   for (pat::PackedGenParticle const& packedGenParticle:(*packedGenParticlesHandle)){
-    double match_ref = -1;
+    int st = packedGenParticle.status();
+    int id_signed = packedGenParticle.pdgId();
+    int id = std::abs(id_signed);
 
+    double match_ref = -1;
     for (reco::GenParticle const& prunedGenParticle:(*prunedGenParticles)){
-      if (prunedGenParticle.status() != 1 || packedGenParticle.pdgId() != prunedGenParticle.pdgId()) continue;
+      if (prunedGenParticle.status() != 1 || packedGenParticle.pdgId() != id_signed) continue;
 
       double euc_dot_prod = packedGenParticle.px()*prunedGenParticle.px() + packedGenParticle.py()*prunedGenParticle.py() + packedGenParticle.pz()*prunedGenParticle.pz() + packedGenParticle.energy()*prunedGenParticle.energy();
       double comp_ref = prunedGenParticle.px()*prunedGenParticle.px() + prunedGenParticle.py()*prunedGenParticle.py() + prunedGenParticle.pz()*prunedGenParticle.pz() + prunedGenParticle.energy()*prunedGenParticle.energy();
       double match_ref_tmp = std::abs(euc_dot_prod/comp_ref - 1.);
       if (match_ref_tmp<1e-5 && (match_ref<0. || match_ref_tmp<match_ref)) match_ref = match_ref_tmp;
     }
-    if (match_ref>=0.) uniquePackedGenParticles.push_back(&packedGenParticle);
+
+    // Record if NOT matched to any pruned gen. particle.
+    if (match_ref<0.){
+      if (
+        ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses) && st!=1)
+        ) continue;
+      else if (
+        (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
+        &&
+        st==1
+        && !(
+          (id>=11 && id<=16) // Neutral or charged leptons
+          /*
+          // Disable photons in packed candidates for reduced final states because there are a lot of them.
+          ||
+          id==22 // Photons
+          */
+          )
+        ) continue;
+      uniquePackedGenParticles.push_back(&packedGenParticle);
+    }
   }
 
   // Add the mothers of the packed gen. particles to the bigger collection
-  for (pat::PackedGenParticle const* part:uniquePackedGenParticles) MCUtilities::getAllMothers(part, allGenParticles, false);
+  if (this->keepGenParticles==kAll){
+    for (pat::PackedGenParticle const* part:uniquePackedGenParticles) MCUtilities::getAllMothers(part, allGenParticles, false);
+  }
 
   // Make the variables to record
   // Size of the variable collections are known at this point.
@@ -363,7 +412,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
     status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
-    MCUtilities::getAllMothers(obj, mothers, false);
+    if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
       int index=-1;
@@ -413,7 +462,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
     status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
-    MCUtilities::getAllMothers(obj, mothers, false);
+    if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
       int index=-1;
@@ -1482,12 +1531,13 @@ bool CMS3Ntuplizer::fillGenVariables(
   recordGenInfo(iEvent);
 
   // Gen. particles
-  recordGenParticles(iEvent, filledPrunedGenParts, filledPackedGenParts);
+  if (this->keepGenParticles!=kNone) recordGenParticles(iEvent, filledPrunedGenParts, filledPackedGenParts);
 
   // Gen. jets
-  recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
-  recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
-
+  if (this->keepGenJets){
+    recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
+    recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
+  }
   return true;
 }
 
@@ -1497,6 +1547,29 @@ bool CMS3Ntuplizer::fillGenVariables(
 #undef PUSH_USERFLOAT_INTO_VECTOR
 #undef PUSH_USERINT_INTO_VECTOR
 #undef MAKE_VECTOR_WITH_RESERVE
+
+
+CMS3Ntuplizer::ParticleRecordLevel CMS3Ntuplizer::getParticleRecordLevel(std::string str){
+  std::string word;
+  HelperFunctions::lowercase(str, word);
+
+  ParticleRecordLevel res = nParticleRecordLevels;
+  for (unsigned char i=kNone; i!=nParticleRecordLevels; i++){
+    if (
+      (i==kNone && word=="none")
+      ||
+      (i==kReducedFinalStates && word=="reducedfinalstates")
+      ||
+      (i==kAllFinalStates && word=="allfinalstates")
+      ||
+      (i==kReducedFinalStatesAndHardProcesses && word=="reducedfinalstatesandhardprocesses")
+      ||
+      (i==kAll && word=="all")
+      ) res = static_cast<ParticleRecordLevel>(i);
+  }
+  if (res==nParticleRecordLevels) throw cms::Exception((std::string("CMS3Ntuplizer::getParticleRecordLevel: Word ") + word + " is not recognized!").data());
+  return res;
+}
 
 
 DEFINE_FWK_MODULE(CMS3Ntuplizer);

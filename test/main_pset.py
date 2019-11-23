@@ -26,7 +26,7 @@ opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
 opts.register('applyMuoncorr', True , mytype=vpbool) # to enable muon scale and smear corrections
 opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the pile-up jet id
-opts.register('keepGenParticles' , True , mytype=vpbool) # to keep gen. particles
+opts.register('keepGenParticles' , "reducedfinalstates" , mytype=vpstring) # to keep gen. particles. See CMS3NtupleMaker::ParticleRecordLevel enums
 opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.register('xsec', -1, mytype=vpfloat) # xsec value of the MC sample in pb, hopefully
@@ -846,6 +846,8 @@ else:
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
+   process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
+   process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)
    process.outpath = cms.EndPath(process.cms3ntuple)
 
 

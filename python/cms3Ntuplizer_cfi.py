@@ -28,7 +28,7 @@ cms3ntuple = cms.EDAnalyzer(
 
    genInfoSrc = cms.InputTag("genMaker"),
 
-   keepGenParticles = cms.bool(True),
+   keepGenParticles = cms.untracked.string("reducedfinalstates"),
    prunedGenParticlesSrc = cms.InputTag("prunedGenParticles"),
    packedGenParticlesSrc = cms.InputTag("packedGenParticles"),
 

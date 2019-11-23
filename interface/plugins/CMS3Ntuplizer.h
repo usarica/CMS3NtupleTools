@@ -56,6 +56,16 @@ public:
   ~CMS3Ntuplizer();
 
 protected:
+  enum ParticleRecordLevel{
+    kNone=0,
+    kReducedFinalStates,
+    kAllFinalStates,
+    kReducedFinalStatesAndHardProcesses,
+    kAll,
+    nParticleRecordLevels
+  };
+
+protected:
   const edm::ParameterSet pset;
   BaseTree* outtree;
   SimpleEntry commonEntry;
@@ -91,7 +101,7 @@ protected:
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
 
-  bool keepGenParticles;
+  ParticleRecordLevel keepGenParticles;
   edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;
   edm::EDGetTokenT< pat::PackedGenParticleCollection > packedGenParticlesToken;
 
@@ -123,6 +133,8 @@ protected:
     std::vector<reco::GenJet const*>*,
     std::vector<reco::GenJet const*>*
   );
+
+  static CMS3Ntuplizer::ParticleRecordLevel getParticleRecordLevel(std::string);
 
 private:
   virtual void beginJob();
