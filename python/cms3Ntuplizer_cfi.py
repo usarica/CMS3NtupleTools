@@ -27,8 +27,12 @@ cms3ntuple = cms.EDAnalyzer(
    metFilterInfoSrc = cms.InputTag("metFilterMaker"),
 
    genInfoSrc = cms.InputTag("genMaker"),
+
+   keepGenParticles = cms.bool(True),
    prunedGenParticlesSrc = cms.InputTag("prunedGenParticles"),
    packedGenParticlesSrc = cms.InputTag("packedGenParticles"),
+
+   keepGenJets = cms.bool(True),
    genAK4JetsSrc  = cms.InputTag("slimmedGenJets"),
    genAK8JetsSrc  = cms.InputTag("slimmedGenJetsAK8"),
 

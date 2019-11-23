@@ -1,7 +1,3 @@
-#include <algorithm>
-#include <vector>
-#include <iterator>
-
 #include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 
 
@@ -32,33 +28,4 @@ const reco::GenParticle* MCUtilities::motherIDPacked(const pat::PackedGenParticl
     return momGP;
   }
   else return nullptr;
-}
-
-void MCUtilities::getAllMothers(const reco::GenParticle* part, std::vector<const reco::GenParticle*>& res){
-  if (!part) return;
-  for (size_t j=0; j<part->numberOfMothers(); j++){
-    const reco::GenParticle* mom = dynamic_cast<const reco::GenParticle*>(part->mother(j));
-    if (!mom) continue;
-    // Walk back the tree to get a mother that is not Pythia junk; otherwise add the mother to the collection
-    if (mom->pdgId()==part->pdgId()) getAllMothers(mom, res);
-    else{
-      // Check if the mother is already there
-      auto it = std::find(std::begin(res), std::end(res), mom);
-      if (it!=std::end(res)) res.push_back(mom);
-    }
-  }
-}
-void MCUtilities::getAllMothers(const pat::PackedGenParticle* part, std::vector<const reco::GenParticle*>& res){
-  if (!part) return;
-  for (size_t j=0; j<part->numberOfMothers(); j++){
-    const reco::GenParticle* mom = dynamic_cast<const reco::GenParticle*>(part->mother(j));
-    if (!mom) continue;
-    // Walk back the tree to get a mother that is not Pythia junk; otherwise add the mother to the collection
-    if (mom->pdgId()==part->pdgId()) getAllMothers(mom, res);
-    else{
-      // Check if the mother is already there
-      auto it = std::find(std::begin(res), std::end(res), mom);
-      if (it!=std::end(res)) res.push_back(mom);
-    }
-  }
 }

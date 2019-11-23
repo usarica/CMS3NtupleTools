@@ -25,6 +25,8 @@ opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
 opts.register('applyMuoncorr', True , mytype=vpbool) # to enable muon scale and smear corrections
 opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the pile-up jet id
+opts.register('keepGenParticles' , True , mytype=vpbool) # to keep gen. particles
+opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.parseArguments()
 

@@ -26,7 +26,10 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   isMC(pset.getParameter<bool>("isMC")),
 
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
-  applyPrefiringWeights(prefiringWeightsTag!="")
+  applyPrefiringWeights(prefiringWeightsTag!=""),
+
+  keepGenParticles(pset.getParameter<bool>("keepGenParticles")),
+  keepGenJets(pset.getParameter<bool>("keepGenJets"))
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
@@ -281,7 +284,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
   }
 
   // Add the mothers of the packed gen. particles to the bigger collection
-  for (pat::PackedGenParticle const* part:uniquePackedGenParticles) MCUtilities::getAllMothers(part, allGenParticles);
+  for (pat::PackedGenParticle const* part:uniquePackedGenParticles) MCUtilities::getAllMothers(part, allGenParticles, false);
 
   // Make the variables to record
   // Size of the variable collections are known at this point.
@@ -356,7 +359,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
     status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
-    MCUtilities::getAllMothers(obj, mothers);
+    MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
       int index=-1;
@@ -406,7 +409,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
     status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
-    MCUtilities::getAllMothers(obj, mothers);
+    MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
       int index=-1;
@@ -1080,6 +1083,8 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, area);
   PUSH_VECTOR_WITH_NAME(colName, pt_resolution);
 
+  // Disable softdrop for now
+  /*
   PUSH_VECTOR_WITH_NAME(colName, softdrop_pt);
   PUSH_VECTOR_WITH_NAME(colName, softdrop_eta);
   PUSH_VECTOR_WITH_NAME(colName, softdrop_phi);
@@ -1094,6 +1099,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, softdrop_subjet1_eta);
   PUSH_VECTOR_WITH_NAME(colName, softdrop_subjet1_phi);
   PUSH_VECTOR_WITH_NAME(colName, softdrop_subjet1_mass);
+  */
 
   PUSH_VECTOR_WITH_NAME(colName, ptDistribution);
   PUSH_VECTOR_WITH_NAME(colName, totalMultiplicity);

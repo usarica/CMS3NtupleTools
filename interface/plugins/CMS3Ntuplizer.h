@@ -90,8 +90,12 @@ protected:
   edm::EDGetTokenT< double > prefiringWeightToken_Up;
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
+
+  bool keepGenParticles;
   edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;
   edm::EDGetTokenT< pat::PackedGenParticleCollection > packedGenParticlesToken;
+
+  bool keepGenJets;
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK4JetsToken;
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK8JetsToken;
 
