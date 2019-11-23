@@ -26,6 +26,7 @@ class BatchManager:
       self.parser.add_option("--outfile", type="string", help="Output file to write")
       self.parser.add_option("--method", type="string", default="dbs", help="Method to list the data files")
       self.parser.add_option("--options", type="string", default=None, help="Other options specific to each method")
+      self.parser.add_option("--nfiles", type="int", default=-1, help="Limit on the number of files per process")
 
       (self.opt,self.args) = self.parser.parse_args()
 
@@ -98,6 +99,8 @@ class BatchManager:
                      print strout
                      outfile.write(strout+'\n')
                      index_ff = index_ff+1
+                     if self.opt.nfiles>0 and index_ff == self.opt.nfiles:
+                        break
 
 
 
