@@ -10,6 +10,7 @@ vpbool = VarParsing.VarParsing.varType.bool
 vpint = VarParsing.VarParsing.varType.int
 vpfloat = VarParsing.VarParsing.varType.float
 vpstring = VarParsing.VarParsing.varType.string
+opts.register('dumpProcess'    , False  , mytype=vpbool)
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('globaltag'    , ""  , mytype=vpstring)
 opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of input files
@@ -851,6 +852,8 @@ else:
    process.outpath = cms.EndPath(process.cms3ntuple)
 
 
-fprocdump = open(opts.output.replace('.root','_run_cfg.py'),'w')
-fprocdump.write(process.dumpPython())
-fprocdump.close()
+if opts.dumpProcess:
+   fprocdump = open(opts.output.replace('.root','_run_cfg.py'),'w')
+   fprocdump.write(process.dumpPython())
+   fprocdump.close()
+

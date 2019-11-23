@@ -525,6 +525,8 @@ void CMS3Ntuplizer::recordGenJets(const edm::Event& iEvent, bool const& isFatJet
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
   for (edm::View<reco::GenJet>::const_iterator obj = genJetsHandle->begin(); obj != genJetsHandle->end(); obj++){
+    if (std::abs(obj->eta())>5. || obj->pt()<(isFatJet ? 100. : 20.)) continue;
+
     if (filledObjects) filledObjects->push_back(&(*obj));
 
     pt.push_back(obj->pt());
