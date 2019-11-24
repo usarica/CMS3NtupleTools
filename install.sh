@@ -2,7 +2,7 @@
 
 #USER INPUTS
 CMS3Tag=combined
-CMSSW_release=CMSSW_10_2_15
+CMSSW_release=CMSSW_10_2_18
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
 export SCRAM_ARCH=slc6_amd64_gcc700
 
@@ -23,6 +23,9 @@ git cms-merge-topic cms-egamma:PhotonIDValueMapSpeedup1029
 git cms-merge-topic cms-egamma:slava77-btvDictFix_10210
 git cms-addpkg EgammaAnalysis/ElectronTools
 (rm -rf EgammaAnalysis/ElectronTools/data; git clone git@github.com:cms-data/EgammaAnalysis-ElectronTools.git EgammaAnalysis/ElectronTools/data;)
+
+# Add HZZ re-trained electron MVA 'id+iso's
+git cms-merge-topic mkovac:Electron_XGBoost_MVA_2016_and_2018_CMSSW_10_2_15
 
 # For MET recipe for 2017 EE noise fix
 # Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription#Instructions_for_9_4_X_X_0_for_M
