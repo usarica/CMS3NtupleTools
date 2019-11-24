@@ -142,6 +142,12 @@ my_eleid_modules = [
    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_noIso_V2_cff',
    'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Fall17_iso_V2_cff'
    ]
+# Add 2016 and 2018 HZZ MVA retraining
+if opts.year == 2016:
+   my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Summer16_ID_ISO_cff")
+# 2017 uses Fall17V2_Iso
+elif opts.year == 2018:
+   my_eleid_modules.append("RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Autumn18_ID_ISO_cff")
 my_phoid_modules = [
    'RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff',
    'RecoEgamma.PhotonIdentification.Identification.mvaPhotonID_Fall17_94X_V2_cff'

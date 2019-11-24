@@ -27,9 +27,9 @@ def replaceMVAValuesByRaw(obj, vpset):
                      newval=val
                      if not (val in noreplace):
                         newval = val.replace("Values", "RawValues")
-                        print "Replacing {} with {}".format(val,newval)
+                        print "replaceMVAValuesByRaw: Replacing {} with {}".format(val,newval)
                      else:
-                        print "Keeping {} same as before".format(val)
+                        print "replaceMVAValuesByRaw: Keeping {} same as before".format(val)
                      setattr(value,attr,newval)
                setattr(cfgpar,attribute,value)
 

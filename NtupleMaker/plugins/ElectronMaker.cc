@@ -223,6 +223,19 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // electron_result.addUserInt("category", classify(gsfElectron)); // this is the sani classification
     setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Fall17IsoV2", "Fall17V2_Iso");
     setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Fall17NoIsoV2", "Fall17V2_NoIso");
+    switch (this->year_){
+    case 2016:
+      setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Summer16IdIso", "HZZRun2Legacy_Iso");
+      break;
+    case 2017:
+      setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Fall17IsoV2", "HZZRun2Legacy_Iso");
+      break;
+    case 2018:
+      setMVAIdUserVariables(el, electron_result, "ElectronMVAEstimatorRun2Autumn18IdIso", "HZZRun2Legacy_Iso");
+      break;
+    default:
+      break;
+    }
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-veto", "Fall17V2_Veto");
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-loose", "Fall17V2_Loose");
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V2-medium", "Fall17V2_Medium");
@@ -644,8 +657,20 @@ int ElectronMaker::classify(RefToBase<pat::Electron> const& electron) {
 void ElectronMaker::setupMVACuts(){
   for (edm::ParameterSet const& pset:MVACuts_){
     std::string wpLabel = pset.getParameter<std::string>("mvaLabel");
+    {
+      // Fix label in case 'wp' is not present
+      std::vector<std::string> tmplist;
+      HelperFunctions::splitOptionRecursive(wpLabel, tmplist, '_', false);
+      if (tmplist.back().find("wp")==std::string::npos) tmplist.back().insert(0, "wp");
+      for (size_t i=0; i<tmplist.size(); i++){
+        if (i==0) wpLabel = tmplist.at(i);
+        else wpLabel = wpLabel + "_" + tmplist.at(i);
+      }
+    }
     HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "RawValues", "");
     HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "Values", "");
+
+    //std::cout << "ElectronMaker::setupMVACuts: Adding MVA WPs for " << wpLabel << std::endl;
 
     std::string mvaLabel = wpLabel;
     {

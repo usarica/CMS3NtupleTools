@@ -140,7 +140,7 @@ RUN_CMD=$(runGenericExecutable.py --executable="$RUNFILE" --command="$FCNARGS" -
 if [[ "$RUN_CMD" == "Running "* ]];then
   echo "$RUN_CMD"
   RUN_CMD=${RUN_CMD//"Running "}
-  eval "$RUN_CMD"
+  eval "cmsRun $RUN_CMD"
   RUN_STATUS=$?
   if [ $RUN_STATUS != 0 ]; then
     echo "Run has crashed with exit code ${RUN_STATUS}"

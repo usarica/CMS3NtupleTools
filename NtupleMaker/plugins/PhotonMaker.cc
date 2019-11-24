@@ -150,6 +150,16 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 void PhotonMaker::setupMVACuts(){
   for (edm::ParameterSet const& pset:MVACuts_){
     std::string wpLabel = pset.getParameter<std::string>("mvaLabel");
+    {
+      // Fix label in case 'wp' is not present
+      std::vector<std::string> tmplist;
+      HelperFunctions::splitOptionRecursive(wpLabel, tmplist, '_', false);
+      if (tmplist.back().find("wp")==std::string::npos) tmplist.back().insert(0, "wp");
+      for (size_t i=0; i<tmplist.size(); i++){
+        if (i==0) wpLabel = tmplist.at(i);
+        else wpLabel = wpLabel + "_" + tmplist.at(i);
+      }
+    }
     HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "RawValues", "");
     HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "Values", "");
 

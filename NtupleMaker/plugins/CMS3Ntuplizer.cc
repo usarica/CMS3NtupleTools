@@ -578,6 +578,10 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, id_MVA_HZZRun2Legacy_Iso_Val, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_HZZRun2Legacy_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Veto_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
@@ -634,6 +638,11 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp90);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp80);
 
+    // HZZ Run 2 legacy electron MVA id
+    PUSH_USERFLOAT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Val);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Cat);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ);
+
     // Fall17V2 cut-based ids
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Veto_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
@@ -686,6 +695,10 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wpLoose);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp90);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp80);
+
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Val);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Cat);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Veto_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
