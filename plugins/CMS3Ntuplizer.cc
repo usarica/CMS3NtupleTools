@@ -19,8 +19,8 @@
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
 using namespace edm;
+using namespace MELAStreamHelpers;
 
 
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
@@ -567,8 +567,16 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp90, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp80, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpHZZ, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_NoIso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_NoIso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wpLoose, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Veto_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
@@ -614,10 +622,17 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
     // Fall17V2_Iso MVA id
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Val);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Cat);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wpLoose);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wp90);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wp80);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wpHZZ);
 
     // Fall17V2_NoIso MVA id
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Val);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Cat);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wpLoose);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp90);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp80);
 
     // Fall17V2 cut-based ids
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Veto_Bits);
@@ -661,8 +676,16 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Val);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Cat);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wpLoose);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wp90);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wp80);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wpHZZ);
+
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Val);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Cat);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wpLoose);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp90);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp80);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Veto_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
@@ -707,6 +730,8 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp90, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp80, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
@@ -716,6 +741,8 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
 
   for (View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
+    if (!PhotonSelectionHelpers::testSkimPhoton(*obj, this->year)) continue;
+
     // Core particle quantities
     // Uncorrected p4
     pt.push_back(obj->pt());
@@ -736,6 +763,8 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
     // Fall17V2 MVA id
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Val);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Cat);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_pass_wp90);
+    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_pass_wp80);
 
     // Fall17V2 cut-based ids
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
@@ -763,6 +792,8 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
 
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Val);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Cat);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_pass_wp90);
+  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_pass_wp80);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);

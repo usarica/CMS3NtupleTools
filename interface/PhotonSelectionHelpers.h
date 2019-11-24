@@ -12,7 +12,7 @@ namespace PhotonSelectionHelpers{
   };
 
   // Skim selection
-  constexpr double selection_skim_pt = 50.;
+  constexpr double selection_skim_pt = 70.;
   constexpr double selection_skim_eta = 5.0;
 
   float photonEffArea(pat::Photon const& obj, int const& year, PhotonSelectionHelpers::EffectiveAreaType const& eatype); // For PF and mini. iso. See https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/photons_cff.py EAFile_MiniIso entries

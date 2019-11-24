@@ -7,6 +7,8 @@ photonMaker = cms.EDProducer(
 
    year = cms.int32(-1), # Must be overriden by main_pset
 
+   MVACuts = cms.VPSet(),
+
    photonsInputTag = cms.InputTag("slimmedPhotons"),
 
    rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),

@@ -59,6 +59,8 @@
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
 
+#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+
 
 using namespace reco;
 using namespace edm;
@@ -73,6 +75,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasPrefix")),
   year_(iConfig.getParameter<int>("year")),
 
+  MVACuts_(iConfig.getParameter<edm::VParameterSet>("MVACuts")),
+
   trksInputTag_                (iConfig.getParameter<edm::InputTag>("trksInputTag")),
   gsftracksInputTag_           (iConfig.getParameter<edm::InputTag>("gsftracksInputTag")),
 
@@ -82,7 +86,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
 
   rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag"))
 {
-  //get setup parameters
+  setupMVACuts();
 
   electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
 
@@ -100,14 +104,12 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
 
   produces<pat::ElectronCollection>().setBranchAlias(aliasprefix_);
 }
-
 ElectronMaker::~ElectronMaker(){}
 
 void ElectronMaker::beginRun(const edm::Run&, const EventSetup& es){}
 void ElectronMaker::beginJob(){}
 void ElectronMaker::endJob(){}
 
-// ------------ method called to produce the data  ------------
 void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   auto result = std::make_unique<pat::ElectronCollection>();
 
@@ -639,10 +641,53 @@ int ElectronMaker::classify(RefToBase<pat::Electron> const& electron) {
   return cat;
 }
 
+void ElectronMaker::setupMVACuts(){
+  for (edm::ParameterSet const& pset:MVACuts_){
+    std::string wpLabel = pset.getParameter<std::string>("mvaLabel");
+    HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "RawValues", "");
+    HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "Values", "");
+
+    std::string mvaLabel = wpLabel;
+    {
+      std::vector<std::string> tmplist;
+      HelperFunctions::splitOptionRecursive(mvaLabel, tmplist, '_', false);
+      mvaLabel="";
+      for (size_t i=0; i<tmplist.size()-1; i++){
+        if (i==0) mvaLabel = tmplist.at(i);
+        else mvaLabel = mvaLabel + "_" + tmplist.at(i);
+      }
+    }
+    std::vector<std::string> wpCuts = pset.getParameter<std::vector<std::string>>("mvaCuts");
+    std::vector< StringCutObjectSelector<pat::Electron, true> > cutobjs; cutobjs.reserve(wpCuts.size());
+    for (std::string strcut:wpCuts){
+      strcut = strcut + " )";
+      strcut.insert(0, "Values') > ( "); strcut.insert(0, mvaLabel); strcut.insert(0, "userFloat('");
+      cutobjs.emplace_back(strcut);
+    }
+    MVACutObjects[wpLabel] = cutobjs;
+    //std::cout << "ElectronMaker::setupMVACuts: Adding " << wpLabel << " cuts on " << mvaLabel << ":" << std::endl;
+    //for (auto const& c:wpCuts) std::cout << "\t" << c << std::endl;
+  }
+}
 void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, std::string const& id_name, std::string const& id_identifier) const{
   if (el->hasUserInt(id_name+"Categories")){
-    electron_result.addUserFloat("id_MVA_"+id_identifier+"_Val", el->userFloat(id_name+"Values"));
-    electron_result.addUserInt("id_MVA_"+id_identifier+"_Cat", el->userInt(id_name+"Categories"));
+    // Set MVA category and value
+    float val = el->userFloat(id_name+"Values");
+    int cat = el->userInt(id_name+"Categories");
+    std::string strRecord = "id_MVA_"+id_identifier;
+    electron_result.addUserFloat(strRecord+"_Val", val);
+    electron_result.addUserInt(strRecord+"_Cat", cat);
+
+    // Embed MVA cuts
+    for (auto const& it_cuts:MVACutObjects){
+      std::string const& label = it_cuts.first;
+      std::string strpass = label;
+      HelperFunctions::replaceString<std::string, const std::string>(strpass, id_name, (strRecord+"_pass"));
+      if (label.find(id_name)!=std::string::npos && cat>=0){
+        auto const& cutobj = it_cuts.second.at(cat);
+        electron_result.addUserInt(strpass, static_cast<int>(cutobj(*el)));
+      }
+    }
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }

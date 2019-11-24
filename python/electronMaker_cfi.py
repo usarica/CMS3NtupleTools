@@ -7,6 +7,8 @@ electronMaker = cms.EDProducer(
    aliasPrefix = cms.untracked.string("electrons"),
    year = cms.int32(-1), # Must be overriden by main_pset
 
+   MVACuts = cms.VPSet(),
+
    # Electron collection
    electronsInputTag   = cms.InputTag("slimmedElectrons"),
 

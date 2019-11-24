@@ -1,43 +1,20 @@
-//-*- C++ -*-
-//
-// Package:    PhotonMaker
-// Class:      PhotonMaker
-// 
-/**\class PhotonMaker PhotonMaker.cc CMS2/PhotonMaker/src/PhotonMaker.cc
-
-   Description: <one line class summary>
-
-   Implementation:
-   <Notes on implementation>
-*/
-//
-// Original Author:  Puneeth Kalavase
-//         Created:  Fri Jun  6 11:07:38 CDT 2008
-// $Id: PhotonMaker.cc,v 1.22 2012/07/19 22:49:07 dbarge Exp $
-//
-//
-
-// system include files
 #include <memory>
 
-// user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
-#include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
-
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/deltaR.h"
-#include "RecoEgamma/EgammaTools/interface/EcalClusterLocal.h"
-#include "RecoEcal/EgammaCoreTools/interface/Mustache.h"
-#include "TVector2.h"
-#include "Math/VectorUtil.h"
-
 #include "DataFormats/PatCandidates/interface/Photon.h"
+
+#include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
+
+#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
@@ -49,8 +26,12 @@ using namespace std;
 
 PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasPrefix")),
-  year_(iConfig.getParameter<int>("year"))
+  year_(iConfig.getParameter<int>("year")),
+
+  MVACuts_(iConfig.getParameter<edm::VParameterSet>("MVACuts"))
 {
+  setupMVACuts();
+
   photonsToken = consumes< edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
 
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
@@ -166,10 +147,55 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.put(std::move(result));
 }
 
+void PhotonMaker::setupMVACuts(){
+  for (edm::ParameterSet const& pset:MVACuts_){
+    std::string wpLabel = pset.getParameter<std::string>("mvaLabel");
+    HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "RawValues", "");
+    HelperFunctions::replaceString<std::string, const std::string>(wpLabel, "Values", "");
+
+    std::string mvaLabel = wpLabel;
+    {
+      std::vector<std::string> tmplist;
+      HelperFunctions::splitOptionRecursive(mvaLabel, tmplist, '_', false);
+      mvaLabel="";
+      for (size_t i=0; i<tmplist.size()-1; i++){
+        if (i==0) mvaLabel = tmplist.at(i);
+        else mvaLabel = mvaLabel + "_" + tmplist.at(i);
+      }
+    }
+    typedef double wpcut_t;
+    std::vector<wpcut_t> wpCuts = pset.getParameter<std::vector<wpcut_t>>("mvaCuts");
+    std::vector< StringCutObjectSelector<pat::Photon, true> > cutobjs; cutobjs.reserve(wpCuts.size());
+    for (wpcut_t const& scut : wpCuts){
+      std::string strcut = std::to_string(scut);
+      strcut = strcut + " )";
+      strcut.insert(0, "Values') > ( "); strcut.insert(0, mvaLabel); strcut.insert(0, "userFloat('");
+      cutobjs.emplace_back(strcut);
+    }
+    MVACutObjects[wpLabel] = cutobjs;
+    //std::cout << "PhotonMaker::setupMVACuts: Adding " << wpLabel << " cuts on " << mvaLabel << ":" << std::endl;
+    //for (auto const& c:wpCuts) std::cout << "\t" << c << std::endl;
+  }
+}
 void PhotonMaker::setMVAIdUserVariables(edm::View<pat::Photon>::const_iterator const& photon, pat::Photon& photon_result, std::string const& id_name, std::string const& id_identifier) const{
   if (photon->hasUserInt(id_name+"Categories")){
-    photon_result.addUserFloat("id_MVA_"+id_identifier+"_Val", photon->userFloat(id_name+"Values"));
-    photon_result.addUserInt("id_MVA_"+id_identifier+"_Cat", photon->userInt(id_name+"Categories"));
+    // Set MVA category and value
+    float val = photon->userFloat(id_name+"Values");
+    int cat = photon->userInt(id_name+"Categories");
+    std::string strRecord = "id_MVA_"+id_identifier;
+    photon_result.addUserFloat(strRecord+"_Val", val);
+    photon_result.addUserInt(strRecord+"_Cat", cat);
+
+    // Embed MVA cuts
+    for (auto const& it_cuts:MVACutObjects){
+      std::string const& label = it_cuts.first;
+      std::string strpass = label;
+      HelperFunctions::replaceString<std::string, const std::string>(strpass, id_name, (strRecord+"_pass"));
+      if (label.find(id_name)!=std::string::npos && cat>=0){
+        auto const& cutobj = it_cuts.second.at(cat);
+        photon_result.addUserInt(strpass, static_cast<int>(cutobj(*photon)));
+      }
+    }
   }
   else throw cms::Exception("PhotonMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }

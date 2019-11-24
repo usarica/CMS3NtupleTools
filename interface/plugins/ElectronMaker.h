@@ -10,6 +10,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include <CommonTools/Utils/interface/StringCutObjectSelector.h>
+
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "DataFormats/EgammaReco/interface/BasicClusterShapeAssociation.h"
@@ -57,12 +59,15 @@ private:
 
   int classify(edm::RefToBase<pat::Electron> const&);
 
+  void setupMVACuts();
   void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
 
 protected:
   std::string aliasprefix_;
   int year_;
+
+  edm::VParameterSet MVACuts_;
 
   edm::InputTag trksInputTag_;
   edm::InputTag gsftracksInputTag_;
@@ -73,6 +78,8 @@ protected:
 
   edm::InputTag rhoInputTag_;
 
+
+  std::unordered_map< std::string, std::vector< StringCutObjectSelector<pat::Electron, true> > > MVACutObjects;
 
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
@@ -87,5 +94,5 @@ protected:
 
 };
 
-#endif
 
+#endif
