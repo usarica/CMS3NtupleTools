@@ -57,14 +57,12 @@ git cms-addpkg PhysicsTools/PatAlgos
 # No CMSSW packages beyond this point #
 #######################################
 
-git clone git@github.com:usarica/CMS3-NtupleMaker.git CMS3/NtupleMaker
+git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
 (
-  cd CMS3/NtupleMaker; git checkout ${CMS3Tag}; cd -
+  cd CMS3; git checkout ${CMS3Tag}; cd -
   cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JECs ; . download.sh; cd -
   cd $CMSSW_BASE/src/CMS3/NtupleMaker/data/JERs ; . download.sh; cd -
 )
-
-git clone git@github.com:cmstas/Dictionaries CMS3/Dictionaries
 
 # MELA
 git clone git@github.com:cms-analysis/HiggsAnalysis-ZZMatrixElement.git ZZMatrixElement
