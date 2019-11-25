@@ -71,9 +71,10 @@ class BatchManager:
                   strsample = strsample.rstrip()
 
                   ffoutcore = strsample
-                  ffoutcore = ffoutcore.lstrip('/')
                   ffoutcore = ffoutcore.replace('/MINIAODSIM','')
                   ffoutcore = ffoutcore.replace('/MINIAOD','')
+                  ffoutcore = ffoutcore.lstrip('/')
+                  condorffout = ffoutcore
                   ffoutcore = ffoutcore.replace('/','_')
 
                   print "Checking {}".format(strsample)
@@ -93,6 +94,8 @@ class BatchManager:
                            stroutlist.append('output={}'.format(ffout))
                         elif ix == len(row)-1:
                            stroutlist.append(row[ix])
+                        elif indices[ix] == "condoroutdir":
+                           stroutlist.append('{}={}/{}'.format(indices[ix],row[ix],condorffout))
                         else:
                            stroutlist.append('{}={}'.format(indices[ix],row[ix]))
                      strout = " ".join(stroutlist)

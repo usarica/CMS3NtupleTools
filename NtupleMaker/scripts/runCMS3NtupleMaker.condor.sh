@@ -38,6 +38,8 @@ SCRAMARCH="$2"
 SUBMIT_DIR="$3" # Must be within $CMSSW_BASE/src/
 TARFILE="$4"
 FCNARGS="$5"
+CONDORSITE="$6"
+CONDOROUTDIR="$7"
 
 export SCRAM_ARCH=${SCRAMARCH}
 
@@ -47,6 +49,8 @@ echo "SCRAMARCH: $SCRAMARCH"
 echo "SUBMIT_DIR: $SUBMIT_DIR"
 echo "TARFILE: $TARFILE"
 echo "FCNARGS: $FCNARGS"
+echo "CONDORSITE: $CONDORSITE"
+echo "CONDOROUTDIR: $CONDOROUTDIR"
 
 echo "GLIDEIN_CMSSite: $GLIDEIN_CMSSite"
 echo "hostname: $(hostname)"
@@ -61,42 +65,59 @@ echo -e "\n--- end memory specifications ---\n" #                     <----- sec
 
 
 INITIALDIR=$(pwd)
+echo "Initial directory is ${INITIALDIR}"
 
 mkdir -p rundir
-mv ${TARFILE} rundir/
 cd rundir
-if [[ "${TARFILE}" == *".tgz" ]];then
-  tar zxf ${TARFILE}
-else
-  tar xf ${TARFILE}
-fi
-rm ${TARFILE}
 
 getcmssw
 
 # If the first file in the tarball filelist starts with CMSSW, it is a
 # tarball made outside of the full CMSSW directory and must be handled
 # differently
-if [ ! -z $(tar -tf ${TARFILE} | head -n 1 | grep "^CMSSW") ]; then
+if [[ ! -s ${INITIALDIR}/${TARFILE} ]];then
+  echo "Tar file ${INITIALDIR}/${TARFILE} does not exist"
+fi
+if [[ ! -z $(tar -tf ${INITIALDIR}/${TARFILE} | head -n 1 | grep "^CMSSW") ]]; then
   echo "This is a full cmssw tar file."
+
+  mv ${INITIALDIR}/${TARFILE} $(pwd)/
+  if [[ "${TARFILE}" == *".tgz" ]];then
+    tar zxf ${TARFILE}
+  else
+    tar xf ${TARFILE}
+  fi
   tar xf ${TARFILE}
+  rm ${TARFILE}
+
   cd $CMSSWVERSION
   echo "Current directory ${PWD} =? ${CMSSWVERSION}"
   echo "Running ProjectRename"
   scramv1 b ProjectRename
+
 else
+
   # Setup the CMSSW area
   echo "This is a selective CMSSW tar file."
   eval `scramv1 project CMSSW $CMSSWVERSION`
   cd $CMSSWVERSION
+
+  mv ${INITIALDIR}/${TARFILE} $(pwd)/
+  if [[ "${TARFILE}" == *".tgz" ]];then
+    tar zxf ${TARFILE}
+  else
+    tar xf ${TARFILE}
+  fi
+  tar xf ${TARFILE}
+  rm ${TARFILE}
 fi
 
 
 # Setup the CMSSW environment
 eval `scramv1 runtime -sh`
 echo "CMSSW_BASE: ${CMSSW_BASE}"
-cd src
 
+cd src
 
 # Clean CMSSW-related compilation objects and print the lib area afterward
 scramv1 b clean &>> compilation.log
@@ -116,7 +137,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA
 
 # Compile CMSSW-dependent packages
 ( cd ZZMatrixElement; ./setup.sh clean; ./setup.sh -j; cd - )
-scramv1 b -j 12 &>> compilation.log
+scramv1 b -j &>> compilation.log
 CMSSW_COMPILE_STATUS=$?
 if [ $CMSSW_COMPILE_STATUS != 0 ];then
   echo "CMSSW compilation exited with error ${CMSSW_COMPILE_STATUS}. Printing the log:"
@@ -173,7 +194,7 @@ for fargo in "${fcnarglist[@]}";do
   fi
 done
 
-if [[ -s ${OUTFILENAME} ]];then
+if [[ ! -z ${OUTFILENAME} ]];then
   echo "Copying output file ${OUTFILENAME}"
   copyFromCondorToSite ${RUNDIR} ${OUTFILENAME} ${CONDORSITE} ${CONDOROUTDIR}
 fi
