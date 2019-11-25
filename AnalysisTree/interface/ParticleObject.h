@@ -13,6 +13,7 @@
 class ParticleObject{
 public:
   typedef CMSLorentzVector_d LorentzVector_t;
+  typedef math::PtEtaPhiMLorentzVector PolarLorentzVector_t;
   typedef math::XYZVectorD Vector3D_t;
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
 

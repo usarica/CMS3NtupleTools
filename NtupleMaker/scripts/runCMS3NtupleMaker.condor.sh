@@ -212,7 +212,7 @@ done
 
 if [[ ! -z ${OUTFILENAME} ]];then
   echo "Copying output file ${OUTFILENAME}"
-  copyFromCondorToSite ${RUNDIR} ${OUTFILENAME} ${CONDORSITE} ${CONDOROUTDIR}
+  copyFromCondorToSite.sh ${RUNDIR} ${OUTFILENAME} ${CONDORSITE} ${CONDOROUTDIR}
 fi
 ##############
 

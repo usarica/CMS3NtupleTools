@@ -57,25 +57,27 @@ void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes 
   using namespace SystematicsHelpers;
 
   LorentzVector_t res=momentum;
+  float scale=1;
   switch (syst){
   case eEleScaleDn:
-    res = res * extras.scale_smear_pt_corr_scale_totalDn;
+    scale = extras.scale_smear_pt_corr_scale_totalDn;
     break;
   case eEleScaleUp:
-    res = res * extras.scale_smear_pt_corr_scale_totalUp;
+    scale = extras.scale_smear_pt_corr_scale_totalUp;
     break;
   case eEleResDn:
-    res = res * extras.scale_smear_pt_corr_smear_totalDn;
+    scale = extras.scale_smear_pt_corr_smear_totalDn;
     break;
   case eEleResUp:
-    res = res * extras.scale_smear_pt_corr_smear_totalUp;
+    scale = extras.scale_smear_pt_corr_smear_totalUp;
     break;
   case sUncorrected:
     break;
   default:
-    res = res * extras.scale_smear_pt_corr;
+    scale = extras.scale_smear_pt_corr;
     break;
   }
+  res = PolarLorentzVector_t(momentum.Pt() * scale, momentum.Eta(), momentum.Phi(), momentum.M());
 
   momentum=res;
 }
