@@ -12,6 +12,7 @@ NtupleMaker/test/*.lst
 NtupleMaker/test/*.sh
 NtupleMaker/test/output
 NtupleMaker/test/outputs
+NtupleMaker/test/manualruns
 NtupleMaker/test/crabConfig.py
 NtupleMaker/test/xsec_cfg.py
 NtupleMaker/test/crab_projects/*
