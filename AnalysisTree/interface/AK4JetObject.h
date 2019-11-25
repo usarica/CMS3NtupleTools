@@ -62,6 +62,8 @@ public:
 
   void swap(AK4JetObject& other);
 
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
   float getBtagValue() const;
 
 };

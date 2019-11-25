@@ -1,11 +1,13 @@
 #ifndef PARTICLEOBJECT_H
 #define PARTICLEOBJECT_H
 
-#include "TLorentzVector.h"
-#include "CMSLorentzVector.h"
 #include <DataFormats/Math/interface/deltaR.h>
 #include <Math/GenVector/DisplacementVector2D.h>
 #include <DataFormats/Math/interface/Vector3D.h>
+
+#include "CMSLorentzVector.h"
+#include "SystematicVariations.h"
+#include "TLorentzVector.h"
 
 
 class ParticleObject{
@@ -35,8 +37,11 @@ public:
 
   int const& pdgId() const{ return id; }
   int& pdgId(){ return id; }
+
   LorentzVector_t const& p4() const{ return momentum; }
   LorentzVector_t& p4(){ return momentum; }
+  virtual void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&) = 0;
+
   unsigned long long const& getSelectionBits() const{ return selectionBits; }
   unsigned long long& getSelectionBits(){ return selectionBits; }
 

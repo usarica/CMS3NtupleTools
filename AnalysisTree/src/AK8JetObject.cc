@@ -52,3 +52,30 @@ AK8JetObject& AK8JetObject::operator=(const AK8JetObject& other){
   return *this;
 }
 AK8JetObject::~AK8JetObject(){}
+
+void AK8JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
+  using namespace SystematicsHelpers;
+
+  LorentzVector_t res=momentum;
+  switch (syst){
+  case eJECDn:
+    res = res * extras.JECDn * extras.JERNominal;
+    break;
+  case eJECUp:
+    res = res * extras.JECUp * extras.JERNominal;
+    break;
+  case eJERDn:
+    res = res * extras.JECNominal * extras.JERDn;
+    break;
+  case eJERUp:
+    res = res * extras.JECNominal * extras.JERUp;
+    break;
+  case sUncorrected:
+    break;
+  default:
+    res = res * extras.JECNominal * extras.JERNominal;
+    break;
+  }
+
+  momentum=res;
+}

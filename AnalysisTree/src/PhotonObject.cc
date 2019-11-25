@@ -52,3 +52,30 @@ PhotonObject& PhotonObject::operator=(const PhotonObject& other){
   return *this;
 }
 PhotonObject::~PhotonObject(){}
+
+void PhotonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
+  using namespace SystematicsHelpers;
+
+  LorentzVector_t res=momentum;
+  switch (syst){
+  case ePhoScaleDn:
+    res = res * extras.scale_smear_corr_scale_totalDn;
+    break;
+  case ePhoScaleUp:
+    res = res * extras.scale_smear_corr_scale_totalUp;
+    break;
+  case ePhoResDn:
+    res = res * extras.scale_smear_corr_smear_totalDn;
+    break;
+  case ePhoResUp:
+    res = res * extras.scale_smear_corr_smear_totalUp;
+    break;
+  case sUncorrected:
+    break;
+  default:
+    res = res * extras.scale_smear_corr;
+    break;
+  }
+
+  momentum=res;
+}

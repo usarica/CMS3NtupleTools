@@ -52,3 +52,30 @@ ElectronObject& ElectronObject::operator=(const ElectronObject& other){
   return *this;
 }
 ElectronObject::~ElectronObject(){}
+
+void ElectronObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
+  using namespace SystematicsHelpers;
+
+  LorentzVector_t res=momentum;
+  switch (syst){
+  case eEleScaleDn:
+    res = res * extras.scale_smear_corr_scale_totalDn;
+    break;
+  case eEleScaleUp:
+    res = res * extras.scale_smear_corr_scale_totalUp;
+    break;
+  case eEleResDn:
+    res = res * extras.scale_smear_corr_smear_totalDn;
+    break;
+  case eEleResUp:
+    res = res * extras.scale_smear_corr_smear_totalUp;
+    break;
+  case sUncorrected:
+    break;
+  default:
+    res = res * extras.scale_smear_corr;
+    break;
+  }
+
+  momentum=res;
+}

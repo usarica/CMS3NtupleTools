@@ -40,7 +40,7 @@ public:
 
 class AK8JetObject : public ParticleObject{
 public:
-  constexpr static float ConeRadiusConstant = 0.4;
+  constexpr static float ConeRadiusConstant = 0.8;
 
   AK8JetVariables extras;
 
@@ -52,6 +52,8 @@ public:
   ~AK8JetObject();
 
   void swap(AK8JetObject& other);
+
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
 
 };
 

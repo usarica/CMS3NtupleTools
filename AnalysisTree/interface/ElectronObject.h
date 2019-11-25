@@ -65,6 +65,8 @@ public:
 
   void swap(ElectronObject& other);
 
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
 };
 
 #endif

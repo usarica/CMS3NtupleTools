@@ -54,6 +54,8 @@ public:
 
   void swap(MuonObject& other);
 
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
 };
 
 #endif

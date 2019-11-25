@@ -48,6 +48,8 @@ public:
 
   void swap(PhotonObject& other);
 
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
 };
 
 #endif

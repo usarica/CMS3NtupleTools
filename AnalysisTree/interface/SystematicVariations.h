@@ -22,13 +22,19 @@ namespace SystematicsHelpers{
     eMuScaleDn, eMuScaleUp,
     eMuResDn, eMuResUp,
 
+    ePhoEffDn, ePhoEffUp,
+    ePhoScaleDn, ePhoScaleUp,
+    ePhoResDn, ePhoResUp,
+
     eMETDn, eMETUp,
     eJECDn, eJECUp,
     eJERDn, eJERUp,
     ePUDn, ePUUp,
     eBTagSFDn, eBTagSFUp,
 
-    nSystematicVariations
+    nSystematicVariations,
+
+    sUncorrected // For checks
   };
 
 }
