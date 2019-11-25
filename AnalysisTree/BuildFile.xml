@@ -1,0 +1,45 @@
+<use   name="FWCore/Framework"/>
+<use   name="FWCore/PluginManager"/>
+<use   name="FWCore/ParameterSet"/>
+<use   name="FWCore/Utilities"/>
+<use   name="CondFormats/JetMETObjects"/>
+<use   name="DataFormats/TauReco"/>
+<use   name="DataFormats/MuonReco"/>
+<use   name="DataFormats/JetReco"/>
+<use   name="DataFormats/GsfTrackReco"/>
+<use   name="DataFormats/EgammaReco"/>
+<use   name="DataFormats/EgammaCandidates"/>
+<use   name="DataFormats/EcalDetId"/>
+<use   name="DataFormats/TrackReco"/>
+<use   name="DataFormats/Common"/>
+<use   name="DataFormats/Math"/>
+<use   name="DataFormats/PatCandidates"/>
+<use   name="DataFormats/METReco"/>
+<use   name="Geometry/Records"/>
+<use   name="Geometry/CommonDetUnit"/>
+<use   name="Geometry/TrackerGeometryBuilder"/>
+<use   name="RecoParticleFlow/PFProducer"/>
+<use   name="CommonTools/ParticleFlow"/>
+<use   name="RecoEcal/EgammaCoreTools"/>
+<use   name="RecoEgamma/EgammaTools"/>
+<use   name="JetMETCorrections/Objects"/>
+<use   name="HLTrigger/HLTcore"/>
+<use   name="EgammaAnalysis/ElectronTools"/>
+<use   name="CMS3/Dictionaries"/>
+<use   name="CMS3/NtupleMaker"/>
+<use   name="ZZMatrixElement/MELA"/>
+<use   name="CMSDataTools/AnalysisTree"/>
+<use   name="MelaAnalytics/EventContainer"/>
+<use   name="MelaAnalytics/GenericMEComputer"/>
+<use   name="MelaAnalytics/CandidateLOCaster"/>
+<use   name="root"/>
+<use   name="clhep"/>
+
+<Flags CPPDEFINES="CMSSW_VERSION=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_//g -e s/patch\.//)"/>
+<Flags CPPDEFINES="CMSSW_VERSION_MAJOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_.*//g)"/>
+<flags CPPFLAGS="-I$(CMSSW_BASE)/src/ZZMatrixElement/MELA/interface/ -I$(CMSSW_BASE)/src/CMSDataTools/AnalysisTree/interface/ -I$(CMSSW_BASE)/src/CMS3/AnalysisTree/interface/" />
+<flags CXXFLAGS="-g -O3"/>
+
+<export>
+   <lib name="1"/>
+</export>
