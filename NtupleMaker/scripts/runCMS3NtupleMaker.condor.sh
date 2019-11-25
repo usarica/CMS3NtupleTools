@@ -136,7 +136,21 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA
 
 
 # Compile CMSSW-dependent packages
-( cd ZZMatrixElement; ./setup.sh clean; ./setup.sh -j; cd - )
+(
+  cd ZZMatrixElement
+
+  ./setup.sh clean
+  ./setup.sh -j &>> compilation.log
+
+  MELA_COMPILE_STATUS=$?
+  if [ $MELA_COMPILE_STATUS != 0 ];then
+    echo "MELA compilation exited with error ${MELA_COMPILE_STATUS}. Printing the log:"
+    cat compilation.log
+  fi
+  rm -f compilation.log
+
+  cd -
+)
 scramv1 b -j &>> compilation.log
 CMSSW_COMPILE_STATUS=$?
 if [ $CMSSW_COMPILE_STATUS != 0 ];then
@@ -155,13 +169,14 @@ ls -lrth
 # ACTUAL RUN #
 ##############
 echo -e "\n--- Begin RUN ---\n"
+
 RUNDIR=$(pwd)
 RUNFILE=main_pset.py
 RUN_CMD=$(runGenericExecutable.py --executable="$RUNFILE" --command="$FCNARGS" --dry)
 if [[ "$RUN_CMD" == "Running "* ]];then
   echo "$RUN_CMD"
   RUN_CMD=${RUN_CMD//"Running "}
-  eval "cmsRun $RUN_CMD"
+  eval "cmsRun -n 1 $RUN_CMD"
   RUN_STATUS=$?
   if [ $RUN_STATUS != 0 ]; then
     echo "Run has crashed with exit code ${RUN_STATUS}"
@@ -171,6 +186,7 @@ else
   echo "Run command ${RUN_CMD} is invalid."
   exit 1
 fi
+
 echo -e "\n--- End RUN ---\n"
 
 
@@ -181,7 +197,7 @@ echo "Submission directory after running all steps: ls -lrth"
 ls -lrth
 
 OUTFILENAME=""
-fcnarglist=($(echo $FCNARGS))
+fcnarglist=($(echo $RUN_CMD))
 for fargo in "${fcnarglist[@]}";do
   farg="${fargo//\"}"
   fargl="$(echo $farg | awk '{print tolower($0)}')"
