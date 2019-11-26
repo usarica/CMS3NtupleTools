@@ -38,7 +38,6 @@ namespace {
       std::vector<std::vector<TString> > vs2d;
       edm::Wrapper<std::vector<std::vector<TString> > > wvs2d;
 
-      TBits bits1;
       edm::Wrapper<TBits> wbits1;
    };
 }

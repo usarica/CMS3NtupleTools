@@ -6,8 +6,17 @@
   <class name="std::vector<std::vector<std::vector<float> > >"/>
   <class name="std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > >"/>
   <class name="std::vector<std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > > >"/>
-  <class name="TBits"/>
   <class name="std::vector<TString>"/>
   <class name="std::vector<std::vector<TString> >"/>
-  <class pattern="edm::Wrapper<*>" />  
+
+  <class name="edm::Wrapper< TBits >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<float> > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<bool> > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<uint16_t> > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<uint32_t> > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<std::vector<float> > > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > > >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<std::vector<ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> > > > > >"/>
+  <class name="edm::Wrapper< std::vector<TString> >"/>
+  <class name="edm::Wrapper< std::vector<std::vector<TString> > >"/>
 </lcgdict>
