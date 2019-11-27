@@ -1,9 +1,12 @@
 import FWCore.ParameterSet.Config as cms
 
-isoTrackMaker = cms.EDProducer("IsoTrackMaker",
-                                  pfCandidatesTag     = cms.InputTag("packedPFCandidates"),
-                                  lostTracksTag       = cms.InputTag("lostTracks"),
-                                  isoTracksTag        = cms.InputTag("isolatedTracks"),
-                                  pT_cut       = cms.double(5.0),   ## miniAOD has cuts of 5.0/20.0, but can make them stricter here
-                                  pT_cut_noIso = cms.double(20.0)
-)
+isoTrackMaker = cms.EDProducer(
+   "IsoTrackMaker",
+
+   aliasprefix      = cms.untracked.string("isotracks"),
+   year = cms.int32(-1), # Must be overriden by main_pset
+
+   isoTracksTag        = cms.InputTag("isolatedTracks"),
+   lostTracksTag       = cms.InputTag("lostTracks"),
+   pfCandidatesTag     = cms.InputTag("packedPFCandidates"),
+   )

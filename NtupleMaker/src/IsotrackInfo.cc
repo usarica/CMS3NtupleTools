@@ -1,22 +1,22 @@
-#include <CMS3/NtupleMaker/interface/IsoTrackInfo.h>
+#include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
 
 
-IsoTrackInfo::IsoTrackInfo() :
+IsotrackInfo::IsotrackInfo() :
   p4(0, 0, 0, 0),
 
   charge(0),
-  pdgId(0),
+  id(0),
 
   pfIso03_ch(-1),
   pfIso03_nh(-1),
   pfIso03_em(-1),
   pfIso03_db(-1),
-  pfRelIso_comb(-1),
+  pfIso03_comb_nofsr(-1),
   miniIso_ch(-1),
   miniIso_nh(-1),
   miniIso_em(-1),
   miniIso_db(-1),
-  miniRelIso_comb(-1),
+  miniIso_comb_nofsr(-1),
 
   fromPV(false),
   dxy(0),
@@ -65,22 +65,22 @@ IsoTrackInfo::IsoTrackInfo() :
   matchedCaloJetHadEnergy(0)
 {}
 
-IsoTrackInfo::IsoTrackInfo(IsoTrackInfo const& other) : 
+IsotrackInfo::IsotrackInfo(IsotrackInfo const& other) : 
   p4(other.p4),
 
   charge(other.charge),
-  pdgId(other.pdgId),
+  id(other.id),
 
   pfIso03_ch(other.pfIso03_ch),
   pfIso03_nh(other.pfIso03_nh),
   pfIso03_em(other.pfIso03_em),
   pfIso03_db(other.pfIso03_db),
-  pfRelIso_comb(other.pfRelIso_comb),
+  pfIso03_comb_nofsr(other.pfIso03_comb_nofsr),
   miniIso_ch(other.miniIso_ch),
   miniIso_nh(other.miniIso_nh),
   miniIso_em(other.miniIso_em),
   miniIso_db(other.miniIso_db),
-  miniRelIso_comb(other.miniRelIso_comb),
+  miniIso_comb_nofsr(other.miniIso_comb_nofsr),
 
   fromPV(other.fromPV),
   dxy(other.dxy),

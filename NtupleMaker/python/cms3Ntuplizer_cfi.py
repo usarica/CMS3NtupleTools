@@ -7,6 +7,7 @@ cms3ntuple = cms.EDAnalyzer(
    treename = cms.untracked.string("Events"),
 
    isMC = cms.bool(False),
+   is80x = cms.bool(False),
 
    prefiringWeightsTag = cms.untracked.string(""),
 
@@ -15,6 +16,7 @@ cms3ntuple = cms.EDAnalyzer(
    muonSrc = cms.InputTag("muonMaker"),
    ak4jetSrc = cms.InputTag("pfJetMaker"),
    ak8jetSrc = cms.InputTag("subJetMaker"),
+   isotracksSrc = cms.InputTag("isoTrackMaker"),
 
    pfmetSrc = cms.InputTag("pfmetMaker"),
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),

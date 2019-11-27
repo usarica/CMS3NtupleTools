@@ -161,6 +161,7 @@ process.muonMaker.year = cms.int32(opts.year)
 process.muonMaker.refurbishSelections = cms.bool(opts.is80x and not opts.data)
 process.electronMaker.year = cms.int32(opts.year)
 process.photonMaker.year = cms.int32(opts.year)
+process.isoTrackMaker.year = cms.int32(opts.year)
 if not opts.data:
    process.genMaker.year = cms.int32(opts.year)
    process.genMaker.xsec = cms.double(opts.xsec)
@@ -714,6 +715,9 @@ else:
    process.pfmetpuppiMakerSeq = cms.Sequence( process.pfmetpuppiMaker )
 process.PFMETPuppiPath = cms.Path(process.pfmetpuppiMakerSeq) # Make as separate path
 
+# Isotracks
+process.isoTrackMakerSeq = cms.Sequence( process.isoTrackMaker )
+
 
 ###################
 # Build the paths ##########################################################################################################################################
@@ -740,7 +744,7 @@ producers = [
         #process.pfmetpuppiMaker,
         #process.photonMaker,
         #process.pftauMaker,
-        #process.isoTrackMaker,
+        process.isoTrackMaker,
         # Disable these temporarily until they are renewed
         process.genMaker if not opts.data else None,
         process.genJetMaker if not opts.data else None,
@@ -767,7 +771,8 @@ for ip,producer in enumerate(producers):
       total_path = producer
       continue
 
-   if opts.is80x and producer == process.isoTrackMaker:
+   if producer == process.isoTrackMaker:
+      total_path *= process.isoTrackMakerSeq
       continue
 
    if not (opts.fastsim and opts.is80x):
@@ -866,6 +871,7 @@ else:
    process.load("CMS3.NtupleMaker.cms3Ntuplizer_cfi")
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
+   process.cms3ntuple.is80X = cms.bool((not opts.is80x))
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
    process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)

@@ -14,8 +14,6 @@
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/IsolatedTrack.h"
 
-#include <CMS3/NtupleMaker/interface/IsoTrackInfo.h>
-
 
 class IsoTrackMaker : public edm::stream::EDProducer<>{
 public:
@@ -32,6 +30,7 @@ private:
 
 protected:
   std::string aliasprefix_;
+  int year_;
 
   edm::EDGetTokenT<pat::IsolatedTrackCollection> isoTracksToken;
   edm::EDGetTokenT<pat::PackedCandidateCollection> lostTracksToken;

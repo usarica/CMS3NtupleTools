@@ -48,6 +48,7 @@
 #include <CMS3/NtupleMaker/interface/TriggerInfo.h>
 #include <CMS3/NtupleMaker/interface/METFilterInfo.h>
 #include <CMS3/NtupleMaker/interface/METInfo.h>
+#include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
 
 
 class CMS3Ntuplizer : public edm::EDAnalyzer{
@@ -75,6 +76,7 @@ protected:
   TString treename;
   //TString outfilename;
   bool isMC;
+  bool is80X;
 
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
@@ -84,6 +86,7 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT< edm::View<pat::Jet> > ak4jetsToken;
   edm::EDGetTokenT< edm::View<pat::Jet> > ak8jetsToken;
+  edm::EDGetTokenT< edm::View<IsotrackInfo> > isotracksToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
   edm::EDGetTokenT< METInfo > puppimetToken;
@@ -119,6 +122,7 @@ protected:
   size_t fillMuons(const edm::Event&, std::vector<pat::Muon const*>*);
   size_t fillAK4Jets(const edm::Event&, std::vector<pat::Jet const*>*);
   size_t fillAK8Jets(const edm::Event&, std::vector<pat::Jet const*>*);
+  size_t fillIsotracks(const edm::Event&, std::vector<IsotrackInfo const*>*);
   size_t fillVertices(const edm::Event&, std::vector<reco::Vertex const*>*);
 
   bool fillEventVariables(const edm::Event&);

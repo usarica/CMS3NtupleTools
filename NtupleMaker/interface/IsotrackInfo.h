@@ -7,22 +7,22 @@
 #include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
 
 
-struct IsoTrackInfo{
+struct IsotrackInfo{
   CMSLorentzVector_d p4;
 
   int charge;
-  int pdgId;
+  int id;
 
   float pfIso03_ch;
   float pfIso03_nh;
   float pfIso03_em;
   float pfIso03_db;
-  float pfRelIso_comb;
+  float pfIso03_comb_nofsr;
   float miniIso_ch;
   float miniIso_nh;
   float miniIso_em;
   float miniIso_db;
-  float miniRelIso_comb;
+  float miniIso_comb_nofsr;
 
   bool fromPV;
   float dxy;
@@ -73,8 +73,8 @@ struct IsoTrackInfo{
   //std::vector<uint16_t> crossedEcalStatus;
   //std::vector<uint32_t> crossedHcalStatus;
 
-  IsoTrackInfo();
-  IsoTrackInfo(IsoTrackInfo const&);
+  IsotrackInfo();
+  IsotrackInfo(IsotrackInfo const&);
 
 };
 

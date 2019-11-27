@@ -11,6 +11,7 @@
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
@@ -31,6 +32,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   year(pset.getParameter<int>("year")),
   treename(pset.getUntrackedParameter<std::string>("treename")),
   isMC(pset.getParameter<bool>("isMC")),
+  is80X(pset.getParameter<bool>("is80X")),
 
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
@@ -45,6 +47,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
   ak4jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak4jetSrc"));
   ak8jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak8jetSrc"));
+  isotracksToken  = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotracksSrc"));
 
   pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
   puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
@@ -139,6 +142,9 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // ak8 jets
   /*size_t n_ak8jets = */this->fillAK8Jets(iEvent, nullptr);
+
+  // Isolated tracks
+  /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
 
   // The (data) event should have at least one electron, muon, or photon.
   isSelected &= ((n_muons + n_electrons + n_photons)>0);
@@ -1228,6 +1234,108 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
 
   return n_objects;
+}
+size_t CMS3Ntuplizer::fillIsotracks(const edm::Event& iEvent, std::vector<IsotrackInfo const*>* filledObjects){
+#define PUSH_ISOTRACK_VARIABLE(NAME) NAME.push_back(obj->NAME);
+
+  if (this->is80X) return 0;
+
+  const char colName[] = "isotracks";
+  edm::Handle< edm::View<IsotrackInfo> > isotracksHandle;
+  iEvent.getByToken(isotracksToken, isotracksHandle);
+  if (!isotracksHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillIsotracks: Error getting the isotrack collection from the event...");
+  size_t n_objects = isotracksHandle->size();
+
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(int, id, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, fromPV, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dxy, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dxyerr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dz, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dzerr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, is_pfCand, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_lostTrack, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_highPurityTrack, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_tightTrack, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(int, nearestPFcand_id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, nearestPFcand_deltaR, n_objects);
+
+  for (View<IsotrackInfo>::const_iterator obj = isotracksHandle->begin(); obj != isotracksHandle->end(); obj++){
+    if (!IsotrackSelectionHelpers::testSkimIsotrack(*obj, this->year)) continue;
+
+    // Core particle quantities
+    // Uncorrected p4
+    pt.push_back(obj->p4.Pt());
+    eta.push_back(obj->p4.Eta());
+    phi.push_back(obj->p4.Phi());
+    mass.push_back(obj->p4.M());
+
+    PUSH_ISOTRACK_VARIABLE(id);
+
+    PUSH_ISOTRACK_VARIABLE(pfIso03_ch);
+    PUSH_ISOTRACK_VARIABLE(pfIso03_comb_nofsr);
+    PUSH_ISOTRACK_VARIABLE(miniIso_ch);
+    PUSH_ISOTRACK_VARIABLE(miniIso_comb_nofsr);
+
+    PUSH_ISOTRACK_VARIABLE(fromPV);
+    PUSH_ISOTRACK_VARIABLE(dxy);
+    PUSH_ISOTRACK_VARIABLE(dxyerr);
+    PUSH_ISOTRACK_VARIABLE(dz);
+    PUSH_ISOTRACK_VARIABLE(dzerr);
+
+    PUSH_ISOTRACK_VARIABLE(is_pfCand);
+    PUSH_ISOTRACK_VARIABLE(is_lostTrack);
+    PUSH_ISOTRACK_VARIABLE(is_highPurityTrack);
+    PUSH_ISOTRACK_VARIABLE(is_tightTrack);
+
+    PUSH_ISOTRACK_VARIABLE(nearestPFcand_id);
+    PUSH_ISOTRACK_VARIABLE(nearestPFcand_deltaR);
+
+    if (filledObjects) filledObjects->push_back(&(*obj));
+  }
+
+  // Pass collections to the communicator
+  PUSH_VECTOR_WITH_NAME(colName, pt);
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, id);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_ch);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_ch);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, fromPV);
+  PUSH_VECTOR_WITH_NAME(colName, dxy);
+  PUSH_VECTOR_WITH_NAME(colName, dxyerr);
+  PUSH_VECTOR_WITH_NAME(colName, dz);
+  PUSH_VECTOR_WITH_NAME(colName, dzerr);
+  PUSH_VECTOR_WITH_NAME(colName, is_pfCand);
+  PUSH_VECTOR_WITH_NAME(colName, is_lostTrack);
+  PUSH_VECTOR_WITH_NAME(colName, is_highPurityTrack);
+  PUSH_VECTOR_WITH_NAME(colName, is_tightTrack);
+
+  PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_id);
+  PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_deltaR);
+
+  return n_objects;
+
+#undef PUSH_ISOTRACK_VARIABLE
 }
 size_t CMS3Ntuplizer::fillVertices(const edm::Event& iEvent, std::vector<reco::Vertex const*>* filledObjects){
   const char colName[] = "vtxs";

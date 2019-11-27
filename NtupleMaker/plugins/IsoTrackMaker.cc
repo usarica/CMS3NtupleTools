@@ -16,6 +16,8 @@
 #include "DataFormats/TrackReco/interface/HitPattern.h"
 
 #include "CMS3/NtupleMaker/interface/plugins/IsoTrackMaker.h"
+#include <CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h>
+
 #include "TMath.h"
 
 
@@ -28,14 +30,15 @@ using namespace reco;
 
 
 IsoTrackMaker::IsoTrackMaker(const edm::ParameterSet& iConfig) :
-  aliasprefix_(iConfig.getUntrackedParameter<string>("aliasprefix"))
+  aliasprefix_(iConfig.getUntrackedParameter<string>("aliasprefix")),
+  year_(iConfig.getParameter<int>("year"))
 {
   isoTracksToken = consumes<pat::IsolatedTrackCollection>(iConfig.getParameter<edm::InputTag>("isoTracksTag"));
   lostTracksToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("lostTracksTag"));
 
   pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesTag"));
 
-  produces< std::vector<IsoTrackInfo> >().setBranchAlias(aliasprefix_);
+  produces< std::vector<IsotrackInfo> >().setBranchAlias(aliasprefix_);
 }
 
 IsoTrackMaker::~IsoTrackMaker(){}
@@ -50,7 +53,7 @@ void IsoTrackMaker::beginRun(const edm::Run&, const edm::EventSetup& es){}
 // https://github.com/cmstas/NtupleMaker/blob/combined/src/IsoTrackMaker.cc
 // for more details
 void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  auto result = std::make_unique< std::vector<IsoTrackInfo> >();
+  auto result = std::make_unique< std::vector<IsotrackInfo> >();
 
   Handle<pat::IsolatedTrackCollection> isoTracksHandle;
   iEvent.getByToken(isoTracksToken, isoTracksHandle);
@@ -75,22 +78,22 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     if (isotrack_pt<5.) continue;
 
-    IsoTrackInfo isotrack_result;
+    IsotrackInfo isotrack_result;
     isotrack_result.p4 = isotrack.p4();
 
     isotrack_result.charge = isotrack.charge();
-    isotrack_result.pdgId = isotrack.pdgId();
+    isotrack_result.id = isotrack.pdgId();
 
     isotrack_result.pfIso03_ch = isotrack.pfIsolationDR03().chargedHadronIso();
     isotrack_result.pfIso03_nh = isotrack.pfIsolationDR03().neutralHadronIso();
     isotrack_result.pfIso03_em = isotrack.pfIsolationDR03().photonIso();
     isotrack_result.pfIso03_db = isotrack.pfIsolationDR03().puChargedHadronIso();
-    isotrack_result.pfRelIso_comb = (isotrack_result.pfIso03_ch + std::max(isotrack_result.pfIso03_nh + isotrack_result.pfIso03_em - isotrack_result.pfIso03_db/2., 0.))/isotrack_pt;
+    isotrack_result.pfIso03_comb_nofsr = IsotrackSelectionHelpers::isotrackPFIsoComb(isotrack, year_, IsotrackSelectionHelpers::PFIso03, 0.);
     isotrack_result.miniIso_ch = isotrack.miniPFIsolation().chargedHadronIso();
     isotrack_result.miniIso_nh = isotrack.miniPFIsolation().neutralHadronIso();
     isotrack_result.miniIso_em = isotrack.miniPFIsolation().photonIso();
     isotrack_result.miniIso_db = isotrack.miniPFIsolation().puChargedHadronIso();
-    isotrack_result.miniRelIso_comb = (isotrack_result.miniIso_ch + std::max(isotrack_result.miniIso_nh + isotrack_result.miniIso_em - isotrack_result.miniIso_db/2., 0.))/isotrack_pt; // FIXME: Should contain effective areas
+    isotrack_result.miniIso_comb_nofsr = IsotrackSelectionHelpers::isotrackMiniIsoComb(isotrack, year_, 0.);
 
     /*
     bool isIsolated = (
