@@ -1,7 +1,7 @@
 #include <cassert>
 #include "ParticleObjectHelpers.h"
 #include "ElectronHandler.h"
-//#include "ElectronSelectionHelpers.h"
+#include "ElectronSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -42,8 +42,8 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef ELECTRON_VARIABLE
 
-  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
-    MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
@@ -75,7 +75,7 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
       obj->makeFinalMomentum(syst);
 
       // Set the selection bits
-      //ElectronSelectionHelpers::setSelectionBits(*obj);
+      ElectronSelectionHelpers::setSelectionBits(*obj);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 

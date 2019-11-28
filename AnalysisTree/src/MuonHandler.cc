@@ -1,7 +1,7 @@
 #include <cassert>
 #include "ParticleObjectHelpers.h"
 #include "MuonHandler.h"
-//#include "MuonSelectionHelpers.h"
+#include "MuonSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -42,8 +42,8 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef MUON_VARIABLE
 
-  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
-    MELAerr << "MuonHandler::constructMuons: Not all variables are consumed properly!" << endl;
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "MuonHandler::constructMuons: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
@@ -75,7 +75,7 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
       obj->makeFinalMomentum(syst);
 
       // Set the selection bits
-      //MuonSelectionHelpers::setSelectionBits(*obj);
+      MuonSelectionHelpers::setSelectionBits(*obj);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 

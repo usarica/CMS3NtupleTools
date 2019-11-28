@@ -1,7 +1,7 @@
 #include <cassert>
 #include "ParticleObjectHelpers.h"
 #include "PhotonHandler.h"
-//#include "PhotonSelectionHelpers.h"
+#include "PhotonSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -41,8 +41,8 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef PHOTON_VARIABLE
 
-  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
-    MELAerr << "PhotonHandler::constructPhotons: Not all variables are consumed properly!" << endl;
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "PhotonHandler::constructPhotons: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
@@ -74,7 +74,7 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
       obj->makeFinalMomentum(syst);
 
       // Set the selection bits
-      //PhotonSelectionHelpers::setSelectionBits(*obj);
+      PhotonSelectionHelpers::setSelectionBits(*obj);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
