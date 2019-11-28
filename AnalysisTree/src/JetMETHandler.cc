@@ -88,8 +88,8 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 
-  if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
-    MELAerr << "JetMETHandler::constructProducts: Not all variables are consumed properly!" << endl;
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructProducts: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
@@ -182,10 +182,10 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.met;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.met_Nominal;
   MET_EXTRA_PT_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.phi;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.phi_Nominal;
   MET_EXTRA_PHI_VARIABLES;
 #undef MET_VARIABLE
   pfchsmet->setSystematic(syst);
@@ -197,10 +197,10 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.met;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.met_Nominal;
   MET_EXTRA_PT_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.phi;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.phi_Nominal;
   MET_EXTRA_PHI_VARIABLES;
 #undef MET_VARIABLE
   pfpuppimet->setSystematic(syst);

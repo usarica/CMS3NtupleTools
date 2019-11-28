@@ -71,8 +71,8 @@ void METObject::getPtPhi(float const*& pt, float const*& phi) const{
     phi = &(extras.phi_original);
     break;
   default:
-    pt = &(extras.met);
-    phi = &(extras.phi);
+    pt = &(extras.met_Nominal);
+    phi = &(extras.phi_Nominal);
     break;
   }
 }

@@ -1,0 +1,8 @@
+{
+  gSystem->Load("$CMSSW_BASE/src/CMSDataTools/AnalysisTree/test/loadLib.C");
+
+  gSystem->AddIncludePath("-I$CMSSW_BASE/src/CMSDataTools/AnalysisTree/interface/");
+  gSystem->AddIncludePath("-I$CMSSW_BASE/src/CMS3/AnalysisTree/interface/");
+  gSystem->AddIncludePath("-I$CMSSW_BASE/src/CMS3/AnalysisTree/test/");
+  gSystem->Load("libCMS3AnalysisTree.so");
+}

@@ -5,8 +5,8 @@
 
 
 #define MET_RECORDED_VARIABLES \
-MET_VARIABLE(float, met, 0) \
-MET_VARIABLE(float, phi, 0) \
+MET_VARIABLE(float, met_Nominal, 0) \
+MET_VARIABLE(float, phi_Nominal, 0) \
 MET_VARIABLE(float, met_JECup, 0) \
 MET_VARIABLE(float, phi_JECup, 0) \
 MET_VARIABLE(float, met_JECdn, 0) \
