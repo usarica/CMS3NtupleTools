@@ -22,11 +22,16 @@ AK8JET_VARIABLE(float, phi, 0) \
 AK8JET_VARIABLE(float, mass, 0) \
 AK8JET_VARIABLES
 
+
 const std::string JetMETHandler::colName_ak4jets = "ak4jets";
 const std::string JetMETHandler::colName_ak8jets = "ak8jets";
+const std::string JetMETHandler::colName_pfchsmet = "pfmet";
+const std::string JetMETHandler::colName_pfpuppimet = "puppimet";
 
-
-JetMETHandler::JetMETHandler() : IvyBase()
+JetMETHandler::JetMETHandler() :
+  IvyBase(),
+  pfchsmet(nullptr),
+  pfpuppimet(nullptr)
 {
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
@@ -34,6 +39,12 @@ JetMETHandler::JetMETHandler() : IvyBase()
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
 }
 
 void JetMETHandler::clear(){
@@ -41,9 +52,11 @@ void JetMETHandler::clear(){
   ak4jets.clear();
   for (auto*& prod:ak8jets) delete prod;
   ak8jets.clear();
+  delete pfchsmet; pfchsmet=nullptr;
+  delete pfpuppimet; pfpuppimet=nullptr;
 }
 
-bool JetMETHandler::constructProducts(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst){
   clear();
   if (!currentTree) return false;
 
@@ -53,8 +66,14 @@ bool JetMETHandler::constructProducts(SystematicsHelpers::SystematicVariationTyp
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak8jets_##NAME, itEnd_ak8jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfchsmet_##NAME = DEFVAL;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfpuppimet_##NAME = DEFVAL;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
 
-    // Beyond this point starts checks and selection
+  // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak4jets + "_" + #NAME, &itBegin_ak4jets_##NAME, &itEnd_ak4jets_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
@@ -62,6 +81,12 @@ bool JetMETHandler::constructProducts(SystematicsHelpers::SystematicVariationTyp
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak8jets + "_" + #NAME, &itBegin_ak8jets_##NAME, &itEnd_ak8jets_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, pfchsmet_##NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
 
   if (!allVariablesPresent && this->verbosity>=TVar::ERROR){
     MELAerr << "JetMETHandler::constructProducts: Not all variables are consumed properly!" << endl;
@@ -150,6 +175,36 @@ bool JetMETHandler::constructProducts(SystematicsHelpers::SystematicVariationTyp
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(ak8jets);
 
+  /*************/
+  /* PFCHS MET */
+  /*************/
+  pfchsmet = new METObject();
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet_##NAME;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.met;
+  MET_EXTRA_PT_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.phi;
+  MET_EXTRA_PHI_VARIABLES;
+#undef MET_VARIABLE
+  pfchsmet->setSystematic(syst);
+
+  /***************/
+  /* PFPUPPI MET */
+  /***************/
+  pfpuppimet = new METObject();
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet_##NAME;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.met;
+  MET_EXTRA_PT_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.phi;
+  MET_EXTRA_PHI_VARIABLES;
+#undef MET_VARIABLE
+  pfpuppimet->setSystematic(syst);
+
   return true;
 }
 
@@ -162,6 +217,12 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
     VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS
 #undef AK8JET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, DEFVAL);
+    MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
 }
 
 
