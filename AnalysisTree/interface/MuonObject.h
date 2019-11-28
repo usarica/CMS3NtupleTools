@@ -44,6 +44,7 @@ public:
 class MuonObject : public ParticleObject{
 public:
   MuonVariables extras;
+  float currentSystScale;
 
   MuonObject();
   MuonObject(int id_);

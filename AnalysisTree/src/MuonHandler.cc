@@ -61,13 +61,18 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
     while (it_charge != itEnd_charge){
       if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting muon " << ip << "..." << endl;
 
-      ParticleObject::LorentzVector_t momentum; momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass);
+      ParticleObject::LorentzVector_t momentum;
+      momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
       productList.push_back(new MuonObject(-13*(*it_charge>0 ? 1 : -1), momentum));
       MuonObject*& obj = productList.back();
 
+      // Set extras
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
       MUON_VARIABLES;
 #undef MUON_VARIABLE
+
+      // Replace momentum
+      obj->makeFinalMomentum(syst);
 
       // Set the selection bits
       //MuonSelectionHelpers::setSelectionBits(*obj);

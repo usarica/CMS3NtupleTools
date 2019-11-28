@@ -38,10 +38,10 @@ public:
 class PhotonObject : public ParticleObject{
 public:
   PhotonVariables extras;
+  float currentSystScale;
 
   PhotonObject();
-  PhotonObject(int id_);
-  PhotonObject(int id_, LorentzVector_t const& mom_);
+  PhotonObject(LorentzVector_t const& mom_);
   PhotonObject(const PhotonObject& other);
   PhotonObject& operator=(const PhotonObject& other);
   ~PhotonObject();

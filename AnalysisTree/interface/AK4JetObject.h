@@ -52,10 +52,10 @@ public:
   constexpr static float ConeRadiusConstant = 0.4;
 
   AK4JetVariables extras;
+  float currentSystScale;
 
   AK4JetObject();
-  AK4JetObject(int id_);
-  AK4JetObject(int id_, LorentzVector_t const& mom_);
+  AK4JetObject(LorentzVector_t const& mom_);
   AK4JetObject(const AK4JetObject& other);
   AK4JetObject& operator=(const AK4JetObject& other);
   ~AK4JetObject();

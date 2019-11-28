@@ -43,10 +43,10 @@ public:
   constexpr static float ConeRadiusConstant = 0.8;
 
   AK8JetVariables extras;
+  float currentSystScale;
 
   AK8JetObject();
-  AK8JetObject(int id_);
-  AK8JetObject(int id_, LorentzVector_t const& mom_);
+  AK8JetObject(LorentzVector_t const& mom_);
   AK8JetObject(const AK8JetObject& other);
   AK8JetObject& operator=(const AK8JetObject& other);
   ~AK8JetObject();

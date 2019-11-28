@@ -26,25 +26,30 @@ ElectronVariables& ElectronVariables::operator=(const ElectronVariables& other){
 
 ElectronObject::ElectronObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 ElectronObject::ElectronObject(int id_) :
   ParticleObject(id_),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 ElectronObject::ElectronObject(int id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 ElectronObject::ElectronObject(const ElectronObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  currentSystScale(other.currentSystScale)
 {}
 void ElectronObject::swap(ElectronObject& other){
   std::swap(id, other.id);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
   extras.swap(other.extras);
+  std::swap(currentSystScale, other.currentSystScale);
 }
 ElectronObject& ElectronObject::operator=(const ElectronObject& other){
   ElectronObject tmp(other);
@@ -56,26 +61,26 @@ ElectronObject::~ElectronObject(){}
 void ElectronObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  LorentzVector_t res=momentum;
+  float scale=1;
   switch (syst){
   case eEleScaleDn:
-    res = res * extras.scale_smear_corr_scale_totalDn;
+    scale = extras.scale_smear_corr_scale_totalDn;
     break;
   case eEleScaleUp:
-    res = res * extras.scale_smear_corr_scale_totalUp;
+    scale = extras.scale_smear_corr_scale_totalUp;
     break;
   case eEleResDn:
-    res = res * extras.scale_smear_corr_smear_totalDn;
+    scale = extras.scale_smear_corr_smear_totalDn;
     break;
   case eEleResUp:
-    res = res * extras.scale_smear_corr_smear_totalUp;
+    scale = extras.scale_smear_corr_smear_totalUp;
     break;
   case sUncorrected:
     break;
   default:
-    res = res * extras.scale_smear_corr;
+    scale = extras.scale_smear_corr;
     break;
   }
-
-  momentum=res;
+  momentum = momentum * (scale/currentSystScale);
+  currentSystScale = scale;
 }

@@ -26,25 +26,25 @@ AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
 
 AK4JetObject::AK4JetObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
-AK4JetObject::AK4JetObject(int id_) :
-  ParticleObject(id_),
-  extras()
-{}
-AK4JetObject::AK4JetObject(int id_, LorentzVector_t const& momentum_) :
-  ParticleObject(id_, momentum_),
-  extras()
+AK4JetObject::AK4JetObject(LorentzVector_t const& momentum_) :
+  ParticleObject(0, momentum_),
+  extras(),
+  currentSystScale(1)
 {}
 AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  currentSystScale(other.currentSystScale)
 {}
 void AK4JetObject::swap(AK4JetObject& other){
   std::swap(id, other.id);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
   extras.swap(other.extras);
+  std::swap(currentSystScale, other.currentSystScale);
 }
 AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
   AK4JetObject tmp(other);
@@ -60,26 +60,26 @@ float AK4JetObject::getBtagValue() const{
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  LorentzVector_t res=momentum;
+  float scale=1;
   switch (syst){
   case eJECDn:
-    res = res * extras.JECDn * extras.JERNominal;
+    scale = extras.JECDn * extras.JERNominal;
     break;
   case eJECUp:
-    res = res * extras.JECUp * extras.JERNominal;
+    scale = extras.JECUp * extras.JERNominal;
     break;
   case eJERDn:
-    res = res * extras.JECNominal * extras.JERDn;
+    scale = extras.JECNominal * extras.JERDn;
     break;
   case eJERUp:
-    res = res * extras.JECNominal * extras.JERUp;
+    scale = extras.JECNominal * extras.JERUp;
     break;
   case sUncorrected:
     break;
   default:
-    res = res * extras.JECNominal * extras.JERNominal;
+    scale = extras.JECNominal * extras.JERNominal;
     break;
   }
-
-  momentum=res;
+  momentum = momentum * (scale/currentSystScale);
+  currentSystScale = scale;
 }

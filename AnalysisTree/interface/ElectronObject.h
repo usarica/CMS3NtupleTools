@@ -55,6 +55,7 @@ public:
 class ElectronObject : public ParticleObject{
 public:
   ElectronVariables extras;
+  float currentSystScale;
 
   ElectronObject();
   ElectronObject(int id_);

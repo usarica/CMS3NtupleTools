@@ -26,25 +26,30 @@ MuonVariables& MuonVariables::operator=(const MuonVariables& other){
 
 MuonObject::MuonObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 MuonObject::MuonObject(int id_) :
   ParticleObject(id_),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 MuonObject::MuonObject(int id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
-  extras()
+  extras(),
+  currentSystScale(1)
 {}
 MuonObject::MuonObject(const MuonObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  currentSystScale(other.currentSystScale)
 {}
 void MuonObject::swap(MuonObject& other){
   std::swap(id, other.id);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
   extras.swap(other.extras);
+  std::swap(currentSystScale, other.currentSystScale);
 }
 MuonObject& MuonObject::operator=(const MuonObject& other){
   MuonObject tmp(other);
@@ -56,7 +61,6 @@ MuonObject::~MuonObject(){}
 void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  LorentzVector_t res=momentum;
   float scale=1;
   switch (syst){
   case eEleScaleDn:
@@ -77,7 +81,6 @@ void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes 
     scale = extras.scale_smear_pt_corr;
     break;
   }
-  res = PolarLorentzVector_t(momentum.Pt() * scale, momentum.Eta(), momentum.Phi(), momentum.M());
-
-  momentum=res;
+  momentum = PolarLorentzVector_t(momentum.Pt() * scale/currentSystScale, momentum.Eta(), momentum.Phi(), momentum.M());
+  currentSystScale = scale;
 }
