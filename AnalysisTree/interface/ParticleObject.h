@@ -21,6 +21,11 @@ public:
   unsigned long long selectionBits;
   LorentzVector_t momentum;
 
+protected:
+  std::vector<ParticleObject*> mothers;
+  std::vector<ParticleObject*> daughters;
+
+public:
   ParticleObject();
   ParticleObject(int id_);
   ParticleObject(int id_, LorentzVector_t const& mom_);
@@ -41,7 +46,7 @@ public:
 
   LorentzVector_t const& p4() const{ return momentum; }
   LorentzVector_t& p4(){ return momentum; }
-  virtual void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&) = 0;
+  virtual void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&){}
 
   unsigned long long const& getSelectionBits() const{ return selectionBits; }
   unsigned long long& getSelectionBits(){ return selectionBits; }
@@ -70,6 +75,20 @@ public:
 
   Vector3D_t vect() const{ return Vector3D_t(momentum.X(), momentum.Y(), momentum.Z()); }
   Vector2D_t vect_trans() const{ return Vector2D_t(momentum.X(), momentum.Y()); }
+
+  void addMother(ParticleObject* part);
+  void addDaughter(ParticleObject* part);
+  int getNMothers() const{ return mothers.size(); };
+  int getNDaughters() const{ return daughters.size(); };
+  std::vector<ParticleObject*>& getMothers(){ return mothers; }
+  std::vector<ParticleObject*>& getDaughters(){ return daughters; }
+  std::vector<ParticleObject*> const& getMothers()const{ return mothers; }
+  std::vector<ParticleObject*> const& getDaughters()const{ return daughters; }
+  bool hasMother(ParticleObject* part) const;
+  bool hasDaughter(ParticleObject* part) const;
+
+  static bool checkParticleExists(ParticleObject*, const std::vector<ParticleObject*>&);
+  static bool checkDeepDaughtership(ParticleObject const* part1, ParticleObject const* part2);
 
 };
 

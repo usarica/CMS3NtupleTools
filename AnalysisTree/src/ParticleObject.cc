@@ -48,3 +48,21 @@ float ParticleObject::deltaPhi(float phi_) const{
   else if (dPhi<-TMath::Pi()) dPhi = 2.*TMath::Pi() + dPhi;
   return dPhi;
 }
+
+bool ParticleObject::checkParticleExists(ParticleObject* myParticle, std::vector<ParticleObject*> const& particleArray){ return HelperFunctions::checkListVariable(particleArray, myParticle); }
+bool ParticleObject::checkDeepDaughtership(ParticleObject const* part1, ParticleObject const* part2){
+  bool res = false;
+  if (!part1 || !part2) return res;
+  std::vector<ParticleObject*> const& daughters1 = part1->getDaughters();
+  std::vector<ParticleObject*> const& daughters2 = part2->getDaughters();
+  for (auto* d1:daughters1){
+    if (checkParticleExists(d1, daughters2)) return true;
+  }
+  return false;
+}
+
+void ParticleObject::addMother(ParticleObject* myParticle){ if (!checkParticleExists(myParticle, mothers)) mothers.push_back(myParticle); }
+void ParticleObject::addDaughter(ParticleObject* myParticle){ if (!checkParticleExists(myParticle, daughters)) daughters.push_back(myParticle); }
+
+bool ParticleObject::hasMother(ParticleObject* part) const{ return checkParticleExists(part, mothers); }
+bool ParticleObject::hasDaughter(ParticleObject* part) const{ return checkParticleExists(part, daughters); }

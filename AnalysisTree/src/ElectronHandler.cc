@@ -85,7 +85,7 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
 #undef ELECTRON_VARIABLE
     }
   }
-    // Sort particles
+  // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
   return true;
