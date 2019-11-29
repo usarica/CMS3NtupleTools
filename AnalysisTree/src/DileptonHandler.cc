@@ -15,6 +15,8 @@ bool DileptonHandler::constructDileptons(
   std::vector<MuonObject*> const* muons,
   std::vector<ElectronObject*> const* electrons
 ){
+  clear();
+
   bool res = (constructOSDileptons(muons, electrons) && constructSSDileptons(muons, electrons));
   // Sort particles here
   if (res) ParticleObjectHelpers::sortByGreaterPt(productList);
@@ -40,29 +42,31 @@ bool DileptonHandler::constructSSDileptons(
       lepMinusPlus[iFirst][iSecond].push_back(*it);
     }
   }
-  // OSSF
-  for (int c=0; c<2; c++){
-    for (ParticleObject* F1:lepMinusPlus[c][0]){
-      for (ParticleObject* F2:lepMinusPlus[c][1]){
-        if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
-        ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-        ParticleObject* V = new ParticleObject(23, pV);
-        V->addDaughter(F1);
-        V->addDaughter(F2);
-        productList.push_back(V);
+  for (int s=0; s<2; s++){
+    // OSSF
+    for (int c=0; c<2; c++){
+      for (ParticleObject* F1:lepMinusPlus[c][s]){
+        for (ParticleObject* F2:lepMinusPlus[c][s]){
+          if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
+          ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
+          ParticleObject* V = new ParticleObject(23, pV);
+          V->addDaughter(F1);
+          V->addDaughter(F2);
+          productList.push_back(V);
+        }
       }
     }
-  }
-  // OSDF
-  for (int c=0; c<2; c++){
-    for (ParticleObject* F1:lepMinusPlus[c][0]){
-      for (ParticleObject* F2:lepMinusPlus[1-c][1]){
-        if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
-        ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-        ParticleObject* V = new ParticleObject(0, pV);
-        V->addDaughter(F1);
-        V->addDaughter(F2);
-        productList.push_back(V);
+    // OSDF
+    for (int c=0; c<2; c++){
+      for (ParticleObject* F1:lepMinusPlus[c][s]){
+        for (ParticleObject* F2:lepMinusPlus[1-c][s]){
+          if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
+          ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
+          ParticleObject* V = new ParticleObject(0, pV);
+          V->addDaughter(F1);
+          V->addDaughter(F2);
+          productList.push_back(V);
+        }
       }
     }
   }

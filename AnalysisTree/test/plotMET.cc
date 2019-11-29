@@ -38,6 +38,8 @@ void plotMET(){
   jetHandler.bookBranches(&sample_tree);
   jetHandler.wrapTree(&sample_tree);
 
+  DileptonHandler dileptonHandler;
+
   MELAout << "Completed getting the handles..." << endl;
 
   const int nevents = sample_tree.getSelectedNEvents();
@@ -52,6 +54,15 @@ void plotMET(){
     METObject* pfpuppimet = jetHandler.getPFPUPPIMET();
     METObject* pfchsmet = jetHandler.getPFCHSMET();
     MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
+
+    auto const& muons = muonHandler.getProducts();
+    auto const& electrons = electronHandler.getProducts();
+
+    dileptonHandler.constructDileptons(&muons, &electrons);
+    auto const& dileptons = dileptonHandler.getProducts();
+    MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
+    for (auto const& dilepton:dileptons) MELAout << dilepton->pt() << " ";
+    MELAout << endl;
   }
 
 }

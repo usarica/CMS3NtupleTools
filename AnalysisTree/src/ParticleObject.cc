@@ -51,8 +51,8 @@ float ParticleObject::deltaPhi(float phi_) const{
 
 bool ParticleObject::checkParticleExists(ParticleObject* myParticle, std::vector<ParticleObject*> const& particleArray){ return HelperFunctions::checkListVariable(particleArray, myParticle); }
 bool ParticleObject::checkDeepDaughtership(ParticleObject const* part1, ParticleObject const* part2){
-  bool res = false;
-  if (!part1 || !part2) return res;
+  if (!part1 || !part2) return false;
+  if (part1 == part2) return true;
   std::vector<ParticleObject*> const& daughters1 = part1->getDaughters();
   std::vector<ParticleObject*> const& daughters2 = part2->getDaughters();
   for (auto* d1:daughters1){

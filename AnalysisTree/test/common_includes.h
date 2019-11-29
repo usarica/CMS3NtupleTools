@@ -3,6 +3,7 @@
 #include "PhotonHandler.h"
 #include "JetMETHandler.h"
 #include "GenInfoHandler.h"
+#include "DileptonHandler.h"
 
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
