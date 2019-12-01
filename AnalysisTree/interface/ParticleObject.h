@@ -40,6 +40,7 @@ public:
   void resetSelectionBits(){ selectionBits=0; }
   void setSelectionBit(unsigned int ibit);
   bool testSelection(unsigned int ibit) const;
+  bool testSelectionBit(unsigned int ibit) const{ return this->testSelection(ibit); }
 
   int const& pdgId() const{ return id; }
   int& pdgId(){ return id; }

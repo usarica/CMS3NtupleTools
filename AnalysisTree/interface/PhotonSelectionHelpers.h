@@ -25,22 +25,27 @@ namespace PhotonSelectionHelpers{
 
   enum SelectionBits{
     kGenPtEta,
-    kVetoID,
-    kVetoIDIso,
-    kLooseID,
-    kLooseIDIso,
-    kMediumID,
-    kMediumIDIso,
-    kTightID,
-    kTightIDIso,
 
-    kSkimPtEta,
+    kVetoId,
+    kVetoIso,
+    kVetoKin,
+    kLooseId,
+    kLooseIso,
+    kLooseKin,
+    kMediumId,
+    kMediumIso,
+    kMediumKin,
+    kTightId,
+    kTightIso,
+    kTightKin,
+
     kPreselection,
 
     nSelectionBits
   };
-  const SelectionBits bit_preselection_idiso = kTightID;
-  const SelectionBits bit_preselection_idisoreco = kTightIDIso;
+  const SelectionBits bit_preselection_id = kTightId;
+  const SelectionBits bit_preselection_iso = kTightIso;
+  const SelectionBits bit_preselection_kin = kTightKin;
 
   float absPFIso_DR0p3(PhotonObject const& part);
   float relPFIso_DR0p3(PhotonObject const& part);
@@ -48,18 +53,21 @@ namespace PhotonSelectionHelpers{
   bool testPtEtaGen(PhotonObject const& part);
 
   bool testVetoId(PhotonObject const& part);
-  bool testVetoIdIso(PhotonObject const& part);
+  bool testVetoIso(PhotonObject const& part);
+  bool testVetoKin(PhotonObject const& part);
 
   bool testLooseId(PhotonObject const& part);
-  bool testLooseIdIso(PhotonObject const& part);
+  bool testLooseIso(PhotonObject const& part);
+  bool testLooseKin(PhotonObject const& part);
 
   bool testMediumId(PhotonObject const& part);
-  bool testMediumIdIso(PhotonObject const& part);
+  bool testMediumIso(PhotonObject const& part);
+  bool testMediumKin(PhotonObject const& part);
 
   bool testTightId(PhotonObject const& part);
-  bool testTightIdIso(PhotonObject const& part);
+  bool testTightIso(PhotonObject const& part);
+  bool testTightKin(PhotonObject const& part);
 
-  bool testPtEtaSkim(PhotonObject const& part);
   bool testPreselection(PhotonObject const& part);
 
   void setSelectionBits(PhotonObject& part);

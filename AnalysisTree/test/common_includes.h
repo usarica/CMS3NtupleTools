@@ -5,9 +5,12 @@
 #include "GenInfoHandler.h"
 #include "DileptonHandler.h"
 
+#include "ParticleSelectionHelpers.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
 #include "PhotonSelectionHelpers.h"
+#include "AK4JetSelectionHelpers.h"
+#include "AK8JetSelectionHelpers.h"
 
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"

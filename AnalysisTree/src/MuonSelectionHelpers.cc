@@ -42,52 +42,62 @@ bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
   return true;
 }
 
-
-#define ID_PASS_VETO CutBasedIdLoose
-#define ID_PASS_LOOSE CutBasedIdLoose
-#define ID_PASS_MEDIUM CutBasedIdMedium
-#define ID_PASS_TIGHT CutBasedIdTight
-
-bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_VETO) == Muon::ID_PASS_VETO);
-}
-bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_LOOSE) == Muon::ID_PASS_LOOSE);
-}
-bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_MEDIUM) == Muon::ID_PASS_MEDIUM);
-}
-bool MuonSelectionHelpers::testTightId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_TIGHT) == Muon::ID_PASS_TIGHT);
-}
-
+#define Id_PASS_VETO CutBasedIdLoose
+#define Id_PASS_LOOSE CutBasedIdLoose
+#define Id_PASS_MEDIUM CutBasedIdMedium
+#define Id_PASS_TIGHT CutBasedIdTight
 #define ISO_FCN MuonSelectionHelpers::relPFIso_DR0p3
 
-bool MuonSelectionHelpers::testVetoIdIso(MuonObject const& part){
-  return (testVetoId(part) && ISO_FCN(part)<isoThr_veto && testMuonSystemTime(part));
+bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
+  return ((part.extras.POG_selector_bits & Muon::Id_PASS_VETO) == Muon::Id_PASS_VETO);
 }
-bool MuonSelectionHelpers::testLooseIdIso(MuonObject const& part){
-  return (testLooseId(part) && ISO_FCN(part)<isoThr_loose && testMuonSystemTime(part));
+bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
+  return ((part.extras.POG_selector_bits & Muon::Id_PASS_LOOSE) == Muon::Id_PASS_LOOSE);
 }
-bool MuonSelectionHelpers::testMediumIdIso(MuonObject const& part){
-  return (testMediumId(part) && ISO_FCN(part)<isoThr_medium && testMuonSystemTime(part));
+bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
+  return ((part.extras.POG_selector_bits & Muon::Id_PASS_MEDIUM) == Muon::Id_PASS_MEDIUM);
 }
-bool MuonSelectionHelpers::testTightIdIso(MuonObject const& part){
-  return (testTightId(part) && ISO_FCN(part)<isoThr_tight && testMuonSystemTime(part));
+bool MuonSelectionHelpers::testTightId(MuonObject const& part){
+  return ((part.extras.POG_selector_bits & Muon::Id_PASS_TIGHT) == Muon::Id_PASS_TIGHT);
 }
 
+bool MuonSelectionHelpers::testVetoIso(MuonObject const& part){
+  return (ISO_FCN(part)<isoThr_veto);
+}
+bool MuonSelectionHelpers::testLooseIso(MuonObject const& part){
+  return (ISO_FCN(part)<isoThr_loose);
+}
+bool MuonSelectionHelpers::testMediumIso(MuonObject const& part){
+  return (ISO_FCN(part)<isoThr_medium);
+}
+bool MuonSelectionHelpers::testTightIso(MuonObject const& part){
+  return (ISO_FCN(part)<isoThr_tight);
+}
 
-#ifdef ID_PASS_VETO
-#undef ID_PASS_VETO
+bool MuonSelectionHelpers::testVetoKin(MuonObject const& part){
+  return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+}
+bool MuonSelectionHelpers::testLooseKin(MuonObject const& part){
+  return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+}
+bool MuonSelectionHelpers::testMediumKin(MuonObject const& part){
+  return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
+}
+bool MuonSelectionHelpers::testTightKin(MuonObject const& part){
+  return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+}
+
+#ifdef Id_PASS_VETO
+#undef Id_PASS_VETO
 #endif
-#ifdef ID_PASS_LOOSE
-#undef ID_PASS_LOOSE
+#ifdef Id_PASS_LOOSE
+#undef Id_PASS_LOOSE
 #endif
-#ifdef ID_PASS_MEDIUM
-#undef ID_PASS_MEDIUM
+#ifdef Id_PASS_MEDIUM
+#undef Id_PASS_MEDIUM
 #endif
-#ifdef ID_PASS_TIGHT
-#undef ID_PASS_TIGHT
+#ifdef Id_PASS_TIGHT
+#undef Id_PASS_TIGHT
 #endif
 #ifdef ISO_FCN
 #undef ISO_FCN
@@ -96,25 +106,37 @@ bool MuonSelectionHelpers::testTightIdIso(MuonObject const& part){
 bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
 }
-bool MuonSelectionHelpers::testPtEtaSkim(MuonObject const& part){
-  // pT and eta skim cut
-  if (testTightIdIso(part)) return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
-  else if (testMediumIdIso(part)) return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
-  else if (testLooseIdIso(part)) return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
-  else if (testVetoIdIso(part)) return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
-  else return false;
-}
 bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
   return (
     (
-    (bit_preselection_idisoreco == kVetoIDIso && testVetoIdIso(part))
+    (bit_preselection_iso == kVetoIso && testVetoIso(part))
       ||
-      (bit_preselection_idisoreco == kLooseIDIso && testLooseIdIso(part))
+      (bit_preselection_iso == kLooseIso && testLooseIso(part))
       ||
-      (bit_preselection_idisoreco == kMediumIDIso && testMediumIdIso(part))
+      (bit_preselection_iso == kMediumIso && testMediumIso(part))
       ||
-      (bit_preselection_idisoreco == kTightIDIso && testTightIdIso(part))
-      ) && testPtEtaSkim(part)
+      (bit_preselection_iso == kTightIso && testTightIso(part))
+      )
+    &&
+    (
+    (bit_preselection_id == kVetoId && testVetoId(part))
+      ||
+      (bit_preselection_id == kLooseId && testLooseId(part))
+      ||
+      (bit_preselection_id == kMediumId && testMediumId(part))
+      ||
+      (bit_preselection_id == kTightId && testTightId(part))
+      )
+    &&
+    (
+    (bit_preselection_kin == kVetoKin && testVetoKin(part))
+      ||
+      (bit_preselection_kin == kLooseKin && testLooseKin(part))
+      ||
+      (bit_preselection_kin == kMediumKin && testMediumKin(part))
+      ||
+      (bit_preselection_kin == kTightKin && testTightKin(part))
+      )
     );
 }
 void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
@@ -124,14 +146,21 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
 
   if (testMuonSystemTime(part)) part.setSelectionBit(kValidMuonSystemTime);
 
-  if (testVetoId(part)) part.setSelectionBit(kVetoID);
-  if (testVetoIdIso(part)) part.setSelectionBit(kVetoIDIso);
-  if (testLooseId(part)) part.setSelectionBit(kLooseID);
-  if (testLooseIdIso(part)) part.setSelectionBit(kLooseIDIso);
-  if (testMediumId(part)) part.setSelectionBit(kMediumID);
-  if (testMediumIdIso(part)) part.setSelectionBit(kMediumIDIso);
-  if (testTightId(part)) part.setSelectionBit(kTightID);
-  if (testTightIdIso(part)) part.setSelectionBit(kTightIDIso);
-  if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
+  if (testVetoId(part)) part.setSelectionBit(kVetoId);
+  if (testVetoIso(part)) part.setSelectionBit(kVetoIso);
+  if (testVetoKin(part)) part.setSelectionBit(kVetoKin);
+
+  if (testLooseId(part)) part.setSelectionBit(kLooseId);
+  if (testLooseIso(part)) part.setSelectionBit(kLooseIso);
+  if (testLooseKin(part)) part.setSelectionBit(kLooseKin);
+
+  if (testMediumId(part)) part.setSelectionBit(kMediumId);
+  if (testMediumIso(part)) part.setSelectionBit(kMediumIso);
+  if (testMediumKin(part)) part.setSelectionBit(kMediumKin);
+
+  if (testTightId(part)) part.setSelectionBit(kTightId);
+  if (testTightIso(part)) part.setSelectionBit(kTightIso);
+  if (testTightKin(part)) part.setSelectionBit(kTightKin);
+
   if (testPreselection(part)) part.setSelectionBit(kPreselection);
 }

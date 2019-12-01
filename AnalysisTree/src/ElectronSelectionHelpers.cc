@@ -36,19 +36,31 @@ bool ElectronSelectionHelpers::testTightId(ElectronObject const& part){
 
 #define ISO_FCN ElectronSelectionHelpers::relPFIso_DR0p3
 
-bool ElectronSelectionHelpers::testVetoIdIso(ElectronObject const& part){
-  return (testVetoId(part) && ISO_FCN(part)<isoThr_veto);
+bool ElectronSelectionHelpers::testVetoIso(ElectronObject const& part){
+  return (ISO_FCN(part)<isoThr_veto);
 }
-bool ElectronSelectionHelpers::testLooseIdIso(ElectronObject const& part){
-  return (testLooseId(part) && ISO_FCN(part)<isoThr_loose);
+bool ElectronSelectionHelpers::testLooseIso(ElectronObject const& part){
+  return (ISO_FCN(part)<isoThr_loose);
 }
-bool ElectronSelectionHelpers::testMediumIdIso(ElectronObject const& part){
-  return (testMediumId(part) && ISO_FCN(part)<isoThr_medium);
+bool ElectronSelectionHelpers::testMediumIso(ElectronObject const& part){
+  return (ISO_FCN(part)<isoThr_medium);
 }
-bool ElectronSelectionHelpers::testTightIdIso(ElectronObject const& part){
-  return (testTightId(part) && ISO_FCN(part)<isoThr_tight);
+bool ElectronSelectionHelpers::testTightIso(ElectronObject const& part){
+  return (ISO_FCN(part)<isoThr_tight);
 }
 
+bool ElectronSelectionHelpers::testVetoKin(ElectronObject const& part){
+  return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+}
+bool ElectronSelectionHelpers::testLooseKin(ElectronObject const& part){
+  return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+}
+bool ElectronSelectionHelpers::testMediumKin(ElectronObject const& part){
+  return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
+}
+bool ElectronSelectionHelpers::testTightKin(ElectronObject const& part){
+  return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+}
 
 #ifdef ID_PASS_VETO
 #undef ID_PASS_VETO
@@ -69,39 +81,59 @@ bool ElectronSelectionHelpers::testTightIdIso(ElectronObject const& part){
 bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
 }
-bool ElectronSelectionHelpers::testPtEtaSkim(ElectronObject const& part){
-  // pT and eta skim cut
-  if (testTightIdIso(part)) return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
-  else if (testMediumIdIso(part)) return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
-  else if (testLooseIdIso(part)) return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
-  else if (testVetoIdIso(part)) return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
-  else return false;
-}
 bool ElectronSelectionHelpers::testPreselection(ElectronObject const& part){
   return (
     (
-    (bit_preselection_idisoreco == kVetoIDIso && testVetoIdIso(part))
+    (bit_preselection_iso == kVetoIso && testVetoIso(part))
       ||
-      (bit_preselection_idisoreco == kLooseIDIso && testLooseIdIso(part))
+      (bit_preselection_iso == kLooseIso && testLooseIso(part))
       ||
-      (bit_preselection_idisoreco == kMediumIDIso && testMediumIdIso(part))
+      (bit_preselection_iso == kMediumIso && testMediumIso(part))
       ||
-      (bit_preselection_idisoreco == kTightIDIso && testTightIdIso(part))
-      ) && testPtEtaSkim(part)
+      (bit_preselection_iso == kTightIso && testTightIso(part))
+      )
+    &&
+    (
+    (bit_preselection_id == kVetoId && testVetoId(part))
+      ||
+      (bit_preselection_id == kLooseId && testLooseId(part))
+      ||
+      (bit_preselection_id == kMediumId && testMediumId(part))
+      ||
+      (bit_preselection_id == kTightId && testTightId(part))
+      )
+    &&
+    (
+    (bit_preselection_kin == kVetoKin && testVetoKin(part))
+      ||
+      (bit_preselection_kin == kLooseKin && testLooseKin(part))
+      ||
+      (bit_preselection_kin == kMediumKin && testMediumKin(part))
+      ||
+      (bit_preselection_kin == kTightKin && testTightKin(part))
+      )
     );
 }
 void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
-  if (testVetoId(part)) part.setSelectionBit(kVetoID);
-  if (testVetoIdIso(part)) part.setSelectionBit(kVetoIDIso);
-  if (testLooseId(part)) part.setSelectionBit(kLooseID);
-  if (testLooseIdIso(part)) part.setSelectionBit(kLooseIDIso);
-  if (testMediumId(part)) part.setSelectionBit(kMediumID);
-  if (testMediumIdIso(part)) part.setSelectionBit(kMediumIDIso);
-  if (testTightId(part)) part.setSelectionBit(kTightID);
-  if (testTightIdIso(part)) part.setSelectionBit(kTightIDIso);
-  if (testPtEtaSkim(part)) part.setSelectionBit(kSkimPtEta);
+
+  if (testVetoId(part)) part.setSelectionBit(kVetoId);
+  if (testVetoIso(part)) part.setSelectionBit(kVetoIso);
+  if (testVetoKin(part)) part.setSelectionBit(kVetoKin);
+
+  if (testLooseId(part)) part.setSelectionBit(kLooseId);
+  if (testLooseIso(part)) part.setSelectionBit(kLooseIso);
+  if (testLooseKin(part)) part.setSelectionBit(kLooseKin);
+
+  if (testMediumId(part)) part.setSelectionBit(kMediumId);
+  if (testMediumIso(part)) part.setSelectionBit(kMediumIso);
+  if (testMediumKin(part)) part.setSelectionBit(kMediumKin);
+
+  if (testTightId(part)) part.setSelectionBit(kTightId);
+  if (testTightIso(part)) part.setSelectionBit(kTightIso);
+  if (testTightKin(part)) part.setSelectionBit(kTightKin);
+
   if (testPreselection(part)) part.setSelectionBit(kPreselection);
 }

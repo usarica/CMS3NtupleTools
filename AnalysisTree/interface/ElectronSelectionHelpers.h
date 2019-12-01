@@ -25,22 +25,27 @@ namespace ElectronSelectionHelpers{
 
   enum SelectionBits{
     kGenPtEta,
-    kVetoID,
-    kVetoIDIso,
-    kLooseID,
-    kLooseIDIso,
-    kMediumID,
-    kMediumIDIso,
-    kTightID,
-    kTightIDIso,
 
-    kSkimPtEta,
+    kVetoId,
+    kVetoIso,
+    kVetoKin,
+    kLooseId,
+    kLooseIso,
+    kLooseKin,
+    kMediumId,
+    kMediumIso,
+    kMediumKin,
+    kTightId,
+    kTightIso,
+    kTightKin,
+
     kPreselection,
 
     nSelectionBits
   };
-  const SelectionBits bit_preselection_idiso = kTightID;
-  const SelectionBits bit_preselection_idisoreco = kTightIDIso;
+  const SelectionBits bit_preselection_id = kTightId;
+  const SelectionBits bit_preselection_iso = kTightIso;
+  const SelectionBits bit_preselection_kin = kTightKin;
 
   float absMiniIso_DR0p3(ElectronObject const& part);
   float relMiniIso_DR0p3(ElectronObject const& part);
@@ -54,18 +59,21 @@ namespace ElectronSelectionHelpers{
   bool testPtEtaGen(ElectronObject const& part);
 
   bool testVetoId(ElectronObject const& part);
-  bool testVetoIdIso(ElectronObject const& part);
+  bool testVetoIso(ElectronObject const& part);
+  bool testVetoKin(ElectronObject const& part);
 
   bool testLooseId(ElectronObject const& part);
-  bool testLooseIdIso(ElectronObject const& part);
+  bool testLooseIso(ElectronObject const& part);
+  bool testLooseKin(ElectronObject const& part);
 
   bool testMediumId(ElectronObject const& part);
-  bool testMediumIdIso(ElectronObject const& part);
+  bool testMediumIso(ElectronObject const& part);
+  bool testMediumKin(ElectronObject const& part);
 
   bool testTightId(ElectronObject const& part);
-  bool testTightIdIso(ElectronObject const& part);
+  bool testTightIso(ElectronObject const& part);
+  bool testTightKin(ElectronObject const& part);
 
-  bool testPtEtaSkim(ElectronObject const& part);
   bool testPreselection(ElectronObject const& part);
 
   void setSelectionBits(ElectronObject& part);

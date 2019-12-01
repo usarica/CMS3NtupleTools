@@ -27,22 +27,27 @@ namespace MuonSelectionHelpers{
 
     kValidMuonSystemTime,
 
-    kVetoID,
-    kVetoIDIso,
-    kLooseID,
-    kLooseIDIso,
-    kMediumID,
-    kMediumIDIso,
-    kTightID,
-    kTightIDIso,
+    kVetoId,
+    kVetoIso,
+    kVetoKin,
+    kLooseId,
+    kLooseIso,
+    kLooseKin,
+    kMediumId,
+    kMediumIso,
+    kMediumKin,
+    kTightId,
+    kTightIso,
+    kTightKin,
 
-    kSkimPtEta,
     kPreselection,
 
     nSelectionBits
   };
-  const SelectionBits bit_preselection_idiso = kTightID;
-  const SelectionBits bit_preselection_idisoreco = kTightIDIso;
+  const SelectionBits bit_preselection_id = kTightId;
+  const SelectionBits bit_preselection_iso = kTightIso;
+  const SelectionBits bit_preselection_kin = kTightKin;
+  const SelectionBits bit_preselection_time = kValidMuonSystemTime;
 
   float absMiniIso_DR0p3(MuonObject const& part);
   float relMiniIso_DR0p3(MuonObject const& part);
@@ -58,18 +63,21 @@ namespace MuonSelectionHelpers{
   bool testMuonSystemTime(MuonObject const& part);
 
   bool testVetoId(MuonObject const& part);
-  bool testVetoIdIso(MuonObject const& part);
+  bool testVetoIso(MuonObject const& part);
+  bool testVetoKin(MuonObject const& part);
 
   bool testLooseId(MuonObject const& part);
-  bool testLooseIdIso(MuonObject const& part);
+  bool testLooseIso(MuonObject const& part);
+  bool testLooseKin(MuonObject const& part);
 
   bool testMediumId(MuonObject const& part);
-  bool testMediumIdIso(MuonObject const& part);
+  bool testMediumIso(MuonObject const& part);
+  bool testMediumKin(MuonObject const& part);
 
   bool testTightId(MuonObject const& part);
-  bool testTightIdIso(MuonObject const& part);
+  bool testTightIso(MuonObject const& part);
+  bool testTightKin(MuonObject const& part);
 
-  bool testPtEtaSkim(MuonObject const& part);
   bool testPreselection(MuonObject const& part);
 
   void setSelectionBits(MuonObject& part);
