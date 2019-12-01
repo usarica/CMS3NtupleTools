@@ -1,7 +1,9 @@
 #include <cassert>
 #include "ParticleObjectHelpers.h"
 #include "JetMETHandler.h"
-//#include "MuonSelectionHelpers.h"
+#include "AK4JetSelectionHelpers.h"
+#include "AK8JetSelectionHelpers.h"
+#include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -56,44 +58,34 @@ void JetMETHandler::clear(){
   delete pfpuppimet; pfpuppimet=nullptr;
 }
 
-bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
   clear();
+  if (!currentTree) return false;
+
+  bool res = (constructAK4Jets(syst) && constructAK8Jets(syst) && constructMET(syst));
+  res &= applyJetCleaning(muons, electrons, photons);
+
+  return res;
+}
+
+bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
   if (!currentTree) return false;
 
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak4jets_##NAME, itEnd_ak4jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
 #undef AK4JET_VARIABLE
-#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak8jets_##NAME, itEnd_ak8jets_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
-#undef AK8JET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfchsmet_##NAME = DEFVAL;
-  MET_RECORDED_VARIABLES;
-#undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfpuppimet_##NAME = DEFVAL;
-  MET_RECORDED_VARIABLES;
-#undef MET_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak4jets + "_" + #NAME, &itBegin_ak4jets_##NAME, &itEnd_ak4jets_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
 #undef AK4JET_VARIABLE
-#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak8jets + "_" + #NAME, &itBegin_ak8jets_##NAME, &itEnd_ak8jets_##NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
-#undef AK8JET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, pfchsmet_##NAME);
-  MET_RECORDED_VARIABLES;
-#undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
-  MET_RECORDED_VARIABLES;
-#undef MET_VARIABLE
-
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructProducts: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK4Jets: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructProducts: All variables are set up!" << endl;
+  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: All variables are set up!" << endl;
 
   /************/
   /* ak4 jets */
@@ -106,7 +98,7 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   {
     size_t ip=0;
     while (it_ak4jets_pt != itEnd_ak4jets_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructProducts: Attempting ak4 jet " << ip << "..." << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK4Jets: Attempting ak4 jet " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_ak4jets_pt, *it_ak4jets_eta, *it_ak4jets_phi, *it_ak4jets_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -122,7 +114,7 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
       obj->makeFinalMomentum(syst);
 
       // Set the selection bits
-      //AK4JetSelectionHelpers::setSelectionBits(*obj);
+      AK4JetSelectionHelpers::setSelectionBits(*obj);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
@@ -135,6 +127,28 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(ak4jets);
 
+  return true;
+}
+bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (!currentTree) return false;
+
+#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak8jets_##NAME, itEnd_ak8jets_##NAME;
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
+#undef AK8JET_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak8jets + "_" + #NAME, &itBegin_ak8jets_##NAME, &itEnd_ak8jets_##NAME);
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
+#undef AK8JET_VARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructAK8Jets: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+
+  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: All variables are set up!" << endl;
+
   /************/
   /* ak8 jets */
   /************/
@@ -146,7 +160,7 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   {
     size_t ip=0;
     while (it_ak8jets_pt != itEnd_ak8jets_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructProducts: Attempting ak8 jet " << ip << "..." << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructAK8Jets: Attempting ak8 jet " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_ak8jets_pt, *it_ak8jets_eta, *it_ak8jets_phi, *it_ak8jets_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -162,7 +176,7 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
       obj->makeFinalMomentum(syst);
 
       // Set the selection bits
-      //AK8JetSelectionHelpers::setSelectionBits(*obj);
+      AK8JetSelectionHelpers::setSelectionBits(*obj);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
@@ -174,6 +188,34 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   }
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(ak8jets);
+
+  return true;
+}
+bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (!currentTree) return false;
+
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfchsmet_##NAME = DEFVAL;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfpuppimet_##NAME = DEFVAL;
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, pfchsmet_##NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
+  MET_RECORDED_VARIABLES;
+#undef MET_VARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::constructMET: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+
+  if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
   /*************/
   /* PFCHS MET */
@@ -207,6 +249,63 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
 
   return true;
 }
+
+bool JetMETHandler::applyJetCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
+  std::vector<AK4JetObject*> ak4jets_new; ak4jets_new.reserve(ak4jets.size());
+  for (auto*& jet:ak4jets){
+    bool doSkip=false;
+    if (muons){
+      for (auto const* part:*(muons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (electrons){
+      for (auto const* part:*(electrons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (photons){
+      for (auto const* part:*(photons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) ak4jets_new.push_back(jet);
+    else delete jet;
+  }
+  ak4jets = ak4jets_new;
+
+  std::vector<AK8JetObject*> ak8jets_new; ak8jets_new.reserve(ak8jets.size());
+  for (auto*& jet:ak8jets){
+    bool doSkip=false;
+    if (muons){
+      for (auto const* part:*(muons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (electrons){
+      for (auto const* part:*(electrons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (photons){
+      for (auto const* part:*(photons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) ak8jets_new.push_back(jet);
+    else delete jet;
+  }
+  ak8jets = ak8jets_new;
+
+  return true;
+}
+
 
 void JetMETHandler::bookBranches(BaseTree* tree){
   if (!tree) return;

@@ -4,6 +4,9 @@
 #include <vector>
 #include "IvyBase.h"
 #include "SystematicVariations.h"
+#include "MuonObject.h"
+#include "ElectronObject.h"
+#include "PhotonObject.h"
 #include "AK4JetObject.h"
 #include "AK8JetObject.h"
 #include "METObject.h"
@@ -24,6 +27,12 @@ protected:
 
   void clear();
 
+  bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructMET(SystematicsHelpers::SystematicVariationTypes const& syst);
+
+  bool applyJetCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+
 public:
   // Constructors
   JetMETHandler();
@@ -31,7 +40,7 @@ public:
   // Destructors
   ~JetMETHandler(){ clear(); }
 
-  bool constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
   std::vector<AK4JetObject*> const& getAK4Jets() const{ return ak4jets; }
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
