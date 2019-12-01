@@ -716,7 +716,11 @@ else:
 process.PFMETPuppiPath = cms.Path(process.pfmetpuppiMakerSeq) # Make as separate path
 
 # Isotracks
-process.isoTrackMakerSeq = cms.Sequence( process.isoTrackMaker )
+if opts.is80x:
+   process.isoTrackMakerSeq = cms.Sequence( process.isoTrackMaker )
+else:
+   process.isoTrackMakerSeq = None
+
 
 
 ###################
@@ -772,13 +776,14 @@ for ip,producer in enumerate(producers):
       continue
 
    if producer == process.isoTrackMaker:
-      total_path *= process.isoTrackMakerSeq
+      if not opts.is80x:
+         total_path *= process.isoTrackMakerSeq
       continue
 
-   if not (opts.fastsim and opts.is80x):
-      if producer == process.metFilterMaker:
+   if producer == process.metFilterMaker:
+      if not (opts.fastsim and opts.is80x):
          total_path *= process.metFilterMakerSeq
-         continue
+      continue
 
    if producer == process.pfmetMaker:
       total_path *= process.pfmetMakerSeq
@@ -788,10 +793,10 @@ for ip,producer in enumerate(producers):
       total_path *= process.pfmetpuppiMakerSeq
       continue
 
-   if not opts.data:
-      if producer == process.genMaker:
+   if producer == process.genMaker:
+      if not opts.data:
          total_path *= process.genMakerSeq
-         continue
+      continue
 
    if producer == process.electronMaker:
       total_path *= process.egammaMakerSeq
@@ -857,7 +862,7 @@ if opts.dumpAllObjects:
       fileName     = cms.untracked.string(opts.output),
       dropMetaData = cms.untracked.string("ALL"),
       basketSize = cms.untracked.int32(16384*23)
-   )
+      )
    process.out.outputCommands = cms.untracked.vstring( 'drop *' )
    process.out.outputCommands.extend(cms.untracked.vstring('keep *_*Maker*_*_CMS3*'))
    process.outpath = cms.EndPath(process.out)
@@ -866,12 +871,12 @@ else:
    process.TFileService = cms.Service(
       'TFileService',
       fileName=cms.string(opts.output)
-   )
+      )
 
    process.load("CMS3.NtupleMaker.cms3Ntuplizer_cfi")
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
-   process.cms3ntuple.is80X = cms.bool((not opts.is80x))
+   process.cms3ntuple.is80X = cms.bool(opts.is80x)
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
    process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)
