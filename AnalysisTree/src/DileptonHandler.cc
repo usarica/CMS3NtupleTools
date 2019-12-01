@@ -20,6 +20,7 @@ bool DileptonHandler::constructDileptons(
   bool res = (constructOSDileptons(muons, electrons) && constructSSDileptons(muons, electrons));
   // Sort particles here
   if (res) ParticleObjectHelpers::sortByGreaterPt(productList);
+  setDileptonFlags();
   return res;
 }
 bool DileptonHandler::constructSSDileptons(
@@ -49,7 +50,7 @@ bool DileptonHandler::constructSSDileptons(
         for (ParticleObject* F2:lepMinusPlus[c][s]){
           if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
           ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-          ParticleObject* V = new ParticleObject(23, pV);
+          DileptonObject* V = new DileptonObject(23, pV);
           V->addDaughter(F1);
           V->addDaughter(F2);
           productList.push_back(V);
@@ -62,7 +63,7 @@ bool DileptonHandler::constructSSDileptons(
         for (ParticleObject* F2:lepMinusPlus[1-c][s]){
           if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
           ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-          ParticleObject* V = new ParticleObject(0, pV);
+          DileptonObject* V = new DileptonObject(0, pV);
           V->addDaughter(F1);
           V->addDaughter(F2);
           productList.push_back(V);
@@ -99,7 +100,7 @@ bool DileptonHandler::constructOSDileptons(
       for (ParticleObject* F2:lepMinusPlus[c][1]){
         if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
         ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-        ParticleObject* V = new ParticleObject(23, pV);
+        DileptonObject* V = new DileptonObject(23, pV);
         V->addDaughter(F1);
         V->addDaughter(F2);
         productList.push_back(V);
@@ -112,7 +113,7 @@ bool DileptonHandler::constructOSDileptons(
       for (ParticleObject* F2:lepMinusPlus[1-c][1]){
         if (ParticleObject::checkDeepDaughtership(F1, F2)) continue;
         ParticleObject::LorentzVector_t pV = F1->p4() + F2->p4();
-        ParticleObject* V = new ParticleObject(0, pV);
+        DileptonObject* V = new DileptonObject(0, pV);
         V->addDaughter(F1);
         V->addDaughter(F2);
         productList.push_back(V);

@@ -4,11 +4,12 @@
 #include <vector>
 #include "MuonObject.h"
 #include "ElectronObject.h"
+#include "DileptonObject.h"
 
 
 class DileptonHandler{
 protected:
-  std::vector<ParticleObject*> productList;
+  std::vector<DileptonObject*> productList;
 
   void clear(){ for (auto& prod:productList) delete prod; productList.clear(); }
 
@@ -20,6 +21,7 @@ protected:
     std::vector<MuonObject*> const* muons,
     std::vector<ElectronObject*> const* electrons
   );
+  void setDileptonFlags() const{ for (auto* prod:productList) prod->configure(); }
 
 public:
   DileptonHandler();
@@ -29,7 +31,7 @@ public:
     std::vector<MuonObject*> const* muons,
     std::vector<ElectronObject*> const* electrons
   );
-  std::vector<ParticleObject*> const& getProducts() const{ return productList; }
+  std::vector<DileptonObject*> const& getProducts() const{ return productList; }
 
 };
 

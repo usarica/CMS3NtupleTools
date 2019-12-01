@@ -49,14 +49,16 @@ void plotMET(){
     muonHandler.constructMuons(theGlobalSyst);
     electronHandler.constructElectrons(theGlobalSyst);
     photonHandler.constructPhotons(theGlobalSyst);
-    jetHandler.constructJetMET(theGlobalSyst);
+
+    auto const& muons = muonHandler.getProducts();
+    auto const& electrons = electronHandler.getProducts();
+    auto const& photons = photonHandler.getProducts();
+
+    jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
 
     METObject* pfpuppimet = jetHandler.getPFPUPPIMET();
     METObject* pfchsmet = jetHandler.getPFCHSMET();
     MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
-
-    auto const& muons = muonHandler.getProducts();
-    auto const& electrons = electronHandler.getProducts();
 
     dileptonHandler.constructDileptons(&muons, &electrons);
     auto const& dileptons = dileptonHandler.getProducts();
