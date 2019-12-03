@@ -193,7 +193,7 @@ void plotMET(){
 
         float gen_pTmiss = genmet.Pt();
 
-        float wgt = genInfo->extras.genHEPMCweight_default;
+        float wgt = genInfo->getGenWeight(true);
         {
           size_t ih=0;
           sample.hlist_1D.at(ih).Fill(mll, wgt);
