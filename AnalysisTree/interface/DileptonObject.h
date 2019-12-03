@@ -41,6 +41,9 @@ public:
   void configure();
 
   bool isValid() const{ return extras.isValid; }
+  bool isOS() const{ return extras.isOS; }
+  bool isSF() const{ return extras.isSF; }
+  unsigned char nTightDaughters() const{ return extras.nTightDaughters; }
 
 };
 

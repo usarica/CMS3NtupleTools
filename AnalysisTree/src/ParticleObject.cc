@@ -44,7 +44,7 @@ float ParticleObject::charge()const{
 }
 float ParticleObject::deltaPhi(float phi_) const{
   float dPhi = phi_-phi();
-  if (dPhi>TMath::Pi()) dPhi = 2.*TMath::Pi() - dPhi;
+  if (dPhi>TMath::Pi()) dPhi = -2.*TMath::Pi() + dPhi;
   else if (dPhi<-TMath::Pi()) dPhi = 2.*TMath::Pi() + dPhi;
   return dPhi;
 }
@@ -55,10 +55,7 @@ bool ParticleObject::checkDeepDaughtership(ParticleObject const* part1, Particle
   if (part1 == part2) return true;
   std::vector<ParticleObject*> const& daughters1 = part1->getDaughters();
   std::vector<ParticleObject*> const& daughters2 = part2->getDaughters();
-  for (auto* d1:daughters1){
-    if (checkParticleExists(d1, daughters2)) return true;
-  }
-  return false;
+  return HelperFunctions::hasCommonElements(daughters1, daughters2);
 }
 
 void ParticleObject::addMother(ParticleObject* myParticle){ if (!checkParticleExists(myParticle, mothers)) mothers.push_back(myParticle); }

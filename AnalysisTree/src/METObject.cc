@@ -51,28 +51,28 @@ void METObject::getPtPhi(float const*& pt, float const*& phi) const{
 
   switch (currentSyst){
   case eJECDn:
-    pt = &(extras.met_JECdn);
-    phi = &(extras.phi_JECdn);
+    pt = &(extras.met_JECDn);
+    phi = &(extras.metPhi_JECDn);
     break;
   case eJECUp:
-    pt = &(extras.met_JECup);
-    phi = &(extras.phi_JECup);
+    pt = &(extras.met_JECUp);
+    phi = &(extras.metPhi_JECUp);
     break;
   case eMETDn:
-    pt = &(extras.met_METdn);
-    phi = &(extras.phi_METdn);
+    pt = &(extras.met_METDn);
+    phi = &(extras.metPhi_METDn);
     break;
   case eMETUp:
-    pt = &(extras.met_METup);
-    phi = &(extras.phi_METup);
+    pt = &(extras.met_METUp);
+    phi = &(extras.metPhi_METUp);
     break;
   case sUncorrected:
     pt = &(extras.met_original);
-    phi = &(extras.phi_original);
+    phi = &(extras.metPhi_original);
     break;
   default:
     pt = &(extras.met_Nominal);
-    phi = &(extras.phi_Nominal);
+    phi = &(extras.metPhi_Nominal);
     break;
   }
 }
@@ -99,4 +99,10 @@ float METObject::py(float phi_rot) const{
   float const* phi=nullptr;
   getPtPhi(pt, phi);
   return (*pt) * std::sin((*phi) + phi_rot);
+}
+ParticleObject::LorentzVector_t METObject::p4(float phi_rot) const{
+  float const* pt=nullptr;
+  float const* phi=nullptr;
+  getPtPhi(pt, phi);
+  return ParticleObject::LorentzVector_t((*pt) * std::cos((*phi) + phi_rot), (*pt) * std::sin((*phi) + phi_rot), 0., *pt);
 }

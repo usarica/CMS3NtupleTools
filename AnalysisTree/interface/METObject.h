@@ -2,26 +2,27 @@
 #define METOBJECT_H
 
 #include "SystematicVariations.h"
+#include "ParticleObject.h"
 
 
 #define MET_RECORDED_VARIABLES \
 MET_VARIABLE(float, met_Nominal, 0) \
-MET_VARIABLE(float, phi_Nominal, 0) \
-MET_VARIABLE(float, met_JECup, 0) \
-MET_VARIABLE(float, phi_JECup, 0) \
-MET_VARIABLE(float, met_JECdn, 0) \
-MET_VARIABLE(float, phi_JECdn, 0) \
+MET_VARIABLE(float, metPhi_Nominal, 0) \
+MET_VARIABLE(float, met_JECUp, 0) \
+MET_VARIABLE(float, metPhi_JECUp, 0) \
+MET_VARIABLE(float, met_JECDn, 0) \
+MET_VARIABLE(float, metPhi_JECDn, 0) \
 MET_VARIABLE(float, metSignificance, 0)
 
 #define MET_EXTRA_PT_VARIABLES \
 MET_VARIABLE(float, met_original, 0) \
-MET_VARIABLE(float, met_METup, 0) \
-MET_VARIABLE(float, met_METdn, 0)
+MET_VARIABLE(float, met_METUp, 0) \
+MET_VARIABLE(float, met_METDn, 0)
 
 #define MET_EXTRA_PHI_VARIABLES \
-MET_VARIABLE(float, phi_original, 0) \
-MET_VARIABLE(float, phi_METup, 0) \
-MET_VARIABLE(float, phi_METdn, 0)
+MET_VARIABLE(float, metPhi_original, 0) \
+MET_VARIABLE(float, metPhi_METUp, 0) \
+MET_VARIABLE(float, metPhi_METDn, 0)
 
 #define MET_EXTRA_VARIABLES \
 MET_EXTRA_PT_VARIABLES \
@@ -69,6 +70,7 @@ public:
   float const& pt() const{ return met(); }
   float px(float phi_rot=0) const;
   float py(float phi_rot=0) const;
+  ParticleObject::LorentzVector_t p4(float phi_rot=0) const;
 
 };
 

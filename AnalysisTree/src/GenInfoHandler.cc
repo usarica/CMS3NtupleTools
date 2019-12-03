@@ -7,7 +7,9 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-GenInfoHandler::GenInfoHandler() : IvyBase()
+GenInfoHandler::GenInfoHandler() :
+  IvyBase(),
+  genInfo(nullptr)
 {
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME);
   GENINFO_VARIABLES;
@@ -23,7 +25,7 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
 
-    // Beyond this point starts checks and selection
+  // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(#NAME, NAME);
   GENINFO_VARIABLES;

@@ -83,6 +83,8 @@ public:
   int getNDaughters() const{ return daughters.size(); };
   ParticleObject* mother(size_t index) const{ return (index<mothers.size() ? mothers.at(index) : nullptr); }
   ParticleObject* daughter(size_t index) const{ return (index<daughters.size() ? daughters.at(index) : nullptr); }
+  ParticleObject* getMother(size_t index) const{ return this->mother(index); }
+  ParticleObject* getDaughter(size_t index) const{ return this->daughter(index); }
   std::vector<ParticleObject*>& getMothers(){ return mothers; }
   std::vector<ParticleObject*>& getDaughters(){ return daughters; }
   std::vector<ParticleObject*> const& getMothers()const{ return mothers; }

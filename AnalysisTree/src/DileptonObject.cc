@@ -62,7 +62,7 @@ void DileptonObject::configure(){
   int pdgIdMult = this->daughter(0)->pdgId() * this->daughter(1)->pdgId();
   unsigned int abs_pdgIdMult = std::abs(pdgIdMult);
 
-  this->extras.isOS = (pdgIdMult>0);
+  this->extras.isOS = (pdgIdMult<0);
   this->extras.isSF = (abs_pdgIdMult == 121 || abs_pdgIdMult == 169);
 
   if (isTightParticle(this->daughter(0))) this->extras.nTightDaughters++;
