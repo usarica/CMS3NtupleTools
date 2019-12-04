@@ -43,10 +43,7 @@ float ParticleObject::charge()const{
   return cpos;
 }
 float ParticleObject::deltaPhi(float phi_) const{
-  float dPhi = phi_-phi();
-  if (dPhi>TMath::Pi()) dPhi = -2.*TMath::Pi() + dPhi;
-  else if (dPhi<-TMath::Pi()) dPhi = 2.*TMath::Pi() + dPhi;
-  return dPhi;
+  return HelperFunctions::deltaPhi(phi(), phi_);
 }
 
 bool ParticleObject::checkParticleExists(ParticleObject* myParticle, std::vector<ParticleObject*> const& particleArray){ return HelperFunctions::checkListVariable(particleArray, myParticle); }
