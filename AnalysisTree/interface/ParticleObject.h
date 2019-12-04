@@ -53,26 +53,26 @@ public:
   unsigned long long& getSelectionBits(){ return selectionBits; }
 
   float charge() const;
-  float m() const{ return momentum.M(); }
-  float x() const{ return momentum.X(); }
-  float y() const{ return momentum.Y(); }
-  float z() const{ return momentum.Z(); }
-  float t() const{ return momentum.T(); }
-  float energy() const{ return this->t(); }
-  float p() const{ return momentum.P(); }
-  float pt() const{ return momentum.Pt(); }
-  float eta() const{ return momentum.Eta(); }
-  float phi() const{ return momentum.Phi(); }
-  float rapidity() const{ return momentum.Rapidity(); }
-  float dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
-  float dot(const LorentzVector_t& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
-  float dot(const ParticleObject& part) const{ return dot(part.momentum); }
-  float dot(const ParticleObject* part) const{ if (part!=0) return dot(*part); else return 0; }
-  float deltaR(const TLorentzVector& v) const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.DeltaR(v); }
-  float deltaR(const LorentzVector_t& v) const{ return reco::deltaR(momentum, v); }
-  float deltaR(const ParticleObject& part) const{ return deltaR(part.momentum); }
-  float deltaR(const ParticleObject* part) const{ if (part) return deltaR(*part); else return -1; }
-  float deltaPhi(float phi_) const;
+  LorentzVector_t::Scalar m() const{ return momentum.M(); }
+  LorentzVector_t::Scalar x() const{ return momentum.X(); }
+  LorentzVector_t::Scalar y() const{ return momentum.Y(); }
+  LorentzVector_t::Scalar z() const{ return momentum.Z(); }
+  LorentzVector_t::Scalar t() const{ return momentum.T(); }
+  LorentzVector_t::Scalar energy() const{ return this->t(); }
+  LorentzVector_t::Scalar p() const{ return momentum.P(); }
+  LorentzVector_t::Scalar pt() const{ return momentum.Pt(); }
+  LorentzVector_t::Scalar eta() const{ return momentum.Eta(); }
+  LorentzVector_t::Scalar phi() const{ return momentum.Phi(); }
+  LorentzVector_t::Scalar rapidity() const{ return momentum.Rapidity(); }
+  LorentzVector_t::Scalar dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
+  LorentzVector_t::Scalar dot(const LorentzVector_t& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
+  LorentzVector_t::Scalar dot(const ParticleObject& part) const{ return dot(part.momentum); }
+  LorentzVector_t::Scalar dot(const ParticleObject* part) const{ if (part!=0) return dot(*part); else return 0; }
+  LorentzVector_t::Scalar deltaR(const TLorentzVector& v) const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.DeltaR(v); }
+  LorentzVector_t::Scalar deltaR(const LorentzVector_t& v) const{ return reco::deltaR(momentum, v); }
+  LorentzVector_t::Scalar deltaR(const ParticleObject& part) const{ return deltaR(part.momentum); }
+  LorentzVector_t::Scalar deltaR(const ParticleObject* part) const{ if (part) return deltaR(*part); else return -1; }
+  LorentzVector_t::Scalar deltaPhi(LorentzVector_t::Scalar phi_) const;
 
   Vector3D_t vect() const{ return Vector3D_t(momentum.X(), momentum.Y(), momentum.Z()); }
   Vector2D_t vect_trans() const{ return Vector2D_t(momentum.X(), momentum.Y()); }

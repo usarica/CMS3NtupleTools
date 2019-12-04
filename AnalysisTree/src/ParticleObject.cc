@@ -33,7 +33,7 @@ ParticleObject::ParticleObject(const ParticleObject& other) :
 void ParticleObject::setSelectionBit(unsigned int ibit){ HelperFunctions::set_bit(this->selectionBits, ibit); }
 bool ParticleObject::testSelection(unsigned int ibit) const{ return HelperFunctions::test_bit(this->selectionBits, ibit); }
 
-float ParticleObject::charge()const{
+float ParticleObject::charge() const{
   float cpos=0;
   if (isAWBoson(id) || abs(id)==37 || abs(id)==2212 || abs(id)==211 || abs(id)==321 || abs(id)==411 || abs(id)==521) cpos = 1.;
   else if (isALepton(id)) cpos = -1.;
@@ -42,8 +42,10 @@ float ParticleObject::charge()const{
   if (id<0) cpos *= -1.;
   return cpos;
 }
-float ParticleObject::deltaPhi(float phi_) const{
-  return HelperFunctions::deltaPhi(phi(), phi_);
+ParticleObject::LorentzVector_t::Scalar ParticleObject::deltaPhi(LorentzVector_t::Scalar phi_) const{
+  ParticleObject::LorentzVector_t::Scalar res;
+  HelperFunctions::deltaPhi(phi(), phi_, res);
+  return res;
 }
 
 bool ParticleObject::checkParticleExists(ParticleObject* myParticle, std::vector<ParticleObject*> const& particleArray){ return HelperFunctions::checkListVariable(particleArray, myParticle); }

@@ -65,11 +65,11 @@ public:
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const&);
 
   void getPtPhi(float const*& pt, float const*& phi) const;
-  float const& met() const;
-  float const& phi() const;
-  float const& pt() const{ return met(); }
-  float px(float phi_rot=0) const;
-  float py(float phi_rot=0) const;
+  ParticleObject::LorentzVector_t::Scalar met() const;
+  ParticleObject::LorentzVector_t::Scalar phi() const;
+  ParticleObject::LorentzVector_t::Scalar pt() const{ return met(); }
+  ParticleObject::LorentzVector_t::Scalar px(float phi_rot=0) const;
+  ParticleObject::LorentzVector_t::Scalar py(float phi_rot=0) const;
   ParticleObject::LorentzVector_t p4(float phi_rot=0) const;
 
 };

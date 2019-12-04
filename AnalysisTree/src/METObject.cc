@@ -76,25 +76,25 @@ void METObject::getPtPhi(float const*& pt, float const*& phi) const{
     break;
   }
 }
-float const& METObject::met() const{
+ParticleObject::LorentzVector_t::Scalar METObject::met() const{
   float const* pt=nullptr;
   float const* phi=nullptr;
   getPtPhi(pt, phi);
   return *pt;
 }
-float const& METObject::phi() const{
+ParticleObject::LorentzVector_t::Scalar METObject::phi() const{
   float const* pt=nullptr;
   float const* phi=nullptr;
   getPtPhi(pt, phi);
   return *phi;
 }
-float METObject::px(float phi_rot) const{
+ParticleObject::LorentzVector_t::Scalar METObject::px(float phi_rot) const{
   float const* pt=nullptr;
   float const* phi=nullptr;
   getPtPhi(pt, phi);
   return (*pt) * std::cos((*phi) + phi_rot);
 }
-float METObject::py(float phi_rot) const{
+ParticleObject::LorentzVector_t::Scalar METObject::py(float phi_rot) const{
   float const* pt=nullptr;
   float const* phi=nullptr;
   getPtPhi(pt, phi);

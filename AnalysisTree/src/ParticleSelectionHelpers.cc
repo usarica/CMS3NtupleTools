@@ -66,16 +66,16 @@ SELECTION_TYPE(Tight)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(AK4JetObject const* part){ \
   return ( \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Id) \
+    part->testSelectionBit(AK4JetSelectionHelpers::k##TYPE##Id) \
     && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Kin) \
+    part->testSelectionBit(AK4JetSelectionHelpers::k##TYPE##Kin) \
     ); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(AK8JetObject const* part){ \
   return ( \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Id) \
+    part->testSelectionBit(AK8JetSelectionHelpers::k##TYPE##Id) \
     && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Kin) \
+    part->testSelectionBit(AK8JetSelectionHelpers::k##TYPE##Kin) \
     ); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(ParticleObject const* part){ \
