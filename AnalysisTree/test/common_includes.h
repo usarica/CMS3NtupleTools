@@ -12,6 +12,7 @@
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 
+#include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 #include "TSystem.h"

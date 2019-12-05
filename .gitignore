@@ -15,10 +15,12 @@
 NtupleMaker/test/*.txt
 NtupleMaker/test/*.lst
 NtupleMaker/test/*.sh
-NtupleMaker/test/output
-NtupleMaker/test/outputs
+NtupleMaker/test/output*
+NtupleMaker/test/outputs*
 NtupleMaker/test/manualruns
 NtupleMaker/test/crabConfig.py
 NtupleMaker/test/xsec_cfg.py
 NtupleMaker/test/crab_projects/*
 NtupleMaker/test/crab_projects/crab_CMS4_from_MINIAOD_test/
+AnalysisTree/test/output*
+AnalysisTree/test/outputs*
