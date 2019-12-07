@@ -72,6 +72,7 @@ namespace ElectronSelectionHelpers{
     double nh = pfStruct->sumNeutralHadronEt;
     double em = pfStruct->sumPhotonEt;
     double ea = ElectronSelectionHelpers::electronEffArea(obj, year, type);
+    ea *= std::pow((type==PFIso03 ? 0.3 : 0.4) / 0.3, 2);
 
     return (ch + std::max(0., nh + em - fsr - rho * ea));
   }
