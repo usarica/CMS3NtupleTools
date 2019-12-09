@@ -19,6 +19,8 @@
 #include <DataFormats/PatCandidates/interface/PackedGenParticle.h>
 #include <DataFormats/JetReco/interface/GenJet.h>
 
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+
 
 namespace CMS3ObjectHelpers{
   enum ObjectType{
@@ -55,6 +57,20 @@ namespace CMS3ObjectHelpers{
     Iterable_T const& keys_begin, Iterable_T const& keys_end,
     Iterable_U const& vals_begin, Iterable_U const& vals_end,
     typename std::unordered_map<T, U>& key_val_map
+  );
+  // The values in the map below are ordered in the smallest matching criterion
+  template<typename T, typename U, typename Iterable_T, typename Iterable_U> void matchParticles_OneToMany(
+    CMS3ObjectHelpers::ObjectMatchType type, double match_thr,
+    Iterable_T const& keys_begin, Iterable_T const& keys_end,
+    Iterable_U const& vals_begin, Iterable_U const& vals_end,
+    typename std::unordered_map< T, typename std::vector<U> >& key_val_map
+  );
+
+  template<typename T, typename U, typename Iterable_T, typename Iterable_U> void matchParticles_OneToMany(
+    bool(*comparator)(T, U),
+    Iterable_T const& keys_begin, Iterable_T const& keys_end,
+    Iterable_U const& vals_begin, Iterable_U const& vals_end,
+    typename std::unordered_map< T, typename std::vector<U> >& key_val_map
   );
 
 }
@@ -131,5 +147,99 @@ template<typename T, typename U, typename Iterable_T, typename Iterable_U> void 
     for (auto it=remaining_vals.begin(); it!=remaining_vals.end(); it++){ if (it == chosenVal){ remaining_vals.erase(it); break; } }
   }
 }
+
+template<typename T, typename U, typename Iterable_T, typename Iterable_U> void CMS3ObjectHelpers::matchParticles_OneToMany(
+  CMS3ObjectHelpers::ObjectMatchType type, double match_thr,
+  Iterable_T const& keys_begin, Iterable_T const& keys_end,
+  Iterable_U const& vals_begin, Iterable_U const& vals_end,
+  typename std::unordered_map< T, typename std::vector<U> >& key_val_map
+){
+  bool matchByDeltaR = (type==kMatchBy_DeltaR || type==kMatchBy_DeltaR_PDGid);
+  bool matchByPDGid = (type==kMatchBy_DeltaR_PDGid);
+
+  std::vector<T> all_keys; all_keys.reserve(static_cast<size_t>(keys_end-keys_begin));
+  for (Iterable_T it = keys_begin; it != keys_end; it++){
+    T ptr;
+    CMS3ObjectHelpers::getObjectPointer(it, ptr);
+    if (ptr) all_keys.push_back(ptr);
+  }
+
+  std::vector<U> all_vals; all_vals.reserve(static_cast<size_t>(vals_end-vals_begin));
+  for (Iterable_U it = vals_begin; it != vals_end; it++){
+    U ptr;
+    CMS3ObjectHelpers::getObjectPointer(it, ptr);
+    if (ptr) all_vals.push_back(ptr);
+  }
+
+  {
+    std::vector<U> empty_vals; if (!all_vals.empty()) empty_vals.reserve(all_vals.size());
+    for (auto const& key:all_keys) key_val_map[key] = empty_vals;
+  }
+  if (!matchByDeltaR) return;
+
+  for (auto it_key = all_keys.begin(); it_key != all_keys.end(); it_key++){
+    T key;
+    CMS3ObjectHelpers::getObjectPointer(it_key, key);
+    auto const pKey = key->p4();
+    auto map_iterator = key_val_map.find(key);
+    auto& target_val_list = map_iterator->second;
+
+    typename std::vector<std::pair<double, U>> criterion_val_pair_list;
+    for (auto it_val = all_vals.begin(); it_val != all_vals.end(); it_val++){
+      U val;
+      CMS3ObjectHelpers::getObjectPointer(it_val, val);
+
+      if (matchByPDGid && key->pdgId()!=val->pdgId()) continue;
+      auto const pVal = val->p4();
+
+      double deltaR = std::abs(reco::deltaR(pVal, pKey));
+      if (matchByDeltaR && (match_thr<0. || deltaR<match_thr)) HelperFunctions::addByLowest(criterion_val_pair_list, deltaR, val);
+    }
+
+    for (auto const& pp:criterion_val_pair_list) target_val_list.push_back(pp.second);
+  }
+}
+
+template<typename T, typename U, typename Iterable_T, typename Iterable_U> void CMS3ObjectHelpers::matchParticles_OneToMany(
+  bool(*comparator)(T, U),
+  Iterable_T const& keys_begin, Iterable_T const& keys_end,
+  Iterable_U const& vals_begin, Iterable_U const& vals_end,
+  typename std::unordered_map< T, typename std::vector<U> >& key_val_map
+){
+  std::vector<T> all_keys; all_keys.reserve(static_cast<size_t>(keys_end-keys_begin));
+  for (Iterable_T it = keys_begin; it != keys_end; it++){
+    T ptr;
+    CMS3ObjectHelpers::getObjectPointer(it, ptr);
+    if (ptr) all_keys.push_back(ptr);
+  }
+
+  std::vector<U> all_vals; all_vals.reserve(static_cast<size_t>(vals_end-vals_begin));
+  for (Iterable_U it = vals_begin; it != vals_end; it++){
+    U ptr;
+    CMS3ObjectHelpers::getObjectPointer(it, ptr);
+    if (ptr) all_vals.push_back(ptr);
+  }
+
+  {
+    std::vector<U> empty_vals; if (!all_vals.empty()) empty_vals.reserve(all_vals.size());
+    for (auto const& key:all_keys) key_val_map[key] = empty_vals;
+  }
+
+  for (auto it_key = all_keys.begin(); it_key != all_keys.end(); it_key++){
+    T key;
+    CMS3ObjectHelpers::getObjectPointer(it_key, key);
+    auto map_iterator = key_val_map.find(key);
+    auto& target_val_list = map_iterator->second;
+
+    for (auto it_val = all_vals.begin(); it_val != all_vals.end(); it_val++){
+      U val;
+      CMS3ObjectHelpers::getObjectPointer(it_val, val);
+
+      if (comparator(key, val)) target_val_list.push_back(val);
+    }
+
+  }
+}
+
 
 #endif

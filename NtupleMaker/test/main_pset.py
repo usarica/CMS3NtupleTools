@@ -716,10 +716,8 @@ else:
 process.PFMETPuppiPath = cms.Path(process.pfmetpuppiMakerSeq) # Make as separate path
 
 # Isotracks
-if opts.is80x:
+if not opts.is80x:
    process.isoTrackMakerSeq = cms.Sequence( process.isoTrackMaker )
-else:
-   process.isoTrackMakerSeq = None
 
 
 
@@ -776,7 +774,7 @@ for ip,producer in enumerate(producers):
       continue
 
    if producer == process.isoTrackMaker:
-      if not opts.is80x:
+      if hasattr(process, "isoTrackMakerSeq"):
          total_path *= process.isoTrackMakerSeq
       continue
 

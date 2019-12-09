@@ -366,8 +366,14 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     electron_result.addUserFloat("pfNeutralHadronIso", pfIso.sumNeutralHadronEt);
     electron_result.addUserFloat("pfPhotonIso", pfIso.sumPhotonEt);
     electron_result.addUserFloat("pfPUIso", pfIso.sumPUPt);
-    electron_result.addUserFloat("pfIso03_comb_nofsr", ElectronSelectionHelpers::electronPFIsoComb(*el, year_, ElectronSelectionHelpers::PFIso03, rho_event, 0.));
-    electron_result.addUserFloat("pfIso04_comb_nofsr", ElectronSelectionHelpers::electronPFIsoComb(*el, year_, ElectronSelectionHelpers::PFIso04, rho_event, 0.));
+    double pfIso03_sum_charged_nofsr=0, pfIso03_sum_neutral_nofsr=0;
+    electron_result.addUserFloat("pfIso03_comb_nofsr", ElectronSelectionHelpers::electronPFIsoComb(*el, year_, ElectronSelectionHelpers::PFIso03, rho_event, 0., &pfIso03_sum_charged_nofsr, &pfIso03_sum_neutral_nofsr));
+    electron_result.addUserFloat("pfIso03_sum_charged_nofsr", pfIso03_sum_charged_nofsr);
+    electron_result.addUserFloat("pfIso03_sum_neutral_nofsr", pfIso03_sum_neutral_nofsr);
+    double pfIso04_sum_charged_nofsr=0, pfIso04_sum_neutral_nofsr=0;
+    electron_result.addUserFloat("pfIso04_comb_nofsr", ElectronSelectionHelpers::electronPFIsoComb(*el, year_, ElectronSelectionHelpers::PFIso04, rho_event, 0., &pfIso04_sum_charged_nofsr, &pfIso04_sum_neutral_nofsr));
+    electron_result.addUserFloat("pfIso04_sum_charged_nofsr", pfIso04_sum_charged_nofsr);
+    electron_result.addUserFloat("pfIso04_sum_neutral_nofsr", pfIso04_sum_neutral_nofsr);
 
     // We used to make these using the cluster tools, but now we can take them directly from RECO electron
     electron_result.addUserFloat("sigmaIPhiIPhi", el->sigmaIphiIphi());
@@ -614,17 +620,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // electron_result.addUserFloat("miniIso_nh      ",  mininhiso );
     // electron_result.addUserFloat("miniIso_em      ",  miniemiso );
     // electron_result.addUserFloat("miniIso_db      ",  minidbiso );
-    //auto el2 = el->clone();
-    //pat::PFIsolation const& miniiso = el2->miniPFIsolation();
     pat::PFIsolation const& miniiso = el->miniPFIsolation();
     electron_result.addUserFloat("miniIso_ch", miniiso.chargedHadronIso());
     electron_result.addUserFloat("miniIso_nh", miniiso.neutralHadronIso());
     electron_result.addUserFloat("miniIso_em", miniiso.photonIso());
     electron_result.addUserFloat("miniIso_db", miniiso.puChargedHadronIso());
-    //electron_result.addUserFloat("miniIso_comb_nofsr", ElectronSelectionHelpers::electronMiniIsoComb(*el2, year_, rho_event, 0.));
-    electron_result.addUserFloat("miniIso_comb_nofsr", ElectronSelectionHelpers::electronMiniIsoComb(*el, year_, rho_event, 0.));
+    double miniIso_sum_charged_nofsr=0, miniIso_sum_neutral_nofsr=0;
+    electron_result.addUserFloat("miniIso_comb_nofsr", ElectronSelectionHelpers::electronMiniIsoComb(*el, year_, rho_event, 0., &miniIso_sum_charged_nofsr, &miniIso_sum_neutral_nofsr));
     electron_result.addUserFloat("miniIso_comb_nofsr_uncorrected", miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
-    //delete el2;
+    electron_result.addUserFloat("miniIso_sum_charged_nofsr", miniIso_sum_charged_nofsr);
+    electron_result.addUserFloat("miniIso_sum_neutral_nofsr", miniIso_sum_neutral_nofsr);
 
     ///////////////////////////
     // PFCluster isolation   //

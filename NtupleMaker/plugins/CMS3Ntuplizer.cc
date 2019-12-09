@@ -9,6 +9,7 @@
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
+#include "CMS3/NtupleMaker/interface/FSRSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
@@ -42,12 +43,13 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
+  muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
   electronsToken  = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
   photonsToken  = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
-  muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
   ak4jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak4jetSrc"));
   ak8jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak8jetSrc"));
-  isotracksToken  = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotracksSrc"));
+  isotracksToken  = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotrackSrc"));
+  pfcandsToken  = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
 
   pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
   puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
@@ -102,7 +104,7 @@ void CMS3Ntuplizer::endRun(edm::Run const&, edm::EventSetup const&){}
 #define PUSH_VECTOR_WITH_NAME(name_, var_) commonEntry.setNamedVal(TString(name_)+"_"+#var_, var_);
 
 
-void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
+void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSetup){
   bool isSelected = true;
 
   /********************************/
@@ -128,14 +130,24 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   size_t n_vtxs = this->fillVertices(iEvent, nullptr);
   isSelected &= (n_vtxs>0);
 
+  // Muons
+  std::vector<pat::Muon const*> filledMuons;
+  size_t n_muons = this->fillMuons(iEvent, &filledMuons);
+
   // Electrons
-  size_t n_electrons = this->fillElectrons(iEvent, nullptr);
+  std::vector<pat::Electron const*> filledElectrons;
+  size_t n_electrons = this->fillElectrons(iEvent, &filledElectrons);
 
   // Photons
-  size_t n_photons = this->fillPhotons(iEvent, nullptr);
+  std::vector<pat::Photon const*> filledPhotons;
+  size_t n_photons = this->fillPhotons(iEvent, &filledPhotons);
 
-  // Muons
-  size_t n_muons = this->fillMuons(iEvent, nullptr);
+  // PF candidates, including FSR information
+  /*size_t n_pfcands = */this->fillPFCandidates(
+    iEvent,
+    &filledMuons, &filledElectrons, &filledPhotons,
+    nullptr
+  );
 
   // ak4 jets
   /*size_t n_ak4jets = */this->fillAK4Jets(iEvent, nullptr);
@@ -199,7 +211,7 @@ void CMS3Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (firstEvent) firstEvent = false;
 }
 
-void CMS3Ntuplizer::recordGenInfo(const edm::Event& iEvent){
+void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   edm::Handle< GenInfo > genInfoHandle;
   iEvent.getByToken(genInfoToken, genInfoHandle);
   if (!genInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenInfo: Error getting the gen. info. from the event...");
@@ -263,7 +275,7 @@ void CMS3Ntuplizer::recordGenInfo(const edm::Event& iEvent){
 
   for (auto const it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
 }
-void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<reco::GenParticle const*>* filledGenParts, std::vector<pat::PackedGenParticle const*>* filledPackedGenParts){
+void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<reco::GenParticle const*>* filledGenParts, std::vector<pat::PackedGenParticle const*>* filledPackedGenParts){
   const char colName[] = "genparticles";
 
   edm::Handle<reco::GenParticleCollection> prunedGenParticlesHandle;
@@ -515,7 +527,7 @@ void CMS3Ntuplizer::recordGenParticles(const edm::Event& iEvent, std::vector<rec
   PUSH_VECTOR_WITH_NAME(colName, mom1_index);
 
 }
-void CMS3Ntuplizer::recordGenJets(const edm::Event& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
+void CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet, std::vector<reco::GenJet const*>* filledObjects){
   std::string strColName = (isFatJet ? "genak4jets" : "genak8jets");
   const char* colName = strColName.data();
   edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
@@ -548,7 +560,152 @@ void CMS3Ntuplizer::recordGenJets(const edm::Event& iEvent, bool const& isFatJet
   PUSH_VECTOR_WITH_NAME(colName, mass);
 }
 
-size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::Electron const*>* filledObjects){
+size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon const*>* filledObjects){
+  const char colName[] = "muons";
+  edm::Handle< edm::View<pat::Muon> > muonsHandle;
+  iEvent.getByToken(muonsToken, muonsHandle);
+  if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMuons: Error getting the muon collection from the event...");
+  size_t n_objects = muonsHandle->size();
+
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, POG_selector_bits, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_neutral_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_neutral_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutIn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOutError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutInError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, time_rpc_ndof, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOut, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutIn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOutError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutInError, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pull_dxdz_noArb_DT, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pull_dxdz_noArb_CSC, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalDn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalDn, n_objects);
+
+  for (edm::View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
+    if (!MuonSelectionHelpers::testSkimMuon(*obj, this->year)) continue;
+
+    // Core particle quantities
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+
+    PUSH_USERINT_INTO_VECTOR(charge);
+
+    PUSH_USERINT_INTO_VECTOR(POG_selector_bits);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_neutral_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_neutral_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
+
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_neutral_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
+
+    PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOut);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutIn);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOutError);
+    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutInError);
+    PUSH_USERINT_INTO_VECTOR(time_rpc_ndof);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOut);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutIn);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOutError);
+    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutInError);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_DT);
+    PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_CSC);
+
+    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
+    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
+    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalDn);
+    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalUp);
+    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalDn);
+
+    if (filledObjects) filledObjects->push_back(&(*obj));
+  }
+
+  // Pass collections to the communicator
+  PUSH_VECTOR_WITH_NAME(colName, pt);
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, charge);
+
+  PUSH_VECTOR_WITH_NAME(colName, POG_selector_bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_neutral_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_neutral_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
+
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_neutral_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
+
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOut);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutIn);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOutError);
+  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutInError);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_ndof);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOut);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutIn);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOutError);
+  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutInError);
+
+  PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_DT);
+  PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_CSC);
+
+  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
+  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);
+  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalDn);
+  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalUp);
+  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalDn);
+
+  return n_objects;
+}
+size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::Electron const*>* filledObjects){
   const char colName[] = "electrons";
   edm::Handle< edm::View<pat::Electron> > electronsHandle;
   iEvent.getByToken(electronsToken, electronsHandle);
@@ -563,6 +720,7 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, etaSC, n_objects);
 
   // Has no convention correspondence in nanoAOD
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr, n_objects);
@@ -598,15 +756,23 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Tight_Bits, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_neutral_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_charged_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_neutral_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
 
-  for (View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
+  for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
     if (!ElectronSelectionHelpers::testSkimElectron(*obj, this->year)) continue;
 
     // Core particle quantities
@@ -618,6 +784,7 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
 
     // Charge: Can obtain pdgId from this, so no need to record pdgId again
     PUSH_USERINT_INTO_VECTOR(charge);
+    PUSH_USERFLOAT_INTO_VECTOR(etaSC);
 
     // Scale and smear
     // Nominal value: Needs to multiply the uncorrected p4 at analysis level
@@ -662,8 +829,16 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Tight_Bits);
 
     // Isolation variables
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_neutral_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_neutral_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
+
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_charged_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_neutral_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
@@ -681,6 +856,7 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, mass);
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
+  PUSH_VECTOR_WITH_NAME(colName, etaSC);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);
@@ -716,8 +892,16 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Tight_Bits);
 
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_neutral_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_neutral_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
+
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_charged_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_neutral_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
@@ -726,7 +910,7 @@ size_t CMS3Ntuplizer::fillElectrons(const edm::Event& iEvent, std::vector<pat::E
 
   return n_objects;
 }
-size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Photon const*>* filledObjects){
+size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Photon const*>* filledObjects){
   const char colName[] = "photons";
   edm::Handle< edm::View<pat::Photon> > photonsHandle;
   iEvent.getByToken(photonsToken, photonsHandle);
@@ -735,6 +919,7 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
 
   if (filledObjects) filledObjects->reserve(n_objects);
 
+  // Begin filling the objects
   MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
@@ -759,7 +944,13 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
 
-  for (View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
+  //MAKE_VECTOR_WITH_RESERVE(bool, pass_fsr_preselection, n_objects);
+  //MAKE_VECTOR_WITH_RESERVE(float, fsrIso, n_objects);
+
+  for (edm::View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
+    //bool passStandardSkim = PhotonSelectionHelpers::testSkimPhoton(*obj, this->year);
+    //bool passFSRSkim = (HelperFunctions::checkListVariable(allFSRCandidates, &(*obj)) && PhotonSelectionHelpers::testSkimFSRPhoton(*obj, fsr_mindr_map[&(*obj)], this->year));
+    //if (!passStandardSkim && !passFSRSkim) continue;
     if (!PhotonSelectionHelpers::testSkimPhoton(*obj, this->year)) continue;
 
     // Core particle quantities
@@ -768,6 +959,9 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
     mass.push_back(obj->mass());
+
+    // Flag to identify FSR-preselected candidates
+    //pass_fsr_preselection.push_back(passFSRSkim);
 
     // Scale and smear
     // Nominal value: Needs to multiply the uncorrected p4 at analysis level
@@ -792,6 +986,8 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
 
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
+
+    //PUSH_USERFLOAT_INTO_VECTOR(fsrIso);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
   }
@@ -821,121 +1017,12 @@ size_t CMS3Ntuplizer::fillPhotons(const edm::Event& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
 
-  return n_objects;
-}
-size_t CMS3Ntuplizer::fillMuons(const edm::Event& iEvent, std::vector<pat::Muon const*>* filledObjects){
-  const char colName[] = "muons";
-  edm::Handle< edm::View<pat::Muon> > muonsHandle;
-  iEvent.getByToken(muonsToken, muonsHandle);
-  if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMuons: Error getting the muon collection from the event...");
-  size_t n_objects = muonsHandle->size();
-
-  if (filledObjects) filledObjects->reserve(n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, POG_selector_bits, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutIn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOutError, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutInError, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, time_rpc_ndof, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOut, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutIn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOutError, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutInError, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalDn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalDn, n_objects);
-
-  for (View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
-    if (!MuonSelectionHelpers::testSkimMuon(*obj, this->year)) continue;
-
-    // Core particle quantities
-    pt.push_back(obj->pt());
-    eta.push_back(obj->eta());
-    phi.push_back(obj->phi());
-    mass.push_back(obj->mass());
-
-    PUSH_USERINT_INTO_VECTOR(charge);
-
-    PUSH_USERINT_INTO_VECTOR(POG_selector_bits);
-
-    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
-    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
-    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
-    PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
-
-    PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOut);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutIn);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOutError);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutInError);
-    PUSH_USERINT_INTO_VECTOR(time_rpc_ndof);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOut);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutIn);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOutError);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutInError);
-
-    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
-    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
-    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalDn);
-    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalUp);
-    PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalDn);
-
-    if (filledObjects) filledObjects->push_back(&(*obj));
-  }
-
-  // Pass collections to the communicator
-  PUSH_VECTOR_WITH_NAME(colName, pt);
-  PUSH_VECTOR_WITH_NAME(colName, eta);
-  PUSH_VECTOR_WITH_NAME(colName, phi);
-  PUSH_VECTOR_WITH_NAME(colName, mass);
-
-  PUSH_VECTOR_WITH_NAME(colName, charge);
-
-  PUSH_VECTOR_WITH_NAME(colName, POG_selector_bits);
-
-  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
-  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
-  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
-  PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
-
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOut);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutIn);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOutError);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutInError);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_ndof);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOut);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutIn);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOutError);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutInError);
-
-  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
-  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);
-  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalDn);
-  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalUp);
-  PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalDn);
+  //PUSH_VECTOR_WITH_NAME(colName, pass_fsr_preselection);
+  //PUSH_VECTOR_WITH_NAME(colName, fsrIso);
 
   return n_objects;
 }
-size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet const*>* filledObjects){
+size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
   constexpr AK4JetSelectionHelpers::AK4JetType jetType = AK4JetSelectionHelpers::AK4PFCHS;
 
   const char colName[] = "ak4jets";
@@ -985,7 +1072,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
-  for (View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
+  for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
     if (!AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType)) continue;
 
     // Core particle quantities
@@ -1074,7 +1161,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(const edm::Event& iEvent, std::vector<pat::Jet
 
   return n_objects;
 }
-size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet const*>* filledObjects){
+size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
   const char colName[] = "ak8jets";
   edm::Handle< edm::View<pat::Jet> > ak8jetsHandle;
   iEvent.getByToken(ak8jetsToken, ak8jetsHandle);
@@ -1129,7 +1216,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
-  for (View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
+  for (edm::View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
     if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
 
     // Core particle quantities
@@ -1235,7 +1322,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(const edm::Event& iEvent, std::vector<pat::Jet
 
   return n_objects;
 }
-size_t CMS3Ntuplizer::fillIsotracks(const edm::Event& iEvent, std::vector<IsotrackInfo const*>* filledObjects){
+size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<IsotrackInfo const*>* filledObjects){
 #define PUSH_ISOTRACK_VARIABLE(NAME) NAME.push_back(obj->NAME);
 
   if (this->is80X) return 0;
@@ -1274,7 +1361,7 @@ size_t CMS3Ntuplizer::fillIsotracks(const edm::Event& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(int, nearestPFcand_id, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, nearestPFcand_deltaR, n_objects);
 
-  for (View<IsotrackInfo>::const_iterator obj = isotracksHandle->begin(); obj != isotracksHandle->end(); obj++){
+  for (edm::View<IsotrackInfo>::const_iterator obj = isotracksHandle->begin(); obj != isotracksHandle->end(); obj++){
     if (!IsotrackSelectionHelpers::testSkimIsotrack(*obj, this->year)) continue;
 
     // Core particle quantities
@@ -1337,7 +1424,146 @@ size_t CMS3Ntuplizer::fillIsotracks(const edm::Event& iEvent, std::vector<Isotra
 
 #undef PUSH_ISOTRACK_VARIABLE
 }
-size_t CMS3Ntuplizer::fillVertices(const edm::Event& iEvent, std::vector<reco::Vertex const*>* filledObjects){
+size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat::Muon const*> const* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*> const* filledPhotons, std::vector<pat::PackedCandidate const*>* filledObjects){
+  //const char colName[] = "pfcands";
+  const char colNameFSR[] = "fsrcands";
+  edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
+  iEvent.getByToken(pfcandsToken, pfcandsHandle);
+  if (!pfcandsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillPFCandidates: Error getting the PF candidate collection from the event...");
+  size_t n_objects = pfcandsHandle->size();
+
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  // FSR preselection
+  struct FSRCandidateInfo{
+    pat::PackedCandidate const* obj;
+    double fsrIso;
+
+    std::vector<pat::Electron const*> veto_electron_list;
+    std::vector<pat::Photon const*> veto_photon_list;
+
+    std::vector<pat::Muon const*> matched_muon_list;
+    std::vector<pat::Electron const*> matched_electron_list;
+
+    CMSLorentzVector_d p4() const{ return obj->p4(); }
+    CMSLorentzVector_d::Scalar pt() const{ return obj->pt(); }
+    CMSLorentzVector_d::Scalar eta() const{ return obj->eta(); }
+    CMSLorentzVector_d::Scalar phi() const{ return obj->phi(); }
+    CMSLorentzVector_d::Scalar mass() const{ return obj->mass(); }
+    int pdgId() const{ return obj->pdgId(); }
+    float charge() const{ return obj->charge(); }
+  };
+
+  std::vector<FSRCandidateInfo> preselectedFSRCandidates; preselectedFSRCandidates.reserve(n_objects);
+  edm::View<pat::PackedCandidate>::const_iterator it_pfcands_begin = pfcandsHandle->begin();
+  edm::View<pat::PackedCandidate>::const_iterator it_pfcands_end = pfcandsHandle->end();
+  for (edm::View<pat::PackedCandidate>::const_iterator obj = it_pfcands_begin; obj != it_pfcands_end; obj++){
+    if (obj->pdgId()!=22) continue; // Check only photons
+
+    if (!FSRSelectionHelpers::testSkimFSR_PtEta(*obj, this->year)) continue;
+
+    double fsrInfo = FSRSelectionHelpers::fsrIso(*obj, this->year, it_pfcands_begin, it_pfcands_end);
+    if (!FSRSelectionHelpers::testSkimFSR_Iso(*obj, this->year, fsrInfo)) continue;
+
+    FSRCandidateInfo fsrinfo;
+    fsrinfo.obj = &(*obj);
+    fsrinfo.fsrIso =  fsrInfo;
+    if (filledElectrons){ for (auto const& electron:(*filledElectrons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), electron)){ fsrinfo.veto_electron_list.push_back(electron); } } }
+    if (filledPhotons){ for (auto const& photon:(*filledPhotons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), photon)){ fsrinfo.veto_photon_list.push_back(photon); } } }
+
+    preselectedFSRCandidates.emplace_back(fsrinfo);
+  }
+  // Match FSR candidates to leptons
+  std::vector<reco::LeafCandidate const*> leptons;
+  if (filledMuons){ for (auto const& muon:(*filledMuons)) leptons.push_back(muon); }
+  if (filledElectrons){ for (auto const& electron:(*filledElectrons)) leptons.push_back(electron); }
+  std::unordered_map< FSRCandidateInfo const*, std::vector<reco::LeafCandidate const*> > fsrcand_lepton_map;
+  CMS3ObjectHelpers::matchParticles_OneToMany(
+    CMS3ObjectHelpers::kMatchBy_DeltaR, FSRSelectionHelpers::selection_match_fsr_deltaR,
+    preselectedFSRCandidates.begin(), preselectedFSRCandidates.end(),
+    leptons.cbegin(), leptons.cend(),
+    fsrcand_lepton_map
+  );
+  std::vector<FSRCandidateInfo*> writableFSRCandidates;
+  for (auto& it:fsrcand_lepton_map){
+    FSRCandidateInfo const* fsrcand_const = it.first;
+    FSRCandidateInfo* fsrcand = nullptr;
+    for (auto& cand:preselectedFSRCandidates){ if (&cand == fsrcand_const) fsrcand = &cand; }
+    reco::LeafCandidate const* bestLepton = nullptr;
+    for (auto const& lepton:it.second){
+      pat::Muon const* muon = dynamic_cast<pat::Muon const*>(lepton);
+      pat::Electron const* electron = dynamic_cast<pat::Electron const*>(lepton);
+      if (muon){
+        if (!bestLepton) bestLepton = muon;
+        fsrcand->matched_muon_list.push_back(muon);
+      }
+      else if (electron){
+        if (HelperFunctions::checkListVariable(fsrcand->veto_electron_list, electron)) continue;
+        if (!bestLepton) bestLepton = electron;
+        fsrcand->matched_electron_list.push_back(electron);
+      }
+    }
+    if (!bestLepton) continue;
+
+    double mindr = reco::deltaR(fsrcand->p4(), bestLepton->p4());
+    if (!FSRSelectionHelpers::testSkimFSR_MinDeltaR(*(fsrcand->obj), this->year, mindr)) continue;
+
+    writableFSRCandidates.push_back(fsrcand);
+  }
+
+  // Fill FSR candidates
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, fsrMatch_muon_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, fsrMatch_electron_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, photonVeto_index_list, n_objects);
+  for (auto const& obj:writableFSRCandidates){
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+
+    // Get the dR-ordered matched lepton index lists
+    std::vector<unsigned int> muon_indices;
+    for (auto const& muon:obj->matched_muon_list){
+      unsigned int imuon=0;
+      for (auto const& obj:(*filledMuons)){
+        if (obj==muon){
+          muon_indices.push_back(imuon);
+          break;
+        }
+        imuon++;
+      }
+    }
+    fsrMatch_muon_index_list.push_back(muon_indices);
+
+    std::vector<unsigned int> photonVeto_indices;
+    for (auto const& photon:obj->veto_photon_list){
+      unsigned int iphoton=0;
+      for (auto const& obj:(*filledPhotons)){
+        if (obj==photon){
+          photonVeto_indices.push_back(iphoton);
+          break;
+        }
+        iphoton++;
+      }
+    }
+    photonVeto_index_list.push_back(photonVeto_indices);
+  }
+  PUSH_VECTOR_WITH_NAME(colNameFSR, pt);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, eta);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, phi);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, mass);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, fsrMatch_muon_index_list);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, fsrMatch_electron_index_list);
+  PUSH_VECTOR_WITH_NAME(colNameFSR, photonVeto_index_list);
+
+  return n_objects;
+}
+
+size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::Vertex const*>* filledObjects){
   const char colName[] = "vtxs";
   edm::Handle< reco::VertexCollection > vtxHandle;
   iEvent.getByToken(vtxToken, vtxHandle);
@@ -1422,7 +1648,7 @@ size_t CMS3Ntuplizer::fillVertices(const edm::Event& iEvent, std::vector<reco::V
   return n_objects;
 }
 
-bool CMS3Ntuplizer::fillEventVariables(const edm::Event& iEvent){
+bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
   edm::Handle< double > rhoHandle;
   iEvent.getByToken(rhoToken, rhoHandle);
   if (!rhoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillEventVariables: Error getting the rho collection from the event...");
@@ -1467,7 +1693,7 @@ bool CMS3Ntuplizer::fillEventVariables(const edm::Event& iEvent){
 
   return true;
 }
-bool CMS3Ntuplizer::fillTriggerInfo(const edm::Event& iEvent){
+bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
   const char colName[] = "triggers";
   edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
   iEvent.getByToken(triggerInfoToken, triggerInfoHandle);
@@ -1480,7 +1706,7 @@ bool CMS3Ntuplizer::fillTriggerInfo(const edm::Event& iEvent){
   MAKE_VECTOR_WITH_RESERVE(int, HLTprescale, n_triggers);
 
   bool passAtLeastOneTrigger = false;
-  for (View<TriggerInfo>::const_iterator obj = triggerInfoHandle->begin(); obj != triggerInfoHandle->end(); obj++){
+  for (edm::View<TriggerInfo>::const_iterator obj = triggerInfoHandle->begin(); obj != triggerInfoHandle->end(); obj++){
     name.emplace_back(obj->name);
     passTrigger.emplace_back(obj->passTrigger);
     L1prescale.emplace_back(obj->L1prescale);
@@ -1497,7 +1723,7 @@ bool CMS3Ntuplizer::fillTriggerInfo(const edm::Event& iEvent){
   // If the (data) event does not pass any triggers, do not record it.
   return passAtLeastOneTrigger;
 }
-bool CMS3Ntuplizer::fillMETFilterVariables(const edm::Event& iEvent){
+bool CMS3Ntuplizer::fillMETFilterVariables(edm::Event const& iEvent){
   // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2 for recommendations
   // See also PhysicsTools/PatAlgos/python/slimming/metFilterPaths_cff.py for the collection names
   const char metFiltCollName[] = "metfilter";
@@ -1542,7 +1768,7 @@ bool CMS3Ntuplizer::fillMETFilterVariables(const edm::Event& iEvent){
 
   return true;
 }
-bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
+bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
 #define SET_MET_VARIABLE(HANDLE, NAME, COLLNAME) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), HANDLE->NAME);
 
   edm::Handle<METInfo> metHandle;
@@ -1673,7 +1899,7 @@ bool CMS3Ntuplizer::fillMETVariables(const edm::Event& iEvent){
 }
 
 bool CMS3Ntuplizer::fillGenVariables(
-  const edm::Event& iEvent,
+  edm::Event const& iEvent,
   std::vector<reco::GenParticle const*>* filledPrunedGenParts,
   std::vector<pat::PackedGenParticle const*>* filledPackedGenParts,
   std::vector<reco::GenJet const*>* filledGenAK4Jets,

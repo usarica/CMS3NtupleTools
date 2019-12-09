@@ -30,6 +30,7 @@ protected:
   std::unordered_map< std::string, std::vector< StringCutObjectSelector<pat::Photon, true> > > MVACutObjects;
 
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
+
   edm::EDGetTokenT< double > rhoToken;
 
 private:

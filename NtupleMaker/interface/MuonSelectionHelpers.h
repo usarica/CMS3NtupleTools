@@ -17,8 +17,8 @@ namespace MuonSelectionHelpers{
 
   float muonEffArea(pat::Muon const& obj, int const& year); // For mini. iso. See https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/muons_cff.py EAFile_MiniIso entries
 
-  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr); // Absolute PF iso. value, uses delta beta correction instead of rho
-  float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr); // Absolute mini. iso. value
+  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute PF iso. value, uses delta beta correction instead of rho
+  float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute mini. iso. value
 
   bool testSkimMuon(pat::Muon const& obj, int const& year);
 

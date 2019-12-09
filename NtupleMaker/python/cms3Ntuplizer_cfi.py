@@ -16,7 +16,8 @@ cms3ntuple = cms.EDAnalyzer(
    muonSrc = cms.InputTag("muonMaker"),
    ak4jetSrc = cms.InputTag("pfJetMaker"),
    ak8jetSrc = cms.InputTag("subJetMaker"),
-   isotracksSrc = cms.InputTag("isoTrackMaker"),
+   isotrackSrc = cms.InputTag("isoTrackMaker"),
+   pfcandSrc = cms.InputTag("packedPFCandidates"),
 
    pfmetSrc = cms.InputTag("pfmetMaker"),
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),

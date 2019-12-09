@@ -62,7 +62,7 @@ namespace ElectronSelectionHelpers{
     return ea;
   }
 
-  float electronPFIsoComb(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr){
+  float electronPFIsoComb(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     reco::GsfElectron::PflowIsolationVariables const* pfStruct = nullptr;
 
     if (type==PFIso03 || type==PFIso04) pfStruct = &(obj.pfIsolationVariables());
@@ -74,9 +74,15 @@ namespace ElectronSelectionHelpers{
     double ea = ElectronSelectionHelpers::electronEffArea(obj, year, type);
     ea *= std::pow((type==PFIso03 ? 0.3 : 0.4) / 0.3, 2);
 
-    return (ch + std::max(0., nh + em - fsr - rho * ea));
+    double sum_charged_nofsr_val = ch;
+    if (sum_charged_nofsr) *sum_charged_nofsr = sum_charged_nofsr_val;
+
+    double sum_neutral_nofsr_val = nh + em - rho * ea;
+    if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
+
+    return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
-  float electronMiniIsoComb(pat::Electron const& obj, int const& year, double const& rho, double const& fsr){
+  float electronMiniIsoComb(pat::Electron const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
 
     pat::PFIsolation const& miniiso = obj.miniPFIsolation();
@@ -88,7 +94,13 @@ namespace ElectronSelectionHelpers{
     double dR = 10. / std::min(std::max(uncorr_pt, 50.), 200.);
     ea *= std::pow(dR / 0.3, 2);
 
-    return (ch + std::max(0., nh + em - fsr - rho * ea));
+    double sum_charged_nofsr_val = ch;
+    if (sum_charged_nofsr) *sum_charged_nofsr = sum_charged_nofsr_val;
+
+    double sum_neutral_nofsr_val = nh + em - rho * ea;
+    if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
+
+    return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
   bool testSkimElectron(pat::Electron const& obj, int const& /*year*/){

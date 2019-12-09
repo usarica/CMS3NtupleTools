@@ -24,9 +24,9 @@
 #include <DataFormats/Candidate/interface/Candidate.h>
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>
-#include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
@@ -81,12 +81,13 @@ protected:
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
 
+  edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
-  edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT< edm::View<pat::Jet> > ak4jetsToken;
   edm::EDGetTokenT< edm::View<pat::Jet> > ak8jetsToken;
   edm::EDGetTokenT< edm::View<IsotrackInfo> > isotracksToken;
+  edm::EDGetTokenT< edm::View<pat::PackedCandidate> > pfcandsToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
   edm::EDGetTokenT< METInfo > puppimetToken;
@@ -113,25 +114,28 @@ protected:
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK8JetsToken;
 
 
-  void recordGenInfo(const edm::Event&);
-  void recordGenParticles(const edm::Event&, std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*);
-  void recordGenJets(const edm::Event&, bool const&, std::vector<reco::GenJet const*>*);
+  void recordGenInfo(edm::Event const&);
+  void recordGenParticles(edm::Event const&, std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*);
+  void recordGenJets(edm::Event const&, bool const&, std::vector<reco::GenJet const*>*);
 
-  size_t fillElectrons(const edm::Event&, std::vector<pat::Electron const*>*);
-  size_t fillPhotons(const edm::Event&, std::vector<pat::Photon const*>*);
-  size_t fillMuons(const edm::Event&, std::vector<pat::Muon const*>*);
-  size_t fillAK4Jets(const edm::Event&, std::vector<pat::Jet const*>*);
-  size_t fillAK8Jets(const edm::Event&, std::vector<pat::Jet const*>*);
-  size_t fillIsotracks(const edm::Event&, std::vector<IsotrackInfo const*>*);
-  size_t fillVertices(const edm::Event&, std::vector<reco::Vertex const*>*);
+  size_t fillMuons(edm::Event const&, std::vector<pat::Muon const*>*);
+  size_t fillElectrons(edm::Event const&, std::vector<pat::Electron const*>*);
+  size_t fillPhotons(edm::Event const&, std::vector<pat::Photon const*>*);
+  size_t fillPFCandidates(edm::Event const&, std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*, std::vector<pat::PackedCandidate const*>*);
 
-  bool fillEventVariables(const edm::Event&);
-  bool fillTriggerInfo(const edm::Event&);
-  bool fillMETFilterVariables(const edm::Event&);
-  bool fillMETVariables(const edm::Event&);
+  size_t fillAK4Jets(edm::Event const&, std::vector<pat::Jet const*>*);
+  size_t fillAK8Jets(edm::Event const&, std::vector<pat::Jet const*>*);
+  size_t fillIsotracks(edm::Event const&, std::vector<IsotrackInfo const*>*);
+
+  size_t fillVertices(edm::Event const&, std::vector<reco::Vertex const*>*);
+
+  bool fillEventVariables(edm::Event const&);
+  bool fillTriggerInfo(edm::Event const&);
+  bool fillMETFilterVariables(edm::Event const&);
+  bool fillMETVariables(edm::Event const&);
 
   bool fillGenVariables(
-    const edm::Event&,
+    edm::Event const&,
     std::vector<reco::GenParticle const*>*,
     std::vector<pat::PackedGenParticle const*>*,
     std::vector<reco::GenJet const*>*,
@@ -150,7 +154,7 @@ private:
   virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
   virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
-  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void analyze(edm::Event const&, const edm::EventSetup&);
 
 };
 

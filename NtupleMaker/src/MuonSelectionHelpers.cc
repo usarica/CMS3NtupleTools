@@ -30,7 +30,7 @@ namespace MuonSelectionHelpers{
     return ea;
   }
 
-  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr){
+  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     reco::MuonPFIsolation const* pfStruct = nullptr;
 
     if (type==PFIso03) pfStruct = &(obj.pfIsolationR03());
@@ -42,9 +42,15 @@ namespace MuonSelectionHelpers{
     double em = pfStruct->sumPhotonEt;
     double db = pfStruct->sumPUPt;
 
-    return (ch + std::max(0., nh + em - fsr - 0.5*db));
+    double sum_charged_nofsr_val = ch;
+    if (sum_charged_nofsr) *sum_charged_nofsr = sum_charged_nofsr_val;
+
+    double sum_neutral_nofsr_val = nh + em - 0.5*db;
+    if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
+
+    return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
-  float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr){
+  float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
 
     pat::PFIsolation const& miniiso = obj.miniPFIsolation();
@@ -56,7 +62,13 @@ namespace MuonSelectionHelpers{
     double dR = 10. / std::min(std::max(uncorr_pt, 50.), 200.);
     ea *= std::pow(dR / 0.3, 2);
 
-    return (ch + std::max(0., nh + em - fsr - rho * ea));
+    double sum_charged_nofsr_val = ch;
+    if (sum_charged_nofsr) *sum_charged_nofsr = sum_charged_nofsr_val;
+
+    double sum_neutral_nofsr_val = nh + em - rho * ea;
+    if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
+
+    return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
   bool testSkimMuon(pat::Muon const& obj, int const& /*year*/){
