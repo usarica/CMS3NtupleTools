@@ -611,6 +611,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_smear_totalDn, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<pat::Muon>::const_iterator obj = muonsHandle->begin(); obj != muonsHandle->end(); obj++){
     if (!MuonSelectionHelpers::testSkimMuon(*obj, this->year)) continue;
 
@@ -658,6 +659,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_smear_totalDn);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -703,7 +705,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalUp);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_smear_totalDn);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::Electron const*>* filledObjects){
   const char colName[] = "electrons";
@@ -772,6 +774,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
     if (!ElectronSelectionHelpers::testSkimElectron(*obj, this->year)) continue;
 
@@ -847,6 +850,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(type_mask);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -908,7 +912,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Photon const*>* filledObjects){
   const char colName[] = "photons";
@@ -947,6 +951,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   //MAKE_VECTOR_WITH_RESERVE(bool, pass_fsr_preselection, n_objects);
   //MAKE_VECTOR_WITH_RESERVE(float, fsrIso, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
     //bool passStandardSkim = PhotonSelectionHelpers::testSkimPhoton(*obj, this->year);
     //bool passFSRSkim = (HelperFunctions::checkListVariable(allFSRCandidates, &(*obj)) && PhotonSelectionHelpers::testSkimFSRPhoton(*obj, fsr_mindr_map[&(*obj)], this->year));
@@ -990,6 +995,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     //PUSH_USERFLOAT_INTO_VECTOR(fsrIso);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -1020,7 +1026,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   //PUSH_VECTOR_WITH_NAME(colName, pass_fsr_preselection);
   //PUSH_VECTOR_WITH_NAME(colName, fsrIso);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
   constexpr AK4JetSelectionHelpers::AK4JetType jetType = AK4JetSelectionHelpers::AK4PFCHS;
@@ -1072,6 +1078,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
     if (!AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType)) continue;
 
@@ -1117,6 +1124,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERINT_INTO_VECTOR(hadronFlavour);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -1159,7 +1167,7 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
   PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
   const char colName[] = "ak8jets";
@@ -1216,6 +1224,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
     if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
 
@@ -1268,6 +1277,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERINT_INTO_VECTOR(hadronFlavour);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -1320,7 +1330,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
   PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<IsotrackInfo const*>* filledObjects){
 #define PUSH_ISOTRACK_VARIABLE(NAME) NAME.push_back(obj->NAME);
@@ -1361,6 +1371,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(int, nearestPFcand_id, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, nearestPFcand_deltaR, n_objects);
 
+  size_t n_skimmed_objects=0;
   for (edm::View<IsotrackInfo>::const_iterator obj = isotracksHandle->begin(); obj != isotracksHandle->end(); obj++){
     if (!IsotrackSelectionHelpers::testSkimIsotrack(*obj, this->year)) continue;
 
@@ -1393,6 +1404,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
     PUSH_ISOTRACK_VARIABLE(nearestPFcand_deltaR);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
   }
 
   // Pass collections to the communicator
@@ -1420,7 +1432,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_id);
   PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_deltaR);
 
-  return n_objects;
+  return n_skimmed_objects;
 
 #undef PUSH_ISOTRACK_VARIABLE
 }
@@ -1431,6 +1443,7 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
   iEvent.getByToken(pfcandsToken, pfcandsHandle);
   if (!pfcandsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillPFCandidates: Error getting the PF candidate collection from the event...");
   size_t n_objects = pfcandsHandle->size();
+  size_t n_skimmed_objects=0;
 
   if (filledObjects) filledObjects->reserve(n_objects);
 
@@ -1551,6 +1564,8 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
       }
     }
     photonVeto_index_list.push_back(photonVeto_indices);
+
+    n_skimmed_objects++;
   }
   PUSH_VECTOR_WITH_NAME(colNameFSR, pt);
   PUSH_VECTOR_WITH_NAME(colNameFSR, eta);
@@ -1560,7 +1575,7 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
   PUSH_VECTOR_WITH_NAME(colNameFSR, fsrMatch_electron_index_list);
   PUSH_VECTOR_WITH_NAME(colNameFSR, photonVeto_index_list);
 
-  return n_objects;
+  return n_skimmed_objects;
 }
 
 size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::Vertex const*>* filledObjects){
@@ -1645,7 +1660,7 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
   PUSH_VECTOR_WITH_NAME(colName, pos_dz);
   PUSH_VECTOR_WITH_NAME(colName, pos_dt);
 
-  return n_objects;
+  return nvtxs_good;
 }
 
 bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
