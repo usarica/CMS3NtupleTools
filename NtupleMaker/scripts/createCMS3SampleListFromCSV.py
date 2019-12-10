@@ -69,6 +69,7 @@ class BatchManager:
                   strsample=row[0]
                   strsample = strsample.lstrip()
                   strsample = strsample.rstrip()
+                  row[-1] = row[-1].split('#')[0].rstrip()
 
                   ffoutcore = strsample
                   ffoutcore = ffoutcore.replace('/MINIAODSIM','')

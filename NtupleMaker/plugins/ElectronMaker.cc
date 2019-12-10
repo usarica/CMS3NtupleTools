@@ -631,9 +631,9 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     electron_result.addUserFloat("miniIso_sum_charged_nofsr", miniIso_sum_charged_nofsr);
     electron_result.addUserFloat("miniIso_sum_neutral_nofsr", miniIso_sum_neutral_nofsr);
 
-    ///////////////////////////
-    // PFCluster isolation   //
-    ///////////////////////////
+    /////////////////////////
+    // PFCluster isolation //
+    /////////////////////////
     electron_result.addUserFloat("ecalPFClusterIso", el->ecalPFClusterIso());
     electron_result.addUserFloat("hcalPFClusterIso", el->hcalPFClusterIso());
 
