@@ -196,14 +196,16 @@ void getChannelTitleLabel(int ichannel, TString& title, TString& label){
   }
 }
 
-void getTrees(){
+void getTrees(TString strdate=""){
   gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = todaysdate();
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2 for any, ee, mumu, emu
 
   TString const cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/101124";
-  TString const coutput_main = "output";
+  TString const coutput_main = "output/" + strdate;
 
   gSystem->mkdir(coutput_main, true);
 
@@ -712,15 +714,17 @@ void getTrees(){
 }
 
 
-void plotMET(bool useLogY=false, bool isStacked=false, int nfoci=0, int ifocus=0){
+void plotMET(TString strdate="", bool useLogY=false, bool isStacked=false, int nfoci=0, int ifocus=0){
   if (nfoci>0 && (ifocus>=nfoci || ifocus<0)) return;
 
   gStyle->SetOptStat(0);
 
+  if (strdate=="") strdate = todaysdate();
+
   //SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   //constexpr int nchannels = 4;
 
-  TString const cinput_main = "output";
+  TString const cinput_main = "output/" + strdate;
   TString coutput_main = cinput_main + "/Plots";
   if (isStacked) coutput_main += "/Stacked";
   else coutput_main += "/Unstacked";
@@ -731,7 +735,7 @@ void plotMET(bool useLogY=false, bool isStacked=false, int nfoci=0, int ifocus=0
     // Special case to copy index.php if you have one
     std::vector<TString> tmplist;
     HelperFunctions::splitOptionRecursive(coutput_main, tmplist, '/');
-    TString indexDir = "${HOME}/public_html/index.pages.php";
+    TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
     HostHelpers::ExpandEnvironmentVariables(indexDir);
     if (HostHelpers::FileReadable(indexDir)){
       MELAout << "Attempting to copy index.php" << endl;
