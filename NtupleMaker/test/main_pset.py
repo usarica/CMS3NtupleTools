@@ -791,10 +791,10 @@ for ip,producer in enumerate(producers):
       total_path *= process.pfmetpuppiMakerSeq
       continue
 
-   if producer == process.genMaker:
-      if not opts.data:
+   if not opts.data:
+      if producer == process.genMaker:
          total_path *= process.genMakerSeq
-      continue
+         continue
 
    if producer == process.electronMaker:
       total_path *= process.egammaMakerSeq

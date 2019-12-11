@@ -9,9 +9,9 @@
 #include <algorithm>
 
 #include <DataFormats/Common/interface/View.h>
+#include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Electron.h>
 #include <DataFormats/PatCandidates/interface/Photon.h>
-#include <DataFormats/PatCandidates/interface/Muon.h>
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 

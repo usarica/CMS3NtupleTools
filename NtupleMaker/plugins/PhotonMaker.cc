@@ -132,6 +132,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserInt("hasPixelSeed", photon->hasPixelSeed());
     photon_result.addUserInt("passElectronVeto", photon->passElectronVeto());
 
+    // Associated candidates
+    auto associated_pfcands = photon->associatedPackedPFCandidates();
+    double associated_pfcands_sum_sc_pt=0;
+    for (auto const& pfcand:associated_pfcands) associated_pfcands_sum_sc_pt += pfcand->pt();
+    photon_result.addUserInt("n_associated_pfcands", associated_pfcands.size());
+    photon_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
+
+
     /*
     // Loop over PF candidates and find those associated by the map to the gedGsfElectron1
     vector<int> v_PFCand_idx;

@@ -637,6 +637,15 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     electron_result.addUserFloat("ecalPFClusterIso", el->ecalPFClusterIso());
     electron_result.addUserFloat("hcalPFClusterIso", el->hcalPFClusterIso());
 
+    ///////////////////////////
+    // Associated candidates //
+    ///////////////////////////
+    auto associated_pfcands = el->associatedPackedPFCandidates();
+    double associated_pfcands_sum_sc_pt=0;
+    for (auto const& pfcand:associated_pfcands) associated_pfcands_sum_sc_pt += pfcand->pt();
+    electron_result.addUserInt("n_associated_pfcands", associated_pfcands.size());
+    electron_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
+
     // Put the object into the result collection
     result->emplace_back(electron_result);
   }

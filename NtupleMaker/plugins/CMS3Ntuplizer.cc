@@ -5,6 +5,7 @@
 
 #include <CMS3/NtupleMaker/interface/plugins/MCUtilities.h>
 #include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
+#include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
@@ -174,6 +175,14 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   isSelected &= this->fillMETFilterVariables(iEvent);
 
 
+  /************************************************************/
+  /************************************************************/
+  /* NO MORE CALLS TO THE FILL SUBROUTINES BEYOND THIS POINT! */
+  /************************************************************/
+  /************************************************************/
+
+  commonEntry.setNamedVal("passCommonSkim", isSelected); // Can use this flag to match data and MC selections
+
   /************************************************/
   /* Record the communicator values into the tree */
   /************************************************/
@@ -205,7 +214,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 #undef DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE
 
   // Fill the tree
-  if (isMC || isSelected) outtree->fill();
+  if (this->isMC || isSelected) outtree->fill();
 
   // No longer the first event...
   if (firstEvent) firstEvent = false;
@@ -771,6 +780,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
 
@@ -845,6 +857,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
+    PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
+
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
     PUSH_USERINT_INTO_VECTOR(type_mask);
@@ -909,6 +924,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
+  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
+
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
 
@@ -947,6 +965,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
 
   //MAKE_VECTOR_WITH_RESERVE(bool, pass_fsr_preselection, n_objects);
   //MAKE_VECTOR_WITH_RESERVE(float, fsrIso, n_objects);
@@ -992,6 +1013,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
 
+    PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
+
     //PUSH_USERFLOAT_INTO_VECTOR(fsrIso);
 
     if (filledObjects) filledObjects->push_back(&(*obj));
@@ -1022,6 +1046,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
+
+  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
 
   //PUSH_VECTOR_WITH_NAME(colName, pass_fsr_preselection);
   //PUSH_VECTOR_WITH_NAME(colName, fsrIso);
@@ -1448,25 +1475,6 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
   if (filledObjects) filledObjects->reserve(n_objects);
 
   // FSR preselection
-  struct FSRCandidateInfo{
-    pat::PackedCandidate const* obj;
-    double fsrIso;
-
-    std::vector<pat::Electron const*> veto_electron_list;
-    std::vector<pat::Photon const*> veto_photon_list;
-
-    std::vector<pat::Muon const*> matched_muon_list;
-    std::vector<pat::Electron const*> matched_electron_list;
-
-    CMSLorentzVector_d p4() const{ return obj->p4(); }
-    CMSLorentzVector_d::Scalar pt() const{ return obj->pt(); }
-    CMSLorentzVector_d::Scalar eta() const{ return obj->eta(); }
-    CMSLorentzVector_d::Scalar phi() const{ return obj->phi(); }
-    CMSLorentzVector_d::Scalar mass() const{ return obj->mass(); }
-    int pdgId() const{ return obj->pdgId(); }
-    float charge() const{ return obj->charge(); }
-  };
-
   std::vector<FSRCandidateInfo> preselectedFSRCandidates; preselectedFSRCandidates.reserve(n_objects);
   edm::View<pat::PackedCandidate>::const_iterator it_pfcands_begin = pfcandsHandle->begin();
   edm::View<pat::PackedCandidate>::const_iterator it_pfcands_end = pfcandsHandle->end();
