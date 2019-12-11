@@ -9,7 +9,12 @@ Do
 createCMS3SampleListFromCSV.py --csv=samples_Data_2018.csv --outfile=samples_Data_2018.txt
 ```
 
-This creates a txt file with each line corresponding to one ROOT file.
+This creates a txt file with each line corresponding to one ROOT file. If you want to have N ROOT files per job, do
+
+```
+createCMS3SampleListFromCSV.py --csv=samples_Data_2018.csv --outfile=samples_Data_2018.txt --ninputsperjob=[N]
+```
+
 
 Then, you need to do
 

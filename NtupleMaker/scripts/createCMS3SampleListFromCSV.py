@@ -27,6 +27,7 @@ class BatchManager:
       self.parser.add_option("--method", type="string", default="dbs", help="Method to list the data files")
       self.parser.add_option("--options", type="string", default=None, help="Other options specific to each method")
       self.parser.add_option("--nfiles", type="int", default=-1, help="Limit on the number of files per process")
+      self.parser.add_option("--ninputsperjob", type="int", default=1, help="Number of input files per job")
 
       (self.opt,self.args) = self.parser.parse_args()
 
@@ -85,8 +86,26 @@ class BatchManager:
                      rec = True,
                      other_options = self.opt.options
                      )
+
+                  groupedfilelist = []
+                  if self.opt.ninputsperjob > 0:
+                     ifilecount=0
+                     infilestr=""
+                     for ff in filelist:
+                        if infilestr:
+                           infilestr = "{},{}".format(infilestr,ff)
+                        else:
+                           infilestr=ff
+                        ifilecount = ifilecount+1
+                        if ifilecount == self.opt.ninputsperjob:
+                           groupedfilelist.append(infilestr)
+                           infilestr=""
+                           ifilecount=0
+                  else:
+                     groupedfilelist = filelist
+
                   index_ff=0
-                  for ff in filelist:
+                  for ff in groupedfilelist:
                      stroutlist=[]
                      ffout = "{}_{}.root".format(ffoutcore,index_ff)
                      for ix in range(len(row)):
