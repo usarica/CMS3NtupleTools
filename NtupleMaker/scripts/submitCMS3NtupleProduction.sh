@@ -35,7 +35,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$INFILE" ]]; then
   echo "$0 usage:"
   echo " - help: Print this help"
   echo " - infile: Input commands list file. Mandatory."
-  echo " - outdir: Main output location. Default='./'"
+  echo " - outdir: Main output location. Default='./output'"
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
   echo " - condoroutdir: Condor output directory to override. Optional."
   exit 0

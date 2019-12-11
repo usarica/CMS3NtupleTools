@@ -29,8 +29,9 @@ src/CMS3 \
 --exclude=lib/${SCRAM_ARCH}/* \
 --exclude=src/ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid \
 --exclude=src/ZZMatrixElement/MELA/test/reference \
---exclude=src/CMS3/NtupleMaker/test/output \
---exclude=src/CMS3/NtupleMaker/test/outputs \
+--exclude=src/CommonLHETools/LHEHandler/test/*.root \
+--exclude=src/CMS3/AnalysisTree/test/output* \
+--exclude=src/CMS3/NtupleMaker/test/output* \
 --exclude=src/CMS3/NtupleMaker/test/*.root \
 --exclude={.git,.gitignore,__init__.py,*.tar,libmcfm*,*.d,*.a,*.o,*.pcm,*.so,*.pyc,*.mod}
 
