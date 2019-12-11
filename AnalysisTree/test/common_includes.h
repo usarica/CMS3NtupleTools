@@ -4,6 +4,7 @@
 #include "JetMETHandler.h"
 #include "GenInfoHandler.h"
 #include "DileptonHandler.h"
+#include "EventFilterHandler.h"
 
 #include "ParticleSelectionHelpers.h"
 #include "MuonSelectionHelpers.h"

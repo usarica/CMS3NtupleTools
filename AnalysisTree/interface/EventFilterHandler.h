@@ -30,7 +30,7 @@ public:
   // Destructors
   ~EventFilterHandler(){ clear(); }
 
-  bool constructFilter();
+  bool constructFilters();
 
   bool testHLTPaths(std::vector<std::string> const& hltpaths_) const;
   // Special event filters for various specific issues

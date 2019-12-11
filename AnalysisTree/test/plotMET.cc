@@ -199,7 +199,7 @@ void getChannelTitleLabel(int ichannel, TString& title, TString& label){
 void getTrees(TString strdate=""){
   gStyle->SetOptStat(0);
 
-  if (strdate=="") strdate = todaysdate();
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2 for any, ee, mumu, emu
@@ -252,6 +252,10 @@ void getTrees(TString strdate=""){
     JetMETHandler jetHandler;
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
+
+    EventFilterHandler eventFilter;
+    eventFilter.bookBranches(&sample_tree);
+    eventFilter.wrapTree(&sample_tree);
 
     DileptonHandler dileptonHandler;
 
@@ -509,7 +513,7 @@ void getTrees(TString strdate=""){
     const int nevents = sample_tree.getSelectedNEvents();
     for (int ev=0; ev<nevents; ev++){
       HelperFunctions::progressbar(ev, nevents);
-      //if (ev>10000) break;
+      if (ev>1000) break;
       sample_tree.getSelectedEvent(ev);
       if (ev==0){
         sample_tree.getVal("xsec", xsec);
@@ -543,6 +547,8 @@ void getTrees(TString strdate=""){
       for (auto* jet:ak4jets){ if (ParticleSelectionHelpers::isTightJet(jet)) ak4jets_tight.push_back(jet); }
 
       //MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
+
+      eventFilter.constructFilters();
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
@@ -719,7 +725,7 @@ void plotMET(TString strdate="", bool useLogY=false, bool isStacked=false, int n
 
   gStyle->SetOptStat(0);
 
-  if (strdate=="") strdate = todaysdate();
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   //SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   //constexpr int nchannels = 4;

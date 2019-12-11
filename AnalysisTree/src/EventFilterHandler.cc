@@ -23,7 +23,7 @@ const std::string EventFilterHandler::colName_HLTpaths = "triggers";
 EventFilterHandler::EventFilterHandler() :
   IvyBase()
 {
-#define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME);
+#define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(EventFilterHandler::colName_HLTpaths + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
 #undef HLTTRIGGERPATH_VARIABLE
 }
@@ -33,7 +33,7 @@ void EventFilterHandler::clear(){
   product_HLTpaths.clear();
 }
 
-bool EventFilterHandler::constructFilter(){
+bool EventFilterHandler::constructFilters(){
   clear();
   if (!currentTree) return false;
 
