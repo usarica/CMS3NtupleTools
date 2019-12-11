@@ -5,6 +5,7 @@
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDProducer.h"
+//#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -25,7 +26,8 @@
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 
 
-class GenMaker : public edm::one::EDProducer<>{
+class GenMaker : public edm::one::EDProducer<edm::one::WatchRuns, edm::one::SharedResources>{
+//class GenMaker : public edm::EDProducer{
 public:
   explicit GenMaker(const edm::ParameterSet&);
   ~GenMaker();
@@ -35,6 +37,7 @@ private:
   virtual void endJob();
 
   virtual void beginRun(const edm::Run&, const edm::EventSetup&);
+  virtual void endRun(const edm::Run&, const edm::EventSetup&){}
 
   virtual void produce(edm::Event&, const edm::EventSetup&);
 
@@ -60,7 +63,6 @@ protected:
   int decayVVmode;
   std::vector<std::string> lheMElist;
 
-  edm::EDGetTokenT<LHEEventProduct> LHEEventInfoToken;
   edm::EDGetTokenT<LHERunInfoProduct> LHERunInfoToken;
 
   edm::EDGetTokenT<GenEventInfoProduct> genEvtInfoToken;

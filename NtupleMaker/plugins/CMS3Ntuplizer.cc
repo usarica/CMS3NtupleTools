@@ -74,6 +74,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   genAK4JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK4JetsSrc"));
   genAK8JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK8JetsSrc"));
 
+  this->usesResource("TFileService");
 }
 CMS3Ntuplizer::~CMS3Ntuplizer(){
   //delete pileUpReweight;
@@ -84,18 +85,10 @@ CMS3Ntuplizer::~CMS3Ntuplizer(){
 void CMS3Ntuplizer::beginJob(){
   edm::Service<TFileService> fs;
   TTree* tout = fs->make<TTree>(treename, "Selected event summary");
-  outtree = new BaseTree(nullptr, tout, nullptr, nullptr, false);
+  outtree = std::make_shared<BaseTree>(nullptr, tout, nullptr, nullptr, false);
   outtree->setAcquireTreePossession(false);
 }
-void CMS3Ntuplizer::endJob(){
-  delete outtree;
-}
-
-void CMS3Ntuplizer::beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&){}
-void CMS3Ntuplizer::endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&){}
-
-void CMS3Ntuplizer::beginRun(edm::Run const&, edm::EventSetup const&){}
-void CMS3Ntuplizer::endRun(edm::Run const&, edm::EventSetup const&){}
+void CMS3Ntuplizer::endJob(){}
 
 
 // Convenience macros to easily make and push vector values

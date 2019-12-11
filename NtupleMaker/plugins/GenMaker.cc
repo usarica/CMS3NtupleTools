@@ -1,12 +1,13 @@
 #include "CMS3/NtupleMaker/interface/plugins/GenMaker.h"
 #include <ZZMatrixElement/MELA/interface/PDGHelpers.h>
+#include "MELAStreamHelpers.hh"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 
-using namespace reco;
-using namespace edm;
 using namespace std;
+using namespace edm;
+using namespace reco;
 
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
@@ -31,9 +32,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   candVVmode(static_cast<MELAEvent::CandidateVVMode>(iConfig.getParameter<int>("candVVmode"))),
   decayVVmode(iConfig.getParameter<int>("decayVVmode")),
   lheMElist(iConfig.getParameter< std::vector<std::string> >("lheMElist"))
-
 {
-  LHEEventInfoToken = consumes<LHEEventProduct>(LHEInputTag_);
+  consumesMany<LHEEventProduct>();
   LHERunInfoToken = consumes<LHERunInfoProduct, edm::InRun>(LHEInputTag_);
   genEvtInfoToken = consumes<GenEventInfoProduct>(genEvtInfoInputTag_);
   prunedGenParticlesToken = consumes<reco::GenParticleCollection>(prunedGenParticlesInputTag_);
@@ -42,6 +42,8 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
 
   consumesMany<HepMCProduct>();
 
+  if (year==2016) LHEHandler::set_maxlines_print_header(1000);
+  else LHEHandler::set_maxlines_print_header(-1);
   lheHandler_default = std::make_shared<LHEHandler>(
     candVVmode, decayVVmode,
     (!lheMElist.empty() || doHiggsKinematics ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
@@ -67,16 +69,14 @@ GenMaker::~GenMaker(){
 void GenMaker::beginJob(){}
 void GenMaker::endJob(){}
 
-void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& iSetup){
+void GenMaker::beginRun(const edm::Run& iRun, const edm::EventSetup& /*iSetup*/){
   static bool firstRun = true;
-
   if (firstRun){ // Do these only at the first run
     // Extract LHE header
     edm::Handle<LHERunInfoProduct> lhe_runinfo;
     iRun.getByLabel(LHEInputTag_, lhe_runinfo);
     lheHandler_default->setHeaderFromRunInfo(&lhe_runinfo);
     lheHandler_NNPDF30_NLO->setHeaderFromRunInfo(&lhe_runinfo);
-
     firstRun=false;
   }
 }
@@ -127,8 +127,8 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   std::vector< edm::Handle<HepMCProduct> > HepMCProductHandles;
   iEvent.getManyByType(HepMCProductHandles);
 
-  edm::Handle<LHEEventProduct> LHEEventInfo;
-  iEvent.getByToken(LHEEventInfoToken, LHEEventInfo);
+  std::vector< edm::Handle<LHEEventProduct> > LHEEventInfoList;
+  iEvent.getManyByType(LHEEventInfoList);
 
   float genps_weight = 0;
   if (!HepMCProductHandles.empty()){
@@ -140,7 +140,9 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if (!HepMCweights.empty()) genps_weight = HepMCweights.front();
   }
 
-  if (LHEEventInfo.isValid()){
+  if (!LHEEventInfoList.empty() && LHEEventInfoList.front().isValid()){
+    edm::Handle<LHEEventProduct>& LHEEventInfo = LHEEventInfoList.front();
+
     lheHandler_default->setHandle(&LHEEventInfo);
     lheHandler_default->extract();
     // Special case for the default:
@@ -245,7 +247,11 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 /* ME COMPUTATION */
 /******************/
 void GenMaker::setupMELA(){
-  if (lheMElist.empty()) return;
+  if (lheMElist.empty()){
+    this->usesResource("GenMakerNoMELA");
+    return;
+  }
+  this->usesResource("MELA");
 
   using namespace CMS3MELAHelpers;
 

@@ -10,7 +10,7 @@
 #include <memory>
 
 #include <FWCore/Framework/interface/Frameworkfwd.h>
-#include <FWCore/Framework/interface/EDAnalyzer.h>
+#include <FWCore/Framework/interface/one/EDAnalyzer.h>
 #include <FWCore/Framework/interface/Event.h>
 #include <FWCore/Framework/interface/Run.h>
 #include <FWCore/Framework/interface/MakerMacros.h>
@@ -51,7 +51,7 @@
 #include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
 
 
-class CMS3Ntuplizer : public edm::EDAnalyzer{
+class CMS3Ntuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>{
 public:
   explicit CMS3Ntuplizer(const edm::ParameterSet&);
   ~CMS3Ntuplizer();
@@ -68,7 +68,7 @@ protected:
 
 protected:
   const edm::ParameterSet pset;
-  BaseTree* outtree;
+  std::shared_ptr<BaseTree> outtree;
   SimpleEntry commonEntry;
   bool firstEvent;
 
@@ -147,12 +147,6 @@ protected:
 private:
   virtual void beginJob();
   virtual void endJob();
-
-  virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-  virtual void endRun(edm::Run const&, edm::EventSetup const&);
-
-  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
 
   virtual void analyze(edm::Event const&, const edm::EventSetup&);
 
