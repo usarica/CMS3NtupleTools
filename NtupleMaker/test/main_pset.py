@@ -557,7 +557,7 @@ runMetCorAndUncFromMiniAOD(
    **extra_puppi
    )
 ### Have no idea about what these things do, but safer to recompute weights I suppose...
-useExistingWeightsFlag = (opts.data and opts.year == 2018)
+useExistingWeightsFlag = (opts.year == 2018)
 process.puppiNoLep.useExistingWeights = useExistingWeightsFlag
 process.puppi.useExistingWeights = useExistingWeightsFlag
 ## These variables are somehow dropped

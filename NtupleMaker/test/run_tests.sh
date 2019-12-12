@@ -34,7 +34,7 @@ $cmd $pset dumpProcess=True globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents 
     output=$outputdir/ntuple_2016_mc_80xminiaodv2.root >& $outputdir/log_2016_mc_80xminiaodv2.txt &
 
 # 2016 MC Fastsim 80X MiniAODv2 -- /TTJets_DiLept_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1/MINIAODSIM
-#$cmd $pset dumpProcess=True globaltag=80X_mcRun2_asymptotic_2016_miniAODv2_v0 nevents=$nevents fastsim=True \
+#$cmd $pset dumpProcess=True globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents fastsim=True \
 #    inputs=/store/user/namin/localcache/mc/RunIISpring16MiniAODv2/SMS-T1tttt_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUSpring16Fast_80X_mcRun2_asymptotic_2016_miniAODv2_v0-v1/00000/5A5E2A72-4F2D-E611-B2F5-02163E017638.root \
 #    output=$outputdir/ntuple_2016_mc_80xfastsim.root >& $outputdir/log_2016_mc_80xfastsim.txt &
 
@@ -64,7 +64,7 @@ $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents \
     output=$outputdir/ntuple_2017_dataf.root >& $outputdir/log_2017_dataf.txt &
 
 # 2018 Re-reco Data -- /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD
-$cmd $pset dumpProcess=True globaltag=102X_dataRun2_v4 nevents=$nevents \
+$cmd $pset dumpProcess=True globaltag=102X_dataRun2_v11 nevents=$nevents \
     inputs=/store/user/namin/localcache/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root \
     output=$outputdir/ntuple_2018_data_rereco.root >& $outputdir/log_2018_data_rereco.txt &
 
