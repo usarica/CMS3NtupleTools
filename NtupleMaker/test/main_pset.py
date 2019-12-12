@@ -27,6 +27,7 @@ opts.register('genxsecanalyzer'  , False , mytype=vpbool) # ONLY run the genxsec
 opts.register('applyEGscalesmear', True , mytype=vpbool) # to enable e/gamma scale and smear corrections
 opts.register('applyMuoncorr', True , mytype=vpbool) # to enable muon scale and smear corrections
 opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the pile-up jet id
+opts.register('recomputePuppiWeights', False , mytype=vpbool) # to recompute puppi weights in MET correction routines
 opts.register('keepGenParticles' , "reducedfinalstates" , mytype=vpstring) # to keep gen. particles. See CMS3NtupleMaker::ParticleRecordLevel enums
 opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
@@ -560,7 +561,7 @@ runMetCorAndUncFromMiniAOD(
    **extra_puppi
    )
 ### Have no idea about what these things do, but safer to recompute weights I suppose...
-useExistingWeightsFlag = (opts.year == 2018)
+useExistingWeightsFlag = not opts.recomputePuppiWeights
 process.puppiNoLep.useExistingWeights = useExistingWeightsFlag
 process.puppi.useExistingWeights = useExistingWeightsFlag
 ## These variables are somehow dropped
