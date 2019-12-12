@@ -14,7 +14,8 @@
 namespace CMS3MELAHelpers{
   extern std::shared_ptr<Mela> melaHandle;
 
-  void setupMela(int sqrts, float mh, TVar::VerbosityLevel verbosity);
+  int getSqrts(int year);
+  void setupMela(int year, float mh, TVar::VerbosityLevel verbosity);
   void clearMela();
 
   using namespace BranchHelpers;

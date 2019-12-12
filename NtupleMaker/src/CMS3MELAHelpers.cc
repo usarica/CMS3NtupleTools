@@ -8,7 +8,23 @@ using namespace std;
 namespace CMS3MELAHelpers{
   std::shared_ptr<Mela> melaHandle(nullptr);
 
-  void setupMela(int sqrts, float mh, TVar::VerbosityLevel verbosity){
+  int getSqrts(int year){
+    switch (year){
+    case 2011:
+      return 7;
+    case 2012:
+      return 8;
+    case 2015:
+    case 2016:
+    case 2017:
+    case 2018:
+      return 13;
+    default:
+      return -1;
+    }
+  }
+  void setupMela(int year, float mh, TVar::VerbosityLevel verbosity){
+    int sqrts = getSqrts(year);
     if (!melaHandle && sqrts>0 && mh>=0.f) melaHandle = make_shared<Mela>(sqrts, mh, verbosity);
   }
   void clearMela(){ melaHandle.reset((Mela*) nullptr); }

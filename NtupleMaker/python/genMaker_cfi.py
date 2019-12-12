@@ -19,7 +19,6 @@ genMaker = cms.EDProducer(
 
    ntuplePackedGenParticles    = cms.bool(False), # default is False
 
-   sqrts = cms.int32(13), # CoM in TeV
    superMH = cms.double(125), # Higgs mass used in MELA SuperMELA
 
    candVVmode = cms.untracked.string("none"), # Has to correspond to MELAEvent::nCandidateVVModes

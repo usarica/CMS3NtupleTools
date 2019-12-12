@@ -55,7 +55,6 @@ protected:
   edm::InputTag genMETInputTag_;
   bool ntuplePackedGenParticles_;
 
-  int sqrts;
   float superMH;
 
   bool doHiggsKinematics;

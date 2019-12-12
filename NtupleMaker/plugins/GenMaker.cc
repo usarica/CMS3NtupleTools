@@ -25,7 +25,6 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
 
   ntuplePackedGenParticles_(iConfig.getParameter<bool>("ntuplePackedGenParticles")),
 
-  sqrts(iConfig.getParameter<int>("year")),
   superMH(static_cast<float>(iConfig.getParameter<double>("superMH"))),
 
   doHiggsKinematics(iConfig.getParameter<bool>("doHiggsKinematics")),
@@ -255,7 +254,7 @@ void GenMaker::setupMELA(){
 
   using namespace CMS3MELAHelpers;
 
-  setupMela(sqrts, superMH, TVar::ERROR); // Sets up MELA only once
+  setupMela(year, superMH, TVar::ERROR); // Sets up MELA only once
 
   lheMEblock.buildMELABranches(lheMElist, true);
 }
