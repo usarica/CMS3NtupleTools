@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import glob
+import re
 from pprint import pprint
 
 from metis.Sample import DBSSample, DirectorySample
@@ -38,22 +39,24 @@ def get_tasks():
         isdata = "Run201" in sample.info["dataset"]
         events_per_output = (500e3 if isdata else 200e3)
         pset_args = sample.info["options"]
-        # FIXME delete next line
-        pset_args = pset_args.replace("nevents=-1","nevents=100")
-        print(pset_args)
+        global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         task = CMSSWTask(
                 sample=sample,
                 tarfile=tarfile,
                 tag=tag,
+                global_tag=global_tag,
                 pset_args=pset_args,
                 scram_arch="slc6_amd64_gcc700",
                 cmssw_version="CMSSW_10_2_18",
                 output_name="ntuple.root",
                 events_per_output=events_per_output,
                 pset="main_pset.py",
-                # FIXME, delete next two lines
+                is_tree_output=False,
+                dont_check_tree=True,
+                # FIXME, delete the following
                 condor_submit_params = {"sites": "T2_US_UCSD"},
                 max_jobs=1,
+                max_nevents_per_job = 100,
                 )
         print(task)
         tasks.append(task)
