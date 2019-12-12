@@ -1,8 +1,10 @@
 #include <MelaAnalytics/CandidateLOCaster/interface/MELACandidateRecaster.h>
 #include <CMS3/NtupleMaker/interface/CMS3MELAHelpers.h>
+#include "MELAStreamHelpers.hh"
 
 
 using namespace std;
+using namespace MELAStreamHelpers;
 
 
 namespace CMS3MELAHelpers{
@@ -66,6 +68,19 @@ namespace CMS3MELAHelpers{
         // Add the computation to a named cluster to keep track of JECUp/JECDn, or for best-pWH_SM Lep_WH computations
         GMECHelperFunctions::addToMELACluster(me_computer, lheme_clusters);
 
+        /*
+        MELAout
+          << "Adding ME option with the following parameters:\n"
+          << "Name: " << me_opt->getName() << '\n'
+          << "Alias: " << me_opt->getAlias() << '\n'
+          << "Cluster: " << me_opt->getCluster() << '\n'
+          << "hmass: " << me_opt->hmass << '\n'
+          << "hwidth: " << me_opt->hwidth << '\n'
+          << "h2mass: " << me_opt->h2mass << '\n'
+          << "h2width: " << me_opt->h2width << '\n'
+          << "usePropagator: " << me_opt->usePropagator()
+          << endl;
+        */
         this->bookMELABranches(me_opt, me_computer, false);
       }
       // Resolve copy options
@@ -295,8 +310,8 @@ thelist.clear();
   }
 
   void GMECBlock::pushMELABranches(bool isGen){
-    std::vector<MELABranch*>& me_branches = (isGen ? lheme_branches : recome_branches);
-    std::vector<MELACluster*>& me_clusters = (isGen ? lheme_clusters : recome_clusters);
+    std::vector<MELABranch*> const& me_branches = (isGen ? lheme_branches : recome_branches);
+    std::vector<MELACluster*> const& me_clusters = (isGen ? lheme_clusters : recome_clusters);
     // Pull + push...
     for (MELABranch* v:me_branches) v->setVal();
     // ...then reset

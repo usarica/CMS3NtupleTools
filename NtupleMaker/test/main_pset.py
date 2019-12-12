@@ -231,7 +231,7 @@ if opts.lheMEfragment != "":
       raise RuntimeError("LHE ME fragment {} cannot be found!".format(opts.lheMEfragment))
    execfile(lheMEfragment)
    from CMS3.NtupleMaker.utils.processMEstrings import processMEstrings
-   processMEstrings(opts.inputs,theLHEProbabilities)
+   theLHEProbabilities = processMEstrings(opts.inputs,theLHEProbabilities)
    process.genMaker.lheMElist.extend(theLHEProbabilities)
 
 
