@@ -40,6 +40,7 @@ $cmd $pset dumpProcess=True globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents 
 
 # 2016 Re-reco Data 94X MiniAODv3 -- /DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD
 $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v10 nevents=$nevents \
+    goldenjson=Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt \
     inputs=/store/user/namin/localcache/data/Run2016C/DoubleMuon/MINIAOD/17Jul2018-v1/50000/D229CC30-1E8B-E811-844A-A0369FD0B228.root \
     output=$outputdir/ntuple_2016_data_94xminiaodv3.root >& $outputdir/log_2016_data_94xminiaodv3.txt &
 
@@ -55,11 +56,13 @@ $cmd $pset dumpProcess=True globaltag=94X_mc2017_realistic_v17 nevents=$nevents 
 
 # 2017 Re-reco Data (with MET recipe v2) -- /DoubleMuon/Run2017C-31Mar2018-v1/MINIAOD
 $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents metrecipe=True \
+    goldenjson=Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt \
     inputs=/store/user/namin/localcache/data/Run2017C/DoubleMuon/MINIAOD/31Mar2018-v1/80000/04FCFB0D-FF39-E811-94C7-AC162DA6D2F8.root \
     output=$outputdir/ntuple_2017_data.root >& $outputdir/log_2017_data.txt &
 
 # 2017 Re-reco Data (Re-Re-Reco of 2017F, so no MET recipe needed) -- /DoubleMuon/Run2017C-31Mar2018-v1/MINIAOD
 $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents \
+    goldenjson=Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt \
     inputs=/store/user/namin/localcache/data/Run2017F/DoubleEG/MINIAOD/09May2018-v1/10000/444E03EB-B75F-E811-AFBA-F01FAFD8F16A.root \
     output=$outputdir/ntuple_2017_dataf.root >& $outputdir/log_2017_dataf.txt &
 
