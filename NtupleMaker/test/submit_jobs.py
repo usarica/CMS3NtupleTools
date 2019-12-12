@@ -13,8 +13,8 @@ from metis.Optimizer import Optimizer
 
 def get_tasks():
 
-    tarfile = "tarball_v0.tar.xz"
-    tag = "OFFSHELL_v0"
+    tarfile = "tarball_v1.tar.xz"
+    tag = "OFFSHELL_v1"
 
     samples = []
     for fname in glob.glob("samples_*.csv"):
@@ -27,17 +27,10 @@ def get_tasks():
                 sample.info["options"] = row["options"]
                 samples.append(sample)
 
-    # FIXME test one data and one signal
-    samples = [
-            samples[0],
-            samples[74],
-            ]
-    print(samples)
-
     tasks = []
     for sample in samples:
         isdata = "Run201" in sample.info["dataset"]
-        events_per_output = (500e3 if isdata else 200e3)
+        events_per_output = (200e3 if isdata else 200e3)
         pset_args = sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         task = CMSSWTask(
@@ -53,18 +46,21 @@ def get_tasks():
                 pset="main_pset.py",
                 is_tree_output=False,
                 dont_check_tree=True,
-                # FIXME, delete the following
-                condor_submit_params = {"sites": "T2_US_UCSD"},
-                max_jobs=1,
-                max_nevents_per_job = 100,
                 )
-        print(task)
         tasks.append(task)
-        # break
 
     return tasks
 
 if __name__ == "__main__":
 
-    for task in get_tasks():
-        task.process()
+    total_summary = {}
+    optimizer = Optimizer()
+
+    for i in range(10000):
+
+        for task in get_tasks():
+            task.process(optimizer=optimizer)
+            total_summary[task.get_sample().get_datasetname()] = task.get_task_summary()
+
+        StatsParser(data=total_summary, webdir="~/public_html/dump/metis_offshell/").do()
+        interruptible_sleep(4*3600)

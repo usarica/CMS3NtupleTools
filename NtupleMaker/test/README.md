@@ -8,7 +8,7 @@ source setup.sh
 ```
 2. Edit `samples_*.csv` appropriately. And after making sure everything compiles properly, make a tarball for the worker node:
 ```bash
-mtarfile tarball_v0.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
+mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 ```
 3. Edit `submit_jobs.py` to consider the right samples. In particular, update the `tarfile`  variable
 and `tag` to uniquely identify the submission campaign.
