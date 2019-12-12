@@ -27,7 +27,6 @@ src/EgammaAnalysis \
 src/NNKit \
 src/CMS3 \
 --exclude=lib/${SCRAM_ARCH}/* \
---exclude=src/ZZMatrixElement/MELA/data/Pdfdata/NNPDF30_lo_as_0130.LHgrid \
 --exclude=src/ZZMatrixElement/MELA/test/reference \
 --exclude=src/CommonLHETools/LHEHandler/test/*.root \
 --exclude=src/CMS3/AnalysisTree/test/output* \
