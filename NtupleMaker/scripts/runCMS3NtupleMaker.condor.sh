@@ -171,6 +171,15 @@ ls -lrth
 echo -e "\n--- Begin RUN ---\n"
 
 RUNDIR=$(pwd)
+# Copy MELA-linked objects in case symlink does not work
+## Taken from Mela.cc
+cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/process.DAT ./
+cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/br.sm1 ./
+cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/br.sm2 ./
+cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/ffwarn.dat ./
+cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/input.DAT ./
+cp -rf ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/Pdfdata ./
+# Run main_pset.py
 RUNFILE=main_pset.py
 RUN_CMD=$(runGenericExecutable.py --executable="$RUNFILE" --command="$FCNARGS" --dry)
 if [[ "$RUN_CMD" == "Running "* ]];then
