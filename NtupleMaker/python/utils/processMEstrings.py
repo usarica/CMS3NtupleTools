@@ -3,6 +3,7 @@ import re
 def processMEstrings(samplestr, MElist):
    newMElist=[]
    matchres = re.search("_M[0-9]*_",samplestr)
+   # Acquire mass value
    massval=None
    if matchres is not None:
       matchstr = matchres.group()
@@ -13,6 +14,7 @@ def processMEstrings(samplestr, MElist):
    for strme in MElist:
       newstrme = strme
       newstrme = newstrme.replace("<HMASS>",massval)
+
       print newstrme
       newMElist.append(newstrme)
    return newMElist
