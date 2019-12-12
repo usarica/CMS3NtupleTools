@@ -1,41 +1,16 @@
-# How to run a data file
+## Grid submission
 
-Say the csv you would like to run is samples_Data_2018.csv. The first thing would be to create the list of samples out of it.
-Make sure you have your Grid proxy fresh.
-
-Do
-
+1. Checkout ProjectMetis and make sure it is in the PATH (via the `setup.sh` script):
 ```
-createCMS3SampleListFromCSV.py --csv=samples_Data_2018.csv --outfile=samples_Data_2018.txt
+git clone https://github.com/aminnj/ProjectMetis
+cd ProjectMetis
+source setup.sh
 ```
-
-This creates a txt file with each line corresponding to one ROOT file. If you want to have N ROOT files per job, do
-
+2. Edit `samples_*.csv` appropriately. And after making sure everything compiles properly, make a tarball for the worker node:
+```bash
+mtarfile tarball_v0.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 ```
-createCMS3SampleListFromCSV.py --csv=samples_Data_2018.csv --outfile=samples_Data_2018.txt --ninputsperjob=[N]
-```
-
-
-Then, you need to do
-
-```
-submitCMS3NtupleProduction.sh infile=samples_Data_2018.txt
-```
-
-to create the condor.sub scripts in output/[YYMMDD].
-
-Afterward, the workflow to submit jobs is the same as resubmitting them:
-
-```
-resubmitCMS3NtupleProduction.sh output/[YYMMDD]
-```
-
-
-Sometimes, you may want to put the submission scripts at a different location. In this case, you should do
-
-
-```
-submitCMS3NtupleProduction.sh infile=samples_Data_2018.txt outdir=[your directory] date=[your subdirectory]
-```
-
-This would create [your directory]/[your subdirectory] to put the scripts there.
+3. Edit `submit_jobs.py` to consider the right samples. In particular, update the `tarfile`  variable
+and `tag` to uniquely identify the submission campaign.
+4. Run `python submit_jobs.py` in a screen to (re)submit jobs.
+5. Visit the monitoring page to view progress and output location.
