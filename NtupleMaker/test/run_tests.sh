@@ -65,11 +65,13 @@ $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents \
 
 # 2018 Re-reco Data -- /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD
 $cmd $pset dumpProcess=True globaltag=102X_dataRun2_v11 nevents=$nevents \
+    goldenjson=Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt \
     inputs=/store/user/namin/localcache/data/Run2018A/DoubleMuon/MINIAOD/17Sep2018-v2/00000/7B954B49-BE06-B64C-89DC-F568513B41A3.root \
     output=$outputdir/ntuple_2018_data_rereco.root >& $outputdir/log_2018_data_rereco.txt &
 
 # 2018 Prompt Data -- /EGamma/Run2018D-PromptReco-v2/MINIAOD
 $cmd $pset dumpProcess=True globaltag=102X_dataRun2_Prompt_v14 nevents=$nevents \
+    goldenjson=Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt \
     inputs=/store/user/namin/localcache/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/322/204/00000/F09A218A-71B3-E811-9A04-02163E013E33.root \
     output=$outputdir/ntuple_2018_data_prompt.root >& $outputdir/log_2018_data_prompt.txt &
 

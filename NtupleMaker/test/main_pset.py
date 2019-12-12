@@ -175,31 +175,34 @@ process.source = cms.Source(
       )
    )
 
+import os
 def find_up(fname):
-   import os
    d = os.getcwd()
    while d != "/":
       t, d = os.path.join(d,fname), os.path.dirname(d)
       if os.path.exists(t): return t
    return None
 
+allow_skip_event = True
 if opts.data and opts.goldenjson:
     goldenjson = find_up(opts.goldenjson)
     if goldenjson is None:
        goldenjson = find_up('data/LumiJSON/'+opts.goldenjson)
+    if goldenjson is None:
+       # deal with lack of symlinks on condor node
+       goldenjson = find_up(os.path.join(os.getenv("CMSSW_BASE"), "src/CMS3/NtupleMaker/data/LumiJSON/", opts.goldenjson))
     if goldenjson is None:
        raise RuntimeError("Golden JSON file {} cannot be found!".format(opts.goldenjson))
     # if we filter in the process.source, then the events are just skipped
     # so we use a custom lumiFilter to skip *after* the EventMaker to keep
     # total event counts in agreement with DBS, but also have evt_event,run,lumiBlock
     # for babymakers to filter
-    skip_event = False
     import FWCore.PythonUtilities.LumiList as LumiList
     # JSONfile = "Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
     lumilist = LumiList.LumiList(filename=goldenjson).getCMSSWString().split(',')
     print("Found json list of lumis to process with {} lumi sections from {}".format(len(lumilist),goldenjson))
-    print("Skipping {} if they're not in the lumi list".format("events entirely" if skip_event else "anything after eventMaker"))
-    if skip_event:
+    print("Skipping {} if they're not in the lumi list".format("events entirely" if allow_skip_event else "anything after eventMaker"))
+    if allow_skip_event:
         process.source.lumisToProcess = cms.untracked(cms.VLuminosityBlockRange()+lumilist)
     else:
         process.lumiFilter.lumisToProcess = cms.untracked(cms.VLuminosityBlockRange()+lumilist)
@@ -729,7 +732,7 @@ if not opts.is80x:
 # steal some logic from https://github.com/cms-sw/cmssw/blob/CMSSW_10_4_X/PhysicsTools/NanoAOD/python/nano_cff.py
 producers = [
         #process.eventMaker,
-        process.lumiFilter, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
+        process.lumiFilter if not allow_skip_event else None, # filter after eventmaker so we get run lumi event branches at least, and event counts match up
         #process.muToTrigAssMaker if opts.triginfo else None,
         #process.elToTrigAssMaker if opts.triginfo else None,
         process.hltMaker if not opts.fastsim else None,
@@ -770,7 +773,7 @@ for ip,producer in enumerate(producers):
    if hasattr(producer, "year"):
       setattr(producer, "year", cms.int32(opts.year))
 
-   if ip == 0:
+   if total_path is None:
       total_path = producer
       continue
 
