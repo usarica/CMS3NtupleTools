@@ -30,7 +30,7 @@ def get_tasks():
     tasks = []
     for sample in samples:
         isdata = "Run201" in sample.info["dataset"]
-        events_per_output = (200e3 if isdata else 200e3)
+        events_per_output = (350e3 if isdata else 200e3)
         pset_args = sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         task = CMSSWTask(
