@@ -560,8 +560,9 @@ runMetCorAndUncFromMiniAOD(
    **extra_puppi
    )
 ### Have no idea about what these things do, but safer to recompute weights I suppose...
-process.puppiNoLep.useExistingWeights = False
-process.puppi.useExistingWeights = False
+useExistingWeightsFlag = (opts.year == 2018)
+process.puppiNoLep.useExistingWeights = useExistingWeightsFlag
+process.puppi.useExistingWeights = useExistingWeightsFlag
 ## These variables are somehow dropped
 #process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 #process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
