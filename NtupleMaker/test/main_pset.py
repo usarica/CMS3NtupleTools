@@ -33,6 +33,11 @@ opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.register('xsec', -1, mytype=vpfloat) # xsec value of the MC sample in pb, hopefully
 opts.register('BR', -1, mytype=vpfloat) # BR value of the MC sample
+# MELA options
+opts.register('lheMEfragment', "", mytype=vpstring)
+opts.register('VVMode', "none", mytype=vpstring)
+opts.register('VVDecayMode', -1, mytype=vpint)
+###
 opts.parseArguments()
 
 # this is the section where we try to be a bit smart for the purpose of laziness
@@ -210,6 +215,25 @@ if opts.data and opts.goldenjson:
 
 #Max Events
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(opts.nevents) )
+
+
+## MELA LHE ME list
+process.genMaker.candVVmode = cms.untracked.string(opts.VVMode)
+process.genMaker.decayVVmode = cms.int32(opts.VVDecayMode)
+if opts.lheMEfragment != "":
+   lheMEfragment = find_up(opts.lheMEfragment)
+   if lheMEfragment is None:
+      lheMEfragment = find_up('data/LHEProbabilities/'+opts.lheMEfragment)
+   if lheMEfragment is None:
+      # deal with lack of symlinks on condor node
+      lheMEfragment = find_up(os.path.join(os.getenv("CMSSW_BASE"), "src/CMS3/NtupleMaker/data/LHEProbabilities/", opts.lheMEfragment))
+   if lheMEfragment is None:
+      raise RuntimeError("LHE ME fragment {} cannot be found!".format(opts.lheMEfragment))
+   execfile(lheMEfragment)
+   from CMS3.NtupleMaker.utils.processMEstrings import processMEstrings
+   processMEstrings(opts.inputs,theLHEProbabilities)
+   process.genMaker.lheMElist.extend(theLHEProbabilities)
+
 
 
 if opts.is80x:

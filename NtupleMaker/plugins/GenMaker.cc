@@ -29,7 +29,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   superMH(static_cast<float>(iConfig.getParameter<double>("superMH"))),
 
   doHiggsKinematics(iConfig.getParameter<bool>("doHiggsKinematics")),
-  candVVmode(static_cast<MELAEvent::CandidateVVMode>(iConfig.getParameter<int>("candVVmode"))),
+  candVVmode(MELAEvent::getCandidateVVModeFromString(iConfig.getUntrackedParameter<string>("candVVmode"))),
   decayVVmode(iConfig.getParameter<int>("decayVVmode")),
   lheMElist(iConfig.getParameter< std::vector<std::string> >("lheMElist"))
 {
@@ -46,7 +46,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   else LHEHandler::set_maxlines_print_header(-1);
   lheHandler_default = std::make_shared<LHEHandler>(
     candVVmode, decayVVmode,
-    (!lheMElist.empty() || doHiggsKinematics ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
+    ((candVVmode!=MELAEvent::nCandidateVVModes && (!lheMElist.empty() || doHiggsKinematics)) ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics),
     year, LHEHandler::keepDefaultPDF, LHEHandler::keepDefaultQCDOrder
     );
   lheHandler_NNPDF30_NLO = std::make_shared<LHEHandler>(
@@ -247,7 +247,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 /* ME COMPUTATION */
 /******************/
 void GenMaker::setupMELA(){
-  if (lheMElist.empty()){
+  if (candVVmode==MELAEvent::nCandidateVVModes || lheMElist.empty()){
     this->usesResource("GenMakerNoMELA");
     return;
   }

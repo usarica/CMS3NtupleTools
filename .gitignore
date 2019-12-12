@@ -15,6 +15,10 @@
 NtupleMaker/test/*.txt
 NtupleMaker/test/*.lst
 NtupleMaker/test/*.sh
+NtupleMaker/test/*.DAT
+NtupleMaker/test/*.dat
+NtupleMaker/test/br.sm*
+NtupleMaker/test/Pdfdata
 NtupleMaker/test/output*
 NtupleMaker/test/outputs*
 NtupleMaker/test/manualruns

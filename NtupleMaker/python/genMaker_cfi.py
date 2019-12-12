@@ -22,7 +22,7 @@ genMaker = cms.EDProducer(
    sqrts = cms.int32(13), # CoM in TeV
    superMH = cms.double(125), # Higgs mass used in MELA SuperMELA
 
-   candVVmode = cms.int32(7), # Has to correspond to MELAEvent::nCandidateVVModes
+   candVVmode = cms.untracked.string("none"), # Has to correspond to MELAEvent::nCandidateVVModes
    decayVVmode = cms.int32(-1), # -1 means any decay mode
    doHiggsKinematics = cms.bool(False),
    lheMElist = cms.vstring(),
