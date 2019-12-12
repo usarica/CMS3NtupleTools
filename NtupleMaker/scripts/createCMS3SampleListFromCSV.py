@@ -117,7 +117,8 @@ class BatchManager:
                         elif indices[ix] == "condoroutdir":
                            stroutlist.append('{}={}/{}'.format(indices[ix],row[ix],condorffout))
                         else:
-                           stroutlist.append('{}={}'.format(indices[ix],row[ix]))
+                           if row[ix]:
+                              stroutlist.append('{}={}'.format(indices[ix],row[ix]))
                      strout = " ".join(stroutlist)
                      print strout
                      outfile.write(strout+'\n')
