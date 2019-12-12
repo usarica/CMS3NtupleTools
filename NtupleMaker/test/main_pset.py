@@ -175,8 +175,8 @@ process.source = cms.Source(
       )
    )
 
+import os
 def find_up(fname):
-   import os
    d = os.getcwd()
    while d != "/":
       t, d = os.path.join(d,fname), os.path.dirname(d)
@@ -188,12 +188,15 @@ if opts.data and opts.goldenjson:
     if goldenjson is None:
        goldenjson = find_up('data/LumiJSON/'+opts.goldenjson)
     if goldenjson is None:
+       # deal with lack of symlinks on condor node
+       goldenjson = find_up(os.path.join(os.getenv("CMSSW_BASE"), "src/CMS3/NtupleMaker/data/LumiJSON/", opts.goldenjson))
+    if goldenjson is None:
        raise RuntimeError("Golden JSON file {} cannot be found!".format(opts.goldenjson))
     # if we filter in the process.source, then the events are just skipped
     # so we use a custom lumiFilter to skip *after* the EventMaker to keep
     # total event counts in agreement with DBS, but also have evt_event,run,lumiBlock
     # for babymakers to filter
-    skip_event = False
+    skip_event = True
     import FWCore.PythonUtilities.LumiList as LumiList
     # JSONfile = "Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt"
     lumilist = LumiList.LumiList(filename=goldenjson).getCMSSWString().split(',')
