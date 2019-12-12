@@ -32,7 +32,16 @@ src/CMS3 \
 --exclude=src/CommonLHETools/LHEHandler/test/*.root \
 --exclude=src/CMS3/AnalysisTree/test/output* \
 --exclude=src/CMS3/NtupleMaker/test/output* \
+--exclude=src/CMS3/NtupleMaker/test/manual* \
+--exclude=src/CMS3/NtupleMaker/test/Pdfdata \
 --exclude=src/CMS3/NtupleMaker/test/*.root \
+--exclude=src/CMS3/NtupleMaker/test/br.sm* \
+--exclude=src/CMS3/NtupleMaker/test/*.dat \
+--exclude=src/CMS3/NtupleMaker/test/*.DAT \
+--exclude=src/CMS3/NtupleMaker/test/*.txt \
+--exclude=src/CMS3/NtupleMaker/test/*.csv \
+--exclude=src/CMS3/NtupleMaker/test/*.md \
+--exclude=src/CMS3/NtupleMaker/test/*.sh \
 --exclude={.git,.gitignore,__init__.py,*.tar,libmcfm*,*.d,*.a,*.o,*.pcm,*.so,*.pyc,*.mod}
 
 mv $TARFILE $HERE/
