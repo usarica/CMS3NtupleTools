@@ -75,7 +75,7 @@ bool EventFilterHandler::constructHLTPaths(){
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) auto it_HLTpaths_##NAME = itBegin_HLTpaths_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
 #undef HLTTRIGGERPATH_VARIABLE
-  while (it_HLTpaths_name != itEnd_HLTpaths_name){
+  for (;it_HLTpaths_name != itEnd_HLTpaths_name; it_HLTpaths_name++){
     product_HLTpaths.push_back(new HLTTriggerPathObject());
     HLTTriggerPathObject*& obj = product_HLTpaths.back();
 
