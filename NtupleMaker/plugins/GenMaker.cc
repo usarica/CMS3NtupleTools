@@ -150,6 +150,33 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       MELACandidate* cand = lheHandler_default->getBestCandidate();
       doMELA(cand, *result);
     }
+    // Record the LHE-level particles (filled if lheHandler_default->doKinematics>=LHEHandler::doBasicKinematics)
+    std::vector<MELAParticle*> const& basicParticleList = lheHandler_default->getParticleList();
+    for (auto it_part = basicParticleList.cbegin(); it_part != basicParticleList.cend(); it_part++){
+      MELAParticle* part_i = *it_part;
+      result->lheparticles_px.push_back(part_i->x());
+      result->lheparticles_py.push_back(part_i->y());
+      result->lheparticles_pz.push_back(part_i->z());
+      result->lheparticles_E.push_back(part_i->t());
+      result->lheparticles_id.push_back(part_i->id);
+      result->lheparticles_status.push_back(part_i->genStatus);
+
+      int lheparticles_mother0_index=-1; int lheparticles_mother1_index=-1;
+      for (int imom=0; imom<std::min(part_i->getNMothers(), 2); imom++){
+        MELAParticle* mother = part_i->getMother(imom);
+        int& lheparticles_mother_index = (imom==0 ? lheparticles_mother0_index : lheparticles_mother1_index);
+        for (auto jt_part = basicParticleList.cbegin(); jt_part != basicParticleList.cend(); jt_part++){
+          MELAParticle* part_j = *jt_part;
+          if (part_j==mother){
+            lheparticles_mother_index = (jt_part - basicParticleList.cbegin());
+            break;
+          }
+        }
+      }
+      result->lheparticles_mother0_index.push_back(lheparticles_mother0_index);
+      result->lheparticles_mother1_index.push_back(lheparticles_mother1_index);
+    }
+
 
     lheHandler_NNPDF30_NLO->setHandle(&LHEEventInfo);
     lheHandler_NNPDF30_NLO->extract();

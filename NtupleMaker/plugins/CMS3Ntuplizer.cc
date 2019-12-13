@@ -273,6 +273,16 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   SET_GENINFO_VARIABLE(PythiaWeight_isr_muR4);
   SET_GENINFO_VARIABLE(PythiaWeight_fsr_muR4);
 
+  // LHE particles
+  SET_GENINFO_VARIABLE(lheparticles_px);
+  SET_GENINFO_VARIABLE(lheparticles_py);
+  SET_GENINFO_VARIABLE(lheparticles_pz);
+  SET_GENINFO_VARIABLE(lheparticles_E);
+  SET_GENINFO_VARIABLE(lheparticles_id);
+  SET_GENINFO_VARIABLE(lheparticles_status);
+  SET_GENINFO_VARIABLE(lheparticles_mother0_index);
+  SET_GENINFO_VARIABLE(lheparticles_mother1_index);
+
 #undef SET_GENINFO_VARIABLE
 
   for (auto const& it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
