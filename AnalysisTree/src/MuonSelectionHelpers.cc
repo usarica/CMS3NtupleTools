@@ -32,7 +32,7 @@ bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
   // RPC timing stored is the average over all RPC hits
   // The measurements are in multiples of the bunch crossing time since only the bunch crossing id is measured.
   // nDof>=2 ensures at least two measurements, and time error = 0 ensures measurement at the SAME BX!
-  bool rpcok =(rpcndof && rpcerr==0.);
+  bool rpcok =(rpcndof>=2 && rpcerr==0.);
   if (rpcok){
     if ((std::abs(rpc)>10.) && !(cmbok && std::abs(cmb)<10.)) return false;
   }
