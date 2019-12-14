@@ -42,14 +42,21 @@ bool EventFilterHandler::constructFilters(){
   return res;
 }
 
-bool EventFilterHandler::testHLTPaths(std::vector<std::string> const& hltpaths_) const{
+float EventFilterHandler::testHLTPaths(std::vector<std::string> const& hltpaths_) const{
+  float prescaleWeight = 0;
   for (auto str:hltpaths_){
     HelperFunctions::replaceString(str, "*", "");
     for (auto const* prod:product_HLTpaths){
-      if (prod->name.find(str)!=std::string::npos) return true;
+      if (prod->name.find(str)!=std::string::npos && prod->passTrigger){
+        float wgt=1;
+        if (prod->L1prescale!=-1) wgt *= static_cast<float>(prod->L1prescale);
+        if (prod->HLTprescale!=-1) wgt *= static_cast<float>(prod->HLTprescale);
+        if (wgt == 1.f) return 1; // If the event passes an unprescaled trigger, its weight is 1.
+        prescaleWeight += 1.f/wgt; // For a harmonic mean
+      }
     }
   }
-  return false;
+  return 1.f/prescaleWeight;
 }
 
 
