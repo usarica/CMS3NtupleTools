@@ -43,7 +43,7 @@ bool EventFilterHandler::constructFilters(){
 }
 
 float EventFilterHandler::testHLTPaths(std::vector<std::string> const& hltpaths_) const{
-  float prescaleWeight = 0;
+  float failRate = 1;
   for (auto str:hltpaths_){
     HelperFunctions::replaceString(str, "*", "");
     for (auto const* prod:product_HLTpaths){
@@ -52,11 +52,11 @@ float EventFilterHandler::testHLTPaths(std::vector<std::string> const& hltpaths_
         if (prod->L1prescale!=-1) wgt *= static_cast<float>(prod->L1prescale);
         if (prod->HLTprescale!=-1) wgt *= static_cast<float>(prod->HLTprescale);
         if (wgt == 1.f) return 1; // If the event passes an unprescaled trigger, its weight is 1.
-        prescaleWeight += 1.f/wgt; // For a harmonic mean
+        failRate *= 1.f-1.f/wgt;
       }
     }
   }
-  return 1.f/prescaleWeight;
+  return 1.f/(1.f-failRate);
 }
 
 
