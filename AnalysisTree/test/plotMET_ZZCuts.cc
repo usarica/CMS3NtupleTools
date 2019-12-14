@@ -259,9 +259,9 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
 
-    //EventFilterHandler eventFilter;
-    //eventFilter.bookBranches(&sample_tree);
-    //eventFilter.wrapTree(&sample_tree);
+    EventFilterHandler eventFilter;
+    eventFilter.bookBranches(&sample_tree);
+    eventFilter.wrapTree(&sample_tree);
 
     DileptonHandler dileptonHandler;
 
@@ -615,7 +615,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
       //MELAout << "MET values (PFPUPPI, PFCHS) = ( " << pfpuppimet->met() << ", " << pfchsmet->met() << " )" << endl;
 
-      //eventFilter.constructFilters();
+      eventFilter.constructFilters();
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();

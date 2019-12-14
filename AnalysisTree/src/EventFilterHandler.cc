@@ -42,7 +42,8 @@ bool EventFilterHandler::constructFilters(){
   return res;
 }
 
-float EventFilterHandler::testHLTPaths(std::vector<std::string> const& hltpaths_) const{
+float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpaths_) const{
+  if (hltpaths_.empty()) return 1;
   float failRate = 1;
   for (auto str:hltpaths_){
     HelperFunctions::replaceString(str, "*", "");

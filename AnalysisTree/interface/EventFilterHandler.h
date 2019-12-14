@@ -32,7 +32,7 @@ public:
 
   bool constructFilters();
 
-  float testHLTPaths(std::vector<std::string> const& hltpaths_) const;
+  float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
   // Special event filters for various specific issues
   /*
   // Requires an implementation of Samples.h, so skip for now
