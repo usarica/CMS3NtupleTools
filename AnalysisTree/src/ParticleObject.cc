@@ -62,3 +62,16 @@ void ParticleObject::addDaughter(ParticleObject* myParticle){ if (!checkParticle
 
 bool ParticleObject::hasMother(ParticleObject* part) const{ return checkParticleExists(part, mothers); }
 bool ParticleObject::hasDaughter(ParticleObject* part) const{ return checkParticleExists(part, daughters); }
+
+void ParticleObject::getDeepDaughters(std::vector<ParticleObject const*>& deepdaus) const{
+  if (this->getNDaughters()==0){
+    bool isFound = false;
+    for (ParticleObject const* ptr:deepdaus){
+      if (this == ptr){ isFound=true; break; }
+    }
+    if (!isFound) deepdaus.push_back(this);
+  }
+  else{
+    for (auto* dau:daughters) dau->getDeepDaughters(deepdaus);
+  }
+}
