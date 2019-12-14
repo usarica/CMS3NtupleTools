@@ -8,6 +8,7 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace std;
 using namespace edm;
 using namespace reco;
+using namespace MELAStreamHelpers;
 
 
 GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
@@ -295,6 +296,17 @@ void GenMaker::doMELA(MELACandidate* cand, GenInfo& genInfo){
     lheMEblock.getBranchValues(genInfo.LHE_ME_weights); // Record the MEs into the EDProducer product
 
     melaHandle->resetInputEvent();
+  }
+  else if (melaHandle && !cand){
+    MELAout
+      << "GenMaker::doMELA: Default LHEHandler options were\n"
+      << "candVVmode: " << candVVmode << '\n'
+      << "decayVVmode: " << decayVVmode << '\n'
+      << "kinFlag: " << ((candVVmode!=MELAEvent::nCandidateVVModes && (!lheMElist.empty() || doHiggsKinematics)) ? LHEHandler::doHiggsKinematics : LHEHandler::noKinematics) << '\n'
+      << "year: " << year << '\n'
+      << "but MELACandidate construction failed."
+      << endl;
+    throw cms::Exception("GenMaker::doMELA: The MELA handle is set but the candidate is null.");
   }
 }
 void GenMaker::cleanMELA(){
