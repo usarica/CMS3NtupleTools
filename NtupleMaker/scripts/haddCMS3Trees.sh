@@ -2,6 +2,7 @@
 
 JOBSDIR=""
 OUTDIR=""
+NCORES="12"
 let printhelp=0
 for fargo in "$@";do
   fcnargname=""
@@ -15,6 +16,10 @@ for fargo in "$@";do
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
     OUTDIR="$fcnargname"
+  elif [[ "$fargl" == "ncores="* ]];then
+    fcnargname="$farg"
+    fcnargname="${fcnargname#*=}"
+    NCORES="$fcnargname"
   elif [[ "$fargl" == "help" ]];then
     let printhelp=1
   fi
@@ -24,6 +29,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$JOBSDIR" ]] || [[ -z "$OUTDIR" ]]; then
   echo " - help: Print this help"
   echo " - jobsdir: Job submission directory. Mandatory."
   echo " - outdir: Main output location. Mandatory."
+  echo " - ncores: Number of cores for hadd (Default: 12)"
   exit 0
 fi
 
@@ -43,7 +49,7 @@ for INDIR in $(ls ${JOBSDIR}); do
       fi
     done
 
-    hadd -ff -O -n 0 -j 12 ${RECDIR}/allevents.root $flist
+    hadd -ff -O -n 0 -j ${NCORES} ${RECDIR}/allevents.root $flist
 
     popd
   done
