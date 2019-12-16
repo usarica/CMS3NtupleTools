@@ -631,6 +631,12 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
       }
 
+      float triggerWeight = eventFilter.getTriggerWeight(
+        {
+
+        }
+      );
+
       if (theChosenDilepton){
         bool is_ee=false, is_mumu=false, is_emu=false;
         if (theChosenDilepton->daughter(0)->pdgId() * theChosenDilepton->daughter(1)->pdgId() == -121) is_ee=true;
@@ -838,9 +844,9 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mZZ_plus_pfchs, wgt); it_hist++;
 
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(ml1j1, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && lepton_closest_to_j1) it_hist->hist.Fill(m_lj1_min, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(m_lj1_min, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && lepton_closest_to_j1) it_hist->hist.Fill(m_lj1_closest, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && lepton_closest_to_best_b) it_hist->hist.Fill(m_lj_min_best_b, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && highest_nonbtagged_jet) it_hist->hist.Fill(m_lj_min_best_b, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_significance && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && lepton_closest_to_best_b) it_hist->hist.Fill(m_lj_closest_l_best_b, wgt); it_hist++;
 
 
