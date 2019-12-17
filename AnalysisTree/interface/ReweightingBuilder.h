@@ -41,10 +41,6 @@ protected:
   std::unordered_map<BaseTree*, float> xsecVals;
   std::unordered_map<BaseTree*, float> sumNominalWeights;
 
-  virtual float eval_nominalweights(BaseTree* theTree) const;
-  virtual float eval_reweightingweights(BaseTree* theTree) const;
-  virtual float eval_xsecweights(BaseTree* theTree) const;
-
   int findBin(BaseTree* theTree) const;
 
 public:
@@ -59,7 +55,9 @@ public:
   
   virtual ~ReweightingBuilder(){}
 
-  virtual float eval(BaseTree* theTree) const;
+  virtual float eval_nominalweights(BaseTree* theTree) const;
+  virtual float eval_reweightingweights(BaseTree* theTree) const;
+  virtual float eval_xsecweights(BaseTree* theTree) const;
 
   std::vector<float> getWeightThresholds(BaseTree* theTree) const;
   float getPostThresholdWeight(BaseTree* theTree) const;

@@ -88,15 +88,6 @@ float ReweightingBuilder::eval_xsecweights(BaseTree* theTree) const{
   return weight;
 }
 
-float ReweightingBuilder::eval(BaseTree* theTree) const{
-  float weight = eval_nominalweights(theTree) * eval_reweightingweights(theTree) * eval_xsecweights(theTree);
-  if (!checkVarNanInf(weight)){
-    MELAerr << "ReweightingBuilder::eval: Weight " << weight << " is nan/inf!" << endl;
-    weight=0;
-  }
-  return weight;
-}
-
 int ReweightingBuilder::findBin(BaseTree* theTree) const{
   const ExtendedBinning& binning = weightBinning;
   int bin=0;
@@ -152,7 +143,7 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
 
       if (firstTreeEvent) firstTreeEvent=false;
     }
-    MELAout << "\t- Sum computed as " << it_tmp->second;
+    MELAout << "\t- Sum computed as " << it_tmp->second << endl;
   }
 
   // Now compute other weight-related variables
@@ -266,7 +257,8 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
     sumPostThrSqWeights[theTree].at(ibin)=sumsq;
     if (sumNonZeroWgtEvents[theTree].at(ibin)>0) MELAout << "\t- Threshold at bin " << ibin << ": " << weightThresholdReference << " +- " << threshold
       << ", sum of post-threshold weights: " << sumPostThrWeights[theTree].at(ibin) << " +- " << sqrt(sumPostThrSqWeights[theTree].at(ibin))
-      << ", Nevents: " << sumNonZeroWgtNominalWeights[theTree].at(ibin) << " / " << sumNonZeroWgtEvents[theTree].at(ibin)
+      << ", number of events with non-zero weight: " << sumNonZeroWgtEvents[theTree].at(ibin)
+      << ", sum of nominal weights for non-zero - weight events: " << sumNonZeroWgtNominalWeights[theTree].at(ibin)
       << endl;
   }
 }
@@ -324,7 +316,6 @@ void ReweightingBuilder::setupCaches(){
         // S_tj / W_t * sigma_t * sample weight
         sampleNormalizationsPerBinCache = xsec/sumAllNonZeroWgtNominalWeights*denominator_pertree;
         numerator_pertree = sumwgts * sampleNormalizationsPerBinCache;
-        sampleNormalizationsPerBinCache = numerator_pertree;
       }
 
       // Sum numerator and denominator over samples t

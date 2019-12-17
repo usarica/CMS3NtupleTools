@@ -9,19 +9,20 @@ using namespace MELAStreamHelpers;
 
 GenInfoHandler::GenInfoHandler() :
   IvyBase(),
+
+  acquireCoreGenInfo(true),
+  acquireLHEMEWeights(true),
+  acquireLHEParticles(true),
+
   genInfo(nullptr)
-{
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME);
-  GENINFO_VARIABLES
-#undef GENINFO_VARIABLE
-}
+{}
 
 
 bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
   clear();
   if (!currentTree) return false;
 
-  bool doLHEParticles = tree_lheparticles_present_map[currentTree];
+  bool doLHEParticles = acquireLHEParticles && tree_lheparticles_present_map[currentTree];
 
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL;
   GENINFO_VARIABLES;
@@ -32,14 +33,18 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
+  if (acquireCoreGenInfo){
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue(#NAME, NAME);
-  GENINFO_VARIABLES;
+    GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
+  }
 
   std::unordered_map<TString, float> MElist;
-  for (TString const& strme:tree_MElist_map[currentTree]){
-    MElist[strme] = 0;
-    allVariablesPresent &= this->getConsumedValue(strme, MElist.find(strme)->second);
+  if (acquireLHEMEWeights){
+    for (TString const& strme:tree_MElist_map[currentTree]){
+      MElist[strme] = 0;
+      allVariablesPresent &= this->getConsumedValue(strme, MElist.find(strme)->second);
+    }
   }
 
   if (doLHEParticles){
@@ -75,22 +80,24 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
 void GenInfoHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL);
-  GENINFO_VARIABLES
+  if (acquireCoreGenInfo){
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL); this->addConsumed<TYPE>(#NAME);
+    GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
+  }
 
   // ME reweighting branches are defined as sloppy
   std::vector<TString> allbranchnames; tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
   std::vector<TString> melist;
   bool has_lheparticles=false;
   for (TString const& bname : allbranchnames){
-    if (bname.Contains("p_Gen")){
+    if (acquireLHEMEWeights && (bname.Contains("p_Gen") || bname.Contains("LHECandMass"))){
       tree->bookBranch<float>(bname, 0.f);
       this->addConsumed<float>(bname);
       this->defineConsumedSloppy(bname);
       melist.push_back(bname);
     }
-    else if (bname.Contains("lheparticles")) has_lheparticles = true;
+    else if (acquireLHEParticles && bname.Contains("lheparticles")) has_lheparticles = true;
   }
   tree_MElist_map[tree] = melist;
   tree_lheparticles_present_map[tree] = has_lheparticles;
