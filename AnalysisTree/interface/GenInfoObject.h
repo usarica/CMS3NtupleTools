@@ -2,6 +2,10 @@
 #define GENINFOOBJECT_H
 
 
+#include <unordered_map>
+#include <string>
+#include <vector>
+#include "StdExtensions.h"
 #include "SystematicVariations.h"
 
 
@@ -41,12 +45,28 @@ GENINFO_VARIABLE(float, PythiaWeight_fsr_muR0p25, 1) \
 GENINFO_VARIABLE(float, PythiaWeight_isr_muR4, 1) \
 GENINFO_VARIABLE(float, PythiaWeight_fsr_muR4, 1)
 
+#define GENINFO_VECTOR_VARIABLES \
+GENINFO_VECTOR_VARIABLE(std::vector<float>, lheparticles_px) \
+GENINFO_VECTOR_VARIABLE(std::vector<float>, lheparticles_py) \
+GENINFO_VECTOR_VARIABLE(std::vector<float>, lheparticles_pz) \
+GENINFO_VECTOR_VARIABLE(std::vector<float>, lheparticles_E) \
+GENINFO_VECTOR_VARIABLE(std::vector<int>, lheparticles_id) \
+GENINFO_VECTOR_VARIABLE(std::vector<int>, lheparticles_status) \
+GENINFO_VECTOR_VARIABLE(std::vector<int>, lheparticles_mother0_index) \
+GENINFO_VECTOR_VARIABLE(std::vector<int>, lheparticles_mother1_index)
+
 
 class GenInfoVariables{
 public:
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME;
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
+
+  std::unordered_map<TString, float> LHE_ME_weights;
+
+#define GENINFO_VECTOR_VARIABLE(TYPE, NAME) TYPE NAME;
+  GENINFO_VECTOR_VARIABLES;
+#undef GENINFO_VECTOR_VARIABLE
 
   GenInfoVariables();
   GenInfoVariables(GenInfoVariables const& other);
