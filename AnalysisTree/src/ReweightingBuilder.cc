@@ -70,7 +70,7 @@ float ReweightingBuilder::eval_reweightingweights(BaseTree* theTree) const{
 float ReweightingBuilder::eval_xsecweights(BaseTree* theTree) const{
   std::unordered_map<BaseTree*, std::vector<float*>>::const_iterator it = componentRefs_xsecweights.find(theTree);
   if (it==componentRefs_xsecweights.cend()){
-    MELAerr << "ReweightingBuilder::eval_xsecweights: Could not find the weights " << strReweightingWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
+    MELAerr << "ReweightingBuilder::eval_xsecweights: Could not find the weights " << strCrossSectionWeights << ". Call ReweightingBuilder::setupWeightVariables first!" << endl;
     return 0;
   }
 
@@ -123,34 +123,12 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
   componentRefs_xsecweights[theTree] = ReweightingFunctions::getWeightRefs(theTree, strCrossSectionWeights);
   binningVarRefs[theTree] = orderingValRef;
 
-  // Compute sum of nominal weights without xsec
-  sumNominalWeights[theTree] = 0;
-  xsecVals[theTree]=1;
-  {
-    bool firstTreeEvent=true;
-    auto it_tmp = sumNominalWeights.find(theTree);
-    MELAout << "\t- Computing sum of nominal weights without xsec over " << nevents << " events.";
-    for (int ev=0; ev<theTree->getNEvents(); ev++){
-      HelperFunctions::progressbar(ev, nevents);
-
-      bool hasEvent = theTree->getEvent(ev);
-      if (!hasEvent) continue;
-
-      if (firstTreeEvent) xsecVals[theTree] = this->eval_xsecweights(theTree);
-
-      float wgt = this->eval_nominalweights(theTree);
-      it_tmp->second += wgt;
-
-      if (firstTreeEvent) firstTreeEvent=false;
-    }
-    MELAout << "\t- Sum computed as " << it_tmp->second << endl;
-  }
-
   // Now compute other weight-related variables
   const bool noBoundaries = !binning.isValid();
   const unsigned int ns = (!noBoundaries ? binning.getNbins() : 1);
 
-  // Get sum of weights
+  // Initialize
+  bool doReweighting = (fractionRequirement>=0.);
   sumPostThrWeights[theTree]=std::vector<float>();
   sumPostThrSqWeights[theTree]=std::vector<float>();
   weightThresholds[theTree]=std::vector<float>();
@@ -158,7 +136,9 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
   sumNonZeroWgtNominalWeights[theTree]=std::vector<float>();
   sumPostThrWeights[theTree].assign(ns, 0);
   sumPostThrSqWeights[theTree].assign(ns, 0);
-  if (fractionRequirement>=0.){
+  sumNominalWeights[theTree] = 0;
+  xsecVals[theTree]=1;
+  if (doReweighting){
     weightThresholds[theTree].assign(ns, 0);
     sumNonZeroWgtEvents[theTree].assign(ns, 0);
     sumNonZeroWgtNominalWeights[theTree].assign(ns, 0);
@@ -167,7 +147,6 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
     weightThresholds[theTree].assign(ns, -1);
     sumNonZeroWgtEvents[theTree].assign(ns, -1);
     sumNonZeroWgtNominalWeights[theTree].assign(ns, 0);
-    return;
   }
 
   vector<vector<SimpleEntry>> indexList;
@@ -176,29 +155,45 @@ void ReweightingBuilder::setupWeightVariables(BaseTree* theTree, float fractionR
 
   MELAout << "\t- Ordering the " << nevents << " events";
   if (!noBoundaries) MELAout << " over the " << ns << " bins: [ " << binning.getBinningVector() << " ]";
-  MELAout << '.' << endl;
-  for (int ev=0; ev<theTree->getNEvents(); ev++){
-    HelperFunctions::progressbar(ev, nevents);
+  MELAout << " and computing sum of nominal weights without xsec." << endl;
+  {
+    bool firstTreeEvent=true;
+    auto it_sumNominalWeights = sumNominalWeights.find(theTree);
+    for (int ev=0; ev<theTree->getNEvents(); ev++){
+      HelperFunctions::progressbar(ev, nevents);
 
-    bool hasEvent = theTree->getEvent(ev);
-    if (!hasEvent) continue;
+      bool hasEvent = theTree->getEvent(ev);
+      if (!hasEvent) continue;
 
-    float wgt_nominal = this->eval_nominalweights(theTree);
-    float wgt = wgt_nominal * this->eval_reweightingweights(theTree);
-    float const& orderingVal=*orderingValRef;
-    SimpleEntry theEntry(0, fabs(wgt-weightThresholdReference), wgt);
+      if (firstTreeEvent) xsecVals[theTree] = this->eval_xsecweights(theTree);
 
-    int bin=0;
-    if (!noBoundaries) bin = binning.getBin(orderingVal);
-    if (bin>=0 && bin<(int) ns){
-      // Accumulate the events
-      indexList.at(bin).push_back(theEntry);
-      if (theEntry.trackingval!=0.){
-        sumNonZeroWgtEvents[theTree].at(bin)++;
-        sumNonZeroWgtNominalWeights[theTree].at(bin) += wgt_nominal;
+      float wgt_nominal = this->eval_nominalweights(theTree);
+      it_sumNominalWeights->second += wgt_nominal;
+
+      if (doReweighting){
+        float wgt = wgt_nominal * this->eval_reweightingweights(theTree);
+
+        float const& orderingVal = *orderingValRef;
+        SimpleEntry theEntry(0, fabs(wgt-weightThresholdReference), wgt);
+
+        int bin=0;
+        if (!noBoundaries) bin = binning.getBin(orderingVal);
+        if (bin>=0 && bin<(int) ns){
+          // Accumulate the events
+          indexList.at(bin).push_back(theEntry);
+          if (theEntry.trackingval!=0.){
+            sumNonZeroWgtEvents[theTree].at(bin)++;
+            sumNonZeroWgtNominalWeights[theTree].at(bin) += wgt_nominal;
+          }
+        }
       }
+
+      if (firstTreeEvent) firstTreeEvent=false;
     }
+    MELAout << "\t- Sum of nominal weights is computed as " << it_sumNominalWeights->second << "." << endl;
   }
+
+  if (!doReweighting) return;
 
   for (unsigned int ibin=0; ibin<ns; ibin++){
     vector<SimpleEntry>& index = indexList.at(ibin);
