@@ -39,5 +39,12 @@ cms3ntuple = cms.EDAnalyzer(
    genAK4JetsSrc  = cms.InputTag("slimmedGenJets"),
    genAK8JetsSrc  = cms.InputTag("slimmedGenJetsAK8"),
 
+   minNmuons = cms.int32(-1),
+   minNelectrons = cms.int32(-1),
+   minNleptons = cms.int32(-1),
+   minNphotons = cms.int32(-1),
+   minNak4jets = cms.int32(-1),
+   minNak8jets = cms.int32(-1),
+
    )
 

@@ -37,6 +37,13 @@ opts.register('BR', -1, mytype=vpfloat) # BR value of the MC sample
 opts.register('lheMEfragment', "", mytype=vpstring)
 opts.register('VVMode', "none", mytype=vpstring)
 opts.register('VVDecayMode', -1, mytype=vpint)
+# Object filters
+opts.register('minNmuons', -1, mytype=vpint)
+opts.register('minNelectrons', -1, mytype=vpint)
+opts.register('minNleptons', -1, mytype=vpint)
+opts.register('minNphotons', -1, mytype=vpint)
+opts.register('minNak4jets', -1, mytype=vpint)
+opts.register('minNak8jets', -1, mytype=vpint)
 ###
 opts.parseArguments()
 
@@ -908,6 +915,12 @@ else:
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
    process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)
+   process.cms3ntuple.minNmuons = cms.int32(opts.minNmuons)
+   process.cms3ntuple.minNelectrons = cms.int32(opts.minNelectrons)
+   process.cms3ntuple.minNleptons = cms.int32(opts.minNleptons)
+   process.cms3ntuple.minNphotons = cms.int32(opts.minNphotons)
+   process.cms3ntuple.minNak4jets = cms.int32(opts.minNak4jets)
+   process.cms3ntuple.minNak8jets = cms.int32(opts.minNak8jets)
    process.outpath = cms.EndPath(process.cms3ntuple)
 
 

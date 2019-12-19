@@ -4,6 +4,7 @@ JOBSDIR=""
 OUTDIR=""
 NCORES="12"
 let OVERWRITE=0
+let OPTIMIZE=0
 let printhelp=0
 for fargo in "$@";do
   fcnargname=""
@@ -32,6 +33,17 @@ for fargo in "$@";do
     else
       let printhelp=1
     fi
+  elif [[ "$fargl" == "optimize="* ]];then
+    fcnargname="$farg"
+    fcnargname="${fcnargname#*=}"
+    fcnargname="$(echo $fcnargname | awk '{print tolower($0)}')"
+    if [[ -z "$fcnargname" ]] || [[ "$fcnargname" == "t"* ]] || [[ "$fcnargname" == "y"* ]] || [[ "$fcnargname" == "1" ]];then
+      let OPTIMIZE=1
+    elif [[ "$fcnargname" == "f"* ]] || [[ "$fcnargname" == "n"* ]] || [[ "$fcnargname" == "0" ]];then
+      let OPTIMIZE=0
+    else
+      let printhelp=1
+    fi
   elif [[ "$fargl" == "help" ]];then
     let printhelp=1
   fi
@@ -43,6 +55,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$JOBSDIR" ]] || [[ -z "$OUTDIR" ]]; then
   echo " - outdir: Main output location. Mandatory."
   echo " - ncores: Number of cores for hadd (Default: 12)"
   echo " - overwrite: Flag to specify whether the output file should be overwritten. For true value, specify either nothing after the option, or t*/y*/1. For false value, either do not specify this option, or put f*/n*/0. (Default: false)"
+  echo " - optimize: Flag to optimize file size. (Default: false)"
   exit 0
 fi
 
@@ -71,7 +84,12 @@ for INDIR in $(ls ${JOBSDIR}); do
       fi
     done
 
-    hadd -ff -O -n 0 -j ${NCORES} ${OUTFILE} $flist
+    optOptimize=""
+    if [[ ${OPTIMIZE} -eq 1 ]];then
+      optOptimize="-O"
+    fi
+
+    hadd -ff ${optOptimize} -n 0 -j ${NCORES} ${OUTFILE} $flist
 
     popd
   done

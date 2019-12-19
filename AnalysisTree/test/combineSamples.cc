@@ -1,7 +1,9 @@
 #include "common_includes.h"
-#include "ReweightingBuilder.h"
+#include "BulkReweightingBuilder.h"
 #include "MELAStreamHelpers.hh"
 #include "TDirectory.h"
+#include "TChain.h"
+#include "TString.h"
 
 
 using namespace std;
@@ -66,35 +68,35 @@ void combineSamples(TString inpath, TString outpath){
 
   std::vector<TString> strNominalWeights{ strWgtNominal };
   std::vector<TString> strCrossSectionWeights{ strxsec };
-  std::vector<ReweightingBuilder> melarewgtBuilderList; melarewgtBuilderList.reserve(melist.size());
+  BulkReweightingBuilder melarewgtBuilder(
+    strNominalWeights,
+    strCrossSectionWeights,
+    ReweightingFunctions::getSimpleWeight,
+    ReweightingFunctions::getSimpleWeight
+  );
+  melarewgtBuilder.rejectNegativeWeights(false);
+  melarewgtBuilder.setWeightBinning(LHECandMassBinning);
   for (TString const& strme:melist){
     std::vector<TString> strReweightingWeights{ strme };
     if (cpsname != "") strReweightingWeights.push_back(cpsname);
-
-    melarewgtBuilderList.emplace_back(
-      strNominalWeights,
+    melarewgtBuilder.addReweightingWeights(
+      strme,
       strReweightingWeights,
-      strCrossSectionWeights,
-      ReweightingFunctions::getSimpleWeight,
-      ReweightingFunctions::getSimpleWeight,
       ReweightingFunctions::getSimpleWeight
     );
-
-    ReweightingBuilder& melarewgtBuilder = melarewgtBuilderList.back();
-    melarewgtBuilder.rejectNegativeWeights(false);
-    melarewgtBuilder.setWeightBinning(LHECandMassBinning);
-    for (auto& ss:samplelist) melarewgtBuilder.setupWeightVariables(&ss, 0.999, 25);
-    melarewgtBuilder.setupCaches();
   }
+  for (auto& ss:samplelist) melarewgtBuilder.setupWeightVariables(&ss, 0.999, 250);
+  melarewgtBuilder.setupCaches();
 
-  // Unmute all branches that were silenced before
+  std::vector<TString> newsamplelist;
   for (size_t is = 0; is<samplelist.size(); is++){
     BaseTree& ss = samplelist.at(is);
+    // Unmute all branches that were silenced before
     ss.unmuteAllBranches();
-    TString sample_path = strsamples_POWHEG_ZZ.at(is).path;
-    HelperFunctions::replaceString<TString, const TString>(sample_path, inpath, outpath);
+    TString sample_path = strsamples_POWHEG_ZZ.at(is).path + "/allevents_modified_modifiedMEs.root";
+    newsamplelist.push_back(sample_path);
 
-    TFile* foutput = TFile::Open(sample_path+"/allevents_modified_modifiedMEs.root", "recreate");
+    TFile* foutput = TFile::Open(sample_path, "recreate");
     foutput->cd();
     TDirectory* curdir = gDirectory;
     TDirectory* subdir = foutput->mkdir("cms3ntuple");
@@ -111,8 +113,7 @@ void combineSamples(TString inpath, TString outpath){
       for (unsigned int ime=0; ime<melist.size(); ime++){
         float* MEval;
         ss.getValRef(melist.at(ime), MEval);
-        ReweightingBuilder& melarewgtBuilder = melarewgtBuilderList.at(is);
-        float finalWeight = melarewgtBuilder.getFinalEventWeight(&ss);
+        float finalWeight = melarewgtBuilder.getFinalEventWeight(&ss, melist.at(ime));
         float nominalWeights = melarewgtBuilder.eval_nominalweights(&ss) * melarewgtBuilder.eval_xsecweights(&ss);
         if (nominalWeights!=0.) *MEval = finalWeight / nominalWeights;
       }
@@ -123,5 +124,26 @@ void combineSamples(TString inpath, TString outpath){
     subdir->WriteTObject(outputTree);
     subdir->Close();
     foutput->Close();
+  }
+
+  {
+    TChain* intree = new TChain("cms3ntuple/Events");
+    for (auto const& s:newsamplelist) intree->Add(s);
+
+    gSystem->mkdir(outpath, true);
+
+    TFile* foutput = TFile::Open(outpath+"/allevents.root", "recreate");
+    foutput->cd();
+    TDirectory* curdir = gDirectory;
+    TDirectory* subdir = foutput->mkdir("cms3ntuple");
+    subdir->cd();
+
+    TTree* outputTree = intree->CloneTree(-1, "fast");
+
+    subdir->WriteTObject(outputTree);
+    subdir->Close();
+    foutput->Close();
+
+    delete intree;
   }
 }
