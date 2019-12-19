@@ -40,7 +40,14 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   applyPrefiringWeights(prefiringWeightsTag!=""),
 
   keepGenParticles(CMS3Ntuplizer::getParticleRecordLevel(pset.getUntrackedParameter<std::string>("keepGenParticles"))),
-  keepGenJets(pset.getParameter<bool>("keepGenJets"))
+  keepGenJets(pset.getParameter<bool>("keepGenJets")),
+
+  minNmuons(pset.getParameter<int>("minNmuons")),
+  minNelectrons(pset.getParameter<int>("minNelectrons")),
+  minNleptons(pset.getParameter<int>("minNleptons")),
+  minNphotons(pset.getParameter<int>("minNphotons")),
+  minNak4jets(pset.getParameter<int>("minNak4jets")),
+  minNak8jets(pset.getParameter<int>("minNak8jets"))
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
@@ -144,16 +151,26 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   );
 
   // ak4 jets
-  /*size_t n_ak4jets = */this->fillAK4Jets(iEvent, nullptr);
+  size_t n_ak4jets = this->fillAK4Jets(iEvent, nullptr);
 
   // ak8 jets
-  /*size_t n_ak8jets = */this->fillAK8Jets(iEvent, nullptr);
+  size_t n_ak8jets = this->fillAK8Jets(iEvent, nullptr);
 
   // Isolated tracks
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
 
   // The (data) event should have at least one electron, muon, or photon.
-  isSelected &= ((n_muons + n_electrons + n_photons)>0);
+  // If all cuts are -1, passNobjects is true and no filtering on the number of objects is done.
+  bool passNobjects = (minNmuons<0 && minNelectrons<0 && minNleptons<0 && minNphotons<0 && minNak4jets<0 && minNak8jets<0);
+#define passNobjects_or_statement(n_objs, min_n_objs) if (min_n_objs>=0) passNobjects |= (n_objs>=static_cast<size_t const>(min_n_objs));
+  passNobjects_or_statement(n_muons, minNmuons);
+  passNobjects_or_statement(n_electrons, minNelectrons);
+  passNobjects_or_statement((n_muons+n_electrons), minNleptons);
+  passNobjects_or_statement(n_photons, minNphotons);
+  passNobjects_or_statement(n_ak4jets, minNak4jets);
+  passNobjects_or_statement(n_ak8jets, minNak8jets);
+#undef passNobjects_or_statement
+  isSelected &= passNobjects;
 
   // MET info
   isSelected &= this->fillMETVariables(iEvent);

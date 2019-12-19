@@ -81,6 +81,16 @@ protected:
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
 
+  ParticleRecordLevel keepGenParticles;
+  bool keepGenJets;
+
+  int const minNmuons;
+  int const minNelectrons;
+  int const minNleptons;
+  int const minNphotons;
+  int const minNak4jets;
+  int const minNak8jets;
+
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
   edm::EDGetTokenT< edm::View<pat::Electron> > electronsToken;
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
@@ -105,11 +115,9 @@ protected:
 
   edm::EDGetTokenT< GenInfo > genInfoToken;
 
-  ParticleRecordLevel keepGenParticles;
   edm::EDGetTokenT< reco::GenParticleCollection > prunedGenParticlesToken;
   edm::EDGetTokenT< pat::PackedGenParticleCollection > packedGenParticlesToken;
 
-  bool keepGenJets;
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK4JetsToken;
   edm::EDGetTokenT< edm::View<reco::GenJet> > genAK8JetsToken;
 

@@ -294,6 +294,7 @@ void GenMaker::doMELA(MELACandidate* cand, GenInfo& genInfo){
     lheMEblock.computeMELABranches();
     lheMEblock.pushMELABranches();
     lheMEblock.getBranchValues(genInfo.LHE_ME_weights); // Record the MEs into the EDProducer product
+    genInfo.LHE_ME_weights["LHECandMass"] = cand->m(); // When LHE MEs are present, you must include this variable to combine different samples.
 
     melaHandle->resetInputEvent();
   }
