@@ -202,7 +202,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2 for any, ee, mumu, emu
+  constexpr int nchannels = 2; // ichannel=-1, 0, 1, 2 for any, ee, mumu, emu
 
   TString cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/191212/";
 
@@ -225,16 +225,20 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   } else if (procsel==23){
     sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root", -1, HistogramProperties((int) kGreen+2, 1, 2));
   } else if (procsel==24){
-    cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/101124";
     sampleList.emplace_back("TT2L2Nu", "t#bar{t} ll", "TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root", -1, HistogramProperties((int) kOrange-3, 1, 2));
   } else if (procsel==25){
     sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  } else if (procsel==26){
+    sampleList.emplace_back("ST_tW_top", "tW", "ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/allevents.root", -1, HistogramProperties((int) kRed-1, 1, 2));
+    sampleList.emplace_back("ST_tW_tbar", "#bar{t}W", "ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/allevents.root", -1, HistogramProperties((int) kTeal-1, 1, 2));
   } else if (procsel==31){
     sampleList.emplace_back("ggHZZ_all_from1000", "ggH(1000)#rightarrowZZ", "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents_modified.root", 1000, HistogramProperties((int) kViolet, 7, 2));
   } else if (procsel==32){
     sampleList.emplace_back("ggHZZ_sigonly_from1000", "ggH(1000)#rightarrowZZ", "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents_modified.root", 1000, HistogramProperties((int) kViolet, 7, 2));
   } else if (procsel==33){
     sampleList.emplace_back("ggHZZ_all", "ggH#rightarrowZZ", "GluGluHToZZTo2L2Nu_AllMasses_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15/allevents.root", 125, HistogramProperties((int) kViolet, 7, 2));
+  } else if (procsel==34){
+    sampleList.emplace_back("ggHZZ_PSall_from1000", "ggH(1000)#rightarrowZZ", "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents_modified.root", 1000, HistogramProperties((int) kViolet, 7, 2));
   } 
 
   if (procsel<0 || procsel==1){
@@ -248,7 +252,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
   //std::vector<float> genmetthresholds{ 50, 150, 300 };
   std::vector<float> genmetthresholds;
-  std::vector<std::string> subcats{"incl", "0j", "1j", "met_lt125", "met_ge125", "0j_met_lt125", "0j_met_ge125", "1j_met_lt125", "1j_met_ge125"};
+  std::vector<std::string> subcats{"incl", "0j", "1j", "met_lt125", "met_ge125", "met_125to300", "met_300to800", "met_ge800", "0j_met_lt125", "0j_met_ge125", "0j_met_125to300", "0j_met_300to800", "0j_met_ge800", "1j_met_lt125", "1j_met_ge125", "1j_met_125to300", "1j_met_300to800", "1j_met_ge800",};
   // met bins 85, 125, 300, 800
 
   for (auto& sample:sampleList){
@@ -292,8 +296,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
     foutput->cd();
 
-    size_t ih_njets = -1;
-
     for (int ichannel=-1; ichannel<nchannels-1; ichannel++){
       TString strChannel, strChannelLabel;
       getChannelTitleLabel(ichannel, strChannel, strChannelLabel);
@@ -309,32 +311,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       );
 
       sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "mll"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "m_{ll} (GeV)", "",
-        250, 0., 1000.,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "pTll"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{ll} (GeV)", "",
-        250, 0., 1000.,
-        channeldir
-      );
-
-      ih_njets = sample.hlist_1D.size();
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "n_ak4jets_tight"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "N_{j}", "",
-        6, 0, 6,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "n_ak4jets_tight_btagged"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "N_{b}", "",
-        4, 0, 4,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
         Form("h1D_%s_%s", strChannel.Data(), "mjj"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
         "m_{j1j2} (GeV)", "",
         125, 0., 1000.,
@@ -347,44 +323,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         channeldir
       );
 
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfpuppi_pTmiss"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,PUPPI} (GeV)", "",
-        160, 0., 800.,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfpuppi_pTmiss_significance"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,PUPPI} significance", "",
-        100, 0., 10000.,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfpuppi_pTmiss_over_pTll"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,PUPPI}/p_{T}^{ll}", "",
-        100, 0., 20.,
-        channeldir
-      );
-
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfchs_pTmiss"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,CHS} (GeV)", "",
-        160, 0., 800.,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfchs_pTmiss_significance"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,CHS} significance", "",
-        75, 0., 150.,
-        channeldir
-      );
-      sample.hlist_1D.emplace_back(
-        Form("h1D_%s_%s", strChannel.Data(), "reco_pfchs_pTmiss_over_pTll"), Form("%s|%s", sample.label.data(), strChannelLabel.Data()),
-        "p_{T}^{miss,CHS}/p_{T}^{ll}", "",
-        100, 0., 20.,
-        channeldir
-      );
-
       for (size_t icat=0; icat<subcats.size(); icat++){
 
         TString strsubcat = subcats[icat];
@@ -393,6 +331,9 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         if (subcats[icat].find("1j") != std::string::npos) strsubcatlabel = "1 jet";
         if (subcats[icat].find("met_lt125") != std::string::npos) strsubcatlabel = "85 #leq p_{T}^{miss} < 125GeV";
         if (subcats[icat].find("met_ge125") != std::string::npos) strsubcatlabel = "p_{T}^{miss} #geq 125GeV";
+        if (subcats[icat].find("met_125to300") != std::string::npos) strsubcatlabel = "125 #leq p_{T}^{miss} < 300GeV";
+        if (subcats[icat].find("met_300to800") != std::string::npos) strsubcatlabel = "300 #leq p_{T}^{miss} < 800GeV";
+        if (subcats[icat].find("met_ge800") != std::string::npos) strsubcatlabel = "p_{T}^{miss} #geq 800GeV";
 
         if (icat > 0 && subcats.at(icat).find("genmet") != std::string::npos){
           float genmetlow = (icat==0 ? -1 : genmetthresholds.at(icat));
@@ -406,6 +347,31 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
           else if (genmethigh==-1) strsubcatlabel = Form("p_{T}^{miss,true} > %.0f GeV", genmetlow);
           else strsubcatlabel = Form("p_{T}^{miss,true}: [%.0f, %.0f] GeV", genmetlow, genmethigh);
         }
+
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "mll", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "m_{ll} (GeV)", "",
+          250, 0., 1000.,
+          channeldir
+        );
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "pTll", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "p_{T}^{ll} (GeV)", "",
+          250, 0., 1000.,
+          channeldir
+        );
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "n_ak4jets_tight", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "N_{j}", "",
+          6, 0, 6,
+          channeldir
+        );
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "n_ak4jets_tight_btagged", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "N_{b}", "",
+          4, 0, 4,
+          channeldir
+        );
 
         sample.hlist_1D.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), "dEta_j1j2_Nj_ge_2", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=2"),
@@ -427,67 +393,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         );
 
         sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfpuppi_pTmiss_Nj_ge_1", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=1"),
-          "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTll_pfpuppi_pTmiss", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
-          "|#Delta#phi(#vec{p}_{T}^{ll}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTll_pfpuppi_pTmiss_Nj_eq_0", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}=0"),
-          "|#Delta#phi(#vec{p}_{T}^{ll}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTllj_pfpuppi_pTmiss_Nj_ge_1", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=1"),
-          "|#Delta#phi(#vec{p}_{T}^{ll+j1}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTlljj_pfpuppi_pTmiss_Nj_ge_2", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=2"),
-          "|#Delta#phi(#vec{p}_{T}^{ll+j1j2}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTlljets_pfpuppi_pTmiss_Nj_ge_2", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=2"),
-          "|#Delta#phi(#vec{p}_{T}^{ll+jets}, #vec{p}_{T}^{miss,PUPPI})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "resolution_pfpuppi_pTmiss", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
-          "p_{T}^{miss,PUPPI}/p_{T}^{miss,true} - 1", "",
-          50, -1., 4.,
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "reco_pfpuppi_pTmiss_significance", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
-          "p_{T}^{miss,PUPPI} significance", "",
-          50, 0., 200.,
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "mTZZ_pfpuppi", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
-          "m_{T}^{ZZ,PUPPI} (GeV)", "",
-          300, 0., 3000.,
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "mZZ_plus_pfpuppi", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
-          "m^{ZZ,PUPPI} (GeV)", "",
-          300, 0., 3000.,
-          channeldir
-        );
-
-        sample.hlist_1D.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfchs_pTmiss_Nj_ge_1", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=1"),
           "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,CHS})|", "",
           30, 0., +TMath::Pi(),
@@ -500,33 +405,22 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
           channeldir
         );
         sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTll_pfchs_pTmiss_Nj_eq_0", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}=0"),
-          "|#Delta#phi(#vec{p}_{T}^{ll}, #vec{p}_{T}^{miss,CHS})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTllj_pfchs_pTmiss_Nj_ge_1", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=1"),
           "|#Delta#phi(#vec{p}_{T}^{ll+j1}, #vec{p}_{T}^{miss,CHS})|", "",
           30, 0., +TMath::Pi(),
           channeldir
         );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTlljj_pfchs_pTmiss_Nj_ge_2", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=2"),
-          "|#Delta#phi(#vec{p}_{T}^{ll+j1j2}, #vec{p}_{T}^{miss,CHS})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "dPhi_pTlljets_pfchs_pTmiss_Nj_ge_2", strsubcat.Data()), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data(), "N_{j}>=2"),
-          "|#Delta#phi(#vec{p}_{T}^{ll+jets}, #vec{p}_{T}^{miss,CHS})|", "",
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
+
         sample.hlist_1D.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), "resolution_pfchs_pTmiss", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
           "p_{T}^{miss,CHS}/p_{T}^{miss,true} - 1", "",
           50, -1., 4.,
+          channeldir
+        );
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "reco_pfchs_pTmiss", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "p_{T}^{miss,CHS} (GeV)", "",
+          160, 0., 800.,
           channeldir
         );
         sample.hlist_1D.emplace_back(
@@ -535,6 +429,13 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
           50, 0., 200.,
           channeldir
         );
+        sample.hlist_1D.emplace_back(
+          Form("h1D_%s_%s_%s", strChannel.Data(), "reco_pfchs_pTmiss_over_pTll", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
+          "p_{T}^{miss,CHS}/p_{T}^{ll}", "",
+          100, 0., 20.,
+          channeldir
+        );
+
         sample.hlist_1D.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), "mTZZ_pfchs", strsubcat.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), strsubcatlabel.Data()),
           "m_{T}^{ZZ,CHS} (GeV)", "",
@@ -631,6 +532,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"] * genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"];
       else if (procsel == 32)
         me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"] * genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"];
+      else if (procsel == 34)
+        me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz4_1_MCFM"] * genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"];
 
       wgt *= me_wgt;
 
@@ -756,7 +659,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
         float mjj = p4_jj.M();
         float mjets = p4_alljets.M();
-        float pZmiss_approx = -(theChosenDilepton->p4()+p4_jj).Z();
+        float pZmiss_approx = -(theChosenDilepton->p4()).Z();  // +p4_jj
         float ml1j1 = (n_ak4jets_tight>0)? p4_l1j1.M() : -1.;
         float dEta_j1j2=-99; if (n_ak4jets_tight>=2) dEta_j1j2 = (p4_j.eta() - ak4jets_tight.at(1)->eta());
 
@@ -852,7 +755,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         // Enclosed around braces to localize it_hist
         {
           auto it_hist = sample.hlist_1D.begin();
-          for (int ichannel=-1; ichannel<nchannels-1; ichannel++){
+          for (int ichannel=0; ichannel<nchannels; ichannel++){
             bool isCorrectChannel = (
               ichannel==-1
               || (ichannel==0 && is_ee)
@@ -861,58 +764,37 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
               );
 
             if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(gen_pTmiss, wgt); it_hist++;
-
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mll, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(pTll, wgt); it_hist++;
-
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(n_ak4jets_tight, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && n_ak4jets_tight < 2 && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(n_ak4jets_tight_btagged, wgt); it_hist++;
             if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(mjj, wgt); it_hist++;
             if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(mjets, wgt); it_hist++;
 
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfpuppi_pTmiss, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfpuppi_pTmiss_significance, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss)) it_hist->hist.Fill(reco_pfpuppi_pTmiss/pTll, wgt); it_hist++;
-
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfchs_pTmiss, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfchs_pTmiss_significance, wgt); it_hist++;
-            if (isCorrectChannel && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss)) it_hist->hist.Fill(reco_pfchs_pTmiss/pTll, wgt); it_hist++;
             for (size_t icat=0; icat<subcats.size(); icat++){
               bool doFill = true;
               if (subcats[icat].find("0j") != std::string::npos) doFill = (doFill && (n_ak4jets_tight == 0));
               if (subcats[icat].find("1j") != std::string::npos) doFill = (doFill && (n_ak4jets_tight == 1));
               if (subcats[icat].find("met_lt125") != std::string::npos) doFill = (doFill && (reco_pfchs_pTmiss < 125));
               if (subcats[icat].find("met_ge125") != std::string::npos) doFill = (doFill && (reco_pfchs_pTmiss >= 125));
-
-              if (icat > 0 && subcats.at(icat).find("genmet") != std::string::npos){
-                float genmetlow = (icat==0 ? -1 : genmetthresholds.at(icat));
-                float genmethigh = (icat==(genmetthresholds.size()-1) ? -1 : genmetthresholds.at(icat+1));
-                doFill = doFill && !((genmetlow>=0. && gen_pTmiss<genmetlow) || (genmethigh>=0. && gen_pTmiss>=genmethigh) );
-              }
+              if (subcats[icat].find("met_125to300") != std::string::npos) doFill = (doFill && (reco_pfchs_pTmiss >= 125 && reco_pfchs_pTmiss < 300));
+              if (subcats[icat].find("met_300to800") != std::string::npos) doFill = (doFill && (reco_pfchs_pTmiss >= 300 && reco_pfchs_pTmiss < 800));
+              if (subcats[icat].find("met_ge800") != std::string::npos) doFill = (doFill && (reco_pfchs_pTmiss >= 800));
               
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(pTll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(n_ak4jets_tight, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && n_ak4jets_tight < 2 && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(n_ak4jets_tight_btagged, wgt); it_hist++;
+
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(std::abs(dEta_j1j2), wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && !pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && secondHighest_btag_jet) it_hist->hist.Fill(std::abs(dR_highest_btagval_jets), wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && secondHighest_nonbtagged_jet) it_hist->hist.Fill(std::abs(dR_highest_btagval_nonbtagged_jets), wgt); it_hist++;
 
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(abs_dPhi_min_pTj_pfpuppi_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(std::abs(dPhi_pTll_pfpuppi_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight==0) it_hist->hist.Fill(std::abs(dPhi_pTll_pfpuppi_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(std::abs(dPhi_pTllj_pfpuppi_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(std::abs(dPhi_pTlljj_pfpuppi_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(std::abs(dPhi_pTlljets_pfpuppi_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(resolution_pfpuppi_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfpuppi_pTmiss_significance, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mTZZ_pfpuppi, wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mZZ_plus_pfpuppi, wgt); it_hist++;
-
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(abs_dPhi_min_pTj_pfchs_pTmiss, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(std::abs(dPhi_pTll_pfchs_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight==0) it_hist->hist.Fill(std::abs(dPhi_pTll_pfchs_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(std::abs(dPhi_pTllj_pfchs_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(std::abs(dPhi_pTlljj_pfchs_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=2) it_hist->hist.Fill(std::abs(dPhi_pTlljets_pfchs_pTmiss), wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio) && n_ak4jets_tight>=1) it_hist->hist.Fill(std::abs(dPhi_pTllj_pfchs_pTmiss), wgt); it_hist++;
+
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(resolution_pfchs_pTmiss, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfchs_pTmiss, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(reco_pfchs_pTmiss_significance, wgt); it_hist++;
+              if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss)) it_hist->hist.Fill(reco_pfchs_pTmiss/pTll, wgt); it_hist++;
+
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mTZZ_pfchs, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mTll_pfchs, wgt); it_hist++;
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_njets && pass_mll && pass_pTmiss_cut && pass_dPhi_j_pTmiss && pass_pTmiss_over_pTll_ratio)) it_hist->hist.Fill(mZZ_plus_pfchs, wgt); it_hist++;
@@ -973,6 +855,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     foutput->Close();
   } // End loop over samples
 }
+
 
 int main(int argc, char** argv)
 {
