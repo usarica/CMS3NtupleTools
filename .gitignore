@@ -13,7 +13,8 @@
 **/*.d
 **/*.a
 **/*.pcm
-*.root
+./*.root
+**/test/*.root
 *.log
 NtupleMaker/test/*.txt
 NtupleMaker/test/*.lst
