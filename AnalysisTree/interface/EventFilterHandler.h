@@ -32,6 +32,7 @@ public:
 
   bool constructFilters();
 
+  bool hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const;
   float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
   // Special event filters for various specific issues
   /*

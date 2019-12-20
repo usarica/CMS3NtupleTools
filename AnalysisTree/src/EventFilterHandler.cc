@@ -42,6 +42,14 @@ bool EventFilterHandler::constructFilters(){
   return res;
 }
 
+bool EventFilterHandler::hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const{
+  bool res = false;
+  for (auto str:hltpaths_){
+    HelperFunctions::replaceString(str, "*", "");
+    for (auto const* prod:product_HLTpaths){ if (prod->name.find(str)!=std::string::npos){ res = true; break; } }
+  }
+  return res;
+}
 float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpaths_) const{
   if (hltpaths_.empty()) return 1;
   float failRate = 1;
