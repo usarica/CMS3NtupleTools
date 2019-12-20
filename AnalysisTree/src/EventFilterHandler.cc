@@ -45,19 +45,22 @@ bool EventFilterHandler::constructFilters(){
 float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpaths_) const{
   if (hltpaths_.empty()) return 1;
   float failRate = 1;
+  bool foundAtLeastOneTrigger = false;
   for (auto str:hltpaths_){
     HelperFunctions::replaceString(str, "*", "");
     for (auto const* prod:product_HLTpaths){
       if (prod->name.find(str)!=std::string::npos && prod->passTrigger){
-        float wgt=1;
-        if (prod->L1prescale!=-1) wgt *= static_cast<float>(prod->L1prescale);
-        if (prod->HLTprescale!=-1) wgt *= static_cast<float>(prod->HLTprescale);
-        if (wgt == 1.f) return 1; // If the event passes an unprescaled trigger, its weight is 1.
+        float wgt = 1.f;
+        if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
+        if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
+        if (wgt == 1.f) return wgt; // If the event passes an unprescaled trigger, its weight is 1.
+        else if (wgt == 0.f) continue;
+        foundAtLeastOneTrigger = true;
         failRate *= 1.f-1.f/wgt;
       }
     }
   }
-  return 1.f/(1.f-failRate);
+  return (foundAtLeastOneTrigger ? 1.f/(1.f-failRate) : 0.f);
 }
 
 

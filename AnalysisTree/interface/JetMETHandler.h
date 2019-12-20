@@ -16,13 +16,13 @@ class JetMETHandler : public IvyBase{
 public:
   static const std::string colName_ak4jets;
   static const std::string colName_ak8jets;
-  static const std::string colName_pfchsmet;
+  static const std::string colName_pfmet;
   static const std::string colName_pfpuppimet;
 
 protected:
   std::vector<AK4JetObject*> ak4jets;
   std::vector<AK8JetObject*> ak8jets;
-  METObject* pfchsmet;
+  METObject* pfmet;
   METObject* pfpuppimet;
 
   void clear();
@@ -44,7 +44,7 @@ public:
 
   std::vector<AK4JetObject*> const& getAK4Jets() const{ return ak4jets; }
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
-  METObject* const& getPFCHSMET() const{ return pfchsmet; }
+  METObject* const& getPFMET() const{ return pfmet; }
   METObject* const& getPFPUPPIMET() const{ return pfpuppimet; }
 
   static void bookBranches(BaseTree* tree);

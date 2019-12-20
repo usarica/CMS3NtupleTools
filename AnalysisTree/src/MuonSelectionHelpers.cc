@@ -42,23 +42,23 @@ bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
   return true;
 }
 
-#define Id_PASS_VETO CutBasedIdLoose
-#define Id_PASS_LOOSE CutBasedIdLoose
-#define Id_PASS_MEDIUM CutBasedIdMedium
-#define Id_PASS_TIGHT CutBasedIdTight
+#define ID_PASS_VETO CutBasedIdLoose
+#define ID_PASS_LOOSE CutBasedIdLoose
+#define ID_PASS_MEDIUM CutBasedIdMedium
+#define ID_PASS_TIGHT CutBasedIdTight
 #define ISO_FCN MuonSelectionHelpers::relPFIso_DR0p3
 
 bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::Id_PASS_VETO) == Muon::Id_PASS_VETO);
+  return ((part.extras.POG_selector_bits & Muon::ID_PASS_VETO) == Muon::ID_PASS_VETO);
 }
 bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::Id_PASS_LOOSE) == Muon::Id_PASS_LOOSE);
+  return ((part.extras.POG_selector_bits & Muon::ID_PASS_LOOSE) == Muon::ID_PASS_LOOSE);
 }
 bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::Id_PASS_MEDIUM) == Muon::Id_PASS_MEDIUM);
+  return ((part.extras.POG_selector_bits & Muon::ID_PASS_MEDIUM) == Muon::ID_PASS_MEDIUM);
 }
 bool MuonSelectionHelpers::testTightId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::Id_PASS_TIGHT) == Muon::Id_PASS_TIGHT);
+  return ((part.extras.POG_selector_bits & Muon::ID_PASS_TIGHT) == Muon::ID_PASS_TIGHT);
 }
 
 bool MuonSelectionHelpers::testVetoIso(MuonObject const& part){
@@ -87,17 +87,17 @@ bool MuonSelectionHelpers::testTightKin(MuonObject const& part){
   return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
 }
 
-#ifdef Id_PASS_VETO
-#undef Id_PASS_VETO
+#ifdef ID_PASS_VETO
+#undef ID_PASS_VETO
 #endif
-#ifdef Id_PASS_LOOSE
-#undef Id_PASS_LOOSE
+#ifdef ID_PASS_LOOSE
+#undef ID_PASS_LOOSE
 #endif
-#ifdef Id_PASS_MEDIUM
-#undef Id_PASS_MEDIUM
+#ifdef ID_PASS_MEDIUM
+#undef ID_PASS_MEDIUM
 #endif
-#ifdef Id_PASS_TIGHT
-#undef Id_PASS_TIGHT
+#ifdef ID_PASS_TIGHT
+#undef ID_PASS_TIGHT
 #endif
 #ifdef ISO_FCN
 #undef ISO_FCN

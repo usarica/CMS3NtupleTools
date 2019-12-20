@@ -21,8 +21,8 @@ template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* p
     part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Iso) \
     && \
     part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Kin) \
-    && \
-    part->testSelectionBit(MuonSelectionHelpers::kValidMuonSystemTime) \
+    /*&&*/ \
+    /*part->testSelectionBit(MuonSelectionHelpers::kValidMuonSystemTime)*/ \
     ); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \

@@ -27,12 +27,12 @@ AK8JET_VARIABLES
 
 const std::string JetMETHandler::colName_ak4jets = "ak4jets";
 const std::string JetMETHandler::colName_ak8jets = "ak8jets";
-const std::string JetMETHandler::colName_pfchsmet = "pfmet";
+const std::string JetMETHandler::colName_pfmet = "pfmet";
 const std::string JetMETHandler::colName_pfpuppimet = "puppimet";
 
 JetMETHandler::JetMETHandler() :
   IvyBase(),
-  pfchsmet(nullptr),
+  pfmet(nullptr),
   pfpuppimet(nullptr)
 {
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME);
@@ -41,7 +41,7 @@ JetMETHandler::JetMETHandler() :
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME);
@@ -54,7 +54,7 @@ void JetMETHandler::clear(){
   ak4jets.clear();
   for (auto*& prod:ak8jets) delete prod;
   ak8jets.clear();
-  delete pfchsmet; pfchsmet=nullptr;
+  delete pfmet; pfmet=nullptr;
   delete pfpuppimet; pfpuppimet=nullptr;
 }
 
@@ -194,7 +194,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
 bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
   if (!currentTree) return false;
 
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfchsmet_##NAME = DEFVAL;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfmet_##NAME = DEFVAL;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfpuppimet_##NAME = DEFVAL;
@@ -203,7 +203,7 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, pfchsmet_##NAME);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, pfmet_##NAME);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
@@ -220,17 +220,17 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   /*************/
   /* PFCHS MET */
   /*************/
-  pfchsmet = new METObject();
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet_##NAME;
+  pfmet = new METObject();
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.met_Nominal;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.met_Nominal;
   MET_EXTRA_PT_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfchsmet->extras.NAME = pfchsmet->extras.metPhi_Nominal;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.metPhi_Nominal;
   MET_EXTRA_PHI_VARIABLES;
 #undef MET_VARIABLE
-  pfchsmet->setSystematic(syst);
+  pfmet->setSystematic(syst);
 
   /***************/
   /* PFPUPPI MET */
@@ -316,7 +316,7 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
     VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS
 #undef AK8JET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfchsmet + "_" + #NAME, DEFVAL);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
     MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
