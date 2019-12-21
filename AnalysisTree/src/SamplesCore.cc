@@ -4,6 +4,7 @@
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "MELAStreamHelpers.hh"
+#include "TRandom3.h"
 
 
 namespace SampleHelpers{
@@ -124,4 +125,24 @@ bool SampleHelpers::checkSampleIs80X(TString strid){
 }
 bool SampleHelpers::checkSampleIsFastSim(TString strid){
   return false;
+}
+
+TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed){
+  std::vector<TString> const valid_periods = getValidDataPeriods();
+  if (std::find(valid_periods.cbegin(), valid_periods.cend(), theDataPeriod)==valid_periods.cend()){
+    std::vector<float> lumilist; lumilist.reserve(valid_periods.size());
+    for (TString const& period:valid_periods) lumilist.push_back(getIntegratedLuminosity(period));
+    for (size_t il=1; il<lumilist.size(); il++) lumilist.at(il) += lumilist.at(il-1);
+    for (size_t il=0; il<lumilist.size(); il++) lumilist.at(il) /= lumilist.back();
+    TRandom3 rand;
+    rand.SetSeed(iseed);
+    int i_era = -1;
+    float era_x = rand.Uniform();
+    for (auto const& lumi_era:lumilist){
+      i_era++;
+      if (era_x<=lumi_era) break;
+    }
+    return valid_periods.at(i_era);
+  }
+  else return theDataPeriod;
 }

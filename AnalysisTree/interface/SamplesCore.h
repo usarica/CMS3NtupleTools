@@ -42,6 +42,8 @@ namespace SampleHelpers{
   bool checkSampleIs80X(TString strid);
   bool checkSampleIsFastSim(TString strid);
 
+  TString getRandomDataPeriod(unsigned long long iseed);
+
 }
 
 #endif
