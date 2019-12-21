@@ -1,3 +1,5 @@
+#include "SamplesCore.h"
+
 #include "MuonHandler.h"
 #include "ElectronHandler.h"
 #include "PhotonHandler.h"

@@ -15,13 +15,16 @@
 class EventFilterHandler : public IvyBase{
 public:
   static const std::string colName_HLTpaths;
+  static const std::string colName_metfilters;
 
 protected:
   std::vector<HLTTriggerPathObject*> product_HLTpaths;
+  std::unordered_map<std::string, bool> product_metfilters;
 
   void clear();
 
   bool constructHLTPaths();
+  bool constructMETFilters();
 
 public:
   // Constructors
@@ -34,6 +37,7 @@ public:
 
   bool hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const;
   float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
+  bool passMETFilters() const;
   // Special event filters for various specific issues
   /*
   // Requires an implementation of Samples.h, so skip for now
@@ -46,9 +50,10 @@ public:
   */
 
   std::vector<HLTTriggerPathObject*> const& getHLTPaths() const{ return this->product_HLTpaths; }
+  std::unordered_map<std::string, bool> const& getMETFilters() const{ return this->product_metfilters; }
 
   void bookBranches(BaseTree* intree);
-  //static std::vector<TString> acquireMETFilterFlags(BaseTree* intree);
+  static std::vector<std::string> acquireMETFilterFlags(BaseTree* intree);
   //static std::unordered_map<TString, std::vector<TString>> acquireHLTPaths(BaseTree* intree);
 
 };

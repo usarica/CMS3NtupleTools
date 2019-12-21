@@ -1,6 +1,7 @@
 #include <cassert>
 #include <string>
 #include <stdexcept>
+#include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "MELAStreamHelpers.hh"
 
@@ -96,4 +97,31 @@ float SampleHelpers::getIntegratedLuminosity(TString const& period){
     assert(0);
     return -1;
   }
+}
+
+TString SampleHelpers::getSampleIdentifier(TString strinput){
+  TString res="";
+  std::vector<TString> splitstr; char delimiter='/';
+  HelperFunctions::splitOptionRecursive(strinput, splitstr, delimiter);
+  for (TString const& strtmp:splitstr){
+    if (strtmp!=""){
+      if (res=="") res = strtmp;
+      else res = res + "_" + strtmp;
+    }
+  }
+  return res;
+}
+bool SampleHelpers::checkSampleIsData(TString strid){
+  std::vector<TString> strperiods = SampleHelpers::getValidDataPeriods();
+  for (TString strperiod : strperiods){
+    strperiod = Form("Run%s", strperiod.Data());
+    if (strid.Contains(strperiod)) return true;
+  }
+  return false;
+}
+bool SampleHelpers::checkSampleIs80X(TString strid){
+  return strid.Contains("Summer16MiniAODv2");
+}
+bool SampleHelpers::checkSampleIsFastSim(TString strid){
+  return false;
 }

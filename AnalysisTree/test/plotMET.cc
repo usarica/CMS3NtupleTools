@@ -201,10 +201,14 @@ void getTrees(TString strdate=""){
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2 for any, ee, mumu, emu
 
   TString const cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/101124";
+
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+  SampleHelpers::setDataPeriod("2018");
+  SampleHelpers::setInputDirectory(cinput_main);
+
   TString const coutput_main = "output/" + strdate;
 
   gSystem->mkdir(coutput_main, true);
@@ -225,7 +229,7 @@ void getTrees(TString strdate=""){
   std::vector<float> genmetthresholds{ 50, 150, 300 };
 
   for (auto& sample:sampleList){
-    BaseTree sample_tree(cinput_main + "/" + sample.path, "cms3ntuple/Events", "", "");
+    BaseTree sample_tree(cinput_main + "/" + sample.path, EVENTS_TREE_NAME, "", "");
 
     TFile* foutput = TFile::Open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root"), "recreate");
 

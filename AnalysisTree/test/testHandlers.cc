@@ -7,9 +7,11 @@
 
 
 void testHandlers(int procsel){
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-
   TString cinput = "/home/users/usarica/work/Width_AC_Run2/Samples/191212/";
+
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+  SampleHelpers::setDataPeriod("2018");
+  SampleHelpers::setInputDirectory(cinput);
 
   if (procsel == 0) cinput += "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root";
   else if (procsel == 1) cinput += "DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root";
@@ -18,7 +20,7 @@ void testHandlers(int procsel){
   else if (procsel == 4) cinput += "WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root";
   else if (procsel == 5) cinput += "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root";
 
-  BaseTree sample_tree(cinput, "cms3ntuple/Events", "", "");
+  BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
 
   // Get cross section
   sample_tree.bookBranch<float>("xsec", 0.f);
@@ -73,32 +75,28 @@ void testHandlers(int procsel){
   for (int ev=0; ev<nevents; ev++){
     sample_tree.getSelectedEvent(ev);
 
+    if (ev==0){
+      sample_tree.getVal("xsec", xsec);
+      sample_tree.releaseBranch("xsec");
+      MELAout << "Sample cross section: " << xsec*1000. << " fb" << endl;
+    }
+
     eventFilter.constructFilters();
-    if (!eventFilter.hasMatchingTriggerPath(triggerCheckList)){
-      MELAerr << "No matching trigger paths to " << triggerCheckList << endl;
+    if (ev==0){
       MELAerr << "Available trigger paths are as follows:" << endl;
       for (auto const& hltpath:eventFilter.getHLTPaths()) MELAout << "\t- " << hltpath->name << endl;
+    }
+    if (!eventFilter.hasMatchingTriggerPath(triggerCheckList)){
+      MELAerr << "No matching trigger paths to " << triggerCheckList << endl;
       break;
     }
     if (eventFilter.getTriggerWeight(triggerCheckList) == 0.){
-      /*
-      if (ev % 10 == 0){
-        for (auto const& hltpath:eventFilter.getHLTPaths()){ if (hltpath->passTrigger) MELAout << "\t- " << hltpath->name << " paased with (L1 prescale, HLT prescale) = (" << hltpath->L1prescale << ", " << hltpath->HLTprescale << ")" << endl; }
-      }
-      if (ev>=100) break;
-      */
       continue;
     }
 
     MELAout << "================" << endl;
     MELAout << "Event " << ev << ":" << endl;
     MELAout << "================" << endl;
-
-    if (ev_acc==0){
-      sample_tree.getVal("xsec", xsec);
-      sample_tree.releaseBranch("xsec");
-      MELAout << "Sample cross section: " << xsec*1000. << " fb" << endl;
-    }
 
     genInfoHandler.constructGenInfo(theGlobalSyst);
     auto const& genInfo = genInfoHandler.getGenInfo();
@@ -153,6 +151,9 @@ void testHandlers(int procsel){
 
     MELAout << "Triggers:" << endl;
     for (auto const& strTrigger:triggerCheckList) MELAout << "\t- Trigger weight(" << strTrigger << ") = " << eventFilter.getTriggerWeight({ strTrigger }) << endl;
+
+    MELAout << "Event " << (eventFilter.passMETFilters() ? "passes" : "fails") << " MET filters. Available MET filtera are as follows:" << endl;
+    for (auto it:eventFilter.getMETFilters()) MELAout << "\t- " << it.first << ": " << it.second << endl;
 
     ev_acc++;
     if (ev_acc==max_ev_acc) break;

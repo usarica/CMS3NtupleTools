@@ -22,7 +22,7 @@ constexpr float xsecScale = 1e3;
 constexpr unsigned int theSqrts = 13;
 
 // Tree names
-const TString EVENTS_TREE_NAME = "Events";
+const TString EVENTS_TREE_NAME = "cms3ntuple/Events";
 
 
 namespace SampleHelpers{
@@ -36,6 +36,11 @@ namespace SampleHelpers{
   std::vector<TString> getValidDataPeriods();
   bool testDataPeriodIsLikeData();
   float getIntegratedLuminosity(TString const& period);
+
+  TString getSampleIdentifier(TString strinput);
+  bool checkSampleIsData(TString strid);
+  bool checkSampleIs80X(TString strid);
+  bool checkSampleIsFastSim(TString strid);
 
 }
 
