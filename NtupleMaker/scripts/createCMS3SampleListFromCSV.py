@@ -24,6 +24,7 @@ class BatchManager:
 
       self.parser.add_option("--csv", type="string", help="CSV file to expand")
       self.parser.add_option("--outfile", type="string", help="Output file to write")
+      self.parser.add_option("--filterfile", type="string", help="List of files to select (useful for rerunning jobs manually)")
       self.parser.add_option("--method", type="string", default="dbs", help="Method to list the data files")
       self.parser.add_option("--options", type="string", default=None, help="Other options specific to each method")
       self.parser.add_option("--nfiles", type="int", default=-1, help="Limit on the number of files per process")
@@ -39,6 +40,11 @@ class BatchManager:
          if not hasattr(self.opt, theOpt) or getattr(self.opt, theOpt) is None:
             sys.exit("Need to set --{} option".format(theOpt))
 
+      if hasattr(self.opt, "filterfile") and getattr(self.opt, "filterfile") is not None:
+         self.filterfile = self.opt.filterfile
+      else:
+         self.filterfile = None
+
       self.infile = self.opt.csv
       self.outfile = self.opt.outfile
 
@@ -46,7 +52,18 @@ class BatchManager:
 
 
    def run(self):
-      firstLine=True
+      filterlist = []
+      if self.filterfile:
+         with open(self.filterfile,"rb") as filterfile:
+            for filterline in filterfile:
+               filterline=filterline.lstrip()
+               filterline=filterline.rstrip()
+               filterline=filterline.replace(',','')
+               filterline=filterline.replace('"','')
+               if filterline.startswith('#'): continue
+               filterlist.append(filterline)
+
+      firstLine = True
       indices = []
       with open(self.outfile,"wb") as outfile:
          with open(self.infile,"rb") as csvfile:
@@ -60,7 +77,7 @@ class BatchManager:
                      el=el.rstrip()
                      el=el.replace('#','')
                      indices.append(el)
-                  firstLine=False
+                  firstLine = False
                elif rowstr.startswith('#'):
                   continue
                elif (len(row)==0):
@@ -86,6 +103,12 @@ class BatchManager:
                      rec = True,
                      other_options = self.opt.options
                      )
+                  if len(filterlist)>0:
+                     tmplist = []
+                     for fl in filelist:
+                        if fl in filterlist:
+                           tmplist.append(fl)
+                     filelist = tmplist
 
                   groupedfilelist = []
                   if self.opt.ninputsperjob > 0:
