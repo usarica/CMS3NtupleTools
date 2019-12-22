@@ -11,10 +11,6 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS \
-HLTTRIGGERPATH_VARIABLES
-
-
 const std::string EventFilterHandler::colName_HLTpaths = "triggers";
 const std::string EventFilterHandler::colName_metfilters = "metfilter";
 
@@ -22,7 +18,7 @@ EventFilterHandler::EventFilterHandler() :
   IvyBase()
 {
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(EventFilterHandler::colName_HLTpaths + "_" + #NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+  HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 }
 
@@ -77,13 +73,13 @@ bool EventFilterHandler::passMETFilters() const{
 
 bool EventFilterHandler::constructHLTPaths(){
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_HLTpaths_##NAME, itEnd_HLTpaths_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+  HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(EventFilterHandler::colName_HLTpaths + "_" + #NAME, &itBegin_HLTpaths_##NAME, &itEnd_HLTpaths_##NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+  HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructHLTPaths: Not all variables are consumed properly!" << endl;
@@ -95,18 +91,18 @@ bool EventFilterHandler::constructHLTPaths(){
   size_t n_HLTpaths = (itEnd_HLTpaths_name - itBegin_HLTpaths_name);
   product_HLTpaths.reserve(n_HLTpaths);
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) auto it_HLTpaths_##NAME = itBegin_HLTpaths_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+  HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
   while (it_HLTpaths_name != itEnd_HLTpaths_name){
     product_HLTpaths.push_back(new HLTTriggerPathObject());
     HLTTriggerPathObject*& obj = product_HLTpaths.back();
 
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_HLTpaths_##NAME;
-    VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+    HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) it_HLTpaths_##NAME++;
-    VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+    HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
   }
 
@@ -197,7 +193,7 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 
   // Book HLT paths
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(EventFilterHandler::colName_HLTpaths + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS;
+  HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 
   // Book MET filters
@@ -208,6 +204,3 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
     this->defineConsumedSloppy(strmetfilter); // Define as sloppy so that different samples from different years/versions can be processed.
   }
 }
-
-
-#undef VECTOR_ITERATOR_HANDLER_DIRECTIVES_HLTTRIGGERPATHS

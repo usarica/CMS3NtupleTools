@@ -39,22 +39,18 @@ public:
   float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
   bool passMETFilters() const;
   // Special event filters for various specific issues
-  /*
-  // Requires an implementation of Samples.h, so skip for now
   bool test2018HEMFilter(
     std::vector<ElectronObject*> const* electrons,
     std::vector<PhotonObject*> const* photons,
     std::vector<AK4JetObject*> const* ak4jets,
     std::vector<AK8JetObject*> const* ak8jets
   ) const;
-  */
 
   std::vector<HLTTriggerPathObject*> const& getHLTPaths() const{ return this->product_HLTpaths; }
   std::unordered_map<std::string, bool> const& getMETFilters() const{ return this->product_metfilters; }
 
   void bookBranches(BaseTree* intree);
   static std::vector<std::string> acquireMETFilterFlags(BaseTree* intree);
-  //static std::unordered_map<TString, std::vector<TString>> acquireHLTPaths(BaseTree* intree);
 
 };
 

@@ -26,6 +26,10 @@ void testHandlers(int procsel){
   sample_tree.bookBranch<float>("xsec", 0.f);
 
   // Get handlers
+  SimEventHandler simEventHandler;
+  simEventHandler.bookBranches(&sample_tree);
+  simEventHandler.wrapTree(&sample_tree);
+
   GenInfoHandler genInfoHandler;
   genInfoHandler.bookBranches(&sample_tree);
   genInfoHandler.wrapTree(&sample_tree);
@@ -90,13 +94,16 @@ void testHandlers(int procsel){
       MELAerr << "No matching trigger paths to " << triggerCheckList << endl;
       break;
     }
-    if (eventFilter.getTriggerWeight(triggerCheckList) == 0.){
-      continue;
-    }
+    if (eventFilter.getTriggerWeight(triggerCheckList) == 0.) continue;
 
     MELAout << "================" << endl;
     MELAout << "Event " << ev << ":" << endl;
     MELAout << "================" << endl;
+
+    simEventHandler.constructSimEvent(theGlobalSyst);
+    MELAout << "Sample chosen data period: " << simEventHandler.getChosenDataPeriod() << " with random number " << simEventHandler.getRandomNumberSeed(SimEventHandler::kDataPeriod) << "." << endl;
+    MELAout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumberSeed(SimEventHandler::kGenMETSmear) << endl;
+    MELAout << "\t- PU weight: " << simEventHandler.getPileUpWeight() << endl;
 
     genInfoHandler.constructGenInfo(theGlobalSyst);
     auto const& genInfo = genInfoHandler.getGenInfo();
