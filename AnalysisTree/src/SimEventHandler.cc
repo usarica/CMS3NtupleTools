@@ -243,7 +243,7 @@ TString const& SimEventHandler::getChosenDataPeriod() const{
 unsigned long long const& SimEventHandler::getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const{
   auto it = product_rnds.find(type);
   if (it == product_rnds.cend()){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumber: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::getRandomNumberSeed: SimEventHandler::constructSimEvent() needs to be called first..." << endl;
     assert(0);
   }
   return it->second;
