@@ -5,23 +5,6 @@
 
 
 namespace MuonSelectionHelpers{
-  constexpr float ptThr_gen = 7.;
-  constexpr float ptThr_skim_veto = 7.;
-  constexpr float ptThr_skim_loose = 7.;
-  constexpr float ptThr_skim_medium = 7.;
-  constexpr float ptThr_skim_tight = 7.;
-
-  constexpr float etaThr_gen = 2.4;
-  constexpr float etaThr_skim_veto = 2.4;
-  constexpr float etaThr_skim_loose = 2.4;
-  constexpr float etaThr_skim_medium = 2.4;
-  constexpr float etaThr_skim_tight = 2.4;
-
-  constexpr float isoThr_veto = 0.1;
-  constexpr float isoThr_loose = 0.1;
-  constexpr float isoThr_medium = 0.1;
-  constexpr float isoThr_tight = 0.1;
-
   enum SelectionBits{
     kGenPtEta,
 
@@ -40,14 +23,52 @@ namespace MuonSelectionHelpers{
     kTightIso,
     kTightKin,
 
+    kSoftId,
+    kSoftIso,
+    kSoftKin,
+
     kPreselection,
 
     nSelectionBits
   };
-  const SelectionBits bit_preselection_id = kTightId;
-  const SelectionBits bit_preselection_iso = kTightIso;
-  const SelectionBits bit_preselection_kin = kTightKin;
-  const SelectionBits bit_preselection_time = kValidMuonSystemTime;
+  enum MuonId{
+    kCutBasedId_MuonPOG
+  };
+  enum MuonIso{
+    kMiniIsoDR0p3,
+    kPFIsoDR0p3,
+    kPFIsoDR0p4
+  };
+
+  // Kinematic pT thresholds
+  constexpr float ptThr_gen = 7.;
+  constexpr float ptThr_skim_veto = 7.;
+  constexpr float ptThr_skim_loose = 7.;
+  constexpr float ptThr_skim_medium = 7.;
+  constexpr float ptThr_skim_tight = 7.;
+  constexpr float ptThr_skim_soft = 7.;
+
+  // Kinematic eta thresholds
+  constexpr float etaThr_gen = 2.4;
+  constexpr float etaThr_skim_veto = 2.4;
+  constexpr float etaThr_skim_loose = 2.4;
+  constexpr float etaThr_skim_medium = 2.4;
+  constexpr float etaThr_skim_tight = 2.4;
+  constexpr float etaThr_skim_soft = 2.4;
+
+  // Isolation thresholds
+  constexpr float isoThr_veto = 0.1;
+  constexpr float isoThr_loose = 0.1;
+  constexpr float isoThr_medium = 0.1;
+  constexpr float isoThr_tight = 0.1;
+  constexpr float isoThr_soft = 0.2;
+
+  constexpr SelectionBits bit_preselection_id = kTightId;
+  constexpr SelectionBits bit_preselection_iso = kTightIso;
+  constexpr SelectionBits bit_preselection_kin = kTightKin;
+  constexpr SelectionBits bit_preselection_time = kValidMuonSystemTime;
+  constexpr MuonId idType_preselection = kCutBasedId_MuonPOG;
+  constexpr MuonIso isoType_preselection = kPFIsoDR0p3;
 
   float absMiniIso_DR0p3(MuonObject const& part);
   float relMiniIso_DR0p3(MuonObject const& part);
@@ -57,6 +78,8 @@ namespace MuonSelectionHelpers{
 
   float absPFIso_DR0p4(MuonObject const& part);
   float relPFIso_DR0p4(MuonObject const& part);
+
+  float computeIso(MuonObject const& part);
 
   bool testPtEtaGen(MuonObject const& part);
 
@@ -77,6 +100,10 @@ namespace MuonSelectionHelpers{
   bool testTightId(MuonObject const& part);
   bool testTightIso(MuonObject const& part);
   bool testTightKin(MuonObject const& part);
+
+  bool testSoftId(MuonObject const& part);
+  bool testSoftIso(MuonObject const& part);
+  bool testSoftKin(MuonObject const& part);
 
   bool testPreselection(MuonObject const& part);
 

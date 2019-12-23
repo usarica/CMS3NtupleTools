@@ -20,6 +20,14 @@ float MuonSelectionHelpers::relPFIso_DR0p3(MuonObject const& part){ float pt = p
 float MuonSelectionHelpers::absPFIso_DR0p4(MuonObject const& part){ return part.extras.pfIso04_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p4(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p4(part)/pt : 0.f); }
 
+float MuonSelectionHelpers::computeIso(MuonObject const& part){
+  if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
+  else if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
+  else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
+  else MELAerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
+  return 999.f;
+}
+
 bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
   // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf:
   float const& cmb = part.extras.time_comb_IPInOut;
@@ -42,37 +50,61 @@ bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
   return true;
 }
 
-#define ID_PASS_VETO CutBasedIdLoose
-#define ID_PASS_LOOSE CutBasedIdLoose
-#define ID_PASS_MEDIUM CutBasedIdMedium
-#define ID_PASS_TIGHT CutBasedIdTight
-#define ISO_FCN MuonSelectionHelpers::relPFIso_DR0p3
-
+#define ID_CUTBASED_VETO CutBasedIdLoose
+#define ID_CUTBASED_LOOSE CutBasedIdLoose
+#define ID_CUTBASED_MEDIUM CutBasedIdMediumPrompt
+#define ID_CUTBASED_TIGHT CutBasedIdTight
 bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_VETO) == Muon::ID_PASS_VETO);
+  switch (idType_preselection){
+  case kCutBasedId_MuonPOG:
+    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_VETO) == Muon::ID_CUTBASED_VETO);
+  default:
+    MELAerr << "MuonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
+    assert(0);
+    return false;
+  };
 }
 bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_LOOSE) == Muon::ID_PASS_LOOSE);
+  switch (idType_preselection){
+  case kCutBasedId_MuonPOG:
+    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_LOOSE) == Muon::ID_CUTBASED_LOOSE);
+  default:
+    MELAerr << "MuonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
+    assert(0);
+    return false;
+  };
 }
 bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_MEDIUM) == Muon::ID_PASS_MEDIUM);
+  switch (idType_preselection){
+  case kCutBasedId_MuonPOG:
+    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_MEDIUM) == Muon::ID_CUTBASED_MEDIUM);
+  default:
+    MELAerr << "MuonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
+    assert(0);
+    return false;
+  };
 }
 bool MuonSelectionHelpers::testTightId(MuonObject const& part){
-  return ((part.extras.POG_selector_bits & Muon::ID_PASS_TIGHT) == Muon::ID_PASS_TIGHT);
+  switch (idType_preselection){
+  case kCutBasedId_MuonPOG:
+    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_TIGHT) == Muon::ID_CUTBASED_TIGHT);
+  default:
+    MELAerr << "MuonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
+    assert(0);
+    return false;
+  };
 }
+bool MuonSelectionHelpers::testSoftId(MuonObject const& part){ return ((part.extras.POG_selector_bits & Muon::SoftCutBasedId) == Muon::SoftCutBasedId); }
+#undef ID_CUTBASED_VETO
+#undef ID_CUTBASED_LOOSE
+#undef ID_CUTBASED_MEDIUM
+#undef ID_CUTBASED_TIGHT
 
-bool MuonSelectionHelpers::testVetoIso(MuonObject const& part){
-  return (ISO_FCN(part)<isoThr_veto);
-}
-bool MuonSelectionHelpers::testLooseIso(MuonObject const& part){
-  return (ISO_FCN(part)<isoThr_loose);
-}
-bool MuonSelectionHelpers::testMediumIso(MuonObject const& part){
-  return (ISO_FCN(part)<isoThr_medium);
-}
-bool MuonSelectionHelpers::testTightIso(MuonObject const& part){
-  return (ISO_FCN(part)<isoThr_tight);
-}
+bool MuonSelectionHelpers::testVetoIso(MuonObject const& part){ return (computeIso(part)<isoThr_veto); }
+bool MuonSelectionHelpers::testLooseIso(MuonObject const& part){ return (computeIso(part)<isoThr_loose); }
+bool MuonSelectionHelpers::testMediumIso(MuonObject const& part){ return (computeIso(part)<isoThr_medium); }
+bool MuonSelectionHelpers::testTightIso(MuonObject const& part){ return (computeIso(part)<isoThr_tight); }
+bool MuonSelectionHelpers::testSoftIso(MuonObject const& part){ return (computeIso(part)<isoThr_soft); }
 
 bool MuonSelectionHelpers::testVetoKin(MuonObject const& part){
   return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
@@ -86,22 +118,7 @@ bool MuonSelectionHelpers::testMediumKin(MuonObject const& part){
 bool MuonSelectionHelpers::testTightKin(MuonObject const& part){
   return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
 }
-
-#ifdef ID_PASS_VETO
-#undef ID_PASS_VETO
-#endif
-#ifdef ID_PASS_LOOSE
-#undef ID_PASS_LOOSE
-#endif
-#ifdef ID_PASS_MEDIUM
-#undef ID_PASS_MEDIUM
-#endif
-#ifdef ID_PASS_TIGHT
-#undef ID_PASS_TIGHT
-#endif
-#ifdef ISO_FCN
-#undef ISO_FCN
-#endif
+bool MuonSelectionHelpers::testSoftKin(MuonObject const& part){ return (part.pt()>=ptThr_skim_soft && fabs(part.eta())<etaThr_skim_soft); }
 
 bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
@@ -161,6 +178,10 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   if (testTightId(part)) part.setSelectionBit(kTightId);
   if (testTightIso(part)) part.setSelectionBit(kTightIso);
   if (testTightKin(part)) part.setSelectionBit(kTightKin);
+
+  if (testSoftId(part)) part.setSelectionBit(kSoftId);
+  if (testSoftIso(part)) part.setSelectionBit(kSoftIso);
+  if (testSoftKin(part)) part.setSelectionBit(kSoftKin);
 
   if (testPreselection(part)) part.setSelectionBit(kPreselection);
 }
