@@ -592,6 +592,10 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     sample_tree.bookBranch<float>("xsec", 0.f);
 
     // Get handlers
+    SimEventHandler simEventHandler;
+    simEventHandler.bookBranches(&sample_tree);
+    simEventHandler.wrapTree(&sample_tree);
+
     GenInfoHandler genInfoHandler;
     genInfoHandler.bookBranches(&sample_tree);
     genInfoHandler.wrapTree(&sample_tree);
@@ -814,14 +818,16 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         sample_tree.releaseBranch("xsec");
       }
 
+      simEventHandler.constructSimEvent(theGlobalSyst);
+
       genInfoHandler.constructGenInfo(theGlobalSyst);
       auto const& genInfo = genInfoHandler.getGenInfo();
 
-      float wgt = genInfo->getGenWeight(true);
+      float wgt = genInfo->getGenWeight(true)*simEventHandler.getPileUpWeight();
       sum_wgts += wgt;
       float me_wgt=1, cps_wgt=1;
-      if (sample.name == "ggZZ_BSI"){ sample_tree.getVal("p_Gen_CPStoBWPropRewgt", cps_wgt); sample_tree.getVal("p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM", me_wgt); }
-      else if (sample.name == "ggZZ_Sig"){ sample_tree.getVal("p_Gen_CPStoBWPropRewgt", cps_wgt); sample_tree.getVal("p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM", me_wgt); }
+      if (sample.name == "ggZZ_BSI"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
+      else if (sample.name == "ggZZ_Sig"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       wgt *= me_wgt*cps_wgt;
 
       muonHandler.constructMuons(theGlobalSyst);
@@ -859,10 +865,11 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       //MELAout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
+      size_t nTightDilep = 0;
       for (auto const& dilepton:dileptons){
         if (dilepton->isValid() && dilepton->isOS() && dilepton->nTightDaughters()==2){
-          theChosenDilepton = dilepton;
-          break;
+          if (!theChosenDilepton) theChosenDilepton = dilepton;
+          nTightDilep++;
         }
       }
 
@@ -875,7 +882,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       wgt *= triggerWeight;
       */
 
-      if (theChosenDilepton){
+      if (theChosenDilepton && nTightDilep == 1){
         bool is_ee=false, is_mumu=false, is_emu=false;
         if (theChosenDilepton->daughter(0)->pdgId() * theChosenDilepton->daughter(1)->pdgId() == -121) is_ee=true;
         else if (theChosenDilepton->daughter(0)->pdgId() * theChosenDilepton->daughter(1)->pdgId() == -143) is_emu=true;

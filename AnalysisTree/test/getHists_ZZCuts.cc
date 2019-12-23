@@ -268,6 +268,10 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     sample_tree.bookBranch<float>("xsec", 0.f);
 
     // Get handlers
+    SimEventHandler simEventHandler;
+    simEventHandler.bookBranches(&sample_tree);
+    simEventHandler.wrapTree(&sample_tree);
+
     GenInfoHandler genInfoHandler;
     genInfoHandler.bookBranches(&sample_tree);
     genInfoHandler.wrapTree(&sample_tree);
@@ -524,10 +528,12 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         sample_tree.releaseBranch("xsec");
       }
 
+      simEventHandler.constructSimEvent(theGlobalSyst);
+
       genInfoHandler.constructGenInfo(theGlobalSyst);
       auto const& genInfo = genInfoHandler.getGenInfo();
 
-      float wgt = genInfo->getGenWeight(true);
+      float wgt = genInfo->getGenWeight(true)*simEventHandler.getPileUpWeight();
       sum_wgts += wgt;
 
       float me_wgt = 1;
@@ -578,7 +584,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       //MELAout << endl;
 
       DileptonObject* theChosenDilepton = nullptr;
-      int nTightDilep = 0;
+      size_t nTightDilep = 0;
       for (auto const& dilepton:dileptons){
         if (dilepton->isValid() && dilepton->isOS() && dilepton->nTightDaughters()==2){
           if (!theChosenDilepton) theChosenDilepton = dilepton;
