@@ -10,7 +10,7 @@ using namespace MELAStreamHelpers;
 
 
 namespace BtagHelpers{
-  BtagWPType btagWPType = kDeepCSV_Medium;
+  BtagWPType btagWPType = kDeepCSV_Loose;
 }
 
 

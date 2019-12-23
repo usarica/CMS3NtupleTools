@@ -211,6 +211,9 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
   TString const coutput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
 
+  BtagHelpers::setBtagWPType(BtagHelpers::kDeepCSV_Loose);
+  const float btagvalue_thr = BtagHelpers::getBtagWP(false);
+
   gSystem->mkdir(coutput_main, true);
 
   std::vector<SampleSpecs> sampleList;
@@ -568,8 +571,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       for (auto* jet:ak4jets){
         if (ParticleSelectionHelpers::isTightJet(jet)){
           ak4jets_tight.push_back(jet);
-          // if (jet->getBtagValue()>=0.4184) ak4jets_tight_btagged.push_back(jet); // medium WP
-          if (jet->getBtagValue()>=0.1241) ak4jets_tight_btagged.push_back(jet); // loose WP
+          if (jet->getBtagValue()>=btagvalue_thr) ak4jets_tight_btagged.push_back(jet);
         }
       }
 
@@ -651,7 +653,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
           p4_alljets = p4_alljets + jet->p4();
 
           float btagval = jet->getBtagValue();
-          if (btagval<0.1241 && std::abs(jet->eta())<2.5){
+          if (btagval<btagvalue_thr && std::abs(jet->eta())<2.5){
             if (!highest_nonbtagged_jet || highest_nonbtagged_jet_btagvalue<btagval){
               secondHighest_nonbtagged_jet = highest_nonbtagged_jet;
               highest_nonbtagged_jet = jet;
@@ -733,7 +735,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
         // Cuts
         bool pass_pTl1 = pTl1>=25.;
-        bool pass_pTl2 = pTl1>=20.;
+        bool pass_pTl2 = pTl2>=20.;
         bool pass_pTll = pTll>=20.;
         bool pass_Nb_veto = n_ak4jets_tight_btagged==0;
         bool pass_mll = (doZZWW==0 && mll>=81. && mll<101.) || (doZZWW==1 && mll>=105.);

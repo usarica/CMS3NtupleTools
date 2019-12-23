@@ -15,6 +15,7 @@
 #include "PhotonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
+#include "BtagHelpers.h"
 
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"

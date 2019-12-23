@@ -27,7 +27,6 @@ SIMEVENT_RNDVARIABLES \
 SIMEVENT_PUVARIABLES
 
 
-
 SimEventHandler::SimEventHandler() :
   IvyBase()
 {
@@ -43,7 +42,6 @@ SimEventHandler::~SimEventHandler(){
   clear();
   clearPUHistograms();
 }
-
 
 void SimEventHandler::clear(){
   product_rnds.clear();

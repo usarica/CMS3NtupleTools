@@ -240,7 +240,7 @@ TString CutSpecs::getLabel() const{
 TString CutSpecs::getTitle() const{
   if (!doCutLow && !doCutHigh) return Form("%s_inclusive", cutvar.Data());
   else if (doCutLow && doCutHigh && cutlow==cuthigh) return Form("%s_eq_%s", cutvar.Data(), CutSpecs::getCutValTitleString(cutlow).Data());
-  else if (doCutLow && doCutHigh) return Form("%s_in_%s_%s)", cutvar.Data(), CutSpecs::getCutValTitleString(cutlow).Data(), CutSpecs::getCutValTitleString(cuthigh).Data());
+  else if (doCutLow && doCutHigh) return Form("%s_in_%s_%s", cutvar.Data(), CutSpecs::getCutValTitleString(cutlow).Data(), CutSpecs::getCutValTitleString(cuthigh).Data());
   else if (doCutLow) return Form("%s_ge_%s", cutvar.Data(), CutSpecs::getCutValTitleString(cutlow).Data());
   else return Form("%s_lt_%s", cutvar.Data(), CutSpecs::getCutValTitleString(cuthigh).Data());
 }
@@ -295,7 +295,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   constexpr int nchannels = 5; // ichannel=-1, 0, 1, 2, 3 for any, ee, mumu, emu, ee+mumu
-  constexpr float btagvalue_thr = /*0.4184*/0.1241;
 
   TString const cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/191212";
   TString const coutput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
@@ -305,6 +304,21 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   SampleHelpers::setDataPeriod("2018");
   SampleHelpers::setInputDirectory(cinput_main);
+
+  BtagHelpers::setBtagWPType(BtagHelpers::kDeepCSV_Loose);
+  const float btagvalue_thr = BtagHelpers::getBtagWP(false);
+
+  std::vector<std::string> triggerCheckList{
+    "HLT_Ele32_WPTight_Gsf_v*", "HLT_IsoMu24_v*",
+
+    "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*", "HLT_DoubleEle25_CaloIdL_MW_v*",
+    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*",
+
+    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*","HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*", "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*",
+
+    "HLT_TripleMu_10_5_5_DZ_v*", "HLT_TripleMu_12_10_5_v*"
+  };
 
   std::vector<SampleSpecs> sampleList;
   sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root", -1, HistogramProperties((int) kGreen+2, 1, 2));
@@ -873,14 +887,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
       }
 
-      /*
-      float triggerWeight = eventFilter.getTriggerWeight(
-        {
-
-        }
-      );
+      float triggerWeight = eventFilter.getTriggerWeight(triggerCheckList);
       wgt *= triggerWeight;
-      */
 
       if (theChosenDilepton && nTightDilep == 1){
         bool is_ee=false, is_mumu=false, is_emu=false;
@@ -991,7 +999,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
         // Cuts
         bool pass_pTl1 = pTl1>=25.;
-        bool pass_pTl2 = pTl1>=20.;
+        bool pass_pTl2 = pTl2>=20.;
         bool pass_Nb_veto = n_ak4jets_tight_btagged==0;
         bool pass_mll = (doZZWW==0 && mll>=81. && mll<101.) || (doZZWW==1 && mll>=101.);
         float pTmiss_over_pTll_thr = 2.5;
