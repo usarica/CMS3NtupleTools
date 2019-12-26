@@ -325,6 +325,16 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
   sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
 
+  // Get handlers
+  SimEventHandler simEventHandler;
+  GenInfoHandler genInfoHandler;
+  MuonHandler muonHandler;
+  ElectronHandler electronHandler;
+  PhotonHandler photonHandler;
+  JetMETHandler jetHandler;
+  EventFilterHandler eventFilter;
+  DileptonHandler dileptonHandler;
+
   std::vector< std::vector<CutSpecs> > cutsets;
   /*
   // Cuts on gen. MET
@@ -608,36 +618,27 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
 
-    // Get handlers
-    SimEventHandler simEventHandler;
+    // Configure handlers
     simEventHandler.bookBranches(&sample_tree);
     simEventHandler.wrapTree(&sample_tree);
 
-    GenInfoHandler genInfoHandler;
     genInfoHandler.bookBranches(&sample_tree);
     genInfoHandler.wrapTree(&sample_tree);
 
-    MuonHandler muonHandler;
     muonHandler.bookBranches(&sample_tree);
     muonHandler.wrapTree(&sample_tree);
 
-    ElectronHandler electronHandler;
     electronHandler.bookBranches(&sample_tree);
     electronHandler.wrapTree(&sample_tree);
 
-    PhotonHandler photonHandler;
     photonHandler.bookBranches(&sample_tree);
     photonHandler.wrapTree(&sample_tree);
 
-    JetMETHandler jetHandler;
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
 
-    EventFilterHandler eventFilter;
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
-
-    DileptonHandler dileptonHandler;
 
     MELAout << "Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
@@ -840,7 +841,9 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       genInfoHandler.constructGenInfo(theGlobalSyst);
       auto const& genInfo = genInfoHandler.getGenInfo();
 
-      float wgt = genInfo->getGenWeight(true)*simEventHandler.getPileUpWeight();
+      float genwgt = genInfo->getGenWeight(true);
+      float puwgt = simEventHandler.getPileUpWeight();
+      float wgt = genwgt * puwgt;
       sum_wgts += wgt;
       float me_wgt=1, cps_wgt=1;
       if (sample.name == "ggZZ_BSI"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
@@ -1073,7 +1076,6 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
             }
           } // End loop over channels
         } // End fill
-
       }
 
     } // End loop over events

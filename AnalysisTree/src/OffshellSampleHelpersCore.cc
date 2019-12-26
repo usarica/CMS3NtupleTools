@@ -22,9 +22,9 @@ void SampleHelpers::configure(TString period, TString stag){
   setInputDirectory("/home/users/usarica/work/Width_AC_Run2/Samples");
   theSamplesTag=stag;
 
-  OffshellTriggerHelpers::configureHLTmap();
-
   runConfigure=true;
+
+  OffshellTriggerHelpers::configureHLTmap();
 }
 
 TString SampleHelpers::getDatasetDirectoryName(std::string sname){
@@ -35,12 +35,9 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname){
   HelperFunctions::replaceString(sname, "/MINIAODSIM", "");
   HelperFunctions::replaceString(sname, "/MINIAOD", "");
   if (sname.find('/')==0) sname = sname.substr(1);
-  bool replaceAllSlashes=true;
-  do{
-    replaceAllSlashes = replaceString<std::string, const char*>(sname, "/", "_");
-  }
-  while (replaceAllSlashes);
-  return Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
+  TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
+  assert(HostHelpers::DirectoryExists(res.Data()));
+  return res;
 }
 TString SampleHelpers::getDatasetDirectoryName(TString sname){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data())); }
 

@@ -2,6 +2,7 @@
 #include "TRandom3.h"
 
 #include "SimEventHandler.h"
+#include "SampleHelpersCore.h"
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
@@ -50,6 +51,9 @@ void SimEventHandler::clear(){
 }
 
 void SimEventHandler::setupPUHistograms(){
+  TDirectory* curdir = gDirectory;
+  TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
+
   std::vector<TString> dataperiods = SampleHelpers::getValidDataPeriods();
 
   TString mcpufile = Form("PU_MC_%i.root", SampleHelpers::theDataYear);
@@ -91,8 +95,6 @@ void SimEventHandler::setupPUHistograms(){
 
   assert(datapucores.size() == dataperiods.size());
 
-  TDirectory* curdir = gDirectory;
-
   TString cinput_pufile_main = ANALYSISTREEPKGDATAPATH + "PileUp/";
   TFile* finput_mc = TFile::Open(cinput_pufile_main + mcpufile, "read");
   TH1F* hmc = nullptr;
@@ -128,7 +130,7 @@ void SimEventHandler::setupPUHistograms(){
       assert(hdata->GetNbinsX() == hmc->GetNbinsX());
       hdata->Scale(1.f/hdata->Integral(0, hdata->GetNbinsX()+1));
 
-      curdir->cd();
+      uppermostdir->cd();
       hfill = (TH1F*) hdata->Clone();
       HelperFunctions::divideHistograms(hdata, hmc, hfill, false);
 
@@ -141,6 +143,8 @@ void SimEventHandler::setupPUHistograms(){
   }
 
   finput_mc->Close();
+
+  curdir->cd();
 }
 void SimEventHandler::clearPUHistograms(){
   for (auto& pp:map_DataPeriod_PUHistList){
@@ -216,6 +220,9 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
 
   pileupWeight = hlist.at(isyst)->GetBinContent(hlist.at(isyst)->FindBin(n_true_int));
+  if (pileupWeight == 0.f){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: HPU weight = 0!" << endl;
+  }
 
   return true;
 }
