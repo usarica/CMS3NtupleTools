@@ -1,7 +1,8 @@
 #include <cassert>
-#include "OffshellSampleHelpers.h"
 #include "HelperFunctions.h"
 #include "SampleHelpersCore.h"
+#include "OffshellSampleHelpers.h"
+#include "OffshellTriggerHelpers.h"
 #include "HostHelpersCore.h"
 #include "MELAStreamHelpers.hh"
 
@@ -20,6 +21,9 @@ void SampleHelpers::configure(TString period, TString stag){
   setDataPeriod(period);
   setInputDirectory("/home/users/usarica/work/Width_AC_Run2/Samples");
   theSamplesTag=stag;
+
+  OffshellTriggerHelpers::configureHLTmap();
+
   runConfigure=true;
 }
 

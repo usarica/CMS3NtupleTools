@@ -307,17 +307,12 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepCSV_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
 
-  std::vector<std::string> triggerCheckList{
-    "HLT_Ele32_WPTight_Gsf_v*", "HLT_IsoMu24_v*",
-
-    "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*", "HLT_DoubleEle25_CaloIdL_MW_v*",
-    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*",
-
-    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*","HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
-    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*"/*,
-    
-    "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*", "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*", "HLT_TripleMu_10_5_5_DZ_v*", "HLT_TripleMu_12_10_5_v*"*/
-  };
+  std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
+    {
+      OffshellTriggerHelpers::kDoubleMu, OffshellTriggerHelpers::kDoubleEle, OffshellTriggerHelpers::kMuEle,
+      OffshellTriggerHelpers::kSingleMu, OffshellTriggerHelpers::kSingleEle
+    }
+  );
 
   std::vector<SampleSpecs> sampleList;
   sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DY_2l_M_10to50", -1, HistogramProperties((int) kGreen+2, 1, 2));
@@ -327,6 +322,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
   sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
   sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
+  sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
+  sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
 
   std::vector< std::vector<CutSpecs> > cutsets;
   /*
@@ -598,8 +595,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
 
     std::vector<TString> sampledirs;
     SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
-    if (sampledirs.size)>1){
-      MELAout << "Size > 1 not implemented yet!" << end;
+    if (sampledirs.size()>1){
+      MELAout << "Size > 1 not implemented yet!" << endl;
       continue;
     }
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
@@ -848,6 +845,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       float me_wgt=1, cps_wgt=1;
       if (sample.name == "ggZZ_BSI"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       else if (sample.name == "ggZZ_Sig"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
+      else if (sample.name == "VBF_BSI"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_JJEW_BSI_ghv1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
+      else if (sample.name == "VBF_Sig"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_JJEW_SIG_ghv1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       wgt *= me_wgt*cps_wgt;
 
       muonHandler.constructMuons(theGlobalSyst);
