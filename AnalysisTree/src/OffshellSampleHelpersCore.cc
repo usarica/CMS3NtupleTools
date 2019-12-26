@@ -54,4 +54,4 @@ TString SampleHelpers::getDatasetFileName(std::string sname){
   }
   return (dsetdir + "/" + (nfiles==1 ? firstFile : "*.root"));
 }
-TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileNames(std::string(sname.Data())); }
+TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileName(std::string(sname.Data())); }

@@ -22,7 +22,7 @@ std::vector<std::string> OffshellTriggerHelpers::getHLTMenus(std::vector<Offshel
   return res;
 }
 void OffshellTriggerHelpers::configureHLTmap(){
-  if (!OffshellSampleHelpers::runConfigure){
+  if (!SampleHelpers::runConfigure){
     MELAerr << "OffshellTriggerHelpers::configureHLTmap: Need to call SampleHelpers::configure(period, tag) first!" << endl;
     assert(0);
   }

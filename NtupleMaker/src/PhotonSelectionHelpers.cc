@@ -100,10 +100,32 @@ namespace PhotonSelectionHelpers{
     return (std::max(0., nh - rho * ea_nh) + std::max(0., ch - rho * ea_ch) + std::max(0., em - rho * ea_em));
   }
 
-  bool testSkimPhoton(pat::Photon const& obj, int const& /*year*/){
+  bool testSkimPhoton(pat::Photon const& obj, int const& /*year*/, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
+    bool passAnyCutBased = cutbasedidbitlist.empty();
+    bool passAnyMVA = mvaidpasslist.empty();
+    /*
+    From https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Applying_Individual_Cuts_of_a_Se
+    For cut-based selection, the bit map is the following:
+    0: Min. pT cut
+    1: SC eta multi. range
+    2: Single tower H/E
+    3: Full 5x5 sigmaIetaIeta
+    4: Iso_ch
+    5: Iso_nh
+    6: Iso_em
+    We only require bits 1, 2, 3. Offline, we require the others.
+    */
+#define TEST_CUTBASED_BIT(ibit) ((ibit & 14) == 14)
+    for (auto const& strid:cutbasedidbitlist){
+      unsigned int id_bits = obj.userInt(strid);
+      passAnyCutBased |= TEST_CUTBASED_BIT(id_bits);
+    }
+#undef TEST_CUTBASED_BIT
+    for (auto const& strid:mvaidpasslist) passAnyMVA |= static_cast<bool>(obj.userInt(strid));
     return (
+      (passAnyCutBased || passAnyMVA) &&
       eta<selection_skim_eta && (
         uncorr_pt>=selection_skim_pt
         ||

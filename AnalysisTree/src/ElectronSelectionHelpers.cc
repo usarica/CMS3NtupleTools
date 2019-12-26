@@ -25,9 +25,9 @@ float ElectronSelectionHelpers::computeIso(ElectronObject const& part){
     ||
     idType_preselection == kMVAId_HZZRun2Legacy_Iso
     ) return 0.f;
-  else if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
+  else if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
   else MELAerr << "ElectronSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }

@@ -808,7 +808,20 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
-    if (!ElectronSelectionHelpers::testSkimElectron(*obj, this->year)) continue;
+    if (
+      !ElectronSelectionHelpers::testSkimElectron(
+        *obj, this->year,
+        {
+          "id_cutBased_Fall17V2_Veto_Bits", "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits",
+          "id_cutBased_Fall17V1_Veto_Bits", "id_cutBased_Fall17V1_Loose_Bits", "id_cutBased_Fall17V1_Medium_Bits", "id_cutBased_Fall17V1_Tight_Bits"
+        },
+        {
+          "id_MVA_Fall17V2_Iso_pass_wpLoose", "id_MVA_Fall17V2_Iso_pass_wp90", "id_MVA_Fall17V2_Iso_pass_wp80", "id_MVA_Fall17V2_Iso_pass_wpHZZ",
+          "id_MVA_Fall17V2_NoIso_pass_wpLoose", "id_MVA_Fall17V2_NoIso_pass_wp90", "id_MVA_Fall17V2_NoIso_pass_wp80",
+          "id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ"
+        }
+      )
+      ) continue;
 
     // Core particle quantities
     // Uncorrected p4
@@ -997,7 +1010,14 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     //bool passStandardSkim = PhotonSelectionHelpers::testSkimPhoton(*obj, this->year);
     //bool passFSRSkim = (HelperFunctions::checkListVariable(allFSRCandidates, &(*obj)) && PhotonSelectionHelpers::testSkimFSRPhoton(*obj, fsr_mindr_map[&(*obj)], this->year));
     //if (!passStandardSkim && !passFSRSkim) continue;
-    if (!PhotonSelectionHelpers::testSkimPhoton(*obj, this->year)) continue;
+    if (
+      !PhotonSelectionHelpers::testSkimPhoton(
+        *obj,
+        this->year,
+        { "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits" },
+        { "id_MVA_Fall17V2_pass_wp90", "id_MVA_Fall17V2_pass_wp80" }
+      )
+      ) continue;
 
     // Core particle quantities
     // Uncorrected p4
@@ -1579,6 +1599,19 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
       }
     }
     fsrMatch_muon_index_list.push_back(muon_indices);
+
+    std::vector<unsigned int> electron_indices;
+    for (auto const& electron:obj->matched_electron_list){
+      unsigned int ielectron=0;
+      for (auto const& obj:(*filledElectrons)){
+        if (obj==electron){
+          electron_indices.push_back(ielectron);
+          break;
+        }
+        ielectron++;
+      }
+    }
+    fsrMatch_electron_index_list.push_back(electron_indices);
 
     std::vector<unsigned int> photonVeto_indices;
     for (auto const& photon:obj->veto_photon_list){

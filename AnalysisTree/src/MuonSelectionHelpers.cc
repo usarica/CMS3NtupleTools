@@ -21,9 +21,9 @@ float MuonSelectionHelpers::absPFIso_DR0p4(MuonObject const& part){ return part.
 float MuonSelectionHelpers::relPFIso_DR0p4(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p4(part)/pt : 0.f); }
 
 float MuonSelectionHelpers::computeIso(MuonObject const& part){
-  if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
-  else if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
+  if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
+  else if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
   else MELAerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }

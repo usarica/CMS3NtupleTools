@@ -74,7 +74,9 @@ namespace MuonSelectionHelpers{
   bool testSkimMuon(pat::Muon const& obj, int const& /*year*/){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
+    bool passAnyPOGBit = (obj.userInt("POG_selector_bits")!=0);
     return (
+      passAnyPOGBit &&
       eta<selection_skim_eta && (
         uncorr_pt>=selection_skim_pt
         ||
