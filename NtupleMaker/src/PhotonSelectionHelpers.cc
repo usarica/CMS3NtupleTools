@@ -83,11 +83,23 @@ namespace PhotonSelectionHelpers{
     return ea;
   }
 
-  float photonPFIsoCharged(pat::Photon const& obj, int const& year, double const& rho){
+  float photonPFIsoChargedHadron(pat::Photon const& obj, int const& year, double const& rho){
     double ch = obj.chargedHadronIso();
     double ea_ch = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_ch);
 
     return std::max(0., ch - rho * ea_ch);
+  }
+  float photonPFIsoNeutralHadron(pat::Photon const& obj, int const& year, double const& rho){
+    double nh = obj.neutralHadronIso();
+    double ea_nh = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_nh);
+
+    return std::max(0., nh - rho * ea_nh);
+  }
+  float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho){
+    double em = obj.photonIso();
+    double ea_em = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_em);
+
+    return std::max(0., em - rho * ea_em);
   }
   float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho){
     double ch = obj.chargedHadronIso();

@@ -125,7 +125,9 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserFloat("pfChargedHadronIso", photon->reco::Photon::chargedHadronIso());
     photon_result.addUserFloat("pfNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
     photon_result.addUserFloat("pfPhotonIso", photon->reco::Photon::photonIso());
-    photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoCharged(*photon, year_, rho_event));
+    photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoChargedHadron(*photon, year_, rho_event));
+    photon_result.addUserFloat("pfNeutralHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoNeutralHadron(*photon, year_, rho_event));
+    photon_result.addUserFloat("pfEMIso_EAcorr", PhotonSelectionHelpers::photonPFIsoEM(*photon, year_, rho_event));
     photon_result.addUserFloat("pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(*photon, year_, rho_event));
 
     // Pixel seeds

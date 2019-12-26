@@ -28,7 +28,9 @@ namespace PhotonSelectionHelpers{
 
   template<typename PFCandIterable> float photonFSRIso(pat::Photon const& obj, int const& year, PFCandIterable const& pfcands_begin, PFCandIterable const& pfcands_end);
 
-  float photonPFIsoCharged(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
+  float photonPFIsoChargedHadron(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
+  float photonPFIsoNeutralHadron(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
+  float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
 
   bool testSkimPhoton(pat::Photon const& obj, int const& year, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist);

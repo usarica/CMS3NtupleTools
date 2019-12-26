@@ -94,6 +94,7 @@ void CMS3Ntuplizer::beginJob(){
   TTree* tout = fs->make<TTree>(treename, "Selected event summary");
   outtree = std::make_shared<BaseTree>(nullptr, tout, nullptr, nullptr, false);
   outtree->setAcquireTreePossession(false);
+  outtree->setAutoSave(0);
 }
 void CMS3Ntuplizer::endJob(){}
 
@@ -987,6 +988,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
 
+  // These two are needed for the MVA id
+  MAKE_VECTOR_WITH_RESERVE(bool, hasPixelSeed, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, passElectronVeto, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp90, n_objects);
@@ -998,6 +1003,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfNeutralHadronIso_EAcorr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfEMIso_EAcorr, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
@@ -1039,6 +1046,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
 
     // Id variables
+    PUSH_USERINT_INTO_VECTOR(hasPixelSeed);
+    PUSH_USERINT_INTO_VECTOR(passElectronVeto);
+
     // Fall17V2 MVA id
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Val);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Cat);
@@ -1052,6 +1062,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
 
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfNeutralHadronIso_EAcorr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfEMIso_EAcorr);
 
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
@@ -1075,6 +1087,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalUp);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalDn);
 
+  PUSH_VECTOR_WITH_NAME(colName, hasPixelSeed);
+  PUSH_VECTOR_WITH_NAME(colName, passElectronVeto);
+
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Val);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Cat);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_pass_wp90);
@@ -1086,6 +1101,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
+  PUSH_VECTOR_WITH_NAME(colName, pfNeutralHadronIso_EAcorr);
+  PUSH_VECTOR_WITH_NAME(colName, pfEMIso_EAcorr);
 
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
