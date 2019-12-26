@@ -1,4 +1,5 @@
 #include "SamplesCore.h"
+#include "OffshellSampleHelpers.h"
 
 #include "SimEventHandler.h"
 #include "GenInfoHandler.h"

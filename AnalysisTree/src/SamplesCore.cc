@@ -9,7 +9,7 @@
 
 namespace SampleHelpers{
   int theDataYear=2018;
-  TString theDataPeriod="2018"; // Initialize the extern here to 2016
+  TString theDataPeriod="2018"; // Initialize the extern here to 2018
   TString theInputDirectory=""; // Initialize the extern here to empty string
 }
 
@@ -114,18 +114,11 @@ TString SampleHelpers::getSampleIdentifier(TString strinput){
 }
 bool SampleHelpers::checkSampleIsData(TString strid){
   std::vector<TString> strperiods = SampleHelpers::getValidDataPeriods();
-  for (TString strperiod : strperiods){
-    strperiod = Form("Run%s", strperiod.Data());
-    if (strid.Contains(strperiod)) return true;
-  }
+  for (TString const& strperiod:strperiods){ if (strid.Contains(strperiod)) return true; }
   return false;
 }
-bool SampleHelpers::checkSampleIs80X(TString strid){
-  return strid.Contains("Summer16MiniAODv2");
-}
-bool SampleHelpers::checkSampleIsFastSim(TString strid){
-  return false;
-}
+bool SampleHelpers::checkSampleIs80X(TString strid){ return strid.Contains("Summer16MiniAODv2"); }
+bool SampleHelpers::checkSampleIsFastSim(TString strid){ return false; }
 
 TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed){
   std::vector<TString> const valid_periods = getValidDataPeriods();

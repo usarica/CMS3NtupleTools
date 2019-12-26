@@ -1,6 +1,7 @@
 #include <cassert>
 #include "OffshellSampleHelpers.h"
 #include "HelperFunctions.h"
+#include "SampleHelpersCore.h"
 #include "HostHelpersCore.h"
 #include "MELAStreamHelpers.hh"
 
@@ -38,3 +39,19 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname){
   return Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
 }
 TString SampleHelpers::getDatasetDirectoryName(TString sname){ return SampleHelpers::getDatasetDirectoryName(std::string(sname.Data())); }
+
+
+TString SampleHelpers::getDatasetFileName(std::string sname){
+  TString dsetdir = getDatasetDirectoryName(sname);
+  auto dfiles = SampleHelpers::lsdir(dsetdir.Data());
+  size_t nfiles = 0;
+  TString firstFile = "";
+  for (auto const& fname:dfiles){
+    if (fname.Contains(".root")){
+      if (nfiles == 0) firstFile = fname;
+      nfiles++;
+    }
+  }
+  return (dsetdir + "/" + (nfiles==1 ? firstFile : "*.root"));
+}
+TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileNames(std::string(sname.Data())); }

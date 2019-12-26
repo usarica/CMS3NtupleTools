@@ -16,6 +16,9 @@ namespace SampleHelpers{
   TString getDatasetDirectoryName(std::string sname);
   TString getDatasetDirectoryName(TString sname);
 
+  TString getDatasetFileName(std::string sname);
+  TString getDatasetFileName(TString sname);
+
 }
 // Here begins the more specialized functions for off-shell analysis
 namespace SampleHelpers{

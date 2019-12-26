@@ -302,8 +302,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::setDataPeriod("2018");
-  SampleHelpers::setInputDirectory(cinput_main);
+  SampleHelpers::configure("2018", "191212");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepCSV_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
@@ -315,19 +314,19 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*",
 
     "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*", "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*","HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
-    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*", "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*",
-
-    "HLT_TripleMu_10_5_5_DZ_v*", "HLT_TripleMu_12_10_5_v*"
+    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*"/*,
+    
+    "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*", "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*", "HLT_TripleMu_10_5_5_DZ_v*", "HLT_TripleMu_12_10_5_v*"*/
   };
 
   std::vector<SampleSpecs> sampleList;
-  sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root", -1, HistogramProperties((int) kGreen+2, 1, 2));
-  sampleList.emplace_back("DY_M50", "DY ll (m_{ll}>50 GeV)", "DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root", -1, HistogramProperties((int) kCyan, 1, 2));
-  sampleList.emplace_back("TT2L2Nu", "t#bar{t} ll", "TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root", -1, HistogramProperties((int) kOrange-3, 1, 2));
-  sampleList.emplace_back("ZZ2L2Nu", "ZZ#rightarrow2l2#nu", "ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/allevents.root", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root", -1, HistogramProperties((int) kAzure-2, 1, 2));
-  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root", 125, HistogramProperties((int) kViolet, 7, 2));
+  sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DY_2l_M_10to50", -1, HistogramProperties((int) kGreen+2, 1, 2));
+  sampleList.emplace_back("DY_M50", "DY ll (m_{ll}>50 GeV)", "DY_2l_M_50", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("TT2L2Nu", "t#bar{t} ll", "TT_2l2nu", -1, HistogramProperties((int) kOrange-3, 1, 2));
+  sampleList.emplace_back("ZZ2L2Nu", "ZZ#rightarrow2l2#nu", "qqZZ_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
+  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
 
   std::vector< std::vector<CutSpecs> > cutsets;
   /*
@@ -596,8 +595,15 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     if (procsel>=0 && isample!=static_cast<size_t>(procsel)) continue;
 
     auto& sample = sampleList.at(isample);
-    BaseTree sample_tree(cinput_main + "/" + sample.path, EVENTS_TREE_NAME, "", "");
-    sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sample.path);
+
+    std::vector<TString> sampledirs;
+    SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
+    if (sampledirs.size)>1){
+      MELAout << "Size > 1 not implemented yet!" << end;
+      continue;
+    }
+    BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
+    sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
 
     TFile* foutput = TFile::Open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root"), "recreate");
     MELAout.open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt"));
