@@ -120,6 +120,12 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       constructSamplesList("DY_2l_M50", syst, samples);
     }
     if (sname == "TT_2l2nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "ST_t-channel_top_5f") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_t-channel_top_5f_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "ST_t-channel_antitop_5f") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_t-channel_antitop_5f_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "ST_s-channel_top_leptonDecays") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_s-channel_top_leptonDecays_13TeV-PSweights_powheg-pythia/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
+    if (sname == "ST_s-channel_antitop_leptonDecays") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_s-channel_antitop_leptonDecays_13TeV-PSweights_powheg-pythia/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
+    if (sname == "ST_tW_top_5f_NoFullyHadronicDecays") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_tW_top_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/MINIAODSIM" });
+    if (sname == "ST_tW_antitop_5f_NoFullyHadronicDecays") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_tW_antitop_5f_NoFullyHadronicDecays_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v3/MINIAODSIM" });
     if (sname == "qqZZ_2l2nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM" });
     if (sname == "qqWW_2l2nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "qqZZ_4l") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM" });
