@@ -125,14 +125,21 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "qqZZ_4l") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZZTo4L_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM" });
     if (sname == "qqZZ_2q2nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZZTo2Q2Nu_TuneCP5_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "qqZZ_2l2q") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "qqWZ_lnuqq") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WZTo1L1Nu2Q_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "qqWZ_2l2q") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WZTo2L2Q_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "qqWZ_3l1nu_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WZTo3LNu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM" });
+    if (sname == "qqWZ_3l1nu_MG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WZTo3LNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM" }); // Has more stats
+    if (sname == "qqWZ_1l3nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WZTo1L3Nu_13TeV_amcatnloFXFX_madspin_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "qqVV"){
       constructSamplesList("qqZZ_2l2nu", syst, samples);
       constructSamplesList("qqWW_2l2nu", syst, samples);
       constructSamplesList("qqZZ_4l", syst, samples);
       constructSamplesList("qqZZ_2q2nu", syst, samples);
       constructSamplesList("qqZZ_2l2q", syst, samples);
+      constructSamplesList("qqWZ_lnuqq", syst, samples);
       constructSamplesList("qqWZ_2l2q", syst, samples);
+      constructSamplesList("qqWZ_3l1nu_MG", syst, samples);
+      constructSamplesList("qqWZ_1l3nu", syst, samples);
     }
 
     // Simulation for the photon CR processes
