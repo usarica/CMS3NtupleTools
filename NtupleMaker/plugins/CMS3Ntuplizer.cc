@@ -1146,6 +1146,11 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, deepFlavourproblepb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobuds, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, deepCSVprobb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepCSVprobbb, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepCSVprobc, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, deepCSVprobudsg, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, ptDistribution, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, totalMultiplicity, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, axis1, n_objects);
@@ -1191,6 +1196,11 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(deepFlavourproblepb);
     PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobuds);
 
+    PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobb);
+    PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobbb);
+    PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobc);
+    PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobudsg);
+
     PUSH_USERFLOAT_INTO_VECTOR(ptDistribution);
     PUSH_USERFLOAT_INTO_VECTOR(totalMultiplicity);
     PUSH_USERFLOAT_INTO_VECTOR(axis1);
@@ -1234,6 +1244,11 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobg);
   PUSH_VECTOR_WITH_NAME(colName, deepFlavourproblepb);
   PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobuds);
+
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobb);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobbb);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobc);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobudsg);
 
   PUSH_VECTOR_WITH_NAME(colName, ptDistribution);
   PUSH_VECTOR_WITH_NAME(colName, totalMultiplicity);
