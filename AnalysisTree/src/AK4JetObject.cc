@@ -1,6 +1,13 @@
+#include <cassert>
 #include <algorithm>
 #include <utility>
 #include "AK4JetObject.h"
+#include "BtagHelpers.h"
+#include "MELAStreamHelpers.hh"
+
+
+using namespace std;
+using namespace MELAStreamHelpers;
 
 
 AK4JetVariables::AK4JetVariables(){
@@ -54,7 +61,19 @@ AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
 AK4JetObject::~AK4JetObject(){}
 
 float AK4JetObject::getBtagValue() const{
-  return extras.deepFlavourprobb + extras.deepFlavourprobbb + extras.deepFlavourproblepb;
+  switch (BtagHelpers::btagWPType){
+  case BtagHelpers::kDeepFlav_Loose:
+  case BtagHelpers::kDeepFlav_Medium:
+  case BtagHelpers::kDeepFlav_Tight:
+    return extras.deepFlavourprobb + extras.deepFlavourprobbb + extras.deepFlavourproblepb;
+  case BtagHelpers::kDeepCSV_Loose:
+  case BtagHelpers::kDeepCSV_Medium:
+  case BtagHelpers::kDeepCSV_Tight:
+  default:
+    MELAerr << "AK4JetObject::getBtagValue: b-tagging WP type " << BtagHelpers::btagWPType << " is not implemented." << endl;
+    assert(0);
+    return -1;
+  }
 }
 
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){

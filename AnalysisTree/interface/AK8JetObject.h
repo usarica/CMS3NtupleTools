@@ -5,15 +5,15 @@
 
 
 #define AK8JET_VARIABLES \
-AK8JET_VARIABLE(size_t, n_pfcands, 0) \
-AK8JET_VARIABLE(size_t, n_mucands, 0) \
-AK8JET_VARIABLE(size_t, n_softdrop_subjets, 0) \
-AK8JET_VARIABLE(float, area, 0) \
-AK8JET_VARIABLE(float, pt_resolution, 0) \
-AK8JET_VARIABLE(float, ptDistribution, 0) \
-AK8JET_VARIABLE(float, totalMultiplicity, 0) \
-AK8JET_VARIABLE(float, axis1, 0) \
-AK8JET_VARIABLE(float, axis2, 0) \
+/*AK8JET_VARIABLE(size_t, n_pfcands, 0)*/ \
+/*AK8JET_VARIABLE(size_t, n_mucands, 0)*/ \
+/*AK8JET_VARIABLE(size_t, n_softdrop_subjets, 0)*/ \
+/*AK8JET_VARIABLE(float, area, 0)*/ \
+/*AK8JET_VARIABLE(float, pt_resolution, 0)*/ \
+/*AK8JET_VARIABLE(float, ptDistribution, 0)*/ \
+/*AK8JET_VARIABLE(float, totalMultiplicity, 0)*/ \
+/*AK8JET_VARIABLE(float, axis1, 0)*/ \
+/*AK8JET_VARIABLE(float, axis2, 0)*/ \
 AK8JET_VARIABLE(float, JECNominal, 0) \
 AK8JET_VARIABLE(float, JECUp, 0) \
 AK8JET_VARIABLE(float, JECDn, 0) \
