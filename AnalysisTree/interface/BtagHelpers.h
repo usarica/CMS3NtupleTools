@@ -6,7 +6,10 @@ namespace BtagHelpers{
   enum BtagWPType{
     kDeepCSV_Loose,
     kDeepCSV_Medium,
-    kDeepCSV_Tight
+    kDeepCSV_Tight,
+    kDeepFlav_Loose,
+    kDeepFlav_Medium,
+    kDeepFlav_Tight
   };
   extern BtagWPType btagWPType;
 

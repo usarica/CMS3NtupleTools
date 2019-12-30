@@ -54,7 +54,7 @@ AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
 AK4JetObject::~AK4JetObject(){}
 
 float AK4JetObject::getBtagValue() const{
-  return extras.deepFlavourprobb + extras.deepFlavourprobbb;
+  return extras.deepFlavourprobb + extras.deepFlavourprobbb + extras.deepFlavourproblepb;
 }
 
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){

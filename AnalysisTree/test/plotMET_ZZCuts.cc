@@ -304,7 +304,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   SampleHelpers::configure("2018", "191212");
 
-  BtagHelpers::setBtagWPType(BtagHelpers::kDeepCSV_Loose);
+  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
 
   std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
