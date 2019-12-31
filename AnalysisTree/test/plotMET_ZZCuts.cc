@@ -289,7 +289,7 @@ void getChannelTitleLabel(int ichannel, TString& title, TString& label){
   }
 }
 
-void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
+void getHistograms(int doZZWW, int procsel, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -959,7 +959,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
         float mjj = p4_jj.M();
         float mjets = p4_alljets.M();
-        float pZmiss_approx = -(theChosenDilepton->p4()).Z();
+        float pZmiss_approx = theChosenDilepton->p4().Z();
+        float etamiss_approx = theChosenDilepton->eta();
         float ml1j1 = p4_l1j1.M();
         float dEta_j1j2=-99; if (n_ak4jets_tight>=2) dEta_j1j2 = (p4_j.eta() - ak4jets_tight.at(1)->eta());
         float pTllj1 = (theChosenDilepton->p4() + p4_j).pt();
@@ -1002,7 +1003,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         float resolution_puppimet_pTmiss = reco_puppimet_pTmiss/gen_pTmiss - 1.;
         // Compute ZZ-style masses
         float mTZZ_puppimet = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(reco_puppimet_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + puppimet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t puppimet_p4_ZZplusapprox; puppimet_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_puppimet_pTmiss, -std::asinh(pZmiss_approx/reco_puppimet_pTmiss), puppimet->phi(), PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t puppimet_p4_ZZplusapprox; puppimet_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_puppimet_pTmiss, etamiss_approx, puppimet->phi(), PDGHelpers::Zmass);
         float mZZ_plus_puppimet = (puppimet_p4_ZZplusapprox + theChosenDilepton->p4()).M();
 
         // Cuts

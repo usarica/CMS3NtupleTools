@@ -670,7 +670,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         }
         float mjj = p4_jj.M();
         float mjets = p4_alljets.M();
-        float pZmiss_approx = -(theChosenDilepton->p4()).Z();  // +p4_jj
+        float pZmiss_approx = theChosenDilepton->p4().Z();
+        float etamiss_approx = theChosenDilepton->eta();
         float ml1j1 = (n_ak4jets_tight>0)? p4_l1j1.M() : -1.;
         float dEta_j1j2=-99; if (n_ak4jets_tight>=2) dEta_j1j2 = (p4_j.eta() - ak4jets_tight.at(1)->eta());
 
@@ -711,7 +712,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         float resolution_pfpuppi_pTmiss = reco_pfpuppi_pTmiss/gen_pTmiss - 1.;
         // Compute ZZ-style masses
         float mTZZ_pfpuppi = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(reco_pfpuppi_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + pfpuppimet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t pfpuppi_p4_ZZplusapprox; pfpuppi_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_pfpuppi_pTmiss, -std::asinh(pZmiss_approx/reco_pfpuppi_pTmiss), pfpuppimet->phi(), PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t pfpuppi_p4_ZZplusapprox; pfpuppi_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_pfpuppi_pTmiss, etamiss_approx, pfpuppimet->phi(), PDGHelpers::Zmass);
         float mZZ_plus_pfpuppi = (pfpuppi_p4_ZZplusapprox + theChosenDilepton->p4()).M();
 
         float abs_dPhi_min_pTj_pfchs_pTmiss = TMath::Pi();
@@ -728,7 +729,7 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
         float resolution_pfchs_pTmiss = reco_pfchs_pTmiss/gen_pTmiss - 1.;
         // Compute ZZ-style masses
         float mTZZ_pfchs = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(reco_pfchs_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + pfchsmet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t pfchs_p4_ZZplusapprox; pfchs_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_pfchs_pTmiss, -std::asinh(pZmiss_approx/reco_pfchs_pTmiss), pfchsmet->phi(), PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t pfchs_p4_ZZplusapprox; pfchs_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_pfchs_pTmiss, etamiss_approx, pfchsmet->phi(), PDGHelpers::Zmass);
         float mZZ_plus_pfchs = (pfchs_p4_ZZplusapprox + theChosenDilepton->p4()).M();
         float mTll_pfchs = sqrt(2 * theChosenDilepton->pt() * pfchsmet->met() * (1.0 - cos(theChosenDilepton->phi() - pfchsmet->phi())) );
         float mTll_pfchs_etver = sqrt(2 * theChosenDilepton->momentum.Et() * pfchsmet->met() * (1.0 - cos(theChosenDilepton->phi() - pfchsmet->phi())) );

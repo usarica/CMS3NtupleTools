@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include "ParticleObject.h"
+#include "TLorentzVector.h"
 
 
 namespace ParticleObjectHelpers{
@@ -18,6 +19,8 @@ namespace ParticleObjectHelpers{
 
   template<typename T> void sortByGreaterScalarSumPt(std::vector<T>& vec);
   template<typename T> void sortByGreaterScalarSumPt(std::vector<T*>& vec);
+
+  template<typename T> TLorentzVector convertCMSLorentzVectorToTLorentzVector(T const& p4);
 
 }
 
@@ -40,6 +43,8 @@ template<typename T> void ParticleObjectHelpers::sortByGreaterPt(std::vector<T*>
 
 template<typename T> void ParticleObjectHelpers::sortByGreaterScalarSumPt(std::vector<T>& vec){ std::sort(vec.begin(), vec.end(), ParticleObjectHelpers::objHasGreaterScalarSumPt<T>); }
 template<typename T> void ParticleObjectHelpers::sortByGreaterScalarSumPt(std::vector<T*>& vec){ std::sort(vec.begin(), vec.end(), ParticleObjectHelpers::ptrHasGreaterScalarSumPt<T>); }
+
+template<typename T> TLorentzVector ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(T const& p4){ return TLorentzVector(p4.X(), p4.Y(), p4.Z(), p4.T()); }
 
 
 #endif

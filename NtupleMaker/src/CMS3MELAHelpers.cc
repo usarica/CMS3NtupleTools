@@ -273,8 +273,16 @@ thelist.clear();
     if (!melaHandle) return;
     // Sequantial computation
     updateMELAClusters_Common("Common", isGen);
-    updateMELAClusters_J1JECJER("J1JECNominal", isGen); updateMELAClusters_J1JECJER("J1JECUp", isGen); updateMELAClusters_J1JECJER("J1JECDn", isGen); updateMELAClusters_J1JECJER("J1JERUp", isGen); updateMELAClusters_J1JECJER("J1JERDn", isGen);
-    updateMELAClusters_J2JECJER("J2JECNominal", isGen); updateMELAClusters_J2JECJER("J2JECUp", isGen); updateMELAClusters_J2JECJER("J2JECDn", isGen); updateMELAClusters_J2JECJER("J2JERUp", isGen); updateMELAClusters_J2JECJER("J2JERDn", isGen);
+    updateMELAClusters_J1JECJER("J1JECNominal", isGen);
+    updateMELAClusters_J1JECJER("J1JECDn", isGen);
+    updateMELAClusters_J1JECJER("J1JECUp", isGen);
+    updateMELAClusters_J1JECJER("J1JERDn", isGen);
+    updateMELAClusters_J1JECJER("J1JERUp", isGen);
+    updateMELAClusters_J2JECJER("J2JECNominal", isGen);
+    updateMELAClusters_J2JECJER("J2JECDn", isGen);
+    updateMELAClusters_J2JECJER("J2JECUp", isGen);
+    updateMELAClusters_J2JECJER("J2JERDn", isGen);
+    updateMELAClusters_J2JECJER("J2JERUp", isGen);
     updateMELAClusters_LepWH("LepWH", isGen);
     updateMELAClusters_LepZH("LepZH", isGen);
     updateMELAClusters_NoInitialQ("NoInitialQ", isGen);
@@ -300,8 +308,16 @@ thelist.clear();
     updateMELAClusters_NoInitialQ("NoInitialQLast", isGen);
     updateMELAClusters_LepZH("LepZHLast", isGen);
     updateMELAClusters_LepWH("LepWHLast", isGen);
-    updateMELAClusters_J2JECJER("J2JECNominalLast", isGen); updateMELAClusters_J2JECJER("J2JECUpLast", isGen); updateMELAClusters_J2JECJER("J2JECDnLast", isGen);
-    updateMELAClusters_J1JECJER("J1JECNominalLast", isGen); updateMELAClusters_J1JECJER("J1JECUpLast", isGen); updateMELAClusters_J1JECJER("J1JECDnLast", isGen);
+    updateMELAClusters_J2JECJER("J2JERUpLast", isGen);
+    updateMELAClusters_J2JECJER("J2JERDnLast", isGen);
+    updateMELAClusters_J2JECJER("J2JECUpLast", isGen);
+    updateMELAClusters_J2JECJER("J2JECDnLast", isGen);
+    updateMELAClusters_J2JECJER("J2JECNominalLast", isGen);
+    updateMELAClusters_J1JECJER("J1JERUpLast", isGen);
+    updateMELAClusters_J1JECJER("J1JERDnLast", isGen);
+    updateMELAClusters_J1JECJER("J1JECUpLast", isGen);
+    updateMELAClusters_J1JECJER("J1JECDnLast", isGen);
+    updateMELAClusters_J1JECJER("J1JECNominalLast", isGen);
     updateMELAClusters_Common("CommonLast", isGen);
   }
   void GMECBlock::computeMELABranches(){
@@ -348,43 +364,35 @@ thelist.clear();
   }
   // Common ME computations for JECNominal, Up and Down variations, case where ME requires 1 jet
   void GMECBlock::updateMELAClusters_J1JECJER(const string clustertype, bool isGen){
-    constexpr int njecnum = 3;
     const int jecnumsel = -1
-      + int(clustertype=="J1JECNominal")*1
-      + int(clustertype=="J1JECUp")*2
-      + int(clustertype=="J1JECDn")*3;
+      + int(clustertype.find("J1JECNominal")!=std::string::npos)*1
+      + int(clustertype.find("J1JECDn")!=std::string::npos)*2
+      + int(clustertype.find("J1JECUp")!=std::string::npos)*3
+      + int(clustertype.find("J1JERDn")!=std::string::npos)*4
+      + int(clustertype.find("J1JERUp")!=std::string::npos)*5;
     if (jecnumsel<0) return;
 
     //cout << "Begin GMECBlock::updateMELAClusters_J1JECJER(" << clustertype << "," << isGen << ")" << endl;
 
     // First determine if any of the candidates has only one jet
-    bool doSkip=true;
     int nMelaStored = melaHandle->getNCandidates();
-    bool setJECcand = (nMelaStored == njecnum);
-    if (!(setJECcand || nMelaStored==0)) return;
-
-    for (int jecnum=0; jecnum<njecnum; jecnum++){
-      if (setJECcand) melaHandle->setCurrentCandidateFromIndex(jecnum);
-      else if (jecnum>0) break;
-
+    bool hasEnoughCandidates = (nMelaStored > jecnumsel);
+    if (hasEnoughCandidates){
+      melaHandle->setCurrentCandidateFromIndex(jecnumsel);
       MELACandidate* melaCand = melaHandle->getCurrentCandidate();
-      if (!melaCand) continue;
+      if (!melaCand) return;
 
       unsigned int nGoodJets=melaCand->getNAssociatedJets();
-      doSkip = doSkip && (nGoodJets!=1);
+      if (nGoodJets!=1) return;
     }
-    if (doSkip) return; // If none of the candidates have exactly 1 jet, skip the computations
+    else{
+      //MELAerr << "GMECBlock::updateMELAClusters_J1JECJER: There are only " << nMelaStored << " candidates while the function expected >" << jecnumsel << endl;
+      return;
+    }
 
     std::vector<MELACluster*>& me_clusters = (isGen ? lheme_clusters : recome_clusters);
-
-    for (int jecnum=0; jecnum<njecnum; jecnum++){
-      if (jecnum!=jecnumsel) continue;
-
-      if (setJECcand) melaHandle->setCurrentCandidateFromIndex(jecnum);
-      else if (jecnum>0) break;
-
+    {
       MELACandidate* melaCand = melaHandle->getCurrentCandidate();
-      if (!melaCand) continue;
 
       const unsigned int nGoodJets=std::min(1, melaCand->getNAssociatedJets());
       for (unsigned int firstjet = 0; firstjet < nGoodJets; firstjet++){ // Loop over first jet
@@ -401,37 +409,42 @@ thelist.clear();
         } // End loop over clusters
 
       } // End loop over first jet
-        // Turn associated jets back on
+      // Turn associated jets back on
       for (unsigned int disableJet=0; disableJet<nGoodJets; disableJet++) melaCand->getAssociatedJet(disableJet)->setSelected(true); // Turn all jets back on
-    } // End jecnum loop
+    }
 
-      //cout << "End GMECBlock::updateMELAClusters_J1JECJER(" << clustertype << "," << isGen << ")" << endl;
+    //cout << "End GMECBlock::updateMELAClusters_J1JECJER(" << clustertype << "," << isGen << ")" << endl;
   }
   // Common ME computations for JECNominal, Up and Down variations, case where ME requires 2 jets
   void GMECBlock::updateMELAClusters_J2JECJER(const string clustertype, bool isGen){
-    constexpr int njecnum = 3;
     const int jecnumsel = -1
-      + int(clustertype=="J2JECNominal")*1
-      + int(clustertype=="J2JECUp")*2
-      + int(clustertype=="J2JECDn")*3;
+      + int(clustertype.find("J2JECNominal")!=std::string::npos)*1
+      + int(clustertype.find("J2JECDn")!=std::string::npos)*2
+      + int(clustertype.find("J2JECUp")!=std::string::npos)*3
+      + int(clustertype.find("J2JERDn")!=std::string::npos)*4
+      + int(clustertype.find("J2JERUp")!=std::string::npos)*5;
     if (jecnumsel<0) return;
 
     //cout << "Begin GMECBlock::updateMELAClusters_J2JECJER(" << clustertype << "," << isGen << ")" << endl;
 
     int nMelaStored = melaHandle->getNCandidates();
-    bool setJECcand = (nMelaStored == njecnum);
-    if (!(setJECcand || nMelaStored==0)) return;
+    bool hasEnoughCandidates = (nMelaStored > jecnumsel);
+    if (hasEnoughCandidates){
+      melaHandle->setCurrentCandidateFromIndex(jecnumsel);
+      MELACandidate* melaCand = melaHandle->getCurrentCandidate();
+      if (!melaCand) return;
+
+      unsigned int nGoodJets=melaCand->getNAssociatedJets();
+      if (nGoodJets<2) return;
+    }
+    else{
+      //MELAerr << "GMECBlock::updateMELAClusters_J2JECJER: There are only " << nMelaStored << " candidates while the function expected >" << jecnumsel << endl;
+      return;
+    }
 
     std::vector<MELACluster*>& me_clusters = (isGen ? lheme_clusters : recome_clusters);
-
-    for (int jecnum=0; jecnum<njecnum; jecnum++){
-      if (jecnum!=jecnumsel) continue;
-
-      if (setJECcand) melaHandle->setCurrentCandidateFromIndex(jecnum);
-      else if (jecnum>0) break;
-
+    {
       MELACandidate* melaCand = melaHandle->getCurrentCandidate();
-      if (!melaCand) continue;
 
       const unsigned int nGoodJets=melaCand->getNAssociatedJets();
       for (unsigned int firstjet = 0; firstjet < nGoodJets; firstjet++){ // Loop over first jet
@@ -458,12 +471,12 @@ thelist.clear();
 
         } // End loop over second jet
       } // End loop over first jet
-        // Turn associated jets/tops back on
+      // Turn associated jets/tops back on
       for (unsigned int disableJet=0; disableJet<nGoodJets; disableJet++) melaCand->getAssociatedJet(disableJet)->setSelected(true); // Turn all jets back on
       for (MELATopCandidate_t* einTop:melaCand->getAssociatedTops()) einTop->setSelected(true); // Turn all tops back on
-    } // End jecnum loop
+    }
 
-      //cout << "End GMECBlock::updateMELAClusters_J2JECJER(" << clustertype << "," << isGen << ")" << endl;
+    //cout << "End GMECBlock::updateMELAClusters_J2JECJER(" << clustertype << "," << isGen << ")" << endl;
   }
   // Common ME computations for leptonic WH: Loops over possible fake neutrinos
   void GMECBlock::updateMELAClusters_LepWH(const string clustertype, bool isGen){

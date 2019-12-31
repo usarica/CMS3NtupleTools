@@ -19,6 +19,8 @@
 #include "AK8JetSelectionHelpers.h"
 #include "BtagHelpers.h"
 
+#include "DiscriminantClasses.h"
+
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
