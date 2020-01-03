@@ -29,7 +29,7 @@ src/CMS3 \
 --exclude=lib/${SCRAM_ARCH}/* \
 --exclude=src/ZZMatrixElement/MELA/test/reference \
 --exclude=src/CommonLHETools/LHEHandler/test/*.root \
---exclude=src/CMS3/AnalysisTree/test/output* \
+--exclude=src/CMS3/AnalysisTree \
 --exclude=src/CMS3/NtupleMaker/test/output* \
 --exclude=src/CMS3/NtupleMaker/test/manual* \
 --exclude=src/CMS3/NtupleMaker/test/Pdfdata \
