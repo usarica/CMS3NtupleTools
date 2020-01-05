@@ -33,6 +33,8 @@ namespace SampleHelpers{
   void setDataPeriod(TString s);
   void setInputDirectory(TString s);
 
+  TString getDataPeriodFromRunNumber(unsigned int run);
+  bool isHEM2018Affected(unsigned int run);
   std::vector<TString> getValidDataPeriods();
   bool testDataPeriodIsLikeData();
   float getIntegratedLuminosity(TString const& period);
@@ -42,7 +44,7 @@ namespace SampleHelpers{
   bool checkSampleIs80X(TString strid);
   bool checkSampleIsFastSim(TString strid);
 
-  TString getRandomDataPeriod(unsigned long long iseed);
+  TString getRandomDataPeriod(unsigned long long iseed, float* rndnum=nullptr);
 
 }
 

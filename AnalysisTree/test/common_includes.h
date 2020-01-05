@@ -4,6 +4,7 @@
 
 #include "SimEventHandler.h"
 #include "GenInfoHandler.h"
+#include "VertexHandler.h"
 #include "MuonHandler.h"
 #include "ElectronHandler.h"
 #include "PhotonHandler.h"

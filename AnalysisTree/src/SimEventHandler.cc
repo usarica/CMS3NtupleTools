@@ -29,7 +29,9 @@ SIMEVENT_PUVARIABLES
 
 
 SimEventHandler::SimEventHandler() :
-  IvyBase()
+  IvyBase(),
+  hasHEM2018Issue(false),
+  pileupWeight(-1)
 {
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
@@ -47,6 +49,7 @@ SimEventHandler::~SimEventHandler(){
 void SimEventHandler::clear(){
   product_rnds.clear();
   theChosenDataPeriod = "";
+  hasHEM2018Issue = false;
   pileupWeight = -1;
 }
 
@@ -182,7 +185,29 @@ bool SimEventHandler::constructRandomNumbers(){
 
   unsigned long long const rndDataPeriod = static_cast<unsigned long long>(std::abs(genmet_met*1000.f)) + (EventNumber % 1000000);
   product_rnds[kDataPeriod] = rndDataPeriod;
-  theChosenDataPeriod = SampleHelpers::getRandomDataPeriod(rndDataPeriod);
+  float rnd_era = -1;
+  theChosenDataPeriod = SampleHelpers::getRandomDataPeriod(rndDataPeriod, &rnd_era);
+  if (theChosenDataPeriod == "2018C" || theChosenDataPeriod == "2018D") hasHEM2018Issue = true;
+  else if (theChosenDataPeriod == "2018B"){
+    float lumi_total = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+    float lumi_nonHEM, rnd_thr;
+    if (rnd_era<0.f){
+      // This case happens if the original data period is already 2018B.
+      lumi_nonHEM = SampleHelpers::getIntegratedLuminosity("2018_HEMaffected") - SampleHelpers::getIntegratedLuminosity("2018C") - SampleHelpers::getIntegratedLuminosity("2018D");
+      TRandom3 rand;
+      rand.SetSeed(rndDataPeriod);
+      rnd_era = rand.Uniform();
+    }
+    else{
+      // This case happens if the original data period is 2018.
+      lumi_nonHEM = SampleHelpers::getIntegratedLuminosity("2018_HEMaffected");
+    }
+    assert(lumi_total>lumi_nonHEM);
+    lumi_nonHEM = lumi_total - lumi_nonHEM;
+    rnd_thr = lumi_nonHEM/lumi_total;
+    hasHEM2018Issue = (rnd_era>rnd_thr);
+  }
+  else hasHEM2018Issue = false;
 
   unsigned long long const rndGenMETSmear = static_cast<unsigned long long>(std::abs(std::sin(genmet_metPhi))*10000.f);
   product_rnds[kGenMETSmear] = rndGenMETSmear;

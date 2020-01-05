@@ -721,6 +721,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       }
 
       eventFilter.constructFilters();
+      if (!eventFilter.passMETFilters()) continue;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();

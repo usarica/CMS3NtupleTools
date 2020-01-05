@@ -24,6 +24,7 @@ protected:
 
   std::unordered_map<EventRandomNumberType, unsigned long long> product_rnds;
   TString theChosenDataPeriod;
+  bool hasHEM2018Issue;
   float pileupWeight;
 
   void setupPUHistograms();
@@ -43,6 +44,7 @@ public:
   void bookBranches(BaseTree* intree);
 
   TString const& getChosenDataPeriod() const;
+  bool const& getHasHEM2018Issue() const{ return hasHEM2018Issue; }
   float const& getPileUpWeight() const{ return pileupWeight; }
 
   unsigned long long const& getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const;

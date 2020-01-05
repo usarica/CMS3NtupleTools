@@ -63,7 +63,30 @@ std::vector<TString> SampleHelpers::getValidDataPeriods(){
   }
   return res;
 }
-
+TString SampleHelpers::getDataPeriodFromRunNumber(unsigned int run){
+  if (run>=272007 && run<=275376) return "2016B";
+  else if (run>=275657 && run<=276283) return "2016C";
+  else if (run>=276315 && run<=276811) return "2016D";
+  else if (run>=276831 && run<=277420) return "2016E";
+  else if (run>=277772 && run<=278808) return "2016F";
+  else if (run>=278820 && run<=280385) return "2016G";
+  else if (run>=280919 && run<=284044) return "2016H";
+  else if (run>=297046 && run<=299329) return "2017B";
+  else if (run>=299368 && run<=302029) return "2017C";
+  else if (run>=302030 && run<=303434) return "2017D";
+  else if (run>=303824 && run<=304797) return "2017E";
+  else if (run>=305040 && run<=306462) return "2017F";
+  else if (run>=315252 && run<=316995) return "2018A";
+  else if (run>=317080 && run<=319310) return "2018B";
+  else if (run>=319337 && run<=320065) return "2018C";
+  else if (run>=320673 && run<=325175) return "2018D";
+  else{
+    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range!" << endl;
+    assert(0);
+    return -1;
+  }
+}
+bool SampleHelpers::isHEM2018Affected(unsigned int run){ return (run>=319077); }
 float SampleHelpers::getIntegratedLuminosity(TString const& period){
   // To install brilcalc, do
   // export PATH=$HOME/.local/bin:/cvmfs/cms-bril.cern.ch/brilconda/bin:$PATH
@@ -120,7 +143,8 @@ bool SampleHelpers::checkSampleIsData(TString strid){
 bool SampleHelpers::checkSampleIs80X(TString strid){ return strid.Contains("Summer16MiniAODv2"); }
 bool SampleHelpers::checkSampleIsFastSim(TString strid){ return false; }
 
-TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed){
+TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed, float* rndnum){
+  if (rndnum) *rndnum = -1;
   std::vector<TString> const valid_periods = getValidDataPeriods();
   if (std::find(valid_periods.cbegin(), valid_periods.cend(), theDataPeriod)==valid_periods.cend()){
     std::vector<float> lumilist; lumilist.reserve(valid_periods.size());
@@ -131,6 +155,7 @@ TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed){
     rand.SetSeed(iseed);
     int i_era = -1;
     float era_x = rand.Uniform();
+    if (rndnum) *rndnum = era_x;
     for (auto const& lumi_era:lumilist){
       i_era++;
       if (era_x<=lumi_era) break;

@@ -1,6 +1,8 @@
 #ifndef SYSTEMATICVARIATIONS_H
 #define SYSTEMATICVARIATIONS_H
 
+#include <string>
+
 
 namespace SystematicsHelpers{
 
@@ -36,6 +38,9 @@ namespace SystematicsHelpers{
 
     sUncorrected // For checks
   };
+
+  std::string getSystCoreName(SystematicsHelpers::SystematicVariationTypes const& type);
+  std::string getSystName(SystematicsHelpers::SystematicVariationTypes const& type);
 
 }
 

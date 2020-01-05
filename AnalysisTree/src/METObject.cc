@@ -58,6 +58,22 @@ void METObject::getPtPhi(float const*& pt, float const*& phi) const{
     pt = &(extras.met_JECUp);
     phi = &(extras.metPhi_JECUp);
     break;
+  case eJERDn:
+    pt = &(extras.met_JERDn);
+    phi = &(extras.metPhi_JERDn);
+    break;
+  case eJERUp:
+    pt = &(extras.met_JERUp);
+    phi = &(extras.metPhi_JERUp);
+    break;
+  case ePUDn:
+    pt = &(extras.met_PUDn);
+    phi = &(extras.metPhi_PUDn);
+    break;
+  case ePUUp:
+    pt = &(extras.met_PUUp);
+    phi = &(extras.metPhi_PUUp);
+    break;
   case eMETDn:
     pt = &(extras.met_METDn);
     phi = &(extras.metPhi_METDn);

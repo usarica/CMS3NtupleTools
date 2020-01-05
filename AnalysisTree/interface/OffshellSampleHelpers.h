@@ -13,6 +13,7 @@ namespace SampleHelpers{
 
   void configure(TString period, TString stag); // Run this before doing anything else!
 
+  std::string getDatasetDirectoryCoreName(std::string sname);
   TString getDatasetDirectoryName(std::string sname);
   TString getDatasetDirectoryName(TString sname);
 

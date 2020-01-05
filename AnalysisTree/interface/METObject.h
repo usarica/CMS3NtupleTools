@@ -16,13 +16,22 @@ MET_VARIABLE(float, metSignificance, 0)
 
 #define MET_EXTRA_PT_VARIABLES \
 MET_VARIABLE(float, met_original, 0) \
+MET_VARIABLE(float, met_JERUp, 0) \
+MET_VARIABLE(float, met_JERDn, 0) \
+MET_VARIABLE(float, met_PUUp, 0) \
+MET_VARIABLE(float, met_PUDn, 0) \
 MET_VARIABLE(float, met_METUp, 0) \
-MET_VARIABLE(float, met_METDn, 0)
+MET_VARIABLE(float, met_METDn, 0) \
 
 #define MET_EXTRA_PHI_VARIABLES \
 MET_VARIABLE(float, metPhi_original, 0) \
+MET_VARIABLE(float, metPhi_JERUp, 0) \
+MET_VARIABLE(float, metPhi_JERDn, 0) \
+MET_VARIABLE(float, metPhi_PUUp, 0) \
+MET_VARIABLE(float, metPhi_PUDn, 0) \
 MET_VARIABLE(float, metPhi_METUp, 0) \
 MET_VARIABLE(float, metPhi_METDn, 0)
+
 
 #define MET_EXTRA_VARIABLES \
 MET_EXTRA_PT_VARIABLES \
