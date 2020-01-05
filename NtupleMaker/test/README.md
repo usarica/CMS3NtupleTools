@@ -31,11 +31,24 @@ resubmitCMS3NtupleProduction.sh output/[YYMMDD]
 ```
 
 
-Sometimes, you may want to put the submission scripts at a different location. In this case, you should do
+In order to check the status of the jobs, do
 
+```
+checkCMS3NtupleProduction.sh output/[YYMMDD]
+```
+
+If the jobs fail consistently and they process multiple input files, you can split them into invidual input files by doing
+
+```
+splitCMS3NtupleProduction.sh output/[YYMMDD]
+```
+
+
+Sometimes, you may want to put the submission scripts at a different location. In this case, you should do
 
 ```
 submitCMS3NtupleProduction.sh infile=samples_Data_2018.txt outdir=[your directory] date=[your subdirectory]
 ```
 
 This would create [your directory]/[your subdirectory] to put the scripts there.
+
