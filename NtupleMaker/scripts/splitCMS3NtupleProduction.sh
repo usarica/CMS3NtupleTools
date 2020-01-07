@@ -1,6 +1,10 @@
 #!/bin/bash
 
 chkdir=$1
+let nfilesperjob=1
+if [[ "$2" != "" ]];then
+  let nfilesperjob=$2
+fi
 
 for f in $(find $chkdir -name condor.sub); do
   d=${f//\/condor.sub}
@@ -52,12 +56,33 @@ for f in $(find $chkdir -name condor.sub); do
   cd - &> /dev/null
 
   infilelist=($(echo ${INFILENAMES//,/ }))
-  if [[ ${#infilelist[@]} -eq 1 ]];then
+  if [[ ${#infilelist[@]} -le $nfilesperjob ]];then
     continue
   fi
 
+  declare -a groupedinfiles
+  groupedinfiles=()
   let ctr=0
+  tmpinfile=""
   for infile in "${infilelist[@]}";do
+    if [[ $ctr -eq 0 ]];then
+      tmpinfile="${infile}"
+    else
+      tmpinfile="${tmpinfile},${infile}"
+    fi
+
+    let ctr=$ctr+1
+
+    if [[ $ctr -eq $nfilesperjob ]] || [[ "$infile" == "${infilelist[${#infilelist[@]}-1]}" ]];then
+      groupedinfiles+=( "$tmpinfile" )
+      tmpinfile=""
+      let ctr=0
+    fi
+  done
+  
+
+  let ctr=0
+  for infile in "${groupedinfiles[@]}";do
     newd="${d}_recovery${ctr}"
     newinitialdir="${initialdir}_recovery${ctr}"
     newoutfile="${OUTFILENAME/.root/_recovery${ctr}.root}"
