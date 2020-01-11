@@ -5,6 +5,7 @@
 #include "IvyBase.h"
 #include "GenInfoObject.h"
 #include "LHEParticleObject.h"
+#include "GenParticleObject.h"
 #include "SystematicVariations.h"
 
 
@@ -20,11 +21,13 @@ protected:
 
   GenInfoObject* genInfo;
   std::vector<LHEParticleObject*> lheparticles;
+  std::vector<GenParticleObject*> genparticles;
 
   bool constructCoreGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructLHEParticles();
+  bool constructGenParticles();
 
-  void clear(){ delete genInfo; genInfo=nullptr; for (auto*& part:lheparticles) delete part; lheparticles.clear(); }
+  void clear();
 
 public:
   static const std::string colName_lheparticles;
@@ -37,6 +40,7 @@ public:
 
   GenInfoObject* const& getGenInfo() const{ return genInfo; }
   std::vector<LHEParticleObject*> const& getLHEParticles() const{ return lheparticles; }
+  std::vector<GenParticleObject*> const& getGenParticles() const{ return genparticles; }
 
   void setAcquireCoreGenInfo(bool flag){ acquireCoreGenInfo=flag; }
   void setAcquireLHEMEWeights(bool flag){ acquireLHEMEWeights=flag; }

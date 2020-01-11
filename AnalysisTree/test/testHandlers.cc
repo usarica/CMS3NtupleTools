@@ -7,20 +7,23 @@
 
 
 void testHandlers(int procsel){
-  TString cinput = "/home/users/usarica/work/Width_AC_Run2/Samples/191212/";
-
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::setDataPeriod("2018");
-  SampleHelpers::setInputDirectory(cinput);
+  SampleHelpers::configure("2018", "191212");
+  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
 
-  if (procsel == 0) cinput += "DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root";
-  else if (procsel == 1) cinput += "DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root";
-  else if (procsel == 2) cinput += "TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root";
-  else if (procsel == 3) cinput += "ZZTo2L2Nu_TuneCP5_13TeV_powheg_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/allevents.root";
-  else if (procsel == 4) cinput += "WWTo2L2Nu_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/allevents.root";
-  else if (procsel == 5) cinput += "GluGluHToZZTo2L2Nu_M1000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/allevents.root";
+  TString strSample;
+  if (procsel == 0) strSample = "DY_2l_M_10to50";
+  else if (procsel == 1) strSample = "DY_2l_M_50";
+  else if (procsel == 2) strSample = "TT_2l2nu";
+  else if (procsel == 3) strSample = "qqZZ_2l2nu";
+  else if (procsel == 4) strSample = "qqWW_2l2nu";
+  else if (procsel == 5) strSample = "GGH_M1000_POWHEG";
 
-  BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
+  std::vector<TString> sampledirs;
+  SampleHelpers::constructSamplesList(strSample, theGlobalSyst, sampledirs);
+
+  BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
+  sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
 
   // Get cross section
   sample_tree.bookBranch<float>("xsec", 0.f);
@@ -110,6 +113,19 @@ void testHandlers(int procsel){
 
     float wgt = genInfo->getGenWeight(true);
     MELAout << "Sample gen. weight: " << wgt << endl;
+
+    auto const& lheparticles = genInfoHandler.getLHEParticles();
+    MELAout << "LHE particles:" << endl;
+    for (auto const& part:lheparticles) MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
+
+    auto const& genparticles = genInfoHandler.getGenParticles();
+    MELAout << "Gen. particles:" << endl;
+    for (auto const& part:genparticles){
+      MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", status = " << part->status() << endl;
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) MELAout << "\t\t- " << #NAME << " = " << part->extras.NAME << endl;
+      GENPARTICLE_EXTRA_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+    }
 
     muonHandler.constructMuons(theGlobalSyst);
     auto const& muons = muonHandler.getProducts();

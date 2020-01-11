@@ -21,12 +21,21 @@ GenInfoHandler::GenInfoHandler() :
   genInfo(nullptr)
 {}
 
+void GenInfoHandler::clear(){
+  delete genInfo; genInfo=nullptr;
+
+  for (auto*& part:lheparticles) delete part;
+  lheparticles.clear();
+
+  for (auto*& part:genparticles) delete part;
+  genparticles.clear();
+}
 
 bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
   clear();
   if (!currentTree) return false;
 
-  bool res = constructCoreGenInfo(syst) && constructLHEParticles();
+  bool res = constructCoreGenInfo(syst) && constructLHEParticles() && constructGenParticles();
   return res;
 }
 
@@ -142,6 +151,87 @@ bool GenInfoHandler::constructLHEParticles(){
 
   return true;
 }
+bool GenInfoHandler::constructGenParticles(){
+  if (!acquireGenParticles) return true;
+
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_genparticles_##NAME, itEnd_genparticles_##NAME;
+  GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(GenInfoHandler::colName_genparticles + "_" + #NAME, &itBegin_genparticles_##NAME, &itEnd_genparticles_##NAME);
+  GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructGenParticles: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenParticles: All variables are set up!" << endl;
+
+  size_t ngenparticles = (itEnd_genparticles_id - itBegin_genparticles_id);
+  genparticles.reserve(ngenparticles);
+  std::vector<std::pair<int, int>> mother_index_pairs; mother_index_pairs.reserve(ngenparticles);
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) auto it_genparticles_##NAME = itBegin_genparticles_##NAME;
+  GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+  {
+    size_t ip=0;
+    while (it_genparticles_id != itEnd_genparticles_id){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructGenParticles: Attempting LHE particle " << ip << "..." << endl;
+
+      ParticleObject::LorentzVector_t momentum;
+      momentum = ParticleObject::PolarLorentzVector_t(*it_genparticles_pt, *it_genparticles_eta, *it_genparticles_phi, *it_genparticles_mass); // Yes you have to do this on a separate line because CMSSW...
+      genparticles.push_back(new GenParticleObject(*it_genparticles_id, *it_genparticles_status, momentum));
+      mother_index_pairs.emplace_back(*it_genparticles_mom0_index, *it_genparticles_mom1_index);
+      GenParticleObject*& obj = genparticles.back();
+
+      // Set extras
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_genparticles_##NAME;
+      GENPARTICLE_EXTRA_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) it_genparticles_##NAME++;
+      GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+    }
+  }
+
+  {
+    assert(mother_index_pairs.size() == genparticles.size());
+
+    auto it_genparticles = genparticles.begin();
+    auto it_mother_index_pairs = mother_index_pairs.begin();
+    while (it_genparticles != genparticles.end()){
+      auto*& part = *it_genparticles;
+
+      int const& imom = it_mother_index_pairs->first;
+      if (imom>=0){
+        assert((unsigned int) imom<ngenparticles);
+        auto*& mother = genparticles.at(imom);
+        part->addMother(mother);
+        mother->addDaughter(part);
+      }
+
+      int const& jmom = it_mother_index_pairs->second;
+      if (jmom>=0){
+        assert((unsigned int) jmom<ngenparticles);
+        auto*& mother = genparticles.at(jmom);
+        part->addMother(mother);
+        mother->addDaughter(part);
+      }
+
+      it_genparticles++;
+      it_mother_index_pairs++;
+    }
+  }
+
+  return true;
+}
 
 void GenInfoHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
@@ -176,4 +266,13 @@ void GenInfoHandler::bookBranches(BaseTree* tree){
 #define LHEPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_lheparticles+ "_" + #NAME); this->defineConsumedSloppy(colName_lheparticles+ "_" + #NAME);
   LHEPARTICLE_VARIABLES;
 #undef LHEPARTICLE_VARIABLE
+
+  if (acquireGenParticles){
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(colName_genparticles+ "_" + #NAME, nullptr);
+    GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
+  }
+#define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_genparticles+ "_" + #NAME); this->defineConsumedSloppy(colName_genparticles+ "_" + #NAME);
+  GENPARTICLE_VARIABLES;
+#undef GENPARTICLE_VARIABLE
 }
