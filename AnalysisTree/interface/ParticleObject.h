@@ -33,6 +33,7 @@ public:
   virtual ~ParticleObject(){}
 
   // Swap and assignment operators are not virtual; they bring more complication than necessary, so they are implemented in the derived classes.
+  void swap(ParticleObject& other);
 
   void setPdgId(int const& id_){ id=id_; }
   void setP4(LorentzVector_t const& momentum_){ momentum=momentum_; }

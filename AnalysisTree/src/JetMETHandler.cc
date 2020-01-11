@@ -69,8 +69,6 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
 }
 
 bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
-  if (!currentTree) return false;
-
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak4jets_##NAME, itEnd_ak4jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
 #undef AK4JET_VARIABLE
@@ -130,8 +128,6 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
   return true;
 }
 bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
-  if (!currentTree) return false;
-
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak8jets_##NAME, itEnd_ak8jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
@@ -192,8 +188,6 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
   return true;
 }
 bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
-  if (!currentTree) return false;
-
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfmet_##NAME = DEFVAL;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE

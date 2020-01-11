@@ -45,9 +45,7 @@ MuonObject::MuonObject(const MuonObject& other) :
   currentSystScale(other.currentSystScale)
 {}
 void MuonObject::swap(MuonObject& other){
-  std::swap(id, other.id);
-  std::swap(selectionBits, other.selectionBits);
-  std::swap(momentum, other.momentum);
+  ParticleObject::swap(other);
   extras.swap(other.extras);
   std::swap(currentSystScale, other.currentSystScale);
 }

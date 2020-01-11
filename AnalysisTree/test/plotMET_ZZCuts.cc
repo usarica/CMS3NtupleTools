@@ -248,7 +248,7 @@ TString CutSpecs::getCutValLabelString(float cutval){
   float decimals = std::abs(cutval - float((int) cutval));
   if (decimals == 0.f) return Form("%.0f", cutval);
   int base10exponent = std::ceil(std::abs(std::log10(decimals)));
-  TString strprintf = Form("%s%i%s", "$.", base10exponent, "f");
+  TString strprintf = Form("%s%i%s", "%.", base10exponent, "f");
   return Form(strprintf.Data(), cutval);
 }
 TString CutSpecs::getCutValTitleString(float cutval){

@@ -15,10 +15,6 @@ GenInfoVariables::GenInfoVariables(GenInfoVariables const& other){
 #undef GENINFO_VARIABLE
 
   LHE_ME_weights = other.LHE_ME_weights;
-
-#define GENINFO_VECTOR_VARIABLE(TYPE, NAME) this->NAME=other.NAME;
-  GENINFO_VECTOR_VARIABLES;
-#undef GENINFO_VECTOR_VARIABLE
 }
 void GenInfoVariables::swap(GenInfoVariables& other){
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) std::swap(this->NAME, other.NAME);
@@ -26,10 +22,6 @@ void GenInfoVariables::swap(GenInfoVariables& other){
 #undef GENINFO_VARIABLE
 
   std::swap(LHE_ME_weights, other.LHE_ME_weights);
-
-#define GENINFO_VECTOR_VARIABLE(TYPE, NAME) std::swap(this->NAME, other.NAME);
-  GENINFO_VECTOR_VARIABLES;
-#undef GENINFO_VECTOR_VARIABLE
 }
 GenInfoVariables& GenInfoVariables::operator=(const GenInfoVariables& other){
   GenInfoVariables tmp(other);

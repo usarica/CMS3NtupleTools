@@ -42,9 +42,7 @@ DileptonObject::DileptonObject(const DileptonObject& other) :
   extras(other.extras)
 {}
 void DileptonObject::swap(DileptonObject& other){
-  std::swap(id, other.id);
-  std::swap(selectionBits, other.selectionBits);
-  std::swap(momentum, other.momentum);
+  ParticleObject::swap(other);
   extras.swap(other.extras);
 }
 DileptonObject& DileptonObject::operator=(const DileptonObject& other){

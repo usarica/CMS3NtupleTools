@@ -103,6 +103,10 @@ void createGammaTrees(TString strSampleSet, TString period, SystematicsHelpers::
   JetMETHandler jetHandler;
   EventFilterHandler eventFilter;
 
+  genInfoHandler.setAcquireLHEMEWeights(false);
+  genInfoHandler.setAcquireLHEParticles(false);
+  genInfoHandler.setAcquireGenParticles(false);
+
   std::vector<TString> sampleList;
   addDataTreeList(sampleList);
   addMCTreeList(sampleList);
@@ -187,6 +191,8 @@ void createGammaTrees(TString strSampleSet, TString period, SystematicsHelpers::
           sum_wgts[syst] += wgt;
         }
       }
+      MELAout << "Sum of weights for each systenmatic:" << endl;
+      for (auto const& syst:allowedSysts) MELAout << "\t- " << SystematicsHelpers::getSystName(syst) << ": " << sum_wgts[syst] << endl;
     }
 
     vertexHandler.bookBranches(&sample_tree);

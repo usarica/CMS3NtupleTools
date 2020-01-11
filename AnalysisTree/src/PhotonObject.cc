@@ -40,9 +40,7 @@ PhotonObject::PhotonObject(const PhotonObject& other) :
   currentSystScale(other.currentSystScale)
 {}
 void PhotonObject::swap(PhotonObject& other){
-  std::swap(id, other.id);
-  std::swap(selectionBits, other.selectionBits);
-  std::swap(momentum, other.momentum);
+  ParticleObject::swap(other);
   extras.swap(other.extras);
   std::swap(currentSystScale, other.currentSystScale);
 }

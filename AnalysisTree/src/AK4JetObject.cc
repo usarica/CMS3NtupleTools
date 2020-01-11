@@ -47,9 +47,7 @@ AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   currentSystScale(other.currentSystScale)
 {}
 void AK4JetObject::swap(AK4JetObject& other){
-  std::swap(id, other.id);
-  std::swap(selectionBits, other.selectionBits);
-  std::swap(momentum, other.momentum);
+  ParticleObject::swap(other);
   extras.swap(other.extras);
   std::swap(currentSystScale, other.currentSystScale);
 }

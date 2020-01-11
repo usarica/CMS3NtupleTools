@@ -30,6 +30,14 @@ ParticleObject::ParticleObject(const ParticleObject& other) :
   momentum(other.momentum)
 {}
 
+void ParticleObject::swap(ParticleObject& other){
+  std::swap(id, other.id);
+  std::swap(selectionBits, other.selectionBits);
+  std::swap(momentum, other.momentum);
+  std::swap(mothers, other.mothers);
+  std::swap(daughters, other.daughters);
+}
+
 void ParticleObject::setSelectionBit(unsigned int ibit){ HelperFunctions::set_bit(this->selectionBits, ibit); }
 bool ParticleObject::testSelection(unsigned int ibit) const{ return HelperFunctions::test_bit(this->selectionBits, ibit); }
 
