@@ -19,8 +19,21 @@ namespace SampleHelpers{
 
 void SampleHelpers::configure(TString period, TString stag){
   setDataPeriod(period);
-  setInputDirectory("/home/users/usarica/work/Width_AC_Run2/Samples");
+  TString strInputDir = "/home/users/usarica/work/Width_AC_Run2/Samples";
+  if (stag.Contains(":")){
+    std::vector<TString> splitstr; char delimiter=':';
+    HelperFunctions::splitOptionRecursive(stag, splitstr, delimiter);
+    assert(splitstr.size()<=3);
+    stag = splitstr.back();
+    if (splitstr.size()>=2){ // Order goes as "[hadoop/nfs-7/home]:[user (optional)]:[tag]
+      if (splitstr.front() == "hadoop") strInputDir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Ntuples";
+
+      if (splitstr.size()==3) HelperFunctions::replaceString<TString, const TString>(strInputDir, "usarica", splitstr.at(1));
+    }
+  }
+
   theSamplesTag=stag;
+  setInputDirectory(strInputDir);
 
   runConfigure=true;
 
