@@ -56,30 +56,58 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "EGamma_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018B-17Sep2018-v1/MINIAOD" });
     if (sname == "EGamma_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018C-17Sep2018-v1/MINIAOD" });
     if (sname == "EGamma_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/EGamma/Run2018D-22Jan2019-v2/MINIAOD" });
+    if (sname == "MET"){
+      constructSamplesList("MET_2018A", syst, samples);
+      constructSamplesList("MET_2018B", syst, samples);
+      constructSamplesList("MET_2018C", syst, samples);
+      constructSamplesList("MET_2018D", syst, samples);
+    }
+    if (sname == "MET_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018A-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "MET_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2018D-PromptReco-v2/MINIAOD" });
+    if (sname == "JetHT"){
+      constructSamplesList("JetHT_2018A", syst, samples);
+      constructSamplesList("JetHT_2018B", syst, samples);
+      constructSamplesList("JetHT_2018C", syst, samples);
+      constructSamplesList("JetHT_2018D", syst, samples);
+    }
+    if (sname == "JetHT_2018A") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018A-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018B-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018C-17Sep2018-v1/MINIAOD" });
+    if (sname == "JetHT_2018D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2018D-PromptReco-v2/MINIAOD" });
     // Group by runs
     if (sname == "Run2018A"){
-      constructSamplesList("DoubleMuon_2018A", syst, samples);
-      constructSamplesList("MuonEG_2018A", syst, samples);
       constructSamplesList("EGamma_2018A", syst, samples);
+      constructSamplesList("MuonEG_2018A", syst, samples);
+      constructSamplesList("DoubleMuon_2018A", syst, samples);
       constructSamplesList("SingleMuon_2018A", syst, samples);
+      constructSamplesList("MET_2018A", syst, samples);
+      constructSamplesList("JetHT_2018A", syst, samples);
     }
     if (sname == "Run2018B"){
-      constructSamplesList("DoubleMuon_2018B", syst, samples);
-      constructSamplesList("MuonEG_2018B", syst, samples);
       constructSamplesList("EGamma_2018B", syst, samples);
+      constructSamplesList("MuonEG_2018B", syst, samples);
+      constructSamplesList("DoubleMuon_2018B", syst, samples);
       constructSamplesList("SingleMuon_2018B", syst, samples);
+      constructSamplesList("MET_2018B", syst, samples);
+      constructSamplesList("JetHT_2018B", syst, samples);
     }
     if (sname == "Run2018C"){
-      constructSamplesList("DoubleMuon_2018C", syst, samples);
-      constructSamplesList("MuonEG_2018C", syst, samples);
       constructSamplesList("EGamma_2018C", syst, samples);
+      constructSamplesList("MuonEG_2018C", syst, samples);
+      constructSamplesList("DoubleMuon_2018C", syst, samples);
       constructSamplesList("SingleMuon_2018C", syst, samples);
+      constructSamplesList("MET_2018C", syst, samples);
+      constructSamplesList("JetHT_2018C", syst, samples);
     }
     if (sname == "Run2018D"){
-      constructSamplesList("DoubleMuon_2018D", syst, samples);
-      constructSamplesList("MuonEG_2018D", syst, samples);
       constructSamplesList("EGamma_2018D", syst, samples);
+      constructSamplesList("MuonEG_2018D", syst, samples);
+      constructSamplesList("DoubleMuon_2018D", syst, samples);
       constructSamplesList("SingleMuon_2018D", syst, samples);
+      constructSamplesList("MET_2018D", syst, samples);
+      constructSamplesList("JetHT_2018D", syst, samples);
     }
 
     // Simulation for the main signals
