@@ -52,7 +52,7 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampleList);
 
-  TString const coutput_main = "output/" + strdate + "/BtaggingEffs";
+  TString const coutput_main = "output/BtaggingEffs/" + strdate + "/" + period;
   gSystem->mkdir(coutput_main, true);
 
   MELAout << "List of samples to process: " << sampleList << endl;
@@ -308,7 +308,9 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
         if (abs(jetFlavor)==5) iflav = 0;
         else if (abs(jetFlavor)==4) iflav = 1;
 
-        h_All.at(iflav).Fill(jet->pt(), jet->eta(), wgt);
+        float jetpt_onlyjec = jet->pt() * (jet->extras.JECNominal / jet->currentSystScale);
+
+        h_All.at(iflav).Fill(jetpt_onlyjec, jet->eta(), wgt);
         for (auto const& btagwptype:btagwptypes){
           BtagHelpers::setBtagWPType(btagwptype);
 
@@ -327,7 +329,7 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
             continue;
           }
 
-          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hlist->at(iflav).Fill(jet->pt(), jet->eta(), wgt);
+          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hlist->at(iflav).Fill(jetpt_onlyjec, jet->eta(), wgt);
         }
       }
 
@@ -335,9 +337,12 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
 
     for (unsigned int iflav=0; iflav<3; iflav++){
       foutput->WriteTObject(&h_All.at(iflav));
-      h_DeepFlavor_Loose.at(iflav).Divide(&(h_All.at(iflav))); foutput->WriteTObject(&h_DeepFlavor_Loose.at(iflav));
-      h_DeepFlavor_Medium.at(iflav).Divide(&(h_All.at(iflav))); foutput->WriteTObject(&h_DeepFlavor_Medium.at(iflav));
-      h_DeepFlavor_Tight.at(iflav).Divide(&(h_All.at(iflav))); foutput->WriteTObject(&h_DeepFlavor_Tight.at(iflav));
+      //h_DeepFlavor_Loose.at(iflav).Divide(&(h_All.at(iflav)));
+      foutput->WriteTObject(&h_DeepFlavor_Loose.at(iflav));
+      //h_DeepFlavor_Medium.at(iflav).Divide(&(h_All.at(iflav)));
+      foutput->WriteTObject(&h_DeepFlavor_Medium.at(iflav));
+      //h_DeepFlavor_Tight.at(iflav).Divide(&(h_All.at(iflav)));
+      foutput->WriteTObject(&h_DeepFlavor_Tight.at(iflav));
     }
     foutput->Close();
   }

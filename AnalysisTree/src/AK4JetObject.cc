@@ -97,6 +97,9 @@ void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
     scale = extras.JECNominal * extras.JERNominal;
     break;
   }
+  // Test new pt
+  float newpt = momentum.Pt() * (scale/currentSystScale);
+  if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt() * currentSystScale;
   momentum = momentum * (scale/currentSystScale);
   currentSystScale = scale;
 }

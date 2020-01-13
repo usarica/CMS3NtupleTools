@@ -125,6 +125,21 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "GGH_M2000_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GluGluHToZZTo2L2Nu_M2000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
     if (sname == "GGH_M2500_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GluGluHToZZTo2L2Nu_M2500_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
     if (sname == "GGH_M3000_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GluGluHToZZTo2L2Nu_M3000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
+    if (sname == "GGH_POWHEG"){
+      constructSamplesList("GGH_M200_POWHEG", syst, samples);
+      constructSamplesList("GGH_M300_POWHEG", syst, samples);
+      constructSamplesList("GGH_M400_POWHEG", syst, samples);
+      constructSamplesList("GGH_M500_POWHEG", syst, samples);
+      constructSamplesList("GGH_M600_POWHEG", syst, samples);
+      constructSamplesList("GGH_M700_POWHEG", syst, samples);
+      constructSamplesList("GGH_M800_POWHEG", syst, samples);
+      constructSamplesList("GGH_M900_POWHEG", syst, samples);
+      constructSamplesList("GGH_M1000_POWHEG", syst, samples);
+      constructSamplesList("GGH_M1500_POWHEG", syst, samples);
+      constructSamplesList("GGH_M2000_POWHEG", syst, samples);
+      constructSamplesList("GGH_M2500_POWHEG", syst, samples);
+      constructSamplesList("GGH_M3000_POWHEG", syst, samples);
+    }
     // VBF POWHEG
     if (sname == "VBF_M200_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBF_HToZZTo2L2Nu_M200_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "VBF_M300_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBF_HToZZTo2L2Nu_M300_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
@@ -139,13 +154,41 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "VBF_M2000_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBF_HToZZTo2L2Nu_M2000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "VBF_M2500_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBF_HToZZTo2L2Nu_M2500_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "VBF_M3000_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBF_HToZZTo2L2Nu_M3000_13TeV_powheg2_JHUGenV7011_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "VBF_POWHEG"){
+      constructSamplesList("VBF_M200_POWHEG", syst, samples);
+      constructSamplesList("VBF_M300_POWHEG", syst, samples);
+      constructSamplesList("VBF_M400_POWHEG", syst, samples);
+      constructSamplesList("VBF_M500_POWHEG", syst, samples);
+      constructSamplesList("VBF_M600_POWHEG", syst, samples);
+      constructSamplesList("VBF_M700_POWHEG", syst, samples);
+      constructSamplesList("VBF_M800_POWHEG", syst, samples);
+      constructSamplesList("VBF_M900_POWHEG", syst, samples);
+      constructSamplesList("VBF_M1000_POWHEG", syst, samples);
+      constructSamplesList("VBF_M1500_POWHEG", syst, samples);
+      constructSamplesList("VBF_M2000_POWHEG", syst, samples);
+      constructSamplesList("VBF_M2500_POWHEG", syst, samples);
+      constructSamplesList("VBF_M3000_POWHEG", syst, samples);
+    }
 
     // Simulation for the main backgrounds
     if (sname == "DY_2l_M_10to50") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
     if (sname == "DY_2l_M_50") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "DY_2l"){
-      constructSamplesList("DY_2l_M10-50", syst, samples);
-      constructSamplesList("DY_2l_M50", syst, samples);
+      constructSamplesList("DY_2l_M_10to50", syst, samples);
+      constructSamplesList("DY_2l_M_50", syst, samples);
+    }
+    if (sname == "DY_2l_M_50_HT"){
+      HelperFunctions::appendVector<TString>(samples, std::vector<TString>{
+          "/DYJetsToLL_M-50_HT-70to100_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-100to200_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-200to400_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-400to600_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v3/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-600to800_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-800to1200_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-1200to2500_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM",
+          "/DYJetsToLL_M-50_HT-2500toInf_TuneCP5_PSweights_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM"
+        }
+      );
     }
     if (sname == "TT_2l2nu") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "ST_t-channel_top_5f") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ST_t-channel_top_5f_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
