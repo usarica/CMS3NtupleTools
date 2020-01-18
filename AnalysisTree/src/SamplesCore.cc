@@ -1,6 +1,7 @@
 #include <cassert>
 #include <string>
 #include <stdexcept>
+#include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
 #include "MELAStreamHelpers.hh"
@@ -163,4 +164,12 @@ TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed, float* rndn
     return valid_periods.at(i_era);
   }
   else return theDataPeriod;
+}
+
+bool SampleHelpers::checkRunOnCondor(){ return HostHelpers::FileExists("RUNNING_ON_CONDOR"); }
+void SampleHelpers::addToCondorTransferList(TString fname){
+  if (!checkRunOnCondor()) return;
+  ofstream olf("EXTERNAL_TRANSFER_LIST.LST", ios_base::app);
+  olf << fname.Data() << endl;
+  olf.close();
 }

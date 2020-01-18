@@ -7,7 +7,7 @@ using namespace std;
 
 
 void produceGammaJetsDataSkim(TString strSampleSet, TString period){
-  SampleHelpers::configure(period, "200101");
+  SampleHelpers::configure(period, "hadoop:200101");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
@@ -137,5 +137,7 @@ void produceGammaJetsDataSkim(TString strSampleSet, TString period){
     delete outtree;
     foutput->cd();
     foutput->Close();
+
+    SampleHelpers::addToCondorTransferList(stroutput);
   }
 }

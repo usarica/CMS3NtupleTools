@@ -7,6 +7,8 @@ using namespace std;
 
 
 void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString strdate=""){
+  gStyle->SetOptStat(0);
+
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   constexpr SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;

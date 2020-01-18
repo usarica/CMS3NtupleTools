@@ -46,6 +46,9 @@ namespace SampleHelpers{
 
   TString getRandomDataPeriod(unsigned long long iseed, float* rndnum=nullptr);
 
+  bool checkRunOnCondor();
+  void addToCondorTransferList(TString fname);
+
 }
 
 #endif

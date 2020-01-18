@@ -12,6 +12,7 @@
 #include "DileptonHandler.h"
 #include "EventFilterHandler.h"
 
+#include "ParticleObjectHelpers.h"
 #include "ParticleSelectionHelpers.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"

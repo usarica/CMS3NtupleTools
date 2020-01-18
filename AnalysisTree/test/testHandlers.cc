@@ -8,7 +8,7 @@
 
 void testHandlers(int procsel){
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "191212");
+  SampleHelpers::configure("2018", "hadoop:200101");
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
 
   TString strSample;
