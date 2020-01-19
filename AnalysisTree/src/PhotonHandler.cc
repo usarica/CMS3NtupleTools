@@ -2,6 +2,7 @@
 #include "ParticleObjectHelpers.h"
 #include "PhotonHandler.h"
 #include "PhotonSelectionHelpers.h"
+#include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -27,7 +28,7 @@ PhotonHandler::PhotonHandler() : IvyBase()
 }
 
 
-bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){
   clear();
   if (!currentTree) return false;
 
@@ -62,7 +63,7 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
-      productList.push_back(new PhotonObject(momentum));
+      productList.push_back(new ProductType_t(momentum));
       PhotonObject*& obj = productList.back();
 
       // Set extras
@@ -87,6 +88,28 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
     // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
+  return this->applyCleaning(muons, electrons);
+}
+bool PhotonHandler::applyCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){
+  std::vector<ProductType_t*> productList_new; productList_new.reserve(productList.size());
+  for (auto*& product:productList){
+    bool doSkip=false;
+    if (muons){
+      for (auto const* part:*(muons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(product->p4(), part->p4())<0.1){ doSkip=true; break; }
+      }
+    }
+    if (electrons){
+      for (auto const* part:*(electrons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(product->p4(), part->p4())<0.1){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) productList_new.push_back(product);
+    else delete product;
+  }
+  productList = productList_new;
   return true;
 }
 

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "IvyBase.h"
+#include "MuonObject.h"
 #include "ElectronObject.h"
 #include "SystematicVariations.h"
 
@@ -17,6 +18,8 @@ protected:
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
 
+  bool applyCleaning(std::vector<MuonObject*> const* muons);
+
 public:
   // Constructors
   ElectronHandler();
@@ -24,7 +27,8 @@ public:
   // Destructors
   ~ElectronHandler(){ clear(); }
 
-  bool constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons);
+
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
   static void bookBranches(BaseTree* tree);

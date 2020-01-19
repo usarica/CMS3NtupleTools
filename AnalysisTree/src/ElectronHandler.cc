@@ -2,6 +2,7 @@
 #include "ParticleObjectHelpers.h"
 #include "ElectronHandler.h"
 #include "ElectronSelectionHelpers.h"
+#include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -28,7 +29,7 @@ ElectronHandler::ElectronHandler() : IvyBase()
 }
 
 
-bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons){
   clear();
   if (!currentTree) return false;
 
@@ -63,7 +64,7 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
-      productList.push_back(new ElectronObject(-11*(*it_charge>0 ? 1 : -1), momentum));
+      productList.push_back(new ProductType_t(-11*(*it_charge>0 ? 1 : -1), momentum));
       ElectronObject*& obj = productList.back();
 
       // Set extras
@@ -88,6 +89,23 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
+  return this->applyCleaning(muons);
+}
+
+bool ElectronHandler::applyCleaning(std::vector<MuonObject*> const* muons){
+  std::vector<ProductType_t*> productList_new; productList_new.reserve(productList.size());
+  for (auto*& product:productList){
+    bool doSkip=false;
+    if (muons){
+      for (auto const* part:*(muons)){
+        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (reco::deltaR(product->p4(), part->p4())<0.05){ doSkip=true; break; }
+      }
+    }
+    if (!doSkip) productList_new.push_back(product);
+    else delete product;
+  }
+  productList = productList_new;
   return true;
 }
 
