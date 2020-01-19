@@ -14,6 +14,14 @@ using namespace HelperFunctions;
 void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelpers::SystematicVariationTypes syst, std::vector<TString>& samples){
   assert(runConfigure);
 
+  if (sname.Contains("MINIAOD")){
+    TString stasample=sname;
+    if (!sname.BeginsWith("/")) stasample = Form("/%s", stasample.Data());
+    MELAerr << "SampleHelpers::constructSamplesList: Warning! Sample " << stasample << " is already a standalone sample. Use at your own risk!" << endl;
+    samples.push_back(stasample);
+    return;
+  }
+
   if (theDataYear == 2018){
     // Data
     if (sname == "SingleMuon"){

@@ -2,10 +2,10 @@
 
 SCRIPT=""
 FCN=""
-FCNARGS="<NONE>"
+FCNARGS=""
 DATE=""
 OUTPUTDIR=""
-CONDOROUTDIR="/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker/<DATE>"
+CONDOROUTDIR="/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
 QUEUE="vanilla"
 
 let printhelp=0
@@ -22,7 +22,7 @@ for fargo in "$@";do
     fcnargname="${fcnargname#*=}"
     FCN="$fcnargname"
   elif [[ "$fargl" == "arguments="* ]] || [[ "$fargl" == "fcnargs="* ]];then
-    fcnargname="$farg"
+    fcnargname="$fargo"
     fcnargname="${fcnargname#*=}"
     FCNARGS="$fcnargname"
   elif [[ "$fargl" == "date="* ]];then
@@ -49,7 +49,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - arguments / fcnargs: Arguments of the function. Default=\"\""
   echo " - outdir: Main output location. Default='./output'"
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
-  echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker/<DATE>"
+  echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
   exit 0
 fi
 SCRIPTRAWNAME="${SCRIPT%%.*}"
@@ -104,6 +104,8 @@ if [[ ! -z "${FCNARGS}" ]];then
   fcnargname="${fcnargname//)}"
   fcnargname="${fcnargname//./p}"
   THEOUTPUTFILE="${THEOUTPUTFILE}/${fcnargname}"
+else
+  FCNARGS="<NONE>"
 fi
 
 checkGridProxy.sh
@@ -111,9 +113,10 @@ checkGridProxy.sh
 THECONDORSITE="${CONDORSITE}"
 THECONDOROUTDIR="${CONDOROUTDIR}"
 THEQUEUE="${QUEUE}"
-THEFCNARGS="${FCNARGS}"
 THECONDOROUTDIR=${THECONDOROUTDIR/"<USER>"/"$USER"}
 THECONDOROUTDIR=${THECONDOROUTDIR/"<DATE>"/"$DATE"}
+THECONDOROUTDIR=${THECONDOROUTDIR/"<SCRIPT>"/"$SCRIPTRAWNAME"}
+THECONDOROUTDIR=${THECONDOROUTDIR/"<FCN>"/"$FCN"}
 if [[ "${THECONDORSITE+x}" != "DUMMY" ]] && [[ -z "${THECONDOROUTDIR+x}" ]]; then
   echo "Need to set the Condor output directory."
   continue
@@ -128,6 +131,6 @@ ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
 
 configureCMS3AnalysisTreeCondorJob.py \
   --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$theOutdir" \
-  --script="$SCRIPT" --fcn="$FCN" --fcnargs="$THEFCNARGS" \
+  --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" \
   --condorsite="$THECONDORSITE" --condoroutdir="$THECONDOROUTDIR" \
   --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="runCMS3AnalysisTree.condor.sh" --dry
