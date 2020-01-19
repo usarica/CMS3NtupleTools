@@ -7,12 +7,46 @@
 #include "HelperFunctions.h"
 
 
+// Veto ids can have looser definitions than loose-tight.
 #define SELECTION_TYPES \
-SELECTION_TYPE(Veto) \
+SELECTION_TYPE(Veto)
+#define SELECTION_TYPE(TYPE) \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
+  return ( \
+    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Id) \
+    && \
+    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Iso) \
+    && \
+    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Kin) \
+    ); \
+} \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
+  return ( \
+    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Id) \
+    && \
+    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Iso) \
+    && \
+    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Kin) \
+    ); \
+} \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
+  return ( \
+    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Id) \
+    && \
+    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Iso) \
+    && \
+    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Kin) \
+    ); \
+}
+SELECTION_TYPES;
+#undef SELECTION_TYPE
+#undef SELECTION_TYPES
+
+// Loose-tight particle ids
+#define SELECTION_TYPES \
 SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Medium) \
 SELECTION_TYPE(Tight)
-
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
   return ( \
@@ -36,13 +70,26 @@ template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject cons
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
   return ( \
+    part->testSelectionBit(PhotonSelectionHelpers::kConversionSafe) \
+    && \
     part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Id) \
     && \
     part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Iso) \
     && \
     part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Kin) \
     ); \
-} \
+}
+SELECTION_TYPES;
+#undef SELECTION_TYPE
+#undef SELECTION_TYPES
+
+// Implementation of generic veto-tight ids
+#define SELECTION_TYPES \
+SELECTION_TYPE(Veto) \
+SELECTION_TYPE(Loose) \
+SELECTION_TYPE(Medium) \
+SELECTION_TYPE(Tight)
+#define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ParticleObject const* part){ \
   MuonObject const* muon = dynamic_cast<MuonObject const*>(part); \
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part); \
@@ -52,9 +99,7 @@ template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ParticleObject cons
   else if (photon) return is##TYPE##Particle(photon); \
   else return false; \
 }
-
 SELECTION_TYPES;
-
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
 

@@ -17,6 +17,8 @@ PHOTON_VARIABLE(bool, id_MVA_Fall17V2_pass_wp80, false) \
 PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, 0) \
 PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, 0) \
 PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, 0) \
+PHOTON_VARIABLE(bool, hasPixelSeed, false) \
+PHOTON_VARIABLE(bool, passElectronVeto, false) \
 PHOTON_VARIABLE(float, pfIso_comb, 0) \
 PHOTON_VARIABLE(float, pfChargedHadronIso_EAcorr, 0)
 

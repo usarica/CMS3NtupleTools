@@ -8,6 +8,8 @@ namespace PhotonSelectionHelpers{
   enum SelectionBits{
     kGenPtEta,
 
+    kConversionSafe,
+
     kVetoId,
     kVetoIso,
     kVetoKin,
@@ -64,6 +66,8 @@ namespace PhotonSelectionHelpers{
   float relPFIso_DR0p3(PhotonObject const& part);
 
   bool testPtEtaGen(PhotonObject const& part);
+
+  bool testConversionSafe(PhotonObject const& part);
 
   bool testVetoId(PhotonObject const& part);
   bool testVetoIso(PhotonObject const& part);

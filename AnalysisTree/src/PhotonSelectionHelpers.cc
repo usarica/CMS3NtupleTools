@@ -23,6 +23,7 @@ For cut-based selection, the bit map is the following:
 6: Iso_em
 */
 #define TEST_CUTBASED_BIT(ibit) (HelperFunctions::test_bit(ibit, 0) && HelperFunctions::test_bit(ibit, 1) && HelperFunctions::test_bit(ibit, 2) && HelperFunctions::test_bit(ibit, 3))
+bool PhotonSelectionHelpers::testConversionSafe(PhotonObject const& part){ return (!part.extras.hasPixelSeed && part.extras.passElectronVeto); }
 bool PhotonSelectionHelpers::testVetoId(PhotonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_Fall17V2:
@@ -180,6 +181,8 @@ void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
   if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
+
+  if (testConversionSafe(part)) part.setSelectionBit(kConversionSafe);
 
   if (testVetoId(part)) part.setSelectionBit(kVetoId);
   if (testVetoIso(part)) part.setSelectionBit(kVetoIso);
