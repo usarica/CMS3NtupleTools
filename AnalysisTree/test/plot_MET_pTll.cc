@@ -365,11 +365,12 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   // Get handlers
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
+  EventFilterHandler eventFilter;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
-  EventFilterHandler eventFilter;
+  ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
   std::vector< std::vector<CutSpecs> > cutsets;
@@ -695,12 +696,12 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       wgt *= me_wgt*cps_wgt;
 
       muonHandler.constructMuons(theGlobalSyst);
-      auto const& muons = muonHandler.getProducts();
-
       electronHandler.constructElectrons(theGlobalSyst);
-      auto const& electrons = electronHandler.getProducts();
-
       photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
+      auto const& muons = muonHandler.getProducts();
+      auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);

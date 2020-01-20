@@ -28,7 +28,7 @@ PhotonHandler::PhotonHandler() : IvyBase()
 }
 
 
-bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){
+bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst){
   clear();
   if (!currentTree) return false;
 
@@ -88,28 +88,6 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
     // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
-  return this->applyCleaning(muons, electrons);
-}
-bool PhotonHandler::applyCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){
-  std::vector<ProductType_t*> productList_new; productList_new.reserve(productList.size());
-  for (auto*& product:productList){
-    bool doSkip=false;
-    if (muons){
-      for (auto const* part:*(muons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
-        if (reco::deltaR(product->p4(), part->p4())<0.1){ doSkip=true; break; }
-      }
-    }
-    if (electrons){
-      for (auto const* part:*(electrons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
-        if (reco::deltaR(product->p4(), part->p4())<0.1){ doSkip=true; break; }
-      }
-    }
-    if (!doSkip) productList_new.push_back(product);
-    else delete product;
-  }
-  productList = productList_new;
   return true;
 }
 

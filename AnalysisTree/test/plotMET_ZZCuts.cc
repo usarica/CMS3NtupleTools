@@ -302,7 +302,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "191212");
+  SampleHelpers::configure("2018", "200101");
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
@@ -328,11 +328,12 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   // Get handlers
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
+  EventFilterHandler eventFilter;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
-  EventFilterHandler eventFilter;
+  ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
   std::vector< std::vector<CutSpecs> > cutsets;
@@ -853,12 +854,12 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       wgt *= me_wgt*cps_wgt;
 
       muonHandler.constructMuons(theGlobalSyst);
-      auto const& muons = muonHandler.getProducts();
-
       electronHandler.constructElectrons(theGlobalSyst);
-      auto const& electrons = electronHandler.getProducts();
-
       photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
+      auto const& muons = muonHandler.getProducts();
+      auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);

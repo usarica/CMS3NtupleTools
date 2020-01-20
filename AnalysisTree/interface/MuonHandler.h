@@ -4,6 +4,7 @@
 #include <vector>
 #include "IvyBase.h"
 #include "MuonObject.h"
+#include "ParticleDisambiguator.h"
 #include "SystematicVariations.h"
 
 
@@ -13,6 +14,8 @@ public:
   static const std::string colName;
 
 protected:
+  friend class ParticleDisambiguator;
+
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }

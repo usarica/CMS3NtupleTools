@@ -3,8 +3,8 @@
 
 #include <vector>
 #include "IvyBase.h"
-#include "MuonObject.h"
 #include "ElectronObject.h"
+#include "ParticleDisambiguator.h"
 #include "SystematicVariations.h"
 
 
@@ -14,11 +14,11 @@ public:
   static const std::string colName;
 
 protected:
+  friend class ParticleDisambiguator;
+
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
-
-  bool applyCleaning(std::vector<MuonObject*> const* muons);
 
 public:
   // Constructors
@@ -27,7 +27,7 @@ public:
   // Destructors
   ~ElectronHandler(){ clear(); }
 
-  bool constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons);
+  bool constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst);
 
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 

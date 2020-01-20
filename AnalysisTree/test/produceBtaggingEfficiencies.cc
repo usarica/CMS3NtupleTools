@@ -45,6 +45,7 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
+  ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
@@ -175,12 +176,12 @@ void produceBtaggingEfficiencies(TString strSampleSet, TString period, TString s
       if (!doDileptonHypothesis && !doSinglePhotonHypothesis) continue;
 
       muonHandler.constructMuons(theGlobalSyst);
-      auto const& muons = muonHandler.getProducts();
-
       electronHandler.constructElectrons(theGlobalSyst);
-      auto const& electrons = electronHandler.getProducts();
-
       photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
+      auto const& muons = muonHandler.getProducts();
+      auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);

@@ -21,11 +21,12 @@ void produceGammaJetsDataSkim(TString strSampleSet, TString period){
   );
 
   // Get handlers
+  EventFilterHandler eventFilter;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
-  EventFilterHandler eventFilter;
+  ParticleDisambiguator particleDisambiguator;
 
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampleList);
@@ -89,18 +90,20 @@ void produceGammaJetsDataSkim(TString strSampleSet, TString period){
       if (trigwgt==0.) continue;
 
       muonHandler.constructMuons(SystematicsHelpers::sNominal);
+      electronHandler.constructElectrons(SystematicsHelpers::sNominal);
+      photonHandler.constructPhotons(SystematicsHelpers::sNominal);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
       auto const& muons = muonHandler.getProducts();
       size_t n_muons_veto = 0;
       for (auto const& part:muons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++; }
       if (n_muons_veto>0) continue;
 
-      electronHandler.constructElectrons(SystematicsHelpers::sNominal, &muons);
       auto const& electrons = electronHandler.getProducts();
       size_t n_electrons_veto = 0;
       for (auto const& part:electrons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++; }
       if (n_electrons_veto>0) continue;
 
-      photonHandler.constructPhotons(SystematicsHelpers::sNominal, &muons, &electrons);
       auto const& photons = photonHandler.getProducts();
       size_t n_photons_tight = 0;
       PhotonObject* theChosenPhoton = nullptr;

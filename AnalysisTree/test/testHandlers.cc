@@ -37,6 +37,10 @@ void testHandlers(int procsel){
   genInfoHandler.bookBranches(&sample_tree);
   genInfoHandler.wrapTree(&sample_tree);
 
+  EventFilterHandler eventFilter;
+  eventFilter.bookBranches(&sample_tree);
+  eventFilter.wrapTree(&sample_tree);
+
   MuonHandler muonHandler;
   muonHandler.bookBranches(&sample_tree);
   muonHandler.wrapTree(&sample_tree);
@@ -53,9 +57,7 @@ void testHandlers(int procsel){
   jetHandler.bookBranches(&sample_tree);
   jetHandler.wrapTree(&sample_tree);
 
-  EventFilterHandler eventFilter;
-  eventFilter.bookBranches(&sample_tree);
-  eventFilter.wrapTree(&sample_tree);
+  ParticleDisambiguator particleDisambiguator;
 
   std::vector<std::string> triggerCheckList{
     "HLT_Ele32_WPTight_Gsf_v*", "HLT_IsoMu24_v*",
@@ -128,16 +130,18 @@ void testHandlers(int procsel){
     }
 
     muonHandler.constructMuons(theGlobalSyst);
+    electronHandler.constructElectrons(theGlobalSyst);
+    photonHandler.constructPhotons(theGlobalSyst);
+    particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
     auto const& muons = muonHandler.getProducts();
     MELAout << "Muons:" << endl;
     for (auto const& part:muons) MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", (L, M, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isMediumParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
 
-    electronHandler.constructElectrons(theGlobalSyst);
     auto const& electrons = electronHandler.getProducts();
     MELAout << "Electrons:" << endl;
     for (auto const& part:electrons) MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", (L, M, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isMediumParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;
 
-    photonHandler.constructPhotons(theGlobalSyst);
     auto const& photons = photonHandler.getProducts();
     MELAout << "Photons:" << endl;
     for (auto const& part:photons) MELAout << "\t- [" << part->pdgId() << "]: " << part->p4() << ", (L, M, T) = (" << ParticleSelectionHelpers::isLooseParticle(part) << ", " << ParticleSelectionHelpers::isMediumParticle(part) << ", " << ParticleSelectionHelpers::isTightParticle(part) << ")" << endl;

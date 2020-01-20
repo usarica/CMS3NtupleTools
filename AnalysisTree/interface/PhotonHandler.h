@@ -6,6 +6,7 @@
 #include "MuonObject.h"
 #include "ElectronObject.h"
 #include "PhotonObject.h"
+#include "ParticleDisambiguator.h"
 #include "SystematicVariations.h"
 
 
@@ -15,11 +16,11 @@ public:
   static const std::string colName;
 
 protected:
+  friend class ParticleDisambiguator;
+
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
-
-  bool applyCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons);
 
 public:
   // Constructors
@@ -28,7 +29,7 @@ public:
   // Destructors
   ~PhotonHandler(){ clear(); }
 
-  bool constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons);
+  bool constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst);
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
   static void bookBranches(BaseTree* tree);

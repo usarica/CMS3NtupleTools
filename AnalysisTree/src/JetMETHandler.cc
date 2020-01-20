@@ -250,19 +250,19 @@ bool JetMETHandler::applyJetCleaning(std::vector<MuonObject*> const* muons, std:
     bool doSkip=false;
     if (muons){
       for (auto const* part:*(muons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
     if (electrons){
       for (auto const* part:*(electrons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
     if (photons){
       for (auto const* part:*(photons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
@@ -276,19 +276,19 @@ bool JetMETHandler::applyJetCleaning(std::vector<MuonObject*> const* muons, std:
     bool doSkip=false;
     if (muons){
       for (auto const* part:*(muons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
     if (electrons){
       for (auto const* part:*(electrons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }
     if (photons){
       for (auto const* part:*(photons)){
-        if (!ParticleSelectionHelpers::isVetoParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
         if (reco::deltaR(jet->p4(), part->p4())<jet->ConeRadiusConstant){ doSkip=true; break; }
       }
     }

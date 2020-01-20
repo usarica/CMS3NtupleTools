@@ -299,6 +299,8 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
+    ParticleDisambiguator particleDisambiguator;
+
     DileptonHandler dileptonHandler;
 
     MELAout << "Completed getting the handles..." << endl;
@@ -550,12 +552,12 @@ void getHistograms_ZZCuts(int doZZWW, int procsel, TString strdate=""){
       wgt *= me_wgt;
 
       muonHandler.constructMuons(theGlobalSyst);
-      auto const& muons = muonHandler.getProducts();
-
       electronHandler.constructElectrons(theGlobalSyst);
-      auto const& electrons = electronHandler.getProducts();
-
       photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
+      auto const& muons = muonHandler.getProducts();
+      auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
 
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);

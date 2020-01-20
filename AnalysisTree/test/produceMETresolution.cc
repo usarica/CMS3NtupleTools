@@ -96,12 +96,13 @@ void createGammaTrees(TString strSampleSet, TString period, SystematicsHelpers::
   // Get handlers
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
+  EventFilterHandler eventFilter;
   VertexHandler vertexHandler;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
-  EventFilterHandler eventFilter;
+  ParticleDisambiguator particleDisambiguator;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -276,18 +277,20 @@ void createGammaTrees(TString strSampleSet, TString period, SystematicsHelpers::
         unsigned int n_vertices_good = vertexHandler.getNGoodVertices();
 
         muonHandler.constructMuons(syst);
+        electronHandler.constructElectrons(syst);
+        photonHandler.constructPhotons(syst);
+        particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+
         auto const& muons = muonHandler.getProducts();
         size_t n_muons_veto = 0;
         for (auto const& part:muons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++; }
         if (n_muons_veto>0) continue;
 
-        electronHandler.constructElectrons(syst);
         auto const& electrons = electronHandler.getProducts();
         size_t n_electrons_veto = 0;
         for (auto const& part:electrons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++; }
         if (n_electrons_veto>0) continue;
 
-        photonHandler.constructPhotons(syst);
         auto const& photons = photonHandler.getProducts();
         size_t n_photons_tight = 0;
         PhotonObject* theChosenPhoton = nullptr;
