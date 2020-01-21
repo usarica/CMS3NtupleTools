@@ -1,5 +1,5 @@
 #include <MelaAnalytics/CandidateLOCaster/interface/MELACandidateRecaster.h>
-#include <CMS3/NtupleMaker/interface/CMS3MELAHelpers.h>
+#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 #include "MELAStreamHelpers.hh"
 
 

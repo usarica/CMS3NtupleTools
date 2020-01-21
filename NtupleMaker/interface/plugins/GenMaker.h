@@ -22,7 +22,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
 #include "CommonLHETools/LHEHandler/interface/LHEHandler.h"
-#include <CMS3/NtupleMaker/interface/CMS3MELAHelpers.h>
+#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 
 
