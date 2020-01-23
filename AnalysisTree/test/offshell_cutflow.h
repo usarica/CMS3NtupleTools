@@ -17,9 +17,8 @@ bool check_dPhi_pTll_pTmiss(float const& val, size_t const& n_ak4jets_tight, boo
 }
 
 bool check_dPhi_pTlljets_pTmiss(float const& val, bool use_old=true){
-  float thr;
-  if (use_old) thr=-1;
-  else thr=2.6;
+  if (use_old) return true;
+  float thr=2.6;
   return std::abs(val)>=thr;
 }
 
@@ -35,9 +34,9 @@ bool check_min_abs_dPhi_pTj_pTmiss(float const& val, bool use_old=true){
 #define _old_WW_met_thr_ 20.f
 #define _new_WW_met_thr_ 20.f
 bool check_pTmiss_over_pTlljets(float const& pTmiss, float const& pTlljets, bool use_old=true, bool useZZ=true){
-  float thr=-1;
-  if (!use_old && pTlljets>0.f) thr=std::pow((useZZ ? _new_ZZ_met_thr_ : _new_WW_met_thr_)/pTlljets, 1.5);
-  return (use_old || pTlljets==0.f || pTmiss/pTlljets>=thr);
+  if (use_old || pTlljets==0.f) return true;
+  float thr=std::pow((useZZ ? _new_ZZ_met_thr_ : _new_WW_met_thr_)/pTlljets, 1.5);
+  return pTmiss/pTlljets>=thr;
 }
 
 bool check_pTmiss(float const& val, bool use_old=true, bool useZZ=true){
@@ -115,5 +114,5 @@ bool check_NoExtraLeptons(std::vector<MuonObject*> const& muons, std::vector<Ele
     if (electronVetoFcn(electron)) extraVetoLeptons.push_back(electron);
   }
 
-  return (extraVetoLeptons.size()!=0);
+  return extraVetoLeptons.empty();
 }
