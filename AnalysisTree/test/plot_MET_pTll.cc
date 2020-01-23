@@ -329,18 +329,17 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  constexpr int nchannels = 2; // ichannel=-1, 0, 1, 2, 3 for any, ee, mumu, emu, ee+mumu
+  constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2, 3 for any, ee, mumu, emu, ee+mumu
 
-  TString const cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/191212";
   TString const coutput_main = "output/" + strdate + "/MET_vs_pTll" + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
-
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "191212");
+  SampleHelpers::configure("2018", ((procsel>=11) ? "191212" : "hadoop:200101"));
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
+  float lumi = SampleHelpers::getIntegratedLuminosity("2018");
 
   std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
     {
@@ -350,17 +349,25 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   );
 
   std::vector<SampleSpecs> sampleList;
-  sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DY_2l_M_10to50", -1, HistogramProperties((int) kGreen+2, 1, 2));
-  sampleList.emplace_back("DY_M50", "DY ll (m_{ll}>50 GeV)", "DY_2l_M_50", -1, HistogramProperties((int) kCyan, 1, 2));
+  //sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DY_2l_M_10to50", -1, HistogramProperties((int) kGreen+2, 1, 2));
+  //sampleList.emplace_back("DY_M50", "DY ll (m_{ll}>50 GeV)", "DY_2l_M_50", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_70-100", "DY ll (m_{ll}>50 GeV, H_{T}: 70-100 GeV)", "DY_2l_M_50_HT_70-100", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_100-200", "DY ll (m_{ll}>50 GeV, H_{T}: 100-200 GeV)", "DY_2l_M_50_HT_100-200", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_200-400", "DY ll (m_{ll}>50 GeV, H_{T}: 200-400 GeV)", "DY_2l_M_50_HT_200-400", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_400-600", "DY ll (m_{ll}>50 GeV, H_{T}: 400-600 GeV)", "DY_2l_M_50_HT_400-600", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_600-800", "DY ll (m_{ll}>50 GeV, H_{T}: 600-800 GeV)", "DY_2l_M_50_HT_600-800", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_800-1200", "DY ll (m_{ll}>50 GeV, H_{T}: 800-1200 GeV)", "DY_2l_M_50_HT_800-1200", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_1200-2500", "DY ll (m_{ll}>50 GeV, H_{T}: 1200-2500 GeV)", "DY_2l_M_50_HT_1200-2500", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_2500-inf", "DY ll (m_{ll}>50 GeV, H_{T}>2500 GeV)", "DY_2l_M_50_HT_2500-inf", -1, HistogramProperties((int) kCyan, 1, 2));
   sampleList.emplace_back("TT2L2Nu", "t#bar{t} ll", "TT_2l2nu", -1, HistogramProperties((int) kOrange-3, 1, 2));
   sampleList.emplace_back("ZZ2L2Nu", "ZZ#rightarrow2l2#nu", "qqZZ_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ST_t-channel_top_5f", "Single t", "ST_t-channel_top_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ST_t-channel_antitop_5f", "Single #bar{t}", "ST_t-channel_antitop_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
-  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
-  sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
-  sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
+  //sampleList.emplace_back("ST_t-channel_top_5f", "Single t", "ST_t-channel_top_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  //sampleList.emplace_back("ST_t-channel_antitop_5f", "Single #bar{t}", "ST_t-channel_antitop_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
+  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
+  sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
+  sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
 
   // Get handlers
   SimEventHandler simEventHandler;
@@ -368,80 +375,35 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   EventFilterHandler eventFilter;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
-  PhotonHandler photonHandler;
+  //PhotonHandler photonHandler;
   JetMETHandler jetHandler;
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
+  genInfoHandler.setAcquireLHEParticles(false);
+  genInfoHandler.setAcquireGenParticles(false);
+
   std::vector< std::vector<CutSpecs> > cutsets;
-  /*
-  // Cuts on gen. MET
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    false, true, -1, 50
-  );
-
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    true, true, 50, 250
-  );
-
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    true, false, 250, -1
-  );
-  */
-
   // Nj==0, Nb==0
   cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
+  cutsets.back().reserve(1);
   cutsets.back().emplace_back(
     "Nj", "N_{j}",
-    true, true, 0, 0
-  );
-  cutsets.back().emplace_back(
-    "Nb", "N_{b}",
     true, true, 0, 0
   );
   // Nj==1, Nb==0
   cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
+  cutsets.back().reserve(1);
   cutsets.back().emplace_back(
     "Nj", "N_{j}",
     true, true, 1, 1
   );
-  cutsets.back().emplace_back(
-    "Nb", "N_{b}",
-    true, true, 0, 0
-  );
   // Nj==2, Nb==0
   cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
+  cutsets.back().reserve(1);
   cutsets.back().emplace_back(
     "Nj", "N_{j}",
     true, true, 2, 2
-  );
-  cutsets.back().emplace_back(
-    "Nb", "N_{b}",
-    true, true, 0, 0
   );
 
   for (size_t isample=0; isample<sampleList.size(); isample++){
@@ -458,8 +420,10 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
 
-    TFile* foutput = TFile::Open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root"), "recreate");
-    MELAout.open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt"));
+    TString stroutput = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root");
+    TString stroutput_txt = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt");
+    TFile* foutput = TFile::Open(stroutput, "recreate");
+    MELAout.open(stroutput_txt.Data());
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -477,8 +441,8 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     electronHandler.bookBranches(&sample_tree);
     electronHandler.wrapTree(&sample_tree);
 
-    photonHandler.bookBranches(&sample_tree);
-    photonHandler.wrapTree(&sample_tree);
+    //photonHandler.bookBranches(&sample_tree);
+    //photonHandler.wrapTree(&sample_tree);
 
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
@@ -491,7 +455,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
     foutput->cd();
 
-    for (int ichannel=0; ichannel<nchannels; ichannel++){
+    for (int ichannel=3; ichannel<nchannels; ichannel++){
       TString strChannel, strChannelLabel;
       getChannelTitleLabel(ichannel, strChannel, strChannelLabel);
 
@@ -541,28 +505,28 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         );
 
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTll", cuttitle.Data(), "puppimet_pTmiss_ge_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTll", cuttitle.Data(), "puppimet_pTmiss_ge_METthr"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV"),
           "p_{T}^{ll} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTll", cuttitle.Data(), "pfmet_pTmiss_ge_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTll", cuttitle.Data(), "pfmet_pTmiss_ge_METthr"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV"),
           "p_{T}^{ll} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTlljets", cuttitle.Data(), "puppimet_pTmiss_ge_85_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV, p_{T}^{ll}>35 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTlljets", cuttitle.Data(), "puppimet_pTmiss_ge_METthr_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV, p_{T}^{ll}>35 GeV"),
           "p_{T}^{ll+jets} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTlljets", cuttitle.Data(), "pfmet_pTmiss_ge_85_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV, p_{T}^{ll}>35 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTlljets", cuttitle.Data(), "pfmet_pTmiss_ge_METthr_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV, p_{T}^{ll}>35 GeV"),
           "p_{T}^{ll+jets} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
@@ -570,57 +534,28 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         );
 
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTll", cuttitle.Data(), "puppimet_pTmiss_lt_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}<85 GeV"),
-          "p_{T}^{ll} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTll", cuttitle.Data(), "pfmet_pTmiss_lt_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}<85 GeV"),
-          "p_{T}^{ll} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_puppimet_pTmiss_pTlljets", cuttitle.Data(), "puppimet_pTmiss_lt_85_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}<85 GeV, p_{T}^{ll}>35 GeV"),
-          "p_{T}^{ll+jets} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_pfmet_pTmiss_pTlljets", cuttitle.Data(), "pfmet_pTmiss_lt_85_pTll_ge_35"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}<85 GeV, p_{T}^{ll}>35 GeV"),
-          "p_{T}^{ll+jets} (GeV)", "|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_ge_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_ge_METthr"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV"),
           "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_ge_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_ge_METthr"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV"),
           "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PF})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_ge_85_dPhi_pTlljets_puppimet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})>2.6"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_ge_METthr_dPhi_pTlljets_puppimet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})>2.6"),
           "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_ge_85_dPhi_pTlljets_pfmet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})>2.6"),
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_ge_METthr_dPhi_pTlljets_pfmet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})>2.6"),
           "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PF})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
@@ -628,34 +563,19 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         );
 
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_lt_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}<85 GeV"),
-          "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "a.u.",
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "minimizedpTj_VS_dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_ge_METthr_dPhi_pTlljets_puppimet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})>2.6"),
+          "Minimized p_{T}^{j} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_lt_85"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}<85 GeV"),
-          "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PF})|", "a.u.",
+          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "minimizedpTj_VS_dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_ge_METthr_dPhi_pTlljets_pfmet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}>85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})>2.6"),
+          "Minimized p_{T}^{j} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PF})|", "a.u.",
           100, 0., 1000.,
           30, 0., +TMath::Pi(),
           channeldir
         );
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_puppimet_pTmiss", cuttitle.Data(), "puppimet_pTmiss_lt_85_dPhi_pTlljets_puppimet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PUPPI}<85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PUPPI}, #vec{p}_{T}^{ll+jets})>2.6"),
-          "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PUPPI})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-        sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s_%s", strChannel.Data(), "dPhi_min_pTj_pfmet_pTmiss", cuttitle.Data(), "pfmet_pTmiss_lt_85_dPhi_pTlljets_pfmet_pTmiss_ge_2p6"), Form("%s|%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data(), "p_{T}^{miss,PF}<85 GeV|#Delta#phi(#vec{p}_{T}^{miss,PF}, #vec{p}_{T}^{ll+jets})>2.6"),
-          "p_{T}^{ll} (GeV)", "Min. |#Delta#phi(#vec{p}_{T}^{j}, #vec{p}_{T}^{miss,PF})|", "a.u.",
-          100, 0., 1000.,
-          30, 0., +TMath::Pi(),
-          channeldir
-        );
-
       }
 
       foutput->cd();
@@ -672,7 +592,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     for (int ev=0; ev<nevents; ev++){
       HelperFunctions::progressbar(ev, nevents);
       //if (ev>1000) break;
-      if (sample.name == "TT2L2Nu" && ev%3!=0) continue; // Take every 10 events in ttbar
+      if ((sample.name == "TT2L2Nu" || sample.name == "ZZ2L2Nu") && ev%10!=0) continue; // Take every 10 events in ttbar
       sample_tree.getSelectedEvent(ev);
       if (ev==0){
         sample_tree.getVal("xsec", xsec);
@@ -688,6 +608,10 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       float puwgt = simEventHandler.getPileUpWeight();
       float wgt = genwgt * puwgt;
       sum_wgts += wgt;
+
+      eventFilter.constructFilters();
+      if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
+
       float me_wgt=1, cps_wgt=1;
       if (sample.name == "ggZZ_BSI"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_BSI_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
       else if (sample.name == "ggZZ_Sig"){ me_wgt = genInfo->extras.LHE_ME_weights["p_Gen_GG_SIG_kappaTopBot_1_ghz1_1_MCFM"]; cps_wgt = genInfo->extras.LHE_ME_weights["p_Gen_CPStoBWPropRewgt"]; }
@@ -697,14 +621,14 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       muonHandler.constructMuons(theGlobalSyst);
       electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
-      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+      //photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, nullptr/*&photonHandler*/);
 
       auto const& muons = muonHandler.getProducts();
       auto const& electrons = electronHandler.getProducts();
-      auto const& photons = photonHandler.getProducts();
+      //auto const& photons = photonHandler.getProducts();
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, nullptr/*&photons*/);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& puppimet = jetHandler.getPFPUPPIMET();
@@ -720,9 +644,6 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
           if (jet->getBtagValue()>=btagvalue_thr) ak4jets_tight_btagged.push_back(jet);
         }
       }
-
-      eventFilter.constructFilters();
-      if (!eventFilter.passMETFilters()) continue;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
@@ -741,6 +662,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       float triggerWeight = eventFilter.getTriggerWeight(triggerCheckList);
       wgt *= triggerWeight;
+      if (wgt==0.f) continue;
 
       if (theChosenDilepton && nTightDilep == 1){
         bool is_ee=false, is_mumu=false, is_emu=false;
@@ -834,14 +756,19 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
           m_lj_closest_l_best_b = (lepton_closest_to_best_b->p4() + highest_nonbtagged_jet->p4()).M();
         }
 
-        float abs_dPhi_min_pTj_puppimet_pTmiss = TMath::Pi();
-        float abs_dPhi_min_pTj_pfmet_pTmiss = TMath::Pi();
+        float min_abs_dPhi_j_puppimet = TMath::Pi();
+        float min_abs_dPhi_j_pfmet = TMath::Pi();
+        float pTjet_min_abs_dPhi_j_puppimet = -1;
+        float pTjet_min_abs_dPhi_j_pfmet = -1;
         for (AK4JetObject* jet:ak4jets_tight){
           float dphi_tmp;
-          HelperFunctions::deltaPhi(float(jet->phi()), float(puppimet->phi()), dphi_tmp);
-          abs_dPhi_min_pTj_puppimet_pTmiss = std::min(abs_dPhi_min_pTj_puppimet_pTmiss, std::abs(dphi_tmp));
-          HelperFunctions::deltaPhi(float(jet->phi()), float(pfmet->phi()), dphi_tmp);
-          abs_dPhi_min_pTj_pfmet_pTmiss = std::min(abs_dPhi_min_pTj_pfmet_pTmiss, std::abs(dphi_tmp));
+          HelperFunctions::deltaPhi(float(jet->phi()), float(puppimet->phi()), dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
+          if (dphi_tmp<min_abs_dPhi_j_puppimet) pTjet_min_abs_dPhi_j_puppimet = jet->pt();
+          min_abs_dPhi_j_puppimet = std::min(min_abs_dPhi_j_puppimet, dphi_tmp);
+
+          HelperFunctions::deltaPhi(float(jet->phi()), float(pfmet->phi()), dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
+          if (dphi_tmp<min_abs_dPhi_j_pfmet) pTjet_min_abs_dPhi_j_pfmet = jet->pt();
+          min_abs_dPhi_j_pfmet = std::min(min_abs_dPhi_j_pfmet, dphi_tmp);
         }
         float dPhi_pTll_puppimet_pTmiss = theChosenDilepton->deltaPhi(puppimet->phi());
         float dPhi_pTll_pfmet_pTmiss = theChosenDilepton->deltaPhi(pfmet->phi());
@@ -860,20 +787,25 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         float reco_pfmet_pTmiss = pfmet->pt();
 
         // Cuts
+        bool pass_Nb_veto = n_ak4jets_tight_btagged==0;
         bool pass_pTl1 = pTl1>=25.;
         bool pass_pTl2 = pTl2>=20.;
         bool pass_mll = (doZZWW==0 && mll>=81. && mll<101.) || (doZZWW==1 && mll>=101.);
         bool pass_pTll = (pTll>=35.);
-        bool pass_puppimet_thr = (puppimet->pt()>=85.);
-        bool pass_pfmet_thr = (pfmet->pt()>=85.);
+        bool pass_puppimet_thr = (reco_puppimet_pTmiss>=85. && reco_puppimet_pTmiss/pTlljets>=std::pow(85. / pTlljets, 1.5));
+        bool pass_pfmet_thr = (reco_pfmet_pTmiss>=85. && reco_pfmet_pTmiss/pTlljets>=std::pow(85. / pTlljets, 1.5));
         bool pass_puppimet_dPhilljets_thr = (std::abs(dPhi_pTlljets_puppimet_pTmiss)>=2.6);
         bool pass_pfmet_dPhilljets_thr = (std::abs(dPhi_pTlljets_pfmet_pTmiss)>=2.6);
+        bool pass_min_abs_dPhi_j_puppimet = (min_abs_dPhi_j_puppimet>=0.6);
+        bool pass_min_abs_dPhi_j_pfmet = (min_abs_dPhi_j_pfmet>=0.6);
+
+        if (!pass_Nb_veto) continue;
 
         // Fill histograms
         // Enclosed around braces to localize it_hist
         {
           auto it_hist = sample.hlist_2D.begin();
-          for (int ichannel=0; ichannel<nchannels; ichannel++){
+          for (int ichannel=3; ichannel<nchannels; ichannel++){
             bool isCorrectChannel = (
               ichannel==-1
               || (ichannel==0 && is_ee)
@@ -895,33 +827,25 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
               }
 
               // pT ratios
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll) it_hist->hist.Fill(pTll, reco_puppimet_pTmiss/pTll, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll) it_hist->hist.Fill(pTll, reco_pfmet_pTmiss/pTll, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll) it_hist->hist.Fill(pTlljets, reco_puppimet_pTmiss/pTlljets, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll) it_hist->hist.Fill(pTlljets, reco_pfmet_pTmiss/pTlljets, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_min_abs_dPhi_j_puppimet) it_hist->hist.Fill(pTll, reco_puppimet_pTmiss/pTll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_min_abs_dPhi_j_pfmet) it_hist->hist.Fill(pTll, reco_pfmet_pTmiss/pTll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_min_abs_dPhi_j_puppimet) it_hist->hist.Fill(pTlljets, reco_puppimet_pTmiss/pTlljets, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_min_abs_dPhi_j_pfmet) it_hist->hist.Fill(pTlljets, reco_pfmet_pTmiss/pTlljets, wgt); it_hist++;
 
               // dPhi MET - pTll+x
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_puppimet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_pfmet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_puppimet_thr) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_puppimet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_pfmet_thr) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_pfmet_pTmiss), wgt); it_hist++;
-
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_puppimet_thr) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_puppimet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_pfmet_thr) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_pfmet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && !pass_puppimet_thr) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_puppimet_pTmiss), wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && !pass_pfmet_thr) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_pfmet_pTmiss), wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr && pass_min_abs_dPhi_j_puppimet) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_puppimet_pTmiss), wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr && pass_min_abs_dPhi_j_pfmet) it_hist->hist.Fill(pTll, std::abs(dPhi_pTll_pfmet_pTmiss), wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_puppimet_thr && pass_min_abs_dPhi_j_puppimet) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_puppimet_pTmiss), wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && (pass_pTl1 || n_ak4jets_tight==0) && pass_mll && pass_pfmet_thr && pass_min_abs_dPhi_j_pfmet) it_hist->hist.Fill(pTlljets, std::abs(dPhi_pTlljets_pfmet_pTmiss), wgt); it_hist++;
 
               // dPhi pTj - MET
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_puppimet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_pfmet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr && pass_puppimet_dPhilljets_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_puppimet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr && pass_pfmet_dPhilljets_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_pfmet_pTmiss, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTll, min_abs_dPhi_j_puppimet, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTll, min_abs_dPhi_j_pfmet, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr && pass_puppimet_dPhilljets_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTll, min_abs_dPhi_j_puppimet, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr && pass_pfmet_dPhilljets_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTll, min_abs_dPhi_j_pfmet, wgt); it_hist++;
 
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_puppimet_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_puppimet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_pfmet_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_pfmet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_puppimet_thr && pass_puppimet_dPhilljets_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_puppimet_pTmiss, wgt); it_hist++;
-              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && !pass_pfmet_thr && pass_pfmet_dPhilljets_thr) it_hist->hist.Fill(pTll, abs_dPhi_min_pTj_pfmet_pTmiss, wgt); it_hist++;
-
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_puppimet_thr && pass_puppimet_dPhilljets_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTjet_min_abs_dPhi_j_puppimet, min_abs_dPhi_j_puppimet, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_pTl1 && pass_pTl2 && pass_mll && pass_pfmet_thr && pass_pfmet_dPhilljets_thr && n_ak4jets_tight>0) it_hist->hist.Fill(pTjet_min_abs_dPhi_j_pfmet, min_abs_dPhi_j_pfmet, wgt); it_hist++;
             }
           } // End loop over channels
         } // End fill
@@ -937,11 +861,13 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
     MELAout.close();
     foutput->Close();
+
+    SampleHelpers::addToCondorTransferList(stroutput);
   } // End loop over samples
 }
 
 
-void plot_MET_pTll(int doZZWW, bool doCondX, TString strdate=""){
+void plot_MET_pTll(int doZZWW, int iproc, bool doCondX, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -951,6 +877,8 @@ void plot_MET_pTll(int doZZWW, bool doCondX, TString strdate=""){
 
   TString const cinput_main = "output/" + strdate + "/MET_vs_pTll" + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
   TString coutput_main = cinput_main + "/Plots";
+  gSystem->mkdir(coutput_main, true);
+
   {
     // Special case to copy index.php if you have one
     std::vector<TString> tmplist;
@@ -970,14 +898,13 @@ void plot_MET_pTll(int doZZWW, bool doCondX, TString strdate=""){
     }
   }
 
-
-  gSystem->mkdir(coutput_main, true);
-
   std::vector<std::string> sampleList;
   //sampleList.emplace_back("DY_M10-50");
-  sampleList.emplace_back("DY_M50");
+  //sampleList.emplace_back("DY_M50");
+  sampleList.emplace_back("DY_2l_M_50_HT");
   sampleList.emplace_back("TT2L2Nu");
   sampleList.emplace_back("ZZ2L2Nu");
+  sampleList.emplace_back("WW2L2Nu");
   sampleList.emplace_back("ggZZ_Sig");
   sampleList.emplace_back("VBF_Sig");
 
@@ -987,21 +914,25 @@ void plot_MET_pTll(int doZZWW, bool doCondX, TString strdate=""){
   bool firstFile = true;
   std::vector<TString> hnames;
   std::vector<TFile*> finputlist;
+  int jproc=0;
   for (auto const& sample:sampleList){
-    TFile* finput = TFile::Open(cinput_main + '/' + sample.data() + ".root", "read");
-    finputlist.push_back(finput);
+    if (iproc<0 || jproc==iproc){
+      TFile* finput = TFile::Open(cinput_main + '/' + sample.data() + ".root", "read");
+      finputlist.push_back(finput);
 
-    std::vector<TH2F*> hlist;
-    HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
-    if (firstFile){
-      for (TH2F* hh:hlist) hnames.push_back(hh->GetName());
-    }
-    if (hnames.size() == hlist.size()){
-      sample_hist_list.push_back(hlist);
-      samplePlottedList.push_back(sample);
-    }
+      std::vector<TH2F*> hlist;
+      HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
+      if (firstFile){
+        for (TH2F* hh:hlist) hnames.push_back(hh->GetName());
+      }
+      if (hnames.size() == hlist.size()){
+        sample_hist_list.push_back(hlist);
+        samplePlottedList.push_back(sample);
+      }
 
-    if (firstFile) firstFile=false;
+      if (firstFile) firstFile=false;
+    }
+    jproc++;
   }
 
   for (size_t iplot=0; iplot<hnames.size(); iplot++){
@@ -1044,6 +975,7 @@ void plot_MET_pTll(int doZZWW, bool doCondX, TString strdate=""){
       TString canvasname = hnames.at(iplot) + "_" + sample.data();
       HelperFunctions::replaceString(canvasname, "h2D_", "");
       if (doCondX) canvasname += "_CondX";
+      if (!canvasname.Contains("eeORmumu")) continue;
       TCanvas* canvas = new TCanvas(canvasname, "", 8, 30, 1000, 800);
       canvas->cd();
       gStyle->SetOptStat(0);

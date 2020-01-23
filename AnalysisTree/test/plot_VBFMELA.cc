@@ -6,7 +6,7 @@
 #include "TLegend.h"
 #include "TF2.h"
 #include "ParticleObjectHelpers.h"
-#include <CMS3/NtupleMaker/interface/CMS3MELAHelpers.h>
+#include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 
 
 struct HistogramObject_2D{
@@ -331,18 +331,18 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  constexpr int nchannels = 2; // ichannel=-1, 0, 1, 2, 3 for any, ee, mumu, emu, ee+mumu
+  constexpr int nchannels = 4; // ichannel=-1, 0, 1, 2, 3 for any, ee, mumu, emu, ee+mumu
 
-  TString const cinput_main = "/home/users/usarica/work/Width_AC_Run2/Samples/191212";
   TString const coutput_main = "output/" + strdate + "/VBFMELA" + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
 
   gSystem->mkdir(coutput_main, true);
 
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "191212");
+  SampleHelpers::configure("2018", ((procsel>=13) ? "191212" : "hadoop:200101"));
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
+  float lumi = SampleHelpers::getIntegratedLuminosity("2018");
 
   std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
     {
@@ -354,15 +354,23 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   std::vector<SampleSpecs> sampleList;
   sampleList.emplace_back("DY_M10-50", "DY ll (m_{ll}=10-50 GeV)", "DY_2l_M_10to50", -1, HistogramProperties((int) kGreen+2, 1, 2));
   sampleList.emplace_back("DY_M50", "DY ll (m_{ll}>50 GeV)", "DY_2l_M_50", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_70-100", "DY ll (m_{ll}>50 GeV, H_{T}: 70-100 GeV)", "DY_2l_M_50_HT_70-100", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_100-200", "DY ll (m_{ll}>50 GeV, H_{T}: 100-200 GeV)", "DY_2l_M_50_HT_100-200", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_200-400", "DY ll (m_{ll}>50 GeV, H_{T}: 200-400 GeV)", "DY_2l_M_50_HT_200-400", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_400-600", "DY ll (m_{ll}>50 GeV, H_{T}: 400-600 GeV)", "DY_2l_M_50_HT_400-600", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_600-800", "DY ll (m_{ll}>50 GeV, H_{T}: 600-800 GeV)", "DY_2l_M_50_HT_600-800", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_800-1200", "DY ll (m_{ll}>50 GeV, H_{T}: 800-1200 GeV)", "DY_2l_M_50_HT_800-1200", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_1200-2500", "DY ll (m_{ll}>50 GeV, H_{T}: 1200-2500 GeV)", "DY_2l_M_50_HT_1200-2500", -1, HistogramProperties((int) kCyan, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_HT_2500-inf", "DY ll (m_{ll}>50 GeV, H_{T}>2500 GeV)", "DY_2l_M_50_HT_2500-inf", -1, HistogramProperties((int) kCyan, 1, 2));
   sampleList.emplace_back("TT2L2Nu", "t#bar{t} ll", "TT_2l2nu", -1, HistogramProperties((int) kOrange-3, 1, 2));
   sampleList.emplace_back("ZZ2L2Nu", "ZZ#rightarrow2l2#nu", "qqZZ_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("WW2L2Nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ST_t-channel_top_5f", "Single t", "ST_t-channel_top_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ST_t-channel_antitop_5f", "Single #bar{t}", "ST_t-channel_antitop_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
-  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
-  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
-  sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
-  sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
+  //sampleList.emplace_back("ST_t-channel_top_5f", "Single t", "ST_t-channel_top_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  //sampleList.emplace_back("ST_t-channel_antitop_5f", "Single #bar{t}", "ST_t-channel_antitop_5f", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  sampleList.emplace_back("ggZZ_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kAzure-2, 1, 2));
+  sampleList.emplace_back("ggZZ_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "GGH_ZZ2L2Nu_M1000_POWHEG", 125, HistogramProperties((int) kViolet, 7, 2));
+  sampleList.emplace_back("VBF_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1000_POWHEG", -1, HistogramProperties((int) kCyan+2, 1, 2));
+  sampleList.emplace_back("VBF_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBF_ZZ2L2Nu_M1000_POWHEG", 125, HistogramProperties((int) kRed, 7, 2));
 
   // Get handlers
   SimEventHandler simEventHandler;
@@ -370,10 +378,13 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
   EventFilterHandler eventFilter;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
-  PhotonHandler photonHandler;
+  //PhotonHandler photonHandler;
   JetMETHandler jetHandler;
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
+
+  genInfoHandler.setAcquireLHEParticles(false);
+  genInfoHandler.setAcquireGenParticles(false);
 
   // ME block
   CMS3MELAHelpers::GMECBlock MEblock;
@@ -388,43 +399,9 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     ANALYSISTREEPKGDATAPATH+"RecoMEConstants/SmoothKDConstant_m4l_DjjVBF_13TeV.root", "sp_gr_varReco_Constant_Smooth"
   );
 
+  MELAout << "getHistograms: DjjVBF is built!" << endl;
+
   std::vector< std::vector<CutSpecs> > cutsets;
-  /*
-  // Cuts on gen. MET
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    false, true, -1, 50
-  );
-
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    true, true, 50, 250
-  );
-
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(2);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    false, true, -1, 2
-  );
-  cutsets.back().emplace_back(
-    "genmet", "p_{T}^{miss,true}",
-    true, false, 250, -1
-  );
-  */
-
   // Nj==2, Nb==0
   cutsets.push_back(std::vector<CutSpecs>());
   cutsets.back().reserve(2);
@@ -437,10 +414,14 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     true, true, 0, 0
   );
 
+  MELAout << "\t- Cut sets are built." << endl;
+
   for (size_t isample=0; isample<sampleList.size(); isample++){
     if (procsel>=0 && isample!=static_cast<size_t>(procsel)) continue;
 
     auto& sample = sampleList.at(isample);
+
+    MELAout << "\t- Constructing sample list for flag " << sample.path << endl;
 
     std::vector<TString> sampledirs;
     SampleHelpers::constructSamplesList(sample.path, theGlobalSyst, sampledirs);
@@ -451,8 +432,13 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     BaseTree sample_tree(SampleHelpers::getDatasetFileName(sampledirs.front()), EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sampledirs.front());
 
-    TFile* foutput = TFile::Open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root"), "recreate");
-    MELAout.open(Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt"));
+    MELAout << "\t- Opening output files" << endl;
+    TString stroutput = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".root");
+    TString stroutput_txt = Form("%s/%s%s", coutput_main.Data(), sample.name.data(), ".txt");
+    TFile* foutput = TFile::Open(stroutput, "recreate");
+    MELAout.open(stroutput_txt.Data());
+
+    MELAout << "\t- Configuring branches" << endl;
 
     // Get cross section
     sample_tree.bookBranch<float>("xsec", 0.f);
@@ -470,8 +456,8 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     electronHandler.bookBranches(&sample_tree);
     electronHandler.wrapTree(&sample_tree);
 
-    photonHandler.bookBranches(&sample_tree);
-    photonHandler.wrapTree(&sample_tree);
+    //photonHandler.bookBranches(&sample_tree);
+    //photonHandler.wrapTree(&sample_tree);
 
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
@@ -479,12 +465,12 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
-    MELAout << "Completed getting the handles..." << endl;
+    MELAout << "\t- Completed getting the handles..." << endl;
     sample_tree.silenceUnused();
 
     foutput->cd();
 
-    for (int ichannel=0; ichannel<nchannels; ichannel++){
+    for (int ichannel=3; ichannel<nchannels; ichannel++){
       TString strChannel, strChannelLabel;
       getChannelTitleLabel(ichannel, strChannel, strChannelLabel);
 
@@ -554,20 +540,18 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       muonHandler.constructMuons(theGlobalSyst);
       electronHandler.constructElectrons(theGlobalSyst);
-      photonHandler.constructPhotons(theGlobalSyst);
-      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+      //photonHandler.constructPhotons(theGlobalSyst);
+      particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, nullptr/*&photonHandler*/);
 
       auto const& muons = muonHandler.getProducts();
       auto const& electrons = electronHandler.getProducts();
-      auto const& photons = photonHandler.getProducts();
+      //auto const& photons = photonHandler.getProducts();
 
-      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+      jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, /*&photons*/nullptr);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& puppimet = jetHandler.getPFPUPPIMET();
       auto const& pfmet = jetHandler.getPFMET();
-      ParticleObject::LorentzVector_t genmet;
-      genmet = ParticleObject::PolarLorentzVector_t(genInfo->extras.genmet_met, 0, genInfo->extras.genmet_metPhi, 0);
 
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       std::vector<AK4JetObject*> ak4jets_tight_btagged; ak4jets_tight_btagged.reserve(ak4jets.size());
@@ -579,7 +563,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
       }
 
       eventFilter.constructFilters();
-      if (!eventFilter.passMETFilters()) continue;
+      if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
@@ -598,6 +582,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
       float triggerWeight = eventFilter.getTriggerWeight(triggerCheckList);
       wgt *= triggerWeight;
+      if (wgt==0.f) continue;
 
       if (theChosenDilepton && nTightDilep == 1){
         bool is_ee=false, is_mumu=false, is_emu=false;
@@ -611,7 +596,6 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
         float mll = theChosenDilepton->m();
         float pTll = theChosenDilepton->pt();
-        float gen_pTmiss = genmet.Pt(); if (gen_pTmiss==0.f) gen_pTmiss = 1e-5;
 
         ParticleObject* leadingLepton = (theChosenDilepton->daughter(0)->pt() > theChosenDilepton->daughter(1)->pt() ? theChosenDilepton->daughter(0) : theChosenDilepton->daughter(1));
         ParticleObject* subleadingLepton = (theChosenDilepton->daughter(0)->pt() > theChosenDilepton->daughter(1)->pt() ? theChosenDilepton->daughter(1) : theChosenDilepton->daughter(0));
@@ -691,10 +675,10 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
           m_lj_closest_l_best_b = (lepton_closest_to_best_b->p4() + highest_nonbtagged_jet->p4()).M();
         }
 
-        float abs_dPhi_min_pTj_puppimet_pTmiss = TMath::Pi();
+        float min_abs_dPhi_j_puppimet = TMath::Pi();
         for (AK4JetObject* jet:ak4jets_tight){
           float dphi_tmp; HelperFunctions::deltaPhi(float(jet->phi()), float(puppimet->phi()), dphi_tmp);
-          abs_dPhi_min_pTj_puppimet_pTmiss = std::min(abs_dPhi_min_pTj_puppimet_pTmiss, std::abs(dphi_tmp));
+          min_abs_dPhi_j_puppimet = std::min(min_abs_dPhi_j_puppimet, std::abs(dphi_tmp));
         }
         float dPhi_pTll_puppimet_pTmiss = theChosenDilepton->deltaPhi(puppimet->phi());
         float dPhi_pTll_pfmet_pTmiss = theChosenDilepton->deltaPhi(pfmet->phi());
@@ -704,7 +688,6 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         float dPhi_pTlljets_pfmet_pTmiss; HelperFunctions::deltaPhi(float((theChosenDilepton->p4() + p4_alljets).Phi()), float(pfmet->phi()), dPhi_pTlljets_pfmet_pTmiss);
         float reco_puppimet_pTmiss = puppimet->pt();
         float reco_puppimet_pTmiss_significance = puppimet->extras.metSignificance;
-        float resolution_puppimet_pTmiss = reco_puppimet_pTmiss/gen_pTmiss - 1.;
         // Compute ZZ-style masses
         float mTZZ_puppimet = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(reco_puppimet_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + puppimet->p4()).Pt(), 2));
         ParticleObject::LorentzVector_t puppimet_p4_ZZplusapprox; puppimet_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_puppimet_pTmiss, etamiss_approx, puppimet->phi(), PDGHelpers::Zmass);
@@ -718,12 +701,21 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         bool pass_mll = (doZZWW==0 && mll>=81. && mll<101.) || (doZZWW==1 && mll>=101.);
         bool pass_pTll = (pTll>=35.);
         bool pass_puppimet_thr = (puppimet->pt()>=85.);
-        bool pass_pfmet_thr = (pfmet->pt()>=85.);
         bool pass_puppimet_dPhilljets_thr = (std::abs(dPhi_pTlljets_puppimet_pTmiss)>=2.6);
-        bool pass_pfmet_dPhilljets_thr = (std::abs(dPhi_pTlljets_pfmet_pTmiss)>=2.6);
         bool pass_n_ak4jets_tight = n_ak4jets_tight>=2;
         bool pass_n_ak4jets_tight_btagged = n_ak4jets_tight_btagged==0;
-        if (!(pass_n_ak4jets_tight && pass_n_ak4jets_tight_btagged && pass_pTl1 && pass_pTl2 && pass_pTll && pass_mll && pass_puppimet_thr && pass_puppimet_dPhilljets_thr)) continue;
+        bool pass_min_abs_dPhi_j_puppimet = (min_abs_dPhi_j_puppimet>=0.6);
+        if (
+          !(
+            pass_n_ak4jets_tight && pass_n_ak4jets_tight_btagged
+            &&
+            pass_pTl1 && pass_pTl2 && pass_pTll
+            &&
+            pass_mll
+            &&
+            pass_puppimet_thr && pass_puppimet_dPhilljets_thr && pass_min_abs_dPhi_j_puppimet
+            )
+          ) continue;
 
         std::unordered_map<std::string, float> ME_values;
 
@@ -751,7 +743,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         // Enclosed around braces to localize it_hist
         {
           auto it_hist = sample.hlist_2D.begin();
-          for (int ichannel=0; ichannel<nchannels; ichannel++){
+          for (int ichannel=3; ichannel<nchannels; ichannel++){
             bool isCorrectChannel = (
               ichannel==-1
               || (ichannel==0 && is_ee)
@@ -765,8 +757,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
               for (auto it_cut = cutset.cbegin(); it_cut != cutset.cend(); it_cut++){
                 TString const& cutvar = it_cut->cutvar;
                 float cutval=0;
-                if (cutvar == "genmet") cutval = gen_pTmiss;
-                else if (cutvar == "Nj") cutval = n_ak4jets_tight;
+                if (cutvar == "Nj") cutval = n_ak4jets_tight;
                 else if (cutvar == "Nb") cutval = n_ak4jets_tight_btagged;
                 else if (cutvar == "puppimet") cutval = reco_puppimet_pTmiss;
                 doFill &= it_cut->testCut(cutval);
@@ -783,19 +774,21 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
 
     for (auto& hh:sample.hlist_2D){
       TH2F& hist = hh.hist;
-      if (sum_wgts>0.) hist.Scale(xsec*1000.*59.7/sum_wgts);
+      if (sum_wgts>0.) hist.Scale(xsec*1000.*lumi/sum_wgts);
     }
     sample.writeHistograms();
 
     MELAout.close();
     foutput->Close();
+
+    SampleHelpers::addToCondorTransferList(stroutput);
   } // End loop over samples
 
   delete DjjVBF;
 }
 
 
-void plot_VBFMELA(int doZZWW, bool doCondX, TString strdate=""){
+void plot_VBFMELA(int doZZWW, int iproc, bool doCondX, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -805,6 +798,8 @@ void plot_VBFMELA(int doZZWW, bool doCondX, TString strdate=""){
 
   TString const cinput_main = "output/" + strdate + "/VBFMELA" + (doZZWW==0 ? "/ZZCuts" : "/WWCuts");
   TString coutput_main = cinput_main + "/Plots";
+  gSystem->mkdir(coutput_main, true);
+
   {
     // Special case to copy index.php if you have one
     std::vector<TString> tmplist;
@@ -824,14 +819,13 @@ void plot_VBFMELA(int doZZWW, bool doCondX, TString strdate=""){
     }
   }
 
-
-  gSystem->mkdir(coutput_main, true);
-
   std::vector<std::string> sampleList;
-  //sampleList.emplace_back("DY_M10-50");
-  sampleList.emplace_back("DY_M50");
+  //sampleList.emplace_back("DY_2l_M_10to50");
+  //sampleList.emplace_back("DY_2l_M_50");
+  sampleList.emplace_back("DY_2l_M_50_HT");
   sampleList.emplace_back("TT2L2Nu");
   sampleList.emplace_back("ZZ2L2Nu");
+  sampleList.emplace_back("WW2L2Nu");
   sampleList.emplace_back("ggZZ_Sig");
   sampleList.emplace_back("VBF_Sig");
 
@@ -841,21 +835,25 @@ void plot_VBFMELA(int doZZWW, bool doCondX, TString strdate=""){
   bool firstFile = true;
   std::vector<TString> hnames;
   std::vector<TFile*> finputlist;
+  int jproc=0;
   for (auto const& sample:sampleList){
-    TFile* finput = TFile::Open(cinput_main + '/' + sample.data() + ".root", "read");
-    finputlist.push_back(finput);
+    if (iproc<0 || jproc==iproc){
+      TFile* finput = TFile::Open(cinput_main + '/' + sample.data() + ".root", "read");
+      finputlist.push_back(finput);
 
-    std::vector<TH2F*> hlist;
-    HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
-    if (firstFile){
-      for (TH2F* hh:hlist) hnames.push_back(hh->GetName());
-    }
-    if (hnames.size() == hlist.size()){
-      sample_hist_list.push_back(hlist);
-      samplePlottedList.push_back(sample);
-    }
+      std::vector<TH2F*> hlist;
+      HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
+      if (firstFile){
+        for (TH2F* hh:hlist) hnames.push_back(hh->GetName());
+      }
+      if (hnames.size() == hlist.size()){
+        sample_hist_list.push_back(hlist);
+        samplePlottedList.push_back(sample);
+      }
 
-    if (firstFile) firstFile=false;
+      if (firstFile) firstFile=false;
+    }
+    jproc++;
   }
 
   for (size_t iplot=0; iplot<hnames.size(); iplot++){

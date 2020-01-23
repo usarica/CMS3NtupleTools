@@ -96,8 +96,13 @@ if [[ ! -z $(tar -tf ${INITIALDIR}/${TARFILE} | head -n 1 | grep "^CMSSW") ]]; t
   else
     tar xf ${TARFILE}
   fi
-  tar xf ${TARFILE}
   rm ${TARFILE}
+
+  if [[ -e extras.more ]];then
+    mv extras.more extras.tar
+    tar xf extras.tar
+    rm extras.tar
+  fi
 
   cd $CMSSWVERSION
   echo "Current directory ${PWD} =? ${CMSSWVERSION}"
@@ -117,8 +122,13 @@ else
   else
     tar xf ${TARFILE}
   fi
-  tar xf ${TARFILE}
   rm ${TARFILE}
+
+  if [[ -e extras.more ]];then
+    mv extras.more extras.tar
+    tar xf extras.tar
+    rm extras.tar
+  fi
 fi
 
 

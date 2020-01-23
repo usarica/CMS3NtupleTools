@@ -27,11 +27,12 @@ using namespace RooFit;
 
 
 void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int istep, TString strdate=""){
-  if (istep==0 || istep>2) return;
+  if (istep>2) return;
 
   constexpr bool doZZselections = true;
 
   gStyle->SetOptStat(0);
+  TDirectory* curdir = gDirectory;
 
   bool isGammaJetsSample = false;
   {
@@ -77,30 +78,55 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, theGlobalSyst, sampleList);
 
-  TFile* finput_DYJets = nullptr;
-  TH2F* h_rewgt_0j_DYJets = nullptr;
-  TH2F* h_rewgt_1j_DYJets = nullptr;
-  TH2F* h_rewgt_2j_DYJets = nullptr;
-  TFile* finput_GJets = nullptr;
-  TH2F* h_rewgt_0j_GJets = nullptr;
-  TH2F* h_rewgt_1j_GJets = nullptr;
-  TH2F* h_rewgt_2j_GJets = nullptr;
-  if (istep==2){
+  std::vector<TFile*> finput_DYJets;
+  std::vector<TH1F*> h1D_rewgt_0j_DYJets;
+  std::vector<TH1F*> h1D_rewgt_1j_DYJets;
+  std::vector<TH1F*> h1D_rewgt_2j_DYJets;
+  std::vector<TH2F*> h2D_rewgt_0j_DYJets;
+  std::vector<TH2F*> h2D_rewgt_1j_DYJets;
+  std::vector<TH2F*> h2D_rewgt_2j_DYJets;
+  std::vector<TFile*> finput_GJets;
+  std::vector<TH1F*> h1D_rewgt_0j_GJets;
+  std::vector<TH1F*> h1D_rewgt_1j_GJets;
+  std::vector<TH1F*> h1D_rewgt_2j_GJets;
+  std::vector<TH2F*> h2D_rewgt_0j_GJets;
+  std::vector<TH2F*> h2D_rewgt_1j_GJets;
+  std::vector<TH2F*> h2D_rewgt_2j_GJets;
+  if (istep>=1 && isGammaJetsSample){
+    TString const strinputcore = Form("output/GammaJetsClosure/%s/%s/Step0", SampleHelpers::theDataPeriod.Data(), strdate.Data());
+    TString cinput_rewgt_DYJets = strinputcore + "/DYJets_all.root";
+    TString cinput_rewgt_GJets = strinputcore + "/GJets_all.root";
+
+    finput_DYJets.push_back(TFile::Open(cinput_rewgt_DYJets, "read"));
+    h1D_rewgt_0j_DYJets.push_back((TH1F*) finput_DYJets.back()->Get("Nvtxs_0j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_0j_DYJets.back(), false, true);
+    h1D_rewgt_1j_DYJets.push_back((TH1F*) finput_DYJets.back()->Get("Nvtxs_1j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_1j_DYJets.back(), false, true);
+    h1D_rewgt_2j_DYJets.push_back((TH1F*) finput_DYJets.back()->Get("Nvtxs_2j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_2j_DYJets.back(), false, true);
+
+    finput_GJets.push_back(TFile::Open(cinput_rewgt_GJets, "read"));
+    h1D_rewgt_0j_GJets.push_back((TH1F*) finput_GJets.back()->Get("Nvtxs_0j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_0j_GJets.back(), false, true);
+    h1D_rewgt_1j_GJets.push_back((TH1F*) finput_GJets.back()->Get("Nvtxs_1j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_1j_GJets.back(), false, true);
+    h1D_rewgt_2j_GJets.push_back((TH1F*) finput_GJets.back()->Get("Nvtxs_2j_rewgt")); HelperFunctions::wipeOverUnderFlows(h1D_rewgt_2j_GJets.back(), false, true);
+
+    MELAout << "Extracted the weighting histograms from step 0!" << endl;
+    curdir->cd();
+  }
+  if (istep>=2 && isGammaJetsSample){
     TString const strinputcore = Form("output/GammaJetsClosure/%s/%s/Step1", SampleHelpers::theDataPeriod.Data(), strdate.Data());
     TString cinput_rewgt_DYJets = strinputcore + "/DYJets_all.root";
     TString cinput_rewgt_GJets = strinputcore + "/GJets_all.root";
 
-    finput_DYJets = TFile::Open(cinput_rewgt_DYJets, "read");
-    h_rewgt_0j_DYJets = (TH2F*) finput_DYJets->Get("pTll_etall_0j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_0j_DYJets, false, true);
-    h_rewgt_1j_DYJets = (TH2F*) finput_DYJets->Get("pTll_etall_1j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_1j_DYJets, false, true);
-    h_rewgt_2j_DYJets = (TH2F*) finput_DYJets->Get("pTll_etall_2j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_2j_DYJets, false, true);
+    finput_DYJets.push_back(TFile::Open(cinput_rewgt_DYJets, "read"));
+    h2D_rewgt_0j_DYJets.push_back((TH2F*) finput_DYJets.back()->Get("pTll_etall_0j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_0j_DYJets.back(), false, true);
+    h2D_rewgt_1j_DYJets.push_back((TH2F*) finput_DYJets.back()->Get("pTll_etall_1j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_1j_DYJets.back(), false, true);
+    h2D_rewgt_2j_DYJets.push_back((TH2F*) finput_DYJets.back()->Get("pTll_etall_2j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_2j_DYJets.back(), false, true);
 
-    finput_GJets = TFile::Open(cinput_rewgt_GJets, "read");
-    h_rewgt_0j_GJets = (TH2F*) finput_GJets->Get("pTll_etall_0j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_0j_GJets, false, true);
-    h_rewgt_1j_GJets = (TH2F*) finput_GJets->Get("pTll_etall_1j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_1j_GJets, false, true);
-    h_rewgt_2j_GJets = (TH2F*) finput_GJets->Get("pTll_etall_2j_rewgt"); HelperFunctions::wipeOverUnderFlows(h_rewgt_2j_GJets, false, true);
+    finput_GJets.push_back(TFile::Open(cinput_rewgt_GJets, "read"));
+    h2D_rewgt_0j_GJets.push_back((TH2F*) finput_GJets.back()->Get("pTll_etall_0j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_0j_GJets.back(), false, true);
+    h2D_rewgt_1j_GJets.push_back((TH2F*) finput_GJets.back()->Get("pTll_etall_1j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_1j_GJets.back(), false, true);
+    h2D_rewgt_2j_GJets.push_back((TH2F*) finput_GJets.back()->Get("pTll_etall_2j_rewgt")); HelperFunctions::wipeOverUnderFlows(h2D_rewgt_2j_GJets.back(), false, true);
 
-    MELAout << "Extracted the weighting histograms!" << endl;
+    MELAout << "Extracted the weighting histograms from step 1!" << endl;
+    curdir->cd();
   }
 
   TString const stroutputcore = Form("output/GammaJetsClosure/%s/%s/Step%i", SampleHelpers::theDataPeriod.Data(), strdate.Data(), istep);
@@ -182,12 +208,26 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     TString stroutput = stroutputcore + "/" + cSample + ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
 
+    ExtendedBinning bins_Nvtxs(50, 0., 100.);
     ExtendedBinning bins_pTll({ 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 100, 150, 250, 500, 1000, 3000 });
     ExtendedBinning bins_pTll_coarse({ 0, 5, 35, 50, 75, 100, 150, 200, 300, 500, 1000, 3000 });
     ExtendedBinning bins_etall({ -2.5, -2.0, -1.5, -1.0, -0.5, 0., 0.5, 1.0, 1.5, 2.0, 2.5 });
-    TH2F h2D_pTll_etall_0j_rewgt("pTll_etall_0j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_0j_rewgt.Sumw2(); h2D_pTll_etall_0j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_0j_rewgt.GetXaxis()->SetTitle("#eta_{ll}");
-    TH2F h2D_pTll_etall_1j_rewgt("pTll_etall_1j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_1j_rewgt.Sumw2(); h2D_pTll_etall_1j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_1j_rewgt.GetXaxis()->SetTitle("#eta_{ll}");
-    TH2F h2D_pTll_etall_2j_rewgt("pTll_etall_2j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_2j_rewgt.Sumw2(); h2D_pTll_etall_2j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_2j_rewgt.GetXaxis()->SetTitle("#eta_{ll}");
+    ExtendedBinning bins_mZZ({ 0, 100, 180, 200, 225, 250, 300, 400, 500, 1000, 3000 });
+    ExtendedBinning bins_Njets({ 0., 1., 2., 3. }, "N_{j}");
+    ExtendedBinning bins_pt_jet_leadingpt({ 30., 40., 50., 60., 80., 100., 130., 165., 200., 250., 300., 400., 500., 1000., 3000. });
+    ExtendedBinning bins_pt_jet_subleadingpt({ 30., 40., 50., 75., 100., 150., 200., 300., 500., 1000., 3000. });
+    ExtendedBinning bins_min_abs_dPhi_j_puppimet(50, 0, TMath::Pi());
+    ExtendedBinning bins_abs_dPhi_lljets_puppimet(50, 0, TMath::Pi());
+    ExtendedBinning bins_puppimet_pTmiss(50, 0., 500.);
+    ExtendedBinning bins_puppimet_pTmiss_over_pTlljets(40, 0., 8.);
+
+    TH1F h1D_Nvtxs_0j_rewgt("Nvtxs_0j_rewgt", "", bins_Nvtxs.getNbins(), bins_Nvtxs.getBinning()); h1D_Nvtxs_0j_rewgt.Sumw2(); h1D_Nvtxs_0j_rewgt.GetXaxis()->SetTitle("N_{vtx}");
+    TH1F h1D_Nvtxs_1j_rewgt("Nvtxs_1j_rewgt", "", bins_Nvtxs.getNbins(), bins_Nvtxs.getBinning()); h1D_Nvtxs_1j_rewgt.Sumw2(); h1D_Nvtxs_1j_rewgt.GetXaxis()->SetTitle("N_{vtx}");
+    TH1F h1D_Nvtxs_2j_rewgt("Nvtxs_2j_rewgt", "", bins_Nvtxs.getNbins(), bins_Nvtxs.getBinning()); h1D_Nvtxs_2j_rewgt.Sumw2(); h1D_Nvtxs_2j_rewgt.GetXaxis()->SetTitle("N_{vtx}");
+
+    TH2F h2D_pTll_etall_0j_rewgt("pTll_etall_0j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_0j_rewgt.Sumw2(); h2D_pTll_etall_0j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_0j_rewgt.GetYaxis()->SetTitle("#eta_{ll}");
+    TH2F h2D_pTll_etall_1j_rewgt("pTll_etall_1j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_1j_rewgt.Sumw2(); h2D_pTll_etall_1j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_1j_rewgt.GetYaxis()->SetTitle("#eta_{ll}");
+    TH2F h2D_pTll_etall_2j_rewgt("pTll_etall_2j_rewgt", "", bins_pTll.getNbins(), bins_pTll.getBinning(), bins_etall.getNbins(), bins_etall.getBinning()); h2D_pTll_etall_2j_rewgt.Sumw2(); h2D_pTll_etall_2j_rewgt.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)"); h2D_pTll_etall_2j_rewgt.GetYaxis()->SetTitle("#eta_{ll}");
 
     std::unordered_map<TString, std::vector<TH1F>> var_histcoll_map;
     std::vector<std::pair<float, float>> met_thrs; met_thrs.reserve(4);
@@ -218,7 +258,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["pTll_2j"]) hist.GetXaxis()->SetTitle("p_{T}^{ll} (GeV)");
 
-    ExtendedBinning bins_mZZ({ 0, 100, 180, 200, 225, 250, 300, 400, 500, 1000, 3000 });
     var_histcoll_map["mZZ_0j"] = std::vector<TH1F>{
       TH1F("mZZ_0j_noMET", "", bins_mZZ.getNbins(), bins_mZZ.getBinning()),
       TH1F("mZZ_0j_looseMET", "", bins_mZZ.getNbins(), bins_mZZ.getBinning()),
@@ -241,7 +280,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["mZZ_2j"]) hist.GetXaxis()->SetTitle("m_{ZZ} (GeV)");
 
-    ExtendedBinning bins_Njets({ 0., 1., 2., 3. }, "N_{j}");
     var_histcoll_map["Njets"] = std::vector<TH1F>{
       TH1F("Njets_noMET", "", bins_Njets.getNbins(), bins_Njets.getBinning()),
       TH1F("Njets_looseMET", "", bins_Njets.getNbins(), bins_Njets.getBinning()),
@@ -250,7 +288,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["Njets"]) hist.GetXaxis()->SetTitle("N_{j}");
 
-    ExtendedBinning bins_Nvtxs(50, 0., 100.);
     var_histcoll_map["Nvtxs_0j"] = std::vector<TH1F>{
       TH1F("Nvtxs_0j_noMET", "", bins_Nvtxs.getNbins(), bins_Nvtxs.getBinning()),
       TH1F("Nvtxs_0j_looseMET", "", bins_Nvtxs.getNbins(), bins_Nvtxs.getBinning()),
@@ -273,7 +310,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["Nvtxs_2j"]) hist.GetXaxis()->SetTitle("N_{vtx}");
 
-    ExtendedBinning bins_pt_jet_leadingpt({ 30., 40., 50., 60., 80., 100., 130., 165., 200., 250., 300., 400., 500., 1000., 3000. });
     var_histcoll_map["pt_jet_leadingpt_1j"] = std::vector<TH1F>{
       TH1F("pt_jet_leadingpt_1j_noMET", "", bins_pt_jet_leadingpt.getNbins(), bins_pt_jet_leadingpt.getBinning()),
       TH1F("pt_jet_leadingpt_1j_looseMET", "", bins_pt_jet_leadingpt.getNbins(), bins_pt_jet_leadingpt.getBinning()),
@@ -289,7 +325,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["pt_jet_leadingpt_2j"]) hist.GetXaxis()->SetTitle("p_{T}^{j1} (GeV)");
 
-    ExtendedBinning bins_pt_jet_subleadingpt({ 30., 40., 50., 75., 100., 150., 200., 300., 500., 1000., 3000. });
     var_histcoll_map["pt_jet_subleadingpt_2j"] = std::vector<TH1F>{
       TH1F("pt_jet_subleadingpt_2j_noMET", "", bins_pt_jet_subleadingpt.getNbins(), bins_pt_jet_subleadingpt.getBinning()),
       TH1F("pt_jet_subleadingpt_2j_looseMET", "", bins_pt_jet_subleadingpt.getNbins(), bins_pt_jet_subleadingpt.getBinning()),
@@ -298,7 +333,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["pt_jet_subleadingpt_2j"]) hist.GetXaxis()->SetTitle("p_{T}^{j2} (GeV)");
 
-    ExtendedBinning bins_min_abs_dPhi_j_puppimet(50, 0, TMath::Pi());
     var_histcoll_map["min_abs_dPhi_j_puppimet_1j"] = std::vector<TH1F>{
       TH1F("min_abs_dPhi_j_puppimet_1j_noMET", "", bins_min_abs_dPhi_j_puppimet.getNbins(), bins_min_abs_dPhi_j_puppimet.getBinning()),
       TH1F("min_abs_dPhi_j_puppimet_1j_looseMET", "", bins_min_abs_dPhi_j_puppimet.getNbins(), bins_min_abs_dPhi_j_puppimet.getBinning()),
@@ -314,7 +348,6 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
     };
     for (auto& hist:var_histcoll_map["min_abs_dPhi_j_puppimet_2j"]) hist.GetXaxis()->SetTitle("Min. |#phi_{j} - #phi_{miss}^{PUPPI}|");
 
-    ExtendedBinning bins_abs_dPhi_lljets_puppimet(50, 0, TMath::Pi());
     var_histcoll_map["abs_dPhi_lljets_puppimet_0j"] = std::vector<TH1F>{
       TH1F("abs_dPhi_lljets_puppimet_0j_noMET", "", bins_abs_dPhi_lljets_puppimet.getNbins(), bins_abs_dPhi_lljets_puppimet.getBinning()),
       TH1F("abs_dPhi_lljets_puppimet_0j_looseMET", "", bins_abs_dPhi_lljets_puppimet.getNbins(), bins_abs_dPhi_lljets_puppimet.getBinning()),
@@ -336,6 +369,14 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
       TH1F("abs_dPhi_lljets_puppimet_2j_tightMET", "", bins_abs_dPhi_lljets_puppimet.getNbins(), bins_abs_dPhi_lljets_puppimet.getBinning())
     };
     for (auto& hist:var_histcoll_map["abs_dPhi_lljets_puppimet_2j"]) hist.GetXaxis()->SetTitle("|#phi_{ll+jets} - #phi_{miss}^{PUPPI}|");
+
+    TH1F puppimet_pTmiss_0j = TH1F("puppimet_pTmiss_0j", "", bins_puppimet_pTmiss.getNbins(), bins_puppimet_pTmiss.getBinning()); puppimet_pTmiss_0j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} (GeV)");
+    TH1F puppimet_pTmiss_1j = TH1F("puppimet_pTmiss_1j", "", bins_puppimet_pTmiss.getNbins(), bins_puppimet_pTmiss.getBinning()); puppimet_pTmiss_1j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} (GeV)");
+    TH1F puppimet_pTmiss_2j = TH1F("puppimet_pTmiss_2j", "", bins_puppimet_pTmiss.getNbins(), bins_puppimet_pTmiss.getBinning()); puppimet_pTmiss_2j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} (GeV)");
+
+    TH1F puppimet_pTmiss_over_pTlljets_0j = TH1F("puppimet_pTmiss_over_pTlljets_0j_noMET", "", bins_puppimet_pTmiss_over_pTlljets.getNbins(), bins_puppimet_pTmiss_over_pTlljets.getBinning()); puppimet_pTmiss_over_pTlljets_0j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} / p_{T}^{ll}");
+    TH1F puppimet_pTmiss_over_pTlljets_1j = TH1F("puppimet_pTmiss_over_pTlljets_1j_noMET", "", bins_puppimet_pTmiss_over_pTlljets.getNbins(), bins_puppimet_pTmiss_over_pTlljets.getBinning()); puppimet_pTmiss_over_pTlljets_1j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} / p_{T}^{ll}");
+    TH1F puppimet_pTmiss_over_pTlljets_2j = TH1F("puppimet_pTmiss_over_pTlljets_2j_noMET", "", bins_puppimet_pTmiss_over_pTlljets.getNbins(), bins_puppimet_pTmiss_over_pTlljets.getBinning()); puppimet_pTmiss_over_pTlljets_2j.GetXaxis()->SetTitle("p_{T}^{miss,PUPPI} / p_{T}^{ll}");
 
     // Setup stats tracking in histograms
     for (auto& it:var_histcoll_map){
@@ -502,29 +543,47 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
       ParticleObject::LorentzVector_t puppimet_p4_ZZapprox; puppimet_p4_ZZapprox = ParticleObject::PolarLorentzVector_t(pt_puppimet, etamiss_approx, phi_puppimet, PDGHelpers::Zmass);
       float mZZ_puppimet = (puppimet_p4_ZZapprox + p4_dileptonProxy).M();
 
-      if (istep==2){
-        TH2F* h_rewgt_DYJets=nullptr;
-        TH2F* h_rewgt_GJets=nullptr;
+      if (istep>0){
+        std::vector<TH1F*>* h1D_rewgt_DYJets=nullptr;
+        std::vector<TH1F*>* h1D_rewgt_GJets=nullptr;
+        std::vector<TH2F*>* h2D_rewgt_DYJets=nullptr;
+        std::vector<TH2F*>* h2D_rewgt_GJets=nullptr;
         if (n_ak4jets_tight==0){
-          h_rewgt_DYJets = h_rewgt_0j_DYJets;
-          h_rewgt_GJets = h_rewgt_0j_GJets;
+          h1D_rewgt_DYJets = &h1D_rewgt_0j_DYJets;
+          h1D_rewgt_GJets = &h1D_rewgt_0j_GJets;
+          h2D_rewgt_DYJets = &h2D_rewgt_0j_DYJets;
+          h2D_rewgt_GJets = &h2D_rewgt_0j_GJets;
         }
         else if (n_ak4jets_tight==1){
-          h_rewgt_DYJets = h_rewgt_1j_DYJets;
-          h_rewgt_GJets = h_rewgt_1j_GJets;
+          h1D_rewgt_DYJets = &h1D_rewgt_1j_DYJets;
+          h1D_rewgt_GJets = &h1D_rewgt_1j_GJets;
+          h2D_rewgt_DYJets = &h2D_rewgt_1j_DYJets;
+          h2D_rewgt_GJets = &h2D_rewgt_1j_GJets;
         }
         else if (n_ak4jets_tight==2){
-          h_rewgt_DYJets = h_rewgt_2j_DYJets;
-          h_rewgt_GJets = h_rewgt_2j_GJets;
+          h1D_rewgt_DYJets = &h1D_rewgt_2j_DYJets;
+          h1D_rewgt_GJets = &h1D_rewgt_2j_GJets;
+          h2D_rewgt_DYJets = &h2D_rewgt_2j_DYJets;
+          h2D_rewgt_GJets = &h2D_rewgt_2j_GJets;
         }
         else continue;
-        float pTll_etall_wgt=0;
-        int nx = h_rewgt_DYJets->GetNbinsX(); int ix = std::min(nx, std::max(1, h_rewgt_DYJets->GetXaxis()->FindBin(pTll)));
-        int ny = h_rewgt_DYJets->GetNbinsY(); int iy = std::min(ny, std::max(1, h_rewgt_DYJets->GetYaxis()->FindBin(etall)));
-        float pTll_etall_wgt_DYJets = h_rewgt_DYJets->GetBinContent(ix, iy);
-        float pTll_etall_wgt_GJets = h_rewgt_GJets->GetBinContent(ix, iy);
-        if (pTll_etall_wgt_GJets>0.f && pTll_etall_wgt_DYJets>0.f) pTll_etall_wgt = pTll_etall_wgt_DYJets / pTll_etall_wgt_GJets;
-        wgt *= pTll_etall_wgt;
+        for (size_t iwgt=0; iwgt<h1D_rewgt_DYJets->size(); iwgt++){
+          float extra_wgt=0;
+          int nx = h1D_rewgt_DYJets->at(iwgt)->GetNbinsX(); int ix = std::min(nx, std::max(1, h1D_rewgt_DYJets->at(iwgt)->GetXaxis()->FindBin(pTll)));
+          float extra_wgt_DYJets = h1D_rewgt_DYJets->at(iwgt)->GetBinContent(ix);
+          float extra_wgt_GJets = h1D_rewgt_GJets->at(iwgt)->GetBinContent(ix);
+          if (extra_wgt_GJets>0.f && extra_wgt_DYJets>0.f) extra_wgt = extra_wgt_DYJets / extra_wgt_GJets;
+          wgt *= extra_wgt;
+        }
+        for (size_t iwgt=0; iwgt<h2D_rewgt_DYJets->size(); iwgt++){
+          float extra_wgt=0;
+          int nx = h2D_rewgt_DYJets->at(iwgt)->GetNbinsX(); int ix = std::min(nx, std::max(1, h2D_rewgt_DYJets->at(iwgt)->GetXaxis()->FindBin(pTll)));
+          int ny = h2D_rewgt_DYJets->at(iwgt)->GetNbinsY(); int iy = std::min(ny, std::max(1, h2D_rewgt_DYJets->at(iwgt)->GetYaxis()->FindBin(etall)));
+          float extra_wgt_DYJets = h2D_rewgt_DYJets->at(iwgt)->GetBinContent(ix, iy);
+          float extra_wgt_GJets = h2D_rewgt_GJets->at(iwgt)->GetBinContent(ix, iy);
+          if (extra_wgt_GJets>0.f && extra_wgt_DYJets>0.f) extra_wgt = extra_wgt_DYJets / extra_wgt_GJets;
+          wgt *= extra_wgt;
+        }
       }
 
       float puppimet_over_pTlljets = pt_puppimet / pTlljets;
@@ -559,6 +618,13 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
             else if (var_histcoll_pair.first.Contains("pt_jet_leadingpt")){ if (jet_leadingpt) var = &pt_jet_leadingpt; else continue; }
             else if (var_histcoll_pair.first.Contains("pt_jet_subleadingpt")){ if (jet_subleadingpt) var = &pt_jet_subleadingpt; else continue; }
 
+            // Do not apply cuts on the variables plotted
+            if (
+              !(pass_min_abs_dPhi_j_puppimet || var==&min_abs_dPhi_j_puppimet)
+              ||
+              !(pass_abs_dPhi_lljets_puppimet || var==&abs_dPhi_lljets_puppimet)
+              ) continue;
+
             //if (n_acc%100000==0) MELAout << "Filling " << var_histcoll_pair.first << " with Nj=" << n_ak4jets_tight << " (var = " << *var << ", weight = " << wgt << ")" << endl;
 
             if (var){
@@ -570,11 +636,39 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
               assert(0);
             }
           }
-          // Fill 2D reweighting histogram only for last bin
+
+          if (!(istep<1 || (pass_min_abs_dPhi_j_puppimet && pass_abs_dPhi_lljets_puppimet))) continue;
+
+          // Fill MET-inclusive histograms
+          if (n_ak4jets_tight == 0){
+            puppimet_pTmiss_0j.Fill(pt_puppimet, wgt);
+            puppimet_pTmiss_over_pTlljets_0j.Fill(puppimet_over_pTlljets, wgt);
+          }
+          else if (n_ak4jets_tight == 1){
+            puppimet_pTmiss_1j.Fill(pt_puppimet, wgt);
+            puppimet_pTmiss_over_pTlljets_1j.Fill(puppimet_over_pTlljets, wgt);
+          }
+          else if (n_ak4jets_tight == 2){
+            puppimet_pTmiss_2j.Fill(pt_puppimet, wgt);
+            puppimet_pTmiss_over_pTlljets_2j.Fill(puppimet_over_pTlljets, wgt);
+          }
+
+          if (!(pass_min_abs_dPhi_j_puppimet && pass_abs_dPhi_lljets_puppimet)) continue;
+
+          // Fill 2D reweighting histogram only for bins except the last
           if (i_metbin != met_thrs.size()-1){
-            if (n_ak4jets_tight == 0) h2D_pTll_etall_0j_rewgt.Fill(pTll, etall, wgt);
-            else if (n_ak4jets_tight == 1) h2D_pTll_etall_1j_rewgt.Fill(pTll, etall, wgt);
-            else if (n_ak4jets_tight == 2) h2D_pTll_etall_2j_rewgt.Fill(pTll, etall, wgt);
+            if (n_ak4jets_tight == 0){
+              h1D_Nvtxs_0j_rewgt.Fill(n_vertices_good_f, wgt);
+              h2D_pTll_etall_0j_rewgt.Fill(pTll, etall, wgt);
+            }
+            else if (n_ak4jets_tight == 1){
+              h1D_Nvtxs_1j_rewgt.Fill(n_vertices_good_f, wgt);
+              h2D_pTll_etall_1j_rewgt.Fill(pTll, etall, wgt);
+            }
+            else if (n_ak4jets_tight == 2){
+              h1D_Nvtxs_2j_rewgt.Fill(n_vertices_good_f, wgt);
+              h2D_pTll_etall_2j_rewgt.Fill(pTll, etall, wgt);
+            }
           }
         }
 
@@ -584,6 +678,9 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
       n_acc++;
     }
 
+    foutput->WriteTObject(&h1D_Nvtxs_0j_rewgt);
+    foutput->WriteTObject(&h1D_Nvtxs_1j_rewgt);
+    foutput->WriteTObject(&h1D_Nvtxs_2j_rewgt);
     foutput->WriteTObject(&h2D_pTll_etall_0j_rewgt);
     foutput->WriteTObject(&h2D_pTll_etall_1j_rewgt);
     foutput->WriteTObject(&h2D_pTll_etall_2j_rewgt);
@@ -593,9 +690,18 @@ void produceGammaJetsClosure(TString strSampleSet, TString period, unsigned int 
         foutput->WriteTObject(&hist);
       }
     }
+    foutput->WriteTObject(&puppimet_pTmiss_0j);
+    foutput->WriteTObject(&puppimet_pTmiss_1j);
+    foutput->WriteTObject(&puppimet_pTmiss_2j);
+    foutput->WriteTObject(&puppimet_pTmiss_over_pTlljets_0j);
+    foutput->WriteTObject(&puppimet_pTmiss_over_pTlljets_1j);
+    foutput->WriteTObject(&puppimet_pTmiss_over_pTlljets_2j);
+
     foutput->Close();
+
+    SampleHelpers::addToCondorTransferList(stroutput);
   }
 
-  if (finput_GJets) finput_GJets->Close();
-  if (finput_DYJets) finput_DYJets->Close();
+  for (auto* finput:finput_GJets) finput->Close();
+  for (auto* finput:finput_DYJets) finput->Close();
 }

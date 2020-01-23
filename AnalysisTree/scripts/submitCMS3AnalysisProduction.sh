@@ -6,6 +6,7 @@ FCNARGS=""
 DATE=""
 OUTPUTDIR=""
 CONDOROUTDIR="/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
+EXTRATARCMD=""
 QUEUE="vanilla"
 
 let printhelp=0
@@ -37,6 +38,14 @@ for fargo in "$@";do
     fcnargname="$farg"
     fcnargname="${fcnargname#*=}"
     CONDOROUTDIR="$fcnargname"
+  elif [[ "$fargl" == "tarinclude="* ]];then
+    fcnargname="$farg"
+    fcnargname="${fcnargname#*=}"
+    if [[ -z "$EXTRATARCMD" ]];then
+      EXTRATARCMD="addfile=$fcnargname"
+    else
+      EXTRATARCMD="$EXTRATARCMD addfile=$fcnargname"
+    fi
   elif [[ "$fargl" == "help" ]];then
     let printhelp=1
   fi
@@ -50,6 +59,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - outdir: Main output location. Default='./output'"
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
   echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
+  echo " - tarinclude: Include extra files in the tar. Can specify multiple times. Default: None"
   exit 0
 fi
 SCRIPTRAWNAME="${SCRIPT%%.*}"
@@ -83,7 +93,7 @@ mkdir -p $OUTDIR
 
 TARFILE="cms3analysistree.tar"
 if [[ ! -e ${OUTDIR}/${TARFILE} ]];then
-  createCMS3AnalysisTreeTarball.sh
+  createCMS3AnalysisTreeTarball.sh ${EXTRATARCMD}
   mv ${TARFILE} ${OUTDIR}/
 fi
 

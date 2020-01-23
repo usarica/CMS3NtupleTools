@@ -7,5 +7,6 @@
   gSystem->AddIncludePath("-I$CMSSW_BASE/src/CMS3/AnalysisTree/test/");
 
   gSystem->Load("libCMS3AnalysisTree.so");
+  gSystem->Load("libCMS3NtupleMaker.so");
   gSystem->Load("libMelaAnalyticsEventContainer.so");
 }
