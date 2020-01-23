@@ -65,7 +65,7 @@ bool check_ml1(float const& val, bool use_old=true, bool useZZ=true){
   else return val>=(use_old ? 106.f : 101.f);
 }
 
-bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4jets_tight, bool use_old=true){
+bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4jets_tight, ParticleObject const* theChosenCand, bool use_old=true){
   if (!use_old) return kd>=0.5;
   else{
     if (ak4jets_tight.size()<2) return false;
@@ -77,6 +77,8 @@ bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4je
     if (leading_eta<subleading_eta) std::swap(leading_eta, subleading_eta);
     if (std::abs(leading_eta - subleading_eta)<4.f) return false;
     if ((leading_jet->p4() + subleading_jet->p4()).M()<500.f) return false;
+    float eta_cand = theChosenCand->eta();
+    if (eta_cand>subleading_eta && eta_cand<leading_eta) return false;
     for (auto it=itFirstJet; it!=ak4jets_tight.cend(); it++){
       float eta_jet = (*it)->eta();
       if (eta_jet>subleading_eta && eta_jet<leading_eta) return false;
