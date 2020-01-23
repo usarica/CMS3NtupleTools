@@ -56,15 +56,15 @@ namespace ElectronSelectionHelpers{
   constexpr float etaThr_skim_tight = 2.5;
 
   // Isolation thresholds
-  constexpr float isoThr_veto = 0.1;
-  constexpr float isoThr_loose = 0.1;
+  constexpr float isoThr_veto = 0.15;
+  constexpr float isoThr_loose = 0.15;
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
 
   constexpr SelectionBits bit_preselection_id = kTightId;
   constexpr SelectionBits bit_preselection_iso = kTightIso;
   constexpr SelectionBits bit_preselection_kin = kTightKin;
-  constexpr ElectronId idType_preselection = kMVAId_Fall17V2_NoIso;
+  constexpr ElectronId idType_preselection = kCutBasedId_Fall17V2;
   constexpr ElectronIso isoType_preselection = kPFIsoDR0p3;
 
   float absMiniIso_DR0p3(ElectronObject const& part);

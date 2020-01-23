@@ -12,7 +12,7 @@ namespace MuonSelectionHelpers{
   };
 
   // Skim selection
-  constexpr double selection_skim_pt = 5.;
+  constexpr double selection_skim_pt = 3.;
   constexpr double selection_skim_eta = 2.4;
 
   float muonEffArea(pat::Muon const& obj, int const& year); // For mini. iso. See https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/muons_cff.py EAFile_MiniIso entries

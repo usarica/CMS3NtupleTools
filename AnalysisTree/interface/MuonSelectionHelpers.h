@@ -46,7 +46,7 @@ namespace MuonSelectionHelpers{
   constexpr float ptThr_skim_loose = 7.;
   constexpr float ptThr_skim_medium = 7.;
   constexpr float ptThr_skim_tight = 7.;
-  constexpr float ptThr_skim_soft = 7.;
+  constexpr float ptThr_skim_soft = 3.;
 
   // Kinematic eta thresholds
   constexpr float etaThr_gen = 2.4;
@@ -57,8 +57,8 @@ namespace MuonSelectionHelpers{
   constexpr float etaThr_skim_soft = 2.4;
 
   // Isolation thresholds
-  constexpr float isoThr_veto = 0.1;
-  constexpr float isoThr_loose = 0.1;
+  constexpr float isoThr_veto = 0.2;
+  constexpr float isoThr_loose = 0.2;
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
   constexpr float isoThr_soft = 0.2;
