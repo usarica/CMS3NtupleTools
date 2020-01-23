@@ -30,7 +30,7 @@ bool check_min_abs_dPhi_pTj_pTmiss(float const& val, bool use_old=true){
   return std::abs(val)>=thr;
 }
 
-#define _old_ZZ_met_thr_ 150.f
+#define _old_ZZ_met_thr_ 125.f
 #define _new_ZZ_met_thr_ 100.f
 #define _old_WW_met_thr_ 20.f
 #define _new_WW_met_thr_ 20.f
