@@ -20,6 +20,9 @@ public:
   static const std::string colName_vertices;
 
 protected:
+  bool trackDataEvents;
+  bool checkUniqueDataEvent;
+
   bool product_passCommonSkim;
   bool product_hasGoodVertex;
   bool product_uniqueEvent;
@@ -61,6 +64,8 @@ public:
   // For data trees. MC is always true
   bool const& isUniqueDataEvent() const{ return product_uniqueEvent; }
 
+  void setTrackDataEvents(bool flag){ this->trackDataEvents=flag; }
+  void setCheckUniqueDataEvent(bool flag){ this->checkUniqueDataEvent=flag; }
 
   std::vector<HLTTriggerPathObject*> const& getHLTPaths() const{ return this->product_HLTpaths; }
   std::unordered_map<std::string, bool> const& getMETFilters() const{ return this->product_metfilters; }

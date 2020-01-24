@@ -25,6 +25,8 @@ const std::string EventFilterHandler::colName_vertices = "vtxs";
 
 EventFilterHandler::EventFilterHandler() :
   IvyBase(),
+  trackDataEvents(true),
+  checkUniqueDataEvent(true),
   product_passCommonSkim(true),
   product_uniqueEvent(true)
 {
@@ -272,9 +274,10 @@ bool EventFilterHandler::constructVertexFilter(){
 
 
 bool EventFilterHandler::accumulateRunLumiEventBlock(){
-  if (!SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)){
+  bool isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+  if (!isData || !trackDataEvents || !checkUniqueDataEvent){
     product_uniqueEvent = true;
-    return true;
+    if (!isData || !trackDataEvents) return true;
   }
 
   bool allVariablesPresent = true;
@@ -297,12 +300,15 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
     it_run->second[LuminosityBlock] = std::vector<unsigned long long>();
     it_lumi = it_run->second.find(LuminosityBlock);
   }
-  auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), EventNumber);
-  if (it_event == it_lumi->second.end()){
-    it_lumi->second.push_back(EventNumber);
-    product_uniqueEvent = true;
+  if (checkUniqueDataEvent){
+    auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), EventNumber);
+    if (it_event == it_lumi->second.end()){
+      it_lumi->second.push_back(EventNumber);
+      product_uniqueEvent = true;
+    }
+    else product_uniqueEvent = false;
   }
-  else product_uniqueEvent = false;
+  else it_lumi->second.push_back(EventNumber);
 
   return true;
 }

@@ -729,6 +729,8 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
         }
       }
 
+      if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons, /*&photons*/nullptr, &ak4jets, &ak8jets)) continue;
+
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
       //MELAout << "Ndileptons: " << dileptons.size() << " | pTs = ";
