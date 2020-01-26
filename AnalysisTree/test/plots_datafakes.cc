@@ -351,34 +351,66 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
   eventFilter.setCheckUniqueDataEvent(false);
 
   std::vector< std::vector<CutSpecs> > cutsets;
-  // Nj==0
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 0, 0
-  );
-  // Nj==1
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 1, 1
-  );
-  // Nj==2
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 2, 2
-  );
-  // Nj>=3
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, false, 3, -1
-  );
+  for (unsigned int imet=0; imet<3; imet++){
+    bool do_met_low, do_met_high;
+    float met_low, met_high;
+    if (imet==0){
+      do_met_low=false; do_met_high=true;
+      met_low=-1; met_high=20;
+    }
+    else if (imet==1){
+      do_met_low=true; do_met_high=true;
+      met_low=20; met_high=125;
+    }
+    else{
+      do_met_low=true; do_met_high=false;
+      met_low=125; met_high=-1;
+    }
+    // Nj==0
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(2);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 0, 0
+    );
+    cutsets.back().emplace_back(
+      "pfmet_pTmiss", "p_{T}^{miss,PF}",
+      do_met_low, do_met_high, met_low, met_high
+    );
+    // Nj==1
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(2);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 1, 1
+    );
+    cutsets.back().emplace_back(
+      "pfmet_pTmiss", "p_{T}^{miss,PF}",
+      do_met_low, do_met_high, met_low, met_high
+    );
+    // Nj==2
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(2);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 2, 2
+    );
+    cutsets.back().emplace_back(
+      "pfmet_pTmiss", "p_{T}^{miss,PF}",
+      do_met_low, do_met_high, met_low, met_high
+    );
+    // Nj>=3
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(2);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, false, 3, -1
+    );
+    cutsets.back().emplace_back(
+      "pfmet_pTmiss", "p_{T}^{miss,PF}",
+      do_met_low, do_met_high, met_low, met_high
+    );
+  }
 
   for (size_t isample=0; isample<sampleList.size(); isample++){
     if (procsel>=0 && isample!=static_cast<size_t>(procsel)) continue;
@@ -443,67 +475,67 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
         }
 
         sample.hlist_1D.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), "mll_anyloose", cuttitle.Data()), Form("any loose|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
+          Form("h1D_%s_%s_%s", strChannel.Data(), "mll_anyloose", cuttitle.Data()), Form("Any loose|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
           "m_{ll} (GeV)", "",
-          50, 50., 300.,
+          32, 31., 191.,
           channeldir
         );
 
         if (ichannel==0){
           sample.hlist_1D.emplace_back(
-            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()), Form("cut-based medium|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
+            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()), Form("Cut-based medium|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
-            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()), Form("cut-based tight|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
+            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()), Form("Cut-based tight|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvanoisowp90", cuttitle.Data()), Form("Fall17V2 MVA (no iso.) WP90|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvanoisowp80", cuttitle.Data()), Form("Fall17V2 MVA (no iso.) WP80|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp90", cuttitle.Data()), Form("Fall17V2 MVA (w/ iso.) WP90|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp80", cuttitle.Data()), Form("Fall17V2 MVA (w/ iso.) WP80|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), "mll_hzzmvawphzz", cuttitle.Data()), Form("HZZ MVA WPHZZ|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
         }
         else{
           sample.hlist_1D.emplace_back(
-            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()), Form("cut-based medium|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
+            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()), Form("Cut-based medium|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
           sample.hlist_1D.emplace_back(
-            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()), Form("cut-based tight|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
+            Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()), Form("Cut-based tight|%s (%s)|%s", strChannelLabel.Data(), sample.label.data(), cutlabel.Data()),
             "m_{ll} (GeV)", "",
-            50, 50., 300.,
+            32, 31., 191.,
             channeldir
           );
         }
@@ -529,7 +561,7 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nevents);
       if (ev % 10000 == 0) MELAout << "Number of accumulated events: " << nacc << '/' << ev << '/' << nevents << endl;
-      //if (nacc==1) break;
+      //if (nacc>1000) break;
       sample_tree.getSelectedEvent(ev);
 
       float wgt = 1;
@@ -573,25 +605,24 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       }
       //MELAout << "N loose electrons: " << looseElectrons.size() << endl;
       // Disambiguate electrons and muons
+      size_t nLooseElectrons_precleaning = looseElectrons.size();
       {
         std::vector<ElectronObject*> looseElectrons_new; looseElectrons_new.reserve(looseElectrons.size());
         for (auto*& product:looseElectrons){
-          bool isLooseProduct = true;
           bool doRemove = false;
-          if (!doRemove){
-            for (auto const* part:looseMuons){
-              if (reco::deltaR(product->p4(), part->p4())<0.05){ doRemove=true; break; }
-            }
+          for (auto const* part:looseMuons){
+            if (reco::deltaR(product->p4(), part->p4())<0.05){ doRemove=true; break; }
           }
           if (!doRemove) looseElectrons_new.push_back(product);
         }
         looseElectrons = looseElectrons_new;
       }
+      size_t nLooseElectrons_postcleaning = looseElectrons.size();
       //MELAout << "N loose electrons after disambiguation: " << looseElectrons.size() << endl;
 
       photonHandler.constructPhotons(theGlobalSyst);
       auto const& photons = photonHandler.getProducts();
-      bool hasLoosePhotons=false;
+      bool hasLoosePhotons = false;
       for (auto const& photon:photons){
         if (ParticleSelectionHelpers::isLooseParticle(photon)){
           bool doSkip = false;
@@ -608,20 +639,21 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
             }
           }
           if (doSkip) continue;
-          hasLoosePhotons=true;
+          hasLoosePhotons = true;
           break;
         }
       }
       if (hasLoosePhotons) continue;
       //MELAout << "Pass photon veto" << endl;
 
-      if (looseMuons.size()+looseElectrons.size()!=2) continue;
-      //MELAout << "Pass total leptons veto" << endl;
-      if (!(looseMuons.size()==2 || looseElectrons.size()==2)) continue;
-      //MELAout << "Pass individual leptons veto" << endl;
-      if (looseMuons.size()==2 && looseMuons.front()->pdgId()==looseMuons.back()->pdgId()) continue;
-      if (looseElectrons.size()==2 && looseElectrons.front()->pdgId()==looseElectrons.back()->pdgId()) continue;
-      //MELAout << "Pass OSSF veto" << endl;
+      if (
+          !(
+            (looseMuons.size()==2 && looseElectrons.size()==0)
+            ||
+            (looseMuons.size()==0 && looseElectrons.size()==2)
+          )
+        ) continue;
+      //MELAout << "Pass lepton count veto" << endl;
 
       bool is_ee = looseElectrons.size()==2;
       bool is_mumu = looseMuons.size()==2;
@@ -630,12 +662,25 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       if (procsel==0 && !is_ee) continue;
       else if (procsel==1 && !is_mumu) continue;
 
+      ParticleObject* leadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.front()) : dynamic_cast<ParticleObject*>(looseMuons.front()));
+      ParticleObject* subleadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.back()) : dynamic_cast<ParticleObject*>(looseMuons.back()));
+      if (leadingLepton->pdgId()*subleadingLepton->pdgId()>0) continue;
+      else if (leadingLepton->pdgId()*subleadingLepton->pdgId()==0){
+        MELAerr << "Leading lepton id (" << leadingLepton->pdgId() << ") or subleading lepton id (" << subleadingLepton->pdgId() << ") are invalid." << endl;
+        assert(0);
+      }
+      //MELAout << "Pass OSSF veto" << endl;
+      if (leadingLepton->pt()<25. || subleadingLepton->pt()<20.) continue;
+      //MELAout << "Pass lepton pT veto" << endl;
+
+      ParticleObject::LorentzVector_t p4_ll = leadingLepton->p4() + subleadingLepton->p4();
+      float mll = p4_ll.M();
+
+      // Now jets
       jetHandler.constructJetMET(theGlobalSyst, &looseMuons, &looseElectrons, nullptr); // Since events with loose photons are skipped, no longer need to pass photons here
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();
-      if (pfmet->pt()<150.) continue;
-      //MELAout << "Pass MET cut" << endl;
 
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       std::vector<AK4JetObject*> ak4jets_tight_btagged; ak4jets_tight_btagged.reserve(ak4jets.size());
@@ -651,11 +696,6 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
 
       if (!eventFilter.test2018HEMFilter(nullptr, &looseElectrons, nullptr, &ak4jets, &ak8jets)) continue; // Since events with loose photons are skipped, no longer need to pass photons here
       //MELAout << "Pass HEM filter" << endl;
-
-      ParticleObject* leadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.front()) : dynamic_cast<ParticleObject*>(looseMuons.front()));
-      ParticleObject* subleadingLepton = (is_ee ? dynamic_cast<ParticleObject*>(looseElectrons.back()) : dynamic_cast<ParticleObject*>(looseMuons.back()));
-      ParticleObject::LorentzVector_t p4_ll = leadingLepton->p4() + subleadingLepton->p4();
-      float mll = p4_ll.M();
 
       bool pass_ee_cutbasedMedium = false;
       bool pass_ee_cutbasedTight = false;
@@ -712,22 +752,34 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       }
 
       /*
-      if (pass_ee_cutbasedMedium) MELAout << "pass_ee_cutbasedMedium" << endl;
-      if (pass_ee_cutbasedTight) MELAout << "pass_ee_cutbasedTight" << endl;
-      if (pass_ee_fall17v2mvanoisowp90) MELAout << "pass_ee_fall17v2mvanoisowp90" << endl;
-      if (pass_ee_fall17v2mvanoisowp80) MELAout << "pass_ee_fall17v2mvanoisowp80" << endl;
-      if (pass_ee_fall17v2mvaisowp90) MELAout << "pass_ee_fall17v2mvaisowp90" << endl;
-      if (pass_ee_fall17v2mvaisowp80) MELAout << "pass_ee_fall17v2mvaisowp80" << endl;
-      if (pass_ee_hzzmvaisowpHZZ) MELAout << "pass_ee_hzzmvaisowpHZZ" << endl;
-      if (nacc==1) MELAout << "Njets = " << n_ak4jets_tight << ", mll = " << mll << endl;
+      if (nacc%100 == 0 || n_ak4jets_tight>0){
+        MELAout << "Accumulated event: " << nacc << '/' << ev << '/' << nevents << endl;
+        MELAout << "\t- Number of electrons (raw, precleaning, postcleaning) = ( " << electrons.size() << ", " << nLooseElectrons_precleaning << ", " << nLooseElectrons_postcleaning << " )" << endl;
+        MELAout << "\t- Number of muons (raw, loose) = ( " << muons.size() << ", " << looseMuons.size() << " )" << endl;
+        if (is_ee){
+          if (pass_ee_cutbasedMedium) MELAout << "\t- pass_ee_cutbasedMedium" << endl;
+          if (pass_ee_cutbasedTight) MELAout << "\t- pass_ee_cutbasedTight" << endl;
+          if (pass_ee_fall17v2mvanoisowp90) MELAout << "\t- pass_ee_fall17v2mvanoisowp90" << endl;
+          if (pass_ee_fall17v2mvanoisowp80) MELAout << "\t- pass_ee_fall17v2mvanoisowp80" << endl;
+          if (pass_ee_fall17v2mvaisowp90) MELAout << "\t- pass_ee_fall17v2mvaisowp90" << endl;
+          if (pass_ee_fall17v2mvaisowp80) MELAout << "\t- pass_ee_fall17v2mvaisowp80" << endl;
+          if (pass_ee_hzzmvaisowpHZZ) MELAout << "\t- pass_ee_hzzmvaisowpHZZ" << endl;
+        }
+        else{
+          if (pass_mumu_cutbasedMedium) MELAout << "\t- pass_mumu_cutbasedMedium" << endl;
+          if (pass_mumu_cutbasedTight) MELAout << "\t- pass_mumu_cutbasedTight" << endl;
+        }
+        MELAout << "\t- Leading lepton: [" << leadingLepton->pdgId() << "] ( " << leadingLepton->pt() << ", " << leadingLepton->eta() << ", " << leadingLepton->phi() << ", " << leadingLepton->m() << ")" << endl;
+        MELAout << "\t- Subleading lepton: [" << subleadingLepton->pdgId() << "] ( " << subleadingLepton->pt() << ", " << subleadingLepton->eta() << ", " << subleadingLepton->phi() << ", " << subleadingLepton->m() << ")" << endl;
+        MELAout << "\t- Njets = " << n_ak4jets_tight << ", mll = " << mll << ", MET = " << pfmet->pt() << endl;
+      }
       */
-
       // Fill histograms
       // Enclosed around braces to localize it_hist
       {
         auto it_hist = sample.hlist_1D.begin();
         for (int ichannel=0; ichannel<nchannels; ichannel++){
-          if (procsel!=ichannel) continue;
+          if (ichannel!=procsel) continue;
           bool isCorrectChannel = (
             ichannel==-1
             || (ichannel==0 && is_ee)
@@ -742,23 +794,23 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
               TString const& cutvar = it_cut->cutvar;
               float cutval=0;
               if (cutvar == "Nj") cutval = n_ak4jets_tight;
+              else if (cutvar == "pfmet_pTmiss") cutval = pfmet->pt();
               doFill &= it_cut->testCut(cutval);
             }
-            if (isCorrectChannel && doFill){
-              it_hist->hist.Fill(mll, wgt); it_hist++;
-              if (procsel == 0){ // Z->ee
-                if (pass_ee_cutbasedMedium) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_cutbasedTight) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_fall17v2mvanoisowp90) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_fall17v2mvanoisowp80) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_fall17v2mvaisowp90) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_fall17v2mvaisowp80) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_ee_hzzmvaisowpHZZ) it_hist->hist.Fill(mll, wgt); it_hist++;
-              }
-              else if (procsel == 1){ // Z->mumu
-                if (pass_mumu_cutbasedMedium) it_hist->hist.Fill(mll, wgt); it_hist++;
-                if (pass_mumu_cutbasedTight) it_hist->hist.Fill(mll, wgt); it_hist++;
-              }
+
+            if (isCorrectChannel && doFill) it_hist->hist.Fill(mll, wgt); it_hist++;
+            if (procsel == 0){ // Z->ee
+              if (isCorrectChannel && doFill && pass_ee_cutbasedMedium) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_cutbasedTight) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_fall17v2mvanoisowp90) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_fall17v2mvanoisowp80) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_fall17v2mvaisowp90) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_fall17v2mvaisowp80) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_ee_hzzmvaisowpHZZ) it_hist->hist.Fill(mll, wgt); it_hist++;
+            }
+            else if (procsel == 1){ // Z->mumu
+              if (isCorrectChannel && doFill && pass_mumu_cutbasedMedium) it_hist->hist.Fill(mll, wgt); it_hist++;
+              if (isCorrectChannel && doFill && pass_mumu_cutbasedTight) it_hist->hist.Fill(mll, wgt); it_hist++;
             }
           }
         } // End loop over channels
