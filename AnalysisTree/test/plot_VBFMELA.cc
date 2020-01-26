@@ -491,7 +491,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         }
 
         sample.hlist_2D.emplace_back(
-          Form("h2D_%s_%s_%s", strChannel.Data(), "puppimet_mZZ_plus_VS_DVBF2j", cuttitle.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data()),
+          Form("h2D_%s_%s_%s", strChannel.Data(), "puppimet_mZZ_VS_DVBF2j", cuttitle.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data()),
           "m_{ZZ} (GeV)", "D_{2j}^{VBF}", "a.u.",
           100, 0., 3000.,
           25, 0., 1.,
@@ -690,8 +690,9 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         float reco_puppimet_pTmiss_significance = puppimet->extras.metSignificance;
         // Compute ZZ-style masses
         float mTZZ_puppimet = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(reco_puppimet_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + puppimet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t puppimet_p4_ZZplusapprox; puppimet_p4_ZZplusapprox = ParticleObject::PolarLorentzVector_t(reco_puppimet_pTmiss, etamiss_approx, puppimet->phi(), PDGHelpers::Zmass);
-        float mZZ_plus_puppimet = (puppimet_p4_ZZplusapprox + theChosenDilepton->p4()).M();
+        ParticleObject::LorentzVector_t puppimet_p4_approx; puppimet_p4_approx = ParticleObject::PolarLorentzVector_t(puppimet_pTmiss, etamiss_approx, puppimet_phi, PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t puppimet_ZZ_p4_approx = puppimet_p4_approx + theChosenDilepton->p4();
+        float mZZ_puppimet = puppimet_ZZ_p4_approx.M();
 
         float reco_pfmet_pTmiss = pfmet->pt();
 
@@ -720,7 +721,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         std::unordered_map<std::string, float> ME_values;
 
         SimpleParticleCollection_t daughters;
-        daughters.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(puppimet_p4_ZZplusapprox)));
+        daughters_puppimet.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(puppimet_ZZ_p4_approx)));
 
         SimpleParticleCollection_t associated;
         associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(0)->p4())));
@@ -734,7 +735,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
         MEblock.getBranchValues(ME_values); // Record the MEs into the EDProducer product
         CMS3MELAHelpers::melaHandle->resetInputEvent();
 
-        DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_plus_puppimet);
+        DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_puppimet);
 
         //if (firstValidEvent) CMS3MELAHelpers::melaHandle->setVerbosity(TVar::ERROR);
         firstValidEvent = false;
@@ -764,7 +765,7 @@ void getHistograms(int doZZWW, int procsel, TString strdate=""){
               }
 
               // pT ratios
-              if (isCorrectChannel && doFill) it_hist->hist.Fill(mZZ_plus_puppimet, float(*DjjVBF)); it_hist++;
+              if (isCorrectChannel && doFill) it_hist->hist.Fill(mZZ_puppimet, float(*DjjVBF)); it_hist++;
             }
           } // End loop over channels
         } // End fill

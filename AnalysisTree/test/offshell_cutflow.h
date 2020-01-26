@@ -92,14 +92,14 @@ bool check_NoExtraLeptons(std::vector<MuonObject*> const& muons, std::vector<Ele
 
   MuonVetoFcn muonVetoFcn=nullptr;
   ElectronVetoFcn electronVetoFcn=nullptr;
-  if (use_old){
+  //if (use_old){
     muonVetoFcn = &ParticleSelectionHelpers::isLooseParticle<MuonObject>;
     electronVetoFcn = &ParticleSelectionHelpers::isLooseParticle<ElectronObject>;
-  }
-  else{
-    muonVetoFcn = &ParticleSelectionHelpers::isVetoParticle<MuonObject>;
-    electronVetoFcn = &ParticleSelectionHelpers::isVetoParticle<ElectronObject>;
-  }
+  //}
+  //else{
+  //  muonVetoFcn = &ParticleSelectionHelpers::isVetoParticle<MuonObject>;
+  //  electronVetoFcn = &ParticleSelectionHelpers::isVetoParticle<ElectronObject>;
+  //}
 
   std::vector<ParticleObject*> const& daughters = theChosenCand->getDaughters();
   size_t nleptons = muons.size()+electrons.size();
