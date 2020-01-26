@@ -292,19 +292,21 @@ void getChannelTitleLabel(int ichannel, TString& title, TString& label){
   }
 }
 
-void getHistograms(int doZZWW, int procsel, bool doOldSelection=true, bool usePuppiMETForSelection=false, TString strdate="");
+void getHistograms(int doZZWW, int procsel, bool doOldSelection=true, bool usePuppiMETForSelection=false, bool forceDjjVBFCategorization=false, TString strdate="");
 void getHistograms(int doZZWW, int procsel, bool doOldSelection=true, TString strdate=""){
-  getHistograms(doZZWW, procsel, doOldSelection, !doOldSelection, strdate);
+  getHistograms(doZZWW, procsel, doOldSelection, !doOldSelection, false, strdate);
 }
 
-void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiMETForSelection, TString strdate){
+void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiMETForSelection, bool forceDjjVBFCategorization, TString strdate){
+  if (forceDjjVBFCategorization && !doOldSelection) return;
+
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   constexpr int nchannels = 4; // ichannel=0, 1, 2, 3 for ee, mumu, emu, ee+mumu
 
-  TString const coutput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + (usePuppiMETForSelection ? "/PUPPIMETCuts" : "/PFMETCuts");
+  TString const coutput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? (!forceDjjVBFCategorization ? "/OldCuts" : "/OldCuts_DjjVBFCategorization") : "/NewCuts") + (usePuppiMETForSelection ? "/PUPPIMETCuts" : "/PFMETCuts");
 
   gSystem->mkdir(coutput_main, true);
 
@@ -418,34 +420,36 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
   );
   */
 
-  // Nj<3
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 0, 3
-  );
-  // Nj==0
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 0, 0
-  );
-  // Nj==1
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 1, 1
-  );
-  // Nj==2
-  cutsets.push_back(std::vector<CutSpecs>());
-  cutsets.back().reserve(1);
-  cutsets.back().emplace_back(
-    "Nj", "N_{j}",
-    true, true, 2, 2
-  );
+  if (!forceDjjVBFCategorization){
+    // Nj<3
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(1);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 0, 3
+    );
+    // Nj==0
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(1);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 0, 0
+    );
+    // Nj==1
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(1);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 1, 1
+    );
+    // Nj==2
+    cutsets.push_back(std::vector<CutSpecs>());
+    cutsets.back().reserve(1);
+    cutsets.back().emplace_back(
+      "Nj", "N_{j}",
+      true, true, 2, 2
+    );
+  }
   // Nj==2, VBF
   cutsets.push_back(std::vector<CutSpecs>());
   cutsets.back().reserve(2);
@@ -588,6 +592,12 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
           TString strMETname = (imet==0 ? "pfmet" : "puppimet");
           TString strMETtitle = (imet==0 ? "PF" : "PUPPI");
 
+          sample.hlist_1D.emplace_back(
+            Form("h1D_%s_%s_%s", strChannel.Data(), Form("%s_phi", strMETname.Data()), cuttitle.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data()),
+            Form("#phi_{miss}^{%s}", strMETtitle.Data()), "",
+            40, -TMath::Pi(), +TMath::Pi(),
+            channeldir
+          );
           sample.hlist_1D.emplace_back(
             Form("h1D_%s_%s_%s", strChannel.Data(), Form("min_abs_dPhi_j_%s", strMETname.Data()), cuttitle.Data()), Form("%s|%s|%s", sample.label.data(), strChannelLabel.Data(), cutlabel.Data()),
             Form("Min. |#phi_{j} - #phi_{miss}^{%s})|", strMETtitle.Data()), "",
@@ -798,27 +808,31 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
           HelperFunctions::deltaPhi(float(jet->phi()), float(pfmet->phi()), dphi_tmp); dphi_tmp = std::abs(dphi_tmp);
           min_abs_dPhi_j_pfmet = std::min(min_abs_dPhi_j_pfmet, dphi_tmp);
         }
-        float abs_dPhi_ll_puppimet = theChosenDilepton->deltaPhi(puppimet->phi()); abs_dPhi_ll_puppimet = std::abs(abs_dPhi_ll_puppimet);
-        float abs_dPhi_lljets_puppimet; HelperFunctions::deltaPhi(float((theChosenDilepton->p4() + p4_alljets).Phi()), float(puppimet->phi()), abs_dPhi_lljets_puppimet); abs_dPhi_lljets_puppimet = std::abs(abs_dPhi_lljets_puppimet);
+        float puppimet_phi = puppimet->phi();
+        float abs_dPhi_ll_puppimet = theChosenDilepton->deltaPhi(puppimet_phi); abs_dPhi_ll_puppimet = std::abs(abs_dPhi_ll_puppimet);
+        float abs_dPhi_lljets_puppimet; HelperFunctions::deltaPhi(float((theChosenDilepton->p4() + p4_alljets).Phi()), puppimet_phi, abs_dPhi_lljets_puppimet); abs_dPhi_lljets_puppimet = std::abs(abs_dPhi_lljets_puppimet);
         float puppimet_pTmiss = puppimet->pt();
         float puppimet_pTmiss_over_genmet_pTmiss = puppimet_pTmiss/genmet_pTmiss;
-        float abs_dPhi_puppimet_genmet; HelperFunctions::deltaPhi(float(puppimet->phi()), genmet_phi, abs_dPhi_puppimet_genmet); abs_dPhi_puppimet_genmet = std::abs(abs_dPhi_puppimet_genmet);
+        float abs_dPhi_puppimet_genmet; HelperFunctions::deltaPhi(puppimet_phi, genmet_phi, abs_dPhi_puppimet_genmet); abs_dPhi_puppimet_genmet = std::abs(abs_dPhi_puppimet_genmet);
         float puppimet_pTmiss_over_pTll = puppimet_pTmiss/pTll;
         float puppimet_pTmiss_over_pTlljets = puppimet_pTmiss/pTlljets;
         float mTZZ_puppimet = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(puppimet_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + puppimet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t puppimet_p4_ZZapprox; puppimet_p4_ZZapprox = ParticleObject::PolarLorentzVector_t(puppimet_pTmiss, etamiss_approx, puppimet->phi(), PDGHelpers::Zmass);
-        float mZZ_puppimet = (puppimet_p4_ZZapprox + theChosenDilepton->p4()).M();
+        ParticleObject::LorentzVector_t puppimet_p4_approx; puppimet_p4_approx = ParticleObject::PolarLorentzVector_t(puppimet_pTmiss, etamiss_approx, puppimet_phi, PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t puppimet_ZZ_p4_approx = puppimet_p4_approx + theChosenDilepton->p4();
+        float mZZ_puppimet = puppimet_ZZ_p4_approx.M();
 
-        float abs_dPhi_ll_pfmet = theChosenDilepton->deltaPhi(pfmet->phi()); abs_dPhi_ll_pfmet = std::abs(abs_dPhi_ll_pfmet);
-        float abs_dPhi_lljets_pfmet; HelperFunctions::deltaPhi(float((theChosenDilepton->p4() + p4_alljets).Phi()), float(pfmet->phi()), abs_dPhi_lljets_pfmet); abs_dPhi_lljets_pfmet = std::abs(abs_dPhi_lljets_pfmet);
+        float pfmet_phi = pfmet->phi();
+        float abs_dPhi_ll_pfmet = theChosenDilepton->deltaPhi(pfmet_phi); abs_dPhi_ll_pfmet = std::abs(abs_dPhi_ll_pfmet);
+        float abs_dPhi_lljets_pfmet; HelperFunctions::deltaPhi(float((theChosenDilepton->p4() + p4_alljets).Phi()), pfmet_phi, abs_dPhi_lljets_pfmet); abs_dPhi_lljets_pfmet = std::abs(abs_dPhi_lljets_pfmet);
         float pfmet_pTmiss = pfmet->pt();
         float pfmet_pTmiss_over_genmet_pTmiss = pfmet_pTmiss/genmet_pTmiss;
-        float abs_dPhi_pfmet_genmet; HelperFunctions::deltaPhi(float(pfmet->phi()), genmet_phi, abs_dPhi_pfmet_genmet); abs_dPhi_pfmet_genmet = std::abs(abs_dPhi_pfmet_genmet);
+        float abs_dPhi_pfmet_genmet; HelperFunctions::deltaPhi(pfmet_phi, genmet_phi, abs_dPhi_pfmet_genmet); abs_dPhi_pfmet_genmet = std::abs(abs_dPhi_pfmet_genmet);
         float pfmet_pTmiss_over_pTll = pfmet_pTmiss/pTll;
         float pfmet_pTmiss_over_pTlljets = pfmet_pTmiss/pTlljets;
         float mTZZ_pfmet = sqrt(pow(sqrt(pow(pTll, 2) + pow(mll, 2)) + sqrt(pow(pfmet_pTmiss, 2) + pow(PDGHelpers::Zmass, 2)), 2) - pow((theChosenDilepton->p4() + pfmet->p4()).Pt(), 2));
-        ParticleObject::LorentzVector_t pfmet_p4_ZZapprox; pfmet_p4_ZZapprox = ParticleObject::PolarLorentzVector_t(pfmet_pTmiss, etamiss_approx, pfmet->phi(), PDGHelpers::Zmass);
-        float mZZ_pfmet = (pfmet_p4_ZZapprox + theChosenDilepton->p4()).M();
+        ParticleObject::LorentzVector_t pfmet_p4_approx; pfmet_p4_approx = ParticleObject::PolarLorentzVector_t(pfmet_pTmiss, etamiss_approx, pfmet_phi, PDGHelpers::Zmass);
+        ParticleObject::LorentzVector_t pfmet_ZZ_p4_approx = pfmet_p4_approx + theChosenDilepton->p4();
+        float mZZ_pfmet = pfmet_ZZ_p4_approx.M();
 
         // Cuts
         bool pass_Nb_veto = check_Nb_veto(n_ak4jets_tight_btagged);
@@ -846,9 +860,9 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
           std::unordered_map<std::string, float> ME_values;
 
           SimpleParticleCollection_t daughters_puppimet;
-          daughters_puppimet.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(puppimet_p4_ZZapprox)));
+          daughters_puppimet.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(puppimet_ZZ_p4_approx)));
           SimpleParticleCollection_t daughters_pfmet;
-          daughters_pfmet.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(pfmet_p4_ZZapprox)));
+          daughters_pfmet.push_back(SimpleParticle_t(25, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(pfmet_ZZ_p4_approx)));
 
           SimpleParticleCollection_t associated;
           associated.push_back(SimpleParticle_t(0, ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(ak4jets_tight.at(0)->p4())));
@@ -870,7 +884,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
           DjjVBF->update({ ME_values["p_JJVBF_SIG_ghv1_1_JHUGen_JECNominal"], ME_values["p_JJQCD_SIG_ghg2_1_JHUGen_JECNominal"] }, mZZ_pfmet);
           DjjVBF_pfmet = *DjjVBF;
         }
-        bool pass_VBF_selection = check_VBF_category((!usePuppiMETForSelection ? DjjVBF_pfmet : DjjVBF_puppimet), ak4jets_tight, theChosenDilepton, doOldSelection);
+        bool pass_VBF_selection = check_VBF_category((!usePuppiMETForSelection ? DjjVBF_pfmet : DjjVBF_puppimet), ak4jets_tight, theChosenDilepton, doOldSelection && !forceDjjVBFCategorization);
 
         // Fill histograms
         // Enclosed around braces to localize it_hist
@@ -891,7 +905,8 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
                 TString const& cutvar = it_cut->cutvar;
                 float cutval=0;
                 if (cutvar == "Nj") cutval = n_ak4jets_tight;
-                else if (cutvar == "puppimet") cutval = puppimet_pTmiss;
+                else if (cutvar == "puppimet_pTmiss") cutval = puppimet_pTmiss;
+                else if (cutvar == "pfmet_pTmiss") cutval = pfmet_pTmiss;
                 else if (cutvar == "VBF_flag") cutval = pass_VBF_selection;
                 doFill &= it_cut->testCut(cutval);
               }
@@ -909,6 +924,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
               if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_thr && pass_pTmiss_over_pTlljets && pass_dPhi_pTll_pTmiss && pass_dPhi_pTlljets_pTmiss && pass_min_abs_dPhi_j_met) && n_ak4jets_tight>=2) it_hist->hist.Fill(abs_dEta_j1j2, wgt); it_hist++;
 
               for (unsigned char imet=0; imet<2; imet++){
+                float const& met_phi = (imet==0 ? pfmet_phi : puppimet_phi);
                 float const& min_abs_dPhi_j_met = (imet==0 ? min_abs_dPhi_j_pfmet : min_abs_dPhi_j_puppimet);
                 float const& abs_dPhi_ll_met = (imet==0 ? abs_dPhi_ll_pfmet : abs_dPhi_ll_puppimet);
                 float const& abs_dPhi_lljets_met = (imet==0 ? abs_dPhi_lljets_pfmet : abs_dPhi_lljets_puppimet);
@@ -924,6 +940,7 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
                 float const& mZZ_met = (imet==0 ? mZZ_pfmet : mZZ_puppimet);
                 float const& DjjVBF_met = (imet==0 ? DjjVBF_pfmet : DjjVBF_puppimet);
 
+                if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_thr && pass_pTmiss_over_pTlljets && pass_dPhi_pTll_pTmiss && pass_dPhi_pTlljets_pTmiss && pass_min_abs_dPhi_j_met)) it_hist->hist.Fill(met_phi, wgt); it_hist++;
                 if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_thr && pass_pTmiss_over_pTlljets && pass_dPhi_pTll_pTmiss && pass_dPhi_pTlljets_pTmiss) && n_ak4jets_tight>=1) it_hist->hist.Fill(min_abs_dPhi_j_met, wgt); it_hist++;
                 if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_thr && pass_pTmiss_over_pTlljets && pass_dPhi_pTlljets_pTmiss && pass_min_abs_dPhi_j_met)) it_hist->hist.Fill(abs_dPhi_ll_met, wgt); it_hist++;
                 if (isCorrectChannel && doFill && (pass_pTl1 && pass_pTl2 && pass_pTll && pass_Nb_veto && pass_mll && pass_pTmiss_thr && pass_pTmiss_over_pTlljets && pass_dPhi_pTll_pTmiss && pass_min_abs_dPhi_j_met) && n_ak4jets_tight>=1) it_hist->hist.Fill(abs_dPhi_lljets_met, wgt); it_hist++;
