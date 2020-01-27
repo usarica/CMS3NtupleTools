@@ -30,7 +30,7 @@ bool check_min_abs_dPhi_pTj_pTmiss(float const& val, bool use_old=true){
 }
 
 #define _old_ZZ_met_thr_ 125.f
-#define _new_ZZ_met_thr_ 100.f
+#define _new_ZZ_met_thr_ 125.f
 #define _old_WW_met_thr_ 20.f
 #define _new_WW_met_thr_ 20.f
 bool check_pTmiss_over_pTlljets(float const& pTmiss, float const& pTlljets, bool use_old=true, bool useZZ=true){
@@ -56,7 +56,7 @@ bool check_pTl2(float const& val, bool use_old=true){
 }
 
 bool check_pTll(float const& val, bool use_old=true){
-  return val>=(use_old ? 55.f : 35.f);
+  return val>=(use_old ? 55.f : 55.f);
 }
 
 bool check_ml1(float const& val, bool use_old=true, bool useZZ=true){

@@ -1007,9 +1007,10 @@ void getHistograms(int doZZWW, int procsel, bool doOldSelection, bool usePuppiME
 }
 
 void makePlots(
-  int doZZWW, bool doOldSelection, bool usePuppiMETForSelection, TString strdate="",
-  bool useLogY=true, bool isStacked=true, int nfoci=0, int ifocus=0
+  int doZZWW, bool doOldSelection, bool usePuppiMETForSelection, bool forceDjjVBFCategorization, TString strdate="",
+  bool useLogY=true, bool isStacked=true, int nfoci=-1, int ifocus=0
 ){
+  if (forceDjjVBFCategorization && !doOldSelection) return;
   if (nfoci>0 && (ifocus>=nfoci || ifocus<0)) return;
 
   gStyle->SetOptStat(0);
@@ -1019,7 +1020,7 @@ void makePlots(
   //SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
   //constexpr int nchannels = 4;
 
-  TString const cinput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + (usePuppiMETForSelection ? "/PUPPIMETCuts" : "/PFMETCuts");;
+  TString const cinput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? (!forceDjjVBFCategorization ? "/OldCuts" : "/OldCuts_DjjVBFCategorization") : "/NewCuts") + (usePuppiMETForSelection ? "/PUPPIMETCuts" : "/PFMETCuts");
   TString coutput_main = cinput_main + "/Plots";
   if (isStacked) coutput_main += "/Stacked";
   else coutput_main += "/Unstacked";
@@ -1028,6 +1029,8 @@ void makePlots(
   if (nfoci>0) coutput_main += Form("/Divide%i/Focus%i", nfoci, ifocus);
   gSystem->mkdir(coutput_main, true);
 
+  TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
+  MELAout.open(stroutput_txt.Data());
   {
     // Special case to copy index.php if you have one
     std::vector<TString> tmplist;
@@ -1087,19 +1090,35 @@ void makePlots(
     if (firstFile) firstFile=false;
   }
 
+  // Print integrals
   for (size_t iplot=0; iplot<hnames.size(); iplot++){
-    int nbins=sample_hist_map[samplePlottedList.front()].at(0)->GetNbinsX();
+    TString histname = hnames.at(iplot);
+    for (size_t is=0; is<samplePlottedList.size(); is++){
+      auto& sample = samplePlottedList.at(is);
+      TH1F* hist = sample_hist_map[sample].at(iplot);
+      MELAout << "Integral[" << histname << "::" << sample << "] = " << hist->Integral() << endl;
+    }
+  }
+
+  for (size_t iplot=0; iplot<hnames.size(); iplot++){
+    TString histname = hnames.at(iplot);
+    bool isPTMiss = ((histname.Contains("puppimet_pTmiss") || histname.Contains("pfmet_pTmiss")) && !histname.Contains("over"));
+    bool isPTMissOverGenPTMiss = ((histname.Contains("puppimet_pTmiss") || histname.Contains("pfmet_pTmiss")) && histname.Contains("over_genmet_pTmiss"));
+    bool isAbsPhiMissMinusGenPhiMiss = (histname.Contains("abs_dPhi") && histname.Contains("met_genmet"));
+    bool isMTZZorMZZ = ((histname.Contains("mTZZ") || histname.Contains("mZZ")));
+    bool isNjets = (histname.Contains("n_ak4jets_tight") && !histname.Contains("btagged"));
+    int nbins=sample_hist_map[samplePlottedList.front()].at(iplot)->GetNbinsX();
     int binstart=1;
     int binend=nbins;
     if (nfoci>0){
       int bininc = nbins / nfoci;
       binstart = (ifocus * bininc) + 1;
       binend = (ifocus==nfoci-1 ? nbins : binstart + bininc);
-    }
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-      hist->GetXaxis()->SetRangeUser(hist->GetXaxis()->GetBinLowEdge(binstart), hist->GetXaxis()->GetBinUpEdge(binend));
+      for (size_t is=0; is<samplePlottedList.size(); is++){
+        auto& sample = samplePlottedList.at(is);
+        TH1F* hist = sample_hist_map[sample].at(iplot);
+        hist->GetXaxis()->SetRangeUser(hist->GetXaxis()->GetBinLowEdge(binstart), hist->GetXaxis()->GetBinUpEdge(binend));
+      }
     }
     if (isStacked){
       for (size_t is=0; is<samplePlottedList.size(); is++){
@@ -1146,6 +1165,30 @@ void makePlots(
       }
     }
     ymax *= (useLogY ? 15. : 1.5);
+
+    if (useLogY){
+      if (isPTMiss){
+        ymax = 4e6;
+        ymin = 1e-2;
+      }
+      else if (isPTMissOverGenPTMiss){
+        ymax = 3e3;
+        ymin = 1e-5;
+      }
+      else if (isAbsPhiMissMinusGenPhiMiss){
+        ymax = 1e4;
+        ymin = 1e-4;
+      }
+      else if (isMTZZorMZZ){
+        ymax = 3e3;
+        ymin = 1e-2;
+      }
+      else if (isNjets){
+        ymax = 4e3;
+        ymin = 1;
+      }
+    }
+    
     for (size_t is=0; is<samplePlottedList.size(); is++){
       auto& sample = samplePlottedList.at(is);
       TH1F* hist = sample_hist_map[sample].at(iplot);
@@ -1277,266 +1320,5 @@ void makePlots(
   }
 
   for (TFile*& finput:finputlist) finput->Close();
+  MELAout.close();
 }
-/*
-void makeMETComparisons(int doZZWW, bool doOldSelection, TString strdate=""){
-  gStyle->SetOptStat(0);
-
-  if (strdate=="") strdate = HelperFunctions::todaysdate();
-
-  TString const cinput_main_PFMET = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + "/PFMETCuts";
-  TString const cinput_main_PUPPIMET = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + "/PUPPIMETCuts";
-  TString coutput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + "/METComparisons";
-  gSystem->mkdir(coutput_main, true);
-
-  {
-    // Special case to copy index.php if you have one
-    std::vector<TString> tmplist;
-    HelperFunctions::splitOptionRecursive(coutput_main, tmplist, '/');
-    TString indexDir = "${CMSSW_BASE}/src/CMSDataTools/AnalysisTree/data/plotting/index.php";
-    HostHelpers::ExpandEnvironmentVariables(indexDir);
-    if (HostHelpers::FileReadable(indexDir)){
-      MELAout << "Attempting to copy index.php" << endl;
-      TString tmpdir = tmplist.at(0) + '/';
-      for (size_t idir=1; idir<tmplist.size(); idir++){
-        tmpdir = tmpdir + tmplist.at(idir) + '/';
-        TString tmpCmd = "cp ~/public_html/index.pages.php ";
-        tmpCmd += tmpdir + "index.php";
-        MELAout << "Copying index.php into " << tmpdir << endl;
-        HostHelpers::ExecuteCommand(tmpCmd);
-      }
-    }
-  }
-
-  constexpr int ichannel=3; // ee+mumu
-  TString strChannel, strChannelLabel;
-  getChannelTitleLabel(ichannel, strChannel, strChannelLabel);
-
-  std::vector<std::string> sampleList;
-  sampleList.emplace_back("DY_2l_M_50_HT"); // Main bkg
-  sampleList.emplace_back("ZZ2L2Nu"); // Main signal-like distribution for MET
-
-  std::vector<TString> hcorenames={
-    Form("h1D_%s_%s_%s", strChannel.Data(), Form("%s_pTmiss", "PFMET"), "<NJCUT>"),
-    Form("h1D_%s_%s_%s", strChannel.Data(), Form("%s_pTmiss", "PUPPIMET"), "<NJCUT>")
-  };
-
-  std::vector<std::string> samplePlottedList;
-
-  std::unordered_map<TString, std::vector<TH1F*>> sample_hist_map;
-
-  bool firstFile = true;
-  std::vector<TString> hnames;
-  std::vector<TFile*> finputlist;
-  for (auto const& sample:sampleList){
-    TString cinput = cinput_main + '/' + sample.data() + ".root";
-    if (!HostHelpers::FileReadable(cinput)) continue;
-
-    TFile* finput = TFile::Open(cinput, "read");
-    finputlist.push_back(finput);
-
-    std::vector<TH1F*> hlist;
-    HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
-    if (firstFile){
-      for (TH1F* hh:hlist) hnames.push_back(hh->GetName());
-    }
-    if (hnames.size() == hlist.size()){
-      sample_hist_map[sample] = hlist;
-      samplePlottedList.push_back(sample);
-    }
-
-    if (firstFile) firstFile=false;
-  }
-
-  for (size_t iplot=0; iplot<hnames.size(); iplot++){
-    int nbins=sample_hist_map[samplePlottedList.front()].at(0)->GetNbinsX();
-    int binstart=1;
-    int binend=nbins;
-    if (nfoci>0){
-      int bininc = nbins / nfoci;
-      binstart = (ifocus * bininc) + 1;
-      binend = (ifocus==nfoci-1 ? nbins : binstart + bininc);
-    }
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-      hist->GetXaxis()->SetRangeUser(hist->GetXaxis()->GetBinLowEdge(binstart), hist->GetXaxis()->GetBinUpEdge(binend));
-    }
-    if (isStacked){
-      for (size_t is=0; is<samplePlottedList.size(); is++){
-        auto& sample = samplePlottedList.at(is);
-        TH1F* hist = sample_hist_map[sample].at(iplot);
-        bool isSignal = sample.find("Sig")!=std::string::npos;
-        for (size_t js=is+1; js<samplePlottedList.size(); js++){
-          auto& sample_j = samplePlottedList.at(js);
-          TH1F* hist_j = sample_hist_map[sample_j].at(iplot);
-          bool isSignal_j = sample_j.find("Sig")!=std::string::npos;
-          if (isSignal_j!=isSignal) continue;
-          hist->Add(hist_j);
-        }
-      }
-    }
-    else{
-      for (size_t is=0; is<samplePlottedList.size(); is++){
-        auto& sample = samplePlottedList.at(is);
-        TH1F* hist = sample_hist_map[sample].at(iplot);
-        double inthist = hist->Integral(binstart, binend);
-        hist->Scale(1. / inthist);
-      }
-    }
-
-    size_t nplottables=0;
-    double ymin = 0;
-    double ymax = -1;
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-
-      if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
-      nplottables++;
-
-      for (int ix=1; ix<=hist->GetNbinsX(); ix++){
-        double bc = hist->GetBinContent(ix);
-        double be = hist->GetBinError(ix);
-        if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
-        ymax = std::max(ymax, bc+be);
-        if (useLogY && bc>0.){
-          if (ymin<=0.) ymin = bc;
-          else ymin = std::min(ymin, bc);
-        }
-      }
-    }
-    ymax *= (useLogY ? 15. : 1.5);
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-      hist->GetYaxis()->SetRangeUser(ymin, ymax);
-    }
-
-    TString canvasname = hnames.at(iplot);
-    TString canvasname_core = (useLogY ? (isStacked ? "cLogY_Stacked_" : "cLogY_") : (isStacked ? "c_Stacked_" : "c_"));
-    if (nfoci>0) canvasname_core += Form("Focus_%i_of_%i_", ifocus, nfoci);
-    HelperFunctions::replaceString(canvasname, "h1D_", "");
-    canvasname = canvasname_core + canvasname;
-    TCanvas* canvas = new TCanvas(canvasname, "", 8, 30, 800, 800);
-    canvas->cd();
-    gStyle->SetOptStat(0);
-    canvas->SetFillColor(0);
-    canvas->SetBorderMode(0);
-    canvas->SetBorderSize(2);
-    canvas->SetTickx(1);
-    canvas->SetTicky(1);
-    canvas->SetLeftMargin(0.17);
-    canvas->SetRightMargin(0.05);
-    canvas->SetTopMargin(0.07);
-    canvas->SetBottomMargin(0.13);
-    canvas->SetFrameFillStyle(0);
-    canvas->SetFrameBorderMode(0);
-    canvas->SetFrameFillStyle(0);
-    canvas->SetFrameBorderMode(0);
-    if (useLogY) canvas->SetLogy();
-
-    TLegend* legend = new TLegend(
-      0.55,
-      0.90-0.10/4.*2.*float(nplottables),
-      0.90,
-      0.90
-    );
-    legend->SetBorderSize(0);
-    legend->SetTextFont(42);
-    legend->SetTextSize(0.03);
-    legend->SetLineColor(1);
-    legend->SetLineStyle(1);
-    legend->SetLineWidth(1);
-    legend->SetFillColor(0);
-    legend->SetFillStyle(0);
-    TText* text;
-
-    TPaveText* pt = new TPaveText(0.15, 0.93, 0.85, 1, "brNDC");
-    pt->SetBorderSize(0);
-    pt->SetFillStyle(0);
-    pt->SetTextAlign(12);
-    pt->SetTextFont(42);
-    pt->SetTextSize(0.045);
-    text = pt->AddText(0.025, 0.45, "#font[61]{CMS}");
-    text->SetTextSize(0.044);
-    text = pt->AddText(0.165, 0.42, "#font[52]{Simulation}");
-    text->SetTextSize(0.0315);
-    TString cErgTev = Form("#font[42]{%.1f fb^{-1} %i TeV}", 59.7, 13);
-    text = pt->AddText(0.82, 0.45, cErgTev);
-    text->SetTextSize(0.0315);
-
-    bool firstHist = true;
-    std::vector<TString> selectionList;
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-
-      if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
-
-      std::vector<TString> tmplist;
-      TString htitle = hist->GetTitle();
-      HelperFunctions::splitOptionRecursive(htitle, tmplist, '|');
-      TString hlabel = tmplist.front();
-
-      hist->SetTitle("");
-      if (sample.find("Sig")!=string::npos){
-        hist->SetFillStyle(3354);
-        hist->SetFillColor(hist->GetLineColor());
-      }
-      else{
-        hist->SetLineColor(kBlack);
-        hist->SetFillStyle(1001);
-      }
-      if (sample=="DY_2l_M_50_HT") hlabel = "DY (HT-binned)";
-      legend->AddEntry(hist, hlabel, "f");
-
-      if (firstHist){
-        for (size_t is=1; is<tmplist.size(); is++) selectionList.push_back(tmplist.at(is));
-        hist->Draw("hist");
-        firstHist = false;
-      }
-      else{
-        hist->Draw("histsame");
-      }
-    }
-
-    legend->Draw("same");
-    pt->Draw();
-
-    std::vector<TPaveText*> ptSelectionList;
-    {
-      float pt_ymax = 0.90;
-      float pt_dy = 0.05;
-      for (auto const& strSel:selectionList){
-        TPaveText* ptSel = nullptr;
-        ptSel = new TPaveText(0.20, pt_ymax - pt_dy, 0.50, pt_ymax, "brNDC");
-        ptSel->SetBorderSize(0);
-        ptSel->SetFillStyle(0);
-        ptSel->SetTextAlign(12);
-        ptSel->SetTextFont(42);
-        ptSel->SetTextSize(0.045);
-        text = ptSel->AddText(0.025, 0.45, strSel);
-        text->SetTextSize(0.0315);
-        ptSel->Draw();
-
-        ptSelectionList.push_back(ptSel);
-        pt_ymax -= pt_dy;
-      }
-    }
-
-    canvas->RedrawAxis();
-    canvas->Modified();
-    canvas->Update();
-    canvas->SaveAs(coutput_main + "/" + canvasname + ".pdf");
-    canvas->SaveAs(coutput_main + "/" + canvasname + ".png");
-
-    for (auto*& ptSel:ptSelectionList) delete ptSel;
-    delete pt;
-    delete legend;
-    canvas->Close();
-  }
-
-  for (TFile*& finput:finputlist) finput->Close();
-}
-*/

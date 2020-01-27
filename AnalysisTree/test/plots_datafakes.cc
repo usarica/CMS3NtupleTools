@@ -296,61 +296,7 @@ void getChannelTitleLabel(int ichannel, TString& title, TString& label){
   }
 }
 
-void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
-  constexpr bool doOldSelection = true;
-
-  if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
-
-  if (procsel<0 || procsel>1) return;
-
-  gStyle->SetOptStat(0);
-
-  if (strdate=="") strdate = HelperFunctions::todaysdate();
-
-  constexpr int nchannels = 2; // ichannel=0, 1, 2, 3 for ee, mumu, emu, ee+mumu
-
-  TString const coutput_main = "output/LepEffFromData/" + strdate;
-
-  gSystem->mkdir(coutput_main, true);
-
-  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  SampleHelpers::configure("2018", "hadoop:200101");
-
-  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
-  const float btagvalue_thr = BtagHelpers::getBtagWP(false);
-  float lumi = SampleHelpers::getIntegratedLuminosity("2018");
-
-  std::vector<std::string> triggerCheckList = procsel==0 ?
-    OffshellTriggerHelpers::getHLTMenus(
-      {
-        OffshellTriggerHelpers::kDoubleEle, OffshellTriggerHelpers::kSingleEle, OffshellTriggerHelpers::kMuEle
-      }
-    )
-    :
-    OffshellTriggerHelpers::getHLTMenus(
-      {
-        OffshellTriggerHelpers::kDoubleMu, OffshellTriggerHelpers::kSingleMu, OffshellTriggerHelpers::kMuEle
-      }
-    )
-    ;
-
-  std::vector<SampleSpecs> sampleList;
-  sampleList.emplace_back("EGamma_2018B", "EGamma 2018B", "EGamma_2018B", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("DoubleMuon_2018B", "DoubleMuon 2018B", "DoubleMuon_2018B", -1, HistogramProperties((int) kTeal-1, 1, 2));
-
-  // Get handlers
-  EventFilterHandler eventFilter;
-  MuonHandler muonHandler;
-  ElectronHandler electronHandler;
-  PhotonHandler photonHandler;
-  JetMETHandler jetHandler;
-  ParticleDisambiguator particleDisambiguator;
-  DileptonHandler dileptonHandler;
-
-  eventFilter.setTrackDataEvents(false);
-  eventFilter.setCheckUniqueDataEvent(false);
-
-  std::vector< std::vector<CutSpecs> > cutsets;
+void getCutSets(std::vector< std::vector<CutSpecs> >& cutsets){
   for (unsigned int imet=0; imet<3; imet++){
     bool do_met_low, do_met_high;
     float met_low, met_high;
@@ -411,6 +357,64 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
       do_met_low, do_met_high, met_low, met_high
     );
   }
+}
+
+
+
+void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
+  constexpr bool doOldSelection = true;
+
+  if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
+
+  if (procsel<0 || procsel>1) return;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  constexpr int nchannels = 2; // ichannel=0, 1, 2, 3 for ee, mumu, emu, ee+mumu
+
+  TString const coutput_main = "output/LepEffFromData/" + strdate;
+  gSystem->mkdir(coutput_main, true);
+
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+  SampleHelpers::configure("2018", "hadoop:200101");
+
+  BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
+  const float btagvalue_thr = BtagHelpers::getBtagWP(false);
+  float lumi = SampleHelpers::getIntegratedLuminosity("2018");
+
+  std::vector<std::string> triggerCheckList = procsel==0 ?
+    OffshellTriggerHelpers::getHLTMenus(
+      {
+        OffshellTriggerHelpers::kDoubleEle, OffshellTriggerHelpers::kSingleEle, OffshellTriggerHelpers::kMuEle
+      }
+    )
+    :
+    OffshellTriggerHelpers::getHLTMenus(
+      {
+        OffshellTriggerHelpers::kDoubleMu, OffshellTriggerHelpers::kSingleMu, OffshellTriggerHelpers::kMuEle
+      }
+    )
+    ;
+
+  std::vector<SampleSpecs> sampleList;
+  sampleList.emplace_back("EGamma_2018B", "EGamma 2018B", "EGamma_2018B", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("DoubleMuon_2018B", "DoubleMuon 2018B", "DoubleMuon_2018B", -1, HistogramProperties((int) kTeal-1, 1, 2));
+
+  // Get handlers
+  EventFilterHandler eventFilter;
+  MuonHandler muonHandler;
+  ElectronHandler electronHandler;
+  PhotonHandler photonHandler;
+  JetMETHandler jetHandler;
+  ParticleDisambiguator particleDisambiguator;
+  DileptonHandler dileptonHandler;
+
+  eventFilter.setTrackDataEvents(false);
+  eventFilter.setCheckUniqueDataEvent(false);
+
+  std::vector< std::vector<CutSpecs> > cutsets; getCutSets(cutsets);
 
   for (size_t isample=0; isample<sampleList.size(); isample++){
     if (procsel>=0 && isample!=static_cast<size_t>(procsel)) continue;
@@ -825,27 +829,17 @@ void getHistograms(int procsel, int ichunk, int nchunks, TString strdate){
   } // End loop over samples
 }
 
-void makePlots(
-  int doZZWW, bool doOldSelection, bool usePuppiMETForSelection, TString strdate="",
-  bool useLogY=true, bool isStacked=true, int nfoci=0, int ifocus=0
-){
-  if (nfoci>0 && (ifocus>=nfoci || ifocus<0)) return;
-
+void makePlots(int do_ee_mumu, bool doRatio=false, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  //SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
-  //constexpr int nchannels = 4;
-
-  TString const cinput_main = "output/" + strdate + (doZZWW==0 ? "/ZZCuts" : "/WWCuts") + (doOldSelection ? "/OldCuts" : "/NewCuts") + (usePuppiMETForSelection ? "/PUPPIMETCuts" : "/PFMETCuts");;
-  TString coutput_main = cinput_main + "/Plots";
-  if (isStacked) coutput_main += "/Stacked";
-  else coutput_main += "/Unstacked";
-  if (useLogY) coutput_main += "/LogY";
-  else coutput_main += "/Linear";
-  if (nfoci>0) coutput_main += Form("/Divide%i/Focus%i", nfoci, ifocus);
+  TString const cinput_main = "output/LepEffFromData/" + strdate;
+  TString coutput_main = cinput_main + "/Plots" + (do_ee_mumu == 0 ? "/Zee" : "/Zmumu") + (doRatio ? "/Ratios" : "/Nevents");
   gSystem->mkdir(coutput_main, true);
+
+  TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
+  MELAout.open(stroutput_txt.Data());
 
   {
     // Special case to copy index.php if you have one
@@ -866,116 +860,132 @@ void makePlots(
     }
   }
 
-
-  std::vector<std::string> sampleList;
-  //sampleList.emplace_back("DY_2l_M_10to50");
-  //sampleList.emplace_back("DY_2l_M_50");
+  std::vector<TString> sampleList;
+  if (do_ee_mumu==0) sampleList.push_back("EGamma_2018B");
+  else sampleList.push_back("DoubleMuon_2018B");
+  /*
+  sampleList.emplace_back("DY_2l_M_10to50");
   sampleList.emplace_back("DY_2l_M_50_HT");
   sampleList.emplace_back("TT2L2Nu");
   sampleList.emplace_back("ZZ2L2Nu");
   sampleList.emplace_back("WW2L2Nu");
-  sampleList.emplace_back("ggZZ_BSI");
-  sampleList.emplace_back("VBF_BSI");
-  sampleList.emplace_back("ggZZ_Sig");
-  sampleList.emplace_back("VBF_Sig");
-
-  std::vector<std::string> samplePlottedList;
-
-  std::unordered_map<TString, std::vector<TH1F*>> sample_hist_map;
-
-  bool firstFile = true;
-  std::vector<TString> hnames;
+  */
+  const size_t nsamples = sampleList.size();
   std::vector<TFile*> finputlist;
   for (auto const& sample:sampleList){
-    TString cinput = cinput_main + '/' + sample.data() + ".root";
+    TString cinput = cinput_main + '/' + sample + ".root";
     if (!HostHelpers::FileReadable(cinput)) continue;
-
     TFile* finput = TFile::Open(cinput, "read");
     finputlist.push_back(finput);
-
-    std::vector<TH1F*> hlist;
-    HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
-    if (firstFile){
-      for (TH1F* hh:hlist) hnames.push_back(hh->GetName());
-    }
-    if (hnames.size() == hlist.size()){
-      sample_hist_map[sample] = hlist;
-      samplePlottedList.push_back(sample);
-    }
-
-    if (firstFile) firstFile=false;
+    MELAout << "Extracted input file " << cinput << endl;
   }
 
-  for (size_t iplot=0; iplot<hnames.size(); iplot++){
-    int nbins=sample_hist_map[samplePlottedList.front()].at(0)->GetNbinsX();
-    int binstart=1;
-    int binend=nbins;
-    if (nfoci>0){
-      int bininc = nbins / nfoci;
-      binstart = (ifocus * bininc) + 1;
-      binend = (ifocus==nfoci-1 ? nbins : binstart + bininc);
-    }
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-      hist->GetXaxis()->SetRangeUser(hist->GetXaxis()->GetBinLowEdge(binstart), hist->GetXaxis()->GetBinUpEdge(binend));
-    }
-    if (isStacked){
-      for (size_t is=0; is<samplePlottedList.size(); is++){
-        auto& sample = samplePlottedList.at(is);
-        TH1F* hist = sample_hist_map[sample].at(iplot);
-        bool isSignal = sample.find("Sig")!=std::string::npos;
-        for (size_t js=is+1; js<samplePlottedList.size(); js++){
-          auto& sample_j = samplePlottedList.at(js);
-          TH1F* hist_j = sample_hist_map[sample_j].at(iplot);
-          bool isSignal_j = sample_j.find("Sig")!=std::string::npos;
-          if (isSignal_j!=isSignal) continue;
-          hist->Add(hist_j);
-        }
+  TString strChannel, strChannelLabel;
+  getChannelTitleLabel(do_ee_mumu, strChannel, strChannelLabel);
+  std::vector< std::vector<CutSpecs> > cutsets; getCutSets(cutsets);
+  for (auto const& cutset:cutsets){
+    TString cutlabel, cuttitle;
+    for (auto it_cut = cutset.cbegin(); it_cut != cutset.cend(); it_cut++){
+      if (it_cut == cutset.cbegin()){
+        cutlabel = it_cut->getLabel();
+        cuttitle = it_cut->getTitle();
       }
-    }
-    else{
-      for (size_t is=0; is<samplePlottedList.size(); is++){
-        auto& sample = samplePlottedList.at(is);
-        TH1F* hist = sample_hist_map[sample].at(iplot);
-        double inthist = hist->Integral(binstart, binend);
-        hist->Scale(1. / inthist);
+      else{
+        cutlabel = cutlabel + '|' + it_cut->getLabel();
+        cuttitle = cuttitle + '_' + it_cut->getTitle();
       }
     }
 
-    size_t nplottables=0;
+    std::vector<TString> hnames; std::vector<int> hcolors;
+    hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_anyloose", cuttitle.Data())); hcolors.push_back((int) kBlack);
+    if (do_ee_mumu==0){
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data())); hcolors.push_back((int) kBlue);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data())); hcolors.push_back((int) kRed);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvanoisowp90", cuttitle.Data())); hcolors.push_back((int) kCyan);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvanoisowp80", cuttitle.Data())); hcolors.push_back((int) kAzure-2);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp90", cuttitle.Data())); hcolors.push_back((int) kOrange-3);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp80", cuttitle.Data())); hcolors.push_back((int) kYellow-3);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_hzzmvawphzz", cuttitle.Data())); hcolors.push_back((int) kViolet);
+    }
+    else if (do_ee_mumu==1){
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data())); hcolors.push_back((int) kBlue);
+      hnames.push_back(Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data())); hcolors.push_back((int) kRed);
+    }
+    MELAout << "Histogram names: " << hnames << endl;
+
+    int nbins=0;
+    int ibin_sb1=1;
+    int jbin_sb1=0, ibin_sr=0, jbin_sr=0, ibin_sb2=0, jbin_sb2=0;
+    std::unordered_map<TString, std::vector<TH1F*>> sample_hist_map;
+    bool firstHistogram=true;
+    for (unsigned int isample=0; isample<nsamples; isample++){
+      std::vector<TH1F*> hlist; hlist.reserve(hnames.size());
+      TFile* const& finput = finputlist.at(isample);
+      finput->cd();
+      unsigned int ihist=0;
+      for (auto const& hname:hnames){
+        TH1F* htmp = (TH1F*) finput->Get(strChannel + '/' + hname);
+        if (!htmp){
+          MELAout << "Histogram " << hname << " cannot be found!" << endl;
+          assert(0);
+        }
+        if (firstHistogram){
+          nbins = htmp->GetNbinsX();
+          firstHistogram=false;
+          TAxis const* xaxis = htmp->GetXaxis();
+          jbin_sb1 = xaxis->FindBin(75);
+          ibin_sr = xaxis->FindBin(81.2);
+          jbin_sr = xaxis->FindBin(100);
+          ibin_sb2 = xaxis->FindBin(106.2);
+          jbin_sb2 = nbins;
+        }
+        htmp->SetFillStyle(0);
+        htmp->SetLineColor(hcolors.at(ihist));
+        htmp->SetMarkerColor(hcolors.at(ihist));
+        if (ihist==2 || ihist==4 || ihist==6) htmp->SetLineStyle(7);
+        hlist.push_back(htmp);
+        ihist++;
+      }
+      sample_hist_map[sampleList.at(isample)]=hlist;
+    }
+
+
     double ymin = 0;
     double ymax = -1;
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-
-      if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
-      nplottables++;
-
-      for (int ix=1; ix<=hist->GetNbinsX(); ix++){
-        double bc = hist->GetBinContent(ix);
-        double be = hist->GetBinError(ix);
-        if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
-        ymax = std::max(ymax, bc+be);
-        if (useLogY && bc>0.){
-          if (ymin<=0.) ymin = bc;
-          else ymin = std::min(ymin, bc);
+    for (auto& it:sample_hist_map){
+      for (auto& hist:it.second){
+        if (doRatio){
+          if (hist==it.second.front()) continue;
+          HelperFunctions::divideHistograms(hist, it.second.front(), hist, true);
+        }
+        for (int ix=1; ix<=nbins; ix++){
+          double bc = hist->GetBinContent(ix);
+          double be = hist->GetBinError(ix);
+          if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
+          ymax = std::max(ymax, bc+be);
+          if (bc>0.){
+            if (ymin<=0.) ymin = bc;
+            else ymin = std::min(ymin, bc);
+          }
+        }
+        // Now print integrals
+        if (!doRatio){
+          double int_sb1 = hist->Integral(ibin_sb1, jbin_sb1);
+          double int_sb2 = hist->Integral(ibin_sb2, jbin_sb2);
+          double int_sr = hist->Integral(ibin_sr, jbin_sr);
+          MELAout << "Integrals[" << it.first << "::" << hist->GetName() << "](sb1, sb2, sb1+sb2, sr, sr/sb1+sb2) = ( " << int_sb1 << ", " << int_sb2 << ", " << int_sb1+int_sb2 << ", " << int_sr << ", " << int_sr/(int_sb1+int_sb2) << " )" << endl;
         }
       }
     }
-    ymax *= (useLogY ? 15. : 1.5);
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
-      hist->GetYaxis()->SetRangeUser(ymin, ymax);
+    ymax *= (!doRatio ? 15. : 1.2);
+    ymin *= 0.9;
+    for (auto const& it:sample_hist_map){
+      for (auto const& hist:it.second) hist->GetYaxis()->SetRangeUser(ymin, ymax);
     }
 
-    TString canvasname = hnames.at(iplot);
-    TString canvasname_core = (useLogY ? (isStacked ? "cLogY_Stacked_" : "cLogY_") : (isStacked ? "c_Stacked_" : "c_"));
-    if (nfoci>0) canvasname_core += Form("Focus_%i_of_%i_", ifocus, nfoci);
-    HelperFunctions::replaceString(canvasname, "h1D_", "");
-    canvasname = canvasname_core + canvasname;
+
+    TString canvasname = Form("%s_%s_%s", strChannel.Data(), "mll", cuttitle.Data());
+    if (doRatio) canvasname = Form("ratios_%s", canvasname.Data());
     TCanvas* canvas = new TCanvas(canvasname, "", 8, 30, 800, 800);
     canvas->cd();
     gStyle->SetOptStat(0);
@@ -992,11 +1002,11 @@ void makePlots(
     canvas->SetFrameBorderMode(0);
     canvas->SetFrameFillStyle(0);
     canvas->SetFrameBorderMode(0);
-    if (useLogY) canvas->SetLogy();
+    if (!doRatio) canvas->SetLogy();
 
     TLegend* legend = new TLegend(
       0.55,
-      0.90-0.10/4.*2.*float(nplottables),
+      0.90-0.10/4.*2.*float(hnames.size()),
       0.90,
       0.90
     );
@@ -1018,7 +1028,7 @@ void makePlots(
     pt->SetTextSize(0.045);
     text = pt->AddText(0.025, 0.45, "#font[61]{CMS}");
     text->SetTextSize(0.044);
-    text = pt->AddText(0.165, 0.42, "#font[52]{Simulation}");
+    text = pt->AddText(0.165, 0.42, "#font[52]{Preliminary}");
     text->SetTextSize(0.0315);
     TString cErgTev = Form("#font[42]{%.1f fb^{-1} %i TeV}", 59.7, 13);
     text = pt->AddText(0.82, 0.45, cErgTev);
@@ -1026,39 +1036,27 @@ void makePlots(
 
     bool firstHist = true;
     std::vector<TString> selectionList;
-    for (size_t is=0; is<samplePlottedList.size(); is++){
-      auto& sample = samplePlottedList.at(is);
-      TH1F* hist = sample_hist_map[sample].at(iplot);
+    for (auto& it:sample_hist_map){
+      for (auto& hist:it.second){
+        if (doRatio && hist==it.second.front()) continue;
+        std::vector<TString> tmplist;
+        TString htitle = hist->GetTitle();
+        HelperFunctions::splitOptionRecursive(htitle, tmplist, '|');
+        TString hlabel = tmplist.front();
 
-      if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
+        hist->SetTitle("");
+        legend->AddEntry(hist, hlabel, "l");
 
-      std::vector<TString> tmplist;
-      TString htitle = hist->GetTitle();
-      HelperFunctions::splitOptionRecursive(htitle, tmplist, '|');
-      TString hlabel = tmplist.front();
-
-      hist->SetTitle("");
-      if (sample.find("Sig")!=string::npos){
-        hist->SetFillStyle(3354);
-        hist->SetFillColor(hist->GetLineColor());
-      }
-      else{
-        hist->SetLineColor(kBlack);
-        hist->SetFillStyle(1001);
-      }
-      if (sample=="DY_2l_M_50_HT") hlabel = "DY (HT-binned)";
-      legend->AddEntry(hist, hlabel, "f");
-
-      if (firstHist){
-        for (size_t is=1; is<tmplist.size(); is++) selectionList.push_back(tmplist.at(is));
-        hist->Draw("hist");
-        firstHist = false;
-      }
-      else{
-        hist->Draw("histsame");
+        if (firstHist){
+          for (size_t is=1; is<tmplist.size(); is++) selectionList.push_back(tmplist.at(is));
+          hist->Draw("hist");
+          firstHist = false;
+        }
+        else{
+          hist->Draw("histsame");
+        }
       }
     }
-
     legend->Draw("same");
     pt->Draw();
 
@@ -1096,4 +1094,5 @@ void makePlots(
   }
 
   for (TFile*& finput:finputlist) finput->Close();
+  MELAout.close();
 }
