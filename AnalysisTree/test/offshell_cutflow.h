@@ -34,6 +34,7 @@ bool check_min_abs_dPhi_pTj_pTmiss(float const& val, bool use_old=true){
 #define _old_WW_met_thr_ 20.f
 #define _new_WW_met_thr_ 20.f
 bool check_pTmiss_over_pTlljets(float const& pTmiss, float const& pTlljets, bool use_old=true, bool useZZ=true){
+  return true;
   if (use_old || pTlljets==0.f) return true;
   float thr=std::pow((useZZ ? _new_ZZ_met_thr_ : _new_WW_met_thr_)/pTlljets, 1.5);
   return pTmiss/pTlljets>=thr;
@@ -52,7 +53,7 @@ bool check_pTl1(float const& val, bool use_old=true){
 }
 
 bool check_pTl2(float const& val, bool use_old=true){
-  return val>=(use_old ? 25.f : 20.f);
+  return val>=(use_old ? 25.f : 25.f);
 }
 
 bool check_pTll(float const& val, bool use_old=true){
@@ -65,7 +66,7 @@ bool check_ml1(float const& val, bool use_old=true, bool useZZ=true){
 }
 
 bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4jets_tight, ParticleObject const* theChosenCand, bool use_old=true){
-  if (!use_old) return kd>=0.5;
+  if (!use_old) return kd>=0.8;
   else{
     if (ak4jets_tight.size()<2) return false;
     auto itFirstJet = ak4jets_tight.cbegin();

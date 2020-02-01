@@ -1098,11 +1098,21 @@ void makePlots(
       TH1F* hist = sample_hist_map[sample].at(iplot);
       MELAout << "Integral[" << histname << "::" << sample << "] = " << hist->Integral() << endl;
     }
+    if ((histname.Contains("mTZZ") || histname.Contains("mZZ"))){
+      for (size_t is=0; is<samplePlottedList.size(); is++){
+        auto& sample = samplePlottedList.at(is);
+        TH1F* hist = sample_hist_map[sample].at(iplot);
+        int bin350 = hist->GetXaxis()->FindBin(350);
+        float xstart = hist->GetXaxis()->GetBinLowEdge(bin350);
+        MELAout << "Integral[" << histname << "::" << sample << "] (x>=" << xstart << ") = " << hist->Integral(bin350, hist->GetNbinsX()) << endl;
+      }
+    }
   }
 
   for (size_t iplot=0; iplot<hnames.size(); iplot++){
     TString histname = hnames.at(iplot);
     bool isPTMiss = ((histname.Contains("puppimet_pTmiss") || histname.Contains("pfmet_pTmiss")) && !histname.Contains("over"));
+    bool isPhiMiss = ((histname.Contains("puppimet_phi") || histname.Contains("pfmet_phi")) && !histname.Contains("genmet"));
     bool isPTMissOverGenPTMiss = ((histname.Contains("puppimet_pTmiss") || histname.Contains("pfmet_pTmiss")) && histname.Contains("over_genmet_pTmiss"));
     bool isAbsPhiMissMinusGenPhiMiss = (histname.Contains("abs_dPhi") && histname.Contains("met_genmet"));
     bool isMTZZorMZZ = ((histname.Contains("mTZZ") || histname.Contains("mZZ")));
@@ -1122,6 +1132,8 @@ void makePlots(
     }
     if (isStacked){
       for (size_t is=0; is<samplePlottedList.size(); is++){
+        if (isPTMissOverGenPTMiss) break;
+        if (isAbsPhiMissMinusGenPhiMiss) break;
         auto& sample = samplePlottedList.at(is);
         TH1F* hist = sample_hist_map[sample].at(iplot);
         bool isSignal = sample.find("Sig")!=std::string::npos;
@@ -1149,6 +1161,9 @@ void makePlots(
     for (size_t is=0; is<samplePlottedList.size(); is++){
       auto& sample = samplePlottedList.at(is);
       TH1F* hist = sample_hist_map[sample].at(iplot);
+
+      if ((isPTMissOverGenPTMiss || isAbsPhiMissMinusGenPhiMiss) && sample!="ZZ2L2Nu") continue;
+      if (isPhiMiss && sample.find("DY")==string::npos) continue;
 
       if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
       nplottables++;
@@ -1186,6 +1201,20 @@ void makePlots(
       else if (isNjets){
         ymax = 4e3;
         ymin = 1;
+      }
+    }
+    else{
+      if (isPTMissOverGenPTMiss){
+        ymax = 130;
+        ymin = 0;
+      }
+      else if (isAbsPhiMissMinusGenPhiMiss){
+        ymax = 250;
+        ymin = 0;
+      }
+      else if (isPhiMiss){
+        ymax = 50;
+        ymin = 0;
       }
     }
     
@@ -1255,6 +1284,8 @@ void makePlots(
       TH1F* hist = sample_hist_map[sample].at(iplot);
 
       if (doZZWW==0 && TString(hist->GetName()).Contains("emu")) continue;
+      if ((isPTMissOverGenPTMiss || isAbsPhiMissMinusGenPhiMiss) && sample!="ZZ2L2Nu") continue;
+      if ((/*isPTMiss || */isPhiMiss) && sample.find("DY")==string::npos) continue;
 
       std::vector<TString> tmplist;
       TString htitle = hist->GetTitle();
