@@ -123,36 +123,102 @@ bool MuonSelectionHelpers::testSoftKin(MuonObject const& part){ return (part.pt(
 bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
 }
-bool MuonSelectionHelpers::testPreselection(MuonObject const& part){
+bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){
   return (
     (
-    (bit_preselection_iso == kVetoIso && testVetoIso(part))
+    (bit_preselectionVeto_iso == kVetoIso && testVetoIso(part))
       ||
-      (bit_preselection_iso == kLooseIso && testLooseIso(part))
+      (bit_preselectionVeto_iso == kLooseIso && testLooseIso(part))
       ||
-      (bit_preselection_iso == kMediumIso && testMediumIso(part))
+      (bit_preselectionVeto_iso == kMediumIso && testMediumIso(part))
       ||
-      (bit_preselection_iso == kTightIso && testTightIso(part))
+      (bit_preselectionVeto_iso == kTightIso && testTightIso(part))
       )
     &&
     (
-    (bit_preselection_id == kVetoId && testVetoId(part))
+    (bit_preselectionVeto_id == kVetoId && testVetoId(part))
       ||
-      (bit_preselection_id == kLooseId && testLooseId(part))
+      (bit_preselectionVeto_id == kLooseId && testLooseId(part))
       ||
-      (bit_preselection_id == kMediumId && testMediumId(part))
+      (bit_preselectionVeto_id == kMediumId && testMediumId(part))
       ||
-      (bit_preselection_id == kTightId && testTightId(part))
+      (bit_preselectionVeto_id == kTightId && testTightId(part))
       )
     &&
     (
-    (bit_preselection_kin == kVetoKin && testVetoKin(part))
+    (bit_preselectionVeto_kin == kVetoKin && testVetoKin(part))
       ||
-      (bit_preselection_kin == kLooseKin && testLooseKin(part))
+      (bit_preselectionVeto_kin == kLooseKin && testLooseKin(part))
       ||
-      (bit_preselection_kin == kMediumKin && testMediumKin(part))
+      (bit_preselectionVeto_kin == kMediumKin && testMediumKin(part))
       ||
-      (bit_preselection_kin == kTightKin && testTightKin(part))
+      (bit_preselectionVeto_kin == kTightKin && testTightKin(part))
+      )
+    );
+}
+bool MuonSelectionHelpers::testPreselectionLoose(MuonObject const& part){
+  return (
+    (
+    (bit_preselectionLoose_iso == kVetoIso && testVetoIso(part))
+      ||
+      (bit_preselectionLoose_iso == kLooseIso && testLooseIso(part))
+      ||
+      (bit_preselectionLoose_iso == kMediumIso && testMediumIso(part))
+      ||
+      (bit_preselectionLoose_iso == kTightIso && testTightIso(part))
+      )
+    &&
+    (
+    (bit_preselectionLoose_id == kVetoId && testVetoId(part))
+      ||
+      (bit_preselectionLoose_id == kLooseId && testLooseId(part))
+      ||
+      (bit_preselectionLoose_id == kMediumId && testMediumId(part))
+      ||
+      (bit_preselectionLoose_id == kTightId && testTightId(part))
+      )
+    &&
+    (
+    (bit_preselectionLoose_kin == kVetoKin && testVetoKin(part))
+      ||
+      (bit_preselectionLoose_kin == kLooseKin && testLooseKin(part))
+      ||
+      (bit_preselectionLoose_kin == kMediumKin && testMediumKin(part))
+      ||
+      (bit_preselectionLoose_kin == kTightKin && testTightKin(part))
+      )
+    );
+}
+bool MuonSelectionHelpers::testPreselectionAccept(MuonObject const& part){
+  return (
+    (
+    (bit_preselectionAccept_iso == kVetoIso && testVetoIso(part))
+      ||
+      (bit_preselectionAccept_iso == kLooseIso && testLooseIso(part))
+      ||
+      (bit_preselectionAccept_iso == kMediumIso && testMediumIso(part))
+      ||
+      (bit_preselectionAccept_iso == kTightIso && testTightIso(part))
+      )
+    &&
+    (
+    (bit_preselectionAccept_id == kVetoId && testVetoId(part))
+      ||
+      (bit_preselectionAccept_id == kLooseId && testLooseId(part))
+      ||
+      (bit_preselectionAccept_id == kMediumId && testMediumId(part))
+      ||
+      (bit_preselectionAccept_id == kTightId && testTightId(part))
+      )
+    &&
+    (
+    (bit_preselectionAccept_kin == kVetoKin && testVetoKin(part))
+      ||
+      (bit_preselectionAccept_kin == kLooseKin && testLooseKin(part))
+      ||
+      (bit_preselectionAccept_kin == kMediumKin && testMediumKin(part))
+      ||
+      (bit_preselectionAccept_kin == kTightKin && testTightKin(part))
       )
     );
 }
@@ -183,5 +249,7 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   if (testSoftIso(part)) part.setSelectionBit(kSoftIso);
   if (testSoftKin(part)) part.setSelectionBit(kSoftKin);
 
-  if (testPreselection(part)) part.setSelectionBit(kPreselection);
+  if (testPreselectionVeto(part)) part.setSelectionBit(kPreselectionVeto);
+  if (testPreselectionLoose(part)) part.setSelectionBit(kPreselectionLoose);
+  if (testPreselectionAccept(part)) part.setSelectionBit(kPreselectionAccept);
 }

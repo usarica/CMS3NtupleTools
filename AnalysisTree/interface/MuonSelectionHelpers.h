@@ -27,7 +27,9 @@ namespace MuonSelectionHelpers{
     kSoftIso,
     kSoftKin,
 
-    kPreselection,
+    kPreselectionVeto,
+    kPreselectionLoose,
+    kPreselectionAccept,
 
     nSelectionBits
   };
@@ -59,16 +61,27 @@ namespace MuonSelectionHelpers{
   // Isolation thresholds
   constexpr float isoThr_veto = 0.2;
   constexpr float isoThr_loose = 0.2;
-  constexpr float isoThr_medium = 0.1;
-  constexpr float isoThr_tight = 0.1;
+  constexpr float isoThr_medium = 0.15;
+  constexpr float isoThr_tight = 0.15;
   constexpr float isoThr_soft = 0.2;
 
-  constexpr SelectionBits bit_preselection_id = kTightId;
-  constexpr SelectionBits bit_preselection_iso = kTightIso;
-  constexpr SelectionBits bit_preselection_kin = kTightKin;
-  constexpr SelectionBits bit_preselection_time = kValidMuonSystemTime;
+  // Determine how the physics objects are vetoed/cleaned/accepted
   constexpr MuonId idType_preselection = kCutBasedId_MuonPOG;
   constexpr MuonIso isoType_preselection = kPFIsoDR0p3;
+
+  constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
+  constexpr SelectionBits bit_preselectionVeto_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
+  constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionAccept_id = kMediumId;
+  constexpr SelectionBits bit_preselectionAccept_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionAccept_kin = kMediumKin;
+
+  constexpr SelectionBits bit_preselection_time = kValidMuonSystemTime;
 
   float absMiniIso_DR0p3(MuonObject const& part);
   float relMiniIso_DR0p3(MuonObject const& part);
@@ -105,7 +118,9 @@ namespace MuonSelectionHelpers{
   bool testSoftIso(MuonObject const& part);
   bool testSoftKin(MuonObject const& part);
 
-  bool testPreselection(MuonObject const& part);
+  bool testPreselectionVeto(MuonObject const& part);
+  bool testPreselectionLoose(MuonObject const& part);
+  bool testPreselectionAccept(MuonObject const& part);
 
   void setSelectionBits(MuonObject& part);
 
