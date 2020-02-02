@@ -19,22 +19,18 @@ void ParticleDisambiguator::disambiguateParticles(
     std::vector<ElectronObject*> electrons_new; electrons_new.reserve(electrons->size());
     for (auto*& product:(*electrons)){
       bool isTightProduct = ParticleSelectionHelpers::isTightParticle(product);
-      bool isMediumProduct = ParticleSelectionHelpers::isMediumParticle(product);
       bool isLooseProduct = ParticleSelectionHelpers::isLooseParticle(product);
       bool doRemove=false;
       if (!doRemove && muons){
         for (auto const* part:(*muons)){
           bool isTightPart = ParticleSelectionHelpers::isTightParticle(part);
-          bool isMediumPart = ParticleSelectionHelpers::isMediumParticle(part);
           bool isLoosePart = ParticleSelectionHelpers::isLooseParticle(part);
           bool isVetoPart = ParticleSelectionHelpers::isVetoParticle(part);
           if (
             !(
               isTightPart
               ||
-              (isMediumPart && !isTightProduct)
-              ||
-              (isLoosePart && !isMediumProduct)
+              (isLoosePart && !isTightProduct)
               ||
               (isVetoPart && !isLooseProduct)
               )
@@ -52,22 +48,18 @@ void ParticleDisambiguator::disambiguateParticles(
     std::vector<PhotonObject*> photons_new; photons_new.reserve(photons->size());
     for (auto*& product:(*photons)){
       bool isTightProduct = ParticleSelectionHelpers::isTightParticle(product);
-      bool isMediumProduct = ParticleSelectionHelpers::isMediumParticle(product);
       bool isLooseProduct = ParticleSelectionHelpers::isLooseParticle(product);
       bool doRemove=false;
       if (!doRemove && muons){
         for (auto const* part:(*muons)){
           bool isTightPart = ParticleSelectionHelpers::isTightParticle(part);
-          bool isMediumPart = ParticleSelectionHelpers::isMediumParticle(part);
           bool isLoosePart = ParticleSelectionHelpers::isLooseParticle(part);
           bool isVetoPart = ParticleSelectionHelpers::isVetoParticle(part);
           if (
             !(
               isTightPart
               ||
-              (isMediumPart && !isTightProduct)
-              ||
-              (isLoosePart && !isMediumProduct)
+              (isLoosePart && !isTightProduct)
               ||
               (isVetoPart && !isLooseProduct)
               )
@@ -78,16 +70,13 @@ void ParticleDisambiguator::disambiguateParticles(
       if (!doRemove && electrons){
         for (auto const* part:(*electrons)){
           bool isTightPart = ParticleSelectionHelpers::isTightParticle(part);
-          bool isMediumPart = ParticleSelectionHelpers::isMediumParticle(part);
           bool isLoosePart = ParticleSelectionHelpers::isLooseParticle(part);
           bool isVetoPart = ParticleSelectionHelpers::isVetoParticle(part);
           if (
             !(
               isTightPart
               ||
-              (isMediumPart && !isTightProduct)
-              ||
-              (isLoosePart && !isMediumProduct)
+              (isLoosePart && !isTightProduct)
               ||
               (isVetoPart && !isLooseProduct)
               )

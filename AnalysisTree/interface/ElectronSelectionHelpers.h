@@ -21,7 +21,9 @@ namespace ElectronSelectionHelpers{
     kTightIso,
     kTightKin,
 
-    kPreselection,
+    kPreselectionVeto,
+    kPreselectionLoose,
+    kPreselectionTight,
 
     nSelectionBits
   };
@@ -56,16 +58,25 @@ namespace ElectronSelectionHelpers{
   constexpr float etaThr_skim_tight = 2.5;
 
   // Isolation thresholds
-  constexpr float isoThr_veto = 0.15;
-  constexpr float isoThr_loose = 0.15;
+  constexpr float isoThr_veto = 0.2;
+  constexpr float isoThr_loose = 0.2;
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
 
-  constexpr SelectionBits bit_preselection_id = kTightId;
-  constexpr SelectionBits bit_preselection_iso = kTightIso;
-  constexpr SelectionBits bit_preselection_kin = kTightKin;
-  constexpr ElectronId idType_preselection = kCutBasedId_Fall17V2;
+  constexpr ElectronId idType_preselection = kMVAId_Fall17V2_NoIso;
   constexpr ElectronIso isoType_preselection = kPFIsoDR0p3;
+
+  constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
+  constexpr SelectionBits bit_preselectionVeto_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
+  constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionTight_id = kMediumId;
+  constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionTight_kin = kMediumKin;
 
   float absMiniIso_DR0p3(ElectronObject const& part);
   float relMiniIso_DR0p3(ElectronObject const& part);
@@ -77,26 +88,6 @@ namespace ElectronSelectionHelpers{
   float relPFIso_DR0p4(ElectronObject const& part);
 
   float computeIso(ElectronObject const& part);
-
-  bool testPtEtaGen(ElectronObject const& part);
-
-  bool testVetoId(ElectronObject const& part);
-  bool testVetoIso(ElectronObject const& part);
-  bool testVetoKin(ElectronObject const& part);
-
-  bool testLooseId(ElectronObject const& part);
-  bool testLooseIso(ElectronObject const& part);
-  bool testLooseKin(ElectronObject const& part);
-
-  bool testMediumId(ElectronObject const& part);
-  bool testMediumIso(ElectronObject const& part);
-  bool testMediumKin(ElectronObject const& part);
-
-  bool testTightId(ElectronObject const& part);
-  bool testTightIso(ElectronObject const& part);
-  bool testTightKin(ElectronObject const& part);
-
-  bool testPreselection(ElectronObject const& part);
 
   void setSelectionBits(ElectronObject& part);
 

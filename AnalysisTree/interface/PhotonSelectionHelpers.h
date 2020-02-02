@@ -23,7 +23,9 @@ namespace PhotonSelectionHelpers{
     kTightIso,
     kTightKin,
 
-    kPreselection,
+    kPreselectionVeto,
+    kPreselectionLoose,
+    kPreselectionTight,
 
     nSelectionBits
   };
@@ -56,36 +58,25 @@ namespace PhotonSelectionHelpers{
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
 
-  constexpr SelectionBits bit_preselection_id = kTightId;
-  constexpr SelectionBits bit_preselection_iso = kTightIso;
-  constexpr SelectionBits bit_preselection_kin = kTightKin;
-  constexpr PhotonId idType_preselection = kCutBasedId_Fall17V2; // FIXME: Do not use MVA id in photons. The conversion veto and pixel seed falgs are not yet recorded in the trees.
+  constexpr PhotonId idType_preselection = kCutBasedId_Fall17V2;
   constexpr PhotonIso isoType_preselection = kPFIsoDR0p3;
+
+  constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
+  constexpr SelectionBits bit_preselectionVeto_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
+  constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
+
+  constexpr SelectionBits bit_preselectionTight_id = kMediumId;
+  constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionTight_kin = kMediumKin;
+
+  constexpr SelectionBits bit_preselection_conversion = nSelectionBits; // kConversionSafe (enable in loose and tight preselection) or nSelectionBits (disable)
 
   float absPFIso_DR0p3(PhotonObject const& part);
   float relPFIso_DR0p3(PhotonObject const& part);
-
-  bool testPtEtaGen(PhotonObject const& part);
-
-  bool testConversionSafe(PhotonObject const& part);
-
-  bool testVetoId(PhotonObject const& part);
-  bool testVetoIso(PhotonObject const& part);
-  bool testVetoKin(PhotonObject const& part);
-
-  bool testLooseId(PhotonObject const& part);
-  bool testLooseIso(PhotonObject const& part);
-  bool testLooseKin(PhotonObject const& part);
-
-  bool testMediumId(PhotonObject const& part);
-  bool testMediumIso(PhotonObject const& part);
-  bool testMediumKin(PhotonObject const& part);
-
-  bool testTightId(PhotonObject const& part);
-  bool testTightIso(PhotonObject const& part);
-  bool testTightKin(PhotonObject const& part);
-
-  bool testPreselection(PhotonObject const& part);
 
   void setSelectionBits(PhotonObject& part);
 

@@ -39,9 +39,9 @@ public:
   void setP4(LorentzVector_t const& momentum_){ momentum=momentum_; }
 
   void resetSelectionBits(){ selectionBits=0; }
-  void setSelectionBit(unsigned int ibit);
-  bool testSelection(unsigned int ibit) const;
-  bool testSelectionBit(unsigned int ibit) const{ return this->testSelection(ibit); }
+  void setSelectionBit(unsigned int ibit, bool val);
+  bool testSelectionBit(unsigned int ibit) const;
+  bool testSelection(unsigned int ibit) const{ return this->testSelectionBit(ibit); }
 
   int const& pdgId() const{ return id; }
   int& pdgId(){ return id; }

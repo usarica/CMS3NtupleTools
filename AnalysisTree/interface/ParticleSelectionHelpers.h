@@ -9,10 +9,10 @@
 
 
 namespace ParticleSelectionHelpers{
+  // Functions to select "preselection" id types
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \
 SELECTION_TYPE(Loose) \
-SELECTION_TYPE(Medium) \
 SELECTION_TYPE(Tight)
 
 #define SELECTION_TYPE(TYPE) \
@@ -28,6 +28,7 @@ SELECTION_TYPE(Tight)
 #undef SELECTION_TYPES
 
 
+  // Functions to select "preselection" id types
 #define SELECTION_TYPES \
 SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Tight)

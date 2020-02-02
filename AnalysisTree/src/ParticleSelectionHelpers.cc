@@ -7,77 +7,20 @@
 #include "HelperFunctions.h"
 
 
-// Veto ids can have looser definitions than loose-tight.
+// Veto, loose and tight particle ids
 #define SELECTION_TYPES \
-SELECTION_TYPE(Veto)
-#define SELECTION_TYPE(TYPE) \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
-  return ( \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Kin) \
-    ); \
-} \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
-  return ( \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Kin) \
-    ); \
-} \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
-  return ( \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Kin) \
-    ); \
-}
-SELECTION_TYPES;
-#undef SELECTION_TYPE
-#undef SELECTION_TYPES
-
-// Loose-tight particle ids
-#define SELECTION_TYPES \
+SELECTION_TYPE(Veto) \
 SELECTION_TYPE(Loose) \
-SELECTION_TYPE(Medium) \
 SELECTION_TYPE(Tight)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
-  return ( \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(MuonSelectionHelpers::k##TYPE##Kin) \
-    /*&&*/ \
-    /*part->testSelectionBit(MuonSelectionHelpers::kValidMuonSystemTime)*/ \
-    ); \
+  return part->testSelectionBit(MuonSelectionHelpers::kPreselection##TYPE); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
-  return ( \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(ElectronSelectionHelpers::k##TYPE##Kin) \
-    ); \
+  return part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
-  return ( \
-    part->testSelectionBit(PhotonSelectionHelpers::kConversionSafe) \
-    && \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Iso) \
-    && \
-    part->testSelectionBit(PhotonSelectionHelpers::k##TYPE##Kin) \
-    ); \
+  return part->testSelectionBit(PhotonSelectionHelpers::kPreselection##TYPE); \
 }
 SELECTION_TYPES;
 #undef SELECTION_TYPE
@@ -87,7 +30,6 @@ SELECTION_TYPES;
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \
 SELECTION_TYPE(Loose) \
-SELECTION_TYPE(Medium) \
 SELECTION_TYPE(Tight)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ParticleObject const* part){ \
@@ -110,18 +52,10 @@ SELECTION_TYPE(Tight)
 
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(AK4JetObject const* part){ \
-  return ( \
-    part->testSelectionBit(AK4JetSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(AK4JetSelectionHelpers::k##TYPE##Kin) \
-    ); \
+  return part->testSelectionBit(AK4JetSelectionHelpers::kPreselection##TYPE); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(AK8JetObject const* part){ \
-  return ( \
-    part->testSelectionBit(AK8JetSelectionHelpers::k##TYPE##Id) \
-    && \
-    part->testSelectionBit(AK8JetSelectionHelpers::k##TYPE##Kin) \
-    ); \
+  return part->testSelectionBit(AK8JetSelectionHelpers::kPreselection##TYPE); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Jet(ParticleObject const* part){ \
   AK4JetObject const* ak4jet = dynamic_cast<AK4JetObject const*>(part); \

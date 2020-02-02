@@ -29,7 +29,7 @@ namespace MuonSelectionHelpers{
 
     kPreselectionVeto,
     kPreselectionLoose,
-    kPreselectionAccept,
+    kPreselectionTight,
 
     nSelectionBits
   };
@@ -43,7 +43,7 @@ namespace MuonSelectionHelpers{
   };
 
   // Kinematic pT thresholds
-  constexpr float ptThr_gen = 7.;
+  constexpr float ptThr_gen = 3.;
   constexpr float ptThr_skim_veto = 7.;
   constexpr float ptThr_skim_loose = 7.;
   constexpr float ptThr_skim_medium = 7.;
@@ -77,11 +77,11 @@ namespace MuonSelectionHelpers{
   constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
   constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
 
-  constexpr SelectionBits bit_preselectionAccept_id = kMediumId;
-  constexpr SelectionBits bit_preselectionAccept_iso = kMediumIso;
-  constexpr SelectionBits bit_preselectionAccept_kin = kMediumKin;
+  constexpr SelectionBits bit_preselectionTight_id = kMediumId;
+  constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionTight_kin = kMediumKin;
 
-  constexpr SelectionBits bit_preselection_time = kValidMuonSystemTime;
+  constexpr SelectionBits bit_preselection_time = nSelectionBits; // kValidMuonSystemTime (enable in loose and tight preselection) or nSelectionBits (disable)
 
   float absMiniIso_DR0p3(MuonObject const& part);
   float relMiniIso_DR0p3(MuonObject const& part);
@@ -93,34 +93,6 @@ namespace MuonSelectionHelpers{
   float relPFIso_DR0p4(MuonObject const& part);
 
   float computeIso(MuonObject const& part);
-
-  bool testPtEtaGen(MuonObject const& part);
-
-  bool testMuonSystemTime(MuonObject const& part);
-
-  bool testVetoId(MuonObject const& part);
-  bool testVetoIso(MuonObject const& part);
-  bool testVetoKin(MuonObject const& part);
-
-  bool testLooseId(MuonObject const& part);
-  bool testLooseIso(MuonObject const& part);
-  bool testLooseKin(MuonObject const& part);
-
-  bool testMediumId(MuonObject const& part);
-  bool testMediumIso(MuonObject const& part);
-  bool testMediumKin(MuonObject const& part);
-
-  bool testTightId(MuonObject const& part);
-  bool testTightIso(MuonObject const& part);
-  bool testTightKin(MuonObject const& part);
-
-  bool testSoftId(MuonObject const& part);
-  bool testSoftIso(MuonObject const& part);
-  bool testSoftKin(MuonObject const& part);
-
-  bool testPreselectionVeto(MuonObject const& part);
-  bool testPreselectionLoose(MuonObject const& part);
-  bool testPreselectionAccept(MuonObject const& part);
 
   void setSelectionBits(MuonObject& part);
 

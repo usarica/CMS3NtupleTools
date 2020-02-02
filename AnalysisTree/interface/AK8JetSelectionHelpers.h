@@ -5,14 +5,6 @@
 
 
 namespace AK8JetSelectionHelpers{
-  constexpr float ptThr_gen = 150.;
-  constexpr float ptThr_skim_loose = 175.;
-  constexpr float ptThr_skim_tight = 200.;
-
-  constexpr float etaThr_gen = 5.2;
-  constexpr float etaThr_skim_loose = 4.7;
-  constexpr float etaThr_skim_tight = 4.7;
-
   enum SelectionBits{
     kGenPtEta,
 
@@ -21,22 +13,25 @@ namespace AK8JetSelectionHelpers{
     kTightId,
     kTightKin,
 
-    kPreselection,
+    kPreselectionLoose,
+    kPreselectionTight,
 
     nSelectionBits
   };
-  const SelectionBits bit_preselection_id = kTightId;
-  const SelectionBits bit_preselection_kin = kTightKin;
 
-  bool testPtEtaGen(AK8JetObject const& part);
+  constexpr float ptThr_gen = 150.;
+  constexpr float ptThr_skim_loose = 175.;
+  constexpr float ptThr_skim_tight = 200.;
 
-  bool testLooseId(AK8JetObject const& part);
-  bool testLooseKin(AK8JetObject const& part);
+  constexpr float etaThr_gen = 5.2;
+  constexpr float etaThr_skim_loose = 4.7;
+  constexpr float etaThr_skim_tight = 4.7;
 
-  bool testTightId(AK8JetObject const& part);
-  bool testTightKin(AK8JetObject const& part);
+  const SelectionBits bit_preselectionLoose_id = kTightId;
+  const SelectionBits bit_preselectionLoose_kin = kTightKin;
 
-  bool testPreselection(AK8JetObject const& part);
+  const SelectionBits bit_preselectionTight_id = kTightId;
+  const SelectionBits bit_preselectionTight_kin = kTightKin;
 
   void setSelectionBits(AK8JetObject& part);
 }

@@ -4,6 +4,33 @@
 #include "MELAStreamHelpers.hh"
 
 
+namespace PhotonSelectionHelpers{
+  bool testPtEtaGen(PhotonObject const& part);
+
+  bool testConversionSafe(PhotonObject const& part);
+
+  bool testVetoId(PhotonObject const& part);
+  bool testVetoIso(PhotonObject const& part);
+  bool testVetoKin(PhotonObject const& part);
+
+  bool testLooseId(PhotonObject const& part);
+  bool testLooseIso(PhotonObject const& part);
+  bool testLooseKin(PhotonObject const& part);
+
+  bool testMediumId(PhotonObject const& part);
+  bool testMediumIso(PhotonObject const& part);
+  bool testMediumKin(PhotonObject const& part);
+
+  bool testTightId(PhotonObject const& part);
+  bool testTightIso(PhotonObject const& part);
+  bool testTightKin(PhotonObject const& part);
+
+  bool testPreselectionVeto(PhotonObject const& part);
+  bool testPreselectionLoose(PhotonObject const& part);
+  bool testPreselectionTight(PhotonObject const& part);
+}
+
+
 using namespace std;
 using namespace MELAStreamHelpers;
 
@@ -144,61 +171,62 @@ bool PhotonSelectionHelpers::testTightKin(PhotonObject const& part){
 bool PhotonSelectionHelpers::testPtEtaGen(PhotonObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
 }
-bool PhotonSelectionHelpers::testPreselection(PhotonObject const& part){
+bool PhotonSelectionHelpers::testPreselectionVeto(PhotonObject const& part){
   return (
-    (
-    (bit_preselection_iso == kVetoIso && testVetoIso(part))
-      ||
-      (bit_preselection_iso == kLooseIso && testLooseIso(part))
-      ||
-      (bit_preselection_iso == kMediumIso && testMediumIso(part))
-      ||
-      (bit_preselection_iso == kTightIso && testTightIso(part))
-      )
+    part.testSelectionBit(bit_preselectionVeto_id)
     &&
-    (
-    (bit_preselection_id == kVetoId && testVetoId(part))
-      ||
-      (bit_preselection_id == kLooseId && testLooseId(part))
-      ||
-      (bit_preselection_id == kMediumId && testMediumId(part))
-      ||
-      (bit_preselection_id == kTightId && testTightId(part))
-      )
+    part.testSelectionBit(bit_preselectionVeto_iso)
     &&
-    (
-    (bit_preselection_kin == kVetoKin && testVetoKin(part))
-      ||
-      (bit_preselection_kin == kLooseKin && testLooseKin(part))
-      ||
-      (bit_preselection_kin == kMediumKin && testMediumKin(part))
-      ||
-      (bit_preselection_kin == kTightKin && testTightKin(part))
-      )
+    part.testSelectionBit(bit_preselectionVeto_kin)
+    );
+}
+bool PhotonSelectionHelpers::testPreselectionLoose(PhotonObject const& part){
+  return (
+    part.testSelectionBit(bit_preselectionLoose_id)
+    &&
+    part.testSelectionBit(bit_preselectionLoose_iso)
+    &&
+    part.testSelectionBit(bit_preselectionLoose_kin)
+    &&
+    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
+    );
+}
+bool PhotonSelectionHelpers::testPreselectionTight(PhotonObject const& part){
+  return (
+    part.testSelectionBit(bit_preselectionTight_id)
+    &&
+    part.testSelectionBit(bit_preselectionTight_iso)
+    &&
+    part.testSelectionBit(bit_preselectionTight_kin)
+    &&
+    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
     );
 }
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
-  if (testPtEtaGen(part)) part.setSelectionBit(kGenPtEta);
+  part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
-  if (testConversionSafe(part)) part.setSelectionBit(kConversionSafe);
+  part.setSelectionBit(kConversionSafe, testConversionSafe(part));
 
-  if (testVetoId(part)) part.setSelectionBit(kVetoId);
-  if (testVetoIso(part)) part.setSelectionBit(kVetoIso);
-  if (testVetoKin(part)) part.setSelectionBit(kVetoKin);
+  part.setSelectionBit(kVetoId, testVetoId(part));
+  part.setSelectionBit(kVetoIso, testVetoIso(part));
+  part.setSelectionBit(kVetoKin, testVetoKin(part));
 
-  if (testLooseId(part)) part.setSelectionBit(kLooseId);
-  if (testLooseIso(part)) part.setSelectionBit(kLooseIso);
-  if (testLooseKin(part)) part.setSelectionBit(kLooseKin);
+  part.setSelectionBit(kLooseId, testLooseId(part));
+  part.setSelectionBit(kLooseIso, testLooseIso(part));
+  part.setSelectionBit(kLooseKin, testLooseKin(part));
 
-  if (testMediumId(part)) part.setSelectionBit(kMediumId);
-  if (testMediumIso(part)) part.setSelectionBit(kMediumIso);
-  if (testMediumKin(part)) part.setSelectionBit(kMediumKin);
+  part.setSelectionBit(kMediumId, testMediumId(part));
+  part.setSelectionBit(kMediumIso, testMediumIso(part));
+  part.setSelectionBit(kMediumKin, testMediumKin(part));
 
-  if (testTightId(part)) part.setSelectionBit(kTightId);
-  if (testTightIso(part)) part.setSelectionBit(kTightIso);
-  if (testTightKin(part)) part.setSelectionBit(kTightKin);
+  part.setSelectionBit(kTightId, testTightId(part));
+  part.setSelectionBit(kTightIso, testTightIso(part));
+  part.setSelectionBit(kTightKin, testTightKin(part));
 
-  if (testPreselection(part)) part.setSelectionBit(kPreselection);
+  // The functions below test the bits set in the steps above.
+  part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
+  part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
+  part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }
