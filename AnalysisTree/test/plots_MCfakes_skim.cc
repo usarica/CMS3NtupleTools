@@ -634,14 +634,14 @@ void getTrees(int procsel, int do_ee_mumu, TString strdate){
         bool isFall17V2MVANoIsoLoose = extras.id_MVA_Fall17V2_NoIso_pass_wpLoose;
         bool isFall17V2MVAIsoLoose = extras.id_MVA_Fall17V2_Iso_pass_wpLoose;
         bool isHZZMVAIsoLoose = extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
-        if (isCutBasedLoose || isFall17V2MVANoIsoLoose || isFall17V2MVAIsoLoose || isHZZMVAIsoLoose) electron->setSelectionBit(ElectronSelectionHelpers::kLooseId);
+        if (isCutBasedLoose || isFall17V2MVANoIsoLoose || isFall17V2MVAIsoLoose || isHZZMVAIsoLoose) electron->setSelectionBit(ElectronSelectionHelpers::kLooseId, true);
         else continue;
         bool passLooseIso = (isFall17V2MVAIsoLoose || isHZZMVAIsoLoose);
         if (!passLooseIso){
           if (isCutBasedLoose) passLooseIso |= HelperFunctions::test_bit(extras.id_cutBased_Fall17V2_Loose_Bits, 7);
           else if (isFall17V2MVANoIsoLoose) passLooseIso |= ElectronSelectionHelpers::relPFIso_DR0p3(*electron)<0.15;
         }
-        if (passLooseIso) electron->setSelectionBit(ElectronSelectionHelpers::kLooseIso);
+        electron->setSelectionBit(ElectronSelectionHelpers::kLooseIso, passLooseIso);
         looseElectrons.push_back(electron);
       }
       //MELAout << "N loose electrons: " << looseElectrons.size() << endl;
@@ -1014,11 +1014,13 @@ void makePlots(int do_ee_mumu, int procsel=-1, bool doOS=true, int doDR0p4=false
         Form("C. B. L.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kRed);
+      /*
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()),
         Form("C. B. M.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kBlue);
+      */
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()),
         Form("C. B. T.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
@@ -1139,7 +1141,9 @@ void makePlots(int do_ee_mumu, int procsel=-1, bool doOS=true, int doDR0p4=false
           if (pass_fall17v2mvanoisowp90 && relpfiso_l1<0.1 && relpfiso_l2<0.1) (*it_hist)->Fill(mass_ll, event_wgt); it_hist++;
           if (pass_hzzmvaisowphzz) (*it_hist)->Fill(mass_ll, event_wgt); it_hist++;
           if (pass_cutbasedloose) (*it_hist)->Fill(mass_ll, event_wgt); it_hist++;
+          /*
           if (pass_cutbasedmedium) (*it_hist)->Fill(mass_ll, event_wgt); it_hist++;
+          */
           if (pass_cutbasedtight) (*it_hist)->Fill(mass_ll, event_wgt); it_hist++;
         }
         else{

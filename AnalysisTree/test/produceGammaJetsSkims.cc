@@ -24,6 +24,9 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
     }
   );
 
+  std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
+  size_t nValidDataPeriods = validDataPeriods.size();
+
   // Get handlers
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
@@ -59,9 +62,9 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
-    float sum_wgts = 0;
-    float sum_wgts_PUDn = 0;
-    float sum_wgts_PUUp = 0;
+    std::vector<float> sum_wgts(nValidDataPeriods+1, 0);
+    std::vector<float> sum_wgts_PUDn(nValidDataPeriods+1, 0);
+    std::vector<float> sum_wgts_PUUp(nValidDataPeriods+1, 0);
     if (!isData){
       sample_tree.bookBranch<float>("xsec", 0.f);
 
@@ -80,16 +83,22 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
         auto const& genInfo = genInfoHandler.getGenInfo();
         float genwgt = genInfo->getGenWeight(true);
 
-        float puwgt;
-        simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
-        puwgt = simEventHandler.getPileUpWeight();
-        sum_wgts += genwgt * puwgt;
-        simEventHandler.constructSimEvent(SystematicsHelpers::ePUDn);
-        puwgt = simEventHandler.getPileUpWeight();
-        sum_wgts_PUDn += genwgt * puwgt;
-        simEventHandler.constructSimEvent(SystematicsHelpers::ePUUp);
-        puwgt = simEventHandler.getPileUpWeight();
-        sum_wgts_PUUp += genwgt * puwgt;
+        for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
+          if (idp==0) SampleHelpers::setDataPeriod(period);
+          else SampleHelpers::setDataPeriod(validDataPeriods.at(idp-1));
+
+          float puwgt;
+          simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
+          puwgt = simEventHandler.getPileUpWeight();
+          sum_wgts.at(idp) += genwgt * puwgt;
+          simEventHandler.constructSimEvent(SystematicsHelpers::ePUDn);
+          puwgt = simEventHandler.getPileUpWeight();
+          sum_wgts_PUDn.at(idp) += genwgt * puwgt;
+          simEventHandler.constructSimEvent(SystematicsHelpers::ePUUp);
+          puwgt = simEventHandler.getPileUpWeight();
+          sum_wgts_PUUp.at(idp) += genwgt * puwgt;
+        }
+        SampleHelpers::setDataPeriod(period);
       }
     }
 
@@ -121,10 +130,12 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
     TDirectory* outdir = foutput->mkdir("cms3ntuple");
     outdir->cd();
     if (!isData){
-      TH1F hCounters("Counters", "", 3, 0, 3);
-      hCounters.SetBinContent(1, sum_wgts);
-      hCounters.SetBinContent(2, sum_wgts_PUDn);
-      hCounters.SetBinContent(3, sum_wgts_PUUp);
+      TH2F hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
+      for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
+        hCounters.SetBinContent(1, idp+1, sum_wgts.at(idp));
+        hCounters.SetBinContent(2, idp+1, sum_wgts_PUDn.at(idp));
+        hCounters.SetBinContent(3, idp+1, sum_wgts_PUUp.at(idp));
+      }
       outdir->WriteTObject(&hCounters);
     }
     //sample_tree.unmuteAllBranches();

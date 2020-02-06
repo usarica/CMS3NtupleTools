@@ -566,14 +566,14 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
         bool isFall17V2MVANoIsoLoose = extras.id_MVA_Fall17V2_NoIso_pass_wpLoose;
         bool isFall17V2MVAIsoLoose = extras.id_MVA_Fall17V2_Iso_pass_wpLoose;
         bool isHZZMVAIsoLoose = extras.id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ;
-        if (isCutBasedLoose || isFall17V2MVANoIsoLoose || isFall17V2MVAIsoLoose || isHZZMVAIsoLoose) electron->setSelectionBit(ElectronSelectionHelpers::kLooseId);
+        if (isCutBasedLoose || isFall17V2MVANoIsoLoose || isFall17V2MVAIsoLoose || isHZZMVAIsoLoose) electron->setSelectionBit(ElectronSelectionHelpers::kLooseId, true);
         else continue;
         bool passLooseIso = (isFall17V2MVAIsoLoose || isHZZMVAIsoLoose);
         if (!passLooseIso){
           if (isCutBasedLoose) passLooseIso |= HelperFunctions::test_bit(extras.id_cutBased_Fall17V2_Loose_Bits, 7);
           else if (isFall17V2MVANoIsoLoose) passLooseIso |= ElectronSelectionHelpers::relPFIso_DR0p3(*electron)<0.15;
         }
-        if (passLooseIso) electron->setSelectionBit(ElectronSelectionHelpers::kLooseIso);
+        electron->setSelectionBit(ElectronSelectionHelpers::kLooseIso, passLooseIso);
         looseElectrons.push_back(electron);
       }
       //MELAout << "N loose electrons: " << looseElectrons.size() << endl;
@@ -779,13 +779,13 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
   } // End loop over samples
 }
 
-void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false, bool doRatio=false, TString strdate=""){
+void makePlots(int do_ee_mumu, bool doOS=true, int doDR0p4=false, bool doRatio=false, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
   TString const cinput_main = "output/LepEffFromData/SkimTrees/" + strdate;
-  TString coutput_main = cinput_main + "/Plots" + (doOS? "/OS" : "/SS") + (do_ee_mumu == 0 ? "ee" : "mumu") + (!doDR0p4 ? "/DR0p3" : "/DR0p4") + (selset==-1 ? "/AllSelections" : Form("/SelectionSet%i", selset)) + (doRatio ? "/Ratios" : "/Nevents");
+  TString coutput_main = cinput_main + "/Plots" + (doOS? "/OS" : "/SS") + (do_ee_mumu == 0 ? "ee" : "mumu") + (!doDR0p4 ? "/DR0p3" : "/DR0p4") + (doRatio ? "/Ratios" : "/Nevents");
   gSystem->mkdir(coutput_main, true);
 
   TString const strRelPFIso = (doDR0p4 ? "relPFIso04" : "relPFIso03");
@@ -908,47 +908,29 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
         Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_fall17v2mvanoisowp90_%s_0p2", strRelPFIso.Data()), cuttitle.Data()),
         Form("M_{17}^{V2} (no iso., 90), I_{rel}^{%.1f}<0.2|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kCyan);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_fall17v2mvanoisowp80_%s_0p2", strRelPFIso.Data()), cuttitle.Data()),
-        Form("M_{17}^{V2} (no iso., 80), I_{rel}^{%.1f}<0.2|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kAzure-2);
+      ); hcolors.push_back((int) kYellow-3);
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_fall17v2mvanoisowp90_%s_0p1", strRelPFIso.Data()), cuttitle.Data()),
         Form("M_{17}^{V2} (no iso., 90), I_{rel}^{%.1f}<0.1|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kCyan);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_fall17v2mvanoisowp80_%s_0p1", strRelPFIso.Data()), cuttitle.Data()),
-        Form("M_{17}^{V2} (no iso., 80), I_{rel}^{%.1f}<0.1|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kAzure-2);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp90", cuttitle.Data()),
-        Form("M_{17}^{V2} (w/ iso., 90)|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
-        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kOrange-3);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), "mll_fall17v2mvaisowp80", cuttitle.Data()),
-        Form("M_{17}^{V2} (w/ iso., 80)|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
-        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kYellow-3);
+      ); hcolors.push_back((int) kViolet);
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_hzzmvawphzz", cuttitle.Data()),
         Form("M_{18} (no iso., HZZ)|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kViolet);
+      ); hcolors.push_back((int) kAzure-2);
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedloose", cuttitle.Data()),
         Form("C. B. L.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kBlack);
+      ); hcolors.push_back((int) kRed);
+      /*
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedmedium", cuttitle.Data()),
         Form("C. B. M.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kBlack);
+      ); hcolors.push_back((int) kBlue);
+      */
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "mll_cutbasedtight", cuttitle.Data()),
         Form("C. B. T.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
@@ -956,46 +938,27 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
       ); hcolors.push_back((int) kBlack);
     }
     else if (do_ee_mumu==1){
-      if (selset==-1 || selset==0){
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedloose_%s_0p15", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. L., I_{rel}^{%.1f}<0.15|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kRed);
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedloose_%s_0p1", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. L., I_{rel}^{%.1f}<0.1|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kRed);
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedloose_%s_0p05", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. L., I_{rel}^{%.1f}<0.05|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kRed);
-      }
-      if (selset==-1 || selset==1){
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedmedium_%s_0p15", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. M., I_{rel}^{%.1f}<0.15|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kBlue);
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedmedium_%s_0p1", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. M., I_{rel}^{%.1f}<0.1|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kBlue);
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedmedium_%s_0p075", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. M., I_{rel}^{%.1f}<0.075|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kBlue);
-      }
-      if (selset==-1 || selset==2){
-        hspecs.emplace_back(
-          Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedtight_%s_0p2", strRelPFIso.Data()), cuttitle.Data()),
-          Form("C. B. T., I_{rel}^{%.1f}<0.2|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
-          "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-        ); hcolors.push_back((int) kBlack);
+      hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedloose_%s_0p2", strRelPFIso.Data()), cuttitle.Data()),
+        Form("C. B. L., I_{rel}^{%.1f}<0.2|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
+        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kRed);
+      hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedloose_%s_0p15", strRelPFIso.Data()), cuttitle.Data()),
+        Form("C. B. L., I_{rel}^{%.1f}<0.15|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
+        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kRed);
+      hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedmedium_%s_0p2", strRelPFIso.Data()), cuttitle.Data()),
+        Form("C. B. M., I_{rel}^{%.1f}<0.2|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
+        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kBlue);
+      hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedmedium_%s_0p15", strRelPFIso.Data()), cuttitle.Data()),
+        Form("C. B. M., I_{rel}^{%.1f}<0.15|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
+        "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kBlue);
+      if (!doDR0p4){
         hspecs.emplace_back(
           Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedtight_%s_0p15", strRelPFIso.Data()), cuttitle.Data()),
           Form("C. B. T., I_{rel}^{%.1f}<0.15|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
@@ -1003,8 +966,8 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
         ); hcolors.push_back((int) kBlack);
       }
       hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedtight_%s_0p1", strRelPFIso.Data()), cuttitle.Data()),
-        Form("C. B. T., I_{rel}^{%.1f}<0.1|%s|%s", relPFIsoCut, strChannelLabel.Data(), cutlabel.Data()),
+        Form("h1D_%s_%s_%s", strChannel.Data(), Form("mll_cutbasedtight_%s_0p15", "relPFIso04"), cuttitle.Data()),
+        Form("C. B. T., I_{rel}^{%.1f}<0.15|%s|%s", 0.4, strChannelLabel.Data(), cutlabel.Data()),
         "m_{ll} (GeV)", (!doRatio ? "Events / 1 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kBlack);
     }
@@ -1060,32 +1023,23 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
         auto it_hist = hlist.begin();
         if (do_ee_mumu==0){
           if (pass_fall17v2mvanoisowp90 && relpfiso_l1<0.2 && relpfiso_l2<0.2) (*it_hist)->Fill(mass_ll); it_hist++;
-          if (pass_fall17v2mvanoisowp80 && relpfiso_l1<0.2 && relpfiso_l2<0.2) (*it_hist)->Fill(mass_ll); it_hist++;
           if (pass_fall17v2mvanoisowp90 && relpfiso_l1<0.1 && relpfiso_l2<0.1) (*it_hist)->Fill(mass_ll); it_hist++;
-          if (pass_fall17v2mvanoisowp80 && relpfiso_l1<0.1 && relpfiso_l2<0.1) (*it_hist)->Fill(mass_ll); it_hist++;
-          if (pass_fall17v2mvaisowp90) (*it_hist)->Fill(mass_ll); it_hist++;
-          if (pass_fall17v2mvaisowp80) (*it_hist)->Fill(mass_ll); it_hist++;
           if (pass_hzzmvaisowphzz) (*it_hist)->Fill(mass_ll); it_hist++;
           if (pass_cutbasedloose) (*it_hist)->Fill(mass_ll); it_hist++;
+          /*
           if (pass_cutbasedmedium) (*it_hist)->Fill(mass_ll); it_hist++;
+          */
           if (pass_cutbasedtight) (*it_hist)->Fill(mass_ll); it_hist++;
         }
         else{
-          if (selset==-1 || selset==0){
-            if (pass_cutbasedloose && relpfiso_l1<0.150 && relpfiso_l2<0.150) (*it_hist)->Fill(mass_ll); it_hist++;
-            if (pass_cutbasedloose && relpfiso_l1<0.100 && relpfiso_l2<0.100) (*it_hist)->Fill(mass_ll); it_hist++;
-            if (pass_cutbasedloose && relpfiso_l1<0.050 && relpfiso_l2<0.050) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (pass_cutbasedloose && relpfiso_l1<0.2 && relpfiso_l2<0.2) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (pass_cutbasedloose && relpfiso_l1<0.15 && relpfiso_l2<0.15) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (pass_cutbasedmedium && relpfiso_l1<0.2 && relpfiso_l2<0.2) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (pass_cutbasedmedium && relpfiso_l1<0.15 && relpfiso_l2<0.15) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (!doDR0p4){
+            if (pass_cutbasedtight && relpfiso_l1<0.15 && relpfiso_l2<0.15) (*it_hist)->Fill(mass_ll); it_hist++;
           }
-          if (selset==-1 || selset==1){
-            if (pass_cutbasedmedium && relpfiso_l1<0.150 && relpfiso_l2<0.150) (*it_hist)->Fill(mass_ll); it_hist++;
-            if (pass_cutbasedmedium && relpfiso_l1<0.100 && relpfiso_l2<0.100) (*it_hist)->Fill(mass_ll); it_hist++;
-            if (pass_cutbasedmedium && relpfiso_l1<0.075 && relpfiso_l2<0.075) (*it_hist)->Fill(mass_ll); it_hist++;
-          }
-          if (selset==-1 || selset==2){
-            if (pass_cutbasedtight && relpfiso_l1<0.200 && relpfiso_l2<0.200) (*it_hist)->Fill(mass_ll); it_hist++;
-            if (pass_cutbasedtight && relpfiso_l1<0.150 && relpfiso_l2<0.150) (*it_hist)->Fill(mass_ll); it_hist++;
-          }
-          if (pass_cutbasedtight && relpfiso_l1<0.100 && relpfiso_l2<0.100) (*it_hist)->Fill(mass_ll); it_hist++;
+          if (pass_cutbasedtight && relpfiso04_l1<0.15 && relpfiso04_l2<0.15) (*it_hist)->Fill(mass_ll); it_hist++;
         }
       }
 
@@ -1105,12 +1059,9 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
         htmp->SetLineColor(hcolors.at(ihist));
         htmp->SetMarkerColor(hcolors.at(ihist));
         if (do_ee_mumu==0){
-          if (ihist==2 || ihist==3 || ihist==5 || ihist==8) htmp->SetLineStyle(7);
-          else if (ihist==7) htmp->SetLineStyle(2);
         }
         else{
-          if (ihist%3==1) htmp->SetLineStyle(7);
-          else if (ihist%3==2) htmp->SetLineStyle(2);
+          if (ihist%2==0) htmp->SetLineStyle(7);
         }
         ihist++;
       }
@@ -1146,6 +1097,8 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
         }
       }
     }
+    double yinf=ymin;
+    double ysup=ymax;
     //ymax *= (!doRatio ? 15. : 1.2);
     ymax *= (!doRatio ? 1.7 : 1.5);
     if (doRatio){
@@ -1260,6 +1213,18 @@ void makePlots(int do_ee_mumu, bool doOS=true, int selset=-1, int doDR0p4=false,
     canvas->Update();
     canvas->SaveAs(coutput_main + "/" + canvasname + ".pdf");
     canvas->SaveAs(coutput_main + "/" + canvasname + ".png");
+    if (!doRatio){
+      for (auto& it:sample_hist_map){
+        for (auto const& hist:it.second) hist->GetYaxis()->SetRangeUser(yinf*0.5, ysup*15.);
+      }
+      canvas->Modified();
+      canvas->Update();
+      canvas->SetLogy();
+      canvas->Modified();
+      canvas->Update();
+      canvas->SaveAs(coutput_main + "/logY_" + canvasname + ".pdf");
+      canvas->SaveAs(coutput_main + "/logY_" + canvasname + ".png");
+    }
 
     for (auto*& ptSel:ptSelectionList) delete ptSel;
     delete pt;
@@ -1413,15 +1378,15 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
         "p_{T}^{ll} (GeV)", (!doRatio ? "Events / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kViolet);
       hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), "pTll_hzzmvawphzz", cuttitle.Data()),
+        Form("M_{18} (no iso., HZZ)|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
+        "p_{T}^{ll} (GeV)", (!doRatio ? "Events / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kAzure-2);
+      hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "pTll_cutbasedloose", cuttitle.Data()),
         Form("C. B. L.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "p_{T}^{ll} (GeV)", (!doRatio ? "Events / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kRed);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), "pTll_cutbasedmedium", cuttitle.Data()),
-        Form("C. B. M.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
-        "p_{T}^{ll} (GeV)", (!doRatio ? "Events / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kBlue);
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "pTll_cutbasedtight", cuttitle.Data()),
         Form("C. B. T.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
@@ -1523,8 +1488,8 @@ void makePlots_pTll(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRati
         if (do_ee_mumu==0){
           if (pass_fall17v2mvanoisowp90 && max_relpfiso03<0.2) (*it_hist)->Fill(pt_ll); it_hist++;
           if (pass_fall17v2mvanoisowp90 && max_relpfiso03<0.1) (*it_hist)->Fill(pt_ll); it_hist++;
+          if (pass_hzzmvaisowphzz) (*it_hist)->Fill(pt_ll); it_hist++;
           if (pass_cutbasedloose) (*it_hist)->Fill(pt_ll); it_hist++;
-          if (pass_cutbasedmedium) (*it_hist)->Fill(pt_ll); it_hist++;
           if (pass_cutbasedtight) (*it_hist)->Fill(pt_ll); it_hist++;
         }
         else{
@@ -1842,8 +1807,8 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
     }
 
     const int nbins = (doRatio ? 20 : 50);
-    constexpr float xinf = 0;
-    constexpr float xsup = 150;
+    constexpr float xinf = 20;
+    constexpr float xsup = 170;
     TH1F defaultSelection("h1D_default", "", nbins, xinf, xsup); defaultSelection.Sumw2();
     std::vector<HistogramObject> hspecs; std::vector<int> hcolors;
     if (do_ee_mumu==0){
@@ -1861,15 +1826,15 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
         "p_{T}^{l1,l2} (GeV)", (!doRatio ? "Leptons / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kViolet);
       hspecs.emplace_back(
+        Form("h1D_%s_%s_%s", strChannel.Data(), "pTl_hzzmvawphzz", cuttitle.Data()),
+        Form("M_{18} (no iso., HZZ)|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
+        "p_{T}^{l1,l2} (GeV)", (!doRatio ? "Events / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
+      ); hcolors.push_back((int) kAzure-2);
+      hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "pTl_cutbasedloose", cuttitle.Data()),
         Form("C. B. L.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
         "p_{T}^{l1,l2} (GeV)", (!doRatio ? "Leptons / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
       ); hcolors.push_back((int) kRed);
-      hspecs.emplace_back(
-        Form("h1D_%s_%s_%s", strChannel.Data(), "pTl_cutbasedmedium", cuttitle.Data()),
-        Form("C. B. M.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
-        "p_{T}^{l1,l2} (GeV)", (!doRatio ? "Leptons / 3 GeV" : "Ratio to default id+iso"), nbins, xinf, xsup, nullptr
-      ); hcolors.push_back((int) kBlue);
       hspecs.emplace_back(
         Form("h1D_%s_%s_%s", strChannel.Data(), "pTl_cutbasedtight", cuttitle.Data()),
         Form("C. B. T.|%s|%s", strChannelLabel.Data(), cutlabel.Data()),
@@ -1970,8 +1935,8 @@ void makePlots_pTl(int do_ee_mumu, bool doOS=true, bool doSB=false, bool doRatio
         if (do_ee_mumu==0){
           if (pass_fall17v2mvanoisowp90 && max_relpfiso03<0.2){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
           if (pass_fall17v2mvanoisowp90 && max_relpfiso03<0.1){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
+          if (pass_hzzmvaisowphzz){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
           if (pass_cutbasedloose){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
-          if (pass_cutbasedmedium){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
           if (pass_cutbasedtight){ (*it_hist)->Fill(pt_l1); (*it_hist)->Fill(pt_l2); }; it_hist++;
         }
         else{
