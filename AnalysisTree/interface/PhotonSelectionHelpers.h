@@ -75,6 +75,8 @@ namespace PhotonSelectionHelpers{
 
   constexpr SelectionBits bit_preselection_conversion = nSelectionBits; // kConversionSafe (enable in loose and tight preselection) or nSelectionBits (disable)
 
+  float getIsolationDRmax(PhotonObject const& part);
+
   float absPFIso_DR0p3(PhotonObject const& part);
   float relPFIso_DR0p3(PhotonObject const& part);
 

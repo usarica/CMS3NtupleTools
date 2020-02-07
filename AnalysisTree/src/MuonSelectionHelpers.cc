@@ -43,8 +43,8 @@ using namespace MELAStreamHelpers;
 using namespace reco;
 
 
-float MuonSelectionHelpers::absMiniIso_DR0p3(MuonObject const& part){ return part.extras.miniIso_comb_nofsr; }
-float MuonSelectionHelpers::relMiniIso_DR0p3(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso_DR0p3(part)/pt : 0.f); }
+float MuonSelectionHelpers::absMiniIso(MuonObject const& part){ return part.extras.miniIso_comb_nofsr; }
+float MuonSelectionHelpers::relMiniIso(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso(part)/pt : 0.f); }
 
 float MuonSelectionHelpers::absPFIso_DR0p3(MuonObject const& part){ return part.extras.pfIso03_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p3(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }
@@ -52,10 +52,21 @@ float MuonSelectionHelpers::relPFIso_DR0p3(MuonObject const& part){ float pt = p
 float MuonSelectionHelpers::absPFIso_DR0p4(MuonObject const& part){ return part.extras.pfIso04_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p4(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p4(part)/pt : 0.f); }
 
+float MuonSelectionHelpers::getIsolationDRmax(MuonObject const& part){
+  if (isoType_preselection == kPFIsoDR0p3) return 0.3;
+  else if (isoType_preselection == kPFIsoDR0p4) return 0.4;
+  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.pt()/part.currentSystScale, 50.), 200.));
+  else{
+    MELAerr << "MuonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    assert(0);
+    return -1;
+  }
+}
+
 float MuonSelectionHelpers::computeIso(MuonObject const& part){
   if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
-  else if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
+  else if (isoType_preselection == kMiniIso) return relMiniIso(part);
   else MELAerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }

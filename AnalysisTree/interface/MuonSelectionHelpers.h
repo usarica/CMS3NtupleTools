@@ -37,7 +37,7 @@ namespace MuonSelectionHelpers{
     kCutBasedId_MuonPOG
   };
   enum MuonIso{
-    kMiniIsoDR0p3,
+    kMiniIso,
     kPFIsoDR0p3,
     kPFIsoDR0p4
   };
@@ -83,8 +83,10 @@ namespace MuonSelectionHelpers{
 
   constexpr SelectionBits bit_preselection_time = nSelectionBits; // kValidMuonSystemTime (enable in loose and tight preselection) or nSelectionBits (disable)
 
-  float absMiniIso_DR0p3(MuonObject const& part);
-  float relMiniIso_DR0p3(MuonObject const& part);
+  float getIsolationDRmax(MuonObject const& part);
+
+  float absMiniIso(MuonObject const& part);
+  float relMiniIso(MuonObject const& part);
 
   float absPFIso_DR0p3(MuonObject const& part);
   float relPFIso_DR0p3(MuonObject const& part);

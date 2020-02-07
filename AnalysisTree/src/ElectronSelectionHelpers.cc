@@ -34,8 +34,19 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-float ElectronSelectionHelpers::absMiniIso_DR0p3(ElectronObject const& part){ return part.extras.miniIso_comb_nofsr; }
-float ElectronSelectionHelpers::relMiniIso_DR0p3(ElectronObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso_DR0p3(part)/pt : 0.f); }
+float ElectronSelectionHelpers::getIsolationDRmax(ElectronObject const& part){
+  if (isoType_preselection == kPFIsoDR0p3) return 0.3;
+  else if (isoType_preselection == kPFIsoDR0p4) return 0.4;
+  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.pt()/part.currentSystScale, 50.), 200.));
+  else{
+    MELAerr << "ElectronSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    assert(0);
+    return -1;
+  }
+}
+
+float ElectronSelectionHelpers::absMiniIso(ElectronObject const& part){ return part.extras.miniIso_comb_nofsr; }
+float ElectronSelectionHelpers::relMiniIso(ElectronObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso(part)/pt : 0.f); }
 
 float ElectronSelectionHelpers::absPFIso_DR0p3(ElectronObject const& part){ return part.extras.pfIso03_comb_nofsr; }
 float ElectronSelectionHelpers::relPFIso_DR0p3(ElectronObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }
@@ -53,7 +64,7 @@ float ElectronSelectionHelpers::computeIso(ElectronObject const& part){
     ) return 0.f;
   else if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
-  else if (isoType_preselection == kMiniIsoDR0p3) return relMiniIso_DR0p3(part);
+  else if (isoType_preselection == kMiniIso) return relMiniIso(part);
   else MELAerr << "ElectronSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }

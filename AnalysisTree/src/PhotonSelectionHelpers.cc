@@ -35,6 +35,15 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
+float PhotonSelectionHelpers::getIsolationDRmax(PhotonObject const& /*part*/){
+  if (isoType_preselection == kPFIsoDR0p3) return 0.3;
+  else{
+    MELAerr << "PhotonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
+    assert(0);
+    return -1;
+  }
+}
+
 float PhotonSelectionHelpers::absPFIso_DR0p3(PhotonObject const& part){ return part.extras.pfIso_comb; }
 float PhotonSelectionHelpers::relPFIso_DR0p3(PhotonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }
 

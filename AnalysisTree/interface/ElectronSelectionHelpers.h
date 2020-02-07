@@ -35,7 +35,7 @@ namespace ElectronSelectionHelpers{
     kMVAId_HZZRun2Legacy_Iso
   };
   enum ElectronIso{
-    kMiniIsoDR0p3,
+    kMiniIso,
     kPFIsoDR0p3,
     kPFIsoDR0p4,
     kMVAIso_Fall17V2_Iso,
@@ -78,8 +78,10 @@ namespace ElectronSelectionHelpers{
   constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
   constexpr SelectionBits bit_preselectionTight_kin = kMediumKin;
 
-  float absMiniIso_DR0p3(ElectronObject const& part);
-  float relMiniIso_DR0p3(ElectronObject const& part);
+  float getIsolationDRmax(ElectronObject const& part);
+
+  float absMiniIso(ElectronObject const& part);
+  float relMiniIso(ElectronObject const& part);
 
   float absPFIso_DR0p3(ElectronObject const& part);
   float relPFIso_DR0p3(ElectronObject const& part);
