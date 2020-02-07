@@ -121,7 +121,7 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
     sample_tree.silenceUnused();
 
     // Create output
-    TString stroutput = stroutputcore + "/" + strSample;
+    TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
     gSystem->Exec(Form("mkdir -p %s", stroutput.Data()));
     if (nchunks>0) stroutput = stroutput + Form("/allevents_%i_of_%i", ichunk, nchunks);
     else stroutput += "/allevents";
