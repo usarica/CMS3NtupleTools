@@ -73,3 +73,23 @@ TString SampleHelpers::getDatasetFileName(std::string sname){
   return (dsetdir + "/" + (nfiles==1 ? firstFile : "*.root"));
 }
 TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileName(std::string(sname.Data())); }
+
+
+TString SampleHelpers::getDatasetFirstFileName(std::string sname){
+  TString dsetdir = getDatasetDirectoryName(sname);
+  auto dfiles = SampleHelpers::lsdir(dsetdir.Data());
+  size_t nfiles = 0;
+  TString firstFile = "";
+  for (auto const& fname:dfiles){
+    if (fname.Contains(".root")){
+      if (nfiles == 0) firstFile = fname;
+      nfiles++;
+    }
+  }
+  if (nfiles==0){
+    MELAerr << "SampleHelpers::getDatasetFirstFileName: Directory " << dsetdir << " contains no ROOT files." << endl;
+    assert(nfiles>0);
+  }
+  return (dsetdir + "/" + firstFile);
+}
+TString SampleHelpers::getDatasetFirstFileName(TString sname){ return SampleHelpers::getDatasetFirstFileName(std::string(sname.Data())); }
