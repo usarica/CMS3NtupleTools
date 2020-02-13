@@ -847,8 +847,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
 
-    PUSH_USERFLOAT_INTO_VECTOR(conv_vtx_flag);
-    PUSH_USERFLOAT_INTO_VECTOR(n_missing_inner_hits);
+    PUSH_USERINT_INTO_VECTOR(conv_vtx_flag);
+    PUSH_USERINT_INTO_VECTOR(n_missing_inner_hits);
 
     // Id variables
     // Fall17V2_Iso MVA id
