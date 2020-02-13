@@ -51,6 +51,7 @@ namespace MuonSelectionHelpers{
   constexpr float ptThr_skim_soft = 3.;
 
   // Kinematic eta thresholds
+  // Barrel region ends at |eta|=1.2
   constexpr float etaThr_gen = 2.4;
   constexpr float etaThr_skim_veto = 2.4;
   constexpr float etaThr_skim_loose = 2.4;
