@@ -47,14 +47,15 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampleList);
 
-  TString const stroutputcore = Form("output/GammaJetsSkims/%s/%s", strdate.Data(), SampleHelpers::theDataPeriod.Data());
+  TString const stroutputcore = Form("output/GammaJetsSkims/%s/%s", SampleHelpers::theDataPeriod.Data(), strdate.Data());
 
   MELAout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
     //if (!isData && nchunks>0) return;
 
-    TString cinput = SampleHelpers::getDatasetFileName(strSample);
+    TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
+    TString const cinput = SampleHelpers::getDatasetFileName(strSample);
     MELAout << "Extracting input " << cinput << endl;
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
@@ -121,7 +122,8 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
     sample_tree.silenceUnused();
 
     // Create output
-    TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
+    //TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
+    TString stroutput = cinputcore; HelperFunctions::replaceString(stroutput, (SampleHelpers::theInputDirectory + '/' + SampleHelpers::theSamplesTag).Data(), stroutputcore.Data());
     gSystem->Exec(Form("mkdir -p %s", stroutput.Data()));
     if (nchunks>0) stroutput = stroutput + Form("/allevents_%i_of_%i", ichunk, nchunks);
     else stroutput += "/allevents";
