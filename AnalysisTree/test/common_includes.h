@@ -10,6 +10,7 @@
 #include "PhotonHandler.h"
 #include "JetMETHandler.h"
 #include "DileptonHandler.h"
+#include "IsotrackHandler.h"
 #include "EventFilterHandler.h"
 
 #include "ParticleObjectHelpers.h"
@@ -19,6 +20,7 @@
 #include "PhotonSelectionHelpers.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
+#include "IsotrackSelectionHelpers.h"
 #include "BtagHelpers.h"
 
 #include "DiscriminantClasses.h"
