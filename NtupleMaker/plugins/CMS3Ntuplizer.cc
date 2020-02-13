@@ -761,6 +761,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, n_missing_inner_hits, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Iso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, n_objects);
@@ -844,6 +847,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
 
+    PUSH_USERFLOAT_INTO_VECTOR(conv_vtx_flag);
+    PUSH_USERFLOAT_INTO_VECTOR(n_missing_inner_hits);
+
     // Id variables
     // Fall17V2_Iso MVA id
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Val);
@@ -910,6 +916,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
   PUSH_VECTOR_WITH_NAME(colName, etaSC);
+
+  PUSH_VECTOR_WITH_NAME(colName, conv_vtx_flag);
+  PUSH_VECTOR_WITH_NAME(colName, n_missing_inner_hits);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);
@@ -1450,10 +1459,17 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(int, id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_db, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, miniIso_db, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, fromPV, n_objects);
@@ -1464,6 +1480,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
 
   MAKE_VECTOR_WITH_RESERVE(bool, is_pfCand, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_lostTrack, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, lepOverlap, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_highPurityTrack, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_tightTrack, n_objects);
 
@@ -1482,10 +1499,17 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
     mass.push_back(obj->p4.M());
 
     PUSH_ISOTRACK_VARIABLE(id);
+    PUSH_ISOTRACK_VARIABLE(charge);
 
     PUSH_ISOTRACK_VARIABLE(pfIso03_ch);
+    PUSH_ISOTRACK_VARIABLE(pfIso03_nh);
+    PUSH_ISOTRACK_VARIABLE(pfIso03_em);
+    PUSH_ISOTRACK_VARIABLE(pfIso03_db);
     PUSH_ISOTRACK_VARIABLE(pfIso03_comb_nofsr);
     PUSH_ISOTRACK_VARIABLE(miniIso_ch);
+    PUSH_ISOTRACK_VARIABLE(miniIso_nh);
+    PUSH_ISOTRACK_VARIABLE(miniIso_em);
+    PUSH_ISOTRACK_VARIABLE(miniIso_db);
     PUSH_ISOTRACK_VARIABLE(miniIso_comb_nofsr);
 
     PUSH_ISOTRACK_VARIABLE(fromPV);
@@ -1496,6 +1520,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
 
     PUSH_ISOTRACK_VARIABLE(is_pfCand);
     PUSH_ISOTRACK_VARIABLE(is_lostTrack);
+    PUSH_ISOTRACK_VARIABLE(lepOverlap);
     PUSH_ISOTRACK_VARIABLE(is_highPurityTrack);
     PUSH_ISOTRACK_VARIABLE(is_tightTrack);
 
@@ -1513,18 +1538,28 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   PUSH_VECTOR_WITH_NAME(colName, mass);
 
   PUSH_VECTOR_WITH_NAME(colName, id);
+  PUSH_VECTOR_WITH_NAME(colName, charge);
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_ch);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_nh);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_em);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_db);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_ch);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_nh);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_em);
+  PUSH_VECTOR_WITH_NAME(colName, miniIso_db);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
+
   PUSH_VECTOR_WITH_NAME(colName, fromPV);
   PUSH_VECTOR_WITH_NAME(colName, dxy);
   PUSH_VECTOR_WITH_NAME(colName, dxyerr);
   PUSH_VECTOR_WITH_NAME(colName, dz);
   PUSH_VECTOR_WITH_NAME(colName, dzerr);
+
   PUSH_VECTOR_WITH_NAME(colName, is_pfCand);
   PUSH_VECTOR_WITH_NAME(colName, is_lostTrack);
+  PUSH_VECTOR_WITH_NAME(colName, lepOverlap);
   PUSH_VECTOR_WITH_NAME(colName, is_highPurityTrack);
   PUSH_VECTOR_WITH_NAME(colName, is_tightTrack);
 
