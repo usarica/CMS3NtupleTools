@@ -37,10 +37,6 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
   JetMETHandler jetHandler;
   ParticleDisambiguator particleDisambiguator;
 
-  genInfoHandler.setAcquireLHEMEWeights(false);
-  genInfoHandler.setAcquireLHEParticles(false);
-  genInfoHandler.setAcquireGenParticles(false);
-
   eventFilter.setTrackDataEvents(false);
   eventFilter.setCheckUniqueDataEvent(false);
 
@@ -72,6 +68,10 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
       simEventHandler.bookBranches(&sample_tree);
       simEventHandler.wrapTree(&sample_tree);
 
+
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireGenParticles(false);
       genInfoHandler.bookBranches(&sample_tree);
       genInfoHandler.wrapTree(&sample_tree);
 
@@ -101,6 +101,11 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
         }
         SampleHelpers::setDataPeriod(period);
       }
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireGenParticles(true);
+      genInfoHandler.bookBranches(&sample_tree);
+      genInfoHandler.wrapTree(&sample_tree);
     }
 
     muonHandler.bookBranches(&sample_tree);
