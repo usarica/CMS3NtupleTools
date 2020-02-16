@@ -57,7 +57,8 @@ struct GenInfo{
   float PythiaWeight_isr_muR4;
   float PythiaWeight_fsr_muR4;
 
-  std::unordered_map<std::string, float> LHE_ME_weights;
+  std::unordered_map<std::string, float> LHE_ME_weights; // Includes LHECandMass
+  std::unordered_map<std::string, float> Kfactors; // Includes the arguments of the K factors if they are needed
 
   // LHE particles if they need to be recorded
   std::vector<float> lheparticles_px;

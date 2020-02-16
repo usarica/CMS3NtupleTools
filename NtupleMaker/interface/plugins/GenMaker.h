@@ -2,10 +2,11 @@
 #define NTUPLEMAKER_GENMAKER_H
 
 #include <memory>
+#include <utility>
+#include <algorithm>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDProducer.h"
-//#include "FWCore/Framework/interface/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/Run.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -21,13 +22,13 @@
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenRunInfoProduct.h"
 
-#include "CommonLHETools/LHEHandler/interface/LHEHandler.h"
+#include <CommonLHETools/LHEHandler/interface/LHEHandler.h>
 #include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
+#include <CMS3/NtupleMaker/interface/KFactorHelpers.h>
 
 
 class GenMaker : public edm::one::EDProducer<edm::one::WatchRuns, edm::one::SharedResources>{
-//class GenMaker : public edm::EDProducer{
 public:
   explicit GenMaker(const edm::ParameterSet&);
   ~GenMaker();
@@ -48,6 +49,8 @@ protected:
   float xsecOverride;
   float brOverride;
 
+  std::vector<std::pair<KFactorHelpers::KFactorType, KFactorHelpers::KFactorType>> kfactor_num_denum_list;
+
   edm::InputTag LHEInputTag_;
   edm::InputTag genEvtInfoInputTag_;
   edm::InputTag prunedGenParticlesInputTag_;
@@ -61,6 +64,8 @@ protected:
   MELAEvent::CandidateVVMode candVVmode;
   int decayVVmode;
   std::vector<std::string> lheMElist;
+  
+  std::shared_ptr<KFactorHelpers::KFactorHandler_QCD_ggZZ_Sig> KFactor_QCD_ggZZ_Sig_handle;
 
   edm::EDGetTokenT<LHERunInfoProduct> LHERunInfoToken;
 
@@ -80,6 +85,11 @@ protected:
   void setupMELA();
   void doMELA(MELACandidate*, GenInfo&);
   void cleanMELA();
+
+  /************************/
+  /* K FACTOR COMPUTATION */
+  /************************/
+  void setupKFactorHandles(edm::ParameterSet const&);
 
 };
 

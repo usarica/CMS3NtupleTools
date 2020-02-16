@@ -304,6 +304,7 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
 #undef SET_GENINFO_VARIABLE
 
   for (auto const& it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
+  for (auto const& it:genInfo.Kfactors) commonEntry.setNamedVal(it.first, it.second);
 }
 void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<reco::GenParticle const*>* filledGenParts, std::vector<pat::PackedGenParticle const*>* filledPackedGenParts){
   const char colName[] = "genparticles";

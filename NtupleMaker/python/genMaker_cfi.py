@@ -26,5 +26,7 @@ genMaker = cms.EDProducer(
    doHiggsKinematics = cms.bool(False),
    lheMElist = cms.vstring(),
 
+   kfactors = cms.VPSet()
+
    )
 

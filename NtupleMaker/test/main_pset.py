@@ -44,6 +44,9 @@ opts.register('minNleptons', -1, mytype=vpint)
 opts.register('minNphotons', -1, mytype=vpint)
 opts.register('minNak4jets', -1, mytype=vpint)
 opts.register('minNak8jets', -1, mytype=vpint)
+# K factors
+opts.register('applyKFactorQCDLOtoNNLOggZZSig', False, mytype=vpbool)
+opts.register('applyKFactorQCDNLOtoNNLOggZZSig', False, mytype=vpbool)
 ###
 opts.parseArguments()
 
@@ -179,6 +182,23 @@ if not opts.data:
    process.genMaker.year = cms.int32(opts.year)
    process.genMaker.xsec = cms.double(opts.xsec)
    process.genMaker.BR = cms.double(opts.BR)
+   if opts.applyKFactorQCDLOtoNNLOggZZSig or opts.applyKFactorQCDNLOtoNNLOggZZSig:
+      strnumerator = "kfactor_qcd_nnlo_ggzz_sig"
+      strdenominator = "" if opts.applyKFactorQCDLOtoNNLOggZZSig else "kfactor_qcd_nlo_ggzz_sig"
+      if not strdenominator:
+         process.genMaker.kfactors.append(
+               cms.PSet(
+                  numerator = cms.string(strnumerator)
+               )
+            )
+      else:
+         process.genMaker.kfactors.append(
+               cms.PSet(
+                  numerator = cms.string(strnumerator),
+                  denominator = cms.string(strdenominator)
+               )
+            )
+
 
 #Options for Input
 process.source = cms.Source(
