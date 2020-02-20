@@ -40,23 +40,37 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
 }
 
 bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL;
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
   if (acquireCoreGenInfo){
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue(#NAME, NAME);
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
     GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
   }
 
-  std::unordered_map<TString, float> MElist;
+  std::unordered_map<TString, float const*> kfactorlist;
+  for (TString const& strkfactor:tree_kfactorlist_map[currentTree]){
+    kfactorlist[strkfactor] = nullptr;
+    allVariablesPresent &= this->getConsumed(strkfactor, kfactorlist.find(strkfactor)->second);
+    if (!(kfactorlist.find(strkfactor)->second)){
+      if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: K factor handle for " << strkfactor << " is null!" << endl;
+      assert(0);
+    }
+  }
+
+  std::unordered_map<TString, float const*> MElist;
   if (acquireLHEMEWeights){
     for (TString const& strme:tree_MElist_map[currentTree]){
-      MElist[strme] = 0;
-      allVariablesPresent &= this->getConsumedValue(strme, MElist.find(strme)->second);
+      MElist[strme] = nullptr;
+      allVariablesPresent &= this->getConsumed(strme, MElist.find(strme)->second);
+      if (!(MElist.find(strme)->second)){
+        if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: ME handle for " << strme << " is null!" << endl;
+        assert(0);
+      }
     }
   }
 
@@ -67,12 +81,13 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
   if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructCoreGenInfo: All variables are set up!" << endl;
 
   genInfo = new GenInfoObject();
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) genInfo->extras.NAME = NAME;
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) genInfo->extras.NAME = (NAME ? *NAME : TYPE(DEFVAL));
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
   genInfo->setSystematic(syst);
 
-  for (auto it:MElist) genInfo->extras.LHE_ME_weights[it.first] = it.second;
+  for (auto it:kfactorlist) genInfo->extras.Kfactors[it.first] = (it.second ? *(it.second) : 1.f);
+  for (auto it:MElist) genInfo->extras.LHE_ME_weights[it.first] = (it.second ? *(it.second) : 0.f);
 
   return true;
 }
@@ -242,11 +257,18 @@ void GenInfoHandler::bookBranches(BaseTree* tree){
 #undef GENINFO_VARIABLE
   }
 
-  // ME reweighting branches are defined as sloppy
+  // K factor and ME reweighting branches are defined as sloppy
   std::vector<TString> allbranchnames; tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
+  std::vector<TString> kfactorlist;
   std::vector<TString> melist;
   bool has_lheparticles=false;
   for (TString const& bname : allbranchnames){
+    if (bname.Contains("KFactor")){
+      tree->bookBranch<float>(bname, 1.f);
+      this->addConsumed<float>(bname);
+      this->defineConsumedSloppy(bname);
+      kfactorlist.push_back(bname);
+    }
     if (acquireLHEMEWeights && (bname.Contains("p_Gen") || bname.Contains("LHECandMass"))){
       tree->bookBranch<float>(bname, 0.f);
       this->addConsumed<float>(bname);
@@ -255,6 +277,7 @@ void GenInfoHandler::bookBranches(BaseTree* tree){
     }
     else if (acquireLHEParticles && bname.Contains(colName_lheparticles)) has_lheparticles = true;
   }
+  tree_kfactorlist_map[tree] = kfactorlist;
   tree_MElist_map[tree] = melist;
   tree_lheparticles_present_map[tree] = has_lheparticles;
 

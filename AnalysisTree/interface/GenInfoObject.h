@@ -53,6 +53,7 @@ public:
 #undef GENINFO_VARIABLE
 
   std::unordered_map<TString, float> LHE_ME_weights;
+  std::unordered_map<TString, float> Kfactors;
 
   GenInfoVariables();
   GenInfoVariables(GenInfoVariables const& other);

@@ -188,19 +188,19 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
   return true;
 }
 bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfmet_##NAME = DEFVAL;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfmet_##NAME = nullptr;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE pfpuppimet_##NAME = DEFVAL;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfpuppimet_##NAME = nullptr;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, pfmet_##NAME);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfmet + "_" + #NAME, pfmet_##NAME);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 
@@ -211,11 +211,11 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::constructMET: All variables are set up!" << endl;
 
-  /*************/
-  /* PFCHS MET */
-  /*************/
+  /**********/
+  /* PF MET */
+  /**********/
   pfmet = new METObject();
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet_##NAME;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = *pfmet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.met_Nominal;
@@ -226,11 +226,11 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
 #undef MET_VARIABLE
   pfmet->setSystematic(syst);
 
-  /***************/
-  /* PFPUPPI MET */
-  /***************/
+  /*************/
+  /* PUPPI MET */
+  /*************/
   pfpuppimet = new METObject();
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet_##NAME;
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = *pfpuppimet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.met_Nominal;

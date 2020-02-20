@@ -15,8 +15,8 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define VERTEX_VARIABLES \
-VERTEX_VARIABLE(unsigned int, nvtxs_good, 0)
+#define EVENTFILTER_VERTEX_VARIABLES \
+EVENTFILTER_VERTEX_VARIABLE(unsigned int, nvtxs_good, 0)
 
 
 const std::string EventFilterHandler::colName_HLTpaths = "triggers";
@@ -39,9 +39,9 @@ EventFilterHandler::EventFilterHandler() :
 #undef HLTTRIGGERPATH_VARIABLE
 
   // Vertex variables
-#define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME);
-  VERTEX_VARIABLES;
-#undef VERTEX_VARIABLE
+#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME);
+  EVENTFILTER_VERTEX_VARIABLES;
+#undef EVENTFILTER_VERTEX_VARIABLE
 }
 
 void EventFilterHandler::clear(){
@@ -121,14 +121,14 @@ bool EventFilterHandler::test2018HEMFilter(
   }
   else{
     bool allVariablesPresent = true;
-#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL; allVariablesPresent &= this->getConsumedValue<TYPE>(#NAME, NAME);
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr; allVariablesPresent &= this->getConsumed(#NAME, NAME);
     RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
     if (!allVariablesPresent){
       if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::test2018HEMFilter: Not all variables of the data case are consumed properly!" << endl;
       assert(0);
     }
-    if (!SampleHelpers::isHEM2018Affected(RunNumber)) return true; // All ok runs
+    if (!SampleHelpers::isHEM2018Affected(*RunNumber)) return true; // All ok runs
   }
 
   // For affected runs, check object presence.
@@ -251,15 +251,15 @@ bool EventFilterHandler::constructMETFilters(){
 }
 
 bool EventFilterHandler::constructVertexFilter(){
-#define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME=DEFVAL;
-  VERTEX_VARIABLES;
-#undef VERTEX_VARIABLE
+#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+  EVENTFILTER_VERTEX_VARIABLES;
+#undef EVENTFILTER_VERTEX_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-#define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME, NAME);
-  VERTEX_VARIABLES;
-#undef VERTEX_VARIABLE
+#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(EventFilterHandler::colName_vertices + "_" + #NAME, NAME);
+  EVENTFILTER_VERTEX_VARIABLES;
+#undef EVENTFILTER_VERTEX_VARIABLE
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructVertexFilter: Not all variables are consumed properly!" << endl;
     assert(0);
@@ -267,7 +267,7 @@ bool EventFilterHandler::constructVertexFilter(){
 
   if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructVertexFilter: All variables are set up!" << endl;
 
-  product_hasGoodVertex = (nvtxs_good>0);
+  product_hasGoodVertex = ((*nvtxs_good)>0);
 
   return true;
 }
@@ -281,7 +281,7 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
   }
 
   bool allVariablesPresent = true;
-#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL; allVariablesPresent &= this->getConsumedValue<TYPE>(#NAME, NAME);
+#define RUNLUMIEVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr; allVariablesPresent &= this->getConsumed(#NAME, NAME);
   RUNLUMIEVENT_VARIABLES;
 #undef RUNLUMIEVENT_VARIABLE
   if (!allVariablesPresent){
@@ -290,25 +290,25 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: All variables are set up!" << endl;
 
-  auto it_run = era_dataeventblock_map.find(RunNumber);
+  auto it_run = era_dataeventblock_map.find(*RunNumber);
   if (it_run == era_dataeventblock_map.end()){
-    era_dataeventblock_map[RunNumber] = std::unordered_map<unsigned int, std::vector<unsigned long long>>();
-    it_run = era_dataeventblock_map.find(RunNumber);
+    era_dataeventblock_map[*RunNumber] = std::unordered_map<unsigned int, std::vector<unsigned long long>>();
+    it_run = era_dataeventblock_map.find(*RunNumber);
   }
-  auto it_lumi = it_run->second.find(LuminosityBlock);
+  auto it_lumi = it_run->second.find(*LuminosityBlock);
   if (it_lumi == it_run->second.end()){
-    it_run->second[LuminosityBlock] = std::vector<unsigned long long>();
-    it_lumi = it_run->second.find(LuminosityBlock);
+    it_run->second[*LuminosityBlock] = std::vector<unsigned long long>();
+    it_lumi = it_run->second.find(*LuminosityBlock);
   }
   if (checkUniqueDataEvent){
-    auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), EventNumber);
+    auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), *EventNumber);
     if (it_event == it_lumi->second.end()){
-      it_lumi->second.push_back(EventNumber);
+      it_lumi->second.push_back(*EventNumber);
       product_uniqueEvent = true;
     }
     else product_uniqueEvent = false;
   }
-  else it_lumi->second.push_back(EventNumber);
+  else it_lumi->second.push_back(*EventNumber);
 
   return true;
 }
@@ -386,9 +386,9 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 #undef HLTTRIGGERPATH_VARIABLE
 
   // Vertex variables
-#define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME, DEFVAL);
-  VERTEX_VARIABLES;
-#undef VERTEX_VARIABLE
+#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME, DEFVAL);
+  EVENTFILTER_VERTEX_VARIABLES;
+#undef EVENTFILTER_VERTEX_VARIABLE
 
   // Book MET filters
   auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(tree);
@@ -407,4 +407,4 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 }
 
 
-#undef VERTEX_VARIABLES
+#undef EVENTFILTER_VERTEX_VARIABLES

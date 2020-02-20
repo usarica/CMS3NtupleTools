@@ -16,7 +16,8 @@ const std::string VertexHandler::colName = "vtxs";
 VertexHandler::VertexHandler() :
   IvyBase(),
   product_nvtxs(0),
-  product_nvtxs_good(0)
+  product_nvtxs_good(0),
+  product_hasGoodPrimaryVertex(false)
 {
   this->addConsumed<unsigned int>(VertexHandler::colName + "_nvtxs");
   this->addConsumed<unsigned int>(VertexHandler::colName + "_nvtxs_good");
@@ -24,7 +25,6 @@ VertexHandler::VertexHandler() :
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef VERTEX_VARIABLE
 }
-
 
 bool VertexHandler::constructVertices(){
   clear();
@@ -47,7 +47,7 @@ bool VertexHandler::constructVertices(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "VertexHandler::constructVertices: All variables are set up!" << endl;
 
-  if (itBegin_is_good == itEnd_is_good) return true; // Construction is successful, it is just that no electrons exist.
+  if (itBegin_is_good == itEnd_is_good) return true; // Construction is successful, it is just that no vertices exist.
 
   size_t nProducts = (itEnd_is_good - itBegin_is_good);
   productList.reserve(nProducts);
@@ -66,6 +66,9 @@ bool VertexHandler::constructVertices(){
 #define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
       VERTEX_VARIABLES;
 #undef VERTEX_VARIABLE
+
+      // Set the product_hasGoodPrimaryVertex flag for the first vertex
+      if (ip==0) product_hasGoodPrimaryVertex = (*it_is_good);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 

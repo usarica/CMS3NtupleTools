@@ -11,6 +11,7 @@
 
 class GenInfoHandler : public IvyBase{
 protected:
+  std::unordered_map< BaseTree*, std::vector<TString> > tree_kfactorlist_map;
   std::unordered_map< BaseTree*, std::vector<TString> > tree_MElist_map;
   std::unordered_map< BaseTree*, bool > tree_lheparticles_present_map;
 

@@ -167,13 +167,13 @@ bool SimEventHandler::constructSimEvent(SystematicsHelpers::SystematicVariationT
   return res;
 }
 bool SimEventHandler::constructRandomNumbers(){
-#define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL;
+#define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
   SIMEVENT_RNDVARIABLES;
 #undef SIMEVENT_RNDVARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-#define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(#NAME, NAME);
+#define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
   SIMEVENT_RNDVARIABLES;
 #undef SIMEVENT_RNDVARIABLE
 
@@ -183,7 +183,7 @@ bool SimEventHandler::constructRandomNumbers(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructRandomNumbers: All variables are set up!" << endl;
 
-  unsigned long long const rndDataPeriod = static_cast<unsigned long long>(std::abs(genmet_met*1000.f)) + (EventNumber % 1000000);
+  unsigned long long const rndDataPeriod = static_cast<unsigned long long>(std::abs((*genmet_met)*1000.f)) + ((*EventNumber) % 1000000);
   product_rnds[kDataPeriod] = rndDataPeriod;
   float rnd_era = -1;
   theChosenDataPeriod = SampleHelpers::getRandomDataPeriod(rndDataPeriod, &rnd_era);
@@ -209,19 +209,19 @@ bool SimEventHandler::constructRandomNumbers(){
   }
   else hasHEM2018Issue = false;
 
-  unsigned long long const rndGenMETSmear = static_cast<unsigned long long>(std::abs(std::sin(genmet_metPhi))*10000.f);
+  unsigned long long const rndGenMETSmear = static_cast<unsigned long long>(std::abs(std::sin(*genmet_metPhi))*10000.f);
   product_rnds[kGenMETSmear] = rndGenMETSmear;
 
   return true;
 }
 bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationTypes const& syst){
-#define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) TYPE NAME = DEFVAL;
+#define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
   SIMEVENT_PUVARIABLES;
 #undef SIMEVENT_PUVARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-#define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue<TYPE>(#NAME, NAME);
+#define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
   SIMEVENT_PUVARIABLES;
 #undef SIMEVENT_PUVARIABLE
 
@@ -244,7 +244,7 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
     assert(0);
   }
 
-  pileupWeight = hlist.at(isyst)->GetBinContent(hlist.at(isyst)->FindBin(n_true_int));
+  pileupWeight = hlist.at(isyst)->GetBinContent(hlist.at(isyst)->FindBin(*n_true_int));
   if (pileupWeight == 0.f){
     if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: HPU weight = 0!" << endl;
   }

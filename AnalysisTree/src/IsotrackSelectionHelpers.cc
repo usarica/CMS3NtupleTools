@@ -45,33 +45,56 @@ float IsotrackSelectionHelpers::relMiniIsoComb(IsotrackObject const& part){ floa
 float IsotrackSelectionHelpers::absPFIsoComb_DR0p3(IsotrackObject const& part){ return part.extras.pfIso03_comb_nofsr; }
 float IsotrackSelectionHelpers::relPFIsoComb_DR0p3(IsotrackObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIsoComb_DR0p3(part)/pt : 0.f); }
 
-float IsotrackSelectionHelpers::computeIso(IsotrackObject const& part){
+float IsotrackSelectionHelpers::computeAbsIso(IsotrackObject const& part){
+  if (isoType_preselection == kPFIsoCombDR0p3) return absPFIsoComb_DR0p3(part);
+  else if (isoType_preselection == kMiniIsoComb) return absMiniIsoComb(part);
+  else if (isoType_preselection == kPFIsoChargedDR0p3) return absPFIsoCharged_DR0p3(part);
+  else if (isoType_preselection == kMiniIsoCharged) return absMiniIsoCharged(part);
+  else MELAerr << "IsotrackSelectionHelpers::computeAbsIso: Isolation " << isoType_preselection << " is not implemented." << endl;
+  return 999.f;
+}
+
+float IsotrackSelectionHelpers::computeRelIso(IsotrackObject const& part){
   if (isoType_preselection == kPFIsoCombDR0p3) return relPFIsoComb_DR0p3(part);
   else if (isoType_preselection == kMiniIsoComb) return relMiniIsoComb(part);
   else if (isoType_preselection == kPFIsoChargedDR0p3) return relPFIsoCharged_DR0p3(part);
   else if (isoType_preselection == kMiniIsoCharged) return relMiniIsoCharged(part);
-  else MELAerr << "IsotrackSelectionHelpers::computeIso: Isolation " << isoType_preselection << " is not implemented." << endl;
+  else MELAerr << "IsotrackSelectionHelpers::computeRelIso: Isolation " << isoType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 
 bool IsotrackSelectionHelpers::testVetoId(IsotrackObject const& part){
   auto const& extras = part.extras;
-  return (extras.is_pfCand && part.pdgId()!=0 && fabs(extras.dz)<0.1);
+  int const abs_id = std::abs(part.pdgId());
+  bool const isMuon = abs_id==13;
+  bool const isElectron = abs_id==11;
+  bool const isChargedHadron = abs_id>100;
+  return ((isMuon || isChargedHadron || isElectron) && extras.fromPV && extras.is_pfCand && std::abs(extras.dz)<0.1);
 }
 
 bool IsotrackSelectionHelpers::testVetoIso(IsotrackObject const& part){
   int const abs_id = std::abs(part.pdgId());
-  bool const isLepton = abs_id<15;
   float const pt = part.pt();
-  float const absIso = pt * computeIso(part);
-  float const iso_thr = std::min(pt*(isLepton ? relIsoThr_lepton_veto : relIsoThr_hadron_veto), (isLepton ? absIsoThr_lepton_veto : absIsoThr_hadron_veto));
+  float const absIso = computeAbsIso(part);
+
+  bool const isMuon = abs_id==13;
+  bool const isElectron = abs_id==11;
+  bool const isChargedHadron = abs_id>100;
+  float const relIso_thr = (isMuon ? relIsoThr_muon_veto : (isChargedHadron ? relIsoThr_hadron_veto : (isElectron ? relIsoThr_electron_veto : 0.f)));
+  float const absIso_thr = (isMuon ? absIsoThr_muon_veto : (isChargedHadron ? absIsoThr_hadron_veto : (isElectron ? absIsoThr_electron_veto : 0.f)));
+  float const iso_thr = std::min(absIso_thr, pt*relIso_thr);
   return (absIso < iso_thr);
 }
 
 bool IsotrackSelectionHelpers::testVetoKin(IsotrackObject const& part){
   int const abs_id = std::abs(part.pdgId());
-  bool const isLepton = abs_id<15;
-  return (part.pt()>=(isLepton ? ptThr_lepton_veto : ptThr_hadron_veto) && std::abs(part.eta())<(isLepton ? etaThr_lepton_veto : etaThr_hadron_veto));
+  bool const isMuon = abs_id==13;
+  bool const isElectron = abs_id==11;
+  bool const isChargedHadron = abs_id>100;
+  if (isMuon) return (part.pt()>=ptThr_muon_veto && std::abs(part.eta())<etaThr_muon_veto);
+  else if (isChargedHadron) return (part.pt()>=ptThr_hadron_veto && std::abs(part.eta())<etaThr_hadron_veto);
+  else if (isElectron) return (part.pt()>=ptThr_electron_veto && std::abs(part.eta())<etaThr_electron_veto);
+  else return false;
 }
 
 bool IsotrackSelectionHelpers::testPreselectionVeto(IsotrackObject const& part){

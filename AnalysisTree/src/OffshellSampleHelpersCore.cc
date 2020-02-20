@@ -53,6 +53,7 @@ TString SampleHelpers::getDatasetDirectoryName(std::string sname){
 
   sname = SampleHelpers::getDatasetDirectoryCoreName(sname);
   TString res = Form("%s/%s/%s", theInputDirectory.Data(), theSamplesTag.Data(), sname.data());
+  if (!HostHelpers::DirectoryExists(res.Data())) MELAerr << "SampleHelpers::getDatasetDirectoryName: Cannot find directory " << res << endl;
   assert(HostHelpers::DirectoryExists(res.Data()));
   return res;
 }
