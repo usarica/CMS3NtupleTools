@@ -62,12 +62,12 @@ namespace PhotonSelectionHelpers{
   constexpr PhotonIso isoType_preselection = kPFIsoDR0p3;
 
   constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
-  constexpr SelectionBits bit_preselectionVeto_iso = kLooseIso;
-  constexpr SelectionBits bit_preselectionVeto_kin = kLooseKin;
+  constexpr SelectionBits bit_preselectionVeto_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kMediumKin;
 
   constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
-  constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
-  constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
+  constexpr SelectionBits bit_preselectionLoose_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kMediumKin;
 
   constexpr SelectionBits bit_preselectionTight_id = kMediumId;
   constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;

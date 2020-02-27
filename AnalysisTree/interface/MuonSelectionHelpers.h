@@ -44,10 +44,10 @@ namespace MuonSelectionHelpers{
 
   // Kinematic pT thresholds
   constexpr float ptThr_gen = 3.;
-  constexpr float ptThr_skim_veto = 7.;
-  constexpr float ptThr_skim_loose = 7.;
-  constexpr float ptThr_skim_medium = 7.;
-  constexpr float ptThr_skim_tight = 7.;
+  constexpr float ptThr_skim_veto = 5.;
+  constexpr float ptThr_skim_loose = 5.;
+  constexpr float ptThr_skim_medium = 5.;
+  constexpr float ptThr_skim_tight = 5.;
   constexpr float ptThr_skim_soft = 3.;
 
   // Kinematic eta thresholds
@@ -71,12 +71,12 @@ namespace MuonSelectionHelpers{
   constexpr MuonIso isoType_preselection = kPFIsoDR0p3;
 
   constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
-  constexpr SelectionBits bit_preselectionVeto_iso = kLooseIso;
-  constexpr SelectionBits bit_preselectionVeto_kin = kLooseKin;
+  constexpr SelectionBits bit_preselectionVeto_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kMediumKin;
 
   constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
-  constexpr SelectionBits bit_preselectionLoose_iso = kLooseIso;
-  constexpr SelectionBits bit_preselectionLoose_kin = kLooseKin;
+  constexpr SelectionBits bit_preselectionLoose_iso = kMediumIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kMediumKin;
 
   constexpr SelectionBits bit_preselectionTight_id = kMediumId;
   constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
