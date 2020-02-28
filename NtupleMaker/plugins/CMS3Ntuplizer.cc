@@ -991,6 +991,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
+  // etaSC
+  MAKE_VECTOR_WITH_RESERVE(float, etaSC, n_objects);
+
   // Has no convention correspondence in nanoAOD
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_scale_totalUp, n_objects);
@@ -1043,6 +1046,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     phi.push_back(obj->phi());
     mass.push_back(obj->mass());
 
+    PUSH_USERFLOAT_INTO_VECTOR(etaSC);
+
     // Flag to identify FSR-preselected candidates
     //pass_fsr_preselection.push_back(passFSRSkim);
 
@@ -1089,6 +1094,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, eta);
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, etaSC);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);

@@ -106,6 +106,7 @@ namespace ElectronSelectionHelpers{
   bool testSkimElectron(pat::Electron const& obj, int const& /*year*/, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
+    double etaSC = std::abs(obj.userFloat("etaSC"));
     bool passAnyCutBased = cutbasedidbitlist.empty();
     bool passAnyMVA = mvaidpasslist.empty();
     /*
@@ -132,7 +133,7 @@ namespace ElectronSelectionHelpers{
     for (auto const& strid:mvaidpasslist) passAnyMVA |= static_cast<bool>(obj.userInt(strid));
     return (
       (passAnyCutBased || passAnyMVA) &&
-      eta<selection_skim_eta && (
+      (eta<selection_skim_eta || etaSC<selection_skim_eta) && (
         uncorr_pt>=selection_skim_pt
         ||
         uncorr_pt*obj.userFloat("scale_smear_corr")>=selection_skim_pt

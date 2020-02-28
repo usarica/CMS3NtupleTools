@@ -102,6 +102,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserFloat("scale_smear_corr_smear_phiDn", photon->userFloat("energySigmaPhiDown") / uncorrected_energy);
 
     // Id variables
+    photon_result.addUserFloat("etaSC", photon->superCluster()->eta());
     photon_result.addUserFloat("hOverE", photon->hadronicOverEm());
     photon_result.addUserFloat("hOverEtowBC", photon->hadTowOverEm());
     photon_result.addUserFloat("sigmaIEtaIEta", photon->sigmaIetaIeta());
