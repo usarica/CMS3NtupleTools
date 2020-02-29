@@ -26,12 +26,14 @@ protected:
   TString theChosenDataPeriod;
   bool hasHEM2018Issue;
   float pileupWeight;
+  float const* l1prefiringWeight;
 
   void setupPUHistograms();
   void clearPUHistograms();
 
   bool constructRandomNumbers();
   bool constructPUWeight(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool constructL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst);
 
   void clear();
 
@@ -46,6 +48,7 @@ public:
   TString const& getChosenDataPeriod() const;
   bool const& getHasHEM2018Issue() const{ return hasHEM2018Issue; }
   float const& getPileUpWeight() const{ return pileupWeight; }
+  float getL1PrefiringWeight() const{ return (l1prefiringWeight ? *l1prefiringWeight : 1.); }
 
   unsigned long long const& getRandomNumberSeed(SimEventHandler::EventRandomNumberType type) const;
 

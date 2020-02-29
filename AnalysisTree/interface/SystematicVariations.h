@@ -34,6 +34,8 @@ namespace SystematicsHelpers{
     ePUDn, ePUUp,
     eBTagSFDn, eBTagSFUp,
 
+    eL1PrefiringDn, eL1PrefiringUp,
+
     nSystematicVariations,
 
     sUncorrected // For checks

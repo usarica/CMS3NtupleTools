@@ -23,19 +23,28 @@ SIMEVENT_RNDVARIABLE(float, genmet_metPhi, 0)
 #define SIMEVENT_PUVARIABLES \
 SIMEVENT_PUVARIABLE(float, n_true_int, 0)
 
+#define SIMEVENT_L1PREFIRINGVARIABLES \
+SIMEVENT_L1PREFIRINGVARIABLE(float, prefiringWeight_Nominal, 1) \
+SIMEVENT_L1PREFIRINGVARIABLE(float, prefiringWeight_Dn, 1) \
+SIMEVENT_L1PREFIRINGVARIABLE(float, prefiringWeight_Up, 1)
+
 #define SIMEVENT_ALLVARIABLES \
 SIMEVENT_RNDVARIABLES \
-SIMEVENT_PUVARIABLES
+SIMEVENT_PUVARIABLES \
+SIMEVENT_L1PREFIRINGVARIABLES
 
 
 SimEventHandler::SimEventHandler() :
   IvyBase(),
   hasHEM2018Issue(false),
-  pileupWeight(-1)
+  pileupWeight(-1),
+  l1prefiringWeight(nullptr)
 {
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017){ this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME); }
   SIMEVENT_ALLVARIABLES;
+#undef SIMEVENT_L1PREFIRINGVARIABLE
 #undef SIMEVENT_PUVARIABLE
 #undef SIMEVENT_RNDVARIABLE
 
@@ -51,6 +60,7 @@ void SimEventHandler::clear(){
   theChosenDataPeriod = "";
   hasHEM2018Issue = false;
   pileupWeight = -1;
+  l1prefiringWeight = nullptr;
 }
 
 void SimEventHandler::setupPUHistograms(){
@@ -162,7 +172,7 @@ bool SimEventHandler::constructSimEvent(SystematicsHelpers::SystematicVariationT
   if (!currentTree) return false;
   if (SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)) return true;
 
-  bool res = this->constructRandomNumbers() && this->constructPUWeight(syst);
+  bool res = this->constructRandomNumbers() && this->constructPUWeight(syst) && this->constructL1PrefiringWeight(syst);
 
   return res;
 }
@@ -251,6 +261,38 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
 
   return true;
 }
+bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (!(SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017)) return true;
+
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+  SIMEVENT_L1PREFIRINGVARIABLES;
+#undef SIMEVENT_L1PREFIRINGVARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
+  SIMEVENT_L1PREFIRINGVARIABLES;
+#undef SIMEVENT_L1PREFIRINGVARIABLE
+
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructL1PrefiringWeight: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+  if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructL1PrefiringWeight: All variables are set up!" << endl;
+
+  switch (syst){
+  case SystematicsHelpers::eL1PrefiringDn:
+    this->l1prefiringWeight = prefiringWeight_Dn;
+    break;
+  case SystematicsHelpers::eL1PrefiringUp:
+    this->l1prefiringWeight = prefiringWeight_Up;
+    break;
+  default:
+    this->l1prefiringWeight = prefiringWeight_Nominal;
+  }
+
+  return true;
+}
 
 void SimEventHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
@@ -258,7 +300,9 @@ void SimEventHandler::bookBranches(BaseTree* tree){
 
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL);
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017) tree->bookBranch<TYPE>(#NAME, DEFVAL);
   SIMEVENT_ALLVARIABLES;
+#undef SIMEVENT_L1PREFIRINGVARIABLE
 #undef SIMEVENT_PUVARIABLE
 #undef SIMEVENT_RNDVARIABLE
 }
@@ -281,5 +325,6 @@ unsigned long long const& SimEventHandler::getRandomNumberSeed(SimEventHandler::
 
 
 #undef SIMEVENT_ALLVARIABLES
+#undef SIMEVENT_L1PREFIRINGVARIABLES
 #undef SIMEVENT_PUVARIABLES
 #undef SIMEVENT_RNDVARIABLES

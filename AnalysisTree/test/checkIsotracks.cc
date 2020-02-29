@@ -702,7 +702,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate){
       //MELAout << "Pass line " << __LINE__ << endl;
 
       simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
-      event_wgt *= simEventHandler.getPileUpWeight();
+      event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
       if (event_wgt==0.f) continue;
       //MELAout << "Pass line " << __LINE__ << endl;
 
