@@ -23,6 +23,9 @@
 #include "IsotrackSelectionHelpers.h"
 #include "BtagHelpers.h"
 
+#include "MuonScaleFactorHandler.h"
+#include "ElectronScaleFactorHandler.h"
+
 #include "DiscriminantClasses.h"
 
 #include "HostHelpersCore.h"

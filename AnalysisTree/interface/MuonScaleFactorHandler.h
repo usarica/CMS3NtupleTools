@@ -9,13 +9,17 @@
 
 class MuonScaleFactorHandler : public ScaleFactorHandlerBase{
 protected:
-  TFile* finput_SF_id;
-  TFile* finput_SF_iso;
+  ExtendedHistogram_2D h_eff_mc_id;
+  ExtendedHistogram_2D h_eff_mc_iso;
 
-  TH2F* h_SF_id;
-  TH2F* h_SF_iso;
+  ExtendedHistogram_2D h_eff_data_id;
+  ExtendedHistogram_2D h_eff_data_iso;
 
-  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, MuonObject const* obj, TH2F const* hist, bool etaOnY, bool useAbsEta) const;
+  ExtendedHistogram_2D h_SF_id;
+  ExtendedHistogram_2D h_SF_iso;
+
+  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, MuonObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
 
 public:
   MuonScaleFactorHandler();
@@ -24,6 +28,10 @@ public:
   bool setup();
   void reset();
 
+  void getIdIsoEffAndError(float& theEff, float& theEffRelErr, float const& pt, float const& eta, bool isData, bool useFastSim) const;
+  void getIdIsoSFAndError(float& theSF, float& theSFRelErr, float const& pt, float const& eta, bool useFastSim) const;
+
+  void getIdIsoEffAndError(float& theEff, float& theEffRelErr, MuonObject const* obj, bool isData, bool useFastSim) const;
   void getIdIsoSFAndError(float& theSF, float& theSFRelErr, MuonObject const* obj, bool useFastSim) const;
 
 };
