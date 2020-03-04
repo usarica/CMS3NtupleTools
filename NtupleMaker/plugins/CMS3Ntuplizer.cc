@@ -51,13 +51,13 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 {
   if (year!=2016 && year!=2017 && year!=2018) throw cms::Exception("CMS3Ntuplizer::CMS3Ntuplizer: Year is undefined!");
 
-  muonsToken  = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
-  electronsToken  = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
-  photonsToken  = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
-  ak4jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak4jetSrc"));
-  ak8jetsToken  = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak8jetSrc"));
-  isotracksToken  = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotrackSrc"));
-  pfcandsToken  = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
+  muonsToken = consumes< edm::View<pat::Muon> >(pset.getParameter<edm::InputTag>("muonSrc"));
+  electronsToken = consumes< edm::View<pat::Electron> >(pset.getParameter<edm::InputTag>("electronSrc"));
+  photonsToken = consumes< edm::View<pat::Photon> >(pset.getParameter<edm::InputTag>("photonSrc"));
+  ak4jetsToken = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak4jetSrc"));
+  ak8jetsToken = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak8jetSrc"));
+  isotracksToken = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotrackSrc"));
+  pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
 
   pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
   puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));

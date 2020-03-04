@@ -31,8 +31,11 @@ private:
   virtual void produce(edm::Event&, const edm::EventSetup&);
 
 protected:
+  bool printWarnings;
+
   const std::string aliasprefix_;
-  const std::string jetCollection_;
+  const std::string jetCollection_; // ==JECpayload in main_pset.py
+
   const bool isMC;
   bool isFatJet;
   bool isPuppi;

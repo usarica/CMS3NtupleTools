@@ -19,6 +19,8 @@
 
 #include "TRandom3.h"
 
+#include "MELAStreamHelpers.hh"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZTLorentzVectorD LorentzVectorD;
@@ -26,9 +28,12 @@ typedef math::XYZTLorentzVectorD LorentzVectorD;
 using namespace std;
 using namespace edm;
 using namespace reco;
+using namespace MELAStreamHelpers;
 
 
 PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
+  printWarnings(true),
+
   aliasprefix_(iConfig.getUntrackedParameter<std::string>("aliasprefix")),
   jetCollection_(iConfig.getUntrackedParameter<std::string>("jetCollection")),
 
@@ -94,6 +99,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   result->reserve(pfJetsHandle->size());
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
+
+    /*
+    // Print user floats
+    if (printWarnings){
+      auto const& userfloatnames = pfjet_it->userFloatNames();
+      MELAout << "User floats of the jet: " << userfloatnames << endl;
+    }
+    */
 
     const double undoJEC = pfjet_it->jecFactor("Uncorrected");
     const double JECval = 1./undoJEC;
@@ -231,34 +244,50 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       jet_result.addUserFloat("hfEmEnergy", pfjet_it->HFEMEnergy());
 
       float pileupJetIdScore = -999;
-      if (pfjet_it->hasUserFloat("pileupJetIdUpdated:fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("pileupJetIdUpdated:fullDiscriminant");
-      else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("pileupJetId:fullDiscriminant");
-      else if (pfjet_it->hasUserFloat("fullDiscriminant")) pileupJetIdScore = pfjet_it->userFloat("fullDiscriminant");
-      jet_result.addUserFloat("pileupJetIdScore", pileupJetIdScore);
-
       int pileupJetId = -1;
-      if (pfjet_it->hasUserInt("pileupJetIdUpdated:fullId")) pileupJetId = pfjet_it->userInt("pileupJetIdUpdated:fullId");
-      else if (pfjet_it->hasUserInt("pileupJetId:fullId")) pileupJetId = pfjet_it->userInt("pileupJetId:fullId");
-      else if (pfjet_it->hasUserInt("fullId")) pileupJetId = pfjet_it->userInt("fullId");
+      std::string pileupJetIdPrefix = "";
+      if (pfjet_it->hasUserFloat(Form("pileupJetIdUpdated%s:fullDiscriminant", jetCollection_.data()))) pileupJetIdPrefix = Form("pileupJetIdUpdated%s:", jetCollection_.data());
+      else if (pfjet_it->hasUserFloat("pileupJetIdUpdated:fullDiscriminant")) pileupJetIdPrefix = "pileupJetIdUpdated:";
+      else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdPrefix = "pileupJetId:";
+      if (printWarnings/* && pileupJetIdPrefix != "pileupJetId:"*/){
+        edm::LogWarning("PU jet id") << "PU jet id is obtained from the tag '" << pileupJetIdPrefix << "'" << endl;
+      }
+      pileupJetIdScore = pfjet_it->userFloat(pileupJetIdPrefix+"fullDiscriminant");
+      pileupJetId = pfjet_it->userInt(pileupJetIdPrefix+"fullId");
       if (pileupJetId>=0) pileupJetId = (pileupJetId & (1 << 0));
+      jet_result.addUserFloat("pileupJetIdScore", pileupJetIdScore);
       jet_result.addUserInt("pileupJetId", pileupJetId);
 
       // CSVv2
       jet_result.addUserFloat("btagCSVV2", pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"));
 
+      auto const& bdiscpairs = pfjet_it->getPairDiscri();
+      std::string pfDeepCSVJetTagsPrefix = "pfDeepCSVJetTags";
+      std::string pfDeepFlavourJetTagsPrefix = "pfDeepFlavourJetTags";
+      for (auto const& bdiscpair:bdiscpairs){
+        auto const& bdisclabel = bdiscpair.first;
+        //if (printWarnings) MELAout << "Found bdisc label " << bdisclabel << endl;
+        if (bdisclabel == Form("pfDeepCSVJetTags%s:probb", jetCollection_.data())) pfDeepCSVJetTagsPrefix = Form("pfDeepCSVJetTags%s", jetCollection_.data());
+        else if (bdisclabel == Form("pfDeepFlavourJetTags%s:probb", jetCollection_.data())) pfDeepFlavourJetTagsPrefix = Form("pfDeepFlavourJetTags%s", jetCollection_.data());
+      }
+      if (printWarnings){
+        edm::LogWarning("DeepCSV tag") << "DeepCSV discriminators are obtained from the tag '" << pfDeepCSVJetTagsPrefix << "'" << endl;
+        edm::LogWarning("DeepFlavour tag") << "DeepFlavour discriminators are obtained from the tag '" << pfDeepFlavourJetTagsPrefix << "'" << endl;
+      }
+
       // DeepCSV
-      jet_result.addUserFloat("deepCSVprobb", pfjet_it->bDiscriminator("pfDeepCSVJetTags:probb"));
-      jet_result.addUserFloat("deepCSVprobbb", pfjet_it->bDiscriminator("pfDeepCSVJetTags:probbb"));
-      jet_result.addUserFloat("deepCSVprobc", pfjet_it->bDiscriminator("pfDeepCSVJetTags:probc"));
-      jet_result.addUserFloat("deepCSVprobudsg", pfjet_it->bDiscriminator("pfDeepCSVJetTags:probudsg"));
+      jet_result.addUserFloat("deepCSVprobb", pfjet_it->bDiscriminator(pfDeepCSVJetTagsPrefix+":probb"));
+      jet_result.addUserFloat("deepCSVprobbb", pfjet_it->bDiscriminator(pfDeepCSVJetTagsPrefix+":probbb"));
+      jet_result.addUserFloat("deepCSVprobc", pfjet_it->bDiscriminator(pfDeepCSVJetTagsPrefix+":probc"));
+      jet_result.addUserFloat("deepCSVprobudsg", pfjet_it->bDiscriminator(pfDeepCSVJetTagsPrefix+":probudsg"));
 
       // DeepFlavour (note: non-existent/gives dummy values for 2016 80X miniAOD v2)
-      jet_result.addUserFloat("deepFlavourprobb", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:probb"));
-      jet_result.addUserFloat("deepFlavourprobbb", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:probbb"));
-      jet_result.addUserFloat("deepFlavourprobc", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:probc"));
-      jet_result.addUserFloat("deepFlavourprobg", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:probg"));
-      jet_result.addUserFloat("deepFlavourproblepb", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:problepb"));
-      jet_result.addUserFloat("deepFlavourprobuds", pfjet_it->bDiscriminator("pfDeepFlavourJetTags:probuds"));
+      jet_result.addUserFloat("deepFlavourprobb", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":probb"));
+      jet_result.addUserFloat("deepFlavourprobbb", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":probbb"));
+      jet_result.addUserFloat("deepFlavourprobc", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":probc"));
+      jet_result.addUserFloat("deepFlavourprobg", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":probg"));
+      jet_result.addUserFloat("deepFlavourproblepb", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":problepb"));
+      jet_result.addUserFloat("deepFlavourprobuds", pfjet_it->bDiscriminator(pfDeepFlavourJetTagsPrefix+":probuds"));
     }
     else{
       LorentzVectorD sdjets_p4Sum;
@@ -371,6 +400,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
 
     result->emplace_back(jet_result);
+
+    printWarnings = false;
   }
 
   iEvent.put(std::move(result));

@@ -263,26 +263,6 @@ if not opts.data:
       process.genMaker.lheMElist.extend(theLHEProbabilities)
 
 
-
-if opts.is80x:
-    # DeepCSV computation needed for 80X
-    from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-    from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
-    deep_discriminators = ['pfDeepCSVJetTags:probb','pfDeepCSVJetTags:probbb','pfDeepCSVJetTags:probc']
-    updateJetCollection( process, btagDiscriminators = deep_discriminators,
-        jetSource = cms.InputTag('slimmedJets'),
-        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-    )
-    updateJetCollection( process, btagDiscriminators = deep_discriminators,
-        labelName = 'Puppi',
-        jetSource = cms.InputTag('slimmedJetsPuppi'),
-        jetCorrections = ('AK4PFchs', cms.vstring([]), 'None'),
-    )
-    process.pfJetMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJets')
-    process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('selectedUpdatedPatJetsPuppi')
-    patAlgosToolsTask = getPatAlgosToolsTask(process)
-
-
 # Extra trigger information (matching)
 if opts.triginfo:
     process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
@@ -333,20 +313,19 @@ if not opts.data and (opts.year == 2016 or opts.year == 2017):
    process.Prefiring = cms.Path(process.prefiringweight)
 
 
-# Update jet variables
-## Pile-up jet id
-process.load("RecoJets.JetProducers.PileupJetID_cfi")
-process.pileupJetIdUpdated = process.pileupJetId.clone(
-    jets=cms.InputTag("slimmedJets"),
-    inputIsCorrected=False,
-    applyJec=True,
-    vertexes=cms.InputTag("offlineSlimmedPrimaryVertices")
-    )
+from CMS3.NtupleMaker.utils.configureJetCorrections import configureJetCorrections
+
 ak4jetsTag="AK4PFchs"
 ak4puppijetsTag="AK4PFPuppi"
 ak8jetsTag="AK8PFPuppi"
 if opts.is80x:
    ak8jetsTag="AK8PFchs"
+slimmedJetsCollection="slimmedJets"
+slimmedJetsPuppiCollection="slimmedJetsPuppi"
+finalSlimmedJetsCollection="selectedFinalJets"+ak4jetsTag
+finalSlimmedJetsPuppiCollection="selectedFinalJets"+ak4puppijetsTag
+_process_pfJetMakerPreSeq = None
+_process_pfJetPUPPIMakerPreSeq = None
 ## Update the jet collection tags
 process.pfJetMaker.jetCollection = cms.untracked.string(ak4jetsTag)
 process.pfJetPUPPIMaker.jetCollection = cms.untracked.string(ak4puppijetsTag)
@@ -354,6 +333,7 @@ process.subJetMaker.jetCollection = cms.untracked.string(ak8jetsTag)
 process.pfJetMaker.isMC = cms.bool((not opts.data))
 process.pfJetPUPPIMaker.isMC = cms.bool((not opts.data))
 process.subJetMaker.isMC = cms.bool((not opts.data))
+
 ## Reapply JECs
 ### Taken from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC
 jecVersion=""
@@ -402,54 +382,42 @@ if jecVersion != "":
    ## Add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
+   #updated_deep_discriminators = []
+
    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
 
    ###################
    ### AK4 PF JETS ###
    ###################
-   ## Reapply JECs here
-   process.slimmedJetCorrFactors = updatedPatJetCorrFactors.clone(
-      src = cms.InputTag("slimmedJets"),
-      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
-      payload = ak4jetsTag
+   _process_pfJetMakerPreSeq = configureJetCorrections(
+      process,
+      slimmedJetsCollection,
+      ak4jetsTag,
+      opts.year,
+      opts.is80x,
+      opts.data,
+      updateJEC=True,
+      updatePUJetID=True,
+      updateBtagging=(opts.year == 2016 or opts.year == 2017)
       )
-   ## Data applies L2L3Residual corrections as well
-   if opts.data:
-      process.slimmedJetCorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
-   ## This is the new input jet collection
-   process.slimmedCorrectedJets = updatedPatJets.clone(
-      jetSource = cms.InputTag("slimmedJets"),
-      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("slimmedJetCorrFactors"))
-      )
-   ## Add pileup id and discriminant to patJetsReapplyJEC
-   process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
-   process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
-   ## Replace inputs from slimmedJets
-   #process.QGTagger.srcJets = cms.InputTag('slimmedCorrectedJets')
-   process.pfJetMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJets')
+   process.pfJetMaker.pfJetsInputTag = cms.InputTag(finalSlimmedJetsCollection)
 
    ######################
    ### AK4 PUPPI JETS ###
    ######################
-   ## Reapply JECs here
-   process.slimmedPuppiJetCorrFactors = updatedPatJetCorrFactors.clone(
-      src = cms.InputTag("slimmedJetsPuppi"),
-      primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
-      payload = ak4puppijetsTag
+   _process_pfJetPUPPIMakerPreSeq = configureJetCorrections(
+      process,
+      slimmedJetsPuppiCollection,
+      ak4puppijetsTag,
+      opts.year,
+      opts.is80x,
+      opts.data,
+      updateJEC=True,
+      updatePUJetID=False,
+      updateBtagging=(opts.year == 2016 or opts.year == 2017)
       )
-   ## Data applies L2L3Residual corrections as well
-   if opts.data:
-      process.slimmedPuppiJetCorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
-   ## This is the new input jet collection
-   process.slimmedCorrectedJetsPuppi = updatedPatJets.clone(
-      jetSource = cms.InputTag("slimmedJetsPuppi"),
-      jetCorrFactorsSource = cms.VInputTag(cms.InputTag("slimmedPuppiJetCorrFactors"))
-      )
-   ## Replace inputs from slimmedJets
-   process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJetsPuppi')
+   process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag(finalSlimmedJetsPuppiCollection)
 
    ################
    ### AK8 JETS ###
@@ -473,7 +441,9 @@ if jecVersion != "":
    process.subJetMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJetsAK8')
 else:
    raise RuntimeError("JEC version is unknown!")
-## Re-apply JERs
+
+
+## Apply JERs
 ### Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution#Smearing_procedures
 jerVersion=""
 if opts.year == 2016:
@@ -743,13 +713,12 @@ else:
 
 # PF jets
 if jecVersion != "":
-   # Input to pfJetMaker is already fixed above
-   process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.slimmedJetCorrFactors * process.slimmedCorrectedJets * process.pfJetMaker )
-   process.pfJetPUPPIMakerSeq = cms.Sequence( process.slimmedPuppiJetCorrFactors * process.slimmedCorrectedJetsPuppi * process.pfJetPUPPIMaker )
+   process.pfJetMakerSeq = cms.Sequence( _process_pfJetMakerPreSeq * process.pfJetMaker )
+   process.pfJetPUPPIMakerSeq = cms.Sequence( _process_pfJetPUPPIMakerPreSeq * process.pfJetPUPPIMaker )
    process.subJetMakerSeq = cms.Sequence( process.slimmedJetAK8CorrFactors * process.slimmedCorrectedJetsAK8 * process.subJetMaker )
 else:
-   process.pfJetMakerSeq = cms.Sequence( process.pileupJetIdUpdated + process.pfJetMaker )
-   process.pfJetPUPPIMakerSeq = cms.Sequence( process.pfJetPUPPIMaker )
+   process.pfJetMakerSeq = cms.Sequence( _process_pfJetMakerPreSeq * process.pfJetMaker )
+   process.pfJetPUPPIMakerSeq = cms.Sequence( _process_pfJetPUPPIMakerPreSeq * process.pfJetPUPPIMaker )
    process.subJetMakerSeq = cms.Sequence( process.subJetMaker )
 
 # MET filter
@@ -877,9 +846,6 @@ for ip,producer in enumerate(producers):
 
 process.p = cms.Path(total_path)
 
-if opts.is80x:
-    from PhysicsTools.PatAlgos.tools.helpers import getPatAlgosToolsTask
-    process.p = cms.Path(process.p._seq,patAlgosToolsTask)
 
 process.Timing = cms.Service("Timing",
         summaryOnly = cms.untracked.bool(True)
