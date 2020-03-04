@@ -1,4 +1,6 @@
-#include "CMS3/NtupleMaker/interface/plugins/HLTMaker.h"
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <CMS3/NtupleMaker/interface/plugins/HLTMaker.h>
+#include "MELAStreamHelpers.hh"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -6,6 +8,7 @@ typedef math::XYZTLorentzVectorF LorentzVector;
 using namespace edm;
 using namespace reco;
 using namespace std;
+using namespace MELAStreamHelpers;
 
 
 HLTMaker::HLTMaker(const edm::ParameterSet& iConfig) :
@@ -59,10 +62,9 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.getByToken(triggerResultsToken, triggerResultsH_);
   if (!triggerResultsH_.isValid()) throw cms::Exception("HLTMaker::produce: error getting TriggerResults product from Event!");
   size_t nTriggers = triggerResultsH_->size();
-  //if (nTriggers > 768) throw cms::Exception( Form("HLTMaker::produce: number of HLT trigger variables must be increased! ( %d > 768 )", nTriggers) );
   result->reserve(nTriggers);
 
-  // if it's data, cache for only a single lumi block, otherwise cache for whole job
+  // if it is data, cache for only a single lumi block, otherwise cache for whole job
   bool isdata = iEvent.isRealData();
   bool make_cache = doFillInformation;
   if (make_cache){
@@ -110,6 +112,9 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     for (unsigned int i = 0; i < nTriggers; ++i){
       // What is your name?
       const std::string& name = triggerNames_.triggerName(i);
+      //std::string name = getTrimmedTriggerName(triggerNames_.triggerName(i));
+      if (!pruneTriggerByName(name)) continue;
+
       bool passTrigger = triggerResultsH_->accept(i);
       unsigned int HLTprescale = 1;
       unsigned int L1prescale = 1;
@@ -167,14 +172,14 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
   }
 
-  assert(cached_triggerinfos.size() == nTriggers);
   for (auto const& obj:cached_triggerinfos) result->emplace_back(obj);
   //std::copy(cached_triggerinfos.begin(), cached_triggerinfos.end(), result->begin());
 
   iEvent.put(std::move(result));
 }
 
-bool HLTMaker::doPruneTriggerName(const string& name) const{
+bool HLTMaker::pruneTriggerByName(const string& name) const{
+  if (prunedTriggerNames_.empty()) return true;
   for (TString const& ptrigname:prunedTriggerNames_){
     TString pattern = ptrigname;
     pattern.ToLower();
@@ -184,6 +189,18 @@ bool HLTMaker::doPruneTriggerName(const string& name) const{
     if (sname.Index(reg) >= 0) return true;
   }
   return false;
+}
+
+std::string HLTMaker::getTrimmedTriggerName(std::string const& name){
+  std::vector<std::string> splitname;
+  HelperFunctions::splitOptionRecursive(name, splitname, 'v', false);
+  std::string newname;
+  if (splitname.size()==1) newname = name;
+  else{
+    for (size_t is=0; is<splitname.size()-1; is++) newname += splitname.at(is)+"v";
+  }
+  //MELAout << "HLTMaker::getTrimmedTriggerName: Trigger name " << name << " -> " << newname << endl;
+  return newname;
 }
 
 

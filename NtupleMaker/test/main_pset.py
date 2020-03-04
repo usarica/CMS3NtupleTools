@@ -20,6 +20,7 @@ opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other pur
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
 opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
+opts.register('triggerListFromFile', "", mytype=vpstring) # Trigger list to require, to be read from a file
 opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sparm if fastsim=True isn't specified
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
@@ -271,6 +272,18 @@ if opts.triginfo:
     process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
     process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
+if opts.triggerListFromFile:
+   triglistfile = find_up(opts.triggerListFromFile)
+   if triglistfile is None:
+      triglistfile = find_up('data/Triggers/'+opts.triggerListFromFile)
+   if triglistfile is None:
+      # deal with lack of symlinks on condor node
+      triglistfile = find_up(os.path.join(os.getenv("CMSSW_BASE"), "src/CMS3/NtupleMaker/data/Triggers/", opts.triggerListFromFile))
+   if triglistfile is None:
+      raise RuntimeError("Trigger list file {} cannot be found!".format(opts.triggerListFromFile))
+   execfile(triglistfile)
+   hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
+
 
 if opts.fastsim:
     if opts.is80x:

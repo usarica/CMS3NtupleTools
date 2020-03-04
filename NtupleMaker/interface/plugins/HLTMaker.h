@@ -59,7 +59,9 @@ protected:
 
   std::vector<TriggerInfo> cached_triggerinfos;
 
-  bool doPruneTriggerName(const std::string&) const;
+  bool pruneTriggerByName(const std::string&) const;
+
+  static std::string getTrimmedTriggerName(std::string const& name);
 
 };
 
