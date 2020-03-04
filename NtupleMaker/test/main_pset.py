@@ -266,12 +266,12 @@ if not opts.data:
 
 # Extra trigger information (matching)
 if opts.triginfo:
-    process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
-    process.load("CMS3.NtupleMaker.elToTrigAssMaker_cfi")
-    process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
-    process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
-    process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
-    process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
+   process.load("CMS3.NtupleMaker.muToTrigAssMaker_cfi")
+   process.load("CMS3.NtupleMaker.elToTrigAssMaker_cfi")
+   process.muToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+   process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+   process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
+   process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
 if opts.triggerListFromFile:
    triglistfile = find_up(opts.triggerListFromFile)
    if triglistfile is None:
@@ -282,7 +282,8 @@ if opts.triggerListFromFile:
    if triglistfile is None:
       raise RuntimeError("Trigger list file {} cannot be found!".format(opts.triggerListFromFile))
    execfile(triglistfile)
-   hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
+   print "Applying filter on the following triggers:",customPrunedTriggerCollection
+   process.hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
 
 
 if opts.fastsim:
