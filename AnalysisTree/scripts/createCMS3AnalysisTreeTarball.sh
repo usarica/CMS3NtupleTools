@@ -49,6 +49,7 @@ src/MelaAnalytics \
 src/ZZMatrixElement/MELA \
 src/ZZMatrixElement/setup.sh \
 src/CMS3/AnalysisTree \
+src/CMS3/Dictionaries \
 src/CMS3/MELAHelpers \
 --exclude=lib/${SCRAM_ARCH}/* \
 --exclude=src/ZZMatrixElement/MELA/test/reference \

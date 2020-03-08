@@ -15,6 +15,7 @@
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
 
@@ -26,6 +27,17 @@ using namespace edm;
 using namespace MELAStreamHelpers;
 
 
+// Collection names
+const std::string CMS3Ntuplizer::colName_muons = "muons";
+const std::string CMS3Ntuplizer::colName_electrons = "electrons";
+const std::string CMS3Ntuplizer::colName_photons = "photons";
+const std::string CMS3Ntuplizer::colName_isotracks = "isotracks";
+const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
+const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
+const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
+const std::string CMS3Ntuplizer::colName_triggerinfo = "triggers";
+const std::string CMS3Ntuplizer::colName_triggerobject = "triggerObjects";
+
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
   outtree(nullptr),
@@ -35,6 +47,8 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   treename(pset.getUntrackedParameter<std::string>("treename")),
   isMC(pset.getParameter<bool>("isMC")),
   is80X(pset.getParameter<bool>("is80X")),
+
+  processTriggerObjectInfos(pset.getParameter<bool>("processTriggerObjectInfos")),
 
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
@@ -66,6 +80,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   rhoToken  = consumes< double >(pset.getParameter<edm::InputTag>("rhoSrc"));
   triggerInfoToken = consumes< edm::View<TriggerInfo> >(pset.getParameter<edm::InputTag>("triggerInfoSrc"));
+  if (processTriggerObjectInfos) triggerObjectInfoToken = consumes< edm::View<TriggerObjectInfo> >(pset.getParameter<edm::InputTag>("triggerObjectInfoSrc"));
   puInfoToken = consumes< std::vector<PileupSummaryInfo> >(pset.getParameter<edm::InputTag>("puInfoSrc"));
   metFilterInfoToken = consumes< METFilterInfo >(pset.getParameter<edm::InputTag>("metFilterInfoSrc"));
 
@@ -100,6 +115,8 @@ void CMS3Ntuplizer::endJob(){}
 
 
 // Convenience macros to easily make and push vector values
+#define MAKE_VECTOR_WITHOUT_RESERVE(type_, name_) std::vector<type_> name_;
+#define RESERVE_VECTOR(name_, size_) name_.reserve(size_);
 #define MAKE_VECTOR_WITH_RESERVE(type_, name_, size_) std::vector<type_> name_; name_.reserve(size_);
 #define PUSH_USERINT_INTO_VECTOR(name_) name_.push_back(obj->userInt(#name_));
 #define PUSH_USERFLOAT_INTO_VECTOR(name_) name_.push_back(obj->userFloat(#name_));
@@ -152,10 +169,12 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   );
 
   // ak4 jets
-  size_t n_ak4jets = this->fillAK4Jets(iEvent, nullptr);
+  std::vector<pat::Jet const*> filledAK4Jets;
+  size_t n_ak4jets = this->fillAK4Jets(iEvent, &filledAK4Jets);
 
   // ak8 jets
-  size_t n_ak8jets = this->fillAK8Jets(iEvent, nullptr);
+  std::vector<pat::Jet const*> filledAK8Jets;
+  size_t n_ak8jets = this->fillAK8Jets(iEvent, &filledAK8Jets);
 
   // Isolated tracks
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
@@ -180,7 +199,11 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   isSelected &= this->fillEventVariables(iEvent);
 
   // Trigger info
-  isSelected &= this->fillTriggerInfo(iEvent);
+  isSelected &= this->fillTriggerInfo(
+    iEvent,
+    &filledMuons, &filledElectrons, &filledPhotons,
+    &filledAK4Jets, &filledAK8Jets
+  );
 
   // MET filters
   isSelected &= this->fillMETFilterVariables(iEvent);
@@ -592,7 +615,8 @@ void CMS3Ntuplizer::recordGenJets(edm::Event const& iEvent, bool const& isFatJet
 }
 
 size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon const*>* filledObjects){
-  const char colName[] = "muons";
+  std::string const& colName = CMS3Ntuplizer::colName_muons;
+
   edm::Handle< edm::View<pat::Muon> > muonsHandle;
   iEvent.getByToken(muonsToken, muonsHandle);
   if (!muonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMuons: Error getting the muon collection from the event...");
@@ -605,9 +629,9 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, POG_selector_bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_muon_pogselectorbits_t, POG_selector_bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_nofsr, n_objects);
@@ -739,7 +763,8 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::Electron const*>* filledObjects){
-  const char colName[] = "electrons";
+  std::string const& colName = CMS3Ntuplizer::colName_electrons;
+
   edm::Handle< edm::View<pat::Electron> > electronsHandle;
   iEvent.getByToken(electronsToken, electronsHandle);
   if (!electronsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillElectrons: Error getting the electron collection from the event...");
@@ -752,7 +777,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, etaSC, n_objects);
 
   // Has no convention correspondence in nanoAOD
@@ -766,31 +791,33 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(int, n_missing_inner_hits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_Fall17V2_Iso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp80, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpHZZ, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_NoIso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_NoIso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_Fall17V2_NoIso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wpLoose, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_HZZRun2Legacy_Iso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_HZZRun2Legacy_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_HZZRun2Legacy_Iso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Veto_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Veto_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Loose_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Medium_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V1_Tight_Bits, n_objects);
+  /*
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Loose_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Medium_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Tight_Bits, n_objects);
+  */
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_nofsr, n_objects);
@@ -805,11 +832,13 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
 
+  /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
   MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
+  */
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
@@ -817,8 +846,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
       !ElectronSelectionHelpers::testSkimElectron(
         *obj, this->year,
         {
-          "id_cutBased_Fall17V2_Veto_Bits", "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits",
-          "id_cutBased_Fall17V1_Veto_Bits", "id_cutBased_Fall17V1_Loose_Bits", "id_cutBased_Fall17V1_Medium_Bits", "id_cutBased_Fall17V1_Tight_Bits"
+          "id_cutBased_Fall17V2_Veto_Bits", "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits"/*,
+          "id_cutBased_Fall17V1_Veto_Bits", "id_cutBased_Fall17V1_Loose_Bits", "id_cutBased_Fall17V1_Medium_Bits", "id_cutBased_Fall17V1_Tight_Bits"*/
         },
         {
           "id_MVA_Fall17V2_Iso_pass_wpLoose", "id_MVA_Fall17V2_Iso_pass_wp90", "id_MVA_Fall17V2_Iso_pass_wp80", "id_MVA_Fall17V2_Iso_pass_wpHZZ",
@@ -878,11 +907,13 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
 
+    /*
     // Fall17V1 cut-based ids
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Veto_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V1_Tight_Bits);
+    */
 
     // Isolation variables
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_charged_nofsr);
@@ -898,12 +929,15 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
+    /*
+    // PF candidate properties
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
 
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
     PUSH_USERINT_INTO_VECTOR(type_mask);
+    */
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -950,10 +984,12 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Veto_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Tight_Bits);
+  */
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_charged_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_neutral_nofsr);
@@ -968,16 +1004,19 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
+  */
 
   return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Photon const*>* filledObjects){
-  const char colName[] = "photons";
+  std::string const& colName = CMS3Ntuplizer::colName_photons;
+
   edm::Handle< edm::View<pat::Photon> > photonsHandle;
   iEvent.getByToken(photonsToken, photonsHandle);
   if (!photonsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillPhotons: Error getting the photon collection from the event...");
@@ -1019,11 +1058,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(float, pfNeutralHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfEMIso_EAcorr, n_objects);
 
+  /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
-
-  //MAKE_VECTOR_WITH_RESERVE(bool, pass_fsr_preselection, n_objects);
-  //MAKE_VECTOR_WITH_RESERVE(float, fsrIso, n_objects);
+  */
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
@@ -1047,9 +1085,6 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     mass.push_back(obj->mass());
 
     PUSH_USERFLOAT_INTO_VECTOR(etaSC);
-
-    // Flag to identify FSR-preselected candidates
-    //pass_fsr_preselection.push_back(passFSRSkim);
 
     // Scale and smear
     // Nominal value: Needs to multiply the uncorrected p4 at analysis level
@@ -1080,10 +1115,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERFLOAT_INTO_VECTOR(pfNeutralHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfEMIso_EAcorr);
 
+    /*
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
-
-    //PUSH_USERFLOAT_INTO_VECTOR(fsrIso);
+    */
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -1121,18 +1156,17 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, pfNeutralHadronIso_EAcorr);
   PUSH_VECTOR_WITH_NAME(colName, pfEMIso_EAcorr);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
-
-  //PUSH_VECTOR_WITH_NAME(colName, pass_fsr_preselection);
-  //PUSH_VECTOR_WITH_NAME(colName, fsrIso);
+  */
 
   return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
   constexpr AK4JetSelectionHelpers::AK4JetType jetType = AK4JetSelectionHelpers::AK4PFCHS;
+  std::string const& colName = CMS3Ntuplizer::colName_ak4jets;
 
-  const char colName[] = "ak4jets";
   edm::Handle< edm::View<pat::Jet> > ak4jetsHandle;
   iEvent.getByToken(ak4jetsToken, ak4jetsHandle);
   if (!ak4jetsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillAK4Jets: Error getting the ak4 jet collection from the event...");
@@ -1286,7 +1320,8 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
-  const char colName[] = "ak8jets";
+  std::string const& colName = CMS3Ntuplizer::colName_ak8jets;
+
   edm::Handle< edm::View<pat::Jet> > ak8jetsHandle;
   iEvent.getByToken(ak8jetsToken, ak8jetsHandle);
   if (!ak8jetsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillAK8Jets: Error getting the ak8 jet collection from the event...");
@@ -1453,7 +1488,8 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
 
   if (this->is80X) return 0;
 
-  const char colName[] = "isotracks";
+  std::string const& colName = CMS3Ntuplizer::colName_isotracks;
+
   edm::Handle< edm::View<IsotrackInfo> > isotracksHandle;
   iEvent.getByToken(isotracksToken, isotracksHandle);
   if (!isotracksHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillIsotracks: Error getting the isotrack collection from the event...");
@@ -1466,14 +1502,15 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(int, id, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, charge, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_id_t, id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_ch, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_nh, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_em, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_db, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_ch, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_nh, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_em, n_objects);
@@ -1492,8 +1529,10 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(bool, is_highPurityTrack, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_tightTrack, n_objects);
 
+  /*
   MAKE_VECTOR_WITH_RESERVE(int, nearestPFcand_id, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, nearestPFcand_deltaR, n_objects);
+  */
 
   size_t n_skimmed_objects=0;
   for (edm::View<IsotrackInfo>::const_iterator obj = isotracksHandle->begin(); obj != isotracksHandle->end(); obj++){
@@ -1514,6 +1553,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
     PUSH_ISOTRACK_VARIABLE(pfIso03_em);
     PUSH_ISOTRACK_VARIABLE(pfIso03_db);
     PUSH_ISOTRACK_VARIABLE(pfIso03_comb_nofsr);
+
     PUSH_ISOTRACK_VARIABLE(miniIso_ch);
     PUSH_ISOTRACK_VARIABLE(miniIso_nh);
     PUSH_ISOTRACK_VARIABLE(miniIso_em);
@@ -1532,8 +1572,10 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
     PUSH_ISOTRACK_VARIABLE(is_highPurityTrack);
     PUSH_ISOTRACK_VARIABLE(is_tightTrack);
 
+    /*
     PUSH_ISOTRACK_VARIABLE(nearestPFcand_id);
     PUSH_ISOTRACK_VARIABLE(nearestPFcand_deltaR);
+    */
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -1571,8 +1613,10 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   PUSH_VECTOR_WITH_NAME(colName, is_highPurityTrack);
   PUSH_VECTOR_WITH_NAME(colName, is_tightTrack);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_id);
   PUSH_VECTOR_WITH_NAME(colName, nearestPFcand_deltaR);
+  */
 
   return n_skimmed_objects;
 
@@ -1715,7 +1759,8 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
 }
 
 size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::Vertex const*>* filledObjects){
-  const char colName[] = "vtxs";
+  std::string const& colName = CMS3Ntuplizer::colName_vtxs;
+
   edm::Handle< reco::VertexCollection > vtxHandle;
   iEvent.getByToken(vtxToken, vtxHandle);
   if (!vtxHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillVertices: Error getting the vertex collection from the event...");
@@ -1844,32 +1889,122 @@ bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
 
   return true;
 }
-bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
-  const char colName[] = "triggers";
+bool CMS3Ntuplizer::fillTriggerInfo(
+  edm::Event const& iEvent,
+  std::vector<pat::Muon const*> const* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*> const* filledPhotons,
+  std::vector<pat::Jet const*>* filledAK4Jets, std::vector<pat::Jet const*>* filledAK8Jets
+){
+  std::string const& colName = CMS3Ntuplizer::colName_triggerinfo;
+
   edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
   iEvent.getByToken(triggerInfoToken, triggerInfoHandle);
   if (!triggerInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillTriggerInfo: Error getting the trigger infos. from the event...");
   size_t n_triggers = triggerInfoHandle->size();
 
   MAKE_VECTOR_WITH_RESERVE(std::string, name, n_triggers);
+#if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
+#else
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, index, n_triggers);
+#endif
   MAKE_VECTOR_WITH_RESERVE(bool, passTrigger, n_triggers);
   MAKE_VECTOR_WITH_RESERVE(int, L1prescale, n_triggers);
   MAKE_VECTOR_WITH_RESERVE(int, HLTprescale, n_triggers);
 
   bool passAtLeastOneTrigger = false;
-  for (edm::View<TriggerInfo>::const_iterator obj = triggerInfoHandle->begin(); obj != triggerInfoHandle->end(); obj++){
-    name.emplace_back(obj->name);
-    passTrigger.emplace_back(obj->passTrigger);
-    L1prescale.emplace_back(obj->L1prescale);
-    HLTprescale.emplace_back(obj->HLTprescale);
+  for (edm::View<TriggerInfo>::const_iterator trigInfo = triggerInfoHandle->begin(); trigInfo != triggerInfoHandle->end(); trigInfo++){
+    name.emplace_back(trigInfo->name);
+#if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
+#else
+    index.emplace_back(trigInfo->index);
+#endif
+    passTrigger.emplace_back(trigInfo->passTrigger);
+    L1prescale.emplace_back(trigInfo->L1prescale);
+    HLTprescale.emplace_back(trigInfo->HLTprescale);
 
-    passAtLeastOneTrigger |= obj->passTrigger;
+    passAtLeastOneTrigger |= trigInfo->passTrigger;
   }
 
   PUSH_VECTOR_WITH_NAME(colName, name);
+#if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
+#else
+  // No need to record indices since matching to position is done below
+  /*PUSH_VECTOR_WITH_NAME(colName, index);*/
+#endif
   PUSH_VECTOR_WITH_NAME(colName, passTrigger);
   PUSH_VECTOR_WITH_NAME(colName, L1prescale);
   PUSH_VECTOR_WITH_NAME(colName, HLTprescale);
+
+  // Trigger objects
+  MAKE_VECTOR_WITHOUT_RESERVE(int, type);
+  MAKE_VECTOR_WITHOUT_RESERVE(float, pt);
+  MAKE_VECTOR_WITHOUT_RESERVE(float, eta);
+  MAKE_VECTOR_WITHOUT_RESERVE(float, phi);
+  MAKE_VECTOR_WITHOUT_RESERVE(float, mass);
+  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<unsigned int>, associatedTriggers);
+  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<unsigned int>, passedTriggers);
+  if (processTriggerObjectInfos){
+    edm::Handle< edm::View<TriggerObjectInfo> > triggerObjectInfoHandle;
+    iEvent.getByToken(triggerObjectInfoToken, triggerObjectInfoHandle);
+    if (!triggerObjectInfoHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillTriggerInfo: Error getting the trigger object infos. from the event...");
+    size_t n_triggerobjects = triggerObjectInfoHandle->size();
+
+    RESERVE_VECTOR(type, n_triggerobjects);
+    RESERVE_VECTOR(pt, n_triggerobjects);
+    RESERVE_VECTOR(eta, n_triggerobjects);
+    RESERVE_VECTOR(phi, n_triggerobjects);
+    RESERVE_VECTOR(mass, n_triggerobjects);
+    RESERVE_VECTOR(associatedTriggers, n_triggerobjects);
+    RESERVE_VECTOR(passedTriggers, n_triggerobjects);
+
+    for (edm::View<TriggerObjectInfo>::const_iterator trigObj = triggerObjectInfoHandle->begin(); trigObj != triggerObjectInfoHandle->end(); trigObj++){
+      type.push_back(trigObj->bestType());
+      pt.push_back(trigObj->p4.Pt());
+      eta.push_back(trigObj->p4.Eta());
+      phi.push_back(trigObj->p4.Phi());
+      mass.push_back(trigObj->p4.M());
+
+      size_t const nAssociatedTriggers = trigObj->triggerCollectionIndices.size();
+      assert(nAssociatedTriggers == trigObj->passAllTriggerFiltersList.size());
+
+      associatedTriggers.emplace_back(std::vector<unsigned int>());
+      std::vector<unsigned int>& trigObj_associatedTriggers = associatedTriggers.back();
+      trigObj_associatedTriggers.reserve(nAssociatedTriggers);
+
+      passedTriggers.emplace_back(std::vector<unsigned int>());
+      std::vector<unsigned int>& trigObj_passedTriggers = passedTriggers.back();
+      trigObj_passedTriggers.reserve(nAssociatedTriggers);
+
+      std::vector<unsigned int>::const_iterator triggerCollectionIndices_end = trigObj->triggerCollectionIndices.cend();
+      //std::vector<bool>::const_iterator passAllTriggerFiltersList_end = trigObj->passAllTriggerFiltersList.cend();
+      std::vector<unsigned int>::const_iterator it_triggerCollectionIndices = trigObj->triggerCollectionIndices.cbegin();
+      std::vector<bool>::const_iterator it_passAllTriggerFiltersList = trigObj->passAllTriggerFiltersList.cbegin();
+      while (it_triggerCollectionIndices!=triggerCollectionIndices_end){
+#if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
+        unsigned int const& pos = *it_triggerCollectionIndices;
+#else
+        unsigned int pos=0;
+        for (auto const& trigIndex:index){
+          if (*it_triggerCollectionIndices == trigIndex) break;
+          pos++;
+        }
+#endif
+        if (pos>=name.size()) throw cms::Exception("CMS3Ntuplizer::fillTriggerInfo: Trigger object position index reached trigger list size!");
+
+        trigObj_associatedTriggers.emplace_back(pos);
+        if (*it_passAllTriggerFiltersList) trigObj_passedTriggers.emplace_back(pos);
+
+        it_triggerCollectionIndices++;
+        it_passAllTriggerFiltersList++;
+      }
+    }
+  }
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, type);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, pt);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, eta);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, phi);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, mass);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, associatedTriggers);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobject, passedTriggers);
 
   // If the (data) event does not pass any triggers, do not record it.
   return passAtLeastOneTrigger;

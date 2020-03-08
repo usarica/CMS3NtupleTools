@@ -15,6 +15,11 @@
   <class name="edm::Wrapper< TriggerInfo >" persistent="false"/>
   <class name="edm::Wrapper< std::vector<TriggerInfo> >" persistent="false"/>
 
+  <class name="TriggerObjectInfo"/>
+  <class name="std::vector<TriggerObjectInfo>"/>
+  <class name="edm::Wrapper< TriggerObjectInfo >" persistent="false"/>
+  <class name="edm::Wrapper< std::vector<TriggerObjectInfo> >" persistent="false"/>
+
   <class name="METFilterInfo"/>
   <class name="edm::Wrapper< METFilterInfo >" persistent="false"/>
 

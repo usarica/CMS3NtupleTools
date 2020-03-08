@@ -1,5 +1,6 @@
 #include <memory>
-#include <math.h>
+#include <cmath>
+#include <limits>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -33,6 +34,7 @@
 
 #include "Math/VectorUtil.h"
 #include "TVector2.h"
+#include "TString.h"
 
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 #include "Geometry/CommonDetUnit/interface/TrackingGeometry.h"
@@ -58,6 +60,7 @@
 #include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
@@ -713,6 +716,10 @@ void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterat
     // Set MVA category and value
     float val = el->userFloat(id_name+"Values");
     int cat = el->userInt(id_name+"Categories");
+    if (cat<0 || static_cast<unsigned int>(cat)>std::numeric_limits<cms3_electron_mvacat_t>::max()){
+      throw cms::Exception(Form("ElectronMaker::setMVAIdUserVariables: Id %s has an out-of-bounds category label %i.", id_name.data(), cat));
+    }
+
     std::string strRecord = "id_MVA_"+id_identifier;
     electron_result.addUserFloat(strRecord+"_Val", val);
     electron_result.addUserInt(strRecord+"_Cat", cat);
@@ -732,7 +739,12 @@ void ElectronMaker::setMVAIdUserVariables(edm::View<pat::Electron>::const_iterat
 }
 void ElectronMaker::setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, std::string const& id_name, std::string const& id_identifier) const{
   if (el->isElectronIDAvailable(id_name)){
-    electron_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", el->userInt(id_name));
+    unsigned int cutbits = el->userInt(id_name);
+    if (cutbits>std::numeric_limits<cms3_electron_cutbasedbits_t>::max()){
+      throw cms::Exception(Form("ElectronMaker::setCutBasedIdUserVariables: Id %s has an out-of-bounds cut bits value %u.", id_name.data(), cutbits));
+    }
+
+    electron_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", cutbits);
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
 }

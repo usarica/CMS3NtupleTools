@@ -82,6 +82,10 @@ void IsoTrackMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     isotrack_result.p4 = isotrack.p4();
 
     isotrack_result.charge = isotrack.charge();
+    int isotrack_pdgId = isotrack.pdgId();
+    if (isotrack_pdgId < std::numeric_limits<cms3_id_t>::min() || isotrack_pdgId > std::numeric_limits<cms3_id_t>::max()){
+      throw cms::Exception(Form("IsoTrackMaker::produce: Id %i has an out-of-bounds value.", isotrack_pdgId));
+    }
     isotrack_result.id = isotrack.pdgId();
 
     isotrack_result.pfIso03_ch = isotrack.pfIsolationDR03().chargedHadronIso();

@@ -20,6 +20,7 @@ opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other pur
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
 opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) trigger matching information?
+opts.register('doTrigObjMatching', False, mytype=vpbool) # Enable intermediate recording of trigger objects and matching at analyzer
 opts.register('triggerListFromFile', "", mytype=vpstring) # Trigger list to require, to be read from a file
 opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sparm if fastsim=True isn't specified
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
@@ -272,6 +273,8 @@ if opts.triginfo:
    process.elToTrigAssMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
    process.hltMaker.triggerObjectsName = cms.untracked.string("slimmedPatTrigger")
    process.hltMaker.fillTriggerObjects = cms.untracked.bool(True)
+
+doProcessTrigObjs=False
 if opts.triggerListFromFile:
    triglistfile = find_up(opts.triggerListFromFile)
    if triglistfile is None:
@@ -284,6 +287,11 @@ if opts.triggerListFromFile:
    execfile(triglistfile)
    print "Applying filter on the following triggers:",customPrunedTriggerCollection
    process.hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
+   doProcessTrigObjs = opts.doTrigObjMatching and len(customPrunedTriggerCollection)>0
+   process.hltMaker.recordFilteredTrigObjects = cms.bool(doProcessTrigObjs)
+else:
+   # Enforce no trigger object matching if triggers are unfiltered
+   process.hltMaker.recordFilteredTrigObjects = cms.bool(False)
 
 
 if opts.fastsim:
@@ -912,6 +920,7 @@ else:
    process.cms3ntuple.year = cms.int32(opts.year)
    process.cms3ntuple.isMC = cms.bool((not opts.data))
    process.cms3ntuple.is80X = cms.bool(opts.is80x)
+   process.cms3ntuple.processTriggerObjectInfos = cms.bool(doProcessTrigObjs)
    process.cms3ntuple.prefiringWeightsTag = cms.untracked.string(prefiringWeightsTag)
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
    process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)

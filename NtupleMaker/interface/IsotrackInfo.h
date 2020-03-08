@@ -5,13 +5,14 @@
 #include <vector>
 #include <unordered_map>
 #include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 
 struct IsotrackInfo{
   CMSLorentzVector_d p4;
 
-  int charge;
-  int id;
+  cms3_charge_t charge;
+  cms3_id_t id;
 
   float pfIso03_ch;
   float pfIso03_nh;

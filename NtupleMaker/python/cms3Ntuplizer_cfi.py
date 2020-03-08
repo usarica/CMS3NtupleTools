@@ -25,7 +25,11 @@ cms3ntuple = cms.EDAnalyzer(
    vtxSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
    rhoSrc = cms.InputTag("fixedGridRhoFastjetAll"),
+
+   processTriggerObjectInfos = cms.bool(False),
    triggerInfoSrc = cms.InputTag("hltMaker"),
+   triggerObjectInfoSrc = cms.InputTag("hltMaker","filteredTriggerObjectInfos"),
+
    puInfoSrc = cms.InputTag("slimmedAddPileupInfo"),
    metFilterInfoSrc = cms.InputTag("metFilterMaker"),
 

@@ -46,6 +46,7 @@
 
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 #include <CMS3/NtupleMaker/interface/TriggerInfo.h>
+#include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
 #include <CMS3/NtupleMaker/interface/METFilterInfo.h>
 #include <CMS3/NtupleMaker/interface/METInfo.h>
 #include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
@@ -66,6 +67,16 @@ protected:
     nParticleRecordLevels
   };
 
+  static const std::string colName_muons;
+  static const std::string colName_electrons;
+  static const std::string colName_photons;
+  static const std::string colName_isotracks;
+  static const std::string colName_ak4jets;
+  static const std::string colName_ak8jets;
+  static const std::string colName_vtxs;
+  static const std::string colName_triggerinfo;
+  static const std::string colName_triggerobject;
+
 protected:
   const edm::ParameterSet pset;
   std::shared_ptr<BaseTree> outtree;
@@ -77,6 +88,8 @@ protected:
   //TString outfilename;
   bool isMC;
   bool is80X;
+
+  bool processTriggerObjectInfos;
 
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
@@ -105,6 +118,7 @@ protected:
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;
 
   edm::EDGetTokenT< double > rhoToken;
+  edm::EDGetTokenT< edm::View<TriggerObjectInfo> > triggerObjectInfoToken;
   edm::EDGetTokenT< edm::View<TriggerInfo> > triggerInfoToken;
   edm::EDGetTokenT< std::vector<PileupSummaryInfo> > puInfoToken;
   edm::EDGetTokenT< METFilterInfo > metFilterInfoToken;
@@ -138,7 +152,11 @@ protected:
   size_t fillVertices(edm::Event const&, std::vector<reco::Vertex const*>*);
 
   bool fillEventVariables(edm::Event const&);
-  bool fillTriggerInfo(edm::Event const&);
+  bool fillTriggerInfo(
+    edm::Event const&,
+    std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*,
+    std::vector<pat::Jet const*>*, std::vector<pat::Jet const*>*
+  );
   bool fillMETFilterVariables(edm::Event const&);
   bool fillMETVariables(edm::Event const&);
 

@@ -2,6 +2,7 @@
 #include <cmath>
 #include <FWCore/Utilities/interface/Exception.h>
 #include <CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 
 namespace ElectronSelectionHelpers{
@@ -126,7 +127,7 @@ namespace ElectronSelectionHelpers{
     */
 #define TEST_CUTBASED_BIT(ibit) ((ibit & 894) == 894)
     for (auto const& strid:cutbasedidbitlist){
-      unsigned int id_bits = obj.userInt(strid);
+      cms3_electron_cutbasedbits_t id_bits = obj.userInt(strid);
       passAnyCutBased |= TEST_CUTBASED_BIT(id_bits);
     }
 #undef TEST_CUTBASED_BIT

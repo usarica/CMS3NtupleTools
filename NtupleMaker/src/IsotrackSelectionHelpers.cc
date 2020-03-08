@@ -30,7 +30,7 @@ namespace IsotrackSelectionHelpers{
   }
 
   bool testSkimIsotrack(IsotrackInfo const& obj, int const& /*year*/){
-    int abs_id = std::abs(obj.id);
+    cms3_absid_t abs_id = std::abs(obj.id);
     double pt = obj.p4.Pt();
     double eta = std::abs(obj.p4.Eta());
     double pfIso03_ch = obj.pfIso03_ch;
@@ -39,9 +39,9 @@ namespace IsotrackSelectionHelpers{
     double miniIso_comb_nofsr = obj.miniIso_comb_nofsr;
 
     return (
-      pt>=selection_skim_pt
+      ((abs_id>15 && pt>=selection_skim_hadron_pt) || (abs_id<=15 && pt>=selection_skim_pt))
       &&
-      (abs_id<=15 || eta<selection_skim_eta)
+      (abs_id<=15 || eta<selection_skim_hadron_eta) // No eta cut on leptons
       && (
         pfIso03_ch<5. || pfIso03_ch/pt<0.2
         ||
@@ -51,6 +51,7 @@ namespace IsotrackSelectionHelpers{
         ||
         miniIso_comb_nofsr<5. || miniIso_comb_nofsr/pt<0.2
         )
+      && obj.charge!=0
       );
 
     /* The nanoAOD skim is

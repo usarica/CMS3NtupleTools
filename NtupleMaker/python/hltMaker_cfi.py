@@ -5,7 +5,8 @@ hltMaker = cms.EDProducer("HLTMaker",
    processName = cms.untracked.string("HLT"),
    prunedTriggerNames = cms.untracked.vstring(),
    triggerPrescaleInputTag = cms.untracked.string("patTrigger"),
-   #fillTriggerObjects = cms.untracked.bool(False),
-   #triggerObjectsName = cms.untracked.string("selectedPatTrigger"),
-)
+   recordFilteredTrigObjects = cms.bool(False),
+   triggerObjectsName = cms.untracked.string("slimmedPatTrigger"),
+   )
+
 

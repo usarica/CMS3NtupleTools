@@ -20,10 +20,11 @@
 
 //NOT IN miniAOD #include "DataFormats/PatCandidates/interface/TriggerEvent.h"
 #include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
-#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
-#include "FWCore/Common/interface/TriggerNames.h"
+#include <DataFormats/Provenance/interface/ParameterSetID.h>
+#include <DataFormats/PatCandidates/interface/PackedTriggerPrescales.h>
+#include <FWCore/Common/interface/TriggerNames.h>
 
-#include "CMS3/NtupleMaker/interface/TriggerInfo.h"
+#include <CMS3/NtupleMaker/interface/TriggerInfo.h>
 
 #include "TRegexp.h"
 #include "TString.h"
@@ -45,19 +46,21 @@ private:
 
 protected:
   std::string aliasprefix_;
-
   std::string processName_;
-  TString processNamePrefix_;
 
   std::vector<std::string> prunedTriggerNames_;
+  bool recordFilteredTrigObjects_;
 
   HLTPrescaleProvider hltConfig_;
   bool doFillInformation;
 
   edm::EDGetTokenT<edm::TriggerResults> triggerResultsToken;
   edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescaleToken;
+  edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjectsToken;
 
-  std::vector<TriggerInfo> cached_triggerinfos;
+  edm::ParameterSetID cached_triggerNamesPSetId; // Unique identifier for the cached TriggerNames collection
+  std::vector<std::string> cached_allTriggerNames; // All trigger names
+  std::vector<TriggerInfo> cached_triggerinfos; // All or a subset of the triggers
 
   bool pruneTriggerByName(const std::string&) const;
 
