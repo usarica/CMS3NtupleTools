@@ -28,4 +28,8 @@ customPrunedTriggerCollection = [
    "HLT_Photon120_v*",
    "HLT_Photon175_v*",
    "HLT_Photon300_NoHE_v*",
+   "HLT_PFMET120_PFMHT120_IDTight_v*",
+   "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*",
+   "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
+   "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*",
    ]

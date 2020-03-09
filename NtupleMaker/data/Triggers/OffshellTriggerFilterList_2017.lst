@@ -30,4 +30,6 @@ customPrunedTriggerCollection = [
    "HLT_TripleMu_10_5_5_DZ_v*",
    "HLT_TripleMu_12_10_5_v*",
    "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*",
+   "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
+   "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*",
    ]

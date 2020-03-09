@@ -47,4 +47,8 @@ customPrunedTriggerCollection = [
 
    "HLT_PFHT800_v*", # Unprescaled
    "HLT_AK8PFJet360_TrimMass30_v*", # Unprescaled
+
+   "HLT_PFMET120_PFMHT120_IDTight_v*",
+   "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
+   "HLT_PFMET170_HBHECleaned_v*",
    ]
