@@ -161,7 +161,17 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     }
   }
 
-  for (auto const& obj:cached_triggerinfos) result->emplace_back(obj);
+  for (auto& obj:cached_triggerinfos){
+    result->emplace_back(obj);
+    // Update trigger accept flag
+    auto& tmp_obj = result->back();
+    tmp_obj.passTrigger = triggerResultsH_->accept(tmp_obj.index);
+    /*
+    if (tmp_obj.name!=triggerNames_.triggerName(tmp_obj.index)) throw cms::Exception("InvalidTriggerName")
+      << "Cached trigger info name " << tmp_obj.name << " != " << triggerNames_.triggerName(tmp_obj.index)
+      << endl;
+    */
+  }
   //std::copy(cached_triggerinfos.begin(), cached_triggerinfos.end(), result->begin());
 
   if (recordFilteredTrigObjects_){

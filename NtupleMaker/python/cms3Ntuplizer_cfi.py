@@ -20,6 +20,10 @@ cms3ntuple = cms.EDAnalyzer(
    pfcandSrc = cms.InputTag("packedPFCandidates"),
 
    pfmetSrc = cms.InputTag("pfmetMaker"),
+   pfmetShiftSrc_JERNominal = cms.InputTag("pfJetMaker","METshiftJERNominal"),
+   pfmetShiftSrc_JERUp = cms.InputTag("pfJetMaker","METshiftJERUp"),
+   pfmetShiftSrc_JERDn = cms.InputTag("pfJetMaker","METshiftJERDn"),
+
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),
 
    vtxSrc = cms.InputTag("offlineSlimmedPrimaryVertices"),

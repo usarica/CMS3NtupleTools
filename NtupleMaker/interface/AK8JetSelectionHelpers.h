@@ -15,6 +15,11 @@ namespace AK8JetSelectionHelpers{
   constexpr double selection_skim_eta = 4.7;
 
   bool testSkimAK8Jet(pat::Jet const& obj, int const& year);
+  bool testLooseAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type);
+  bool testTightAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type);
+  bool testLeptonVetoAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type);
+  // No need for PU jet id
+
 }
 
 

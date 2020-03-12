@@ -1,4 +1,5 @@
 #include <memory>
+#include <limits>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"

@@ -74,6 +74,11 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
 
   pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
+  if (isMC){
+    pfmetshiftToken_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERNominal"));
+    pfmetshiftToken_JERUp = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERUp"));
+    pfmetshiftToken_JERDn = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERDn"));
+  }
   puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
 
   vtxToken = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vtxSrc"));
@@ -169,12 +174,12 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   );
 
   // ak4 jets
-  std::vector<pat::Jet const*> filledAK4Jets;
-  size_t n_ak4jets = this->fillAK4Jets(iEvent, &filledAK4Jets);
+  //std::vector<pat::Jet const*> filledAK4Jets;
+  size_t n_ak4jets = this->fillAK4Jets(iEvent, /*&filledAK4Jets*/nullptr);
 
   // ak8 jets
-  std::vector<pat::Jet const*> filledAK8Jets;
-  size_t n_ak8jets = this->fillAK8Jets(iEvent, &filledAK8Jets);
+  //std::vector<pat::Jet const*> filledAK8Jets;
+  size_t n_ak8jets = this->fillAK8Jets(iEvent, /*&filledAK8Jets*/nullptr);
 
   // Isolated tracks
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
@@ -199,11 +204,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   isSelected &= this->fillEventVariables(iEvent);
 
   // Trigger info
-  isSelected &= this->fillTriggerInfo(
-    iEvent,
-    &filledMuons, &filledElectrons, &filledPhotons,
-    &filledAK4Jets, &filledAK8Jets
-  );
+  isSelected &= this->fillTriggerInfo(iEvent);
 
   // MET filters
   isSelected &= this->fillMETFilterVariables(iEvent);
@@ -234,6 +235,9 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 #undef DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE
 
     outtree->getSelectedTree()->SetBasketSize("triggers_*", 16384*23);
+    //outtree->getSelectedTree()->SetBasketSize("triggers_*", 21846*32);
+    outtree->getSelectedTree()->SetBasketSize("triggerObjects_passedTriggers", 64000);
+    outtree->getSelectedTree()->SetBasketSize("triggerObjects_associatedTriggers", 64000);
   }
 
   // Record whatever is in commonEntry into the tree.
@@ -347,7 +351,7 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   // Fill with the pruned collection first
   for (reco::GenParticle const& part:(*prunedGenParticles)){
     int st = part.status();
-    int id = std::abs(part.pdgId());
+    unsigned int id = std::abs(part.pdgId());
     if (
       (this->keepGenParticles==kReducedFinalStatesAndHardProcesses && !part.isHardProcess() && st!=1)
       ||
@@ -372,7 +376,7 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   for (pat::PackedGenParticle const& packedGenParticle:(*packedGenParticlesHandle)){
     int st = packedGenParticle.status();
     int id_signed = packedGenParticle.pdgId();
-    int id = std::abs(id_signed);
+    unsigned int id = std::abs(id_signed);
 
     double match_ref = -1;
     for (reco::GenParticle const& prunedGenParticle:(*prunedGenParticles)){
@@ -422,6 +426,9 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(cms3_id_t, id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_genstatus_t, status, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(bool, is_packed, n_objects);
 
   // a) isPromptFinalState(): is particle prompt (not from hadron, muon, or tau decay) and final state
@@ -453,8 +460,6 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   MAKE_VECTOR_WITH_RESERVE(bool, isLastCopy, n_objects); // (i)
   MAKE_VECTOR_WITH_RESERVE(bool, isLastCopyBeforeFSR, n_objects); // (j)
 
-  MAKE_VECTOR_WITH_RESERVE(int, id, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, status, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, mom0_index, n_objects);
   MAKE_VECTOR_WITH_RESERVE(int, mom1_index, n_objects);
 
@@ -466,6 +471,20 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
     mass.push_back(obj->mass());
+
+    if (obj->pdgId() < std::numeric_limits<cms3_id_t>::min() || obj->pdgId() > std::numeric_limits<cms3_id_t>::max()){
+      cms::Exception numexcpt("NumericLimits");
+      numexcpt << "Particle id " << obj->pdgId() << " exceeds numerical bounds.";
+      throw numexcpt;
+    }
+    if (obj->status() < std::numeric_limits<cms3_genstatus_t>::min() || obj->status() > std::numeric_limits<cms3_genstatus_t>::max()){
+      cms::Exception numexcpt("NumericLimits");
+      numexcpt << "Particle status " << obj->status() << " exceeds numerical bounds.";
+      throw numexcpt;
+    }
+
+    id.push_back(obj->pdgId());
+    status.push_back(obj->status());
 
     is_packed.push_back(false);
 
@@ -479,9 +498,6 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     fromHardProcessBeforeFSR.push_back(obj->fromHardProcessBeforeFSR()); // (h)
     isLastCopy.push_back(obj->isLastCopy()); // (i)
     isLastCopyBeforeFSR.push_back(obj->isLastCopyBeforeFSR()); // (j)
-
-    id.push_back(obj->pdgId());
-    status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
     if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
@@ -517,6 +533,9 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     phi.push_back(obj->phi());
     mass.push_back(obj->mass());
 
+    id.push_back(obj->pdgId());
+    status.push_back(obj->status());
+
     is_packed.push_back(true);
 
     isPromptFinalState.push_back(false); // (a)
@@ -529,9 +548,6 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     fromHardProcessBeforeFSR.push_back(false); // (h)
     isLastCopy.push_back(false); // (i)
     isLastCopyBeforeFSR.push_back(false); // (j)
-
-    id.push_back(obj->pdgId());
-    status.push_back(obj->status());
 
     std::vector<const reco::GenParticle*> mothers;
     if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
@@ -562,6 +578,9 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
 
+  PUSH_VECTOR_WITH_NAME(colName, id);
+  PUSH_VECTOR_WITH_NAME(colName, status);
+
   PUSH_VECTOR_WITH_NAME(colName, is_packed);
 
   PUSH_VECTOR_WITH_NAME(colName, isPromptFinalState); // (a)
@@ -575,8 +594,6 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
   PUSH_VECTOR_WITH_NAME(colName, isLastCopy); // (i)
   PUSH_VECTOR_WITH_NAME(colName, isLastCopyBeforeFSR); // (j)
 
-  PUSH_VECTOR_WITH_NAME(colName, id);
-  PUSH_VECTOR_WITH_NAME(colName, status);
   PUSH_VECTOR_WITH_NAME(colName, mom0_index);
   PUSH_VECTOR_WITH_NAME(colName, mom1_index);
 
@@ -1184,10 +1201,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_leptonVetoId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_puId, n_objects);
 
+  /*
   MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(size_t, n_mucands, n_objects);
-
   MAKE_VECTOR_WITH_RESERVE(float, area, n_objects);
+  */
+
   MAKE_VECTOR_WITH_RESERVE(float, pt_resolution, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, deepFlavourprobb, n_objects);
@@ -1211,12 +1230,16 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, JECL1Nominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_px, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_py, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
@@ -1234,10 +1257,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     pass_leptonVetoId.push_back(AK4JetSelectionHelpers::testLeptonVetoAK4Jet(*obj, this->year, jetType));
     pass_puId.push_back(AK4JetSelectionHelpers::testPileUpAK4Jet(*obj, this->year, jetType));
 
+    /*
     PUSH_USERINT_INTO_VECTOR(n_pfcands);
     PUSH_USERINT_INTO_VECTOR(n_mucands);
-
     PUSH_USERFLOAT_INTO_VECTOR(area);
+    */
+
     PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
 
     PUSH_USERFLOAT_INTO_VECTOR(deepFlavourprobb);
@@ -1251,6 +1276,188 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobbb);
     PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobc);
     PUSH_USERFLOAT_INTO_VECTOR(deepCSVprobudsg);
+
+    PUSH_USERFLOAT_INTO_VECTOR(ptDistribution);
+    PUSH_USERFLOAT_INTO_VECTOR(totalMultiplicity);
+    PUSH_USERFLOAT_INTO_VECTOR(axis1);
+    PUSH_USERFLOAT_INTO_VECTOR(axis2);
+
+    PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
+    PUSH_USERFLOAT_INTO_VECTOR(JECUp);
+    PUSH_USERFLOAT_INTO_VECTOR(JECDn);
+
+    PUSH_USERFLOAT_INTO_VECTOR(JECL1Nominal);
+    PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_px);
+    PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_py);
+
+    PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
+    PUSH_USERFLOAT_INTO_VECTOR(JERUp);
+    PUSH_USERFLOAT_INTO_VECTOR(JERDn);
+
+    PUSH_USERINT_INTO_VECTOR(partonFlavour);
+    PUSH_USERINT_INTO_VECTOR(hadronFlavour);
+
+    if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
+  }
+
+  // Pass collections to the communicator
+  PUSH_VECTOR_WITH_NAME(colName, pt);
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, mass);
+
+  PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
+  PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
+  PUSH_VECTOR_WITH_NAME(colName, pass_leptonVetoId);
+  PUSH_VECTOR_WITH_NAME(colName, pass_puId);
+
+  /*
+  PUSH_VECTOR_WITH_NAME(colName, n_pfcands);
+  PUSH_VECTOR_WITH_NAME(colName, n_mucands);
+  PUSH_VECTOR_WITH_NAME(colName, area);
+  */
+
+  PUSH_VECTOR_WITH_NAME(colName, pt_resolution);
+
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobbb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobc);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobg);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourproblepb);
+  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobuds);
+
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobb);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobbb);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobc);
+  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobudsg);
+
+  PUSH_VECTOR_WITH_NAME(colName, ptDistribution);
+  PUSH_VECTOR_WITH_NAME(colName, totalMultiplicity);
+  PUSH_VECTOR_WITH_NAME(colName, axis1);
+  PUSH_VECTOR_WITH_NAME(colName, axis2);
+
+  PUSH_VECTOR_WITH_NAME(colName, JECNominal);
+  PUSH_VECTOR_WITH_NAME(colName, JECUp);
+  PUSH_VECTOR_WITH_NAME(colName, JECDn);
+
+  PUSH_VECTOR_WITH_NAME(colName, JECL1Nominal);
+  PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_px);
+  PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_py);
+
+  PUSH_VECTOR_WITH_NAME(colName, JERNominal);
+  PUSH_VECTOR_WITH_NAME(colName, JERUp);
+  PUSH_VECTOR_WITH_NAME(colName, JERDn);
+
+  PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
+  PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
+
+  return n_skimmed_objects;
+}
+size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
+  const AK8JetSelectionHelpers::AK8JetType jetType = (this->is80X ? AK8JetSelectionHelpers::AK8PFCHS : AK8JetSelectionHelpers::AK8PFPUPPI);
+  std::string const& colName = CMS3Ntuplizer::colName_ak8jets;
+
+  edm::Handle< edm::View<pat::Jet> > ak8jetsHandle;
+  iEvent.getByToken(ak8jetsToken, ak8jetsHandle);
+  if (!ak8jetsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillAK8Jets: Error getting the ak8 jet collection from the event...");
+  size_t n_objects = ak8jetsHandle->size();
+
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, pass_looseId, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, pass_leptonVetoId, n_objects);
+
+  /*
+  MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(size_t, n_mucands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, area, n_objects);
+  */
+
+  MAKE_VECTOR_WITH_RESERVE(size_t, n_softdrop_subjets, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pt_resolution, n_objects);
+
+  /*
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_mass, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_pt, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_mass, n_objects);
+  */
+
+  MAKE_VECTOR_WITH_RESERVE(float, ptDistribution, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, totalMultiplicity, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, axis1, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, axis2, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
+
+  size_t n_skimmed_objects=0;
+  for (edm::View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
+    if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
+
+    // Core particle quantities
+    // These are the uncorrected momentum components!
+    pt.push_back(obj->pt());
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    mass.push_back(obj->mass());
+
+    pass_looseId.push_back(AK8JetSelectionHelpers::testLooseAK8Jet(*obj, this->year, jetType));
+    pass_tightId.push_back(AK8JetSelectionHelpers::testTightAK8Jet(*obj, this->year, jetType));
+    pass_leptonVetoId.push_back(AK8JetSelectionHelpers::testLeptonVetoAK8Jet(*obj, this->year, jetType));
+
+    /*
+    PUSH_USERINT_INTO_VECTOR(n_pfcands);
+    PUSH_USERINT_INTO_VECTOR(n_mucands);
+    PUSH_USERFLOAT_INTO_VECTOR(area);
+    */
+
+    PUSH_USERINT_INTO_VECTOR(n_softdrop_subjets);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
+
+    /*
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_pt);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_eta);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_phi);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_mass);
+
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_pt);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_eta);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_phi);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_mass);
+
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_pt);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_eta);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_phi);
+    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_mass);
+    */
 
     PUSH_USERFLOAT_INTO_VECTOR(ptDistribution);
     PUSH_USERFLOAT_INTO_VECTOR(totalMultiplicity);
@@ -1281,170 +1488,15 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_leptonVetoId);
-  PUSH_VECTOR_WITH_NAME(colName, pass_puId);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, n_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, n_mucands);
-
   PUSH_VECTOR_WITH_NAME(colName, area);
-  PUSH_VECTOR_WITH_NAME(colName, pt_resolution);
+  */
 
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobb);
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobbb);
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobc);
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobg);
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourproblepb);
-  PUSH_VECTOR_WITH_NAME(colName, deepFlavourprobuds);
-
-  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobb);
-  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobbb);
-  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobc);
-  PUSH_VECTOR_WITH_NAME(colName, deepCSVprobudsg);
-
-  PUSH_VECTOR_WITH_NAME(colName, ptDistribution);
-  PUSH_VECTOR_WITH_NAME(colName, totalMultiplicity);
-  PUSH_VECTOR_WITH_NAME(colName, axis1);
-  PUSH_VECTOR_WITH_NAME(colName, axis2);
-
-  PUSH_VECTOR_WITH_NAME(colName, JECNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JECUp);
-  PUSH_VECTOR_WITH_NAME(colName, JECDn);
-
-  PUSH_VECTOR_WITH_NAME(colName, JERNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JERUp);
-  PUSH_VECTOR_WITH_NAME(colName, JERDn);
-
-  PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
-  PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
-
-  return n_skimmed_objects;
-}
-size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
-  std::string const& colName = CMS3Ntuplizer::colName_ak8jets;
-
-  edm::Handle< edm::View<pat::Jet> > ak8jetsHandle;
-  iEvent.getByToken(ak8jetsToken, ak8jetsHandle);
-  if (!ak8jetsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillAK8Jets: Error getting the ak8 jet collection from the event...");
-  size_t n_objects = ak8jetsHandle->size();
-
-  if (filledObjects) filledObjects->reserve(n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, pt, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
-
-  //MAKE_VECTOR_WITH_RESERVE(bool, pass_looseId, n_objects);
-  //MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(size_t, n_mucands, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(size_t, n_softdrop_subjets, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, area, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, pt_resolution, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_pt, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_eta, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_phi, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_mass, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_pt, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_eta, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_phi, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet0_mass, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_pt, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_eta, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_phi, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, softdrop_subjet1_mass, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, ptDistribution, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, totalMultiplicity, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, axis1, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, axis2, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(int, partonFlavour, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, hadronFlavour, n_objects);
-
-  size_t n_skimmed_objects=0;
-  for (edm::View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
-    if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
-
-    // Core particle quantities
-    // These are the uncorrected momentum components!
-    pt.push_back(obj->pt());
-    eta.push_back(obj->eta());
-    phi.push_back(obj->phi());
-    mass.push_back(obj->mass());
-
-    //pass_looseId.push_back(AK8JetSelectionHelpers::testLooseAK8Jet(*obj, this->year));
-    //pass_tightId.push_back(AK8JetSelectionHelpers::testTightAK8Jet(*obj, this->year));
-
-    PUSH_USERINT_INTO_VECTOR(n_pfcands);
-    PUSH_USERINT_INTO_VECTOR(n_mucands);
-    PUSH_USERINT_INTO_VECTOR(n_softdrop_subjets);
-
-    PUSH_USERFLOAT_INTO_VECTOR(area);
-    PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
-
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_pt);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_eta);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_phi);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_mass);
-
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_pt);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_eta);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_phi);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet0_mass);
-
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_pt);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_eta);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_phi);
-    PUSH_USERFLOAT_INTO_VECTOR(softdrop_subjet1_mass);
-
-    PUSH_USERFLOAT_INTO_VECTOR(ptDistribution);
-    PUSH_USERFLOAT_INTO_VECTOR(totalMultiplicity);
-    PUSH_USERFLOAT_INTO_VECTOR(axis1);
-    PUSH_USERFLOAT_INTO_VECTOR(axis2);
-
-    PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JECUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JECDn);
-
-    PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JERUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JERDn);
-
-    PUSH_USERINT_INTO_VECTOR(partonFlavour);
-    PUSH_USERINT_INTO_VECTOR(hadronFlavour);
-
-    if (filledObjects) filledObjects->push_back(&(*obj));
-    n_skimmed_objects++;
-  }
-
-  // Pass collections to the communicator
-  PUSH_VECTOR_WITH_NAME(colName, pt);
-  PUSH_VECTOR_WITH_NAME(colName, eta);
-  PUSH_VECTOR_WITH_NAME(colName, phi);
-  PUSH_VECTOR_WITH_NAME(colName, mass);
-
-  //PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
-  //PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
-
-  PUSH_VECTOR_WITH_NAME(colName, n_pfcands);
-  PUSH_VECTOR_WITH_NAME(colName, n_mucands);
   PUSH_VECTOR_WITH_NAME(colName, n_softdrop_subjets);
 
-  PUSH_VECTOR_WITH_NAME(colName, area);
   PUSH_VECTOR_WITH_NAME(colName, pt_resolution);
 
   // Disable softdrop for now
@@ -1889,11 +1941,7 @@ bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
 
   return true;
 }
-bool CMS3Ntuplizer::fillTriggerInfo(
-  edm::Event const& iEvent,
-  std::vector<pat::Muon const*> const* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*> const* filledPhotons,
-  std::vector<pat::Jet const*>* filledAK4Jets, std::vector<pat::Jet const*>* filledAK8Jets
-){
+bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
   std::string const& colName = CMS3Ntuplizer::colName_triggerinfo;
 
   edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
@@ -2056,6 +2104,7 @@ bool CMS3Ntuplizer::fillMETFilterVariables(edm::Event const& iEvent){
 }
 bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
 #define SET_MET_VARIABLE(HANDLE, NAME, COLLNAME) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), HANDLE->NAME);
+#define SET_MET_SHIFT(NAME, COLLNAME, VAL) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), VAL);
 
   edm::Handle<METInfo> metHandle;
 
@@ -2074,15 +2123,43 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, metPhi_Raw, pfmetCollName);
   SET_MET_VARIABLE(metHandle, sumEt_Raw, pfmetCollName);
 
-  SET_MET_VARIABLE(metHandle, met_JERUp, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_JERUp, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, met_JERDn, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_JERDn, pfmetCollName);
-
   SET_MET_VARIABLE(metHandle, met_JECUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, met_JECDn, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECDn, pfmetCollName);
+
+  SET_MET_VARIABLE(metHandle, met_UnclusteredEnUp, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnUp, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, met_UnclusteredEnDn, pfmetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnDn, pfmetCollName);
+
+  if (isMC){
+    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JERNominal;
+    iEvent.getByToken(pfmetshiftToken_JERNominal, pfmetshiftHandle_JERNominal);
+    if (!pfmetshiftHandle_JERNominal.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER nominal shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERNominal, pfmetCollName, float(pfmetshiftHandle_JERNominal->Px()));
+    SET_MET_SHIFT(metShift_py_JERNominal, pfmetCollName, float(pfmetshiftHandle_JERNominal->Py()));
+
+    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JERUp;
+    iEvent.getByToken(pfmetshiftToken_JERUp, pfmetshiftHandle_JERUp);
+    if (!pfmetshiftHandle_JERUp.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER up shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERUp, pfmetCollName, float(pfmetshiftHandle_JERUp->Px()));
+    SET_MET_SHIFT(metShift_py_JERUp, pfmetCollName, float(pfmetshiftHandle_JERUp->Py()));
+
+    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JERDn;
+    iEvent.getByToken(pfmetshiftToken_JERDn, pfmetshiftHandle_JERDn);
+    if (!pfmetshiftHandle_JERDn.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER down shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERDn, pfmetCollName, float(pfmetshiftHandle_JERDn->Px()));
+    SET_MET_SHIFT(metShift_py_JERDn, pfmetCollName, float(pfmetshiftHandle_JERDn->Py()));
+  }
+  else{
+    SET_MET_SHIFT(metShift_px_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_px_JERUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_px_JERDn, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERDn, pfmetCollName, float(0));
+  }
 
   /*
   SET_MET_VARIABLE(metHandle, met_MuonEnUp, pfmetCollName);
@@ -2099,11 +2176,6 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, metPhi_TauEnUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, met_TauEnDn, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_TauEnDn, pfmetCollName);
-
-  SET_MET_VARIABLE(metHandle, met_UnclusteredEnUp, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnUp, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, met_UnclusteredEnDn, pfmetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnDn, pfmetCollName);
 
   SET_MET_VARIABLE(metHandle, met_PhotonEnUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_PhotonEnUp, pfmetCollName);
@@ -2134,15 +2206,45 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, metPhi_Raw, puppimetCollName);
   SET_MET_VARIABLE(metHandle, sumEt_Raw, puppimetCollName);
 
-  SET_MET_VARIABLE(metHandle, met_JERUp, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_JERUp, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, met_JERDn, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_JERDn, puppimetCollName);
-
   SET_MET_VARIABLE(metHandle, met_JECUp, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECUp, puppimetCollName);
   SET_MET_VARIABLE(metHandle, met_JECDn, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_JECDn, puppimetCollName);
+
+  SET_MET_VARIABLE(metHandle, met_UnclusteredEnUp, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnUp, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, met_UnclusteredEnDn, puppimetCollName);
+  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnDn, puppimetCollName);
+
+  /*
+  if (isMC){
+    edm::Handle< reco::Particle::LorentzVector > puppimetshiftHandle_JERNominal;
+    iEvent.getByToken(puppimetshiftToken_JERNominal, puppimetshiftHandle_JERNominal);
+    if (!puppimetshiftHandle_JERNominal.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER nominal shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERNominal, puppimetCollName, float(puppimetshiftHandle_JERNominal->Px()));
+    SET_MET_SHIFT(metShift_py_JERNominal, puppimetCollName, float(puppimetshiftHandle_JERNominal->Py()));
+
+    edm::Handle< reco::Particle::LorentzVector > puppimetshiftHandle_JERUp;
+    iEvent.getByToken(puppimetshiftToken_JERUp, puppimetshiftHandle_JERUp);
+    if (!puppimetshiftHandle_JERUp.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER up shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERUp, puppimetCollName, float(puppimetshiftHandle_JERUp->Px()));
+    SET_MET_SHIFT(metShift_py_JERUp, puppimetCollName, float(puppimetshiftHandle_JERUp->Py()));
+
+    edm::Handle< reco::Particle::LorentzVector > puppimetshiftHandle_JERDn;
+    iEvent.getByToken(puppimetshiftToken_JERDn, puppimetshiftHandle_JERDn);
+    if (!puppimetshiftHandle_JERDn.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JER down shift handle from the event...");
+    SET_MET_SHIFT(metShift_px_JERDn, puppimetCollName, float(puppimetshiftHandle_JERDn->Px()));
+    SET_MET_SHIFT(metShift_py_JERDn, puppimetCollName, float(puppimetshiftHandle_JERDn->Py()));
+  }
+  else{
+    SET_MET_SHIFT(metShift_px_JERNominal, puppimetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERNominal, puppimetCollName, float(0));
+    SET_MET_SHIFT(metShift_px_JERUp, puppimetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERUp, puppimetCollName, float(0));
+    SET_MET_SHIFT(metShift_px_JERDn, puppimetCollName, float(0));
+    SET_MET_SHIFT(metShift_py_JERDn, puppimetCollName, float(0));
+  }
+  */
 
   /*
   SET_MET_VARIABLE(metHandle, met_MuonEnUp, puppimetCollName);
@@ -2160,11 +2262,6 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, met_TauEnDn, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_TauEnDn, puppimetCollName);
 
-  SET_MET_VARIABLE(metHandle, met_UnclusteredEnUp, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnUp, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, met_UnclusteredEnDn, puppimetCollName);
-  SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnDn, puppimetCollName);
-
   SET_MET_VARIABLE(metHandle, met_PhotonEnUp, puppimetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_PhotonEnUp, puppimetCollName);
   SET_MET_VARIABLE(metHandle, met_PhotonEnDn, puppimetCollName);
@@ -2179,6 +2276,7 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, gen_metPhi, puppimetCollName);
   */
 
+#undef SET_MET_SHIFT
 #undef SET_MET_VARIABLE
 
   return true;

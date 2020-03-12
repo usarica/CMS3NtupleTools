@@ -39,7 +39,9 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
 
   isMC(iConfig.getParameter<bool>("isMC")),
   isFatJet(jetCollection_.find("AK8")!=std::string::npos || jetCollection_.find("ak8")!=std::string::npos),
-  isPuppi(jetCollection_.find("Puppi")!=std::string::npos || jetCollection_.find("puppi")!=std::string::npos)
+  isPuppi(jetCollection_.find("Puppi")!=std::string::npos || jetCollection_.find("puppi")!=std::string::npos),
+
+  METshift_fixEE2017(iConfig.getParameter<bool>("METshift_fixEE2017"))
 {
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
   vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
@@ -50,6 +52,11 @@ PFJetMaker::PFJetMaker(const edm::ParameterSet& iConfig) :
   if (isMC) genJetsToken = consumes< edm::View<reco::GenJet> >(iConfig.getParameter<edm::InputTag>("genJetsInputTag"));
 
   produces<pat::JetCollection>().setBranchAlias(aliasprefix_);
+  if (isMC && !isFatJet){
+    produces<reco::Particle::LorentzVector>("METshiftJERNominal");
+    produces<reco::Particle::LorentzVector>("METshiftJERUp");
+    produces<reco::Particle::LorentzVector>("METshiftJERDn");
+  }
 }
 
 PFJetMaker::~PFJetMaker(){}
@@ -91,6 +98,9 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   JME::JetResolution resolution_pt = JME::JetResolution::get(iSetup, jetCollection_+"_pt");
   JME::JetResolutionScaleFactor resolution_sf;
   if (isMC) resolution_sf = JME::JetResolutionScaleFactor::get(iSetup, jetCollection_);
+  auto METshift_JERNominal = std::make_unique<reco::Particle::LorentzVector>();
+  auto METshift_JERUp = std::make_unique<reco::Particle::LorentzVector>();
+  auto METshift_JERDn = std::make_unique<reco::Particle::LorentzVector>();
 
   // Get gen. jets matched to reco. jets
   std::unordered_map<pat::Jet const*, reco::GenJet const*> reco_gen_map;
@@ -109,7 +119,10 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     */
 
     const double undoJEC = pfjet_it->jecFactor("Uncorrected");
+    const double relJECval_L1 = pfjet_it->jecFactor("L1FastJet");
     const double JECval = 1./undoJEC;
+    const double JECval_L1 = relJECval_L1/undoJEC;
+    const double& JECval_L1L2L3 = JECval;
 
     auto const corrected_p4 = pfjet_it->p4();
     const double corrected_pt = pfjet_it->pt();
@@ -120,13 +133,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     const double uncorrected_mass = pfjet_it->mass()*undoJEC;
 
     jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, jet_eta, jet_phi, uncorrected_mass));
+    auto const uncorrected_p4 = jet_result.p4();
 
     // PF candidates
     auto const& pfjet_cands = pfjet_it->daughterPtrVector();
     jet_result.addUserInt("n_pfcands", pfjet_cands.size());
+    size_t n_mucands = 0;
+    LorentzVectorD p4_mucands(0, 0, 0, 0);
     {
-      size_t n_mucands = 0;
-      LorentzVectorD p4_mucands(0, 0, 0, 0);
       for (auto cand_it = pfjet_cands.cbegin(); cand_it != pfjet_cands.cend(); cand_it++){
         size_t ipf = cand_it->key();
         pat::PackedCandidate const& pfc = pfCandidates->at(ipf);
@@ -135,13 +149,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         n_mucands++;
       }
       jet_result.addUserInt("n_mucands", n_mucands);
-      jet_result.addUserFloat("mucands_px", p4_mucands.px());
-      jet_result.addUserFloat("mucands_py", p4_mucands.py());
-      jet_result.addUserFloat("mucands_pz", p4_mucands.pz());
-      jet_result.addUserFloat("mucands_E", p4_mucands.energy());
+      jet_result.addUserFloat("mucands_sump4_px", p4_mucands.px());
+      jet_result.addUserFloat("mucands_sump4_py", p4_mucands.py());
+      jet_result.addUserFloat("mucands_sump4_pz", p4_mucands.pz());
+      jet_result.addUserFloat("mucands_sump4_E", p4_mucands.energy());
     }
 
     jet_result.addUserFloat("JECNominal", static_cast<const float>(JECval));
+    jet_result.addUserFloat("JECL1Nominal", static_cast<const float>(JECval_L1));
 
     // Get JEC uncertainties 
     jecUnc.setJetEta(jet_eta);
@@ -177,13 +192,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       const double diff_pt = std::abs(corrected_pt - gen_pt);
       isMatched = (deltaR_genmatch < ConeRadiusConstant/2. && diff_pt < 3.*res_pt*corrected_pt);
     }
-    jet_result.addUserFloat("genJet_pt", gen_pt);
-    jet_result.addUserFloat("genJet_eta", gen_eta);
-    jet_result.addUserFloat("genJet_phi", gen_phi);
-    jet_result.addUserFloat("genJet_mass", gen_mass);
-
     // JER smearing
     if (isMC){
+      jet_result.addUserFloat("genJet_pt", gen_pt);
+      jet_result.addUserFloat("genJet_eta", gen_eta);
+      jet_result.addUserFloat("genJet_phi", gen_phi);
+      jet_result.addUserFloat("genJet_mass", gen_mass);
+
       double sf    = resolution_sf.getScaleFactor(res_sf_parameters, Variation::NOMINAL);
       double sf_up = resolution_sf.getScaleFactor(res_sf_parameters, Variation::UP);
       double sf_dn = resolution_sf.getScaleFactor(res_sf_parameters, Variation::DOWN);
@@ -206,9 +221,58 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         pt_jerup = std::max(0., smear*sigmaup + corrected_pt);
         pt_jerdn = std::max(0., smear*sigmadn + corrected_pt);
       }
-      jet_result.addUserFloat("JERNominal", static_cast<float>(pt_jer/corrected_pt));
-      jet_result.addUserFloat("JERUp", static_cast<float>(pt_jerup/corrected_pt));
-      jet_result.addUserFloat("JERDn", static_cast<float>(pt_jerdn/corrected_pt));
+
+      double const JERval = pt_jer/corrected_pt;
+      double const JERval_up = pt_jerup/corrected_pt;
+      double const JERval_dn = pt_jerdn/corrected_pt;
+      jet_result.addUserFloat("JERNominal", static_cast<float>(JERval));
+      jet_result.addUserFloat("JERUp", static_cast<float>(JERval_up));
+      jet_result.addUserFloat("JERDn", static_cast<float>(JERval_dn));
+
+      if (
+        !isFatJet
+        &&
+        (pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9
+        &&
+        std::abs(uncorrected_p4.Eta())<=9.9
+        &&
+        (!METshift_fixEE2017 || (METshift_fixEE2017 && (uncorrected_p4.Pt() > 50. || std::abs(uncorrected_p4.Eta()) < 2.65 || std::abs(uncorrected_p4.Eta()) > 3.139)))
+        ){
+        // In propagating JER corrections and variations, p4_mucands is assumed to be measured well enough.
+        // This means that JER corrections are assumed to originate from non-muon sources.
+        reco::Candidate::LorentzVector uncorrected_p4_nomus = uncorrected_p4 - p4_mucands;
+        reco::Candidate::LorentzVector rawJetP4offsetCorr = uncorrected_p4_nomus*JECval_L1;
+        reco::Candidate::LorentzVector corrJetP4 = uncorrected_p4_nomus*JECval_L1L2L3;
+        reco::Candidate::LorentzVector diffJetP4 = (corrJetP4 - rawJetP4offsetCorr); // -diffJetP4 is already part of nominal MET
+
+        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERNominal = uncorrected_p4*JERval - p4_mucands;
+        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1;
+        reco::Candidate::LorentzVector corrJetP4_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1L2L3;
+        reco::Candidate::LorentzVector diffJetP4_JERNominal = (corrJetP4_JERNominal - rawJetP4offsetCorr_JERNominal);
+
+        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERUp = uncorrected_p4*JERval_up - p4_mucands;
+        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1;
+        reco::Candidate::LorentzVector corrJetP4_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1L2L3;
+        reco::Candidate::LorentzVector diffJetP4_JERUp = (corrJetP4_JERUp - rawJetP4offsetCorr_JERUp);
+
+        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERDn = uncorrected_p4*JERval_dn - p4_mucands;
+        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1;
+        reco::Candidate::LorentzVector corrJetP4_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1L2L3;
+        reco::Candidate::LorentzVector diffJetP4_JERDn = (corrJetP4_JERDn - rawJetP4offsetCorr_JERDn);
+
+        // JER variations
+        // First take out diffJetP4 from MET
+        if (corrJetP4.Pt()>15.){
+          // Double negative = positive
+          *METshift_JERNominal += diffJetP4;
+          *METshift_JERUp += diffJetP4;
+          *METshift_JERDn += diffJetP4;
+        }
+        // Add back the relevant diffJetP4 variations
+        if (corrJetP4_JERNominal.Pt()>15.) *METshift_JERNominal += -diffJetP4_JERNominal;
+        if (corrJetP4_JERUp.Pt()>15.) *METshift_JERUp += -diffJetP4_JERUp;
+        if (corrJetP4_JERDn.Pt()>15.) *METshift_JERDn += -diffJetP4_JERDn;
+      }
     }
     else{
       jet_result.addUserFloat("JERNominal", 1.f);
@@ -405,6 +469,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 
   iEvent.put(std::move(result));
+  if (isMC && !isFatJet){
+    iEvent.put(std::move(METshift_JERNominal), "METshiftJERNominal");
+    iEvent.put(std::move(METshift_JERUp), "METshiftJERUp");
+    iEvent.put(std::move(METshift_JERDn), "METshiftJERDn");
+  }
 }
 
 void PFJetMaker::get_reco_gen_matchMap(

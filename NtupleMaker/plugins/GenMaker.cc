@@ -1,6 +1,9 @@
+#include <limits>
+
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
 #include <CMS3/NtupleMaker/interface/plugins/GenMaker.h>
 #include <ZZMatrixElement/MELA/interface/PDGHelpers.h>
+
 #include "MELAStreamHelpers.hh"
 
 
@@ -165,6 +168,16 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       result->lheparticles_py.push_back(part_i->y());
       result->lheparticles_pz.push_back(part_i->z());
       result->lheparticles_E.push_back(part_i->t());
+      if (part_i->id < std::numeric_limits<cms3_id_t>::min() || part_i->id > std::numeric_limits<cms3_id_t>::max()){
+        cms::Exception e("NumericLimits");
+        e << "Particle id " << part_i->id << " exceeds numerical bounds.";
+        throw e;
+      }
+      if (part_i->genStatus < std::numeric_limits<cms3_genstatus_t>::min() || part_i->genStatus > std::numeric_limits<cms3_genstatus_t>::max()){
+        cms::Exception e("NumericLimits");
+        e << "Particle status " << part_i->genStatus << " exceeds numerical bounds.";
+        throw e;
+      }
       result->lheparticles_id.push_back(part_i->id);
       result->lheparticles_status.push_back(part_i->genStatus);
 

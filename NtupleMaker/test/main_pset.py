@@ -612,6 +612,8 @@ process.puppi.useExistingWeights = useExistingWeightsFlag
 #process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 #process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
 
+print "jetSelectorForMetModifiedMET.cut = ",process.jetSelectorForMetModifiedMET.cut
+
 
 # Apply E/Gamma corrections if needed
 ## Do this after re-applying JECs on Puppi MET!!!
@@ -734,6 +736,9 @@ else:
    process.muonMakerSeq = cms.Sequence( process.cleanedMuons * process.muonMaker )
 
 # PF jets
+process.pfJetMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
+process.pfJetPUPPIMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
+process.subJetMaker.METshift_fixEE2017 = cms.bool(opts.metrecipe)
 if jecVersion != "":
    process.pfJetMakerSeq = cms.Sequence( _process_pfJetMakerPreSeq * process.pfJetMaker )
    process.pfJetPUPPIMakerSeq = cms.Sequence( _process_pfJetPUPPIMakerPreSeq * process.pfJetPUPPIMaker )

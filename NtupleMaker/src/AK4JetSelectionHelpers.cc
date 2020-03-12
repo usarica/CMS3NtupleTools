@@ -72,6 +72,11 @@ namespace AK4JetSelectionHelpers{
     else if (type==AK4PFPUPPI){
       return (
         ((NHF<0.99 && NEMF<0.99 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        // Keep eta>2.7 cuts as in nanoAOD, but they are not really recommended.
+        ||
+        (NHF<0.98 && NEMF>0.01 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NM>10 && eta>3.0)
         );
     }
     else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testLooseAK4Jet: Type " << type << " is not implemented!" << std::endl;
@@ -125,6 +130,11 @@ namespace AK4JetSelectionHelpers{
     else if (type==AK4PFPUPPI){
       if (year==2016) return (
         ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
+        // Keep eta>2.7 cuts as in nanoAOD, but they are not really recommended.
+        ||
+        (NHF<0.98 && NEMF>0.01 && NM>2 && eta>2.7 && eta<=3.0)
+        ||
+        (NEMF<0.90 && NM>10 && eta>3.0)
         );
       else if (year==2017) return (
         ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0) || eta>2.4) && eta<=2.7)
@@ -162,7 +172,7 @@ namespace AK4JetSelectionHelpers{
         (MUF<0.8 && eta<=2.7) || eta>2.7
         );
     }
-    else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testTightAK4Jet: Type " << type << " is not implemented!" << std::endl;
+    else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testLeptonVetoAK4Jet: Type " << type << " is not implemented!" << std::endl;
 
     return true;
   }

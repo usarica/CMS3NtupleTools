@@ -39,6 +39,7 @@ protected:
   const bool isMC;
   bool isFatJet;
   bool isPuppi;
+  bool METshift_fixEE2017;
 
   edm::EDGetTokenT<double> rhoToken;
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;

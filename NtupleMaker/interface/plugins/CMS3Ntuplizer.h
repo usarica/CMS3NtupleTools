@@ -113,6 +113,9 @@ protected:
   edm::EDGetTokenT< edm::View<pat::PackedCandidate> > pfcandsToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERNominal;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERUp;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERDn;
   edm::EDGetTokenT< METInfo > puppimetToken;
 
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;
@@ -152,11 +155,7 @@ protected:
   size_t fillVertices(edm::Event const&, std::vector<reco::Vertex const*>*);
 
   bool fillEventVariables(edm::Event const&);
-  bool fillTriggerInfo(
-    edm::Event const&,
-    std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*,
-    std::vector<pat::Jet const*>*, std::vector<pat::Jet const*>*
-  );
+  bool fillTriggerInfo(edm::Event const&);
   bool fillMETFilterVariables(edm::Event const&);
   bool fillMETVariables(edm::Event const&);
 

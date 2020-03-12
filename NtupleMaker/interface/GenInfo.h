@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
+
 
 struct GenInfo{
   float xsec;
@@ -65,8 +67,8 @@ struct GenInfo{
   std::vector<float> lheparticles_py;
   std::vector<float> lheparticles_pz;
   std::vector<float> lheparticles_E;
-  std::vector<int> lheparticles_id;
-  std::vector<int> lheparticles_status;
+  std::vector<cms3_id_t> lheparticles_id;
+  std::vector<cms3_genstatus_t> lheparticles_status;
   std::vector<int> lheparticles_mother0_index;
   std::vector<int> lheparticles_mother1_index;
 
