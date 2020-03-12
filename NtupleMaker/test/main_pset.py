@@ -288,7 +288,7 @@ if opts.triggerListFromFile:
    execfile(triglistfile)
    print "Applying filter on the following triggers:",customPrunedTriggerCollection
    process.hltMaker.prunedTriggerNames.extend(customPrunedTriggerCollection)
-   doProcessTrigObjs = opts.doTrigObjMatching and len(customPrunedTriggerCollection)>0
+   doProcessTrigObjs = opts.doTrigObjMatching and len(customPrunedTriggerCollection)>0 and not opts.is80x
    process.hltMaker.recordFilteredTrigObjects = cms.bool(doProcessTrigObjs)
 else:
    # Enforce no trigger object matching if triggers are unfiltered
