@@ -261,14 +261,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserInt("n_missing_inner_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS) : -1);
     muon_result.addUserInt("n_missing_outer_hits", validInnerTrack ? innerTrack->hitPattern().numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS) : -1);
 
-    muon_result.addUserFloat("dxy_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -999.);
-    muon_result.addUserFloat("dz_bestTrack_PV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dxy_bestTrack_firstGoodPV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_bestTrack_firstGoodPV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -999.);
 
     muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy((vertexCollection->begin())->position()) : -999.);
     muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz((vertexCollection->begin())->position()) : -999);
 
-    muon_result.addUserFloat("dxy_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -999.);
-    muon_result.addUserFloat("dz_innerTrack_PV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dxy_innerTrack_firstGoodPV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_innerTrack_firstGoodPV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -999.);
 
     muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy((vertexCollection->begin())->position()) : -999.);
     muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz((vertexCollection->begin())->position()) : -999);
@@ -353,8 +353,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("time_rpc_IPOutIn", muon->rpcTime().timeAtIpOutIn);
     muon_result.addUserFloat("time_rpc_IPInOutError", muon->rpcTime().timeAtIpInOutErr);
     muon_result.addUserFloat("time_rpc_IPOutInError", muon->rpcTime().timeAtIpOutInErr);
+    muon_result.addUserInt("pass_muon_timing", static_cast<int>(MuonSelectionHelpers::testMuonTiming(*muon, this->year_)));
     /*
-    Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf:
+    Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
+    // reco::Muon::InTimeMuon selector bit flag also stores the same info
     reco::MuonTime cmb = muon->time();
     reco::MuonTime rpc = muon->rpcTime();
     bool cmbok =(cmb.nDof>7);

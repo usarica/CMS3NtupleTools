@@ -90,6 +90,7 @@ protected:
   bool is80X;
 
   bool processTriggerObjectInfos;
+  bool keepMuonTimingInfo;
 
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;

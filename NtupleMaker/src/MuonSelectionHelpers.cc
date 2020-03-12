@@ -30,7 +30,7 @@ namespace MuonSelectionHelpers{
     return ea;
   }
 
-  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
+  float muonPFIsoComb(pat::Muon const& obj, int const& /*year*/, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     reco::MuonPFIsolation const* pfStruct = nullptr;
 
     if (type==PFIso03) pfStruct = &(obj.pfIsolationR03());
@@ -69,6 +69,29 @@ namespace MuonSelectionHelpers{
     if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
 
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
+  }
+
+  bool testMuonTiming(pat::Muon const& obj, int const& /*year*/){
+    // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
+    // reco::Muon::InTimeMuon selector bit flag also stores the same info
+    auto const& cmb = obj.time().timeAtIpInOut;
+    auto const& rpc = obj.rpcTime().timeAtIpInOut;
+    //auto const& cmberr = obj.time().timeAtIpInOutErr;
+    auto const& rpcerr = obj.rpcTime().timeAtIpInOutErr;
+    auto const& cmbndof = obj.time().nDof;
+    auto const& rpcndof = obj.rpcTime().nDof;
+    bool cmbok = (cmbndof>7);
+    // RPC timing stored is the average over all RPC hits
+    // The measurements are in multiples of the bunch crossing time since only the bunch crossing id is measured.
+    // nDof>=2 ensures at least two measurements, and time error = 0 ensures measurement at the SAME BX!
+    bool rpcok = (rpcndof>=2 && rpcerr==0.);
+    if (rpcok){
+      if ((std::abs(rpc)>10.) && !(cmbok && std::abs(cmb)<10.)) return false;
+    }
+    else{
+      if (cmbok && (cmb>20. || cmb<-45.)) return false;
+    }
+    return true;
   }
 
   bool testSkimMuon(pat::Muon const& obj, int const& /*year*/){

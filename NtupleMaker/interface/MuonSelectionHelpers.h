@@ -20,6 +20,8 @@ namespace MuonSelectionHelpers{
   float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute PF iso. value, uses delta beta correction instead of rho
   float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute mini. iso. value
 
+  bool testMuonTiming(pat::Muon const& obj, int const& year); // Test muon timing from RPC and combined measurements
+
   bool testSkimMuon(pat::Muon const& obj, int const& year);
 
 }

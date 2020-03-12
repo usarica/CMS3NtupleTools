@@ -13,7 +13,10 @@ cms3ntuple = cms.EDAnalyzer(
 
    electronSrc = cms.InputTag("electronMaker"),
    photonSrc = cms.InputTag("photonMaker"),
+
    muonSrc = cms.InputTag("muonMaker"),
+   keepMuonTimingInfo = cms.bool(False),
+
    ak4jetSrc = cms.InputTag("pfJetMaker"),
    ak8jetSrc = cms.InputTag("subJetMaker"),
    isotrackSrc = cms.InputTag("isoTrackMaker"),

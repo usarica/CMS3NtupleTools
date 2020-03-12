@@ -49,6 +49,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   is80X(pset.getParameter<bool>("is80X")),
 
   processTriggerObjectInfos(pset.getParameter<bool>("processTriggerObjectInfos")),
+  keepMuonTimingInfo(pset.getParameter<bool>("keepMuonTimingInfo")),
 
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
@@ -673,9 +674,13 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutIn, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPInOutError, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_rpc_IPOutInError, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, pass_muon_timing, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pull_dxdz_noArb_DT, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pull_dxdz_noArb_CSC, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, dxy_bestTrack_firstPV, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dz_bestTrack_firstPV, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_objects);
@@ -710,19 +715,27 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
-    PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOut);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutIn);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOutError);
-    PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutInError);
-    PUSH_USERINT_INTO_VECTOR(time_rpc_ndof);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOut);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutIn);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOutError);
-    PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutInError);
+    if (keepMuonTimingInfo){
+      PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
+      PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOut);
+      PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutIn);
+      PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPInOutError);
+      PUSH_USERFLOAT_INTO_VECTOR(time_comb_IPOutInError);
+      PUSH_USERINT_INTO_VECTOR(time_rpc_ndof);
+      PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOut);
+      PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutIn);
+      PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPInOutError);
+      PUSH_USERFLOAT_INTO_VECTOR(time_rpc_IPOutInError);
+    }
+    else{
+      PUSH_USERINT_INTO_VECTOR(pass_muon_timing);
+    }
 
     PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_DT);
     PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_CSC);
+
+    PUSH_USERFLOAT_INTO_VECTOR(dxy_bestTrack_firstPV);
+    PUSH_USERFLOAT_INTO_VECTOR(dz_bestTrack_firstPV);
 
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
@@ -757,19 +770,27 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
 
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOut);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutIn);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOutError);
-  PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutInError);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_ndof);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOut);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutIn);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOutError);
-  PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutInError);
+  if (keepMuonTimingInfo){
+    PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
+    PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOut);
+    PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutIn);
+    PUSH_VECTOR_WITH_NAME(colName, time_comb_IPInOutError);
+    PUSH_VECTOR_WITH_NAME(colName, time_comb_IPOutInError);
+    PUSH_VECTOR_WITH_NAME(colName, time_rpc_ndof);
+    PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOut);
+    PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutIn);
+    PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPInOutError);
+    PUSH_VECTOR_WITH_NAME(colName, time_rpc_IPOutInError);
+  }
+  else{
+    PUSH_VECTOR_WITH_NAME(colName, pass_muon_timing);
+  }
 
   PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_DT);
   PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_CSC);
+
+  PUSH_VECTOR_WITH_NAME(colName, dxy_bestTrack_firstPV);
+  PUSH_VECTOR_WITH_NAME(colName, dz_bestTrack_firstPV);
 
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);
