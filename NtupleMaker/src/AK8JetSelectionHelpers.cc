@@ -44,6 +44,8 @@ namespace AK8JetSelectionHelpers{
       );
   }
   bool testLooseAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type){
+    if (!obj.isPFJet() && !obj.isJPTJet()) return true;
+
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK8JetSelectionHelpers::testLooseAK8Jet: Year " << year << " is not implemented!" << std::endl;
 
     if (type==AK8PFCHS) AK4JetSelectionHelpers::testLooseAK4Jet(obj, year, AK4JetSelectionHelpers::AK4PFCHS);
@@ -53,6 +55,8 @@ namespace AK8JetSelectionHelpers{
     return true;
   }
   bool testTightAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type){
+    if (!obj.isPFJet() && !obj.isJPTJet()) return true;
+
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK8JetSelectionHelpers::testTightAK8Jet: Year " << year << " is not implemented!" << std::endl;
 
     if (type==AK8PFCHS) AK4JetSelectionHelpers::testTightAK4Jet(obj, year, AK4JetSelectionHelpers::AK4PFCHS);
@@ -62,6 +66,8 @@ namespace AK8JetSelectionHelpers{
     return true;
   }
   bool testLeptonVetoAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type){
+    if (!obj.isPFJet() && !obj.isJPTJet()) return true;
+
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK8JetSelectionHelpers::testLeptonVetoAK8Jet: Year " << year << " is not implemented!" << std::endl;
 
     if (type==AK8PFCHS) AK4JetSelectionHelpers::testLeptonVetoAK4Jet(obj, year, AK4JetSelectionHelpers::AK4PFCHS);
