@@ -184,7 +184,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       for (auto const& id:filter_ids){ if (id<0){ isL1Object=true; break; } }
       if (isL1Object) continue; // Do not look at L1 trigger objects
 
-      pat::TriggerObjectStandAlone TO = triggerObjectStandAlone; // Copy because we will have to unpack. (FIXME)
+      pat::TriggerObjectStandAlone TO = triggerObjectStandAlone; // Copy because we will have to unpack.
       TO.unpackPathNames(triggerNames_);
 
       std::vector< std::string > path_namesASSOCIATED = TO.pathNames(false); // 'false' refers to making sure that the object associated with the filters for a given trigger
