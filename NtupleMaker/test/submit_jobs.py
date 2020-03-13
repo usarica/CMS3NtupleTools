@@ -14,11 +14,16 @@ from metis.Optimizer import Optimizer
 DO_TEST = True
 tarfile = "tarball_v0.tar.xz"
 tag = "OFFSHELL_v0"
-csvs = glob.glob("/home/users/usarica/work/public/for200313/*.csv")
+csvs = glob.glob("/home/users/usarica/work/public/for200313/*.csv") + glob.glob("samples_Data_*.csv")
+
 
 def get_tasks():
 
+    if not os.path.exists(tarfile):
+        raise RuntimeError("{} doesn't exist!".format(tarfile))
 
+
+    # Make list of sample objects, one per CSV line
     samples = []
     for fname in csvs:
         with open(fname) as fh:
