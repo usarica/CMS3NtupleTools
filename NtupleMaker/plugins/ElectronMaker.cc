@@ -56,7 +56,6 @@
 
 #include "CMS3/NtupleMaker/interface/plugins/ElectronMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"

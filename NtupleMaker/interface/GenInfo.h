@@ -23,6 +23,9 @@ struct GenInfo{
   float sumEt;
   float pThat;
 
+  cms3_nShowerGluons_t n_shower_gluons_to_bottom;
+  cms3_nShowerGluons_t n_shower_gluons_to_charm;
+
   float genHEPMCweight_default;
   float genHEPMCweight_NNPDF30;
 

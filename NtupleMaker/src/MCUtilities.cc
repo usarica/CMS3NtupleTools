@@ -1,4 +1,4 @@
-#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 
 
 using namespace std;

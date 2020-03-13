@@ -37,7 +37,7 @@
 #include "Math/VectorUtil.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
+#include "CMS3/NtupleMaker/interface/MCUtilities.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;

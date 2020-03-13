@@ -2,6 +2,8 @@
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
 #include <CMS3/NtupleMaker/interface/plugins/GenMaker.h>
+#include <CMS3/NtupleMaker/interface/MCUtilities.h>
+
 #include <ZZMatrixElement/MELA/interface/PDGHelpers.h>
 
 #include "MELAStreamHelpers.hh"
@@ -270,19 +272,72 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 
   {
+    auto& n_shower_gluons_to_bottom = result->n_shower_gluons_to_bottom; n_shower_gluons_to_bottom = 0;
+    auto& n_shower_gluons_to_charm = result->n_shower_gluons_to_charm; n_shower_gluons_to_charm = 0;
+    std::vector<reco::GenParticle const*> shower_gluons_to_bottom;
+    std::vector<reco::GenParticle const*> shower_gluons_to_bottom_daughters;
+    std::vector<reco::GenParticle const*> shower_gluons_to_charm;
+    std::vector<reco::GenParticle const*> shower_gluons_to_charm_daughters;
+
     float& sumEt = result->sumEt; sumEt=0;
     LorentzVector tempvect(0, 0, 0, 0);
-    for (std::vector<reco::GenParticle>::const_iterator genps_it = prunedGenParticles->begin(); genps_it != prunedGenParticles->end(); genps_it++) {
-      int id = genps_it->pdgId();
-      if (PDGHelpers::isANeutrino(id) && genps_it->status()==1)
-        tempvect += LorentzVector(
-          genps_it->p4().x(),
-          genps_it->p4().y(),
-          genps_it->p4().z(),
-          genps_it->p4().e()
-        );
-    }
+
+    for (std::vector<reco::GenParticle>::const_iterator genps_it = prunedGenParticles->begin(); genps_it != prunedGenParticles->end(); genps_it++){
+      auto const* genps = &(*genps_it);
+      int id = genps->pdgId();
+      if (PDGHelpers::isANeutrino(id) && genps->status()==1) tempvect += genps->p4();
+      if (PDGHelpers::isAGluon(id) && !genps->isHardProcess()){
+        std::vector<reco::GenParticle const*> tmp_daughters;
+        MCUtilities::getAllDaughters(genps, tmp_daughters, false);
+        for (auto const& dau:tmp_daughters){
+          // Skip the duaghter if it is already examined
+          if (
+            HelperFunctions::checkListVariable(shower_gluons_to_bottom_daughters, dau)
+            ||
+            HelperFunctions::checkListVariable(shower_gluons_to_charm_daughters, dau)
+            ) continue;
+
+          unsigned int const dau_id = std::abs(dau->pdgId());
+          if (
+            // Bottom baryons
+            (dau_id>=5000 && dau_id<6000)
+            ||
+            // Bottom mesons
+            (dau_id>=500 && dau_id<600)
+            ||
+            (dau_id>10000 && (dau_id/100 % 10 == 5))
+            ){
+            if (!HelperFunctions::checkListVariable(shower_gluons_to_bottom, genps)){
+              shower_gluons_to_bottom.push_back(genps);
+              shower_gluons_to_bottom_daughters.push_back(dau);
+              //MELAout << "\t- Adding daughter " << dau->pdgId() << " with p4 = " << dau->p4() << " mother gluon p4 = " << genps->p4() << endl;
+            }
+          }
+          else if (
+            // Charm baryons
+            (dau_id>=4000 && dau_id<5000)
+            ||
+            // Charm mesons
+            (dau_id>=400 && dau_id<500)
+            ||
+            (dau_id>10000 && (dau_id/100 % 10 == 4))
+            ){
+            if (!HelperFunctions::checkListVariable(shower_gluons_to_charm, genps)){
+              shower_gluons_to_charm.push_back(genps);
+              shower_gluons_to_charm_daughters.push_back(dau);
+              //MELAout << "\t- Adding daughter " << dau->pdgId() << " with p4 = " << dau->p4() << " mother gluon p4 = " << genps->p4() << endl;
+            }
+          }
+          //else if (dau_id==21) MELAout << "\t- Another daughter is a gluon" << endl;
+        } // End loop over gluon daughters
+      } // End if-statemetn for gluons
+    } // End loop over gen particles
+
     sumEt = tempvect.pt();
+
+    n_shower_gluons_to_bottom = shower_gluons_to_bottom.size();
+    n_shower_gluons_to_charm = shower_gluons_to_charm.size();
+    //MELAout << "Number of g->bb, g->cc: " << n_shower_gluons_to_bottom << ", " << n_shower_gluons_to_charm << endl;
   }
 
   // Compute K factors

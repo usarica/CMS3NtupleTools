@@ -3,7 +3,6 @@
 
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
 
-#include <CMS3/NtupleMaker/interface/plugins/MCUtilities.h>
 #include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
 #include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
@@ -15,6 +14,8 @@
 #include "CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/IsotrackSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
+#include <CMS3/NtupleMaker/interface/MCUtilities.h>
+
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
@@ -280,6 +281,11 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
 
   SET_GENINFO_VARIABLE(sumEt);
   SET_GENINFO_VARIABLE(pThat);
+
+  // Number of shower gluons that decay to charms and bottoms
+  // Useful to assign a scaling or systematic for g->cc/bb
+  SET_GENINFO_VARIABLE(n_shower_gluons_to_bottom);
+  SET_GENINFO_VARIABLE(n_shower_gluons_to_charm);
 
   // LHE variations
   SET_GENINFO_VARIABLE(genHEPMCweight_default);

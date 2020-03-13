@@ -7,6 +7,7 @@ typedef int cms3_id_t;
 typedef unsigned int cms3_absid_t;
 
 typedef short cms3_genstatus_t;
+typedef unsigned short cms3_nShowerGluons_t;
 
 typedef unsigned int cms3_muon_pogselectorbits_t;
 

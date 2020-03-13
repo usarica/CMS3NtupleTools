@@ -22,7 +22,6 @@
 
 #include "CMS3/NtupleMaker/interface/plugins/ElectronExtraMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/plugins/MCUtilities.h"
 #include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
