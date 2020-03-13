@@ -52,3 +52,23 @@ submitCMS3NtupleProduction.sh infile=samples_Data_2018.txt outdir=[your director
 
 This would create [your directory]/[your subdirectory] to put the scripts there.
 
+# Submission with ProjectMetis
+
+1. Checkout ProjectMetis and make sure it is in the PATH (via the `setup.sh` script):
+```
+cmsenv
+git clone https://github.com/aminnj/ProjectMetis
+cd ProjectMetis
+source setup.sh
+cd ..
+```
+2. Make a tarball for the worker node:
+```bash
+mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
+```
+3. Edit `submit_jobs.py` to consider the right CSV files and tarball. In particular, update the `tarfile`  variable
+and `tag` to uniquely identify the submission campaign near the top of the file. 
+Note: I recommend using `DO_TEST=True` with a dummy/different `tag` to submit a handful of events
+for the first sample in each csv file. If those jobs succeed, switch to the actual `tag` for production and turn off `DO_TEST`.
+4. Run `python submit_jobs.py` in a screen to (re)submit jobs.
+5. Visit the monitoring page to view progress and output location.
