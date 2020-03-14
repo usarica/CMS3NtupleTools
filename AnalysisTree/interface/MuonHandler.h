@@ -16,6 +16,7 @@ public:
 protected:
   friend class ParticleDisambiguator;
 
+  bool has_precomputed_timing_flag;
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
@@ -30,7 +31,9 @@ public:
   bool constructMuons(SystematicsHelpers::SystematicVariationTypes const& syst);
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
-  static void bookBranches(BaseTree* tree);
+  bool wrapTree(BaseTree* tree);
+
+  void bookBranches(BaseTree* tree);
 
 };
 

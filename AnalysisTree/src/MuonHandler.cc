@@ -9,21 +9,24 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+#define MUON_MOMENTUM_VARIABLES \
 MUON_VARIABLE(float, pt, 0) \
 MUON_VARIABLE(float, eta, 0) \
 MUON_VARIABLE(float, phi, 0) \
 MUON_VARIABLE(float, mass, 0) \
-MUON_VARIABLE(int, charge, 0) \
-MUON_VARIABLES
+MUON_VARIABLE(int, charge, 0)
 
 
 const std::string MuonHandler::colName = "muons";
 
-MuonHandler::MuonHandler() : IvyBase()
+MuonHandler::MuonHandler() :
+  IvyBase(),
+  has_precomputed_timing_flag(false)
 {
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  MUON_MOMENTUM_VARIABLES;
+  MUON_IDISO_VARIABLES;
+  MUON_MOMENTUMSCALE_VARIABLES;
 #undef MUON_VARIABLE
 }
 
@@ -33,13 +36,25 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   if (!currentTree) return false;
 
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  MUON_MOMENTUM_VARIABLES;
+  MUON_IDISO_VARIABLES;
+  MUON_MOMENTUMSCALE_VARIABLES;
+  MUON_PRETESTED_VARIABLES;
+  MUON_FULLTIMING_VARIABLES;
 #undef MUON_VARIABLE
 
     // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(MuonHandler::colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  MUON_MOMENTUM_VARIABLES;
+  MUON_IDISO_VARIABLES;
+  MUON_MOMENTUMSCALE_VARIABLES;
+  if (this->has_precomputed_timing_flag){
+    MUON_PRETESTED_VARIABLES;
+  }
+  else{
+    MUON_FULLTIMING_VARIABLES;
+  }
 #undef MUON_VARIABLE
 
   if (!allVariablesPresent){
@@ -54,7 +69,11 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   size_t nProducts = (itEnd_charge - itBegin_charge);
   productList.reserve(nProducts);
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  MUON_MOMENTUM_VARIABLES;
+  MUON_IDISO_VARIABLES;
+  MUON_MOMENTUMSCALE_VARIABLES;
+  MUON_PRETESTED_VARIABLES;
+  MUON_FULLTIMING_VARIABLES;
 #undef MUON_VARIABLE
   {
     size_t ip=0;
@@ -68,7 +87,14 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 
       // Set extras
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
-      MUON_VARIABLES;
+      MUON_IDISO_VARIABLES;
+      MUON_MOMENTUMSCALE_VARIABLES;
+      if (this->has_precomputed_timing_flag){
+        MUON_PRETESTED_VARIABLES;
+      }
+      else{
+        MUON_FULLTIMING_VARIABLES;
+      }
 #undef MUON_VARIABLE
 
       // Replace momentum
@@ -81,7 +107,15 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 
       ip++;
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+      MUON_MOMENTUM_VARIABLES;
+      MUON_IDISO_VARIABLES;
+      MUON_MOMENTUMSCALE_VARIABLES;
+      if (this->has_precomputed_timing_flag){
+        MUON_PRETESTED_VARIABLES;
+      }
+      else{
+        MUON_FULLTIMING_VARIABLES;
+      }
 #undef MUON_VARIABLE
     }
   }
@@ -91,13 +125,42 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   return true;
 }
 
+bool MuonHandler::wrapTree(BaseTree* tree){
+  std::vector<TString> bnames;
+  tree->getValidBranchNamesWithoutAlias(bnames, false);
+  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), "muons_pass_muon_timing")!=bnames.cend());
+
+  return IvyBase::wrapTree(tree);
+}
+
+
 void MuonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
+  std::vector<TString> bnames;
+  tree->getValidBranchNamesWithoutAlias(bnames, false);
+  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), "muons_pass_muon_timing")!=bnames.cend());
+#define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+  if (this->has_precomputed_timing_flag){
+    MUON_PRETESTED_VARIABLES;
+  }
+  else{
+    MUON_FULLTIMING_VARIABLES;
+  }
+#undef MUON_VARIABLE
+
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+  MUON_MOMENTUM_VARIABLES;
+  MUON_IDISO_VARIABLES;
+  MUON_MOMENTUMSCALE_VARIABLES;
+  if (this->has_precomputed_timing_flag){
+    MUON_PRETESTED_VARIABLES;
+  }
+  else{
+    MUON_FULLTIMING_VARIABLES;
+  }
 #undef MUON_VARIABLE
 }
 
 
-#undef VECTOR_ITERATOR_HANDLER_DIRECTIVES
+#undef MUON_MOMENTUM_VARIABLES

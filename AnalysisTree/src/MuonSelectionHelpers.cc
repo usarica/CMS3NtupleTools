@@ -72,6 +72,8 @@ float MuonSelectionHelpers::computeIso(MuonObject const& part){
 }
 
 bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
+  // Test precomputed timing flag first
+  if (part.extras.pass_muon_timing) return true;
   // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
   // reco::Muon::InTimeMuon selector bit flag also stores the same info
   float const& cmb = part.extras.time_comb_IPInOut;
