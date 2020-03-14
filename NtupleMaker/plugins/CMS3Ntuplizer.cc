@@ -835,20 +835,20 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(int, n_missing_inner_hits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_Fall17V2_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wp80, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_Iso_pass_wpHZZ, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_NoIso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_Fall17V2_NoIso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_Fall17V2_NoIso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wpLoose, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_HZZRun2Legacy_Iso_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned char, id_MVA_HZZRun2Legacy_Iso_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_HZZRun2Legacy_Iso_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, n_objects);
@@ -1089,13 +1089,13 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(bool, passElectronVeto, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Val, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_MVA_Fall17V2_Cat, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_mvacat_t, id_MVA_Fall17V2_Cat, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp80, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
