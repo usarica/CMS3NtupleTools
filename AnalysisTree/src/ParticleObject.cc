@@ -14,12 +14,12 @@ ParticleObject::ParticleObject() :
   selectionBits(0),
   momentum(0, 0, 0, 0)
 {}
-ParticleObject::ParticleObject(int id_) :
+ParticleObject::ParticleObject(cms3_id_t id_) :
   id(id_),
   selectionBits(0),
   momentum(0, 0, 0, 0)
 {}
-ParticleObject::ParticleObject(int id_, LorentzVector_t const& momentum_) :
+ParticleObject::ParticleObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
   id(id_),
   selectionBits(0),
   momentum(momentum_)

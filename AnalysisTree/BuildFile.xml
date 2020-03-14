@@ -25,6 +25,7 @@
 <use   name="MelaAnalytics/GenericMEComputer"/>
 <use   name="MelaAnalytics/CandidateLOCaster"/>
 <use   name="CMS3/MELAHelpers"/>
+<use   name="CMS3/Dictionaries"/>
 <use   name="root"/>
 <use   name="clhep"/>
 

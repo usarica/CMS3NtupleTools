@@ -30,8 +30,8 @@ public:
   DileptonVariables extras;
 
   DileptonObject();
-  DileptonObject(int id_);
-  DileptonObject(int id_, LorentzVector_t const& mom_);
+  DileptonObject(cms3_id_t id_);
+  DileptonObject(cms3_id_t id_, LorentzVector_t const& mom_);
   DileptonObject(const DileptonObject& other);
   DileptonObject& operator=(const DileptonObject& other);
   ~DileptonObject();

@@ -17,7 +17,7 @@ ISOTRACK_VARIABLE(float, pt, 0) \
 ISOTRACK_VARIABLE(float, eta, 0) \
 ISOTRACK_VARIABLE(float, phi, 0) \
 ISOTRACK_VARIABLE(float, mass, 0) \
-ISOTRACK_VARIABLE(int, id, 0) \
+ISOTRACK_VARIABLE(cms3_id_t, id, 0) \
 ISOTRACK_VARIABLES
 
 

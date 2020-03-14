@@ -29,12 +29,12 @@ GenParticleObject::GenParticleObject() :
   st(0),
   extras()
 {}
-GenParticleObject::GenParticleObject(int id_, int st_) :
+GenParticleObject::GenParticleObject(cms3_id_t id_, cms3_genstatus_t st_) :
   ParticleObject(id_),
   st(st_),
   extras()
 {}
-GenParticleObject::GenParticleObject(int id_, int st_, LorentzVector_t const& momentum_) :
+GenParticleObject::GenParticleObject(cms3_id_t id_, cms3_genstatus_t st_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
   st(st_),
   extras()

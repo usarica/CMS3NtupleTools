@@ -5,7 +5,7 @@
 
 
 #define MUON_IDISO_VARIABLES \
-MUON_VARIABLE(unsigned int, POG_selector_bits, 0) \
+MUON_VARIABLE(cms3_muon_pogselectorbits_t, POG_selector_bits, 0) \
 MUON_VARIABLE(float, pfIso03_comb_nofsr, 0) \
 MUON_VARIABLE(float, pfIso04_comb_nofsr, 0) \
 MUON_VARIABLE(float, miniIso_comb_nofsr, 0) \

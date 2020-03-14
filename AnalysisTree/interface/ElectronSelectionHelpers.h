@@ -28,7 +28,9 @@ namespace ElectronSelectionHelpers{
     nSelectionBits
   };
   enum ElectronId{
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
     kCutBasedId_Fall17V1,
+#endif
     kCutBasedId_Fall17V2,
     kMVAId_Fall17V2_NoIso,
     kMVAId_Fall17V2_Iso,

@@ -5,8 +5,8 @@
 
 
 #define LHEPARTICLE_ID_MOMENTUM_VARIABLES \
-LHEPARTICLE_VARIABLE(int, id, 0) \
-LHEPARTICLE_VARIABLE(int, status, 0) \
+LHEPARTICLE_VARIABLE(cms3_id_t, id, 0) \
+LHEPARTICLE_VARIABLE(cms3_genstatus_t, status, 0) \
 LHEPARTICLE_VARIABLE(float, px, 0) \
 LHEPARTICLE_VARIABLE(float, py, 0) \
 LHEPARTICLE_VARIABLE(float, pz, 0) \
@@ -23,20 +23,20 @@ LHEPARTICLE_MOTHER_VARIABLES
 
 class LHEParticleObject : public ParticleObject{
 protected:
-  int st;
+  cms3_genstatus_t st;
 
 public:
   LHEParticleObject();
-  LHEParticleObject(int id_, int st_);
-  LHEParticleObject(int id_, int st_, LorentzVector_t const& mom_);
+  LHEParticleObject(cms3_id_t id_, cms3_genstatus_t st_);
+  LHEParticleObject(cms3_id_t id_, cms3_genstatus_t st_, LorentzVector_t const& mom_);
   LHEParticleObject(const LHEParticleObject& other);
   LHEParticleObject& operator=(const LHEParticleObject& other);
   ~LHEParticleObject();
 
   void swap(LHEParticleObject& other);
 
-  int& status(){ return this->st; }
-  int const& status() const{ return this->st; }
+  cms3_genstatus_t& status(){ return this->st; }
+  cms3_genstatus_t const& status() const{ return this->st; }
 
 };
 

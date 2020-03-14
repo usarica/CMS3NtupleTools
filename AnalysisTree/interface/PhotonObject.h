@@ -5,18 +5,19 @@
 
 
 #define PHOTON_VARIABLES \
-PHOTON_VARIABLE(float, scale_smear_corr, 0) \
-PHOTON_VARIABLE(float, scale_smear_corr_scale_totalUp, 0) \
-PHOTON_VARIABLE(float, scale_smear_corr_scale_totalDn, 0) \
-PHOTON_VARIABLE(float, scale_smear_corr_smear_totalUp, 0) \
-PHOTON_VARIABLE(float, scale_smear_corr_smear_totalDn, 0) \
+PHOTON_VARIABLE(float, etaSC, 0) \
+PHOTON_VARIABLE(float, scale_smear_corr, 1) \
+PHOTON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
+PHOTON_VARIABLE(float, scale_smear_corr_scale_totalDn, 1) \
+PHOTON_VARIABLE(float, scale_smear_corr_smear_totalUp, 1) \
+PHOTON_VARIABLE(float, scale_smear_corr_smear_totalDn, 1) \
 PHOTON_VARIABLE(float, id_MVA_Fall17V2_Val, 0) \
-PHOTON_VARIABLE(unsigned int, id_MVA_Fall17V2_Cat, 0) \
+PHOTON_VARIABLE(cms3_photon_mvacat_t, id_MVA_Fall17V2_Cat, 0) \
 PHOTON_VARIABLE(bool, id_MVA_Fall17V2_pass_wp90, false) \
 PHOTON_VARIABLE(bool, id_MVA_Fall17V2_pass_wp80, false) \
-PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, 0) \
-PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, 0) \
-PHOTON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, 0) \
+PHOTON_VARIABLE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, 0) \
+PHOTON_VARIABLE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0) \
+PHOTON_VARIABLE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
 PHOTON_VARIABLE(bool, hasPixelSeed, false) \
 PHOTON_VARIABLE(bool, passElectronVeto, false) \
 PHOTON_VARIABLE(float, pfIso_comb, 0) \
@@ -51,6 +52,8 @@ public:
   void swap(PhotonObject& other);
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
+  float const& etaSC() const{ return extras.etaSC; }
 
 };
 

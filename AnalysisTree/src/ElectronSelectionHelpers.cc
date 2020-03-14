@@ -86,8 +86,10 @@ For cut-based selection, the bit map is the following:
 #define TEST_CUTBASED_BIT(ibit) (ibit == 1023 || ibit == 895)
 bool ElectronSelectionHelpers::testVetoId(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Veto_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Veto_Bits);
   case kMVAId_Fall17V2_NoIso:
@@ -104,8 +106,10 @@ bool ElectronSelectionHelpers::testVetoId(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testLooseId(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Loose_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Loose_Bits);
   case kMVAId_Fall17V2_NoIso:
@@ -122,8 +126,10 @@ bool ElectronSelectionHelpers::testLooseId(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testMediumId(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Medium_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Medium_Bits);
   case kMVAId_Fall17V2_NoIso:
@@ -140,8 +146,10 @@ bool ElectronSelectionHelpers::testMediumId(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testTightId(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Tight_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Tight_Bits);
   case kMVAId_Fall17V2_NoIso:
@@ -161,8 +169,10 @@ bool ElectronSelectionHelpers::testTightId(ElectronObject const& part){
 #define TEST_CUTBASED_BIT(ibit) HelperFunctions::test_bit(ibit, 7)
 bool ElectronSelectionHelpers::testVetoIso(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Veto_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Veto_Bits);
   case kMVAId_Fall17V2_Iso:
@@ -174,8 +184,10 @@ bool ElectronSelectionHelpers::testVetoIso(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testLooseIso(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Loose_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Loose_Bits);
   case kMVAId_Fall17V2_Iso:
@@ -187,8 +199,10 @@ bool ElectronSelectionHelpers::testLooseIso(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testMediumIso(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Medium_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Medium_Bits);
   case kMVAId_Fall17V2_Iso:
@@ -200,8 +214,10 @@ bool ElectronSelectionHelpers::testMediumIso(ElectronObject const& part){
 }
 bool ElectronSelectionHelpers::testTightIso(ElectronObject const& part){
   switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
   case kCutBasedId_Fall17V1:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Tight_Bits);
+#endif
   case kCutBasedId_Fall17V2:
     return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Tight_Bits);
   case kMVAId_Fall17V2_Iso:

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include "StdExtensions.h"
 #include "SystematicVariations.h"
 
@@ -13,6 +14,8 @@
 GENINFO_VARIABLE(float, xsec, 1) \
 GENINFO_VARIABLE(float, genmet_met, 0) \
 GENINFO_VARIABLE(float, genmet_metPhi, 0) \
+GENINFO_VARIABLE(cms3_nShowerGluons_t, n_shower_gluons_to_bottom, 0) \
+GENINFO_VARIABLE(cms3_nShowerGluons_t, n_shower_gluons_to_charm, 0) \
 GENINFO_VARIABLE(float, genHEPMCweight_default, 1) \
 GENINFO_VARIABLE(float, genHEPMCweight_NNPDF30, 1) \
 GENINFO_VARIABLE(float, LHEweight_QCDscale_muR1_muF1, 1) \

@@ -14,7 +14,7 @@ MUON_VARIABLE(float, pt, 0) \
 MUON_VARIABLE(float, eta, 0) \
 MUON_VARIABLE(float, phi, 0) \
 MUON_VARIABLE(float, mass, 0) \
-MUON_VARIABLE(int, charge, 0)
+MUON_VARIABLE(cms3_charge_t, charge, 0)
 
 
 const std::string MuonHandler::colName = "muons";

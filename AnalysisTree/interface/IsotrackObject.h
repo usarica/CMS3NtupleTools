@@ -41,8 +41,8 @@ public:
   IsotrackVariables extras;
 
   IsotrackObject();
-  IsotrackObject(int id);
-  IsotrackObject(int id, LorentzVector_t const& mom_);
+  IsotrackObject(cms3_id_t id);
+  IsotrackObject(cms3_id_t id, LorentzVector_t const& mom_);
   IsotrackObject(const IsotrackObject& other);
   IsotrackObject& operator=(const IsotrackObject& other);
   ~IsotrackObject();

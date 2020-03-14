@@ -3,40 +3,51 @@
 
 #include "ParticleObject.h"
 
+#define ELECTRONS_HAVE_FALL17V1_CUTBASED 0
 
-#define ELECTRON_VARIABLES \
+#define ELECTRON_COMMON_VARIABLES \
+ELECTRON_VARIABLE(float, etaSC, 0) \
 ELECTRON_VARIABLE(float, scale_smear_corr, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalDn, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_smear_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_smear_totalDn, 1) \
 ELECTRON_VARIABLE(float, id_MVA_Fall17V2_Iso_Val, 0) \
-ELECTRON_VARIABLE(unsigned int, id_MVA_Fall17V2_Iso_Cat, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, 0) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp90, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp80, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wpHZZ, false) \
 ELECTRON_VARIABLE(float, id_MVA_Fall17V2_NoIso_Val, 0) \
-ELECTRON_VARIABLE(unsigned int, id_MVA_Fall17V2_NoIso_Cat, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_NoIso_Cat, 0) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wpLoose, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, false) \
 ELECTRON_VARIABLE(float, id_MVA_HZZRun2Legacy_Iso_Val, 0) \
-ELECTRON_VARIABLE(unsigned int, id_MVA_HZZRun2Legacy_Iso_Cat, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_HZZRun2Legacy_Iso_Cat, 0) \
 ELECTRON_VARIABLE(bool, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ, false) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Veto_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Loose_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Medium_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V2_Tight_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V1_Veto_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V1_Loose_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V1_Medium_Bits, 0) \
-ELECTRON_VARIABLE(unsigned int, id_cutBased_Fall17V1_Tight_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
 ELECTRON_VARIABLE(float, pfIso03_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, pfIso04_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0)
+#define ELECTRON_FALL17V1_CUTBASED_VARIABLES \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Loose_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Medium_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Tight_Bits, 0)
 
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
+#define ELECTRON_VARIABLES \
+ELECTRON_COMMON_VARIABLES \
+ELECTRON_FALL17V1_CUTBASED_VARIABLES
+#else
+#define ELECTRON_VARIABLES \
+ELECTRON_COMMON_VARIABLES
+#endif
 
 class ElectronVariables{
 public:
@@ -58,8 +69,8 @@ public:
   float currentSystScale;
 
   ElectronObject();
-  ElectronObject(int id_);
-  ElectronObject(int id_, LorentzVector_t const& mom_);
+  ElectronObject(cms3_id_t id_);
+  ElectronObject(cms3_id_t id_, LorentzVector_t const& mom_);
   ElectronObject(const ElectronObject& other);
   ElectronObject& operator=(const ElectronObject& other);
   ~ElectronObject();
@@ -67,6 +78,8 @@ public:
   void swap(ElectronObject& other);
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+
+  float const& etaSC() const{ return extras.etaSC; }
 
 };
 

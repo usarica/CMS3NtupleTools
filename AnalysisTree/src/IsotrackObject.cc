@@ -28,11 +28,11 @@ IsotrackObject::IsotrackObject() :
   ParticleObject(),
   extras()
 {}
-IsotrackObject::IsotrackObject(int id_) :
+IsotrackObject::IsotrackObject(cms3_id_t id_) :
   ParticleObject(id_),
   extras()
 {}
-IsotrackObject::IsotrackObject(int id_, LorentzVector_t const& momentum_) :
+IsotrackObject::IsotrackObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

@@ -29,12 +29,12 @@ ElectronObject::ElectronObject() :
   extras(),
   currentSystScale(1)
 {}
-ElectronObject::ElectronObject(int id_) :
+ElectronObject::ElectronObject(cms3_id_t id_) :
   ParticleObject(id_),
   extras(),
   currentSystScale(1)
 {}
-ElectronObject::ElectronObject(int id_, LorentzVector_t const& momentum_) :
+ElectronObject::ElectronObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
   extras(),
   currentSystScale(1)

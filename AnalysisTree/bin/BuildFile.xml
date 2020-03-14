@@ -6,6 +6,7 @@
 <use name="roofitcore"/>
 <use name="ZZMatrixElement/MELA"/>
 <use name="CMSDataTools/AnalysisTree"/>
+<use name="CMS3/Dictionaries"/>
 <use name="CMS3/AnalysisTree"/>
 
 <bin file="trimCMS3Production.cc" name="trimCMS3Production">

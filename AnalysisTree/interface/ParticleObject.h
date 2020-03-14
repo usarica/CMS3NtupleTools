@@ -4,6 +4,7 @@
 #include <DataFormats/Math/interface/deltaR.h>
 #include <Math/GenVector/DisplacementVector2D.h>
 #include <DataFormats/Math/interface/Vector3D.h>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include "CMSLorentzVector.h"
 #include "SystematicVariations.h"
@@ -17,7 +18,7 @@ public:
   typedef math::XYZVectorD Vector3D_t;
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
 
-  int id;
+  cms3_id_t id;
   unsigned long long selectionBits;
   LorentzVector_t momentum;
 
@@ -27,15 +28,15 @@ protected:
 
 public:
   ParticleObject();
-  ParticleObject(int id_);
-  ParticleObject(int id_, LorentzVector_t const& mom_);
+  ParticleObject(cms3_id_t id_);
+  ParticleObject(cms3_id_t id_, LorentzVector_t const& mom_);
   ParticleObject(const ParticleObject& other);
   virtual ~ParticleObject(){}
 
   // Swap and assignment operators are not virtual; they bring more complication than necessary, so they are implemented in the derived classes.
   void swap(ParticleObject& other);
 
-  void setPdgId(int const& id_){ id=id_; }
+  void setPdgId(cms3_id_t const& id_){ id=id_; }
   void setP4(LorentzVector_t const& momentum_){ momentum=momentum_; }
 
   void resetSelectionBits(){ selectionBits=0; }
@@ -43,8 +44,8 @@ public:
   bool testSelectionBit(unsigned int ibit) const;
   bool testSelection(unsigned int ibit) const{ return this->testSelectionBit(ibit); }
 
-  int const& pdgId() const{ return id; }
-  int& pdgId(){ return id; }
+  cms3_id_t const& pdgId() const{ return id; }
+  cms3_id_t& pdgId(){ return id; }
 
   LorentzVector_t const& p4() const{ return momentum; }
   LorentzVector_t& p4(){ return momentum; }

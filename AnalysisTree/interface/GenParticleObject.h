@@ -5,8 +5,8 @@
 
 
 #define GENPARTICLE_ID_MOMENTUM_VARIABLES \
-GENPARTICLE_VARIABLE(int, id, 0) \
-GENPARTICLE_VARIABLE(int, status, 0) \
+GENPARTICLE_VARIABLE(cms3_id_t, id, 0) \
+GENPARTICLE_VARIABLE(cms3_genstatus_t, status, 0) \
 GENPARTICLE_VARIABLE(float, pt, 0) \
 GENPARTICLE_VARIABLE(float, eta, 0) \
 GENPARTICLE_VARIABLE(float, phi, 0) \
@@ -51,22 +51,22 @@ public:
 
 class GenParticleObject : public ParticleObject{
 protected:
-  int st;
+  cms3_genstatus_t st;
 
 public:
   GenParticleVariables extras;
 
   GenParticleObject();
-  GenParticleObject(int id_, int st_);
-  GenParticleObject(int id_, int st_, LorentzVector_t const& mom_);
+  GenParticleObject(cms3_id_t id_, cms3_genstatus_t st_);
+  GenParticleObject(cms3_id_t id_, cms3_genstatus_t st_, LorentzVector_t const& mom_);
   GenParticleObject(const GenParticleObject& other);
   GenParticleObject& operator=(const GenParticleObject& other);
   ~GenParticleObject();
 
   void swap(GenParticleObject& other);
 
-  int& status(){ return this->st; }
-  int const& status() const{ return this->st; }
+  cms3_genstatus_t& status(){ return this->st; }
+  cms3_genstatus_t const& status() const{ return this->st; }
 
 };
 

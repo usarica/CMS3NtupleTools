@@ -29,12 +29,12 @@ MuonObject::MuonObject() :
   extras(),
   currentSystScale(1)
 {}
-MuonObject::MuonObject(int id_) :
+MuonObject::MuonObject(cms3_id_t id_) :
   ParticleObject(id_),
   extras(),
   currentSystScale(1)
 {}
-MuonObject::MuonObject(int id_, LorentzVector_t const& momentum_) :
+MuonObject::MuonObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
   extras(),
   currentSystScale(1)

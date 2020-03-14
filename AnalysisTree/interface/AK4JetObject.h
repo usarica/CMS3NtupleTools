@@ -23,8 +23,8 @@ AK4JET_VARIABLE(float, JECDn, 1) \
 AK4JET_VARIABLE(float, JERNominal, 1) \
 AK4JET_VARIABLE(float, JERUp, 1) \
 AK4JET_VARIABLE(float, JERDn, 1) \
-AK4JET_VARIABLE(int, partonFlavour, 0) \
-AK4JET_VARIABLE(int, hadronFlavour, 0)
+AK4JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
+AK4JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
 
 #define AK4JET_BTAGGING_VARIABLES \
 AK4JET_VARIABLE(float, deepFlavourprobb, -1) \

@@ -94,8 +94,7 @@ void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, floa
 void ElectronScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, ElectronObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
   if (!obj) return;
   float const pt = obj->pt();
-  //float const& eta = obj->extras.etaSC;
-  float const eta = obj->eta(); // FIXME: Need a new production to fix electron etaSC
+  float const eta = obj->etaSC();
   this->evalScaleFactorFromHistogram(theSF, theSFRelErr, pt, eta, hist, etaOnY, useAbsEta);
 }
 

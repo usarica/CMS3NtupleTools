@@ -15,7 +15,7 @@ ELECTRON_VARIABLE(float, pt, 0) \
 ELECTRON_VARIABLE(float, eta, 0) \
 ELECTRON_VARIABLE(float, phi, 0) \
 ELECTRON_VARIABLE(float, mass, 0) \
-ELECTRON_VARIABLE(int, charge, 0) \
+ELECTRON_VARIABLE(cms3_charge_t, charge, 0) \
 ELECTRON_VARIABLES
 
 

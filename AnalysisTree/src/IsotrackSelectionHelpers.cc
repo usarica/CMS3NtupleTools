@@ -65,7 +65,7 @@ float IsotrackSelectionHelpers::computeRelIso(IsotrackObject const& part){
 
 bool IsotrackSelectionHelpers::testVetoId(IsotrackObject const& part){
   auto const& extras = part.extras;
-  int const abs_id = std::abs(part.pdgId());
+  cms3_absid_t const abs_id = std::abs(part.pdgId());
   bool const isMuon = abs_id==13;
   bool const isElectron = abs_id==11;
   bool const isChargedHadron = abs_id>100;
@@ -73,7 +73,7 @@ bool IsotrackSelectionHelpers::testVetoId(IsotrackObject const& part){
 }
 
 bool IsotrackSelectionHelpers::testVetoIso(IsotrackObject const& part){
-  int const abs_id = std::abs(part.pdgId());
+  cms3_absid_t const abs_id = std::abs(part.pdgId());
   float const pt = part.pt();
   float const absIso = computeAbsIso(part);
 
@@ -87,7 +87,7 @@ bool IsotrackSelectionHelpers::testVetoIso(IsotrackObject const& part){
 }
 
 bool IsotrackSelectionHelpers::testVetoKin(IsotrackObject const& part){
-  int const abs_id = std::abs(part.pdgId());
+  cms3_absid_t const abs_id = std::abs(part.pdgId());
   bool const isMuon = abs_id==13;
   bool const isElectron = abs_id==11;
   bool const isChargedHadron = abs_id>100;

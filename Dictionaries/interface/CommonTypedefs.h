@@ -14,7 +14,8 @@ typedef unsigned int cms3_muon_pogselectorbits_t;
 typedef unsigned short cms3_electron_cutbasedbits_t;
 typedef unsigned char cms3_electron_mvacat_t;
 
-typedef unsigned short cms3_photon_cutbasedbits_t;
+typedef unsigned int cms3_photon_cutbasedbits_t;
+typedef unsigned int cms3_photon_mvacat_t;
 
 typedef char cms3_jet_genflavor_t;
 
