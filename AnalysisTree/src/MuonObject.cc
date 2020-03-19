@@ -82,3 +82,5 @@ void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes 
   momentum = PolarLorentzVector_t(momentum.Pt() * scale/currentSystScale, momentum.Eta(), momentum.Phi(), momentum.M());
   currentSystScale = scale;
 }
+
+ParticleObject::LorentzVector_t::Scalar MuonObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }

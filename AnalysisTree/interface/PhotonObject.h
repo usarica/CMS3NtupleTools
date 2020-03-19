@@ -55,6 +55,8 @@ public:
 
   float const& etaSC() const{ return extras.etaSC; }
 
+  ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
+
 };
 
 #endif

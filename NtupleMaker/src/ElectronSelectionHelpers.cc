@@ -8,57 +8,90 @@
 namespace ElectronSelectionHelpers{
 
   float electronEffArea(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type){
-    double eta = std::abs(obj.eta());
+    double eta = std::abs(obj.userFloat("etaSC"));
+    constexpr bool use94X_2016_2018 = true; // This flag disables nanoAOD-like prescription, keeping EAs to be the same as in Fall17V2 ids, consistent with POG recommendations
     float ea=-1;
     if (type==PFIso03 || type==PFIso04){
-      if (year==2016){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt
-        if (eta<=1.) ea = 0.1703;
-        else if (eta<=1.479) ea = 0.1715;
-        else if (eta<=2.) ea = 0.1213;
-        else if (eta<=2.2) ea = 0.1230;
-        else if (eta<=2.3) ea = 0.1635;
-        else if (eta<=2.4) ea = 0.1937;
-        else ea = 0.2393;
+      if (use94X_2016_2018){
+        if (year==2016 || year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+          if (eta<=1.) ea = 0.1440;
+          else if (eta<=1.479) ea = 0.1562;
+          else if (eta<=2.) ea = 0.1032;
+          else if (eta<=2.2) ea = 0.0859;
+          else if (eta<=2.3) ea = 0.1116;
+          else if (eta<=2.4) ea = 0.1321;
+          else ea = 0.1654;
+        }
+        else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented for PF isolation!" << std::endl;
       }
-      else if (year==2017 || 2018){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
-        if (eta<=1.) ea = 0.1440;
-        else if (eta<=1.479) ea = 0.1562;
-        else if (eta<=2.) ea = 0.1032;
-        else if (eta<=2.2) ea = 0.0859;
-        else if (eta<=2.3) ea = 0.1116;
-        else if (eta<=2.4) ea = 0.1321;
-        else ea = 0.1654;
+      else{
+        if (year==2016){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Summer16/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_80X.txt
+          if (eta<=1.) ea = 0.1703;
+          else if (eta<=1.479) ea = 0.1715;
+          else if (eta<=2.) ea = 0.1213;
+          else if (eta<=2.2) ea = 0.1230;
+          else if (eta<=2.3) ea = 0.1635;
+          else if (eta<=2.4) ea = 0.1937;
+          else ea = 0.2393;
+        }
+        else if (year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+          if (eta<=1.) ea = 0.1440;
+          else if (eta<=1.479) ea = 0.1562;
+          else if (eta<=2.) ea = 0.1032;
+          else if (eta<=2.2) ea = 0.0859;
+          else if (eta<=2.3) ea = 0.1116;
+          else if (eta<=2.4) ea = 0.1321;
+          else ea = 0.1654;
+        }
+        else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented for PF isolation!" << std::endl;
       }
-      else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented!" << std::endl;
 
       if (type==PFIso04) ea *= pow(0.4/0.3, 2);
     }
     else if (type==MiniIso){
-      if (year==2016){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt
-        if (eta<=1.) ea = 0.1752;
-        else if (eta<=1.479) ea = 0.1862;
-        else if (eta<=2.) ea = 0.1411;
-        else if (eta<=2.2) ea = 0.1534;
-        else if (eta<=2.3) ea = 0.1903;
-        else if (eta<=2.4) ea = 0.2243;
-        else ea = 0.2687;
+      if (use94X_2016_2018){
+        if (year==2016 || year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+          if (eta<=1.) ea = 0.1440;
+          else if (eta<=1.479) ea = 0.1562;
+          else if (eta<=2.) ea = 0.1032;
+          else if (eta<=2.2) ea = 0.0859;
+          else if (eta<=2.3) ea = 0.1116;
+          else if (eta<=2.4) ea = 0.1321;
+          else ea = 0.1654;
+        }
+        else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented for mini. isolation!" << std::endl;
       }
-      else if (year==2017 || 2018){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
-        if (eta<=1.) ea = 0.1440;
-        else if (eta<=1.479) ea = 0.1562;
-        else if (eta<=2.) ea = 0.1032;
-        else if (eta<=2.2) ea = 0.0859;
-        else if (eta<=2.3) ea = 0.1116;
-        else if (eta<=2.4) ea = 0.1321;
-        else ea = 0.1654;
+      else{
+        if (year==2016){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Spring15/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_25ns.txt
+          if (eta<=1.) ea = 0.1752;
+          else if (eta<=1.479) ea = 0.1862;
+          else if (eta<=2.) ea = 0.1411;
+          else if (eta<=2.2) ea = 0.1534;
+          else if (eta<=2.3) ea = 0.1903;
+          else if (eta<=2.4) ea = 0.2243;
+          else ea = 0.2687;
+        }
+        else if (year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/ElectronIdentification/data/Fall17/effAreaElectrons_cone03_pfNeuHadronsAndPhotons_94X.txt
+          if (eta<=1.) ea = 0.1440;
+          else if (eta<=1.479) ea = 0.1562;
+          else if (eta<=2.) ea = 0.1032;
+          else if (eta<=2.2) ea = 0.0859;
+          else if (eta<=2.3) ea = 0.1116;
+          else if (eta<=2.4) ea = 0.1321;
+          else ea = 0.1654;
+        }
+        else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented for mini. isolation!" << std::endl;
       }
-      else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Year " << year << " is not implemented!" << std::endl;
     }
-    else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea: Type " << type << " is not implemented!" << std::endl;
+    else cms::Exception("UnknownType") << "ElectronSelectionHelpers::electronEffArea: Type " << type << " is not implemented!" << std::endl;
+
+    if (ea<0.f) cms::Exception("UnknownYearOrType") << "ElectronSelectionHelpers::electronEffArea: Type " << type << " for year " << year << " is not implemented!" << std::endl;
 
     return ea;
   }

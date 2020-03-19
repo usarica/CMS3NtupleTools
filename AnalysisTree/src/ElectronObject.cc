@@ -82,3 +82,5 @@ void ElectronObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTy
   momentum = momentum * (scale/currentSystScale);
   currentSystScale = scale;
 }
+
+ParticleObject::LorentzVector_t::Scalar ElectronObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }

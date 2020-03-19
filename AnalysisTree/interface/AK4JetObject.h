@@ -32,7 +32,11 @@ AK4JET_VARIABLE(float, deepFlavourprobbb, -1) \
 AK4JET_VARIABLE(float, deepFlavourprobc, -1) \
 AK4JET_VARIABLE(float, deepFlavourprobg, -1) \
 AK4JET_VARIABLE(float, deepFlavourproblepb, -1) \
-AK4JET_VARIABLE(float, deepFlavourprobuds, -1)
+AK4JET_VARIABLE(float, deepFlavourprobuds, -1) \
+AK4JET_VARIABLE(float, deepCSVprobb, -1) \
+AK4JET_VARIABLE(float, deepCSVprobbb, -1) \
+AK4JET_VARIABLE(float, deepCSVprobc, -1) \
+AK4JET_VARIABLE(float, deepCSVprobudsg, -1)
 
 #define AK4JET_VARIABLES \
 AK4JET_CORE_VARIABLES \

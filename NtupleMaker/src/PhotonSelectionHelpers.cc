@@ -7,78 +7,126 @@
 namespace PhotonSelectionHelpers{
 
   float photonEffArea(pat::Photon const& obj, int const& year, PhotonSelectionHelpers::EffectiveAreaType const& eatype){
-    double eta = std::abs(obj.eta());
+    double eta = std::abs(obj.userFloat("etaSC"));
     float ea=-1;
+    constexpr bool use94X_2016_2018 = true; // This flag disables nanoAOD-like prescription, keeping EAs to be the same as in Fall17V2 ids, consistent with POG recommendations
     if (eatype==PhotonEA_ch){
-      if (year==2016){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfChargedHadrons_90percentBased.txt
-        if (eta<=1.) ea = 0.0360;
-        else if (eta<=1.479) ea = 0.0377;
-        else if (eta<=2.) ea = 0.0306;
-        else if (eta<=2.2) ea = 0.0283;
-        else if (eta<=2.3) ea = 0.0254;
-        else if (eta<=2.4) ea = 0.0217;
-        else ea = 0.0167;
+      if (use94X_2016_2018){
+        if (year==2016 || year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfChargedHadrons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.0112;
+          else if (eta<=1.479) ea = 0.0108;
+          else if (eta<=2.) ea = 0.0106;
+          else if (eta<=2.2) ea = 0.01002;
+          else if (eta<=2.3) ea = 0.0098;
+          else if (eta<=2.4) ea = 0.0089;
+          else ea = 0.0087;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " charged eff. area is not implemented!" << std::endl;
       }
-      else if (year==2017 || 2018){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfChargedHadrons_90percentBased_V2.txt
-        if (eta<=1.) ea = 0.0112;
-        else if (eta<=1.479) ea = 0.0108;
-        else if (eta<=2.) ea = 0.0106;
-        else if (eta<=2.2) ea = 0.01002;
-        else if (eta<=2.3) ea = 0.0098;
-        else if (eta<=2.4) ea = 0.0089;
-        else ea = 0.0087;
+      else{
+        if (year==2016){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfChargedHadrons_90percentBased.txt
+          if (eta<=1.) ea = 0.0360;
+          else if (eta<=1.479) ea = 0.0377;
+          else if (eta<=2.) ea = 0.0306;
+          else if (eta<=2.2) ea = 0.0283;
+          else if (eta<=2.3) ea = 0.0254;
+          else if (eta<=2.4) ea = 0.0217;
+          else ea = 0.0167;
+        }
+        else if (year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfChargedHadrons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.0112;
+          else if (eta<=1.479) ea = 0.0108;
+          else if (eta<=2.) ea = 0.0106;
+          else if (eta<=2.2) ea = 0.01002;
+          else if (eta<=2.3) ea = 0.0098;
+          else if (eta<=2.4) ea = 0.0089;
+          else ea = 0.0087;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " charged eff. area is not implemented!" << std::endl;
       }
-      else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " charged eff. area is not implemented!" << std::endl;
     }
     else if (eatype==PhotonEA_nh){
-      if (year==2016){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased.txt
-        if (eta<=1.) ea = 0.0597;
-        else if (eta<=1.479) ea = 0.0807;
-        else if (eta<=2.) ea = 0.0629;
-        else if (eta<=2.2) ea = 0.0197;
-        else if (eta<=2.3) ea = 0.0184;
-        else if (eta<=2.4) ea = 0.0284;
-        else ea = 0.0591;
+      if (use94X_2016_2018){
+        if (year==2016 || year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.0668;
+          else if (eta<=1.479) ea = 0.1054;
+          else if (eta<=2.) ea = 0.0786;
+          else if (eta<=2.2) ea = 0.0233;
+          else if (eta<=2.3) ea = 0.0078;
+          else if (eta<=2.4) ea = 0.0028;
+          else ea = 0.0137;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " neutrals eff. area is not implemented!" << std::endl;
       }
-      else if (year==2017 || 2018){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased_V2.txt
-        if (eta<=1.) ea = 0.0668;
-        else if (eta<=1.479) ea = 0.1054;
-        else if (eta<=2.) ea = 0.0786;
-        else if (eta<=2.2) ea = 0.0233;
-        else if (eta<=2.3) ea = 0.0078;
-        else if (eta<=2.4) ea = 0.0028;
-        else ea = 0.0137;
+      else{
+        if (year==2016){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased.txt
+          if (eta<=1.) ea = 0.0597;
+          else if (eta<=1.479) ea = 0.0807;
+          else if (eta<=2.) ea = 0.0629;
+          else if (eta<=2.2) ea = 0.0197;
+          else if (eta<=2.3) ea = 0.0184;
+          else if (eta<=2.4) ea = 0.0284;
+          else ea = 0.0591;
+        }
+        else if (year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfNeutralHadrons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.0668;
+          else if (eta<=1.479) ea = 0.1054;
+          else if (eta<=2.) ea = 0.0786;
+          else if (eta<=2.2) ea = 0.0233;
+          else if (eta<=2.3) ea = 0.0078;
+          else if (eta<=2.4) ea = 0.0028;
+          else ea = 0.0137;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " neutrals eff. area is not implemented!" << std::endl;
       }
-      else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " neutrals eff. area is not implemented!" << std::endl;
     }
     else if (eatype==PhotonEA_em){
-      if (year==2016){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfPhotons_90percentBased.txt
-        if (eta<=1.) ea = 0.1210;
-        else if (eta<=1.479) ea = 0.1107;
-        else if (eta<=2.) ea = 0.0699;
-        else if (eta<=2.2) ea = 0.1056;
-        else if (eta<=2.3) ea = 0.1457;
-        else if (eta<=2.4) ea = 0.1719;
-        else ea = 0.1998;
+      if (use94X_2016_2018){
+        if (year==2016 || year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfPhotons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.1113;
+          else if (eta<=1.479) ea = 0.0953;
+          else if (eta<=2.) ea = 0.0619;
+          else if (eta<=2.2) ea = 0.0837;
+          else if (eta<=2.3) ea = 0.1070;
+          else if (eta<=2.4) ea = 0.1212;
+          else ea = 0.1466;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " photon eff. area is not implemented!" << std::endl;
       }
-      else if (year==2017 || 2018){
-        // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfPhotons_90percentBased_V2.txt
-        if (eta<=1.) ea = 0.1113;
-        else if (eta<=1.479) ea = 0.0953;
-        else if (eta<=2.) ea = 0.0619;
-        else if (eta<=2.2) ea = 0.0837;
-        else if (eta<=2.3) ea = 0.1070;
-        else if (eta<=2.4) ea = 0.1212;
-        else ea = 0.1466;
+      else{
+        if (year==2016){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Spring16/effAreaPhotons_cone03_pfPhotons_90percentBased.txt
+          if (eta<=1.) ea = 0.1210;
+          else if (eta<=1.479) ea = 0.1107;
+          else if (eta<=2.) ea = 0.0699;
+          else if (eta<=2.2) ea = 0.1056;
+          else if (eta<=2.3) ea = 0.1457;
+          else if (eta<=2.4) ea = 0.1719;
+          else ea = 0.1998;
+        }
+        else if (year==2017 || year==2018){
+          // From https://github.com/cms-sw/cmssw/blob/master/RecoEgamma/PhotonIdentification/data/Fall17/effAreaPhotons_cone03_pfPhotons_90percentBased_V2.txt
+          if (eta<=1.) ea = 0.1113;
+          else if (eta<=1.479) ea = 0.0953;
+          else if (eta<=2.) ea = 0.0619;
+          else if (eta<=2.2) ea = 0.0837;
+          else if (eta<=2.3) ea = 0.1070;
+          else if (eta<=2.4) ea = 0.1212;
+          else ea = 0.1466;
+        }
+        else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " photon eff. area is not implemented!" << std::endl;
       }
-      else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Year " << year << " photon eff. area is not implemented!" << std::endl;
     }
-    else cms::Exception("UnknownYear") << "PhotonSelectionHelpers::photonEffArea: Effective area type " << eatype << " is not implemented!" << std::endl;
+    else cms::Exception("UnknownType") << "PhotonSelectionHelpers::photonEffArea: Effective area type " << eatype << " is not implemented!" << std::endl;
+
+    if (ea<0.f) cms::Exception("UnknownYearOrType") << "PhotonSelectionHelpers::photonEffArea: Effective area type " << eatype << " for year " << year << " is not implemented!" << std::endl;
 
     return ea;
   }

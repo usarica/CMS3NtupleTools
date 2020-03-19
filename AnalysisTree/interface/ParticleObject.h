@@ -60,12 +60,14 @@ public:
   LorentzVector_t::Scalar y() const{ return momentum.Y(); }
   LorentzVector_t::Scalar z() const{ return momentum.Z(); }
   LorentzVector_t::Scalar t() const{ return momentum.T(); }
-  LorentzVector_t::Scalar energy() const{ return this->t(); }
   LorentzVector_t::Scalar p() const{ return momentum.P(); }
   LorentzVector_t::Scalar pt() const{ return momentum.Pt(); }
   LorentzVector_t::Scalar eta() const{ return momentum.Eta(); }
   LorentzVector_t::Scalar phi() const{ return momentum.Phi(); }
   LorentzVector_t::Scalar rapidity() const{ return momentum.Rapidity(); }
+  virtual LorentzVector_t::Scalar uncorrected_pt() const{ return pt(); }
+  LorentzVector_t::Scalar energy() const{ return this->t(); }
+  LorentzVector_t::Scalar mass() const{ return this->m(); }
   LorentzVector_t::Scalar dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
   LorentzVector_t::Scalar dot(const LorentzVector_t& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
   LorentzVector_t::Scalar dot(const ParticleObject& part) const{ return dot(part.momentum); }

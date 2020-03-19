@@ -30,8 +30,14 @@ ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, 
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
+ELECTRON_VARIABLE(float, pfIso03_sum_charged_nofsr, 0) \
+ELECTRON_VARIABLE(float, pfIso03_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, pfIso03_comb_nofsr, 0) \
+ELECTRON_VARIABLE(float, pfIso04_sum_charged_nofsr, 0) \
+ELECTRON_VARIABLE(float, pfIso04_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, pfIso04_comb_nofsr, 0) \
+ELECTRON_VARIABLE(float, miniIso_sum_charged_nofsr, 0) \
+ELECTRON_VARIABLE(float, miniIso_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0)
 #define ELECTRON_FALL17V1_CUTBASED_VARIABLES \
@@ -80,6 +86,8 @@ public:
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
 
   float const& etaSC() const{ return extras.etaSC; }
+
+  ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
 
 };
 

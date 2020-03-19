@@ -1,5 +1,7 @@
 #include <cassert>
+#include "RunLumiEventBlock.h"
 #include "ParticleObjectHelpers.h"
+#include "SamplesCore.h"
 #include "JetMETHandler.h"
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
@@ -23,17 +25,25 @@ AK8JET_VARIABLE(float, eta, 0) \
 AK8JET_VARIABLE(float, phi, 0) \
 AK8JET_VARIABLE(float, mass, 0) \
 AK8JET_VARIABLES
+#define JETMET_METXY_VERTEX_VARIABLES \
+JETMET_METXY_VERTEX_VARIABLE(unsigned int, nvtxs, 0)
 
 
 const std::string JetMETHandler::colName_ak4jets = "ak4jets";
 const std::string JetMETHandler::colName_ak8jets = "ak8jets";
 const std::string JetMETHandler::colName_pfmet = "pfmet";
 const std::string JetMETHandler::colName_pfpuppimet = "puppimet";
+const std::string JetMETHandler::colName_vertices = "vtxs";
 
 JetMETHandler::JetMETHandler() :
   IvyBase(),
   pfmet(nullptr),
-  pfpuppimet(nullptr)
+  pfpuppimet(nullptr),
+
+  pfmet_XYcorr_xCoeffA(0),
+  pfmet_XYcorr_xCoeffB(0),
+  pfmet_XYcorr_yCoeffA(0),
+  pfmet_XYcorr_yCoeffB(0)
 {
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
@@ -43,10 +53,16 @@ JetMETHandler::JetMETHandler() :
 #undef AK8JET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME);
   MET_RECORDED_VARIABLES;
+  MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
+
+  // Vertex variables
+#define JETMET_METXY_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_vertices + "_" + #NAME);
+  JETMET_METXY_VERTEX_VARIABLES;
+#undef JETMET_METXY_VERTEX_VARIABLE
 }
 
 void JetMETHandler::clear(){
@@ -62,8 +78,13 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
   clear();
   if (!currentTree) return false;
 
-  bool res = (constructAK4Jets(syst) && constructAK8Jets(syst) && constructMET(syst));
-  res &= applyJetCleaning(muons, electrons, photons);
+  bool res = (
+    constructAK4Jets(syst) && constructAK8Jets(syst)
+    &&
+    constructMET(syst) && assignMETXYShifts(syst) && applyMETParticleShifts(muons, electrons, photons)
+    &&
+    applyJetCleaning(muons, electrons, photons)
+    );
 
   return res;
 }
@@ -190,6 +211,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
 bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfmet_##NAME = nullptr;
   MET_RECORDED_VARIABLES;
+  MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfpuppimet_##NAME = nullptr;
   MET_RECORDED_VARIABLES;
@@ -199,6 +221,7 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   bool allVariablesPresent = true;
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfmet + "_" + #NAME, pfmet_##NAME);
   MET_RECORDED_VARIABLES;
+  MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
   MET_RECORDED_VARIABLES;
@@ -217,6 +240,7 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   pfmet = new METObject();
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = *pfmet_##NAME;
   MET_RECORDED_VARIABLES;
+  MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.met_Nominal;
   MET_EXTRA_PT_VARIABLES;
@@ -240,6 +264,59 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   MET_EXTRA_PHI_VARIABLES;
 #undef MET_VARIABLE
   pfpuppimet->setSystematic(syst);
+
+  return true;
+}
+
+bool JetMETHandler::assignMETXYShifts(SystematicsHelpers::SystematicVariationTypes const& syst){
+  // 200314: Only PF MET has XY shifts
+#define JETMET_METXY_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+  JETMET_METXY_VERTEX_VARIABLES;
+#undef JETMET_METXY_VERTEX_VARIABLE
+
+  bool allVariablesPresent = true;
+#define JETMET_METXY_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_vertices + "_" + #NAME, NAME);
+  JETMET_METXY_VERTEX_VARIABLES;
+#undef JETMET_METXY_VERTEX_VARIABLE
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "JetMETHandler::assignMETXYShifts: Not all variables are consumed properly!" << endl;
+    assert(0);
+    return false;
+  }
+
+  float const npv = std::min(*nvtxs, (unsigned int) 100); // Effective number of primary vertices
+  float METxcorr = -(pfmet_XYcorr_xCoeffA*npv + pfmet_XYcorr_xCoeffB);
+  float METycorr = -(pfmet_XYcorr_yCoeffA*npv + pfmet_XYcorr_yCoeffB);
+  pfmet->setXYShift(METxcorr, METycorr);
+
+  return true;
+}
+
+bool JetMETHandler::applyMETParticleShifts(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
+  ParticleObject::LorentzVector_t pfmet_particleShift(0, 0, 0, 0);
+  if (muons){
+    for (auto const* part:*(muons)){
+      if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
+      ParticleObject::LorentzVector_t p4_uncorrected; p4_uncorrected = ParticleObject::PolarLorentzVector_t(part->uncorrected_pt(), part->eta(), part->phi(), part->mass());
+      pfmet_particleShift += -(part->p4() - p4_uncorrected);
+    }
+  }
+  if (electrons){
+    for (auto const* part:*(electrons)){
+      if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
+      ParticleObject::LorentzVector_t::Scalar diffCorrScale = 1.f - 1.f/part->currentSystScale;
+      pfmet_particleShift += -part->p4()*diffCorrScale;
+    }
+  }
+  if (photons){
+    for (auto const* part:*(photons)){
+      if (!ParticleSelectionHelpers::isLooseParticle(part)) continue;
+      ParticleObject::LorentzVector_t::Scalar diffCorrScale = 1.f - 1.f/part->currentSystScale;
+      pfmet_particleShift += -part->p4()*diffCorrScale;
+    }
+  }
+
+  pfmet->setParticleShifts(pfmet_particleShift);
 
   return true;
 }
@@ -301,21 +378,149 @@ bool JetMETHandler::applyJetCleaning(std::vector<MuonObject*> const* muons, std:
 }
 
 
+bool JetMETHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  // 200314: The following is taken from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection.h
+  // The formula is corr = -(A*npv + B).
+  bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier);
+  if (isData){
+    if (SampleHelpers::theDataPeriod == "2016B"){
+      pfmet_XYcorr_xCoeffA = -0.0478335; pfmet_XYcorr_xCoeffB = -0.108032;
+      pfmet_XYcorr_yCoeffA = 0.125148; pfmet_XYcorr_yCoeffB = 0.355672;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016C"){
+      pfmet_XYcorr_xCoeffA = -0.0916985; pfmet_XYcorr_xCoeffB = 0.393247;
+      pfmet_XYcorr_yCoeffA = 0.151445; pfmet_XYcorr_yCoeffB = 0.114491;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016D"){
+      pfmet_XYcorr_xCoeffA = -0.0581169; pfmet_XYcorr_xCoeffB = 0.567316;
+      pfmet_XYcorr_yCoeffA = 0.147549; pfmet_XYcorr_yCoeffB = 0.403088;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016E"){
+      pfmet_XYcorr_xCoeffA = -0.065622; pfmet_XYcorr_xCoeffB = 0.536856;
+      pfmet_XYcorr_yCoeffA = 0.188532; pfmet_XYcorr_yCoeffB = 0.495346;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016F"){
+      pfmet_XYcorr_xCoeffA = -0.0313322; pfmet_XYcorr_xCoeffB = 0.39866;
+      pfmet_XYcorr_yCoeffA = 0.16081; pfmet_XYcorr_yCoeffB = 0.960177;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016G"){
+      pfmet_XYcorr_xCoeffA = 0.040803; pfmet_XYcorr_xCoeffB = -0.290384;
+      pfmet_XYcorr_yCoeffA = 0.0961935; pfmet_XYcorr_yCoeffB = 0.666096;
+    }
+    else if (SampleHelpers::theDataPeriod == "2016H"){
+      pfmet_XYcorr_xCoeffA = 0.0330868; pfmet_XYcorr_xCoeffB = -0.209534;
+      pfmet_XYcorr_yCoeffA = 0.141513; pfmet_XYcorr_yCoeffB = 0.816732;
+    }
+    /*
+    else if (SampleHelpers::theDataPeriod == "2017B"){
+    pfmet_XYcorr_xCoeffA = -0.259456; pfmet_XYcorr_xCoeffB = 1.95372;
+    pfmet_XYcorr_yCoeffA = 0.353928; pfmet_XYcorr_yCoeffB = -2.46685;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017C"){
+    pfmet_XYcorr_xCoeffA = -0.232763; pfmet_XYcorr_xCoeffB = 1.08318;
+    pfmet_XYcorr_yCoeffA = 0.257719; pfmet_XYcorr_yCoeffB = -1.1745;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017D"){
+    pfmet_XYcorr_xCoeffA = -0.238067; pfmet_XYcorr_xCoeffB = 1.80541;
+    pfmet_XYcorr_yCoeffA = 0.235989; pfmet_XYcorr_yCoeffB = -1.44354;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017E"){
+    pfmet_XYcorr_xCoeffA = -0.212352; pfmet_XYcorr_xCoeffB = 1.851;
+    pfmet_XYcorr_yCoeffA = 0.157759; pfmet_XYcorr_yCoeffB = -0.478139;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017F"){
+    pfmet_XYcorr_xCoeffA = -0.232733; pfmet_XYcorr_xCoeffB = 2.24134;
+    pfmet_XYcorr_yCoeffA = 0.213341; pfmet_XYcorr_yCoeffB = 0.684588;
+    }
+    */
+    else if (SampleHelpers::theDataPeriod == "2017B"){
+      pfmet_XYcorr_xCoeffA = -0.19563; pfmet_XYcorr_xCoeffB = 1.51859;
+      pfmet_XYcorr_yCoeffA = 0.306987; pfmet_XYcorr_yCoeffB = -1.84713;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017C"){
+      pfmet_XYcorr_xCoeffA = -0.161661; pfmet_XYcorr_xCoeffB = 0.589933;
+      pfmet_XYcorr_yCoeffA = 0.233569; pfmet_XYcorr_yCoeffB = -0.995546;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017D"){
+      pfmet_XYcorr_xCoeffA = -0.180911; pfmet_XYcorr_xCoeffB = 1.23553;
+      pfmet_XYcorr_yCoeffA = 0.240155; pfmet_XYcorr_yCoeffB = -1.27449;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017E"){
+      pfmet_XYcorr_xCoeffA = -0.149494; pfmet_XYcorr_xCoeffB = 0.901305;
+      pfmet_XYcorr_yCoeffA = 0.178212; pfmet_XYcorr_yCoeffB = -0.535537;
+    }
+    else if (SampleHelpers::theDataPeriod == "2017F"){
+      pfmet_XYcorr_xCoeffA = -0.165154; pfmet_XYcorr_xCoeffB = 1.02018;
+      pfmet_XYcorr_yCoeffA = 0.253794; pfmet_XYcorr_yCoeffB = 0.75776;
+    }
+    else if (SampleHelpers::theDataPeriod == "2018A"){
+      pfmet_XYcorr_xCoeffA = 0.362865; pfmet_XYcorr_xCoeffB = -1.94505;
+      pfmet_XYcorr_yCoeffA = 0.0709085; pfmet_XYcorr_yCoeffB = -0.307365;
+    }
+    else if (SampleHelpers::theDataPeriod == "2018B"){
+      pfmet_XYcorr_xCoeffA = 0.492083; pfmet_XYcorr_xCoeffB = -2.93552;
+      pfmet_XYcorr_yCoeffA = 0.17874; pfmet_XYcorr_yCoeffB = -0.786844;
+    }
+    else if (SampleHelpers::theDataPeriod == "2018C"){
+      pfmet_XYcorr_xCoeffA = 0.521349; pfmet_XYcorr_xCoeffB = -1.44544;
+      pfmet_XYcorr_yCoeffA = 0.118956; pfmet_XYcorr_yCoeffB = -1.96434;
+    }
+    else if (SampleHelpers::theDataPeriod == "2018D"){
+      pfmet_XYcorr_xCoeffA = 0.531151; pfmet_XYcorr_xCoeffB = -1.37568;
+      pfmet_XYcorr_yCoeffA = 0.0884639; pfmet_XYcorr_yCoeffB = -1.57089;
+    }
+    else{
+      MELAerr << "JetMETHandler::wrapTree: Data period " << SampleHelpers::theDataPeriod << " is undefined for the data MET corrections." << endl;
+      return false;
+    }
+  }
+  else{
+    switch (SampleHelpers::theDataYear){
+    case 2016:
+      pfmet_XYcorr_xCoeffA = -0.195191; pfmet_XYcorr_xCoeffB = -0.170948;
+      pfmet_XYcorr_yCoeffA = -0.0311891; pfmet_XYcorr_yCoeffB = 0.787627;
+      break;
+    case 2017:
+      pfmet_XYcorr_xCoeffA = -0.217714; pfmet_XYcorr_xCoeffB = 0.493361;
+      pfmet_XYcorr_yCoeffA = 0.177058; pfmet_XYcorr_yCoeffB = -0.336648;
+      break;
+    case 2018:
+      pfmet_XYcorr_xCoeffA = 0.296713; pfmet_XYcorr_xCoeffB = -0.141506;
+      pfmet_XYcorr_yCoeffA = 0.115685; pfmet_XYcorr_yCoeffB = 0.0128193;
+      break;
+    default:
+      MELAerr << "JetMETHandler::wrapTree: Year " << SampleHelpers::theDataYear << " is undefined for the MC MET corrections." << endl;
+      return false;
+      break;
+    }
+  }
+
+  return IvyBase::wrapTree(tree);
+}
+
 void JetMETHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
 #undef AK4JET_VARIABLE
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
-    VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
-    MET_RECORDED_VARIABLES;
+  MET_RECORDED_VARIABLES;
+  MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
+
+  // Vertex variables
+#define JETMET_METXY_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_vertices + "_" + #NAME, DEFVAL);
+  JETMET_METXY_VERTEX_VARIABLES;
+#undef JETMET_METXY_VERTEX_VARIABLE
 }
 
 

@@ -18,6 +18,7 @@ public:
   static const std::string colName_ak8jets;
   static const std::string colName_pfmet;
   static const std::string colName_pfpuppimet;
+  static const std::string colName_vertices;
 
 protected:
   std::vector<AK4JetObject*> ak4jets;
@@ -25,13 +26,20 @@ protected:
   METObject* pfmet;
   METObject* pfpuppimet;
 
+  float pfmet_XYcorr_xCoeffA; float pfmet_XYcorr_xCoeffB;
+  float pfmet_XYcorr_yCoeffA; float pfmet_XYcorr_yCoeffB;
+
   void clear();
 
   bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructMET(SystematicsHelpers::SystematicVariationTypes const& syst);
 
+  bool assignMETXYShifts(SystematicsHelpers::SystematicVariationTypes const& syst);
+
   bool applyJetCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+
+  bool applyMETParticleShifts(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
 public:
   // Constructors
@@ -46,6 +54,8 @@ public:
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
   METObject* const& getPFMET() const{ return pfmet; }
   METObject* const& getPFPUPPIMET() const{ return pfpuppimet; }
+
+  bool wrapTree(BaseTree* tree);
 
   static void bookBranches(BaseTree* tree);
 

@@ -1,6 +1,7 @@
 #include <cassert>
 #include "ParticleObjectHelpers.h"
 #include "ElectronHandler.h"
+#include "SamplesCore.h"
 #include "ElectronSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
@@ -42,7 +43,6 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(ElectronHandler::colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef ELECTRON_VARIABLE
-
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
     assert(0);
@@ -96,7 +96,7 @@ void ElectronHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef ELECTRON_VARIABLE
 }
 

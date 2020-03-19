@@ -126,6 +126,8 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 }
 
 bool MuonHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
   std::vector<TString> bnames;
   tree->getValidBranchNamesWithoutAlias(bnames, false);
   this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), "muons_pass_muon_timing")!=bnames.cend());

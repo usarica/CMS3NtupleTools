@@ -66,6 +66,8 @@ public:
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
 
+  ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
+
 };
 
 #endif

@@ -67,6 +67,7 @@ float AK4JetObject::getBtagValue() const{
   case BtagHelpers::kDeepCSV_Loose:
   case BtagHelpers::kDeepCSV_Medium:
   case BtagHelpers::kDeepCSV_Tight:
+    return extras.deepCSVprobb + extras.deepCSVprobbb;
   default:
     MELAerr << "AK4JetObject::getBtagValue: b-tagging WP type " << BtagHelpers::btagWPType << " is not implemented." << endl;
     assert(0);

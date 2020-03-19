@@ -77,3 +77,5 @@ void PhotonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
   momentum = momentum * (scale/currentSystScale);
   currentSystScale = scale;
 }
+
+ParticleObject::LorentzVector_t::Scalar PhotonObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }
