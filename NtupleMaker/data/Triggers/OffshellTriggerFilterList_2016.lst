@@ -51,6 +51,9 @@ customPrunedTriggerCollection = [
    #"HLT_TripleMu_5_3_3_DZ_Mass3p8_v*",
    "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*",
 
+   "HLT_DoublePhoton60_v*",
+   #"HLT_DoublePhoton85_v*",
+
    "HLT_Photon*_R9Id90_HE10_IsoM_v*",
    "HLT_Photon*_R9Id90_HE10_Iso40_EBOnly_VBF_v*",
    "HLT_Photon165_HE10_v*",
