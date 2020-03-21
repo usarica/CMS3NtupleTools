@@ -1,39 +1,60 @@
 customPrunedTriggerCollection = [
-   "HLT_Photon200_v*",
-   "HLT_Photon*_R9Id90_HE10_IsoM_v*",
-   "HLT_Ele32_WPTight_Gsf_v*",
-   "HLT_IsoMu24_v*",
-   "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*",
-   "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
-   "HLT_DoubleEle25_CaloIdL_MW_v*",
-   "HLT_DoublePhoton70",
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v*", # HLT prescaled
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*", 
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v*",
+
+   "HLT_IsoMu24_v*",
    "HLT_Mu8_v*", # Has L1 and HLT prescales
    "HLT_Mu8_TrkIsoVVL_v*", # Has L1 and HLT prescales
    "HLT_Mu17_v*", # Has L1 and HLT prescales
    "HLT_Mu17_TrkIsoVVL_v*", # Has L1 and HLT prescales
+   "HLT_Mu50_v*", # For high-pT single muon eff.
+   "HLT_OldMu100_v*", # For high-pT single muon eff.
+   "HLT_TkMu100_v*", # For high-pT single muon eff.
+
+   "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*",
+   "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+   "HLT_DoubleEle25_CaloIdL_MW_v*",
+
+   "HLT_Ele32_WPTight_Gsf_v*",
    "HLT_Ele8_CaloIdM_TrackIdM_PFJet30_v*", # Has L1 prescales
    "HLT_Ele8_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", # Has L1 prescales
    "HLT_Ele17_CaloIdM_TrackIdM_PFJet30_v*", # Has L1 and HLT prescales
    "HLT_Ele12_CaloIdL_TrackIdL_IsoVL_PFJet30_v*", # Has L1 and HLT prescales, Ele 15 is low PU, 17 is missing.
-   "HLT_PFHT1050_v*",
-   "HLT_AK8PFJet400_TrimMass30_v*",
+
    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*",
    "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
    "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
    "HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+
    "HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*",
    "HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*",
    "HLT_TripleMu_10_5_5_DZ_v*",
    "HLT_TripleMu_12_10_5_v*",
+   "HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*", # Somehow its effective lumi is not the same as active lumi, and it does not show up in the spreadsheets
+
+   "HLT_DoublePhoton70_v*",
+
    "HLT_Photon20_HoverELoose_v*",
    "HLT_Photon30_HoverELoose_v*",
    "HLT_Photon33_v*",
+   "HLT_Photon*_R9Id90_HE10_IsoM_v*",
    "HLT_Photon120_v*",
    "HLT_Photon175_v*",
+   "HLT_Photon200_v*",
    "HLT_Photon300_NoHE_v*",
+
+   "HLT_AK8PFJet400_TrimMass30_v*",
+   "HLT_PFHT250_v*", # Prescaled
+   "HLT_PFHT350_v*", # Prescaled
+   "HLT_PFHT370_v*", # Prescaled
+   "HLT_PFHT430_v*", # Prescaled
+   "HLT_PFHT510_v*", # Prescaled
+   "HLT_PFHT590_v*", # Prescaled
+   "HLT_PFHT680_v*", # Prescaled
+   "HLT_PFHT780_v*", # Prescaled
+   "HLT_PFHT890_v*", # Prescaled
+   "HLT_PFHT1050_v*",
    "HLT_PFMET120_PFMHT120_IDTight_v*",
    "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*",
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
