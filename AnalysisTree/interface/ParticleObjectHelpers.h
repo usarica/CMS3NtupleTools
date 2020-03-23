@@ -62,7 +62,7 @@ namespace ParticleObjectHelpers{
 }
 
 template<typename T> bool ParticleObjectHelpers::objHasGreaterPt(T const& earlier, T const& later){ return (earlier.pt() > later.pt()); }
-template<typename T> bool ParticleObjectHelpers::ptrHasGreaterPt(T const* earlier, T const* later){ return (earlier && ((later && earlier->pt() > later->pt()) || !later)); }
+template<typename T> bool ParticleObjectHelpers::ptrHasGreaterPt(T const* earlier, T const* later){ return (earlier && (!later || (earlier->pt() > later->pt()))); }
 
 template<typename T> bool ParticleObjectHelpers::objHasGreaterScalarSumPt(T const& earlier, T const& later){
   std::vector<ParticleObject const*> deepDaus_earlier; earlier.getDeepDaughters(deepDaus_earlier);

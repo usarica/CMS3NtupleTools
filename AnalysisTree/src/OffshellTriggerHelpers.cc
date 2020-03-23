@@ -1,10 +1,12 @@
 #include <cassert>
+#include "HLTTriggerPathProperties.h"
 #include "OffshellTriggerHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
 namespace OffshellTriggerHelpers{
-  std::unordered_map<OffshellTriggerHelpers::TriggerType, std::vector<std::string>> HLT_type_list_map;
+  std::unordered_map< OffshellTriggerHelpers::TriggerType, std::vector<std::string> > HLT_type_list_map;
+  std::unordered_map< OffshellTriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> > HLT_type_proplist_map;
 }
 
 
@@ -173,5 +175,12 @@ void OffshellTriggerHelpers::configureHLTmap(){
     break;
   default:
     break;
+  }
+
+  for (auto const& it:HLT_type_proplist_map){
+    auto const& props = it.second;
+    std::vector<std::string> tmplist; tmplist.reserve(props.size());
+    for (auto const& prop:props) tmplist.push_back(prop.getName());
+    HLT_type_list_map[it.first] = tmplist;
   }
 }
