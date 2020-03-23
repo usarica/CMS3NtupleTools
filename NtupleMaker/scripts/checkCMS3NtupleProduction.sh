@@ -92,6 +92,11 @@ for d in $(ls ./); do
     fi
   fi
 
+  if [[ $nsubjobs -eq 0 ]];then
+    let dirok=0
+    echo "$d does not have any subjobs run yet."
+  fi
+
   if [[ $dirok -eq 1 ]];then
     TARFILE="${d}.tar"
     rm -f $TARFILE
