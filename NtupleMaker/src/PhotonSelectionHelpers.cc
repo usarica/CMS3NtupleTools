@@ -7,7 +7,7 @@
 namespace PhotonSelectionHelpers{
 
   float photonEffArea(pat::Photon const& obj, int const& year, PhotonSelectionHelpers::EffectiveAreaType const& eatype){
-    double eta = std::abs(obj.userFloat("etaSC"));
+    double eta = std::abs(obj.superCluster()->eta());
     float ea=-1;
     constexpr bool use94X_2016_2018 = true; // This flag disables nanoAOD-like prescription, keeping EAs to be the same as in Fall17V2 ids, consistent with POG recommendations
     if (eatype==PhotonEA_ch){

@@ -57,6 +57,8 @@ customPrunedTriggerCollection = [
    "HLT_PFHT780_v*", # Has HLT prescales
    "HLT_PFHT890_v*", # Has HLT prescales
    "HLT_PFHT1050_v*", # Has HLT prescales
+   "HLT_PFMET120_PFMHT120_IDTight_v*", # Unprescaled
+   "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", # Backup trigger, unprescaled
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", # Unprescaled
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", # Backup trigger, unprescaled
    ]

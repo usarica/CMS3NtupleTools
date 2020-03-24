@@ -8,7 +8,7 @@
 namespace ElectronSelectionHelpers{
 
   float electronEffArea(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type){
-    double eta = std::abs(obj.userFloat("etaSC"));
+    double eta = std::abs(obj.superCluster()->eta());
     constexpr bool use94X_2016_2018 = true; // This flag disables nanoAOD-like prescription, keeping EAs to be the same as in Fall17V2 ids, consistent with POG recommendations
     float ea=-1;
     if (type==PFIso03 || type==PFIso04){

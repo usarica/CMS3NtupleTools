@@ -362,7 +362,7 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     if (
       (this->keepGenParticles==kReducedFinalStatesAndHardProcesses && !part.isHardProcess() && st!=1)
       ||
-      ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates) && st!=1)
+      ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kPromptFinalStatePhotons) && st!=1)
       ) continue;
     else if (
       (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
@@ -373,6 +373,12 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
         ||
         id==22 // Photons
         )
+      ) continue;
+    else if (
+      this->keepGenParticles==kPromptFinalStatePhotons
+      &&
+      // Only photons for this flag
+      !(id==22 && part.isPromptFinalState())
       ) continue;
     allGenParticles.push_back(&part);
   }
@@ -400,6 +406,7 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
       if (
         ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses) && st!=1)
         ) continue;
+      else if (this->keepGenParticles==kPromptFinalStatePhotons) continue; // Disable photons from packed candidates since they are not prompt photons
       else if (
         (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
         &&
@@ -2348,6 +2355,8 @@ CMS3Ntuplizer::ParticleRecordLevel CMS3Ntuplizer::getParticleRecordLevel(std::st
   for (unsigned char i=kNone; i!=nParticleRecordLevels; i++){
     if (
       (i==kNone && word=="none")
+      ||
+      (i==kPromptFinalStatePhotons && word=="promptfinalstatephotons")
       ||
       (i==kReducedFinalStates && word=="reducedfinalstates")
       ||

@@ -60,6 +60,7 @@ public:
 protected:
   enum ParticleRecordLevel{
     kNone=0,
+    kPromptFinalStatePhotons,
     kReducedFinalStates,
     kAllFinalStates,
     kReducedFinalStatesAndHardProcesses,
