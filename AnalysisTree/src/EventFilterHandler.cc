@@ -62,8 +62,7 @@ bool EventFilterHandler::constructFilters(){
 
 bool EventFilterHandler::hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const{
   bool res = false;
-  for (auto str:hltpaths_){
-    HelperFunctions::replaceString(str, "*", "");
+  for (auto const& str:hltpaths_){
     for (auto const* prod:product_HLTpaths){ if (prod->name.find(str)!=std::string::npos){ res = true; break; } }
   }
   return res;
@@ -72,8 +71,7 @@ float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpa
   if (hltpaths_.empty()) return 1;
   float failRate = 1;
   bool foundAtLeastOneTrigger = false;
-  for (auto str:hltpaths_){
-    HelperFunctions::replaceString(str, "*", "");
+  for (auto const& str:hltpaths_){
     for (auto const* prod:product_HLTpaths){
       if (prod->name.find(str)!=std::string::npos && prod->passTrigger){
         float wgt = 1.f;
@@ -87,6 +85,76 @@ float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpa
     }
   }
   return (foundAtLeastOneTrigger ? 1.f/(1.f-failRate) : 0.f);
+}
+float EventFilterHandler::getTriggerWeight(
+  std::vector< std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator > const& hltpathprops_,
+  std::vector<MuonObject*> const* muons,
+  std::vector<ElectronObject*> const* electrons,
+  std::vector<PhotonObject*> const* photons,
+  std::vector<AK4JetObject*> const* ak4jets,
+  std::vector<AK8JetObject*> const* ak8jets,
+  METObject const* pfmet
+) const{
+  if (hltpathprops_.empty()) return 1;
+
+  std::vector<MuonObject const*> muons_trigcheck; if (muons){ muons_trigcheck.reserve(muons->size()); for (auto const& part:(*muons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) muons_trigcheck.push_back(part); } }
+  std::vector<ElectronObject const*> electrons_trigcheck; if (electrons){ electrons_trigcheck.reserve(electrons->size()); for (auto const& part:(*electrons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) electrons_trigcheck.push_back(part); } }
+  std::vector<PhotonObject const*> photons_trigcheck; if (photons){ photons_trigcheck.reserve(photons->size()); for (auto const& part:(*photons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) photons_trigcheck.push_back(part); } }
+  std::vector<AK4JetObject const*> ak4jets_trigcheck; if (ak4jets){ ak4jets_trigcheck.reserve(ak4jets->size()); for (auto const& jet:(*ak4jets)){ if (ParticleSelectionHelpers::isJetForTriggerChecking(jet)) ak4jets_trigcheck.push_back(jet); } }
+  std::vector<AK8JetObject const*> ak8jets_trigcheck; if (ak8jets){ ak8jets_trigcheck.reserve(ak8jets->size()); for (auto const& jet:(*ak8jets)){ if (ParticleSelectionHelpers::isJetForTriggerChecking(jet)) ak8jets_trigcheck.push_back(jet); } }
+
+  ParticleObject::LorentzVector_t pfmet_p4, pfmet_nomu_p4;
+  if (pfmet){
+    pfmet_p4 = pfmet->p4(true, true, true);
+    pfmet_nomu_p4 = pfmet_p4;
+    for (auto const& part:muons_trigcheck) pfmet_nomu_p4 += part->p4();
+  }
+
+  float ht_pt=0, ht_nomu_pt=0;
+  ParticleObject::LorentzVector_t ht_p4, ht_nomu_p4;
+  for (auto const& jet:ak4jets_trigcheck){
+    auto jet_p4_nomu = jet->p4_nomu();
+    auto const& jet_p4 = jet->p4();
+
+    ht_pt += jet_p4.Pt();
+    ht_p4 += jet_p4;
+
+    ht_nomu_pt += jet_p4_nomu.Pt();
+    ht_nomu_p4 += jet_p4_nomu;
+  }
+  ht_p4 = ParticleObject::PolarLorentzVector_t(ht_pt, 0, 0, ht_p4.Pt());
+  ht_nomu_p4 = ParticleObject::PolarLorentzVector_t(ht_nomu_pt, 0, 0, ht_nomu_p4.Pt());
+
+  for (auto const& enumType_props_pair:hltpathprops_){
+    auto const& hltprops = enumType_props_pair->second;
+    for (auto const& hltprop:hltprops){
+      for (auto const& prod:product_HLTpaths){
+        if (prod->passTrigger && hltprop.isSameTrigger(prod->name)){
+          if (
+            hltprop.testCuts(
+              muons_trigcheck,
+              electrons_trigcheck,
+              photons_trigcheck,
+              ak4jets_trigcheck,
+              ak8jets_trigcheck,
+              pfmet_p4,
+              pfmet_nomu_p4,
+              ht_p4,
+              ht_nomu_p4
+            )
+            ){
+            float wgt = 1.f;
+            if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
+            if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
+            if (wgt == 0.f) continue;
+            else return wgt; // Take the first trigger that passed.
+          }
+        }
+      }
+    }
+  }
+
+  return 0;
 }
 
 bool EventFilterHandler::passMETFilters() const{

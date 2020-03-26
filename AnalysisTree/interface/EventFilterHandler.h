@@ -5,11 +5,14 @@
 #include <unordered_map>
 #include "IvyBase.h"
 #include "SimEventHandler.h"
+#include "MuonObject.h"
 #include "ElectronObject.h"
 #include "PhotonObject.h"
 #include "AK4JetObject.h"
 #include "AK8JetObject.h"
+#include "METObject.h"
 #include "HLTTriggerPathObject.h"
+#include "TriggerHelpersCore.h"
 #include "SystematicVariations.h"
 
 
@@ -50,6 +53,15 @@ public:
 
   bool hasMatchingTriggerPath(std::vector<std::string> const& hltpaths_) const;
   float getTriggerWeight(std::vector<std::string> const& hltpaths_) const;
+  float getTriggerWeight(
+    std::vector< std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator > const& hltpathprops_,
+    std::vector<MuonObject*> const* muons,
+    std::vector<ElectronObject*> const* electrons,
+    std::vector<PhotonObject*> const* photons,
+    std::vector<AK4JetObject*> const* ak4jets,
+    std::vector<AK8JetObject*> const* ak8jets,
+    METObject const* pfmet
+  ) const;
   bool passMETFilters() const;
   // Special event filters for various specific issues
   bool test2018HEMFilter(

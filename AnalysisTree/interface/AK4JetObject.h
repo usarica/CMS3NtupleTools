@@ -23,6 +23,9 @@ AK4JET_VARIABLE(float, JECDn, 1) \
 AK4JET_VARIABLE(float, JERNominal, 1) \
 AK4JET_VARIABLE(float, JERUp, 1) \
 AK4JET_VARIABLE(float, JERDn, 1) \
+AK4JET_VARIABLE(float, JECL1Nominal, 1) \
+AK4JET_VARIABLE(float, mucands_sump4_px, 1) \
+AK4JET_VARIABLE(float, mucands_sump4_py, 1) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
 
@@ -62,6 +65,9 @@ public:
   constexpr static float ConeRadiusConstant = 0.4;
 
   AK4JetVariables extras;
+  float currentJEC_full;
+  float currentJEC_L1only;
+  float currentJER;
   float currentSystScale;
 
   AK4JetObject();
@@ -75,6 +81,12 @@ public:
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
 
   float getBtagValue() const;
+
+  float const& getJECValue(bool useL1only=false) const{ return (!useL1only? currentJEC_full : currentJEC_L1only); }
+  float const& getJERValue() const{ return currentJER; }
+
+  LorentzVector_t uncorrected_p4() const{ return this->p4()*(1.f/currentSystScale); }
+  LorentzVector_t p4_nomu() const;
 
 };
 

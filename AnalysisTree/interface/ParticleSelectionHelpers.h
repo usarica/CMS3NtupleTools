@@ -27,6 +27,9 @@ SELECTION_TYPE(Tight)
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
 
+  template<typename T> bool isParticleForJetCleaning(T const* part);
+  template<typename T> bool isParticleForTriggerChecking(T const* part);
+
 
   // Functions to select "preselection" id types
 #define SELECTION_TYPES \
@@ -43,7 +46,23 @@ SELECTION_TYPE(Tight)
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
 
+  template<typename T> bool isJetForTriggerChecking(T const* part);
+
 }
+
+template<typename T> bool ParticleSelectionHelpers::isParticleForJetCleaning(T const* part){ return isLooseParticle(part); }
+template bool ParticleSelectionHelpers::isParticleForJetCleaning<MuonObject>(MuonObject const*);
+template bool ParticleSelectionHelpers::isParticleForJetCleaning<ElectronObject>(ElectronObject const*);
+template bool ParticleSelectionHelpers::isParticleForJetCleaning<PhotonObject>(PhotonObject const*);
+
+template<typename T> bool ParticleSelectionHelpers::isParticleForTriggerChecking(T const* part){ return isLooseParticle(part); }
+template bool ParticleSelectionHelpers::isParticleForTriggerChecking<MuonObject>(MuonObject const*);
+template bool ParticleSelectionHelpers::isParticleForTriggerChecking<ElectronObject>(ElectronObject const*);
+template bool ParticleSelectionHelpers::isParticleForTriggerChecking<PhotonObject>(PhotonObject const*);
+
+template<typename T> bool ParticleSelectionHelpers::isJetForTriggerChecking(T const* part){ return isTightJet(part); }
+template bool ParticleSelectionHelpers::isJetForTriggerChecking<AK4JetObject>(AK4JetObject const*);
+template bool ParticleSelectionHelpers::isJetForTriggerChecking<AK8JetObject>(AK8JetObject const*);
 
 
 #endif

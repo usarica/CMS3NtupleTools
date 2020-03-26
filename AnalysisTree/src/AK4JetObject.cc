@@ -34,21 +34,33 @@ AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
 AK4JetObject::AK4JetObject() :
   ParticleObject(),
   extras(),
+  currentJEC_full(1),
+  currentJEC_L1only(1),
+  currentJER(1),
   currentSystScale(1)
 {}
 AK4JetObject::AK4JetObject(LorentzVector_t const& momentum_) :
   ParticleObject(0, momentum_),
   extras(),
+  currentJEC_full(1),
+  currentJEC_L1only(1),
+  currentJER(1),
   currentSystScale(1)
 {}
 AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   ParticleObject(other),
   extras(other.extras),
+  currentJEC_full(other.currentJEC_full),
+  currentJEC_L1only(other.currentJEC_L1only),
+  currentJER(other.currentJER),
   currentSystScale(other.currentSystScale)
 {}
 void AK4JetObject::swap(AK4JetObject& other){
   ParticleObject::swap(other);
   extras.swap(other.extras);
+  std::swap(currentJEC_full, other.currentJEC_full);
+  std::swap(currentJEC_L1only, other.currentJEC_L1only);
+  std::swap(currentJER, other.currentJER);
   std::swap(currentSystScale, other.currentSystScale);
 }
 AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
@@ -78,29 +90,47 @@ float AK4JetObject::getBtagValue() const{
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  float scale=1;
+  currentJEC_full = 1;
+  currentJER = 1;
+  currentJEC_L1only = 1;
   switch (syst){
   case eJECDn:
-    scale = extras.JECDn * extras.JERNominal;
+    currentJEC_full = extras.JECDn;
+    currentJER = extras.JERNominal;
+    currentJEC_L1only = currentJEC_full/extras.JECNominal*extras.JECL1Nominal;
     break;
   case eJECUp:
-    scale = extras.JECUp * extras.JERNominal;
+    currentJEC_full = extras.JECUp;
+    currentJER = extras.JERNominal;
+    currentJEC_L1only = currentJEC_full/extras.JECNominal*extras.JECL1Nominal;
     break;
   case eJERDn:
-    scale = extras.JECNominal * extras.JERDn;
+    currentJEC_full = extras.JECNominal;
+    currentJER = extras.JERDn;
+    currentJEC_L1only = extras.JECL1Nominal;
     break;
   case eJERUp:
-    scale = extras.JECNominal * extras.JERUp;
+    currentJEC_full = extras.JECNominal;
+    currentJER = extras.JERUp;
+    currentJEC_L1only = extras.JECL1Nominal;
     break;
   case sUncorrected:
     break;
   default:
-    scale = extras.JECNominal * extras.JERNominal;
+    currentJEC_full = extras.JECNominal;
+    currentJER = extras.JERNominal;
+    currentJEC_L1only = extras.JECL1Nominal;
     break;
   }
+  float scale = currentJEC_full * currentJER;
   // Test new pt
   float newpt = momentum.Pt() * (scale/currentSystScale);
   if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt() * currentSystScale;
   momentum = momentum * (scale/currentSystScale);
   currentSystScale = scale;
+}
+
+ParticleObject::LorentzVector_t AK4JetObject::p4_nomu() const{
+  if (momentum.Pt()<=1e-5) return momentum;
+  else return momentum - LorentzVector_t(extras.mucands_sump4_px, extras.mucands_sump4_py, 0, 0)*currentJEC_full;
 }

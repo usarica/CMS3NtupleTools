@@ -12,10 +12,12 @@ HLTObjectProperties::HLTObjectProperties() :
   type(HLTObjectProperties::nTriggerObjectTypes),
 
   pt_cut(-1),
-  eta_cut(0),
+  pt_high_cut(-1),
+  eta_cut(10),
   mass_cut(-1),
 
   has_pt_cut(false),
+  has_pt_high_cut(false),
   has_eta_cut(false),
   has_mass_cut(false)
 {}
@@ -23,10 +25,12 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType 
   type(type_),
 
   pt_cut(-1),
-  eta_cut(0),
+  pt_high_cut(-1),
+  eta_cut(10),
   mass_cut(-1),
 
   has_pt_cut(false),
+  has_pt_high_cut(false),
   has_eta_cut(false),
   has_mass_cut(false)
 {}
@@ -34,10 +38,12 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType 
   type(type_),
 
   pt_cut(-1),
-  eta_cut(0),
+  pt_high_cut(-1),
+  eta_cut(10),
   mass_cut(-1),
 
   has_pt_cut(false),
+  has_pt_high_cut(false),
   has_eta_cut(false),
   has_mass_cut(false)
 {
@@ -46,6 +52,9 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType 
     switch (type_val_pair.first){
     case kPt:
       setPtCut(cut_val);
+      break;
+    case kPtHigh:
+      setPtHighCut(cut_val);
       break;
     case kEta:
       setEtaCut(cut_val);
@@ -65,10 +74,12 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties const& other) :
   type(other.type),
 
   pt_cut(other.pt_cut),
+  pt_high_cut(other.pt_high_cut),
   eta_cut(other.eta_cut),
   mass_cut(other.mass_cut),
 
   has_pt_cut(other.has_pt_cut),
+  has_pt_high_cut(other.has_pt_high_cut),
   has_eta_cut(other.has_eta_cut),
   has_mass_cut(other.has_mass_cut)
 {}
@@ -79,42 +90,36 @@ bool HLTObjectProperties::testCuts(ParticleObject::LorentzVector_t const& p4, HL
   bool res = true;
 
   res &= (!has_pt_cut || p4.Pt()>=pt_cut);
+  res &= (!has_pt_high_cut || p4.Pt()<pt_high_cut);
   res &= (!has_eta_cut || std::abs(p4.Eta())<eta_cut);
-  res &= (!has_mass_cut || p4.M()<mass_cut);
+  res &= (!has_mass_cut || p4.M()>=mass_cut);
 
   return res;
 }
 
 bool HLTObjectProperties::operator == (HLTObjectProperties const& other) const{
   return (
-    this->type == other.type
+    type == other.type
     &&
-    this->pt_cut == other.pt_cut
+    pt_cut == other.pt_cut
     &&
-    this->eta_cut == other.eta_cut
+    pt_high_cut == other.pt_high_cut
     &&
-    this->mass_cut == other.mass_cut
+    eta_cut == other.eta_cut
+    &&
+    mass_cut == other.mass_cut
     );
 }
 bool HLTObjectProperties::operator > (HLTObjectProperties const& other) const{
+  // Do not require the upper pt cut in these comparisons
   return (
-    *this != other
-    &&
-    this->type == other.type
+    type == other.type
     && (
-      !other.has_pt_cut
+      pt_cut>other.pt_cut
       ||
-      (this->has_pt_cut && this->pt_cut > other.pt_cut)
-      )
-    && (
-      !other.has_eta_cut
+      (pt_cut==other.pt_cut && eta_cut<other.eta_cut)
       ||
-      (this->has_eta_cut && this->eta_cut < other.eta_cut)
-      )
-    && (
-      !other.has_mass_cut
-      ||
-      (this->has_mass_cut && this->mass_cut > other.mass_cut)
+      (pt_cut==other.pt_cut && eta_cut==other.eta_cut && mass_cut>other.mass_cut)
       )
     );
 }

@@ -12,6 +12,7 @@ class HLTObjectProperties{
 public:
   enum CutType{
     kPt,
+    kPtHigh,
     kEta,
     kMass,
     nCutTypes
@@ -23,8 +24,9 @@ public:
     kAK4Jet,
     kAK8Jet,
     kHT,
-    kMHT,
+    kHT_NoMu,
     kMET,
+    kMET_NoMu,
     nTriggerObjectTypes
   };
 
@@ -32,10 +34,12 @@ protected:
   TriggerObjectType type;
 
   float pt_cut;
+  float pt_high_cut;
   float eta_cut;
   float mass_cut;
 
   bool has_pt_cut;
+  bool has_pt_high_cut;
   bool has_eta_cut;
   bool has_mass_cut;
 
@@ -46,9 +50,12 @@ public:
   HLTObjectProperties(HLTObjectProperties const& other);
 
   void setPtCut(float const& val){ pt_cut=val; has_pt_cut=(pt_cut>0.f); }
-  void setEtaCut(float const& val){ eta_cut=val; has_eta_cut=(eta_cut>0.f); }
+  void setPtLowCut(float const& val){ setPtCut(val); }
+  void setPtHighCut(float const& val){ pt_high_cut=val; has_pt_high_cut=(pt_high_cut>0.f); }
+  void setEtaCut(float const& val){ eta_cut=val; has_eta_cut=(eta_cut<9.f); }
   void setMassCut(float const& val){ mass_cut=val; has_mass_cut=(mass_cut>0.f); }
 
+  TriggerObjectType const& getType() const{ return type; }
   bool hasSameType(HLTObjectProperties::TriggerObjectType const& type_) const{ return (type==type_); }
   bool testCuts(ParticleObject::LorentzVector_t const& p4, HLTObjectProperties::TriggerObjectType const& type_) const;
 
@@ -56,6 +63,8 @@ public:
   bool operator != (HLTObjectProperties const& other) const{ return !(*this == other); }
   bool operator > (HLTObjectProperties const& other) const;
   bool operator >= (HLTObjectProperties const& other) const{ return (*this == other || *this > other); }
+  bool operator < (HLTObjectProperties const& other) const{ return (type == other.type && !(*this >= other)); }
+  bool operator <= (HLTObjectProperties const& other) const{ return (*this == other || *this < other); }
 
   static bool isMoreRestrictive(HLTObjectProperties const& earlier, HLTObjectProperties const& later){ return (earlier > later); }
   static bool isMoreRestrictive_ptr(HLTObjectProperties const* earlier, HLTObjectProperties const* later){ return (earlier && (!later || (*earlier > *later))); }

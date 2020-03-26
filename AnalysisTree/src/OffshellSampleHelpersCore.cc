@@ -37,7 +37,7 @@ void SampleHelpers::configure(TString period, TString stag){
 
   runConfigure=true;
 
-  OffshellTriggerHelpers::configureHLTmap();
+  TriggerHelpers::configureHLTmap();
 }
 
 std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){
