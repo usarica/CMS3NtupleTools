@@ -6,28 +6,35 @@
 using namespace std;
 
 
-void produceDileptonSkims(TString strSampleSet, TString period, TString strdate="", int ichunk=0, int nchunks=0){
+void produceDileptonSkims(TString strSampleSet, TString period, TString prodVersion, TString strdate="", int ichunk=0, int nchunks=0){
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop:200101");
+  SampleHelpers::configure(period, "hadoop:"+prodVersion);
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
 
-  std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
-    {
-      OffshellTriggerHelpers::kDoubleMu, OffshellTriggerHelpers::kDoubleEle, OffshellTriggerHelpers::kMuEle,
-      OffshellTriggerHelpers::kSingleMu, OffshellTriggerHelpers::kSingleEle,
-      OffshellTriggerHelpers::kSinglePho
-    }
-  );
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers{
+    // Main unprescaled triggers for signal regions
+    TriggerHelpers::kTripleLep,
+    TriggerHelpers::kDoubleMu, TriggerHelpers::kDoubleEle, TriggerHelpers::kMuEle,
+    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleEle,
+    // Control triggers for trigger efficiency measurement
+    TriggerHelpers::kAK8PFJet_Control,
+    TriggerHelpers::kPFHT_Control,
+    TriggerHelpers::kPFMET_MHT_Control
+  };
+  std::vector<std::string> triggerCheckList = TriggerHelpers::getHLTMenus(requiredTriggers);
+  //auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+
 
   std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t nValidDataPeriods = validDataPeriods.size();
 
   // Get handlers
+  // Some of these are needed only to enable the branches
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
   EventFilterHandler eventFilter;
@@ -35,6 +42,7 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
+  IsotrackHandler isotrackHandler;
   ParticleDisambiguator particleDisambiguator;
 
   eventFilter.setTrackDataEvents(false);
@@ -67,7 +75,6 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
 
       simEventHandler.bookBranches(&sample_tree);
       simEventHandler.wrapTree(&sample_tree);
-
 
       genInfoHandler.setAcquireLHEMEWeights(false);
       genInfoHandler.setAcquireLHEParticles(false);
@@ -120,6 +127,9 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
 
+    isotrackHandler.bookBranches(&sample_tree);
+    isotrackHandler.wrapTree(&sample_tree);
+
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
@@ -146,7 +156,6 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
       outdir->WriteTObject(&hCounters);
     }
     //sample_tree.unmuteAllBranches();
-    sample_tree.getSelectedTree()->SetBranchStatus("isotracks*", 1);
     TTree* outtree = sample_tree.getSelectedTree()->CloneTree(0);
 
     // Loop over the tree
@@ -196,12 +205,19 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
       if (n_photons_tight>0) continue;
       */
 
-      // FIXME: No b-jet veto at the moment
+      // Disable advanced trigger rejection
       /*
       jetHandler.constructJetMET(SystematicsHelpers::sNominal, &muons, &electrons, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
+      auto const& pfmet = jetHandler.getPFMET();
 
+      float trigwgt = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons, &electrons, &photons, &ak4jets, &ak8jets, pfmet);
+      if (trigwgt==0.) continue;
+      */
+
+      // No b-jet veto at the moment
+      /*
       bool hasBtaggedJet=false;
       for (auto const& jet:ak4jets){
         if (ParticleSelectionHelpers::isTightJet(jet)){
@@ -214,6 +230,7 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString strdate=
       if (hasBtaggedJet) continue;
       */
 
+      // Disable HEM veto for further studies
       //if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons, &photons, &ak4jets, &ak8jets)) continue;
 
       outtree->Fill();

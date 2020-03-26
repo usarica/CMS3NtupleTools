@@ -6,28 +6,25 @@
 using namespace std;
 
 
-void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate="", int ichunk=0, int nchunks=0){
+void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVersion, TString strdate="", int ichunk=0, int nchunks=0){
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
 
-  SampleHelpers::configure(period, "hadoop:200101");
+  SampleHelpers::configure(period, "hadoop:"+prodVersion);
 
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
   const float btagvalue_thr = BtagHelpers::getBtagWP(false);
 
-  std::vector<std::string> triggerCheckList = OffshellTriggerHelpers::getHLTMenus(
-    {
-      OffshellTriggerHelpers::kDoubleMu, OffshellTriggerHelpers::kDoubleEle, OffshellTriggerHelpers::kMuEle,
-      OffshellTriggerHelpers::kSingleMu, OffshellTriggerHelpers::kSingleEle,
-      OffshellTriggerHelpers::kSinglePho
-    }
-  );
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers{ TriggerHelpers::kSinglePho };
+  std::vector<std::string> triggerCheckList = TriggerHelpers::getHLTMenus(requiredTriggers);
+  //auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
 
   std::vector<TString> validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t nValidDataPeriods = validDataPeriods.size();
 
   // Get handlers
+  // Some of these are needed only to enable the branches
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
   EventFilterHandler eventFilter;
@@ -35,11 +32,8 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
+  IsotrackHandler isotrackHandler;
   ParticleDisambiguator particleDisambiguator;
-
-  genInfoHandler.setAcquireLHEMEWeights(false);
-  genInfoHandler.setAcquireLHEParticles(false);
-  genInfoHandler.setAcquireGenParticles(false);
 
   eventFilter.setTrackDataEvents(false);
   eventFilter.setCheckUniqueDataEvent(false);
@@ -72,6 +66,9 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
       simEventHandler.bookBranches(&sample_tree);
       simEventHandler.wrapTree(&sample_tree);
 
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireGenParticles(false);
       genInfoHandler.bookBranches(&sample_tree);
       genInfoHandler.wrapTree(&sample_tree);
 
@@ -101,6 +98,11 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
         }
         SampleHelpers::setDataPeriod(period);
       }
+      genInfoHandler.setAcquireLHEMEWeights(false);
+      genInfoHandler.setAcquireLHEParticles(false);
+      genInfoHandler.setAcquireGenParticles(true);
+      genInfoHandler.bookBranches(&sample_tree);
+      genInfoHandler.wrapTree(&sample_tree);
     }
 
     muonHandler.bookBranches(&sample_tree);
@@ -114,6 +116,9 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
 
     jetHandler.bookBranches(&sample_tree);
     jetHandler.wrapTree(&sample_tree);
+
+    isotrackHandler.bookBranches(&sample_tree);
+    isotrackHandler.wrapTree(&sample_tree);
 
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
@@ -141,7 +146,6 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
       outdir->WriteTObject(&hCounters);
     }
     //sample_tree.unmuteAllBranches();
-    sample_tree.getSelectedTree()->SetBranchStatus("isotracks*", 1);
     TTree* outtree = sample_tree.getSelectedTree()->CloneTree(0);
 
     // Loop over the tree
@@ -173,14 +177,12 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
 
       auto const& muons = muonHandler.getProducts();
       size_t n_muons_veto = 0;
-      // FIXME: Using tight particle veto for the moment
-      for (auto const& part:muons){ if (ParticleSelectionHelpers::isTightParticle(part)) n_muons_veto++; }
+      for (auto const& part:muons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_muons_veto++; }
       if (n_muons_veto>0) continue;
 
       auto const& electrons = electronHandler.getProducts();
       size_t n_electrons_veto = 0;
-      // FIXME: Using tight particle veto for the moment
-      for (auto const& part:electrons){ if (ParticleSelectionHelpers::isTightParticle(part)) n_electrons_veto++; }
+      for (auto const& part:electrons){ if (ParticleSelectionHelpers::isVetoParticle(part)) n_electrons_veto++; }
       if (n_electrons_veto>0) continue;
 
       auto const& photons = photonHandler.getProducts();
@@ -194,12 +196,19 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
       }
       if (n_photons_tight!=1) continue;
 
-      // FIXME: No b-jet veto at the moment
+      // Disable advanced trigger rejection
       /*
       jetHandler.constructJetMET(SystematicsHelpers::sNominal, &muons, &electrons, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
+      auto const& pfmet = jetHandler.getPFMET();
 
+      float trigwgt = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons, &electrons, &photons, &ak4jets, &ak8jets, pfmet);
+      if (trigwgt==0.) continue;
+      */
+
+      // No b-jet veto at the moment
+      /*
       bool hasBtaggedJet=false;
       for (auto const& jet:ak4jets){
         if (ParticleSelectionHelpers::isTightJet(jet)){
@@ -212,6 +221,7 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString strdate
       if (hasBtaggedJet) continue;
       */
 
+      // Disable HEM veto for further studies
       //if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons, &photons, &ak4jets, &ak8jets)) continue;
 
       outtree->Fill();
