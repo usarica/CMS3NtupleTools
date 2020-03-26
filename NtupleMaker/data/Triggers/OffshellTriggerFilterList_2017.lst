@@ -47,6 +47,7 @@ customPrunedTriggerCollection = [
    "HLT_Photon300_NoHE_v*",
 
    "HLT_AK8PFJet360_TrimMass30_v*", # Unprescaled
+   "HLT_PFHT180_v*", # Has L1 and HLT prescales
    "HLT_PFHT250_v*", # Has L1 and HLT prescales
    "HLT_PFHT350_v*", # Has HLT prescales
    "HLT_PFHT370_v*", # Has L1 and HLT prescales

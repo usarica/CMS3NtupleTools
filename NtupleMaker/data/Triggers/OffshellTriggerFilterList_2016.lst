@@ -62,6 +62,8 @@ customPrunedTriggerCollection = [
    "HLT_Photon300_NoHE_v*", # Unprescaled
 
    "HLT_AK8PFJet360_TrimMass30_v*", # Unprescaled
+   "HLT_PFHT125_v*", # Has L1 prescales
+   "HLT_PFHT200_v*", # Has L1 prescales
    "HLT_PFHT250_v*", # Has L1 prescales
    "HLT_PFHT300_v*", # Has HLT prescales
    "HLT_PFHT350_v*", # Has HLT prescales
@@ -69,7 +71,7 @@ customPrunedTriggerCollection = [
    "HLT_PFHT475_v*", # Has HLT prescales
    "HLT_PFHT600_v*", # Has HLT prescales
    "HLT_PFHT650_v*", # Has HLT prescales
-   "HLT_PFHT800_v*", # Unprescaled, does not exist? Not so according to AN-17-277, but it looks like it doesn't from the final trigger menu spreadsheets
+   "HLT_PFHT800_v*", # Unprescaled, does not exist? Not so according to AN-17-277, but it looks like it doesn't from the final trigger menu spreadsheets. N.B.: It does exist, but it is partially unprescaled (according to Bennett M.).
    "HLT_PFHT900_v*", # Unprescaled
    "HLT_PFMET120_PFMHT120_IDTight_v*",
    "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*",
