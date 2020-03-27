@@ -383,96 +383,97 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
 
   // 200314: The following is taken from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection.h
   // The formula is corr = -(A*npv + B).
-  bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier);
+  TString theDP = SampleHelpers::theDataPeriod;
+  bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier, &theDP);
   if (isData){
-    if (SampleHelpers::theDataPeriod == "2016B"){
+    if (theDP == "2016B"){
       pfmet_XYcorr_xCoeffA = -0.0478335; pfmet_XYcorr_xCoeffB = -0.108032;
       pfmet_XYcorr_yCoeffA = 0.125148; pfmet_XYcorr_yCoeffB = 0.355672;
     }
-    else if (SampleHelpers::theDataPeriod == "2016C"){
+    else if (theDP == "2016C"){
       pfmet_XYcorr_xCoeffA = -0.0916985; pfmet_XYcorr_xCoeffB = 0.393247;
       pfmet_XYcorr_yCoeffA = 0.151445; pfmet_XYcorr_yCoeffB = 0.114491;
     }
-    else if (SampleHelpers::theDataPeriod == "2016D"){
+    else if (theDP == "2016D"){
       pfmet_XYcorr_xCoeffA = -0.0581169; pfmet_XYcorr_xCoeffB = 0.567316;
       pfmet_XYcorr_yCoeffA = 0.147549; pfmet_XYcorr_yCoeffB = 0.403088;
     }
-    else if (SampleHelpers::theDataPeriod == "2016E"){
+    else if (theDP == "2016E"){
       pfmet_XYcorr_xCoeffA = -0.065622; pfmet_XYcorr_xCoeffB = 0.536856;
       pfmet_XYcorr_yCoeffA = 0.188532; pfmet_XYcorr_yCoeffB = 0.495346;
     }
-    else if (SampleHelpers::theDataPeriod == "2016F"){
+    else if (theDP == "2016F"){
       pfmet_XYcorr_xCoeffA = -0.0313322; pfmet_XYcorr_xCoeffB = 0.39866;
       pfmet_XYcorr_yCoeffA = 0.16081; pfmet_XYcorr_yCoeffB = 0.960177;
     }
-    else if (SampleHelpers::theDataPeriod == "2016G"){
+    else if (theDP == "2016G"){
       pfmet_XYcorr_xCoeffA = 0.040803; pfmet_XYcorr_xCoeffB = -0.290384;
       pfmet_XYcorr_yCoeffA = 0.0961935; pfmet_XYcorr_yCoeffB = 0.666096;
     }
-    else if (SampleHelpers::theDataPeriod == "2016H"){
+    else if (theDP == "2016H"){
       pfmet_XYcorr_xCoeffA = 0.0330868; pfmet_XYcorr_xCoeffB = -0.209534;
       pfmet_XYcorr_yCoeffA = 0.141513; pfmet_XYcorr_yCoeffB = 0.816732;
     }
     /*
-    else if (SampleHelpers::theDataPeriod == "2017B"){
+    else if (theDP == "2017B"){
     pfmet_XYcorr_xCoeffA = -0.259456; pfmet_XYcorr_xCoeffB = 1.95372;
     pfmet_XYcorr_yCoeffA = 0.353928; pfmet_XYcorr_yCoeffB = -2.46685;
     }
-    else if (SampleHelpers::theDataPeriod == "2017C"){
+    else if (theDP == "2017C"){
     pfmet_XYcorr_xCoeffA = -0.232763; pfmet_XYcorr_xCoeffB = 1.08318;
     pfmet_XYcorr_yCoeffA = 0.257719; pfmet_XYcorr_yCoeffB = -1.1745;
     }
-    else if (SampleHelpers::theDataPeriod == "2017D"){
+    else if (theDP == "2017D"){
     pfmet_XYcorr_xCoeffA = -0.238067; pfmet_XYcorr_xCoeffB = 1.80541;
     pfmet_XYcorr_yCoeffA = 0.235989; pfmet_XYcorr_yCoeffB = -1.44354;
     }
-    else if (SampleHelpers::theDataPeriod == "2017E"){
+    else if (theDP == "2017E"){
     pfmet_XYcorr_xCoeffA = -0.212352; pfmet_XYcorr_xCoeffB = 1.851;
     pfmet_XYcorr_yCoeffA = 0.157759; pfmet_XYcorr_yCoeffB = -0.478139;
     }
-    else if (SampleHelpers::theDataPeriod == "2017F"){
+    else if (theDP == "2017F"){
     pfmet_XYcorr_xCoeffA = -0.232733; pfmet_XYcorr_xCoeffB = 2.24134;
     pfmet_XYcorr_yCoeffA = 0.213341; pfmet_XYcorr_yCoeffB = 0.684588;
     }
     */
-    else if (SampleHelpers::theDataPeriod == "2017B"){
+    else if (theDP == "2017B"){
       pfmet_XYcorr_xCoeffA = -0.19563; pfmet_XYcorr_xCoeffB = 1.51859;
       pfmet_XYcorr_yCoeffA = 0.306987; pfmet_XYcorr_yCoeffB = -1.84713;
     }
-    else if (SampleHelpers::theDataPeriod == "2017C"){
+    else if (theDP == "2017C"){
       pfmet_XYcorr_xCoeffA = -0.161661; pfmet_XYcorr_xCoeffB = 0.589933;
       pfmet_XYcorr_yCoeffA = 0.233569; pfmet_XYcorr_yCoeffB = -0.995546;
     }
-    else if (SampleHelpers::theDataPeriod == "2017D"){
+    else if (theDP == "2017D"){
       pfmet_XYcorr_xCoeffA = -0.180911; pfmet_XYcorr_xCoeffB = 1.23553;
       pfmet_XYcorr_yCoeffA = 0.240155; pfmet_XYcorr_yCoeffB = -1.27449;
     }
-    else if (SampleHelpers::theDataPeriod == "2017E"){
+    else if (theDP == "2017E"){
       pfmet_XYcorr_xCoeffA = -0.149494; pfmet_XYcorr_xCoeffB = 0.901305;
       pfmet_XYcorr_yCoeffA = 0.178212; pfmet_XYcorr_yCoeffB = -0.535537;
     }
-    else if (SampleHelpers::theDataPeriod == "2017F"){
+    else if (theDP == "2017F"){
       pfmet_XYcorr_xCoeffA = -0.165154; pfmet_XYcorr_xCoeffB = 1.02018;
       pfmet_XYcorr_yCoeffA = 0.253794; pfmet_XYcorr_yCoeffB = 0.75776;
     }
-    else if (SampleHelpers::theDataPeriod == "2018A"){
+    else if (theDP == "2018A"){
       pfmet_XYcorr_xCoeffA = 0.362865; pfmet_XYcorr_xCoeffB = -1.94505;
       pfmet_XYcorr_yCoeffA = 0.0709085; pfmet_XYcorr_yCoeffB = -0.307365;
     }
-    else if (SampleHelpers::theDataPeriod == "2018B"){
+    else if (theDP == "2018B"){
       pfmet_XYcorr_xCoeffA = 0.492083; pfmet_XYcorr_xCoeffB = -2.93552;
       pfmet_XYcorr_yCoeffA = 0.17874; pfmet_XYcorr_yCoeffB = -0.786844;
     }
-    else if (SampleHelpers::theDataPeriod == "2018C"){
+    else if (theDP == "2018C"){
       pfmet_XYcorr_xCoeffA = 0.521349; pfmet_XYcorr_xCoeffB = -1.44544;
       pfmet_XYcorr_yCoeffA = 0.118956; pfmet_XYcorr_yCoeffB = -1.96434;
     }
-    else if (SampleHelpers::theDataPeriod == "2018D"){
+    else if (theDP == "2018D"){
       pfmet_XYcorr_xCoeffA = 0.531151; pfmet_XYcorr_xCoeffB = -1.37568;
       pfmet_XYcorr_yCoeffA = 0.0884639; pfmet_XYcorr_yCoeffB = -1.57089;
     }
     else{
-      MELAerr << "JetMETHandler::wrapTree: Data period " << SampleHelpers::theDataPeriod << " is undefined for the data MET corrections." << endl;
+      MELAerr << "JetMETHandler::wrapTree: Data period " << theDP << " is undefined for the data MET corrections." << endl;
       return false;
     }
   }

@@ -40,7 +40,7 @@ namespace SampleHelpers{
   float getIntegratedLuminosity(TString const& period);
 
   TString getSampleIdentifier(TString strinput);
-  bool checkSampleIsData(TString strid);
+  bool checkSampleIsData(TString strid, TString* theSampleDataPeriod=nullptr);
   bool checkSampleIs80X(TString strid);
   bool checkSampleIsFastSim(TString strid);
 

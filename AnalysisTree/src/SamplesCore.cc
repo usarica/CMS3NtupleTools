@@ -136,9 +136,14 @@ TString SampleHelpers::getSampleIdentifier(TString strinput){
   }
   return res;
 }
-bool SampleHelpers::checkSampleIsData(TString strid){
+bool SampleHelpers::checkSampleIsData(TString strid, TString* theSampleDataPeriod){
   std::vector<TString> strperiods = SampleHelpers::getValidDataPeriods();
-  for (TString const& strperiod:strperiods){ if (strid.Contains(strperiod)) return true; }
+  for (TString const& strperiod:strperiods){
+    if (strid.Contains(strperiod)){
+      if (theSampleDataPeriod) *theSampleDataPeriod = strperiod;
+      return true;
+    }
+  }
   return false;
 }
 bool SampleHelpers::checkSampleIs80X(TString strid){ return strid.Contains("Summer16MiniAODv2"); }
