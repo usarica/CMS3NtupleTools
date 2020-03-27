@@ -10,8 +10,8 @@ ISOTRACK_VARIABLE(bool, is_pfCand, false) \
 ISOTRACK_VARIABLE(bool, is_lostTrack, false) \
 ISOTRACK_VARIABLE(bool, is_highPurityTrack, false) \
 ISOTRACK_VARIABLE(bool, is_tightTrack, false) \
-ISOTRACK_VARIABLE(int, nearestPFcand_id, 0) \
-ISOTRACK_VARIABLE(float, nearestPFcand_deltaR, 0) \
+/*ISOTRACK_VARIABLE(int, nearestPFcand_id, 0)*/ \
+/*ISOTRACK_VARIABLE(float, nearestPFcand_deltaR, 0)*/ \
 ISOTRACK_VARIABLE(float, pfIso03_ch, 0) \
 ISOTRACK_VARIABLE(float, pfIso03_comb_nofsr, 0) \
 ISOTRACK_VARIABLE(float, miniIso_ch, 0) \
