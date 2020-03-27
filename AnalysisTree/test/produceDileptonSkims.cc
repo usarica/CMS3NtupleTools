@@ -135,6 +135,7 @@ void produceDileptonSkims(TString strSampleSet, TString period, TString prodVers
 
     MELAout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
+    sample_tree.getSelectedTree()->SetBranchStatus("triggerObjects*", 1); // Needed for trigger matching
 
     // Create output
     //TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
