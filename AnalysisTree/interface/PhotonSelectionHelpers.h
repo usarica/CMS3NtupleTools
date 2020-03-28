@@ -61,17 +61,17 @@ namespace PhotonSelectionHelpers{
   constexpr PhotonId idType_preselection = kCutBasedId_Fall17V2;
   constexpr PhotonIso isoType_preselection = kPFIsoDR0p3;
 
-  constexpr SelectionBits bit_preselectionVeto_id = kMediumId;
-  constexpr SelectionBits bit_preselectionVeto_iso = kMediumIso;
-  constexpr SelectionBits bit_preselectionVeto_kin = kMediumKin;
+  constexpr SelectionBits bit_preselectionVeto_id = kTightId;
+  constexpr SelectionBits bit_preselectionVeto_iso = kTightIso;
+  constexpr SelectionBits bit_preselectionVeto_kin = kTightKin;
 
-  constexpr SelectionBits bit_preselectionLoose_id = kMediumId;
-  constexpr SelectionBits bit_preselectionLoose_iso = kMediumIso;
-  constexpr SelectionBits bit_preselectionLoose_kin = kMediumKin;
+  constexpr SelectionBits bit_preselectionLoose_id = kTightId;
+  constexpr SelectionBits bit_preselectionLoose_iso = kTightIso;
+  constexpr SelectionBits bit_preselectionLoose_kin = kTightKin;
 
-  constexpr SelectionBits bit_preselectionTight_id = kMediumId;
-  constexpr SelectionBits bit_preselectionTight_iso = kMediumIso;
-  constexpr SelectionBits bit_preselectionTight_kin = kMediumKin;
+  constexpr SelectionBits bit_preselectionTight_id = kTightId;
+  constexpr SelectionBits bit_preselectionTight_iso = kTightIso;
+  constexpr SelectionBits bit_preselectionTight_kin = kTightKin;
 
   constexpr SelectionBits bit_preselection_conversion = nSelectionBits; // kConversionSafe (enable in loose and tight preselection) or nSelectionBits (disable)
 
