@@ -4,9 +4,13 @@
 
 
 namespace AK4JetSelectionHelpers{
-  bool testPtEtaGen(AK4JetObject const& part);
+  bool applyPUIdToJets = true;
+  bool applyTightLeptonVetoIdToJets = false;
 
   bool testPUJetId(AK4JetObject const& part);
+  bool testTightLeptonVetoId(AK4JetObject const& part);
+
+  bool testPtEtaGen(AK4JetObject const& part);
 
   bool testLooseId(AK4JetObject const& part);
   bool testLooseKin(AK4JetObject const& part);
@@ -23,9 +27,11 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
+bool AK4JetSelectionHelpers::testPUJetId(AK4JetObject const& part){ return part.extras.pass_puId; }
+bool AK4JetSelectionHelpers::testTightLeptonVetoId(AK4JetObject const& part){ return part.extras.pass_leptonVetoId; }
+
 bool AK4JetSelectionHelpers::testLooseId(AK4JetObject const& part){ return part.extras.pass_looseId; }
 bool AK4JetSelectionHelpers::testTightId(AK4JetObject const& part){ return part.extras.pass_tightId; }
-bool AK4JetSelectionHelpers::testPUJetId(AK4JetObject const& part){ return part.extras.pass_puId; }
 
 bool AK4JetSelectionHelpers::testLooseKin(AK4JetObject const& part){
   return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
@@ -50,15 +56,22 @@ bool AK4JetSelectionHelpers::testPreselectionTight(AK4JetObject const& part){
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
     &&
-    part.testSelectionBit(kPUJetId)
+    (!applyPUIdToJets || part.testSelectionBit(kPUJetId))
+    &&
+    (!applyTightLeptonVetoIdToJets || part.testSelectionBit(kTightLeptonVetoId))
     );
 }
+
+void AK4JetSelectionHelpers::setApplyPUIdToJets(bool flag){ applyPUIdToJets = flag; }
+void AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(bool flag){ applyTightLeptonVetoIdToJets = flag; }
+
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
   part.setSelectionBit(kPUJetId, testPUJetId(part));
+  part.setSelectionBit(kTightLeptonVetoId, testTightLeptonVetoId(part));
 
   part.setSelectionBit(kLooseId, testLooseId(part));
   part.setSelectionBit(kLooseKin, testLooseKin(part));

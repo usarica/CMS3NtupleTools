@@ -9,6 +9,7 @@ namespace AK4JetSelectionHelpers{
     kGenPtEta,
 
     kPUJetId,
+    kTightLeptonVetoId,
 
     kLooseId,
     kLooseKin,
@@ -37,6 +38,10 @@ namespace AK4JetSelectionHelpers{
   // Preselection tight = AND of bits below && PU jet id
   const SelectionBits bit_preselectionTight_id = kTightId;
   const SelectionBits bit_preselectionTight_kin = kTightKin;
+
+  // Control additional flags to preselection tight id
+  void setApplyPUIdToJets(bool flag);
+  void setApplyTightLeptonVetoIdToJets(bool flag);
 
   void setSelectionBits(AK4JetObject& part);
 }

@@ -39,21 +39,21 @@ bool MuonScaleFactorHandler::setup(){
     ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
 
     //TFile* finput_eff_mc_iso = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Muons/2018/sf_mu_iso_susy_2017.root", "read"); finput_eff_mc_iso->cd();
-    //ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
+    //ScaleFactorHandlerBase::closeFile(finput_eff_mc_iso); curdir->cd();
 
     TFile* finput_eff_data_id = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Muons/2018/EfficienciesStudies_2018_rootfiles_RunABCD_Eff_data_ID.root", "read"); curdir->cd();
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_data_id, finput_eff_data_id, "NUM_MediumPromptID_DEN_TrackerMuons_pt_abseta");
-    ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
+    ScaleFactorHandlerBase::closeFile(finput_eff_data_id); curdir->cd();
 
     //TFile* finput_eff_data_iso = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Muons/2018/sf_mu_iso_susy_2017.root", "read"); curdir->cd();
-    //ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
+    //ScaleFactorHandlerBase::closeFile(finput_eff_data_iso); curdir->cd();
 
     TFile* finput_SF_id = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Muons/2018/EfficienciesStudies_2018_rootfiles_RunABCD_SF_ID.root", "read"); curdir->cd();
     res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_id, finput_SF_id, "NUM_MediumPromptID_DEN_TrackerMuons_pt_abseta");
-    ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
+    ScaleFactorHandlerBase::closeFile(finput_SF_id); curdir->cd();
 
     //TFile* finput_SF_iso = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Muons/2018/sf_mu_iso_susy_2017.root", "read"); curdir->cd();
-    //ScaleFactorHandlerBase::closeFile(finput_eff_mc_id); curdir->cd();
+    //ScaleFactorHandlerBase::closeFile(finput_SF_iso); curdir->cd();
   }
 
   return res;

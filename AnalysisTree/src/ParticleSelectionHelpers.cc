@@ -46,6 +46,7 @@ SELECTION_TYPES;
 #undef SELECTION_TYPES
 
 
+// Functions for jets
 #define SELECTION_TYPES \
 SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Tight)

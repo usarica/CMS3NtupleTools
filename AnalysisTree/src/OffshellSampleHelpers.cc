@@ -176,6 +176,10 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "GGH_WW2L2Nu_M2500_POWHEG" || sname == "GGH_WW2L2Nu_POWHEG")  HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GluGluHToWWTo2L2Nu_M2500_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "GGH_WW2L2Nu_M3000_POWHEG" || sname == "GGH_WW2L2Nu_POWHEG")  HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GluGluHToWWTo2L2Nu_M3000_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
 
+    // VBF ZZ 2l2nu POWHEG
+    if (sname == "VBF_WW2L2Nu_M125_POWHEG" || sname == "VBF_WW2L2Nu_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBFHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "VBF_WW2L2Nu_M1000_POWHEG" || sname == "VBF_WW2L2Nu_POWHEG") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/VBFHToWWTo2L2Nu_M1000_13TeV_powheg2_JHUGenV710_pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+
     // Simulation for the main backgrounds
     if (sname == "DY_2l_M_10to50" || sname == "DY_2l") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v2/MINIAODSIM" });
     if (sname == "DY_2l_M_10to50_ext" || sname == "DY_2l") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v1/MINIAODSIM" });

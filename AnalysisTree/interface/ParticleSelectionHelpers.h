@@ -9,7 +9,7 @@
 
 
 namespace ParticleSelectionHelpers{
-  // Functions to select "preselection" id types
+  // Functions to select "preselection" id types to particles
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \
 SELECTION_TYPE(Loose) \
@@ -31,7 +31,7 @@ SELECTION_TYPE(Tight)
   template<typename T> bool isParticleForTriggerChecking(T const* part);
 
 
-  // Functions to select "preselection" id types
+  // Functions to select "preselection" id types to jets
 #define SELECTION_TYPES \
 SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Tight)
