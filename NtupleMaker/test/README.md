@@ -66,9 +66,8 @@ cd ..
 ```bash
 mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 ```
-3. Edit `submit_jobs.py` to consider the right CSV files and tarball. In particular, update the `tarfile`  variable
-and `tag` to uniquely identify the submission campaign near the top of the file. 
+3. Submit jobs in a GNU screen with `python submit_jobs.py /home/users/usarica/work/public/for200313/*.csv samples_Data_*.csv --tarfile tarball_v0.tar.xz --tag OFFSHELL_v0` (after appropriate
+edits of the arguments).
 Note: I recommend using `DO_TEST=True` with a dummy/different `tag` to submit a handful of events
 for the first sample in each csv file. If those jobs succeed, switch to the actual `tag` for production and turn off `DO_TEST`.
-4. Run `python submit_jobs.py` in a screen to (re)submit jobs.
-5. Visit the monitoring page to view progress and output location.
+4. Visit the monitoring page to view progress and output location.
