@@ -70,3 +70,12 @@ SELECTION_TYPES;
 
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
+
+
+template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK4JetObject>(AK4JetObject const* jet){
+  // No PU jet id requirement, so do not use the isTightJet flag.
+  return jet->testSelectionBit(AK4JetSelectionHelpers::kTightId) && jet->pt()>=30.f;
+}
+template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK8JetObject>(AK8JetObject const* jet){
+  return jet->testSelectionBit(AK8JetSelectionHelpers::kTightId) && jet->pt()>=30.f;
+}

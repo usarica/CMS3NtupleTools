@@ -46,7 +46,10 @@ SELECTION_TYPE(Tight)
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
 
-  template<typename T> bool isJetForTriggerChecking(T const* part);
+  template<typename T> bool isJetForTriggerChecking(T const*);
+  template<typename T> bool isJetForHEMVeto(T const*);
+  template<> bool isJetForHEMVeto<AK4JetObject>(AK4JetObject const*);
+  template<> bool isJetForHEMVeto<AK8JetObject>(AK8JetObject const*);
 
 }
 
@@ -60,7 +63,7 @@ template bool ParticleSelectionHelpers::isParticleForTriggerChecking<MuonObject>
 template bool ParticleSelectionHelpers::isParticleForTriggerChecking<ElectronObject>(ElectronObject const*);
 template bool ParticleSelectionHelpers::isParticleForTriggerChecking<PhotonObject>(PhotonObject const*);
 
-template<typename T> bool ParticleSelectionHelpers::isJetForTriggerChecking(T const* part){ return isTightJet(part); }
+template<typename T> bool ParticleSelectionHelpers::isJetForTriggerChecking(T const* jet){ return isTightJet(jet); }
 template bool ParticleSelectionHelpers::isJetForTriggerChecking<AK4JetObject>(AK4JetObject const*);
 template bool ParticleSelectionHelpers::isJetForTriggerChecking<AK8JetObject>(AK8JetObject const*);
 

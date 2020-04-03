@@ -200,7 +200,7 @@ bool EventFilterHandler::test2018HEMFilter(
   }
 
   // For affected runs, check object presence.
-  static const std::pair<float, float> eta_region(-4.7, -1.4);
+  static const std::pair<float, float> eta_region(-3.0, -1.4);
   static const std::pair<float, float> phi_region(-1.6, -0.8);
   bool doVeto = false;
   if (!doVeto && electrons){
@@ -226,8 +226,7 @@ bool EventFilterHandler::test2018HEMFilter(
   // Require a pT>30 GeV cut on jets
   if (!doVeto && ak4jets){
     for (auto const* part:(*ak4jets)){
-      if (part->pt()<30.f) continue;
-      if (!part->testSelectionBit(AK4JetSelectionHelpers::kLooseId)) continue;
+      if (!ParticleSelectionHelpers::isJetForHEMVeto(part)) continue;
 
       float const eta = part->eta();
       float const phi = part->phi();
@@ -238,8 +237,7 @@ bool EventFilterHandler::test2018HEMFilter(
   // Be careful! There is no equivalent of tight ID in ak8 jets, so testing is done on all jets
   if (!doVeto && ak8jets){
     for (auto const* part:(*ak8jets)){
-      if (part->pt()<30.f) continue;
-      if (!part->testSelectionBit(AK8JetSelectionHelpers::kLooseId)) continue;
+      if (!ParticleSelectionHelpers::isJetForHEMVeto(part)) continue;
 
       float const eta = part->eta();
       float const phi = part->phi();
