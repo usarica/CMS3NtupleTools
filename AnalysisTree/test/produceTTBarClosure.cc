@@ -526,7 +526,9 @@ void getTrees(
   BRANCH_COMMAND(float, phimiss);
   BRANCH_COMMAND(float, mTZZ);
   BRANCH_COMMAND(float, mZZ);
+  BRANCH_COMMAND(float, mjj);
   BRANCH_COMMAND(unsigned int, event_nvtxs_good);
+  BRANCH_COMMAND(unsigned int, event_Nphotons);
   BRANCH_COMMAND(unsigned int, event_Njets);
   BRANCH_COMMAND(unsigned int, event_Njets_btagged_loose);
   BRANCH_COMMAND(unsigned int, event_Njets_btagged_medium);
@@ -558,6 +560,16 @@ void getTrees(
   BRANCH_COMMAND(float, eta_l2);
   BRANCH_COMMAND(float, eff_l2);
   BRANCH_COMMAND(float, efferr_l2);
+  // J1
+  BRANCH_COMMAND(float, pt_j1);
+  BRANCH_COMMAND(float, eta_j1);
+  BRANCH_COMMAND(float, phi_j1);
+  BRANCH_COMMAND(float, mass_j1);
+  // J2
+  BRANCH_COMMAND(float, pt_j2);
+  BRANCH_COMMAND(float, eta_j2);
+  BRANCH_COMMAND(float, phi_j2);
+  BRANCH_COMMAND(float, mass_j2);
 #undef BRANCH_COMMAND
 
   bool isFirstInputFile=true;
@@ -685,6 +697,10 @@ void getTrees(
       auto const& muons = muonHandler.getProducts();
       auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
+      event_Nphotons = 0;
+      for (auto const& part:photons){
+        if (ParticleSelectionHelpers::isTightParticle(part)) event_Nphotons++;
+      }
 
       isotrackHandler.constructIsotracks(&muons, &electrons);
       bool hasVetoIsotrack = false;
@@ -717,6 +733,15 @@ void getTrees(
       has_ak4jets_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, nullptr);
       has_ak8jets_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, nullptr, &ak8jets);
 
+      mjj = -1;
+      pt_j1 = -1;
+      eta_j1 = 0;
+      phi_j1 = 0;
+      mass_j1 = 0;
+      pt_j2 = -1;
+      eta_j2 = 0;
+      phi_j2 = 0;
+      mass_j2 = 0;
       event_Njets_btagged_loose = event_Njets_btagged_medium = event_Njets20_btagged_loose = event_Njets20_btagged_medium = event_Njets = event_Njets20 = 0;
       ParticleObject::LorentzVector_t ak4jets_sump4;
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
@@ -742,6 +767,22 @@ void getTrees(
         }
       }
       event_Njets = ak4jets_tight.size();
+      if (event_Njets>0){
+        auto const& jet1 = ak4jets_tight.front();
+        pt_j1 = jet1->pt();
+        eta_j1 = jet1->eta();
+        phi_j1 = jet1->phi();
+        mass_j1 = jet1->m();
+        if (event_Njets>1){
+          auto const& jet2 = ak4jets_tight.at(1);
+          pt_j2 = jet2->pt();
+          eta_j2 = jet2->eta();
+          phi_j2 = jet2->phi();
+          mass_j2 = jet2->m();
+
+          mjj = (jet1->p4() + jet2->p4()).M();
+        }
+      }
 
       bool pass_dPhi_jet_met = true;
       for (auto const& jet:ak4jets_tight){
@@ -837,7 +878,7 @@ void getTrees(
   SampleHelpers::addToCondorTransferList(stroutput);
 }
 
-void count(TString strdate=""){
+void count(int flagSB=0, TString strdate=""){
   gStyle->SetOptStat(0);
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
@@ -845,11 +886,16 @@ void count(TString strdate=""){
   SampleHelpers::configure("2018", "hadoop:200313");
   const float lumi = SampleHelpers::getIntegratedLuminosity("2018");
 
+  TString strSideband;
+  if (flagSB==1) strSideband="onlySBup";
+  else if (flagSB==-1) strSideband="onlySBdn";
   TString const cinput_main = "output/TTBarClosure/SkimTrees/" + strdate;
   TString coutput_main = cinput_main + "/Counts";
   gSystem->mkdir(coutput_main, true);
 
-  TString stroutput_txt = Form("%s/Integrals.txt", coutput_main.Data());
+  TString stroutput_txt = Form("%s/Integrals", coutput_main.Data());
+  if (std::abs(flagSB)==1) stroutput_txt += Form("_%s", strSideband.Data());
+  stroutput_txt += ".txt";
   MELAout.open(stroutput_txt.Data());
 
   TDirectory* curdir = gDirectory;
@@ -911,32 +957,44 @@ void count(TString strdate=""){
   sampleList.emplace_back("qqZZ_2l2nu", "ZZ#rightarrow2l2#nu", "qqZZ_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
   */
   sampleList.emplace_back("TT_2l2nu", "t#bar{t}#rightarrow2l2#nu", "TT_2l2nu", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  /*
   sampleList.emplace_back("qqWW_2l2nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  /*
   sampleList.emplace_back("DY_2l_M_50_HT", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT", -1, HistogramProperties((int) kCyan, 1, 2));
   sampleList.emplace_back("ggZZ_2l2nu_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggZZ_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("VBFZZ_2l2nu_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFZZ_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggWW_2l2nu_Sig", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  //sampleList.emplace_back("VBFWW_2l2nu_Sig", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("VBFWW_2l2nu_Sig", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggZZ_2l2nu_Sig_g4", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggZZ_2l2nu_Sig_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("VBFZZ_2l2nu_Sig_g4", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFZZ_2l2nu_Sig_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggWW_2l2nu_Sig_g4", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_Sig_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  //sampleList.emplace_back("VBFWW_2l2nu_Sig_g4", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_Sig_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("VBFWW_2l2nu_Sig_g4", "EW WW+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_Sig_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggZZ_2l2nu_BSI", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggZZ_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("VBFZZ_2l2nu_BSI", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFZZ_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_BSI", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  //sampleList.emplace_back("VBFWW_2l2nu_BSI", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggZZ_2l2nu_BSI_g4", "gg#rightarrowZZ total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggZZ_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("VBFZZ_2l2nu_BSI_g4", "EW ZZ+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFZZ_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  sampleList.emplace_back("ggWW_2l2nu_BSI_g4", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
-  //sampleList.emplace_back("VBFWW_2l2nu_BSI_g4", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
   */
+  sampleList.emplace_back("ggWW_2l2nu_BSI", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("VBFWW_2l2nu_BSI", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_BSI", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("ggWW_2l2nu_BSI_g4", "gg#rightarrowWW total (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  sampleList.emplace_back("VBFWW_2l2nu_BSI_g4", "EW WW+jj total (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFWW_2l2nu_BSI_g4", -1, HistogramProperties((int) kYellow-3, 1, 2));
+  //
+  sampleList.emplace_back("Total_noHiggs_noZpeak", "Total (no Higgs, no Z)", "total_noHiggs_noZpeak", -1, HistogramProperties((int) kGray, 1, 2));
+  sampleList.emplace_back("Total_noHiggs", "Total (no Higgs)", "total_noHiggs", -1, HistogramProperties((int) kGray, 1, 2));
+  sampleList.emplace_back("Total_noZpeak_g1", "Total (SM Higgs, no Z)", "total_noZpeak_g1", -1, HistogramProperties((int) kGray, 1, 2));
+  sampleList.emplace_back("Total_g1", "Total (SM Higgs)", "total", -1, HistogramProperties((int) kGray, 1, 2));
+  sampleList.emplace_back("Total_noZpeak_g4", "Total (PS Higgs, no Z)", "total_noZpeak_g4", -1, HistogramProperties((int) kGray, 1, 2));
+  sampleList.emplace_back("Total_g4", "Total (PS Higgs)", "total_g4", -1, HistogramProperties((int) kGray, 1, 2));
 
   curdir->cd();
 
   std::vector<SampleSpecs> sampleProcessedList; sampleProcessedList.reserve(sampleList.size());
+  std::vector<SampleSpecs> sampleExtraList; sampleExtraList.reserve(sampleList.size());
   std::vector<TChain*> treelist;
   for (auto const& sample:sampleList){
+    if (sample.name.find("Total")!=std::string::npos){
+      sampleExtraList.push_back(sample);
+      continue;
+    }
     TChain* tin = new TChain("SkimTree");
     TString cinput = cinput_main + '/' + sample.path.data() + "*.root";
     tin->Add(cinput);
@@ -958,12 +1016,35 @@ void count(TString strdate=""){
   std::vector<TString> channel_labels={ "ee", "mumu", "emu" };
   std::vector<TString> in_out_labels={ "in", "out" };
 
+  constexpr int nbins_Nj=4;
+  std::vector<TH1F> h_pTmiss[3][nbins_Nj][2]; // Channel (ee, mumu, emu), Njets, in/out-like selection
+  for (size_t ic=0; ic<channel_labels.size(); ic++){
+    for (int ijet=0; ijet<nbins_Nj; ijet++){
+      for (size_t io=0; io<in_out_labels.size(); io++) h_pTmiss[ic][ijet][io].reserve(sampleProcessedList.size() + sampleExtraList.size());
+    }
+  }
   for (size_t isample=0; isample<nsamples; isample++){
     MELAout << "Processing sample " << isample << " (" << sampleProcessedList.at(isample).name << ")" << endl;
+
+    TH1F* hfill_pTmiss[3][nbins_Nj][2];
+    TString strhnamecore = Form("%s_pTmiss", sampleProcessedList.at(isample).name.data());
+    for (size_t ic=0; ic<channel_labels.size(); ic++){
+      for (int ijet=0; ijet<nbins_Nj; ijet++){
+        TString label_Nj;
+        if (ijet==nbins_Nj-1) label_Nj = Form("Nj_geq_%i", ijet);
+        else label_Nj = Form("Nj_eq_%i", ijet);
+        for (size_t io=0; io<in_out_labels.size(); io++){
+          h_pTmiss[ic][ijet][io].emplace_back(
+            Form("%s_%s_%s_%s", strhnamecore.Data(), channel_labels.at(ic).Data(), label_Nj.Data(), in_out_labels.at(io).Data()),
+            sampleProcessedList.at(isample).label.data(),
+            22, 40, 150
+          ); h_pTmiss[ic][ijet][io].back().Sumw2();
+          hfill_pTmiss[ic][ijet][io] = &(h_pTmiss[ic][ijet][io].back());
+        }
+      }
+    }
+
     auto const& tin = treelist.at(isample);
-
-    float sum_wgts[3][4][2]={ { { 0 } } }; // Channel (ee, mumu, emu), Njets, in/out-like selection
-
     int nEntries = tin->GetEntries();
     for (int ev=0; ev<nEntries; ev++){
       tin->GetEntry(ev);
@@ -974,7 +1055,8 @@ void count(TString strdate=""){
       if (index_channel<2) event_wgt *= event_wgt_OSSF_triggers;
       else event_wgt *= event_wgt_OSDF_triggers;
 
-      if (mass_ll<40.f || mass_ll>=200.f) continue;
+      if (flagSB!=1 && mass_ll<40.f) continue;
+      if (flagSB!=-1 && mass_ll>=200.f) continue;
 
       int index_Njets = static_cast<int>(event_Njets);
       int index_INorOUT=-1;
@@ -985,19 +1067,60 @@ void count(TString strdate=""){
       }
       else{
         index_INorOUT = 1;
-        if (pTmiss<70.f) continue;
+        if (pTmiss<40.f) continue;
         if ((event_Njets>0 && event_Njets_btagged==0) || (event_Njets==0 && event_Njets20_btagged!=0)) continue;
       }
 
-      sum_wgts[index_channel][index_Njets][index_INorOUT] += event_wgt;
+      hfill_pTmiss[index_channel][index_Njets][index_INorOUT]->Fill(pTmiss, event_wgt);
     }
+  }
 
+  for (auto const& sample:sampleExtraList){
+    bool const isNoZ = sample.name.find("noZpeak")!=std::string::npos;
+    bool const isNoHiggs = sample.name.find("noHiggs")!=std::string::npos;
+    bool const isSMHiggs = sample.name.find("_g1")!=std::string::npos;
+    bool const isPSHiggs = sample.name.find("_g4")!=std::string::npos;
+
+    TString strhnamecore = Form("%s_pTmiss", sample.name.data());
     for (size_t ic=0; ic<channel_labels.size(); ic++){
-      for (int ijet=0; ijet<=3; ijet++){
+      for (int ijet=0; ijet<nbins_Nj; ijet++){
+        TString label_Nj;
+        if (ijet==nbins_Nj-1) label_Nj = Form("Nj_geq_%i", ijet);
+        else label_Nj = Form("Nj_eq_%i", ijet);
         for (size_t io=0; io<in_out_labels.size(); io++){
-          MELAout << channel_labels.at(ic) << ", ";
-          MELAout << "Njets = " << ijet << ", ";
-          MELAout << in_out_labels.at(io) << ": " << sum_wgts[ic][ijet][io] << endl;
+          h_pTmiss[ic][ijet][io].emplace_back(
+            Form("%s_%s_%s_%s", strhnamecore.Data(), channel_labels.at(ic).Data(), label_Nj.Data(), in_out_labels.at(io).Data()),
+            sample.label.data(),
+            22, 40, 150
+          ); h_pTmiss[ic][ijet][io].back().Sumw2();
+
+          TH1F& hfill = h_pTmiss[ic][ijet][io].back();
+          for (size_t isample=0; isample<nsamples; isample++){
+            auto const& tmpsample = sampleProcessedList.at(isample);
+            bool const hasZ = !(
+              tmpsample.name.find("DY")==std::string::npos
+              &&
+              tmpsample.name.find("ZZ_2l2nu")==std::string::npos
+              &&
+              tmpsample.name.find("WZ_3l")==std::string::npos
+              );
+            bool const hasHiggs = !(
+              tmpsample.name.find("BSI")==std::string::npos
+              &&
+              tmpsample.name.find("Sig")==std::string::npos
+              );
+            bool const hasHiggsBSI = hasHiggs && tmpsample.name.find("BSI")!=std::string::npos;
+            bool const hasSMHiggs = hasHiggsBSI && tmpsample.name.find("_g4")==std::string::npos;
+            bool const hasPSHiggs = hasHiggsBSI && tmpsample.name.find("_g4")!=std::string::npos;
+
+            if (isNoZ && hasZ) continue;
+            if (isNoHiggs && hasHiggs) continue;
+            if (isSMHiggs && hasHiggsBSI && !hasSMHiggs) continue;
+            if (isPSHiggs && hasHiggsBSI && !hasPSHiggs) continue;
+
+            TH1F& htmp = h_pTmiss[ic][ijet][io].at(isample);
+            hfill.Add(&htmp, 1);
+          }
         }
       }
     }
