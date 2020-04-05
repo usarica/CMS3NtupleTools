@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <FWCore/Utilities/interface/Exception.h>
+#include <DataFormats/TrackReco/interface/Track.h>
+#include <DataFormats/TrackReco/interface/TrackFwd.h>
 #include <CMS3/NtupleMaker/interface/MuonSelectionHelpers.h>
 
 
@@ -71,27 +73,51 @@ namespace MuonSelectionHelpers{
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
+  bool testLooseTriggerId(pat::Muon const& obj, int const& /*year*/){
+#if CMSSW_VERSION_MAJOR>=10 
+    return muon::isLooseTriggerMuon(obj);
+#else
+    bool pass_looseTriggerId = false;
+    const reco::TrackRef innerTrack = obj.innerTrack();
+    if (innerTrack.isNonnull()){
+      bool tk_id = muon::isGoodMuon(obj, muon::TMOneStationTight);
+      if (tk_id){
+        bool layer_requirements =
+          innerTrack->hitPattern().trackerLayersWithMeasurement() > 5 &&
+          innerTrack->hitPattern().pixelLayersWithMeasurement() > 0;
+        bool match_requirements = (obj.expectedNnumberOfMatchedStations()<2) || (obj.numberOfMatchedStations()>1) || (obj.pt()<8.); // This pT has to be the uncorrected pT.
+        pass_looseTriggerId = (layer_requirements && match_requirements);
+      }
+    }
+    return pass_looseTriggerId;
+#endif
+  }
+  bool testTightCharge(pat::Muon const& obj, int const& year){
+    //const reco::TrackRef chosenTrack = obj.innerTrack(); // Used by SNT
+    const reco::TrackRef chosenTrack = obj.muonBestTrack();
+    if (chosenTrack.isNonnull()){
+      double trk_pt_err = chosenTrack->ptError();
+      double trk_pt = chosenTrack->pt();
+      return (trk_pt_err/trk_pt < tightCharge_pt_err_rel_thr);
+    }
+    else return false;
+  }
   bool testMuonTiming(pat::Muon const& obj, int const& /*year*/){
     // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
-    // reco::Muon::InTimeMuon selector bit flag also stores the same info
-    auto const& cmb = obj.time().timeAtIpInOut;
-    auto const& rpc = obj.rpcTime().timeAtIpInOut;
-    //auto const& cmberr = obj.time().timeAtIpInOutErr;
-    auto const& rpcerr = obj.rpcTime().timeAtIpInOutErr;
-    auto const& cmbndof = obj.time().nDof;
-    auto const& rpcndof = obj.rpcTime().nDof;
-    bool cmbok = (cmbndof>7);
-    // RPC timing stored is the average over all RPC hits
-    // The measurements are in multiples of the bunch crossing time since only the bunch crossing id is measured.
-    // nDof>=2 ensures at least two measurements, and time error = 0 ensures measurement at the SAME BX!
-    bool rpcok = (rpcndof>=2 && rpcerr==0.);
-    if (rpcok){
-      if ((std::abs(rpc)>10.) && !(cmbok && std::abs(cmb)<10.)) return false;
-    }
-    else{
-      if (cmbok && (cmb>20. || cmb<-45.)) return false;
-    }
-    return true;
+    // reco::Muon::InTimeMuon selector bit flag also stores the same info, but it is only set for 10.2.X+.
+    // The following code is a copy of MuonSelectors.cc::outOfTimeMuon. Why not call that directly? Because the header does not include this function!
+    auto const& combinedTime = obj.time();
+    auto const& rpcTime = obj.rpcTime();
+    bool combinedTimeIsOk = (combinedTime.nDof>7);
+    bool rpcTimeIsOk = (rpcTime.nDof>1 && std::abs(rpcTime.timeAtIpInOutErr)<0.001);
+    bool outOfTime = false;
+    if (rpcTimeIsOk) outOfTime = (
+      std::abs(rpcTime.timeAtIpInOut)>10.
+      &&
+      !(combinedTimeIsOk && std::abs(combinedTime.timeAtIpInOut)<10.)
+      );
+    else outOfTime = (combinedTimeIsOk && (combinedTime.timeAtIpInOut>20. || combinedTime.timeAtIpInOut<-45.));
+    return !outOfTime;
   }
 
   bool testSkimMuon(pat::Muon const& obj, int const& /*year*/){

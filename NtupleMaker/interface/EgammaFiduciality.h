@@ -3,28 +3,25 @@
 // of Egamma objects (electrons and photons)
 //
 
-// Fiduciality in the calorimeter
-
 #ifndef EgammaFiduciality_h
 #define EgammaFiduciality_h
 
-enum EgammaFiduciality {
-	// used by photons and electrons
+// Fiduciality in the calorimeter
+enum EgammaFiduciality{
 	ISEB,
-	ISEBEEGAP,
 	ISEE,
-	ISEEGAP,
-	// used only by electrons
-	ISEBETAGAP,
+  ISEBEEGAP,
+  ISEBETAGAP,
 	ISEBPHIGAP,
-	ISEEDEEGAP,
+  ISEBGAP,
+  ISEEDEEGAP,
 	ISEERINGGAP,
-	ISGAP
+  ISEEGAP,
+  ISGAP
 };
 
-// seeding type used and corrections applied
-
-enum EgammaElectronType {
+// Seeding type used and corrections applied
+enum EgammaElectronType{
 	ISECALENERGYCORRECTED,	// if false, the electron "ecalEnergy" is just the supercluster energy 
 	ISMOMENTUMCORRECTED,  	// has E-p combination been applied
 	ISECALDRIVEN,

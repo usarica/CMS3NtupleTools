@@ -677,6 +677,10 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, trkIso03_trackerSumPt, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, pass_tightCharge, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPOutIn, n_objects);
@@ -727,6 +731,10 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_neutral_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
+
+    PUSH_USERFLOAT_INTO_VECTOR(trkIso03_trackerSumPt);
+
+    PUSH_USERINT_INTO_VECTOR(pass_tightCharge);
 
     if (keepMuonTimingInfo){
       PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
@@ -782,6 +790,10 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_neutral_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
+
+  PUSH_VECTOR_WITH_NAME(colName, trkIso03_trackerSumPt);
+
+  PUSH_VECTOR_WITH_NAME(colName, pass_tightCharge);
 
   if (keepMuonTimingInfo){
     PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
@@ -886,10 +898,13 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, fid_mask, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, type_mask, n_objects);
   */
+
+  // Fiduciality and type masks use bits from interface/EgammaFiduciality.h.
+  // These are needed to define gap regions (fid_mask ISGAP bit) or being ECAL-driven (type mask ISECALDRIVEN and ISCUTPRESELECTED bits)
+  // Do not comment these out!
+  MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, type_mask, n_objects);
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
@@ -984,11 +999,11 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     // PF candidate properties
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
+    */
 
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
     PUSH_USERINT_INTO_VECTOR(type_mask);
-    */
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -1058,10 +1073,10 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
+  */
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
-  */
 
   return n_skimmed_objects;
 }
@@ -1113,6 +1128,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
+
+  MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
@@ -1171,6 +1188,9 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
     */
 
+    // Masks
+    PUSH_USERINT_INTO_VECTOR(fid_mask);
+
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
   }
@@ -1211,6 +1231,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
   */
+
+  PUSH_VECTOR_WITH_NAME(colName, fid_mask);
 
   return n_skimmed_objects;
 }

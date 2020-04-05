@@ -36,17 +36,24 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 
+#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+
 #include "CMS3/NtupleMaker/interface/plugins/MuonMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
-typedef math::XYZPoint Point;
+#include "MELAStreamHelpers.hh"
+
 
 using namespace std;
 using namespace reco;
 using namespace edm;
+
+
+typedef math::XYZPoint Point;
 
 
 MuonMaker::MuonMaker(const ParameterSet& iConfig) :
@@ -79,6 +86,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   if (!vertexHandle.isValid()) throw cms::Exception("MuonMaker::produce: Error getting vertex collection from the event...");
 
   const VertexCollection* vertexCollection = vertexHandle.product();
+  VertexCollection::const_iterator firstVertex = vertexCollection->begin();
   VertexCollection::const_iterator firstGoodVertex = vertexCollection->end();
   for (VertexCollection::const_iterator vtx = vertexCollection->begin(); vtx != vertexCollection->end(); vtx++){
     if (VertexSelectionHelpers::testGoodVertex(*vtx)){
@@ -98,20 +106,34 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   for (View<pat::Muon>::const_iterator muon = mus_h->begin(); muon != mus_h->end(); muon++, muonIndex++){
     pat::Muon muon_result(*muon); // Clone the muon. This is the single muon to be put into the resultant collection
 
+    // POG selector bits
     uint64_t POG_selector_bits = muon->selectors();
     // Do the refurbishment of selections before anything else
     if (refurbishSelections_){
       // The only ever reason to refurbish the selections is due to 94x MC not being available!
       // This is why this flag is 'false' (data should have been 'true').
+      bool isRun2016BCDEF = (272728 <= iEvent.run() && iEvent.run() <= 278808);
 #if CMSSW_VERSION_MAJOR<11 
-      muon::setCutBasedSelectorFlags(muon_result, (hasGoodVertex ? &(*(vertexCollection->begin())) : (reco::Vertex const*) nullptr), false);
+      muon::setCutBasedSelectorFlags(muon_result, (hasVertex ? &(*firstVertex) : (reco::Vertex const*) nullptr), isRun2016BCDEF);
       POG_selector_bits = muon_result.selectors();
 #else
-      reco::Muon::Selector refurbished_bits = muon::makeSelectorBitset(*muon, (hasGoodVertex ? &(*(vertexCollection->begin())) : (reco::Vertex const*) nullptr), false);
+      reco::Muon::Selector refurbished_bits = muon::makeSelectorBitset(*muon, (hasVertex ? &(*firstVertex) : (reco::Vertex const*) nullptr), isRun2016BCDEF);
       POG_selector_bits = static_cast<uint64_t>(refurbished_bits);
       muon_result.setSelectors(POG_selector_bits);
 #endif
     }
+    // Test/re-test trigger loose id
+    constexpr unsigned int bitpos_looseTriggerId = MuonSelectionHelpers::getPOGSelectorBitPosition(static_cast<uint64_t>(reco::Muon::TriggerIdLoose));
+    bool pass_looseTriggerId = MuonSelectionHelpers::testLooseTriggerId(*muon, this->year_);
+    HelperFunctions::set_bit(POG_selector_bits, bitpos_looseTriggerId, pass_looseTriggerId);
+    // Test/re-test muon timing
+    constexpr unsigned int bitpos_muonTime = MuonSelectionHelpers::getPOGSelectorBitPosition(static_cast<uint64_t>(reco::Muon::InTimeMuon));
+    bool pass_muon_timing = MuonSelectionHelpers::testMuonTiming(*muon, this->year_);
+    HelperFunctions::set_bit(POG_selector_bits, bitpos_muonTime, pass_muon_timing);
+    // Test tight charge based on SS analysis
+    muon_result.addUserInt("pass_tightCharge", static_cast<int>(MuonSelectionHelpers::testTightCharge(*muon, this->year_)));
+    // Set POG bits
+    muon_result.addUserInt("POG_selector_bits", POG_selector_bits);
 
     // References
     const RefToBase<pat::Muon> muonRef = mus_h->refAt(muonIndex);
@@ -120,9 +142,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     const TrackRef outerTrack = muon->outerTrack();
     const TrackRef bestTrack = muon->muonBestTrack();
     const MuonQuality quality = muon->combinedQuality();
+    bool validInnerTrack = innerTrack.isNonnull();
 
     // Some aux. quantities
-    muon_result.addUserInt("POG_selector_bits", POG_selector_bits);
     muon_result.addUserInt("simType", muon->simType());
     muon_result.addUserInt("simExtType", muon->simExtType());
 
@@ -217,7 +239,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserInt("pid_TMOneStationTight", matchIsValid ? muon::isGoodMuon(*muon, muon::TMOneStationTight) : 0);
     muon_result.addUserInt("pid_isPFMuon", muon->isPFMuon());
     muon_result.addUserInt("pid_isGlobalMuon", muon->isGlobalMuon());
-    muon_result.addUserInt("pid_isGlobalMuon", muon->isGlobalMuon());
 
     ////////////
     // Energy //
@@ -232,20 +253,20 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ///////////////
     bool isoIsValid = muon->isIsolationValid();
     muon_result.addUserInt("hasValidIso", isoIsValid);
-    auto const& isoR03 = muon->isolationR03();
-    muon_result.addUserInt("iso03_ntrk", isoIsValid ? isoR03.nTracks : 0);
-    muon_result.addUserFloat("iso03_trkVetoPt", energyIsValid ? isoR03.trackerVetoPt : -1);
-    muon_result.addUserFloat("iso03_emVetoEt", energyIsValid ? isoR03.emVetoEt : -1);
-    muon_result.addUserFloat("iso03_hadVetoEt", energyIsValid ? isoR03.hadVetoEt : -1);
-    muon_result.addUserFloat("iso03_hoVetoEt", energyIsValid ? isoR03.hoVetoEt : -1);
-    muon_result.addUserFloat("iso03_sumPt", isoIsValid ? isoR03.sumPt : -1);
-    muon_result.addUserFloat("iso03_emEt", isoIsValid ? isoR03.emEt : -1);
-    muon_result.addUserFloat("iso03_hadEt", isoIsValid ? isoR03.hadEt : -1);
+    auto const& trkIsoR03 = muon->isolationR03();
+    // See RecoMuon/MuonIdentification/plugins/MuonIdProducer.cc for how these variables are filled
+    muon_result.addUserInt("trkIso03_ntrk", isoIsValid ? trkIsoR03.nTracks : 0);
+    muon_result.addUserFloat("trkIso03_trackerVetoPt", isoIsValid ? trkIsoR03.trackerVetoPt : -1);
+    muon_result.addUserFloat("trkIso03_emVetoEt", isoIsValid ? trkIsoR03.emVetoEt : -1);
+    muon_result.addUserFloat("trkIso03_hadVetoEt", isoIsValid ? trkIsoR03.hadVetoEt : -1);
+    muon_result.addUserFloat("trkIso03_hoVetoEt", isoIsValid ? trkIsoR03.hoVetoEt : -1);
+    muon_result.addUserFloat("trkIso03_emEt", isoIsValid ? trkIsoR03.emEt : -1);
+    muon_result.addUserFloat("trkIso03_hadEt", isoIsValid ? trkIsoR03.hadEt : -1);
+    muon_result.addUserFloat("trkIso03_trackerSumPt", isoIsValid ? trkIsoR03.sumPt : -1); // Use for tracker isolation
 
     ////////////
     // Tracks //
     ////////////
-    bool validInnerTrack = innerTrack.isNonnull();
     muon_result.addUserFloat("trk_pt", validInnerTrack ? innerTrack.get()->pt() : -1.);
     muon_result.addUserFloat("trk_eta", validInnerTrack ? innerTrack.get()->eta() : 0.);
     muon_result.addUserFloat("trk_phi", validInnerTrack ? innerTrack.get()->phi() : 0.);
@@ -264,14 +285,14 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("dxy_bestTrack_firstGoodPV", validBestTrack && hasGoodVertex ? bestTrack->dxy(firstGoodVertex->position()) : -999.);
     muon_result.addUserFloat("dz_bestTrack_firstGoodPV", validBestTrack && hasGoodVertex ? bestTrack->dz(firstGoodVertex->position()) : -999.);
 
-    muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy((vertexCollection->begin())->position()) : -999.);
-    muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz((vertexCollection->begin())->position()) : -999);
+    muon_result.addUserFloat("dxy_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dxy(firstVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_bestTrack_firstPV", validBestTrack && hasVertex ? bestTrack->dz(firstVertex->position()) : -999);
 
     muon_result.addUserFloat("dxy_innerTrack_firstGoodPV", validInnerTrack && hasGoodVertex ? innerTrack->dxy(firstGoodVertex->position()) : -999.);
     muon_result.addUserFloat("dz_innerTrack_firstGoodPV", validInnerTrack && hasGoodVertex ? innerTrack->dz(firstGoodVertex->position()) : -999.);
 
-    muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy((vertexCollection->begin())->position()) : -999.);
-    muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz((vertexCollection->begin())->position()) : -999);
+    muon_result.addUserFloat("dxy_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dxy(firstVertex->position()) : -999.);
+    muon_result.addUserFloat("dz_innerTrack_firstPV", validInnerTrack && hasVertex ? innerTrack->dz(firstVertex->position()) : -999);
 
 
     ////////
@@ -279,27 +300,27 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////
 
     // PF isolation
-    MuonPFIsolation const& pfStructR03 = muon->pfIsolationR03();
-    muon_result.addUserFloat("pfIso03_sumChargedHadronPt", pfStructR03.sumChargedHadronPt);
-    muon_result.addUserFloat("pfIso03_sumChargedParticlePt", pfStructR03.sumChargedParticlePt);
-    muon_result.addUserFloat("pfIso03_sumNeutralHadronEt", pfStructR03.sumNeutralHadronEt);
-    muon_result.addUserFloat("pfIso03_sumPhotonEt", pfStructR03.sumPhotonEt);
-    muon_result.addUserFloat("pfIso03_sumNeutralHadronEtHighThreshold", pfStructR03.sumNeutralHadronEtHighThreshold);
-    muon_result.addUserFloat("pfIso03_sumPhotonEtHighThreshold", pfStructR03.sumPhotonEtHighThreshold);
-    muon_result.addUserFloat("pfIso03_sumPUPt", pfStructR03.sumPUPt);
+    MuonPFIsolation const& pfIsoR03 = muon->pfIsolationR03();
+    muon_result.addUserFloat("pfIso03_sumChargedHadronPt", pfIsoR03.sumChargedHadronPt);
+    muon_result.addUserFloat("pfIso03_sumChargedParticlePt", pfIsoR03.sumChargedParticlePt);
+    muon_result.addUserFloat("pfIso03_sumNeutralHadronEt", pfIsoR03.sumNeutralHadronEt);
+    muon_result.addUserFloat("pfIso03_sumPhotonEt", pfIsoR03.sumPhotonEt);
+    muon_result.addUserFloat("pfIso03_sumNeutralHadronEtHighThreshold", pfIsoR03.sumNeutralHadronEtHighThreshold);
+    muon_result.addUserFloat("pfIso03_sumPhotonEtHighThreshold", pfIsoR03.sumPhotonEtHighThreshold);
+    muon_result.addUserFloat("pfIso03_sumPUPt", pfIsoR03.sumPUPt);
     double pfIso03_sum_charged_nofsr=0, pfIso03_sum_neutral_nofsr=0;
     muon_result.addUserFloat("pfIso03_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso03, 0., &pfIso03_sum_charged_nofsr, &pfIso03_sum_neutral_nofsr));
     muon_result.addUserFloat("pfIso03_sum_charged_nofsr", pfIso03_sum_charged_nofsr);
     muon_result.addUserFloat("pfIso03_sum_neutral_nofsr", pfIso03_sum_neutral_nofsr);
 
-    MuonPFIsolation const& pfStructR04 = muon->pfIsolationR04();
-    muon_result.addUserFloat("pfIso04_sumChargedHadronPt", pfStructR04.sumChargedHadronPt);
-    muon_result.addUserFloat("pfIso04_sumChargedParticlePt", pfStructR04.sumChargedParticlePt);
-    muon_result.addUserFloat("pfIso04_sumNeutralHadronEt", pfStructR04.sumNeutralHadronEt);
-    muon_result.addUserFloat("pfIso04_sumPhotonEt", pfStructR04.sumPhotonEt);
-    muon_result.addUserFloat("pfIso04_sumNeutralHadronEtHighThreshold", pfStructR04.sumNeutralHadronEtHighThreshold);
-    muon_result.addUserFloat("pfIso04_sumPhotonEtHighThreshold", pfStructR04.sumPhotonEtHighThreshold);
-    muon_result.addUserFloat("pfIso04_sumPUPt", pfStructR04.sumPUPt);
+    MuonPFIsolation const& pfIsoR04 = muon->pfIsolationR04();
+    muon_result.addUserFloat("pfIso04_sumChargedHadronPt", pfIsoR04.sumChargedHadronPt);
+    muon_result.addUserFloat("pfIso04_sumChargedParticlePt", pfIsoR04.sumChargedParticlePt);
+    muon_result.addUserFloat("pfIso04_sumNeutralHadronEt", pfIsoR04.sumNeutralHadronEt);
+    muon_result.addUserFloat("pfIso04_sumPhotonEt", pfIsoR04.sumPhotonEt);
+    muon_result.addUserFloat("pfIso04_sumNeutralHadronEtHighThreshold", pfIsoR04.sumNeutralHadronEtHighThreshold);
+    muon_result.addUserFloat("pfIso04_sumPhotonEtHighThreshold", pfIsoR04.sumPhotonEtHighThreshold);
+    muon_result.addUserFloat("pfIso04_sumPUPt", pfIsoR04.sumPUPt);
     double pfIso04_sum_charged_nofsr=0, pfIso04_sum_neutral_nofsr=0;
     muon_result.addUserFloat("pfIso04_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso04, 0., &pfIso04_sum_charged_nofsr, &pfIso04_sum_neutral_nofsr));
     muon_result.addUserFloat("pfIso04_sum_charged_nofsr", pfIso04_sum_charged_nofsr);
@@ -353,25 +374,9 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("time_rpc_IPOutIn", muon->rpcTime().timeAtIpOutIn);
     muon_result.addUserFloat("time_rpc_IPInOutError", muon->rpcTime().timeAtIpInOutErr);
     muon_result.addUserFloat("time_rpc_IPOutInError", muon->rpcTime().timeAtIpOutInErr);
-    muon_result.addUserInt("pass_muon_timing", static_cast<int>(MuonSelectionHelpers::testMuonTiming(*muon, this->year_)));
-    /*
-    Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
+    // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
     // reco::Muon::InTimeMuon selector bit flag also stores the same info
-    reco::MuonTime cmb = muon->time();
-    reco::MuonTime rpc = muon->rpcTime();
-    bool cmbok =(cmb.nDof>7);
-    // RPC timing stored is the average over all RPC hits
-    // The measurements are in multiples of the bunch crossing time since only the bunch crossing id is measured.
-    // nDof>=2 ensures at least two measurements, and time error = 0 ensures measurement at the SAME BX!
-    bool rpcok =(rpc.nDof>1 && rpc.timeAtIpInOutErr==0.);
-    if (rpcok){
-      if ((std::abs(rpc.timeAtIpInOut)>10.) && !(cmbok && std::abs(cmb.timeAtIpInOut)<10.)) veto=true;
-    }
-    else{
-      if (cmbok && (cmb.timeAtIpInOut>20. || cmb.timeAtIpInOut<-45.)) veto=true;
-    }
-    */
-
+    muon_result.addUserInt("pass_muon_timing", static_cast<int>(pass_muon_timing));
 
     //////////////////////
     // genMatch miniAOD //
@@ -400,16 +405,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // Mini-iso //
     //////////////
     //auto mu2 = muon->clone();
-    //pat::PFIsolation const& miniiso = mu2->miniPFIsolation();
-    pat::PFIsolation const& miniiso = muon->miniPFIsolation();
-    muon_result.addUserFloat("miniIso_ch", miniiso.chargedHadronIso());
-    muon_result.addUserFloat("miniIso_nh", miniiso.neutralHadronIso());
-    muon_result.addUserFloat("miniIso_em", miniiso.photonIso());
-    muon_result.addUserFloat("miniIso_db", miniiso.puChargedHadronIso()); // Unused since the prescription requires effective areas
+    //pat::PFIsolation const& miniIso = mu2->miniPFIsolation();
+    pat::PFIsolation const& miniIso = muon->miniPFIsolation();
+    muon_result.addUserFloat("miniIso_ch", miniIso.chargedHadronIso());
+    muon_result.addUserFloat("miniIso_nh", miniIso.neutralHadronIso());
+    muon_result.addUserFloat("miniIso_em", miniIso.photonIso());
+    muon_result.addUserFloat("miniIso_db", miniIso.puChargedHadronIso()); // Unused since the prescription requires effective areas
     //muon_result.addUserFloat("miniIso_comb_nofsr", MuonSelectionHelpers::muonMiniIsoComb(*mu2, year_, rho_event, 0.));
     double miniIso_sum_charged_nofsr=0, miniIso_sum_neutral_nofsr=0;
     muon_result.addUserFloat("miniIso_comb_nofsr", MuonSelectionHelpers::muonMiniIsoComb(*muon, year_, rho_event, 0., &miniIso_sum_charged_nofsr, &miniIso_sum_neutral_nofsr));
-    muon_result.addUserFloat("miniIso_comb_nofsr_uncorrected", miniiso.chargedHadronIso() + miniiso.neutralHadronIso() + miniiso.photonIso());
+    muon_result.addUserFloat("miniIso_comb_nofsr_uncorrected", miniIso.chargedHadronIso() + miniIso.neutralHadronIso() + miniIso.photonIso());
     muon_result.addUserFloat("miniIso_sum_charged_nofsr", miniIso_sum_charged_nofsr);
     muon_result.addUserFloat("miniIso_sum_neutral_nofsr", miniIso_sum_neutral_nofsr);
     //delete mu2;

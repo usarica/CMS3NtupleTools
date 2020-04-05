@@ -59,6 +59,7 @@
 #include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
+
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
@@ -68,8 +69,9 @@ using namespace reco;
 using namespace edm;
 using namespace std;
 
+
 typedef math::XYZPoint Point;
-typedef Ref<edmNew::DetSetVector<SiStripCluster>,SiStripCluster > ClusterRef;
+typedef Ref<edmNew::DetSetVector<SiStripCluster>, SiStripCluster > ClusterRef;
 typedef Ref<edmNew::DetSetVector<SiPixelCluster>, SiPixelCluster > pixel_ClusterRef;
 
 
@@ -194,27 +196,28 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //////////////////////
     // Fiduciality Mask //
     //////////////////////
-    int fiducialityMask = 0;  // the enum is in interface/EgammaFiduciality.h
+    cms3_egamma_fid_type_mask_t fiducialityMask = 0;  // The enums are in interface/EgammaFiduciality.h
     if (el->isEB()) fiducialityMask |= 1 << ISEB;
-    if (el->isEBEEGap()) fiducialityMask |= 1 << ISEBEEGAP;
     if (el->isEE()) fiducialityMask |= 1 << ISEE;
-    if (el->isEEGap()) fiducialityMask |= 1 << ISEEGAP;
+    if (el->isEBEEGap()) fiducialityMask |= 1 << ISEBEEGAP;
     if (el->isEBEtaGap()) fiducialityMask |= 1 << ISEBETAGAP;
     if (el->isEBPhiGap()) fiducialityMask |= 1 << ISEBPHIGAP;
+    if (el->isEBGap()) fiducialityMask |= 1 << ISEBGAP;
     if (el->isEEDeeGap()) fiducialityMask |= 1 << ISEEDEEGAP;
     if (el->isEERingGap()) fiducialityMask |= 1 << ISEERINGGAP;
+    if (el->isEEGap()) fiducialityMask |= 1 << ISEEGAP;
     if (el->isGap()) fiducialityMask |= 1 << ISGAP;
     electron_result.addUserInt("fid_mask", fiducialityMask);
 
     ///////////////////////////
     // Corrections & Seeding //
     ///////////////////////////
-    int electronTypeMask = 0;
+    cms3_egamma_fid_type_mask_t electronTypeMask = 0;
     if (el->isEcalEnergyCorrected()) electronTypeMask |= 1 << ISECALENERGYCORRECTED;
     if (el->trackerDrivenSeed()) electronTypeMask |= 1 << ISTRACKERDRIVEN;
     if (el->ecalDrivenSeed()) electronTypeMask |= 1 << ISECALDRIVEN;
     if (el->passingCutBasedPreselection()) electronTypeMask |= 1 << ISCUTPRESELECTED;
-    // el->ecalDriven() == el->ecalDrivenSeed() && el->passingCutBasedPreselection()
+    // el->ecalDriven() == el->ecalDrivenSeed() && el->passingCutBasedPreselection(), so no need to keep a bit for that
     if (el->passingMvaPreselection()) electronTypeMask |= 1 << ISMVAPRESELECTED;
     //if ( el->isMomentumCorrected() ) electronTypeMask |= 1 << ISMOMENTUMCORRECTED; // Depricated in CMSSW_4_2x ( DataFormats/EgammaCandidates/interface/GsfElectron.h )
     electron_result.addUserInt("type_mask", electronTypeMask);

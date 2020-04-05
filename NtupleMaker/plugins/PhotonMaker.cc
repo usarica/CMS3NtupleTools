@@ -10,8 +10,11 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
+#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
+
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
@@ -142,6 +145,21 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserInt("n_associated_pfcands", associated_pfcands.size());
     photon_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
 
+    //////////////////////
+    // Fiduciality Mask //
+    //////////////////////
+    cms3_egamma_fid_type_mask_t fiducialityMask = 0;  // The enums are in interface/EgammaFiduciality.h
+    if (photon->isEB()) fiducialityMask |= 1 << ISEB;
+    if (photon->isEE()) fiducialityMask |= 1 << ISEE;
+    if (photon->isEBEEGap()) fiducialityMask |= 1 << ISEBEEGAP;
+    if (photon->isEBEtaGap()) fiducialityMask |= 1 << ISEBETAGAP;
+    if (photon->isEBPhiGap()) fiducialityMask |= 1 << ISEBPHIGAP;
+    if (photon->isEBGap()){ fiducialityMask |= 1 << ISEBGAP; fiducialityMask |= 1 << ISGAP; }
+    if (photon->isEEDeeGap()) fiducialityMask |= 1 << ISEEDEEGAP;
+    if (photon->isEERingGap()) fiducialityMask |= 1 << ISEERINGGAP;
+    if (photon->isEEGap()){ fiducialityMask |= 1 << ISEEGAP; fiducialityMask |= 1 << ISGAP; }
+    //if (photon->isGap()) fiducialityMask |= 1 << ISGAP; // No such function in DataFormats/EgammaCandidates/interface/Photon.h
+    photon_result.addUserInt("fid_mask", fiducialityMask);
 
     /*
     // Loop over PF candidates and find those associated by the map to the gedGsfElectron1
