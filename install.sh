@@ -67,7 +67,7 @@ git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
 # MELA
 git clone git@github.com:cms-analysis/HiggsAnalysis-ZZMatrixElement.git ZZMatrixElement
 (cd ZZMatrixElement; source setup.sh -j;)
-#(cd ZZMatrixElement; git fetch; git checkout -b from-v222 v2.2.2; source setup.sh -j;)
+#(cd ZZMatrixElement; git fetch; git checkout -b from-v223 v2.2.3; source setup.sh -j;)
 
 # MELA Analytics
 git clone git@github.com:usarica/MelaAnalytics.git
@@ -75,11 +75,11 @@ git clone git@github.com:usarica/MelaAnalytics.git
 
 # Common LHE tools
 git clone git@github.com:usarica/CommonLHETools.git
-#(cd CommonLHETools; git fetch; git checkout -b from-v132 v1.3.2)
+#(cd CommonLHETools; git fetch; git checkout -b from-v132 v1.3.3)
 
 # CMSDataTools
 git clone git@github.com:usarica/CMSDataTools.git
-#(cd CMSDataTools; git fetch; git checkout -b from-v111 v1.1.1)
+#(cd CMSDataTools; git fetch; git checkout -b from-v12 v1.2)
 
 #########################
 #  DeepAK8 fat jet tagger
