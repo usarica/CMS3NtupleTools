@@ -1,7 +1,14 @@
+#include <cassert>
 #include <algorithm>
 #include <utility>
 #include <cmath>
 #include "GenInfoObject.h"
+#include "HelperFunctions.h"
+#include "MELAStreamHelpers.hh"
+
+
+using namespace std;
+using namespace MELAStreamHelpers;
 
 
 GenInfoVariables::GenInfoVariables(){
@@ -87,6 +94,12 @@ float GenInfoObject::getGenWeight(bool useDefaultPDFSet) const{
   default:
     break;
   }
+
+  if (!HelperFunctions::checkVarNanInf(wgt)){
+    MELAout << "GenInfoObject::getGenWeight(" << useDefaultPDFSet << "): Weight is " << wgt << "." << endl;
+    assert(0);
+  }
+
   return wgt;
 }
 float const& GenInfoObject::met_pt() const{

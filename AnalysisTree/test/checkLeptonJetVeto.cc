@@ -462,7 +462,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
-    float sum_wgts = (isData ? 1.f : 0.f);
+    double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
     if (!isData){
       sample_tree.bookBranch<float>("xsec", 0.f);
@@ -475,7 +475,7 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
 
       TString firstFile = SampleHelpers::getDatasetFirstFileName(sampledirs.front());
       TFile* fFirstFile = TFile::Open(firstFile, "read");
-      TH2F* hCounters = (TH2F*) fFirstFile->Get("cms3ntuple/Counters");
+      TH2D* hCounters = (TH2D*) fFirstFile->Get("cms3ntuple/Counters");
       if (hCounters) sum_wgts = hCounters->GetBinContent(1, 1);
       else{
         MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
@@ -485,10 +485,10 @@ void count(int procsel, int ichunk, int nchunks, TString strdate){
 
           genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
           auto const& genInfo = genInfoHandler.getGenInfo();
-          float genwgt = genInfo->getGenWeight(true);
+          double genwgt = genInfo->getGenWeight(true);
 
           simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
-          float puwgt = simEventHandler.getPileUpWeight();
+          double puwgt = simEventHandler.getPileUpWeight();
           sum_wgts += genwgt * puwgt;
         }
       }

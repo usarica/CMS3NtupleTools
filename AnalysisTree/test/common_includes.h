@@ -34,6 +34,10 @@
 #include "TSystem.h"
 #include "TDirectory.h"
 #include "TFile.h"
+#include "TH1D.h"
+#include "TH2D.h"
+#include "TH3D.h"
+
 
 using namespace std;
 using namespace MELAStreamHelpers;

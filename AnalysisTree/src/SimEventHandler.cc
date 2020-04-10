@@ -256,7 +256,7 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
 
   pileupWeight = hlist.at(isyst)->GetBinContent(hlist.at(isyst)->FindBin(*n_true_int));
   if (pileupWeight == 0.f){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: HPU weight = 0!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU weight = 0!" << endl;
   }
 
   return true;

@@ -33,6 +33,7 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
+  VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
 
   eventFilter.setTrackDataEvents(false);
@@ -57,9 +58,11 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
-    std::vector<float> sum_wgts(nValidDataPeriods+1, 0);
-    std::vector<float> sum_wgts_PUDn(nValidDataPeriods+1, 0);
-    std::vector<float> sum_wgts_PUUp(nValidDataPeriods+1, 0);
+    double sum_wgts_noPU=0;
+    double sum_abs_wgts_noPU=0;
+    std::vector<double> sum_wgts(nValidDataPeriods+1, 0);
+    std::vector<double> sum_wgts_PUDn(nValidDataPeriods+1, 0);
+    std::vector<double> sum_wgts_PUUp(nValidDataPeriods+1, 0);
     if (!isData){
       sample_tree.bookBranch<float>("xsec", 0.f);
 
@@ -79,13 +82,15 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
 
         genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
         auto const& genInfo = genInfoHandler.getGenInfo();
-        float genwgt = genInfo->getGenWeight(true);
+        double genwgt = genInfo->getGenWeight(true);
 
+        sum_wgts_noPU += genwgt;
+        sum_abs_wgts_noPU += std::abs(genwgt);
         for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
           if (idp==0) SampleHelpers::setDataPeriod(period);
           else SampleHelpers::setDataPeriod(validDataPeriods.at(idp-1));
 
-          float puwgt;
+          double puwgt;
           simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
           puwgt = simEventHandler.getPileUpWeight();
           sum_wgts.at(idp) += genwgt * puwgt;
@@ -120,12 +125,16 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
     isotrackHandler.bookBranches(&sample_tree);
     isotrackHandler.wrapTree(&sample_tree);
 
+    vertexHandler.bookBranches(&sample_tree);
+    vertexHandler.wrapTree(&sample_tree);
+
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
 
     MELAout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
     sample_tree.getSelectedTree()->SetBranchStatus("triggerObjects*", 1); // Needed for trigger matching
+    sample_tree.getSelectedTree()->SetBranchStatus("fsr*", 1); // Needed for trigger matching
 
     // Create output
     //TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
@@ -134,11 +143,19 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
     if (nchunks>0) stroutput = stroutput + Form("/allevents_%i_of_%i", ichunk, nchunks);
     else stroutput += "/allevents";
     stroutput += ".root";
+    MELAout << "Creating output file " << stroutput << "..." << endl;
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TDirectory* outdir = foutput->mkdir("cms3ntuple");
     outdir->cd();
     if (!isData){
-      TH2F hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
+      MELAout << "Writing the sum of gen. weights:" << endl;
+      MELAout << "\t- No PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
+      MELAout << "\t- Fraction of negative weights with no PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
+      MELAout << "\t- PU nominal: " << setprecision(15) << sum_wgts << endl;
+      MELAout << "\t- PU down: " << setprecision(15) << sum_wgts_PUDn << endl;
+      MELAout << "\t- PU up: " << setprecision(15) << sum_wgts_PUUp << endl;
+
+      TH2D hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
       for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
         hCounters.SetBinContent(1, idp+1, sum_wgts.at(idp));
         hCounters.SetBinContent(2, idp+1, sum_wgts_PUDn.at(idp));
@@ -166,7 +183,10 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
 
       eventFilter.constructFilters();
       //if (isData && !eventFilter.isUniqueDataEvent()) continue;
-      if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+
+      vertexHandler.constructVertices();
+      if (!vertexHandler.hasGoodPrimaryVertex()) continue;
 
       float trigwgt = eventFilter.getTriggerWeight(triggerCheckList);
       if (trigwgt==0.) continue;
@@ -228,6 +248,7 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
       outtree->Fill();
       n_acc++;
     }
+    MELAout << sample_tree.sampleIdentifier << " total number of accumulated events: " << n_acc << " / " << (ev_end - ev_start) << " / " << nEntries << endl;
 
     outdir->WriteTObject(outtree);
     delete outtree;

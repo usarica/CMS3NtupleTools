@@ -26,6 +26,14 @@ VertexHandler::VertexHandler() :
 #undef VERTEX_VARIABLE
 }
 
+void VertexHandler::clear(){
+  product_nvtxs = product_nvtxs_good = 0;
+  product_hasGoodPrimaryVertex=false;
+  
+  for (ProductType_t*& prod:productList) delete prod;
+  productList.clear();
+}
+
 bool VertexHandler::constructVertices(){
   clear();
   if (!currentTree) return false;
@@ -68,6 +76,7 @@ bool VertexHandler::constructVertices(){
 #undef VERTEX_VARIABLE
 
       // Set the product_hasGoodPrimaryVertex flag for the first vertex
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- The vertex is " << (*it_is_good ? "good" : "bad") << "." << endl;
       if (ip==0) product_hasGoodPrimaryVertex = (*it_is_good);
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;

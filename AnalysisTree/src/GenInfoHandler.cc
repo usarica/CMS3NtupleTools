@@ -81,7 +81,12 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
   if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructCoreGenInfo: All variables are set up!" << endl;
 
   genInfo = new GenInfoObject();
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) genInfo->extras.NAME = (NAME ? *NAME : TYPE(DEFVAL));
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) \
+  if (NAME) genInfo->extras.NAME = *NAME; \
+  else{ \
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: Variable " << #NAME << " is null!" << endl; \
+    assert(0); \
+  }
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
   genInfo->setSystematic(syst);

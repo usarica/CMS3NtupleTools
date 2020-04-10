@@ -423,6 +423,9 @@ void getTrees(
 
   SampleHelpers::configure("2018", "hadoop:200326");
 
+  std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
+  size_t const nValidDataPeriods = validDataPeriods.size();
+
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Medium);
   const float btag_medium_thr = BtagHelpers::getBtagWP(false);
   BtagHelpers::setBtagWPType(BtagHelpers::kDeepFlav_Loose);
@@ -430,7 +433,7 @@ void getTrees(
 
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 
-   auto triggerPropsCheckList_OSDF = TriggerHelpers::getHLTMenuProperties(
+  auto triggerPropsCheckList_OSDF = TriggerHelpers::getHLTMenuProperties(
     {
       TriggerHelpers::kMuEle,
       TriggerHelpers::kSingleEle, TriggerHelpers::kSingleMu
@@ -515,11 +518,9 @@ void getTrees(
   PhotonHandler photonHandler;
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
+  VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
-
-  MuonScaleFactorHandler muonSFHandler;
-  ElectronScaleFactorHandler electronSFHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(true);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -567,13 +568,11 @@ void getTrees(
   BRANCH_COMMAND(int, id_l1);
   BRANCH_COMMAND(float, pt_l1);
   BRANCH_COMMAND(float, eta_l1);
-  BRANCH_COMMAND(float, eff_l1);
-  BRANCH_COMMAND(float, efferr_l1);
+  BRANCH_COMMAND(float, phi_l1);
   BRANCH_COMMAND(int, id_l2);
   BRANCH_COMMAND(float, pt_l2);
   BRANCH_COMMAND(float, eta_l2);
-  BRANCH_COMMAND(float, eff_l2);
-  BRANCH_COMMAND(float, efferr_l2);
+  BRANCH_COMMAND(float, phi_l2);
   // J1
   BRANCH_COMMAND(float, pt_j1);
   BRANCH_COMMAND(float, eta_j1);
@@ -597,7 +596,7 @@ void getTrees(
 
     const int nEntries = sample_tree.getSelectedNEvents();
 
-    float sum_wgts = (isData ? 1.f : 0.f);
+    double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
     if (!isData){
       sample_tree.bookBranch<float>("xsec", 0.f);
@@ -610,8 +609,16 @@ void getTrees(
 
       TString firstFile = SampleHelpers::getDatasetFirstFileName(sname);
       TFile* fFirstFile = TFile::Open(firstFile, "read");
-      TH2F* hCounters = (TH2F*) fFirstFile->Get("cms3ntuple/Counters");
-      if (hCounters) sum_wgts = hCounters->GetBinContent(1, 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp));
+      TH2D* hCounters = (TH2D*) fFirstFile->Get("cms3ntuple/Counters");
+      if (hCounters){
+        int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
+        int bin_period = 1;
+        for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
+          if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
+        }
+        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights..." << endl;
+        sum_wgts = hCounters->GetBinContent(bin_syst, bin_period);
+      }
       else{
         MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
         for (int ev=0; ev<nEntries; ev++){
@@ -620,15 +627,16 @@ void getTrees(
 
           genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
           auto const& genInfo = genInfoHandler.getGenInfo();
-          float genwgt = genInfo->getGenWeight(true);
+          double genwgt = genInfo->getGenWeight(true);
 
           simEventHandler.constructSimEvent(theGlobalSyst);
-          float puwgt = simEventHandler.getPileUpWeight();
+          double puwgt = simEventHandler.getPileUpWeight();
           sum_wgts += genwgt * puwgt;
         }
       }
       fFirstFile->Close();
     }
+    MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
 
     // Configure handlers
     muonHandler.bookBranches(&sample_tree);
@@ -645,6 +653,9 @@ void getTrees(
 
     isotrackHandler.bookBranches(&sample_tree);
     isotrackHandler.wrapTree(&sample_tree);
+
+    vertexHandler.bookBranches(&sample_tree);
+    vertexHandler.wrapTree(&sample_tree);
 
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
@@ -664,6 +675,15 @@ void getTrees(
     MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_evts_acc=0;
+    size_t n_pass_isotrackVeto=0;
+    size_t n_pass_uniqueEvent=0;
+    size_t n_pass_commonFilters=0;
+    size_t n_pass_goodPVFilter=0;
+    size_t n_pass_triggers=0;
+    size_t n_pass_dPhi_j_met=0;
+    size_t n_pass_dilepton_OS=0;
+    size_t n_pass_dPhi_ll_met=0;
+    size_t n_pass_dPhi_lljets_met=0;
     bool firstEvent=true;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
@@ -780,22 +800,31 @@ void getTrees(
         }
       }
       if (hasVetoIsotrack) continue;
+      n_pass_isotrackVeto++;
 
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();
+      //auto pfmet_p4 = pfmet->p4(false, false, false);
       auto pfmet_p4 = pfmet->p4(true, true, true);
       pTmiss = pfmet_p4.Pt();
       phimiss = pfmet_p4.Phi();
 
       eventFilter.constructFilters();
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
-      if (!eventFilter.passMETFilters() || !eventFilter.passCommonSkim() || !eventFilter.hasGoodVertex()) continue;
+      n_pass_uniqueEvent++;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+      n_pass_commonFilters++;
+
+      vertexHandler.constructVertices();
+      if (!vertexHandler.hasGoodPrimaryVertex()) continue;
+      n_pass_goodPVFilter++;
 
       event_wgt_OSSF_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_OSSF, &muons, &electrons, nullptr, nullptr, nullptr, nullptr);
       event_wgt_OSDF_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_OSDF, &muons, &electrons, nullptr, nullptr, nullptr, nullptr);
       if ((event_wgt_OSSF_triggers + event_wgt_OSDF_triggers) == 0.f) continue;
+      n_pass_triggers++;
 
       has_electrons_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, &electrons, nullptr, nullptr, nullptr);
       has_photons_inHEM1516 = !eventFilter.test2018HEMFilter(&simEventHandler, nullptr, &photons, nullptr, nullptr);
@@ -812,7 +841,7 @@ void getTrees(
       phi_j2 = 0;
       mass_j2 = 0;
       event_Njets_btagged_loose = event_Njets_btagged_medium = event_Njets20_btagged_loose = event_Njets20_btagged_medium = event_Njets = event_Njets20 = 0;
-      ParticleObject::LorentzVector_t ak4jets_sump4;
+      ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       for (auto* jet:ak4jets){
         if (ParticleSelectionHelpers::isTightJet(jet)){
@@ -860,6 +889,7 @@ void getTrees(
         if (dphi_tmp<=0.25){ pass_dPhi_jet_met=false; break; }
       }
       if (!pass_dPhi_jet_met) continue;
+      n_pass_dPhi_j_met++;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
       auto const& dileptons = dileptonHandler.getProducts();
@@ -872,6 +902,7 @@ void getTrees(
         }
       }
       if (!theChosenDilepton || nTightDilep>1) continue;
+      n_pass_dilepton_OS++;
 
       bool pass_dPhi_ll_met = true;
       {
@@ -879,6 +910,7 @@ void getTrees(
         pass_dPhi_ll_met = abs_dPhi_ll_pfmet>1.0;
       }
       if (!pass_dPhi_ll_met) continue;
+      n_pass_dPhi_ll_met++;
 
       bool pass_dPhi_lljets_met = true;
       {
@@ -888,6 +920,7 @@ void getTrees(
         pass_dPhi_lljets_met = abs_dPhi_lljets_pfmet>2.5;
       }
       if (!pass_dPhi_lljets_met) continue;
+      n_pass_dPhi_lljets_met++;
 
       std::vector<ParticleObject*> dileptonDaughters = theChosenDilepton->getDaughters();
       ParticleObjectHelpers::sortByGreaterPt(dileptonDaughters);
@@ -898,11 +931,6 @@ void getTrees(
       if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -121) is_ee=true;
       else if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -143) is_emu=true;
       else if (leadingLepton->pdgId() * subleadingLepton->pdgId() == -169) is_mumu=true;
-      if (
-        ((is_ee || is_mumu) && event_wgt_OSSF_triggers==0.f)
-        ||
-        (is_emu && event_wgt_OSDF_triggers==0.f)
-        ) continue;
 
       sample_tree.getVal("vtxs_nvtxs_good", event_nvtxs_good);
 
@@ -921,20 +949,27 @@ void getTrees(
       id_l1 = leadingLepton->pdgId();
       pt_l1 = leadingLepton->pt();
       eta_l1 = leadingLepton->eta();
+      phi_l1 = leadingLepton->phi();
       id_l2 = subleadingLepton->pdgId();
       pt_l2 = subleadingLepton->pt();
       eta_l2 = subleadingLepton->eta();
-
-      //if (std::abs(id_l1)==11) electronSFHandler.getIdIsoEffAndError(eff_l1, efferr_l1, (ElectronObject const*) leadingLepton, isData, false);
-      //else muonSFHandler.getIdIsoEffAndError(eff_l1, efferr_l1, (MuonObject const*) leadingLepton, isData, false);
-      //if (std::abs(id_l2)==11) electronSFHandler.getIdIsoEffAndError(eff_l2, efferr_l2, (ElectronObject const*) subleadingLepton, isData, false);
-      //else muonSFHandler.getIdIsoEffAndError(eff_l2, efferr_l2, (MuonObject const*) subleadingLepton, isData, false);
+      phi_l2 = subleadingLepton->phi();
 
       tout->Fill();
       n_evts_acc++;
     } // End loop over events
 
     MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " / " << (ev_end - ev_start) << endl;
+    MELAout << "\t- Number of events passing each cut:\n"
+      << "\t\t- Isotrack veto: " <<  n_pass_isotrackVeto << '\n'
+      << "\t\t- Unique event: " <<  n_pass_uniqueEvent << '\n'
+      << "\t\t- Common filters: " <<  n_pass_commonFilters << '\n'
+      << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
+      << "\t\t- Trigger: " <<  n_pass_triggers << '\n'
+      << "\t\t- dPhi(j, MET): " <<  n_pass_dPhi_j_met << '\n'
+      << "\t\t- Dilepton sel.: " <<  n_pass_dilepton_OS << '\n'
+      << "\t\t- dPhi(ll, MET): " <<  n_pass_dPhi_ll_met << '\n'
+      << "\t\t- dPhi(ll+jets, MET): " <<  n_pass_dPhi_lljets_met << endl;
 
     // Set this flag for data so that subsequent files ensure checking for unique events
     isFirstInputFile=false;

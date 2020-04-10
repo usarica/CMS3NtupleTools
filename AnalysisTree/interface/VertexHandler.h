@@ -18,7 +18,7 @@ protected:
   bool product_hasGoodPrimaryVertex;
   std::vector<ProductType_t*> productList;
 
-  void clear(){ product_nvtxs=product_nvtxs_good=0; product_hasGoodPrimaryVertex=false; for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
+  void clear();
 
 public:
   // Constructors

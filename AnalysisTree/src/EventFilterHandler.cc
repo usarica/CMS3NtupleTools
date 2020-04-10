@@ -358,23 +358,37 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
 
   auto it_run = era_dataeventblock_map.find(*RunNumber);
   if (it_run == era_dataeventblock_map.end()){
+    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is new." << endl;
     era_dataeventblock_map[*RunNumber] = std::unordered_map<unsigned int, std::vector<unsigned long long>>();
     it_run = era_dataeventblock_map.find(*RunNumber);
   }
+  else if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Run " << *RunNumber << " is already in the tracked list." << endl;
+
   auto it_lumi = it_run->second.find(*LuminosityBlock);
   if (it_lumi == it_run->second.end()){
+    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is new." << endl;
     it_run->second[*LuminosityBlock] = std::vector<unsigned long long>();
     it_lumi = it_run->second.find(*LuminosityBlock);
   }
+  else if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Lumi. section " << *LuminosityBlock << " is already in the tracked list." << endl;
+
   if (checkUniqueDataEvent){
+    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Checking if the event is unique..." << endl;
     auto it_event = std::find(it_lumi->second.begin(), it_lumi->second.end(), *EventNumber);
     if (it_event == it_lumi->second.end()){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is unique." << endl;
       it_lumi->second.push_back(*EventNumber);
       product_uniqueEvent = true;
     }
-    else product_uniqueEvent = false;
+    else{
+      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: Event " << *EventNumber << " is already covered." << endl;
+      product_uniqueEvent = false;
+    }
   }
-  else it_lumi->second.push_back(*EventNumber);
+  else{
+    if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::accumulateRunLumiEventBlock: No checking is performed for event uniquenes." << endl;
+    it_lumi->second.push_back(*EventNumber);
+  }
 
   return true;
 }
