@@ -503,12 +503,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("dz_PV", -999.);
     }
     if (hasVertex){
-      electron_result.addUserFloat("dz_firstPV", gsfTrack->dz(vertexCollection->begin()->position()));
       electron_result.addUserFloat("dxy_firstPV", gsfTrack->dxy(vertexCollection->begin()->position()));
+      electron_result.addUserFloat("dz_firstPV", gsfTrack->dz(vertexCollection->begin()->position()));
     }
     else{
-      electron_result.addUserFloat("dz_firstPV", -999.);
       electron_result.addUserFloat("dxy_firstPV", -999.);
+      electron_result.addUserFloat("dz_firstPV", -999.);
     }
 
     /////////
@@ -566,8 +566,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //const HitPattern& p_outer = gsfTrack->trackerExpectedHitsOuter();
     electron_result.addUserInt("n_missing_inner_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
     electron_result.addUserInt("n_missing_outer_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS));
+    electron_result.addUserInt("n_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
+    electron_result.addUserInt("n_all_missing_inner_hits", pattern.numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS));
+    electron_result.addUserInt("n_all_missing_outer_hits", pattern.numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS));
     electron_result.addUserInt("n_valid_pixel_hits", pattern.numberOfValidPixelHits());
-    electron_result.addUserInt("n_lost_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
     electron_result.addUserInt("n_tracker_layers", pattern.trackerLayersWithMeasurement());
     electron_result.addUserInt("n_tracker_layers_3D", pattern.pixelLayersWithMeasurement() + pattern.numberOfValidStripLayersWithMonoAndStereo());
     electron_result.addUserInt("n_tracker_layers_lost", pattern.trackerLayersWithoutMeasurement(reco::HitPattern::TRACK_HITS));

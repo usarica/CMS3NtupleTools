@@ -851,7 +851,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, n_missing_inner_hits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_missing_inner_hits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_all_missing_inner_hits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, n_objects);
@@ -894,6 +895,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_neutral_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_comb_nofsr_uncorrected, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, dxy_firstPV, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
@@ -945,6 +949,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
     PUSH_USERINT_INTO_VECTOR(conv_vtx_flag);
     PUSH_USERINT_INTO_VECTOR(n_missing_inner_hits);
+    PUSH_USERINT_INTO_VECTOR(n_all_missing_inner_hits);
 
     // Id variables
     // Fall17V2_Iso MVA id
@@ -995,6 +1000,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_comb_nofsr_uncorrected);
 
+    PUSH_USERFLOAT_INTO_VECTOR(dxy_firstPV);
+    PUSH_USERFLOAT_INTO_VECTOR(dz_firstPV);
+
     /*
     // PF candidate properties
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
@@ -1020,6 +1028,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, conv_vtx_flag);
   PUSH_VECTOR_WITH_NAME(colName, n_missing_inner_hits);
+  PUSH_VECTOR_WITH_NAME(colName, n_all_missing_inner_hits);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);
@@ -1069,6 +1078,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_neutral_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_comb_nofsr_uncorrected);
+
+  PUSH_VECTOR_WITH_NAME(colName, dxy_firstPV);
+  PUSH_VECTOR_WITH_NAME(colName, dz_firstPV);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
