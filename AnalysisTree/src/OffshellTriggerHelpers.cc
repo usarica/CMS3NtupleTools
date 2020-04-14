@@ -51,7 +51,8 @@ void TriggerHelpers::configureHLTmap(){
     };
     HLT_type_proplist_map[kDoubleEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
-      { "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } },
+      { "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",{ { HLTObjectProperties::kElectron },{ HLTObjectProperties::kElectron } } },
+      { "HLT_DoubleEle33_CaloIdL_MW_v*",{ { HLTObjectProperties::kElectron },{ HLTObjectProperties::kElectron } } },
       { "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
     };
     HLT_type_proplist_map[kMuEle] = std::vector<HLTTriggerPathProperties>{
