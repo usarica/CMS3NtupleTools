@@ -10,11 +10,11 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 

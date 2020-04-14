@@ -71,10 +71,12 @@ protected:
   static const std::string colName_muons;
   static const std::string colName_electrons;
   static const std::string colName_photons;
+  static const std::string colName_fsrcands;
   static const std::string colName_isotracks;
   static const std::string colName_ak4jets;
   static const std::string colName_ak8jets;
   static const std::string colName_vtxs;
+  static const std::string colName_pfcands;
   static const std::string colName_triggerinfo;
   static const std::string colName_triggerobject;
 

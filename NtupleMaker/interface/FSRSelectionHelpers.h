@@ -65,16 +65,16 @@ template<typename PFCandIterable> float FSRSelectionHelpers::fsrIso(pat::PackedC
     double dr = reco::deltaR(obj.p4(), pfcand->p4());
     if (dr>=cut_deltaR) continue;
 
-    int id = std::abs(pfcand->pdgId());
+    unsigned int abs_id = std::abs(pfcand->pdgId());
     int charge = pfcand->charge();
     double pt = pfcand->pt();
     if (charge!=0){
       // Charged hadrons
-      if (dr>cut_deltaRself_ch && pt>cut_pt_ch && id==211) sum_ch += pt;
+      if (abs_id==211 && dr>cut_deltaRself_ch && pt>cut_pt_ch) sum_ch += pt;
     }
     else{
       // Neutral particles
-      if (dr>cut_deltaRself_ne && pt>cut_pt_ne && (id==22 || id==130)) sum_nh += pt;
+      if ((abs_id==22 || abs_id==130) && dr>cut_deltaRself_ne && pt>cut_pt_ne) sum_nh += pt;
     }
   }
 

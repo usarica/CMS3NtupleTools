@@ -22,7 +22,7 @@
 
 #include "CMS3/NtupleMaker/interface/plugins/ElectronExtraMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/EgammaReco/interface/BasicCluster.h"

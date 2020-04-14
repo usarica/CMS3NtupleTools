@@ -32,9 +32,11 @@ using namespace MELAStreamHelpers;
 const std::string CMS3Ntuplizer::colName_muons = "muons";
 const std::string CMS3Ntuplizer::colName_electrons = "electrons";
 const std::string CMS3Ntuplizer::colName_photons = "photons";
+const std::string CMS3Ntuplizer::colName_fsrcands = "fsrcands";
 const std::string CMS3Ntuplizer::colName_isotracks = "isotracks";
 const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
 const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
+const std::string CMS3Ntuplizer::colName_pfcands = "pfcands";
 const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
 const std::string CMS3Ntuplizer::colName_triggerinfo = "triggers";
 const std::string CMS3Ntuplizer::colName_triggerobject = "triggerObjects";
@@ -1743,8 +1745,8 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
 #undef PUSH_ISOTRACK_VARIABLE
 }
 size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat::Muon const*> const* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*> const* filledPhotons, std::vector<pat::PackedCandidate const*>* filledObjects){
-  //const char colName[] = "pfcands";
-  const char colNameFSR[] = "fsrcands";
+  //std::string const& colName = CMS3Ntuplizer::colName_pfcands;
+  std::string const& colNameFSR = CMS3Ntuplizer::colName_fsrcands;
   edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
   iEvent.getByToken(pfcandsToken, pfcandsHandle);
   if (!pfcandsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillPFCandidates: Error getting the PF candidate collection from the event...");
@@ -1762,16 +1764,16 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
 
     if (!FSRSelectionHelpers::testSkimFSR_PtEta(*obj, this->year)) continue;
 
-    double fsrInfo = FSRSelectionHelpers::fsrIso(*obj, this->year, it_pfcands_begin, it_pfcands_end);
-    if (!FSRSelectionHelpers::testSkimFSR_Iso(*obj, this->year, fsrInfo)) continue;
+    double fsrIso = FSRSelectionHelpers::fsrIso(*obj, this->year, it_pfcands_begin, it_pfcands_end);
+    if (!FSRSelectionHelpers::testSkimFSR_Iso(*obj, this->year, fsrIso)) continue;
 
-    FSRCandidateInfo fsrinfo;
-    fsrinfo.obj = &(*obj);
-    fsrinfo.fsrIso =  fsrInfo;
-    if (filledElectrons){ for (auto const& electron:(*filledElectrons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), electron)){ fsrinfo.veto_electron_list.push_back(electron); } } }
-    if (filledPhotons){ for (auto const& photon:(*filledPhotons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), photon)){ fsrinfo.veto_photon_list.push_back(photon); } } }
+    FSRCandidateInfo fsrInfo;
+    fsrInfo.obj = &(*obj);
+    fsrInfo.fsrIso = fsrIso;
+    if (filledElectrons){ for (auto const& electron:(*filledElectrons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), electron)){ fsrInfo.veto_electron_list.push_back(electron); } } }
+    if (filledPhotons){ for (auto const& photon:(*filledPhotons)){ if (FSRSelectionHelpers::testSCVeto(&(*obj), photon)){ fsrInfo.veto_photon_list.push_back(photon); } } }
 
-    preselectedFSRCandidates.emplace_back(fsrinfo);
+    preselectedFSRCandidates.emplace_back(fsrInfo);
   }
   // Match FSR candidates to leptons
   std::vector<reco::LeafCandidate const*> leptons;
@@ -1784,31 +1786,28 @@ size_t CMS3Ntuplizer::fillPFCandidates(edm::Event const& iEvent, std::vector<pat
     leptons.cbegin(), leptons.cend(),
     fsrcand_lepton_map
   );
+  // Do the rel. min. dR check between leptons and FSR candidates and make the final, writable collection
   std::vector<FSRCandidateInfo*> writableFSRCandidates;
   for (auto& it:fsrcand_lepton_map){
     FSRCandidateInfo const* fsrcand_const = it.first;
     FSRCandidateInfo* fsrcand = nullptr;
     for (auto& cand:preselectedFSRCandidates){ if (&cand == fsrcand_const) fsrcand = &cand; }
-    reco::LeafCandidate const* bestLepton = nullptr;
     for (auto const& lepton:it.second){
+      // Skip leptons that do not satisfy min. rel. dR requirements (dR/(pTfsr^2)<0.012)
+      double const dR_fsr_lepton = reco::deltaR(fsrcand->p4(), lepton->p4());
+      if (!FSRSelectionHelpers::testSkimFSR_MinDeltaR(*(fsrcand->obj), this->year, dR_fsr_lepton)) continue;
+
       pat::Muon const* muon = dynamic_cast<pat::Muon const*>(lepton);
       pat::Electron const* electron = dynamic_cast<pat::Electron const*>(lepton);
       if (muon){
-        if (!bestLepton) bestLepton = muon;
         fsrcand->matched_muon_list.push_back(muon);
       }
       else if (electron){
         if (HelperFunctions::checkListVariable(fsrcand->veto_electron_list, electron)) continue;
-        if (!bestLepton) bestLepton = electron;
         fsrcand->matched_electron_list.push_back(electron);
       }
     }
-    if (!bestLepton) continue;
-
-    double mindr = reco::deltaR(fsrcand->p4(), bestLepton->p4());
-    if (!FSRSelectionHelpers::testSkimFSR_MinDeltaR(*(fsrcand->obj), this->year, mindr)) continue;
-
-    writableFSRCandidates.push_back(fsrcand);
+    if (!fsrcand->matched_muon_list.empty() || !fsrcand->matched_electron_list.empty()) writableFSRCandidates.push_back(fsrcand);
   }
 
   // Fill FSR candidates

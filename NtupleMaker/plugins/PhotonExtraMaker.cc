@@ -38,7 +38,7 @@
 
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;

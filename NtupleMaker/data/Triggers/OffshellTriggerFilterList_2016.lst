@@ -32,6 +32,7 @@ customPrunedTriggerCollection = [
 
    "HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
    "HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*",
+   "HLT_DoubleEle33_CaloIdL_MW_v*",
    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*",
    "HLT_DoubleEle33_CaloIdL_v*",
 

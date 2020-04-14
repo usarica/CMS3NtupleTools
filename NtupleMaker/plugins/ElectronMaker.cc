@@ -56,11 +56,12 @@
 
 #include "CMS3/NtupleMaker/interface/plugins/ElectronMaker.h"
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
-#include "CMS3/NtupleMaker/interface/EgammaFiduciality.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
+#include "CMS3/Dictionaries/interface/ElectronCutEnums.h"
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
@@ -566,7 +567,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //const HitPattern& p_outer = gsfTrack->trackerExpectedHitsOuter();
     electron_result.addUserInt("n_missing_inner_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS));
     electron_result.addUserInt("n_missing_outer_hits", pattern.numberOfLostHits(reco::HitPattern::MISSING_OUTER_HITS));
-    electron_result.addUserInt("n_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
+    electron_result.addUserInt("n_missing_pixel_hits", pattern.numberOfLostPixelHits(reco::HitPattern::TRACK_HITS)); // Not sure about this. Could be MISSING_INNER_HITS instead.
     electron_result.addUserInt("n_all_missing_inner_hits", pattern.numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS));
     electron_result.addUserInt("n_all_missing_outer_hits", pattern.numberOfAllHits(reco::HitPattern::MISSING_OUTER_HITS));
     electron_result.addUserInt("n_valid_pixel_hits", pattern.numberOfValidPixelHits());
