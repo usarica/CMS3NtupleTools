@@ -61,7 +61,7 @@
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
-#include "CMS3/Dictionaries/interface/ElectronCutEnums.h"
+#include "CMS3/Dictionaries/interface/ElectronTriggerCutEnums.h"
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
@@ -89,7 +89,8 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   eeReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("eeReducedRecHitCollectionTag")),
   esReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("esReducedRecHitCollectionTag")),
 
-  rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag"))
+  rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag")),
+  rhoCaloInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoCaloInputTag"))
 {
   setupMVACuts();
 
@@ -106,6 +107,7 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   esReducedRecHitCollection = mayConsume<EcalRecHitCollection>(esReducedRecHitCollectionTag);
 
   rhoToken = consumes< double >(rhoInputTag_);
+  rhoCaloToken = consumes< double >(rhoCaloInputTag_);
 
   produces<pat::ElectronCollection>().setBranchAlias(aliasprefix_);
 }
@@ -129,6 +131,12 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   iEvent.getByToken(rhoToken, rhoHandle);
   if (!rhoHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting rho from the event...");
   const double rho_event = *rhoHandle;
+
+  // Event rho (calo), used in HLT
+  edm::Handle< double > rhoCaloHandle;
+  iEvent.getByToken(rhoCaloToken, rhoCaloHandle);
+  if (!rhoCaloHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting calo rho from the event...");
+  const double rho_calo_event = *rhoCaloHandle;
 
   ///////////////
   // Electrons //
@@ -250,6 +258,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-loose", "Fall17V1_Loose");
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-medium", "Fall17V1_Medium");
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-tight", "Fall17V1_Tight");
+    applyTriggerEmulationCuts(rho_calo_event, el, electron_result);
 
     //////////////
     // Electron //
@@ -752,6 +761,761 @@ void ElectronMaker::setCutBasedIdUserVariables(edm::View<pat::Electron>::const_i
     electron_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", cutbits);
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
+}
+
+void ElectronMaker::applyTriggerEmulationCuts(double const& rho, edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result) const{
+  const GsfTrackRef gsfTrack = el->gsfTrack();
+  const HitPattern& pattern = gsfTrack->hitPattern();
+  //int n_all_missing_inner_hits = pattern.numberOfAllHits(reco::HitPattern::MISSING_INNER_HITS);
+  int n_missing_inner_hits = pattern.numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
+  double const gsftrk_chisq = gsfTrack->chi2();
+  double const ecalEnergy = el->correctedEcalEnergy(); // Same as GsfElectron::ecalEnergy()
+  double const etaSC = el->superCluster()->eta();
+  double const abs_etaSC = std::abs(etaSC);
+  double const pt_uncorrected = el->p4().pt();
+  double const& energy_uncorrected = ecalEnergy;
+  // ID variables
+  double const sigmaIEtaIEta_full5x5 = el->full5x5_sigmaIetaIeta();
+  //double const sigmaIEtaIEta = el->sigmaIetaIeta();
+  double const hOverE = el->hcalOverEcal(); // Same as GsfElectron::hadronicOverEm()
+  //double const hOverE_full5x5 = el->full5x5_hcalOverEcal();
+  double const eOverPIn = el->eSuperClusterOverP();
+  //double const eOverPOut = el->eEleClusterOverPout();
+  //double const eSeedOverPIn = el->eSeedClusterOverP();
+  //double const fbrem = el->fbrem();
+  double const dEtaIn = el->deltaEtaSuperClusterTrackAtVtx();
+  double const abs_dEtaIn = std::abs(dEtaIn);
+  //double const dEtaInSeed = el->deltaEtaSeedClusterTrackAtVtx();
+  //double const abs_dEtaInSeed = std::abs(dEtaInSeed);
+  double const dEtaOut = el->deltaEtaSeedClusterTrackAtCalo();
+  double const abs_dEtaOut = std::abs(dEtaOut);
+  double const dPhiIn = el->deltaPhiSuperClusterTrackAtVtx();
+  double const abs_dPhiIn = std::abs(dPhiIn);
+  //double const dPhiOut = el->deltaPhiSeedClusterTrackAtCalo();
+  //double const abs_dPhiOut = std::abs(dPhiOut);
+  double const Einv_minus_Pinv_in = std::abs(1./ecalEnergy - eOverPIn/ecalEnergy);
+  // Isolation variables
+  double const trkIso03 = el->dr03TkSumPt();
+  double const ecalPFClusterIso = el->ecalPFClusterIso();
+  double const hcalPFClusterIso = el->hcalPFClusterIso();
+  double const ecalPFClusterIsoCorr = std::max(0., ecalPFClusterIso - rho*(abs_etaSC<1.479 ? 0.165: 0.132));
+  double const hcalPFClusterIsoCorr = std::max(0., hcalPFClusterIso - rho*(abs_etaSC<1.479 ? 0.060 : 0.131));
+  //double const ecalIso04 = el->dr04EcalRecHitSumEt();
+  //double const hcalIso04 = el->dr04HcalTowerSumEt();
+
+  using namespace ElectronTriggerCutEnums;
+
+  unsigned int trigcutbits = 0;
+  if (this->year_ == 2016){
+    for (unsigned int itype=0; itype<(int) nElectronTriggerCutTypes; itype++){
+      bool res = true;
+
+      ElectronTriggerCutTypes type = (ElectronTriggerCutTypes) itype;
+      switch (type){
+      case kCuts_CustomTriggerSafe_Id_v1:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.04) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.08) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v1:
+      {
+        if (ecalPFClusterIso/pt_uncorrected > 0.45) res = false;
+        if (hcalPFClusterIso/pt_uncorrected > 0.25) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CustomTriggerSafe_Id_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.060) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.020) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.060) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+          if (gsftrk_chisq > 3) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.160) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL:
+      {
+        // HLT_Mu8_DiEle12_CaloIdL_TrackIdL_v*
+        // HLT_DiMu9_Ele9_CaloIdL_TrackIdL_v*
+        // HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v1:
+      {
+        // HLT_Ele17_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu17_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5) res = false;
+        if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v2:
+      {
+        // HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu23_TrkIsoVVL_Ele8_CaloIdL_TrackIdL_IsoVL_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5) res = false;
+        if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v3:
+      {
+        // HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.014) res = false;
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (hOverE > 0.1) res = false;
+        }
+        if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5) res = false;
+        if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        // There is also PM S2 requirement, but we ignore that.
+        break;
+      }
+
+      case kCuts_CaloIdL_GsfTrkIdVL:
+      {
+        // HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.014) res = false;
+          if (hOverE > 0.15) res = false;
+          if (abs_dEtaOut > 0.02) res = false;
+          if (abs_dPhiIn > 0.15) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (hOverE > 0.1) res = false;
+          if (abs_dEtaOut > 0.02) res = false;
+          if (abs_dPhiIn > 0.15) res = false;
+        }
+        break;
+      }
+
+      case kCuts_CaloIdL_MW:
+      {
+        // HLT_DoubleEle33_CaloIdL_MW_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.014) res = false;
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (hOverE > 0.1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_WPLoose:
+      {
+        // HLT_Ele27_eta2p1_WPLoose_Gsf_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.04) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.012) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.04) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.06) res = false;
+          if (trkIso03/pt_uncorrected > 0.08) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.04) res = false;
+          if (abs_dEtaOut > 0.006) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+          if (gsftrk_chisq > 2.8) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.045) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.08) res = false;
+          if (trkIso03/pt_uncorrected > 0.07) res = false;
+          if (n_missing_inner_hits > 2) res = false;
+        }
+        break;
+      }
+
+      case kCuts_WPTight_v1:
+      {
+        // HLT_Ele25_eta2p1_WPTight_Gsf_v*
+        // HLT_Ele27_WPTight_Gsf_v*
+        // HLT_Ele32_eta2p1_WPTight_Gsf_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.0105) res = false;
+          if (hOverE > 0.05) res = false;
+          if (abs_dEtaOut > 0.0035) res = false;
+          if (abs_dPhiIn > 0.015) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.032) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.055) res = false;
+          if (trkIso03/pt_uncorrected > 0.06) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.0285) res = false;
+          if (hOverE > 0.035) res = false;
+          if (abs_dEtaOut > 0.0045) res = false;
+          if (abs_dPhiIn > 0.022) res = false;
+          if (Einv_minus_Pinv_in > 0.008) res = false;
+          if (gsftrk_chisq > 2.5) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.04) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.05) res = false;
+          if (trkIso03/pt_uncorrected > 0.05) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_DoublePhoton:
+      {
+        // HLT_DoublePhoton60_v*
+        if (abs_etaSC < 1.479){
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (hOverE > 0.1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_WPTight_v2:
+      {
+        res = false;
+        break;
+      }
+      default:
+        throw cms::Exception("UndefinedElectronTrigger") << "ElectronMaker::applyTriggerCuts: Trigger enum" << itype << " is not implemented for year " << this->year_ << endl;
+        break;
+      }
+
+      HelperFunctions::set_bit(trigcutbits, itype, res);
+    }
+  }
+  else if (this->year_ == 2017){
+    for (unsigned int itype=0; itype<(int) nElectronTriggerCutTypes; itype++){
+      bool res = true;
+
+      ElectronTriggerCutTypes type = (ElectronTriggerCutTypes) itype;
+      switch (type){
+      case kCuts_CustomTriggerSafe_Id_v1:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.04) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.08) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v1:
+      {
+        if (ecalPFClusterIso/pt_uncorrected > 0.45) res = false;
+        if (hcalPFClusterIso/pt_uncorrected > 0.25) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CustomTriggerSafe_Id_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.060) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.020) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.060) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+          if (gsftrk_chisq > 3) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.160) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL:
+      {
+        // HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*
+        // HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*
+        // HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v1:
+      {
+        // HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5 + 0.29*rho) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3 + 0.2*rho) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5 + 0.21*rho) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3 + 0.25*rho) res = false;
+        }
+      }
+
+      case kCuts_CaloIdL_MW:
+      {
+        // HLT_DoubleEle33_CaloIdL_MW_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.014) res = false;
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (hOverE > 0.1) res = false;
+        }
+        // There is also PM S2<250 requirement, but we ignore that.
+        break;
+      }
+
+      case kCuts_WPTight_v1:
+      {
+        // HLT_Ele35_WPTight_Gsf_v* // Menus 2017_v1p1, 2017_v1p2 have slightly different cuts, so moved to v2
+        // HLT_Ele38_WPTight_Gsf_v* // Menus 2017_v1p1, 2017_v1p2 have slightly different cuts, so moved to v2
+        // HLT_Ele40_WPTight_Gsf_v*
+        if (abs_etaSC < 1.){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > (0.887 + 0.02*energy_uncorrected + 0.098*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.012) res = false;
+          if (ecalPFClusterIsoCorr > (-0.581 + 0.03*pt_uncorrected + 0.325*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (0.786 + 0.03*pt_uncorrected + 0.259*rho)) res = false;
+          if (trkIso03 > (0.838 + 0.03*pt_uncorrected + 0.029*rho)) res = false;
+        }
+        else if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > (1.476 + 0.02*energy_uncorrected + 0.159*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.012) res = false;
+          if (ecalPFClusterIsoCorr > (-0.698 + 0.03*pt_uncorrected + 0.296*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (0.298 + 0.03*pt_uncorrected + 0.328*rho)) res = false;
+          if (trkIso03 > (-0.385 + 0.03*pt_uncorrected + 0.111*rho)) res = false;
+        }
+        else if (abs_etaSC < 2.1){
+          if (sigmaIEtaIEta_full5x5 > 0.0305) res = false;
+          if (hOverE > (2.672 + 0.015*energy_uncorrected + 0.353*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.005) res = false;
+          if (abs_dPhiIn > 0.023) res = false;
+          if (Einv_minus_Pinv_in > 0.011) res = false;
+          if (ecalPFClusterIsoCorr > (-0.892 + 0.025*pt_uncorrected + 0.283*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (0.402 + 0.025*pt_uncorrected + 0.414*rho)) res = false;
+          if (trkIso03 > (-0.363 + 0.025*pt_uncorrected + 0.114*rho)) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.0305) res = false;
+          if (hOverE > (5.095 + 0.015*energy_uncorrected + 0.423*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.005) res = false;
+          if (abs_dPhiIn > 0.023) res = false;
+          if (Einv_minus_Pinv_in > 0.011) res = false;
+          if (gsftrk_chisq > 2.5) res = false;
+          if (ecalPFClusterIsoCorr > (-0.885 + 0.025*pt_uncorrected + 0.438*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (-0.061 + 0.025*pt_uncorrected + 0.456*rho)) res = false;
+          if (trkIso03 > (0.702 + 0.025*pt_uncorrected + 0.032*rho)) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_WPTight_v2:
+      {
+        // HLT_Ele35_WPTight_Gsf_v* // Menus 2017_v1p1, 2017_v1p2 have slightly different cuts
+        // HLT_Ele38_WPTight_Gsf_v* // Menus 2017_v1p1, 2017_v1p2 have slightly different cuts
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.0105) res = false;
+          if (hOverE > 0.07) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.032) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.055) res = false;
+          if (trkIso03/pt_uncorrected > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.0285) res = false;
+          if (hOverE > 0.035) res = false;
+          if (abs_dEtaOut > 0.0045) res = false;
+          if (abs_dPhiIn > 0.022) res = false;
+          if (Einv_minus_Pinv_in > 0.008) res = false;
+          if (gsftrk_chisq > 3.5) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.04) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.05) res = false;
+          if (trkIso03/pt_uncorrected > 0.05) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_DoublePhoton:
+      {
+        // HLT_DoublePhoton70_v*
+        if (abs_etaSC < 1.479){
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (hOverE > 0.1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v2:
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v3:
+      case kCuts_CaloIdL_GsfTrkIdVL:
+      case kCuts_WPLoose:
+      {
+        res = false;
+        break;
+      }
+
+      default:
+        throw cms::Exception("UndefinedElectronTrigger") << "ElectronMaker::applyTriggerCuts: Trigger enum" << itype << " is not implemented for year " << this->year_ << endl;
+        break;
+      }
+
+      HelperFunctions::set_bit(trigcutbits, itype, res);
+    }
+  }
+  else if (this->year_ == 2018){
+    for (unsigned int itype=0; itype<(int) nElectronTriggerCutTypes; itype++){
+      bool res = true;
+
+      ElectronTriggerCutTypes type = (ElectronTriggerCutTypes) itype;
+      switch (type){
+      case kCuts_CustomTriggerSafe_Id_v1:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.04) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.080) res = false;
+          if (abs_dEtaIn > 0.01) res = false;
+          if (abs_dPhiIn > 0.08) res = false;
+          if (Einv_minus_Pinv_in > 0.01) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v1:
+      {
+        if (ecalPFClusterIso/pt_uncorrected > 0.45) res = false;
+        if (hcalPFClusterIso/pt_uncorrected > 0.25) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CustomTriggerSafe_Id_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > 0.060) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.020) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (sigmaIEtaIEta_full5x5 > 0.031) res = false;
+          if (hOverE > 0.060) res = false;
+          if (Einv_minus_Pinv_in > 0.013) res = false;
+          if (gsftrk_chisq > 3) res = false;
+        }
+        break;
+      }
+      case kCuts_CustomTriggerSafe_Iso_v2:
+      {
+        if (abs_etaSC < 1.479){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.160) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        else if (abs_etaSC < 2.5){
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.120) res = false;
+          if (trkIso03/pt_uncorrected > 0.080) res = false;
+        }
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL:
+      {
+        // HLT_Mu8_DiEle12_CaloIdL_TrackIdL_DZ_v*
+        // HLT_DiMu9_Ele9_CaloIdL_TrackIdL_DZ_v*
+        // HLT_Ele16_Ele12_Ele8_CaloIdL_TrackIdL_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v1:
+      {
+        // HLT_Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu12_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_v*
+        // HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.013) res = false;
+          if (abs_dEtaOut > 0.01) res = false;
+          if (abs_dPhiIn > 0.07) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5 + 0.29*rho) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3 + 0.2*rho) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (abs_dEtaOut > 0.015) res = false;
+          if (abs_dPhiIn > 0.1) res = false;
+          if (ecalPFClusterIsoCorr/pt_uncorrected > 0.5 + 0.21*rho) res = false;
+          if (hcalPFClusterIsoCorr/pt_uncorrected > 0.3 + 0.25*rho) res = false;
+        }
+        if (hOverE > 0.13) res = false;
+        if (trkIso03/pt_uncorrected > 0.2) res = false;
+        break;
+      }
+
+      case kCuts_CaloIdL_MW:
+      {
+        // HLT_DoubleEle25_CaloIdL_MW_v*
+        if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.014) res = false;
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.035) res = false;
+          if (hOverE > 0.1) res = false;
+        }
+        // There is also PM S2<250 requirement, but we ignore that.
+        break;
+      }
+
+      case kCuts_WPTight_v1:
+      {
+        // HLT_Ele32_WPTight_Gsf_v*
+        if (abs_etaSC < 1.){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > (0.75 + 0.03*energy_uncorrected + 0.1*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.012) res = false;
+          if (ecalPFClusterIsoCorr > (1.75 + 0.03*pt_uncorrected + 0.2*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (2.5 + 0.03*pt_uncorrected + 0.2*rho)) res = false;
+          if (trkIso03 > (0.838 + 0.03*pt_uncorrected + 0.029*rho)) res = false;
+        }
+        else if (abs_etaSC < 1.479){
+          if (sigmaIEtaIEta_full5x5 > 0.011) res = false;
+          if (hOverE > (2.25 + 0.03*energy_uncorrected + 0.1*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.004) res = false;
+          if (abs_dPhiIn > 0.02) res = false;
+          if (Einv_minus_Pinv_in > 0.012) res = false;
+          if (ecalPFClusterIsoCorr > (1.75 + 0.03*pt_uncorrected + 0.2*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (3.0 + 0.03*pt_uncorrected + 0.2*rho)) res = false;
+          if (trkIso03 > (-0.385 + 0.03*pt_uncorrected + 0.111*rho)) res = false;
+        }
+        else if (abs_etaSC < 2.0){
+          if (sigmaIEtaIEta_full5x5 > 0.0305) res = false;
+          if (hOverE > (3. + 0.03*energy_uncorrected + 0.3*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.005) res = false;
+          if (abs_dPhiIn > 0.023) res = false;
+          if (Einv_minus_Pinv_in > 0.011) res = false;
+          if (ecalPFClusterIsoCorr > (1. + 0.025*pt_uncorrected + 0.25*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (1. + 0.03*pt_uncorrected + 0.4*rho)) res = false;
+          if (trkIso03 > (-0.363 + 0.025*pt_uncorrected + 0.114*rho)) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        else if (abs_etaSC < 2.1){
+          if (sigmaIEtaIEta_full5x5 > 0.0305) res = false;
+          if (hOverE > (3. + 0.03*energy_uncorrected + 0.3*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.005) res = false;
+          if (abs_dPhiIn > 0.023) res = false;
+          if (Einv_minus_Pinv_in > 0.011) res = false;
+          if (ecalPFClusterIsoCorr > (1. + 0.025*pt_uncorrected + 0.25*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (1. + 0.03*pt_uncorrected + 0.5*rho)) res = false;
+          if (trkIso03 > (-0.363 + 0.025*pt_uncorrected + 0.114*rho)) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        else{
+          if (sigmaIEtaIEta_full5x5 > 0.0305) res = false;
+          if (hOverE > (5. + 0.03*energy_uncorrected + 0.5*rho)/energy_uncorrected) res = false;
+          if (abs_dEtaOut > 0.005) res = false;
+          if (abs_dPhiIn > 0.023) res = false;
+          if (Einv_minus_Pinv_in > 0.011) res = false;
+          if (gsftrk_chisq > 2.5) res = false;
+          if (ecalPFClusterIsoCorr > (2. + 0.025*pt_uncorrected + 0.3*rho)) res = false;
+          if (hcalPFClusterIsoCorr > (2. + 0.03*pt_uncorrected + 0.5*rho)) res = false;
+          if (trkIso03 > (0.702 + 0.025*pt_uncorrected + 0.032*rho)) res = false;
+          if (n_missing_inner_hits > 1) res = false;
+        }
+        break;
+      }
+
+      case kCuts_DoublePhoton:
+      {
+        // HLT_DoublePhoton70_v*
+        if (abs_etaSC < 1.479){
+          if (hOverE > 0.15) res = false;
+        }
+        else{
+          if (hOverE > 0.1) res = false;
+        }
+        break;
+      }
+
+
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v2:
+      case kCuts_CaloIdL_TrackIdL_IsoVL_v3:
+      case kCuts_CaloIdL_GsfTrkIdVL:
+      case kCuts_WPLoose:
+      case kCuts_WPTight_v2:
+      {
+        res = false;
+        break;
+      }
+
+      default:
+        throw cms::Exception("UndefinedElectronTrigger") << "ElectronMaker::applyTriggerCuts: Trigger enum" << itype << " is not implemented for year " << this->year_ << endl;
+        break;
+      }
+
+      HelperFunctions::set_bit(trigcutbits, itype, res);
+    }
+  }
+  else{
+    throw cms::Exception("UndefinedElectronTrigger") << "ElectronMaker::applyTriggerEmulationCuts: Year " << this->year_ << " is not implemented." << endl;
+  }
+
+  electron_result.addUserInt("id_cutBased_triggerEmulation_Bits", trigcutbits);
 }
 
 

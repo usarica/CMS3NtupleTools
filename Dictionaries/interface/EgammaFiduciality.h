@@ -3,19 +3,19 @@
 // of Egamma objects (electrons and photons)
 //
 
-#ifndef EgammaFiduciality_h
-#define EgammaFiduciality_h
+#ifndef EGAMMAFIDUCIALITY_H
+#define EGAMMAFIDUCIALITY_H
 
 // Fiduciality in the calorimeter
 enum EgammaFiduciality{
-	ISEB,
-	ISEE,
+  ISEB,
+  ISEE,
   ISEBEEGAP,
   ISEBETAGAP,
-	ISEBPHIGAP,
+  ISEBPHIGAP,
   ISEBGAP,
   ISEEDEEGAP,
-	ISEERINGGAP,
+  ISEERINGGAP,
   ISEEGAP,
   ISGAP
 };

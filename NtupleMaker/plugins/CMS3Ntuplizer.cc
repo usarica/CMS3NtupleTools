@@ -877,6 +877,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_triggerEmulation_Bits, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, n_objects);
@@ -918,6 +919,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
       !ElectronSelectionHelpers::testSkimElectron(
         *obj, this->year,
         {
+          //"id_cutBased_triggerEmulation_Bits", // Trigger emulation is not necessary
           "id_cutBased_Fall17V2_Veto_Bits", "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits"/*,
           "id_cutBased_Fall17V1_Veto_Bits", "id_cutBased_Fall17V1_Loose_Bits", "id_cutBased_Fall17V1_Medium_Bits", "id_cutBased_Fall17V1_Tight_Bits"*/
         },
@@ -979,6 +981,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
+    PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulation_Bits);
 
     /*
     // Fall17V1 cut-based ids
@@ -1060,6 +1063,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
+  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulation_Bits);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Veto_Bits);

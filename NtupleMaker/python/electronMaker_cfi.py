@@ -27,8 +27,9 @@ electronMaker = cms.EDProducer(
    eeReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedEERecHits"),
    esReducedRecHitCollectionTag = cms.InputTag("reducedEgamma:reducedESRecHits"),
 
-   # Event rho
+   # Event rhos
    rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
+   rhoCaloInputTag = cms.InputTag("fixedGridRhoFastjetAllCalo"),
 
    )
 

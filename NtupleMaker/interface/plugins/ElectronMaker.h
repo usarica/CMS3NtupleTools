@@ -62,6 +62,7 @@ private:
   void setupMVACuts();
   void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
+  void applyTriggerEmulationCuts(double const&, edm::View<pat::Electron>::const_iterator const&, pat::Electron&) const;
 
 protected:
   std::string aliasprefix_;
@@ -77,6 +78,7 @@ protected:
   edm::InputTag esReducedRecHitCollectionTag;
 
   edm::InputTag rhoInputTag_;
+  edm::InputTag rhoCaloInputTag_;
 
 
   std::unordered_map< std::string, std::vector< StringCutObjectSelector<pat::Electron, true> > > MVACutObjects;
@@ -91,6 +93,7 @@ protected:
   edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
 
   edm::EDGetTokenT< double > rhoToken;
+  edm::EDGetTokenT< double > rhoCaloToken;
 
 };
 
