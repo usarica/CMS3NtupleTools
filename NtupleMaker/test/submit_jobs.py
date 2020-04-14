@@ -14,6 +14,8 @@ from metis.Optimizer import Optimizer
 
 DO_TEST = False
 
+# To make tarfile use command:  mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
+
 def get_tasks(csvs, tarfile, tag):
 
     if not os.path.exists(tarfile):
@@ -40,7 +42,7 @@ def get_tasks(csvs, tarfile, tag):
     for sample in samples:
         isdata = "Run201" in sample.info["dataset"]
         events_per_output = (200e3 if isdata else 200e3)
-        pset_args = sample.info["options"]
+        pset_args = "xsec={} BR={} ".format(sample.info["xsec"], sample.info["efact"]) + sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         extra = dict()
         if DO_TEST:
@@ -70,6 +72,7 @@ def get_tasks(csvs, tarfile, tag):
                 pset="main_pset.py",
                 is_tree_output=False,
                 dont_check_tree=True,
+                # no_load_from_backup=True,
                 **extra
                 )
         tasks.append(task)
