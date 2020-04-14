@@ -164,15 +164,17 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_Ele40_WPTight_Gsf_v*", { { HLTObjectProperties::kElectron } } }
     };
     HLT_type_proplist_map[kSinglePho] = std::vector<HLTTriggerPathProperties>{
-      { "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f } } } } }, // unprescaled
+      //{ "HLT_Photon300_NoHE_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 300.f+40.f } } } } }, // Unprescaled
+      //{ "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f }, { HLTObjectProperties::kPtHigh, 300.f+40.f } } } } }, // Unprescaled
+      //{ "HLT_Photon175_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 175.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
+      //{ "HLT_Photon165_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 165.f*1.1f }, { HLTObjectProperties::kPtHigh, 175.f*1.15f } } } } },
+      { "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f } } } } }, // Unprescaled
       { "HLT_Photon165_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 165.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
       { "HLT_Photon120_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 120.f*1.1f }, { HLTObjectProperties::kPtHigh, 165.f*1.1f } } } } },
       { "HLT_Photon90_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 90.f*1.1f }, { HLTObjectProperties::kPtHigh, 120.f*1.1f } } } } },
       { "HLT_Photon75_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 75.f*1.1f }, { HLTObjectProperties::kPtHigh, 90.f*1.1f } } } } },
       { "HLT_Photon50_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 50.f*1.1f }, { HLTObjectProperties::kPtHigh, 75.f*1.1f } } } } },
       { "HLT_Photon33_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 33.f*1.1f }, { HLTObjectProperties::kPtHigh, 50.f*1.1f } } } } }//,
-      //{ "HLT_Photon300_NoHE_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 300.f+40.f } } } } }, // Unprescaled
-      //{ "HLT_Photon175_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 175.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
       //{ "HLT_Photon30_HoverELoose_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 30.f*1.1f }, { HLTObjectProperties::kPtHigh, 33.f*1.1f } } } } }, // Only runs 299368 - 306460 (36.75 fb-1)
       //{ "HLT_Photon25_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 25.f*1.1f }, { HLTObjectProperties::kPtHigh, 30.f*1.1f } } } } }, // Only runs 302026 - 306460 (27.13 fb-1)
       //{ "HLT_Photon20_HoverELoose_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 20.f*1.1f }, { HLTObjectProperties::kPtHigh, 25.f*1.1f } } } } } // Only runs 299368 - 306460 (36.75 fb-1)
@@ -243,9 +245,11 @@ void TriggerHelpers::configureHLTmap(){
     HLT_type_proplist_map[kSingleMu] = std::vector<HLTTriggerPathProperties>{ { "HLT_IsoMu24_v*", { { HLTObjectProperties::kMuon } } } };
     HLT_type_proplist_map[kSingleEle] = std::vector<HLTTriggerPathProperties>{ { "HLT_Ele32_WPTight_Gsf_v*", { { HLTObjectProperties::kElectron } } } };
     HLT_type_proplist_map[kSinglePho] = std::vector<HLTTriggerPathProperties>{
-      // { "HLT_Photon300_NoHE_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 300.f+40.f } } } } }, // Unprescaled
-      // { "HLT_Photon175_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 175.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
-      { "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f } } } } }, // unprescaled
+      //{ "HLT_Photon300_NoHE_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 300.f+40.f } } } } }, // Unprescaled
+      //{ "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f }, { HLTObjectProperties::kPtHigh, 300.f+40.f } } } } }, // Unprescaled
+      //{ "HLT_Photon175_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 175.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
+      //{ "HLT_Photon165_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 165.f*1.1f }, { HLTObjectProperties::kPtHigh, 175.f*1.15f } } } } },
+      { "HLT_Photon200_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 200.f*1.15f } } } } }, // Unprescaled
       { "HLT_Photon165_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 165.f*1.1f }, { HLTObjectProperties::kPtHigh, 200.f*1.15f } } } } },
       { "HLT_Photon120_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 120.f*1.1f }, { HLTObjectProperties::kPtHigh, 165.f*1.1f } } } } },
       { "HLT_Photon90_R9Id90_HE10_IsoM_v*", { { HLTObjectProperties::kPhoton, { { HLTObjectProperties::kPt, 90.f*1.1f }, { HLTObjectProperties::kPtHigh, 120.f*1.1f } } } } },
