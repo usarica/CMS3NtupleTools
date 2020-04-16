@@ -668,13 +668,15 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
   MAKE_VECTOR_WITH_RESERVE(cms3_muon_pogselectorbits_t, POG_selector_bits, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_nofsr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_neutral_EAcorr_nofsr, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_charged_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_neutral_nofsr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_comb_nofsr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfIso04_sum_neutral_EAcorr_nofsr, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_charged_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, miniIso_sum_neutral_nofsr, n_objects);
@@ -702,6 +704,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
   MAKE_VECTOR_WITH_RESERVE(float, dxy_bestTrack_firstPV, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, dz_bestTrack_firstPV, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, SIP3D, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_pt_corr_scale_totalUp, n_objects);
@@ -723,13 +726,15 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
     PUSH_USERINT_INTO_VECTOR(POG_selector_bits);
 
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_charged_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_neutral_nofsr);
-    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_neutral_EAcorr_nofsr);
 
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_charged_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_neutral_nofsr);
-    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_comb_nofsr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfIso04_sum_neutral_EAcorr_nofsr);
 
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_charged_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(miniIso_sum_neutral_nofsr);
@@ -761,6 +766,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
     PUSH_USERFLOAT_INTO_VECTOR(dxy_bestTrack_firstPV);
     PUSH_USERFLOAT_INTO_VECTOR(dz_bestTrack_firstPV);
+    PUSH_USERFLOAT_INTO_VECTOR(SIP3D);
 
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_pt_corr_scale_totalUp);
@@ -782,13 +788,15 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
   PUSH_VECTOR_WITH_NAME(colName, POG_selector_bits);
 
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_charged_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_neutral_nofsr);
-  PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_neutral_EAcorr_nofsr);
 
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_charged_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_neutral_nofsr);
-  PUSH_VECTOR_WITH_NAME(colName, pfIso04_comb_nofsr);
+  PUSH_VECTOR_WITH_NAME(colName, pfIso04_sum_neutral_EAcorr_nofsr);
 
   PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_charged_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, miniIso_sum_neutral_nofsr);
@@ -820,6 +828,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
 
   PUSH_VECTOR_WITH_NAME(colName, dxy_bestTrack_firstPV);
   PUSH_VECTOR_WITH_NAME(colName, dz_bestTrack_firstPV);
+  PUSH_VECTOR_WITH_NAME(colName, SIP3D);
 
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_pt_corr_scale_totalUp);
@@ -853,6 +862,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_scale_totalDn, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_charge_consistency_bits_t, charge_consistency_bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_missing_inner_hits, n_objects);
@@ -904,6 +915,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   MAKE_VECTOR_WITH_RESERVE(float, dxy_firstPV, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, SIP3D, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
@@ -953,6 +965,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalDn);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
+
+    PUSH_USERINT_INTO_VECTOR(charge_consistency_bits);
 
     PUSH_USERINT_INTO_VECTOR(conv_vtx_flag);
     PUSH_USERINT_INTO_VECTOR(n_missing_inner_hits);
@@ -1012,6 +1026,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
     PUSH_USERFLOAT_INTO_VECTOR(dxy_firstPV);
     PUSH_USERFLOAT_INTO_VECTOR(dz_firstPV);
+    PUSH_USERFLOAT_INTO_VECTOR(SIP3D);
 
     /*
     // PF candidate properties
@@ -1035,6 +1050,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, charge);
   PUSH_VECTOR_WITH_NAME(colName, etaSC);
+
+  PUSH_VECTOR_WITH_NAME(colName, charge_consistency_bits);
 
   PUSH_VECTOR_WITH_NAME(colName, conv_vtx_flag);
   PUSH_VECTOR_WITH_NAME(colName, n_missing_inner_hits);
@@ -1094,6 +1111,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, dxy_firstPV);
   PUSH_VECTOR_WITH_NAME(colName, dz_firstPV);
+  PUSH_VECTOR_WITH_NAME(colName, SIP3D);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
@@ -1145,10 +1163,13 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_r9, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfNeutralHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfEMIso_EAcorr, n_objects);
+
 
   /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
@@ -1205,6 +1226,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_HGG_Bits);
 
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_r9);
+
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfNeutralHadronIso_EAcorr);
@@ -1249,6 +1272,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_HGG_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_r9);
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);

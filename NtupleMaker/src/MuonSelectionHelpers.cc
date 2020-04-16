@@ -32,11 +32,18 @@ namespace MuonSelectionHelpers{
     return ea;
   }
 
-  float muonPFIsoComb(pat::Muon const& obj, int const& /*year*/, MuonSelectionHelpers::IsolationType const& type, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
+  float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr, double* sum_neutral_EAcorr_nofsr){
     reco::MuonPFIsolation const* pfStruct = nullptr;
 
-    if (type==PFIso03) pfStruct = &(obj.pfIsolationR03());
-    else if (type==PFIso04) pfStruct = &(obj.pfIsolationR04());
+    double dR = 0;
+    if (type==PFIso03){
+      pfStruct = &(obj.pfIsolationR03());
+      dR = 0.3;
+    }
+    else if (type==PFIso04){
+      pfStruct = &(obj.pfIsolationR04());
+      dR = 0.4;
+    }
     else cms::Exception("UnknownIsoDR") << "MuonSelectionHelpers::muonPFIsoComb: Type " << type << " is not implemented!" << std::endl;
 
     double ch = pfStruct->sumChargedHadronPt;
@@ -49,6 +56,11 @@ namespace MuonSelectionHelpers{
 
     double sum_neutral_nofsr_val = nh + em - 0.5*db;
     if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
+
+    double ea = MuonSelectionHelpers::muonEffArea(obj, year);
+    ea *= std::pow(dR / 0.3, 2);
+    double sum_neutral_EAcorr_nofsr_val = nh + em - rho * ea;
+    if (sum_neutral_EAcorr_nofsr) *sum_neutral_EAcorr_nofsr = sum_neutral_EAcorr_nofsr_val;
 
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }

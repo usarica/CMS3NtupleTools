@@ -308,10 +308,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("pfIso03_sumNeutralHadronEtHighThreshold", pfIsoR03.sumNeutralHadronEtHighThreshold);
     muon_result.addUserFloat("pfIso03_sumPhotonEtHighThreshold", pfIsoR03.sumPhotonEtHighThreshold);
     muon_result.addUserFloat("pfIso03_sumPUPt", pfIsoR03.sumPUPt);
-    double pfIso03_sum_charged_nofsr=0, pfIso03_sum_neutral_nofsr=0;
-    muon_result.addUserFloat("pfIso03_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso03, 0., &pfIso03_sum_charged_nofsr, &pfIso03_sum_neutral_nofsr));
+    double pfIso03_sum_charged_nofsr=0, pfIso03_sum_neutral_nofsr=0, pfIso03_sum_neutral_EAcorr_nofsr=0;
+    muon_result.addUserFloat("pfIso03_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso03, rho_event, 0., &pfIso03_sum_charged_nofsr, &pfIso03_sum_neutral_nofsr, &pfIso03_sum_neutral_EAcorr_nofsr));
     muon_result.addUserFloat("pfIso03_sum_charged_nofsr", pfIso03_sum_charged_nofsr);
     muon_result.addUserFloat("pfIso03_sum_neutral_nofsr", pfIso03_sum_neutral_nofsr);
+    muon_result.addUserFloat("pfIso03_sum_neutral_EAcorr_nofsr", pfIso03_sum_neutral_EAcorr_nofsr);
 
     MuonPFIsolation const& pfIsoR04 = muon->pfIsolationR04();
     muon_result.addUserFloat("pfIso04_sumChargedHadronPt", pfIsoR04.sumChargedHadronPt);
@@ -321,10 +322,11 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("pfIso04_sumNeutralHadronEtHighThreshold", pfIsoR04.sumNeutralHadronEtHighThreshold);
     muon_result.addUserFloat("pfIso04_sumPhotonEtHighThreshold", pfIsoR04.sumPhotonEtHighThreshold);
     muon_result.addUserFloat("pfIso04_sumPUPt", pfIsoR04.sumPUPt);
-    double pfIso04_sum_charged_nofsr=0, pfIso04_sum_neutral_nofsr=0;
-    muon_result.addUserFloat("pfIso04_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso04, 0., &pfIso04_sum_charged_nofsr, &pfIso04_sum_neutral_nofsr));
+    double pfIso04_sum_charged_nofsr=0, pfIso04_sum_neutral_nofsr=0, pfIso04_sum_neutral_EAcorr_nofsr=0;
+    muon_result.addUserFloat("pfIso04_comb_nofsr", MuonSelectionHelpers::muonPFIsoComb(*muon, year_, MuonSelectionHelpers::PFIso04, rho_event, 0., &pfIso04_sum_charged_nofsr, &pfIso04_sum_neutral_nofsr, &pfIso04_sum_neutral_EAcorr_nofsr));
     muon_result.addUserFloat("pfIso04_sum_charged_nofsr", pfIso04_sum_charged_nofsr);
     muon_result.addUserFloat("pfIso04_sum_neutral_nofsr", pfIso04_sum_neutral_nofsr);
+    muon_result.addUserFloat("pfIso04_sum_neutral_EAcorr_nofsr", pfIso04_sum_neutral_EAcorr_nofsr);
 
     // Other PF
     reco::CandidatePtr pfCandRef = muon->sourceCandidatePtr(0);
@@ -350,10 +352,16 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////
     // IP //
     ////////
-    muon_result.addUserFloat("IP3D", muon->dB(pat::Muon::PV3D));
-    muon_result.addUserFloat("IP3Derr", muon->edB(pat::Muon::PV3D));
-    muon_result.addUserFloat("IP2D", muon->dB(pat::Muon::PV2D));
-    muon_result.addUserFloat("IP2Derr", muon->edB(pat::Muon::PV2D));
+    double IP3D = muon->dB(pat::Muon::PV3D);
+    double IP3Derr = muon->edB(pat::Muon::PV3D);
+    double IP2D = muon->dB(pat::Muon::PV2D);
+    double IP2Derr = muon->edB(pat::Muon::PV2D);
+    muon_result.addUserFloat("IP3D", IP3D);
+    muon_result.addUserFloat("IP3Derr", IP3Derr);
+    muon_result.addUserFloat("SIP3D", (IP3Derr>0. ? IP3D / IP3Derr : 9999.));
+    muon_result.addUserFloat("IP2D", IP2D);
+    muon_result.addUserFloat("IP2Derr", IP2Derr);
+    muon_result.addUserFloat("SIP2D", (IP2Derr>0. ? IP2D / IP2Derr : 9999.));
 
     /////////////////
     // Muon timing //

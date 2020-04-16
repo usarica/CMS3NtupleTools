@@ -474,17 +474,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////////
     // Charge //
     ////////////
-    bool isGsfCtfScPixChargeConsistent = el->isGsfCtfScPixChargeConsistent();
-    bool isGsfScPixChargeConsistent = el->isGsfScPixChargeConsistent();
-    bool isGsfCtfChargeConsistent = el->isGsfCtfChargeConsistent();
+    unsigned char charge_consistency_bits=0;
+    if (el->isGsfCtfChargeConsistent()) charge_consistency_bits |= (1 << 0);
+    if (el->isGsfScPixChargeConsistent()) charge_consistency_bits |= (1 << 1);
+    if (el->isGsfCtfScPixChargeConsistent()) charge_consistency_bits |= (1 << 2); // Used also in some ids
     int trk_q = gsfTrack->charge();
     electron_result.addUserInt("charge", el->charge());
     //electron_result.addUserInt("threeCharge", el->threeCharge());
     electron_result.addUserInt("trk_charge", trk_q);
     electron_result.addUserInt("SC_pixCharge", el->scPixCharge());
-    electron_result.addUserInt("isGsfCtfScPixChargeConsistent", static_cast<int>(isGsfCtfScPixChargeConsistent)); // Used also in id
-    electron_result.addUserInt("isGsfScPixChargeConsistent", static_cast<int>(isGsfScPixChargeConsistent));
-    electron_result.addUserInt("isGsfCtfChargeConsistent", static_cast<int>(isGsfCtfChargeConsistent));
+    electron_result.addUserInt("charge_consistency_bits", charge_consistency_bits);
 
     ////////////
     // Tracks //
@@ -563,10 +562,16 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
 
     //Impact Parameters
     //electron_result.addUserFloat("IP3D", el->ip3d()); // miniAOD
-    electron_result.addUserFloat("IP3D", el->dB(pat::Electron::PV3D));
-    electron_result.addUserFloat("IP3Derr", el->edB(pat::Electron::PV3D));
-    electron_result.addUserFloat("IP2D", el->dB(pat::Electron::PV2D));
-    electron_result.addUserFloat("IP2Derr", el->edB(pat::Electron::PV2D));
+    double IP3D = el->dB(pat::Electron::PV3D);
+    double IP3Derr = el->edB(pat::Electron::PV3D);
+    double IP2D = el->dB(pat::Electron::PV2D);
+    double IP2Derr = el->edB(pat::Electron::PV2D);
+    electron_result.addUserFloat("IP3D", IP3D);
+    electron_result.addUserFloat("IP3Derr", IP3Derr);
+    electron_result.addUserFloat("SIP3D", (IP3Derr>0. ? IP3D / IP3Derr : 9999.));
+    electron_result.addUserFloat("IP2D", IP2D);
+    electron_result.addUserFloat("IP2Derr", IP2Derr);
+    electron_result.addUserFloat("SIP2D", (IP2Derr>0. ? IP2D / IP2Derr : 9999.));
 
     /////////////////
     // Hit Pattern //
