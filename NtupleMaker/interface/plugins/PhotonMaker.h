@@ -43,6 +43,8 @@ private:
   void setMVAIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
 
+  void setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_iterator const&, pat::Photon&) const;
+
 };
 
 

@@ -77,8 +77,8 @@ protected:
   static const std::string colName_ak8jets;
   static const std::string colName_vtxs;
   static const std::string colName_pfcands;
-  static const std::string colName_triggerinfo;
-  static const std::string colName_triggerobject;
+  static const std::string colName_triggerinfos;
+  static const std::string colName_triggerobjects;
 
 protected:
   const edm::ParameterSet pset;
@@ -101,6 +101,7 @@ protected:
   ParticleRecordLevel keepGenParticles;
   bool keepGenJets;
 
+  bool const includeLJetsSelection;
   int const minNmuons;
   int const minNelectrons;
   int const minNleptons;
@@ -173,6 +174,8 @@ protected:
 
   static CMS3Ntuplizer::ParticleRecordLevel getParticleRecordLevel(std::string);
 
+  template<typename T> void cleanUnusedCollection(bool const&, TString const&, T&);
+
 private:
   virtual void beginJob();
   virtual void endJob();
@@ -180,6 +183,37 @@ private:
   virtual void analyze(edm::Event const&, const edm::EventSetup&);
 
 };
+
+template<typename T> void CMS3Ntuplizer::cleanUnusedCollection(bool const& isSelected, TString const& bname, T& vlist){
+  if (!this->isMC || isSelected) return; // No need to clean, will not be recorded anyway
+
+  if (
+    bname.BeginsWith(CMS3Ntuplizer::colName_muons.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_electrons.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_photons.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_fsrcands.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_isotracks.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_ak4jets.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_ak8jets.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_vtxs.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_pfcands.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_triggerinfos.data())
+    ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_triggerobjects.data())
+    ){
+    //std::cout << "CMS3Ntuplizer::cleanUnusedCollection: Collection " << bname << " can be cleaned because isMC=" << this->isMC << " and isSelected=" << isSelected << "." << std::endl;
+    vlist.clear();
+  }
+}
 
 
 #endif

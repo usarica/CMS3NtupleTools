@@ -96,6 +96,41 @@ namespace ElectronSelectionHelpers{
     return ea;
   }
 
+  float electronEffArea_ECALPFCluster(pat::Electron const& obj, int const& year, unsigned int const& trigVersion){
+    double eta = std::abs(obj.superCluster()->eta());
+
+    if (year==2016){
+      if (trigVersion == 0) return (eta<1.479 ? 0.16544 : 0.13212);
+      else if (trigVersion == 1) return (eta<1.479 ? 0.29 : 0.21);
+      else cms::Exception("UnknownType") << "ElectronSelectionHelpers::electronEffArea_ECALPFCluster: Version " << trigVersion << " for year " << year << " is not implemented!" << std::endl;
+    }
+    else if (year==2017){
+      return (eta<1.479 ? 0.29 : 0.21);
+    }
+    else if (year==2018){
+      return (eta<1.479 ? 0.29 : 0.21);
+    }
+    else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea_ECALPFCluster: Year " << year << " is not implemented!" << std::endl;
+    return -1;
+  }
+  float electronEffArea_HCALPFCluster(pat::Electron const& obj, int const& year, unsigned int const& trigVersion){
+    double eta = std::abs(obj.superCluster()->eta());
+
+    if (year==2016){
+      if (trigVersion == 0) return (eta<1.479 ? 0.05956 : 0.13212);
+      else if (trigVersion == 1) return (eta<1.479 ? 0.2 : 0.25);
+      else cms::Exception("UnknownType") << "ElectronSelectionHelpers::electronEffArea_HCALPFCluster: Version " << trigVersion << " for year " << year << " is not implemented!" << std::endl;
+    }
+    else if (year==2017){
+      return (eta<1.479 ? 0.2 : 0.25);
+    }
+    else if (year==2018){
+      return (eta<1.479 ? 0.2 : 0.25);
+    }
+    else cms::Exception("UnknownYear") << "ElectronSelectionHelpers::electronEffArea_HCALPFCluster: Year " << year << " is not implemented!" << std::endl;
+    return -1;
+  }
+
   float electronPFIsoComb(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr){
     reco::GsfElectron::PflowIsolationVariables const* pfStruct = nullptr;
 

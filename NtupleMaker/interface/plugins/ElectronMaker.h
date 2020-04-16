@@ -62,7 +62,7 @@ private:
   void setupMVACuts();
   void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
-  void applyTriggerEmulationCuts(double const&, edm::View<pat::Electron>::const_iterator const&, pat::Electron&) const;
+  void applyTriggerEmulationCuts(double const&, edm::View<pat::Electron>::const_iterator const&, pat::Electron&, unsigned int const&) const;
 
 protected:
   std::string aliasprefix_;

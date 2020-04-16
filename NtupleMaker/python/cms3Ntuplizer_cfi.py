@@ -50,6 +50,7 @@ cms3ntuple = cms.EDAnalyzer(
    genAK4JetsSrc  = cms.InputTag("slimmedGenJets"),
    genAK8JetsSrc  = cms.InputTag("slimmedGenJetsAK8"),
 
+   includeLJetsSelection = cms.bool(False), # Single lepton + jets
    minNmuons = cms.int32(-1),
    minNelectrons = cms.int32(-1),
    minNleptons = cms.int32(-1),

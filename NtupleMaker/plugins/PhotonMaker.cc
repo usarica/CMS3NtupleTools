@@ -15,6 +15,7 @@
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
+#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
@@ -128,11 +129,14 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     // PFIso of reco::Photon
     photon_result.addUserFloat("pfChargedHadronIso", photon->reco::Photon::chargedHadronIso());
     photon_result.addUserFloat("pfNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
-    photon_result.addUserFloat("pfPhotonIso", photon->reco::Photon::photonIso());
+    photon_result.addUserFloat("pfEMIso", photon->reco::Photon::photonIso());
     photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoChargedHadron(*photon, year_, rho_event));
     photon_result.addUserFloat("pfNeutralHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoNeutralHadron(*photon, year_, rho_event));
     photon_result.addUserFloat("pfEMIso_EAcorr", PhotonSelectionHelpers::photonPFIsoEM(*photon, year_, rho_event));
     photon_result.addUserFloat("pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(*photon, year_, rho_event));
+
+    // Uses the 'pfEMIso_EAcorr' user float, so call this function after setting this user variable
+    setCutBasedHGGIdSelectionBits(photon, photon_result);
 
     // Pixel seeds
     photon_result.addUserInt("hasPixelSeed", photon->hasPixelSeed());
@@ -243,6 +247,32 @@ void PhotonMaker::setCutBasedIdUserVariables(edm::View<pat::Photon>::const_itera
     photon_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", photon->userInt(id_name));
   }
   else throw cms::Exception("PhotonMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
+}
+
+void PhotonMaker::setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_iterator const& photon, pat::Photon& photon_result) const{
+  double const etaSC = photon->superCluster()->eta();
+  double const abs_etaSC = std::abs(etaSC);
+  double const hOverE = photon->hadronicOverEm();
+  //double const sigmaIEtaIEta = photon->sigmaIetaIeta();
+  double const sigmaIEtaIEta_full5x5 = photon->full5x5_sigmaIetaIeta();
+  double const r9 = photon->r9();
+  double const r9_full5x5 = photon->full5x5_r9();
+  double const pfPhotonIsoCorr = photon_result.userFloat("pfEMIso_EAcorr");
+  double const trkIso = photon->trackIso();
+  bool isEB = photon->isEB();
+  if (isEB == photon->isEE()) isEB = (abs_etaSC<1.479);
+
+  bool pass_HGGId = false;
+  if (isEB){
+    pass_HGGId |= (r9>0.85 && hOverE<0.08 && r9_full5x5>0.5);
+    pass_HGGId |= (r9<=0.85 && hOverE<0.08 && sigmaIEtaIEta_full5x5<0.015 && r9_full5x5>0.5 && pfPhotonIsoCorr<4. && trkIso<6.);
+  }
+  else{
+    pass_HGGId |= (r9>0.9 && hOverE<0.08 && r9_full5x5>0.8);
+    pass_HGGId |= (r9<=0.9 && hOverE<0.08 && sigmaIEtaIEta_full5x5<0.035 && r9_full5x5>0.8 && pfPhotonIsoCorr<4. && trkIso<6.);
+  }
+
+  photon_result.addUserInt("id_cutBased_HGG_Bits", pass_HGGId);
 }
 
 

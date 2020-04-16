@@ -38,8 +38,8 @@ const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
 const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
 const std::string CMS3Ntuplizer::colName_pfcands = "pfcands";
 const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
-const std::string CMS3Ntuplizer::colName_triggerinfo = "triggers";
-const std::string CMS3Ntuplizer::colName_triggerobject = "triggerObjects";
+const std::string CMS3Ntuplizer::colName_triggerinfos = "triggers";
+const std::string CMS3Ntuplizer::colName_triggerobjects = "triggerObjects";
 
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
@@ -60,6 +60,7 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   keepGenParticles(CMS3Ntuplizer::getParticleRecordLevel(pset.getUntrackedParameter<std::string>("keepGenParticles"))),
   keepGenJets(pset.getParameter<bool>("keepGenJets")),
 
+  includeLJetsSelection(pset.getParameter<bool>("includeLJetsSelection")),
   minNmuons(pset.getParameter<int>("minNmuons")),
   minNelectrons(pset.getParameter<int>("minNelectrons")),
   minNleptons(pset.getParameter<int>("minNleptons")),
@@ -199,6 +200,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   passNobjects_or_statement(n_ak4jets, minNak4jets);
   passNobjects_or_statement(n_ak8jets, minNak8jets);
 #undef passNobjects_or_statement
+  if (includeLJetsSelection) passNobjects |= ((n_muons+n_electrons)>=1 && (n_ak4jets+n_ak8jets)>=1);
   isSelected &= passNobjects;
 
   // MET info
@@ -238,16 +240,16 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 #undef VECTOR_DATA_OUTPUT_DIRECTIVE
 #undef DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE
 
-    outtree->getSelectedTree()->SetBasketSize("triggers_*", 16384*23);
-    //outtree->getSelectedTree()->SetBasketSize("triggers_*", 21846*32);
-    outtree->getSelectedTree()->SetBasketSize("triggerObjects_passedTriggers", 64000);
-    outtree->getSelectedTree()->SetBasketSize("triggerObjects_associatedTriggers", 64000);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerinfos+"_*").data(), 16384*23);
+    //outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerinfos+"_*").data(), 21846*32);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerobjects+"_passedTriggers").data(), 64000);
+    outtree->getSelectedTree()->SetBasketSize((CMS3Ntuplizer::colName_triggerobjects+"_associatedTriggers").data(), 64000);
   }
 
   // Record whatever is in commonEntry into the tree.
 #define SIMPLE_DATA_OUTPUT_DIRECTIVE(name_t, type) for (auto itb=commonEntry.named##name_t##s.begin(); itb!=commonEntry.named##name_t##s.end(); itb++) outtree->setVal(itb->first, itb->second);
-#define VECTOR_DATA_OUTPUT_DIRECTIVE(name_t, type) for (auto itb=commonEntry.namedV##name_t##s.begin(); itb!=commonEntry.namedV##name_t##s.end(); itb++) outtree->setVal(itb->first, &(itb->second));
-#define DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE(name_t, type) for (auto itb=commonEntry.namedVV##name_t##s.begin(); itb!=commonEntry.namedVV##name_t##s.end(); itb++) outtree->setVal(itb->first, &(itb->second));
+#define VECTOR_DATA_OUTPUT_DIRECTIVE(name_t, type) for (auto itb=commonEntry.namedV##name_t##s.begin(); itb!=commonEntry.namedV##name_t##s.end(); itb++){ cleanUnusedCollection(isSelected, itb->first, itb->second); outtree->setVal(itb->first, &(itb->second)); }
+#define DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVE(name_t, type) for (auto itb=commonEntry.namedVV##name_t##s.begin(); itb!=commonEntry.namedVV##name_t##s.end(); itb++){ cleanUnusedCollection(isSelected, itb->first, itb->second); outtree->setVal(itb->first, &(itb->second)); }
   SIMPLE_DATA_OUTPUT_DIRECTIVES
   VECTOR_DATA_OUTPUT_DIRECTIVES
   DOUBLEVECTOR_DATA_OUTPUT_DIRECTIVES
@@ -877,7 +879,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_triggerEmulation_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV1_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV2_Bits, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, n_objects);
@@ -981,7 +984,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
-    PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulation_Bits);
+
+    PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulationV1_Bits);
+    PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulationV2_Bits);
 
     /*
     // Fall17V1 cut-based ids
@@ -1063,7 +1068,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
-  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulation_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulationV1_Bits);
+  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulationV2_Bits);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V1_Veto_Bits);
@@ -1136,6 +1143,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
@@ -1195,6 +1203,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
+    PUSH_USERINT_INTO_VECTOR(id_cutBased_HGG_Bits);
 
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
@@ -1239,6 +1248,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<pat::Pho
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
+  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_HGG_Bits);
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
@@ -2013,7 +2023,7 @@ bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
   return true;
 }
 bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
-  std::string const& colName = CMS3Ntuplizer::colName_triggerinfo;
+  std::string const& colName = CMS3Ntuplizer::colName_triggerinfos;
 
   edm::Handle< edm::View<TriggerInfo> > triggerInfoHandle;
   iEvent.getByToken(triggerInfoToken, triggerInfoHandle);
@@ -2117,13 +2127,13 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
       }
     }
   }
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, type);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, pt);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, eta);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, phi);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, mass);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, associatedTriggers);
-  PUSH_VECTOR_WITH_NAME(colName_triggerobject, passedTriggers);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, type);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, pt);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, eta);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, phi);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, mass);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, associatedTriggers);
+  PUSH_VECTOR_WITH_NAME(colName_triggerobjects, passedTriggers);
 
   // If the (data) event does not pass any triggers, do not record it.
   return passAtLeastOneTrigger;
