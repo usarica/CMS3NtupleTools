@@ -11,27 +11,32 @@ using namespace PDGHelpers;
 
 ParticleObject::ParticleObject() :
   id(-9000),
+  uniqueIdentifier(0),
   selectionBits(0),
   momentum(0, 0, 0, 0)
 {}
 ParticleObject::ParticleObject(cms3_id_t id_) :
   id(id_),
+  uniqueIdentifier(0),
   selectionBits(0),
   momentum(0, 0, 0, 0)
 {}
 ParticleObject::ParticleObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
   id(id_),
+  uniqueIdentifier(0),
   selectionBits(0),
   momentum(momentum_)
 {}
 ParticleObject::ParticleObject(const ParticleObject& other) :
   id(other.id),
+  uniqueIdentifier(other.uniqueIdentifier),
   selectionBits(other.selectionBits),
   momentum(other.momentum)
 {}
 
 void ParticleObject::swap(ParticleObject& other){
   std::swap(id, other.id);
+  std::swap(uniqueIdentifier, other.uniqueIdentifier);
   std::swap(selectionBits, other.selectionBits);
   std::swap(momentum, other.momentum);
   std::swap(mothers, other.mothers);

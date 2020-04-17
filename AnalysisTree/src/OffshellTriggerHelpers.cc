@@ -55,6 +55,7 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_DoubleEle33_CaloIdL_MW_v*",{ { HLTObjectProperties::kElectron },{ HLTObjectProperties::kElectron } } },
       { "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_v*", { { HLTObjectProperties::kElectron }, { HLTObjectProperties::kElectron } } }
     };
+    // These MuEle triggers are tricky to deal with because they are disabled for part of the run...
     HLT_type_proplist_map[kMuEle] = std::vector<HLTTriggerPathProperties>{
       { "HLT_Mu8_TrkIsoVVL_Ele17_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },
       { "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_v*", { { HLTObjectProperties::kMuon }, { HLTObjectProperties::kElectron } } },

@@ -97,6 +97,9 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
       }
 #undef MUON_VARIABLE
 
+      // Set particle index as its unique identifier
+      obj->setUniqueIdentifier(ip);
+
       // Replace momentum
       obj->makeFinalMomentum(syst);
 

@@ -83,4 +83,30 @@ void MuonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes 
   currentSystScale = scale;
 }
 
+void MuonObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr){
+  // min_dR=0.01 and min_ph_pT=0.5 in PF iso 03 and 04 come from RecoMuon/MuonIsolation/python/muonPFIsolationValues_cff.py: muPF*IsoValueGamma[03,04]
+  // miniIsoDR parameters 10, 50 and 200, min_dR=0.01, and min_ph_pT=0.5 come from PhysicsTools/PatAlgos/python/producersLayer1/muonProducer_cfi.py: patMuons.miniIsoParams.
+  // Also see how miniIsoParams is used in PhysicsTools/PatAlgos/plugins/PATMuonProducer.cc
+
+  // FIXME: THESE EXTRA VARIABLES NEED TO BE STORED
+  /*
+  if (pt_fsr<=0.5 || dR_fsr<=0.01) return;
+
+  if (dR_fsr<0.3){
+    extras.pfIso03_sum_neutral_nofsr -= pt_fsr;
+    extras.pfIso03_comb_nofsr = extras.pfIso03_sum_charged_nofsr + std::max(0.f, extras.pfIso03_sum_neutral_nofsr);
+  }
+  if (dR_fsr<0.4){
+    extras.pfIso04_sum_neutral_nofsr -= pt_fsr;
+    extras.pfIso04_comb_nofsr = extras.pfIso04_sum_charged_nofsr + std::max(0.f, extras.pfIso04_sum_neutral_nofsr);
+  }
+
+  const double miniIsoDR = 10. / std::min(std::max((double) this->uncorrected_pt(), 50.), 200.);
+  if (dR_fsr<miniIsoDR){
+  . extras.miniIso_sum_neutral_nofsr -= pt_fsr;
+    extras.miniIso_comb_nofsr = extras.miniIso_sum_charged_nofsr + std::max(0.f, extras.miniIso_sum_neutral_nofsr);
+  }
+  */
+}
+
 ParticleObject::LorentzVector_t::Scalar MuonObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }

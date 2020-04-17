@@ -72,6 +72,9 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
       ELECTRON_VARIABLES;
 #undef ELECTRON_VARIABLE
 
+      // Set particle index as its unique identifier
+      obj->setUniqueIdentifier(ip);
+
       // Replace momentum
       obj->makeFinalMomentum(syst);
 

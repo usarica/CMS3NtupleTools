@@ -46,6 +46,7 @@ namespace PhotonSelectionHelpers{
 
   // Kinematic eta thresholds
   // Last ECAL crystal in barrel is at |eta|=1.4442
+  // Gap region is between 1.4442 and 1.56, crossing is at 1.479. See ECALGeometrySpecifications.h.
   constexpr float etaThr_gen = 2.5;
   constexpr float etaThr_skim_veto = 2.5;
   constexpr float etaThr_skim_loose = 2.5;

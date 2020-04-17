@@ -19,6 +19,7 @@ public:
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
 
   cms3_id_t id;
+  unsigned int uniqueIdentifier;
   unsigned long long selectionBits;
   LorentzVector_t momentum;
 
@@ -39,6 +40,8 @@ public:
   void setPdgId(cms3_id_t const& id_){ id=id_; }
   void setP4(LorentzVector_t const& momentum_){ momentum=momentum_; }
 
+  void setUniqueIdentifier(unsigned short uid_){ uniqueIdentifier = uid_; }
+
   void resetSelectionBits(){ selectionBits=0; }
   void setSelectionBit(unsigned int ibit, bool val);
   bool testSelectionBit(unsigned int ibit) const;
@@ -50,6 +53,9 @@ public:
   LorentzVector_t const& p4() const{ return momentum; }
   LorentzVector_t& p4(){ return momentum; }
   virtual void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&){}
+
+  unsigned int const& getUniqueIdentifier() const{ return uniqueIdentifier; }
+  unsigned int& getUniqueIdentifier(){ return uniqueIdentifier; }
 
   unsigned long long const& getSelectionBits() const{ return selectionBits; }
   unsigned long long& getSelectionBits(){ return selectionBits; }

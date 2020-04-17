@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <utility>
+#include "ECALGeometrySpecifications.h"
 #include "ElectronObject.h"
 
 
@@ -82,5 +83,45 @@ void ElectronObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTy
   momentum = momentum * (scale/currentSystScale);
   currentSystScale = scale;
 }
+
+void ElectronObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr){
+  // For min_dR values:
+  // PF iso.: See RecoParticleFlow/PFProducer/python/electronPFIsolationValues_cff.py
+  // Mini. iso.: See PhysicsTools/PatAlgos/python/producersLayer1/electronProducer_cfi.py: patElectrons.miniIsoParamsE and miniIsoParamsB for EE and EB
+  // In both cases, only EE PF candidates with dR<=0.08 are excluded. No pT threshold is applied.
+  /*
+  NOTE from cmssw/CMSSW_10_2_X: In PFCandIsolatorFromDeposits, PivotCoordinatesForEBEE flags are set to true. By CommonTools/ParticleFlow/plugins/PFCandIsolatorFromDeposit.cc, this means the decision of EB-EE selection is done using the following:
+  const reco::PFCandidate *myPFCand = dynamic_cast<const reco::PFCandidate *>(&(*cand));
+  if (myPFCand) {
+    // exact barrel boundary
+    barrel = fabs(myPFCand->positionAtECALEntrance().eta()) < 1.479;
+  } else {
+    const reco::RecoCandidate *myRecoCand = dynamic_cast<const reco::RecoCandidate *>(&(*cand));
+    if (myRecoCand) {
+      // not optimal. isEB should be used.
+      barrel = (fabs(myRecoCand->superCluster()->eta()) < 1.479);
+    }
+  }
+  For this reason, the etaSC selection applied below may need to be refined in future recos. For now, this is what miniAOD does.
+  */
+  const float abs_etaSC = std::abs(this->etaSC());
+  if (abs_etaSC>=ECALGeometrySpecifications::ECAL_EE_EB_cross_eta && dR_fsr<=0.08) return;
+
+  if (dR_fsr<0.3){
+    extras.pfIso03_sum_neutral_nofsr -= pt_fsr;
+    extras.pfIso03_comb_nofsr = extras.pfIso03_sum_charged_nofsr + std::max(0.f, extras.pfIso03_sum_neutral_nofsr);
+  }
+  if (dR_fsr<0.4){ // FIXME: FIND OUT THE MINIMUM DR FOR ISO SUMS
+    extras.pfIso04_sum_neutral_nofsr -= pt_fsr;
+    extras.pfIso04_comb_nofsr = extras.pfIso04_sum_charged_nofsr + std::max(0.f, extras.pfIso04_sum_neutral_nofsr);
+  }
+
+  const double miniIsoDR = 10. / std::min(std::max((double) this->uncorrected_pt(), 50.), 200.);
+  if (dR_fsr<miniIsoDR){
+    extras.miniIso_sum_neutral_nofsr -= pt_fsr;
+    extras.miniIso_comb_nofsr = extras.miniIso_sum_charged_nofsr + std::max(0.f, extras.miniIso_sum_neutral_nofsr);
+  }
+}
+
 
 ParticleObject::LorentzVector_t::Scalar ElectronObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }

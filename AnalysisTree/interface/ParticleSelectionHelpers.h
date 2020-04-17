@@ -30,6 +30,11 @@ SELECTION_TYPE(Tight)
   template<typename T> bool isParticleForJetCleaning(T const* part);
   template<typename T> bool isParticleForTriggerChecking(T const* part);
 
+  template<typename T> bool isFSRSuitable(T const* part);
+  template<> bool isFSRSuitable<ParticleObject>(ParticleObject const* part);
+  template<> bool isFSRSuitable<MuonObject>(MuonObject const* part);
+  template<> bool isFSRSuitable<ElectronObject>(ElectronObject const* part);
+
 
   // Functions to select "preselection" id types to jets
 #define SELECTION_TYPES \

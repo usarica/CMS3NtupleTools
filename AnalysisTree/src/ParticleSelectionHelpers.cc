@@ -46,6 +46,36 @@ SELECTION_TYPES;
 #undef SELECTION_TYPES
 
 
+// FSR suitability of muons and electrons requires checking individual bits
+template<> bool ParticleSelectionHelpers::isFSRSuitable<ParticleObject>(ParticleObject const* part){
+  MuonObject const* muon = dynamic_cast<MuonObject const*>(part);
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (muon) return isFSRSuitable(muon);
+  else if (electron) return isFSRSuitable(electron);
+  else return false;
+}
+template<> bool ParticleSelectionHelpers::isFSRSuitable<MuonObject>(MuonObject const* part){
+  using namespace MuonSelectionHelpers;
+  // Test everything as in MuonSelectionHelpers::testPreselectionLoose except isolation
+  return (
+    part->testSelectionBit(bit_preselectionLoose_id)
+    &&
+    part->testSelectionBit(bit_preselectionLoose_kin)
+    &&
+    (bit_preselection_time != kValidMuonSystemTime || part->testSelectionBit(bit_preselection_time))
+    );
+}
+template<> bool ParticleSelectionHelpers::isFSRSuitable<ElectronObject>(ElectronObject const* part){
+  using namespace ElectronSelectionHelpers;
+  // Test everything as in ElectronSelectionHelpers::testPreselectionLoose except isolation
+  return (
+    part->testSelectionBit(bit_preselectionLoose_id)
+    &&
+    part->testSelectionBit(bit_preselectionLoose_kin)
+    );
+}
+
+
 // Functions for jets
 #define SELECTION_TYPES \
 SELECTION_TYPE(Loose) \

@@ -84,6 +84,7 @@ public:
   void swap(ElectronObject& other);
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+  void applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr);
 
   float const& etaSC() const{ return extras.etaSC; }
 

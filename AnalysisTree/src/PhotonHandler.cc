@@ -71,6 +71,9 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
       PHOTON_VARIABLES;
 #undef PHOTON_VARIABLE
 
+      // Set particle index as its unique identifier
+      obj->setUniqueIdentifier(ip);
+
       // Replace momentum
       obj->makeFinalMomentum(syst);
 

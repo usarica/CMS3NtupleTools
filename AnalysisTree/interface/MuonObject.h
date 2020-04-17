@@ -65,6 +65,7 @@ public:
   void swap(MuonObject& other);
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+  void applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr);
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
 

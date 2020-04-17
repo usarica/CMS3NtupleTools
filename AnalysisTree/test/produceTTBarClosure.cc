@@ -675,6 +675,7 @@ void getTrees(
     MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
     size_t n_evts_acc=0;
+    size_t n_pass_genWeights=0;
     size_t n_pass_isotrackVeto=0;
     size_t n_pass_uniqueEvent=0;
     size_t n_pass_commonFilters=0;
@@ -776,6 +777,7 @@ void getTrees(
 
         if (event_wgt==0.f) continue;
       }
+      n_pass_genWeights++;
       //MELAout << "Pass line " << __LINE__ << endl;
 
       muonHandler.constructMuons(theGlobalSyst);
@@ -961,6 +963,7 @@ void getTrees(
 
     MELAout << "Number of events accepted from " << sample_tree.sampleIdentifier << ": " << n_evts_acc << " / " << (ev_end - ev_start) << endl;
     MELAout << "\t- Number of events passing each cut:\n"
+      << "\t\t- Gen. weights!=0: " << n_pass_genWeights << '\n'
       << "\t\t- Isotrack veto: " <<  n_pass_isotrackVeto << '\n'
       << "\t\t- Unique event: " <<  n_pass_uniqueEvent << '\n'
       << "\t\t- Common filters: " <<  n_pass_commonFilters << '\n'
