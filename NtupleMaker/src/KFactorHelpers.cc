@@ -1,4 +1,5 @@
 #include <cassert>
+#include <sstream>
 #include <FWCore/Utilities/interface/Exception.h>
 #include <CMS3/NtupleMaker/interface/KFactorHelpers.h>
 #include <CMSDataTools/AnalysisTree/interface/HostHelpersCore.h>
@@ -87,7 +88,7 @@ namespace KFactorHelpers{
 
     curdir->cd();
   }
-  void KFactorHandler_QCD_ggZZ_Sig::eval(KFactorHelpers::KFactorType type, KFactorHelpers::KFactorType denominator, std::unordered_map<std::string, float>& kfactors_map){
+  void KFactorHandler_QCD_ggZZ_Sig::eval(KFactorHelpers::KFactorType type, KFactorHelpers::KFactorType denominator, std::unordered_map<std::string, float>& kfactors_map) const{
     static const std::vector<std::string> kfactornames{
       "KFactor_QCD_NNLO_ggZZ_Sig_Nominal",
       "KFactor_QCD_NNLO_ggZZ_Sig_QCDScaleDn",
@@ -140,6 +141,147 @@ namespace KFactorHelpers{
         ikf++;
       }
     }
+  }
+
+
+  //const std::string KFactorHandler_EW_qqVV_Bkg::KFactorArgName = "KFactor_EW_qqVV_Sig_arg";
+  KFactorHandler_EW_qqVV_Bkg::KFactorHandler_EW_qqVV_Bkg() :
+    KFactorHandlerBase()
+  {
+    TString strKFactorDir = "${CMSSW_BASE}/src/CMS3/NtupleMaker/data/Kfactors/";
+    HostHelpers::ExpandEnvironmentVariables(strKFactorDir);
+
+    TString strKFactorFile_ZZ = strKFactorDir + "/ZZ_EWCorrections.dat"; readTableFromFile(strKFactorFile_ZZ, table_ZZ);
+    TString strKFactorFile_WZ = strKFactorDir + "/WZ_EWCorrections.dat"; readTableFromFile(strKFactorFile_WZ, table_WZ);
+    TString strKFactorFile_WW = strKFactorDir + "/WW_EWCorrections.dat"; readTableFromFile(strKFactorFile_WW, table_WW);
+
+    this->setup();
+  }
+  KFactorHandler_EW_qqVV_Bkg::KFactorHandler_EW_qqVV_Bkg(KFactorHandler_EW_qqVV_Bkg const& other) :
+    KFactorHandlerBase(other),
+    table_ZZ(other.table_ZZ),
+    table_WZ(other.table_WZ),
+    table_WW(other.table_WW)
+  {
+    this->setup();
+  }
+  void KFactorHandler_EW_qqVV_Bkg::readTableFromFile(TString const& fname, std::vector< std::vector<double> >& table){
+    ifstream fin(fname.Data(), ios_base::in);
+    while (!fin.eof()){
+      std::string strline;
+      std::getline(fin, strline);
+      if (strline.empty()) continue;
+
+      table.push_back(std::vector<double>());
+      std::vector<double>& tbl_line = table.back(); tbl_line.reserve(5);
+
+      std::stringstream ss(strline);
+      std::string strtmp;
+      while (ss >> strtmp){
+        if (strtmp.empty()) continue;
+        tbl_line.push_back(std::stod(strtmp));
+      }
+    }
+  }
+  void KFactorHandler_EW_qqVV_Bkg::findTableEntry(double const& shat, double const& that, std::vector< std::vector<double> > const& table, std::vector< std::vector<std::vector<double>>::const_iterator > const& table_sqrtShatBegin, double& val_uc, double& val_ds, double& val_b){
+    std::vector<std::vector<double>>::const_iterator const table_end = table.cend();
+
+    double bestShatDiff = -1;
+    std::vector<std::vector<double>>::const_iterator it_bestShat = table_end;
+    std::vector<std::vector<double>>::const_iterator itNext_bestShat = table_end;
+    for (size_t is=0; is<table_sqrtShatBegin.size()-1;is++){
+      auto const& itFirst = table_sqrtShatBegin.at(is);
+      auto const& itSecond = table_sqrtShatBegin.at(is+1);
+      double tmpShatDiff = std::abs(itFirst->front() - std::sqrt(std::abs(shat)));
+      if (bestShatDiff<0. || tmpShatDiff < bestShatDiff){
+        bestShatDiff = tmpShatDiff;
+        it_bestShat = itFirst;
+        itNext_bestShat = itSecond;
+      }
+    }
+    assert(it_bestShat != table_end);
+
+    std::vector<std::vector<double>>::const_iterator it_That = it_bestShat;
+    std::vector<std::vector<double>>::const_iterator it_bestThat = table_end;
+    double bestThatDiff = -1;
+    while (it_That != itNext_bestShat){
+      double tmpThatDiff = std::abs(it_That->at(1) - that);
+      if (bestThatDiff<0. || tmpThatDiff<bestThatDiff){
+        bestThatDiff = tmpThatDiff;
+        it_bestThat = it_That;
+      }
+      it_That++;
+    }
+    assert(it_bestThat != table_end);
+
+    val_uc = it_bestThat->at(2);
+    val_ds = it_bestThat->at(3);
+    val_b = it_bestThat->at(4);
+  }
+
+  void KFactorHandler_EW_qqVV_Bkg::setup(){
+    double sqrtShat;
+
+    sqrtShat = -1;
+    for (std::vector<std::vector<double>>::const_iterator it = table_ZZ.cbegin(); it!=table_ZZ.cend(); it++){
+      double const& tmpSqrtShat = it->front();
+      if (tmpSqrtShat!=sqrtShat){
+        sqrtShat = tmpSqrtShat;
+        table_sqrtShatBegin_ZZ.push_back(it);
+      }
+    }
+    table_sqrtShatBegin_ZZ.push_back(table_ZZ.cend());
+
+    sqrtShat = -1;
+    for (std::vector<std::vector<double>>::const_iterator it = table_WZ.cbegin(); it!=table_WZ.cend(); it++){
+      double const& tmpSqrtShat = it->front();
+      if (tmpSqrtShat!=sqrtShat){
+        sqrtShat = tmpSqrtShat;
+        table_sqrtShatBegin_WZ.push_back(it);
+      }
+    }
+    table_sqrtShatBegin_WZ.push_back(table_WZ.cend());
+
+    sqrtShat = -1;
+    for (std::vector<std::vector<double>>::const_iterator it = table_WW.cbegin(); it!=table_WW.cend(); it++){
+      double const& tmpSqrtShat = it->front();
+      if (tmpSqrtShat!=sqrtShat){
+        sqrtShat = tmpSqrtShat;
+        table_sqrtShatBegin_WW.push_back(it);
+      }
+    }
+    table_sqrtShatBegin_WW.push_back(table_WW.cend());
+  }
+  void KFactorHandler_EW_qqVV_Bkg::eval(KFactorHelpers::KFactorType type, pat::PackedGenParticleCollection const& genparticles, std::unordered_map<std::string, float>& kfactors_map) const{
+    static const std::vector<std::string> kfactornames{
+      "KFactor_EW_NLO_qqVV_Bkg_Nominal",
+      "KFactor_EW_NLO_qqVV_Bkg_EWScaleDn",
+      "KFactor_EW_NLO_qqVV_Bkg_EWScaleUp"
+    };
+
+    std::vector< std::vector<double> > const* kfactor_table = nullptr;
+    double mPole_V1=-1;
+    double mPole_V2=-1;
+    switch (type){
+    case kf_EW_NLO_QQZZ_BKG:
+      kfactor_table = &(this->table_ZZ);
+      mPole_V1 = mPole_V2 = PDGHelpers::Zmass;
+      break;
+    case kf_EW_NLO_QQWZ_BKG:
+      kfactor_table = &(this->table_WZ);
+      mPole_V1 = PDGHelpers::Wmass;
+      mPole_V2 = PDGHelpers::Zmass;
+      break;
+    case kf_EW_NLO_QQWW_BKG:
+      kfactor_table = &(this->table_WW);
+      mPole_V1 = mPole_V2 = PDGHelpers::Wmass;
+      break;
+    default:
+      // Do nothing
+      break;
+    }
+    if (!kfactor_table) cms::Exception(Form("KFactorHandler_EW_qqVV_Bkg::eval: No K factor table for type %i.", static_cast<int>(type)));
+
   }
 
 }
