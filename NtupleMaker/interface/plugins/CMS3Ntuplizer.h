@@ -50,6 +50,7 @@
 #include <CMS3/NtupleMaker/interface/METFilterInfo.h>
 #include <CMS3/NtupleMaker/interface/METInfo.h>
 #include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
+#include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
 
 
 class CMS3Ntuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>{
@@ -150,8 +151,12 @@ protected:
 
   size_t fillMuons(edm::Event const&, std::vector<pat::Muon const*>*);
   size_t fillElectrons(edm::Event const&, std::vector<pat::Electron const*>*);
-  size_t fillPhotons(edm::Event const&, std::vector<pat::Photon const*>*);
-  size_t fillPFCandidates(edm::Event const&, std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*, std::vector<pat::PackedCandidate const*>*);
+  size_t fillFSRCandidates(
+    edm::Event const&,
+    std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*,
+    std::vector<FSRCandidateInfo>*
+  );
+  size_t fillPhotons(edm::Event const&, std::vector<FSRCandidateInfo>*, std::vector<pat::Photon const*>*); // Not std::vector<FSRCandidateInfo> const* because the veto photon lists need to be modified.
 
   size_t fillAK4Jets(edm::Event const&, std::vector<pat::Jet const*>*);
   size_t fillAK8Jets(edm::Event const&, std::vector<pat::Jet const*>*);

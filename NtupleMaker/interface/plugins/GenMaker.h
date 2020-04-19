@@ -65,7 +65,9 @@ protected:
   int decayVVmode;
   std::vector<std::string> lheMElist;
   
-  std::shared_ptr<KFactorHelpers::KFactorHandler_QCD_ggZZ_Sig> KFactor_QCD_ggZZ_Sig_handle;
+  std::shared_ptr<KFactorHelpers::KFactorHandler_QCD_ggVV_Sig> KFactor_QCD_ggVV_Sig_handle;
+  std::shared_ptr<KFactorHelpers::KFactorHandler_QCD_qqVV_Bkg> KFactor_QCD_qqVV_Bkg_handle;
+  std::shared_ptr<KFactorHelpers::KFactorHandler_EW_qqVV_Bkg> KFactor_EW_qqVV_Bkg_handle;
 
   edm::EDGetTokenT<LHERunInfoProduct> LHERunInfoToken;
 

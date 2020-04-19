@@ -22,6 +22,10 @@ struct FSRCandidateInfo{
   std::vector<pat::Muon const*> matched_muon_list;
   std::vector<pat::Electron const*> matched_electron_list;
 
+  FSRCandidateInfo();
+  FSRCandidateInfo(FSRCandidateInfo const&);
+  ~FSRCandidateInfo(){}
+
   CMSLorentzVector_d p4() const;
   CMSLorentzVector_d::Scalar pt() const;
   CMSLorentzVector_d::Scalar eta() const;

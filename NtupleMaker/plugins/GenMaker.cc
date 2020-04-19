@@ -39,7 +39,9 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   decayVVmode(iConfig.getParameter<int>("decayVVmode")),
   lheMElist(iConfig.getParameter< std::vector<std::string> >("lheMElist")),
 
-  KFactor_QCD_ggZZ_Sig_handle(nullptr)
+  KFactor_QCD_ggVV_Sig_handle(nullptr),
+  KFactor_QCD_qqVV_Bkg_handle(nullptr),
+  KFactor_EW_qqVV_Bkg_handle(nullptr)
 {
   consumesMany<LHEEventProduct>();
   LHERunInfoToken = consumes<LHERunInfoProduct, edm::InRun>(LHEInputTag_);
@@ -341,7 +343,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 
   // Compute K factors
-  if (KFactor_QCD_ggZZ_Sig_handle){
+  if (KFactor_QCD_ggVV_Sig_handle){
     //std::vector<reco::GenParticle const*> hardparticles;
     std::vector<reco::GenParticle const*> Higgses;
     std::vector<reco::GenParticle const*> Vbosons;
@@ -355,11 +357,88 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
     }
 
-    if (Higgses.size()==1) result->Kfactors[KFactorHelpers::KFactorHandler_QCD_ggZZ_Sig::KFactorArgName] = Higgses.front()->mass();
-    else if (Vbosons.size()==2) result->Kfactors[KFactorHelpers::KFactorHandler_QCD_ggZZ_Sig::KFactorArgName] = (Vbosons.front()->p4() + Vbosons.back()->p4()).M();
-    else throw cms::Exception("GenMaker::produce: No single Higgs candidate or two intermediate V bosons are found to pass to KFactor_QCD_ggZZ_Sig_handle.");
+    if (Higgses.size()==1) result->Kfactors[KFactorHelpers::KFactorHandler_QCD_ggVV_Sig::KFactorArgName] = Higgses.front()->mass();
+    else if (Vbosons.size()==2) result->Kfactors[KFactorHelpers::KFactorHandler_QCD_ggVV_Sig::KFactorArgName] = (Vbosons.front()->p4() + Vbosons.back()->p4()).M();
+    else throw cms::Exception("GenMaker::produce: No single Higgs candidate or two intermediate V bosons are found to pass to KFactor_QCD_ggVV_Sig_handle.");
     for (auto const& kfpair:kfactor_num_denum_list){
-      if (kfpair.first == KFactorHelpers::kf_QCD_NNLO_GGZZ_SIG || kfpair.first == KFactorHelpers::kf_QCD_NLO_GGZZ_SIG) KFactor_QCD_ggZZ_Sig_handle->eval(kfpair.first, kfpair.second, result->Kfactors);
+      if (kfpair.first == KFactorHelpers::kf_QCD_NNLO_GGVV_SIG || kfpair.first == KFactorHelpers::kf_QCD_NLO_GGVV_SIG) KFactor_QCD_ggVV_Sig_handle->eval(kfpair.first, kfpair.second, result->Kfactors);
+    }
+  }
+  if (KFactor_QCD_qqVV_Bkg_handle || KFactor_EW_qqVV_Bkg_handle){
+    KFactorHelpers::KFactorType corr_type = KFactorHelpers::nKFactorTypes;
+    if (KFactor_EW_qqVV_Bkg_handle) corr_type = KFactor_EW_qqVV_Bkg_handle->getType();
+    else{
+      for (auto const& kfpair:kfactor_num_denum_list){
+        if (
+          kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG
+          ||
+          kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQWZ_BKG
+          ||
+          kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQWW_BKG
+          ){
+          corr_type = kfpair.first;
+          break;
+        }
+      }
+    }
+
+    KFactorHelpers::VVFinalStateType final_state_type = KFactorHelpers::nVVFinalStateTypes;
+    switch (corr_type){
+    case KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG:
+    case KFactorHelpers::kf_EW_NLO_QQZZ_BKG:
+      final_state_type = KFactorHelpers::kZZ;
+      break;
+    case KFactorHelpers::kf_QCD_NNLO_QQWZ_BKG:
+    case KFactorHelpers::kf_EW_NLO_QQWZ_BKG:
+      final_state_type = KFactorHelpers::kWZ;
+      break;
+    case KFactorHelpers::kf_QCD_NNLO_QQWW_BKG:
+    case KFactorHelpers::kf_EW_NLO_QQWW_BKG:
+      final_state_type = KFactorHelpers::kWW;
+      break;
+    default:
+      throw cms::Exception("UnknownFinalState") << "GenMaker::produce: No known VV final state for the correction type " << corr_type << ".";
+      break;
+    }
+
+    //MELAout << "Extracting LHE info" << endl;
+    std::vector<reco::GenParticle const*> incomingQuarks;
+    std::vector<reco::GenParticle const*> incomingGluons;
+    std::vector<reco::GenParticle const*> outgoingQuarks;
+    std::vector<reco::GenParticle const*> outgoingGluons;
+    std::pair<reco::GenParticle const*, reco::GenParticle const*> V1pair;
+    std::pair<reco::GenParticle const*, reco::GenParticle const*> V2pair;
+    KFactorHelpers::getVVTopology(
+      final_state_type, *prunedGenParticles,
+      incomingQuarks, incomingGluons,
+      outgoingQuarks, outgoingGluons,
+      V1pair, V2pair
+    );
+
+    for (auto const& kfpair:kfactor_num_denum_list){
+      //MELAout << "Calculating k factor " << kfpair.first << ", " << kfpair.second << endl;
+      if (
+        kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG
+        ||
+        kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQWZ_BKG
+        ||
+        kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQWW_BKG
+        ) KFactor_QCD_qqVV_Bkg_handle->eval(kfpair.first, V1pair, V2pair, result->Kfactors);
+      if (
+        genEvtInfoHandle.isValid()
+        && (
+          kfpair.first == KFactorHelpers::kf_EW_NLO_QQZZ_BKG
+          ||
+          kfpair.first == KFactorHelpers::kf_EW_NLO_QQWZ_BKG
+          ||
+          kfpair.first == KFactorHelpers::kf_EW_NLO_QQWW_BKG
+          )
+        ) KFactor_EW_qqVV_Bkg_handle->eval(
+          *genEvtInfoHandle,
+          incomingQuarks, V1pair, V2pair,
+          result->Kfactors
+        );
+      //MELAout << "\t- Done" << endl;
     }
   }
 
@@ -433,21 +512,37 @@ void GenMaker::setupKFactorHandles(edm::ParameterSet const& iConfig){
     // Build K factors
     KFactorHelpers::KFactorType numerator = KFactorHelpers::nKFactorTypes;
     KFactorHelpers::KFactorType denominator = KFactorHelpers::nKFactorTypes;
-    if (strkfactor_num_lower == "kfactor_qcd_nnlo_ggzz_sig") numerator = KFactorHelpers::kf_QCD_NNLO_GGZZ_SIG;
-    else if (strkfactor_num_lower == "kfactor_qcd_nlo_ggzz_sig") numerator = KFactorHelpers::kf_QCD_NLO_GGZZ_SIG;
+    if (strkfactor_num_lower == "kfactor_qcd_nnlo_ggvv_sig") numerator = KFactorHelpers::kf_QCD_NNLO_GGVV_SIG;
+    else if (strkfactor_num_lower == "kfactor_qcd_nlo_ggvv_sig") numerator = KFactorHelpers::kf_QCD_NLO_GGVV_SIG;
     else if (strkfactor_num_lower == "kfactor_qcd_nnlo_qqzz_bkg") numerator = KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG;
     else if (strkfactor_num_lower == "kfactor_qcd_nnlo_qqwz_bkg") numerator = KFactorHelpers::kf_QCD_NNLO_QQWZ_BKG;
     else if (strkfactor_num_lower == "kfactor_qcd_nnlo_qqww_bkg") numerator = KFactorHelpers::kf_QCD_NNLO_QQWW_BKG;
     else if (strkfactor_num_lower == "kfactor_ew_nlo_qqzz_bkg") numerator = KFactorHelpers::kf_EW_NLO_QQZZ_BKG;
+    else if (strkfactor_num_lower == "kfactor_ew_nlo_qqwz_bkg") numerator = KFactorHelpers::kf_EW_NLO_QQWZ_BKG;
+    else if (strkfactor_num_lower == "kfactor_ew_nlo_qqww_bkg") numerator = KFactorHelpers::kf_EW_NLO_QQWW_BKG;
     else throw cms::Exception(Form("GenMaker::setupKFactorHandles: Cannot identify the numerator of the K factor pair (%s, %s).", strkfactor_num.data(), strkfactor_den.data()));
 
-    bool doBuild_KFactor_QCD_ggZZ_Sig_handle = (numerator==KFactorHelpers::kf_QCD_NNLO_GGZZ_SIG || numerator==KFactorHelpers::kf_QCD_NLO_GGZZ_SIG);
+    bool doBuild_KFactor_QCD_ggVV_Sig_handle = (numerator==KFactorHelpers::kf_QCD_NNLO_GGVV_SIG || numerator==KFactorHelpers::kf_QCD_NLO_GGVV_SIG);
+    if (doBuild_KFactor_QCD_ggVV_Sig_handle){
+      if (strkfactor_den_lower == "kfactor_qcd_nnlo_ggvv_sig") denominator = KFactorHelpers::kf_QCD_NNLO_GGVV_SIG;
+      else if (strkfactor_den_lower == "kfactor_qcd_nlo_ggvv_sig") denominator = KFactorHelpers::kf_QCD_NLO_GGVV_SIG;
+      else throw cms::Exception(Form("GenMaker::setupKFactorHandles: K factor pair (%s, %s) is not implemented.", strkfactor_num.data(), strkfactor_den.data()));
+      //MELAout << "GenMaker::setupKFactorHandles: Building ggVV QCD K factors with num=" << strkfactor_num << " and den=" << strkfactor_den << endl;
+      KFactor_QCD_ggVV_Sig_handle = std::make_shared<KFactorHelpers::KFactorHandler_QCD_ggVV_Sig>(this->year);
+      //MELAout << "\t- Built!" << endl;
+    }
 
-    if (doBuild_KFactor_QCD_ggZZ_Sig_handle && strkfactor_den_lower == "kfactor_qcd_nnlo_ggzz_sig") denominator = KFactorHelpers::kf_QCD_NNLO_GGZZ_SIG;
-    else if (doBuild_KFactor_QCD_ggZZ_Sig_handle && strkfactor_den_lower == "kfactor_qcd_nlo_ggzz_sig") denominator = KFactorHelpers::kf_QCD_NLO_GGZZ_SIG;
-    else throw cms::Exception(Form("GenMaker::setupKFactorHandles: K factor pair (%s, %s) is not implemented.", strkfactor_num.data(), strkfactor_den.data()));
+    bool doBuild_KFactor_QCD_qqVV_Bkg_handle = (numerator==KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG || numerator==KFactorHelpers::kf_QCD_NNLO_QQWZ_BKG || numerator==KFactorHelpers::kf_QCD_NNLO_QQWW_BKG);
+    if (doBuild_KFactor_QCD_qqVV_Bkg_handle){
+      KFactor_QCD_qqVV_Bkg_handle = std::make_shared<KFactorHelpers::KFactorHandler_QCD_qqVV_Bkg>(this->year);
+    }
 
-    if (doBuild_KFactor_QCD_ggZZ_Sig_handle) KFactor_QCD_ggZZ_Sig_handle = std::make_shared<KFactorHelpers::KFactorHandler_QCD_ggZZ_Sig>(this->year);
+    bool doBuild_KFactor_EW_qqVV_Bkg_handle = (numerator==KFactorHelpers::kf_EW_NLO_QQZZ_BKG || numerator==KFactorHelpers::kf_EW_NLO_QQWZ_BKG || numerator==KFactorHelpers::kf_EW_NLO_QQWW_BKG);
+    if (doBuild_KFactor_EW_qqVV_Bkg_handle){
+      //MELAout << "GenMaker::setupKFactorHandles: Building qqVV EW K factors with num=" << strkfactor_num << " and den=" << strkfactor_den << endl;
+      KFactor_EW_qqVV_Bkg_handle = std::make_shared<KFactorHelpers::KFactorHandler_EW_qqVV_Bkg>(this->year, numerator);
+      //MELAout << "\t- Built!" << endl;
+    }
 
     if (numerator!=KFactorHelpers::nKFactorTypes) kfactor_num_denum_list.emplace_back(numerator, denominator);
   }

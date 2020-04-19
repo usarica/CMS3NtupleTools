@@ -51,6 +51,12 @@ opts.register('minNak8jets', -1, mytype=vpint)
 # K factors
 opts.register('applyKFactorQCDLOtoNNLOggZZSig', False, mytype=vpbool)
 opts.register('applyKFactorQCDNLOtoNNLOggZZSig', False, mytype=vpbool)
+opts.register('applyKFactorQCDNLOtoNNLOqqZZBkg', False, mytype=vpbool)
+opts.register('applyKFactorQCDNLOtoNNLOqqWZBkg', False, mytype=vpbool)
+opts.register('applyKFactorQCDNLOtoNNLOqqWWBkg', False, mytype=vpbool)
+opts.register('applyKFactorEWLOtoNLOqqZZBkg', False, mytype=vpbool)
+opts.register('applyKFactorEWLOtoNLOqqWZBkg', False, mytype=vpbool)
+opts.register('applyKFactorEWLOtoNLOqqWWBkg', False, mytype=vpbool)
 ###
 opts.parseArguments()
 
@@ -202,6 +208,25 @@ if not opts.data:
                   denominator = cms.string(strdenominator)
                )
             )
+   if opts.applyKFactorQCDNLOtoNNLOqqZZBkg or opts.applyKFactorQCDNLOtoNNLOqqWZBkg or opts.applyKFactorQCDNLOtoNNLOqqWWBkg:
+      strnumerator = ""
+      if opts.applyKFactorQCDNLOtoNNLOqqZZBkg:
+         strnumerator = "kfactor_qcd_nnlo_qqzz_bkg"
+      elif opts.applyKFactorQCDNLOtoNNLOqqWZBkg:
+         strnumerator = "kfactor_qcd_nnlo_qqwz_bkg"
+      elif opts.applyKFactorQCDNLOtoNNLOqqWWBkg:
+         strnumerator = "kfactor_qcd_nnlo_qqww_bkg"
+      process.genMaker.kfactors.append( cms.PSet( numerator = cms.string(strnumerator) ) )
+   if opts.applyKFactorEWLOtoNLOqqZZBkg or opts.applyKFactorEWLOtoNLOqqWZBkg or opts.applyKFactorEWLOtoNLOqqWWBkg:
+      strnumerator = ""
+      if opts.applyKFactorEWLOtoNLOqqZZBkg:
+         strnumerator = "kfactor_ew_nlo_qqzz_bkg"
+      elif opts.applyKFactorEWLOtoNLOqqWZBkg:
+         strnumerator = "kfactor_ew_nlo_qqwz_bkg"
+      elif opts.applyKFactorEWLOtoNLOqqWWBkg:
+         strnumerator = "kfactor_ew_nlo_qqww_bkg"
+      process.genMaker.kfactors.append( cms.PSet( numerator = cms.string(strnumerator) ) )
+
 
 
 #Options for Input

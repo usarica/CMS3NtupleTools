@@ -51,6 +51,18 @@ namespace CMS3ObjectHelpers{
   template<typename T> void getObjectPointer(typename std::vector<T>::const_iterator const& it, T const*& ptr);
   template<typename T> void getObjectPointer(typename std::vector<T const*>::const_iterator const& it, T const*& ptr);
 
+  template<typename T> bool objHasGreaterPt(T const& earlier, T const& later);
+  template<typename T> bool ptrHasGreaterPt(T const* earlier, T const* later);
+
+  template<typename T> bool objHasGreaterPz(T const& earlier, T const& later);
+  template<typename T> bool ptrHasGreaterPz(T const* earlier, T const* later);
+
+  template<typename T> void sortByGreaterPt(std::vector<T>& vec);
+  template<typename T> void sortByGreaterPt(std::vector<T*>& vec);
+
+  template<typename T> void sortByGreaterPz(std::vector<T>& vec);
+  template<typename T> void sortByGreaterPz(std::vector<T*>& vec);
+
   // T and U are pointer types
   template<typename T, typename U, typename Iterable_T, typename Iterable_U> void matchParticles(
     CMS3ObjectHelpers::ObjectMatchType type,
@@ -78,6 +90,18 @@ namespace CMS3ObjectHelpers{
 template<typename T> void CMS3ObjectHelpers::getObjectPointer(typename edm::View<T>::const_iterator const& it, T const*& ptr){ ptr = &(*it); }
 template<typename T> void CMS3ObjectHelpers::getObjectPointer(typename std::vector<T>::const_iterator const& it, T const*& ptr){ ptr = &(*it); }
 template<typename T> void CMS3ObjectHelpers::getObjectPointer(typename std::vector<T const*>::const_iterator const& it, T const*& ptr){ ptr = *it; }
+
+template<typename T> bool CMS3ObjectHelpers::objHasGreaterPt(T const& earlier, T const& later){ return (earlier.pt() > later.pt()); }
+template<typename T> bool CMS3ObjectHelpers::ptrHasGreaterPt(T const* earlier, T const* later){ return (earlier && (!later || (earlier->pt() > later->pt()))); }
+
+template<typename T> bool CMS3ObjectHelpers::objHasGreaterPz(T const& earlier, T const& later){ return (earlier.pz() > later.pz()); }
+template<typename T> bool CMS3ObjectHelpers::ptrHasGreaterPz(T const* earlier, T const* later){ return (earlier && (!later || (earlier->pz() > later->pz()))); }
+
+template<typename T> void CMS3ObjectHelpers::sortByGreaterPt(std::vector<T>& vec){ std::sort(vec.begin(), vec.end(), CMS3ObjectHelpers::objHasGreaterPt<T>); }
+template<typename T> void CMS3ObjectHelpers::sortByGreaterPt(std::vector<T*>& vec){ std::sort(vec.begin(), vec.end(), CMS3ObjectHelpers::ptrHasGreaterPt<T>); }
+
+template<typename T> void CMS3ObjectHelpers::sortByGreaterPz(std::vector<T>& vec){ std::sort(vec.begin(), vec.end(), CMS3ObjectHelpers::objHasGreaterPz<T>); }
+template<typename T> void CMS3ObjectHelpers::sortByGreaterPz(std::vector<T*>& vec){ std::sort(vec.begin(), vec.end(), CMS3ObjectHelpers::ptrHasGreaterPz<T>); }
 
 template<typename T, typename U, typename Iterable_T, typename Iterable_U> void CMS3ObjectHelpers::matchParticles(
   CMS3ObjectHelpers::ObjectMatchType type,
