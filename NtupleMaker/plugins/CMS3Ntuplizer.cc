@@ -705,6 +705,8 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(float, trkIso03_trackerSumPt, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightCharge, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP_STA, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
@@ -763,6 +765,8 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERFLOAT_INTO_VECTOR(trkIso03_trackerSumPt);
 
     PUSH_USERINT_INTO_VECTOR(pass_tightCharge);
+    PUSH_USERINT_INTO_VECTOR(is_probeForTnP);
+    PUSH_USERINT_INTO_VECTOR(is_probeForTnP_STA);
 
     if (keepMuonTimingInfo){
       PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
@@ -827,6 +831,8 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, trkIso03_trackerSumPt);
 
   PUSH_VECTOR_WITH_NAME(colName, pass_tightCharge);
+  PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP);
+  PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP_STA);
 
   if (keepMuonTimingInfo){
     PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
@@ -891,6 +897,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_missing_inner_hits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_all_missing_inner_hits, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, n_objects);
@@ -995,6 +1003,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(n_missing_inner_hits);
     PUSH_USERINT_INTO_VECTOR(n_all_missing_inner_hits);
 
+    PUSH_USERINT_INTO_VECTOR(is_probeForTnP);
+
     // Id variables
     // Fall17V2_Iso MVA id
     if (keepElectronMVAInfo){
@@ -1085,6 +1095,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, conv_vtx_flag);
   PUSH_VECTOR_WITH_NAME(colName, n_missing_inner_hits);
   PUSH_VECTOR_WITH_NAME(colName, n_all_missing_inner_hits);
+
+  PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);

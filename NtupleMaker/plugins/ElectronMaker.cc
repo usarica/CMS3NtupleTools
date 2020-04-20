@@ -260,6 +260,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     setCutBasedIdUserVariables(el, electron_result, "cutBasedElectronID-Fall17-94X-V1-tight", "Fall17V1_Tight");
     applyTriggerEmulationCuts(rho_calo_event, el, electron_result, 0);
     applyTriggerEmulationCuts(rho_calo_event, el, electron_result, 1);
+    electron_result.addUserInt("is_probeForTnP", static_cast<int>(ElectronSelectionHelpers::testProbeElectronForTnP(*el, this->year_)));
 
     //////////////
     // Electron //

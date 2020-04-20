@@ -172,10 +172,17 @@ namespace ElectronSelectionHelpers{
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
+  bool testProbeElectronForTnP(pat::Electron const& obj, int const& /*year*/){
+    if (!obj.superCluster()) return false;
+    double eta = std::abs(obj.superCluster()->eta());
+    return (eta<2.5 && obj.correctedEcalEnergy()*std::sin(obj.superCluster()->position().theta())>10.);
+  }
+
   bool testSkimElectron(pat::Electron const& obj, int const& /*year*/, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
     double etaSC = std::abs(obj.userFloat("etaSC"));
+    bool passTnP = (obj.userInt("is_probeForTnP")!=0);
     bool passAnyCutBased = cutbasedidbitlist.empty();
     bool passAnyMVA = mvaidpasslist.empty();
     /*
@@ -201,7 +208,7 @@ namespace ElectronSelectionHelpers{
 #undef TEST_CUTBASED_BIT
     for (auto const& strid:mvaidpasslist) passAnyMVA |= static_cast<bool>(obj.userInt(strid));
     return (
-      (passAnyCutBased || passAnyMVA) &&
+      (passTnP || passAnyCutBased || passAnyMVA) &&
       (eta<selection_skim_eta || etaSC<selection_skim_eta) && (
         uncorr_pt>=selection_skim_pt
         ||

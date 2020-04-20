@@ -135,6 +135,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // Set POG bits
     muon_result.addUserInt("POG_selector_bits", POG_selector_bits);
 
+    // Set flag for TnP probe-ness
+    muon_result.addUserInt("is_probeForTnP", static_cast<int>(MuonSelectionHelpers::testProbeMuonForTnP(*muon, this->year_)));
+    muon_result.addUserInt("is_probeForTnP_STA", static_cast<int>(MuonSelectionHelpers::testProbeMuonSTAForTnP(*muon, this->year_)));
+
     // References
     const RefToBase<pat::Muon> muonRef = mus_h->refAt(muonIndex);
     const TrackRef globalTrack = muon->globalTrack();

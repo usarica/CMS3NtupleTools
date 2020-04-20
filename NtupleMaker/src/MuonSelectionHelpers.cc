@@ -132,12 +132,20 @@ namespace MuonSelectionHelpers{
     return !outOfTime;
   }
 
+  bool testProbeMuonForTnP(pat::Muon const& obj, int const& /*year*/){
+    return (obj.innerTrack().isNonnull());
+  }
+  bool testProbeMuonSTAForTnP(pat::Muon const& obj, int const& /*year*/){
+    return (obj.outerTrack().isNonnull());
+  }
+
   bool testSkimMuon(pat::Muon const& obj, int const& /*year*/){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
     bool passAnyPOGBit = (obj.userInt("POG_selector_bits")!=0);
+    bool passTnP = ((obj.userInt("is_probeForTnP")+obj.userInt("is_probeForTnP_STA"))>0);
     return (
-      passAnyPOGBit &&
+      (passTnP || passAnyPOGBit) &&
       eta<selection_skim_eta && (
         uncorr_pt>=selection_skim_pt
         ||

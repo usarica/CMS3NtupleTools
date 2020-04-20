@@ -30,6 +30,9 @@ namespace MuonSelectionHelpers{
   bool testTightCharge(pat::Muon const& obj, int const& year); // Test error on charge determination via track pT error
   bool testMuonTiming(pat::Muon const& obj, int const& year); // Test muon timing from RPC and combined measurements
 
+  bool testProbeMuonForTnP(pat::Muon const& obj, int const& year);
+  bool testProbeMuonSTAForTnP(pat::Muon const& obj, int const& year);
+
   bool testSkimMuon(pat::Muon const& obj, int const& year);
 
 }
