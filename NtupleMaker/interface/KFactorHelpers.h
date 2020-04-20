@@ -108,7 +108,7 @@ namespace KFactorHelpers{
 
     static void readTableFromFile(TString const& fname, std::vector< std::vector<double> >& table);
 
-    std::vector<double> findTableEntry(double const& shat, double const& that) const;
+    std::vector<double> findTableEntry(double const& mhat, double const& that) const;
 
     void setup();
 

@@ -2171,7 +2171,7 @@ namespace KFactorHelpers{
     }
     //MELAout << "KFactorHandler_EW_qqVV_Bkg::readTableFromFile: Done reading table" << endl;
   }
-  std::vector<double> KFactorHandler_EW_qqVV_Bkg::findTableEntry(double const& shat, double const& that) const{
+  std::vector<double> KFactorHandler_EW_qqVV_Bkg::findTableEntry(double const& mhat, double const& that) const{
     std::vector<std::vector<double>>::const_iterator const table_end = table_VV.cend();
 
     double bestShatDiff = -1;
@@ -2180,7 +2180,7 @@ namespace KFactorHelpers{
     for (size_t is=0; is<table_sqrtShatBegin_VV.size()-1;is++){
       auto const& itFirst = table_sqrtShatBegin_VV.at(is);
       auto const& itSecond = table_sqrtShatBegin_VV.at(is+1);
-      double tmpShatDiff = std::abs(itFirst->front() - std::sqrt(std::abs(shat)));
+      double tmpShatDiff = std::abs(itFirst->front() - mhat);
       if (bestShatDiff<0. || tmpShatDiff < bestShatDiff){
         bestShatDiff = tmpShatDiff;
         it_bestShat = itFirst;
