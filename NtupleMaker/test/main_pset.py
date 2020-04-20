@@ -51,8 +51,8 @@ opts.register('minNphotons', -1, mytype=vpint)
 opts.register('minNak4jets', -1, mytype=vpint)
 opts.register('minNak8jets', -1, mytype=vpint)
 # K factors
-opts.register('applyKFactorQCDLOtoNNLOggZZSig', False, mytype=vpbool)
-opts.register('applyKFactorQCDNLOtoNNLOggZZSig', False, mytype=vpbool)
+opts.register('applyKFactorQCDLOtoNNLOggVVSig', False, mytype=vpbool)
+opts.register('applyKFactorQCDNLOtoNNLOggVVSig', False, mytype=vpbool)
 opts.register('applyKFactorQCDNLOtoNNLOqqZZBkg', False, mytype=vpbool)
 opts.register('applyKFactorQCDNLOtoNNLOqqWZBkg', False, mytype=vpbool)
 opts.register('applyKFactorQCDNLOtoNNLOqqWWBkg', False, mytype=vpbool)
@@ -95,9 +95,9 @@ print("""PSet is assuming:
         ))
 
 if not opts.data and opts.year<2016:
-   # print(("#"*100+"\n")*2+"[!] This is MC but you've not defined year. To avoid a crash, I'm setting it to 2017\n"+("#"*100+"\n")*2)
-   # opts.year=2017
    raise RuntimeError("MC processing must define a year>=2016!")
+if opts.data and opts.year<2016:
+   raise RuntimeError("Data processing must define a year>=2016!")
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.isFastSim=opts.fastsim
@@ -194,9 +194,9 @@ if not opts.data:
    process.genMaker.year = cms.int32(opts.year)
    process.genMaker.xsec = cms.double(opts.xsec)
    process.genMaker.BR = cms.double(opts.BR)
-   if opts.applyKFactorQCDLOtoNNLOggZZSig or opts.applyKFactorQCDNLOtoNNLOggZZSig:
-      strnumerator = "kfactor_qcd_nnlo_ggzz_sig"
-      strdenominator = "" if opts.applyKFactorQCDLOtoNNLOggZZSig else "kfactor_qcd_nlo_ggzz_sig"
+   if opts.applyKFactorQCDLOtoNNLOggVVSig or opts.applyKFactorQCDNLOtoNNLOggVVSig:
+      strnumerator = "kfactor_qcd_nnlo_ggvv_sig"
+      strdenominator = "" if opts.applyKFactorQCDLOtoNNLOggVVSig else "kfactor_qcd_nlo_ggvv_sig"
       if not strdenominator:
          process.genMaker.kfactors.append(
                cms.PSet(

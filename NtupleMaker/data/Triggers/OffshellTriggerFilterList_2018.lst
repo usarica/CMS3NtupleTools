@@ -3,11 +3,12 @@ customPrunedTriggerCollection = [
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8_v*", 
    "HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8_v*",
 
-   "HLT_IsoMu24_v*",
    "HLT_Mu8_v*", # Has L1 and HLT prescales
    "HLT_Mu8_TrkIsoVVL_v*", # Has L1 and HLT prescales
    "HLT_Mu17_v*", # Has L1 and HLT prescales
    "HLT_Mu17_TrkIsoVVL_v*", # Has L1 and HLT prescales
+
+   "HLT_IsoMu24_v*",
    "HLT_Mu50_v*", # For high-pT single muon eff.
    "HLT_OldMu100_v*", # For high-pT single muon eff.
    "HLT_TkMu100_v*", # For high-pT single muon eff.

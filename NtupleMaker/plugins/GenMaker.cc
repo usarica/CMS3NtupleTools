@@ -416,7 +416,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     );
 
     for (auto const& kfpair:kfactor_num_denum_list){
-      //MELAout << "Calculating k factor " << kfpair.first << ", " << kfpair.second << endl;
+      //MELAout << "Calculating K factor " << kfpair.first << ", " << kfpair.second << endl;
       if (
         kfpair.first == KFactorHelpers::kf_QCD_NNLO_QQZZ_BKG
         ||
