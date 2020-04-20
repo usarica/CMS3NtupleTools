@@ -12,11 +12,9 @@ from metis.StatsParser import StatsParser
 from metis.Utils import send_email, interruptible_sleep
 from metis.Optimizer import Optimizer
 
-DO_TEST = False
-
 # To make tarfile use command:  mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
 
-def get_tasks(csvs, tarfile, tag):
+def get_tasks(csvs, tarfile, tag, DO_TEST):
 
     if not os.path.exists(tarfile):
         raise RuntimeError("{} doesn't exist!".format(tarfile))
@@ -85,9 +83,10 @@ if __name__ == "__main__":
     parser.add_argument("csvs", help="csv files with samples", nargs="+")
     parser.add_argument("--tarfile", help="path to tarball", type=str, required=True)
     parser.add_argument("--tag", help="production tag", type=str, required=True)
+    parser.add_argument("--testrun", help="flag for test run", action='store_true', required=False, default=False)
     args = parser.parse_args()
 
-    tasks = get_tasks(csvs=args.csvs, tarfile=args.tarfile, tag=args.tag)
+    tasks = get_tasks(csvs=args.csvs, tarfile=args.tarfile, tag=args.tag, DO_TEST=args.testrun)
 
     total_summary = {}
     optimizer = Optimizer()
