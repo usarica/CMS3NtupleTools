@@ -51,7 +51,11 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   is80X(pset.getParameter<bool>("is80X")),
 
   processTriggerObjectInfos(pset.getParameter<bool>("processTriggerObjectInfos")),
+
   keepMuonTimingInfo(pset.getParameter<bool>("keepMuonTimingInfo")),
+  keepMuonPullInfo(pset.getParameter<bool>("keepMuonPullInfo")),
+
+  keepElectronMVAInfo(pset.getParameter<bool>("keepElectronMVAInfo")),
 
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
@@ -370,6 +374,14 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
       ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kPromptFinalStatePhotons) && st!=1)
       ) continue;
     else if (
+      this->keepGenParticles==kReducedFinalStatesAndHardProcessFinalStates
+      && (
+        (st!=1 && !(part.isHardProcess() && st!=21 && st!=22))
+        ||
+        (st==1 && !(part.isHardProcess() || (id>=11 && id<=16) || id==22))
+        )
+      ) continue;
+    else if (
       (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
       &&
       st==1
@@ -384,6 +396,11 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
       &&
       // Only photons for this flag
       !(id==22 && part.isPromptFinalState())
+      ) continue;
+    else if (
+      (this->keepGenParticles==kHardProcesses && !part.isHardProcess())
+      ||
+      (this->keepGenParticles==kHardProcessFinalStates && (!part.isHardProcess() || st==21 || st==22))
       ) continue;
     allGenParticles.push_back(&part);
   }
@@ -409,9 +426,10 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     // Record if NOT matched to any pruned gen. particle.
     if (match_ref<0.){
       if (
-        ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses) && st!=1)
+        ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses || this->keepGenParticles==kReducedFinalStatesAndHardProcessFinalStates) && st!=1)
         ) continue;
       else if (this->keepGenParticles==kPromptFinalStatePhotons) continue; // Disable photons from packed candidates since they are not prompt photons
+      else if (this->keepGenParticles==kHardProcesses || this->keepGenParticles==kHardProcessFinalStates) continue; // Disable packed candidates since they are not hard process particles
       else if (
         (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
         &&
@@ -762,8 +780,10 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
       PUSH_USERINT_INTO_VECTOR(pass_muon_timing);
     }
 
-    PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_DT);
-    PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_CSC);
+    if (keepMuonPullInfo){
+      PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_DT);
+      PUSH_USERFLOAT_INTO_VECTOR(pull_dxdz_noArb_CSC);
+    }
 
     PUSH_USERFLOAT_INTO_VECTOR(dxy_bestTrack_firstPV);
     PUSH_USERFLOAT_INTO_VECTOR(dz_bestTrack_firstPV);
@@ -824,8 +844,10 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_VECTOR_WITH_NAME(colName, pass_muon_timing);
   }
 
-  PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_DT);
-  PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_CSC);
+  if (keepMuonPullInfo){
+    PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_DT);
+    PUSH_VECTOR_WITH_NAME(colName, pull_dxdz_noArb_CSC);
+  }
 
   PUSH_VECTOR_WITH_NAME(colName, dxy_bestTrack_firstPV);
   PUSH_VECTOR_WITH_NAME(colName, dz_bestTrack_firstPV);
@@ -975,23 +997,29 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
     // Id variables
     // Fall17V2_Iso MVA id
-    PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Val);
-    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Cat);
+    if (keepElectronMVAInfo){
+      PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Val);
+      PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_Cat);
+    }
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wpLoose);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wp90);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wp80);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Iso_pass_wpHZZ);
 
     // Fall17V2_NoIso MVA id
-    PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Val);
-    PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Cat);
+    if (keepElectronMVAInfo){
+      PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Val);
+      PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_Cat);
+    }
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wpLoose);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp90);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_NoIso_pass_wp80);
 
     // HZZ Run 2 legacy electron MVA id
-    PUSH_USERFLOAT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Val);
-    PUSH_USERINT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Cat);
+    if (keepElectronMVAInfo){
+      PUSH_USERFLOAT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Val);
+      PUSH_USERINT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_Cat);
+    }
     PUSH_USERINT_INTO_VECTOR(id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ);
 
     // Fall17V2 cut-based ids
@@ -1065,21 +1093,27 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalUp);
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr_smear_totalDn);
 
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Val);
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Cat);
+  if (keepElectronMVAInfo){
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Val);
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_Cat);
+  }
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wpLoose);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wp90);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wp80);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Iso_pass_wpHZZ);
 
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Val);
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Cat);
+  if (keepElectronMVAInfo){
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Val);
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_Cat);
+  }
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wpLoose);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp90);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_NoIso_pass_wp80);
 
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Val);
-  PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Cat);
+  if (keepElectronMVAInfo){
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Val);
+    PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_Cat);
+  }
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Veto_Bits);
@@ -2470,7 +2504,13 @@ CMS3Ntuplizer::ParticleRecordLevel CMS3Ntuplizer::getParticleRecordLevel(std::st
       ||
       (i==kAllFinalStates && word=="allfinalstates")
       ||
+      (i==kReducedFinalStatesAndHardProcessFinalStates && word=="reducedfinalstatesandhardprocessfinalstates")
+      ||
       (i==kReducedFinalStatesAndHardProcesses && word=="reducedfinalstatesandhardprocesses")
+      ||
+      (i==kHardProcesses && word=="hardprocesses")
+      ||
+      (i==kHardProcessFinalStates && word=="hardprocessfinalstates")
       ||
       (i==kAll && word=="all")
       ) res = static_cast<ParticleRecordLevel>(i);

@@ -23,6 +23,8 @@ opts.register('triginfo'  , False , mytype=vpbool) # want (probably broken now) 
 opts.register('doTrigObjMatching', False, mytype=vpbool) # Enable intermediate recording of trigger objects and matching at analyzer
 opts.register('triggerListFromFile', "", mytype=vpstring) # Trigger list to require, to be read from a file
 opts.register('keepMuonTimingInfo', False, mytype=vpbool) # Keep full muon timing info or summarize it with a boolean flag
+opts.register('keepMuonPullInfo', False, mytype=vpbool) # Keep muon pull info for low-pT muons
+opts.register('keepElectronMVAInfo', False, mytype=vpbool) # Keep MVA values and category indices for electron MVAs
 opts.register('sparminfo'  , False , mytype=vpbool) # separate flag to enable sparm if fastsim=True isn't specified
 opts.register('metrecipe'  , False , mytype=vpbool) # to enable the 2017 94X data,MC MET recipe v2
 opts.register('goldenjson'  , "" , mytype=vpstring) # to only process a set of run,lumi sections; see note below for details
@@ -957,6 +959,8 @@ else:
    process.cms3ntuple.keepGenParticles = cms.untracked.string(opts.keepGenParticles)
    process.cms3ntuple.keepGenJets = cms.bool(opts.keepGenJets)
    process.cms3ntuple.keepMuonTimingInfo = cms.bool(opts.keepMuonTimingInfo)
+   process.cms3ntuple.keepMuonPullInfo = cms.bool(opts.keepMuonPullInfo)
+   process.cms3ntuple.keepElectronMVAInfo = cms.bool(opts.keepElectronMVAInfo)
    process.cms3ntuple.includeLJetsSelection = cms.bool(opts.includeLJetsSelection)
    process.cms3ntuple.minNmuons = cms.int32(opts.minNmuons)
    process.cms3ntuple.minNelectrons = cms.int32(opts.minNelectrons)

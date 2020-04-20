@@ -80,11 +80,31 @@ namespace KFactorHelpers{
       else if (PDGHelpers::isAGluon(id) && status == 21) incomingGluons.push_back(part);
       else if (PDGHelpers::isAQuark(id)) quarkAntiquark[std::abs(id)-1][(id>0 ? 0 : 1)].push_back(part);
       else if (PDGHelpers::isALepton(id)) lepMinusPlus[(std::abs(id)-11)/2][(id>0 ? 0 : 1)].push_back(part);
-      else if (PDGHelpers::isANeutrino(id)) lepMinusPlus[(std::abs(id)-12)/2][(id>0 ? 0 : 1)].push_back(part);
+      else if (PDGHelpers::isANeutrino(id)) lepNuNubar[(std::abs(id)-12)/2][(id>0 ? 0 : 1)].push_back(part);
       else if (PDGHelpers::isAGluon(id)) outgoingGluons.push_back(part);
     }
     CMS3ObjectHelpers::sortByGreaterPz(incomingQuarks);
     CMS3ObjectHelpers::sortByGreaterPz(incomingGluons);
+
+    /*
+    for (auto const& part:incomingQuarks) MELAout << "Incoming quark (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+    for (auto const& part:incomingGluons) MELAout << "Incoming gluon (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+    for (unsigned short c=0; c<3; c++){
+      for (unsigned short d=0; d<2; d++){
+        for (auto const& part:lepMinusPlus[c][d]) MELAout << "Lepton[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+      }
+    }
+    for (unsigned short c=0; c<3; c++){
+      for (unsigned short d=0; d<2; d++){
+        for (auto const& part:lepNuNubar[c][d]) MELAout << "Neutrino[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+      }
+    }
+    for (unsigned short c=0; c<6; c++){
+      for (unsigned short d=0; d<2; d++){
+        for (auto const& part:quarkAntiquark[c][d]) MELAout << "Quark[" << c << "][" << d << "] (id, status) = ( " << part->pdgId() << " , " << part->status() << " )" << endl;
+      }
+    }
+    */
 
     // First, construct all possible Vs
     std::vector< std::pair<reco::GenParticle const*, reco::GenParticle const*> > tmpVhandle;
@@ -110,6 +130,8 @@ namespace KFactorHelpers{
         }
       }
     }
+    for (auto& tmppair:tmpVhandle){ if (tmppair.first->pdgId()<0) std::swap(tmppair.first, tmppair.second); }
+    //for (auto const& tmppair:tmpVhandle) MELAout << "Intermediate V (m=" << (tmppair.first->p4() + tmppair.second->p4()).M() << ") found. (id1, st1) = " << tmppair.first->pdgId() << ", " << tmppair.first->status() << ", (id2, st2) = " << tmppair.second->pdgId() << ", " << tmppair.second->status() << endl;
 
     // Determine best V1 and V2
     std::pair<reco::GenParticle const*, reco::GenParticle const*> const* bestV1pair=nullptr;
@@ -125,8 +147,8 @@ namespace KFactorHelpers{
         bool isVjZ = Vj.first->pdgId() == -Vj.second->pdgId();
         if (doZZ && !(isViZ && isVjZ)) continue;
         if (doWZ && (isViZ == isVjZ)) continue;
-        if (doWW && (isViZ  || isVjZ)){
-          continue;
+        if (doWW){
+          if (isViZ || isVjZ) continue;
           // Additional check to ensure that the incoming single quark flavor is conserved
           if (incomingQuarks.size()==1){
             int qflav = incomingQuarks.front()->pdgId();
@@ -161,6 +183,9 @@ namespace KFactorHelpers{
     else if (doWZ) doSwap = (bestV2pair->first->pdgId() == -bestV2pair->second->pdgId());
     else doSwap = (std::abs(pBestV1.M() - PDGHelpers::Zmass)>std::abs(pBestV2.M() - PDGHelpers::Zmass));
     if (doSwap) std::swap(bestV1pair, bestV2pair);
+
+    //MELAout << "m12 = " << (bestV1pair->first->p4() + bestV1pair->second->p4()).M() << endl;
+    //MELAout << "m34 = " << (bestV2pair->first->p4() + bestV2pair->second->p4()).M() << endl;
 
     V1pair = *bestV1pair;
     V2pair = *bestV2pair;

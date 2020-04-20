@@ -64,6 +64,9 @@ protected:
     kPromptFinalStatePhotons,
     kReducedFinalStates,
     kAllFinalStates,
+    kHardProcessFinalStates,
+    kHardProcesses,
+    kReducedFinalStatesAndHardProcessFinalStates,
     kReducedFinalStatesAndHardProcesses,
     kAll,
     nParticleRecordLevels
@@ -94,7 +97,11 @@ protected:
   bool is80X;
 
   bool processTriggerObjectInfos;
+
   bool keepMuonTimingInfo;
+  bool keepMuonPullInfo;
+
+  bool keepElectronMVAInfo;
 
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
