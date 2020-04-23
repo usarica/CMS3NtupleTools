@@ -37,10 +37,7 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
   MUON_MOMENTUM_VARIABLES;
-  MUON_IDISO_VARIABLES;
-  MUON_MOMENTUMSCALE_VARIABLES;
-  MUON_PRETESTED_VARIABLES;
-  MUON_FULLTIMING_VARIABLES;
+  MUON_VARIABLES;
 #undef MUON_VARIABLE
 
     // Beyond this point starts checks and selection
@@ -70,10 +67,7 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   productList.reserve(nProducts);
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
   MUON_MOMENTUM_VARIABLES;
-  MUON_IDISO_VARIABLES;
-  MUON_MOMENTUMSCALE_VARIABLES;
-  MUON_PRETESTED_VARIABLES;
-  MUON_FULLTIMING_VARIABLES;
+  MUON_VARIABLES;
 #undef MUON_VARIABLE
   {
     size_t ip=0;
@@ -133,7 +127,7 @@ bool MuonHandler::wrapTree(BaseTree* tree){
 
   std::vector<TString> bnames;
   tree->getValidBranchNamesWithoutAlias(bnames, false);
-  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), "muons_pass_muon_timing")!=bnames.cend());
+  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), MuonHandler::colName + "_pass_muon_timing")!=bnames.cend());
 
   return IvyBase::wrapTree(tree);
 }

@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <utility>
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include "ECALGeometrySpecifications.h"
 #include "ElectronObject.h"
 
@@ -57,6 +59,13 @@ ElectronObject& ElectronObject::operator=(const ElectronObject& other){
 }
 ElectronObject::~ElectronObject(){}
 
+bool ElectronObject::isEBEEGap() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEBEEGAP);
+}
+bool ElectronObject::isAnyGap() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP);
+}
+
 void ElectronObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
@@ -111,7 +120,7 @@ void ElectronObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar con
     extras.pfIso03_sum_neutral_nofsr -= pt_fsr;
     extras.pfIso03_comb_nofsr = extras.pfIso03_sum_charged_nofsr + std::max(0.f, extras.pfIso03_sum_neutral_nofsr);
   }
-  if (dR_fsr<0.4){ // FIXME: FIND OUT THE MINIMUM DR FOR ISO SUMS
+  if (dR_fsr<0.4){
     extras.pfIso04_sum_neutral_nofsr -= pt_fsr;
     extras.pfIso04_comb_nofsr = extras.pfIso04_sum_charged_nofsr + std::max(0.f, extras.pfIso04_sum_neutral_nofsr);
   }

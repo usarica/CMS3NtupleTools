@@ -1,6 +1,7 @@
 #ifndef ELECTRONSELECTIONHELPERS_H
 #define ELECTRONSELECTIONHELPERS_H
 
+#include <CMS3/Dictionaries/interface/ElectronTriggerCutEnums.h>
 #include "ElectronObject.h"
 
 

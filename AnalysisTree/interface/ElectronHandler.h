@@ -16,6 +16,7 @@ public:
 protected:
   friend class ParticleDisambiguator;
 
+  bool has_mvaid_extras;
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
@@ -29,9 +30,11 @@ public:
 
   bool constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst);
 
+  bool wrapTree(BaseTree* tree);
+
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
-  static void bookBranches(BaseTree* tree);
+  void bookBranches(BaseTree* tree);
 
 };
 

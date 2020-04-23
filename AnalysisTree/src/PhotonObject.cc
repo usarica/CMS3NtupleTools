@@ -1,5 +1,7 @@
 #include <algorithm>
 #include <utility>
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include "PhotonObject.h"
 
 
@@ -50,6 +52,13 @@ PhotonObject& PhotonObject::operator=(const PhotonObject& other){
   return *this;
 }
 PhotonObject::~PhotonObject(){}
+
+bool PhotonObject::isEBEEGap() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEBEEGAP);
+}
+bool PhotonObject::isAnyGap() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP);
+}
 
 void PhotonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;

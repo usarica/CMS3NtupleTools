@@ -11,21 +11,23 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+#define ELECTRON_MOMENTUM_VARIABLES \
 ELECTRON_VARIABLE(float, pt, 0) \
 ELECTRON_VARIABLE(float, eta, 0) \
 ELECTRON_VARIABLE(float, phi, 0) \
 ELECTRON_VARIABLE(float, mass, 0) \
 ELECTRON_VARIABLE(cms3_charge_t, charge, 0) \
-ELECTRON_VARIABLES
 
 
 const std::string ElectronHandler::colName = "electrons";
 
-ElectronHandler::ElectronHandler() : IvyBase()
+ElectronHandler::ElectronHandler() :
+  IvyBase(),
+  has_mvaid_extras(false)
 {
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  ELECTRON_MOMENTUM_VARIABLES;
+  ELECTRON_COMMON_VARIABLES;
 #undef ELECTRON_VARIABLE
 }
 
@@ -35,13 +37,18 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   if (!currentTree) return false;
 
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  ELECTRON_MOMENTUM_VARIABLES;
+  ELECTRON_VARIABLES;
 #undef ELECTRON_VARIABLE
 
     // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(ElectronHandler::colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  ELECTRON_MOMENTUM_VARIABLES;
+  ELECTRON_COMMON_VARIABLES;
+  if (this->has_mvaid_extras){
+    ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
 #undef ELECTRON_VARIABLE
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
@@ -55,7 +62,8 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   size_t nProducts = (itEnd_charge - itBegin_charge);
   productList.reserve(nProducts);
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  ELECTRON_MOMENTUM_VARIABLES;
+  ELECTRON_VARIABLES;
 #undef ELECTRON_VARIABLE
   {
     size_t ip=0;
@@ -69,7 +77,10 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
 
       // Set extras
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
-      ELECTRON_VARIABLES;
+      ELECTRON_COMMON_VARIABLES;
+      if (this->has_mvaid_extras){
+        ELECTRON_MVAID_EXTRA_VARIABLES;
+      }
 #undef ELECTRON_VARIABLE
 
       // Set particle index as its unique identifier
@@ -85,7 +96,11 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
 
       ip++;
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+      ELECTRON_MOMENTUM_VARIABLES;
+      ELECTRON_COMMON_VARIABLES;
+      if (this->has_mvaid_extras){
+        ELECTRON_MVAID_EXTRA_VARIABLES;
+      }
 #undef ELECTRON_VARIABLE
     }
   }
@@ -95,11 +110,34 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   return true;
 }
 
+bool ElectronHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  std::vector<TString> bnames;
+  tree->getValidBranchNamesWithoutAlias(bnames, false);
+  this->has_mvaid_extras = (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_id_MVA_Fall17V2_NoIso_Val")!=bnames.cend());
+
+  return IvyBase::wrapTree(tree);
+}
+
 void ElectronHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
+  std::vector<TString> bnames;
+  tree->getValidBranchNamesWithoutAlias(bnames, false);
+  this->has_mvaid_extras = (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_id_MVA_Fall17V2_NoIso_Val")!=bnames.cend());
+#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+  if (this->has_mvaid_extras){
+    ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
+#undef ELECTRON_VARIABLE
+
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  ELECTRON_MOMENTUM_VARIABLES;
+  ELECTRON_COMMON_VARIABLES;
+  if (this->has_mvaid_extras){
+    ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
 #undef ELECTRON_VARIABLE
 }
 

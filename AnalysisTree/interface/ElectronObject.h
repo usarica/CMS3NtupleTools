@@ -5,31 +5,37 @@
 
 #define ELECTRONS_HAVE_FALL17V1_CUTBASED 0
 
-#define ELECTRON_COMMON_VARIABLES \
+#define ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
 ELECTRON_VARIABLE(float, etaSC, 0) \
 ELECTRON_VARIABLE(float, scale_smear_corr, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalDn, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_smear_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_smear_totalDn, 1) \
-ELECTRON_VARIABLE(float, id_MVA_Fall17V2_Iso_Val, 0) \
-ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, 0) \
+ELECTRON_VARIABLE(bool, conv_vtx_flag, false) \
+ELECTRON_VARIABLE(cms3_electron_missinghits_t, n_missing_inner_hits, 0) \
+ELECTRON_VARIABLE(cms3_electron_missinghits_t, n_all_missing_inner_hits, 0) \
+ELECTRON_VARIABLE(cms3_electron_charge_consistency_bits_t, charge_consistency_bits, 0) \
+ELECTRON_VARIABLE(cms3_egamma_fid_type_mask_t, fid_mask, 0) \
+ELECTRON_VARIABLE(cms3_egamma_fid_type_mask_t, type_mask, 0) \
+ELECTRON_VARIABLE(bool, is_probeForTnP, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp90, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp80, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wpHZZ, false) \
-ELECTRON_VARIABLE(float, id_MVA_Fall17V2_NoIso_Val, 0) \
-ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_NoIso_Cat, 0) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wpLoose, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wp90, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_NoIso_pass_wp80, false) \
-ELECTRON_VARIABLE(float, id_MVA_HZZRun2Legacy_Iso_Val, 0) \
-ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_HZZRun2Legacy_Iso_Cat, 0) \
 ELECTRON_VARIABLE(bool, id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ, false) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV1_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV2_Bits, 0) \
+ELECTRON_VARIABLE(float, dxy_firstPV, 0) \
+ELECTRON_VARIABLE(float, dz_firstPV, 0) \
+ELECTRON_VARIABLE(float, SIP3D, 0) \
 ELECTRON_VARIABLE(float, pfIso03_sum_charged_nofsr, 0) \
 ELECTRON_VARIABLE(float, pfIso03_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, pfIso03_comb_nofsr, 0) \
@@ -40,6 +46,13 @@ ELECTRON_VARIABLE(float, miniIso_sum_charged_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0)
+#define ELECTRON_MVAID_EXTRA_VARIABLES \
+ELECTRON_VARIABLE(float, id_MVA_Fall17V2_Iso_Val, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, 0) \
+ELECTRON_VARIABLE(float, id_MVA_Fall17V2_NoIso_Val, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_NoIso_Cat, 0) \
+ELECTRON_VARIABLE(float, id_MVA_HZZRun2Legacy_Iso_Val, 0) \
+ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_HZZRun2Legacy_Iso_Cat, 0)
 #define ELECTRON_FALL17V1_CUTBASED_VARIABLES \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Loose_Bits, 0) \
@@ -47,13 +60,18 @@ ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Medium_Bits
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Tight_Bits, 0)
 
 #if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
-#define ELECTRON_VARIABLES \
-ELECTRON_COMMON_VARIABLES \
+#define ELECTRON_COMMON_VARIABLES \
+ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
 ELECTRON_FALL17V1_CUTBASED_VARIABLES
 #else
-#define ELECTRON_VARIABLES \
-ELECTRON_COMMON_VARIABLES
+#define ELECTRON_COMMON_VARIABLES \
+ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES
 #endif
+
+#define ELECTRON_VARIABLES \
+ELECTRON_COMMON_VARIABLES \
+ELECTRON_MVAID_EXTRA_VARIABLES
+
 
 class ElectronVariables{
 public:
@@ -87,6 +105,9 @@ public:
   void applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr);
 
   float const& etaSC() const{ return extras.etaSC; }
+
+  bool isEBEEGap() const;
+  bool isAnyGap() const;
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
 
