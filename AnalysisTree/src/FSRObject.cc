@@ -32,19 +32,23 @@ FSRVariables& FSRVariables::operator=(const FSRVariables& other){
 
 FSRObject::FSRObject() :
   ParticleObject(),
-  extras()
+  extras(),
+  associatedPhoton(nullptr)
 {}
 FSRObject::FSRObject(LorentzVector_t const& momentum_) :
   ParticleObject(22, momentum_),
-  extras()
+  extras(),
+  associatedPhoton(nullptr)
 {}
 FSRObject::FSRObject(const FSRObject& other) :
   ParticleObject(other),
-  extras(other.extras)
+  extras(other.extras),
+  associatedPhoton(other.associatedPhoton)
 {}
 void FSRObject::swap(FSRObject& other){
   ParticleObject::swap(other);
   extras.swap(other.extras);
+  std::swap(associatedPhoton, other.associatedPhoton);
 }
 FSRObject& FSRObject::operator=(const FSRObject& other){
   FSRObject tmp(other);

@@ -1,19 +1,18 @@
 #include "MuonHandler.h"
 #include "ElectronHandler.h"
 #include "PhotonHandler.h"
+#include "FSRHandler.h"
 #include "ParticleDisambiguator.h"
 #include "ParticleSelectionHelpers.h"
 
 
-void ParticleDisambiguator::disambiguateParticles(
-  MuonHandler* muonHandle,
-  ElectronHandler* electronHandle,
-  PhotonHandler* photonHandle
-){
-  std::vector<MuonObject*>* muons = (muonHandle ? &(muonHandle->productList) : nullptr);
-  std::vector<ElectronObject*>* electrons = (electronHandle ? &(electronHandle->productList) : nullptr);
-  std::vector<PhotonObject*>* photons = (photonHandle ? &(photonHandle->productList) : nullptr);
 
+void ParticleDisambiguator::disambiguateParticles(
+  std::vector<MuonObject*>*& muons,
+  std::vector<ElectronObject*>*& electrons,
+  std::vector<PhotonObject*>*& photons,
+  bool doDeleteObjects
+){
   // First disambiguate electrons from muons
   if (electrons){
     std::vector<ElectronObject*> electrons_new; electrons_new.reserve(electrons->size());
@@ -39,11 +38,11 @@ void ParticleDisambiguator::disambiguateParticles(
         }
       }
       if (!doRemove) electrons_new.push_back(product);
-      else delete product;
+      else if (doDeleteObjects) delete product;
     }
     *electrons = electrons_new;
   }
-  // Disambiguate photons from muons and electrons
+  // Disambiguate photons from muons and *new* electrons
   if (photons){
     std::vector<PhotonObject*> photons_new; photons_new.reserve(photons->size());
     for (auto*& product:(*photons)){
@@ -85,9 +84,32 @@ void ParticleDisambiguator::disambiguateParticles(
         }
       }
       if (!doRemove) photons_new.push_back(product);
-      else delete product;
+      else if (doDeleteObjects) delete product;
     }
     *photons = photons_new;
   }
 }
 
+void ParticleDisambiguator::disambiguateParticles(
+  MuonHandler* muonHandle,
+  ElectronHandler* electronHandle,
+  PhotonHandler* photonHandle
+){
+  std::vector<MuonObject*>* muons = (muonHandle ? &(muonHandle->productList) : nullptr);
+  std::vector<ElectronObject*>* electrons = (electronHandle ? &(electronHandle->productList) : nullptr);
+  std::vector<PhotonObject*>* photons = (photonHandle ? &(photonHandle->productList) : nullptr);
+
+  disambiguateParticles(muons, electrons, photons, true);
+}
+
+
+void ParticleDisambiguator::disambiguateParticles(FSRHandler* fsrHandle){
+  if (!fsrHandle) return;
+
+  std::vector<MuonObject*>* muons = &(fsrHandle->muons_postFSR);
+  std::vector<ElectronObject*>* electrons = &(fsrHandle->electrons_postFSR);
+  std::vector<PhotonObject*>* photons = &(fsrHandle->photons_postFSR);
+
+  // Objects in the post-FSR containers will not be inaccessible if these containers drop them, so no need to delete the objects themselves.
+  disambiguateParticles(muons, electrons, photons, false);
+}

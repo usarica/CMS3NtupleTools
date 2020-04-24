@@ -84,14 +84,14 @@ namespace ElectronSelectionHelpers{
 
   float getIsolationDRmax(ElectronObject const& part);
 
-  float absMiniIso(ElectronObject const& part);
-  float relMiniIso(ElectronObject const& part);
-
   float absPFIso_DR0p3(ElectronObject const& part);
   float relPFIso_DR0p3(ElectronObject const& part);
 
   float absPFIso_DR0p4(ElectronObject const& part);
   float relPFIso_DR0p4(ElectronObject const& part);
+
+  float absMiniIso(ElectronObject const& part);
+  float relMiniIso(ElectronObject const& part);
 
   float computeIso(ElectronObject const& part);
 

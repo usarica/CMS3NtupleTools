@@ -43,18 +43,24 @@ using namespace MELAStreamHelpers;
 using namespace reco;
 
 
-float MuonSelectionHelpers::absMiniIso(MuonObject const& part){ return part.extras.miniIso_comb_nofsr; }
-float MuonSelectionHelpers::relMiniIso(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso(part)/pt : 0.f); }
-
 float MuonSelectionHelpers::absPFIso_DR0p3(MuonObject const& part){ return part.extras.pfIso03_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p3(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }
+
+float MuonSelectionHelpers::absPFIso_EACorr_DR0p3(MuonObject const& part){ return (part.extras.pfIso03_sum_charged_nofsr + std::max(0.f, part.extras.pfIso03_sum_neutral_EAcorr_nofsr)); }
+float MuonSelectionHelpers::relPFIso_EACorr_DR0p3(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_EACorr_DR0p3(part)/pt : 0.f); }
 
 float MuonSelectionHelpers::absPFIso_DR0p4(MuonObject const& part){ return part.extras.pfIso04_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p4(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p4(part)/pt : 0.f); }
 
+float MuonSelectionHelpers::absPFIso_EACorr_DR0p4(MuonObject const& part){ return (part.extras.pfIso04_sum_charged_nofsr + std::max(0.f, part.extras.pfIso04_sum_neutral_EAcorr_nofsr)); }
+float MuonSelectionHelpers::relPFIso_EACorr_DR0p4(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_EACorr_DR0p4(part)/pt : 0.f); }
+
+float MuonSelectionHelpers::absMiniIso(MuonObject const& part){ return part.extras.miniIso_comb_nofsr; }
+float MuonSelectionHelpers::relMiniIso(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absMiniIso(part)/pt : 0.f); }
+
 float MuonSelectionHelpers::getIsolationDRmax(MuonObject const& part){
-  if (isoType_preselection == kPFIsoDR0p3) return 0.3;
-  else if (isoType_preselection == kPFIsoDR0p4) return 0.4;
+  if (isoType_preselection == kPFIsoDR0p3 || isoType_preselection == kPFIsoDR0p3_EACorrected) return 0.3;
+  else if (isoType_preselection == kPFIsoDR0p4 || isoType_preselection == kPFIsoDR0p4_EACorrected) return 0.4;
   else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.pt()/part.currentSystScale, 50.), 200.));
   else{
     MELAerr << "MuonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
@@ -65,45 +71,26 @@ float MuonSelectionHelpers::getIsolationDRmax(MuonObject const& part){
 
 float MuonSelectionHelpers::computeIso(MuonObject const& part){
   if (isoType_preselection == kPFIsoDR0p3) return relPFIso_DR0p3(part);
+  else if (isoType_preselection == kPFIsoDR0p3_EACorrected) return relPFIso_EACorr_DR0p3(part);
   else if (isoType_preselection == kPFIsoDR0p4) return relPFIso_DR0p4(part);
+  else if (isoType_preselection == kPFIsoDR0p4_EACorrected) return relPFIso_EACorr_DR0p4(part);
   else if (isoType_preselection == kMiniIso) return relMiniIso(part);
   else MELAerr << "MuonSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
 }
 
+#define ID_CUTBASED_MUONTIME reco::Muon::InTimeMuon
+#define ID_CUTBASED_VETO reco::Muon::CutBasedIdLoose
+#define ID_CUTBASED_LOOSE reco::Muon::CutBasedIdLoose
+#define ID_CUTBASED_MEDIUM reco::Muon::CutBasedIdMediumPrompt
+#define ID_CUTBASED_TIGHT reco::Muon::CutBasedIdTight
 bool MuonSelectionHelpers::testMuonSystemTime(MuonObject const& part){
-  // Test precomputed timing flag first
-  if (part.extras.pass_muon_timing) return true;
-  // Cut suggestions from Piotr for out-of-time muons from https://indico.cern.ch/event/695762/contributions/2853865/attachments/1599433/2535174/ptraczyk_201802_oot_fakes.pdf
-  // reco::Muon::InTimeMuon selector bit flag also stores the same info
-  float const& cmb = part.extras.time_comb_IPInOut;
-  float const& rpc = part.extras.time_rpc_IPInOut;
-  //float const& cmberr = part.extras.time_comb_IPInOutError;
-  float const& rpcerr = part.extras.time_rpc_IPInOutError;
-  int const& cmbndof = part.extras.time_comb_ndof;
-  int const& rpcndof = part.extras.time_rpc_ndof;
-  bool cmbok = (cmbndof>7);
-  // RPC timing stored is the average over all RPC hits
-  // The measurements are in multiples of the bunch crossing time since only the bunch crossing id is measured.
-  // nDof>=2 ensures at least two measurements, and time error = 0 ensures measurement at the SAME BX!
-  bool rpcok = (rpcndof>=2 && rpcerr==0.);
-  if (rpcok){
-    if ((std::abs(rpc)>10.) && !(cmbok && std::abs(cmb)<10.)) return false;
-  }
-  else{
-    if (cmbok && (cmb>20. || cmb<-45.)) return false;
-  }
-  return true;
+  return ((part.extras.POG_selector_bits & ID_CUTBASED_MUONTIME) == ID_CUTBASED_MUONTIME);
 }
-
-#define ID_CUTBASED_VETO CutBasedIdLoose
-#define ID_CUTBASED_LOOSE CutBasedIdLoose
-#define ID_CUTBASED_MEDIUM CutBasedIdMediumPrompt
-#define ID_CUTBASED_TIGHT CutBasedIdTight
 bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
-    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_VETO) == Muon::ID_CUTBASED_VETO);
+    return ((part.extras.POG_selector_bits & ID_CUTBASED_VETO) == ID_CUTBASED_VETO);
   default:
     MELAerr << "MuonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -113,7 +100,7 @@ bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
 bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
-    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_LOOSE) == Muon::ID_CUTBASED_LOOSE);
+    return ((part.extras.POG_selector_bits & ID_CUTBASED_LOOSE) == ID_CUTBASED_LOOSE);
   default:
     MELAerr << "MuonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -123,7 +110,7 @@ bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
 bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
-    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_MEDIUM) == Muon::ID_CUTBASED_MEDIUM);
+    return ((part.extras.POG_selector_bits & ID_CUTBASED_MEDIUM) == ID_CUTBASED_MEDIUM);
   default:
     MELAerr << "MuonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -133,7 +120,7 @@ bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
 bool MuonSelectionHelpers::testTightId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
-    return ((part.extras.POG_selector_bits & Muon::ID_CUTBASED_TIGHT) == Muon::ID_CUTBASED_TIGHT);
+    return ((part.extras.POG_selector_bits & ID_CUTBASED_TIGHT) == ID_CUTBASED_TIGHT);
   default:
     MELAerr << "MuonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);

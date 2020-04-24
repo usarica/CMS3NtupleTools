@@ -19,7 +19,7 @@ bool DileptonHandler::constructDileptons(
 
   bool res = (constructOSDileptons(muons, electrons) && constructSSDileptons(muons, electrons));
   // Sort particles here
-  if (res) ParticleObjectHelpers::sortByGreaterScalarSumPt(productList);
+  if (res) ParticleObjectHelpers::sortByGreaterScalarSumPt_ImmediateDaughters(productList);
   setDileptonFlags();
   return res;
 }

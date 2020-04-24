@@ -2,6 +2,7 @@
 #define FSROBJECT_H
 
 #include "ParticleObject.h"
+#include "PhotonObject.h"
 
 
 #define FSR_VECTOR_VARIABLES \
@@ -32,6 +33,7 @@ public:
 class FSRObject : public ParticleObject{
 public:
   FSRVariables extras;
+  PhotonObject* associatedPhoton;
 
   FSRObject();
   FSRObject(LorentzVector_t const& mom_);
@@ -40,6 +42,8 @@ public:
   ~FSRObject();
 
   void swap(FSRObject& other);
+
+  void setAssociatedPhoton(PhotonObject* part){ associatedPhoton = part; }
 
 };
 

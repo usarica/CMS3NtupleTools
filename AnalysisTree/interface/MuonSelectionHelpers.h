@@ -39,7 +39,9 @@ namespace MuonSelectionHelpers{
   enum MuonIso{
     kMiniIso,
     kPFIsoDR0p3,
-    kPFIsoDR0p4
+    kPFIsoDR0p3_EACorrected,
+    kPFIsoDR0p4,
+    kPFIsoDR0p4_EACorrected
   };
 
   // Kinematic pT thresholds
@@ -86,14 +88,20 @@ namespace MuonSelectionHelpers{
 
   float getIsolationDRmax(MuonObject const& part);
 
-  float absMiniIso(MuonObject const& part);
-  float relMiniIso(MuonObject const& part);
-
   float absPFIso_DR0p3(MuonObject const& part);
   float relPFIso_DR0p3(MuonObject const& part);
 
+  float absPFIso_EACorr_DR0p3(MuonObject const& part);
+  float relPFIso_EACorr_DR0p3(MuonObject const& part);
+
   float absPFIso_DR0p4(MuonObject const& part);
   float relPFIso_DR0p4(MuonObject const& part);
+
+  float absPFIso_EACorr_DR0p4(MuonObject const& part);
+  float relPFIso_EACorr_DR0p4(MuonObject const& part);
+
+  float absMiniIso(MuonObject const& part);
+  float relMiniIso(MuonObject const& part);
 
   float computeIso(MuonObject const& part);
 

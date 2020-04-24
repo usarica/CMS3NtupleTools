@@ -7,6 +7,7 @@
 #include "MuonObject.h"
 #include "ElectronObject.h"
 #include "PhotonObject.h"
+#include "ParticleDisambiguator.h"
 
 
 class FSRHandler : public IvyBase{
@@ -14,6 +15,8 @@ public:
   static const std::string colName;
 
 protected:
+  friend class ParticleDisambiguator;
+
   // Owned products
   std::vector<FSRObject*> fsrCandidates;
   std::vector<MuonObject*> muons_owned;
