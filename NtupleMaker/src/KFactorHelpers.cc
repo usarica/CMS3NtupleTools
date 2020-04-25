@@ -76,6 +76,7 @@ namespace KFactorHelpers{
       if (!part->isHardProcess()) continue;
       int id = part->pdgId();
       int status = part->status();
+      //MELAout << "Gen particle (id, status) = (" << id << ", " << status << ")" << endl;
       if (PDGHelpers::isAQuark(id) && status == 21) incomingQuarks.push_back(part);
       else if (PDGHelpers::isAGluon(id) && status == 21) incomingGluons.push_back(part);
       else if (PDGHelpers::isAQuark(id)) quarkAntiquark[std::abs(id)-1][(id>0 ? 0 : 1)].push_back(part);
@@ -1048,7 +1049,7 @@ namespace KFactorHelpers{
     TLorentzVector pVV_tlv(pVV.px(), pVV.py(), pVV.pz(), pVV.energy());
     double m_hat = pVV.M();
     double pt_hat = pVV.Pt();
-    if (m_hat<sum_mV1_mV2){
+    if (m_hat<sum_mV1_mV2 || incomingQuarks.empty()){
       for (auto const& kfactorname:kfactornames) kfactors_map[kfactorname]=1;
       kfactors_map[kfactorargnames.at(0)]=m_hat;
       kfactors_map[kfactorargnames.at(1)]=0;
