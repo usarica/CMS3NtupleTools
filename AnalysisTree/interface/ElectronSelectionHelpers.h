@@ -22,6 +22,10 @@ namespace ElectronSelectionHelpers{
     kTightIso,
     kTightKin,
 
+    kProbeId,
+
+    kFakeableBase,
+
     kPreselectionVeto,
     kPreselectionLoose,
     kPreselectionTight,
@@ -62,10 +66,11 @@ namespace ElectronSelectionHelpers{
   constexpr float etaThr_skim_tight = 2.5;
 
   // Isolation thresholds
-  constexpr float isoThr_veto = 0.2;
-  constexpr float isoThr_loose = 0.2;
+  constexpr float isoThr_veto = 0.1;
+  constexpr float isoThr_loose = 0.1;
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
+  constexpr float isoThr_fakeable = 0.4;
 
   constexpr ElectronId idType_preselection = kMVAId_Fall17V2_NoIso;
   constexpr ElectronIso isoType_preselection = kPFIsoDR0p3;

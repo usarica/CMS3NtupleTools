@@ -16,6 +16,7 @@ opts.register('globaltag'    , ""  , mytype=vpstring)
 opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of input files
 opts.register('output'    , "ntuple.root"  , mytype=vpstring)
 opts.register('nevents'    , -1  , mytype=vpint)
+opts.register('skipevents', -1, mytype=vpint) # Skip this many events before starting to process (for debugging purposes)
 opts.register('year'    , -1  , mytype=vpint) # year for MC weight and other purposes (2016,2017,2018); defaults to 2017
 opts.register('is80x'    , False  , mytype=vpbool) # is 2016 80X sample?
 opts.register('fastsim' , False , mytype=vpbool) # is fastsim?
@@ -238,6 +239,8 @@ process.source = cms.Source(
       'file:C6BB52E8-F341-E811-8A2F-001E677927EC.root',
       )
    )
+if opts.skipevents > 0:
+   process.source.skipEvents = cms.untracked.uint32( opts.skipevents )
 
 import os
 def find_up(fname):

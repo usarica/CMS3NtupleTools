@@ -10,16 +10,29 @@ namespace TriggerHelpers{
     kTripleLep=0,
 
     kDoubleMu,
+    kDoubleMu_Prescaled,
+
     kDoubleEle,
+    kDoubleEle_HighPt,
+
     kMuEle,
 
     kSingleMu,
-    kSingleEle,
-    kSinglePho,
-
+    kSingleMu_Prescaled,
+    kSingleMu_HighPt,
     kSingleMu_Control,
-    kSingleMu_Control_HighPt,
+    // Subdivisions of kSingleMu_Control
+    kSingleMu_Control_NoIso,
+    kSingleMu_Control_Iso,
+
+    kSingleEle,
+    kSingleEle_HighPt,
     kSingleEle_Control,
+    // Subdivisions of kSingleEle_Control
+    kSingleEle_Control_NoIso,
+    kSingleEle_Control_Iso,
+
+    kSinglePho,
 
     kAK8PFJet_Control,
     kPFHT_Control,

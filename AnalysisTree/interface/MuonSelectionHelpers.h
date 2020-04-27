@@ -27,6 +27,11 @@ namespace MuonSelectionHelpers{
     kSoftIso,
     kSoftKin,
 
+    kProbeId, // TnP
+    kProbeSTAId, // TnP STA
+
+    kFakeableBase,
+
     kPreselectionVeto,
     kPreselectionLoose,
     kPreselectionTight,
@@ -62,11 +67,12 @@ namespace MuonSelectionHelpers{
   constexpr float etaThr_skim_soft = 2.4;
 
   // Isolation thresholds
-  constexpr float isoThr_veto = 0.2;
-  constexpr float isoThr_loose = 0.2;
+  constexpr float isoThr_veto = 0.15;
+  constexpr float isoThr_loose = 0.15;
   constexpr float isoThr_medium = 0.15;
   constexpr float isoThr_tight = 0.15;
-  constexpr float isoThr_soft = 0.2;
+  constexpr float isoThr_soft = 0.15;
+  constexpr float isoThr_fakeable = 0.40;
 
   // Determine how the physics objects are vetoed/cleaned/accepted
   constexpr MuonId idType_preselection = kCutBasedId_MuonPOG;

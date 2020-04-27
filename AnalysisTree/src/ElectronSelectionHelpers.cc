@@ -24,6 +24,11 @@ namespace ElectronSelectionHelpers{
   bool testTightIso(ElectronObject const& part);
   bool testTightKin(ElectronObject const& part);
 
+  bool testProbeId(ElectronObject const& part);
+
+  bool testFakeableBaseIso(ElectronObject const& part);
+  bool testFakeableBase(ElectronObject const& part);
+
   bool testPreselectionVeto(ElectronObject const& part);
   bool testPreselectionLoose(ElectronObject const& part);
   bool testPreselectionTight(ElectronObject const& part);
@@ -227,6 +232,22 @@ bool ElectronSelectionHelpers::testTightIso(ElectronObject const& part){
     return (computeIso(part)<isoThr_tight);
   };
 }
+bool ElectronSelectionHelpers::testFakeableBaseIso(ElectronObject const& part){
+  switch (idType_preselection){
+#if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
+  case kCutBasedId_Fall17V1:
+    return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V1_Loose_Bits);
+#endif
+  case kCutBasedId_Fall17V2:
+    return TEST_CUTBASED_BIT(part.extras.id_cutBased_Fall17V2_Loose_Bits);
+  case kMVAId_Fall17V2_Iso:
+  case kMVAId_HZZRun2Legacy_Iso:
+    // FIXME: Fakeable id/iso combination needs to be reimplemented
+    return true;
+  default:
+    return (computeIso(part)<isoThr_fakeable);
+  };
+}
 #undef TEST_CUTBASED_BIT
 
 bool ElectronSelectionHelpers::testVetoKin(ElectronObject const& part){
@@ -242,8 +263,19 @@ bool ElectronSelectionHelpers::testTightKin(ElectronObject const& part){
   return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
 }
 
+bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){ return part.extras.is_probeForTnP; }
+
 bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+}
+bool ElectronSelectionHelpers::testFakeableBase(ElectronObject const& part){
+  return (
+    part.testSelectionBit(bit_preselectionTight_id)
+    &&
+    testFakeableBaseIso(part)
+    &&
+    part.testSelectionBit(bit_preselectionTight_kin)
+    );
 }
 bool ElectronSelectionHelpers::testPreselectionVeto(ElectronObject const& part){
   return (
@@ -293,7 +325,10 @@ void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
   part.setSelectionBit(kTightIso, testTightIso(part));
   part.setSelectionBit(kTightKin, testTightKin(part));
 
+  part.setSelectionBit(kProbeId, testProbeId(part));
+
   // The functions below test the bits set in the steps above.
+  part.setSelectionBit(kFakeableBase, testFakeableBase(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));

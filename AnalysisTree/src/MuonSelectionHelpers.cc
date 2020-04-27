@@ -32,6 +32,12 @@ namespace MuonSelectionHelpers{
   bool testSoftIso(MuonObject const& part);
   bool testSoftKin(MuonObject const& part);
 
+  bool testProbeId(MuonObject const& part);
+  bool testProbeSTAId(MuonObject const& part);
+
+  bool testFakeableBaseIso(MuonObject const& part);
+  bool testFakeableBase(MuonObject const& part);
+
   bool testPreselectionVeto(MuonObject const& part);
   bool testPreselectionLoose(MuonObject const& part);
   bool testPreselectionTight(MuonObject const& part);
@@ -138,6 +144,7 @@ bool MuonSelectionHelpers::testLooseIso(MuonObject const& part){ return (compute
 bool MuonSelectionHelpers::testMediumIso(MuonObject const& part){ return (computeIso(part)<isoThr_medium); }
 bool MuonSelectionHelpers::testTightIso(MuonObject const& part){ return (computeIso(part)<isoThr_tight); }
 bool MuonSelectionHelpers::testSoftIso(MuonObject const& part){ return (computeIso(part)<isoThr_soft); }
+bool MuonSelectionHelpers::testFakeableBaseIso(MuonObject const& part){ return (computeIso(part)<isoThr_fakeable); }
 
 bool MuonSelectionHelpers::testVetoKin(MuonObject const& part){
   return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
@@ -153,8 +160,22 @@ bool MuonSelectionHelpers::testTightKin(MuonObject const& part){
 }
 bool MuonSelectionHelpers::testSoftKin(MuonObject const& part){ return (part.pt()>=ptThr_skim_soft && fabs(part.eta())<etaThr_skim_soft); }
 
+bool MuonSelectionHelpers::testProbeId(MuonObject const& part){ return part.extras.is_probeForTnP; }
+bool MuonSelectionHelpers::testProbeSTAId(MuonObject const& part){ return part.extras.is_probeForTnP_STA; }
+
 bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+}
+bool MuonSelectionHelpers::testFakeableBase(MuonObject const& part){
+  return (
+    part.testSelectionBit(bit_preselectionTight_id)
+    &&
+    testFakeableBaseIso(part)
+    &&
+    part.testSelectionBit(bit_preselectionTight_kin)
+    &&
+    (bit_preselection_time != kValidMuonSystemTime || part.testSelectionBit(bit_preselection_time))
+    );
 }
 bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){
   return (
@@ -214,7 +235,11 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   part.setSelectionBit(kSoftIso, testSoftIso(part));
   part.setSelectionBit(kSoftKin, testSoftKin(part));
 
+  part.setSelectionBit(kProbeId, testProbeId(part));
+  part.setSelectionBit(kProbeSTAId, testProbeSTAId(part));
+
   // The functions below test the bits set in the steps above.
+  part.setSelectionBit(kFakeableBase, testFakeableBase(part)); // Re-tests isolation
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));

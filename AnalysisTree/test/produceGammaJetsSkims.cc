@@ -208,12 +208,8 @@ void produceGammaJetsSkims(TString strSampleSet, TString period, TString prodVer
 
       auto const& photons = photonHandler.getProducts();
       size_t n_photons_tight = 0;
-      PhotonObject* theChosenPhoton = nullptr;
       for (auto const& part:photons){
-        if (ParticleSelectionHelpers::isTightParticle(part)){
-          if (!theChosenPhoton) theChosenPhoton = part;
-          n_photons_tight++;
-        }
+        if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight++;
       }
       if (n_photons_tight!=1) continue;
 

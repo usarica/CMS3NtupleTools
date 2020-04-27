@@ -11,6 +11,7 @@
 #include "JetMETHandler.h"
 #include "DileptonHandler.h"
 #include "IsotrackHandler.h"
+#include "FSRHandler.h"
 #include "EventFilterHandler.h"
 
 #include "ParticleObjectHelpers.h"
