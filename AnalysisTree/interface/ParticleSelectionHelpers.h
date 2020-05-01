@@ -9,6 +9,8 @@
 
 
 namespace ParticleSelectionHelpers{
+  void setUseFakeableLeptonsInLooseSelection(bool flag); // Allows fakeable leptons to be usable in jet cleaning or trigger checking
+
   // Functions to select "preselection" id types to particles
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \

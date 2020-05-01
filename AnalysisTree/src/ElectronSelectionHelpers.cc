@@ -6,6 +6,9 @@
 
 // These are functions hidden from the user
 namespace ElectronSelectionHelpers{
+  std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> electron_triggeremulationV1_bits;
+  std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> electron_triggeremulationV2_bits;
+
   bool testPtEtaGen(ElectronObject const& part);
 
   bool testVetoId(ElectronObject const& part);
@@ -28,6 +31,7 @@ namespace ElectronSelectionHelpers{
 
   bool testFakeableBaseIso(ElectronObject const& part);
   bool testFakeableBase(ElectronObject const& part);
+  bool testFakeable(ElectronObject const& part);
 
   bool testPreselectionVeto(ElectronObject const& part);
   bool testPreselectionLoose(ElectronObject const& part);
@@ -38,6 +42,10 @@ namespace ElectronSelectionHelpers{
 using namespace std;
 using namespace MELAStreamHelpers;
 
+
+void ElectronSelectionHelpers::clearTriggerEmulationBits(){ electron_triggeremulationV1_bits.clear(); electron_triggeremulationV2_bits.clear(); }
+void ElectronSelectionHelpers::setTriggerEmulationV1Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist){ electron_triggeremulationV1_bits = bitlist; }
+void ElectronSelectionHelpers::setTriggerEmulationV2Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist){ electron_triggeremulationV2_bits = bitlist; }
 
 float ElectronSelectionHelpers::getIsolationDRmax(ElectronObject const& part){
   if (isoType_preselection == kPFIsoDR0p3) return 0.3;
@@ -277,6 +285,16 @@ bool ElectronSelectionHelpers::testFakeableBase(ElectronObject const& part){
     part.testSelectionBit(bit_preselectionTight_kin)
     );
 }
+bool ElectronSelectionHelpers::testFakeable(ElectronObject const& part){
+  bool res = false;
+  if (part.testSelectionBit(kFakeableBase)){
+    auto const& bits_V1 = part.extras.id_cutBased_triggerEmulationV1_Bits;
+    auto const& bits_V2 = part.extras.id_cutBased_triggerEmulationV2_Bits;
+    for (auto const& bit:electron_triggeremulationV1_bits) res |= HelperFunctions::test_bit(bits_V1, bit);
+    for (auto const& bit:electron_triggeremulationV2_bits) res |= HelperFunctions::test_bit(bits_V2, bit);
+  }
+  return res;
+}
 bool ElectronSelectionHelpers::testPreselectionVeto(ElectronObject const& part){
   return (
     part.testSelectionBit(bit_preselectionVeto_id)
@@ -329,6 +347,7 @@ void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
 
   // The functions below test the bits set in the steps above.
   part.setSelectionBit(kFakeableBase, testFakeableBase(part));
+  part.setSelectionBit(kFakeable, testFakeable(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));

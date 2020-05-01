@@ -7,10 +7,17 @@
 #include "HelperFunctions.h"
 
 
+namespace ParticleSelectionHelpers{
+  bool useFakeableLeptonsInLooseSelection = false; // Allows fakeable leptons to be usable in jet cleaning or trigger checking
+}
+
+
+void ParticleSelectionHelpers::setUseFakeableLeptonsInLooseSelection(bool flag){ useFakeableLeptonsInLooseSelection = flag; }
+
+
 // Veto, loose and tight particle ids
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \
-SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Tight)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
@@ -18,6 +25,24 @@ template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* p
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
   return part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE); \
+} \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
+  return part->testSelectionBit(PhotonSelectionHelpers::kPreselection##TYPE); \
+}
+SELECTION_TYPES;
+#undef SELECTION_TYPE
+#undef SELECTION_TYPES
+
+#define SELECTION_TYPES \
+SELECTION_TYPE(Loose)
+#define SELECTION_TYPE(TYPE) \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
+  bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(MuonSelectionHelpers::kFakeable)); \
+  return (part->testSelectionBit(MuonSelectionHelpers::kPreselection##TYPE) || isFakeable); \
+} \
+template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
+  bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(ElectronSelectionHelpers::kFakeable)); \
+  return (part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE) || isFakeable); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
   return part->testSelectionBit(PhotonSelectionHelpers::kPreselection##TYPE); \

@@ -8,6 +8,8 @@
 
 // These are functions hidden from the user
 namespace MuonSelectionHelpers{
+  float isoThr_fakeable_trkIso = -1;
+
   bool testPtEtaGen(MuonObject const& part);
 
   bool testMuonSystemTime(MuonObject const& part);
@@ -37,6 +39,7 @@ namespace MuonSelectionHelpers{
 
   bool testFakeableBaseIso(MuonObject const& part);
   bool testFakeableBase(MuonObject const& part);
+  bool testFakeable(MuonObject const& part);
 
   bool testPreselectionVeto(MuonObject const& part);
   bool testPreselectionLoose(MuonObject const& part);
@@ -47,6 +50,9 @@ namespace MuonSelectionHelpers{
 using namespace std;
 using namespace MELAStreamHelpers;
 using namespace reco;
+
+
+void MuonSelectionHelpers::doRequireTrackerIsolationInFakeable(float const& isothr){ isoThr_fakeable_trkIso = isothr; }
 
 
 float MuonSelectionHelpers::absPFIso_DR0p3(MuonObject const& part){ return part.extras.pfIso03_comb_nofsr; }
@@ -177,6 +183,11 @@ bool MuonSelectionHelpers::testFakeableBase(MuonObject const& part){
     (bit_preselection_time != kValidMuonSystemTime || part.testSelectionBit(bit_preselection_time))
     );
 }
+bool MuonSelectionHelpers::testFakeable(MuonObject const& part){
+  bool res = false;
+  if (part.testSelectionBit(kFakeableBase)) res = (isoThr_fakeable_trkIso<0.f || part.extras.trkIso03_trackerSumPt<isoThr_fakeable_trkIso);
+  return res;
+}
 bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){
   return (
     part.testSelectionBit(bit_preselectionVeto_id)
@@ -240,6 +251,7 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
 
   // The functions below test the bits set in the steps above.
   part.setSelectionBit(kFakeableBase, testFakeableBase(part)); // Re-tests isolation
+  part.setSelectionBit(kFakeable, testFakeable(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));

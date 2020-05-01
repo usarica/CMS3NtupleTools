@@ -88,6 +88,7 @@ if [[ ! -s ${INITIALDIR}/${TARFILE} ]];then
   echo "Tar file ${INITIALDIR}/${TARFILE} does not exist"
 fi
 if [[ ! -z $(tar -tf ${INITIALDIR}/${TARFILE} | head -n 1 | grep "^CMSSW") ]]; then
+
   echo "This is a full cmssw tar file."
 
   mv ${INITIALDIR}/${TARFILE} $(pwd)/
@@ -99,12 +100,16 @@ if [[ ! -z $(tar -tf ${INITIALDIR}/${TARFILE} | head -n 1 | grep "^CMSSW") ]]; t
   rm ${TARFILE}
 
   if [[ -e extras.more ]];then
-    mv extras.more extras.tar
+    mv extras.more ${CMSSWVERSION}/extras.tar
+  fi
+
+  cd $CMSSWVERSION
+
+  if [[ -e extras.more ]];then
     tar xf extras.tar
     rm extras.tar
   fi
 
-  cd $CMSSWVERSION
   echo "Current directory ${PWD} =? ${CMSSWVERSION}"
   echo "Running ProjectRename"
   scramv1 b ProjectRename
@@ -129,6 +134,7 @@ else
     tar xf extras.tar
     rm extras.tar
   fi
+
 fi
 
 
@@ -138,13 +144,15 @@ echo "CMSSW_BASE: ${CMSSW_BASE}"
 
 cd src
 
-# Clean CMSSW-related compilation objects and print the lib area afterward
-scramv1 b clean &>> compilation.log
-echo "================================="
-echo "lib/${SCRAM_ARCH} after cleaning:"
-ls ../lib/${SCRAM_ARCH}
-echo "================================="
-
+declare -i doRecompile
+let doRecompile=0
+if [[ -e CMS3/AnalysisTree/src ]];then
+  declare -i nSrcFiles
+  let nSrcFiles=$(ls CMS3/AnalysisTree/src | wc -l)
+  if [[ $nSrcFiles -gt 0 ]];then
+    let doRecompile=1
+  fi
+fi
 
 # Needed to locate the include directory of MELA classes. It can get lost.
 export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
@@ -153,24 +161,43 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA
 # Do not do the one below instead of the above; it will create problems when loading the MELA library interactively
 # cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
 
+if [[ $doRecompile -eq 1 ]]; then
+  # Clean CMSSW-related compilation objects and print the lib area afterward
+  scramv1 b clean &>> compilation.log
+  echo "================================="
+  echo "lib/${SCRAM_ARCH} after cleaning:"
+  ls ../lib/${SCRAM_ARCH}
+  echo "================================="
 
-# Compile CMSSW-dependent packages
-(
-  cd ZZMatrixElement
+  # Compile CMSSW-dependent packages
+  (
+    cd ZZMatrixElement
 
-  ./setup.sh clean
-  ./setup.sh -j &>> compilation.log
+    ./setup.sh clean
+    ./setup.sh -j &>> compilation.log
 
-  MELA_COMPILE_STATUS=$?
-  if [ $MELA_COMPILE_STATUS != 0 ];then
-    echo "MELA compilation exited with error ${MELA_COMPILE_STATUS}. Printing the log:"
-    cat compilation.log
-  fi
-  rm -f compilation.log
+    MELA_COMPILE_STATUS=$?
+    if [ $MELA_COMPILE_STATUS != 0 ];then
+      echo "MELA compilation exited with error ${MELA_COMPILE_STATUS}. Printing the log:"
+      cat compilation.log
+    fi
+    rm -f compilation.log
 
-  cd -
-)
-scramv1 b -j &>> compilation.log
+    cd -
+  )
+else
+  echo "================================="
+  echo "lib/${SCRAM_ARCH} with no cleaning:"
+  ls ../lib/${SCRAM_ARCH}
+  echo "================================="
+fi
+
+# Do the final compilation
+if [[ $doRecompile -eq 1 ]]; then
+  scramv1 b -j &>> compilation.log
+else
+  scramv1 b -j 1 &>> compilation.log
+fi
 CMSSW_COMPILE_STATUS=$?
 if [ $CMSSW_COMPILE_STATUS != 0 ];then
   echo "CMSSW compilation exited with error ${CMSSW_COMPILE_STATUS}. Printing the log:"

@@ -31,6 +31,7 @@ namespace MuonSelectionHelpers{
     kProbeSTAId, // TnP STA
 
     kFakeableBase,
+    kFakeable,
 
     kPreselectionVeto,
     kPreselectionLoose,
@@ -72,7 +73,7 @@ namespace MuonSelectionHelpers{
   constexpr float isoThr_medium = 0.15;
   constexpr float isoThr_tight = 0.15;
   constexpr float isoThr_soft = 0.15;
-  constexpr float isoThr_fakeable = 0.40;
+  constexpr float isoThr_fakeable = 0.4;
 
   // Determine how the physics objects are vetoed/cleaned/accepted
   constexpr MuonId idType_preselection = kCutBasedId_MuonPOG;
@@ -113,6 +114,7 @@ namespace MuonSelectionHelpers{
 
   void setSelectionBits(MuonObject& part);
 
+  void doRequireTrackerIsolationInFakeable(float const& isothr);
 }
 
 

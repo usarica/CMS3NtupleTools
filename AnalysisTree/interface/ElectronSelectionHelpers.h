@@ -1,6 +1,7 @@
 #ifndef ELECTRONSELECTIONHELPERS_H
 #define ELECTRONSELECTIONHELPERS_H
 
+#include <vector>
 #include <CMS3/Dictionaries/interface/ElectronTriggerCutEnums.h>
 #include "ElectronObject.h"
 
@@ -25,6 +26,7 @@ namespace ElectronSelectionHelpers{
     kProbeId,
 
     kFakeableBase,
+    kFakeable,
 
     kPreselectionVeto,
     kPreselectionLoose,
@@ -101,6 +103,11 @@ namespace ElectronSelectionHelpers{
   float computeIso(ElectronObject const& part);
 
   void setSelectionBits(ElectronObject& part);
+
+  // For trigger emulation selection
+  void clearTriggerEmulationBits();
+  void setTriggerEmulationV1Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist);
+  void setTriggerEmulationV2Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist);
 
 }
 

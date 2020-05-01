@@ -6,9 +6,15 @@
 using namespace std;
 
 
-void produceSkims(TString strSampleSet, TString period, TString prodVersion, TString strdate="", int ichunk=0, int nchunks=0){
+void produceSkims(
+  TString strSampleSet, TString period,
+  TString prodVersion, TString strdate="",
+  int ichunk=0, int nchunks=0,
+  bool doDilepton=true, bool doDilepton_Control=true, bool doSingleLepton=true, bool doGJets=true
+){
   enum FinalStateType{
     kDilepton,
+    kDilepton_Control,
     kSingleLepton,
     kGJets,
     nFinalStateTypes
@@ -57,10 +63,10 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
+  FSRHandler fsrHandler;
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
-  FSRHandler fsrHandler;
   ParticleDisambiguator particleDisambiguator;
 
   eventFilter.setTrackDataEvents(false);
@@ -172,7 +178,6 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
     MELAout << "Completed getting the rest of the handles..." << endl;
     sample_tree.silenceUnused();
     sample_tree.getSelectedTree()->SetBranchStatus("triggerObjects*", 1); // Needed for trigger matching
-    sample_tree.getSelectedTree()->SetBranchStatus("fsr*", 1); // Needed for trigger matching
 
     // Create output
     //TString stroutput = stroutputcore; if (!strSample.BeginsWith('/')) stroutput += '/'; stroutput += strSample;
@@ -204,9 +209,27 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
     }
     //sample_tree.unmuteAllBranches();
 
-    TTree* outtree_dilepton = sample_tree.getSelectedTree()->CloneTree(0); outtree_dilepton->SetName("DileptonTree");
-    TTree* outtree_singlelepton = sample_tree.getSelectedTree()->CloneTree(0); outtree_singlelepton->SetName("SingleLeptonTree");
-    TTree* outtree_gjets = sample_tree.getSelectedTree()->CloneTree(0); outtree_gjets->SetName("SinglePhotonTree");
+    std::vector<TTree*> outtree(nFinalStateTypes, nullptr);
+    if (doDilepton){
+      outtree[kDilepton] = sample_tree.getSelectedTree()->CloneTree(0);
+      outtree[kDilepton]->SetName("Dilepton");
+      outtree[kDilepton]->SetAutoSave(0);
+    }
+    if (doDilepton_Control){
+      outtree[kDilepton_Control] = sample_tree.getSelectedTree()->CloneTree(0);
+      outtree[kDilepton_Control]->SetName("Dilepton_Control");
+      outtree[kDilepton_Control]->SetAutoSave(0);
+    }
+    if (doSingleLepton){
+      outtree[kSingleLepton] = sample_tree.getSelectedTree()->CloneTree(0);
+      outtree[kSingleLepton]->SetName("SingleLepton");
+      outtree[kSingleLepton]->SetAutoSave(0);
+    }
+    if (doGJets){
+      outtree[kGJets] = sample_tree.getSelectedTree()->CloneTree(0);
+      outtree[kGJets]->SetName("SinglePhoton");
+      outtree[kGJets]->SetAutoSave(0);
+    }
 
     // Loop over the tree
     std::vector<size_t> n_acc(nFinalStateTypes, 0);
@@ -304,10 +327,14 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
       size_t n_leptons_tight = n_muons_tight + n_electrons_tight;
       size_t n_leptons_fakeable = n_muons_fakeable + n_electrons_fakeable;
 
-      if (
-        (
-          n_leptons_tight>=2 || n_leptons_tight_predisambiguation>=2
-          ||
+      if (trigwgt_dilepton!=0.f){
+        if (n_leptons_tight>=2 || n_leptons_tight_predisambiguation>=2){
+          if (outtree[kDilepton]){
+            outtree[kDilepton]->Fill();
+            n_acc[kDilepton]++;
+          }
+        }
+        else if (
           (n_muons_tight==1 && n_muons_tnp==1) || (n_muons_tight_predisambiguation==1 && n_muons_tnp_predisambiguation==1)
           ||
           (n_electrons_tight==1 && n_electrons_tnp==1) || (n_electrons_tight_predisambiguation==1 && n_electrons_tnp_predisambiguation==1)
@@ -315,12 +342,12 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
           (n_muons_tight==1 && n_muons_fakeable==1) || (n_muons_tight_predisambiguation==1 && n_muons_fakeable_predisambiguation==1)
           ||
           (n_electrons_tight==1 && n_electrons_fakeable==1) || (n_electrons_tight_predisambiguation==1 && n_electrons_fakeable_predisambiguation==1)
-          )
-        &&
-        trigwgt_dilepton!=0.f
-        ){
-        outtree_dilepton->Fill();
-        n_acc[kDilepton]++;
+          ){
+          if (outtree[kDilepton_Control]){
+            outtree[kDilepton_Control]->Fill();
+            n_acc[kDilepton_Control]++;
+          }
+        }
       }
       if (
         (
@@ -331,25 +358,31 @@ void produceSkims(TString strSampleSet, TString period, TString prodVersion, TSt
         &&
         trigwgt_gjets!=0.f
         ){
-        outtree_gjets->Fill();
-        n_acc[kGJets]++;
+        if (outtree[kGJets]){
+          outtree[kGJets]->Fill();
+          n_acc[kGJets]++;
+        }
       }
       if (
-        (n_leptons_tight==1 || n_leptons_fakeable==1 || n_leptons_tight_predisambiguation==1 || n_leptons_fakeable_predisambiguation==1)
+        (
+          (n_leptons_tight + n_leptons_fakeable)==1
+          ||
+          (n_leptons_tight_predisambiguation + n_leptons_fakeable_predisambiguation)==1
+          )
         &&
         trigwgt_singlelepton!=0.f
         ){
-        outtree_singlelepton->Fill();
-        n_acc[kSingleLepton]++;
+        if (outtree[kSingleLepton]){
+          outtree[kSingleLepton]->Fill();
+          n_acc[kSingleLepton]++;
+        }
       }
     }
     MELAout << sample_tree.sampleIdentifier << " total number of accumulated events: "
-      << "(Dilepton, single lepton, single photon) = ( " << n_acc << " )"
+      << "(Dilepton, dilepton control, single lepton, single photon) = ( " << n_acc << " )"
       << " / " << (ev_end - ev_start) << " / " << nEntries << endl;
 
-    outdir->WriteTObject(outtree_dilepton); delete outtree_dilepton;
-    outdir->WriteTObject(outtree_singlelepton); delete outtree_singlelepton;
-    outdir->WriteTObject(outtree_gjets); delete outtree_gjets;
+    for (unsigned int i=0; i<(unsigned int) nFinalStateTypes; i++){ outdir->WriteTObject(outtree.at(i)); delete outtree.at(i); }
     foutput->cd();
     foutput->Close();
 

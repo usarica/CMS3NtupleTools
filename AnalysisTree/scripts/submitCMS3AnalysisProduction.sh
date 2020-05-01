@@ -9,6 +9,7 @@ CONDOROUTDIR="/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
 EXTRATARCMD=""
 QUEUE="vanilla"
 
+let recreate=0
 let printhelp=0
 for fargo in "$@";do
   fcnargname=""
@@ -46,6 +47,8 @@ for fargo in "$@";do
     else
       EXTRATARCMD="$EXTRATARCMD addfile=$fcnargname"
     fi
+  elif [[ "$fargl" == "recreate" ]];then
+    let recreate=1
   elif [[ "$fargl" == "help" ]];then
     let printhelp=1
   fi
@@ -60,6 +63,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - date: Date of the generation; does not have to be an actual date. Default=[today's date in YYMMDD format]"
   echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
   echo " - tarinclude: Include extra files in the tar. Can specify multiple times. Default: None"
+  echo " - recreate: Force the recreation of the job directories"
   exit 0
 fi
 SCRIPTRAWNAME="${SCRIPT%%.*}"
@@ -70,15 +74,6 @@ fi
 INITIALDIR=$(pwd)
 
 hname=$(hostname)
-
-CONDORSITE="DUMMY"
-if [[ "$hname" == *"lxplus"* ]];then
-  echo "Setting default CONDORSITE to cern.ch"
-  CONDORSITE="cern.ch"
-elif [[ "$hname" == *"ucsd"* ]];then
-  echo "Setting default CONDORSITE to t2.ucsd.edu"
-  CONDORSITE="t2.ucsd.edu"
-fi
 
 if [[ -z "$OUTPUTDIR" ]];then
   OUTPUTDIR="./output"
@@ -113,34 +108,49 @@ if [[ ! -z "${FCNARGS}" ]];then
   fcnargname="${fcnargname//(}"
   fcnargname="${fcnargname//)}"
   fcnargname="${fcnargname//./p}"
+  if [[ "$fcnargname" == "/"* ]];then
+    fcnargname="${fcnargname:1}"
+  fi
+  fcnargname="${fcnargname//\//_}"
   THEOUTPUTFILE="${THEOUTPUTFILE}/${fcnargname}"
 else
   FCNARGS="<NONE>"
 fi
 
-checkGridProxy.sh
-
-THECONDORSITE="${CONDORSITE}"
-THECONDOROUTDIR="${CONDOROUTDIR}"
-THEQUEUE="${QUEUE}"
-THECONDOROUTDIR=${THECONDOROUTDIR/"<USER>"/"$USER"}
-THECONDOROUTDIR=${THECONDOROUTDIR/"<DATE>"/"$DATE"}
-THECONDOROUTDIR=${THECONDOROUTDIR/"<SCRIPT>"/"$SCRIPTRAWNAME"}
-THECONDOROUTDIR=${THECONDOROUTDIR/"<FCN>"/"$FCN"}
-if [[ "${THECONDORSITE+x}" != "DUMMY" ]] && [[ -z "${THECONDOROUTDIR+x}" ]]; then
-  echo "Need to set the Condor output directory."
-  continue
-else
-  echo "Condor directory chosen: ${THECONDORSITE}:${THECONDOROUTDIR}"
-fi
-
 theOutdir="${OUTDIR}/${THEOUTPUTFILE}"
-mkdir -p "${theOutdir}/Logs"
+if [[ $recreate -eq 1 ]] || [[ ! -e $theOutdir ]]; then
+  CONDORSITE="DUMMY"
+  if [[ "$hname" == *"lxplus"* ]];then
+    echo "Setting default CONDORSITE to cern.ch"
+    CONDORSITE="cern.ch"
+  elif [[ "$hname" == *"ucsd"* ]];then
+    echo "Setting default CONDORSITE to t2.ucsd.edu"
+    CONDORSITE="t2.ucsd.edu"
+  fi
 
-ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
+  THECONDORSITE="${CONDORSITE}"
+  THECONDOROUTDIR="${CONDOROUTDIR}"
+  THEQUEUE="${QUEUE}"
+  THECONDOROUTDIR=${THECONDOROUTDIR/"<USER>"/"$USER"}
+  THECONDOROUTDIR=${THECONDOROUTDIR/"<DATE>"/"$DATE"}
+  THECONDOROUTDIR=${THECONDOROUTDIR/"<SCRIPT>"/"$SCRIPTRAWNAME"}
+  THECONDOROUTDIR=${THECONDOROUTDIR/"<FCN>"/"$FCN"}
+  if [[ "${THECONDORSITE+x}" != "DUMMY" ]] && [[ -z "${THECONDOROUTDIR+x}" ]]; then
+    echo "Need to set the Condor output directory."
+    continue
+  else
+    echo "Condor directory chosen: ${THECONDORSITE}:${THECONDOROUTDIR}"
+  fi
 
-configureCMS3AnalysisTreeCondorJob.py \
-  --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$theOutdir" \
-  --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" \
-  --condorsite="$THECONDORSITE" --condoroutdir="$THECONDOROUTDIR" \
-  --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="runCMS3AnalysisTree.condor.sh" --dry
+  checkGridProxy.sh
+
+  mkdir -p "${theOutdir}/Logs"
+
+  ln -sf ${PWD}/${OUTDIR}/${TARFILE} ${PWD}/${theOutdir}/
+
+  configureCMS3AnalysisTreeCondorJob.py \
+    --tarfile="$TARFILE" --batchqueue="$THEQUEUE" --outdir="$theOutdir" \
+    --script="$SCRIPT" --fcn="$FCN" --fcnargs="${FCNARGS}" \
+    --condorsite="$THECONDORSITE" --condoroutdir="$THECONDOROUTDIR" \
+    --outlog="Logs/log_job" --errlog="Logs/err_job" --batchscript="runCMS3AnalysisTree.condor.sh" --dry
+fi
