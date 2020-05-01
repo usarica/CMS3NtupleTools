@@ -72,22 +72,28 @@ TString SampleHelpers::getDatasetFileName(std::string sname){
 }
 TString SampleHelpers::getDatasetFileName(TString sname){ return SampleHelpers::getDatasetFileName(std::string(sname.Data())); }
 
-
-TString SampleHelpers::getDatasetFirstFileName(std::string sname){
+std::vector<TString> SampleHelpers::getDatasetFileNames(std::string sname){
   TString dsetdir = getDatasetDirectoryName(sname);
   auto dfiles = SampleHelpers::lsdir(dsetdir.Data());
-  size_t nfiles = 0;
-  TString firstFile = "";
+  std::vector<TString> res; res.reserve(dfiles.size());
   for (auto const& fname:dfiles){
-    if (fname.Contains(".root")){
-      if (nfiles == 0) firstFile = fname;
-      nfiles++;
-    }
+    if (fname.Contains(".root")) res.push_back(dsetdir + "/" + fname);
   }
+  size_t const nfiles = res.size();
   if (nfiles==0){
-    MELAerr << "SampleHelpers::getDatasetFirstFileName: Directory " << dsetdir << " contains no ROOT files." << endl;
+    MELAerr << "SampleHelpers::getDatasetFileNames: Directory " << dsetdir << " contains no ROOT files." << endl;
     assert(nfiles>0);
   }
-  return (dsetdir + "/" + firstFile);
+  return res;
+}
+std::vector<TString> SampleHelpers::getDatasetFileNames(TString sname){ return SampleHelpers::getDatasetFileNames(std::string(sname.Data())); }
+
+TString SampleHelpers::getDatasetFirstFileName(std::string sname){
+  std::vector<TString> fileList = SampleHelpers::getDatasetFileNames(sname);
+  if (fileList.empty()){
+    MELAerr << "SampleHelpers::getDatasetFirstFileName: Sample " << sname << " has no ROOT files." << endl;
+    assert(false);
+  }
+  return (!fileList.empty() ? fileList.front() : TString(""));
 }
 TString SampleHelpers::getDatasetFirstFileName(TString sname){ return SampleHelpers::getDatasetFirstFileName(std::string(sname.Data())); }

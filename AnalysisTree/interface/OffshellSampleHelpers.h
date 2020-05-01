@@ -20,6 +20,9 @@ namespace SampleHelpers{
   TString getDatasetFileName(std::string sname);
   TString getDatasetFileName(TString sname);
 
+  std::vector<TString> getDatasetFileNames(std::string sname);
+  std::vector<TString> getDatasetFileNames(TString sname);
+
   TString getDatasetFirstFileName(std::string sname);
   TString getDatasetFirstFileName(TString sname);
 

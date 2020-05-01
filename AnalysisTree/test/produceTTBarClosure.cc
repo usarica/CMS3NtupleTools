@@ -400,6 +400,7 @@ void makePlot(
 
 using namespace SystematicsHelpers;
 void getTrees(
+  TString period, TString prodVersion,
   int procsel, int ichunk, int nchunks, TString strdate,
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
@@ -421,7 +422,7 @@ void getTrees(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
   gSystem->mkdir(coutput_main, true);
 
-  SampleHelpers::configure("2018", "hadoop:200326");
+  SampleHelpers::configure(period, "hadoop:"+prodVersion);
 
   std::vector<TString> const validDataPeriods = SampleHelpers::getValidDataPeriods();
   size_t const nValidDataPeriods = validDataPeriods.size();
@@ -496,9 +497,9 @@ void getTrees(
     sample.name.find("Bkg")!=std::string::npos
     ||
     sample.name.find("BSI")!=std::string::npos
-    ) SampleHelpers::configure("2018", "hadoop:200313");
+    ) SampleHelpers::configure(period, "hadoop:"+prodVersion);
   else{
-    SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims/DileptonSkims/2018");
+    SampleHelpers::setInputDirectory("/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Skims");
   }
 
   // Get sample specifications
@@ -587,7 +588,7 @@ void getTrees(
 
   bool isFirstInputFile=true;
   for (auto const& sname:sampledirs){
-    BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), EVENTS_TREE_NAME, "", "");
+    BaseTree sample_tree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/Dilepton", "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
 
     // Set data tracking options
@@ -607,19 +608,30 @@ void getTrees(
       genInfoHandler.bookBranches(&sample_tree);
       genInfoHandler.wrapTree(&sample_tree);
 
-      TString firstFile = SampleHelpers::getDatasetFirstFileName(sname);
-      TFile* fFirstFile = TFile::Open(firstFile, "read");
-      TH2D* hCounters = (TH2D*) fFirstFile->Get("cms3ntuple/Counters");
-      if (hCounters){
+      std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
+      bool hasCounters = true;
+      {
         int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
         int bin_period = 1;
         for (unsigned int iperiod=0; iperiod<nValidDataPeriods; iperiod++){
           if (validDataPeriods.at(iperiod)==SampleHelpers::theDataPeriod){ bin_period += iperiod+1; break; }
         }
-        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights..." << endl;
-        sum_wgts = hCounters->GetBinContent(bin_syst, bin_period);
+        MELAout << "Checking counters histogram bin (" << bin_syst << ", " << bin_period << ") to obtain the sum of weights if the counters histogram exists..." << endl;
+        for (auto const& fname:inputfilenames){
+          TFile* ftmp = TFile::Open(fname, "read");
+          TH2D* hCounters = (TH2D*) ftmp->Get("cms3ntuple/Counters");
+          if (!hCounters){
+            hasCounters = false;
+            sum_wgts = 0;
+            break;
+          }
+          MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
+          sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+          ftmp->Close();
+        }
+        if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
-      else{
+      if (!hasCounters){
         MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
         for (int ev=0; ev<nEntries; ev++){
           HelperFunctions::progressbar(ev, nEntries);
@@ -634,7 +646,6 @@ void getTrees(
           sum_wgts += genwgt * puwgt;
         }
       }
-      fFirstFile->Close();
     }
     MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
 
@@ -1103,8 +1114,8 @@ void count(
   */
   sampleList.emplace_back("TT_2l2nu", "t#bar{t}#rightarrow2l2#nu", "TT_2l2nu", -1, HistogramProperties((int) kOrange-3, 1, 2));
   sampleList.emplace_back("qqWW_2l2nu", "WW#rightarrow2l2#nu", "qqWW_2l2nu", -1, HistogramProperties((int) kTeal-1, 1, 2));
+  sampleList.emplace_back("DY_2l_M_50_ext", "DY ll", "DY_2l_M_50_ext", -1, HistogramProperties((int) kCyan, 1, 2));
   /*
-  sampleList.emplace_back("DY_2l_M_50_HT", "DY ll (H_{T}-binned)", "DY_2l_M_50_HT", -1, HistogramProperties((int) kCyan, 1, 2));
   sampleList.emplace_back("ggZZ_2l2nu_Sig", "gg#rightarrowZZ sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggZZ_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("VBFZZ_2l2nu_Sig", "EW ZZ+jj sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "VBFZZ_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));
   sampleList.emplace_back("ggWW_2l2nu_Sig", "gg#rightarrowWW sig. (#Gamma_{H}=#Gamma_{H}^{SM})", "ggWW_2l2nu_Sig", -1, HistogramProperties((int) kYellow-3, 1, 2));

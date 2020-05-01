@@ -75,7 +75,7 @@ void produceSkims(
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampleList);
 
-  TString const stroutputcore = Form("output/Skims/%s_%s", strdate.Data(), SampleHelpers::theDataPeriod.Data());
+  TString const stroutputcore = Form("output/Skims/%s", strdate.Data());
 
   MELAout << "List of samples to process: " << sampleList << endl;
   for (auto const& strSample:sampleList){
