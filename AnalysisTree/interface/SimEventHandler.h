@@ -23,6 +23,7 @@ protected:
   std::unordered_map< TString, std::vector<TH1F*> > map_DataPeriod_PUHistList;
   std::unordered_map<TString, TH1F*> map_exceptionalPUHistList;
 
+  bool hasPUException;
   std::unordered_map<EventRandomNumberType, unsigned long long> product_rnds;
   TString theChosenDataPeriod;
   bool hasHEM2018Issue;
@@ -43,6 +44,8 @@ public:
   ~SimEventHandler();
 
   bool constructSimEvent(SystematicsHelpers::SystematicVariationTypes const& syst);
+
+  bool wrapTree(BaseTree* tree);
 
   void bookBranches(BaseTree* intree);
 

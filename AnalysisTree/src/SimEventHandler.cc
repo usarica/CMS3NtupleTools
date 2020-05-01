@@ -37,6 +37,7 @@ SIMEVENT_L1PREFIRINGVARIABLES
 
 SimEventHandler::SimEventHandler() :
   IvyBase(),
+  hasPUException(false),
   hasHEM2018Issue(false),
   pileupWeight(-1),
   l1prefiringWeight(nullptr)
@@ -156,7 +157,7 @@ void SimEventHandler::setupPUHistograms(){
     it_datapucores++;
   }
 
-  finput_mc->Close();
+  curdir->cd();
 
   // Get exceptional MC histograms
   if (hmc){
@@ -171,8 +172,13 @@ void SimEventHandler::setupPUHistograms(){
         else if (finput_exceptionalMC->IsOpen()) htmp = (TH1F*) finput_exceptionalMC->Get("pileup");
       }
       assert(htmp!=nullptr);
+      if (htmp->GetNbinsX() != hmc->GetNbinsX()){
+        if (this->verbosity>=TVar::ERROR) MELAerr
+          << "SimEventHandler::setupPUHistograms: " << strsample  << " PU exception has " << htmp->GetNbinsX() << " bins while the default MC histogram has " << hmc->GetNbinsX() << " bins."
+          << endl;
+      }
       assert(htmp->GetNbinsX() == hmc->GetNbinsX());
-      htmp->Scale(1.f/htmp->Integral(1, htmp->GetNbinsX()+1)); // Do not include underflow; it contains buggy <0 true interactions.
+      htmp->Scale(1.f/htmp->Integral(0, htmp->GetNbinsX()+1));
 
       uppermostdir->cd();
       hfill = (TH1F*) htmp->Clone();
@@ -184,6 +190,8 @@ void SimEventHandler::setupPUHistograms(){
       curdir->cd();
     }
   }
+
+  finput_mc->Close();
 
   curdir->cd();
 }
@@ -272,7 +280,8 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: All variables are set up!" << endl;
 
-  if (HelperFunctions::checkVarNanInf(*n_true_int) || *n_true_int<0){
+  if (!HelperFunctions::checkVarNanInf(*n_true_int) || *n_true_int<0){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: Number of true interactions (" << *n_true_int << ") is invalid." << endl;
     pileupWeight = 0.f;
     return true;
   }
@@ -292,10 +301,10 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
 
   TH1F* const& hpu_data_MC = hlist.at(isyst);
   pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int));
-  if (SampleHelpers::hasPUException(currentTree->sampleIdentifier, SampleHelpers::theDataYear)){
+  if (this->hasPUException){
     auto itpu = map_exceptionalPUHistList.find(currentTree->sampleIdentifier);
     if (itpu == map_exceptionalPUHistList.cend()){
-      if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: No histogram found in PU exception map for sample " << currentTree->sampleIdentifier << endl;
+      if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: No histogram file found in the PU exception map for sample " << currentTree->sampleIdentifier << endl;
       assert(0);
     }
     else{
@@ -343,6 +352,15 @@ bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicV
   }
 
   return true;
+}
+
+bool SimEventHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  hasPUException = (SampleHelpers::hasPUException(tree->sampleIdentifier, SampleHelpers::theDataYear));
+  if (hasPUException) MELAout << "SimEventHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a PU exception." << endl;
+
+  return IvyBase::wrapTree(tree);
 }
 
 void SimEventHandler::bookBranches(BaseTree* tree){

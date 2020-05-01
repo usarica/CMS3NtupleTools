@@ -29,6 +29,7 @@ class BatchManager:
       self.parser.add_option("--nfilesperjob_MC", type="int", default=35, help="Approximate number of input files per MC skim job")
       self.parser.add_option("--nfilesperjob_data", type="int", default=60, help="Approximate number of input files per data skim job")
       self.parser.add_option("--recreate", action="store_true", default=False, help="Recreate the job directories")
+      self.parser.add_option("--dry", action="store_true", default=False, help="Test run without creation of jobs")
 
       (self.opt,self.args) = self.parser.parse_args()
 
@@ -102,12 +103,13 @@ class BatchManager:
                cmdlist.append(cmdstr)
             print "=========="
          # Configure jobs
-         for cmdarg in cmdlist:
-            os.system(
-               "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{}".format(
-                  self.extracmd, cmdarg, self.infile.replace('.csv','')
+         if not self.opt.dry:
+            for cmdarg in cmdlist:
+               os.system(
+                  "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{}".format(
+                     self.extracmd, cmdarg, self.infile.replace('.csv','')
+                  )
                )
-            )
 
 
 
