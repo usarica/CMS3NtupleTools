@@ -39,6 +39,8 @@ namespace SampleHelpers{
   bool testDataPeriodIsLikeData();
   float getIntegratedLuminosity(TString const& period);
 
+  std::string getDatasetCoreName(std::string sname);
+
   TString getSampleIdentifier(TString strinput);
   bool checkSampleIsData(TString strid, TString* theSampleDataPeriod=nullptr);
   bool checkSampleIs80X(TString strid);

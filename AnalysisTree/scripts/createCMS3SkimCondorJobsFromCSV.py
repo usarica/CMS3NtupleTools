@@ -82,6 +82,9 @@ class BatchManager:
             spath = self.opt.production_dir+'/'+self.opt.production_tag+'/'+ffoutcore
             print "=========="
             print "Checking {}:{}".format(strsample,spath)
+            if not os.path.isdir(spath):
+               print "Sample does not exist!"
+               continue
             filelist = [f for f in os.listdir(spath) if (os.path.isfile(os.path.join(spath, f)) and '.root' in f)]
             nfiles = len(filelist)
             nchunks = 0

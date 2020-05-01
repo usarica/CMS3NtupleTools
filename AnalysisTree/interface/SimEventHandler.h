@@ -21,6 +21,7 @@ public:
 
 protected:
   std::unordered_map< TString, std::vector<TH1F*> > map_DataPeriod_PUHistList;
+  std::unordered_map<TString, TH1F*> map_exceptionalPUHistList;
 
   std::unordered_map<EventRandomNumberType, unsigned long long> product_rnds;
   TString theChosenDataPeriod;

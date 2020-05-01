@@ -4,6 +4,7 @@
 #include "SimEventHandler.h"
 #include "SampleHelpersCore.h"
 #include "SamplesCore.h"
+#include "SampleExceptions.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 #include "TDirectory.h"
@@ -157,6 +158,33 @@ void SimEventHandler::setupPUHistograms(){
 
   finput_mc->Close();
 
+  // Get exceptional MC histograms
+  if (hmc){
+    std::vector<TString> exceptionalSampleList = SampleHelpers::getPUExceptions(SampleHelpers::theDataYear);
+    for (auto const& strsample:exceptionalSampleList){
+      TH1F* hfill = nullptr;
+
+      TFile* finput_exceptionalMC = TFile::Open(cinput_pufile_main + strsample + ".root", "read");
+      TH1F* htmp = nullptr;
+      if (finput_exceptionalMC){
+        if (finput_exceptionalMC->IsOpen() && finput_exceptionalMC->IsZombie()) finput_exceptionalMC->Close();
+        else if (finput_exceptionalMC->IsOpen()) htmp = (TH1F*) finput_exceptionalMC->Get("pileup");
+      }
+      assert(htmp!=nullptr);
+      assert(htmp->GetNbinsX() == hmc->GetNbinsX());
+      htmp->Scale(1.f/htmp->Integral(1, htmp->GetNbinsX()+1)); // Do not include underflow; it contains buggy <0 true interactions.
+
+      uppermostdir->cd();
+      hfill = (TH1F*) htmp->Clone();
+      HelperFunctions::divideHistograms(htmp, hmc, hfill, false);
+
+      map_exceptionalPUHistList[strsample.Data()] = hfill;
+
+      finput_exceptionalMC->Close();
+      curdir->cd();
+    }
+  }
+
   curdir->cd();
 }
 void SimEventHandler::clearPUHistograms(){
@@ -165,6 +193,9 @@ void SimEventHandler::clearPUHistograms(){
     pp.second.clear();
   }
   map_DataPeriod_PUHistList.clear();
+
+  for (auto& hh:map_exceptionalPUHistList) delete hh.second;
+  map_exceptionalPUHistList.clear();
 }
 
 bool SimEventHandler::constructSimEvent(SystematicsHelpers::SystematicVariationTypes const& syst){
@@ -241,6 +272,11 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "SimEventHandler::constructPUWeight: All variables are set up!" << endl;
 
+  if (HelperFunctions::checkVarNanInf(*n_true_int) || *n_true_int<0){
+    pileupWeight = 0.f;
+    return true;
+  }
+
   const unsigned int isyst = (syst == SystematicsHelpers::ePUDn)*1 + (syst == SystematicsHelpers::ePUUp)*2;
   auto it = map_DataPeriod_PUHistList.find(theChosenDataPeriod);
   if (it == map_DataPeriod_PUHistList.cend()){
@@ -254,7 +290,22 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
     assert(0);
   }
 
-  pileupWeight = hlist.at(isyst)->GetBinContent(hlist.at(isyst)->FindBin(*n_true_int));
+  TH1F* const& hpu_data_MC = hlist.at(isyst);
+  pileupWeight = hpu_data_MC->GetBinContent(hpu_data_MC->FindBin(*n_true_int));
+  if (SampleHelpers::hasPUException(currentTree->sampleIdentifier, SampleHelpers::theDataYear)){
+    auto itpu = map_exceptionalPUHistList.find(currentTree->sampleIdentifier);
+    if (itpu == map_exceptionalPUHistList.cend()){
+      if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: No histogram found in PU exception map for sample " << currentTree->sampleIdentifier << endl;
+      assert(0);
+    }
+    else{
+      TH1F* const& hpurewgt = itpu->second;
+      float wgt_den = hpurewgt->GetBinContent(hpurewgt->FindBin(*n_true_int));
+      if (wgt_den != 0.f) pileupWeight /= wgt_den;
+      else pileupWeight = 0;
+    }
+  }
+
   if (pileupWeight == 0.f){
     if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU weight = 0!" << endl;
   }

@@ -41,10 +41,7 @@ void SampleHelpers::configure(TString period, TString stag){
 }
 
 std::string SampleHelpers::getDatasetDirectoryCoreName(std::string sname){
-  HelperFunctions::replaceString(sname, "/MINIAODSIM", "");
-  HelperFunctions::replaceString(sname, "/MINIAOD", "");
-  if (sname.find('/')==0) sname = sname.substr(1);
-  return sname;
+  return getDatasetCoreName(sname);
 }
 TString SampleHelpers::getDatasetDirectoryName(std::string sname){
   assert(theSamplesTag!="");

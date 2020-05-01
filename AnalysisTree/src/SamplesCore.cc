@@ -124,6 +124,13 @@ float SampleHelpers::getIntegratedLuminosity(TString const& period){
   }
 }
 
+std::string SampleHelpers::getDatasetCoreName(std::string sname){
+  HelperFunctions::replaceString(sname, "/MINIAODSIM", "");
+  HelperFunctions::replaceString(sname, "/MINIAOD", "");
+  if (sname.find('/')==0) sname = sname.substr(1);
+  return sname;
+}
+
 TString SampleHelpers::getSampleIdentifier(TString strinput){
   TString res="";
   std::vector<TString> splitstr; char delimiter='/';
