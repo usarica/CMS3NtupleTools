@@ -523,6 +523,8 @@ void getTrees(
   ParticleDisambiguator particleDisambiguator;
   DileptonHandler dileptonHandler;
 
+  PhotonScaleFactorHandler photonSFHandler;
+
   genInfoHandler.setAcquireLHEMEWeights(true);
   genInfoHandler.setAcquireLHEParticles(false);
   genInfoHandler.setAcquireGenParticles(false);
@@ -796,11 +798,19 @@ void getTrees(
       photonHandler.constructPhotons(theGlobalSyst);
       particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
+      float SF_muons = 1;
+      float SF_electrons = 1;
+      float SF_photons = 1;
       auto const& muons = muonHandler.getProducts();
       auto const& electrons = electronHandler.getProducts();
       auto const& photons = photonHandler.getProducts();
       event_Nphotons = 0;
       for (auto const& part:photons){
+        float SF_photon = 1;
+        if (!isData) photonSFHandler.getIdIsoSFAndEff(theGlobalSyst, part, SF_photon, nullptr);
+        if (SF_photon == 0.f) continue;
+        SF_photons *= SF_photon;
+
         if (ParticleSelectionHelpers::isTightParticle(part)) event_Nphotons++;
       }
 

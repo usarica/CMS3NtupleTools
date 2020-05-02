@@ -26,6 +26,7 @@
 
 #include "MuonScaleFactorHandler.h"
 #include "ElectronScaleFactorHandler.h"
+#include "PhotonScaleFactorHandler.h"
 
 #include "DiscriminantClasses.h"
 
