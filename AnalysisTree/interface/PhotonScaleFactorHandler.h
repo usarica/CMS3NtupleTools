@@ -15,8 +15,7 @@ protected:
   ExtendedHistogram_2D h_SF_tampon;
   ExtendedHistogram_2D h_SF_tight;
 
-  void evalScaleFactorFromHistogram(float& val, float& relerr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
-  void evalScaleFactorFromHistogram(float& val, float& relerr, PhotonObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& val, float& relerr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
 
   static TString getScaleFactorFileName(PhotonSelectionHelpers::SelectionBits const& preselectionBit, int const& year);
 

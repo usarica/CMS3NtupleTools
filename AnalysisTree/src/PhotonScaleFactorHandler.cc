@@ -22,6 +22,7 @@ PhotonScaleFactorHandler::~PhotonScaleFactorHandler(){ this->reset(); }
 
 TString PhotonScaleFactorHandler::getScaleFactorFileName(PhotonSelectionHelpers::SelectionBits const& preselectionBit, int const& year){
   TString res = ANALYSISTREEPKGDATAPATH + Form("ScaleFactors/Photons/%i/", year);
+  HostHelpers::ExpandEnvironmentVariables(res);
   if (idType_preselection == kCutBasedId_Fall17V2){
     switch (preselectionBit){
     case kLooseId:
@@ -101,7 +102,10 @@ void PhotonScaleFactorHandler::reset(){
 
 void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
   TH2F const* hh = hist.getHistogram();
-  if (!hh) return;
+  if (!hh){
+    MELAerr << "PhotonScaleFactorHandler::evalScaleFactorFromHistogram: Histogram is null." << endl;
+    return;
+  }
 
   float const abs_eta = std::abs(etaSC);
   float const& eta_to_use = (!useAbsEta ? etaSC : abs_eta);
@@ -133,25 +137,19 @@ void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float&
 
   theSF *= bc; theSFRelErr = sqrt(pow(theSFRelErr, 2)+pow(be, 2));
 }
-void PhotonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, PhotonObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const{
-  if (!obj) return;
-  float const pt = obj->pt();
-  float const eta = obj->etaSC();
-  this->evalScaleFactorFromHistogram(theSF, theSFRelErr, pt, eta, hist, etaOnY, useAbsEta);
-}
 
 void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& isTight, bool const& isTampon, float& val, float* effval) const{
   val = 1;
 
-  float eff_tight=0, eff_relerr_tight=0;
+  float eff_tight=1, eff_relerr_tight=0;
   evalScaleFactorFromHistogram(eff_tight, eff_relerr_tight, pt, etaSC, h_eff_mc_tight, false, false);
-  float eff_tampon=0, eff_relerr_tampon=0;
+  float eff_tampon=1, eff_relerr_tampon=0;
   evalScaleFactorFromHistogram(eff_tampon, eff_relerr_tampon, pt, etaSC, h_eff_mc_tampon, false, false);
   float eff_nonid = std::max(0.f, 1.f - eff_tampon);
 
-  float SF_tight=0, SF_relerr_tight=0;
+  float SF_tight=1, SF_relerr_tight=0;
   evalScaleFactorFromHistogram(SF_tight, SF_relerr_tight, pt, etaSC, h_SF_tight, false, false);
-  float SF_tampon=0, SF_relerr_tampon=0;
+  float SF_tampon=1, SF_relerr_tampon=0;
   evalScaleFactorFromHistogram(SF_tampon, SF_relerr_tampon, pt, etaSC, h_SF_tampon, false, false);
 
   if (syst == SystematicsHelpers::ePhoEffDn){
@@ -176,6 +174,16 @@ void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVa
     eff_region_corr = std::max(0.f, 1.f - eff_tampon*SF_tampon);
     eff_region = eff_nonid;
   }
+
+  /*
+  if (eff_region == 0.f || eff_region_corr == 0.f){
+    if (this->verbosity >= TVar::ERROR) MELAerr
+      << "PhotonScaleFactorHandler::getIdIsoSFAndEff: Photon (pT, etaSC) = (" << pt << ", " << etaSC
+      << ") efficiency (uncorrected, corrected) = (" << eff_region << ", " << eff_region_corr
+      << ") with id (tight, tampon) = (" << isTight << ", " << isTampon << ")"
+      << endl;
+  }
+  */
 
   if (eff_region == 0.f){
     val = 1;
