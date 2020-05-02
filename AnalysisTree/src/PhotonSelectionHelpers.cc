@@ -28,6 +28,8 @@ namespace PhotonSelectionHelpers{
   bool testPreselectionVeto(PhotonObject const& part);
   bool testPreselectionLoose(PhotonObject const& part);
   bool testPreselectionTight(PhotonObject const& part);
+
+  bool testSFTampon(PhotonObject const& part);
 }
 
 
@@ -211,6 +213,20 @@ bool PhotonSelectionHelpers::testPreselectionTight(PhotonObject const& part){
     (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
     );
 }
+bool PhotonSelectionHelpers::testSFTampon(PhotonObject const& part){
+  static_assert(bit_SFTampon_id <= bit_preselectionTight_id);
+  static_assert(bit_SFTampon_iso <= bit_preselectionTight_iso);
+  static_assert(bit_SFTampon_kin <= bit_preselectionTight_kin);
+  return (
+    part.testSelectionBit(bit_SFTampon_id)
+    &&
+    part.testSelectionBit(bit_SFTampon_iso)
+    &&
+    part.testSelectionBit(bit_SFTampon_kin)
+    &&
+    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
+    );
+}
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
@@ -238,4 +254,6 @@ void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
+
+  part.setSelectionBit(kSFTampon, testSFTampon(part));
 }

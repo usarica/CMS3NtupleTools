@@ -1,0 +1,37 @@
+#ifndef PHOTONSCALEFACTORHANDLER_H
+#define PHOTONSCALEFACTORHANDLER_H
+
+#include <CMSDataTools/AnalysisTree/interface/ExtendedHistogram_2D.h>
+#include "ScaleFactorHandlerBase.h"
+#include "PhotonObject.h"
+#include "PhotonSelectionHelpers.h"
+
+
+class PhotonScaleFactorHandler : public ScaleFactorHandlerBase{
+protected:
+  ExtendedHistogram_2D h_eff_mc_tampon;
+  ExtendedHistogram_2D h_eff_mc_tight;
+
+  ExtendedHistogram_2D h_SF_tampon;
+  ExtendedHistogram_2D h_SF_tight;
+
+  void evalScaleFactorFromHistogram(float& val, float& relerr, float const& pt, float const& eta, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+  void evalScaleFactorFromHistogram(float& val, float& relerr, PhotonObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
+
+  static TString getScaleFactorFileName(PhotonSelectionHelpers::SelectionBits const& preselectionBit, int const& year);
+
+public:
+  PhotonScaleFactorHandler();
+  ~PhotonScaleFactorHandler();
+
+  bool setup();
+  void reset();
+
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& isTight, bool const& isTampon, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, PhotonObject const* obj, float& val, float* effval) const;
+
+};
+
+
+
+#endif

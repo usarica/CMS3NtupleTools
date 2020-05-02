@@ -27,6 +27,8 @@ namespace PhotonSelectionHelpers{
     kPreselectionLoose,
     kPreselectionTight,
 
+    kSFTampon,
+
     nSelectionBits
   };
   enum PhotonId{
@@ -73,6 +75,10 @@ namespace PhotonSelectionHelpers{
   constexpr SelectionBits bit_preselectionTight_id = kTightId;
   constexpr SelectionBits bit_preselectionTight_iso = kTightIso;
   constexpr SelectionBits bit_preselectionTight_kin = kTightKin;
+
+  constexpr SelectionBits bit_SFTampon_id = kMediumId;
+  constexpr SelectionBits bit_SFTampon_iso = kMediumIso;
+  constexpr SelectionBits bit_SFTampon_kin = bit_preselectionTight_kin;
 
   constexpr SelectionBits bit_preselection_conversion = nSelectionBits; // kConversionSafe (enable in loose and tight preselection) or nSelectionBits (disable)
 
