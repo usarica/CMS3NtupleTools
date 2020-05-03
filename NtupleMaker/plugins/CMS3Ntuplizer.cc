@@ -426,12 +426,20 @@ void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<rec
     // Record if NOT matched to any pruned gen. particle.
     if (match_ref<0.){
       if (
-        ((this->keepGenParticles==kAllFinalStates || this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses || this->keepGenParticles==kReducedFinalStatesAndHardProcessFinalStates) && st!=1)
+        (
+          this->keepGenParticles==kAllFinalStates
+          ||
+          this->keepGenParticles==kReducedFinalStates
+          ||
+          this->keepGenParticles==kReducedFinalStatesAndHardProcesses || this->keepGenParticles==kReducedFinalStatesAndHardProcessFinalStates
+          )
+        &&
+        st!=1
         ) continue;
       else if (this->keepGenParticles==kPromptFinalStatePhotons) continue; // Disable photons from packed candidates since they are not prompt photons
       else if (this->keepGenParticles==kHardProcesses || this->keepGenParticles==kHardProcessFinalStates) continue; // Disable packed candidates since they are not hard process particles
       else if (
-        (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses)
+        (this->keepGenParticles==kReducedFinalStates || this->keepGenParticles==kReducedFinalStatesAndHardProcesses || this->keepGenParticles==kReducedFinalStatesAndHardProcessFinalStates)
         &&
         st==1
         && !(
