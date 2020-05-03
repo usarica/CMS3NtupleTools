@@ -316,6 +316,16 @@ void produceBtaggingEfficiencies(
       wgt *= SF_muons*SF_electrons*SF_photons;
       if (wgt==0.f) continue;
 
+      isotrackHandler.constructIsotracks(&muons, &electrons);
+      bool hasVetoIsotrack = false;
+      for (auto const& isotrack:isotrackHandler.getProducts()){
+        if (isotrack->testSelectionBit(IsotrackSelectionHelpers::kPreselectionVeto)){
+          hasVetoIsotrack = true;
+          break;
+        }
+      }
+      if (hasVetoIsotrack) continue;
+
       if (!doDileptons && (n_muons_veto+n_electrons_veto)>0) continue;
 
       dileptonHandler.constructDileptons(&muons, &electrons);
@@ -332,8 +342,6 @@ void produceBtaggingEfficiencies(
       jetHandler.constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
-      auto const& puppimet = jetHandler.getPFPUPPIMET();
-      auto const& pfmet = jetHandler.getPFMET();
 
       if (!eventFilter.test2018HEMFilter(&simEventHandler, nullptr, nullptr, &ak4jets, &ak8jets)) continue;
 
