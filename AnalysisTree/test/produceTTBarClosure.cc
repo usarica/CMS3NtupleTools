@@ -539,7 +539,7 @@ void getTrees(
 #define BRANCH_COMMAND(type, name) type name = 0; tout->Branch(#name, &name);
   // Event variables
   BRANCH_COMMAND(float, event_wgt);
-  BRANCH_COMMAND(float, event_wgt_undo_eff);
+  BRANCH_COMMAND(float, event_wgt_SFs);
   BRANCH_COMMAND(float, pTmiss);
   BRANCH_COMMAND(float, phimiss);
   BRANCH_COMMAND(float, mTZZ);
@@ -813,6 +813,7 @@ void getTrees(
 
         if (ParticleSelectionHelpers::isTightParticle(part)) event_Nphotons++;
       }
+      event_wgt_SFs = SF_muons*SF_electrons*SF_photons;
 
       isotrackHandler.constructIsotracks(&muons, &electrons);
       bool hasVetoIsotrack = false;
