@@ -30,7 +30,14 @@ void SampleHelpers::setDataPeriod(TString s){
     assert(0);
   }
 }
-void SampleHelpers::setInputDirectory(TString s){ theInputDirectory=s; }
+void SampleHelpers::setInputDirectory(TString s){
+  HostHelpers::ExpandEnvironmentVariables(s);
+  if (!HostHelpers::DirectoryExists(s)){
+    MELAerr << "SampleHelpers::setInputDirectory: Directory " << s << " does not exist." << endl;
+    assert(0);
+  }
+  theInputDirectory=s;
+}
 
 bool SampleHelpers::testDataPeriodIsLikeData(){
   int try_year=-1;
@@ -41,7 +48,7 @@ bool SampleHelpers::testDataPeriodIsLikeData(){
     // Check if the data period string contains just the year
     if (theDataPeriod == Form("%i", try_year)) return false;
     else{
-      const char test_chars[]="ABCDEFGHIJK";
+      const char test_chars[]="ABCDEFGHIJKL";
       const unsigned int n_test_chars = strlen(test_chars);
       for (unsigned int ic=0; ic<n_test_chars; ic++){
         TString test_data_period = Form("%i%c", try_year, test_chars[ic]);
@@ -144,6 +151,7 @@ TString SampleHelpers::getSampleIdentifier(TString strinput){
   return res;
 }
 bool SampleHelpers::checkSampleIsData(TString strid, TString* theSampleDataPeriod){
+  if (strid.Contains("AODSIM")) return false;
   std::vector<TString> strperiods = SampleHelpers::getValidDataPeriods();
   for (TString const& strperiod:strperiods){
     if (strid.Contains(strperiod)){
