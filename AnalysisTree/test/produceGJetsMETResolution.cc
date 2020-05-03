@@ -419,7 +419,8 @@ void getTrees(
   TString const coutput_main =
     "output/GJetsMETResolution/SkimTrees/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId");
+    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + period;
 
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
 
