@@ -56,6 +56,12 @@ PhotonObject::~PhotonObject(){}
 bool PhotonObject::isEBEEGap() const{
   return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEBEEGAP);
 }
+bool PhotonObject::isEB() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEB);
+}
+bool PhotonObject::isEE() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEE);
+}
 bool PhotonObject::isAnyGap() const{
   return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP);
 }

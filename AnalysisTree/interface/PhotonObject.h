@@ -65,7 +65,10 @@ public:
   float const& etaSC() const{ return extras.etaSC; }
 
   bool isEBEEGap() const;
+  bool isEB() const;
+  bool isEE() const;
   bool isAnyGap() const;
+  bool isGap() const{ return this->isAnyGap(); }
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
 

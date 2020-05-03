@@ -62,6 +62,12 @@ ElectronObject::~ElectronObject(){}
 bool ElectronObject::isEBEEGap() const{
   return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEBEEGAP);
 }
+bool ElectronObject::isEB() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEB);
+}
+bool ElectronObject::isEE() const{
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEE);
+}
 bool ElectronObject::isAnyGap() const{
   return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP);
 }
