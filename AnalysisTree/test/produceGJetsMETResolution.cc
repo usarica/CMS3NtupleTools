@@ -406,6 +406,7 @@ void getTrees(
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
   bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false
 ){
+  if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   gStyle->SetOptStat(0);
@@ -443,16 +444,19 @@ void getTrees(
   if (sampledirs.empty()) return;
   bool isData = false;
   bool isQCD = false;
-  for (auto const& sample:sampledirs){
-    isData = SampleHelpers::checkSampleIsData(strSampleSet);
+  float pTG_true_range[2]={ -1, -1 }; bool haspTGRange = false;
+  for (auto const& sname:sampledirs){
+    isData = SampleHelpers::checkSampleIsData(sname);
     if (isData && theGlobalSyst!=sNominal) return;
     if (isData && nchunks>0) return;
 
-    isQCD = strSampleSet.Contains("QCD") && strSampleSet.Contains("HT");
+    isQCD = sname.Contains("QCD") && sname.Contains("HT");
+    if ((sname.Contains("ZGTo2NuG") || sname.Contains("ZGTo2LG")) && sname.Contains("amcatnloFXFX") && !sname.Contains("PtG-130")) pTG_true_range[1]=130;
 
     break;
   }
-  bool needGenParticleChecks = isQCD;
+  haspTGRange = pTG_true_range[0]!=pTG_true_range[1];
+  bool needGenParticleChecks = isQCD || haspTGRange;
 
   gSystem->mkdir(coutput_main, true);
 
@@ -641,6 +645,7 @@ void getTrees(
         genInfoHandler.constructGenInfo(theGlobalSyst);
         auto const& genInfo = genInfoHandler.getGenInfo();
         event_wgt *= genInfo->getGenWeight(true);
+        auto const& genparticles = genInfoHandler.getGenParticles();
 
         if (needGenParticleChecks){
           if (isQCD){
@@ -648,6 +653,14 @@ void getTrees(
             for (auto const& part:genparticles){
               if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isPromptFinalState && part->pt()>=25.f){
                 event_wgt = 0;
+                break;
+              }
+            }
+          }
+          if (haspTGRange){
+            for (auto const& part:genparticles){
+              if (PDGHelpers::isAPhoton(part->pdgId()) && part->extras.isHardProcess){
+                if ((pTG_true_range[0]>=0.f && part->pt()<pTG_true_range[0]) || (pTG_true_range[1]>=0.f && part->pt()>=pTG_true_range[1])) event_wgt = 0;
                 break;
               }
             }
@@ -713,6 +726,7 @@ void getTrees(
       eta_gamma = theChosenPhoton->eta();
       phi_gamma = theChosenPhoton->phi();
       mass_gamma = theChosenPhoton->m();
+      if (pt_gamma<150.f) continue; // Skip photons that are more likely to be pi^0s
       n_pass_photons++;
 
       event_wgt_SFs = SF_muons*SF_electrons*SF_photons;

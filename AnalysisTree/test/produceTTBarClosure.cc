@@ -406,6 +406,7 @@ void getTrees(
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
 ){
   if (procsel<0) return;
+  if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   gStyle->SetOptStat(0);

@@ -14,6 +14,7 @@ void produceBtaggingEfficiencies(
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
 ){
+  if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   gStyle->SetOptStat(0);
@@ -84,7 +85,7 @@ void produceBtaggingEfficiencies(
     HelperFunctions::replaceString(coutput, "_MINIAODSIM", "");
     HelperFunctions::replaceString(coutput, "_MINIAOD", "");
 
-    TString selectedTreeName = "cms3ntuple/Events";
+    TString selectedTreeName;
     TString failedTreeName;
     double sum_wgts = (isData ? 1.f : 0.f);
 
@@ -118,6 +119,12 @@ void produceBtaggingEfficiencies(
       if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
     }
 
+    if (selectedTreeName == "" && failedTreeName == ""){
+      MELAerr << "Both trees from " << cinput << " have an empty name!" << endl;
+      continue;
+    }
+
+    MELAout << "Acquiring trees \"" << selectedTreeName << "\", \"" << failedTreeName << "\" from " << cinput << endl;
     BaseTree sample_tree(cinput, selectedTreeName, failedTreeName, "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
 
@@ -156,7 +163,6 @@ void produceBtaggingEfficiencies(
     }
 
     MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
-    double wgtNorm = static_cast<const float>(nEntries) / sum_wgts;
 
     muonHandler.bookBranches(&sample_tree);
     muonHandler.wrapTree(&sample_tree);
@@ -191,7 +197,7 @@ void produceBtaggingEfficiencies(
     TFile* foutput = TFile::Open(stroutput, "recreate");
 
     foutput->cd();
-    ExtendedBinning ptbins({ 0, 20, 25, 30, 50, 75, 100, 150, 200 });
+    ExtendedBinning ptbins({ 0, 20, 25, 30, 40, 50, 60, 70, 85, 100, 125, 150, 200 });
     ExtendedBinning etabins(24, -2.4, 2.4);
     etabins.addBinBoundary(-2.5); etabins.addBinBoundary(2.5);
     etabins.addBinBoundary(-5.); etabins.addBinBoundary(5.);
@@ -230,9 +236,17 @@ void produceBtaggingEfficiencies(
       TH2F("DeepFlavor_TightJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
       TH2F("DeepFlavor_TightJets_udsg", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning())
     };
+    for (unsigned int iflav=0; iflav<3; iflav++){
+      h_All.at(iflav).Sumw2();
+      h_DeepCSV_Loose.at(iflav).Sumw2();
+      h_DeepCSV_Medium.at(iflav).Sumw2();
+      h_DeepCSV_Tight.at(iflav).Sumw2();
+      h_DeepFlavor_Loose.at(iflav).Sumw2();
+      h_DeepFlavor_Medium.at(iflav).Sumw2();
+      h_DeepFlavor_Tight.at(iflav).Sumw2();
+    }
 
     // Loop over the tree
-    unsigned int n_acc=0;
     int ev_start = 0;
     int ev_end = nEntries;
     if (nchunks>0){
@@ -241,6 +255,8 @@ void produceBtaggingEfficiencies(
       ev_end = std::min(nEntries, (ichunk == nchunks-1 ? nEntries : ev_start+ev_inc));
     }
     MELAout << "Looping over " << nEntries << " events from " << sample_tree.sampleIdentifier << ", starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
+    size_t n_acc=0;
+    double sum_acc_wgts=0;
     for (int ev=ev_start; ev<ev_end; ev++){
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getEvent(ev);
@@ -256,7 +272,7 @@ void produceBtaggingEfficiencies(
       float puwgt = simEventHandler.getPileUpWeight();
       if (puwgt==0.f) continue;
 
-      double wgt = genwgt * puwgt * wgtNorm;
+      double wgt = genwgt * puwgt;
 
       eventFilter.constructFilters();
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
@@ -347,7 +363,13 @@ void produceBtaggingEfficiencies(
 
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
       for (auto const& jet:ak4jets){
-        if (ParticleSelectionHelpers::isTightJet(jet)) ak4jets_tight.push_back(jet);
+        if (
+          jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
+          &&
+          jet->testSelectionBit(AK4JetSelectionHelpers::kPUJetId)
+          &&
+          fabs(jet->eta())<AK4JetSelectionHelpers::etaThr_skim_tight
+          ) ak4jets_tight.push_back(jet);
       }
       size_t n_ak4jets_tight = ak4jets_tight.size();
       if (n_ak4jets_tight==0) continue;
@@ -359,7 +381,9 @@ void produceBtaggingEfficiencies(
         if (abs(jetFlavor)==5) iflav = 0;
         else if (abs(jetFlavor)==4) iflav = 1;
 
-        h_All.at(iflav).Fill(jet->pt(), jet->eta(), wgt);
+        float jetpt_JEConly = jet->pt() / jet->currentSystScale * jet->currentJEC_full;
+
+        h_All.at(iflav).Fill(jetpt_JEConly, jet->eta(), wgt);
         for (auto const& btagwptype:btagwptypes){
           BtagHelpers::setBtagWPType(btagwptype);
 
@@ -387,27 +411,33 @@ void produceBtaggingEfficiencies(
             continue;
           }
 
-          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hlist->at(iflav).Fill(jet->pt(), jet->eta(), wgt);
+          if (jet->getBtagValue()>=btagwp_type_val_map[btagwptype]) hlist->at(iflav).Fill(jetpt_JEConly, jet->eta(), wgt);
         }
       }
 
+      sum_acc_wgts += wgt;
+      n_acc++;
     }
 
     for (unsigned int iflav=0; iflav<3; iflav++){
+      h_All.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepCSV_Loose.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepCSV_Medium.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepCSV_Tight.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepFlavor_Loose.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepFlavor_Medium.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+      h_DeepFlavor_Tight.at(iflav).Scale(((double) n_acc)/sum_acc_wgts);
+
       foutput->WriteTObject(&h_All.at(iflav));
-      //h_DeepCSV_Loose.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepCSV_Loose.at(iflav));
-      //h_DeepCSV_Medium.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepCSV_Medium.at(iflav));
-      //h_DeepCSV_Tight.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepCSV_Tight.at(iflav));
-      //h_DeepFlavor_Loose.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepFlavor_Loose.at(iflav));
-      //h_DeepFlavor_Medium.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepFlavor_Medium.at(iflav));
-      //h_DeepFlavor_Tight.at(iflav).Divide(&(h_All.at(iflav)));
       foutput->WriteTObject(&h_DeepFlavor_Tight.at(iflav));
     }
     foutput->Close();
+
+    SampleHelpers::addToCondorTransferList(stroutput);
   }
 }

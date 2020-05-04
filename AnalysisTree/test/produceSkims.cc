@@ -20,6 +20,7 @@ void produceSkims(
     nFinalStateTypes
   };
 
+  if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
 
   if (strdate=="") strdate = HelperFunctions::todaysdate();
