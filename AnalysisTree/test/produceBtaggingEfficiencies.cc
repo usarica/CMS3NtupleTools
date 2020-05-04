@@ -441,3 +441,31 @@ void produceBtaggingEfficiencies(
     SampleHelpers::addToCondorTransferList(stroutput);
   }
 }
+
+void getFinalEfficiencies(TString period, TString strdate){
+  TString const cinput_main = "output/BtaggingEffs/" + strdate + "/" + period;
+  TString coutput_main = cinput_main;
+  TFile* finput = TFile::Open(cinput_main + "/allMC.root", "read");
+  TFile* foutput = TFile::Open(coutput_main + "/Final_bTag_Efficiencies_AllMC.root", "recreate");
+  std::vector<TString> hnames{
+    "AllJets",
+    "DeepCSV_LooseJets",
+    "DeepCSV_MediumJets",
+    "DeepCSV_TightJets",
+    "DeepFlavor_LooseJets",
+    "DeepFlavor_MediumJets",
+    "DeepFlavor_TightJets"
+  };
+  std::vector<TString> strflavs{ "b", "c", "udsg" };
+  for (auto const& strflav:strflavs){
+    std::vector<TH2F*> hlist; hlist.reserve(hnames.size());
+    for (auto const& hname:hnames) hlist.push_back((TH2F*) finput->Get(hname + "_" + strflav));
+    for (unsigned int i=1; i<hlist.size(); i++){
+      hlist.at(i)->Divide(hlist.front());
+      hlist.at(i)->GetZaxis()->SetRangeUser(0, 1);
+      foutput->WriteTObject(hlist.at(i));
+    }
+  }
+  foutput->Close();
+  finput->Close();
+}
