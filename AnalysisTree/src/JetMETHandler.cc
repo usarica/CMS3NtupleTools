@@ -317,6 +317,7 @@ bool JetMETHandler::applyMETParticleShifts(std::vector<MuonObject*> const* muons
   }
 
   pfmet->setParticleShifts(pfmet_particleShift);
+  pfpuppimet->setParticleShifts(pfmet_particleShift); // Particle shofts are the same for PF and PUPPI MET
 
   return true;
 }

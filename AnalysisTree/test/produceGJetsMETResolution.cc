@@ -473,7 +473,7 @@ void getTrees(
   ParticleDisambiguator particleDisambiguator;
 
   PhotonScaleFactorHandler photonSFHandler;
-  BtagScaleFactorHandler btagSFHandler;// btagSFHandler.setVerbosity(TVar::DEBUG);
+  BtagScaleFactorHandler btagSFHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -581,23 +581,31 @@ void getTrees(
 #define BRANCH_COMMAND(type, name) type name = 0; tout->Branch(#name, &name);
     // Event variables
     BRANCH_COMMAND(float, event_wgt);
+    BRANCH_COMMAND(float, event_wgt_triggers);
     BRANCH_COMMAND(float, event_wgt_SFs);
-    BRANCH_COMMAND(float, pTmiss_XY_JER_PartMomShifts); BRANCH_COMMAND(float, phimiss_XY_JER_PartMomShifts);
-    BRANCH_COMMAND(float, pTmiss_XY_JER); BRANCH_COMMAND(float, phimiss_XY_JER);
-    BRANCH_COMMAND(float, pTmiss_XY_PartMomShifts); BRANCH_COMMAND(float, phimiss_XY_PartMomShifts);
-    BRANCH_COMMAND(float, pTmiss_JER_PartMomShifts); BRANCH_COMMAND(float, phimiss_JER_PartMomShifts);
-    BRANCH_COMMAND(float, pTmiss_XY); BRANCH_COMMAND(float, phimiss_XY);
-    BRANCH_COMMAND(float, pTmiss_JER); BRANCH_COMMAND(float, phimiss_JER);
-    BRANCH_COMMAND(float, pTmiss_PartMomShifts); BRANCH_COMMAND(float, phimiss_PartMomShifts);
-    BRANCH_COMMAND(float, pTmiss); BRANCH_COMMAND(float, phimiss);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER_PartMomShifts);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_JER); BRANCH_COMMAND(float, pfmet_phimiss_XY_JER);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_XY_PartMomShifts);
+    BRANCH_COMMAND(float, pfmet_pTmiss_JER_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_JER_PartMomShifts);
+    BRANCH_COMMAND(float, pfmet_pTmiss_XY); BRANCH_COMMAND(float, pfmet_phimiss_XY);
+    BRANCH_COMMAND(float, pfmet_pTmiss_JER); BRANCH_COMMAND(float, pfmet_phimiss_JER);
+    BRANCH_COMMAND(float, pfmet_pTmiss_PartMomShifts); BRANCH_COMMAND(float, pfmet_phimiss_PartMomShifts);
+    BRANCH_COMMAND(float, pfmet_pTmiss); BRANCH_COMMAND(float, pfmet_phimiss);
+    BRANCH_COMMAND(float, puppimet_pTmiss_PartMomShifts); BRANCH_COMMAND(float, puppimet_phimiss_PartMomShifts);
+    BRANCH_COMMAND(float, puppimet_pTmiss); BRANCH_COMMAND(float, puppimet_phimiss);
     BRANCH_COMMAND(unsigned int, event_nvtxs_good);
     BRANCH_COMMAND(unsigned int, event_Njets);
-    BRANCH_COMMAND(float, event_wgt_triggers);
     // Photon
     BRANCH_COMMAND(float, pt_gamma);
     BRANCH_COMMAND(float, eta_gamma);
     BRANCH_COMMAND(float, phi_gamma);
     BRANCH_COMMAND(float, mass_gamma);
+    BRANCH_COMMAND(bool, isConversionSafe);
+    BRANCH_COMMAND(bool, passHGGSelection);
+    BRANCH_COMMAND(bool, isGap);
+    BRANCH_COMMAND(bool, isEB);
+    BRANCH_COMMAND(bool, isEE);
+    BRANCH_COMMAND(bool, isEBEEGap);
     // Jets
     BRANCH_COMMAND(float, pt_jets);
     BRANCH_COMMAND(float, eta_jets);
@@ -727,6 +735,12 @@ void getTrees(
       eta_gamma = theChosenPhoton->eta();
       phi_gamma = theChosenPhoton->phi();
       mass_gamma = theChosenPhoton->m();
+      isConversionSafe = theChosenPhoton->testSelection(PhotonSelectionHelpers::kConversionSafe);
+      passHGGSelection = theChosenPhoton->extras.id_cutBased_HGG_Bits;
+      isGap = theChosenPhoton->isGap();
+      isEBEEGap = theChosenPhoton->isEBEEGap();
+      isEB = theChosenPhoton->isEB();
+      isEE = theChosenPhoton->isEE();
       if (pt_gamma<150.f) continue; // Skip photons that are more likely to be pi^0s
       n_pass_photons++;
 
@@ -747,10 +761,11 @@ void getTrees(
       auto const& ak4jets = jetHandler.getAK4Jets();
       auto const& ak8jets = jetHandler.getAK8Jets();
       auto const& pfmet = jetHandler.getPFMET();
+      auto const& puppimet = jetHandler.getPFPUPPIMET();
 
 #define PTMISS_FILL_COMMAND(SUFFIX, OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS) \
       auto pfmet_p4_##SUFFIX = pfmet->p4(OPT_XY, OPT_JER, OPT_PARTMOMSHIFTS); \
-      pTmiss_##SUFFIX = pfmet_p4_##SUFFIX.Pt(); phimiss_##SUFFIX = pfmet_p4_##SUFFIX.Phi();
+      pfmet_pTmiss_##SUFFIX = pfmet_p4_##SUFFIX.Pt(); pfmet_phimiss_##SUFFIX = pfmet_p4_##SUFFIX.Phi();
       PTMISS_FILL_COMMAND(XY_JER_PartMomShifts, true, true, true);
       PTMISS_FILL_COMMAND(XY_JER, true, true, false);
       PTMISS_FILL_COMMAND(XY_PartMomShifts, true, false, true);
@@ -760,8 +775,15 @@ void getTrees(
       PTMISS_FILL_COMMAND(PartMomShifts, false, false, true);
 #undef PTMISS_FILL_COMMAND
       auto pfmet_p4 = pfmet->p4(false, false, false);
-      pTmiss = pfmet_p4.Pt();
-      phimiss = pfmet_p4.Phi();
+      pfmet_pTmiss = pfmet_p4.Pt();
+      pfmet_phimiss = pfmet_p4.Phi();
+
+      auto puppimet_p4_PartMomShifts = puppimet->p4(false, false, true);
+      puppimet_pTmiss_PartMomShifts = puppimet_p4_PartMomShifts.Pt();
+      puppimet_phimiss_PartMomShifts = puppimet_p4_PartMomShifts.Phi();
+      auto puppimet_p4 = puppimet->p4(false, false, false);
+      puppimet_pTmiss = puppimet_p4.Pt();
+      puppimet_phimiss = puppimet_p4.Phi();
 
       eventFilter.constructFilters();
       if (isData && !eventFilter.isUniqueDataEvent()) continue;
@@ -774,7 +796,7 @@ void getTrees(
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
       n_pass_goodPVFilter++;
 
-      event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons, &electrons, &photons, nullptr, nullptr, nullptr);
+      event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, nullptr, nullptr, &photons, nullptr, nullptr, nullptr);
       if (event_wgt_triggers == 0.f) continue;
       n_pass_triggers++;
 
