@@ -70,6 +70,12 @@ AK4JetObject& AK4JetObject::operator=(const AK4JetObject& other){
 }
 AK4JetObject::~AK4JetObject(){}
 
+BTagEntry::JetFlavor AK4JetObject::getBTagJetFlavor() const{
+  auto const& jetFlavor = extras.hadronFlavour;
+  if (std::abs(jetFlavor)==5) return BTagEntry::FLAV_B;
+  else if (std::abs(jetFlavor)==4) return BTagEntry::FLAV_C;
+  else return BTagEntry::FLAV_UDSG;
+}
 float AK4JetObject::getBtagValue() const{
   switch (BtagHelpers::btagWPType){
   case BtagHelpers::kDeepFlav_Loose:

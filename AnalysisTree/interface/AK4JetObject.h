@@ -2,6 +2,7 @@
 #define AK4JETOBJECT_H
 
 #include "ParticleObject.h"
+#include "BTagCalibrationStandalone.h"
 
 
 #define AK4JET_CORE_VARIABLES \
@@ -80,6 +81,7 @@ public:
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
 
+  BTagEntry::JetFlavor getBTagJetFlavor() const;
   float getBtagValue() const;
 
   float const& getJECValue(bool useL1only=false) const{ return (!useL1only? currentJEC_full : currentJEC_L1only); }

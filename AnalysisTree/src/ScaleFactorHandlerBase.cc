@@ -35,7 +35,8 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>
   if (hh){
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0);
+    h.setBinning(xbins, 0, "x");
+
     h.build(); h.resetProfiles();
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
@@ -60,7 +61,8 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH1D, ExtendedHistogram_1D>
   if (hh){
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0);
+    h.setBinning(xbins, 0, "x");
+
     h.build(); h.resetProfiles();
     TH1F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
@@ -85,11 +87,12 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2F, ExtendedHistogram_2D>
   if (hh){
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0);
+    h.setBinning(xbins, 0, "x");
 
     ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1);
+    h.setBinning(ybins, 1, "y");
+
     h.build(); h.resetProfiles();
     TH2F* const& th = h.getHistogram();
     for (unsigned int ix=0; ix<=nbinsx+1; ix++){
@@ -116,11 +119,11 @@ template<> bool ScaleFactorHandlerBase::getHistogram<TH2D, ExtendedHistogram_2D>
   if (hh){
     ExtendedBinning xbins; getAxisBinning(hh->GetXaxis(), xbins);
     unsigned int nbinsx = xbins.getNbins();
-    h.setBinning(xbins, 0);
+    h.setBinning(xbins, 0, "x");
 
     ExtendedBinning ybins; getAxisBinning(hh->GetYaxis(), ybins);
     unsigned int nbinsy = ybins.getNbins();
-    h.setBinning(ybins, 1);
+    h.setBinning(ybins, 1, "y");
 
     h.build(); h.resetProfiles();
     TH2F* const& th = h.getHistogram();

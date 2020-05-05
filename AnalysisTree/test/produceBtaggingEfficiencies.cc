@@ -48,6 +48,12 @@ void produceBtaggingEfficiencies(
   );
   std::vector<std::string> triggerCheckList_SinglePhoton = TriggerHelpers::getHLTMenus(TriggerHelpers::kSinglePho);
 
+  // Binning for efficiencies
+  ExtendedBinning ptbins({ 0, 20, 25, 30, 40, 50, 60, 70, 85, 100, 125, 150, 200 });
+  ExtendedBinning etabins(24, -2.4, 2.4);
+  etabins.addBinBoundary(-2.5); etabins.addBinBoundary(2.5);
+  etabins.addBinBoundary(-5.); etabins.addBinBoundary(5.);
+
   // Get handlers
   GenInfoHandler genInfoHandler;
   SimEventHandler simEventHandler;
@@ -197,10 +203,6 @@ void produceBtaggingEfficiencies(
     TFile* foutput = TFile::Open(stroutput, "recreate");
 
     foutput->cd();
-    ExtendedBinning ptbins({ 0, 20, 25, 30, 40, 50, 60, 70, 85, 100, 125, 150, 200 });
-    ExtendedBinning etabins(24, -2.4, 2.4);
-    etabins.addBinBoundary(-2.5); etabins.addBinBoundary(2.5);
-    etabins.addBinBoundary(-5.); etabins.addBinBoundary(5.);
     std::vector<TH2F> h_All{
       TH2F("AllJets_b", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),
       TH2F("AllJets_c", "", ptbins.getNbins(), ptbins.getBinning(), etabins.getNbins(), etabins.getBinning()),

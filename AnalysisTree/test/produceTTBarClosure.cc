@@ -525,6 +525,7 @@ void getTrees(
   DileptonHandler dileptonHandler;
 
   PhotonScaleFactorHandler photonSFHandler;
+  BtagScaleFactorHandler btagSFHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(true);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -868,7 +869,12 @@ void getTrees(
       event_Njets_btagged_loose = event_Njets_btagged_medium = event_Njets20_btagged_loose = event_Njets20_btagged_medium = event_Njets = event_Njets20 = 0;
       ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
       std::vector<AK4JetObject*> ak4jets_tight; ak4jets_tight.reserve(ak4jets.size());
+      float SF_btagging = 1;
       for (auto* jet:ak4jets){
+        float theSF = 1;
+        if (!isData) btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
+        if (theSF != 0.f) SF_btagging *= theSF;
+
         if (ParticleSelectionHelpers::isTightJet(jet)){
           ak4jets_tight.push_back(jet);
           if (jet->getBtagValue()>=btag_loose_thr) event_Njets_btagged_loose++;
@@ -889,6 +895,7 @@ void getTrees(
           if (jet->getBtagValue()>=btag_medium_thr) event_Njets20_btagged_medium++;
         }
       }
+      event_wgt_SFs *= SF_btagging;
       event_Njets = ak4jets_tight.size();
       if (event_Njets>0){
         auto const& jet1 = ak4jets_tight.front();

@@ -134,3 +134,5 @@ template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK4JetObject>(AK4JetOb
 template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK8JetObject>(AK8JetObject const* jet){
   return jet->testSelectionBit(AK8JetSelectionHelpers::kTightId) && jet->pt()>=30.f;
 }
+
+template<> bool ParticleSelectionHelpers::isJetForBtagSF<AK4JetObject>(AK4JetObject const* jet){ return isTightJet(jet); }
