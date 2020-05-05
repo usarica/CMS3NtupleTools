@@ -147,6 +147,7 @@ void BtagScaleFactorHandler::reset(){
   for (auto it:WP_calibreader_map_nominal) delete it.second;
   for (auto it:WP_calib_map) delete it.second;
 
+  WP_flav_mceffhist_map.clear();
   WP_calibreader_map_up.clear();
   WP_calibreader_map_dn.clear();
   WP_calibreader_map_nominal.clear();
