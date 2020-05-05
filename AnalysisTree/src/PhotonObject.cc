@@ -63,7 +63,7 @@ bool PhotonObject::isEE() const{
   return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISEE);
 }
 bool PhotonObject::isAnyGap() const{
-  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP);
+  return HelperFunctions::test_bit(extras.fid_mask, EgammaFiduciality::ISGAP) || this->isEBEEGap();
 }
 
 void PhotonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
