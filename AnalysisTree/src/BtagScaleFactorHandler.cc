@@ -42,7 +42,7 @@ void BtagScaleFactorHandler::evalEfficiencyFromHistogram(float& theSF, float con
   }
 
   if (ix==0) ix=1;
-  else if (ix==nbinsx+1) ix=nbinsx;
+  else if (ix>nbinsx+1) ix=nbinsx+1; // Overflows exist
   if (iy==0) iy=1;
   else if (iy==nbinsy+1) iy=nbinsy;
 
