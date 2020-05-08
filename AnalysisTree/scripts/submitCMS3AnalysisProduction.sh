@@ -10,6 +10,7 @@ EXTRATARCMD=""
 QUEUE="vanilla"
 
 let recreate=0
+let checkproxy=1
 let printhelp=0
 for fargo in "$@";do
   fcnargname=""
@@ -49,6 +50,8 @@ for fargo in "$@";do
     fi
   elif [[ "$fargl" == "recreate" ]];then
     let recreate=1
+  elif [[ "$fargl" == "no-proxycheck" ]];then
+    let checkproxy=0
   elif [[ "$fargl" == "help" ]];then
     let printhelp=1
   fi
@@ -64,6 +67,7 @@ if [[ $printhelp -eq 1 ]] || [[ -z "$SCRIPT" ]]; then
   echo " - condoroutdir: Condor output directory to override. Default=/hadoop/cms/store/user/<USER>/Offshell_2L2Nu/Worker"
   echo " - tarinclude: Include extra files in the tar. Can specify multiple times. Default: None"
   echo " - recreate: Force the recreation of the job directories"
+  echo " - no-proxycheck: Do not check the proxy"
   exit 0
 fi
 SCRIPTRAWNAME="${SCRIPT%%.*}"
@@ -142,7 +146,9 @@ if [[ $recreate -eq 1 ]] || [[ ! -e $theOutdir ]]; then
     echo "Condor directory chosen: ${THECONDORSITE}:${THECONDOROUTDIR}"
   fi
 
-  checkGridProxy.sh
+  if [[ $checkproxy -eq 1 ]];then
+    checkGridProxy.sh
+  fi
 
   mkdir -p "${theOutdir}/Logs"
 
