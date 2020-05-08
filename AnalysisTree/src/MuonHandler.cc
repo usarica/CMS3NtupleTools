@@ -116,7 +116,7 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 #undef MUON_VARIABLE
     }
   }
-    // Sort particles
+  // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
   return true;

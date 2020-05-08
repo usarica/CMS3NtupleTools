@@ -8,6 +8,7 @@
 #include "AK4JetSelectionHelpers.h"
 #include "AK8JetSelectionHelpers.h"
 #include "ParticleSelectionHelpers.h"
+#include "ParticleObjectHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -20,6 +21,7 @@ EVENTFILTER_VERTEX_VARIABLE(unsigned int, nvtxs_good, 0)
 
 
 const std::string EventFilterHandler::colName_HLTpaths = "triggers";
+const std::string EventFilterHandler::colName_triggerobjects = "triggerObjects";
 const std::string EventFilterHandler::colName_metfilters = "metfilter";
 const std::string EventFilterHandler::colName_vertices = "vtxs";
 
@@ -27,6 +29,8 @@ EventFilterHandler::EventFilterHandler() :
   IvyBase(),
   trackDataEvents(true),
   checkUniqueDataEvent(true),
+  trackTriggerObjects(false),
+  checkTriggerObjectsForHLTPaths(false),
   product_passCommonSkim(true),
   product_uniqueEvent(true)
 {
@@ -49,13 +53,27 @@ void EventFilterHandler::clear(){
   product_uniqueEvent = true;
   for (auto*& prod:product_HLTpaths) delete prod;
   product_HLTpaths.clear();
+  for (auto*& prod:product_triggerobjects) delete prod;
+  product_triggerobjects.clear();
 }
 
 bool EventFilterHandler::constructFilters(){
   clear();
   if (!currentTree) return false;
 
-  bool res = this->constructCommonSkim() && this->constructHLTPaths() && this->constructMETFilters() && this->constructVertexFilter() && this->accumulateRunLumiEventBlock();
+  bool res = (
+    this->constructCommonSkim()
+    &&
+    (!trackTriggerObjects || this->constructTriggerObjects())
+    &&
+    this->constructHLTPaths()
+    &&
+    this->constructMETFilters()
+    &&
+    this->constructVertexFilter()
+    &&
+    this->accumulateRunLumiEventBlock()
+    );
 
   return res;
 }
@@ -130,11 +148,32 @@ float EventFilterHandler::getTriggerWeight(
     for (auto const& hltprop:hltprops){
       for (auto const& prod:product_HLTpaths){
         if (prod->passTrigger && hltprop.isSameTrigger(prod->name)){
+          std::vector<MuonObject const*> muons_trigcheck_TOmatched;
+          std::vector<ElectronObject const*> electrons_trigcheck_TOmatched;
+          std::vector<PhotonObject const*> photons_trigcheck_TOmatched;
+
+          if (checkTriggerObjectsForHLTPaths){
+            auto const& passedTriggerObjects = prod->getPassedTriggerObjects();
+
+            TriggerObject::getMatchedPhysicsObjects(
+              passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
+              muons_trigcheck, muons_trigcheck_TOmatched
+            );
+            TriggerObject::getMatchedPhysicsObjects(
+              passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerCluster }, 0.2,
+              electrons_trigcheck, electrons_trigcheck_TOmatched
+            );
+            TriggerObject::getMatchedPhysicsObjects(
+              passedTriggerObjects, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+              photons_trigcheck, photons_trigcheck_TOmatched
+            );
+          }
+
           if (
             hltprop.testCuts(
-              muons_trigcheck,
-              electrons_trigcheck,
-              photons_trigcheck,
+              (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
+              (!checkTriggerObjectsForHLTPaths ? electrons_trigcheck : electrons_trigcheck_TOmatched),
+              (!checkTriggerObjectsForHLTPaths ? photons_trigcheck : photons_trigcheck_TOmatched),
               ak4jets_trigcheck,
               ak8jets_trigcheck,
               pfmet_p4,
@@ -282,18 +321,82 @@ bool EventFilterHandler::constructHLTPaths(){
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) auto it_HLTpaths_##NAME = itBegin_HLTpaths_##NAME;
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
-  while (it_HLTpaths_name != itEnd_HLTpaths_name){
-    product_HLTpaths.push_back(new HLTTriggerPathObject());
-    HLTTriggerPathObject*& obj = product_HLTpaths.back();
+  {
+    size_t itrig=0;
+    while (it_HLTpaths_name != itEnd_HLTpaths_name){
+      product_HLTpaths.push_back(new HLTTriggerPathObject());
+      HLTTriggerPathObject*& obj = product_HLTpaths.back();
 
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_HLTpaths_##NAME;
-    HLTTRIGGERPATH_VARIABLES;
+      HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 
+      // Set particle index as its unique identifier
+      obj->setUniqueIdentifier(itrig);
+
+      // Associate trigger objects
+      if (checkTriggerObjectsForHLTPaths) obj->setTriggerObjects(product_triggerobjects);
+
+      itrig++;
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) it_HLTpaths_##NAME++;
-    HLTTRIGGERPATH_VARIABLES;
+      HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
+    }
   }
+
+  return true;
+}
+
+bool EventFilterHandler::constructTriggerObjects(){
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
+  TRIGGEROBJECT_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+
+  // Beyond this point starts checks and selection
+  bool allVariablesPresent = true;
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(EventFilterHandler::colName_triggerobjects + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
+  TRIGGEROBJECT_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructTriggerObjects: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+
+  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructTriggerObjects: All variables are set up!" << endl;
+
+  size_t n_products = (itEnd_type - itBegin_type);
+  product_triggerobjects.reserve(n_products);
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
+  TRIGGEROBJECT_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+  {
+    size_t ip=0;
+    while (it_type != itEnd_type){
+      if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructTriggerObjects: Attempting trigger object " << ip << "..." << endl;
+
+      ParticleObject::LorentzVector_t momentum;
+      momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass);
+      product_triggerobjects.push_back(new TriggerObject(*it_type, momentum));
+      TriggerObject* const& obj = product_triggerobjects.back();
+
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
+      TRIGGEROBJECT_EXTRA_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+
+      // Set particle index as its unique identifier
+      obj->setUniqueIdentifier(ip);
+
+      if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
+
+      ip++;
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
+      TRIGGEROBJECT_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+    }
+  }
+
+  // Sort particles
+  ParticleObjectHelpers::sortByGreaterPt(product_triggerobjects);
 
   return true;
 }
@@ -464,6 +567,13 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(EventFilterHandler::colName_HLTpaths + "_" + #NAME, nullptr);
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
+
+  // Trigger objects
+  if (trackTriggerObjects){
+#define TRIGGEROBJECT_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(EventFilterHandler::colName_triggerobjects + "_" + #NAME, nullptr); this->addConsumed<std::vector<TYPE>*>(EventFilterHandler::colName_triggerobjects + "_" + #NAME);
+    TRIGGEROBJECT_VARIABLES;
+#undef TRIGGEROBJECT_VARIABLE
+  }
 
   // Vertex variables
 #define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME, DEFVAL);
