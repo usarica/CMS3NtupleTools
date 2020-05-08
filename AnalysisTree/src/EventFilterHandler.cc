@@ -155,6 +155,14 @@ float EventFilterHandler::getTriggerWeight(
           if (checkTriggerObjectsForHLTPaths){
             auto const& passedTriggerObjects = prod->getPassedTriggerObjects();
 
+            if (this->verbosity>=TVar::DEBUG){
+              MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
+              MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
+              MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
+              MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
+              MELAout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
+            }
+
             TriggerObject::getMatchedPhysicsObjects(
               passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
               muons_trigcheck, muons_trigcheck_TOmatched
@@ -167,6 +175,12 @@ float EventFilterHandler::getTriggerWeight(
               passedTriggerObjects, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
               photons_trigcheck, photons_trigcheck_TOmatched
             );
+
+            if (this->verbosity>=TVar::DEBUG){
+              MELAout << "\t- Number of matched muons: " << muons_trigcheck_TOmatched.size() << " / " << muons_trigcheck.size() << endl;
+              MELAout << "\t- Number of matched electrons: " << electrons_trigcheck_TOmatched.size() << " / " << electrons_trigcheck.size() << endl;
+              MELAout << "\t- Number of matched photons: " << photons_trigcheck_TOmatched.size() << " / " << photons_trigcheck.size() << endl;
+            }
           }
 
           if (

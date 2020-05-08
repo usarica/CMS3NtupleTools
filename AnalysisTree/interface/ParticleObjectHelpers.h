@@ -227,7 +227,7 @@ template<typename T, typename U, typename Iterable_T, typename Iterable_U> void 
         double deltaEucDot = std::abs(euc_dot_prod - euc_dot_prod_ref);
 
         if (
-          (matchByDeltaR && (minDeltaR==-1. || deltaR<minDeltaR) && (match_thr<0. || deltaR<match_thr))
+          (matchByDeltaR && (minDeltaR==-1. || deltaR<minDeltaR))
           ||
           (matchByFourMomentum && (minDeltaEucDot==-1. || deltaEucDot<minDeltaEucDot))
           ){
@@ -244,6 +244,15 @@ template<typename T, typename U, typename Iterable_T, typename Iterable_U> void 
       ParticleObjectHelpers::getObjectPointer(chosenKey, key);
       ParticleObjectHelpers::getObjectPointer(chosenVal, val);
       key_val_map[key] = val;
+      if (match_thr>0.){
+        if (matchByDeltaR){
+          double const deltaR = std::abs(reco::deltaR(val->p4(), key->p4()));
+          if (deltaR>=match_thr){
+            key_val_map[key] = nullptr;
+            chosenVal = remaining_vals.end();
+          }
+        }
+      }
     }
     for (auto it=remaining_keys.begin(); it!=remaining_keys.end(); it++){ if (it == chosenKey){ remaining_keys.erase(it); break; } }
     for (auto it=remaining_vals.begin(); it!=remaining_vals.end(); it++){ if (it == chosenVal){ remaining_vals.erase(it); break; } }
