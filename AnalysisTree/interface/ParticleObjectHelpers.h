@@ -40,6 +40,8 @@ namespace ParticleObjectHelpers{
 
   // Matching funtions
   template<typename T> void getObjectPointer(typename std::vector<T>::const_iterator const& it, T const*& ptr);
+  template<typename T> void getObjectPointer(typename std::vector<T*>::const_iterator const& it, T*& ptr);
+  template<typename T> void getObjectPointer(typename std::vector<T*>::const_iterator const& it, T const*& ptr);
   template<typename T> void getObjectPointer(typename std::vector<T const*>::const_iterator const& it, T const*& ptr);
 
   // T and U are pointer types
@@ -110,6 +112,8 @@ template<typename T> void ParticleObjectHelpers::sortByGreaterScalarSumPt_Immedi
 template<typename T> TLorentzVector ParticleObjectHelpers::convertCMSLorentzVectorToTLorentzVector(T const& p4){ return TLorentzVector(p4.X(), p4.Y(), p4.Z(), p4.T()); }
 
 template<typename T> void ParticleObjectHelpers::getObjectPointer(typename std::vector<T>::const_iterator const& it, T const*& ptr){ ptr = &(*it); }
+template<typename T> void ParticleObjectHelpers::getObjectPointer(typename std::vector<T*>::const_iterator const& it, T*& ptr){ ptr = *it; }
+template<typename T> void ParticleObjectHelpers::getObjectPointer(typename std::vector<T*>::const_iterator const& it, T const*& ptr){ ptr = *it; }
 template<typename T> void ParticleObjectHelpers::getObjectPointer(typename std::vector<T const*>::const_iterator const& it, T const*& ptr){ ptr = *it; }
 
 template<typename T, typename U, typename Iterable_T, typename Iterable_U> void ParticleObjectHelpers::matchParticles(

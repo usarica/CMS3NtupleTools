@@ -66,7 +66,8 @@ public:
     std::vector<PhotonObject*> const* photons,
     std::vector<AK4JetObject*> const* ak4jets,
     std::vector<AK8JetObject*> const* ak8jets,
-    METObject const* pfmet
+    METObject const* pfmet,
+    HLTTriggerPathObject const** firstPassingHLTPath = nullptr
   ) const;
   bool passMETFilters() const;
   // Special event filters for various specific issues

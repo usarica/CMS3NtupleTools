@@ -111,7 +111,8 @@ float EventFilterHandler::getTriggerWeight(
   std::vector<PhotonObject*> const* photons,
   std::vector<AK4JetObject*> const* ak4jets,
   std::vector<AK8JetObject*> const* ak8jets,
-  METObject const* pfmet
+  METObject const* pfmet,
+  HLTTriggerPathObject const** firstPassingHLTPath
 ) const{
   if (hltpathprops_.empty()) return 1;
 
@@ -158,6 +159,10 @@ float EventFilterHandler::getTriggerWeight(
             if (this->verbosity>=TVar::DEBUG){
               MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
               MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
+              MELAout << "\t\t- Trigger object types: ";
+              std::vector<int> TOtypes;
+              for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->id);
+              MELAout << TOtypes << endl;
               MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
               MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
               MELAout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
@@ -168,7 +173,7 @@ float EventFilterHandler::getTriggerWeight(
               muons_trigcheck, muons_trigcheck_TOmatched
             );
             TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerCluster }, 0.2,
+              passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
               electrons_trigcheck, electrons_trigcheck_TOmatched
             );
             TriggerObject::getMatchedPhysicsObjects(
@@ -185,7 +190,7 @@ float EventFilterHandler::getTriggerWeight(
 
           if (
             hltprop.testCuts(
-              (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
+            (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
               (!checkTriggerObjectsForHLTPaths ? electrons_trigcheck : electrons_trigcheck_TOmatched),
               (!checkTriggerObjectsForHLTPaths ? photons_trigcheck : photons_trigcheck_TOmatched),
               ak4jets_trigcheck,
@@ -200,7 +205,10 @@ float EventFilterHandler::getTriggerWeight(
             if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
             if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
             if (wgt == 0.f) continue;
-            else return wgt; // Take the first trigger that passed.
+            else{
+              if (firstPassingHLTPath) *firstPassingHLTPath = prod;
+              return wgt; // Take the first trigger that passed.
+            }
           }
         }
       }
@@ -349,7 +357,7 @@ bool EventFilterHandler::constructHLTPaths(){
       obj->setUniqueIdentifier(itrig);
 
       // Associate trigger objects
-      if (checkTriggerObjectsForHLTPaths) obj->setTriggerObjects(product_triggerobjects);
+      obj->setTriggerObjects(product_triggerobjects);
 
       itrig++;
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) it_HLTpaths_##NAME++;

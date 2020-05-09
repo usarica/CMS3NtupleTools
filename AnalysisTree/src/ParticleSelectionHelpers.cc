@@ -9,10 +9,12 @@
 
 namespace ParticleSelectionHelpers{
   bool useFakeableLeptonsInLooseSelection = false; // Allows fakeable leptons to be usable in jet cleaning or trigger checking
+  bool useProbeLeptonsInLooseSelection = false; // Allows probe leptons to be usable in jet cleaning or trigger checking
 }
 
 
 void ParticleSelectionHelpers::setUseFakeableLeptonsInLooseSelection(bool flag){ useFakeableLeptonsInLooseSelection = flag; }
+void ParticleSelectionHelpers::setUseProbeLeptonsInLooseSelection(bool flag){ useProbeLeptonsInLooseSelection = flag; }
 
 
 // Veto, loose and tight particle ids
@@ -38,11 +40,13 @@ SELECTION_TYPE(Loose)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
   bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(MuonSelectionHelpers::kFakeable)); \
-  return (part->testSelectionBit(MuonSelectionHelpers::kPreselection##TYPE) || isFakeable); \
+  bool const isProbe = (!useProbeLeptonsInLooseSelection ? false : part->testSelectionBit(MuonSelectionHelpers::kProbeId)); \
+  return (part->testSelectionBit(MuonSelectionHelpers::kPreselection##TYPE) || isFakeable || isProbe); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
   bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(ElectronSelectionHelpers::kFakeable)); \
-  return (part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE) || isFakeable); \
+  bool const isProbe = (!useProbeLeptonsInLooseSelection ? false : part->testSelectionBit(ElectronSelectionHelpers::kProbeId)); \
+  return (part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE) || isFakeable || isProbe); \
 } \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
   return part->testSelectionBit(PhotonSelectionHelpers::kPreselection##TYPE); \
