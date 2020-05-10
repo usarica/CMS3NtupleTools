@@ -304,11 +304,14 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
       ){
-      constructSamplesList(sname+"_2017B", syst, samples);
-      constructSamplesList(sname+"_2017C", syst, samples);
-      constructSamplesList(sname+"_2017D", syst, samples);
-      constructSamplesList(sname+"_2017E", syst, samples);
-      constructSamplesList(sname+"_2017F", syst, samples);
+      for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
+    }
+    for (auto const& dp:SampleHelpers::getValidDataPeriods()){
+      if (sname == Form("EGamma_%s", dp.Data())){
+        constructSamplesList(Form("DoubleEG_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
+      }
     }
     // Group by runs
     if (sname == "Run2017B"){
@@ -688,6 +691,13 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "MET_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016F-17Jul2018-v1/MINIAOD" });
     if (sname == "MET_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016G-17Jul2018-v1/MINIAOD" });
     if (sname == "MET_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016H-17Jul2018-v2/MINIAOD" });
+    for (auto const& dp:SampleHelpers::getValidDataPeriods()){
+      if (sname == Form("EGamma_%s", dp.Data())){
+        constructSamplesList(Form("DoubleEG_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SingleElectron_%s", dp.Data()), syst, samples);
+        constructSamplesList(Form("SinglePhoton_%s", dp.Data()), syst, samples);
+      }
+    }
     // Group by runs
     if (sname == "Run2016B"){
       constructSamplesList("DoubleEG_2016B", syst, samples);

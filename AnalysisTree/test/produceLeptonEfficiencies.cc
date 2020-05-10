@@ -403,7 +403,8 @@ bool testTagBaseSelection(ElectronObject const* part){
   return ParticleSelectionHelpers::isTightParticle(part);
 }
 bool testExtraTightTagSelection(ElectronObject const* part){
-  return (part->extras.id_cutBased_Fall17V2_Tight_Bits == 1023);
+  //return (part->extras.id_cutBased_Fall17V2_Tight_Bits == 1023);
+  return part->extras.id_MVA_Fall17V2_NoIso_pass_wp80;
 }
 bool testPreselectionId(ElectronObject const* part){
   return part->testSelectionBit(ElectronSelectionHelpers::bit_preselectionTight_id);
@@ -469,16 +470,26 @@ float get_dz(ParticleObject const* part){
   else return 0;
 }
 float get_etaSC(ParticleObject const* part){
-  MuonObject const* muon = dynamic_cast<MuonObject const*>(part);
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
-  if (muon) return muon->eta();
-  else if (electron) return electron->etaSC();
-  else return 0;
+  if (electron) return electron->etaSC();
+  else return part->eta();
 }
 cms3_egamma_fid_type_mask_t get_fid_mask(ParticleObject const* part){
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
   if (electron) return electron->extras.fid_mask;
   else return 0;
+}
+bool get_tightCharge(ParticleObject const* part){
+  MuonObject const* muon = dynamic_cast<MuonObject const*>(part);
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (muon) return muon->extras.pass_tightCharge;
+  else if (electron) return HelperFunctions::test_bit(electron->extras.charge_consistency_bits, 2);
+  else return 0;
+}
+bool testTiming(ParticleObject const* part){
+  MuonObject const* muon = dynamic_cast<MuonObject const*>(part);
+  if (muon) return muon->extras.pass_muon_timing;
+  else return true;
 }
 
 using namespace SystematicsHelpers;
@@ -522,8 +533,12 @@ void getTrees(
   const float btag_loose_thr = BtagHelpers::getBtagWP(false);
 
   std::vector<TriggerHelpers::TriggerType> requiredTriggers{
-    TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt,
-    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt
+    TriggerHelpers::kSingleMu,
+    TriggerHelpers::kSingleEle
+  };
+  std::vector<TriggerHelpers::TriggerType> requiredTriggers_highpt{
+    TriggerHelpers::kSingleMu_HighPt,
+    TriggerHelpers::kSingleEle_HighPt
   };
   // The difference between control and prescaled is that the HLT prescale for the 'prescaled' label could be 0 or 1 (hopefully).
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_prescaled{
@@ -534,8 +549,41 @@ void getTrees(
     TriggerHelpers::kSingleEle_Control
   };
   auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
+  auto triggerPropsCheckList_highpt = TriggerHelpers::getHLTMenuProperties(requiredTriggers_highpt);
   auto triggerPropsCheckList_prescaled = TriggerHelpers::getHLTMenuProperties(requiredTriggers_prescaled);
   auto triggerPropsCheckList_control = TriggerHelpers::getHLTMenuProperties(requiredTriggers_control);
+
+  TString strSystName = SystematicsHelpers::getSystName(theGlobalSyst).data();
+  SystematicsHelpers::SystematicVariationTypes eleSyst = theGlobalSyst;
+  SystematicsHelpers::SystematicVariationTypes muSyst = theGlobalSyst;
+  switch (theGlobalSyst){
+  case SystematicsHelpers::eEleScaleDn:
+  case SystematicsHelpers::eMuScaleDn:
+    eleSyst = SystematicsHelpers::eEleScaleDn;
+    muSyst = SystematicsHelpers::eMuScaleDn;
+    strSystName = "LepScaleDn";
+    break;
+  case SystematicsHelpers::eEleScaleUp:
+  case SystematicsHelpers::eMuScaleUp:
+    eleSyst = SystematicsHelpers::eEleScaleUp;
+    muSyst = SystematicsHelpers::eMuScaleUp;
+    strSystName = "LepScaleUp";
+    break;
+  case SystematicsHelpers::eEleResDn:
+  case SystematicsHelpers::eMuResDn:
+    eleSyst = SystematicsHelpers::eEleResDn;
+    muSyst = SystematicsHelpers::eMuResDn;
+    strSystName = "LepResDn";
+    break;
+  case SystematicsHelpers::eEleResUp:
+  case SystematicsHelpers::eMuResUp:
+    eleSyst = SystematicsHelpers::eEleResUp;
+    muSyst = SystematicsHelpers::eMuResUp;
+    strSystName = "LepResUp";
+    break;
+  default:
+    break;
+  }
 
   // Get sample specifications
   std::vector<TString> sampledirs;
@@ -664,7 +712,7 @@ void getTrees(
 
     TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
     if (nchunks>0) stroutput = stroutput + Form("_%i_of_%i", ichunk, nchunks);
-    stroutput += Form("_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
+    stroutput += Form("_%s", strSystName.Data());
     stroutput += ".root";
     TFile* foutput = TFile::Open(stroutput, "recreate");
     TTree* tout = new TTree("SkimTree", "");
@@ -678,6 +726,7 @@ void getTrees(
     BRANCH_COMMAND(float, pfmet_pTmiss); BRANCH_COMMAND(float, pfmet_phimiss);
     BRANCH_COMMAND(float, puppimet_pTmiss); BRANCH_COMMAND(float, puppimet_phimiss);
     BRANCH_COMMAND(bool, isNominalTrigger);
+    BRANCH_COMMAND(bool, isHighPtTrigger);
     BRANCH_COMMAND(bool, isPrescaledTrigger);
     BRANCH_COMMAND(bool, isControlTrigger);
     BRANCH_COMMAND(unsigned int, event_nvtxs_good);
@@ -690,7 +739,7 @@ void getTrees(
     BRANCH_COMMAND(float, eta_ll);
     BRANCH_COMMAND(float, phi_ll);
     BRANCH_COMMAND(float, mass_ll);
-    // L1, L2
+    // L1: Tag
     BRANCH_COMMAND(int, id_l1);
     BRANCH_COMMAND(float, pt_l1);
     BRANCH_COMMAND(float, eta_l1);
@@ -700,6 +749,10 @@ void getTrees(
     BRANCH_COMMAND(float, dz_l1);
     BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_l1);
     BRANCH_COMMAND(float, etaSC_l1);
+    BRANCH_COMMAND(bool, isGenMatched_l1);
+    BRANCH_COMMAND(bool, hasTightCharge_l1);
+    BRANCH_COMMAND(bool, passTiming_l1);
+    // L2: Probe
     BRANCH_COMMAND(int, id_l2);
     BRANCH_COMMAND(float, pt_l2);
     BRANCH_COMMAND(float, eta_l2);
@@ -710,6 +763,9 @@ void getTrees(
     BRANCH_COMMAND(float, dz_l2);
     BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_l2);
     BRANCH_COMMAND(float, etaSC_l2);
+    BRANCH_COMMAND(bool, isGenMatched_l2);
+    BRANCH_COMMAND(bool, hasTightCharge_l2);
+    BRANCH_COMMAND(bool, passTiming_l2);
 #undef BRANCH_COMMAND
 
     foutput->cd();
@@ -785,8 +841,8 @@ void getTrees(
       }
       n_pass_genWeights++;
 
-      muonHandler.constructMuons(theGlobalSyst);
-      electronHandler.constructElectrons(theGlobalSyst);
+      muonHandler.constructMuons(muSyst);
+      electronHandler.constructElectrons(eleSyst);
       photonHandler.constructPhotons(theGlobalSyst);
       particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
 
@@ -869,17 +925,21 @@ void getTrees(
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
       n_pass_goodPVFilter++;
 
-      isNominalTrigger = isPrescaledTrigger = isControlTrigger = false;
+      isNominalTrigger = isHighPtTrigger = isPrescaledTrigger = isControlTrigger = false;
       HLTTriggerPathObject const* passingHLTPath = nullptr;
-      event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons_selected, &electrons_selected, nullptr, nullptr, nullptr, nullptr, &passingHLTPath);
+      event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons_selected, &electrons_selected, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
       if (event_wgt_triggers != 0.f) isNominalTrigger = true;
       else{
-        event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_prescaled, &muons_selected, &electrons_selected, nullptr, nullptr, nullptr, nullptr, &passingHLTPath);
-        if (event_wgt_triggers != 0.f) isPrescaledTrigger = true;
+        event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_highpt, &muons_selected, &electrons_selected, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
+        if (event_wgt_triggers != 0.f) isHighPtTrigger = true;
         else{
-          // Pass the ak4 jets as well because the electron control triggers also require PFJet30.
-          event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_control, &muons_selected, &electrons_selected, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
-          if (event_wgt_triggers != 0.f) isControlTrigger = true;
+          event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_prescaled, &muons_selected, &electrons_selected, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
+          if (event_wgt_triggers != 0.f) isPrescaledTrigger = true;
+          else{
+            // Pass the ak4 jets as well because the electron control triggers also require PFJet30.
+            event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_control, &muons_selected, &electrons_selected, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
+            if (event_wgt_triggers != 0.f) isControlTrigger = true;
+          }
         }
       }
       if (!(isNominalTrigger || isPrescaledTrigger || isControlTrigger)) continue;
@@ -947,11 +1007,13 @@ void getTrees(
       if (!lepton_tag || !lepton_probe) continue;
       n_pass_tagTOMatch[idx_emu]++;
 
+      // LL
       auto const p4_dilepton = lepton_tag->p4() + lepton_probe->p4();
       pt_ll = p4_dilepton.Pt();
       eta_ll = p4_dilepton.Eta();
       phi_ll = p4_dilepton.Phi();
       mass_ll = p4_dilepton.M();
+      // L1
       id_l1 = lepton_tag->pdgId();
       pt_l1 = lepton_tag->pt();
       eta_l1 = lepton_tag->eta();
@@ -961,6 +1023,9 @@ void getTrees(
       dz_l1 = get_dz(lepton_tag);
       fid_mask_l1 = get_fid_mask(lepton_tag);
       etaSC_l1 = get_etaSC(lepton_tag);
+      hasTightCharge_l1 = get_tightCharge(lepton_tag);
+      passTiming_l1 = testTiming(lepton_tag);
+      // L2
       id_l2 = lepton_probe->pdgId();
       pt_l2 = lepton_probe->pt();
       eta_l2 = lepton_probe->eta();
@@ -971,6 +1036,8 @@ void getTrees(
       dz_l2 = get_dz(lepton_probe);
       fid_mask_l2 = get_fid_mask(lepton_probe);
       etaSC_l2 = get_etaSC(lepton_probe);
+      hasTightCharge_l2 = get_tightCharge(lepton_probe);
+      passTiming_l2 = testTiming(lepton_probe);
 
       std::vector<ElectronObject*> electron_probe_container; electron_probe_container.reserve(1);
       if (std::abs(id_l2)==11) electron_probe_container.push_back(dynamic_cast<ElectronObject*>(lepton_probe));
@@ -1010,6 +1077,31 @@ void getTrees(
       event_wgt_SFs *= SF_btagging;
 
       sample_tree.getVal("vtxs_nvtxs_good", event_nvtxs_good);
+
+      isGenMatched_l1 = isGenMatched_l2 = false;
+      if (!isData){
+        std::vector<ParticleObject const*> leptons; leptons.reserve(2);
+        leptons.push_back(lepton_tag);
+        leptons.push_back(lepton_probe);
+        auto const& genparticles = genInfoHandler.getGenParticles();
+        std::vector<GenParticleObject const*> genpromptleptons; genpromptleptons.reserve(genparticles.size());
+        for (auto const& part:genparticles){
+          if (part->extras.isPromptFinalState && PDGHelpers::isALepton(part->pdgId())) genpromptleptons.push_back(part);
+        }
+        std::unordered_map<ParticleObject const*, GenParticleObject const*> tmp_map;
+        ParticleObjectHelpers::matchParticles(
+          ParticleObjectHelpers::kMatchBy_DeltaR, 0.2,
+          leptons.cbegin(), leptons.cend(),
+          genpromptleptons.cbegin(), genpromptleptons.cend(),
+          tmp_map
+        );
+
+        auto it_tag = tmp_map.find(leptons.front());
+        if (it_tag!=tmp_map.cend() && it_tag->second) isGenMatched_l1 = (std::abs(it_tag->first->pdgId()) == std::abs(it_tag->second->pdgId()));
+
+        auto it_probe = tmp_map.find(leptons.back());
+        if (it_probe!=tmp_map.cend() && it_probe->second) isGenMatched_l2 = (std::abs(it_probe->first->pdgId()) == std::abs(it_probe->second->pdgId()));
+      }
 
       tout->Fill();
       n_evts_acc++;
