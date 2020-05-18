@@ -23,47 +23,56 @@ using namespace reco;
 using namespace RooFit;
 
 
-void doMinimization(RooAbsReal& fcn, std::vector<RooRealVar>& thetas, bool& isFitOK, int& fitstatus){
-  RooFitResult* fitResult=nullptr;
-  for (auto& var:thetas) var.setVal(0);
+struct Variable{
+  TString name;
+  TString title;
+  ExtendedBinning binning;
+  float val;
 
-  RooMinuit minimizer(fcn);
-  minimizer.setPrintLevel(-1);
-  minimizer.setNoWarn();
-  minimizer.setStrategy(2);
-  minimizer.migrad();
-  fitResult = minimizer.save();
-  if (fitResult){
-    fitstatus = fitResult->status();
-    isFitOK = (fitstatus==0);
-    delete fitResult; fitResult=nullptr;
+  Variable() : binning(), val(0){}
+  Variable(Variable const& other) : name(other.name), title(other.title), binning(other.binning), val(other.val){}
+  Variable(TString name_, TString title_) : name(name_), title(title_), binning(title), val(0){}
+  Variable(TString name_, TString title_, unsigned int nbins_, float min_, float max_) : name(name_), title(title_), binning(nbins_, min_, max_, name), val(0){}
+  Variable(TString name_, TString title_, ExtendedBinning const& binning_) : name(name_), title(title_), binning(binning_), val(0){ binning.setLabel(title); }
+  ~Variable(){}
+
+  void swap(Variable& other){
+    std::swap(name, other.name);
+    std::swap(title, other.title);
+    std::swap(binning, other.binning);
+    std::swap(val, other.val);
   }
-  if (fitstatus==4){
-    for (unsigned int itry=0; itry<5; itry++){
-      minimizer.migrad();
-      fitResult = minimizer.save();
-      if (fitResult){
-        fitstatus=fitResult->status();
-        isFitOK=(fitstatus==0);
-        delete fitResult; fitResult=nullptr;
-      }
-      if (isFitOK) break;
+  Variable& operator=(const Variable& other){
+    Variable tmp(other);
+    swap(tmp);
+    return *this;
+  }
+
+  void setVal(float v){
+    val=v;
+    if (binning.isValid()){
+      unsigned int const nbins = binning.getNbins();
+      float const min = binning.getMin();
+      float const max = binning.getMax();
+      if (val>=max) val=max-binning.getBinWidth(nbins-1)/2.;
+      if (val<=min) val=min+binning.getBinWidth(0)/2.;
     }
   }
-  else{
-    minimizer.setStrategy(0);
-    for (unsigned int itry=0; itry<5; itry++){
-      minimizer.migrad();
-      fitResult = minimizer.save();
-      if (fitResult){
-        fitstatus=fitResult->status();
-        isFitOK=(fitstatus==0);
-        delete fitResult; fitResult=nullptr;
-      }
-      if (isFitOK) break;
+
+  void reset(){
+    if (binning.isValid()){
+      float const min = binning.getMin();
+      val=min - fabs(min);
     }
+    else val=0;
   }
-}
+
+  // Proxy functions
+  double* getBinning(){ return binning.getBinning(); }
+  const double* getBinning() const{ return binning.getBinning(); }
+  unsigned int getNbins() const{ return binning.getNbins(); }
+
+};
 
 void getFitCovarianceMatrix(RooFitResult const* fitResult, RooArgList const& ordered_args, TMatrixDSym& res){
   if (!fitResult) return;
@@ -98,143 +107,12 @@ void getFitCovarianceMatrix(RooFitResult const* fitResult, RooArgList const& ord
   }
 }
 
-struct FitResultSummary{
-  int fitstatus;
-  int objid;
-  float pdfval;
-
-  float constraintval_Xpdf;
-  float Xmass;
-  float Xmass_prefit;
-
-  float constraintval_Vpdf;
-  float Vmass;
-  float Vmass_prefit;
-
-  std::vector<unsigned int> jetindices;
-  std::vector<float> jetnuisances;
-
-
-  FitResultSummary();
-  FitResultSummary& operator=(FitResultSummary const& other);
-
-  bool operator==(FitResultSummary const& other) const;
-  bool operator<(FitResultSummary const& other) const;
-  bool operator>(FitResultSummary const& other) const;
-  bool operator<=(FitResultSummary const& other) const;
-  bool operator>=(FitResultSummary const& other) const;
-};
-FitResultSummary::FitResultSummary() :
-  fitstatus(-1),
-  objid(-9000),
-  pdfval(-1),
-
-  constraintval_Xpdf(-1),
-  Xmass(-1),
-  Xmass_prefit(-1),
-
-  constraintval_Vpdf(-1),
-  Vmass(-1),
-  Vmass_prefit(-1)
-{}
-FitResultSummary& FitResultSummary::operator=(FitResultSummary const& other){
-  this->fitstatus = other.fitstatus;
-  this->objid = other.objid;
-  this->pdfval = other.pdfval;
-
-  this->constraintval_Xpdf = other.constraintval_Xpdf;
-  this->Xmass = other.Xmass;
-  this->Xmass_prefit = other.Xmass_prefit;
-
-  this->constraintval_Vpdf = other.constraintval_Vpdf;
-  this->Vmass = other.Vmass;
-  this->Vmass_prefit = other.Vmass_prefit;
-
-  this->jetindices = other.jetindices;
-  this->jetnuisances = other.jetnuisances;
-
-  return (*this);
-}
-bool FitResultSummary::operator==(FitResultSummary const& other) const{
-  if (this->objid!=other.objid) return false;
-  if (this->fitstatus<0 && other.fitstatus<0) return true;
-  else if (this->fitstatus<0 && other.fitstatus>=0) return false;
-  else if (this->fitstatus>=0 && other.fitstatus<0) return false;
-  else if (this->fitstatus>0 && other.fitstatus==0) return false;
-  else if (this->fitstatus==0 && other.fitstatus>0) return false;
-  else if (other.fitstatus==this->fitstatus) return (this->pdfval==other.pdfval);
-  return false;
-}
-bool FitResultSummary::operator<(FitResultSummary const& other) const{
-  if (this->objid!=other.objid) return false;
-  if (this->fitstatus<0 && other.fitstatus<0) return false;
-  else if (this->fitstatus<0 && other.fitstatus>=0) return true;
-  else if (this->fitstatus>=0 && other.fitstatus<0) return false;
-  else if (this->fitstatus>0 && other.fitstatus==0) return true;
-  else if (this->fitstatus==0 && other.fitstatus>0) return false;
-  else if (other.fitstatus==this->fitstatus) return (this->pdfval<other.pdfval);
-  return false;
-}
-bool FitResultSummary::operator>(FitResultSummary const& other) const{
-  if (this->objid!=other.objid) return false;
-  if (this->fitstatus<0 && other.fitstatus<0) return false;
-  else if (this->fitstatus<0 && other.fitstatus>=0) return false;
-  else if (this->fitstatus>=0 && other.fitstatus<0) return true;
-  else if (this->fitstatus>0 && other.fitstatus==0) return false;
-  else if (this->fitstatus==0 && other.fitstatus>0) return true;
-  else if (other.fitstatus==this->fitstatus) return (this->pdfval>other.pdfval);
-  return false;
-}
-bool FitResultSummary::operator<=(FitResultSummary const& other) const{ return ((*this)<other || (*this)==other); }
-bool FitResultSummary::operator>=(FitResultSummary const& other) const{ return ((*this)>other || (*this)==other); }
-
-
-struct Variable{
-  TString name;
-  TString title;
-  ExtendedBinning binning;
-  float val;
-
-  Variable() : binning(), val(0){}
-  Variable(Variable const& other) : name(other.name), title(other.title), binning(other.binning), val(other.val){}
-  Variable(TString name_, TString title_) : name(name_), title(title_), binning(title), val(0){}
-  Variable(TString name_, TString title_, unsigned int nbins_, float min_, float max_) : name(name_), title(title_), binning(nbins_, min_, max_, name), val(0){}
-  Variable(TString name_, TString title_, ExtendedBinning const& binning_) : name(name_), title(title_), binning(binning_), val(0){ binning.setLabel(title); }
-
-  void setVal(float v){
-    val=v;
-    if (binning.isValid()){
-      unsigned int const nbins = binning.getNbins();
-      float const min = binning.getMin();
-      float const max = binning.getMax();
-      if (val>=max) val=max-binning.getBinWidth(nbins-1)/2.;
-      if (val<=min) val=min+binning.getBinWidth(0)/2.;
-    }
-  }
-
-  void reset(){
-    if (binning.isValid()){
-      float const min = binning.getMin();
-      val=min - fabs(min);
-    }
-    else val=0;
-  }
-
-  // Proxy functions
-  double* getBinning(){ return binning.getBinning(); }
-  const double* getBinning() const{ return binning.getBinning(); }
-  unsigned int getNbins() const{ return binning.getNbins(); }
-
-};
-
-
 void get2DParallelAndPerpendicularComponents(TVector3 axis, TVector3 ref, float& parallel, float& perp){
   TVector3 unitAxis = TVector3(axis.X(), axis.Y(), 0).Unit();
   TVector3 refPerp = TVector3(ref.X(), ref.Y(), 0);
   parallel = unitAxis.Dot(refPerp);
   perp = unitAxis.Cross(refPerp).Z();
 }
-
 
 void getDataTrees(std::vector<TString>& list, SystematicsHelpers::SystematicVariationTypes theGlobalSyst){
   SampleHelpers::constructSamplesList(Form("Run%s", SampleHelpers::theDataPeriod.Data()), theGlobalSyst, list);
@@ -282,6 +160,43 @@ std::vector<SystematicsHelpers::SystematicVariationTypes> getAllowedSysts(){
     SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp
   };
 }
+
+Variable getVariable(TString name){
+  if (name=="pt_gamma"){
+    ExtendedBinning binning({ 150, 170, 190, 215, 240, 270, 300, 400, 600, 610 });
+    return Variable(name, "p_{T}^{#gamma} (GeV)", binning);
+  }
+  else if (name=="eta_gamma"){
+    ExtendedBinning binning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 });
+    return Variable(name, "#eta_{#gamma}", binning);
+  }
+  else if (name=="Nvtx"){
+    ExtendedBinning binning(10, 12, 52); binning.addBinBoundary(0); binning.addBinBoundary(53);
+    return Variable(name, "N_{vtx}", binning);
+  }
+  else if (name=="Njets"){
+    ExtendedBinning binning(5, 1, 6);
+    return Variable(name, "N_{jets}", binning);
+  }
+  else if (name=="HT_jets"){
+    ExtendedBinning binning({ 30, 50, 75, 100, 150, 300, 600, 1000, 1010 });
+    return Variable(name, "H_{T}^{jets} (GeV)", binning);
+  }
+  else if (name=="abs_uPerp"){
+    ExtendedBinning binning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110 });
+    return Variable(name, "|u_{perp}| (GeV)", binning);
+  }
+  else if (name=="uParallel"){
+    ExtendedBinning binning({ -510, -500, -400, -300, -250, -200, -150, -100, -50, 0, 10 });
+    return Variable(name, "u_{//} (GeV)", binning);
+  }
+  else{
+    MELAerr << "getVariable: Name " << name << " is undefined." << endl;
+    assert(0);
+    return Variable();
+  }
+}
+
 
 using namespace SystematicsHelpers;
 void produceCorrection(
@@ -402,15 +317,13 @@ void produceCorrection(
 
   MELAout << "Building variables..." << endl;
   std::vector<Variable*> allvars;
-  Variable var_pTG("pt_gamma", "p_{T}^{#gamma} (GeV)", ExtendedBinning({ 150, 170, 190, 215, 240, 270, 300, 400, 600, 1000 })); allvars.push_back(&var_pTG);
-  Variable var_etaG("eta_gamma", "#eta_{#gamma}", ExtendedBinning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 })); allvars.push_back(&var_etaG);
-  ExtendedBinning binning_Nvtx(10, 12, 52); binning_Nvtx.addBinBoundary(0); binning_Nvtx.addBinBoundary(200);
-  Variable var_Nvtx("Nvtx", "N_{vtx}", binning_Nvtx); allvars.push_back(&var_Nvtx);
-  ExtendedBinning binning_Njets(6, 1, 7); binning_Njets.addBinBoundary(10);
-  Variable var_Njets("Njets", "N_{jets}", binning_Njets); allvars.push_back(&var_Njets);
-  Variable var_jetHT("HT_jets", "Jet H_{T} (GeV)", ExtendedBinning({ 30, 50, 75, 100, 150, 300, 600, 1000, 3000 })); allvars.push_back(&var_jetHT);
-  Variable var_abs_uPerp("abs_uPerp", "|u_{perp}| (GeV)", ExtendedBinning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200 })); allvars.push_back(&var_abs_uPerp);
-  Variable var_uParallel("uParallel", "u_{//} (GeV)", ExtendedBinning({ -3000, -500, -400, -300, -250, -200, -150, -100, -50, 0, 200 })); allvars.push_back(&var_uParallel);
+  Variable var_pTG = getVariable("pt_gamma"); allvars.push_back(&var_pTG);
+  Variable var_etaG = getVariable("eta_gamma"); allvars.push_back(&var_etaG);
+  Variable var_Nvtx = getVariable("Nvtx"); allvars.push_back(&var_Nvtx);
+  Variable var_Njets = getVariable("Njets"); allvars.push_back(&var_Njets);
+  Variable var_jetHT = getVariable("HT_jets"); allvars.push_back(&var_jetHT);
+  Variable var_abs_uPerp = getVariable("abs_uPerp"); allvars.push_back(&var_abs_uPerp);
+  Variable var_uParallel = getVariable("uParallel"); allvars.push_back(&var_uParallel);
 
   std::vector<std::vector<Variable*>> varlists={
     { &var_pTG, &var_etaG, &var_Nvtx },
@@ -528,7 +441,7 @@ void produceCorrection(
     HelperFunctions::divideHistograms(hdata_slice, hMC_slice, hratio_slice, false);
 
     hratio_slice->GetXaxis()->SetTitle(varlist.at(ivar)->title);
-    hratio_slice->GetYaxis()->SetTitle("Events / bin");
+    hratio_slice->GetYaxis()->SetTitle("Ratio");
     hratio_slice->SetTitle(period + " ratio");
 
     foutput->WriteTObject(hdata_slice);
@@ -562,10 +475,48 @@ void produceCorrections(int year, TString prodVersion, TString strdate){
   }
 }
 
+bool getParameterErrors(RooRealVar const& par, double& errLo, double& errHi){
+  double const reltol_high = (TString(par.GetName()).Contains("sigma") ? 0.1 : 0.5);
+  constexpr double tol_low = 1e-3;
+  double const abs_val = std::abs(par.getVal());
+  double errSym = par.getError();
+  double errAsym[2]={ errSym, errSym };
+  if (par.hasAsymError()){
+    errAsym[0] = std::abs(par.getAsymErrorLo());
+    errAsym[1] = std::abs(par.getAsymErrorHi());
+  }
+  if (errAsym[0]<tol_low && errAsym[1]>=tol_low && errAsym[1]<reltol_high*abs_val) errAsym[0] = errAsym[1];
+  else if (errAsym[0]<tol_low && errSym>=tol_low && errSym<reltol_high*abs_val) errAsym[0] = errSym;
+  else if (errAsym[1]<tol_low && errAsym[0]>=tol_low) errAsym[1] = errAsym[0];
+  else if (errAsym[1]<tol_low && errSym>=tol_low && errSym<reltol_high*abs_val) errAsym[1] = errSym;
+  else if (errAsym[1]<tol_low && errAsym[0]<tol_low && errSym>=tol_low && errSym<reltol_high*abs_val) errAsym[1] = errAsym[0] = errSym;
+
+  errLo = errAsym[0];
+  errHi = errAsym[1];
+
+  return (
+    errLo>=tol_low && errLo<reltol_high*abs_val
+    &&
+    errHi>=tol_low && errHi<reltol_high*abs_val
+    );
+}
+
+bool printParameterWithAsymErrors(RooRealVar const& par, TString prefix){
+  double errAsym[2];
+  bool res = getParameterErrors(par, errAsym[0], errAsym[1]);
+
+  MELAout << prefix << ": " << par.getVal() << " -" << errAsym[0] << " +" << errAsym[1] << endl;
+
+  return res;
+}
+
 void produceFinalFits(
   TString period, TString prodVersion, TString strdate,
-  TString METtype, TString METCorrectionLevels
+  TString METtype, TString METCorrectionLevels,
+  unsigned int nGaussians = 3,
+  float abs_dPhi_gamma_jets_thr = 2.7
 ){
+  if (nGaussians<3 || nGaussians>4) return;
   if (METtype!="pfmet" && METtype!="puppimet") return;
   TString strMET = METtype;
   TString strMETsuffix;
@@ -632,16 +583,13 @@ void produceFinalFits(
   TDirectory* curdir = gDirectory;
 
   std::vector<Variable*> allvars;
-  Variable var_pTG("pt_gamma", "p_{T}^{#gamma} (GeV)", ExtendedBinning({ 150, 170, 190, 215, 240, 270, 300, 400, 600, 1000 })); allvars.push_back(&var_pTG);
-  Variable var_etaG("eta_gamma", "#eta_{#gamma}", ExtendedBinning({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 })); allvars.push_back(&var_etaG);
-  ExtendedBinning binning_Nvtx(10, 12, 52); binning_Nvtx.addBinBoundary(0); binning_Nvtx.addBinBoundary(200);
-  Variable var_Nvtx("Nvtx", "N_{vtx}", binning_Nvtx); allvars.push_back(&var_Nvtx);
-  ExtendedBinning binning_Njets(6, 1, 7); binning_Njets.addBinBoundary(10);
-  Variable var_Njets("Njets", "N_{jets}", binning_Njets); allvars.push_back(&var_Njets);
-  Variable var_jetHT("HT_jets", "Jet H_{T} (GeV)", ExtendedBinning({ 30, 50, 75, 100, 150, 300, 600, 1000, 3000 })); allvars.push_back(&var_jetHT);
-  Variable var_abs_uPerp("abs_uPerp", "|u_{perp}| (GeV)", ExtendedBinning({ 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200 })); allvars.push_back(&var_abs_uPerp);
-  Variable var_uParallel("uParallel", "u_{//} (GeV)", ExtendedBinning({ -3000, -500, -400, -300, -250, -200, -150, -100, -50, 0, 200 })); allvars.push_back(&var_uParallel);
-
+  Variable var_pTG = getVariable("pt_gamma"); allvars.push_back(&var_pTG);
+  Variable var_etaG = getVariable("eta_gamma"); allvars.push_back(&var_etaG);
+  Variable var_Nvtx = getVariable("Nvtx"); allvars.push_back(&var_Nvtx);
+  Variable var_Njets = getVariable("Njets"); allvars.push_back(&var_Njets);
+  Variable var_jetHT = getVariable("HT_jets"); allvars.push_back(&var_jetHT);
+  Variable var_abs_uPerp = getVariable("abs_uPerp"); allvars.push_back(&var_abs_uPerp);
+  Variable var_uParallel = getVariable("uParallel"); allvars.push_back(&var_uParallel);
   std::vector<std::vector<Variable*>> varlists={
     { &var_pTG, &var_etaG, &var_Nvtx },
     { &var_pTG, &var_Njets, &var_jetHT },
@@ -685,32 +633,37 @@ void produceFinalFits(
   // Construct the PDFs before looping over the trees
   RooRealVar xvar("MET_Perp", "", 0, -300, 300); xvar.setBins(150);
   RooRealVar wgtvar("weight", "", 1, -10, 10); wgtvar.removeMin(); wgtvar.removeMax();
+  RooConstVar g_mean("g_mean", "", 0);
 
-  RooConstVar g1_mean("g1_mean", "", 0);
-  RooRealVar g1_sigma("g1_sigma", "", 15, 10, 20);
-  RooGaussian g1_pdf("g1_pdf", "", xvar, g1_mean, g1_sigma);
-  RooRealVar g1_frac("g1_frac", "", 0, 0, 1);
+  RooRealVar g1_sigma("g1_sigma", "", 20, 10, 30);
+  RooGaussian g1_pdf("g1_pdf", "", xvar, g_mean, g1_sigma);
+  RooRealVar g1_frac("g1_frac", "", 1, 0, 1);
 
-  RooConstVar g2_mean("g2_mean", "", 0);
-  RooRealVar g2_sigma("g2_sigma", "", 30, 20, 40);
-  RooGaussian g2_pdf("g2_pdf", "", xvar, g2_mean, g2_sigma);
+  RooRealVar g2_sigma("g2_sigma", "", 45, 30, 60);
+  RooGaussian g2_pdf("g2_pdf", "", xvar, g_mean, g2_sigma);
   RooRealVar g2_frac("g2_frac", "", 1, 0, 1);
 
-  RooConstVar g3_mean("g3_mean", "", 0);
-  RooRealVar g3_sigma("g3_sigma", "", 50, 40, 100);
-  RooGaussian g3_pdf("g3_pdf", "", xvar, g3_mean, g3_sigma);
-  RooRealVar g3_frac("g3_frac", "", 0, 0, 1);
+  RooRealVar g3_sigma("g3_sigma", "", 110, 60, 150);
+  RooGaussian g3_pdf("g3_pdf", "", xvar, g_mean, g3_sigma);
+  RooRealVar g3_frac("g3_frac", "", 1, 0, 1);
 
-  RooConstVar g4_mean("g4_mean", "", 0);
-  RooRealVar g4_sigma("g4_sigma", "", 150, 100, 300);
-  RooGaussian g4_pdf("g4_pdf", "", xvar, g4_mean, g4_sigma);
+  RooRealVar g4_sigma("g4_sigma", "", 210, 150, 1000);
+  RooGaussian g4_pdf("g4_pdf", "", xvar, g_mean, g4_sigma);
 
-  RooAddPdf pdf("pdf", "", RooArgList(g1_pdf, g2_pdf, g3_pdf, g4_pdf), RooArgList(g1_frac, g2_frac, g3_frac), true);
+  RooAddPdf pdf1("pdf1", "", RooArgList(g1_pdf), RooArgList(), true);
+  RooAddPdf pdf2("pdf2", "", RooArgList(g1_pdf, g2_pdf), RooArgList(g1_frac), true);
+  RooAddPdf pdf3("pdf3", "", RooArgList(g1_pdf, g2_pdf, g3_pdf), RooArgList(g1_frac, g2_frac), true);
+  RooAddPdf pdf4("pdf4", "", RooArgList(g1_pdf, g2_pdf, g3_pdf, g4_pdf), RooArgList(g1_frac, g2_frac, g3_frac), true);
 
   // Get sample specifications
   double sumWgts_data = 0;
   for (unsigned int it=0; it<allowedSysts.size()+1; it++){
     std::string strSystName = SystematicsHelpers::getSystName(it==0 ? SystematicsHelpers::sNominal : allowedSysts.at(it-1));
+    TString systname = strSystName.data();
+    TString systlabel = systname;
+    HelperFunctions::replaceString<TString, const TString>(systlabel, "Dn", " down");
+    HelperFunctions::replaceString<TString, const TString>(systlabel, "Up", " up");
+    HelperFunctions::replaceString<TString, const TString>(systlabel, "Nominal", "nominal");
 
     std::vector<TString> samples;
     if (it==0) getDataTrees(samples, sNominal);
@@ -726,7 +679,7 @@ void produceFinalFits(
       TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
       strinput += Form("*_%s", strSystName.data());
       strinput += ".root";
-      MELAout << "Adding " << strinput << " to the data tree chain..." << endl;
+      MELAout << "Adding " << strinput << " to the " << (it==0 ? "data" : "MC") << " tree chain..." << endl;
 
       tin->Add(strinput);
     }
@@ -763,56 +716,86 @@ void produceFinalFits(
     RooDataSet fit_data("fit_data", "", treevars, WeightVar(wgtvar));
 
     float MC_wgt_thr = (it==0 ? -1 : getWeightThreshold(tin, { &event_wgt, &event_wgt_triggers, &event_wgt_SFs }));
+    float MC_wgt_corr_thr = -1;
     int const nEntries = tin->GetEntries();
     unsigned int nValidEntries = 0;
-    for (int ev=0; ev<nEntries; ev++){
-      tin->GetEntry(ev);
-      HelperFunctions::progressbar(ev, nEntries);
+    for (unsigned int il=(it==0 ? 1 : 0); il<2; il++){
+      std::vector<float> last1percentweights;
+      int const nLast1percent = nEntries/100;
+      last1percentweights.reserve(nLast1percent+1);
 
-      if (!isConversionSafe) continue;
-      if (event_Njets==0) continue;
-      if (pt_gamma<150.f) continue;
+      for (int ev=0; ev<nEntries; ev++){
+        tin->GetEntry(ev);
+        HelperFunctions::progressbar(ev, nEntries);
 
-      float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
-      if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
+        if (!isConversionSafe) continue;
+        if (event_Njets==0) continue;
+        if (pt_gamma<150.f) continue;
 
-      TLorentzVector p4_photons; p4_photons.SetPtEtaPhiM(pt_gamma, eta_gamma, phi_gamma, mass_gamma);
-      TLorentzVector p4_jets; p4_jets.SetPtEtaPhiM(pt_jets, eta_jets, phi_jets, mass_jets);
-      TLorentzVector p4_met; p4_met.SetPtEtaPhiM(pTmiss, 0, phimiss, 0);
+        float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
+        if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
 
-      get2DParallelAndPerpendicularComponents(p4_photons.Vect(), p4_jets.Vect(), uParallel, uPerp);
-      get2DParallelAndPerpendicularComponents(p4_photons.Vect(), p4_met.Vect(), MET_Parallel, MET_Perp);
+        float dPhi_gamma_jets=0;
+        HelperFunctions::deltaPhi(phi_gamma, phi_jets, dPhi_gamma_jets);
+        if (abs_dPhi_gamma_jets_thr>0.f && std::abs(dPhi_gamma_jets)<abs_dPhi_gamma_jets_thr) continue;
 
-      for (auto& var:allvars){
-        if (var->name=="pt_gamma") var->setVal(pt_gamma);
-        else if (var->name=="eta_gamma") var->setVal(eta_gamma);
-        else if (var->name=="Nvtx") var->setVal(event_nvtxs_good);
-        else if (var->name=="Njets") var->setVal(event_Njets);
-        else if (var->name=="HT_jets") var->setVal(HT_jets);
-        else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
-        else if (var->name=="uParallel") var->setVal(uParallel);
-      }
+        TLorentzVector p4_photons; p4_photons.SetPtEtaPhiM(pt_gamma, eta_gamma, phi_gamma, mass_gamma);
+        TLorentzVector p4_jets; p4_jets.SetPtEtaPhiM(pt_jets, eta_jets, phi_jets, mass_jets);
+        TLorentzVector p4_met; p4_met.SetPtEtaPhiM(pTmiss, 0, phimiss, 0);
 
-      float wgt_corrs = 1;
-      if (it==1){
-        for (unsigned int icorr=0; icorr<hcorrs.size(); icorr++){
-          TH3F* const& hcorr = hcorrs.at(icorr);
-          std::vector<Variable*> corrvars = varlists.at(icorr);
-          int ix = hcorr->GetXaxis()->FindBin(corrvars.at(0)->val);
-          int iy = hcorr->GetYaxis()->FindBin(corrvars.at(1)->val);
-          int iz = hcorr->GetZaxis()->FindBin(corrvars.at(2)->val);
-          wgt_corrs *= hcorr->GetBinContent(ix, iy, iz);
+        get2DParallelAndPerpendicularComponents(p4_photons.Vect(), p4_jets.Vect(), uParallel, uPerp);
+        get2DParallelAndPerpendicularComponents(p4_photons.Vect(), p4_met.Vect(), MET_Parallel, MET_Perp);
+
+        for (auto& var:allvars){
+          if (var->name=="pt_gamma") var->setVal(pt_gamma);
+          else if (var->name=="eta_gamma") var->setVal(eta_gamma);
+          else if (var->name=="Nvtx") var->setVal(event_nvtxs_good);
+          else if (var->name=="Njets") var->setVal(event_Njets);
+          else if (var->name=="HT_jets") var->setVal(HT_jets);
+          else if (var->name=="abs_uPerp") var->setVal(std::abs(uPerp));
+          else if (var->name=="uParallel") var->setVal(uParallel);
+        }
+
+        float wgt_corrs = 1;
+        if (it==1){
+          for (unsigned int icorr=0; icorr<hcorrs.size(); icorr++){
+            TH3F* const& hcorr = hcorrs.at(icorr);
+            std::vector<Variable*> corrvars = varlists.at(icorr);
+            int ix = hcorr->GetXaxis()->FindBin(corrvars.at(0)->val);
+            int iy = hcorr->GetYaxis()->FindBin(corrvars.at(1)->val);
+            int iz = hcorr->GetZaxis()->FindBin(corrvars.at(2)->val);
+            wgt_corrs *= hcorr->GetBinContent(ix, iy, iz);
+          }
+        }
+        wgt = std::abs(wgt*wgt_corrs);
+
+        if (MC_wgt_corr_thr>0.f && std::abs(wgt)>MC_wgt_corr_thr) continue;
+        if (MET_Perp>xvar.getMax() || MET_Perp<xvar.getMin()) continue;
+
+        if (il==0){
+          HelperFunctions::addByHighest(last1percentweights, wgt, false);
+          if ((int) last1percentweights.size()==nLast1percent+1) last1percentweights.pop_back();
+        }
+        else{
+          if (it==0) sumWgts_data += wgt;
+          xvar.setVal(MET_Perp);
+          wgtvar.setVal(wgt);
+          fit_data.add(treevars, wgt);
+          nValidEntries++;
         }
       }
-      wgt = std::abs(wgt*wgt_corrs);
 
-      if (MET_Perp>xvar.getMax() || MET_Perp<xvar.getMin()) continue;
-
-      if (it==0) sumWgts_data += wgt;
-      xvar.setVal(MET_Perp);
-      wgtvar.setVal(wgt);
-      fit_data.add(treevars, wgt);
-      nValidEntries++;
+      if (il==0){
+        unsigned int idx_trim=0;
+        for (auto const& wgt:last1percentweights){
+          if (wgt>5.f*last1percentweights.back()){
+            MC_wgt_corr_thr = wgt;
+            idx_trim++;
+          }
+          else break;
+        }
+        MELAout << "Will trim corrected weights at " << MC_wgt_corr_thr << " for " << idx_trim << " / " << nEntries << " events..." << endl;
+      }
     }
 
     curdir->cd();
@@ -820,29 +803,33 @@ void produceFinalFits(
     // Close the prior corrections
     for (auto& finput_corr:finput_corrs) finput_corr->Close();
 
-
     /****** DO THE FIT ******/
     {
-      g1_sigma.setVal(15);
-      g2_sigma.setVal(30);
-      g3_sigma.setVal(50);
-      g4_sigma.setVal(150);
+      RooAbsPdf* pdf = nullptr;
+      g1_sigma.setRange(10, 30); g1_sigma.setVal(20);
+      g2_sigma.setRange(30, 60); g2_sigma.setVal(45);
+      g3_sigma.setRange(60, 150); g3_sigma.setVal(105);
+      g4_sigma.setRange(150, 1000); g4_sigma.setVal(200);
+
+      bool isConst_fracs = false;
       if (it==0){
         g1_frac.setConstant(false);
-        g1_frac.setVal(0);
+        g1_frac.setVal(1);
 
         g2_frac.setConstant(false);
         g2_frac.setVal(1);
 
         g3_frac.setConstant(false);
-        g3_frac.setVal(0);
+        g3_frac.setVal(1);
       }
       else{
+        isConst_fracs = true;
         g1_frac.setConstant(true);
         g2_frac.setConstant(true);
         g3_frac.setConstant(true);
       }
 
+      short currentFitStrategy = (it==0 ? 2 : 1);
       RooLinkedList cmdList;
       RooCmdArg saveArg = RooFit::Save(true); cmdList.Add((TObject*) &saveArg);
       //RooCmdArg splitRangeArg = RooFit::SplitRange(true); cmdList.Add((TObject*) &splitRangeArg);
@@ -852,8 +839,10 @@ void produceFinalFits(
       RooCmdArg hesseArg = RooFit::Hesse(true);// cmdList.Add((TObject*) &hesseArg);
       RooCmdArg initialhesseArg = RooFit::InitialHesse(true);// cmdList.Add((TObject*) &initialhesseArg);
       RooCmdArg minosArg = RooFit::Minos(true);// cmdList.Add((TObject*) &minosArg);
-      //RooCmdArg minimizerArg = RooFit::Minimizer("Minuit", "migrad"); cmdList.Add((TObject*)&minimizerArg);
-      RooCmdArg minimizerStrategyArg = RooFit::Strategy((it==0 ? 2 : 1)); cmdList.Add((TObject*) &minimizerStrategyArg);
+      RooCmdArg minimizerArg = RooFit::Minimizer("Minuit2", "migrad"); cmdList.Add((TObject*)&minimizerArg);
+      RooCmdArg minimizerStrategyArg = RooFit::Strategy(currentFitStrategy);
+      RooCmdArg minimizerStrategyRobustArg = RooFit::Strategy(2);
+      cmdList.Add((TObject*) &minimizerStrategyArg);
       RooCmdArg cpuArg = RooFit::NumCPU(4, 0); cmdList.Add((TObject*) &cpuArg);
       // Misc. options
       RooCmdArg timerArg = RooFit::Timer(true); cmdList.Add((TObject*) &timerArg);
@@ -861,55 +850,313 @@ void produceFinalFits(
       RooCmdArg printlevelArg = RooFit::PrintLevel(-1); cmdList.Add((TObject*) &printlevelArg);
       RooCmdArg printerrorsArg = RooFit::PrintEvalErrors(-1); cmdList.Add((TObject*) &printerrorsArg);
 
+      RooFitResult* fitResult_prev=nullptr;
       RooFitResult* fitResult=nullptr;
       int fitStatus=-1;
       unsigned int itry=0;
       constexpr unsigned int ntries=10;
       bool doImprove=false;
       constexpr bool applyImprovement=false;
+      bool minosImprove=false;
+
+      // Do prefit to restricted pdfs
+      g1_sigma.setRange(10, 30); g1_sigma.setVal(20);
+      pdf = &pdf1;
+      RooAbsData* fit_data_restricted = nullptr;
+      fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g1_sigma.getMax()));
+      MELAout << "****************************" << endl;
+      MELAout << "Pre-fit iteration 1" << endl;
+      MELAout << "\t- Range = [ " << -g1_sigma.getMax() << ", " << g1_sigma.getMax() << " ]" << endl;
+      MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+      MELAout << "****************************" << endl;
+      while (fitStatus!=0){
+        delete fitResult_prev; fitResult_prev = fitResult;
+        fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
+        fitStatus = fitResult->status();
+        int covQual = fitResult->covQual();
+        bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
+        MELAout << "****************************" << endl;
+        MELAout << "Fitted parameters:\n";
+        MELAout << "\t- Status: " << fitStatus << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        MELAout << "****************************" << endl;
+
+        itry++;
+        if (itry==ntries) break;
+        // Randomize initial values for the next iteration
+        if ((isIdentical || covQual<0) && fitStatus!=0){
+          unsigned int iseed = 10000 + 100*it + itry-1;
+          TRandom3 rnd(iseed);
+          g1_sigma.setVal(rnd.Uniform(g1_sigma.getMin(), g1_sigma.getMax()));
+        }
+      }
+      delete fitResult_prev; fitResult_prev=nullptr;
+      if (fitStatus==0 || fitStatus==4){
+        MELAout << "****************************" << endl;
+        MELAout << "Iteration 1 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "****************************" << endl;
+      }
+      delete fitResult; fitResult=nullptr;
+      delete fit_data_restricted; fit_data_restricted=nullptr;
+      fitStatus=-1;
+      itry=0;
+
+      g1_sigma.setRange(g1_sigma.getMin(), g1_sigma.getVal()+3.*g1_sigma.getError());
+      g2_sigma.setRange(g1_sigma.getVal()+3.*g1_sigma.getError(), g2_sigma.getMax()); g2_sigma.setVal((g2_sigma.getMin() + g2_sigma.getMax())/2.);
+      pdf = &pdf2;
+      fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g2_sigma.getMax()));
+      MELAout << "****************************" << endl;
+      MELAout << "Pre-fit iteration 2" << endl;
+      MELAout << "\t- Range = [ " << -g2_sigma.getMax() << ", " << g2_sigma.getMax() << " ]" << endl;
+      MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+      MELAout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
+      MELAout << "****************************" << endl;
+      while (fitStatus!=0){
+        delete fitResult_prev; fitResult_prev = fitResult;
+        fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
+        fitStatus = fitResult->status();
+        int covQual = fitResult->covQual();
+        bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
+        MELAout << "****************************" << endl;
+        MELAout << "Fitted parameters:\n";
+        MELAout << "\t- Status: " << fitStatus << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        MELAout << "****************************" << endl;
+
+        itry++;
+        if (itry==ntries) break;
+        // Randomize initial values for the next iteration
+        if ((isIdentical || covQual<0) && fitStatus!=0){
+          unsigned int iseed = 10000 + 100*it + itry-1;
+          TRandom3 rnd(iseed);
+          g1_sigma.setVal(rnd.Uniform(g1_sigma.getMin(), g1_sigma.getMax()));
+          g2_sigma.setVal(rnd.Uniform(g2_sigma.getMin(), g2_sigma.getMax()));
+          if (!isConst_fracs){
+            g1_frac.setVal(rnd.Uniform(g1_frac.getMin(), g1_frac.getMax()));
+          }
+        }
+      }
+      delete fitResult_prev; fitResult_prev=nullptr;
+      if (fitStatus==0 || fitStatus==4){
+        MELAout << "****************************" << endl;
+        MELAout << "Iteration 2 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        MELAout << "****************************" << endl;
+      }
+      delete fitResult; fitResult=nullptr;
+      delete fit_data_restricted; fit_data_restricted=nullptr;
+      fitStatus=-1;
+      itry=0;
+
+
+      g1_sigma.setRange(g1_sigma.getMin(), (g1_sigma.getVal()+g2_sigma.getVal())/2.);
+      g2_sigma.setRange((g1_sigma.getVal()+g2_sigma.getVal())/2., g2_sigma.getVal()+3.*g2_sigma.getError());
+      g3_sigma.setRange(g2_sigma.getVal()+3.*g2_sigma.getError(), g3_sigma.getMax()); g3_sigma.setVal((g3_sigma.getMin() + g3_sigma.getMax())/2.);
+      pdf = &pdf3;
+      fit_data_restricted = fit_data.reduce(Form("abs(%s)<%.1f", xvar.GetName(), g3_sigma.getMax()));
+      MELAout << "****************************" << endl;
+      MELAout << "Pre-fit iteration 3" << endl;
+      MELAout << "\t- Range = [ " << -g3_sigma.getMax() << ", " << g3_sigma.getMax() << " ]" << endl;
+      MELAout << "\t- Sigma 1 = ( " << g1_sigma.getVal() << ", [ " << g1_sigma.getMin() << ", " << g1_sigma.getMax() << " ] )" << endl;
+      MELAout << "\t- Sigma 2 = ( " << g2_sigma.getVal() << ", [ " << g2_sigma.getMin() << ", " << g2_sigma.getMax() << " ] )" << endl;
+      MELAout << "\t- Sigma 3 = ( " << g3_sigma.getVal() << ", [ " << g3_sigma.getMin() << ", " << g3_sigma.getMax() << " ] )" << endl;
+      MELAout << "****************************" << endl;
+      while (fitStatus!=0){
+        delete fitResult_prev; fitResult_prev = fitResult;
+        fitResult = pdf->fitTo(*fit_data_restricted, cmdList);
+        fitStatus = fitResult->status();
+        int covQual = fitResult->covQual();
+        bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
+        MELAout << "****************************" << endl;
+        MELAout << "Fitted parameters:\n";
+        MELAout << "\t- Status: " << fitStatus << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
+        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
+        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        MELAout << "****************************" << endl;
+
+        itry++;
+        if (itry==ntries) break;
+        // Randomize initial values for the next iteration
+        if ((isIdentical || covQual<0) && fitStatus!=0){
+          unsigned int iseed = 10000 + 100*it + itry-1;
+          TRandom3 rnd(iseed);
+          g1_sigma.setVal(rnd.Uniform(g1_sigma.getMin(), g1_sigma.getMax()));
+          g2_sigma.setVal(rnd.Uniform(g2_sigma.getMin(), g2_sigma.getMax()));
+          g3_sigma.setVal(rnd.Uniform(g3_sigma.getMin(), g3_sigma.getMax()));
+          if (!isConst_fracs){
+            g1_frac.setVal(rnd.Uniform(g1_frac.getMin(), g1_frac.getMax()));
+            g2_frac.setVal(rnd.Uniform(g2_frac.getMin(), g2_frac.getMax()));
+          }
+        }
+      }
+      delete fitResult_prev; fitResult_prev=nullptr;
+      if (fitStatus==0 || fitStatus==4){
+        MELAout << "****************************" << endl;
+        MELAout << "Iteration 3 fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
+        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
+        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
+        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
+        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
+        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
+        MELAout << "****************************" << endl;
+      }
+      delete fitResult; fitResult=nullptr;
+      delete fit_data_restricted; fit_data_restricted=nullptr;
+      fitStatus=-1;
+      itry=0;
+
+      // Final fit
+      if (nGaussians==4){
+        g1_sigma.setRange(g1_sigma.getMin(), (g1_sigma.getVal()+g2_sigma.getVal())/2.);
+        g2_sigma.setRange((g1_sigma.getVal()+g2_sigma.getVal())/2., (g2_sigma.getVal()+g3_sigma.getVal())/2.);
+        g3_sigma.setRange((g2_sigma.getVal()+g3_sigma.getVal())/2., g3_sigma.getVal()+3.*g3_sigma.getError());
+        g4_sigma.setRange(g3_sigma.getVal()+3.*g3_sigma.getError(), g4_sigma.getMax()); g4_sigma.setVal((g4_sigma.getMin() + g4_sigma.getMax())/2.);
+        pdf = &pdf4;
+      }
+      else{
+        g1_sigma.setRange(g1_sigma.getMin(), (g1_sigma.getVal()+g2_sigma.getVal())/2.);
+        g2_sigma.setRange((g1_sigma.getVal()+g2_sigma.getVal())/2., (g2_sigma.getVal()+g3_sigma.getVal())/2.);
+        g3_sigma.setRange((g2_sigma.getVal()+g3_sigma.getVal())/2., g3_sigma.getMax());
+        pdf = &pdf3;
+      }
+      MELAout << "Begin final fits..." << endl;
       while (fitStatus!=0 || doImprove){
+        MELAout << "****************************" << endl;
+        MELAout << "Attempt " << itry << endl;
+        MELAout << "****************************" << endl;
         if (applyImprovement && doImprove){
           MELAout << "Improving the fit result with a re-trial." << endl;
           cmdList.Add((TObject*) &hesseArg);
           cmdList.Add((TObject*) &initialhesseArg);
           cmdList.Add((TObject*) &minosArg);
         }
-        delete fitResult;
-        fitResult = pdf.fitTo(fit_data, cmdList);
+        delete fitResult_prev; fitResult_prev = fitResult;
+        fitResult = pdf->fitTo(fit_data, cmdList);
+        if (!fitResult) MELAerr << "No fit results found!" << endl;
         fitStatus = fitResult->status();
-        cout << "****************************" << endl;
+        int covQual = fitResult->covQual();
+        bool isIdentical = (!fitResult_prev || covQual<0 ? false : fitResult->isIdentical(*fitResult_prev, 1e-5, 1e-4, false));
+        MELAout << "****************************" << endl;
         MELAout << "Fitted parameters:\n";
         MELAout << "\t- Status: " << fitStatus << endl;
-        MELAout << "\t- Mean 1: " << g1_mean.getVal()/* << " +- " << g1_mean.getError()*/ << endl;
         MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
         MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Mean 2: " << g2_mean.getVal()/* << " +- " << g2_mean.getError()*/ << endl;
         MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
         MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
-        MELAout << "\t- Mean 3: " << g3_mean.getVal()/* << " +- " << g3_mean.getError()*/ << endl;
         MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
-        MELAout << "\t- Frac 3: " << g3_frac.getVal() << " +- " << g3_frac.getError() << endl;
-        MELAout << "\t- Mean 4: " << g4_mean.getVal()/* << " +- " << g4_mean.getError()*/ << endl;
-        MELAout << "\t- Sigma 4: " << g4_sigma.getVal() << " +- " << g4_sigma.getError() << endl;
-        cout << "****************************" << endl;
+        if (nGaussians==4){
+          MELAout << "\t- Frac 3: " << g3_frac.getVal() << " +- " << g3_frac.getError() << endl;
+          MELAout << "\t- Sigma 4: " << g4_sigma.getVal() << " +- " << g4_sigma.getError() << endl;
+        }
+        MELAout << "\t- Covariance matrix quality: " << covQual << endl;
+        if (fitResult_prev) MELAout << "\t- Is identical to previous fit iteration?: " << isIdentical << endl;
+        MELAout << "****************************" << endl;
         if (applyImprovement && !doImprove && fitStatus==0) doImprove=true;
         else{
           if (!doImprove){
             itry++;
-            if (itry==ntries) break;
+            // Randomize initial values for the next iteration
+            if (itry<ntries && (isIdentical || covQual<0) && fitStatus!=0){
+              unsigned int iseed = 10000 + 100*it + itry-1;
+              TRandom3 rnd(iseed);
+              g1_sigma.setVal(rnd.Uniform(g1_sigma.getMin(), g1_sigma.getMax()));
+              g2_sigma.setVal(rnd.Uniform(g2_sigma.getMin(), g2_sigma.getMax()));
+              g3_sigma.setVal(rnd.Uniform(g3_sigma.getMin(), g3_sigma.getMax()));
+              if (nGaussians==4) g4_sigma.setVal(rnd.Uniform(g4_sigma.getMin(), g4_sigma.getMax()));
+              if (!isConst_fracs){
+                g1_frac.setVal(rnd.Uniform(g1_frac.getMin(), g1_frac.getMax()));
+                g2_frac.setVal(rnd.Uniform(g2_frac.getMin(), g2_frac.getMax()));
+                if (nGaussians==4) g3_frac.setVal(rnd.Uniform(g3_frac.getMin(), g3_frac.getMax()));
+              }
+            }
           }
           else doImprove=false;
         }
-      }
-      if (fitStatus==0 || fitStatus==4){
-        TString systname = strSystName.data();
-        TString systlabel = systname;
-        HelperFunctions::replaceString<TString, const TString>(systlabel, "Dn", " down");
-        HelperFunctions::replaceString<TString, const TString>(systlabel, "Up", " up");
-        HelperFunctions::replaceString<TString, const TString>(systlabel, "Nominal", "nominal");
+        if (fitStatus==0){
+          delete fitResult_prev; fitResult_prev = fitResult;
+          RooLinkedList cmdList_withMinos = cmdList;
+          cmdList_withMinos.Add((TObject*) &minosArg);
 
+          MELAout << "Attempting to obtain asymmetric errors through a refit with Minos..." << endl;
+          if (!isConst_fracs){
+            isConst_fracs = true;
+            g1_frac.setConstant(true);
+            g2_frac.setConstant(true);
+            g3_frac.setConstant(true);
+          }
+          fitResult = pdf->fitTo(fit_data, cmdList_withMinos);
+          fitStatus = fitResult->status();
+          fitResult->Print("v");
+
+          bool successfulMinos = true;
+          successfulMinos &= printParameterWithAsymErrors(g1_sigma, "\t- Sigma 1");
+          printParameterWithAsymErrors(g1_frac, "\t- Frac 1");
+          successfulMinos &= printParameterWithAsymErrors(g2_sigma, "\t- Sigma 2");
+          printParameterWithAsymErrors(g2_frac, "\t- Frac 2");
+          successfulMinos &= printParameterWithAsymErrors(g3_sigma, "\t- Sigma 3");
+          if (nGaussians==4){
+            printParameterWithAsymErrors(g3_frac, "\t- Frac 3");
+            successfulMinos &= printParameterWithAsymErrors(g4_sigma, "\t- Sigma 4");
+          }
+          if (!successfulMinos && (currentFitStrategy!=2 || fitStatus!=0)){
+            MELAout << "\t- Fit with Minos failed with status " << fitStatus << endl;
+
+            minosImprove = true;
+            fitStatus = 4;
+
+            cmdList.Clear();
+            cmdList.Add((TObject*) &saveArg);
+            if (it>0) cmdList.Add((TObject*) &sumw2Arg);
+            cmdList.Add((TObject*) &minimizerArg);
+            cmdList.Add((TObject*) &minimizerStrategyRobustArg); currentFitStrategy = 2;
+            cmdList.Add((TObject*) &cpuArg);
+            // Misc. options
+            cmdList.Add((TObject*) &timerArg);
+            cmdList.Add((TObject*) &printlevelArg);
+            cmdList.Add((TObject*) &printerrorsArg);
+
+            if (nGaussians==4){
+              g1_sigma.setRange(g1_sigma.getMin(), (g1_sigma.getVal()+g2_sigma.getVal())/2.);
+              g2_sigma.setRange((g1_sigma.getVal()+g2_sigma.getVal())/2., (g2_sigma.getVal()+g3_sigma.getVal())/2.);
+              g3_sigma.setRange((g2_sigma.getVal()+g3_sigma.getVal())/2., g3_sigma.getVal()+3.*g3_sigma.getError());
+              g4_sigma.setRange(g3_sigma.getVal()+3.*g3_sigma.getError(), g4_sigma.getMax());
+            }
+            else{
+              g1_sigma.setRange(g1_sigma.getMin(), (g1_sigma.getVal()+g2_sigma.getVal())/2.);
+              g2_sigma.setRange((g1_sigma.getVal()+g2_sigma.getVal())/2., (g2_sigma.getVal()+g3_sigma.getVal())/2.);
+              g3_sigma.setRange((g2_sigma.getVal()+g3_sigma.getVal())/2., g3_sigma.getMax());
+            }
+            if (it==0 && isConst_fracs){
+              isConst_fracs = false;
+              g1_frac.setConstant(false);
+              g2_frac.setConstant(false);
+              g3_frac.setConstant(false);
+            }
+          }
+          else minosImprove = false;
+        }
+
+        if (itry==ntries) break;
+      }
+      delete fitResult_prev;
+      if (fitStatus==0 || fitStatus==4){
         TMatrixDSym covMat;
-        getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma, g3_frac, g4_sigma), covMat);
+        if (nGaussians==4) getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma, g3_frac, g4_sigma), covMat);
+        else getFitCovarianceMatrix(fitResult, RooArgList(g1_sigma, g1_frac, g2_sigma, g2_frac, g3_sigma), covMat);
         MELAout << "****************************" << endl;
         MELAout << "Final fit properties for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
         fitResult->Print("v");
@@ -917,17 +1164,15 @@ void produceFinalFits(
         MELAout << "****************************" << endl;
         MELAout << "Final fitted parameters for systematic " << systname << " in " << (it==0 ? "data" : "MC") << ":" << endl;
         if (it==0) MELAout << "\t- Nevents: " << nValidEntries << endl;
-        MELAout << "\t- Mean 1: " << g1_mean.getVal()/* << " +- " << g1_mean.getError()*/ << endl;
-        MELAout << "\t- Sigma 1: " << g1_sigma.getVal() << " +- " << g1_sigma.getError() << endl;
-        MELAout << "\t- Frac 1: " << g1_frac.getVal() << " +- " << g1_frac.getError() << endl;
-        MELAout << "\t- Mean 2: " << g2_mean.getVal()/* << " +- " << g2_mean.getError()*/ << endl;
-        MELAout << "\t- Sigma 2: " << g2_sigma.getVal() << " +- " << g2_sigma.getError() << endl;
-        MELAout << "\t- Frac 2: " << g2_frac.getVal() << " +- " << g2_frac.getError() << endl;
-        MELAout << "\t- Mean 3: " << g3_mean.getVal()/* << " +- " << g3_mean.getError()*/ << endl;
-        MELAout << "\t- Sigma 3: " << g3_sigma.getVal() << " +- " << g3_sigma.getError() << endl;
-        MELAout << "\t- Frac 3: " << g3_frac.getVal() << " +- " << g3_frac.getError() << endl;
-        MELAout << "\t- Mean 4: " << g4_mean.getVal()/* << " +- " << g4_mean.getError()*/ << endl;
-        MELAout << "\t- Sigma 4: " << g4_sigma.getVal() << " +- " << g4_sigma.getError() << endl;
+        printParameterWithAsymErrors(g1_sigma, "\t- Sigma 1");
+        printParameterWithAsymErrors(g1_frac, "\t- Frac 1");
+        printParameterWithAsymErrors(g2_sigma, "\t- Sigma 2");
+        printParameterWithAsymErrors(g2_frac, "\t- Frac 2");
+        printParameterWithAsymErrors(g3_sigma, "\t- Sigma 3");
+        if (nGaussians==4){
+          printParameterWithAsymErrors(g3_frac, "\t- Frac 3");
+          printParameterWithAsymErrors(g4_sigma, "\t- Sigma 4");
+        }
         //MELAout << "Covariance matrix:" << endl;
         //for (int ix=0; ix<covMat.GetNrows(); ix++){
         //  for (int iy=0; iy<covMat.GetNcols(); iy++){
@@ -941,7 +1186,7 @@ void produceFinalFits(
         RooPlot fit_plot(xvar, xvar.getMin(), xvar.getMax(), 150);
 
         fit_data.plotOn(&fit_plot, LineColor(kBlack), MarkerColor(kBlack), MarkerStyle(30), LineWidth(2), Name("Data"), XErrorSize(0)/*, Rescale(rescale_factor)*/);
-        pdf.plotOn(&fit_plot, LineColor(kRed), LineWidth(2), Name("FitPdf")/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
+        pdf->plotOn(&fit_plot, LineColor(kRed), LineWidth(2), Name("FitPdf")/*, Normalization(rescale_factor, RooAbsPdf::Relative)*/);
 
         fit_plot.SetTitle("");
         fit_plot.SetXTitle("E^{miss}_{T,perp} (GeV)");
@@ -1043,16 +1288,14 @@ void produceFinalFits(
 }
 
 void produceFinalFitSets(int year, TString prodVersion, TString strdate){
+  produceCorrections(year, prodVersion, strdate);
+
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
     produceFinalFits(
       period, prodVersion, strdate,
       "pfmet", "XY:JER:PartMomShifts"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
-      "pfmet", "XY:JER"
     );
     produceFinalFits(
       period, prodVersion, strdate,
@@ -1064,6 +1307,15 @@ void produceFinalFitSets(int year, TString prodVersion, TString strdate){
     );
     produceFinalFits(
       period, prodVersion, strdate,
+      "pfmet", "PartMomShifts"
+    );
+    /*
+    produceFinalFits(
+      period, prodVersion, strdate,
+      "pfmet", "XY:JER"
+    );
+    produceFinalFits(
+      period, prodVersion, strdate,
       "pfmet", "XY"
     );
     produceFinalFits(
@@ -1072,17 +1324,14 @@ void produceFinalFitSets(int year, TString prodVersion, TString strdate){
     );
     produceFinalFits(
       period, prodVersion, strdate,
-      "pfmet", "PartMomShifts"
-    );
-    produceFinalFits(
-      period, prodVersion, strdate,
       "pfmet", ""
     );
-    /*
+    */
     produceFinalFits(
       period, prodVersion, strdate,
       "puppimet", "PartMomShifts"
     );
+    /*
     produceFinalFits(
       period, prodVersion, strdate,
       "puppimet", ""
