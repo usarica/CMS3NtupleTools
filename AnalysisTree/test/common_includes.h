@@ -28,6 +28,7 @@
 #include "ElectronScaleFactorHandler.h"
 #include "PhotonScaleFactorHandler.h"
 #include "BtagScaleFactorHandler.h"
+#include "METCorrectionHandler.h"
 
 #include "DiscriminantClasses.h"
 

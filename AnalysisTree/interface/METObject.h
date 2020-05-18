@@ -23,22 +23,10 @@ MET_VARIABLE(float, metShift_px_JERDn, 0) \
 MET_VARIABLE(float, metShift_py_JERDn, 0)
 
 #define MET_EXTRA_PT_VARIABLES \
-MET_VARIABLE(float, met_original, 0) \
-MET_VARIABLE(float, met_JERUp, 0) \
-MET_VARIABLE(float, met_JERDn, 0) \
-MET_VARIABLE(float, met_PUUp, 0) \
-MET_VARIABLE(float, met_PUDn, 0) \
-MET_VARIABLE(float, met_METUp, 0) \
-MET_VARIABLE(float, met_METDn, 0) \
+MET_VARIABLE(float, met_original, 0)
 
 #define MET_EXTRA_PHI_VARIABLES \
-MET_VARIABLE(float, metPhi_original, 0) \
-MET_VARIABLE(float, metPhi_JERUp, 0) \
-MET_VARIABLE(float, metPhi_JERDn, 0) \
-MET_VARIABLE(float, metPhi_PUUp, 0) \
-MET_VARIABLE(float, metPhi_PUDn, 0) \
-MET_VARIABLE(float, metPhi_METUp, 0) \
-MET_VARIABLE(float, metPhi_METDn, 0)
+MET_VARIABLE(float, metPhi_original, 0)
 
 
 #define MET_EXTRA_VARIABLES \
@@ -75,6 +63,8 @@ protected:
   ParticleObject::LorentzVector_t currentJERShift;
   ParticleObject::LorentzVector_t particleMomentumCorrections;
 
+  std::vector<ParticleObject::LorentzVector_t> currentMETCorrections;
+
   void setJERShifts();
 
 public:
@@ -92,6 +82,8 @@ public:
 
   void setParticleShifts(ParticleObject::LorentzVector_t const& shift){ particleMomentumCorrections=shift; }
   void setParticleShifts(float const& shift_x, float const& shift_y){ this->setParticleShifts(ParticleObject::LorentzVector_t(shift_x, shift_y, 0., 0.)); }
+
+  void setMETCorrection(ParticleObject::LorentzVector_t const& corr, bool hasXYShifts, bool hasJERShifts, bool addParticleShifts);
 
   void getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts) const;
   ParticleObject::LorentzVector_t::Scalar met(bool addXYShifts, bool addJERShifts, bool addParticleShifts) const;

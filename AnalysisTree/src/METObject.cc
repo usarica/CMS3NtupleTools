@@ -37,7 +37,8 @@ METObject::METObject(const METObject& other) :
   currentSyst(other.currentSyst),
   currentXYshift(other.currentXYshift),
   currentJERShift(other.currentJERShift),
-  particleMomentumCorrections(other.particleMomentumCorrections)
+  particleMomentumCorrections(other.particleMomentumCorrections),
+  currentMETCorrections(other.currentMETCorrections)
 {}
 void METObject::swap(METObject& other){
   extras.swap(other.extras);
@@ -45,6 +46,7 @@ void METObject::swap(METObject& other){
   std::swap(currentXYshift, other.currentXYshift);
   std::swap(currentJERShift, other.currentJERShift);
   std::swap(particleMomentumCorrections, other.particleMomentumCorrections);
+  std::swap(currentMETCorrections, other.currentMETCorrections);
 }
 METObject& METObject::operator=(const METObject& other){
   METObject tmp(other);
@@ -80,6 +82,11 @@ void METObject::setJERShifts(){
   currentJERShift = ParticleObject::LorentzVector_t(*jerShift_px, *jerShift_py, 0., 0.);
 }
 
+void METObject::setMETCorrection(ParticleObject::LorentzVector_t const& corr, bool hasXYShifts, bool hasJERShifts, bool hasParticleShifts){
+  if (currentMETCorrections.empty()) currentMETCorrections.assign(8, ParticleObject::LorentzVector_t(0, 0, 0, 0));
+  currentMETCorrections.at(4*hasXYShifts + 2*hasJERShifts + 1*hasParticleShifts) = corr;
+}
+
 void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts) const{
   using namespace SystematicsHelpers;
 
@@ -93,22 +100,6 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
   case eJECUp:
     pt_ref = &(extras.met_JECUp);
     phi_ref = &(extras.metPhi_JECUp);
-    break;
-  case ePUDn:
-    pt_ref = &(extras.met_PUDn);
-    phi_ref = &(extras.metPhi_PUDn);
-    break;
-  case ePUUp:
-    pt_ref = &(extras.met_PUUp);
-    phi_ref = &(extras.metPhi_PUUp);
-    break;
-  case eMETDn:
-    pt_ref = &(extras.met_METDn);
-    phi_ref = &(extras.metPhi_METDn);
-    break;
-  case eMETUp:
-    pt_ref = &(extras.met_METUp);
-    phi_ref = &(extras.metPhi_METUp);
     break;
   case sUncorrected:
     pt_ref = &(extras.met_original);
@@ -124,6 +115,7 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
   if (addXYShifts) tmp_p4 += currentXYshift;
   if (addJERShifts) tmp_p4 += currentJERShift;
   if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
+  if (!currentMETCorrections.empty()) tmp_p4 += currentMETCorrections.at(4*addXYShifts + 2*addJERShifts + 1*addParticleShifts);
 
   pt = tmp_p4.Pt();
   phi = tmp_p4.Phi();

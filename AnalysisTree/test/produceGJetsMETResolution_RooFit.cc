@@ -1339,3 +1339,10 @@ void produceFinalFitSets(int year, TString prodVersion, TString strdate){
     */
   }
 }
+
+void testCorrections(int year, TString prodVersion){
+  SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
+
+  METCorrectionHandler metCorrectionHandler;
+  metCorrectionHandler.printParameters();
+}
