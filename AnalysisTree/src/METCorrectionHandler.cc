@@ -202,14 +202,14 @@ void METCorrectionHandler::applyCorrections(
       float const& sigma_dn_MC = pars_MC.sigmas_dn.at(iGaussian);
       float const& sigma_up_MC = pars_MC.sigmas_up.at(iGaussian);
 
-      float SF = 1;
-      if (syst == SystematicsHelpers::eMETDn) SF = sigma_dn_data / sigma_up_MC;
-      else if (syst == SystematicsHelpers::eMETUp) SF = sigma_up_data / sigma_dn_MC;
-      else SF = sigma_nominal_data / sigma_nominal_MC;
+      float const SF_nominal = sigma_nominal_data / sigma_nominal_MC;
+      float SF = SF_nominal;
+      if (syst == SystematicsHelpers::eMETDn) SF = SF_nominal - std::sqrt(std::pow(sigma_dn_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_up_MC - SF_nominal, 2));
+      else if (syst == SystematicsHelpers::eMETUp) SF = SF_nominal + std::sqrt(std::pow(sigma_up_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_dn_MC - SF_nominal, 2));
 
       for (unsigned short iPMS=0; iPMS<2; iPMS++){
         ParticleObject::LorentzVector_t met_p4_diff = obj->p4((bool) iXY, (bool) iJER, (bool) iPMS) - genmet_p4;
-        met_p4_diff *= SF;
+        met_p4_diff *= SF-1.f;
         obj->setMETCorrection(met_p4_diff, (bool) iXY, (bool) iJER, (bool) iPMS);
       }
     }
