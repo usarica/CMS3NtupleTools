@@ -107,7 +107,7 @@ class BatchManager:
             for cmdarg in cmdlist:
                os.system(
                   "submitCMS3AnalysisProduction.sh{} script=produceSkims.cc function=produceSkims arguments=\'{}\' date=skimProduction_{}".format(
-                     self.extracmd, cmdarg, self.infile.replace('.csv','')
+                     self.extracmd, cmdarg, "{}_{}".format(self.infile.replace('.csv',''), self.opt.date)
                   )
                )
 

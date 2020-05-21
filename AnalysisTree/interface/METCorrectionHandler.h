@@ -61,7 +61,7 @@ public:
   void reset();
 
   void applyCorrections(
-    TString const& effDataPeriod, SystematicsHelpers::SystematicVariationTypes const& syst,
+    TString const& effDataPeriod,
     float const& genMET, float const& genMETPhi,
     METObject* obj, bool isPFMET
   ) const;

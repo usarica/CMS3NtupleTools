@@ -147,7 +147,7 @@ void METCorrectionHandler::reset(){
 }
 
 void METCorrectionHandler::applyCorrections(
-  TString const& effDataPeriod, SystematicsHelpers::SystematicVariationTypes const& syst,
+  TString const& effDataPeriod,
   float const& genMET, float const& genMETPhi,
   METObject* obj, bool isPFMET
 ) const{
@@ -157,6 +157,7 @@ void METCorrectionHandler::applyCorrections(
     SystematicsHelpers::eJERDn, SystematicsHelpers::eJERUp,
     SystematicsHelpers::ePUDn, SystematicsHelpers::ePUUp
   };
+  SystematicsHelpers::SystematicVariationTypes const& syst = obj->getCurrentSystematic();
   SystematicsHelpers::SystematicVariationTypes effSyst = SystematicsHelpers::sNominal;
   if (HelperFunctions::checkListVariable(allowedSysts, syst)) effSyst = syst;
 

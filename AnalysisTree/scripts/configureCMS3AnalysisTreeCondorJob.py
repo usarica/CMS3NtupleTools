@@ -35,6 +35,8 @@ class BatchManager:
       self.parser.add_option("--fcn", type="string", help="Name of the function")
       self.parser.add_option("--fcnargs", type="string", help="Arguments to the function")
 
+      self.parser.add_option("--required_memory", type="string", default="2048M", help="Required RAM for the job")
+
       self.parser.add_option("--dry", dest="dryRun", action="store_true", default=False, help="Do not submit jobs, just set up the files")
 
       (self.opt,self.args) = self.parser.parse_args()
@@ -104,7 +106,8 @@ class BatchManager:
          "TARFILE" : self.opt.tarfile,
          "SCRIPT" : self.opt.script,
          "FCN" : self.opt.fcn,
-         "FCNARGS" : self.opt.fcnargs
+         "FCNARGS" : self.opt.fcnargs,
+         "REQMEM" : self.opt.required_memory
       }
 
       scriptcontents = """
@@ -116,7 +119,7 @@ Initialdir              = {outDir}
 output                  = {outLog}.$(ClusterId).$(ProcId).txt
 error                   = {errLog}.$(ClusterId).$(ProcId).err
 log                     = $(ClusterId).$(ProcId).log
-request_memory          = 4000M
+request_memory          = {REQMEM}
 +JobFlavour             = "tomorrow"
 x509userproxy           = {home}/x509up_u{uid}
 #https://www-auth.cs.wisc.edu/lists/htcondor-users/2010-September/msg00009.shtml

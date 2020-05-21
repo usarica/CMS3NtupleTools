@@ -76,6 +76,7 @@ public:
   void swap(METObject& other);
 
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const&);
+  SystematicsHelpers::SystematicVariationTypes const& getCurrentSystematic() const{ return currentSyst; }
 
   void setXYShift(ParticleObject::LorentzVector_t const& shift){ currentXYshift=shift; }
   void setXYShift(float const& shift_x, float const& shift_y){ this->setXYShift(ParticleObject::LorentzVector_t(shift_x, shift_y, 0., 0.)); }
