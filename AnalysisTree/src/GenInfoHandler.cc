@@ -1,4 +1,5 @@
 #include <cassert>
+#include "SamplesCore.h"
 #include "GenInfoHandler.h"
 #include "MELAStreamHelpers.hh"
 
@@ -17,6 +18,8 @@ GenInfoHandler::GenInfoHandler() :
   acquireLHEMEWeights(true),
   acquireLHEParticles(true),
   acquireGenParticles(true),
+
+  genWeightException(SampleHelpers::nGenWeightExceptionType),
 
   genInfo(nullptr)
 {}
@@ -93,6 +96,14 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
 
   for (auto it:kfactorlist) genInfo->extras.Kfactors[it.first] = (it.second ? *(it.second) : 1.f);
   for (auto it:MElist) genInfo->extras.LHE_ME_weights[it.first] = (it.second ? *(it.second) : 0.f);
+
+  if (genWeightException == SampleHelpers::kDefaultGenWeightIsMinusOne && std::abs(genInfo->extras.genHEPMCweight_default + 1.f)<1e-5f){
+    if (this->verbosity>=TVar::ERROR) MELAerr
+      << "GenInfoHandler::constructCoreGenInfo: genHEPMCweight_default = " << genInfo->extras.genHEPMCweight_default
+      << " (original genHEPMCweight_NNPDF30 = " << genInfo->extras.genHEPMCweight_NNPDF30 << ")"
+      << " is invalid!" << endl;
+    genInfo->extras.genHEPMCweight_default = genInfo->extras.genHEPMCweight_NNPDF30 = 0.f;
+  }
 
   return true;
 }
@@ -251,6 +262,16 @@ bool GenInfoHandler::constructGenParticles(){
   }
 
   return true;
+}
+
+bool GenInfoHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  if (
+    SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)
+    ) MELAout << "GenInfoHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a gen. weight exception of type " << this->genWeightException << "." << endl;
+
+  return IvyBase::wrapTree(tree);
 }
 
 void GenInfoHandler::bookBranches(BaseTree* tree){

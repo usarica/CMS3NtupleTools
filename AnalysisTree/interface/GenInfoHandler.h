@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "IvyBase.h"
+#include "SampleExceptions.h"
 #include "GenInfoObject.h"
 #include "LHEParticleObject.h"
 #include "GenParticleObject.h"
@@ -19,6 +20,8 @@ protected:
   bool acquireLHEMEWeights;
   bool acquireLHEParticles;
   bool acquireGenParticles;
+
+  SampleHelpers::GenWeightExceptionType genWeightException;
 
   GenInfoObject* genInfo;
   std::vector<LHEParticleObject*> lheparticles;
@@ -47,6 +50,8 @@ public:
   void setAcquireLHEMEWeights(bool flag){ acquireLHEMEWeights=flag; }
   void setAcquireLHEParticles(bool flag){ acquireLHEParticles=flag; }
   void setAcquireGenParticles(bool flag){ acquireGenParticles=flag; }
+
+  bool wrapTree(BaseTree* tree);
 
   void bookBranches(BaseTree* tree);
 

@@ -316,7 +316,11 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   }
 
   if (pileupWeight == 0.f){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::constructPUWeight: PU weight = 0!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr
+      << "SimEventHandler::constructPUWeight: PU weight = 0 for n_true_int = " << *n_true_int
+      << ", isyst = " << isyst
+      << ", chosen data period = " << theChosenDataPeriod
+      << "!" << endl;
   }
 
   return true;
