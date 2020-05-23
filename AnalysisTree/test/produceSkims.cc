@@ -70,6 +70,8 @@ void produceSkims(
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
 
+  genInfoHandler.setAllowLargeGenWeightRemoval(true);
+
   eventFilter.setTrackDataEvents(false);
   eventFilter.setCheckUniqueDataEvent(false);
 
@@ -100,6 +102,8 @@ void produceSkims(
     }
     MELAout << "Looping over " << nEntries << " events, starting from " << ev_start << " and ending at " << ev_end << "..." << endl;
 
+    unsigned int n_zero_genwgts=0;
+    double frac_zero_genwgts=0;
     double sum_wgts_noPU=0;
     double sum_abs_wgts_noPU=0;
     std::vector<double> sum_wgts(nValidDataPeriods+1, 0);
@@ -125,6 +129,10 @@ void produceSkims(
         genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
         auto const& genInfo = genInfoHandler.getGenInfo();
         double genwgt = genInfo->getGenWeight(true);
+        if (genwgt==0.){
+          n_zero_genwgts++;
+          continue;
+        }
 
         sum_wgts_noPU += genwgt;
         sum_abs_wgts_noPU += std::abs(genwgt);
@@ -145,9 +153,21 @@ void produceSkims(
         }
         SampleHelpers::setDataPeriod(period);
       }
-      genInfoHandler.setAcquireLHEMEWeights(false);
-      genInfoHandler.setAcquireLHEParticles(false);
-      genInfoHandler.setAcquireGenParticles(true);
+      if (ev_end-ev_start>0) frac_zero_genwgts = double(n_zero_genwgts)/double(ev_end-ev_start);
+      {
+        bool has_lheMEweights = false;
+        bool has_lheparticles = false;
+        bool has_genparticles = false;
+        std::vector<TString> allbranchnames; sample_tree.getValidBranchNamesWithoutAlias(allbranchnames, false);
+        for (auto const& bname:allbranchnames){
+          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
+          else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
+          else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
+        }
+        genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
+        genInfoHandler.setAcquireLHEParticles(has_lheparticles);
+        genInfoHandler.setAcquireGenParticles(has_genparticles);
+      }
       genInfoHandler.bookBranches(&sample_tree);
       genInfoHandler.wrapTree(&sample_tree);
     }
@@ -193,6 +213,7 @@ void produceSkims(
     outdir->cd();
     if (!isData){
       MELAout << "Writing the sum of gen. weights:" << endl;
+      MELAout << "\t- Fraction of discarded events with null weight: " << frac_zero_genwgts << endl;
       MELAout << "\t- No PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
       MELAout << "\t- Fraction of negative weights with no PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
       MELAout << "\t- PU nominal: " << setprecision(15) << sum_wgts << endl;
@@ -201,6 +222,7 @@ void produceSkims(
 
       TH2D hCounters("Counters", "", 3, 0, 3, nValidDataPeriods+1, 0, nValidDataPeriods+1);
       hCounters.SetBinContent(0, 0, sum_wgts_noPU); // Sum with no PU reweighting
+      hCounters.SetBinContent(0, 1, frac_zero_genwgts); // Fraction of discarded events
       for (size_t idp=0; idp<nValidDataPeriods+1; idp++){
         hCounters.SetBinContent(1, idp+1, sum_wgts.at(idp));
         hCounters.SetBinContent(2, idp+1, sum_wgts_PUDn.at(idp));
@@ -238,6 +260,13 @@ void produceSkims(
       HelperFunctions::progressbar(ev, nEntries);
       sample_tree.getSelectedEvent(ev);
       if (ev%10000==0) MELAout << sample_tree.sampleIdentifier << " events: " << n_acc << " / " << ev << " / " << nEntries << endl;
+
+      if (!isData){
+        genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
+        auto const& genInfo = genInfoHandler.getGenInfo();
+        double genwgt = genInfo->getGenWeight(true);
+        if (genwgt==0.) continue;
+      }
 
       eventFilter.constructFilters();
       if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;

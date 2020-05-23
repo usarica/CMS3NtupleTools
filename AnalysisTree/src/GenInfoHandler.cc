@@ -1,5 +1,6 @@
 #include <cassert>
 #include "SamplesCore.h"
+#include "HelperFunctions.h"
 #include "GenInfoHandler.h"
 #include "MELAStreamHelpers.hh"
 
@@ -18,8 +19,10 @@ GenInfoHandler::GenInfoHandler() :
   acquireLHEMEWeights(true),
   acquireLHEParticles(true),
   acquireGenParticles(true),
+  allowLargeGenWeightRemoval(false),
 
   genWeightException(SampleHelpers::nGenWeightExceptionType),
+  abs_genWeight_default_thr(-1),
 
   genInfo(nullptr)
 {}
@@ -43,17 +46,18 @@ bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTyp
 }
 
 bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
+  // Use non-const pointer here because we might have to modify some of the weights
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) TYPE* NAME = nullptr;
   GENINFO_VARIABLES;
 #undef GENINFO_VARIABLE
 
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
-  if (acquireCoreGenInfo){
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(#NAME, NAME);
+  if (acquireCoreGenInfo){
     GENINFO_VARIABLES;
-#undef GENINFO_VARIABLE
   }
+#undef GENINFO_VARIABLE
 
   std::unordered_map<TString, float const*> kfactorlist;
   for (TString const& strkfactor:tree_kfactorlist_map[currentTree]){
@@ -90,19 +94,23 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
     if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: Variable " << #NAME << " is null!" << endl; \
     assert(0); \
   }
-  GENINFO_VARIABLES;
+  if (acquireCoreGenInfo){
+    GENINFO_VARIABLES;
+  }
 #undef GENINFO_VARIABLE
+
   genInfo->setSystematic(syst);
 
   for (auto it:kfactorlist) genInfo->extras.Kfactors[it.first] = (it.second ? *(it.second) : 1.f);
   for (auto it:MElist) genInfo->extras.LHE_ME_weights[it.first] = (it.second ? *(it.second) : 0.f);
 
-  if (genWeightException == SampleHelpers::kDefaultGenWeightIsMinusOne && std::abs(genInfo->extras.genHEPMCweight_default + 1.f)<1e-5f){
-    if (this->verbosity>=TVar::ERROR) MELAerr
+  if (genWeightException == SampleHelpers::kLargeDefaultGenWeight && abs_genWeight_default_thr>0.f && std::abs(genInfo->extras.genHEPMCweight_default)>abs_genWeight_default_thr){
+    if (this->verbosity>=TVar::INFO) MELAout
       << "GenInfoHandler::constructCoreGenInfo: genHEPMCweight_default = " << genInfo->extras.genHEPMCweight_default
       << " (original genHEPMCweight_NNPDF30 = " << genInfo->extras.genHEPMCweight_NNPDF30 << ")"
-      << " is invalid!" << endl;
-    genInfo->extras.genHEPMCweight_default = genInfo->extras.genHEPMCweight_NNPDF30 = 0.f;
+      << " is invalid! A threshold of " << abs_genWeight_default_thr << " is applied." << endl;
+
+    *genHEPMCweight_default = *genHEPMCweight_NNPDF30 = genInfo->extras.genHEPMCweight_default = genInfo->extras.genHEPMCweight_NNPDF30 = 0.f;
   }
 
   return true;
@@ -267,11 +275,16 @@ bool GenInfoHandler::constructGenParticles(){
 bool GenInfoHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
-  if (
-    SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)
-    ) MELAout << "GenInfoHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a gen. weight exception of type " << this->genWeightException << "." << endl;
+  abs_genWeight_default_thr = -1;
+  if (SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)) MELAout
+    << "GenInfoHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a gen. weight exception of type " << this->genWeightException << "."
+    << endl;
 
-  return IvyBase::wrapTree(tree);
+  bool res = IvyBase::wrapTree(tree);
+
+  if (this->genWeightException == SampleHelpers::kLargeDefaultGenWeight) res &= determineWeightThresholds();
+
+  return res;
 }
 
 void GenInfoHandler::bookBranches(BaseTree* tree){
@@ -324,4 +337,63 @@ void GenInfoHandler::bookBranches(BaseTree* tree){
 #define GENPARTICLE_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(colName_genparticles+ "_" + #NAME); this->defineConsumedSloppy(colName_genparticles+ "_" + #NAME);
   GENPARTICLE_VARIABLES;
 #undef GENPARTICLE_VARIABLE
+}
+
+bool GenInfoHandler::determineWeightThresholds(){
+  if (!allowLargeGenWeightRemoval) return true;
+
+  if (!currentTree) return false;
+  abs_genWeight_default_thr = -1;
+  if (!acquireCoreGenInfo){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::determineWeightThresholds: In order to determine weight thresholds, you need to set acquireCoreGenInfo=true." << endl;
+    assert(0);
+    return false;
+  }
+
+  float const* genHEPMCweight_default = nullptr;
+
+  bool allVariablesPresent = this->getConsumed("genHEPMCweight_default", genHEPMCweight_default);
+  if (!allVariablesPresent){
+    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::determineWeightThresholds: Not all variables are consumed properly!" << endl;
+    assert(0);
+  }
+  if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::determineWeightThresholds: All variables are set up!" << endl;
+
+  unsigned int npos=0;
+  double Neff=0;
+  double sum_wgts[2]={ 0 }; // [0]: w, [1]: w^2
+  std::vector<float> smallest_weights;
+  int nEntries = currentTree->getNEvents();
+  if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Determining the weight thresholds..." << endl;
+  for (int ev=0; ev<nEntries; ev++){
+    currentTree->getEvent(ev);
+    if (this->verbosity>=TVar::INFO) HelperFunctions::progressbar(ev, nEntries);
+
+    HelperFunctions::addByLowest(smallest_weights, std::abs(*genHEPMCweight_default), false);
+
+    if (ev%100000 == 0 || ev == nEntries-1){
+      sum_wgts[0] = sum_wgts[1] = 0;
+      npos = 0;
+      for (auto const& wgt:smallest_weights){
+        sum_wgts[0] += wgt;
+        sum_wgts[1] += wgt*wgt;
+        Neff = std::pow(sum_wgts[0], 2) / sum_wgts[1];
+        npos++;
+        if (Neff>=250000.) break;
+      }
+      if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Current Neff = " << Neff << " over " << ev+1 << " events..." << endl;
+    }
+    if (Neff>=250000.) break;
+  }
+
+  if (!smallest_weights.empty()){
+    abs_genWeight_default_thr = (sum_wgts[0] + std::sqrt(sum_wgts[1]*Neff)) / (Neff-1.);
+    if (this->verbosity>=TVar::ERROR) MELAout
+      << "GenInfoHandler::determineWeightThresholds: " << abs_genWeight_default_thr
+      << " is the default weight threshold calculated from sN=" << sum_wgts[0] << ", vN=" << sum_wgts[1] << ", nN=" << Neff
+      << " (N=" << npos << ", wN=" << smallest_weights.at(npos-1) << ")."
+      << endl;
+  }
+
+  return true;
 }

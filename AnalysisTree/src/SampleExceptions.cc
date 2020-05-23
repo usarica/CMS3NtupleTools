@@ -30,12 +30,9 @@ bool SampleHelpers::hasPUException(TString const& sampleIdentifier, int const& y
 
 std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> > SampleHelpers::getGenWeightExceptions(int const& year){
   std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> > res;
-  if (year == 2017){
-    res = std::vector< std::pair<TString, SampleHelpers::GenWeightExceptionType> >{
-      { "/ZNuNuGJets_MonoPhoton_PtG-40to130_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", kDefaultGenWeightIsMinusOne },
-      { "/ZNuNuGJets_MonoPhoton_PtG-130_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM", kDefaultGenWeightIsMinusOne }
-    };
-  }
+  /*
+  Insert custom exceptions
+  */
   for (auto& s:res) s.first = getSampleIdentifier(s.first);
   return res;
 }
@@ -47,6 +44,14 @@ bool SampleHelpers::hasGenWeightException(TString const& sampleIdentifier, int c
       type = s.second;
       return true;
     }
+  }
+  if (
+    (SampleHelpers::theDataYear==2017 || SampleHelpers::theDataYear==2018)
+    &&
+    sampleIdentifier.Contains("madgraph")
+    ){
+    type = kLargeDefaultGenWeight;
+    return true;
   }
 
   type = nGenWeightExceptionType;

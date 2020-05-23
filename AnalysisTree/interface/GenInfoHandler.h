@@ -20,8 +20,10 @@ protected:
   bool acquireLHEMEWeights;
   bool acquireLHEParticles;
   bool acquireGenParticles;
+  bool allowLargeGenWeightRemoval;
 
   SampleHelpers::GenWeightExceptionType genWeightException;
+  float abs_genWeight_default_thr;
 
   GenInfoObject* genInfo;
   std::vector<LHEParticleObject*> lheparticles;
@@ -30,6 +32,8 @@ protected:
   bool constructCoreGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructLHEParticles();
   bool constructGenParticles();
+
+  bool determineWeightThresholds();
 
   void clear();
 
@@ -50,6 +54,7 @@ public:
   void setAcquireLHEMEWeights(bool flag){ acquireLHEMEWeights=flag; }
   void setAcquireLHEParticles(bool flag){ acquireLHEParticles=flag; }
   void setAcquireGenParticles(bool flag){ acquireGenParticles=flag; }
+  void setAllowLargeGenWeightRemoval(bool flag){ allowLargeGenWeightRemoval=flag; }
 
   bool wrapTree(BaseTree* tree);
 

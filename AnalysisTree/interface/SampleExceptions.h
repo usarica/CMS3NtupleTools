@@ -7,7 +7,7 @@
 
 namespace SampleHelpers{
   enum GenWeightExceptionType{
-    kDefaultGenWeightIsMinusOne,
+    kLargeDefaultGenWeight,
 
     nGenWeightExceptionType
   };
