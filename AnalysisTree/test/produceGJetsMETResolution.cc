@@ -101,6 +101,7 @@ void getTrees(
 
     double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
+    float xsec_scale = 1;
     if (!isData){
       sample_tree.bookBranch<float>("xsec", 0.f);
 
@@ -111,6 +112,8 @@ void getTrees(
       genInfoHandler.wrapTree(&sample_tree);
 
       std::vector<TString> inputfilenames = SampleHelpers::getDatasetFileNames(sname);
+      double sum_wgts_raw_noveto = 0;
+      double sum_wgts_raw_withveto = 0;
       bool hasCounters = true;
       {
         int bin_syst = 1 + 1*(theGlobalSyst==SystematicsHelpers::ePUDn) + 2*(theGlobalSyst==SystematicsHelpers::ePUUp);
@@ -129,27 +132,20 @@ void getTrees(
           }
           MELAout << "\t- Successfully found the counters histogram in " << fname << endl;
           sum_wgts += hCounters->GetBinContent(bin_syst, bin_period);
+          sum_wgts_raw_withveto += hCounters->GetBinContent(0, 0);
+          sum_wgts_raw_noveto += hCounters->GetBinContent(0, 0) / (1. - hCounters->GetBinContent(0, 1));
           ftmp->Close();
         }
         if (hasCounters) MELAout << "\t- Obtained the weights from " << inputfilenames.size() << " files..." << endl;
       }
       if (!hasCounters){
-        MELAout << "Initial MC loop over " << nEntries << " events in " << sample_tree.sampleIdentifier << " to determine sample normalization:" << endl;
-        for (int ev=0; ev<nEntries; ev++){
-          HelperFunctions::progressbar(ev, nEntries);
-          sample_tree.getSelectedEvent(ev);
-
-          genInfoHandler.constructGenInfo(SystematicsHelpers::sNominal); // Use sNominal here in order to get the weight that corresponds to xsec
-          auto const& genInfo = genInfoHandler.getGenInfo();
-          double genwgt = genInfo->getGenWeight(true);
-
-          simEventHandler.constructSimEvent(theGlobalSyst);
-          double puwgt = simEventHandler.getPileUpWeight();
-          sum_wgts += genwgt * puwgt;
-        }
+        MELAerr << "Please use skim ntuples!" << endl;
+        assert(0);
       }
+      xsec_scale = sum_wgts_raw_withveto / sum_wgts_raw_noveto;
     }
     MELAout << "Sample " << sample_tree.sampleIdentifier << " has a gen. weight sum of " << sum_wgts << "." << endl;
+    MELAout << "\t- xsec scale = " << xsec_scale << endl;
 
     // Set data tracking options
     eventFilter.setTrackDataEvents(isData);
@@ -263,7 +259,7 @@ void getTrees(
       }
       if (firstEvent) firstEvent=false;
 
-      event_wgt = xsec * (isData ? 1.f : lumi) / sum_wgts;
+      event_wgt = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
 
       if (!isData){
         genInfoHandler.constructGenInfo(theGlobalSyst);
