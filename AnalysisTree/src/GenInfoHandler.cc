@@ -359,11 +359,12 @@ bool GenInfoHandler::determineWeightThresholds(){
   }
   if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::determineWeightThresholds: All variables are set up!" << endl;
 
-  unsigned int npos=0;
-  double Neff=0;
+  int nEntries = currentTree->getNEvents();
+  double thr_Neff = std::min(250000., double(nEntries)/3.*2.);
+  unsigned int npos = 0;
+  double Neff = 0;
   double sum_wgts[2]={ 0 }; // [0]: w, [1]: w^2
   std::vector<float> smallest_weights;
-  int nEntries = currentTree->getNEvents();
   if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Determining the weight thresholds..." << endl;
   for (int ev=0; ev<nEntries; ev++){
     currentTree->getEvent(ev);
@@ -379,11 +380,11 @@ bool GenInfoHandler::determineWeightThresholds(){
         sum_wgts[1] += wgt*wgt;
         Neff = std::pow(sum_wgts[0], 2) / sum_wgts[1];
         npos++;
-        if (Neff>=250000.) break;
+        if (Neff>=thr_Neff) break;
       }
       if (this->verbosity>=TVar::ERROR) MELAout << "GenInfoHandler::determineWeightThresholds: Current Neff = " << Neff << " over " << ev+1 << " events..." << endl;
     }
-    if (Neff>=250000.) break;
+    if (Neff>=thr_Neff) break;
   }
 
   if (!smallest_weights.empty()){
