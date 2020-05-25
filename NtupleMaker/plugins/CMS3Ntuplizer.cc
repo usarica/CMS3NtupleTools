@@ -285,6 +285,9 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   SET_GENINFO_VARIABLE(qscale);
   SET_GENINFO_VARIABLE(alphaS);
 
+  SET_GENINFO_VARIABLE(genjets_HT);
+  SET_GENINFO_VARIABLE(genjets_MHT);
+
   SET_GENINFO_VARIABLE(genmet_met);
   SET_GENINFO_VARIABLE(genmet_metPhi);
 
@@ -299,6 +302,11 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   // LHE variations
   SET_GENINFO_VARIABLE(genHEPMCweight_default);
   SET_GENINFO_VARIABLE(genHEPMCweight_NNPDF30);
+
+  SET_GENINFO_VARIABLE(LHEweight_scaledOriginalWeight_default);
+  SET_GENINFO_VARIABLE(LHEweight_scaledOriginalWeight_NNPDF30);
+
+  SET_GENINFO_VARIABLE(LHEweight_defaultMemberZero);
 
   SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF1);
   SET_GENINFO_VARIABLE(LHEweight_QCDscale_muR1_muF2);

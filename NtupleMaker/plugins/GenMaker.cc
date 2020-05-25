@@ -28,6 +28,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   genEvtInfoInputTag_(iConfig.getParameter<edm::InputTag>("genEvtInfoInputTag")),
   prunedGenParticlesInputTag_(iConfig.getParameter<edm::InputTag>("prunedGenParticlesInputTag")),
   packedGenParticlesInputTag_(iConfig.getParameter<edm::InputTag>("packedGenParticlesInputTag")),
+  genJetsInputTag_(iConfig.getParameter<edm::InputTag>("genJetsInputTag")),
   genMETInputTag_(iConfig.getParameter<edm::InputTag>("genMETInputTag")),
 
   ntuplePackedGenParticles_(iConfig.getParameter<bool>("ntuplePackedGenParticles")),
@@ -48,6 +49,7 @@ GenMaker::GenMaker(const edm::ParameterSet& iConfig) :
   genEvtInfoToken = consumes<GenEventInfoProduct>(genEvtInfoInputTag_);
   prunedGenParticlesToken = consumes<reco::GenParticleCollection>(prunedGenParticlesInputTag_);
   packedGenParticlesToken = consumes<pat::PackedGenParticleCollection>(packedGenParticlesInputTag_);
+  genJetsToken = consumes< edm::View<reco::GenJet> >(genJetsInputTag_);
   genMETToken = consumes< edm::View<pat::MET> >(genMETInputTag_);
 
   consumesMany<HepMCProduct>();
@@ -114,6 +116,11 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
   std::vector<pat::PackedGenParticle> const* packedGenParticles = packedGenParticlesHandle.product();
   */
+
+  // Gen. jets
+  edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
+  iEvent.getByToken(genJetsToken, genJetsHandle);
+  if (!genJetsHandle.isValid()) throw cms::Exception("GenMaker::produce: Error getting the gen. jets handle...");
 
   // Gen. MET
   edm::Handle< edm::View<pat::MET> > genMETHandle;
@@ -213,6 +220,12 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     result->genHEPMCweight_NNPDF30 = result->genHEPMCweight_default; // lheHandler_NNPDF30_NLO->getLHEOriginalWeight() should give the same value
     result->genHEPMCweight_default *= lheHandler_default->getWeightRescale();
     result->genHEPMCweight_NNPDF30 *= lheHandler_NNPDF30_NLO->getWeightRescale();
+
+    result->LHEweight_scaledOriginalWeight_default = result->LHEweight_scaledOriginalWeight_NNPDF30 = lheHandler_default->getLHEOriginalWeight();
+    result->LHEweight_scaledOriginalWeight_default *= lheHandler_default->getWeightRescale();
+    result->LHEweight_scaledOriginalWeight_NNPDF30 *= lheHandler_NNPDF30_NLO->getWeightRescale();
+
+    result->LHEweight_defaultMemberZero = lheHandler_default->getMemberZeroWeight(); // Same as lheHandler_NNPDF30_NLO->getMemberZeroWeight()
 
     result->LHEweight_QCDscale_muR1_muF1 = lheHandler_default->getLHEWeight(0, 1.);
     result->LHEweight_QCDscale_muR1_muF2 = lheHandler_default->getLHEWeight(1, 1.);
@@ -340,6 +353,17 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     n_shower_gluons_to_bottom = shower_gluons_to_bottom.size();
     n_shower_gluons_to_charm = shower_gluons_to_charm.size();
     //MELAout << "Number of g->bb, g->cc: " << n_shower_gluons_to_bottom << ", " << n_shower_gluons_to_charm << endl;
+  }
+
+  // Compute gen. jet HT and MHT
+  {
+    result->genjets_HT = result->genjets_MHT = 0;
+    LorentzVector tempvect(0, 0, 0, 0);
+    for (edm::View<reco::GenJet>::const_iterator genjet_it = genJetsHandle->begin(); genjet_it != genJetsHandle->end(); genjet_it++){
+      tempvect += genjet_it->p4();
+      result->genjets_HT += genjet_it->pt();
+    }
+    result->genjets_MHT = tempvect.Pt(); 
   }
 
   // Compute K factors

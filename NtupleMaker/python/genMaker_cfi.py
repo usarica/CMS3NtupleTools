@@ -15,6 +15,8 @@ genMaker = cms.EDProducer(
    prunedGenParticlesInputTag  = cms.InputTag("prunedGenParticles"),
    packedGenParticlesInputTag  = cms.InputTag("packedGenParticles"),
 
+   genJetsInputTag = cms.InputTag("slimmedGenJets"),
+
    genMETInputTag = cms.InputTag("slimmedMETs"), # For genMET
 
    ntuplePackedGenParticles    = cms.bool(False), # default is False

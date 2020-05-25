@@ -17,6 +17,7 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -55,6 +56,7 @@ protected:
   edm::InputTag genEvtInfoInputTag_;
   edm::InputTag prunedGenParticlesInputTag_;
   edm::InputTag packedGenParticlesInputTag_;
+  edm::InputTag genJetsInputTag_;
   edm::InputTag genMETInputTag_;
   bool ntuplePackedGenParticles_;
 
@@ -75,6 +77,7 @@ protected:
 
   edm::EDGetTokenT<reco::GenParticleCollection> prunedGenParticlesToken;
   edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticlesToken;
+  edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
   edm::EDGetTokenT< edm::View<pat::MET> > genMETToken;
 
   std::shared_ptr<LHEHandler> lheHandler_default; // LHEHandler for default PDFs

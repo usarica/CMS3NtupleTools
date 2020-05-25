@@ -17,6 +17,9 @@ struct GenInfo{
   float qscale;
   float alphaS;
 
+  float genjets_HT;
+  float genjets_MHT;
+
   float genmet_met;
   float genmet_metPhi;
 
@@ -28,6 +31,15 @@ struct GenInfo{
 
   float genHEPMCweight_default;
   float genHEPMCweight_NNPDF30;
+
+  // The difference between the two below and the two above is that genHEPMCweight uses GenEventInfoHandle::weight() if possible,
+  // whereas LHEweight_scaledOriginalWeight uses LHEHandler::getLHEOriginalWeight().
+  // The two should be the same unless there is a bug in Pythia, or Pythia does some reweighting.
+  // We store both in order to recover from Pythia bugs.
+  float LHEweight_scaledOriginalWeight_default;
+  float LHEweight_scaledOriginalWeight_NNPDF30;
+
+  float LHEweight_defaultMemberZero;
 
   float LHEweight_QCDscale_muR1_muF1;
   float LHEweight_QCDscale_muR1_muF2;
