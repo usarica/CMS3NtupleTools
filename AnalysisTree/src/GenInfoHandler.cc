@@ -22,7 +22,7 @@ GenInfoHandler::GenInfoHandler() :
   allowLargeGenWeightRemoval(false),
 
   genWeightException(SampleHelpers::nGenWeightExceptionType),
-  abs_genWeight_default_thr(-1),
+  abs_genWeight_default_thr(nullptr),
 
   genInfo(nullptr)
 {}
@@ -88,12 +88,7 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
   if (this->verbosity>=TVar::DEBUG) MELAout << "GenInfoHandler::constructCoreGenInfo: All variables are set up!" << endl;
 
   genInfo = new GenInfoObject();
-#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) \
-  if (NAME) genInfo->extras.NAME = *NAME; \
-  else{ \
-    if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::constructCoreGenInfo: Variable " << #NAME << " is null!" << endl; \
-    assert(0); \
-  }
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) if (NAME) genInfo->extras.NAME = *NAME;
   if (acquireCoreGenInfo){
     GENINFO_VARIABLES;
   }
@@ -104,13 +99,25 @@ bool GenInfoHandler::constructCoreGenInfo(SystematicsHelpers::SystematicVariatio
   for (auto it:kfactorlist) genInfo->extras.Kfactors[it.first] = (it.second ? *(it.second) : 1.f);
   for (auto it:MElist) genInfo->extras.LHE_ME_weights[it.first] = (it.second ? *(it.second) : 0.f);
 
-  if (genWeightException == SampleHelpers::kLargeDefaultGenWeight && abs_genWeight_default_thr>0.f && std::abs(genInfo->extras.genHEPMCweight_default)>abs_genWeight_default_thr){
+  if (
+    genWeightException == SampleHelpers::kLargeDefaultGenWeight
+    &&
+    (
+      (abs_genWeight_default_thr && *abs_genWeight_default_thr>0.f && std::abs(genInfo->extras.genHEPMCweight_default)>*abs_genWeight_default_thr)
+      ||
+      (LHEweight_scaledOriginalWeight_default/* && *LHEweight_scaledOriginalWeight_default != 0.f*/ && *LHEweight_scaledOriginalWeight_default != *genHEPMCweight_default)
+      )
+    ){
     if (this->verbosity>=TVar::INFO) MELAout
       << "GenInfoHandler::constructCoreGenInfo: genHEPMCweight_default = " << genInfo->extras.genHEPMCweight_default
       << " (original genHEPMCweight_NNPDF30 = " << genInfo->extras.genHEPMCweight_NNPDF30 << ")"
-      << " is invalid! A threshold of " << abs_genWeight_default_thr << " is applied." << endl;
-
-    *genHEPMCweight_default = *genHEPMCweight_NNPDF30 = genInfo->extras.genHEPMCweight_default = genInfo->extras.genHEPMCweight_NNPDF30 = 0.f;
+      << " is invalid! A threshold of " << *abs_genWeight_default_thr << " may be applied." << endl;
+    // Attempt to fix the weights
+    if (LHEweight_scaledOriginalWeight_default){
+      *genHEPMCweight_default = genInfo->extras.genHEPMCweight_default = *LHEweight_scaledOriginalWeight_default;
+      *genHEPMCweight_NNPDF30 = genInfo->extras.genHEPMCweight_NNPDF30 = *LHEweight_scaledOriginalWeight_NNPDF30;
+    }
+    else{ *genHEPMCweight_default = *genHEPMCweight_NNPDF30 = genInfo->extras.genHEPMCweight_default = genInfo->extras.genHEPMCweight_NNPDF30 = 0.f; }
   }
 
   return true;
@@ -275,14 +282,18 @@ bool GenInfoHandler::constructGenParticles(){
 bool GenInfoHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
-  abs_genWeight_default_thr = -1;
+  abs_genWeight_default_thr = nullptr;
   if (SampleHelpers::hasGenWeightException(tree->sampleIdentifier, SampleHelpers::theDataYear, this->genWeightException)) MELAout
     << "GenInfoHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a gen. weight exception of type " << this->genWeightException << "."
     << endl;
 
   bool res = IvyBase::wrapTree(tree);
 
-  if (this->genWeightException == SampleHelpers::kLargeDefaultGenWeight) res &= determineWeightThresholds();
+  if (this->genWeightException == SampleHelpers::kLargeDefaultGenWeight){
+    auto it_thr = abs_genWeight_default_thr_map.find(currentTree);
+    if (it_thr != abs_genWeight_default_thr_map.cend()) abs_genWeight_default_thr = &(it_thr->second);
+    else res &= determineWeightThresholds();
+  }
 
   return res;
 }
@@ -290,14 +301,20 @@ bool GenInfoHandler::wrapTree(BaseTree* tree){
 void GenInfoHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
+  std::vector<TString> allbranchnames; tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
+
   if (acquireCoreGenInfo){
 #define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL); this->addConsumed<TYPE>(#NAME);
-    GENINFO_VARIABLES;
+    GENINFO_CORE_VARIABLES;
+#undef GENINFO_VARIABLE
+#define GENINFO_VARIABLE(TYPE, NAME, DEFVAL) \
+if (HelperFunctions::checkListVariable<TString>(allbranchnames, #NAME)) tree->bookBranch<TYPE>(#NAME, DEFVAL); \
+this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
+    GENINFO_EXTRA_VARIABLES;
 #undef GENINFO_VARIABLE
   }
 
   // K factor and ME reweighting branches are defined as sloppy
-  std::vector<TString> allbranchnames; tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
   std::vector<TString> kfactorlist;
   std::vector<TString> melist;
   bool has_lheparticles=false;
@@ -343,7 +360,7 @@ bool GenInfoHandler::determineWeightThresholds(){
   if (!allowLargeGenWeightRemoval) return true;
 
   if (!currentTree) return false;
-  abs_genWeight_default_thr = -1;
+  abs_genWeight_default_thr = nullptr;
   if (!acquireCoreGenInfo){
     if (this->verbosity>=TVar::ERROR) MELAerr << "GenInfoHandler::determineWeightThresholds: In order to determine weight thresholds, you need to set acquireCoreGenInfo=true." << endl;
     assert(0);
@@ -388,12 +405,14 @@ bool GenInfoHandler::determineWeightThresholds(){
   }
 
   if (!smallest_weights.empty()){
-    abs_genWeight_default_thr = (sum_wgts[0] + std::sqrt(sum_wgts[1]*Neff)) / (Neff-1.);
+    float abs_genWeight_default_thr_val = (sum_wgts[0] + std::sqrt(sum_wgts[1]*Neff)) / (Neff-1.);
     if (this->verbosity>=TVar::ERROR) MELAout
-      << "GenInfoHandler::determineWeightThresholds: " << abs_genWeight_default_thr
+      << "GenInfoHandler::determineWeightThresholds: " << abs_genWeight_default_thr_val
       << " is the default weight threshold calculated from sN=" << sum_wgts[0] << ", vN=" << sum_wgts[1] << ", nN=" << Neff
-      << " (N=" << npos << ", wN=" << smallest_weights.at(npos-1) << ")."
+      << " (N=" << npos << " / " << smallest_weights.size() << ", wN=" << smallest_weights.at(npos-1) << ", wLast=" << smallest_weights.back() << ")."
       << endl;
+    abs_genWeight_default_thr_map[currentTree] = abs_genWeight_default_thr_val;
+    abs_genWeight_default_thr = &(abs_genWeight_default_thr_map[currentTree]);
   }
 
   return true;

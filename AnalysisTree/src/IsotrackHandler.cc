@@ -97,14 +97,14 @@ bool IsotrackHandler::applyCleaning(std::vector<MuonObject*> const* muons, std::
     float const dR_isotrack = IsotrackSelectionHelpers::getIsolationDRmax(*product);
     if (muons){
       for (auto const* part:*(muons)){
-        if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isParticleForIsotrackCleaning(part)) continue;
         float const separation_deltaR = std::max(dR_isotrack, MuonSelectionHelpers::getIsolationDRmax(*part));
         if (reco::deltaR(product->p4(), part->p4())<separation_deltaR){ doSkip=true; break; }
       }
     }
     if (electrons){
       for (auto const* part:*(electrons)){
-        if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
+        if (!ParticleSelectionHelpers::isParticleForIsotrackCleaning(part)) continue;
         float const separation_deltaR = std::max(dR_isotrack, ElectronSelectionHelpers::getIsolationDRmax(*part));
         if (reco::deltaR(product->p4(), part->p4())<separation_deltaR){ doSkip=true; break; }
       }

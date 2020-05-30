@@ -15,6 +15,7 @@ protected:
   std::unordered_map< BaseTree*, std::vector<TString> > tree_kfactorlist_map;
   std::unordered_map< BaseTree*, std::vector<TString> > tree_MElist_map;
   std::unordered_map< BaseTree*, bool > tree_lheparticles_present_map;
+  std::unordered_map< BaseTree*, float > abs_genWeight_default_thr_map;
 
   bool acquireCoreGenInfo;
   bool acquireLHEMEWeights;
@@ -23,7 +24,7 @@ protected:
   bool allowLargeGenWeightRemoval;
 
   SampleHelpers::GenWeightExceptionType genWeightException;
-  float abs_genWeight_default_thr;
+  float const* abs_genWeight_default_thr;
 
   GenInfoObject* genInfo;
   std::vector<LHEParticleObject*> lheparticles;

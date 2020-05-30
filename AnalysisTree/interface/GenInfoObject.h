@@ -10,7 +10,7 @@
 #include "SystematicVariations.h"
 
 
-#define GENINFO_VARIABLES \
+#define GENINFO_CORE_VARIABLES \
 GENINFO_VARIABLE(float, xsec, 1) \
 GENINFO_VARIABLE(float, genmet_met, 0) \
 GENINFO_VARIABLE(float, genmet_metPhi, 0) \
@@ -47,6 +47,13 @@ GENINFO_VARIABLE(float, PythiaWeight_isr_muR0p25, 1) \
 GENINFO_VARIABLE(float, PythiaWeight_fsr_muR0p25, 1) \
 GENINFO_VARIABLE(float, PythiaWeight_isr_muR4, 1) \
 GENINFO_VARIABLE(float, PythiaWeight_fsr_muR4, 1)
+#define GENINFO_EXTRA_VARIABLES \
+GENINFO_VARIABLE(float, LHEweight_scaledOriginalWeight_default, 0) \
+GENINFO_VARIABLE(float, LHEweight_scaledOriginalWeight_NNPDF30, 0) \
+GENINFO_VARIABLE(float, LHEweight_defaultMemberZero, 0)
+#define GENINFO_VARIABLES \
+GENINFO_CORE_VARIABLES \
+GENINFO_EXTRA_VARIABLES
 
 
 class GenInfoVariables{
