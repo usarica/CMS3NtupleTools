@@ -85,6 +85,23 @@ void produceSkims(
     bool const isData = SampleHelpers::checkSampleIsData(strSample);
     //if (!isData && nchunks>0) return;
 
+    std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts(1, SystematicsHelpers::sNominal);
+    if (!isData){
+      using namespace SystematicsHelpers;
+      allowedSysts = std::vector<SystematicsHelpers::SystematicVariationTypes>{
+        sNominal,
+
+        eEleScaleDn, eEleScaleUp,
+        eEleResDn, eEleResUp,
+
+        eMuScaleDn, eMuScaleUp,
+        eMuResDn, eMuResUp,
+
+        ePhoScaleDn, ePhoScaleUp,
+        ePhoResDn, ePhoResUp,
+      };
+    }
+
     TString const cinputcore = SampleHelpers::getDatasetDirectoryName(strSample);
     TString const cinput = SampleHelpers::getDatasetFileName(strSample);
     MELAout << "Extracting input " << cinput << endl;
@@ -214,8 +231,8 @@ void produceSkims(
     if (!isData){
       MELAout << "Writing the sum of gen. weights:" << endl;
       MELAout << "\t- Fraction of discarded events with null weight: " << frac_zero_genwgts << endl;
-      MELAout << "\t- No PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
-      MELAout << "\t- Fraction of negative weights with no PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
+      MELAout << "\t- Before PU reweighting: " << setprecision(15) << sum_wgts_noPU << endl;
+      MELAout << "\t- Fraction of negative weights before PU reweighting: " << setprecision(15) << (sum_abs_wgts_noPU-sum_wgts_noPU)*0.5/sum_abs_wgts_noPU << endl;
       MELAout << "\t- PU nominal: " << setprecision(15) << sum_wgts << endl;
       MELAout << "\t- PU down: " << setprecision(15) << sum_wgts_PUDn << endl;
       MELAout << "\t- PU up: " << setprecision(15) << sum_wgts_PUUp << endl;
@@ -286,85 +303,81 @@ void produceSkims(
       // Categorize events based on how many leptons or photons they have
       // Do not apply any b-jet or HEM vetoes because their application is analysis-specific
 
-      muonHandler.constructMuons(SystematicsHelpers::sNominal);
-      electronHandler.constructElectrons(SystematicsHelpers::sNominal);
-      photonHandler.constructPhotons(SystematicsHelpers::sNominal);
+      bool doRecordTree[nFinalStateTypes]={ 0 };
+      for (auto const& syst:allowedSysts){
+        muonHandler.constructMuons(SystematicsHelpers::sNominal);
+        electronHandler.constructElectrons(SystematicsHelpers::sNominal);
+        photonHandler.constructPhotons(SystematicsHelpers::sNominal);
 
-      // Particle counts before disambiguation
-      size_t n_muons_tight_predisambiguation = 0;
-      size_t n_muons_tnp_predisambiguation = 0;
-      size_t n_muons_fakeable_predisambiguation = 0;
-      size_t n_electrons_tight_predisambiguation = 0;
-      size_t n_electrons_tnp_predisambiguation = 0;
-      size_t n_electrons_fakeable_predisambiguation = 0;
-      size_t n_photons_tight_predisambiguation = 0;
-      {
-        auto const& muons = muonHandler.getProducts();
-        for (auto const& part:muons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_muons_tight_predisambiguation++;
-          else{
-            if (part->testSelectionBit(MuonSelectionHelpers::kProbeId)) n_muons_tnp_predisambiguation++;
-            if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) n_muons_fakeable_predisambiguation++;
+        // Particle counts before disambiguation
+        size_t n_muons_tight_predisambiguation = 0;
+        size_t n_muons_tnp_predisambiguation = 0;
+        size_t n_muons_fakeable_predisambiguation = 0;
+        size_t n_electrons_tight_predisambiguation = 0;
+        size_t n_electrons_tnp_predisambiguation = 0;
+        size_t n_electrons_fakeable_predisambiguation = 0;
+        size_t n_photons_tight_predisambiguation = 0;
+        {
+          auto const& muons = muonHandler.getProducts();
+          for (auto const& part:muons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_muons_tight_predisambiguation++;
+            else{
+              if (part->testSelectionBit(MuonSelectionHelpers::kProbeId)) n_muons_tnp_predisambiguation++;
+              if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) n_muons_fakeable_predisambiguation++;
+            }
+          }
+          auto const& electrons = electronHandler.getProducts();
+          for (auto const& part:electrons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_electrons_tight_predisambiguation++;
+            else{
+              if (part->testSelectionBit(ElectronSelectionHelpers::kProbeId)) n_electrons_tnp_predisambiguation++;
+              if (part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) n_electrons_fakeable_predisambiguation++;
+            }
+          }
+          auto const& photons = photonHandler.getProducts();
+          for (auto const& part:photons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight_predisambiguation++;
           }
         }
-        auto const& electrons = electronHandler.getProducts();
-        for (auto const& part:electrons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_electrons_tight_predisambiguation++;
-          else{
-            if (part->testSelectionBit(ElectronSelectionHelpers::kProbeId)) n_electrons_tnp_predisambiguation++;
-            if (part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) n_electrons_fakeable_predisambiguation++;
-          }
-        }
-        auto const& photons = photonHandler.getProducts();
-        for (auto const& part:photons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight_predisambiguation++;
-        }
-      }
-      size_t n_leptons_tight_predisambiguation = n_muons_tight_predisambiguation + n_electrons_tight_predisambiguation;
-      size_t n_leptons_fakeable_predisambiguation = n_muons_fakeable_predisambiguation + n_electrons_fakeable_predisambiguation;
+        size_t n_leptons_tight_predisambiguation = n_muons_tight_predisambiguation + n_electrons_tight_predisambiguation;
+        size_t n_leptons_fakeable_predisambiguation = n_muons_fakeable_predisambiguation + n_electrons_fakeable_predisambiguation;
 
-      // Particle counts after disambiguation
-      size_t n_muons_tight = 0;
-      size_t n_muons_tnp = 0;
-      size_t n_muons_fakeable = 0;
-      size_t n_electrons_tight = 0;
-      size_t n_electrons_tnp = 0;
-      size_t n_electrons_fakeable = 0;
-      size_t n_photons_tight = 0;
-      {
-        particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
-        auto const& muons = muonHandler.getProducts();
-        for (auto const& part:muons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_muons_tight++;
-          else{
-            if (part->testSelectionBit(MuonSelectionHelpers::kProbeId)) n_muons_tnp++;
-            if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) n_muons_fakeable++;
+        // Particle counts after disambiguation
+        size_t n_muons_tight = 0;
+        size_t n_muons_tnp = 0;
+        size_t n_muons_fakeable = 0;
+        size_t n_electrons_tight = 0;
+        size_t n_electrons_tnp = 0;
+        size_t n_electrons_fakeable = 0;
+        size_t n_photons_tight = 0;
+        {
+          particleDisambiguator.disambiguateParticles(&muonHandler, &electronHandler, &photonHandler);
+          auto const& muons = muonHandler.getProducts();
+          for (auto const& part:muons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_muons_tight++;
+            else{
+              if (part->testSelectionBit(MuonSelectionHelpers::kProbeId)) n_muons_tnp++;
+              if (part->testSelectionBit(MuonSelectionHelpers::kFakeableBase)) n_muons_fakeable++;
+            }
+          }
+          auto const& electrons = electronHandler.getProducts();
+          for (auto const& part:electrons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_electrons_tight++;
+            else{
+              if (part->testSelectionBit(ElectronSelectionHelpers::kProbeId)) n_electrons_tnp++;
+              if (part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) n_electrons_fakeable++;
+            }
+          }
+          auto const& photons = photonHandler.getProducts();
+          for (auto const& part:photons){
+            if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight++;
           }
         }
-        auto const& electrons = electronHandler.getProducts();
-        for (auto const& part:electrons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_electrons_tight++;
-          else{
-            if (part->testSelectionBit(ElectronSelectionHelpers::kProbeId)) n_electrons_tnp++;
-            if (part->testSelectionBit(ElectronSelectionHelpers::kFakeableBase)) n_electrons_fakeable++;
-          }
-        }
-        auto const& photons = photonHandler.getProducts();
-        for (auto const& part:photons){
-          if (ParticleSelectionHelpers::isTightParticle(part)) n_photons_tight++;
-        }
-      }
-      size_t n_leptons_tight = n_muons_tight + n_electrons_tight;
-      size_t n_leptons_fakeable = n_muons_fakeable + n_electrons_fakeable;
+        size_t n_leptons_tight = n_muons_tight + n_electrons_tight;
+        size_t n_leptons_fakeable = n_muons_fakeable + n_electrons_fakeable;
 
-      if (trigwgt_dilepton!=0.f){
-        if (n_leptons_tight>=2 || n_leptons_tight_predisambiguation>=2){
-          if (outtree[kDilepton]){
-            outtree[kDilepton]->Fill();
-            n_acc[kDilepton]++;
-          }
-        }
-        else if (
+        doRecordTree[kDilepton] |= (n_leptons_tight>=2 || n_leptons_tight_predisambiguation>=2);
+        doRecordTree[kDilepton_Control] |= (
           (n_muons_tight==1 && n_muons_tnp==1) || (n_muons_tight_predisambiguation==1 && n_muons_tnp_predisambiguation==1)
           ||
           (n_electrons_tight==1 && n_electrons_tnp==1) || (n_electrons_tight_predisambiguation==1 && n_electrons_tnp_predisambiguation==1)
@@ -372,40 +385,44 @@ void produceSkims(
           (n_muons_tight==1 && n_muons_fakeable==1) || (n_muons_tight_predisambiguation==1 && n_muons_fakeable_predisambiguation==1)
           ||
           (n_electrons_tight==1 && n_electrons_fakeable==1) || (n_electrons_tight_predisambiguation==1 && n_electrons_fakeable_predisambiguation==1)
-          ){
-          if (outtree[kDilepton_Control]){
-            outtree[kDilepton_Control]->Fill();
-            n_acc[kDilepton_Control]++;
-          }
-        }
-      }
-      if (
-        (
+          );
+        doRecordTree[kSingleLepton] |= (
+          (n_muons_tight==1 && n_electrons_tight<2) || (n_muons_tight_predisambiguation==1 && n_electrons_tight_predisambiguation<2)
+          ||
+          (n_muons_tight<2 && n_electrons_tight==1) || (n_muons_tight_predisambiguation<2 && n_electrons_tight_predisambiguation==1)
+          ||
+          (n_leptons_tight==0 && (n_muons_fakeable==1 || n_electrons_fakeable==1))
+          ||
+          (n_leptons_tight_predisambiguation==0 && (n_muons_fakeable_predisambiguation==1 || n_electrons_fakeable_predisambiguation==1))
+          );
+        doRecordTree[kGJets] |= (
           (n_photons_tight==1 && n_leptons_tight==0)
           ||
           (n_photons_tight_predisambiguation==1 && n_leptons_tight_predisambiguation==0)
-          )
-        &&
-        trigwgt_gjets!=0.f
-        ){
-        if (outtree[kGJets]){
-          outtree[kGJets]->Fill();
-          n_acc[kGJets]++;
-        }
+          );
       }
-      if (
-        (
-          (n_leptons_tight + n_leptons_fakeable)==1
-          ||
-          (n_leptons_tight_predisambiguation + n_leptons_fakeable_predisambiguation)==1
-          )
-        &&
-        trigwgt_singlelepton!=0.f
-        ){
-        if (outtree[kSingleLepton]){
-          outtree[kSingleLepton]->Fill();
-          n_acc[kSingleLepton]++;
-        }
+
+      // Combine triggers after object combinations
+      doRecordTree[kDilepton] &= (outtree[kDilepton] && trigwgt_dilepton!=0.f);
+      doRecordTree[kDilepton_Control] &= (outtree[kDilepton_Control] && trigwgt_dilepton!=0.f);
+      doRecordTree[kSingleLepton] &= (outtree[kSingleLepton] && trigwgt_singlelepton!=0.f);
+      doRecordTree[kGJets] &= (outtree[kGJets] && trigwgt_gjets!=0.f);
+      if (doRecordTree[kDilepton]){
+        outtree[kDilepton]->Fill();
+        n_acc[kDilepton]++;
+      }
+      else if (doRecordTree[kDilepton_Control]){
+        outtree[kDilepton_Control]->Fill();
+        n_acc[kDilepton_Control]++;
+      }
+      else if (doRecordTree[kSingleLepton]){
+        outtree[kSingleLepton]->Fill();
+        n_acc[kSingleLepton]++;
+      }
+
+      if (doRecordTree[kGJets]){
+        outtree[kGJets]->Fill();
+        n_acc[kGJets]++;
       }
     }
     MELAout << sample_tree.sampleIdentifier << " total number of accumulated events: "
