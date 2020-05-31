@@ -60,6 +60,12 @@ bool HLTTriggerPathProperties::isSameTrigger(std::string const& name_) const{
   return (name_.find(name)!=std::string::npos);
 }
 
+void HLTTriggerPathProperties::resetCuts(){
+  for (auto& it:triggerObjectProperties){
+    for (auto& props:it.second) props.resetCuts();
+  }
+}
+
 bool HLTTriggerPathProperties::testCuts(
   std::vector<MuonObject const*> const& muons,
   std::vector<ElectronObject const*> const& electrons,

@@ -29,6 +29,8 @@ public:
   void setup();
   void addObjectProperties(HLTObjectProperties const& props);
 
+  void resetCuts();
+
   bool testCuts(
     std::vector<MuonObject const*> const& muons,
     std::vector<ElectronObject const*> const& electrons,

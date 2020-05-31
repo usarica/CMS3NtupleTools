@@ -69,6 +69,16 @@ public:
     METObject const* pfmet,
     HLTTriggerPathObject const** firstPassingHLTPath = nullptr
   ) const;
+  float getTriggerWeight(
+    std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltpathprops_,
+    std::vector<MuonObject*> const* muons,
+    std::vector<ElectronObject*> const* electrons,
+    std::vector<PhotonObject*> const* photons,
+    std::vector<AK4JetObject*> const* ak4jets,
+    std::vector<AK8JetObject*> const* ak8jets,
+    METObject const* pfmet,
+    HLTTriggerPathObject const** firstPassingHLTPath = nullptr
+  ) const;
   bool passMETFilters() const;
   // Special event filters for various specific issues
   bool test2018HEMFilter(

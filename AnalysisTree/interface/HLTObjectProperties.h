@@ -49,6 +49,7 @@ public:
   HLTObjectProperties(HLTObjectProperties::TriggerObjectType const& type_, std::vector< std::pair<HLTObjectProperties::CutType, float> > const& cuts_);
   HLTObjectProperties(HLTObjectProperties const& other);
 
+  void resetCuts();
   void setPtCut(float const& val){ pt_cut=val; has_pt_cut=(pt_cut>0.f); }
   void setPtLowCut(float const& val){ setPtCut(val); }
   void setPtHighCut(float const& val){ pt_high_cut=val; has_pt_high_cut=(pt_high_cut>0.f); }

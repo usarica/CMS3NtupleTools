@@ -23,14 +23,30 @@ std::vector<std::string> TriggerHelpers::getHLTMenus(std::vector<TriggerHelpers:
   }
   return res;
 }
-std::vector< std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator > TriggerHelpers::getHLTMenuProperties(TriggerHelpers::TriggerType type){ return getHLTMenuProperties(std::vector<TriggerHelpers::TriggerType>{ type }); }
-std::vector< std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator > TriggerHelpers::getHLTMenuProperties(std::vector<TriggerHelpers::TriggerType> const& types){
-  std::vector< std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator > res;
+std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > TriggerHelpers::getHLTMenuProperties(TriggerHelpers::TriggerType type){ return getHLTMenuProperties(std::vector<TriggerHelpers::TriggerType>{ type }); }
+std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > TriggerHelpers::getHLTMenuProperties(std::vector<TriggerHelpers::TriggerType> const& types){
+  unsigned int isize=0;
   for (auto const& type:types){
     std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
-    if (it != HLT_type_proplist_map.cend()) res.push_back(it);
+    isize += it->second.size();
   }
+
+  std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > res; res.reserve(isize);
+  for (auto const& type:types){
+    std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
+    for (auto const& hltprop:it->second) res.emplace_back(type, &hltprop);
+  }
+
   return res;
+}
+
+void TriggerHelpers::dropSelectionCuts(TriggerHelpers::TriggerType type){
+  std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::iterator it = HLT_type_proplist_map.find(type);
+  if (it != HLT_type_proplist_map.end()){ for (auto& props:it->second) props.resetCuts(); }
+  else{
+    MELAerr << "TriggerHelpers::dropSelectionCuts: Trigger type " << type << " is not defined." << endl;
+    assert(0);
+  }
 }
 
 void TriggerHelpers::configureHLTmap(){

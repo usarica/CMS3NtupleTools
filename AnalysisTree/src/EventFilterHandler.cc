@@ -114,6 +114,28 @@ float EventFilterHandler::getTriggerWeight(
   METObject const* pfmet,
   HLTTriggerPathObject const** firstPassingHLTPath
 ) const{
+  unsigned int isize=0;
+  for (auto const& p:hltpathprops_) isize += p->second.size();
+
+  std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > hltpathprops_new; hltpathprops_new.reserve(isize);
+  for (auto const& p:hltpathprops_){ for (auto const& pp:p->second) hltpathprops_new.emplace_back(p->first, &pp); }
+
+  return getTriggerWeight(
+    hltpathprops_new,
+    muons, electrons, photons, ak4jets, ak8jets, pfmet,
+    firstPassingHLTPath
+  );
+}
+float EventFilterHandler::getTriggerWeight(
+  std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltpathprops_,
+  std::vector<MuonObject*> const* muons,
+  std::vector<ElectronObject*> const* electrons,
+  std::vector<PhotonObject*> const* photons,
+  std::vector<AK4JetObject*> const* ak4jets,
+  std::vector<AK8JetObject*> const* ak8jets,
+  METObject const* pfmet,
+  HLTTriggerPathObject const** firstPassingHLTPath
+) const{
   if (hltpathprops_.empty()) return 1;
 
   std::vector<MuonObject const*> muons_trigcheck; if (muons){ muons_trigcheck.reserve(muons->size()); for (auto const& part:(*muons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) muons_trigcheck.push_back(part); } }
@@ -145,70 +167,69 @@ float EventFilterHandler::getTriggerWeight(
   ht_nomu_p4 = ParticleObject::PolarLorentzVector_t(ht_nomu_pt, 0, 0, ht_nomu_p4.Pt());
 
   for (auto const& enumType_props_pair:hltpathprops_){
-    auto const& hltprops = enumType_props_pair->second;
-    for (auto const& hltprop:hltprops){
-      for (auto const& prod:product_HLTpaths){
-        if (prod->passTrigger && hltprop.isSameTrigger(prod->name)){
-          std::vector<MuonObject const*> muons_trigcheck_TOmatched;
-          std::vector<ElectronObject const*> electrons_trigcheck_TOmatched;
-          std::vector<PhotonObject const*> photons_trigcheck_TOmatched;
+    assert(enumType_props_pair.second != nullptr);
+    auto const& hltprop = *(enumType_props_pair.second);
+    for (auto const& prod:product_HLTpaths){
+      if (prod->passTrigger && hltprop.isSameTrigger(prod->name)){
+        std::vector<MuonObject const*> muons_trigcheck_TOmatched;
+        std::vector<ElectronObject const*> electrons_trigcheck_TOmatched;
+        std::vector<PhotonObject const*> photons_trigcheck_TOmatched;
 
-          if (checkTriggerObjectsForHLTPaths){
-            auto const& passedTriggerObjects = prod->getPassedTriggerObjects();
+        if (checkTriggerObjectsForHLTPaths){
+          auto const& passedTriggerObjects = prod->getPassedTriggerObjects();
 
-            if (this->verbosity>=TVar::DEBUG){
-              MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
-              MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
-              MELAout << "\t\t- Trigger object types: ";
-              std::vector<int> TOtypes;
-              for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->id);
-              MELAout << TOtypes << endl;
-              MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
-              MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
-              MELAout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
-            }
-
-            TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
-              muons_trigcheck, muons_trigcheck_TOmatched
-            );
-            TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
-              electrons_trigcheck, electrons_trigcheck_TOmatched
-            );
-            TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
-              photons_trigcheck, photons_trigcheck_TOmatched
-            );
-
-            if (this->verbosity>=TVar::DEBUG){
-              MELAout << "\t- Number of matched muons: " << muons_trigcheck_TOmatched.size() << " / " << muons_trigcheck.size() << endl;
-              MELAout << "\t- Number of matched electrons: " << electrons_trigcheck_TOmatched.size() << " / " << electrons_trigcheck.size() << endl;
-              MELAout << "\t- Number of matched photons: " << photons_trigcheck_TOmatched.size() << " / " << photons_trigcheck.size() << endl;
-            }
+          if (this->verbosity>=TVar::DEBUG){
+            MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
+            MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
+            MELAout << "\t\t- Trigger object types: ";
+            std::vector<int> TOtypes;
+            for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->id);
+            MELAout << TOtypes << endl;
+            MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
+            MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;
+            MELAout << "\t- Number of photons: " << photons_trigcheck.size() << endl;
           }
 
-          if (
-            hltprop.testCuts(
-              (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
-              (!checkTriggerObjectsForHLTPaths ? electrons_trigcheck : electrons_trigcheck_TOmatched),
-              (!checkTriggerObjectsForHLTPaths ? photons_trigcheck : photons_trigcheck_TOmatched),
-              ak4jets_trigcheck,
-              ak8jets_trigcheck,
-              pfmet_p4,
-              pfmet_nomu_p4,
-              ht_p4,
-              ht_nomu_p4
-            )
-            ){
-            float wgt = 1.f;
-            if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
-            if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
-            if (wgt == 0.f) continue;
-            else{
-              if (firstPassingHLTPath) *firstPassingHLTPath = prod;
-              return wgt; // Take the first trigger that passed.
-            }
+          TriggerObject::getMatchedPhysicsObjects(
+            passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
+            muons_trigcheck, muons_trigcheck_TOmatched
+          );
+          TriggerObject::getMatchedPhysicsObjects(
+            passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+            electrons_trigcheck, electrons_trigcheck_TOmatched
+          );
+          TriggerObject::getMatchedPhysicsObjects(
+            passedTriggerObjects, { trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
+            photons_trigcheck, photons_trigcheck_TOmatched
+          );
+
+          if (this->verbosity>=TVar::DEBUG){
+            MELAout << "\t- Number of matched muons: " << muons_trigcheck_TOmatched.size() << " / " << muons_trigcheck.size() << endl;
+            MELAout << "\t- Number of matched electrons: " << electrons_trigcheck_TOmatched.size() << " / " << electrons_trigcheck.size() << endl;
+            MELAout << "\t- Number of matched photons: " << photons_trigcheck_TOmatched.size() << " / " << photons_trigcheck.size() << endl;
+          }
+        }
+
+        if (
+          hltprop.testCuts(
+          (!checkTriggerObjectsForHLTPaths ? muons_trigcheck : muons_trigcheck_TOmatched),
+            (!checkTriggerObjectsForHLTPaths ? electrons_trigcheck : electrons_trigcheck_TOmatched),
+            (!checkTriggerObjectsForHLTPaths ? photons_trigcheck : photons_trigcheck_TOmatched),
+            ak4jets_trigcheck,
+            ak8jets_trigcheck,
+            pfmet_p4,
+            pfmet_nomu_p4,
+            ht_p4,
+            ht_nomu_p4
+          )
+          ){
+          float wgt = 1.f;
+          if (prod->L1prescale>0) wgt *= static_cast<float>(prod->L1prescale);
+          if (prod->HLTprescale>0) wgt *= static_cast<float>(prod->HLTprescale);
+          if (wgt == 0.f) continue;
+          else{
+            if (firstPassingHLTPath) *firstPassingHLTPath = prod;
+            return wgt; // Take the first trigger that passed.
           }
         }
       }

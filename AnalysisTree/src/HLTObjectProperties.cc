@@ -9,44 +9,20 @@ using namespace MELAStreamHelpers;
 
 
 HLTObjectProperties::HLTObjectProperties() :
-  type(HLTObjectProperties::nTriggerObjectTypes),
-
-  pt_cut(-1),
-  pt_high_cut(-1),
-  eta_cut(10),
-  mass_cut(-1),
-
-  has_pt_cut(false),
-  has_pt_high_cut(false),
-  has_eta_cut(false),
-  has_mass_cut(false)
-{}
-HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType const& type_) :
-  type(type_),
-
-  pt_cut(-1),
-  pt_high_cut(-1),
-  eta_cut(10),
-  mass_cut(-1),
-
-  has_pt_cut(false),
-  has_pt_high_cut(false),
-  has_eta_cut(false),
-  has_mass_cut(false)
-{}
-HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType const& type_, std::vector< std::pair<HLTObjectProperties::CutType, float> > const& cuts_) :
-  type(type_),
-
-  pt_cut(-1),
-  pt_high_cut(-1),
-  eta_cut(10),
-  mass_cut(-1),
-
-  has_pt_cut(false),
-  has_pt_high_cut(false),
-  has_eta_cut(false),
-  has_mass_cut(false)
+  type(HLTObjectProperties::nTriggerObjectTypes)
 {
+  resetCuts();
+}
+HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType const& type_) :
+  type(type_)
+{
+  resetCuts();
+}
+HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType const& type_, std::vector< std::pair<HLTObjectProperties::CutType, float> > const& cuts_) :
+  type(type_)
+{
+  resetCuts();
+
   for (auto const& type_val_pair:cuts_){
     float const& cut_val = type_val_pair.second;
     switch (type_val_pair.first){
@@ -69,7 +45,6 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties::TriggerObjectType 
     }
   }
 }
-
 HLTObjectProperties::HLTObjectProperties(HLTObjectProperties const& other) :
   type(other.type),
 
@@ -83,6 +58,18 @@ HLTObjectProperties::HLTObjectProperties(HLTObjectProperties const& other) :
   has_eta_cut(other.has_eta_cut),
   has_mass_cut(other.has_mass_cut)
 {}
+
+void HLTObjectProperties::resetCuts(){
+  pt_cut = -1;
+  pt_high_cut = -1;
+  eta_cut = 10;
+  mass_cut = -1;
+
+  has_pt_cut = false;
+  has_pt_high_cut = false;
+  has_eta_cut = false;
+  has_mass_cut = false;
+}
 
 bool HLTObjectProperties::testCuts(ParticleObject::LorentzVector_t const& p4, HLTObjectProperties::TriggerObjectType const& type_) const{
   if (type != type_ || type == HLTObjectProperties::nTriggerObjectTypes || type_ == HLTObjectProperties::nTriggerObjectTypes) return true;
