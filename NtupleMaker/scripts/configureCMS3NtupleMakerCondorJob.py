@@ -76,9 +76,9 @@ class BatchManager:
          self.opt.fcnargs = translateFromPythonToShell(self.opt.fcnargs)
 
       scramver = os.getenv("SCRAM_ARCH")
-      singularityver = "cms:rhel6"
+      singularityver = "cms:rhel6-m202006"
       if "slc7" in scramver:
-         singularityver = "cms:rhel7"
+         singularityver = "cms:rhel7-m202006"
 
       scriptargs = {
          "home" : os.path.expanduser("~"),
@@ -121,7 +121,7 @@ notification=Never
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT_OR_EVICT
 Requirements = ((HAS_SINGULARITY=?=True) && (HAS_CVMFS_cms_cern_ch =?= true)) || (regexp("(uaf-[0-9]{{1,2}}|uafino)\.", TARGET.Machine) && !(TARGET.SlotID>(TotalSlots<14 ? 3:7) && regexp("uaf-[0-9]", TARGET.machine)))
-+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/{SINGULARITYVERSION}"
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/{SINGULARITYVERSION}"
 
 
 queue
