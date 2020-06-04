@@ -124,10 +124,16 @@ void getMCTrees(std::vector<TString>& list, SystematicsHelpers::SystematicVariat
 float getWeightThreshold(TTree* tin, std::vector<float const*> weights){
   std::vector<float> last1percentweights;
   int const nEntries = tin->GetEntries();
-  int const nLast1percent = nEntries/100;
+  int nLast1percent = nEntries/1000;
+  float multiplier = 10.f;
+  //if (SampleHelpers::theDataYear == 2016){
+  //  nLast1percent = nEntries/100;
+  //  multiplier = 5.f;
+  //}
   last1percentweights.reserve(nLast1percent+1);
+  float smallest_wgt = 9e9;
 
-  MELAout << "Scanning for weight thresholds..." << endl;
+  MELAout << "Scanning for weight thresholds (nLast1percent=" << nLast1percent << ", multiplier=" << multiplier << ")..." << endl;
   for (int ev=0; ev<nEntries; ev++){
     tin->GetEntry(ev);
     HelperFunctions::progressbar(ev, nEntries);
@@ -136,17 +142,22 @@ float getWeightThreshold(TTree* tin, std::vector<float const*> weights){
     for (auto const& wgtvar:weights) wgt *= *wgtvar;
     HelperFunctions::addByHighest(last1percentweights, std::abs(wgt), false);
     if ((int) last1percentweights.size()==nLast1percent+1) last1percentweights.pop_back();
+
+    smallest_wgt = std::min(smallest_wgt, std::abs(wgt));
   }
   float res=-1;
   unsigned int idx_trim=0;
   for (auto const& wgt:last1percentweights){
-    if (wgt>5.f*last1percentweights.back()){
+    if (wgt>multiplier*last1percentweights.back()){
       res=wgt;
       idx_trim++;
     }
     else break;
   }
 
+  MELAout << "Smallest weight: " << smallest_wgt << endl;
+  MELAout << "Smallest accumulated weight: " << last1percentweights.back() << endl;
+  MELAout << "Largest weight: " << last1percentweights.front() << endl;
   MELAout << "Will trim weights at " << res << " for " << idx_trim << " / " << nEntries << " events..." << endl;
 
   return res;
@@ -172,6 +183,9 @@ Variable getVariable(TString name){
   }
   else if (name=="Nvtx"){
     ExtendedBinning binning(10, 12, 52); binning.addBinBoundary(0); binning.addBinBoundary(53);
+    if (SampleHelpers::theDataYear == 2016){
+      binning = ExtendedBinning(10, 8, 40); binning.addBinBoundary(0); binning.addBinBoundary(41);
+    }
     return Variable(name, "N_{vtx}", binning);
   }
   else if (name=="Njets"){
@@ -189,6 +203,10 @@ Variable getVariable(TString name){
   else if (name=="uParallel"){
     ExtendedBinning binning({ -510, -500, -400, -300, -250, -200, -150, -100, -50, 0, 10 });
     return Variable(name, "u_{//} (GeV)", binning);
+  }
+  else if (name=="MET"){
+    ExtendedBinning binning(40, 0, 400);
+    return Variable(name, "p_{T}^{miss} (GeV)", binning);
   }
   else{
     MELAerr << "getVariable: Name " << name << " is undefined." << endl;
@@ -224,7 +242,7 @@ void produceCorrection(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
   TString const coutput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/Corrections";
@@ -237,6 +255,7 @@ void produceCorrection(
 
   TString thiscorr = Form("Step%u_%s", istep, strSystName.data());
   TString stroutput = Form("%s/%s%s", coutput_main.Data(), thiscorr.Data(), ".root");
+  MELAout << "Opening output file " << stroutput << endl;
   TFile* foutput = TFile::Open(stroutput, "recreate");
 
   // Get sample specifications
@@ -273,7 +292,8 @@ void produceCorrection(
     strinput += ".root";
     MELAout << "Adding " << strinput << " to the MC tree chain..." << endl;
 
-    tins.back()->Add(strinput);
+    int nfiles = tins.back()->Add(strinput);
+    MELAout << "\t- Added " << nfiles << " files" << endl;
   }
   for (auto const& tin:tins) MELAout << "Total number of events: " << tin->GetEntries() << endl;
 
@@ -464,7 +484,6 @@ void produceCorrection(
 
   SampleHelpers::addToCondorTransferList(stroutput);
 }
-
 void produceCorrections(int year, TString prodVersion, TString strdate){
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
 
@@ -546,12 +565,12 @@ void produceFinalFits(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
   TString const cinput_corrections_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/Corrections";
   TString const coutput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/FinalFits/" + strMEToutname;
@@ -1352,7 +1371,8 @@ void testCorrections(int year, TString prodVersion){
 
 void getCorrectionValidationHistograms(
   TString period, TString prodVersion, TString strdate,
-  TString METtype, TString METCorrectionLevels
+  TString METtype, TString METCorrectionLevels,
+  SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal
 ){
   if (METtype!="pfmet" && METtype!="puppimet") return;
   TString strMET = METtype;
@@ -1374,7 +1394,7 @@ void getCorrectionValidationHistograms(
 
   constexpr bool applyPUIdToAK4Jets=true;
   constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
-  constexpr SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+
   std::string const strSystName = SystematicsHelpers::getSystName(theGlobalSyst);
   TString systname = strSystName.data();
   TString systlabel = systname;
@@ -1392,12 +1412,12 @@ void getCorrectionValidationHistograms(
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
   TString const cinput_corrections_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/Corrections";
   TString const coutput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/Validation/" + strMEToutname;
@@ -1475,7 +1495,7 @@ void getCorrectionValidationHistograms(
   float genmet=0;
   float genmet_phimiss=0;
 
-  TString stroutput = coutput_main + "/histograms.root";
+  TString stroutput = coutput_main + Form("/histograms_%s.root", strSystName.data());
   TFile* foutput = TFile::Open(stroutput, "recreate");
   std::vector<TH1F> hlist{
     TH1F("MET_data", "", 40, 0, 400),
@@ -1504,7 +1524,7 @@ void getCorrectionValidationHistograms(
     h.GetYaxis()->SetTitleOffset(1.1);
     h.GetYaxis()->SetTitleFont(42);
 
-    h.GetXaxis()->SetTitle("p_{T}^{miss} GeV");
+    h.GetXaxis()->SetTitle("p_{T}^{miss} (GeV)");
     h.GetYaxis()->SetTitle("Event / 10 GeV");
   }
   hlist.at(0).SetLineColor(kBlack); hlist.at(0).SetMarkerColor(kBlack);
@@ -1581,6 +1601,7 @@ void getCorrectionValidationHistograms(
         if (!isConversionSafe) continue;
         if (event_Njets==0) continue;
         if (pt_gamma<150.f) continue;
+        //if (!isEB) continue;
 
         float wgt = event_wgt*event_wgt_SFs*event_wgt_triggers;
         if (MC_wgt_thr>0.f && std::abs(wgt)>MC_wgt_thr) continue;
@@ -1626,8 +1647,8 @@ void getCorrectionValidationHistograms(
             hlist.at(2).Fill(pTmiss, wgt*wgt_corrs);
 
             METObject metobj;
-            metobj.extras.met_Nominal = pTmiss;
-            metobj.extras.metPhi_Nominal = phimiss;
+            metobj.extras.met_Nominal = metobj.extras.met_JECUp = metobj.extras.met_JECDn = pTmiss;
+            metobj.extras.metPhi_Nominal = metobj.extras.metPhi_JECUp = metobj.extras.metPhi_JECDn = phimiss;
             metobj.setSystematic(theGlobalSyst);
             metCorrectionHandler.applyCorrections(
               SampleHelpers::theDataPeriod,
@@ -1679,9 +1700,10 @@ void getCorrectionValidationHistograms(
 }
 void getCorrectionValidationHistogramSets(int year, TString prodVersion, TString strdate){
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
+  std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
 
   for (auto const& period:SampleHelpers::getValidDataPeriods()){
-    getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts");
+    for(auto const& syst:allowedSysts) getCorrectionValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", syst);
   }
 }
 
@@ -1723,26 +1745,93 @@ void plotValidationHistograms(
     TString("Observed (") + strDataPeriod+")",
     TString("Expected, uncorrected (") + strDataPeriod+")",
     TString("Expected, w/ corrs. (") + strDataPeriod+")",
-    TString("Expected, corrs.+smear (") + strDataPeriod+")"
+    TString("Expected, corrs.+smear (") + strDataPeriod+")",
+    "JES+JER+PU vars. after corrs.+smear"
   };
   unsigned int const nplottables = hlabels.size();
 
   TString const cinput_main =
-    "output/GJetsMETResolution/SkimTrees/" + strdate
+    "output/GJetsMETResolution/CorrectionsAndFits/" + strdate
     + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period + "/Validation/" + strMEToutname;
   TString const coutput_main = cinput_main;
 
-  TString strinput = cinput_main + "/histograms.root";
-  TFile* finput = TFile::Open(strinput, "read");
+  TDirectory* curdir = gDirectory;
 
-  std::vector<TH1F*> hlist;
-  HelperFunctions::extractHistogramsFromDirectory(finput, hlist);
+  std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts = getAllowedSysts();
+  std::vector<TFile*> finputlist; finputlist.reserve(allowedSysts.size());
+  std::vector<std::vector<TH1F*>> hlists(allowedSysts.size());
+  std::vector<TString> systnames; systnames.reserve(allowedSysts.size());
+  std::vector<TString> systlabels; systlabels.reserve(allowedSysts.size());
+  {
+    unsigned int isyst=0;
+    for (auto const& syst:allowedSysts){
+      SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+      std::string const strSystName = SystematicsHelpers::getSystName(theGlobalSyst);
+      TString systname = strSystName.data();
+      systnames.push_back(systname);
+      if (isyst%2==1){
+        TString systlabel = systname;
+        HelperFunctions::replaceString<TString, const TString>(systlabel, "Dn", "");
+        HelperFunctions::replaceString<TString, const TString>(systlabel, "Up", "");
+        systlabels.push_back(systlabel);
+      }
+
+      TString strinput = cinput_main + Form("/histograms_%s.root", strSystName.data());
+      TFile* finput = TFile::Open(strinput, "read");
+      finputlist.push_back(finput);
+
+      finput->cd();
+      HelperFunctions::extractHistogramsFromDirectory(finput, hlists.at(isyst));
+      curdir->cd();
+
+      isyst++;
+    }
+  }
+
+  std::vector<TH1F*> hplottables;
+  std::vector<TH1F*> hlegend;
+  // Add all nominal histograms
+  {
+    unsigned int ih=0;
+    for (TH1F* const& hist:hlists.front()){
+      hplottables.push_back(hist);
+      if (ih<=3) hlegend.push_back(hist);
+      ih++;
+    }
+  }
+  // Add variations only for the corrected histogram
+  for (unsigned int isyst=1; isyst<allowedSysts.size(); isyst++){
+    TH1F* const& hsyst = hlists.at(isyst).at(3);
+    hsyst->Add(hlists.front().at(3), -1);
+  }
+  TH1F* hsyst_up = (TH1F*) hlists.front().at(3)->Clone("hsyst_up"); hsyst_up->SetLineColor(kRed); hsyst_up->SetLineStyle(2); hsyst_up->SetLineWidth(2);
+  TH1F* hsyst_dn = (TH1F*) hlists.front().at(3)->Clone("hsyst_dn"); hsyst_dn->SetLineColor(kRed); hsyst_dn->SetLineStyle(7); hsyst_dn->SetLineWidth(2);
+  TH1F* hsyst_dum = (TH1F*) hlists.front().at(3)->Clone("hsyst_dum"); hsyst_dum->SetLineColor(kRed); hsyst_dum->SetLineStyle(1); hsyst_dum->SetLineWidth(2);
+  for (int ix=0; ix<=hsyst_up->GetNbinsX()+1; ix++){
+    double bc = hlists.front().at(3)->GetBinContent(ix);
+    double be_up=0;
+    double be_dn=0;
+
+    for (unsigned int isyst=1; isyst<allowedSysts.size(); isyst++){
+      TH1F* const& hsyst = hlists.at(isyst).at(3);
+      double bcs = hsyst->GetBinContent(ix);
+      if (bcs>0) be_up = sqrt(be_up*be_up + bcs*bcs);
+      else be_dn = sqrt(be_dn*be_dn + bcs*bcs);
+    }
+
+    hsyst_up->SetBinContent(ix, bc+be_up);
+    hsyst_dn->SetBinContent(ix, bc-be_dn);
+  }
+  hplottables.push_back(hsyst_up);
+  hplottables.push_back(hsyst_dn);
+  hlegend.push_back(hsyst_dum);
+  assert(hlegend.size() == hlabels.size());
+
   double ymin = 9e9;
   double ymax = -9e9;
-  for (size_t is=0; is<hlist.size(); is++){
-    TH1F* hist = hlist.at(is);
+  for (TH1F* const& hist:hplottables){
     TString hname = hist->GetName();
     HelperFunctions::wipeOverUnderFlows(hist, false, true);
     for (int ix=1; ix<=hist->GetNbinsX(); ix++){
@@ -1750,15 +1839,15 @@ void plotValidationHistograms(
       double be = hist->GetBinError(ix);
       if (be>0.2*std::abs(bc)) be = 0.2*std::abs(bc);
       ymax = std::max(ymax, bc+be);
-      ymin = std::min(ymin, std::abs(bc-be));
+      if (std::abs(bc-be)>0.) ymin = std::min(ymin, std::abs(bc-be));
     }
   }
-  ymax *= (useLogY ? 15 : 1.2);
+  ymax *= (useLogY ? 40 : 1.2);
   ymin *= (useLogY ? 0.8 : 0);
-  for (TH1F* const& hist:hlist) hist->GetYaxis()->SetRangeUser(ymin, ymax);
+  for (TH1F* const& hist:hplottables) hist->GetYaxis()->SetRangeUser(ymin, ymax);
 
   TGraphAsymmErrors* tg_data = nullptr;
-  HelperFunctions::convertTH1FToTGraphAsymmErrors(hlist.front(), tg_data, false, true);
+  HelperFunctions::convertTH1FToTGraphAsymmErrors(hplottables.front(), tg_data, false, true);
   tg_data->SetLineWidth(2);
   tg_data->SetLineColor(kBlack);
   tg_data->SetMarkerColor(kBlack);
@@ -1783,8 +1872,8 @@ void plotValidationHistograms(
   if (useLogY) canvas->SetLogy(true);
 
   TLegend* legend = new TLegend(
-    0.40,
-    0.90-0.10/4.*2.*float(nplottables),
+    0.32,
+    0.90-0.10/4.*2.*float(hlegend.size()),
     0.90,
     0.90
   );
@@ -1813,17 +1902,13 @@ void plotValidationHistograms(
   text->SetTextSize(0.0315);
 
   bool firstHist = true;
-  for (size_t is=0; is<hlist.size(); is++){
-    TH1F* hist = hlist.at(is);
-    TString hlabel = ""; if (is<nplottables) hlabel = hlabels.at(is);
+  for (size_t is=0; is<hplottables.size(); is++){
+    TH1F* hist = hplottables.at(is);
 
     hist->SetTitle("");
     hist->GetXaxis()->SetTitle("p_{T}^{miss} (GeV)");
-    if (hlabel!=""){
-      if (hist == hlist.front()) legend->AddEntry(tg_data, hlabel, "ep");
-      else legend->AddEntry(hist, hlabel, "f");
-    }
-    if (hist == hlist.front()) continue;
+
+    if (hist == hplottables.front()) continue;
 
     if (firstHist){
       hist->Draw("hist");
@@ -1832,6 +1917,12 @@ void plotValidationHistograms(
     else{
       hist->Draw("histsame");
     }
+  }
+  for (size_t is=0; is<hlegend.size(); is++){
+    TH1F* hist = hlegend.at(is);
+    TString hlabel = hlabels.at(is);
+    if (hist == hlegend.front()) legend->AddEntry(tg_data, hlabel, "ep");
+    else legend->AddEntry(hist, hlabel, "f");
   }
 
   // Re-draw data
@@ -1850,8 +1941,11 @@ void plotValidationHistograms(
   delete legend;
   canvas->Close();
   delete tg_data;
+  delete hsyst_dum;
+  delete hsyst_dn;
+  delete hsyst_up;
 
-  finput->Close();
+  for(auto& finput:finputlist) finput->Close();
 }
 void plotValidationHistogramSets(int year, TString prodVersion, TString strdate){
   SampleHelpers::configure(Form("%i", year), "hadoop_skims:"+prodVersion);
@@ -1860,4 +1954,10 @@ void plotValidationHistogramSets(int year, TString prodVersion, TString strdate)
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", false);
     plotValidationHistograms(period, prodVersion, strdate, "pfmet", "XY:JER:PartMomShifts", true);
   }
+}
+
+void runChain(int year, TString prodVersion, TString strdate){
+  produceFinalFitSets(year, prodVersion, strdate);
+  getCorrectionValidationHistogramSets(year, prodVersion, strdate);
+  plotValidationHistogramSets(year, prodVersion, strdate);
 }
