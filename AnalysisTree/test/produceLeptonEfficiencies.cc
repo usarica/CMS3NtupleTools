@@ -771,7 +771,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
             }
           }
         }
-        if (!(isNominalTrigger || isPrescaledTrigger || isControlTrigger)) continue;
+        if (!(isNominalTrigger || isHighPtTrigger || isPrescaledTrigger || isControlTrigger)) continue;
         n_pass_triggers[idx_emu]++;
 
         std::vector<MuonObject*> muons_tag;
