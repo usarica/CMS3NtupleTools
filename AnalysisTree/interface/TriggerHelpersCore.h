@@ -26,6 +26,7 @@ namespace TriggerHelpers{
     kSingleMu_Control_Iso,
 
     kSingleEle,
+    kSingleEle_Prescaled,
     kSingleEle_HighPt,
     kSingleEle_Control,
     // Subdivisions of kSingleEle_Control

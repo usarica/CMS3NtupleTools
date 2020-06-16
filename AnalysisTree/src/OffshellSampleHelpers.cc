@@ -297,12 +297,15 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     }
   }
   else if (theDataYear == 2017){
+    // Data
     if (
       sname == "DoubleEG" || sname == "DoubleMuon" || sname == "MuonEG"
       ||
       sname == "SingleElectron" || sname == "SingleMuon" || sname == "SinglePhoton"
       ||
       sname == "JetHT" || sname == "HTMHT" || sname == "MET"
+      ||
+      sname == "EGamma"
       ){
       for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
@@ -539,158 +542,17 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
   }
   else if (theDataYear == 2016){
     // Data
-    if (sname == "DoubleEG"){
-      constructSamplesList("DoubleEG_2016B", syst, samples);
-      constructSamplesList("DoubleEG_2016C", syst, samples);
-      constructSamplesList("DoubleEG_2016D", syst, samples);
-      constructSamplesList("DoubleEG_2016E", syst, samples);
-      constructSamplesList("DoubleEG_2016F", syst, samples);
-      constructSamplesList("DoubleEG_2016G", syst, samples);
-      constructSamplesList("DoubleEG_2016H", syst, samples);
+    if (
+      sname == "DoubleEG" || sname == "DoubleMuon" || sname == "MuonEG"
+      ||
+      sname == "SingleElectron" || sname == "SingleMuon" || sname == "SinglePhoton"
+      ||
+      sname == "JetHT" || sname == "HTMHT" || sname == "MET"
+      ||
+      sname == "EGamma"
+      ){
+      for (auto const& dp:SampleHelpers::getValidDataPeriods()) constructSamplesList(sname+"_"+dp, syst, samples);
     }
-    if (sname == "DoubleEG_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleEG_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "DoubleMuon"){
-      constructSamplesList("DoubleMuon_2016B", syst, samples);
-      constructSamplesList("DoubleMuon_2016C", syst, samples);
-      constructSamplesList("DoubleMuon_2016D", syst, samples);
-      constructSamplesList("DoubleMuon_2016E", syst, samples);
-      constructSamplesList("DoubleMuon_2016F", syst, samples);
-      constructSamplesList("DoubleMuon_2016G", syst, samples);
-      constructSamplesList("DoubleMuon_2016H", syst, samples);
-    }
-    if (sname == "DoubleMuon_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "DoubleMuon_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "MuonEG"){
-      constructSamplesList("MuonEG_2016B", syst, samples);
-      constructSamplesList("MuonEG_2016C", syst, samples);
-      constructSamplesList("MuonEG_2016D", syst, samples);
-      constructSamplesList("MuonEG_2016E", syst, samples);
-      constructSamplesList("MuonEG_2016F", syst, samples);
-      constructSamplesList("MuonEG_2016G", syst, samples);
-      constructSamplesList("MuonEG_2016H", syst, samples);
-    }
-    if (sname == "MuonEG_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "MuonEG_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016E-17Jul2018-v2/MINIAOD" });
-    if (sname == "MuonEG_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "MuonEG_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "SingleElectron"){
-      constructSamplesList("SingleElectron_2016B", syst, samples);
-      constructSamplesList("SingleElectron_2016C", syst, samples);
-      constructSamplesList("SingleElectron_2016D", syst, samples);
-      constructSamplesList("SingleElectron_2016E", syst, samples);
-      constructSamplesList("SingleElectron_2016F", syst, samples);
-      constructSamplesList("SingleElectron_2016G", syst, samples);
-      constructSamplesList("SingleElectron_2016H", syst, samples);
-    }
-    if (sname == "SingleElectron_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleElectron_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "SingleMuon"){
-      constructSamplesList("SingleMuon_2016B", syst, samples);
-      constructSamplesList("SingleMuon_2016C", syst, samples);
-      constructSamplesList("SingleMuon_2016D", syst, samples);
-      constructSamplesList("SingleMuon_2016E", syst, samples);
-      constructSamplesList("SingleMuon_2016F", syst, samples);
-      constructSamplesList("SingleMuon_2016G", syst, samples);
-      constructSamplesList("SingleMuon_2016H", syst, samples);
-    }
-    if (sname == "SingleMuon_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "SingleMuon_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "SinglePhoton"){
-      constructSamplesList("SinglePhoton_2016B", syst, samples);
-      constructSamplesList("SinglePhoton_2016C", syst, samples);
-      constructSamplesList("SinglePhoton_2016D", syst, samples);
-      constructSamplesList("SinglePhoton_2016E", syst, samples);
-      constructSamplesList("SinglePhoton_2016F", syst, samples);
-      constructSamplesList("SinglePhoton_2016G", syst, samples);
-      constructSamplesList("SinglePhoton_2016H", syst, samples);
-    }
-    if (sname == "SinglePhoton_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "SinglePhoton_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "JetHT"){
-      constructSamplesList("JetHT_2016B", syst, samples);
-      constructSamplesList("JetHT_2016C", syst, samples);
-      constructSamplesList("JetHT_2016D", syst, samples);
-      constructSamplesList("JetHT_2016E", syst, samples);
-      constructSamplesList("JetHT_2016F", syst, samples);
-      constructSamplesList("JetHT_2016G", syst, samples);
-      constructSamplesList("JetHT_2016H", syst, samples);
-    }
-    if (sname == "JetHT_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016B-17Jul2018_ver2-v2/MINIAOD" });
-    if (sname == "JetHT_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "JetHT_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "JetHT_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "JetHT_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "JetHT_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "JetHT_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "HTMHT"){
-      constructSamplesList("HTMHT_2016B", syst, samples);
-      constructSamplesList("HTMHT_2016C", syst, samples);
-      constructSamplesList("HTMHT_2016D", syst, samples);
-      constructSamplesList("HTMHT_2016E", syst, samples);
-      constructSamplesList("HTMHT_2016F", syst, samples);
-      constructSamplesList("HTMHT_2016G", syst, samples);
-      constructSamplesList("HTMHT_2016H", syst, samples);
-    }
-    if (sname == "HTMHT_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "HTMHT_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "HTMHT_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "HTMHT_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "HTMHT_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "HTMHT_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "HTMHT_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016H-17Jul2018-v1/MINIAOD" });
-
-    if (sname == "MET"){
-      constructSamplesList("MET_2016B", syst, samples);
-      constructSamplesList("MET_2016C", syst, samples);
-      constructSamplesList("MET_2016D", syst, samples);
-      constructSamplesList("MET_2016E", syst, samples);
-      constructSamplesList("MET_2016F", syst, samples);
-      constructSamplesList("MET_2016G", syst, samples);
-      constructSamplesList("MET_2016H", syst, samples);
-    }
-    if (sname == "MET_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
-    if (sname == "MET_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016C-17Jul2018-v1/MINIAOD" });
-    if (sname == "MET_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016D-17Jul2018-v1/MINIAOD" });
-    if (sname == "MET_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016E-17Jul2018-v1/MINIAOD" });
-    if (sname == "MET_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016F-17Jul2018-v1/MINIAOD" });
-    if (sname == "MET_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016G-17Jul2018-v1/MINIAOD" });
-    if (sname == "MET_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016H-17Jul2018-v2/MINIAOD" });
     for (auto const& dp:SampleHelpers::getValidDataPeriods()){
       if (sname == Form("EGamma_%s", dp.Data())){
         constructSamplesList(Form("DoubleEG_%s", dp.Data()), syst, samples);
@@ -776,7 +638,69 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
       constructSamplesList("HTMHT_2016H", syst, samples);
       constructSamplesList("MET_2016H", syst, samples);
     }
-
+    if (sname == "DoubleEG_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleEG_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleEG/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "DoubleMuon_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/DoubleMuon/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "MuonEG_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016E-17Jul2018-v2/MINIAOD" });
+    if (sname == "MuonEG_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "MuonEG_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MuonEG/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleElectron_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleElectron/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "SingleMuon_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SingleMuon/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "SinglePhoton_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/SinglePhoton/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016B-17Jul2018_ver2-v2/MINIAOD" });
+    if (sname == "JetHT_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "JetHT_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/JetHT/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "HTMHT_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "HTMHT_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/HTMHT/Run2016H-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016B") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016B-17Jul2018_ver2-v1/MINIAOD" });
+    if (sname == "MET_2016C") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016C-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016D") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016D-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016E") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016E-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016F") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016F-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016G") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016G-17Jul2018-v1/MINIAOD" });
+    if (sname == "MET_2016H") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/MET/Run2016H-17Jul2018-v2/MINIAOD" });
 
     // Simulation for the main signals
     // GGH ZZ 2l2nu POWHEG
