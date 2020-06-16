@@ -208,9 +208,6 @@ void getTrees(
     TriggerHelpers::kSingleMu_Control,
     TriggerHelpers::kSingleEle_Control
   };
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_singlephoton{
-    TriggerHelpers::kSinglePho
-  };
   auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
   auto triggerPropsCheckList_highpt = TriggerHelpers::getHLTMenuProperties(requiredTriggers_highpt);
   auto triggerPropsCheckList_prescaled = TriggerHelpers::getHLTMenuProperties(requiredTriggers_prescaled);
@@ -423,6 +420,7 @@ BRANCH_COMMAND(bool, pass_extraTight_l1) \
 BRANCH_COMMAND(float, dxy_l1) \
 BRANCH_COMMAND(float, dz_l1) \
 BRANCH_COMMAND(float, minDR_photon_l1) \
+BRANCH_COMMAND(float, mass_true_ll) \
 BRANCH_COMMAND(bool, isGenMatched_l1) \
 BRANCH_COMMAND(int, id_genMatch_l1) \
 BRANCH_COMMAND(float, dR_genMatch_l1) \
@@ -948,6 +946,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         event_wgt_SFs *= SF_btagging;
 
         event_NGenPromptLeptons = 0;
+        mass_true_ll = -1;
         isGenMatched_l1 = isGenMatched_l2 = false;
         id_genMatch_l1 = id_genMatch_l2 = 0;
         dR_genMatch_l1 = dR_genMatch_l2 = -1;
@@ -989,18 +988,22 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           );
 
           auto it_tag = tmp_map.find(leptons.front());
-          if (it_tag!=tmp_map.cend() && it_tag->second){
+          bool hasTagMatch = it_tag!=tmp_map.cend() && it_tag->second;
+          if (hasTagMatch){
             isGenMatched_l1 = (std::abs(it_tag->first->pdgId()) == std::abs(it_tag->second->pdgId()));
             id_genMatch_l1 = it_tag->second->pdgId();
             dR_genMatch_l1 = it_tag->first->deltaR(it_tag->second->p4());
           }
 
           auto it_probe = tmp_map.find(leptons.back());
-          if (it_probe!=tmp_map.cend() && it_probe->second){
+          bool hasProbeMatch = it_probe!=tmp_map.cend() && it_probe->second;
+          if (hasProbeMatch){
             isGenMatched_l2 = (std::abs(it_probe->first->pdgId()) == std::abs(it_probe->second->pdgId()));
             id_genMatch_l2 = it_probe->second->pdgId();
             dR_genMatch_l2 = it_probe->first->deltaR(it_probe->second->p4());
           }
+
+          if (hasTagMatch && hasProbeMatch) mass_true_ll = (it_tag->second->p4() + it_probe->second->p4()).M();
         }
 
         if (idx_emu==0) tout_ele->Fill();
