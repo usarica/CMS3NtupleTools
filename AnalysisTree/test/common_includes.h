@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "SamplesCore.h"
 #include "OffshellSampleHelpers.h"
 #include "OffshellTriggerHelpers.h"
