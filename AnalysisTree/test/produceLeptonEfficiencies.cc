@@ -202,7 +202,8 @@ void getTrees(
   };
   // The difference between control and prescaled is that the HLT prescale for the 'prescaled' label could be 0 or 1 (hopefully).
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_prescaled{
-    TriggerHelpers::kSingleMu_Prescaled
+    TriggerHelpers::kSingleMu_Prescaled,
+    TriggerHelpers::kSingleEle_Prescaled
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_control{
     TriggerHelpers::kSingleMu_Control,
