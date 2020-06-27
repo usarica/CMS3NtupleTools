@@ -339,6 +339,10 @@ BRANCH_COMMAND(float, phi_g) \
 BRANCH_COMMAND(bool, pass_conversionVeto_g) \
 BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_g) \
 BRANCH_COMMAND(float, etaSC_g) \
+BRANCH_COMMAND(float, full5x5_r9_g) \
+BRANCH_COMMAND(float, pfChargedHadronIso_EAcorr_g) \
+BRANCH_COMMAND(float, pfNeutralHadronIso_EAcorr_g) \
+BRANCH_COMMAND(float, pfEMIso_EAcorr_g) \
 BRANCH_COMMAND(float, minDR_photon_g) \
 BRANCH_COMMAND(float, minDR_electron_g) \
 BRANCH_COMMAND(float, minDR_muon_g) \
@@ -737,6 +741,10 @@ BRANCH_COMMAND(float, dR_genMatch_g)
         pass_conversionVeto_g = get_conversionVeto(theChosenEGPair->second);
         fid_mask_g = get_fid_mask(theChosenEGPair->second);
         etaSC_g = get_etaSC(theChosenEGPair->second);
+        full5x5_r9_g = theChosenEGPair->second->extras.full5x5_r9;
+        pfChargedHadronIso_EAcorr_g = theChosenEGPair->second->extras.pfChargedHadronIso_EAcorr;
+        pfNeutralHadronIso_EAcorr_g = theChosenEGPair->second->extras.pfNeutralHadronIso_EAcorr;
+        pfEMIso_EAcorr_g = theChosenEGPair->second->extras.pfEMIso_EAcorr;
         minDR_photon_g = minDR_electron_g = minDR_muon_g = -1;
         for (auto const& photon:photons_selected){
           if (photon == theChosenEGPair->second) continue;

@@ -30,6 +30,9 @@ float getPFIsoDR0p3_EAcorr(ElectronObject const* part){
 float getPFIsoDR0p4_EAcorr(ElectronObject const* part){
   return ElectronSelectionHelpers::relPFIso_DR0p4(*part);
 }
+float getMiniIso(ElectronObject const* part){
+  return ElectronSelectionHelpers::relMiniIso(*part);
+}
 
 bool testTagBaseSelection(MuonObject const* part){
   return ParticleSelectionHelpers::isTightParticle(part);
@@ -54,6 +57,9 @@ float getPFIsoDR0p3_EAcorr(MuonObject const* part){
 }
 float getPFIsoDR0p4_EAcorr(MuonObject const* part){
   return MuonSelectionHelpers::relPFIso_EACorr_DR0p4(*part);
+}
+float getMiniIso(MuonObject const* part){
+  return MuonSelectionHelpers::relMiniIso(*part);
 }
 
 bool testTagBaseSelection(ParticleObject const* part){
@@ -110,6 +116,13 @@ float getPFIsoDR0p4_EAcorr(ParticleObject const* part){
   ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
   if (muon) return getPFIsoDR0p4_EAcorr(muon);
   else if (electron) return getPFIsoDR0p4_EAcorr(electron);
+  else return -1;
+}
+float getMiniIso(ParticleObject const* part){
+  MuonObject const* muon = dynamic_cast<MuonObject const*>(part);
+  ElectronObject const* electron = dynamic_cast<ElectronObject const*>(part);
+  if (muon) return getMiniIso(muon);
+  else if (electron) return getMiniIso(electron);
   else return -1;
 }
 
@@ -200,19 +213,8 @@ void getTrees(
     TriggerHelpers::kSingleMu_HighPt,
     TriggerHelpers::kSingleEle_HighPt
   };
-  // The difference between control and prescaled is that the HLT prescale for the 'prescaled' label could be 0 or 1 (hopefully).
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_prescaled{
-    TriggerHelpers::kSingleMu_Prescaled,
-    TriggerHelpers::kSingleEle_Prescaled
-  };
-  std::vector<TriggerHelpers::TriggerType> requiredTriggers_control{
-    TriggerHelpers::kSingleMu_Control,
-    TriggerHelpers::kSingleEle_Control
-  };
   auto triggerPropsCheckList = TriggerHelpers::getHLTMenuProperties(requiredTriggers);
   auto triggerPropsCheckList_highpt = TriggerHelpers::getHLTMenuProperties(requiredTriggers_highpt);
-  auto triggerPropsCheckList_prescaled = TriggerHelpers::getHLTMenuProperties(requiredTriggers_prescaled);
-  auto triggerPropsCheckList_control = TriggerHelpers::getHLTMenuProperties(requiredTriggers_control);
 
   TString strSystName = SystematicsHelpers::getSystName(theGlobalSyst).data();
   SystematicsHelpers::SystematicVariationTypes eleSyst = theGlobalSyst;
@@ -390,7 +392,6 @@ void getTrees(
 
 #define BRANCHES_COMMON \
 BRANCH_COMMAND(float, event_wgt) \
-BRANCH_COMMAND(float, event_wgt_triggers) \
 BRANCH_COMMAND(float, event_wgt_SFs) \
 BRANCH_COMMAND(float, genmet_pTmiss) \
 BRANCH_COMMAND(float, genmet_phimiss) \
@@ -398,21 +399,21 @@ BRANCH_COMMAND(float, pfmet_pTmiss) \
 BRANCH_COMMAND(float, pfmet_phimiss) \
 BRANCH_COMMAND(float, puppimet_pTmiss) \
 BRANCH_COMMAND(float, puppimet_phimiss) \
-BRANCH_COMMAND(bool, isNominalTrigger) \
-BRANCH_COMMAND(bool, isHighPtTrigger) \
-BRANCH_COMMAND(bool, isPrescaledTrigger) \
-BRANCH_COMMAND(bool, isControlTrigger) \
 BRANCH_COMMAND(unsigned int, event_nvtxs_good) \
 BRANCH_COMMAND(unsigned int, event_Njets) \
 BRANCH_COMMAND(unsigned int, event_Njets20) \
 BRANCH_COMMAND(unsigned int, event_Njets_btagged) \
 BRANCH_COMMAND(unsigned int, event_Njets20_btagged) \
-BRANCH_COMMAND(unsigned int, event_NGenPromptLeptons) \
+BRANCH_COMMAND(unsigned int, event_NGenPromptLeptons)
+#define BRANCHES_VECTORIZED \
+BRANCH_COMMAND(bool, isNominalTrigger) \
+BRANCH_COMMAND(bool, isHighPtTrigger) \
 BRANCH_COMMAND(float, pt_ll) \
 BRANCH_COMMAND(float, eta_ll) \
 BRANCH_COMMAND(float, phi_ll) \
 BRANCH_COMMAND(float, mass_ll) \
 BRANCH_COMMAND(float, dR_l1_l2) \
+BRANCH_COMMAND(float, mass_true_ll) \
 BRANCH_COMMAND(int, id_l1) \
 BRANCH_COMMAND(float, pt_l1) \
 BRANCH_COMMAND(float, eta_l1) \
@@ -421,9 +422,11 @@ BRANCH_COMMAND(bool, pass_extraTight_l1) \
 BRANCH_COMMAND(float, dxy_l1) \
 BRANCH_COMMAND(float, dz_l1) \
 BRANCH_COMMAND(float, minDR_photon_l1) \
-BRANCH_COMMAND(float, mass_true_ll) \
 BRANCH_COMMAND(bool, isGenMatched_l1) \
 BRANCH_COMMAND(int, id_genMatch_l1) \
+BRANCH_COMMAND(float, pt_genMatch_l1) \
+BRANCH_COMMAND(float, eta_genMatch_l1) \
+BRANCH_COMMAND(float, phi_genMatch_l1) \
 BRANCH_COMMAND(float, dR_genMatch_l1) \
 BRANCH_COMMAND(bool, hasTightCharge_l1) \
 BRANCH_COMMAND(int, id_l2) \
@@ -437,10 +440,14 @@ BRANCH_COMMAND(float, dz_l2) \
 BRANCH_COMMAND(float, minDR_photon_l2) \
 BRANCH_COMMAND(bool, isGenMatched_l2) \
 BRANCH_COMMAND(int, id_genMatch_l2) \
+BRANCH_COMMAND(float, pt_genMatch_l2) \
+BRANCH_COMMAND(float, eta_genMatch_l2) \
+BRANCH_COMMAND(float, phi_genMatch_l2) \
 BRANCH_COMMAND(float, dR_genMatch_l2) \
 BRANCH_COMMAND(bool, hasTightCharge_l2) \
 BRANCH_COMMAND(float, relPFIso_DR0p3_EAcorr_l2) \
-BRANCH_COMMAND(float, relPFIso_DR0p4_EAcorr_l2)
+BRANCH_COMMAND(float, relPFIso_DR0p4_EAcorr_l2) \
+BRANCH_COMMAND(float, miniIso_l2)
 
 #define BRANCHES_DIELECTRONS \
 BRANCH_COMMAND(cms3_egamma_fid_type_mask_t, fid_mask_l1) \
@@ -458,23 +465,26 @@ BRANCH_COMMAND(float, minDR_electron_l2) \
 BRANCH_COMMAND(float, relPFIso_DR0p3_DBcorr_l2) \
 BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
 
-#define BRANCH_COMMAND(type, name) type name = 0;
+#define BRANCH_COMMAND(type, name) type name = 0; tout_ele->Branch(#name, &name); tout_mu->Branch(#name, &name);
     BRANCHES_COMMON;
+#undef BRANCH_COMMAND
+#define BRANCH_COMMAND(type, name) std::vector<type> vec_##name;
+    BRANCHES_VECTORIZED;
     BRANCHES_DIELECTRONS;
     BRANCHES_DIMUONS;
 #undef BRANCH_COMMAND
-
-#define BRANCH_COMMAND(type, name) tout_ele->Branch(#name, &name); tout_mu->Branch(#name, &name);
-    BRANCHES_COMMON;
+#define BRANCH_COMMAND(type, name) tout_ele->Branch(#name, &vec_##name); tout_mu->Branch(#name, &vec_##name);
+    BRANCHES_VECTORIZED;
 #undef BRANCH_COMMAND
-
-#define BRANCH_COMMAND(type, name) tout_ele->Branch(#name, &name);
+#define BRANCH_COMMAND(type, name) tout_ele->Branch(#name, &vec_##name);
     BRANCHES_DIELECTRONS;
 #undef BRANCH_COMMAND
-
-#define BRANCH_COMMAND(type, name) tout_mu->Branch(#name, &name);
+#define BRANCH_COMMAND(type, name) tout_mu->Branch(#name, &vec_##name);
     BRANCHES_DIMUONS;
 #undef BRANCH_COMMAND
+
+    // Set auto save to 0 in order to get one key per tree
+    tout_ele->SetAutoSave(0); tout_mu->SetAutoSave(0);
 
     foutput->cd();
 
@@ -491,15 +501,12 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     size_t n_pass_uniqueEvent=0;
     size_t n_pass_commonFilters=0;
     size_t n_pass_goodPVFilter=0;
-    std::vector<size_t> n_pass_dilepton(2, 0);
+    std::vector<size_t> n_pass_dileptonPresel(2, 0);
     std::vector<size_t> n_pass_photonVeto(2, 0);
     std::vector<size_t> n_pass_isotrackVeto(2, 0);
-    std::vector<size_t> n_pass_triggers(2, 0);
-    std::vector<size_t> n_hasTO(2, 0);
-    std::vector<size_t> n_pass_triggercheck(2, 0);
-    std::vector<size_t> n_pass_TOMatch(2, 0);
     std::vector<size_t> n_pass_hasTag(2, 0);
-    std::vector<size_t> n_pass_tagTOMatch(2, 0);
+    std::vector<size_t> n_pass_triggers(2, 0);
+    std::vector<size_t> n_pass_hasTPpair(2, 0);
     std::vector<size_t> n_pass_HEMfilter(2, 0);
     std::vector<size_t> n_evts_acc(2, 0);
     bool firstEvent=true;
@@ -516,6 +523,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
 
       event_wgt = xsec * xsec_scale * (isData ? 1.f : lumi) / sum_wgts;
 
+      event_NGenPromptLeptons = 0;
+      std::vector<GenParticleObject const*> genpromptleptons;
       if (!isData){
         genInfoHandler.constructGenInfo(theGlobalSyst);
         auto const& genInfo = genInfoHandler.getGenInfo();
@@ -546,6 +555,31 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           }
         }
 
+        genpromptleptons.reserve(genparticles.size());
+        for (auto const& part:genparticles){
+          unsigned int abs_id = std::abs(part->pdgId());
+          if (
+            (part->extras.isPromptFinalState || (hardProcessFallback && part->extras.isHardProcess))
+            &&
+            (abs_id==11 || abs_id==13)
+            ) genpromptleptons.push_back(part);
+        }
+        static bool printOnce=true;
+        if (printOnce && genpromptleptons.empty()){
+          for (auto const& part:genparticles){
+            MELAout
+              << "Gen particle id = " << part->pdgId() << ", st = " << part->status()
+              << ", isPromptFinalState=" << part->extras.isPromptFinalState
+              << ", isDirectPromptTauDecayProductFinalState = " << part->extras.isDirectPromptTauDecayProductFinalState
+              << ", isHardProcess = " << part->extras.isHardProcess
+              << ", fromHardProcessFinalState = " << part->extras.fromHardProcessFinalState
+              << ", isDirectHardProcessTauDecayProductFinalState = " << part->extras.isDirectHardProcessTauDecayProductFinalState
+              << endl;
+          }
+          printOnce=false;
+        }
+        event_NGenPromptLeptons = genpromptleptons.size();
+
         simEventHandler.constructSimEvent(theGlobalSyst);
         event_wgt *= simEventHandler.getPileUpWeight()*simEventHandler.getL1PrefiringWeight();
 
@@ -569,6 +603,12 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
       for (unsigned short idx_emu=0; idx_emu<2; idx_emu++){
         event_wgt_SFs = 1;
 
+#define BRANCH_COMMAND(type, name) vec_##name.clear(); vec_##name.reserve(2);
+        BRANCHES_VECTORIZED;
+        BRANCHES_DIELECTRONS;
+        BRANCHES_DIMUONS;
+#undef BRANCH_COMMAND
+
         muonHandler.constructMuons(theGlobalSyst);
         electronHandler.constructElectrons(theGlobalSyst);
         photonHandler.constructPhotons(theGlobalSyst);
@@ -578,8 +618,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         auto const& photons = photonHandler.getProducts();
 
         ParticleObject::LorentzVector_t sump4_leptons(0, 0, 0, 0);
-        std::vector<MuonObject*> muons_selected; muons_selected.reserve(muons.size());
         std::vector<ElectronObject*> electrons_selected; electrons_selected.reserve(electrons.size());
+        std::vector<MuonObject*> muons_selected; muons_selected.reserve(muons.size());
         if (idx_emu==0){
           for (auto const& part:electrons){
             if (part->testSelectionBit(ElectronSelectionHelpers::kProbeId)){
@@ -646,8 +686,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           ||
           sump4_leptons.Pt()>=10000.
           ) continue;
-
-        n_pass_dilepton[idx_emu]++;
+        n_pass_dileptonPresel[idx_emu]++;
 
         unsigned int n_photons_tight = 0;
         float SF_photons = 1;
@@ -733,196 +772,13 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         auto const& ak4jets = jetHandler.getAK4Jets();
         auto const& ak8jets = jetHandler.getAK8Jets();
 
-        auto const& pfmet = jetHandler.getPFMET();
-        if (!isData) metCorrectionHandler.applyCorrections(
-          simEventHandler.getChosenDataPeriod(),
-          genmet_pTmiss, genmet_phimiss,
-          pfmet, true
-        );
-        auto pfmet_p4 = pfmet->p4(true, true, true);
-        pfmet_pTmiss = pfmet_p4.Pt();
-        pfmet_phimiss = pfmet_p4.Phi();
-
-        auto const& puppimet = jetHandler.getPFPUPPIMET();
-        if (!isData) metCorrectionHandler.applyCorrections(
-          simEventHandler.getChosenDataPeriod(),
-          genmet_pTmiss, genmet_phimiss,
-          puppimet, false
-        );
-        auto puppimet_p4 = puppimet->p4(true, true, true);
-        puppimet_pTmiss = puppimet_p4.Pt();
-        puppimet_phimiss = puppimet_p4.Phi();
-
-        isNominalTrigger = isHighPtTrigger = isPrescaledTrigger = isControlTrigger = false;
-        HLTTriggerPathObject const* passingHLTPath = nullptr;
-        event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, (idx_emu==1 ? &muons_selected : nullptr), (idx_emu==0 ? &electrons_selected : nullptr), nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
-        if (event_wgt_triggers != 0.f) isNominalTrigger = true;
-        else{
-          event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_highpt, (idx_emu==1 ? &muons_selected : nullptr), (idx_emu==0 ? &electrons_selected : nullptr), nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
-          if (event_wgt_triggers != 0.f) isHighPtTrigger = true;
-          else{
-            event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_prescaled, (idx_emu==1 ? &muons_selected : nullptr), (idx_emu==0 ? &electrons_selected : nullptr), nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
-            if (event_wgt_triggers != 0.f) isPrescaledTrigger = true;
-            else{
-              // Pass the ak4 jets as well because the electron control triggers also require PFJet30.
-              event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_control, (idx_emu==1 ? &muons_selected : nullptr), (idx_emu==0 ? &electrons_selected : nullptr), nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
-              if (event_wgt_triggers != 0.f) isControlTrigger = true;
-            }
-          }
-        }
-        if (!(isNominalTrigger || isHighPtTrigger || isPrescaledTrigger || isControlTrigger)) continue;
-        n_pass_triggers[idx_emu]++;
-
-        std::vector<MuonObject*> muons_tag;
-        std::vector<ElectronObject*> electrons_tag;
-        {
-          auto const& passedTriggerObjects = passingHLTPath->getPassedTriggerObjects();
-          if (!passedTriggerObjects.empty()) n_hasTO[idx_emu]++;
-
-          std::vector<MuonObject*> muons_trigcheck_TOmatched;
-          std::vector<MuonObject*> muons_trigcheck; muons_trigcheck.reserve(muons_selected.size());
-          for (auto const& part:muons_selected){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) muons_trigcheck.push_back(part); }
-
-          std::vector<ElectronObject*> electrons_trigcheck_TOmatched;
-          std::vector<ElectronObject*> electrons_trigcheck; electrons_trigcheck.reserve(electrons_selected.size());
-          for (auto const& part:electrons_selected){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) electrons_trigcheck.push_back(part); }
-
-          if (muons_trigcheck.empty() && electrons_trigcheck.empty()) continue;
-          n_pass_triggercheck[idx_emu]++;
-
-          if (idx_emu==0){
-            TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerElectron, trigger::TriggerPhoton, trigger::TriggerCluster }, 0.2,
-              electrons_trigcheck, electrons_trigcheck_TOmatched
-            );
-          }
-          else{
-            TriggerObject::getMatchedPhysicsObjects(
-              passedTriggerObjects, { trigger::TriggerMuon }, 0.2,
-              muons_trigcheck, muons_trigcheck_TOmatched
-            );
-          }
-
-          if (muons_trigcheck_TOmatched.empty() && electrons_trigcheck_TOmatched.empty()) continue;
-          n_pass_TOMatch[idx_emu]++;
-
-          for (auto const& part:muons_trigcheck_TOmatched){ if (testTagBaseSelection(part)) muons_tag.push_back(part); }
-          for (auto const& part:electrons_trigcheck_TOmatched){ if (testTagBaseSelection(part)) electrons_tag.push_back(part); }
-        }
-        if (muons_tag.empty() && electrons_tag.empty()) continue;
-        n_pass_hasTag[idx_emu]++;
-
-        std::vector<MuonObject*> muons_probe; muons_probe.reserve(muons_selected.size() - muons_tag.size());
-        for (auto const& part:muons_selected){ if (!HelperFunctions::checkListVariable(muons_tag, part)) muons_probe.push_back(part); }
-        std::vector<ElectronObject*> electrons_probe; electrons_probe.reserve(electrons_selected.size() - electrons_tag.size());
-        for (auto const& part:electrons_selected){ if (!HelperFunctions::checkListVariable(electrons_tag, part)) electrons_probe.push_back(part); }
-
-        // Test dilepton OS with trigger matching
-        ParticleObject const* lepton_tag = nullptr;
-        ParticleObject* lepton_probe = nullptr;
-        if (muons_tag.size()==2){
-          lepton_tag = (muons_tag.front()->pt()>=muons_tag.back()->pt() ? muons_tag.front() : muons_tag.back());
-          lepton_probe = (muons_tag.front()->pt()>=muons_tag.back()->pt() ? muons_tag.back() : muons_tag.front());
-        }
-        else if (muons_tag.size()==1){
-          lepton_tag = muons_tag.front();
-          lepton_probe = muons_probe.front();
-        }
-        if (electrons_tag.size()==2){
-          lepton_tag = (electrons_tag.front()->pt()>=electrons_tag.back()->pt() ? electrons_tag.front() : electrons_tag.back());
-          lepton_probe = (electrons_tag.front()->pt()>=electrons_tag.back()->pt() ? electrons_tag.back() : electrons_tag.front());
-        }
-        else if (electrons_tag.size()==1){
-          lepton_tag = electrons_tag.front();
-          lepton_probe = electrons_probe.front();
-        }
-        if (!lepton_tag || !lepton_probe) continue;
-        n_pass_tagTOMatch[idx_emu]++;
-
-        // LL
-        auto const p4_dilepton = lepton_tag->p4() + lepton_probe->p4();
-        pt_ll = p4_dilepton.Pt();
-        eta_ll = p4_dilepton.Eta();
-        phi_ll = p4_dilepton.Phi();
-        mass_ll = p4_dilepton.M();
-        dR_l1_l2 = lepton_tag->deltaR(lepton_probe->p4());
-        // L1
-        id_l1 = lepton_tag->pdgId();
-        pt_l1 = lepton_tag->pt();
-        eta_l1 = lepton_tag->eta();
-        phi_l1 = lepton_tag->phi();
-        pass_extraTight_l1 = testExtraTightTagSelection(lepton_tag);
-        dxy_l1 = get_dxy(lepton_tag);
-        dz_l1 = get_dz(lepton_tag);
-        fid_mask_l1 = get_fid_mask(lepton_tag);
-        etaSC_l1 = get_etaSC(lepton_tag);
-        hasTightCharge_l1 = get_tightCharge(lepton_tag);
-        passTiming_l1 = testTiming(lepton_tag);
-        // L2
-        id_l2 = lepton_probe->pdgId();
-        pt_l2 = lepton_probe->pt();
-        eta_l2 = lepton_probe->eta();
-        phi_l2 = lepton_probe->phi();
-        pass_preselectionId_l2 = testPreselectionId(lepton_probe);
-        pass_preselectionIso_l2 = testPreselectionIso(lepton_probe);
-        relPFIso_DR0p3_DBcorr_l2 = getPFIsoDR0p3_DBcorr(lepton_probe);
-        relPFIso_DR0p4_DBcorr_l2 = getPFIsoDR0p4_DBcorr(lepton_probe);
-        relPFIso_DR0p3_EAcorr_l2 = getPFIsoDR0p3_EAcorr(lepton_probe);
-        relPFIso_DR0p4_EAcorr_l2 = getPFIsoDR0p4_EAcorr(lepton_probe);
-        dxy_l2 = get_dxy(lepton_probe);
-        dz_l2 = get_dz(lepton_probe);
-        fid_mask_l2 = get_fid_mask(lepton_probe);
-        etaSC_l2 = get_etaSC(lepton_probe);
-        hasTightCharge_l2 = get_tightCharge(lepton_probe);
-        passTiming_l2 = testTiming(lepton_probe);
-
-        // Find the different delta Rs
-        minDR_muon_l1 = minDR_muon_l2 = -1;
-        minDR_electron_l1 = minDR_electron_l2 = -1;
-        minDR_photon_l1 = minDR_photon_l2 = -1;
-        if (idx_emu==0){
-          for (auto const& part:muons){
-            if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
-
-            float dR_tag = lepton_tag->deltaR(part->p4());
-            if (minDR_muon_l1<0.f || dR_tag<minDR_muon_l1) minDR_muon_l1 = dR_tag;
-            float dR_probe = lepton_probe->deltaR(part->p4());
-            if (minDR_muon_l2<0.f || dR_probe<minDR_muon_l2) minDR_muon_l2 = dR_probe;
-          }
-        }
-        else{
-          for (auto const& part:electrons){
-            if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
-
-            float dR_tag = lepton_tag->deltaR(part->p4());
-            if (minDR_electron_l1<0.f || dR_tag<minDR_electron_l1) minDR_electron_l1 = dR_tag;
-            float dR_probe = lepton_probe->deltaR(part->p4());
-            if (minDR_electron_l2<0.f || dR_probe<minDR_electron_l2) minDR_electron_l2 = dR_probe;
-          }
-        }
-        for (auto const& part:photons){
-          if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
-
-          float dR_tag = lepton_tag->deltaR(part->p4());
-          if (minDR_photon_l1<0.f || dR_tag<minDR_photon_l1) minDR_photon_l1 = dR_tag;
-          float dR_probe = lepton_probe->deltaR(part->p4());
-          if (minDR_photon_l2<0.f || dR_probe<minDR_photon_l2) minDR_photon_l2 = dR_probe;
-        }
-
-        std::vector<ElectronObject*> electron_probe_container; electron_probe_container.reserve(1);
-        if (std::abs(id_l2)==11) electron_probe_container.push_back(dynamic_cast<ElectronObject*>(lepton_probe));
-
-        // Test HEM filter
-        if (!eventFilter.test2018HEMFilter(&simEventHandler, &electron_probe_container, nullptr, &ak4jets, &ak8jets)) continue;
-        n_pass_HEMfilter[idx_emu]++;
-
         event_Njets = 0;
         event_Njets20 = 0;
         event_Njets_btagged = 0;
         event_Njets20_btagged = 0;
         float SF_btagging = 1;
         ParticleObject::LorentzVector_t ak4jets_sump4(0, 0, 0, 0);
-        for (auto* jet:ak4jets){
+        for (auto const& jet:ak4jets){
           float theSF = 1;
           if (!isData) btagSFHandler.getSFAndEff(theGlobalSyst, jet, theSF, nullptr);
           if (theSF != 0.f) SF_btagging *= theSF;
@@ -946,67 +802,207 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         }
         event_wgt_SFs *= SF_btagging;
 
-        event_NGenPromptLeptons = 0;
-        mass_true_ll = -1;
-        isGenMatched_l1 = isGenMatched_l2 = false;
-        id_genMatch_l1 = id_genMatch_l2 = 0;
-        dR_genMatch_l1 = dR_genMatch_l2 = -1;
-        if (!isData){
-          std::vector<ParticleObject const*> leptons; leptons.reserve(2);
-          leptons.push_back(lepton_tag);
-          leptons.push_back(lepton_probe);
-          auto const& genparticles = genInfoHandler.getGenParticles();
-          std::vector<GenParticleObject const*> genpromptleptons; genpromptleptons.reserve(genparticles.size());
-          for (auto const& part:genparticles){
-            unsigned int abs_id = std::abs(part->pdgId());
-            if (
-              (part->extras.isPromptFinalState || (hardProcessFallback && part->extras.isHardProcess))
-              &&
-              (abs_id==11 || abs_id==13)
-              ) genpromptleptons.push_back(part);
+        auto const& pfmet = jetHandler.getPFMET();
+        if (!isData) metCorrectionHandler.applyCorrections(
+          simEventHandler.getChosenDataPeriod(),
+          genmet_pTmiss, genmet_phimiss,
+          pfmet, true
+        );
+        auto pfmet_p4 = pfmet->p4(true, true, true);
+        pfmet_pTmiss = pfmet_p4.Pt();
+        pfmet_phimiss = pfmet_p4.Phi();
+
+        auto const& puppimet = jetHandler.getPFPUPPIMET();
+        if (!isData) metCorrectionHandler.applyCorrections(
+          simEventHandler.getChosenDataPeriod(),
+          genmet_pTmiss, genmet_phimiss,
+          puppimet, false
+        );
+        auto puppimet_p4 = puppimet->p4(true, true, true);
+        puppimet_pTmiss = puppimet_p4.Pt();
+        puppimet_phimiss = puppimet_p4.Phi();
+
+        for (unsigned int ipair=0; ipair<2; ipair++){
+#define BRANCH_COMMAND(type, name) type name = 0;
+          BRANCHES_VECTORIZED;
+          BRANCHES_DIELECTRONS;
+          BRANCHES_DIMUONS;
+#undef BRANCH_COMMAND
+
+          std::vector<ElectronObject*> electrons_tag; electrons_tag.reserve(1);
+          std::vector<MuonObject*> muons_tag; muons_tag.reserve(1);
+          if (idx_emu==0){
+            if (ipair==0 && testTagBaseSelection(electrons_selected.front())) electrons_tag.push_back(electrons_selected.front());
+            else if (ipair==1 && testTagBaseSelection(electrons_selected.back())) electrons_tag.push_back(electrons_selected.back());
           }
-          static bool printOnce=true;
-          if (printOnce && genpromptleptons.empty()){
-            for (auto const& part:genparticles){
-              MELAout
-                << "Gen particle id = " << part->pdgId() << ", st = " << part->status()
-                << ", isPromptFinalState=" << part->extras.isPromptFinalState
-                << ", isDirectPromptTauDecayProductFinalState = " << part->extras.isDirectPromptTauDecayProductFinalState
-                << ", isHardProcess = " << part->extras.isHardProcess
-                << ", fromHardProcessFinalState = " << part->extras.fromHardProcessFinalState
-                << ", isDirectHardProcessTauDecayProductFinalState = " << part->extras.isDirectHardProcessTauDecayProductFinalState
-                << endl;
+          else{
+            if (ipair==0 && testTagBaseSelection(muons_selected.front())) muons_tag.push_back(muons_selected.front());
+            else if (ipair==1 && testTagBaseSelection(muons_selected.back())) muons_tag.push_back(muons_selected.back());
+          }
+          if ((idx_emu==0 && electrons_tag.empty()) || (idx_emu==1 && muons_tag.empty())) continue;
+          n_pass_hasTag[idx_emu]++;
+
+          isNominalTrigger = isHighPtTrigger = false;
+          HLTTriggerPathObject const* passingHLTPath = nullptr;
+          float event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList, &muons_tag, &electrons_tag, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
+          if (event_wgt_triggers != 0.f) isNominalTrigger = true;
+          else{
+            event_wgt_triggers = eventFilter.getTriggerWeight(triggerPropsCheckList_highpt, &muons_tag, &electrons_tag, nullptr, &ak4jets, nullptr, nullptr, &passingHLTPath);
+            if (event_wgt_triggers != 0.f) isHighPtTrigger = true;
+          }
+          if (event_wgt_triggers != 1.f) continue;
+          n_pass_triggers[idx_emu]++;
+
+          std::vector<ElectronObject*> electrons_probe;
+          std::vector<MuonObject*> muons_probe;
+          if (idx_emu==0){
+            electrons_probe.reserve(electrons_selected.size() - electrons_tag.size());
+            for (auto const& part:electrons_selected){ if (!HelperFunctions::checkListVariable(electrons_tag, part)) electrons_probe.push_back(part); }
+          }
+          else{
+            muons_probe.reserve(muons_selected.size() - muons_tag.size());
+            for (auto const& part:muons_selected){ if (!HelperFunctions::checkListVariable(muons_tag, part)) muons_probe.push_back(part); }
+          }
+
+          if ((idx_emu==0 && electrons_probe.size()!=1) || (idx_emu==1 && muons_probe.size()!=1)) continue;
+          n_pass_hasTPpair[idx_emu]++;
+
+          // Test HEM filter
+          if (!eventFilter.test2018HEMFilter(&simEventHandler, &electrons_probe, nullptr, &ak4jets, &ak8jets)) continue;
+          n_pass_HEMfilter[idx_emu]++;
+
+          // Test dilepton OS with trigger matching
+          ParticleObject const* lepton_tag = (idx_emu==0 ? (ParticleObject const*) electrons_tag.front() : (ParticleObject const*) muons_tag.front());
+          ParticleObject* lepton_probe = (idx_emu==0 ? (ParticleObject*) electrons_probe.front() : (ParticleObject*) muons_probe.front());
+
+          // LL
+          auto const p4_dilepton = lepton_tag->p4() + lepton_probe->p4();
+          pt_ll = p4_dilepton.Pt();
+          eta_ll = p4_dilepton.Eta();
+          phi_ll = p4_dilepton.Phi();
+          mass_ll = p4_dilepton.M();
+          dR_l1_l2 = lepton_tag->deltaR(lepton_probe->p4());
+          // L1
+          id_l1 = lepton_tag->pdgId();
+          pt_l1 = lepton_tag->pt();
+          eta_l1 = lepton_tag->eta();
+          phi_l1 = lepton_tag->phi();
+          pass_extraTight_l1 = testExtraTightTagSelection(lepton_tag);
+          dxy_l1 = get_dxy(lepton_tag);
+          dz_l1 = get_dz(lepton_tag);
+          fid_mask_l1 = get_fid_mask(lepton_tag);
+          etaSC_l1 = get_etaSC(lepton_tag);
+          hasTightCharge_l1 = get_tightCharge(lepton_tag);
+          passTiming_l1 = testTiming(lepton_tag);
+          // L2
+          id_l2 = lepton_probe->pdgId();
+          pt_l2 = lepton_probe->pt();
+          eta_l2 = lepton_probe->eta();
+          phi_l2 = lepton_probe->phi();
+          pass_preselectionId_l2 = testPreselectionId(lepton_probe);
+          pass_preselectionIso_l2 = testPreselectionIso(lepton_probe);
+          relPFIso_DR0p3_DBcorr_l2 = getPFIsoDR0p3_DBcorr(lepton_probe);
+          relPFIso_DR0p4_DBcorr_l2 = getPFIsoDR0p4_DBcorr(lepton_probe);
+          relPFIso_DR0p3_EAcorr_l2 = getPFIsoDR0p3_EAcorr(lepton_probe);
+          relPFIso_DR0p4_EAcorr_l2 = getPFIsoDR0p4_EAcorr(lepton_probe);
+          miniIso_l2 = getMiniIso(lepton_probe);
+          dxy_l2 = get_dxy(lepton_probe);
+          dz_l2 = get_dz(lepton_probe);
+          fid_mask_l2 = get_fid_mask(lepton_probe);
+          etaSC_l2 = get_etaSC(lepton_probe);
+          hasTightCharge_l2 = get_tightCharge(lepton_probe);
+          passTiming_l2 = testTiming(lepton_probe);
+
+          // Find the different delta Rs
+          minDR_muon_l1 = minDR_muon_l2 = -1;
+          minDR_electron_l1 = minDR_electron_l2 = -1;
+          minDR_photon_l1 = minDR_photon_l2 = -1;
+          if (idx_emu==0){
+            for (auto const& part:muons){
+              if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
+
+              float dR_tag = lepton_tag->deltaR(part->p4());
+              if (minDR_muon_l1<0.f || dR_tag<minDR_muon_l1) minDR_muon_l1 = dR_tag;
+              float dR_probe = lepton_probe->deltaR(part->p4());
+              if (minDR_muon_l2<0.f || dR_probe<minDR_muon_l2) minDR_muon_l2 = dR_probe;
             }
-            printOnce=false;
           }
-          event_NGenPromptLeptons = genpromptleptons.size();
-          std::unordered_map<ParticleObject const*, GenParticleObject const*> tmp_map;
-          ParticleObjectHelpers::matchParticles(
-            ParticleObjectHelpers::kMatchBy_DeltaR,
-            leptons.cbegin(), leptons.cend(),
-            genpromptleptons.cbegin(), genpromptleptons.cend(),
-            tmp_map
-          );
+          else{
+            for (auto const& part:electrons){
+              if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
 
-          auto it_tag = tmp_map.find(leptons.front());
-          bool hasTagMatch = it_tag!=tmp_map.cend() && it_tag->second;
-          if (hasTagMatch){
-            isGenMatched_l1 = (std::abs(it_tag->first->pdgId()) == std::abs(it_tag->second->pdgId()));
-            id_genMatch_l1 = it_tag->second->pdgId();
-            dR_genMatch_l1 = it_tag->first->deltaR(it_tag->second->p4());
+              float dR_tag = lepton_tag->deltaR(part->p4());
+              if (minDR_electron_l1<0.f || dR_tag<minDR_electron_l1) minDR_electron_l1 = dR_tag;
+              float dR_probe = lepton_probe->deltaR(part->p4());
+              if (minDR_electron_l2<0.f || dR_probe<minDR_electron_l2) minDR_electron_l2 = dR_probe;
+            }
           }
+          for (auto const& part:photons){
+            if (!ParticleSelectionHelpers::isTightParticle(part)) continue;
 
-          auto it_probe = tmp_map.find(leptons.back());
-          bool hasProbeMatch = it_probe!=tmp_map.cend() && it_probe->second;
-          if (hasProbeMatch){
-            isGenMatched_l2 = (std::abs(it_probe->first->pdgId()) == std::abs(it_probe->second->pdgId()));
-            id_genMatch_l2 = it_probe->second->pdgId();
-            dR_genMatch_l2 = it_probe->first->deltaR(it_probe->second->p4());
+            float dR_tag = lepton_tag->deltaR(part->p4());
+            if (minDR_photon_l1<0.f || dR_tag<minDR_photon_l1) minDR_photon_l1 = dR_tag;
+            float dR_probe = lepton_probe->deltaR(part->p4());
+            if (minDR_photon_l2<0.f || dR_probe<minDR_photon_l2) minDR_photon_l2 = dR_probe;
           }
 
-          if (hasTagMatch && hasProbeMatch) mass_true_ll = (it_tag->second->p4() + it_probe->second->p4()).M();
+          mass_true_ll = -1;
+          isGenMatched_l1 = isGenMatched_l2 = false;
+          id_genMatch_l1 = id_genMatch_l2 = 0;
+          pt_genMatch_l1 = pt_genMatch_l2 = -1;
+          eta_genMatch_l1 = eta_genMatch_l2 = 0;
+          phi_genMatch_l1 = phi_genMatch_l2 = 0;
+          dR_genMatch_l1 = dR_genMatch_l2 = -1;
+          if (!isData){
+            std::vector<ParticleObject const*> leptons; leptons.reserve(2);
+            leptons.push_back(lepton_tag);
+            leptons.push_back(lepton_probe);
+
+            std::unordered_map<ParticleObject const*, GenParticleObject const*> tmp_map;
+            ParticleObjectHelpers::matchParticles(
+              ParticleObjectHelpers::kMatchBy_DeltaR,
+              leptons.cbegin(), leptons.cend(),
+              genpromptleptons.cbegin(), genpromptleptons.cend(),
+              tmp_map
+            );
+
+            auto it_tag = tmp_map.find(leptons.front());
+            bool hasTagMatch = it_tag!=tmp_map.cend() && it_tag->second;
+            if (hasTagMatch){
+              isGenMatched_l1 = (std::abs(it_tag->first->pdgId()) == std::abs(it_tag->second->pdgId()));
+              id_genMatch_l1 = it_tag->second->pdgId();
+              pt_genMatch_l1 = it_tag->second->pt();
+              eta_genMatch_l1 = it_tag->second->eta();
+              phi_genMatch_l1 = it_tag->second->phi();
+              dR_genMatch_l1 = it_tag->first->deltaR(it_tag->second->p4());
+            }
+
+            auto it_probe = tmp_map.find(leptons.back());
+            bool hasProbeMatch = it_probe!=tmp_map.cend() && it_probe->second;
+            if (hasProbeMatch){
+              isGenMatched_l2 = (std::abs(it_probe->first->pdgId()) == std::abs(it_probe->second->pdgId()));
+              id_genMatch_l2 = it_probe->second->pdgId();
+              pt_genMatch_l2 = it_probe->second->pt();
+              eta_genMatch_l2 = it_probe->second->eta();
+              phi_genMatch_l2 = it_probe->second->phi();
+              dR_genMatch_l2 = it_probe->first->deltaR(it_probe->second->p4());
+            }
+
+            if (hasTagMatch && hasProbeMatch) mass_true_ll = (it_tag->second->p4() + it_probe->second->p4()).M();
+          }
+
+#define BRANCH_COMMAND(type, name) vec_##name.push_back(name);
+          BRANCHES_VECTORIZED;
+          if (idx_emu==0){
+            BRANCHES_DIELECTRONS;
+          }
+          else{
+            BRANCHES_DIMUONS;
+          }
+#undef BRANCH_COMMAND
         }
 
+        if (vec_mass_ll.empty()) continue;
         if (idx_emu==0) tout_ele->Fill();
         else tout_mu->Fill();
         n_evts_acc[idx_emu]++;
@@ -1019,15 +1015,12 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
       << "\t\t- Unique event: " << n_pass_uniqueEvent << '\n'
       << "\t\t- Common filters: " << n_pass_commonFilters << '\n'
       << "\t\t- Good PV filter: " << n_pass_goodPVFilter << '\n'
-      << "\t\t- Dilepton base selection: " << n_pass_dilepton[0]+n_pass_dilepton[1] << " (" << n_pass_dilepton << ")" << '\n'
+      << "\t\t- Dilepton base selection: " << n_pass_dileptonPresel[0]+n_pass_dileptonPresel[1] << " (" << n_pass_dileptonPresel << ")" << '\n'
       << "\t\t- Photon veto: " << n_pass_photonVeto[0]+n_pass_photonVeto[1] << " (" <<  n_pass_photonVeto << ")" << '\n'
       << "\t\t- Isotrack veto: " << n_pass_isotrackVeto[0]+n_pass_isotrackVeto[1] << " (" <<  n_pass_isotrackVeto << ")" << '\n'
-      << "\t\t- Trigger: " << n_pass_triggers[0]+n_pass_triggers[1] << " (" << n_pass_triggers << ")" << '\n'
-      << "\t\t- Has trigger objects: " << n_hasTO[0]+n_hasTO[1] << " (" << n_hasTO << ")" << '\n'
-      << "\t\t- Trigger check: " << n_pass_triggercheck[0]+n_pass_triggercheck[1] << " (" << n_pass_triggercheck << ")" << '\n'
-      << "\t\t- Pass TO matching: " << n_pass_TOMatch[0]+n_pass_TOMatch[1] << " (" << n_pass_TOMatch << ")" << '\n'
       << "\t\t- Has tag: " << n_pass_hasTag[0]+n_pass_hasTag[1] << " (" << n_pass_hasTag << ")" << '\n'
-      << "\t\t- Tag trigger object matching: " << n_pass_tagTOMatch[0]+n_pass_tagTOMatch[1] << " (" << n_pass_tagTOMatch << ")" << '\n'
+      << "\t\t- Trigger: " << n_pass_triggers[0]+n_pass_triggers[1] << " (" << n_pass_triggers << ")" << '\n'
+      << "\t\t- Has tag-probe pair: " << n_pass_hasTPpair[0]+n_pass_hasTPpair[1] << " (" << n_pass_hasTPpair << ")" << '\n'
       << "\t\t- HEM15/16 veto: " << n_pass_HEMfilter[0]+n_pass_HEMfilter[1] << " (" << n_pass_HEMfilter << ")"
       << endl;
 
@@ -1037,6 +1030,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
     // Write output
     foutput->WriteTObject(tout_ele);
     foutput->WriteTObject(tout_mu);
+    delete tout_ele;
+    delete tout_mu;
     foutput->Close();
 
     SampleHelpers::addToCondorTransferList(stroutput);
