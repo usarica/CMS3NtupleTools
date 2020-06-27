@@ -229,7 +229,11 @@ cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/ffwarn.dat ./
 cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/input.DAT ./
 cp -rf ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/Pdfdata ./
 # Run the script
-RUN_CMD=$(runGenericROOTCommand.py --loadlib="loadLib.C" --script="$SCRIPT" --function="$FCN" --command="$FCNARGS" --recompile --dry) # Must force recompilation
+LOADLIB="loadLib.C"
+if [[ -d ${CMSSW_BASE}/src/HiggsAnalysis/CombinedLimit ]]; then
+  LOADLIB="loadLibExtra.C"
+fi
+RUN_CMD=$(runGenericROOTCommand.py --loadlib="$LOADLIB" --script="$SCRIPT" --function="$FCN" --command="$FCNARGS" --recompile --dry) # Must force recompilation
 if [[ "$RUN_CMD" == "Running "* ]];then
   echo "$RUN_CMD"
   RUN_CMD=${RUN_CMD//"Running "}

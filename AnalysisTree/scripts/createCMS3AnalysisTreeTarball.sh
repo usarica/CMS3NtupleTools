@@ -37,7 +37,17 @@ if [[ ! -z "$EXTRAFILES" ]];then
   extraTarFile="extras.more"
 fi
 
-tar Jcvf ${TARFILE} ${extraTarFile} \
+extraIncludes=""
+extraExcludes=""
+if [[ -d ${CMSSW_BASE}/src/HiggsAnalysis/CombinedLimit ]]; then
+  extraIncludes="${extraIncludes} src/HiggsAnalysis/CombinedLimit"
+  extraExcludes="${extraExcludes} --exclude=src/HiggsAnalysis/CombinedLimit/data --exclude=src/HiggsAnalysis/CombinedLimit/doc*"
+
+  echo "extraIncludes is now ${extraIncludes}"
+  echo "extraExcludes is now ${extraExcludes}"
+fi
+
+tar Jcvf ${TARFILE} ${extraTarFile} ${extraIncludes} \
 lib \
 biglib \
 bin \
@@ -50,7 +60,7 @@ src/CMS3/Dictionaries \
 src/CMS3/MELAHelpers \
 --exclude=src/*/*/src \
 --exclude=src/*/*/bin \
---exclude=src/*/*/scripts \
+--exclude=src/*/*/scripts ${extraExcludes} \
 --exclude=src/ZZMatrixElement/MELA/test/reference \
 --exclude=src/ZZMatrixElement/MELA/test/Pdfdata \
 --exclude=src/ZZMatrixElement/MELA/test/*.d \
