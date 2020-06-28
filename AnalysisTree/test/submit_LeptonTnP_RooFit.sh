@@ -6,7 +6,7 @@ prodVersion=$3
 script=produceLeptonEfficiencies_RooFit.cc
 function=getEfficiencies
 jobdate="${date}_LeptonTnP_RooFit"
-arguments='"<period>","<prodVersion>","<strdate>",<is_ee>,<eeGapCode>,<resPdgId>,"<systOptions>",<minPt_tag>,<fit_low>,<fit_high>'
+arguments='"<period>","<prodVersion>","<strdate>",<is_ee>,<eeGapCode>,<resPdgId>,"<systOptions>",<minPt_tag>,<fit_low>,<fit_high>,<bin_pt>,<bin_eta>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"
 arguments="${arguments/<prodVersion>/$prodVersion}"
@@ -32,7 +32,7 @@ fi
 
 
 # Do ee events first
-for eeGapCode in -1 0 1; do
+for eeGapCode in {-1..1}; do
 for minPtTag in "${minPtTags_ee[@]}"; do
 for syst in "${systOptions[@]}"; do
 
@@ -44,10 +44,10 @@ for syst in "${systOptions[@]}"; do
 
   # Do Z mass windows
   for iw in {1..3}; do
-    if [[ "$syst" == "MC"* ]] && [[ $iw -gt 1 ]]; then
+    if [[ "$syst" == *"MC"* ]] && [[ $iw -gt 1 ]]; then
       continue
     fi
-    if [[ "$syst" == "PU"* ]] && [[ $iw -gt 1 ]]; then
+    if [[ "$syst" == *"PU"* ]] && [[ $iw -gt 1 ]]; then
       continue
     fi
     if [[ "$syst" == *"ALTBkg"* ]] && [[ $iw -ne 3 ]]; then
@@ -64,12 +64,45 @@ for syst in "${systOptions[@]}"; do
       let fit_high=110
     fi
 
-    strargs="${strargscore}"
-    strargs="${strargs/<resPdgId>/23}"
-    strargs="${strargs/<fit_low>/${fit_low}}"
-    strargs="${strargs/<fit_high>/${fit_high}}"
+    let bin_pt_min=-1
+    let bin_pt_max=-1
+    let bin_eta_min=-1
+    let bin_eta_max=-1
+    if [[ "$syst" == *"MC"* ]] || [[ "$syst" == *"PU"* ]]; then
+      let bin_pt_min=-1
+      let bin_pt_max=-1
+      let bin_eta_min=-1
+      let bin_eta_max=-1
+    elif [[ $eeGapCode -eq -1 ]]; then
+      let bin_pt_min=0
+      let bin_pt_max=11
+      let bin_eta_min=0
+      let bin_eta_max=10
+    elif [[ $eeGapCode -eq 0 ]]; then
+      let bin_pt_min=0
+      let bin_pt_max=11
+      let bin_eta_min=0
+      let bin_eta_max=8
+    elif [[ $eeGapCode -eq 1 ]]; then
+      let bin_pt_min=0
+      let bin_pt_max=11
+      let bin_eta_min=0
+      let bin_eta_max=6
+    fi
 
-    echo submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+    for ptbin in $(seq ${bin_pt_min} ${bin_pt_max}); do
+      for etabin in $(seq ${bin_eta_min} ${bin_eta_max}); do
+        strargs="${strargscore}"
+        strargs="${strargs/<resPdgId>/23}"
+        strargs="${strargs/<fit_low>/${fit_low}}"
+        strargs="${strargs/<fit_high>/${fit_high}}"
+        strargs="${strargs/<bin_pt>/${ptbin}}"
+        strargs="${strargs/<bin_eta>/${etabin}}"
+
+        submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+      done
+    done
+
   done
 
 done
@@ -109,12 +142,35 @@ for syst in "${systOptions[@]}"; do
       let fit_high=110
     fi
 
-    strargs="${strargscore}"
-    strargs="${strargs/<resPdgId>/23}"
-    strargs="${strargs/<fit_low>/${fit_low}}"
-    strargs="${strargs/<fit_high>/${fit_high}}"
+    let bin_pt_min=-1
+    let bin_pt_max=-1
+    let bin_eta_min=-1
+    let bin_eta_max=-1
+    if [[ "$syst" == *"MC"* ]] || [[ "$syst" == *"PU"* ]]; then
+      let bin_pt_min=-1
+      let bin_pt_max=-1
+      let bin_eta_min=-1
+      let bin_eta_max=-1
+    else
+      let bin_pt_min=0
+      let bin_pt_max=10
+      let bin_eta_min=0
+      let bin_eta_max=8
+    fi
 
-    echo submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+    for ptbin in $(seq ${bin_pt_min} ${bin_pt_max}); do
+      for etabin in $(seq ${bin_eta_min} ${bin_eta_max}); do
+        strargs="${strargscore}"
+        strargs="${strargs/<resPdgId>/23}"
+        strargs="${strargs/<fit_low>/${fit_low}}"
+        strargs="${strargs/<fit_high>/${fit_high}}"
+        strargs="${strargs/<bin_pt>/${ptbin}}"
+        strargs="${strargs/<bin_eta>/${etabin}}"
+
+        submitCMS3AnalysisProduction.sh script="${script}" function="${function}" arguments="${strargs}" date="${jobdate}"
+      done
+    done
+
   done
 
 done

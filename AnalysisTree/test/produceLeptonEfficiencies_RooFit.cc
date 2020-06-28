@@ -604,7 +604,7 @@ void fitMCDataset(
   RooCmdArg minimizerStrategyArg = RooFit::Strategy(currentFitStrategy);
   RooCmdArg minimizerStrategyRobustArg = RooFit::Strategy(2);
   cmdList.Add((TObject*) &minimizerStrategyArg);
-  RooCmdArg cpuArg = RooFit::NumCPU(4, 0); cmdList.Add((TObject*) &cpuArg);
+  RooCmdArg cpuArg = RooFit::NumCPU(4, 0); if (!SampleHelpers::checkRunOnCondor()) cmdList.Add((TObject*) &cpuArg);
   // Misc. options
   RooCmdArg timerArg = RooFit::Timer(true); cmdList.Add((TObject*) &timerArg);
   //RooCmdArg printlevelArg = RooFit::PrintLevel(3); cmdList.Add((TObject*) &printlevelArg);
@@ -941,7 +941,7 @@ void fitDataset(
   RooCmdArg minimizerStrategyArg = RooFit::Strategy(currentFitStrategy);
   RooCmdArg minimizerStrategyRobustArg = RooFit::Strategy(2);
   cmdList.Add((TObject*) &minimizerStrategyArg);
-  RooCmdArg cpuArg = RooFit::NumCPU(4, 0); cmdList.Add((TObject*) &cpuArg);
+  RooCmdArg cpuArg = RooFit::NumCPU(4, 0); if (!SampleHelpers::checkRunOnCondor()) cmdList.Add((TObject*) &cpuArg);
   // Misc. options
   RooCmdArg timerArg = RooFit::Timer(true); cmdList.Add((TObject*) &timerArg);
   //RooCmdArg printlevelArg = RooFit::PrintLevel(3); cmdList.Add((TObject*) &printlevelArg);
@@ -1233,8 +1233,8 @@ void getPtEtaBinning(
 ){
   ExtendedBinning binning_Z_electron_pt({ 5, 15, 20, 25, 30, 36, 40, 42, 44.5, 50, 55, 13000 }, "Probe p^{e}_{T} (GeV)");
   ExtendedBinning binning_inc_electron_eta({ -2.5, -2., -1.566, -1.4442, -1., 0., 1., 1.4442, 1.566, 2., 2.5 }, "Probe #eta^{SC}_{e}");
-  ExtendedBinning binning_gap_electron_eta({ -2.5, -1.566, -1.4442, 0., 1.4442, 1.566, 2.5 }, "Probe #eta^{SC}_{e}");
   ExtendedBinning binning_nongap_electron_eta({ -2.5, -2., -1.479, -1., 0., 1., 1.479, 2., 2.5 }, "Probe #eta^{SC}_{e}");
+  ExtendedBinning binning_gap_electron_eta({ -2.5, -1.566, -1.4442, 0., 1.4442, 1.566, 2.5 }, "Probe #eta^{SC}_{e}");
 
   ExtendedBinning binning_JPsi_muon_pt({ 5, 8, 11, 15, 20 }, "Probe p^{#mu}_{T} (GeV)");
   ExtendedBinning binning_Z_muon_pt({ 5, 15, 20, 25, 30, 34, 37.5, 41, 44.5, 54, 13000 }, "Probe p^{#mu}_{T} (GeV)");
@@ -1257,7 +1257,8 @@ void getEfficiencies(
   TString period, TString prodVersion, TString strdate,
   bool is_ee, int eeGapCode, int resPdgId,
   TString systOptions,
-  float minPt_tag, float fit_low, float fit_high
+  float minPt_tag, float fit_low, float fit_high,
+  int bin_pt=-1, int bin_eta=-1
 ){
   const double mll_inf = PDGHelpers::Zmass - 42.;
   const double mll_sup = PDGHelpers::Zmass + 42.;
@@ -1266,8 +1267,8 @@ void getEfficiencies(
   if (!is_ee && !(resPdgId==23 || resPdgId==443)) return;
 
   bool useALTSig = systOptions.Contains("ALTSig");
-  bool useALTBkg = systOptions.Contains("ALTBkg");
   bool useALTBkg2 = systOptions.Contains("ALTBkg2");
+  bool useALTBkg = systOptions.Contains("ALTBkg") && !useALTBkg2;
   bool useTightTag = systOptions.Contains("TightTag");
   bool useMC_2l2nu = systOptions.Contains("MC_2l2nu");
   bool useMC_4l = systOptions.Contains("MC_4l");
@@ -1300,7 +1301,8 @@ void getEfficiencies(
 
   TString cinput_base_dir;
   if (!SampleHelpers::checkRunOnCondor()) cinput_base_dir = "output/";
-  else cinput_base_dir = "/hadoop/cms/store/user/${USER}/Offshell_2L2Nu/Worker/output/";
+  else cinput_base_dir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/";
+  HostHelpers::ExpandEnvironmentVariables(cinput_base_dir);
 
   TString const cinput_main =
     cinput_base_dir
@@ -1341,6 +1343,30 @@ void getEfficiencies(
     return;
   }
 
+  ExtendedBinning binning_pt;
+  ExtendedBinning binning_eta;
+  getPtEtaBinning(
+    is_ee,
+    eeGapCode,
+    resPdgId,
+    binning_pt, binning_eta
+  );
+  //binning_pt = ExtendedBinning({ 30, 40 }, "");
+  //binning_eta = ExtendedBinning({ 0, 1 }, "");
+  //binning_pt = ExtendedBinning({ 55, 13000 }, "");
+  //binning_eta = ExtendedBinning({ 0, 1 }, "");
+  //binning_pt = ExtendedBinning({ 20, 25 }, "");
+  //binning_eta = ExtendedBinning({ -2, -1.566 }, "");
+  //binning_pt = ExtendedBinning({ 5, 15 }, "");
+  //binning_eta = ExtendedBinning({ -1.566, -1.4442 }, "");
+  if (bin_pt>=0){
+    if (bin_pt>=(int) binning_pt.getNbins()) return;
+    binning_pt = ExtendedBinning({ binning_pt.getBinLowEdge(bin_pt), binning_pt.getBinHighEdge(bin_pt) }, binning_pt.getLabel());
+  }
+  if (bin_eta>=0){
+    if (bin_eta>=(int) binning_eta.getNbins()) return;
+    binning_eta = ExtendedBinning({ binning_eta.getBinLowEdge(bin_eta), binning_eta.getBinHighEdge(bin_eta) }, binning_eta.getLabel());
+  }
   gSystem->mkdir(coutput_main, true);
 
   curdir->cd();
@@ -1383,6 +1409,8 @@ void getEfficiencies(
     convertFloatToTitleString(minPt_tag).Data(),
     convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
   );
+  if (bin_pt>=0) strnameapp = Form("%s_ptbin_%i", strnameapp.Data(), bin_pt);
+  if (bin_eta>=0) strnameapp = Form("%s_etabin_%i", strnameapp.Data(), bin_eta);
   TString coutput = Form("DataFits_%s%s", strnameapp.Data(), ".root");
   TString stroutput = Form("%s/%s", coutput_main.Data(), coutput.Data());
   TFile* foutput = TFile::Open(stroutput, "recreate");
@@ -1514,23 +1542,6 @@ void getEfficiencies(
   RooRealVar var_eta_probe("eta_probe", "#eta_{probe}", 0, -5, 5); var_eta_probe.removeMin(); var_eta_probe.removeMax();
   RooRealVar wgtvar("weight", "", 1, -10, 10); wgtvar.removeMin(); wgtvar.removeMax();
   RooArgSet treevars(xvar, var_n_vtxs_good, var_pt_tag, var_eta_tag, var_pt_probe, var_eta_probe, wgtvar);
-
-  ExtendedBinning binning_pt;
-  ExtendedBinning binning_eta;
-  getPtEtaBinning(
-    is_ee,
-    eeGapCode,
-    resPdgId,
-    binning_pt, binning_eta
-  );
-  //binning_pt = ExtendedBinning({ 30, 40 }, "");
-  //binning_eta = ExtendedBinning({ 0, 1 }, "");
-  //binning_pt = ExtendedBinning({ 55, 13000 }, "");
-  //binning_eta = ExtendedBinning({ 0, 1 }, "");
-  //binning_pt = ExtendedBinning({ 20, 25 }, "");
-  //binning_eta = ExtendedBinning({ -2, -1.566 }, "");
-  //binning_pt = ExtendedBinning({ 5, 15 }, "");
-  //binning_eta = ExtendedBinning({ -1.566, -1.4442 }, "");
 
   foutput->cd();
   std::vector<BaseTree*> tout_fitparams_list; tout_fitparams_list.reserve(strIdIsoTypes.size());
