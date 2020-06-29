@@ -5,6 +5,7 @@
 #include "TPaveText.h"
 #include "TLegend.h"
 #include "TIterator.h"
+#include "TEfficiency.h"
 #include "RooAbsArg.h"
 #include "RooRealVar.h"
 #include "RooDataSet.h"
@@ -262,7 +263,7 @@ void getMeanPtEta(
 
   int nEntries = dset.numEntries();
   double sum_W = 0;
-  double sum_xW[2][2]={ {0} };
+  double sum_xW[2][2]={ { 0 } };
   for (int ev=0; ev<nEntries; ev++){
     HelperFunctions::progressbar(ev, nEntries);
 
@@ -846,7 +847,7 @@ void fitMCDataset(
       }
       delete it;
     }
-  
+
     RooLinkedList cmdList_range = cmdList;
     RooCmdArg rangeArg = RooFit::Range("FitRange"); cmdList_range.Add((TObject*) &rangeArg);
     RooLinkedList cmdList_withMinos = cmdList_range;
@@ -2276,139 +2277,424 @@ void getEfficiencies(
   SampleHelpers::addToCondorTransferList(stroutput_txt);
 }
 
-void getEfficiencyCollections(
-  TString period, TString prodVersion, TString strdate,
-  bool is_ee, int resPdgId
+void calculateRecursiveEfficiencies(
+  std::vector<unsigned short> const& sum_indices,
+  std::vector<std::pair<double, double>> const& evts_w_w2,
+  std::vector<std::vector<double>>& effvals
 ){
+  assert(sum_indices.size()>1);
+  assert(sum_indices.front()==0);
+
+  // Bayesian parameters
+  constexpr double alpha=1;
+  constexpr double beta=1;
+  constexpr double conf = 0.682689492137;
+
+  effvals.clear(); effvals.assign(sum_indices.size()-1, std::vector<double>(3, 0));
+
+  std::vector<std::pair<double, double>> sum_w_w2(sum_indices.size(), std::pair<double, double>(0, 0));
+  for (unsigned int idx=0; idx<sum_indices.size(); idx++){
+    auto const& istart = sum_indices.at(idx);
+    assert(istart<evts_w_w2.size());
+    for (unsigned int i=istart; i<evts_w_w2.size(); i++){
+      sum_w_w2.at(idx).first += evts_w_w2.at(i).first;
+      sum_w_w2.at(idx).second += evts_w_w2.at(i).second;
+    }
+  }
+  for (unsigned int ieff=0; ieff<sum_indices.size()-1; ieff++){
+    auto const& tp = sum_w_w2.at(ieff).first;
+    auto const& tpsq = sum_w_w2.at(ieff).first;
+    double normval = tp/tpsq;
+    auto const& pp = sum_w_w2.at(ieff+1).first;
+    double aa =  pp * normval + alpha;
+    double bb =  (tp - pp) * normval + beta;
+    effvals.at(ieff).at(0) = pp/tp; // Equivalent to TEfficiency::BetaMode(aa, bb) for alpha=beta=1
+    effvals.at(ieff).at(1) = TEfficiency::BetaCentralInterval(conf, aa, bb, false);
+    effvals.at(ieff).at(2) = TEfficiency::BetaCentralInterval(conf, aa, bb, true);
+  }
+}
+
+void findModeAndConfidenceInterval(
+  std::vector<double> vals,
+  double& mode, double& clow, double& chigh
+){
+  constexpr double conf = 0.682689492137;
+  std::sort(vals.begin(), vals.end());
+  unsigned int nvals = vals.size();
+  unsigned int ilow = (1. - conf)/2.*nvals;
+  unsigned int ihigh = (1. + conf)/2.*nvals;
+  
+  clow = vals.at(ilow);
+  if (ilow+1 != ihigh) clow = (clow + vals.at(ilow+1))/2.;
+  chigh = vals.at(ihigh);
+  if (ihigh+1 != nvals) chigh = (chigh + vals.at(ihigh+1))/2.;
+
+  for (unsigned int iter=0; iter<3; iter++){
+    double mean=0, variance=0;
+    unsigned int ni=0;
+    for (unsigned int i=ilow; i<std::min(ihigh+1, nvals); i++){
+      mean += vals.at(i);
+      variance += std::pow(vals.at(i), 2);
+      ni++;
+    }
+    mean /= double(ni);
+    variance = std::sqrt((variance - double(ni)*mean*mean) / double(ni-1));
+
+    mode = mean;
+    for (unsigned int i=0; i<nvals; i++){
+      if (vals.at(i)<mean - variance) ilow = i;
+      else if (vals.at(i)>mean + variance){
+        ihigh = i;
+        break;
+      }
+    }
+  }
+}
+
+void combineEfficiencies(
+  TString period, TString prodVersion, TString strdate,
+  bool is_ee, int eeGapCode, int resPdgId
+){
+  if (is_ee && resPdgId!=23) return;
+  if (!is_ee && !(resPdgId==23 || resPdgId==443)) return;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
 
-  double minPt_tag;
+  constexpr bool applyPUIdToAK4Jets=true;
+  constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
 
+  AK4JetSelectionHelpers::setApplyPUIdToJets(applyPUIdToAK4Jets); // Default is 'true'
+  AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
+
+  std::vector<TString> strIdIsoTypes{
+    "failId",
+    "passId_failLooseIso",
+    "passId_failTightIso",
+    "passId_passTightIso"
+  };
+  std::vector<unsigned short> sum_indices{
+    0, 1, 2, 3
+  };
+  std::vector<TString> strIdIsoOutTypes{
+    "passId",
+    "passId_passLooseIso",
+    "passId_passTightIso"
+  };
+
+  TString cinput_base_dir;
+  if (!SampleHelpers::checkRunOnCondor()) cinput_base_dir = "output/";
+  else cinput_base_dir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/";
+  HostHelpers::ExpandEnvironmentVariables(cinput_base_dir);
+
+  TString const cinput_main =
+    cinput_base_dir
+    + "LeptonEfficiencies/DataFits/" + strdate
+    + "/"
+    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_"
+    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + period;
+  TString const coutput_main =
+    "output/LeptonEfficiencies/DataFits/" + strdate
+    + "/"
+    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_"
+    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + period;
+
+  TDirectory* curdir = gDirectory;
+
+  std::vector<TString> systOptions_withfits{
+    "", "ALTBkg", "ALTBkg2", "TightTag", "TightTag.ALTBkg", "TightTag.ALTBkg2"
+  };
+  std::vector<TString> systOptions_nofits{
+    "MC_2l2nu" "MC_4l" "PUDn" "PUUp"
+  };
+
+  TString strFinalState = (is_ee ? "ee" : "mumu");
   if (is_ee){
-    if (SampleHelpers::theDataYear == 2016) minPt_tag = 28;
-    else if (SampleHelpers::theDataYear == 2017) minPt_tag = 38;
-    else if (SampleHelpers::theDataYear == 2018) minPt_tag = 35;
-    else return;
+    if (eeGapCode<0) strFinalState += "_nongap_gap";
+    else if (eeGapCode==0) strFinalState += "_nongap";
+    else strFinalState += "_gap";
+  }
 
-    for (int eeGapCode=-1; eeGapCode<=1; eeGapCode++){
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "",
-        minPt_tag, 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "",
-        minPt_tag, 65, 115
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "",
-        minPt_tag, 70, 120
-      );
+  TString coutput = Form("%s/Efficiencies_%s%s", coutput_main.Data(), strFinalState.Data(), ".root");
+  TFile* foutput = TFile::Open(coutput, "recreate");
+  curdir->cd();
 
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "",
-        minPt_tag+2., 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "TightTag",
-        minPt_tag, 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "MC_4l",
-        minPt_tag, 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "MC_2l2nu",
-        minPt_tag, 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "PUDn",
-        minPt_tag, 60, 120
-      );
-      getEfficiencies(
-        period, prodVersion, strdate,
-        is_ee, eeGapCode, resPdgId,
-        "PUUp",
-        minPt_tag, 60, 120
-      );
+  std::vector<std::pair<double, double>> fit_low_high_pairs={
+    { 60, 120 },
+    { 65, 115 },
+    { 70, 110 }
+  };
+  std::vector<double> minPt_tags;
+  if (is_ee){
+    switch (SampleHelpers::theDataYear){
+    case 2016:
+      minPt_tags = std::vector<double>{ 28, 30 };
+      break;
+    case 2017:
+      minPt_tags = std::vector<double>{ 38, 40 };
+      break;
+    case 2018:
+      minPt_tags = std::vector<double>{ 35, 37 };
+      break;
+    default:
+      MELAerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      assert(0);
     }
   }
   else{
-    const int eeGapCode = -1;
-    if (SampleHelpers::theDataYear == 2016) minPt_tag = 27;
-    else if (SampleHelpers::theDataYear == 2017) minPt_tag = 30;
-    else if (SampleHelpers::theDataYear == 2018) minPt_tag = 27;
-    else return;
-
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "",
-      minPt_tag, 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "",
-      minPt_tag, 65, 115
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "",
-      minPt_tag, 70, 120
-    );
-
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "",
-      minPt_tag+2., 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "TightTag",
-      minPt_tag, 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "MC_4l",
-      minPt_tag, 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "MC_2l2nu",
-      minPt_tag, 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "PUDn",
-      minPt_tag, 60, 120
-    );
-    getEfficiencies(
-      period, prodVersion, strdate,
-      is_ee, eeGapCode, resPdgId,
-      "PUUp",
-      minPt_tag, 60, 120
-    );
+    switch (SampleHelpers::theDataYear){
+    case 2016:
+      minPt_tags = std::vector<double>{ 27, 29 };
+      break;
+    case 2017:
+      minPt_tags = std::vector<double>{ 30, 32 };
+      break;
+    case 2018:
+      minPt_tags = std::vector<double>{ 27, 29 };
+      break;
+    default:
+      MELAerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      assert(0);
+    }
   }
+
+  ExtendedBinning binning_pt;
+  ExtendedBinning binning_eta;
+  getPtEtaBinning(
+    is_ee,
+    eeGapCode,
+    resPdgId,
+    binning_pt, binning_eta
+  );
+
+  foutput->cd();
+  std::vector<TH2D> h_eff_MC_Nominal_list; h_eff_MC_Nominal_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_Nominal_list; h_eff_data_Nominal_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_StatUp_list; h_eff_MC_StatUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_StatUp_list; h_eff_data_StatUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_StatDn_list; h_eff_MC_StatDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_StatDn_list; h_eff_data_StatDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_SystUp_list; h_eff_MC_SystUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_SystUp_list; h_eff_data_SystUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_SystDn_list; h_eff_MC_SystDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_SystDn_list; h_eff_data_SystDn_list.reserve(strIdIsoTypes.size());
+  for (TString const& strIdIsoType:strIdIsoOutTypes){
+    h_eff_MC_Nominal_list.emplace_back(Form("eff_MC_Nominal_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_Nominal_list.back().Sumw2();
+    h_eff_data_Nominal_list.emplace_back(Form("eff_data_Nominal_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_Nominal_list.back().Sumw2();
+    h_eff_MC_StatUp_list.emplace_back(Form("eff_MC_StatUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_StatUp_list.back().Sumw2();
+    h_eff_data_StatUp_list.emplace_back(Form("eff_data_StatUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_StatUp_list.back().Sumw2();
+    h_eff_MC_StatDn_list.emplace_back(Form("eff_MC_StatDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_StatDn_list.back().Sumw2();
+    h_eff_data_StatDn_list.emplace_back(Form("eff_data_StatDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_StatDn_list.back().Sumw2();
+    h_eff_MC_SystUp_list.emplace_back(Form("eff_MC_SystUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_SystUp_list.back().Sumw2();
+    h_eff_data_SystUp_list.emplace_back(Form("eff_data_SystUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_SystUp_list.back().Sumw2();
+    h_eff_MC_SystDn_list.emplace_back(Form("eff_MC_SystDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_SystDn_list.back().Sumw2();
+    h_eff_data_SystDn_list.emplace_back(Form("eff_data_SystDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_SystDn_list.back().Sumw2();
+  }
+  curdir->cd();
+
+  for (int bin_pt=0; bin_pt<(int) binning_pt.getNbins(); bin_pt++){
+    for (int bin_eta=0; bin_eta<(int) binning_eta.getNbins(); bin_eta++){
+      curdir->cd();
+
+      MELAout << "Examining pT, eta bin " << bin_pt << ", " << bin_eta << endl;
+
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatNominal_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatDn_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatUp_map;
+
+      std::unordered_map<TString, std::vector<double>> syst_effs_data_StatNominal_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_data_StatDn_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_data_StatUp_map;
+
+      for (auto const& systOptions:systOptions_withfits){
+        bool useALTSig = systOptions.Contains("ALTSig");
+        bool useALTBkg2 = systOptions.Contains("ALTBkg2");
+        bool useALTBkg = systOptions.Contains("ALTBkg") && !useALTBkg2;
+        bool useTightTag = systOptions.Contains("TightTag");
+        bool useMC_2l2nu = systOptions.Contains("MC_2l2nu");
+        bool useMC_4l = systOptions.Contains("MC_4l");
+        SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+        if (systOptions.Contains("PUDn")) theGlobalSyst = SystematicsHelpers::ePUDn;
+        else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
+        bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
+        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useMC_2l2nu + 1*useMC_4l>1) continue; // Exclude tight tag here
+
+        TString strSigModel = "CorrRelBWxDCB";
+        TString strBkgModel = "RooCMSShape";
+        if (useALTSig) strSigModel = "RelBWxDCB";
+        if (useALTBkg) strBkgModel = "Exponential";
+        if (useALTBkg2) strBkgModel = "Chebyshev";
+        TString strFitModel = strSigModel + "_" + strBkgModel;
+
+        TString strMCModel = "MC_DY";
+        if (useMC_2l2nu) strMCModel = "MC_2l2nu";
+        if (useMC_4l) strMCModel = "MC_4l";
+
+        TString strSystName = strFitModel + "_" + strMCModel + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data();
+        if (useTightTag) strSystName += "_TightTag";
+
+        for (auto const& fit_low_high_pair:fit_low_high_pairs){
+          double const& fit_low = fit_low_high_pair.first;
+          double const& fit_high = fit_low_high_pair.second;
+          if ((useALTBkg || useALTBkg2) && fit_low<70.) continue;
+          for (auto const& minPt_tag:minPt_tags){
+            TString syst = Form(
+              "%s_minPtTag_%s_mll_%s_%s",
+              strSystName.Data(),
+              convertFloatToTitleString(minPt_tag).Data(),
+              convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
+            );
+
+            TString strnameapp = Form(
+              "%s_%s",
+              strFinalState.Data(),
+              syst.Data()
+            );
+            if (bin_pt>=0) strnameapp = Form("%s_ptbin_%i", strnameapp.Data(), bin_pt);
+            if (bin_eta>=0) strnameapp = Form("%s_etabin_%i", strnameapp.Data(), bin_eta);
+            TString cinput = Form("DataFits_%s%s", strnameapp.Data(), ".root");
+            TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
+            if (!HostHelpers::FileExists(strinput)) continue;
+            MELAout << "\t- Systematic: " << syst << endl;
+
+            std::vector<std::pair<double, double>> vals_MC(strIdIsoTypes.size(), std::pair<double, double>(0, 0));
+            std::vector<std::pair<double, double>> vals_data_frac_nominal(strIdIsoTypes.size(), std::pair<double, double>(0, 0));
+            std::vector<std::pair<double, double>> vals_data_frac_dn(strIdIsoTypes.size(), std::pair<double, double>(0, 0));
+            std::vector<std::pair<double, double>> vals_data_frac_up(strIdIsoTypes.size(), std::pair<double, double>(0, 0));
+
+            curdir->cd();
+            TFile* finput = TFile::Open(strinput, "read");
+            finput->cd();
+            for (unsigned int isel=0; isel<strIdIsoTypes.size(); isel++){
+              TString const& strIdIsoType = strIdIsoTypes.at(isel);
+              TH2D* hevts_data = (TH2D*) finput->Get(Form("evts_data_%s", strIdIsoType.Data()));
+              TH2D* hevts_MC = (TH2D*) finput->Get(Form("evts_MC_%s", strIdIsoType.Data()));
+              TTree* tree_fitparams = (TTree*) finput->Get(Form("fit_parameters_%s", strIdIsoType.Data()));
+
+#define BRANCH_COMMAND(type, name) type name; tree_fitparams->SetBranchAddress(#name, &name);
+              BRANCH_COMMAND(double, postfit_frac_sig_val);
+              BRANCH_COMMAND(double, postfit_frac_sig_errdn);
+              BRANCH_COMMAND(double, postfit_frac_sig_errup);
+#undef BRANCH_COMMAND
+              tree_fitparams->GetEntry(0);
+
+              vals_MC.at(isel).first = hevts_MC->GetBinContent(1, 1);
+              vals_MC.at(isel).second = std::pow(hevts_MC->GetBinError(1, 1), 2);
+              
+              vals_data_frac_nominal.at(isel).first = vals_data_frac_dn.at(isel).first = vals_data_frac_up.at(isel).first = hevts_data->GetBinContent(1, 1);
+              vals_data_frac_nominal.at(isel).second = vals_data_frac_dn.at(isel).second = vals_data_frac_up.at(isel).second = std::pow(hevts_data->GetBinError(1, 1), 2);
+
+              vals_data_frac_nominal.at(isel).first *= postfit_frac_sig_val; vals_data_frac_nominal.at(isel).second *= std::pow(postfit_frac_sig_val, 2);
+              vals_data_frac_dn.at(isel).first *= postfit_frac_sig_val - postfit_frac_sig_errdn; vals_data_frac_dn.at(isel).second *= std::pow(postfit_frac_sig_val - postfit_frac_sig_errdn, 2);
+              vals_data_frac_up.at(isel).first *= postfit_frac_sig_val + postfit_frac_sig_errdn; vals_data_frac_up.at(isel).second *= std::pow(postfit_frac_sig_val + postfit_frac_sig_errdn, 2);
+            }
+            finput->Close();
+            curdir->cd();
+
+            // Find MC efficiencies
+            MELAout << "\t\t- Extracting MC efficiencies..." << endl;
+            std::vector<std::vector<double>> effvals_MC(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+            calculateRecursiveEfficiencies(sum_indices, vals_MC, effvals_MC);
+            syst_effs_MC_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatNominal_map[syst].push_back(v.at(0));
+            syst_effs_MC_StatDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatDn_map[syst].push_back(v.at(1));
+            syst_effs_MC_StatUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatUp_map[syst].push_back(v.at(2));
+            MELAout << "\t\t- Collected nominal MC effs.: " << syst_effs_MC_StatNominal_map[syst] << endl;
+            MELAout << "\t\t- Collected stat. dn. MC effs.: " << syst_effs_MC_StatDn_map[syst] << endl;
+            MELAout << "\t\t- Collected stat. up. MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
+
+            // Find data efficiencies
+            MELAout << "\t\t- Extracting data efficiencies..." << endl;
+            std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+            std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+            std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_nominal, effvals_data_frac_nominal);
+            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_dn, effvals_data_frac_dn);
+            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_up, effvals_data_frac_up);
+            syst_effs_data_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_data_frac_nominal) syst_effs_data_StatNominal_map[syst].push_back(v.at(0));
+            syst_effs_data_StatDn_map[syst] = std::vector<double>();
+            syst_effs_data_StatUp_map[syst] = std::vector<double>();
+            for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+              double const& vnom = effvals_data_frac_nominal.at(osel).at(0);
+              double const& v_frac_dn = effvals_data_frac_dn.at(osel).at(0);
+              double const& v_frac_up = effvals_data_frac_up.at(osel).at(0);
+              double const& v_eff_dn = effvals_data_frac_nominal.at(osel).at(1);
+              double const& v_eff_up = effvals_data_frac_nominal.at(osel).at(2);
+
+              syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
+              syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
+            }
+            MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
+            MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
+            MELAout << "\t\t- Collected stat. up. data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
+          } // End min. tag pT loop
+        } // End fit window loop
+      } // End systematics loop
+
+      for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+        MELAout << "\t- Building efficiencies for " << strIdIsoOutTypes.at(osel) << ":" << endl;
+
+        MELAout << "\t\t- Building for data..." << endl;
+        std::vector<double> eff_coll_data_StatNominal; for (auto const& it:syst_effs_data_StatNominal_map) eff_coll_data_StatNominal.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_data_StatDn; for (auto const& it:syst_effs_data_StatDn_map) eff_coll_data_StatDn.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_data_StatUp; for (auto const& it:syst_effs_data_StatUp_map) eff_coll_data_StatUp.push_back(it.second.at(osel));
+
+        double mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal;
+        findModeAndConfidenceInterval(eff_coll_data_StatNominal, mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal);
+        h_eff_data_Nominal_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatNominal);
+        h_eff_data_SystDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, clow_data_StatNominal);
+        h_eff_data_SystUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, chigh_data_StatNominal);
+
+        double mode_data_StatDn, clow_data_StatDn, chigh_data_StatDn;
+        findModeAndConfidenceInterval(eff_coll_data_StatDn, mode_data_StatDn, clow_data_StatDn, chigh_data_StatDn);
+        h_eff_data_StatDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatDn);
+
+        double mode_data_StatUp, clow_data_StatUp, chigh_data_StatUp;
+        findModeAndConfidenceInterval(eff_coll_data_StatUp, mode_data_StatUp, clow_data_StatUp, chigh_data_StatUp);
+        h_eff_data_StatUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatUp);
+
+
+        MELAout << "\t\t- Building for MC..." << endl;
+        std::vector<double> eff_coll_MC_StatNominal; for (auto const& it:syst_effs_MC_StatNominal_map) eff_coll_MC_StatNominal.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_StatDn; for (auto const& it:syst_effs_MC_StatDn_map) eff_coll_MC_StatDn.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_StatUp; for (auto const& it:syst_effs_MC_StatUp_map) eff_coll_MC_StatUp.push_back(it.second.at(osel));
+
+        double mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal;
+        findModeAndConfidenceInterval(eff_coll_MC_StatNominal, mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal);
+        h_eff_MC_Nominal_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatNominal);
+        h_eff_MC_SystDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, clow_MC_StatNominal);
+        h_eff_MC_SystUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, chigh_MC_StatNominal);
+
+        double mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn;
+        findModeAndConfidenceInterval(eff_coll_MC_StatDn, mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn);
+        h_eff_MC_StatDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatDn);
+
+        double mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp;
+        findModeAndConfidenceInterval(eff_coll_MC_StatUp, mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp);
+        h_eff_MC_StatUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatUp);
+      }
+
+      curdir->cd();
+    } // End eta bin loop
+  } // End pT bin loop
+
+  MELAout << "Writing the histograms" << endl;
+  for (auto& hh:h_eff_MC_Nominal_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_Nominal_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_StatUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_StatUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_StatDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_StatDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_SystUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_SystUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_SystDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_SystDn_list) foutput->WriteTObject(&hh);
+
+  foutput->Close();
 }
