@@ -2351,9 +2351,100 @@ void findModeAndConfidenceInterval(
   }
 }
 
+void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, TH2D* hist, double zmin, double zmax){
+  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+
+  bool isSF = TString(hist->GetName()).Contains("SF");
+  bool isData = TString(hist->GetName()).Contains("data");
+
+  hist->GetZaxis()->SetRangeUser(zmin, zmax);
+  hist->SetTitle("");
+
+  hist->GetXaxis()->SetNdivisions(505);
+  hist->GetXaxis()->SetLabelFont(42);
+  hist->GetXaxis()->SetLabelOffset(0.007);
+  hist->GetXaxis()->SetLabelSize(0.04);
+  hist->GetXaxis()->SetTitleSize(0.06);
+  hist->GetXaxis()->SetTitleOffset(0.9);
+  hist->GetXaxis()->SetTitleFont(42);
+  hist->GetYaxis()->SetNdivisions(505);
+  hist->GetYaxis()->SetLabelFont(42);
+  hist->GetYaxis()->SetLabelOffset(0.007);
+  hist->GetYaxis()->SetLabelSize(0.04);
+  hist->GetYaxis()->SetTitleSize(0.06);
+  hist->GetYaxis()->SetTitleOffset(1.1);
+  hist->GetYaxis()->SetTitleFont(42);
+
+  TDirectory* curdir = gDirectory;
+  gSystem->mkdir(coutput_main, true);
+
+  TString canvasname = Form("c_%s_%s", cname_app.Data(), hist->GetName());
+  TCanvas can(canvasname, "", 1000, 800);
+  can.SetFillColor(0);
+  can.SetBorderMode(0);
+  can.SetBorderSize(2);
+  can.SetTickx(1);
+  can.SetTicky(1);
+  can.SetLeftMargin(0.17);
+  can.SetRightMargin(0.12);
+  can.SetTopMargin(0.07);
+  can.SetBottomMargin(0.13);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  can.SetLogy(true);
+
+  hist->Draw("colz");
+
+  TPaveText pavetext(0.15, 0.93, 0.85, 1, "brNDC");
+  pavetext.SetBorderSize(0);
+  pavetext.SetFillStyle(0);
+  pavetext.SetTextAlign(12);
+  pavetext.SetTextFont(42);
+  pavetext.SetTextSize(0.045);
+  TText* text = pavetext.AddText(0.025, 0.45, "#font[61]{CMS}");
+  text->SetTextSize(0.044);
+  if (isData || isSF){
+    text = pavetext.AddText(0.135, 0.42, "#font[52]{Preliminary}");
+    text->SetTextSize(0.0315);
+  }
+  else{
+    text = pavetext.AddText(0.165, 0.42, "#font[52]{Simulation}");
+    text->SetTextSize(0.0315);
+  }
+  TString cErgTev = Form("#font[42]{%.1f fb^{-1} (13 TeV)}", lumi);
+  text = pavetext.AddText(0.79, 0.45, cErgTev);
+  text->SetTextSize(0.0315);
+
+  TPaveText ptLabel(0.20, 0.9, 0.50, 0.85, "brNDC");
+  ptLabel.SetBorderSize(0);
+  ptLabel.SetFillStyle(0);
+  ptLabel.SetTextAlign(12);
+  ptLabel.SetTextFont(42);
+  ptLabel.SetTextSize(0.045);
+  text = ptLabel.AddText(0.025, 0.45, ptitle);
+  text->SetTextSize(0.0315);
+
+  ptLabel.Draw();
+  pavetext.Draw();
+  can.RedrawAxis();
+  can.Modified();
+  can.Update();
+  if (!SampleHelpers::checkRunOnCondor()){
+    can.SaveAs(coutput_main + Form("/%s.pdf", can.GetName()));
+    can.SaveAs(coutput_main + Form("/%s.png", can.GetName()));
+    //can.SaveAs(coutput_main + Form("/%s.root", can.GetName()));
+  }
+  can.Close();
+
+  curdir->cd();
+}
+
 void combineEfficiencies(
   TString period, TString prodVersion, TString strdate,
-  bool is_ee, int eeGapCode, int resPdgId
+  bool is_ee, int eeGapCode, int resPdgId,
+  bool omitLooseIso
 ){
   if (is_ee && resPdgId!=23) return;
   if (!is_ee && !(resPdgId==23 || resPdgId==443)) return;
@@ -2384,6 +2475,25 @@ void combineEfficiencies(
     "passId_passLooseIso",
     "passId_passTightIso"
   };
+  std::vector<TString> strIdIsoOutLabels{
+    "ID",
+    "ID + loose iso.",
+    "ID + tight iso."
+  };
+  if (omitLooseIso){
+    sum_indices = std::vector<unsigned short>{
+      0, 1, 3
+    };
+    strIdIsoOutTypes = std::vector<TString>{
+      "passId",
+      "passId_passIso"
+    };
+    strIdIsoOutLabels = std::vector<TString>{
+      "ID",
+      "ID + iso."
+    };
+  }
+  TString strEffsIncluded = (omitLooseIso ? "id_iso" : "id_looseIso_tightIso");
 
   TString cinput_base_dir;
   if (!SampleHelpers::checkRunOnCondor()) cinput_base_dir = "output/";
@@ -2399,7 +2509,7 @@ void combineEfficiencies(
     + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
     + "/" + period;
   TString const coutput_main =
-    "output/LeptonEfficiencies/DataFits/" + strdate
+    "output/LeptonEfficiencies/FinalEffs/" + strdate
     + "/"
     + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
     + "_"
@@ -2408,12 +2518,20 @@ void combineEfficiencies(
 
   TDirectory* curdir = gDirectory;
 
+  gSystem->mkdir(coutput_main, true);
+
   std::vector<TString> systOptions_withfits{
     "", "ALTBkg", "ALTBkg2", "TightTag", "TightTag.ALTBkg", "TightTag.ALTBkg2"
   };
-  std::vector<TString> systOptions_nofits{
-    "MC_2l2nu" "MC_4l" "PUDn" "PUUp"
+  std::vector<TString> systOptions_PU{
+    "PUDn", "PUUp"
   };
+  std::vector<TString> systOptions_MCvariation{
+    "MC_2l2nu", "MC_4l"
+  };
+  std::vector<TString> systOptions_all = systOptions_withfits;
+  HelperFunctions::appendVector(systOptions_all, systOptions_PU);
+  HelperFunctions::appendVector(systOptions_all, systOptions_MCvariation);
 
   TString strFinalState = (is_ee ? "ee" : "mumu");
   if (is_ee){
@@ -2421,8 +2539,10 @@ void combineEfficiencies(
     else if (eeGapCode==0) strFinalState += "_nongap";
     else strFinalState += "_gap";
   }
+  TString const coutput_plots = coutput_main + "/Plots/" + strFinalState;
+  gSystem->mkdir(coutput_plots+"/Validations", true);
 
-  TString coutput = Form("%s/Efficiencies_%s%s", coutput_main.Data(), strFinalState.Data(), ".root");
+  TString coutput = Form("%s/Efficiencies_%s_%s%s", coutput_main.Data(), strFinalState.Data(), strEffsIncluded.Data(), ".root");
   TFile* foutput = TFile::Open(coutput, "recreate");
   curdir->cd();
 
@@ -2475,27 +2595,59 @@ void combineEfficiencies(
   );
 
   foutput->cd();
-  std::vector<TH2D> h_eff_MC_Nominal_list; h_eff_MC_Nominal_list.reserve(strIdIsoTypes.size());
   std::vector<TH2D> h_eff_data_Nominal_list; h_eff_data_Nominal_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_MC_StatUp_list; h_eff_MC_StatUp_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_data_StatUp_list; h_eff_data_StatUp_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_MC_StatDn_list; h_eff_MC_StatDn_list.reserve(strIdIsoTypes.size());
   std::vector<TH2D> h_eff_data_StatDn_list; h_eff_data_StatDn_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_MC_SystUp_list; h_eff_MC_SystUp_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_data_SystUp_list; h_eff_data_SystUp_list.reserve(strIdIsoTypes.size());
-  std::vector<TH2D> h_eff_MC_SystDn_list; h_eff_MC_SystDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_StatUp_list; h_eff_data_StatUp_list.reserve(strIdIsoTypes.size());
   std::vector<TH2D> h_eff_data_SystDn_list; h_eff_data_SystDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_data_SystUp_list; h_eff_data_SystUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_Nominal_list; h_eff_MC_Nominal_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_StatDn_list; h_eff_MC_StatDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_StatUp_list; h_eff_MC_StatUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_SystDn_list; h_eff_MC_SystDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_SystUp_list; h_eff_MC_SystUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_PUDn_list; h_eff_MC_PUDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_PUUp_list; h_eff_MC_PUUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_AltMCDn_list; h_eff_MC_AltMCDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_eff_MC_AltMCUp_list; h_eff_MC_AltMCUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_Nominal_list; h_SF_Nominal_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_StatDn_list; h_SF_StatDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_StatUp_list; h_SF_StatUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_SystDn_list; h_SF_SystDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_SystUp_list; h_SF_SystUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_PUDn_list; h_SF_PUDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_PUUp_list; h_SF_PUUp_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_AltMCDn_list; h_SF_AltMCDn_list.reserve(strIdIsoTypes.size());
+  std::vector<TH2D> h_SF_AltMCUp_list; h_SF_AltMCUp_list.reserve(strIdIsoTypes.size());
   for (TString const& strIdIsoType:strIdIsoOutTypes){
-    h_eff_MC_Nominal_list.emplace_back(Form("eff_MC_Nominal_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_Nominal_list.back().Sumw2();
-    h_eff_data_Nominal_list.emplace_back(Form("eff_data_Nominal_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_Nominal_list.back().Sumw2();
-    h_eff_MC_StatUp_list.emplace_back(Form("eff_MC_StatUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_StatUp_list.back().Sumw2();
-    h_eff_data_StatUp_list.emplace_back(Form("eff_data_StatUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_StatUp_list.back().Sumw2();
-    h_eff_MC_StatDn_list.emplace_back(Form("eff_MC_StatDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_StatDn_list.back().Sumw2();
-    h_eff_data_StatDn_list.emplace_back(Form("eff_data_StatDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_StatDn_list.back().Sumw2();
-    h_eff_MC_SystUp_list.emplace_back(Form("eff_MC_SystUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_SystUp_list.back().Sumw2();
-    h_eff_data_SystUp_list.emplace_back(Form("eff_data_SystUp_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_SystUp_list.back().Sumw2();
-    h_eff_MC_SystDn_list.emplace_back(Form("eff_MC_SystDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_MC_SystDn_list.back().Sumw2();
-    h_eff_data_SystDn_list.emplace_back(Form("eff_data_SystDn_%s", strIdIsoType.Data()), "", binning_pt.getNbins(), binning_pt.getBinning(), binning_eta.getNbins(), binning_eta.getBinning()); h_eff_data_SystDn_list.back().Sumw2();
+#define HIST_COMMAND(hlist, title) \
+    hlist.emplace_back(Form("%s_%s", #title, strIdIsoType.Data()), Form("%s_%s", #title, strIdIsoType.Data()), binning_eta.getNbins(), binning_eta.getBinning(), binning_pt.getNbins(), binning_pt.getBinning()); \
+    hlist.back().Sumw2(); \
+    hlist.back().GetXaxis()->SetTitle(binning_eta.getLabel()); \
+    hlist.back().GetYaxis()->SetTitle(binning_pt.getLabel());
+    HIST_COMMAND(h_eff_data_Nominal_list, eff_data_Nominal);
+    HIST_COMMAND(h_eff_data_StatDn_list, eff_data_StatDn);
+    HIST_COMMAND(h_eff_data_StatUp_list, eff_data_StatUp);
+    HIST_COMMAND(h_eff_data_SystDn_list, eff_data_SystDn);
+    HIST_COMMAND(h_eff_data_SystUp_list, eff_data_SystUp);
+    HIST_COMMAND(h_eff_MC_Nominal_list, eff_MC_Nominal);
+    HIST_COMMAND(h_eff_MC_StatDn_list, eff_MC_StatDn);
+    HIST_COMMAND(h_eff_MC_StatUp_list, eff_MC_StatUp);
+    HIST_COMMAND(h_eff_MC_SystDn_list, eff_MC_SystDn);
+    HIST_COMMAND(h_eff_MC_SystUp_list, eff_MC_SystUp);
+    HIST_COMMAND(h_eff_MC_PUDn_list, eff_MC_PUDn);
+    HIST_COMMAND(h_eff_MC_PUUp_list, eff_MC_PUUp);
+    HIST_COMMAND(h_eff_MC_AltMCDn_list, eff_MC_AltMCDn);
+    HIST_COMMAND(h_eff_MC_AltMCUp_list, eff_MC_AltMCUp);
+    HIST_COMMAND(h_SF_Nominal_list, SF_Nominal);
+    HIST_COMMAND(h_SF_StatDn_list, SF_StatDn);
+    HIST_COMMAND(h_SF_StatUp_list, SF_StatUp);
+    HIST_COMMAND(h_SF_SystDn_list, SF_SystDn);
+    HIST_COMMAND(h_SF_SystUp_list, SF_SystUp);
+    HIST_COMMAND(h_SF_PUDn_list, SF_PUDn);
+    HIST_COMMAND(h_SF_PUUp_list, SF_PUUp);
+    HIST_COMMAND(h_SF_AltMCDn_list, SF_AltMCDn);
+    HIST_COMMAND(h_SF_AltMCUp_list, SF_AltMCUp);
+#undef HIST_COMMAND
   }
   curdir->cd();
 
@@ -2505,15 +2657,20 @@ void combineEfficiencies(
 
       MELAout << "Examining pT, eta bin " << bin_pt << ", " << bin_eta << endl;
 
-      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatNominal_map;
-      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatDn_map;
-      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatUp_map;
-
       std::unordered_map<TString, std::vector<double>> syst_effs_data_StatNominal_map;
       std::unordered_map<TString, std::vector<double>> syst_effs_data_StatDn_map;
       std::unordered_map<TString, std::vector<double>> syst_effs_data_StatUp_map;
 
-      for (auto const& systOptions:systOptions_withfits){
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatNominal_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatDn_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatUp_map;
+
+      std::vector<double> effs_MC_PUDn_list;
+      std::vector<double> effs_MC_PUUp_list;
+      std::vector<double> effs_MC_2l2nu_list, effs_MC_2l2nu_intsize_list;
+      std::vector<double> effs_MC_4l_list, effs_MC_4l_intsize_list;
+
+      for (auto const& systOptions:systOptions_all){
         bool useALTSig = systOptions.Contains("ALTSig");
         bool useALTBkg2 = systOptions.Contains("ALTBkg2");
         bool useALTBkg = systOptions.Contains("ALTBkg") && !useALTBkg2;
@@ -2544,7 +2701,10 @@ void combineEfficiencies(
           double const& fit_low = fit_low_high_pair.first;
           double const& fit_high = fit_low_high_pair.second;
           if ((useALTBkg || useALTBkg2) && fit_low<70.) continue;
+          if (!doFits && fit_low>60.) continue;
           for (auto const& minPt_tag:minPt_tags){
+            if (!doFits && minPt_tag!=minPt_tags.front()) continue;
+
             TString syst = Form(
               "%s_minPtTag_%s_mll_%s_%s",
               strSystName.Data(),
@@ -2557,11 +2717,14 @@ void combineEfficiencies(
               strFinalState.Data(),
               syst.Data()
             );
-            if (bin_pt>=0) strnameapp = Form("%s_ptbin_%i", strnameapp.Data(), bin_pt);
-            if (bin_eta>=0) strnameapp = Form("%s_etabin_%i", strnameapp.Data(), bin_eta);
+            if (doFits && bin_pt>=0) strnameapp = Form("%s_ptbin_%i", strnameapp.Data(), bin_pt);
+            if (doFits && bin_eta>=0) strnameapp = Form("%s_etabin_%i", strnameapp.Data(), bin_eta);
             TString cinput = Form("DataFits_%s%s", strnameapp.Data(), ".root");
             TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
-            if (!HostHelpers::FileExists(strinput)) continue;
+            if (!HostHelpers::FileExists(strinput)){
+              MELAout << "File " << strinput << " cannot be found. Skipping..." << endl;
+              continue;
+            }
             MELAout << "\t- Systematic: " << syst << endl;
 
             std::vector<std::pair<double, double>> vals_MC(strIdIsoTypes.size(), std::pair<double, double>(0, 0));
@@ -2572,28 +2735,56 @@ void combineEfficiencies(
             curdir->cd();
             TFile* finput = TFile::Open(strinput, "read");
             finput->cd();
+            if (doFits && false){
+              // Extract the final validation plots
+              std::vector<TCanvas*> allcanvases;
+              HelperFunctions::extractHistogramsFromDirectory(finput, allcanvases);
+              for (auto* canvas:allcanvases){
+                canvas->cd();
+                TString canvasname = canvas->GetName();
+                if (canvasname.Contains("cCompare") || canvasname.Contains("absEta")) continue;
+                if (
+                  (canvasname.Contains("fit_MC") && canvasname.Contains("FinalFitWithMinos"))
+                  ||
+                  (canvasname.Contains("fit_data") && !canvasname.Contains("TailsObsRange"))
+                  ){
+                  canvas->SaveAs(coutput_plots+"/Validations/"+canvas->GetName()+".png");
+                  canvas->SaveAs(coutput_plots+"/Validations/"+canvas->GetName()+".pdf");
+                }
+                canvas->Close();
+              }
+              curdir->cd();
+            }
+            finput->cd();
             for (unsigned int isel=0; isel<strIdIsoTypes.size(); isel++){
               TString const& strIdIsoType = strIdIsoTypes.at(isel);
-              TH2D* hevts_data = (TH2D*) finput->Get(Form("evts_data_%s", strIdIsoType.Data()));
               TH2D* hevts_MC = (TH2D*) finput->Get(Form("evts_MC_%s", strIdIsoType.Data()));
-              TTree* tree_fitparams = (TTree*) finput->Get(Form("fit_parameters_%s", strIdIsoType.Data()));
+
+              if (doFits){
+                TH2D* hevts_data = (TH2D*) finput->Get(Form("evts_data_%s", strIdIsoType.Data()));
+                TTree* tree_fitparams = (TTree*) finput->Get(Form("fit_parameters_%s", strIdIsoType.Data()));
 
 #define BRANCH_COMMAND(type, name) type name; tree_fitparams->SetBranchAddress(#name, &name);
-              BRANCH_COMMAND(double, postfit_frac_sig_val);
-              BRANCH_COMMAND(double, postfit_frac_sig_errdn);
-              BRANCH_COMMAND(double, postfit_frac_sig_errup);
+                BRANCH_COMMAND(double, postfit_frac_sig_val);
+                BRANCH_COMMAND(double, postfit_frac_sig_errdn);
+                BRANCH_COMMAND(double, postfit_frac_sig_errup);
 #undef BRANCH_COMMAND
-              tree_fitparams->GetEntry(0);
+                tree_fitparams->GetEntry(0);
 
-              vals_MC.at(isel).first = hevts_MC->GetBinContent(1, 1);
-              vals_MC.at(isel).second = std::pow(hevts_MC->GetBinError(1, 1), 2);
-              
-              vals_data_frac_nominal.at(isel).first = vals_data_frac_dn.at(isel).first = vals_data_frac_up.at(isel).first = hevts_data->GetBinContent(1, 1);
-              vals_data_frac_nominal.at(isel).second = vals_data_frac_dn.at(isel).second = vals_data_frac_up.at(isel).second = std::pow(hevts_data->GetBinError(1, 1), 2);
+                vals_MC.at(isel).first = hevts_MC->GetBinContent(1, 1);
+                vals_MC.at(isel).second = std::pow(hevts_MC->GetBinError(1, 1), 2);
 
-              vals_data_frac_nominal.at(isel).first *= postfit_frac_sig_val; vals_data_frac_nominal.at(isel).second *= std::pow(postfit_frac_sig_val, 2);
-              vals_data_frac_dn.at(isel).first *= postfit_frac_sig_val - postfit_frac_sig_errdn; vals_data_frac_dn.at(isel).second *= std::pow(postfit_frac_sig_val - postfit_frac_sig_errdn, 2);
-              vals_data_frac_up.at(isel).first *= postfit_frac_sig_val + postfit_frac_sig_errdn; vals_data_frac_up.at(isel).second *= std::pow(postfit_frac_sig_val + postfit_frac_sig_errdn, 2);
+                vals_data_frac_nominal.at(isel).first = vals_data_frac_dn.at(isel).first = vals_data_frac_up.at(isel).first = hevts_data->GetBinContent(1, 1);
+                vals_data_frac_nominal.at(isel).second = vals_data_frac_dn.at(isel).second = vals_data_frac_up.at(isel).second = std::pow(hevts_data->GetBinError(1, 1), 2);
+
+                vals_data_frac_nominal.at(isel).first *= postfit_frac_sig_val; vals_data_frac_nominal.at(isel).second *= std::pow(postfit_frac_sig_val, 2);
+                vals_data_frac_dn.at(isel).first *= postfit_frac_sig_val - postfit_frac_sig_errdn; vals_data_frac_dn.at(isel).second *= std::pow(postfit_frac_sig_val - postfit_frac_sig_errdn, 2);
+                vals_data_frac_up.at(isel).first *= postfit_frac_sig_val + postfit_frac_sig_errdn; vals_data_frac_up.at(isel).second *= std::pow(postfit_frac_sig_val + postfit_frac_sig_errdn, 2);
+              }
+              else{
+                vals_MC.at(isel).first = hevts_MC->GetBinContent(bin_pt+1, bin_eta+1);
+                vals_MC.at(isel).second = std::pow(hevts_MC->GetBinError(bin_pt+1, bin_eta+1), 2);
+              }
             }
             finput->Close();
             curdir->cd();
@@ -2602,37 +2793,61 @@ void combineEfficiencies(
             MELAout << "\t\t- Extracting MC efficiencies..." << endl;
             std::vector<std::vector<double>> effvals_MC(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
             calculateRecursiveEfficiencies(sum_indices, vals_MC, effvals_MC);
-            syst_effs_MC_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatNominal_map[syst].push_back(v.at(0));
-            syst_effs_MC_StatDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatDn_map[syst].push_back(v.at(1));
-            syst_effs_MC_StatUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatUp_map[syst].push_back(v.at(2));
-            MELAout << "\t\t- Collected nominal MC effs.: " << syst_effs_MC_StatNominal_map[syst] << endl;
-            MELAout << "\t\t- Collected stat. dn. MC effs.: " << syst_effs_MC_StatDn_map[syst] << endl;
-            MELAout << "\t\t- Collected stat. up. MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
+            if (doFits){
+              syst_effs_MC_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatNominal_map[syst].push_back(v.at(0));
+              syst_effs_MC_StatDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatDn_map[syst].push_back(v.at(1));
+              syst_effs_MC_StatUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_StatUp_map[syst].push_back(v.at(2));
+              MELAout << "\t\t- Collected nominal MC effs.: " << syst_effs_MC_StatNominal_map[syst] << endl;
+              MELAout << "\t\t- Collected stat. dn. MC effs.: " << syst_effs_MC_StatDn_map[syst] << endl;
+              MELAout << "\t\t- Collected stat. up MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
+            }
+            else if (theGlobalSyst == SystematicsHelpers::ePUDn){
+              for (auto const& v:effvals_MC) effs_MC_PUDn_list.push_back(v.at(0));
+              MELAout << "\t\t- Collected PU dn. MC effs.: " << effs_MC_PUDn_list << endl;
+            }
+            else if (theGlobalSyst == SystematicsHelpers::ePUUp){
+              for (auto const& v:effvals_MC) effs_MC_PUUp_list.push_back(v.at(0));
+              MELAout << "\t\t- Collected PU up MC effs.: " << effs_MC_PUUp_list << endl;
+            }
+            else if (useMC_2l2nu){
+              for (auto const& v:effvals_MC) effs_MC_2l2nu_list.push_back(v.at(0));
+              for (auto const& v:effvals_MC) effs_MC_2l2nu_intsize_list.push_back(v.at(2) - v.at(1));
+              MELAout << "\t\t- Collected 2l2nu MC effs.: " << effs_MC_2l2nu_list << endl;
+              MELAout << "\t\t- Collected 2l2nu MC interval sizes: " << effs_MC_2l2nu_intsize_list << endl;
+            }
+            else if (useMC_4l){
+              for (auto const& v:effvals_MC) effs_MC_4l_list.push_back(v.at(0));
+              for (auto const& v:effvals_MC) effs_MC_4l_intsize_list.push_back(v.at(2) - v.at(1));
+              MELAout << "\t\t- Collected 4l MC effs.: " << effs_MC_4l_list << endl;
+              MELAout << "\t\t- Collected 4l MC interval sizes: " << effs_MC_4l_intsize_list << endl;
+            }
 
             // Find data efficiencies
-            MELAout << "\t\t- Extracting data efficiencies..." << endl;
-            std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-            std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-            std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_nominal, effvals_data_frac_nominal);
-            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_dn, effvals_data_frac_dn);
-            calculateRecursiveEfficiencies(sum_indices, vals_data_frac_up, effvals_data_frac_up);
-            syst_effs_data_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_data_frac_nominal) syst_effs_data_StatNominal_map[syst].push_back(v.at(0));
-            syst_effs_data_StatDn_map[syst] = std::vector<double>();
-            syst_effs_data_StatUp_map[syst] = std::vector<double>();
-            for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
-              double const& vnom = effvals_data_frac_nominal.at(osel).at(0);
-              double const& v_frac_dn = effvals_data_frac_dn.at(osel).at(0);
-              double const& v_frac_up = effvals_data_frac_up.at(osel).at(0);
-              double const& v_eff_dn = effvals_data_frac_nominal.at(osel).at(1);
-              double const& v_eff_up = effvals_data_frac_nominal.at(osel).at(2);
+            if (doFits){
+              MELAout << "\t\t- Extracting data efficiencies..." << endl;
+              std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+              std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+              std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_nominal, effvals_data_frac_nominal);
+              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_dn, effvals_data_frac_dn);
+              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_up, effvals_data_frac_up);
+              syst_effs_data_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_data_frac_nominal) syst_effs_data_StatNominal_map[syst].push_back(v.at(0));
+              syst_effs_data_StatDn_map[syst] = std::vector<double>();
+              syst_effs_data_StatUp_map[syst] = std::vector<double>();
+              for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+                double const& vnom = effvals_data_frac_nominal.at(osel).at(0);
+                double const& v_frac_dn = effvals_data_frac_dn.at(osel).at(0);
+                double const& v_frac_up = effvals_data_frac_up.at(osel).at(0);
+                double const& v_eff_dn = effvals_data_frac_nominal.at(osel).at(1);
+                double const& v_eff_up = effvals_data_frac_nominal.at(osel).at(2);
 
-              syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
-              syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
+                syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
+                syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
+              }
+              MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
+              MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
+              MELAout << "\t\t- Collected stat. up data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
             }
-            MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
-            MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
-            MELAout << "\t\t- Collected stat. up. data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
           } // End min. tag pT loop
         } // End fit window loop
       } // End systematics loop
@@ -2647,17 +2862,17 @@ void combineEfficiencies(
 
         double mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal;
         findModeAndConfidenceInterval(eff_coll_data_StatNominal, mode_data_StatNominal, clow_data_StatNominal, chigh_data_StatNominal);
-        h_eff_data_Nominal_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatNominal);
-        h_eff_data_SystDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, clow_data_StatNominal);
-        h_eff_data_SystUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, chigh_data_StatNominal);
+        h_eff_data_Nominal_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_data_StatNominal);
+        h_eff_data_SystDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, clow_data_StatNominal);
+        h_eff_data_SystUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, chigh_data_StatNominal);
 
         double mode_data_StatDn, clow_data_StatDn, chigh_data_StatDn;
         findModeAndConfidenceInterval(eff_coll_data_StatDn, mode_data_StatDn, clow_data_StatDn, chigh_data_StatDn);
-        h_eff_data_StatDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatDn);
+        h_eff_data_StatDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_data_StatDn);
 
         double mode_data_StatUp, clow_data_StatUp, chigh_data_StatUp;
         findModeAndConfidenceInterval(eff_coll_data_StatUp, mode_data_StatUp, clow_data_StatUp, chigh_data_StatUp);
-        h_eff_data_StatUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_data_StatUp);
+        h_eff_data_StatUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_data_StatUp);
 
 
         MELAout << "\t\t- Building for MC..." << endl;
@@ -2667,17 +2882,31 @@ void combineEfficiencies(
 
         double mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal;
         findModeAndConfidenceInterval(eff_coll_MC_StatNominal, mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal);
-        h_eff_MC_Nominal_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatNominal);
-        h_eff_MC_SystDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, clow_MC_StatNominal);
-        h_eff_MC_SystUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, chigh_MC_StatNominal);
+        h_eff_MC_Nominal_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatNominal);
+        h_eff_MC_SystDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, clow_MC_StatNominal);
+        h_eff_MC_SystUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, chigh_MC_StatNominal);
 
         double mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn;
         findModeAndConfidenceInterval(eff_coll_MC_StatDn, mode_MC_StatDn, clow_MC_StatDn, chigh_MC_StatDn);
-        h_eff_MC_StatDn_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatDn);
+        h_eff_MC_StatDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatDn);
 
         double mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp;
         findModeAndConfidenceInterval(eff_coll_MC_StatUp, mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp);
-        h_eff_MC_StatUp_list.at(osel).SetBinContent(bin_pt+1, bin_eta+1, mode_MC_StatUp);
+        h_eff_MC_StatUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatUp);
+
+        if (!effs_MC_PUDn_list.empty()) h_eff_MC_PUDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, effs_MC_PUDn_list.at(osel));
+        if (!effs_MC_PUUp_list.empty()) h_eff_MC_PUUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, effs_MC_PUUp_list.at(osel));
+
+        if (!effs_MC_2l2nu_list.empty() || !effs_MC_4l_list.empty()){
+          double val_2l2nu = (effs_MC_2l2nu_list.empty() ? 0 : effs_MC_2l2nu_list.at(osel));
+          double wgt_2l2nu = (effs_MC_2l2nu_list.empty() ? 0 : 1./std::pow(effs_MC_2l2nu_intsize_list.at(osel), 2));
+          double val_4l = (effs_MC_4l_list.empty() ? 0 : effs_MC_4l_list.at(osel));
+          double wgt_4l = (effs_MC_4l_list.empty() ? 0 : 1./std::pow(effs_MC_4l_intsize_list.at(osel), 2));
+
+          double val_avg = (val_2l2nu*wgt_2l2nu + val_4l*wgt_4l)/(wgt_2l2nu + wgt_4l);
+          h_eff_MC_AltMCDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, 2.*mode_MC_StatNominal - val_avg);
+          h_eff_MC_AltMCUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, val_avg);
+        }
       }
 
       curdir->cd();
@@ -2685,16 +2914,173 @@ void combineEfficiencies(
   } // End pT bin loop
 
   MELAout << "Writing the histograms" << endl;
-  for (auto& hh:h_eff_MC_Nominal_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_eff_data_Nominal_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_MC_StatUp_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_data_StatUp_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_MC_StatDn_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_eff_data_StatDn_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_MC_SystUp_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_data_SystUp_list) foutput->WriteTObject(&hh);
-  for (auto& hh:h_eff_MC_SystDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_StatUp_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_eff_data_SystDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_data_SystUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_Nominal_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_StatDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_StatUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_SystDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_SystUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_PUDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_PUUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_AltMCDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_eff_MC_AltMCUp_list) foutput->WriteTObject(&hh);
+
+  // Extract SFs
+  for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+    double zmin_eff=9e9;
+    constexpr double zmax_eff=1;
+    double zmin_SF=9e9;
+    double zmax_SF=-9e9;
+
+    for (int bin_pt=0; bin_pt<(int) binning_pt.getNbins(); bin_pt++){
+      for (int bin_eta=0; bin_eta<(int) binning_eta.getNbins(); bin_eta++){
+        curdir->cd();
+#define HIST_COMMAND(name) \
+        double val_##name = h_##name##_list.at(osel).GetBinContent(bin_eta+1, bin_pt+1); if (val_##name>0.) zmin_eff = std::min(zmin_eff, val_##name);
+        HIST_COMMAND(eff_data_Nominal);
+        HIST_COMMAND(eff_data_StatDn);
+        HIST_COMMAND(eff_data_StatUp);
+        HIST_COMMAND(eff_data_SystDn);
+        HIST_COMMAND(eff_data_SystUp);
+        HIST_COMMAND(eff_MC_Nominal);
+        HIST_COMMAND(eff_MC_StatDn);
+        HIST_COMMAND(eff_MC_StatUp);
+        HIST_COMMAND(eff_MC_SystDn);
+        HIST_COMMAND(eff_MC_SystUp);
+        HIST_COMMAND(eff_MC_PUDn);
+        HIST_COMMAND(eff_MC_PUUp);
+        HIST_COMMAND(eff_MC_AltMCDn);
+        HIST_COMMAND(eff_MC_AltMCUp);
+#undef HIST_COMMAND
+
+        double val_SF_Nominal = val_eff_data_Nominal / val_eff_MC_Nominal;
+        double val_SF_StatDn = val_SF_Nominal - std::sqrt(std::pow(val_eff_data_StatDn / val_eff_MC_Nominal - val_SF_Nominal, 2) + std::pow(val_eff_data_Nominal / val_eff_MC_StatUp - val_SF_Nominal, 2));
+        double val_SF_StatUp = val_SF_Nominal + std::sqrt(std::pow(val_eff_data_StatUp / val_eff_MC_Nominal - val_SF_Nominal, 2) + std::pow(val_eff_data_Nominal / val_eff_MC_StatDn - val_SF_Nominal, 2));
+        double val_SF_SystDn = val_SF_Nominal - std::sqrt(std::pow(val_eff_data_SystDn / val_eff_MC_Nominal - val_SF_Nominal, 2) + std::pow(val_eff_data_Nominal / val_eff_MC_SystUp - val_SF_Nominal, 2));
+        double val_SF_SystUp = val_SF_Nominal + std::sqrt(std::pow(val_eff_data_SystUp / val_eff_MC_Nominal - val_SF_Nominal, 2) + std::pow(val_eff_data_Nominal / val_eff_MC_SystDn - val_SF_Nominal, 2));
+        double val_SF_PUDn = (val_eff_MC_PUDn==0. ? 0. : val_eff_data_Nominal / val_eff_MC_PUDn);
+        double val_SF_PUUp = (val_eff_MC_PUUp==0. ? 0. : val_eff_data_Nominal / val_eff_MC_PUUp);
+        double val_SF_AltMCDn = (val_eff_MC_AltMCDn==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCDn);
+        double val_SF_AltMCUp = (val_eff_MC_AltMCUp==0. ? 0. : val_eff_data_Nominal / val_eff_MC_AltMCUp);
+#define HIST_COMMAND(name) \
+        h_##name##_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, val_##name); if (val_##name>0.){ zmin_SF = std::min(zmin_SF, val_##name); zmax_SF = std::max(zmax_SF, val_##name); }
+        HIST_COMMAND(SF_Nominal);
+        HIST_COMMAND(SF_StatDn);
+        HIST_COMMAND(SF_StatUp);
+        HIST_COMMAND(SF_SystDn);
+        HIST_COMMAND(SF_SystUp);
+        HIST_COMMAND(SF_PUDn);
+        HIST_COMMAND(SF_PUUp);
+        HIST_COMMAND(SF_AltMCDn);
+        HIST_COMMAND(SF_AltMCUp);
+#undef HIST_COMMAND
+      }
+    }
+#define HIST_COMMAND(name, title) \
+    plotEffSF(coutput_plots+"/Effs", strFinalState, title, &(h_##name##_list.at(osel)), zmin_eff*0.99, zmax_eff);
+    HIST_COMMAND(eff_data_Nominal, Form("%s %s eff. data (nominal)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_data_StatDn, Form("%s %s eff. data (stat. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_data_StatUp, Form("%s %s eff. data (stat. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_data_SystDn, Form("%s %s eff. data (syst. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_data_SystUp, Form("%s %s eff. data (syst. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_Nominal, Form("%s %s eff. MC (nominal)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_StatDn, Form("%s %s eff. MC (stat. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_StatUp, Form("%s %s eff. MC (stat. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_SystDn, Form("%s %s eff. MC (syst. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_SystUp, Form("%s %s eff. MC (syst. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_PUDn, Form("%s %s eff. MC (PU down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_PUUp, Form("%s %s eff. MC (PU up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_AltMCDn, Form("%s %s eff. MC (alt. MC down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(eff_MC_AltMCUp, Form("%s %s eff. MC (alt. MC up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+#undef HIST_COMMAND
+#define HIST_COMMAND(name, title) \
+    plotEffSF(coutput_plots+"/SFs", strFinalState, title, &(h_##name##_list.at(osel)), zmin_SF*0.99, zmax_SF*1.01);
+    HIST_COMMAND(SF_Nominal, Form("%s %s SF (nominal)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_StatDn, Form("%s %s SF (stat. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_StatUp, Form("%s %s SF (stat. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_SystDn, Form("%s %s SF (syst. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_SystUp, Form("%s %s SF (syst. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_PUDn, Form("%s %s SF (PU down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_PUUp, Form("%s %s SF (PU up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_AltMCDn, Form("%s %s SF (alt. MC down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_AltMCUp, Form("%s %s SF (alt. MC up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+#undef HIST_COMMAND
+  }
+  for (auto& hh:h_SF_Nominal_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_StatDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_StatUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_SystDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_SystUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_PUDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_PUUp_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_AltMCDn_list) foutput->WriteTObject(&hh);
+  for (auto& hh:h_SF_AltMCUp_list) foutput->WriteTObject(&hh);
+
+  // Get the dSF/SFs
+  for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+#define HIST_COMMAND(name) \
+    h_##name##_list.at(osel).Add(&(h_SF_Nominal_list.at(osel)), -1.); \
+    h_##name##_list.at(osel).Divide(&(h_SF_Nominal_list.at(osel))); \
+    { TString hname = h_##name##_list.at(osel).GetName(); HelperFunctions::replaceString(hname, "SF", "dSFoverSF");TString htitle = h_##name##_list.at(osel).GetTitle(); HelperFunctions::replaceString(hname, "SF", "#deltaSF/SF"); }
+    HIST_COMMAND(SF_StatDn);
+    HIST_COMMAND(SF_StatUp);
+    HIST_COMMAND(SF_SystDn);
+    HIST_COMMAND(SF_SystUp);
+    HIST_COMMAND(SF_PUDn);
+    HIST_COMMAND(SF_PUUp);
+    HIST_COMMAND(SF_AltMCDn);
+    HIST_COMMAND(SF_AltMCUp);
+#undef HIST_COMMAND
+
+    double zmin_dSF=9e9;
+    double zmax_dSF=-9e9;
+    for (int bin_pt=0; bin_pt<(int) binning_pt.getNbins(); bin_pt++){
+      for (int bin_eta=0; bin_eta<(int) binning_eta.getNbins(); bin_eta++){
+#define HIST_COMMAND(name) \
+        double val_##name = h_##name##_list.at(osel).GetBinContent(bin_eta+1, bin_pt+1); \
+        if (val_##name>-1.){ zmin_dSF = std::min(zmin_dSF, val_##name); zmax_dSF = std::max(zmax_dSF, val_##name); }
+        HIST_COMMAND(SF_StatDn);
+        HIST_COMMAND(SF_StatUp);
+        HIST_COMMAND(SF_SystDn);
+        HIST_COMMAND(SF_SystUp);
+        HIST_COMMAND(SF_PUDn);
+        HIST_COMMAND(SF_PUUp);
+        HIST_COMMAND(SF_AltMCDn);
+        HIST_COMMAND(SF_AltMCUp);
+#undef HIST_COMMAND
+      }
+    }
+#define HIST_COMMAND(name, title) \
+    plotEffSF(coutput_plots+"/dSFoverSFs", strFinalState, title, &(h_##name##_list.at(osel)), zmin_dSF, zmax_dSF);
+    HIST_COMMAND(SF_StatDn, Form("%s %s #deltaSF/SF (stat. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_StatUp, Form("%s %s #deltaSF/SF (stat. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_SystDn, Form("%s %s #deltaSF/SF (syst. down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_SystUp, Form("%s %s #deltaSF/SF (syst. up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_PUDn, Form("%s %s #deltaSF/SF (PU down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_PUUp, Form("%s %s #deltaSF/SF (PU up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_AltMCDn, Form("%s %s #deltaSF/SF (alt. MC down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+    HIST_COMMAND(SF_AltMCUp, Form("%s %s #deltaSF/SF (alt. MC up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
+#undef HIST_COMMAND
+  }
 
   foutput->Close();
+}
+
+void collectEfficiencies(TString strdate){
+  std::vector<TString> strperiods{ "2016", "2017", "2018" };
+  for (auto const& period:strperiods){
+    for (unsigned int ioli=0; ioli<2; ioli++){
+      for (unsigned int is_ee=0; is_ee<2; is_ee++){
+        combineEfficiencies(period, Form("200420_%s", period.Data()), strdate, is_ee, -1, 23, ioli);
+        if (is_ee==1){
+          combineEfficiencies(period, Form("200420_%s", period.Data()), strdate, is_ee, 0, 23, ioli);
+          combineEfficiencies(period, Form("200420_%s", period.Data()), strdate, is_ee, 1, 23, ioli);
+        }
+      }
+    }
+  }
 }
