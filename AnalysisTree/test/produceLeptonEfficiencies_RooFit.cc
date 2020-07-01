@@ -163,8 +163,10 @@ void getMCTrees(std::vector< std::pair<TString, std::vector<TString>> >& list, S
       list.emplace_back("qqZZ_2l2nu", std::vector<TString>());
       list.emplace_back("qqZZ_2l2nu_mZ_18-inf", std::vector<TString>());
     }
-    list.emplace_back("qqZZ_4l", std::vector<TString>());
-    list.emplace_back("qqZZ_4l_ext", std::vector<TString>());
+    if (strALT == "4l" || strALT == ""){
+      list.emplace_back("qqZZ_4l", std::vector<TString>());
+      list.emplace_back("qqZZ_4l_ext", std::vector<TString>());
+    }
   }
   else if (SampleHelpers::theDataYear == 2018){
     list.reserve(6);
@@ -1336,7 +1338,7 @@ void getEfficiencies(
   std::vector<TString> samples_data;
   getDataTrees(samples_data, is_ee, SystematicsHelpers::sNominal);
   std::vector< std::pair<TString, std::vector<TString>> > samples_MC;
-  if (doFits) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "DY");
+  if (doFits || theGlobalSyst == SystematicsHelpers::ePUUp || theGlobalSyst == SystematicsHelpers::ePUDn) getMCTrees(samples_MC, theGlobalSyst, "DY");
   else if (useMC_2l2nu) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "2l2nu");
   else if (useMC_4l) getMCTrees(samples_MC, SystematicsHelpers::sNominal, "4l");
   else{
@@ -2323,7 +2325,7 @@ void findModeAndConfidenceInterval(
   unsigned int nvals = vals.size();
   unsigned int ilow = (1. - conf)/2.*nvals;
   unsigned int ihigh = (1. + conf)/2.*nvals;
-  
+
   clow = vals.at(ilow);
   if (ilow+1 != ihigh) clow = (clow + vals.at(ilow+1))/2.;
   chigh = vals.at(ihigh);
@@ -2735,27 +2737,6 @@ void combineEfficiencies(
             curdir->cd();
             TFile* finput = TFile::Open(strinput, "read");
             finput->cd();
-            if (doFits && false){
-              // Extract the final validation plots
-              std::vector<TCanvas*> allcanvases;
-              HelperFunctions::extractHistogramsFromDirectory(finput, allcanvases);
-              for (auto* canvas:allcanvases){
-                canvas->cd();
-                TString canvasname = canvas->GetName();
-                if (canvasname.Contains("cCompare") || canvasname.Contains("absEta")) continue;
-                if (
-                  (canvasname.Contains("fit_MC") && canvasname.Contains("FinalFitWithMinos"))
-                  ||
-                  (canvasname.Contains("fit_data") && !canvasname.Contains("TailsObsRange"))
-                  ){
-                  canvas->SaveAs(coutput_plots+"/Validations/"+canvas->GetName()+".png");
-                  canvas->SaveAs(coutput_plots+"/Validations/"+canvas->GetName()+".pdf");
-                }
-                canvas->Close();
-              }
-              curdir->cd();
-            }
-            finput->cd();
             for (unsigned int isel=0; isel<strIdIsoTypes.size(); isel++){
               TString const& strIdIsoType = strIdIsoTypes.at(isel);
               TH2D* hevts_MC = (TH2D*) finput->Get(Form("evts_MC_%s", strIdIsoType.Data()));
@@ -3083,4 +3064,210 @@ void collectEfficiencies(TString strdate){
       }
     }
   }
+}
+
+void replotFitValidations(
+  TString period, TString prodVersion, TString strdate,
+  bool is_ee, int eeGapCode, int resPdgId
+){
+  if (is_ee && resPdgId!=23) return;
+  if (!is_ee && !(resPdgId==23 || resPdgId==443)) return;
+
+  gStyle->SetOptStat(0);
+
+  if (strdate=="") strdate = HelperFunctions::todaysdate();
+
+  SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
+
+  constexpr bool applyPUIdToAK4Jets=true;
+  constexpr bool applyTightLeptonVetoIdToAK4Jets=false;
+
+  AK4JetSelectionHelpers::setApplyPUIdToJets(applyPUIdToAK4Jets); // Default is 'true'
+  AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
+
+  std::vector<TString> strIdIsoTypes{
+    "failId",
+    "passId_failLooseIso",
+    "passId_failTightIso",
+    "passId_passTightIso"
+  };
+
+  TString strFinalState = (is_ee ? "ee" : "mumu");
+  if (is_ee){
+    if (eeGapCode<0) strFinalState += "_nongap_gap";
+    else if (eeGapCode==0) strFinalState += "_nongap";
+    else strFinalState += "_gap";
+  }
+
+  TString cinput_base_dir;
+  if (!SampleHelpers::checkRunOnCondor()) cinput_base_dir = "output/";
+  else cinput_base_dir = "/hadoop/cms/store/user/usarica/Offshell_2L2Nu/Worker/output/";
+  HostHelpers::ExpandEnvironmentVariables(cinput_base_dir);
+
+  TString const cinput_main =
+    cinput_base_dir
+    + "LeptonEfficiencies/DataFits/" + strdate
+    + "/"
+    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_"
+    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + period;
+  TString const coutput_main =
+    "output/LeptonEfficiencies/FinalEffs/" + strdate
+    + "/"
+    + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
+    + "_"
+    + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + period + "/Plots/" + strFinalState + "/Validations";
+
+  TDirectory* curdir = gDirectory;
+
+  gSystem->mkdir(coutput_main, true);
+
+  curdir->cd();
+
+  std::vector<TString> systOptions_withfits{
+    "", "ALTBkg", "ALTBkg2", "TightTag", "TightTag.ALTBkg", "TightTag.ALTBkg2"
+  };
+
+  std::vector<std::pair<double, double>> fit_low_high_pairs={
+    { 60, 120 },
+    { 65, 115 },
+    { 70, 110 }
+  };
+  std::vector<double> minPt_tags;
+  if (is_ee){
+    switch (SampleHelpers::theDataYear){
+    case 2016:
+      minPt_tags = std::vector<double>{ 28, 30 };
+      break;
+    case 2017:
+      minPt_tags = std::vector<double>{ 38, 40 };
+      break;
+    case 2018:
+      minPt_tags = std::vector<double>{ 35, 37 };
+      break;
+    default:
+      MELAerr << "Min. tag pT list for dielectrons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      assert(0);
+    }
+  }
+  else{
+    switch (SampleHelpers::theDataYear){
+    case 2016:
+      minPt_tags = std::vector<double>{ 27, 29 };
+      break;
+    case 2017:
+      minPt_tags = std::vector<double>{ 30, 32 };
+      break;
+    case 2018:
+      minPt_tags = std::vector<double>{ 27, 29 };
+      break;
+    default:
+      MELAerr << "Min. tag pT list for dimuons is not implemented for year " << SampleHelpers::theDataYear << endl;
+      assert(0);
+    }
+  }
+
+  ExtendedBinning binning_pt;
+  ExtendedBinning binning_eta;
+  getPtEtaBinning(
+    is_ee,
+    eeGapCode,
+    resPdgId,
+    binning_pt, binning_eta
+  );
+
+  for (int bin_pt=0; bin_pt<(int) binning_pt.getNbins(); bin_pt++){
+    for (int bin_eta=0; bin_eta<(int) binning_eta.getNbins(); bin_eta++){
+      curdir->cd();
+
+      MELAout << "Examining pT, eta bin " << bin_pt << ", " << bin_eta << endl;
+
+      for (auto const& systOptions:systOptions_withfits){
+        bool useALTSig = systOptions.Contains("ALTSig");
+        bool useALTBkg2 = systOptions.Contains("ALTBkg2");
+        bool useALTBkg = systOptions.Contains("ALTBkg") && !useALTBkg2;
+        bool useTightTag = systOptions.Contains("TightTag");
+        bool useMC_2l2nu = systOptions.Contains("MC_2l2nu");
+        bool useMC_4l = systOptions.Contains("MC_4l");
+        SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal;
+        if (systOptions.Contains("PUDn")) theGlobalSyst = SystematicsHelpers::ePUDn;
+        else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
+        bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
+        if (!doFits) continue;
+        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useMC_2l2nu + 1*useMC_4l>1) continue; // Exclude tight tag here
+
+        TString strSigModel = "CorrRelBWxDCB";
+        TString strBkgModel = "RooCMSShape";
+        if (useALTSig) strSigModel = "RelBWxDCB";
+        if (useALTBkg) strBkgModel = "Exponential";
+        if (useALTBkg2) strBkgModel = "Chebyshev";
+        TString strFitModel = strSigModel + "_" + strBkgModel;
+
+        TString strMCModel = "MC_DY";
+        if (useMC_2l2nu) strMCModel = "MC_2l2nu";
+        if (useMC_4l) strMCModel = "MC_4l";
+
+        TString strSystName = strFitModel + "_" + strMCModel + "_" + SystematicsHelpers::getSystName(theGlobalSyst).data();
+        if (useTightTag) strSystName += "_TightTag";
+
+        for (auto const& fit_low_high_pair:fit_low_high_pairs){
+          double const& fit_low = fit_low_high_pair.first;
+          double const& fit_high = fit_low_high_pair.second;
+          if ((useALTBkg || useALTBkg2) && fit_low<70.) continue;
+          for (auto const& minPt_tag:minPt_tags){
+            TString syst = Form(
+              "%s_minPtTag_%s_mll_%s_%s",
+              strSystName.Data(),
+              convertFloatToTitleString(minPt_tag).Data(),
+              convertFloatToTitleString(fit_low).Data(), convertFloatToTitleString(fit_high).Data()
+            );
+
+            TString strnameapp = Form(
+              "%s_%s",
+              strFinalState.Data(),
+              syst.Data()
+            );
+            if (bin_pt>=0) strnameapp = Form("%s_ptbin_%i", strnameapp.Data(), bin_pt);
+            if (bin_eta>=0) strnameapp = Form("%s_etabin_%i", strnameapp.Data(), bin_eta);
+            TString cinput = Form("DataFits_%s%s", strnameapp.Data(), ".root");
+            TString strinput = Form("%s/%s", cinput_main.Data(), cinput.Data());
+            if (!HostHelpers::FileExists(strinput)){
+              MELAout << "File " << strinput << " cannot be found. Skipping..." << endl;
+              continue;
+            }
+            MELAout << "\t- Systematic: " << syst << endl;
+
+            TString const coutput_plots = coutput_main + "/" + syst + "/";
+            gSystem->mkdir(coutput_plots, true);
+
+            curdir->cd();
+            TFile* finput = TFile::Open(strinput, "read");
+            finput->cd();
+            // Extract the final validation plots
+            std::vector<TCanvas*> allcanvases;
+            HelperFunctions::extractObjectsFromDirectory(finput, allcanvases);
+            for (auto* canvas:allcanvases){
+              canvas->cd();
+              TString canvasname = canvas->GetName();
+              if (canvasname.Contains("cCompare") || canvasname.Contains("absEta")) continue;
+              if (
+                (canvasname.Contains("fit_MC") && canvasname.Contains("FinalFitWithMinos"))
+                ||
+                (canvasname.Contains("fit_data") && !canvasname.Contains("TailsObsRange"))
+                ){
+                canvas->SaveAs(coutput_plots+canvas->GetName()+".png");
+                canvas->SaveAs(coutput_plots+canvas->GetName()+".pdf");
+              }
+              canvas->Close();
+              finput->cd();
+            }
+            finput->Close();
+            curdir->cd();
+          } // End min. tag pT loop
+        } // End fit window loop
+      } // End systematics loop
+    } // End eta bin loop
+  } // End pT bin loop
 }
