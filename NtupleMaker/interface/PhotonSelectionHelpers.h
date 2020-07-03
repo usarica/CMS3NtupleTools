@@ -14,7 +14,7 @@ namespace PhotonSelectionHelpers{
   };
 
   // Skim selection
-  constexpr double selection_skim_pt = 30.;
+  constexpr double selection_skim_pt = 5.;
   constexpr double selection_skim_eta = 5.0;
   constexpr double selection_iso_deltaR = 0.3; // This is a constant since the only isolation available uses dR<0.3
 
@@ -33,7 +33,7 @@ namespace PhotonSelectionHelpers{
   float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
 
-  bool testSkimPhoton(pat::Photon const& obj, int const& year, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist);
+  bool testSkimPhoton(pat::Photon const& obj, int const& year);
 
 }
 

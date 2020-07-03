@@ -1356,12 +1356,7 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Photon>::const_iterator obj = photonsHandle->begin(); obj != photonsHandle->end(); obj++){
-    bool const passStandardSkim = PhotonSelectionHelpers::testSkimPhoton(
-      *obj,
-      this->year,
-      { "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits" },
-      { "id_MVA_Fall17V2_pass_wp90", "id_MVA_Fall17V2_pass_wp80" }
-    );
+    bool const passStandardSkim = PhotonSelectionHelpers::testSkimPhoton(*obj, this->year);
     bool isFSRSCVetoed = false;
     if (filledFSRCandidates){
       for (auto& fsrInfo:(*filledFSRCandidates)){
