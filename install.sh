@@ -2,9 +2,9 @@
 
 #USER INPUTS
 CMS3Tag=combined
-CMSSW_release=CMSSW_10_2_18
+CMSSW_release=CMSSW_10_2_22
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc6_amd64_gcc700
+export SCRAM_ARCH=slc7_amd64_gcc700
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
@@ -40,16 +40,14 @@ git cms-merge-topic cms-met:METFixEE2017_949_v2_backport_to_102X
 # e/gamma cluster production
 git cms-addpkg RecoEcal/EgammaClusterProducers
 
-# pT-dependent JERs and phi-dependent JECs
-## git cherry-pick 09e9a17cb26020bc507dffec70137bacc6f124c6 # This is the commit id directly from cmssw
-git cms-addpkg PhysicsTools/PatUtils
-git cms-addpkg PhysicsTools/PatAlgos
-# Need to replace two files from a commit present in CMSSW 11. Cannot do cms-merge-topic or simple cherry-pick.
+# PU jet id updates
+# Twiki: https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID#9X_2017_and_10X_2018_recipes
+git cms-merge-topic alefisico:PUID_102X # For CMSSW_10_2_X older than CMSSW_10_2_21. Need PUID_106X for CMSSW_10_6_X older than CMSSW_10_6_11
+git cms-addpkg RecoJets/JetProducers
 (
-  curl -O -L https://github.com/cms-sw/cmssw/raw/09e9a17cb26020bc507dffec70137bacc6f124c6/PhysicsTools/PatUtils/interface/SmearedJetProducerT.h
-  curl -O -L https://github.com/cms-sw/cmssw/raw/09e9a17cb26020bc507dffec70137bacc6f124c6/PhysicsTools/PatAlgos/plugins/JetCorrFactorsProducer.cc
-  mv SmearedJetProducerT.h PhysicsTools/PatUtils/interface/
-  mv JetCorrFactorsProducer.cc PhysicsTools/PatAlgos/plugins/
+  git clone -b 94X_weights_DYJets_inc_v2 git@github.com:cms-jet/PUjetID.git RecoJets/JetProducers/data/PUJetIDweights
+  cp -r RecoJets/JetProducers/data/PUJetIDweights/weights/pileupJetId_{94,102}X_Eta* RecoJets/JetProducers/data/
+  rm -rf RecoJets/JetProducers/data/PUJetIDweights
 )
 
 
