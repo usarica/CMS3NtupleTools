@@ -901,6 +901,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, etaSC, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, ecalEnergy, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, sinTheta_SC_pos, n_objects);
+
   // Has no convention correspondence in nanoAOD
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_scale_totalUp, n_objects);
@@ -913,8 +916,6 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_missing_inner_hits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_missinghits_t, n_all_missing_inner_hits, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Iso_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, n_objects);
@@ -977,21 +978,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Electron>::const_iterator obj = electronsHandle->begin(); obj != electronsHandle->end(); obj++){
-    if (
-      !ElectronSelectionHelpers::testSkimElectron(
-        *obj, this->year,
-        {
-          //"id_cutBased_triggerEmulation_Bits", // Trigger emulation is not necessary
-          "id_cutBased_Fall17V2_Veto_Bits", "id_cutBased_Fall17V2_Loose_Bits", "id_cutBased_Fall17V2_Medium_Bits", "id_cutBased_Fall17V2_Tight_Bits"/*,
-          "id_cutBased_Fall17V1_Veto_Bits", "id_cutBased_Fall17V1_Loose_Bits", "id_cutBased_Fall17V1_Medium_Bits", "id_cutBased_Fall17V1_Tight_Bits"*/
-        },
-        {
-          "id_MVA_Fall17V2_Iso_pass_wpLoose", "id_MVA_Fall17V2_Iso_pass_wp90", "id_MVA_Fall17V2_Iso_pass_wp80", "id_MVA_Fall17V2_Iso_pass_wpHZZ",
-          "id_MVA_Fall17V2_NoIso_pass_wpLoose", "id_MVA_Fall17V2_NoIso_pass_wp90", "id_MVA_Fall17V2_NoIso_pass_wp80",
-          "id_MVA_HZZRun2Legacy_Iso_pass_wpHZZ"
-        }
-      )
-      ) continue;
+    if (!ElectronSelectionHelpers::testSkimElectron(*obj, this->year)) continue;
 
     // Core particle quantities
     // Uncorrected p4
@@ -1003,6 +990,9 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     // Charge: Can obtain pdgId from this, so no need to record pdgId again
     PUSH_USERINT_INTO_VECTOR(charge);
     PUSH_USERFLOAT_INTO_VECTOR(etaSC);
+
+    PUSH_USERFLOAT_INTO_VECTOR(ecalEnergy);
+    sinTheta_SC_pos.push_back(!obj->superCluster().isNull() ? std::sin(obj->superCluster()->position().theta()) : -99.);
 
     // Scale and smear
     // Nominal value: Needs to multiply the uncorrected p4 at analysis level
@@ -1018,8 +1008,6 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(conv_vtx_flag);
     PUSH_USERINT_INTO_VECTOR(n_missing_inner_hits);
     PUSH_USERINT_INTO_VECTOR(n_all_missing_inner_hits);
-
-    PUSH_USERINT_INTO_VECTOR(is_probeForTnP);
 
     // Id variables
     // Fall17V2_Iso MVA id
@@ -1106,13 +1094,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, charge);
   PUSH_VECTOR_WITH_NAME(colName, etaSC);
 
+  PUSH_VECTOR_WITH_NAME(colName, ecalEnergy);
+  PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+
   PUSH_VECTOR_WITH_NAME(colName, charge_consistency_bits);
 
   PUSH_VECTOR_WITH_NAME(colName, conv_vtx_flag);
   PUSH_VECTOR_WITH_NAME(colName, n_missing_inner_hits);
   PUSH_VECTOR_WITH_NAME(colName, n_all_missing_inner_hits);
-
-  PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP);
 
   // Has no convention correspondence in nanoAOD
   PUSH_VECTOR_WITH_NAME(colName, scale_smear_corr);

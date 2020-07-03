@@ -172,43 +172,11 @@ namespace ElectronSelectionHelpers{
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
-  bool testProbeElectronForTnP(pat::Electron const& obj, int const& /*year*/){
-    if (!obj.superCluster()) return false;
-    double eta = std::abs(obj.superCluster()->eta());
-    return (eta<2.5 && obj.correctedEcalEnergy()*std::sin(obj.superCluster()->position().theta())>10.);
-  }
-
-  bool testSkimElectron(pat::Electron const& obj, int const& /*year*/, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist){
+  bool testSkimElectron(pat::Electron const& obj, int const& /*year*/){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
     double etaSC = std::abs(obj.userFloat("etaSC"));
-    bool passTnP = (obj.userInt("is_probeForTnP")!=0);
-    bool passAnyCutBased = cutbasedidbitlist.empty();
-    bool passAnyMVA = mvaidpasslist.empty();
-    /*
-    From https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2#Applying_Individual_Cuts_of_a_Se
-    For cut-based selection, the bit map is the following:
-    0: Min. pT cut
-    1: SC eta multi. range
-    2: dEtaIn seed
-    3: dPhiIn
-    4: Full 5x5 sigmaIetaIeta
-    5: H/E
-    6: 1/E - 1/p
-    7: Eff. area PF iso.
-    8: Conversion veto
-    9: Missing hits
-    We select all bits except 0, 7.
-    */
-#define TEST_CUTBASED_BIT(ibit) ((ibit & 894) == 894)
-    for (auto const& strid:cutbasedidbitlist){
-      cms3_electron_cutbasedbits_t id_bits = obj.userInt(strid);
-      passAnyCutBased |= TEST_CUTBASED_BIT(id_bits);
-    }
-#undef TEST_CUTBASED_BIT
-    for (auto const& strid:mvaidpasslist) passAnyMVA |= static_cast<bool>(obj.userInt(strid));
     return (
-      (passTnP || passAnyCutBased || passAnyMVA) &&
       (eta<selection_skim_eta || etaSC<selection_skim_eta) && (
         uncorr_pt>=selection_skim_pt
         ||

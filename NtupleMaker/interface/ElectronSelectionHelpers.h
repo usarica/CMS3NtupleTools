@@ -23,9 +23,7 @@ namespace ElectronSelectionHelpers{
   float electronPFIsoComb(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute PF iso. value, uses rho instead of delta beta
   float electronMiniIsoComb(pat::Electron const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute mini. iso. value
 
-  bool testProbeElectronForTnP(pat::Electron const& obj, int const& year);
-
-  bool testSkimElectron(pat::Electron const& obj, int const& year, std::vector<std::string> const& cutbasedidbitlist, std::vector<std::string> const& mvaidpasslist);
+  bool testSkimElectron(pat::Electron const& obj, int const& year);
 
 }
 
