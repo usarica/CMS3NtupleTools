@@ -38,7 +38,7 @@ void produceSkims(
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_SingleLepton{
     TriggerHelpers::kSingleMu, TriggerHelpers::kSingleMu_HighPt, TriggerHelpers::kSingleMu_Prescaled, TriggerHelpers::kSingleMu_Control,
-    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt, TriggerHelpers::kSingleEle_Control
+    TriggerHelpers::kSingleEle, TriggerHelpers::kSingleEle_HighPt, TriggerHelpers::kSingleEle_Prescaled, TriggerHelpers::kSingleEle_Control
   };
   std::vector<TriggerHelpers::TriggerType> requiredTriggers_GJets{
     TriggerHelpers::kSinglePho

@@ -26,9 +26,12 @@ class BatchManager:
       self.parser.add_option("--date", type="string", help="Skim date")
       self.parser.add_option("--production_tag", type="string", help="Production tag")
       self.parser.add_option("--production_dir", type="string", help="Production directory")
+      self.parser.add_option("--skim_tag", type="string", help="Skims tag (needed only for the recovery option below)")
+      self.parser.add_option("--skim_dir", type="string", help="Skims directory (needed only for the recovery option below)")
       self.parser.add_option("--nfilesperjob_MC", type="int", default=35, help="Approximate number of input files per MC skim job")
       self.parser.add_option("--nfilesperjob_data", type="int", default=60, help="Approximate number of input files per data skim job")
       self.parser.add_option("--recreate", action="store_true", default=False, help="Recreate the job directories")
+      self.parser.add_option("--recover", action="store_true", default=False, help="Run to recover existing skims")
       self.parser.add_option("--dry", action="store_true", default=False, help="Test run without creation of jobs")
 
       (self.opt,self.args) = self.parser.parse_args()
@@ -41,6 +44,14 @@ class BatchManager:
          ]
       for theOpt in optchecks:
          if not hasattr(self.opt, theOpt) or getattr(self.opt, theOpt) is None:
+            sys.exit("Need to set --{} option".format(theOpt))
+
+      optrecoverychecks=[
+         "skim_tag",
+         "skim_dir"
+         ]
+      for theOpt in optrecoverychecks:
+         if self.opt.recover and (not hasattr(self.opt, theOpt) or getattr(self.opt, theOpt) is None):
             sys.exit("Need to set --{} option".format(theOpt))
 
       self.infile = self.opt.csv
@@ -85,6 +96,7 @@ class BatchManager:
             print "Checking {}:{}".format(strsample,spath)
             if not os.path.isdir(spath):
                print "Sample does not exist!"
+               print "=========="
                continue
             filelist = [f for f in os.listdir(spath) if (os.path.isfile(os.path.join(spath, f)) and '.root' in f)]
             nfiles = len(filelist)
@@ -99,6 +111,15 @@ class BatchManager:
                cmdstr = cmdline
                cmdstr = cmdstr.replace("<ichunk>",str(ichunk))
                cmdstr = cmdstr.replace("<nchunks>",str(nchunks))
+               if self.opt.recover:
+                  skimname = self.opt.skim_dir+'/'+self.opt.skim_tag+'/'+ffoutcore+'/allevents'
+                  if nchunks>0:
+                     skimname = "{}_{}_of_{}".format(skimname, ichunk, nchunks)
+                  skimname = skimname + ".root"
+                  if os.path.isfile(skimname):
+                     continue
+                  else:
+                     print "Need to regenerate {}".format(skimname)
                print cmdstr
                cmdlist.append(cmdstr)
             print "=========="

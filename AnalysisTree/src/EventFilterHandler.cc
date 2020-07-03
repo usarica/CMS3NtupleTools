@@ -86,7 +86,7 @@ bool EventFilterHandler::hasMatchingTriggerPath(std::vector<std::string> const& 
   return res;
 }
 float EventFilterHandler::getTriggerWeight(std::vector<std::string> const& hltpaths_) const{
-  if (hltpaths_.empty()) return 1;
+  if (hltpaths_.empty()) return 0;
   float failRate = 1;
   bool foundAtLeastOneTrigger = false;
   for (auto const& str:hltpaths_){
@@ -136,7 +136,7 @@ float EventFilterHandler::getTriggerWeight(
   METObject const* pfmet,
   HLTTriggerPathObject const** firstPassingHLTPath
 ) const{
-  if (hltpathprops_.empty()) return 1;
+  if (hltpathprops_.empty()) return 0;
 
   std::vector<MuonObject const*> muons_trigcheck; if (muons){ muons_trigcheck.reserve(muons->size()); for (auto const& part:(*muons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) muons_trigcheck.push_back(part); } }
   std::vector<ElectronObject const*> electrons_trigcheck; if (electrons){ electrons_trigcheck.reserve(electrons->size()); for (auto const& part:(*electrons)){ if (ParticleSelectionHelpers::isParticleForTriggerChecking(part)) electrons_trigcheck.push_back(part); } }
