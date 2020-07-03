@@ -88,6 +88,12 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   iEvent.getByToken(pfJetsToken, pfJetsHandle);
   if (!pfJetsHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting the jets from the event...");
 
+  edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
+  if (isMC){
+    iEvent.getByToken(genJetsToken, genJetsHandle);
+    if (!genJetsHandle.isValid()) throw cms::Exception("PFJetMaker::produce: Error getting the gen. jets from the event...");
+  }
+
   // JEC uncertanties 
   ESHandle<JetCorrectorParametersCollection> JetCorParColl;
   iSetup.get<JetCorrectionsRecord>().get(jetCollection_, JetCorParColl);
@@ -104,9 +110,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   // Get gen. jets matched to reco. jets
   std::unordered_map<pat::Jet const*, reco::GenJet const*> reco_gen_map;
-  get_reco_gen_matchMap(iEvent, pfJetsHandle, reco_gen_map);
+  get_reco_gen_matchMap(iEvent, pfJetsHandle, genJetsHandle, reco_gen_map);
+
+  std::string pileupJetIdPrefix = "";
+  std::string pileupJetIdPrefix_default = "";
 
   result->reserve(pfJetsHandle->size());
+  bool firstJet = true;
   for (edm::View<pat::Jet>::const_iterator pfjet_it = pfJetsHandle->begin(); pfjet_it != pfJetsHandle->end(); pfjet_it++){
     pat::Jet jet_result(*pfjet_it);
 
@@ -177,33 +187,40 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     auto genjet_it = reco_gen_map.find(&(*pfjet_it));
     reco::GenJet const* genjet = (genjet_it==reco_gen_map.cend() ? (reco::GenJet const*) nullptr : genjet_it->second);
     bool hasMatched = (genjet!=nullptr);
-    bool isMatched = hasMatched;
+    bool is_genMatched = hasMatched;
+    bool is_genMatched_fullCone = hasMatched; // This is needed for PU jet id...
+    int idx_genMatch=-1;
     double gen_pt=-1;
-    double gen_eta=0;
-    double gen_phi=0;
-    double gen_mass=-1;
+    //double gen_eta=0;
+    //double gen_phi=0;
+    //double gen_mass=-1;
     double deltaR_genmatch = -1;
     if (hasMatched){
       deltaR_genmatch = reco::deltaR(genjet->p4(), corrected_p4);
       gen_pt = genjet->pt();
-      gen_eta = genjet->eta();
-      gen_phi = genjet->phi();
-      gen_mass = genjet->mass();
+      //gen_eta = genjet->eta();
+      //gen_phi = genjet->phi();
+      //gen_mass = genjet->mass();
       const double diff_pt = std::abs(corrected_pt - gen_pt);
-      isMatched = (deltaR_genmatch < ConeRadiusConstant/2. && diff_pt < 3.*res_pt*corrected_pt);
+      is_genMatched = (deltaR_genmatch < ConeRadiusConstant/2. && diff_pt < 3.*res_pt*corrected_pt);
+      is_genMatched_fullCone = (deltaR_genmatch < ConeRadiusConstant);
     }
     // JER smearing
     if (isMC){
-      jet_result.addUserFloat("genJet_pt", gen_pt);
-      jet_result.addUserFloat("genJet_eta", gen_eta);
-      jet_result.addUserFloat("genJet_phi", gen_phi);
-      jet_result.addUserFloat("genJet_mass", gen_mass);
+      if (is_genMatched || is_genMatched_fullCone){
+        unsigned int idx_tmp = 0;
+        for (edm::View<reco::GenJet>::const_iterator genjet_it = genJetsHandle->begin(); genjet_it != genJetsHandle->end(); genjet_it++){
+          if (&(*genjet_it) == genjet) break;
+          idx_tmp++;
+        }
+        if (idx_tmp<genJetsHandle->size()) idx_genMatch = idx_tmp;
+      }
 
       double sf    = resolution_sf.getScaleFactor(res_sf_parameters, Variation::NOMINAL);
       double sf_up = resolution_sf.getScaleFactor(res_sf_parameters, Variation::UP);
       double sf_dn = resolution_sf.getScaleFactor(res_sf_parameters, Variation::DOWN);
 
-      if (isMatched){
+      if (is_genMatched){
         // Apply scaling
         pt_jer   = max(0., gen_pt + sf   *(corrected_pt-gen_pt));
         pt_jerup = max(0., gen_pt + sf_up*(corrected_pt-gen_pt));
@@ -280,6 +297,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       jet_result.addUserFloat("JERDn", 1.f);
     }
 
+    // Gen matching info
+    jet_result.addUserInt("idx_genMatch", idx_genMatch);
+    jet_result.addUserInt("is_genMatched", is_genMatched);
+    jet_result.addUserInt("is_genMatched_fullCone", is_genMatched_fullCone);
+
     // Jet area
     jet_result.addUserFloat("area", pfjet_it->jetArea());
 
@@ -309,18 +331,41 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
       float pileupJetIdScore = -999;
       int pileupJetId = -1;
-      std::string pileupJetIdPrefix = "";
-      if (pfjet_it->hasUserFloat(Form("pileupJetIdUpdated%s:fullDiscriminant", jetCollection_.data()))) pileupJetIdPrefix = Form("pileupJetIdUpdated%s:", jetCollection_.data());
-      else if (pfjet_it->hasUserFloat("pileupJetIdUpdated:fullDiscriminant")) pileupJetIdPrefix = "pileupJetIdUpdated:";
-      else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdPrefix = "pileupJetId:";
-      if (printWarnings/* && pileupJetIdPrefix != "pileupJetId:"*/){
-        edm::LogWarning("PU jet id") << "PU jet id is obtained from the tag '" << pileupJetIdPrefix << "'" << endl;
+      float pileupJetIdScore_default = -999;
+      int pileupJetId_default = -1;
+      if (firstJet){
+        if (pfjet_it->hasUserFloat(Form("pileupJetIdUpdated%s:fullDiscriminant", jetCollection_.data()))) pileupJetIdPrefix = Form("pileupJetIdUpdated%s:", jetCollection_.data());
+        else if (pfjet_it->hasUserFloat("pileupJetIdUpdated:fullDiscriminant")) pileupJetIdPrefix = "pileupJetIdUpdated:";
+        //else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdPrefix = "pileupJetId:";
+
+        if (pfjet_it->hasUserFloat(Form("pileupJetIdUpdated%sDefault:fullDiscriminant", jetCollection_.data()))) pileupJetIdPrefix_default = Form("pileupJetIdUpdated%sDefault:", jetCollection_.data());
+        //else if (pfjet_it->hasUserFloat("pileupJetId:fullDiscriminant")) pileupJetIdPrefix_default = "pileupJetId:";
+
+        if (pileupJetIdPrefix == "" && pileupJetIdPrefix_default == "") throw cms::Exception("PFJetMaker::produce: Neither recomputed default or new-training PU jet ids are present. JEC updates require at least one to be recalculated...");
+        else if (pileupJetIdPrefix_default == ""){
+          if (printWarnings) edm::LogWarning("PU jet id") << "Setting pileupJetIdPrefix_default = " << pileupJetIdPrefix << endl;
+          pileupJetIdPrefix_default = pileupJetIdPrefix;
+        }
+        else if (pileupJetIdPrefix == ""){
+          if (printWarnings) edm::LogWarning("PU jet id") << "Setting pileupJetIdPrefix = " << pileupJetIdPrefix_default << endl;
+          pileupJetIdPrefix = pileupJetIdPrefix_default;
+        }
       }
-      pileupJetIdScore = pfjet_it->userFloat(pileupJetIdPrefix+"fullDiscriminant");
-      pileupJetId = pfjet_it->userInt(pileupJetIdPrefix+"fullId");
-      if (pileupJetId>=0) pileupJetId = (pileupJetId & (1 << 0));
+      if (printWarnings/* && pileupJetIdPrefix != "pileupJetId:"*/){
+        edm::LogWarning("PU jet id") << "PU jet id is obtained from the tags '" << pileupJetIdPrefix << "' (updated), and '" << pileupJetIdPrefix_default << "' (default)" << endl;
+      }
+      if (pileupJetIdPrefix!=""){
+        pileupJetIdScore = pfjet_it->userFloat(pileupJetIdPrefix+"fullDiscriminant");
+        pileupJetId = pfjet_it->userInt(pileupJetIdPrefix+"fullId");
+      }
+      if (pileupJetIdPrefix_default!=""){
+        pileupJetIdScore_default = pfjet_it->userFloat(pileupJetIdPrefix_default+"fullDiscriminant");
+        pileupJetId_default = pfjet_it->userInt(pileupJetIdPrefix_default+"fullId");
+      }
       jet_result.addUserFloat("pileupJetIdScore", pileupJetIdScore);
       jet_result.addUserInt("pileupJetId", pileupJetId);
+      jet_result.addUserFloat("pileupJetIdScore_default", pileupJetIdScore_default);
+      jet_result.addUserInt("pileupJetId_default", pileupJetId_default);
 
       // CSVv2
       jet_result.addUserFloat("btagCSVV2", pfjet_it->bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"));
@@ -465,7 +510,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     result->emplace_back(jet_result);
 
-    printWarnings = false;
+    printWarnings = firstJet = false;
   }
 
   iEvent.put(std::move(result));
@@ -477,14 +522,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 }
 
 void PFJetMaker::get_reco_gen_matchMap(
-  edm::Event const& iEvent, edm::Handle< edm::View<pat::Jet> > const& pfJetsHandle,
+  edm::Event const& iEvent,
+  edm::Handle< edm::View<pat::Jet> > const& pfJetsHandle, edm::Handle< edm::View<reco::GenJet> > const& genJetsHandle,
   std::unordered_map<pat::Jet const*, reco::GenJet const*>& res
 ) const{
   if (!isMC || pfJetsHandle->empty()) return;
-
-  edm::Handle< edm::View<reco::GenJet> > genJetsHandle;
-  iEvent.getByToken(genJetsToken, genJetsHandle);
-  if (!genJetsHandle.isValid()) throw cms::Exception("PFJetMaker::get_reco_gen_matchMap: Error getting the gen. jets from the event...");
   if (genJetsHandle->empty()) return;
 
   CMS3ObjectHelpers::matchParticles(

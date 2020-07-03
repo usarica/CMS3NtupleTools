@@ -11,15 +11,17 @@ namespace AK4JetSelectionHelpers{
   };
 
   // Skim selection
-  constexpr double selection_skim_pt = 20.;
+  constexpr double selection_skim_pt = 15.;
   constexpr double selection_skim_eta = 4.7;
+
+  double getUncorrectedJetEnergy(pat::Jet const& obj);
+  double getUncorrectedJetPt(pat::Jet const& obj);
 
   bool testSkimAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testTightAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testLeptonVetoAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   // Bad muon id requires accessing MET, so it should not be done here
-  bool testPileUpAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type); // Tests if it is NOT a pile-up jet...
 
 }
 

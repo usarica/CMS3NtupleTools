@@ -6,8 +6,15 @@
 
 namespace AK4JetSelectionHelpers{
 
+  double getUncorrectedJetEnergy(pat::Jet const& obj){
+    return obj.energy(); // p4 of the PFJetMAker output is the uncorrected one.
+  }
+  double getUncorrectedJetPt(pat::Jet const& obj){
+    return obj.pt(); // p4 of the PFJetMAker output is the uncorrected one.
+  }
+
   bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){
-    double uncorr_pt = obj.pt(); // Has to be the uncorrected one
+    double uncorr_pt = getUncorrectedJetPt(obj); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
 
     double JECNominal = obj.userFloat("JECNominal");
@@ -47,7 +54,7 @@ namespace AK4JetSelectionHelpers{
 
     if (year>2016) return true; // Loose id no longer needed in 2017 and 2018
 
-    double uncorrE = obj.energy(); // Has to be the uncorrected one
+    double uncorrE = getUncorrectedJetEnergy(obj); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
 
     double NHF = obj.neutralHadronEnergy() / uncorrE;
@@ -86,7 +93,7 @@ namespace AK4JetSelectionHelpers{
   bool testTightAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testTightAK4Jet: Year " << year << " is not implemented!" << std::endl;
 
-    double uncorrE = obj.energy(); // Has to be the uncorrected one
+    double uncorrE = getUncorrectedJetEnergy(obj); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
 
     double NHF = obj.neutralHadronEnergy() / uncorrE;
@@ -160,7 +167,7 @@ namespace AK4JetSelectionHelpers{
   bool testLeptonVetoAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testTightAK4Jet: Year " << year << " is not implemented!" << std::endl;
 
-    double uncorrE = obj.energy(); // Has to be the uncorrected one
+    double uncorrE = getUncorrectedJetEnergy(obj); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
     double MUF = obj.muonEnergy() / uncorrE;
 
@@ -175,18 +182,6 @@ namespace AK4JetSelectionHelpers{
     else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testLeptonVetoAK4Jet: Type " << type << " is not implemented!" << std::endl;
 
     return true;
-  }
-  bool testPileUpAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& type){
-    if (type!=AK4PFCHS) return true;
-
-    const int passPUJetId = obj.userInt("pileupJetId");
-
-    // PU id only to be applied to jets with pT<50 and |eta|<5.
-    // See https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJetID#Information_for_13_TeV_data_anal
-    const double uncorr_pt = obj.pt(); // Has to be the uncorrected one, see main_pset.py for how the PU id is updated
-    const double eta = std::abs(obj.eta());
-
-    return (uncorr_pt<50. && eta<5. ? bool(passPUJetId==1) : bool(true));
   }
 
 }

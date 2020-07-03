@@ -51,7 +51,8 @@ protected:
 
 
   void get_reco_gen_matchMap(
-    edm::Event const&, edm::Handle< edm::View<pat::Jet> > const&,
+    edm::Event const&,
+    edm::Handle< edm::View<pat::Jet> > const&, edm::Handle< edm::View<reco::GenJet> > const&,
     std::unordered_map<pat::Jet const*, reco::GenJet const*>&
   ) const;
 

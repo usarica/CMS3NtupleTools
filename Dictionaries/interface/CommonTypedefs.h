@@ -28,5 +28,6 @@ typedef unsigned int cms3_photon_mvacat_t;
 typedef bool cms3_photon_cutbasedbits_hgg_t;
 
 typedef char cms3_jet_genflavor_t;
+typedef unsigned char cms3_jet_pujetid_t;
 
 #endif

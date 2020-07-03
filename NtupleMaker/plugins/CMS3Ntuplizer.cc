@@ -1538,7 +1538,15 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_looseId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_leptonVetoId, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, pass_puId, n_objects);
+
+  // PU jet id should really be for pT<50 GeV, |eta|<5. Note that the order of indices is tight (1), medium (2), loose (4).
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_pujetid_t, pileupJetId, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pileupJetIdScore, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_jet_pujetid_t, pileupJetId_default, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pileupJetIdScore_default, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
@@ -1565,6 +1573,9 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, axis1, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, axis2, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, NEMF, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, CEMF, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
@@ -1584,6 +1595,8 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
     if (!AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType)) continue;
 
+    const double uncorrected_energy = AK4JetSelectionHelpers::getUncorrectedJetEnergy(*obj);
+
     // Core particle quantities
     // These are the uncorrected momentum components!
     pt.push_back(obj->pt());
@@ -1594,13 +1607,20 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     pass_looseId.push_back(AK4JetSelectionHelpers::testLooseAK4Jet(*obj, this->year, jetType));
     pass_tightId.push_back(AK4JetSelectionHelpers::testTightAK4Jet(*obj, this->year, jetType));
     pass_leptonVetoId.push_back(AK4JetSelectionHelpers::testLeptonVetoAK4Jet(*obj, this->year, jetType));
-    pass_puId.push_back(AK4JetSelectionHelpers::testPileUpAK4Jet(*obj, this->year, jetType));
+
+    PUSH_USERINT_INTO_VECTOR(pileupJetId);
+    PUSH_USERFLOAT_INTO_VECTOR(pileupJetIdScore);
+    PUSH_USERINT_INTO_VECTOR(pileupJetId_default);
+    PUSH_USERFLOAT_INTO_VECTOR(pileupJetIdScore_default);
 
     /*
     PUSH_USERINT_INTO_VECTOR(n_pfcands);
     PUSH_USERINT_INTO_VECTOR(n_mucands);
     PUSH_USERFLOAT_INTO_VECTOR(area);
     */
+
+    PUSH_USERINT_INTO_VECTOR(is_genMatched);
+    PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
 
     PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
 
@@ -1620,6 +1640,9 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(totalMultiplicity);
     PUSH_USERFLOAT_INTO_VECTOR(axis1);
     PUSH_USERFLOAT_INTO_VECTOR(axis2);
+
+    NEMF.push_back(obj->neutralEmEnergy() / uncorrected_energy);
+    CEMF.push_back(obj->chargedEmEnergy() / uncorrected_energy);
 
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
     PUSH_USERFLOAT_INTO_VECTOR(JECUp);
@@ -1646,10 +1669,17 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
 
+  PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
+  PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
+
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_leptonVetoId);
-  PUSH_VECTOR_WITH_NAME(colName, pass_puId);
+
+  PUSH_VECTOR_WITH_NAME(colName, pileupJetId);
+  PUSH_VECTOR_WITH_NAME(colName, pileupJetIdScore);
+  PUSH_VECTOR_WITH_NAME(colName, pileupJetId_default);
+  PUSH_VECTOR_WITH_NAME(colName, pileupJetIdScore_default);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_pfcands);
@@ -1675,6 +1705,9 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, totalMultiplicity);
   PUSH_VECTOR_WITH_NAME(colName, axis1);
   PUSH_VECTOR_WITH_NAME(colName, axis2);
+
+  PUSH_VECTOR_WITH_NAME(colName, NEMF);
+  PUSH_VECTOR_WITH_NAME(colName, CEMF);
 
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
   PUSH_VECTOR_WITH_NAME(colName, JECUp);
@@ -1712,6 +1745,9 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_looseId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_leptonVetoId, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
@@ -1771,6 +1807,9 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
     pass_tightId.push_back(AK8JetSelectionHelpers::testTightAK8Jet(*obj, this->year, jetType));
     pass_leptonVetoId.push_back(AK8JetSelectionHelpers::testLeptonVetoAK8Jet(*obj, this->year, jetType));
 
+    PUSH_USERINT_INTO_VECTOR(is_genMatched);
+    PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
+
     /*
     PUSH_USERINT_INTO_VECTOR(n_pfcands);
     PUSH_USERINT_INTO_VECTOR(n_mucands);
@@ -1827,6 +1866,9 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_leptonVetoId);
+
+  PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
+  PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_pfcands);

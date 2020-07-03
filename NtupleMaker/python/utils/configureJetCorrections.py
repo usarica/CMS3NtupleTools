@@ -2,6 +2,7 @@ import FWCore.ParameterSet.Config as cms
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection,setupBTagging
 from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
 from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJets
+from RecoJets.JetProducers.PileupJetID_cfi import _chsalgos_81x, _chsalgos_94x, _chsalgos_102x
 
 def configureJetCorrections(
    process,
@@ -23,11 +24,37 @@ def configureJetCorrections(
       setattr(process, jetFinalSeq, cms.Sequence())
       _process_jetFinalSeq = getattr(process, jetFinalSeq)
 
+      pujetidnames = []
 
       ## Pile-up jet id
       if updatePUJetID:
          process.load("RecoJets.JetProducers.PileupJetID_cfi")
-         pujetidmod = "pileupJetIdUpdated"+JECpayload
+         # Updated PU jet id
+         if is80x or year==2017 or year==2018:
+            pujetidmod = "pileupJetIdUpdated"+JECpayload
+            setattr(process, pujetidmod, process.pileupJetId.clone(
+                  jets = cms.InputTag(currentJetSrc),
+                  vertexes = cms.InputTag("offlineSlimmedPrimaryVertices"),
+                  inputIsCorrected = False,
+                  applyJec = True,
+                  jec = cms.string(JECpayload)
+                  )
+               )
+            _process_pujetidmod = getattr(process, pujetidmod)
+            if year == 2016:
+               _process_pujetidmod.algos = cms.VPSet(_chsalgos_81x)
+            elif year == 2017:
+               _process_pujetidmod.algos = cms.VPSet(_chsalgos_94x)
+            elif year == 2018:
+               _process_pujetidmod.algos = cms.VPSet(_chsalgos_102x)
+            if hasattr(_process_pujetidmod, "usePuppi"):
+               _process_pujetidmod.usePuppi = cms.bool(("puppi" in JECpayload.lower()))
+            elif "puppi" in JECpayload.lower():
+               raise RuntimeError("Cannot apply PU jet id on Puppi jets in this CMSSW release")
+            _process_jetFinalSeq *= _process_pujetidmod
+            pujetidnames.append(pujetidmod)
+         # Default PU jet id (recalculated for the JEC updates)
+         pujetidmod = "pileupJetIdUpdated"+JECpayload+"Default"
          setattr(process, pujetidmod, process.pileupJetId.clone(
                jets = cms.InputTag(currentJetSrc),
                vertexes = cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -36,12 +63,15 @@ def configureJetCorrections(
                jec = cms.string(JECpayload)
                )
             )
-         _process_pujetidmod = getattr(process, pujetidmod)
-         if hasattr(_process_pujetidmod, "usePuppi"):
-            _process_pujetidmod.usePuppi = cms.bool(("puppi" in JECpayload.lower()))
+         _process_pujetidmod_default = getattr(process, pujetidmod)
+         if year >= 2016 and year<=2018:
+            _process_pujetidmod_default.algos = cms.VPSet(_chsalgos_81x)
+         if hasattr(_process_pujetidmod_default, "usePuppi"):
+            _process_pujetidmod_default.usePuppi = cms.bool(("puppi" in JECpayload.lower()))
          elif "puppi" in JECpayload.lower():
             raise RuntimeError("Cannot apply PU jet id on Puppi jets in this CMSSW release")
-         _process_jetFinalSeq *= _process_pujetidmod
+         _process_jetFinalSeq *= _process_pujetidmod_default
+         pujetidnames.append(pujetidmod)
 
       if updateBtagging:
          # First build a jet source that reverts JECs
@@ -70,8 +100,9 @@ def configureJetCorrections(
          _process_jetsrc_undojec = getattr(process, jetsrc_undojec)
 
          if updatePUJetID:
-            _process_jetsrc_undojec.userData.userFloats.src += ["pileupJetIdUpdated"+JECpayload+":fullDiscriminant"]
-            _process_jetsrc_undojec.userData.userInts.src += ["pileupJetIdUpdated"+JECpayload+":fullId"]
+            for pujetidname in pujetidnames:
+               _process_jetsrc_undojec.userData.userFloats.src += [pujetidname+":fullDiscriminant"]
+               _process_jetsrc_undojec.userData.userInts.src += [pujetidname+":fullId"]
 
          jetsrc_finaljec_corrfactorproducer = currentJetSrc+"FinalJECCorrFactors"
          setattr(process, jetsrc_finaljec_corrfactorproducer, updatedPatJetCorrFactors.clone(
@@ -177,8 +208,9 @@ def configureJetCorrections(
          _process_jetsrc_finaljets = getattr(process, jetsrc_finaljets)
 
          if updatePUJetID:
-            _process_jetsrc_finaljets.userData.userFloats.src += ["pileupJetIdUpdated"+JECpayload+":fullDiscriminant"]
-            _process_jetsrc_finaljets.userData.userInts.src += ["pileupJetIdUpdated"+JECpayload+":fullId"]
+            for pujetidname in pujetidnames:
+               _process_jetsrc_finaljets.userData.userFloats.src += [pujetidname+":fullDiscriminant"]
+               _process_jetsrc_finaljets.userData.userInts.src += [pujetidname+":fullId"]
 
          _process_jetFinalSeq *= _process_jetsrc_finaljec_corrfactorproducer
          _process_jetFinalSeq *= _process_jetsrc_finaljets
