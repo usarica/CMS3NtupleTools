@@ -55,7 +55,7 @@ $cmd $pset dumpProcess=True globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents 
 
 # 2017 MC (with MET recipe) -- /ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v17-v1/MINIAODSIM
 $cmd $pset dumpProcess=True globaltag=94X_mc2017_realistic_v17 nevents=$nevents metrecipe=True \
-    inputs=/store/user/usarica/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v17-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root \
+    inputs=/store/user/usarica/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
     output=$outputdir/ntuple_2017_mc.root >& $outputdir/log_2017_mc.txt &
 

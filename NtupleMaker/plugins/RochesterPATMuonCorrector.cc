@@ -106,7 +106,7 @@ void RochesterPATMuonCorrector::produce(edm::Event& iEvent, const edm::EventSetu
       //else if (!isMC_ && nl > 5){
       else if (!isMC_){
         /// ====== ON DATA (correction only) =====
-        if (oldpt>2. && fabs(mu.eta())<2.4){
+        if (oldpt>2. && std::abs(mu.eta())<2.4){
           scale_factor = calibrator->kScaleDT(mu.charge(), oldpt, mu.eta(), mu.phi());
           scale_error = calibrator->kScaleDTerror(mu.charge(), oldpt, mu.eta(), mu.phi());
           smear_error = calibrator->kSmearMCerror(mu.charge(), oldpt, mu.eta(), mu.phi(), nl, u);//there is no smear in data so calculate it pretending it is mc
