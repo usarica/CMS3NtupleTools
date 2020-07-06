@@ -1,5 +1,5 @@
-#ifndef CMS3_MUONMAKER_H
-#define CMS3_MUONMAKER_H
+#ifndef NTUPLEMAKER_MUONMAKER_H
+#define NTUPLEMAKER_MUONMAKER_H
 
 #include <memory>
 

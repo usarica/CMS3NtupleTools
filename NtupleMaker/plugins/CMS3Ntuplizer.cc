@@ -39,6 +39,7 @@ const std::string CMS3Ntuplizer::colName_pfcands = "pfcands";
 const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
 const std::string CMS3Ntuplizer::colName_triggerinfos = "triggers";
 const std::string CMS3Ntuplizer::colName_triggerobjects = "triggerObjects";
+const std::string CMS3Ntuplizer::colName_genparticles = "genparticles";
 
 CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   pset(pset_),
@@ -81,14 +82,6 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   isotracksToken = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotrackSrc"));
   pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
 
-  pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
-  if (isMC){
-    pfmetshiftToken_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERNominal"));
-    pfmetshiftToken_JERUp = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERUp"));
-    pfmetshiftToken_JERDn = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERDn"));
-  }
-  puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
-
   vtxToken = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vtxSrc"));
 
   rhoToken  = consumes< double >(pset.getParameter<edm::InputTag>("rhoSrc"));
@@ -103,11 +96,19 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
     prefiringWeightToken_Up = consumes< double >(edm::InputTag(prefiringWeightsTag, "nonPrefiringProbUp"));
   }
 
-  genInfoToken = consumes< GenInfo >(pset.getParameter<edm::InputTag>("genInfoSrc"));
-  prunedGenParticlesToken = consumes< reco::GenParticleCollection >(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
-  packedGenParticlesToken = consumes< pat::PackedGenParticleCollection >(pset.getParameter<edm::InputTag>("packedGenParticlesSrc"));
-  genAK4JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK4JetsSrc"));
-  genAK8JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK8JetsSrc"));
+  pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
+  puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
+  if (isMC){
+    pfmetshiftToken_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERNominal"));
+    pfmetshiftToken_JERUp = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERUp"));
+    pfmetshiftToken_JERDn = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JERDn"));
+
+    genInfoToken = consumes< GenInfo >(pset.getParameter<edm::InputTag>("genInfoSrc"));
+    prunedGenParticlesToken = consumes< reco::GenParticleCollection >(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
+    packedGenParticlesToken = consumes< pat::PackedGenParticleCollection >(pset.getParameter<edm::InputTag>("packedGenParticlesSrc"));
+    genAK4JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK4JetsSrc"));
+    genAK8JetsToken = consumes< edm::View<reco::GenJet> >(pset.getParameter<edm::InputTag>("genAK8JetsSrc"));
+  }
 
   this->usesResource("TFileService");
 }
@@ -148,17 +149,6 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   The latest list of variables are documented at https://cms-nanoaod-integration.web.cern.ch/integration/master-102X/mc102X_doc.html
   */
 
-  // Gen. variables
-  std::vector<reco::GenParticle const*> filledPrunedGenParts;
-  std::vector<pat::PackedGenParticle const*> filledPackedGenParts;
-  std::vector<reco::GenJet const*> filledGenAK4Jets;
-  std::vector<reco::GenJet const*> filledGenAK8Jets;
-  if (this->isMC) isSelected &= this->fillGenVariables(
-    iEvent,
-    &filledPrunedGenParts, &filledPackedGenParts,
-    &filledGenAK4Jets, &filledGenAK8Jets
-  );
-
   // Vertices
   size_t n_vtxs = this->fillVertices(iEvent, nullptr);
   isSelected &= (n_vtxs>0);
@@ -173,15 +163,15 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 
   // FSR candidates
   std::vector<FSRCandidateInfo> filledFSRInfos;
-  /*size_t n_pfcands = */this->fillFSRCandidates(
+  /*size_t n_fsrcands = */this->fillFSRCandidates(
     iEvent,
     &filledMuons, &filledElectrons,
     &filledFSRInfos
   );
 
   // Photons
-  //std::vector<pat::Photon const*> filledPhotons;
-  size_t n_photons = this->fillPhotons(iEvent, &filledFSRInfos, /*&filledPhotons*/nullptr);
+  std::vector<pat::Photon const*> filledPhotons;
+  size_t n_photons = this->fillPhotons(iEvent, &filledFSRInfos, &filledPhotons);
 
   // ak4 jets
   //std::vector<pat::Jet const*> filledAK4Jets;
@@ -193,6 +183,19 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 
   // Isolated tracks
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
+
+  // Gen. variables
+  std::vector<reco::GenParticle const*> filledPrunedGenParts;
+  std::vector<pat::PackedGenParticle const*> filledPackedGenParts;
+  std::vector<reco::GenJet const*> filledGenAK4Jets;
+  std::vector<reco::GenJet const*> filledGenAK8Jets;
+  if (this->isMC) isSelected &= this->fillGenVariables(
+    iEvent,
+    &filledMuons, &filledElectrons, &filledPhotons,
+    // No need to pass reco jets since gen.-matching info is already filled.
+    &filledPrunedGenParts, &filledPackedGenParts,
+    &filledGenAK4Jets, &filledGenAK8Jets
+  );
 
   // The (data) event should have at least one electron, muon, or photon.
   // If all cuts are -1, passNobjects is true and no filtering on the number of objects is done.
@@ -357,13 +360,112 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   for (auto const& it:genInfo.LHE_ME_weights) commonEntry.setNamedVal(it.first, it.second);
   for (auto const& it:genInfo.Kfactors) commonEntry.setNamedVal(it.first, it.second);
 }
-void CMS3Ntuplizer::recordGenParticles(edm::Event const& iEvent, std::vector<reco::GenParticle const*>* filledGenParts, std::vector<pat::PackedGenParticle const*>* filledPackedGenParts){
-  const char colName[] = "genparticles";
+void CMS3Ntuplizer::recordGenParticles(
+  edm::Event const& iEvent,
+  std::vector<pat::Muon const*>* filledMuons,
+  std::vector<pat::Electron const*>* filledElectrons,
+  std::vector<pat::Photon const*>* filledPhotons,
+  std::vector<reco::GenParticle const*>* filledGenParts,
+  std::vector<pat::PackedGenParticle const*>* filledPackedGenParts
+){
+  std::string const& colName = CMS3Ntuplizer::colName_genparticles;
 
   edm::Handle<reco::GenParticleCollection> prunedGenParticlesHandle;
   iEvent.getByToken(prunedGenParticlesToken, prunedGenParticlesHandle);
   if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the pruned gen. particles from the event...");
   std::vector<reco::GenParticle> const* prunedGenParticles = prunedGenParticlesHandle.product();
+
+  {
+    std::vector<reco::GenParticle const*> genFSMuons, genFSElectrons, genFSPhotons;
+    genFSMuons.reserve(prunedGenParticles->size());
+    genFSElectrons.reserve(prunedGenParticles->size());
+    genFSPhotons.reserve(prunedGenParticles->size());
+    for (auto const& part:(*prunedGenParticles)){
+      if (part.status()!=1) continue;
+      unsigned int id = std::abs(part.pdgId());
+      if (id==13) genFSMuons.push_back(&part);
+      else if (id==11) genFSElectrons.push_back(&part);
+      else if (id==22) genFSPhotons.push_back(&part);
+    }
+    if (filledMuons){
+      std::unordered_map<pat::Muon const*, reco::GenParticle const*> reco_gen_map;
+      CMS3ObjectHelpers::matchParticles(
+        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+        filledMuons->begin(), filledMuons->end(),
+        genFSMuons.begin(), genFSMuons.end(),
+        reco_gen_map
+      );
+      size_t n_objects_reco = filledMuons->size();
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects_reco);
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_prompt, n_objects_reco);
+      auto it_end = reco_gen_map.end();
+      for (auto const& part:(*filledMuons)){
+        bool val_is_genMatched = false;
+        bool val_is_genMatched_prompt = false;
+        auto it_tmp = reco_gen_map.find(part);
+        if (it_tmp!=it_end && it_tmp->second){
+          val_is_genMatched = true;
+          val_is_genMatched_prompt = it_tmp->second->isPromptFinalState();
+        }
+        is_genMatched.push_back(val_is_genMatched);
+        is_genMatched_prompt.push_back(val_is_genMatched_prompt);
+      }
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_muons, is_genMatched);
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_muons, is_genMatched_prompt);
+    }
+    if (filledElectrons){
+      std::unordered_map<pat::Electron const*, reco::GenParticle const*> reco_gen_map;
+      CMS3ObjectHelpers::matchParticles(
+        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+        filledElectrons->begin(), filledElectrons->end(),
+        genFSElectrons.begin(), genFSElectrons.end(),
+        reco_gen_map
+      );
+      size_t n_objects_reco = filledElectrons->size();
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects_reco);
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_prompt, n_objects_reco);
+      auto it_end = reco_gen_map.end();
+      for (auto const& part:(*filledElectrons)){
+        bool val_is_genMatched = false;
+        bool val_is_genMatched_prompt = false;
+        auto it_tmp = reco_gen_map.find(part);
+        if (it_tmp!=it_end && it_tmp->second){
+          val_is_genMatched = true;
+          val_is_genMatched_prompt = it_tmp->second->isPromptFinalState();
+        }
+        is_genMatched.push_back(val_is_genMatched);
+        is_genMatched_prompt.push_back(val_is_genMatched_prompt);
+      }
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_electrons, is_genMatched);
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_electrons, is_genMatched_prompt);
+    }
+    if (filledPhotons){
+      std::unordered_map<pat::Photon const*, reco::GenParticle const*> reco_gen_map;
+      CMS3ObjectHelpers::matchParticles(
+        CMS3ObjectHelpers::kMatchBy_DeltaR, 0.2,
+        filledPhotons->begin(), filledPhotons->end(),
+        genFSPhotons.begin(), genFSPhotons.end(),
+        reco_gen_map
+      );
+      size_t n_objects_reco = filledPhotons->size();
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects_reco);
+      MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_prompt, n_objects_reco);
+      auto it_end = reco_gen_map.end();
+      for (auto const& part:(*filledPhotons)){
+        bool val_is_genMatched = false;
+        bool val_is_genMatched_prompt = false;
+        auto it_tmp = reco_gen_map.find(part);
+        if (it_tmp!=it_end && it_tmp->second){
+          val_is_genMatched = true;
+          val_is_genMatched_prompt = it_tmp->second->isPromptFinalState();
+        }
+        is_genMatched.push_back(val_is_genMatched);
+        is_genMatched_prompt.push_back(val_is_genMatched_prompt);
+      }
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_photons, is_genMatched);
+      PUSH_VECTOR_WITH_NAME(CMS3Ntuplizer::colName_photons, is_genMatched_prompt);
+    }
+  }
 
   edm::Handle<pat::PackedGenParticleCollection> packedGenParticlesHandle;
   iEvent.getByToken(packedGenParticlesToken, packedGenParticlesHandle);
@@ -1330,8 +1432,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(bool, hasPixelSeed, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, passElectronVeto, n_objects);
 
+  /*
   MAKE_VECTOR_WITH_RESERVE(float, id_MVA_Fall17V2_Val, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_mvacat_t, id_MVA_Fall17V2_Cat, n_objects);
+  */
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp90, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, id_MVA_Fall17V2_pass_wp80, n_objects);
 
@@ -1341,6 +1445,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, full5x5_r9, n_objects);
+  // Could include H/E or sigmaIetaIeta explicitly, but none of the triggers considered have looser cuts than cut-based trigger.
+  // Would need to reconsider if MVA id was used.
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
@@ -1391,8 +1497,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
     PUSH_USERINT_INTO_VECTOR(passElectronVeto);
 
     // Fall17V2 MVA id
+    /*
     PUSH_USERFLOAT_INTO_VECTOR(id_MVA_Fall17V2_Val);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_Cat);
+    */
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_pass_wp90);
     PUSH_USERINT_INTO_VECTOR(id_MVA_Fall17V2_pass_wp80);
 
@@ -1439,8 +1547,10 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   PUSH_VECTOR_WITH_NAME(colName, hasPixelSeed);
   PUSH_VECTOR_WITH_NAME(colName, passElectronVeto);
 
+  /*
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Val);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_Cat);
+  */
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_pass_wp90);
   PUSH_VECTOR_WITH_NAME(colName, id_MVA_Fall17V2_pass_wp80);
 
@@ -2514,6 +2624,9 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
 
 bool CMS3Ntuplizer::fillGenVariables(
   edm::Event const& iEvent,
+  std::vector<pat::Muon const*>* filledMuons,
+  std::vector<pat::Electron const*>* filledElectrons,
+  std::vector<pat::Photon const*>* filledPhotons,
   std::vector<reco::GenParticle const*>* filledPrunedGenParts,
   std::vector<pat::PackedGenParticle const*>* filledPackedGenParts,
   std::vector<reco::GenJet const*>* filledGenAK4Jets,
@@ -2525,7 +2638,11 @@ bool CMS3Ntuplizer::fillGenVariables(
   recordGenInfo(iEvent);
 
   // Gen. particles
-  if (this->keepGenParticles!=kNone) recordGenParticles(iEvent, filledPrunedGenParts, filledPackedGenParts);
+  if (this->keepGenParticles!=kNone) recordGenParticles(
+    iEvent,
+    filledMuons, filledElectrons, filledPhotons,
+    filledPrunedGenParts, filledPackedGenParts
+  );
 
   // Gen. jets
   if (this->keepGenJets){

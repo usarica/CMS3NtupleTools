@@ -83,6 +83,7 @@ protected:
   static const std::string colName_pfcands;
   static const std::string colName_triggerinfos;
   static const std::string colName_triggerobjects;
+  static const std::string colName_genparticles;
 
 protected:
   const edm::ParameterSet pset;
@@ -153,7 +154,11 @@ protected:
 
 
   void recordGenInfo(edm::Event const&);
-  void recordGenParticles(edm::Event const&, std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*);
+  void recordGenParticles(
+    edm::Event const&,
+    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*>*, std::vector<pat::Photon const*>*,
+    std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*
+  );
   void recordGenJets(edm::Event const&, bool const&, std::vector<reco::GenJet const*>*);
 
   size_t fillMuons(edm::Event const&, std::vector<pat::Muon const*>*);
@@ -178,10 +183,9 @@ protected:
 
   bool fillGenVariables(
     edm::Event const&,
-    std::vector<reco::GenParticle const*>*,
-    std::vector<pat::PackedGenParticle const*>*,
-    std::vector<reco::GenJet const*>*,
-    std::vector<reco::GenJet const*>*
+    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*>*, std::vector<pat::Photon const*>*,
+    std::vector<reco::GenParticle const*>*, std::vector<pat::PackedGenParticle const*>*,
+    std::vector<reco::GenJet const*>*, std::vector<reco::GenJet const*>*
   );
 
   static CMS3Ntuplizer::ParticleRecordLevel getParticleRecordLevel(std::string);

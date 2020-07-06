@@ -11,7 +11,7 @@ namespace AK4JetSelectionHelpers{
   };
 
   // Skim selection
-  constexpr double selection_skim_pt = 15.;
+  constexpr double selection_skim_pt = 20.;
   constexpr double selection_skim_eta = 4.7;
 
   double getUncorrectedJetEnergy(pat::Jet const& obj);
