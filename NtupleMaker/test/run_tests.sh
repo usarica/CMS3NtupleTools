@@ -53,9 +53,9 @@ $cmd $pset dumpProcess=True globaltag=94X_mcRun2_asymptotic_v3 nevents=$nevents 
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2016.lst \
     output=$outputdir/ntuple_2016_mc_94xminiaodv3.root >& $outputdir/log_2016_mc_94xminiaodv3.txt &
 
-# 2017 MC (with MET recipe) -- /ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM
+# 2017 MC (with MET recipe) -- /ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v17-v1/MINIAODSIM
 $cmd $pset dumpProcess=True globaltag=94X_mc2017_realistic_v17 nevents=$nevents metrecipe=True \
-    inputs=/store/user/usarica/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root \
+    inputs=/store/user/usarica/localcache/mc/RunIIFall17MiniAODv2/ttHToNonbb_M125_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v17-v1/50000/00436CBC-6B70-E811-850C-00259075D70C.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2017.lst \
     output=$outputdir/ntuple_2017_mc.root >& $outputdir/log_2017_mc.txt &
 
@@ -74,21 +74,21 @@ $cmd $pset dumpProcess=True globaltag=94X_dataRun2_v11 nevents=$nevents \
     output=$outputdir/ntuple_2017_dataf.root >& $outputdir/log_2017_dataf.txt &
 
 # 2018 Re-reco Data -- /DoubleMuon/Run2018A-17Sep2018-v2/MINIAOD
-$cmd $pset dumpProcess=True globaltag=102X_dataRun2_v11 nevents=$nevents \
+$cmd $pset dumpProcess=True globaltag=102X_dataRun2_v13 nevents=$nevents \
     goldenjson=Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt \
     inputs=/store/user/usarica/localcache/data/Run2018A/SingleMuon/MINIAOD/17Sep2018-v2/00000/B4E2FD3B-1B1A-5A43-A4A5-09F81DBC6467.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2018.lst \
     output=$outputdir/ntuple_2018_data_rereco.root >& $outputdir/log_2018_data_rereco.txt &
 
 # 2018 Prompt Data -- /EGamma/Run2018D-PromptReco-v2/MINIAOD
-$cmd $pset dumpProcess=True globaltag=102X_dataRun2_Prompt_v14 nevents=$nevents \
+$cmd $pset dumpProcess=True globaltag=102X_dataRun2_Prompt_v16 nevents=$nevents \
     goldenjson=Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt \
     inputs=/store/user/usarica/localcache/data/Run2018D/EGamma/MINIAOD/PromptReco-v2/000/322/204/00000/F09A218A-71B3-E811-9A04-02163E013E33.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2018.lst \
     output=$outputdir/ntuple_2018_data_prompt.root >& $outputdir/log_2018_data_prompt.txt &
 
 # 2018 MC -- /DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM
-$cmd $pset dumpProcess=True globaltag=102X_upgrade2018_realistic_v19 nevents=$nevents \
+$cmd $pset dumpProcess=True globaltag=102X_upgrade2018_realistic_v21 nevents=$nevents \
     inputs=/store/user/usarica/localcache/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/100000/042C8EE9-9431-5443-88C8-77F1D910B3A5.root \
     minNleptons=2 minNphotons=1 includeLJetsSelection=True doTrigObjMatching=True triggerListFromFile=OffshellTriggerFilterList_2018.lst \
     output=$outputdir/ntuple_2018_mc.root >& $outputdir/log_2018_mc.txt &
