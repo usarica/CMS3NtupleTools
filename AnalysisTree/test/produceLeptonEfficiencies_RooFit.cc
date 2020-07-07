@@ -2305,7 +2305,7 @@ void calculateRecursiveEfficiencies(
   }
   for (unsigned int ieff=0; ieff<sum_indices.size()-1; ieff++){
     auto const& tp = sum_w_w2.at(ieff).first;
-    auto const& tpsq = sum_w_w2.at(ieff).first;
+    auto const& tpsq = sum_w_w2.at(ieff).second;
     double normval = tp/tpsq;
     auto const& pp = sum_w_w2.at(ieff+1).first;
     double aa =  pp * normval + alpha;
