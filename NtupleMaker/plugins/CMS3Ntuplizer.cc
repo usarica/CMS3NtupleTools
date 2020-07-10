@@ -2,6 +2,15 @@
 #include <algorithm>
 
 #include <CommonTools/UtilAlgos/interface/TFileService.h>
+#include <DataFormats/EgammaReco/interface/SuperCluster.h>
+#include <DataFormats/EcalDetId/interface/EBDetId.h>
+#include <DataFormats/EcalDetId/interface/EEDetId.h>
+#include <DataFormats/EcalDetId/interface/EcalSubdetector.h>
+#include <DataFormats/ForwardDetId/interface/ForwardSubdetector.h>
+#include <DataFormats/ForwardDetId/interface/HGCalDetId.h>
+
+#include <RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h>
+#include <RecoEcal/EgammaCoreTools/interface/EcalTools.h>
 
 #include <CMS3/NtupleMaker/interface/plugins/CMS3Ntuplizer.h>
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
@@ -16,6 +25,7 @@
 #include <CMS3/NtupleMaker/interface/MCUtilities.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctionsCore.h>
 
@@ -32,6 +42,7 @@ const std::string CMS3Ntuplizer::colName_muons = "muons";
 const std::string CMS3Ntuplizer::colName_electrons = "electrons";
 const std::string CMS3Ntuplizer::colName_photons = "photons";
 const std::string CMS3Ntuplizer::colName_fsrcands = "fsrcands";
+const std::string CMS3Ntuplizer::colName_superclusters = "superclusters";
 const std::string CMS3Ntuplizer::colName_isotracks = "isotracks";
 const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
 const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
@@ -58,6 +69,8 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   keepElectronMVAInfo(pset.getParameter<bool>("keepElectronMVAInfo")),
 
+  keepExtraSuperclusters(pset.getParameter<bool>("keepExtraSuperclusters")),
+
   prefiringWeightsTag(pset.getUntrackedParameter<std::string>("prefiringWeightsTag")),
   applyPrefiringWeights(prefiringWeightsTag!=""),
 
@@ -81,6 +94,10 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
   ak8jetsToken = consumes< edm::View<pat::Jet> >(pset.getParameter<edm::InputTag>("ak8jetSrc"));
   isotracksToken = consumes< edm::View<IsotrackInfo> >(pset.getParameter<edm::InputTag>("isotrackSrc"));
   pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(pset.getParameter<edm::InputTag>("pfcandSrc"));
+
+  if (keepExtraSuperclusters){
+    reducedSuperclusterToken = consumes< reco::SuperClusterCollection >(pset.getParameter<edm::InputTag>("reducedSuperclusterSrc"));
+  }
 
   vtxToken = consumes<reco::VertexCollection>(pset.getParameter<edm::InputTag>("vtxSrc"));
 
@@ -172,6 +189,9 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   // Photons
   std::vector<pat::Photon const*> filledPhotons;
   size_t n_photons = this->fillPhotons(iEvent, &filledFSRInfos, &filledPhotons);
+
+  //std::vector<reco::SuperCluster const*>* filledReducedSuperclusters;
+  /*size_t n_reducedSuperclusters = */this->fillReducedSuperclusters(iEvent, &filledElectrons, &filledPhotons, /*filledReducedSuperclusters*/nullptr);
 
   // ak4 jets
   //std::vector<pat::Jet const*> filledAK4Jets;
@@ -1610,6 +1630,122 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
 
 
   if (filledObjects) std::swap(filledPhotons, *filledObjects);
+  return n_skimmed_objects;
+}
+
+size_t CMS3Ntuplizer::fillReducedSuperclusters(
+  edm::Event const& iEvent,
+  std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*> const* filledPhotons,
+  std::vector<reco::SuperCluster const*>* filledObjects
+){
+  if (!keepExtraSuperclusters) return 0;
+
+  std::string const& colName = CMS3Ntuplizer::colName_superclusters;
+
+  edm::Handle< reco::SuperClusterCollection > reducedSuperclusterHandle;
+  iEvent.getByToken(reducedSuperclusterToken, reducedSuperclusterHandle);
+  if (!reducedSuperclusterHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillReducedSuperclusters: Error getting the reduced supercluster collection from the event...");
+  size_t n_objects = reducedSuperclusterHandle->size();
+
+  if (filledObjects) filledObjects->reserve(n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, correctedEnergy, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, sinTheta_SC_pos, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
+
+  size_t n_skimmed_objects=0;
+  for (reco::SuperClusterCollection::const_iterator obj = reducedSuperclusterHandle->begin(); obj != reducedSuperclusterHandle->end(); obj++){
+    if (
+      obj->correctedEnergy()/std::cosh(obj->eta())<ElectronSelectionHelpers::selection_skim_pt
+      ||
+      std::abs(obj->eta())>ElectronSelectionHelpers::selection_skim_eta
+      ) continue;
+
+    bool doSkip = false;
+    if (filledElectrons && !doSkip){
+      for (auto const& part:(*filledElectrons)){
+        double deltaR;
+        HelperFunctions::deltaR<double>(obj->eta(), obj->phi(), part->eta(), part->phi(), deltaR);
+        if (deltaR<0.4 || &(*(part->superCluster()))==&(*obj)){
+          doSkip = true;
+          break;
+        }
+      }
+    }
+    if (filledPhotons && !doSkip){
+      for (auto const& part:(*filledPhotons)){
+        double deltaR;
+        HelperFunctions::deltaR<double>(obj->eta(), obj->phi(), part->eta(), part->phi(), deltaR);
+        if (deltaR<0.4 || &(*(part->superCluster()))==&(*obj)){
+          doSkip = true;
+          break;
+        }
+      }
+    }
+    if (doSkip) continue;
+
+    // Core particle quantities
+    eta.push_back(obj->eta());
+    phi.push_back(obj->phi());
+    correctedEnergy.push_back(obj->correctedEnergy());
+    sinTheta_SC_pos.push_back(std::sin(obj->position().theta()));
+
+    // Masks
+    cms3_egamma_fid_type_mask_t fiducialityMask = 0;  // The enums are in interface/EgammaFiduciality.h
+    // This part is from RecoEgamma/EgammaElectronAlgos/src/GsfElectronAlgo.cc
+    auto const& seedHitsAndFractions = obj->seed()->hitsAndFractions();
+    if (!seedHitsAndFractions.empty()){
+      double abs_pos_eta = std::abs(obj->position().eta());
+      DetId seedXtalId = seedHitsAndFractions.at(0).first;
+      int detector = seedXtalId.subdetId();
+      if (detector == EcalBarrel){
+        fiducialityMask |= 1 << ISEB;
+        EBDetId ebdetid(seedXtalId);
+        if (EBDetId::isNextToEtaBoundary(ebdetid)){
+          if (ebdetid.ietaAbs() == 85) fiducialityMask |= 1 << ISEBEEGAP;
+          else fiducialityMask |= 1 << ISEBETAGAP;
+        }
+        if (EBDetId::isNextToPhiBoundary(ebdetid)) fiducialityMask |= 1 << ISEBPHIGAP;
+      }
+      else if (detector == EcalEndcap){
+        fiducialityMask |= 1 << ISEE;
+        EEDetId eedetid(seedXtalId);
+        if (EEDetId::isNextToRingBoundary(eedetid)){
+          if (abs_pos_eta < 2.) fiducialityMask |= 1 << ISEBEEGAP;
+          else fiducialityMask |= 1 << ISEERINGGAP;
+        }
+        if (EEDetId::isNextToDBoundary(eedetid)) fiducialityMask |= 1 << ISEEDEEGAP;
+      }
+#if CMSSW_VERSION_MAJOR>=10 && CMSSW_VERSION_MINOR>=3 
+      else if (EcalTools::isHGCalDet((DetId::Detector) seedXtalId.det())) fiducialityMask |= 1 << ISEE;
+#endif
+      else throw cms::Exception("UnknownXtalRegion") << "Seed cluster region unknown.";
+
+      if (HelperFunctions::test_bit(fiducialityMask, ISEERINGGAP) || HelperFunctions::test_bit(fiducialityMask, ISEEDEEGAP)){
+        HelperFunctions::set_bit(fiducialityMask, ISEEGAP);
+        HelperFunctions::set_bit(fiducialityMask, ISGAP);
+      }
+      else if (HelperFunctions::test_bit(fiducialityMask, ISEBETAGAP) || HelperFunctions::test_bit(fiducialityMask, ISEBPHIGAP)){
+        HelperFunctions::set_bit(fiducialityMask, ISEBGAP);
+        HelperFunctions::set_bit(fiducialityMask, ISGAP);
+      }
+    }
+    fid_mask.push_back(fiducialityMask);
+
+    if (filledObjects) filledObjects->push_back(&(*obj));
+    n_skimmed_objects++;
+  }
+
+  // Pass collections to the communicator
+  PUSH_VECTOR_WITH_NAME(colName, eta);
+  PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, correctedEnergy);
+  PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+  PUSH_VECTOR_WITH_NAME(colName, fid_mask);
+
   return n_skimmed_objects;
 }
 

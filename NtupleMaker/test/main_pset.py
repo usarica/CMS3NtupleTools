@@ -36,6 +36,7 @@ opts.register('updatePileupJetId', True , mytype=vpbool) # to enable dating the 
 opts.register('recomputePuppiWeights', False , mytype=vpbool) # to recompute puppi weights in MET correction routines
 opts.register('keepGenParticles' , "reducedfinalstates" , mytype=vpstring) # to keep gen. particles. See CMS3NtupleMaker::ParticleRecordLevel enums
 opts.register('keepGenJets' , True , mytype=vpbool) # to keep gen. jets
+opts.register('keepExtraSuperclusters' , True , mytype=vpbool) # to keep gen. jets
 opts.register('dumpAllObjects', False , mytype=vpbool) # if true, use classic edm::Wrapper dumps of the makers
 opts.register('xsec', -1, mytype=vpfloat) # xsec value of the MC sample in pb, hopefully
 opts.register('BR', -1, mytype=vpfloat) # BR value of the MC sample
@@ -964,6 +965,7 @@ else:
    process.cms3ntuple.keepMuonTimingInfo = cms.bool(opts.keepMuonTimingInfo)
    process.cms3ntuple.keepMuonPullInfo = cms.bool(opts.keepMuonPullInfo)
    process.cms3ntuple.keepElectronMVAInfo = cms.bool(opts.keepElectronMVAInfo)
+   process.cms3ntuple.keepExtraSuperclusters = cms.bool(opts.keepExtraSuperclusters)
    process.cms3ntuple.includeLJetsSelection = cms.bool(opts.includeLJetsSelection)
    process.cms3ntuple.minNmuons = cms.int32(opts.minNmuons)
    process.cms3ntuple.minNelectrons = cms.int32(opts.minNelectrons)

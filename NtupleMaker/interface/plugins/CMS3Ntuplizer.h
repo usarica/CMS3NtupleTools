@@ -36,6 +36,8 @@
 #include <DataFormats/JetReco/interface/GenJet.h>
 #include <DataFormats/JetReco/interface/PFJet.h>
 
+#include <DataFormats/EgammaReco/interface/SuperClusterFwd.h>
+
 #include <SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h>
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
@@ -76,6 +78,7 @@ protected:
   static const std::string colName_electrons;
   static const std::string colName_photons;
   static const std::string colName_fsrcands;
+  static const std::string colName_superclusters;
   static const std::string colName_isotracks;
   static const std::string colName_ak4jets;
   static const std::string colName_ak8jets;
@@ -104,6 +107,8 @@ protected:
 
   bool keepElectronMVAInfo;
 
+  bool keepExtraSuperclusters; // For electron tracking effs with T&P
+
   std::string prefiringWeightsTag;
   bool applyPrefiringWeights;
 
@@ -125,6 +130,8 @@ protected:
   edm::EDGetTokenT< edm::View<pat::Jet> > ak8jetsToken;
   edm::EDGetTokenT< edm::View<IsotrackInfo> > isotracksToken;
   edm::EDGetTokenT< edm::View<pat::PackedCandidate> > pfcandsToken;
+
+  edm::EDGetTokenT< reco::SuperClusterCollection > reducedSuperclusterToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
   edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERNominal;
@@ -169,6 +176,8 @@ protected:
     std::vector<FSRCandidateInfo>*
   );
   size_t fillPhotons(edm::Event const&, std::vector<FSRCandidateInfo>*, std::vector<pat::Photon const*>*); // Not std::vector<FSRCandidateInfo> const* because the veto photon lists need to be modified.
+
+  size_t fillReducedSuperclusters(edm::Event const&, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*, std::vector<reco::SuperCluster const*>*);
 
   size_t fillAK4Jets(edm::Event const&, std::vector<pat::Jet const*>*);
   size_t fillAK8Jets(edm::Event const&, std::vector<pat::Jet const*>*);

@@ -25,6 +25,10 @@ cms3ntuple = cms.EDAnalyzer(
    isotrackSrc = cms.InputTag("isoTrackMaker"),
    pfcandSrc = cms.InputTag("packedPFCandidates"),
 
+   reducedSuperclusterSrc = cms.InputTag("reducedEgamma:reducedSuperClusters"),
+   keepExtraSuperclusters = cms.bool(True),
+
+
    pfmetSrc = cms.InputTag("pfmetMaker"),
    pfmetShiftSrc_JERNominal = cms.InputTag("pfJetMaker","METshiftJERNominal"),
    pfmetShiftSrc_JERUp = cms.InputTag("pfJetMaker","METshiftJERUp"),
