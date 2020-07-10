@@ -1651,6 +1651,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
 
   MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, energy, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, correctedEnergy, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, sinTheta_SC_pos, n_objects);
 
@@ -1659,9 +1660,9 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
   size_t n_skimmed_objects=0;
   for (reco::SuperClusterCollection::const_iterator obj = reducedSuperclusterHandle->begin(); obj != reducedSuperclusterHandle->end(); obj++){
     if (
-      obj->correctedEnergy()/std::cosh(obj->eta())<ElectronSelectionHelpers::selection_skim_pt
+      std::max(obj->energy(), obj->correctedEnergy())/std::cosh(obj->eta())<ElectronSelectionHelpers::selection_skim_pt
       ||
-      std::abs(obj->eta())>ElectronSelectionHelpers::selection_skim_eta
+      std::abs(obj->eta())>=ElectronSelectionHelpers::selection_skim_eta
       ) continue;
 
     bool doSkip = false;
@@ -1690,6 +1691,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
     // Core particle quantities
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
+    energy.push_back(obj->energy());
     correctedEnergy.push_back(obj->correctedEnergy());
     sinTheta_SC_pos.push_back(std::sin(obj->position().theta()));
 
@@ -1732,6 +1734,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
         HelperFunctions::set_bit(fiducialityMask, ISEBGAP);
         HelperFunctions::set_bit(fiducialityMask, ISGAP);
       }
+      else if (HelperFunctions::test_bit(fiducialityMask, ISEBEEGAP)) HelperFunctions::set_bit(fiducialityMask, ISGAP);
     }
     fid_mask.push_back(fiducialityMask);
 
@@ -1742,8 +1745,10 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
   // Pass collections to the communicator
   PUSH_VECTOR_WITH_NAME(colName, eta);
   PUSH_VECTOR_WITH_NAME(colName, phi);
+  PUSH_VECTOR_WITH_NAME(colName, energy);
   PUSH_VECTOR_WITH_NAME(colName, correctedEnergy);
   PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
 
   return n_skimmed_objects;
