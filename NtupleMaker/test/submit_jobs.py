@@ -62,7 +62,7 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
         if not hadoop_user: hadoop_user = os.environ.get("USER")
         part1 = sample.get_datasetname().split("/")[1]
         part2 = sample.get_datasetname().split("/")[2]
-        output_dir = "/hadoop/cms/store/user/{}/Offshell_2L2Nu/Ntuples/{}/{}/{}/".format(
+        output_dir = "/hadoop/cms/store/user/{}/Offshell_2L2Nu/Production/{}/{}/{}/".format(
                 hadoop_user, tag, part1, part2
                 )
 
