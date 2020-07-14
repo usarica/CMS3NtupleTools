@@ -5,7 +5,7 @@ period=$2
 prodVersion=$3
 script=produceLeptonEfficiencies_RooFit.cc
 function=getEfficiencies
-jobdate="${date}_LeptonTnP_RooFit"
+jobdate="LeptonTnP_RooFit_${date}_${period}"
 arguments='"<period>","<prodVersion>","<strdate>",<is_ee>,<eeGapCode>,<resPdgId>,"<systOptions>",<minPt_tag>,<fit_low>,<fit_high>,<bin_pt>,<bin_eta>'
 arguments="${arguments/<period>/$period}"
 arguments="${arguments/<strdate>/$date}"
@@ -17,7 +17,15 @@ declare -a minPtTags_ee
 declare -a minPtTags_mumu
 declare -a systOptions
 
-systOptions=( "" "ALTBkg" "ALTBkg2" "TightTag" "TightTag.ALTBkg" "TightTag.ALTBkg2" "MC_2l2nu" "MC_4l" "PUDn" "PUUp" )
+systOptions=( \
+  "" "ALTBkg" "ALTBkg2" "TightTag" "TightTag.ALTBkg" "TightTag.ALTBkg2" \
+
+  "MC_2l2nu" "MC_2l2nu.ALTBkg" "MC_2l2nu.ALTBkg2" "MC_2l2nu.TightTag" "MC_2l2nu.TightTag.ALTBkg" "MC_2l2nu.TightTag.ALTBkg2" \
+  "MC_4l" "MC_4l.ALTBkg" "MC_4l.ALTBkg2" "MC_4l.TightTag" "MC_4l.TightTag.ALTBkg" "MC_4l.TightTag.ALTBkg2" \
+
+  "PUDn" "PUDn.ALTBkg" "PUDn.ALTBkg2" "PUDn.TightTag" "PUDn.TightTag.ALTBkg" "PUDn.TightTag.ALTBkg2" \
+  "PUUp" "PUUp.ALTBkg" "PUUp.ALTBkg2" "PUUp.TightTag" "PUUp.TightTag.ALTBkg" "PUUp.TightTag.ALTBkg2" \
+)
 
 if [[ "$period" == "2016" ]]; then
   minPtTags_ee=( 28 30 )
@@ -44,12 +52,6 @@ for syst in "${systOptions[@]}"; do
 
   # Do Z mass windows
   for iw in {1..3}; do
-    if [[ "$syst" == *"MC"* ]] && [[ $iw -gt 1 ]]; then
-      continue
-    fi
-    if [[ "$syst" == *"PU"* ]] && [[ $iw -gt 1 ]]; then
-      continue
-    fi
     if [[ "$syst" == *"ALTBkg"* ]] && [[ $iw -ne 3 ]]; then
       continue
     fi
@@ -122,12 +124,6 @@ for syst in "${systOptions[@]}"; do
 
   # Do Z mass windows
   for iw in {1..3}; do
-    if [[ "$syst" == "MC"* ]] && [[ $iw -gt 1 ]]; then
-      continue
-    fi
-    if [[ "$syst" == "PU"* ]] && [[ $iw -gt 1 ]]; then
-      continue
-    fi
     if [[ "$syst" == *"ALTBkg"* ]] && [[ $iw -ne 3 ]]; then
       continue
     fi

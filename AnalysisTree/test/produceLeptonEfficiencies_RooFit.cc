@@ -1279,7 +1279,7 @@ void getEfficiencies(
   if (systOptions.Contains("PUDn")) theGlobalSyst = SystematicsHelpers::ePUDn;
   else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
   bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
-  if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useMC_2l2nu + 1*useMC_4l>1) return; // Exclude tight tag here
+  if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2>1) return; // Exclude tight tag here
 
   gStyle->SetOptStat(0);
 
@@ -1438,7 +1438,7 @@ void getEfficiencies(
         HelperFunctions::replaceString(cinput, "_MINIAOD", "");
 
         TString strinput = Form("%s/%s/%s", cinput_main.Data(), pp.Data(), cinput.Data());
-        strinput += Form("*_%s", SystematicsHelpers::getSystName(SystematicsHelpers::sNominal).data());
+        strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
         MELAout << "Adding " << strinput << " to the data tree chain..." << endl;
 
@@ -1463,7 +1463,7 @@ void getEfficiencies(
         HelperFunctions::replaceString(cinput, "_MINIAOD", "");
 
         TString strinput = Form("%s/%s", cinput_main_MC.Data(), cinput.Data());
-        strinput += Form("*_%s", SystematicsHelpers::getSystName(SystematicsHelpers::sNominal).data());
+        strinput += Form("*_%s", SystematicsHelpers::getSystName(theGlobalSyst).data());
         strinput += ".root";
         MELAout << "Adding " << strinput << " to the MC tree chain..." << endl;
 
@@ -2129,6 +2129,7 @@ void getEfficiencies(
         rcd_params.setNamedVal<double>("eta_probe_high", eta_high);
 
         RooFitResult* fitResult=nullptr;
+        int prefit_fitstatus=0;
 
         // Build the PDF
         RooRealFlooredSumPdf* pdf_mct = nullptr;
@@ -2157,6 +2158,7 @@ void getEfficiencies(
             &xvar, pdf_sig, nullptr, nullptr,
             fit_MC
           );
+          prefit_fitstatus = fitResult->status();
           delete fitResult; fitResult=nullptr;
 
           alpha_SigPtSupp.setConstant(true);
@@ -2196,6 +2198,8 @@ void getEfficiencies(
           }
           delete it;
           delete pdfArgs;
+
+          rcd_params.setNamedVal("prefit_fitstatus", prefit_fitstatus);
         }
 
         // Fit the data
@@ -2207,6 +2211,7 @@ void getEfficiencies(
           &frac_sig,
           fit_data
         );
+        int postfit_fitstatus = fitResult->status();
         delete fitResult;
         delete pdf_mct;
         delete hfcnpair.second;
@@ -2231,6 +2236,8 @@ void getEfficiencies(
           }
           delete it;
           delete pdfArgs;
+
+          rcd_params.setNamedVal("postfit_fitstatus", postfit_fitstatus);
         }
 
         // Record the numbers of events
@@ -2252,6 +2259,7 @@ void getEfficiencies(
         }
 
         if (firstBin){
+          for (auto itb=rcd_params.namedints.begin(); itb!=rcd_params.namedints.end(); itb++) tout->putBranch(itb->first, itb->second);
           for (auto itb=rcd_params.namedfloats.begin(); itb!=rcd_params.namedfloats.end(); itb++) tout->putBranch(itb->first, itb->second);
           for (auto itb=rcd_params.nameddoubles.begin(); itb!=rcd_params.nameddoubles.end(); itb++) tout->putBranch(itb->first, itb->second);
         }
@@ -2667,10 +2675,10 @@ void combineEfficiencies(
       std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatDn_map;
       std::unordered_map<TString, std::vector<double>> syst_effs_MC_StatUp_map;
 
-      std::vector<double> effs_MC_PUDn_list;
-      std::vector<double> effs_MC_PUUp_list;
-      std::vector<double> effs_MC_2l2nu_list, effs_MC_2l2nu_intsize_list;
-      std::vector<double> effs_MC_4l_list, effs_MC_4l_intsize_list;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_PUDn_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_PUUp_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_2l2nu_map, syst_effs_MC_2l2nu_intsize_map;
+      std::unordered_map<TString, std::vector<double>> syst_effs_MC_4l_map, syst_effs_MC_4l_intsize_map;
 
       for (auto const& systOptions:systOptions_all){
         bool useALTSig = systOptions.Contains("ALTSig");
@@ -2683,7 +2691,7 @@ void combineEfficiencies(
         if (systOptions.Contains("PUDn")) theGlobalSyst = SystematicsHelpers::ePUDn;
         else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
         bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
-        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useMC_2l2nu + 1*useMC_4l>1) continue; // Exclude tight tag here
+        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2>1) continue; // Exclude tight tag here
 
         TString strSigModel = "CorrRelBWxDCB";
         TString strBkgModel = "RooCMSShape";
@@ -2741,16 +2749,20 @@ void combineEfficiencies(
               TString const& strIdIsoType = strIdIsoTypes.at(isel);
               TH2D* hevts_MC = (TH2D*) finput->Get(Form("evts_MC_%s", strIdIsoType.Data()));
 
+              bool hasFailedFit = false;
               if (doFits){
                 TH2D* hevts_data = (TH2D*) finput->Get(Form("evts_data_%s", strIdIsoType.Data()));
                 TTree* tree_fitparams = (TTree*) finput->Get(Form("fit_parameters_%s", strIdIsoType.Data()));
 
 #define BRANCH_COMMAND(type, name) type name; tree_fitparams->SetBranchAddress(#name, &name);
+                BRANCH_COMMAND(int, prefit_fitstatus);
+                BRANCH_COMMAND(int, postfit_fitstatus);
                 BRANCH_COMMAND(double, postfit_frac_sig_val);
                 BRANCH_COMMAND(double, postfit_frac_sig_errdn);
                 BRANCH_COMMAND(double, postfit_frac_sig_errup);
 #undef BRANCH_COMMAND
                 tree_fitparams->GetEntry(0);
+                hasFailedFit = (prefit_fitstatus>=100 || postfit_fitstatus>=100);
 
                 vals_MC.at(isel).first = hevts_MC->GetBinContent(1, 1);
                 vals_MC.at(isel).second = std::pow(hevts_MC->GetBinError(1, 1), 2);
@@ -2783,51 +2795,66 @@ void combineEfficiencies(
               MELAout << "\t\t- Collected stat. up MC effs.: " << syst_effs_MC_StatUp_map[syst] << endl;
             }
             else if (theGlobalSyst == SystematicsHelpers::ePUDn){
-              for (auto const& v:effvals_MC) effs_MC_PUDn_list.push_back(v.at(0));
-              MELAout << "\t\t- Collected PU dn. MC effs.: " << effs_MC_PUDn_list << endl;
+              syst_effs_MC_PUDn_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_PUDn_map[syst].push_back(v.at(0));
+              MELAout << "\t\t- Collected PU dn. MC effs.: " << syst_effs_MC_PUDn_map[syst] << endl;
             }
             else if (theGlobalSyst == SystematicsHelpers::ePUUp){
+              syst_effs_MC_PUUp_map[syst] = std::vector<double>(); for (auto const& v:effvals_MC) syst_effs_MC_PUUp_map[syst].push_back(v.at(0));
+              MELAout << "\t\t- Collected PU dn. MC effs.: " << syst_effs_MC_PUUp_map[syst] << endl;
               for (auto const& v:effvals_MC) effs_MC_PUUp_list.push_back(v.at(0));
               MELAout << "\t\t- Collected PU up MC effs.: " << effs_MC_PUUp_list << endl;
             }
             else if (useMC_2l2nu){
-              for (auto const& v:effvals_MC) effs_MC_2l2nu_list.push_back(v.at(0));
-              for (auto const& v:effvals_MC) effs_MC_2l2nu_intsize_list.push_back(v.at(2) - v.at(1));
-              MELAout << "\t\t- Collected 2l2nu MC effs.: " << effs_MC_2l2nu_list << endl;
-              MELAout << "\t\t- Collected 2l2nu MC interval sizes: " << effs_MC_2l2nu_intsize_list << endl;
+              syst_effs_MC_2l2nu_map[syst] = std::vector<double>();
+              syst_effs_MC_2l2nu_intsize_map[syst] = std::vector<double>();
+              for (auto const& v:effvals_MC){
+                syst_effs_MC_2l2nu_map[syst].push_back(v.at(0));
+                syst_effs_MC_2l2nu_intsize_map[syst].push_back(v.at(2) - v.at(1));
+              }
+              MELAout << "\t\t- Collected 2l2nu MC effs.: " << syst_effs_MC_2l2nu_map[syst] << endl;
+              MELAout << "\t\t- Collected 2l2nu MC interval sizes: " << syst_effs_MC_2l2nu_intsize_map[syst] << endl;
             }
             else if (useMC_4l){
-              for (auto const& v:effvals_MC) effs_MC_4l_list.push_back(v.at(0));
-              for (auto const& v:effvals_MC) effs_MC_4l_intsize_list.push_back(v.at(2) - v.at(1));
-              MELAout << "\t\t- Collected 4l MC effs.: " << effs_MC_4l_list << endl;
-              MELAout << "\t\t- Collected 4l MC interval sizes: " << effs_MC_4l_intsize_list << endl;
+              syst_effs_MC_4l_map[syst] = std::vector<double>();
+              syst_effs_MC_4l_intsize_map[syst] = std::vector<double>();
+              for (auto const& v:effvals_MC){
+                syst_effs_MC_4l_map[syst].push_back(v.at(0));
+                syst_effs_MC_4l_intsize_map[syst].push_back(v.at(2) - v.at(1));
+              }
+              MELAout << "\t\t- Collected 4l MC effs.: " << syst_effs_MC_4l_map[syst] << endl;
+              MELAout << "\t\t- Collected 4l MC interval sizes: " << syst_effs_MC_4l_intsize_map[syst] << endl;
             }
 
             // Find data efficiencies
             if (doFits){
-              MELAout << "\t\t- Extracting data efficiencies..." << endl;
-              std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-              std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-              std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
-              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_nominal, effvals_data_frac_nominal);
-              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_dn, effvals_data_frac_dn);
-              calculateRecursiveEfficiencies(sum_indices, vals_data_frac_up, effvals_data_frac_up);
-              syst_effs_data_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_data_frac_nominal) syst_effs_data_StatNominal_map[syst].push_back(v.at(0));
-              syst_effs_data_StatDn_map[syst] = std::vector<double>();
-              syst_effs_data_StatUp_map[syst] = std::vector<double>();
-              for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
-                double const& vnom = effvals_data_frac_nominal.at(osel).at(0);
-                double const& v_frac_dn = effvals_data_frac_dn.at(osel).at(0);
-                double const& v_frac_up = effvals_data_frac_up.at(osel).at(0);
-                double const& v_eff_dn = effvals_data_frac_nominal.at(osel).at(1);
-                double const& v_eff_up = effvals_data_frac_nominal.at(osel).at(2);
+              if (!hasFailedFit){
+                MELAout << "\t\t- Extracting data efficiencies..." << endl;
+                std::vector<std::vector<double>> effvals_data_frac_nominal(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+                std::vector<std::vector<double>> effvals_data_frac_dn(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+                std::vector<std::vector<double>> effvals_data_frac_up(strIdIsoOutTypes.size(), std::vector<double>(3, 0)); // [Id/iso type][Nominal, low, high]
+                calculateRecursiveEfficiencies(sum_indices, vals_data_frac_nominal, effvals_data_frac_nominal);
+                calculateRecursiveEfficiencies(sum_indices, vals_data_frac_dn, effvals_data_frac_dn);
+                calculateRecursiveEfficiencies(sum_indices, vals_data_frac_up, effvals_data_frac_up);
+                syst_effs_data_StatNominal_map[syst] = std::vector<double>(); for (auto const& v:effvals_data_frac_nominal) syst_effs_data_StatNominal_map[syst].push_back(v.at(0));
+                syst_effs_data_StatDn_map[syst] = std::vector<double>();
+                syst_effs_data_StatUp_map[syst] = std::vector<double>();
+                for (unsigned int osel=0; osel<strIdIsoOutTypes.size(); osel++){
+                  double const& vnom = effvals_data_frac_nominal.at(osel).at(0);
+                  double const& v_frac_dn = effvals_data_frac_dn.at(osel).at(0);
+                  double const& v_frac_up = effvals_data_frac_up.at(osel).at(0);
+                  double const& v_eff_dn = effvals_data_frac_nominal.at(osel).at(1);
+                  double const& v_eff_up = effvals_data_frac_nominal.at(osel).at(2);
 
-                syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
-                syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
+                  syst_effs_data_StatDn_map[syst].push_back(std::max(0., vnom - std::sqrt(std::pow(v_frac_dn - vnom, 2) + std::pow(v_eff_dn - vnom, 2))));
+                  syst_effs_data_StatUp_map[syst].push_back(std::min(1., vnom + std::sqrt(std::pow(v_frac_up - vnom, 2) + std::pow(v_eff_up - vnom, 2))));
+                }
+                MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
+                MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
+                MELAout << "\t\t- Collected stat. up data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
               }
-              MELAout << "\t\t- Collected nominal data effs.: " << syst_effs_data_StatNominal_map[syst] << endl;
-              MELAout << "\t\t- Collected stat. dn. data effs.: " << syst_effs_data_StatDn_map[syst] << endl;
-              MELAout << "\t\t- Collected stat. up data effs.: " << syst_effs_data_StatUp_map[syst] << endl;
+              else{
+                MELAout << "\t\t- Data fit failed. Skipping..." << endl;
+              }
             }
           } // End min. tag pT loop
         } // End fit window loop
@@ -2860,6 +2887,12 @@ void combineEfficiencies(
         std::vector<double> eff_coll_MC_StatNominal; for (auto const& it:syst_effs_MC_StatNominal_map) eff_coll_MC_StatNominal.push_back(it.second.at(osel));
         std::vector<double> eff_coll_MC_StatDn; for (auto const& it:syst_effs_MC_StatDn_map) eff_coll_MC_StatDn.push_back(it.second.at(osel));
         std::vector<double> eff_coll_MC_StatUp; for (auto const& it:syst_effs_MC_StatUp_map) eff_coll_MC_StatUp.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_PUDn; for (auto const& it:syst_effs_MC_PUDn_map) eff_coll_MC_PUDn.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_PUUp; for (auto const& it:syst_effs_MC_PUUp_map) eff_coll_MC_PUUp.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_2l2nu; for (auto const& it:syst_effs_MC_2l2nu_map) eff_coll_MC_2l2nu.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_2l2nu_intsize; for (auto const& it:syst_effs_MC_2l2nu_intsize_map) eff_coll_MC_2l2nu_intsize.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_4l; for (auto const& it:syst_effs_MC_4l_map) eff_coll_MC_4l.push_back(it.second.at(osel));
+        std::vector<double> eff_coll_MC_4l_intsize; for (auto const& it:syst_effs_MC_4l_intsize_map) eff_coll_MC_4l_intsize.push_back(it.second.at(osel));
 
         double mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal;
         findModeAndConfidenceInterval(eff_coll_MC_StatNominal, mode_MC_StatNominal, clow_MC_StatNominal, chigh_MC_StatNominal);
@@ -2875,19 +2908,29 @@ void combineEfficiencies(
         findModeAndConfidenceInterval(eff_coll_MC_StatUp, mode_MC_StatUp, clow_MC_StatUp, chigh_MC_StatUp);
         h_eff_MC_StatUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_StatUp);
 
-        if (!effs_MC_PUDn_list.empty()) h_eff_MC_PUDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, effs_MC_PUDn_list.at(osel));
-        if (!effs_MC_PUUp_list.empty()) h_eff_MC_PUUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, effs_MC_PUUp_list.at(osel));
+        double mode_MC_PUDn, clow_MC_PUDn, chigh_MC_PUDn;
+        findModeAndConfidenceInterval(eff_coll_MC_PUDn, mode_MC_PUDn, clow_MC_PUDn, chigh_MC_PUDn);
+        h_eff_MC_PUDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_PUDn);
 
-        if (!effs_MC_2l2nu_list.empty() || !effs_MC_4l_list.empty()){
-          double val_2l2nu = (effs_MC_2l2nu_list.empty() ? 0 : effs_MC_2l2nu_list.at(osel));
-          double wgt_2l2nu = (effs_MC_2l2nu_list.empty() ? 0 : 1./std::pow(effs_MC_2l2nu_intsize_list.at(osel), 2));
-          double val_4l = (effs_MC_4l_list.empty() ? 0 : effs_MC_4l_list.at(osel));
-          double wgt_4l = (effs_MC_4l_list.empty() ? 0 : 1./std::pow(effs_MC_4l_intsize_list.at(osel), 2));
+        double mode_MC_PUUp, clow_MC_PUUp, chigh_MC_PUUp;
+        findModeAndConfidenceInterval(eff_coll_MC_PUUp, mode_MC_PUUp, clow_MC_PUUp, chigh_MC_PUUp);
+        h_eff_MC_PUUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_PUUp);
 
-          double val_avg = (val_2l2nu*wgt_2l2nu + val_4l*wgt_4l)/(wgt_2l2nu + wgt_4l);
-          h_eff_MC_AltMCDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, 2.*mode_MC_StatNominal - val_avg);
-          h_eff_MC_AltMCUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, val_avg);
+        double mode_MC_ALTMCUp, clow_MC_ALTMCUp, chigh_MC_ALTMCUp;
+        {
+          std::vector<double> eff_coll_MC_ALTMC;
+          for (unsigned int iis=0; iis<eff_coll_MC_2l2nu.size(); iis++){
+            double val_2l2nu = eff_coll_MC_2l2nu.at(iis);
+            double wgt_2l2nu = 1./std::pow(eff_coll_MC_2l2nu_intsize.at(iis), 2);
+            double val_4l = eff_coll_MC_4l.at(iis);
+            double wgt_4l = 1./std::pow(eff_coll_MC_4l_intsize.at(iis), 2);
+            double val_avg = (val_2l2nu*wgt_2l2nu + val_4l*wgt_4l)/(wgt_2l2nu + wgt_4l);
+            eff_coll_MC_ALTMC.push_back(val_avg);
+          }
+          findModeAndConfidenceInterval(eff_coll_MC_ALTMC, mode_MC_ALTMCUp, clow_MC_ALTMCUp, chigh_MC_ALTMCUp);
         }
+        h_eff_MC_ALTMCDn_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, 2.*mode_MC_StatNominal - mode_MC_ALTMCUp);
+        h_eff_MC_ALTMCUp_list.at(osel).SetBinContent(bin_eta+1, bin_pt+1, mode_MC_ALTMCUp);
       }
 
       curdir->cd();
@@ -3196,7 +3239,7 @@ void replotFitValidations(
         else if (systOptions.Contains("PUUp")) theGlobalSyst = SystematicsHelpers::ePUUp;
         bool doFits = (!useMC_2l2nu && !useMC_4l && theGlobalSyst==SystematicsHelpers::sNominal);
         if (!doFits) continue;
-        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2 + 1*useMC_2l2nu + 1*useMC_4l>1) continue; // Exclude tight tag here
+        if (1*useALTSig + 1*useALTBkg + 1*useALTBkg2>1) continue; // Exclude tight tag here
 
         TString strSigModel = "CorrRelBWxDCB";
         TString strBkgModel = "RooCMSShape";
