@@ -271,7 +271,9 @@ bool ElectronSelectionHelpers::testTightKin(ElectronObject const& part){
   return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
 }
 
-bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){ return part.extras.is_probeForTnP; }
+bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){
+  return part.extras.ecalEnergy*part.extras.sinTheta_SC_pos>=ptThr_skim_loose;
+}
 
 bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){
   return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);

@@ -7,6 +7,8 @@
 
 #define ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
 ELECTRON_VARIABLE(float, etaSC, 0) \
+ELECTRON_VARIABLE(float, ecalEnergy, 0) \
+ELECTRON_VARIABLE(float, sinTheta_SC_pos, 0) \
 ELECTRON_VARIABLE(float, scale_smear_corr, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalDn, 1) \
@@ -18,7 +20,6 @@ ELECTRON_VARIABLE(cms3_electron_missinghits_t, n_all_missing_inner_hits, 0) \
 ELECTRON_VARIABLE(cms3_electron_charge_consistency_bits_t, charge_consistency_bits, 0) \
 ELECTRON_VARIABLE(cms3_egamma_fid_type_mask_t, fid_mask, 0) \
 ELECTRON_VARIABLE(cms3_egamma_fid_type_mask_t, type_mask, 0) \
-ELECTRON_VARIABLE(bool, is_probeForTnP, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wpLoose, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp90, false) \
 ELECTRON_VARIABLE(bool, id_MVA_Fall17V2_Iso_pass_wp80, false) \
