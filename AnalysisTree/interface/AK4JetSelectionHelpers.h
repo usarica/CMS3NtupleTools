@@ -8,7 +8,14 @@ namespace AK4JetSelectionHelpers{
   enum SelectionBits{
     kGenPtEta,
 
-    kPUJetId,
+    kLoosePUJetId,
+    kMediumPUJetId,
+    kTightPUJetId,
+
+    kLoosePUJetId_default,
+    kMediumPUJetId_default,
+    kTightPUJetId_default,
+
     kTightLeptonVetoId,
 
     kLooseId,
@@ -40,7 +47,7 @@ namespace AK4JetSelectionHelpers{
   const SelectionBits bit_preselectionTight_kin = kTightKin;
 
   // Control additional flags to preselection tight id
-  void setApplyPUIdToJets(bool flag);
+  void setPUIdWP(SelectionBits flag);
   void setApplyTightLeptonVetoIdToJets(bool flag);
 
   void setSelectionBits(AK4JetObject& part);

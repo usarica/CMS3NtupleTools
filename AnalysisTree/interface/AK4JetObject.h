@@ -6,10 +6,13 @@
 
 
 #define AK4JET_CORE_VARIABLES \
+AK4JET_VARIABLE(bool, is_genMatched, false) \
+AK4JET_VARIABLE(bool, is_genMatched_fullCone, false) \
 AK4JET_VARIABLE(bool, pass_looseId, false) \
 AK4JET_VARIABLE(bool, pass_tightId, false) \
 AK4JET_VARIABLE(bool, pass_leptonVetoId, false) \
-AK4JET_VARIABLE(bool, pass_puId, false) \
+AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId, false) \
+AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId_default, false) \
 /*AK4JET_VARIABLE(size_t, n_pfcands, 0)*/ \
 /*AK4JET_VARIABLE(size_t, n_mucands, 0)*/ \
 /*AK4JET_VARIABLE(float, area, 0)*/ \
@@ -27,6 +30,8 @@ AK4JET_VARIABLE(float, JERDn, 1) \
 AK4JET_VARIABLE(float, JECL1Nominal, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_px, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_py, 1) \
+AK4JET_VARIABLE(float, NEMF, 0) \
+AK4JET_VARIABLE(float, CEMF, 0) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
 

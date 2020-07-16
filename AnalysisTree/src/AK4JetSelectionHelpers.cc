@@ -1,13 +1,21 @@
 #include <cassert>
+#include "HelperFunctions.h"
 #include "AK4JetSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
 
 namespace AK4JetSelectionHelpers{
-  bool applyPUIdToJets = true;
+  SelectionBits PUIdWP = kTightPUJetId;
   bool applyTightLeptonVetoIdToJets = false;
 
-  bool testPUJetId(AK4JetObject const& part);
+  bool testLoosePUJetId(AK4JetObject const& part);
+  bool testMediumPUJetId(AK4JetObject const& part);
+  bool testTightPUJetId(AK4JetObject const& part);
+
+  bool testLoosePUJetId_Default(AK4JetObject const& part);
+  bool testMediumPUJetId_Default(AK4JetObject const& part);
+  bool testTightPUJetId_Default(AK4JetObject const& part);
+
   bool testTightLeptonVetoId(AK4JetObject const& part);
 
   bool testPtEtaGen(AK4JetObject const& part);
@@ -27,7 +35,26 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-bool AK4JetSelectionHelpers::testPUJetId(AK4JetObject const& part){ return part.extras.pass_puId; }
+bool AK4JetSelectionHelpers::testLoosePUJetId(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId, 2);
+}
+bool AK4JetSelectionHelpers::testMediumPUJetId(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId, 1);
+}
+bool AK4JetSelectionHelpers::testTightPUJetId(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId, 0);
+}
+
+bool AK4JetSelectionHelpers::testLoosePUJetId_Default(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 2);
+}
+bool AK4JetSelectionHelpers::testMediumPUJetId_Default(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 1);
+}
+bool AK4JetSelectionHelpers::testTightPUJetId_Default(AK4JetObject const& part){
+  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 0);
+}
+
 bool AK4JetSelectionHelpers::testTightLeptonVetoId(AK4JetObject const& part){ return part.extras.pass_leptonVetoId; }
 
 bool AK4JetSelectionHelpers::testLooseId(AK4JetObject const& part){ return part.extras.pass_looseId; }
@@ -56,13 +83,20 @@ bool AK4JetSelectionHelpers::testPreselectionTight(AK4JetObject const& part){
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
     &&
-    (!applyPUIdToJets || part.testSelectionBit(kPUJetId))
+    (PUIdWP==nSelectionBits || part.testSelectionBit(PUIdWP))
     &&
     (!applyTightLeptonVetoIdToJets || part.testSelectionBit(kTightLeptonVetoId))
     );
 }
 
-void AK4JetSelectionHelpers::setApplyPUIdToJets(bool flag){ applyPUIdToJets = flag; }
+void AK4JetSelectionHelpers::setPUIdWP(SelectionBits flag){
+  if (
+    flag==kLoosePUJetId || flag==kMediumPUJetId || flag==kTightPUJetId
+    ||
+    flag==kLoosePUJetId_default || flag==kMediumPUJetId_default || flag==kTightPUJetId_default
+    ) PUIdWP = flag;
+  else PUIdWP = nSelectionBits;
+}
 void AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(bool flag){ applyTightLeptonVetoIdToJets = flag; }
 
 void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
@@ -70,7 +104,14 @@ void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
 
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
-  part.setSelectionBit(kPUJetId, testPUJetId(part));
+  part.setSelectionBit(kLoosePUJetId, testLoosePUJetId(part));
+  part.setSelectionBit(kMediumPUJetId, testMediumPUJetId(part));
+  part.setSelectionBit(kTightPUJetId, testTightPUJetId(part));
+
+  part.setSelectionBit(kLoosePUJetId_default, testLoosePUJetId_Default(part));
+  part.setSelectionBit(kMediumPUJetId_default, testMediumPUJetId_Default(part));
+  part.setSelectionBit(kTightPUJetId_default, testTightPUJetId_Default(part));
+
   part.setSelectionBit(kTightLeptonVetoId, testTightLeptonVetoId(part));
 
   part.setSelectionBit(kLooseId, testLooseId(part));
