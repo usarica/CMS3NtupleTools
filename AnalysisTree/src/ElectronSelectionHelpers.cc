@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 #include "ElectronSelectionHelpers.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
@@ -259,16 +260,16 @@ bool ElectronSelectionHelpers::testFakeableBaseIso(ElectronObject const& part){
 #undef TEST_CUTBASED_BIT
 
 bool ElectronSelectionHelpers::testVetoKin(ElectronObject const& part){
-  return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+  return (part.pt()>=ptThr_skim_veto && std::abs(part.eta())<etaThr_skim_veto);
 }
 bool ElectronSelectionHelpers::testLooseKin(ElectronObject const& part){
-  return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+  return (part.pt()>=ptThr_skim_loose && std::abs(part.eta())<etaThr_skim_loose);
 }
 bool ElectronSelectionHelpers::testMediumKin(ElectronObject const& part){
-  return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
+  return (part.pt()>=ptThr_skim_medium && std::abs(part.eta())<etaThr_skim_medium);
 }
 bool ElectronSelectionHelpers::testTightKin(ElectronObject const& part){
-  return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+  return (part.pt()>=ptThr_skim_tight && std::abs(part.eta())<etaThr_skim_tight);
 }
 
 bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){
@@ -276,7 +277,7 @@ bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){
 }
 
 bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){
-  return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+  return (part.pt()>=ptThr_gen && std::abs(part.eta())<etaThr_gen);
 }
 bool ElectronSelectionHelpers::testFakeableBase(ElectronObject const& part){
   return (

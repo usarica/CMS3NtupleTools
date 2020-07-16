@@ -41,10 +41,10 @@ namespace PhotonSelectionHelpers{
 
   // Kinematic pT thresholds
   constexpr float ptThr_gen = 5.;
-  constexpr float ptThr_skim_veto = 30.;
-  constexpr float ptThr_skim_loose = 30.;
-  constexpr float ptThr_skim_medium = 30.;
-  constexpr float ptThr_skim_tight = 30.;
+  constexpr float ptThr_skim_veto = 20.;
+  constexpr float ptThr_skim_loose = 20.;
+  constexpr float ptThr_skim_medium = 20.;
+  constexpr float ptThr_skim_tight = 20.;
 
   // Kinematic eta thresholds
   // Last ECAL crystal in barrel is at |eta|=1.4442
