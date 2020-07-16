@@ -2,8 +2,16 @@
 
 chkdir=$1
 let multiprod=1
+let islongfile=0
+let skiplongfile=0
 if [[ "$2" != "" ]];then
-  let multiprod=$2
+  if [[ "$2" == "singleprod" ]]; then
+    let multiprod=0
+  elif [[ "$2" == "longfile" ]]; then
+    let islongfile=1
+  elif [[ "$2" == "skiplongfile" ]]; then
+    let skiplongfile=1
+  fi
 fi
 
 
@@ -29,12 +37,31 @@ for d in $(ls ./); do
   let dirok=1
   let nsubjobs=0
   for logfilename in $(ls ./$d/Logs | grep -e "log_"); do
-    let nsubjobs=$nsubjobs+1
-
     resb=( )
     rese=( )
     resf=( )
     ress=( )
+
+    fread="$d/Logs/$logfilename"
+
+    if [[ $skiplongfile -eq 1 ]]; then
+      let freadsize=$(stat --format=%s $fread)
+      if [[ $freadsize -gt 1000000 ]]; then
+        echo "Skipping $fread because its size = $freadsize > 1000000"
+        continue
+      fi
+      #echo "File $fread with size $freadsize is not long..."
+    fi
+
+    let nsubjobs=$nsubjobs+1
+
+    if [[ $islongfile -eq 1 ]]; then
+      tmpfile="tail_$logfilename"
+      echo "Truncating $fread to $tmpfile"
+      tail -1000 $fread &> $tmpfile
+      fread=$tmpfile
+      echo "Will read $fread"
+    fi
 
     while IFS='' read -r line || [[ -n "$line" ]]; do
       if [[ "$line" == *"begin copying output"* ]]; then
@@ -46,7 +73,11 @@ for d in $(ls ./); do
       elif [[ "$line" == *"Copied successfully"* ]]; then
         ress+=( "$line" )
       fi
-    done < "$d/Logs/$logfilename"
+    done < "$fread"
+
+    if [[ $islongfile -eq 1 ]]; then
+      rm $fread
+    fi
 
     let size_resb=${#resb[@]}
     let size_rese=${#rese[@]}
