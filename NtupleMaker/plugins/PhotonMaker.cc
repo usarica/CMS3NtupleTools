@@ -10,11 +10,14 @@
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 
+#include <DataFormats/EcalDetId/interface/EBDetId.h>
+#include <DataFormats/EcalDetId/interface/EEDetId.h>
+#include <DataFormats/EcalDetId/interface/EcalSubdetector.h>
+
 #include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
 #include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
-#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 #include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
@@ -40,6 +43,9 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
 
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
 
+  ebhitsToken = consumes< EcalRecHitCollection >(iConfig.getParameter<edm::InputTag>("EBHitsInputTag"));
+  eehitsToken = consumes< EcalRecHitCollection >(iConfig.getParameter<edm::InputTag>("EEHitsInputTag"));
+
   produces<pat::PhotonCollection>().setBranchAlias(aliasprefix_);
 }
 
@@ -49,6 +55,8 @@ void PhotonMaker::beginJob(){}
 void PhotonMaker::endJob(){}
 
 void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  static bool firstEvent = true;
+
   auto result = std::make_unique<pat::PhotonCollection>();
 
   //////////////////// 
@@ -62,12 +70,20 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   const double& rho_event = *rhoHandle;
 
   // Photons
-  Handle< View<pat::Photon> > photons_h;
+  edm::Handle< edm::View<pat::Photon> > photons_h;
   iEvent.getByToken(photonsToken, photons_h);
   if (!photons_h.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting photons from the event...");
 
+  edm::Handle< EcalRecHitCollection > ebhitsHandle;
+  iEvent.getByToken(ebhitsToken, ebhitsHandle);
+  if (!ebhitsHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting EB hits from the event...");
+
+  edm::Handle< EcalRecHitCollection > eehitsHandle;
+  iEvent.getByToken(eehitsToken, eehitsHandle);
+  if (!eehitsHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting EE hits from the event...");
+
   size_t nTotalPhotons = photons_h->size(); result->reserve(nTotalPhotons);
-  //size_t photonIndex = 0;
+  size_t photonIndex = 0;
   for (View<pat::Photon>::const_iterator photon = photons_h->begin(); photon != photons_h->end(); photon++/*, photonIndex++*/) {
     pat::Photon photon_result(*photon);
 
@@ -113,7 +129,38 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     //photon_result.addUserFloat("full5x5_hOverE", photon->hadronicOverEm());
     //photon_result.addUserFloat("full5x5_hOverEtowBC", photon->hadTowOverEm());
     photon_result.addUserFloat("full5x5_sigmaIEtaIEta", photon->full5x5_sigmaIetaIeta());
+    photon_result.addUserFloat("full5x5_sigmaIPhiIPhi", photon->full5x5_showerShapeVariables().sigmaIphiIphi); // There is no such reco::Photon::full5x5_sigmaIphiIphi() equivalent...
     photon_result.addUserFloat("full5x5_r9", photon->full5x5_r9());
+
+    // Compute the swiss cross variable
+    float E4overE1 = -99;
+    float seedTime = 0;
+    reco::CaloClusterPtr photon_seed = photon->seed();
+    if (firstEvent){
+      if (!photon_seed.isNonnull()) edm::LogWarning("Null seed") << "Seed is null for photon " << photonIndex << endl;
+    }
+    if (photon_seed.isNonnull()){
+      auto const& seedHitsAndFractions = photon_seed->hitsAndFractions();
+      if (!seedHitsAndFractions.empty()){
+        const DetId seedId = seedHitsAndFractions.at(0).first;
+        float e1 = getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, 0, &seedTime);
+        if (e1>0.f){
+          float s4 = 0;
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 1, 0);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), -1, 0);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, 1);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, -1);
+          E4overE1 = s4/e1;
+        }
+      }
+      else if (firstEvent) edm::LogWarning("Empty seed hits") << "Seed hits and fractions empty " << photonIndex << endl;
+    }
+    photon_result.addUserFloat("E4overE1", E4overE1);
+    photon_result.addUserFloat("seedTime", seedTime);
+
+    // Record MIP variables
+    //photon_result.addUserInt("MIPIsHalo", photon->mipIsHalo()); // This function seems to have been outdated.
+    photon_result.addUserFloat("MIPTotalEnergy", photon->mipTotEnergy());
 
     setMVAIdUserVariables(photon, photon_result, "PhotonMVAEstimatorRunIIFall17v2", "Fall17V2"); // Yes, RunII and v2 as opposed to Run2 and V2 like electrons...
     setCutBasedIdUserVariables(photon, photon_result, "cutBasedPhotonID-Fall17-94X-V2-loose", "Fall17V2_Loose");
@@ -174,9 +221,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // Put the object into the result collection
     result->emplace_back(photon_result);
+    photonIndex++;
   }
 
   // Put the result collection into the event
+  if (firstEvent && !result->empty()) firstEvent = false;
+
   iEvent.put(std::move(result));
 }
 
@@ -273,6 +323,28 @@ void PhotonMaker::setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_it
   }
 
   photon_result.addUserInt("id_cutBased_HGG_Bits", pass_HGGId);
+}
+float PhotonMaker::getRecHitEnergyTime(DetId const& id, EcalRecHitCollection const* ebhits, EcalRecHitCollection const* eehits, unsigned short di, unsigned short dj, float* outtime){
+  if (!ebhits || !eehits) return 0;
+
+  DetId nid = DetId(0);
+  bool isEB = false;
+  if (id.subdetId() == EcalBarrel){
+    nid = EBDetId::offsetBy(id, di, dj);
+    isEB = true;
+  }
+  else if (id.subdetId() == EcalEndcap) nid = EEDetId::offsetBy(id, di, dj);
+
+  if (nid == DetId(0)) return 0;
+
+  EcalRecHitCollection const& rechits = (isEB ? *ebhits : *eehits);
+  for (auto const& rechit:rechits){
+    if (rechit.detid() == nid){
+      if (outtime) *outtime = rechit.time();
+      return rechit.energy();
+    }
+  }
+  return 0;
 }
 
 

@@ -1465,8 +1465,12 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, full5x5_r9, n_objects);
-  // Could include H/E or sigmaIetaIeta explicitly, but none of the triggers considered have looser cuts than cut-based trigger.
-  // Would need to reconsider if MVA id was used.
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_sigmaIEtaIEta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_sigmaIPhiIPhi, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, MIPTotalEnergy, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, E4overE1, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, seedTime, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso_comb, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
@@ -1531,6 +1535,12 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
     PUSH_USERINT_INTO_VECTOR(id_cutBased_HGG_Bits);
 
     PUSH_USERFLOAT_INTO_VECTOR(full5x5_r9);
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_sigmaIEtaIEta);
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_sigmaIPhiIPhi);
+
+    PUSH_USERFLOAT_INTO_VECTOR(MIPTotalEnergy);
+    PUSH_USERFLOAT_INTO_VECTOR(E4overE1);
+    PUSH_USERFLOAT_INTO_VECTOR(seedTime);
 
     PUSH_USERFLOAT_INTO_VECTOR(pfIso_comb);
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
@@ -1580,6 +1590,12 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_HGG_Bits);
 
   PUSH_VECTOR_WITH_NAME(colName, full5x5_r9);
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIEtaIEta);
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIPhiIPhi);
+
+  PUSH_VECTOR_WITH_NAME(colName, MIPTotalEnergy);
+  PUSH_VECTOR_WITH_NAME(colName, E4overE1);
+  PUSH_VECTOR_WITH_NAME(colName, seedTime);
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso_comb);
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);

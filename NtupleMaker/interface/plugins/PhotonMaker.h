@@ -11,6 +11,8 @@
 
 #include <CommonTools/Utils/interface/StringCutObjectSelector.h>
 
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
+
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
@@ -33,6 +35,10 @@ protected:
 
   edm::EDGetTokenT< double > rhoToken;
 
+  edm::EDGetTokenT< EcalRecHitCollection > ebhitsToken;
+  edm::EDGetTokenT< EcalRecHitCollection > eehitsToken;
+
+
 private:
   virtual void beginJob();
   virtual void endJob();
@@ -44,6 +50,8 @@ private:
   void setCutBasedIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
 
   void setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_iterator const&, pat::Photon&) const;
+
+  static float getRecHitEnergyTime(DetId const&, EcalRecHitCollection const*, EcalRecHitCollection const*, unsigned short, unsigned short, float* outtime=nullptr);
 
 };
 
