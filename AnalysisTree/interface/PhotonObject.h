@@ -21,6 +21,11 @@ PHOTON_VARIABLE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0)
 PHOTON_VARIABLE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
 PHOTON_VARIABLE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, 0) \
 PHOTON_VARIABLE(float, full5x5_r9, 0) \
+PHOTON_VARIABLE(float, full5x5_sigmaIEtaIEta, 0) \
+PHOTON_VARIABLE(float, full5x5_sigmaIPhiIPhi, 0) \
+PHOTON_VARIABLE(float, MIPTotalEnergy, 0) \
+PHOTON_VARIABLE(float, E4overE1, 0) \
+PHOTON_VARIABLE(float, seedTime, 0) \
 PHOTON_VARIABLE(float, pfChargedHadronIso_EAcorr, 0) \
 PHOTON_VARIABLE(float, pfNeutralHadronIso_EAcorr, 0) \
 PHOTON_VARIABLE(float, pfEMIso_EAcorr, 0) \
