@@ -6,6 +6,8 @@
 #define ELECTRONS_HAVE_FALL17V1_CUTBASED 0
 
 #define ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
+ELECTRON_VARIABLE(bool, is_genMatched, false) \
+ELECTRON_VARIABLE(bool, is_genMatched_prompt, false) \
 ELECTRON_VARIABLE(float, etaSC, 0) \
 ELECTRON_VARIABLE(float, ecalEnergy, 0) \
 ELECTRON_VARIABLE(float, sinTheta_SC_pos, 0) \

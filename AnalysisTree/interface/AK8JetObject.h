@@ -21,7 +21,9 @@ AK8JET_VARIABLE(float, JERNominal, 0) \
 AK8JET_VARIABLE(float, JERUp, 0) \
 AK8JET_VARIABLE(float, JERDn, 0) \
 AK8JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
-AK8JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
+AK8JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0) \
+AK8JET_VARIABLE(bool, is_genMatched, false) \
+AK8JET_VARIABLE(bool, is_genMatched_fullCone, false)
 
 
 class AK8JetVariables{
