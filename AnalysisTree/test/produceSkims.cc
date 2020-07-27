@@ -64,6 +64,7 @@ void produceSkims(
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
+  SuperclusterHandler superclusterHandler;
   FSRHandler fsrHandler;
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
@@ -108,6 +109,9 @@ void produceSkims(
 
     BaseTree sample_tree(cinput, EVENTS_TREE_NAME, "", "");
     sample_tree.sampleIdentifier = SampleHelpers::getSampleIdentifier(strSample);
+
+    std::vector<TString> branchnames;
+    sample_tree.getValidBranchNamesWithoutAlias(branchnames, false);
 
     const int nEntries = sample_tree.getSelectedNEvents();
     int ev_start = 0;
@@ -197,6 +201,18 @@ void produceSkims(
 
     photonHandler.bookBranches(&sample_tree);
     photonHandler.wrapTree(&sample_tree);
+
+    bool hasSuperclusters = false;
+    for (auto const& bname:branchnames){
+      if (bname.BeginsWith(SuperclusterHandler::colName.data())){
+        hasSuperclusters = true;
+        break;
+      }
+    }
+    if (hasSuperclusters){
+      superclusterHandler.bookBranches(&sample_tree);
+      superclusterHandler.wrapTree(&sample_tree);
+    }
 
     fsrHandler.bookBranches(&sample_tree);
     fsrHandler.wrapTree(&sample_tree);
@@ -305,9 +321,9 @@ void produceSkims(
 
       bool doRecordTree[nFinalStateTypes]={ 0 };
       for (auto const& syst:allowedSysts){
-        muonHandler.constructMuons(SystematicsHelpers::sNominal);
-        electronHandler.constructElectrons(SystematicsHelpers::sNominal);
-        photonHandler.constructPhotons(SystematicsHelpers::sNominal);
+        muonHandler.constructMuons(syst);
+        electronHandler.constructElectrons(syst);
+        photonHandler.constructPhotons(syst);
 
         // Particle counts before disambiguation
         size_t n_muons_tight_predisambiguation = 0;
