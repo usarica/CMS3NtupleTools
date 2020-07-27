@@ -10,6 +10,7 @@
 #include "MuonHandler.h"
 #include "ElectronHandler.h"
 #include "PhotonHandler.h"
+#include "SuperclusterHandler.h"
 #include "JetMETHandler.h"
 #include "DileptonHandler.h"
 #include "IsotrackHandler.h"

@@ -5,6 +5,8 @@
 
 
 #define PHOTON_COMMON_VARIABLES \
+PHOTON_VARIABLE(bool, is_genMatched, false) \
+PHOTON_VARIABLE(bool, is_genMatched_prompt, false) \
 PHOTON_VARIABLE(float, etaSC, 0) \
 PHOTON_VARIABLE(float, scale_smear_corr, 1) \
 PHOTON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
@@ -36,7 +38,7 @@ PHOTON_VARIABLE(cms3_photon_mvacat_t, id_MVA_Fall17V2_Cat, 0)
 
 #define PHOTON_VARIABLES \
 PHOTON_COMMON_VARIABLES \
-PHOTON_MVAID_EXTRA_VARIABLES
+/*PHOTON_MVAID_EXTRA_VARIABLES*/
 
 class PhotonVariables{
 public:

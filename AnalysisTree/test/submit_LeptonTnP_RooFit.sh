@@ -20,11 +20,11 @@ declare -a systOptions
 systOptions=( \
   "" "ALTBkg" "ALTBkg2" "TightTag" "TightTag.ALTBkg" "TightTag.ALTBkg2" \
 
-  "MC_2l2nu" "MC_2l2nu.ALTBkg" "MC_2l2nu.ALTBkg2" "MC_2l2nu.TightTag" "MC_2l2nu.TightTag.ALTBkg" "MC_2l2nu.TightTag.ALTBkg2" \
-  "MC_4l" "MC_4l.ALTBkg" "MC_4l.ALTBkg2" "MC_4l.TightTag" "MC_4l.TightTag.ALTBkg" "MC_4l.TightTag.ALTBkg2" \
+  "MC_2l2nu" "MC_2l2nu.TightTag" \
+  "MC_4l" "MC_4l.TightTag" \
 
-  "PUDn" "PUDn.ALTBkg" "PUDn.ALTBkg2" "PUDn.TightTag" "PUDn.TightTag.ALTBkg" "PUDn.TightTag.ALTBkg2" \
-  "PUUp" "PUUp.ALTBkg" "PUUp.ALTBkg2" "PUUp.TightTag" "PUUp.TightTag.ALTBkg" "PUUp.TightTag.ALTBkg2" \
+  "PUDn" "PUDn.TightTag" \
+  "PUUp" "PUUp.TightTag" \
 )
 
 if [[ "$period" == "2016" ]]; then
@@ -55,6 +55,11 @@ for syst in "${systOptions[@]}"; do
     if [[ "$syst" == *"ALTBkg"* ]] && [[ $iw -ne 3 ]]; then
       continue
     fi
+    if [[ "$syst" == *"MC"* ]] || [[ "$syst" == *"PU"* ]]; then
+      if [[ $iw -ne 1 ]]; then
+        continue
+      fi
+    fi
 
     let fit_low=60
     let fit_high=120
@@ -77,19 +82,19 @@ for syst in "${systOptions[@]}"; do
       let bin_eta_max=-1
     elif [[ $eeGapCode -eq -1 ]]; then
       let bin_pt_min=0
-      let bin_pt_max=11
+      let bin_pt_max=10
       let bin_eta_min=0
-      let bin_eta_max=10
+      let bin_eta_max=9
     elif [[ $eeGapCode -eq 0 ]]; then
       let bin_pt_min=0
-      let bin_pt_max=11
+      let bin_pt_max=10
       let bin_eta_min=0
-      let bin_eta_max=8
+      let bin_eta_max=7
     elif [[ $eeGapCode -eq 1 ]]; then
       let bin_pt_min=0
-      let bin_pt_max=11
+      let bin_pt_max=10
       let bin_eta_min=0
-      let bin_eta_max=6
+      let bin_eta_max=5
     fi
 
     for ptbin in $(seq ${bin_pt_min} ${bin_pt_max}); do
@@ -111,7 +116,7 @@ done
 done
 done
 
-# Do mumu events first
+# Do ee events next
 for eeGapCode in -1; do
 for minPtTag in "${minPtTags_mumu[@]}"; do
 for syst in "${systOptions[@]}"; do
@@ -126,6 +131,11 @@ for syst in "${systOptions[@]}"; do
   for iw in {1..3}; do
     if [[ "$syst" == *"ALTBkg"* ]] && [[ $iw -ne 3 ]]; then
       continue
+    fi
+    if [[ "$syst" == *"MC"* ]] || [[ "$syst" == *"PU"* ]]; then
+      if [[ $iw -ne 1 ]]; then
+        continue
+      fi
     fi
 
     let fit_low=60
@@ -149,9 +159,9 @@ for syst in "${systOptions[@]}"; do
       let bin_eta_max=-1
     else
       let bin_pt_min=0
-      let bin_pt_max=10
+      let bin_pt_max=9
       let bin_eta_min=0
-      let bin_eta_max=8
+      let bin_eta_max=7
     fi
 
     for ptbin in $(seq ${bin_pt_min} ${bin_pt_max}); do

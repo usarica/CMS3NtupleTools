@@ -6,6 +6,8 @@
 
 
 #define MUON_IDISO_VARIABLES \
+MUON_VARIABLE(bool, is_genMatched, false) \
+MUON_VARIABLE(bool, is_genMatched_prompt, false) \
 MUON_VARIABLE(cms3_muon_pogselectorbits_t, POG_selector_bits, 0) \
 MUON_VARIABLE(bool, pass_tightCharge, 0) \
 MUON_VARIABLE(bool, is_probeForTnP, 0) \
