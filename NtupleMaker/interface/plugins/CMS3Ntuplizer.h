@@ -221,6 +221,8 @@ template<typename T> void CMS3Ntuplizer::cleanUnusedCollection(bool const& isSel
     ||
     bname.BeginsWith(CMS3Ntuplizer::colName_fsrcands.data())
     ||
+    bname.BeginsWith(CMS3Ntuplizer::colName_superclusters.data())
+    ||
     bname.BeginsWith(CMS3Ntuplizer::colName_isotracks.data())
     ||
     bname.BeginsWith(CMS3Ntuplizer::colName_ak4jets.data())
