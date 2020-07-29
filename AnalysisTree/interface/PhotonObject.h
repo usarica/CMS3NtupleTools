@@ -5,8 +5,6 @@
 
 
 #define PHOTON_COMMON_VARIABLES \
-PHOTON_VARIABLE(bool, is_genMatched, false) \
-PHOTON_VARIABLE(bool, is_genMatched_prompt, false) \
 PHOTON_VARIABLE(float, etaSC, 0) \
 PHOTON_VARIABLE(float, scale_smear_corr, 1) \
 PHOTON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
@@ -27,13 +25,22 @@ PHOTON_VARIABLE(float, pfChargedHadronIso_EAcorr, 0) \
 PHOTON_VARIABLE(float, pfNeutralHadronIso_EAcorr, 0) \
 PHOTON_VARIABLE(float, pfEMIso_EAcorr, 0) \
 PHOTON_VARIABLE(float, pfIso_comb, 0)
+
+#define PHOTON_GENINFO_VARIABLES \
+PHOTON_VARIABLE(bool, is_genMatched, false) \
+PHOTON_VARIABLE(bool, is_genMatched_prompt, false)
+
 #define PHOTON_MVAID_EXTRA_VARIABLES \
 PHOTON_VARIABLE(float, id_MVA_Fall17V2_Val, 0) \
 PHOTON_VARIABLE(cms3_photon_mvacat_t, id_MVA_Fall17V2_Cat, 0)
 
-#define PHOTON_VARIABLES \
+#define PHOTON_RECO_VARIABLES \
 PHOTON_COMMON_VARIABLES \
 /*PHOTON_MVAID_EXTRA_VARIABLES*/
+
+#define PHOTON_VARIABLES \
+PHOTON_RECO_VARIABLES \
+PHOTON_GENINFO_VARIABLES
 
 class PhotonVariables{
 public:

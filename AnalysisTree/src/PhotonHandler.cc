@@ -10,20 +10,22 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define VECTOR_ITERATOR_HANDLER_DIRECTIVES \
+#define PHOTON_MOMENTUM_VARIABLES \
 PHOTON_VARIABLE(float, pt, 0) \
 PHOTON_VARIABLE(float, eta, 0) \
 PHOTON_VARIABLE(float, phi, 0) \
-PHOTON_VARIABLE(float, mass, 0) \
-PHOTON_VARIABLES
+PHOTON_VARIABLE(float, mass, 0)
 
 
 const std::string PhotonHandler::colName = "photons";
 
-PhotonHandler::PhotonHandler() : IvyBase()
+PhotonHandler::PhotonHandler() :
+  IvyBase(),
+  has_genmatching(false)
 {
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  PHOTON_MOMENTUM_VARIABLES;
+  PHOTON_RECO_VARIABLES;
 #undef PHOTON_VARIABLE
 }
 
@@ -33,13 +35,18 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
   if (!currentTree) return false;
 
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  PHOTON_MOMENTUM_VARIABLES;
+  PHOTON_VARIABLES;
 #undef PHOTON_VARIABLE
 
     // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(PhotonHandler::colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  PHOTON_MOMENTUM_VARIABLES;
+  PHOTON_RECO_VARIABLES;
+  if (this->has_genmatching){
+    PHOTON_GENINFO_VARIABLES;
+  }
 #undef PHOTON_VARIABLE
 
   if (!allVariablesPresent){
@@ -54,7 +61,8 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
   size_t nProducts = (itEnd_pt - itBegin_pt);
   productList.reserve(nProducts);
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+  PHOTON_MOMENTUM_VARIABLES;
+  PHOTON_VARIABLES;
 #undef PHOTON_VARIABLE
   {
     size_t ip=0;
@@ -68,7 +76,10 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
 
       // Set extras
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
-      PHOTON_VARIABLES;
+      PHOTON_RECO_VARIABLES;
+      if (this->has_genmatching){
+        PHOTON_GENINFO_VARIABLES;
+      }
 #undef PHOTON_VARIABLE
 
       // Set particle index as its unique identifier
@@ -84,7 +95,11 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
 
       ip++;
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      VECTOR_ITERATOR_HANDLER_DIRECTIVES;
+      PHOTON_MOMENTUM_VARIABLES;
+      PHOTON_RECO_VARIABLES;
+      if (this->has_genmatching){
+        PHOTON_GENINFO_VARIABLES;
+      }
 #undef PHOTON_VARIABLE
     }
   }
@@ -94,11 +109,41 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
   return true;
 }
 
+void PhotonHandler::checkOptionalInfo(BaseTree* tree, bool& flag_genmatching){
+  flag_genmatching = true;
+
+  std::vector<TString> bnames;
+  tree->getValidBranchNamesWithoutAlias(bnames, false);
+
+#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) flag_genmatching &= (std::find(bnames.cbegin(), bnames.cend(), PhotonHandler::colName + "_" + #NAME)!=bnames.cend());
+  PHOTON_GENINFO_VARIABLES;
+#undef PHOTON_VARIABLE
+}
+
+bool PhotonHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  PhotonHandler::checkOptionalInfo(tree, this->has_genmatching);
+
+  return IvyBase::wrapTree(tree);
+}
+
 void PhotonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
+  PhotonHandler::checkOptionalInfo(tree, this->has_genmatching);
+#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+  if (this->has_genmatching){
+    PHOTON_GENINFO_VARIABLES;
+  }
+#undef PHOTON_VARIABLE
+
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME, nullptr);
-  VECTOR_ITERATOR_HANDLER_DIRECTIVES
+  PHOTON_MOMENTUM_VARIABLES;
+  PHOTON_RECO_VARIABLES;
+  if (this->has_genmatching){
+    PHOTON_GENINFO_VARIABLES;
+  }
 #undef PHOTON_VARIABLE
 }
 

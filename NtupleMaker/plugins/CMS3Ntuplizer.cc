@@ -487,6 +487,8 @@ void CMS3Ntuplizer::recordGenParticles(
     }
   }
 
+  if (this->keepGenParticles==kNone) return;
+
   edm::Handle<pat::PackedGenParticleCollection> packedGenParticlesHandle;
   iEvent.getByToken(packedGenParticlesToken, packedGenParticlesHandle);
   if (!prunedGenParticlesHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::recordGenParticles: Error getting the packed gen. particles from the event...");
@@ -2779,7 +2781,7 @@ bool CMS3Ntuplizer::fillGenVariables(
   recordGenInfo(iEvent);
 
   // Gen. particles
-  if (this->keepGenParticles!=kNone) recordGenParticles(
+  recordGenParticles(
     iEvent,
     filledMuons, filledElectrons, filledPhotons,
     filledPrunedGenParts, filledPackedGenParts

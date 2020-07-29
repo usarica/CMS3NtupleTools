@@ -2,6 +2,7 @@
 #include "ParticleSelectionHelpers.h"
 #include "SamplesCore.h"
 #include "TDirectory.h"
+#include "TFile.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -26,23 +27,18 @@ bool ElectronScaleFactorHandler::setup(){
   TDirectory* curdir = gDirectory;
 
   // Recipe: https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
-  if (theDataYear == 2016){
-    MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << theDataYear << endl;
-  }
-  else if (theDataYear == 2017){
-    MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << theDataYear << endl;
-  }
-  else if (theDataYear == 2018){
-    MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << theDataYear << endl;
-    TFile* finput_SF_id = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Electrons/2018/2018_ElectronMVA90noiso.root", "read"); curdir->cd();
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_id, finput_SF_id, "EGamma_EffMC2D");
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_data_id, finput_SF_id, "EGamma_EffData2D");
-    res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_id, finput_SF_id, "EGamma_SF2D");
-    ScaleFactorHandlerBase::closeFile(finput_SF_id); curdir->cd();
+  TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Electrons/%s/", SampleHelpers::theDataYear);
+  HostHelpers::ExpandEnvironmentVariables(cinput_main);
+  MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << theDataYear << endl;
 
-    //TFile* finput_SF_iso = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Electrons/2018/sf_mu_iso_susy_2017.root", "read"); curdir->cd();
-    //ScaleFactorHandlerBase::closeFile(finput_SF_iso); curdir->cd();
-  }
+  TFile* finput_SF_id = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Electrons/2018/2018_ElectronMVA90noiso.root", "read"); curdir->cd();
+  res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_mc_id, finput_SF_id, "EGamma_EffMC2D");
+  res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_eff_data_id, finput_SF_id, "EGamma_EffData2D");
+  res &= getHistogram<TH2F, ExtendedHistogram_2D>(h_SF_id, finput_SF_id, "EGamma_SF2D");
+  ScaleFactorHandlerBase::closeFile(finput_SF_id); curdir->cd();
+
+  //TFile* finput_SF_iso = TFile::Open(ANALYSISTREEPKGDATAPATH+"ScaleFactors/Electrons/2018/sf_mu_iso_susy_2017.root", "read"); curdir->cd();
+  //ScaleFactorHandlerBase::closeFile(finput_SF_iso); curdir->cd();
 
   return res;
 }
