@@ -17,10 +17,16 @@ namespace SystematicsHelpers{
     tPythiaTuneDn, tPythiaTuneUp,
 
     eEleEffDn, eEleEffUp,
+    eEleEffStatDn, eEleEffStatUp,
+    eEleEffSystDn, eEleEffSystUp,
+    eEleEffAltMCDn, eEleEffAltMCUp,
     eEleScaleDn, eEleScaleUp,
     eEleResDn, eEleResUp,
 
     eMuEffDn, eMuEffUp,
+    eMuEffStatDn, eMuEffStatUp,
+    eMuEffSystDn, eMuEffSystUp,
+    eMuEffAltMCDn, eMuEffAltMCUp,
     eMuScaleDn, eMuScaleUp,
     eMuResDn, eMuResUp,
 

@@ -4,7 +4,7 @@
 #include "ParticleObject.h"
 
 
-#define AK8JET_VARIABLES \
+#define AK8JET_RECO_VARIABLES \
 /*AK8JET_VARIABLE(size_t, n_pfcands, 0)*/ \
 /*AK8JET_VARIABLE(size_t, n_mucands, 0)*/ \
 /*AK8JET_VARIABLE(size_t, n_softdrop_subjets, 0)*/ \
@@ -20,10 +20,16 @@ AK8JET_VARIABLE(float, JECDn, 0) \
 AK8JET_VARIABLE(float, JERNominal, 0) \
 AK8JET_VARIABLE(float, JERUp, 0) \
 AK8JET_VARIABLE(float, JERDn, 0) \
-AK8JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
-AK8JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0) \
+
+#define AK8JET_GENINFO_VARIABLES \
 AK8JET_VARIABLE(bool, is_genMatched, false) \
-AK8JET_VARIABLE(bool, is_genMatched_fullCone, false)
+AK8JET_VARIABLE(bool, is_genMatched_fullCone, false) \
+AK8JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
+AK8JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
+
+#define AK8JET_VARIABLES \
+AK8JET_RECO_VARIABLES \
+AK8JET_GENINFO_VARIABLES
 
 
 class AK8JetVariables{

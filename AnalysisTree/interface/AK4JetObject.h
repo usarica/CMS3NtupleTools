@@ -6,8 +6,6 @@
 
 
 #define AK4JET_CORE_VARIABLES \
-AK4JET_VARIABLE(bool, is_genMatched, false) \
-AK4JET_VARIABLE(bool, is_genMatched_fullCone, false) \
 AK4JET_VARIABLE(bool, pass_looseId, false) \
 AK4JET_VARIABLE(bool, pass_tightId, false) \
 AK4JET_VARIABLE(bool, pass_leptonVetoId, false) \
@@ -31,7 +29,11 @@ AK4JET_VARIABLE(float, JECL1Nominal, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_px, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_py, 1) \
 AK4JET_VARIABLE(float, NEMF, 0) \
-AK4JET_VARIABLE(float, CEMF, 0) \
+AK4JET_VARIABLE(float, CEMF, 0)
+
+#define AK4JET_GENINFO_VARIABLES \
+AK4JET_VARIABLE(bool, is_genMatched, false) \
+AK4JET_VARIABLE(bool, is_genMatched_fullCone, false) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, hadronFlavour, 0)
 
@@ -47,9 +49,12 @@ AK4JET_VARIABLE(float, deepCSVprobbb, -1) \
 AK4JET_VARIABLE(float, deepCSVprobc, -1) \
 AK4JET_VARIABLE(float, deepCSVprobudsg, -1)
 
-#define AK4JET_VARIABLES \
+#define AK4JET_RECO_VARIABLES \
 AK4JET_CORE_VARIABLES \
 AK4JET_BTAGGING_VARIABLES
+#define AK4JET_VARIABLES \
+AK4JET_RECO_VARIABLES \
+AK4JET_GENINFO_VARIABLES
 
 
 class AK4JetVariables{

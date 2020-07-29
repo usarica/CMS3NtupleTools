@@ -18,9 +18,13 @@ public:
 protected:
   friend class ParticleDisambiguator;
 
+  bool has_genmatching;
+
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
+
+  static void checkOptionalInfo(BaseTree* tree, bool& flag_genmatching);
 
 public:
   // Constructors
@@ -32,7 +36,9 @@ public:
   bool constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst);
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
 
-  static void bookBranches(BaseTree* tree);
+  bool wrapTree(BaseTree* tree);
+
+  void bookBranches(BaseTree* tree);
 
 };
 

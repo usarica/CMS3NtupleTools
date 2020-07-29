@@ -21,7 +21,8 @@ const std::string MuonHandler::colName = "muons";
 
 MuonHandler::MuonHandler() :
   IvyBase(),
-  has_precomputed_timing_flag(false)
+  has_precomputed_timing(false),
+  has_genmatching(false)
 {
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME);
   MUON_MOMENTUM_VARIABLES;
@@ -46,11 +47,14 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   MUON_MOMENTUM_VARIABLES;
   MUON_IDISO_VARIABLES;
   MUON_MOMENTUMSCALE_VARIABLES;
-  if (this->has_precomputed_timing_flag){
+  if (this->has_precomputed_timing){
     MUON_PRETESTED_VARIABLES;
   }
   else{
     MUON_FULLTIMING_VARIABLES;
+  }
+  if (this->has_genmatching){
+    MUON_GENINFO_VARIABLES;
   }
 #undef MUON_VARIABLE
 
@@ -83,11 +87,14 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_##NAME;
       MUON_IDISO_VARIABLES;
       MUON_MOMENTUMSCALE_VARIABLES;
-      if (this->has_precomputed_timing_flag){
+      if (this->has_precomputed_timing){
         MUON_PRETESTED_VARIABLES;
       }
       else{
         MUON_FULLTIMING_VARIABLES;
+      }
+      if (this->has_genmatching){
+        MUON_GENINFO_VARIABLES;
       }
 #undef MUON_VARIABLE
 
@@ -107,11 +114,14 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
       MUON_MOMENTUM_VARIABLES;
       MUON_IDISO_VARIABLES;
       MUON_MOMENTUMSCALE_VARIABLES;
-      if (this->has_precomputed_timing_flag){
+      if (this->has_precomputed_timing){
         MUON_PRETESTED_VARIABLES;
       }
       else{
         MUON_FULLTIMING_VARIABLES;
+      }
+      if (this->has_genmatching){
+        MUON_GENINFO_VARIABLES;
       }
 #undef MUON_VARIABLE
     }
@@ -122,12 +132,24 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   return true;
 }
 
-bool MuonHandler::wrapTree(BaseTree* tree){
-  if (!tree) return false;
+void MuonHandler::checkOptionalInfo(BaseTree* tree, bool& flag_precomputed_timing, bool& flag_genmatching){
+  flag_precomputed_timing = flag_genmatching = true;
 
   std::vector<TString> bnames;
   tree->getValidBranchNamesWithoutAlias(bnames, false);
-  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), MuonHandler::colName + "_pass_muon_timing")!=bnames.cend());
+
+#define MUON_VARIABLE(TYPE, NAME, DEFVAL) flag_precomputed_timing &= (std::find(bnames.cbegin(), bnames.cend(), MuonHandler::colName + "_" + #NAME)!=bnames.cend());
+  MUON_PRETESTED_VARIABLES;
+#undef MUON_VARIABLE
+#define MUON_VARIABLE(TYPE, NAME, DEFVAL) flag_genmatching &= (std::find(bnames.cbegin(), bnames.cend(), MuonHandler::colName + "_" + #NAME)!=bnames.cend());
+  MUON_GENINFO_VARIABLES;
+#undef MUON_VARIABLE
+}
+
+bool MuonHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  MuonHandler::checkOptionalInfo(tree, this->has_precomputed_timing, this->has_genmatching);
 
   return IvyBase::wrapTree(tree);
 }
@@ -136,15 +158,16 @@ bool MuonHandler::wrapTree(BaseTree* tree){
 void MuonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
-  std::vector<TString> bnames;
-  tree->getValidBranchNamesWithoutAlias(bnames, false);
-  this->has_precomputed_timing_flag = (std::find(bnames.cbegin(), bnames.cend(), "muons_pass_muon_timing")!=bnames.cend());
+  MuonHandler::checkOptionalInfo(tree, this->has_precomputed_timing, this->has_genmatching);
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
-  if (this->has_precomputed_timing_flag){
+  if (this->has_precomputed_timing){
     MUON_PRETESTED_VARIABLES;
   }
   else{
     MUON_FULLTIMING_VARIABLES;
+  }
+  if (this->has_genmatching){
+    MUON_GENINFO_VARIABLES;
   }
 #undef MUON_VARIABLE
 
@@ -152,11 +175,14 @@ void MuonHandler::bookBranches(BaseTree* tree){
   MUON_MOMENTUM_VARIABLES;
   MUON_IDISO_VARIABLES;
   MUON_MOMENTUMSCALE_VARIABLES;
-  if (this->has_precomputed_timing_flag){
+  if (this->has_precomputed_timing){
     MUON_PRETESTED_VARIABLES;
   }
   else{
     MUON_FULLTIMING_VARIABLES;
+  }
+  if (this->has_genmatching){
+    MUON_GENINFO_VARIABLES;
   }
 #undef MUON_VARIABLE
 }

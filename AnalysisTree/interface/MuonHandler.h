@@ -16,10 +16,14 @@ public:
 protected:
   friend class ParticleDisambiguator;
 
-  bool has_precomputed_timing_flag;
+  bool has_precomputed_timing;
+  bool has_genmatching;
+
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
+
+  static void checkOptionalInfo(BaseTree* tree, bool& flag_precomputed_timing, bool& flag_genmatching);
 
 public:
   // Constructors

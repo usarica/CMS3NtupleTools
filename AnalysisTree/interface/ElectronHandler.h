@@ -17,9 +17,12 @@ protected:
   friend class ParticleDisambiguator;
 
   bool has_mvaid_extras;
+  bool has_genmatching;
   std::vector<ProductType_t*> productList;
 
   void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
+
+  static void checkOptionalInfo(BaseTree* tree, bool& flag_mvaid_extras, bool& flag_genmatching);
 
 public:
   // Constructors

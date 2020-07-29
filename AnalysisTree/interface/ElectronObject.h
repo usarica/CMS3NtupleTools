@@ -6,8 +6,6 @@
 #define ELECTRONS_HAVE_FALL17V1_CUTBASED 0
 
 #define ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
-ELECTRON_VARIABLE(bool, is_genMatched, false) \
-ELECTRON_VARIABLE(bool, is_genMatched_prompt, false) \
 ELECTRON_VARIABLE(float, etaSC, 0) \
 ELECTRON_VARIABLE(float, ecalEnergy, 0) \
 ELECTRON_VARIABLE(float, sinTheta_SC_pos, 0) \
@@ -49,6 +47,7 @@ ELECTRON_VARIABLE(float, miniIso_sum_charged_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0)
+
 #define ELECTRON_MVAID_EXTRA_VARIABLES \
 ELECTRON_VARIABLE(float, id_MVA_Fall17V2_Iso_Val, 0) \
 ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_Iso_Cat, 0) \
@@ -56,11 +55,16 @@ ELECTRON_VARIABLE(float, id_MVA_Fall17V2_NoIso_Val, 0) \
 ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_Fall17V2_NoIso_Cat, 0) \
 ELECTRON_VARIABLE(float, id_MVA_HZZRun2Legacy_Iso_Val, 0) \
 ELECTRON_VARIABLE(cms3_electron_mvacat_t, id_MVA_HZZRun2Legacy_Iso_Cat, 0)
+
 #define ELECTRON_FALL17V1_CUTBASED_VARIABLES \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Veto_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Loose_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Medium_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V1_Tight_Bits, 0)
+
+#define ELECTRON_GENINFO_VARIABLES \
+ELECTRON_VARIABLE(bool, is_genMatched, false) \
+ELECTRON_VARIABLE(bool, is_genMatched_prompt, false)
 
 #if ELECTRONS_HAVE_FALL17V1_CUTBASED == 1
 #define ELECTRON_COMMON_VARIABLES \
@@ -71,9 +75,12 @@ ELECTRON_FALL17V1_CUTBASED_VARIABLES
 ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES
 #endif
 
-#define ELECTRON_VARIABLES \
+#define ELECTRON_RECO_VARIABLES \
 ELECTRON_COMMON_VARIABLES \
 ELECTRON_MVAID_EXTRA_VARIABLES
+#define ELECTRON_VARIABLES \
+ELECTRON_RECO_VARIABLES \
+ELECTRON_GENINFO_VARIABLES
 
 
 class ElectronVariables{

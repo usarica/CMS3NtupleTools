@@ -23,14 +23,14 @@ const std::string ElectronHandler::colName = "electrons";
 
 ElectronHandler::ElectronHandler() :
   IvyBase(),
-  has_mvaid_extras(false)
+  has_mvaid_extras(false),
+  has_genmatching(false)
 {
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME);
   ELECTRON_MOMENTUM_VARIABLES;
   ELECTRON_COMMON_VARIABLES;
 #undef ELECTRON_VARIABLE
 }
-
 
 bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst){
   clear();
@@ -48,6 +48,9 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   ELECTRON_COMMON_VARIABLES;
   if (this->has_mvaid_extras){
     ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
+  if (this->has_genmatching){
+    ELECTRON_GENINFO_VARIABLES;
   }
 #undef ELECTRON_VARIABLE
   if (!allVariablesPresent){
@@ -81,6 +84,9 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
       if (this->has_mvaid_extras){
         ELECTRON_MVAID_EXTRA_VARIABLES;
       }
+      if (this->has_genmatching){
+        ELECTRON_GENINFO_VARIABLES;
+      }
 #undef ELECTRON_VARIABLE
 
       // Set particle index as its unique identifier
@@ -101,6 +107,9 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
       if (this->has_mvaid_extras){
         ELECTRON_MVAID_EXTRA_VARIABLES;
       }
+      if (this->has_genmatching){
+        ELECTRON_GENINFO_VARIABLES;
+      }
 #undef ELECTRON_VARIABLE
     }
   }
@@ -110,12 +119,24 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   return true;
 }
 
-bool ElectronHandler::wrapTree(BaseTree* tree){
-  if (!tree) return false;
+void ElectronHandler::checkOptionalInfo(BaseTree* tree, bool& flag_mvaid_extras, bool& flag_genmatching){
+  flag_mvaid_extras = flag_genmatching = true;
 
   std::vector<TString> bnames;
   tree->getValidBranchNamesWithoutAlias(bnames, false);
-  this->has_mvaid_extras = (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_id_MVA_Fall17V2_NoIso_Val")!=bnames.cend());
+
+#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) flag_mvaid_extras &= (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_" + #NAME)!=bnames.cend());
+  ELECTRON_MVAID_EXTRA_VARIABLES;
+#undef ELECTRON_VARIABLE
+#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) flag_genmatching &= (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_" + #NAME)!=bnames.cend());
+  ELECTRON_GENINFO_VARIABLES;
+#undef ELECTRON_VARIABLE
+}
+
+bool ElectronHandler::wrapTree(BaseTree* tree){
+  if (!tree) return false;
+
+  ElectronHandler::checkOptionalInfo(tree, this->has_mvaid_extras, this->has_genmatching);
 
   return IvyBase::wrapTree(tree);
 }
@@ -123,12 +144,13 @@ bool ElectronHandler::wrapTree(BaseTree* tree){
 void ElectronHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
-  std::vector<TString> bnames;
-  tree->getValidBranchNamesWithoutAlias(bnames, false);
-  this->has_mvaid_extras = (std::find(bnames.cbegin(), bnames.cend(), ElectronHandler::colName + "_id_MVA_Fall17V2_NoIso_Val")!=bnames.cend());
+  ElectronHandler::checkOptionalInfo(tree, this->has_mvaid_extras, this->has_genmatching);
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
   if (this->has_mvaid_extras){
     ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
+  if (this->has_genmatching){
+    ELECTRON_GENINFO_VARIABLES;
   }
 #undef ELECTRON_VARIABLE
 
@@ -137,6 +159,9 @@ void ElectronHandler::bookBranches(BaseTree* tree){
   ELECTRON_COMMON_VARIABLES;
   if (this->has_mvaid_extras){
     ELECTRON_MVAID_EXTRA_VARIABLES;
+  }
+  if (this->has_genmatching){
+    ELECTRON_GENINFO_VARIABLES;
   }
 #undef ELECTRON_VARIABLE
 }
