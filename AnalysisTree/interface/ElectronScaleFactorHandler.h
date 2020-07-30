@@ -1,6 +1,7 @@
 #ifndef ELECTRONSCALEFACTORHANDLER_H
 #define ELECTRONSCALEFACTORHANDLER_H
 
+#include <unordered_map>
 #include "ScaleFactorHandlerBase.h"
 #include "SystematicVariations.h"
 #include "ElectronObject.h"
@@ -9,28 +10,27 @@
 class ElectronScaleFactorHandler : public ScaleFactorHandlerBase{
 public:
   enum EfficiencyType{
-    kTrackingEff,
+    kTrackingEff = 0,
     kIdEff,
     kLooseIsoEff,
     kTightIsoEff,
-    kAll
+    kAllEffs,
+
+    nEfficiencyTypes
   };
 
 protected:
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_id_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_loose_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_mc_iso_tight_map;
+  std::vector<ExtendedHistogram_2D> eff_mc_reco_hists;
+  std::vector<ExtendedHistogram_2D> eff_mc_id_hists;
+  std::vector<ExtendedHistogram_2D> eff_mc_iso_loose_hists;
+  std::vector<ExtendedHistogram_2D> eff_mc_iso_tight_hists;
 
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_data_id_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_data_iso_loose_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_eff_data_iso_tight_map;
-
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_id_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_iso_loose_map;
-  std::unordered_map<SystematicsHelpers::SystematicVariationTypes, ExtendedHistogram_2D> syst_SF_iso_tight_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_reco_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_id_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_iso_loose_map;
+  std::unordered_map< SystematicsHelpers::SystematicVariationTypes, std::vector<ExtendedHistogram_2D> > syst_SF_iso_tight_map;
 
   void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
-  void evalScaleFactorFromHistogram(float& theSF, float& theSFRelErr, ElectronObject const* obj, ExtendedHistogram_2D const& hist, bool etaOnY, bool useAbsEta) const;
 
 public:
   ElectronScaleFactorHandler();
@@ -39,11 +39,8 @@ public:
   bool setup();
   void reset();
 
-  void getEffAndError(float& theEff, float& theEffRelErr, float const& pt, float const& etaSC, bool isData, bool useFastSim, ElectronScaleFactorHandler::EfficiencyType type) const;
-  void getSFAndError(float& theSF, float& theSFRelErr, float const& pt, float const& etaSC, bool useFastSim, ElectronScaleFactorHandler::EfficiencyType type) const;
-
-  void getEffAndError(float& theEff, float& theEffRelErr, ElectronObject const* obj, bool isData, bool useFastSim, ElectronScaleFactorHandler::EfficiencyType type) const;
-  void getSFAndError(float& theSF, float& theSFRelErr, ElectronObject const* obj, bool useFastSim, ElectronScaleFactorHandler::EfficiencyType type) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& etaSC, bool const& is_gap, ElectronScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, ElectronScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
 
 };
 
