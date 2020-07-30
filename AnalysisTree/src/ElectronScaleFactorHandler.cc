@@ -56,7 +56,21 @@ bool ElectronScaleFactorHandler::setup(){
     syst_SF_iso_tight_map[syst] = tmpvec;
   }
 
-  for(unsigned int igap=0;igap<n_non_gap_gap;igap++){
+  {
+    TString cinput = cinput_main + "Efficiencies_ee_nongap_gap_tracking.root";
+    if (!HostHelpers::FileReadable(cinput.Data())){
+      MELAerr << "ElectronScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
+      assert(0);
+    }
+    TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
+    for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
+      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_id_map[sNominal].at(igap), finput, "EGamma_SF2D");
+      res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
+    }
+    ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
+  }
+
+  for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
     TString cinput = cinput_main + Form("Efficiencies_ee_%s_id_looseIso_tightIso.root", (igap==0 ? "nongap" : "gap"));
     if (!HostHelpers::FileReadable(cinput.Data())){
       MELAerr << "ElectronScaleFactorHandler::setup: File " << cinput << " is not readable." << endl;
@@ -251,7 +265,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   if (!(activeSysts.size() == 1 && activeSysts.front() == sNominal)){
     std::vector< std::vector<float> > systs_SF_list; systs_SF_list.reserve(activeSysts.size());
     for (auto const& asyst:activeSysts){
-      auto it_syst_SF_reco_map = syst_SF_reco_map.find(asyst);
+      auto it_syst_SF_reco_map = syst_SF_reco_map.find(sNominal/*asyst*/); // Look for sNominal only (FIXME after generating own reco SFs)
       auto it_syst_SF_id_map = syst_SF_id_map.find(asyst);
       auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst);
       auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst);
@@ -276,7 +290,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
           float val_err = 0;
           evalScaleFactorFromHistogram(*it_SF_val, val_err, pt, etaSC, **it_SF, false, false);
 
-          // Old-style histograms read errors from bin error
+          // Old-style histograms read errors from histogram bin error
           if ((type == kAllEffs || type == kTrackingEff) && it_SF == hlist_SF.begin()){ // Special treatment for tracking efficiency (FIXME: Need new format at some point)
             if (asyst == eEleEffSystDn) *it_SF_val = std::max(0.f, *it_SF_val - val_err);
             else if (asyst == eEleEffSystUp) *it_SF_val = std::max(0.f, *it_SF_val + val_err);
