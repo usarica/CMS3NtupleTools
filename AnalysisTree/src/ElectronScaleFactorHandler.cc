@@ -27,7 +27,6 @@ bool ElectronScaleFactorHandler::setup(){
 
   TDirectory* curdir = gDirectory;
 
-  // Recipe: https://twiki.cern.ch/twiki/bin/view/CMS/SUSLeptonSF
   TString cinput_main = ANALYSISTREEPKGDATAPATH+Form("ScaleFactors/Electrons/%i/", SampleHelpers::theDataYear);
   HostHelpers::ExpandEnvironmentVariables(cinput_main);
   MELAout << "ElectronScaleFactorHandler::setup: Setting up efficiency and SF histograms for year " << SampleHelpers::theDataYear << endl;
@@ -64,8 +63,8 @@ bool ElectronScaleFactorHandler::setup(){
     }
     TFile* finput = TFile::Open(cinput, "read"); curdir->cd();
     for (unsigned int igap=0; igap<n_non_gap_gap; igap++){
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(syst_SF_id_map[sNominal].at(igap), finput, "EGamma_SF2D");
-      res &= getHistogram<TH2D, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D>(syst_SF_id_map[sNominal].at(igap), finput, "EGamma_SF2D");
+      res &= getHistogram<TH2F, ExtendedHistogram_2D>(eff_mc_reco_hists.at(igap), finput, "EGamma_EffMC2D");
     }
     ScaleFactorHandlerBase::closeFile(finput); curdir->cd();
   }
