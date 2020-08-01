@@ -1799,9 +1799,6 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_pujetid_t, pileupJetId_default, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pileupJetIdScore_default, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
-
   /*
   MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(size_t, n_mucands, n_objects);
@@ -1842,6 +1839,8 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
 
@@ -1872,9 +1871,6 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERINT_INTO_VECTOR(n_mucands);
     PUSH_USERFLOAT_INTO_VECTOR(area);
     */
-
-    PUSH_USERINT_INTO_VECTOR(is_genMatched);
-    PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
 
     PUSH_USERFLOAT_INTO_VECTOR(pt_resolution);
 
@@ -1910,8 +1906,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(JERUp);
     PUSH_USERFLOAT_INTO_VECTOR(JERDn);
 
-    PUSH_USERINT_INTO_VECTOR(partonFlavour);
-    PUSH_USERINT_INTO_VECTOR(hadronFlavour);
+    if (isMC){
+      PUSH_USERINT_INTO_VECTOR(is_genMatched);
+      PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
+      PUSH_USERINT_INTO_VECTOR(partonFlavour);
+      PUSH_USERINT_INTO_VECTOR(hadronFlavour);
+    }
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -1922,9 +1922,6 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, eta);
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, mass);
-
-  PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
-  PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
 
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
@@ -1975,8 +1972,12 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, JERUp);
   PUSH_VECTOR_WITH_NAME(colName, JERDn);
 
-  PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
-  PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
+  if (isMC){
+    PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
+    PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
+    PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
+    PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
+  }
 
   return n_skimmed_objects;
 }
@@ -1999,9 +2000,6 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(bool, pass_looseId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightId, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, pass_leptonVetoId, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(size_t, n_pfcands, n_objects);
@@ -2043,6 +2041,8 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
 
@@ -2060,9 +2060,6 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
     pass_looseId.push_back(AK8JetSelectionHelpers::testLooseAK8Jet(*obj, this->year, jetType));
     pass_tightId.push_back(AK8JetSelectionHelpers::testTightAK8Jet(*obj, this->year, jetType));
     pass_leptonVetoId.push_back(AK8JetSelectionHelpers::testLeptonVetoAK8Jet(*obj, this->year, jetType));
-
-    PUSH_USERINT_INTO_VECTOR(is_genMatched);
-    PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
 
     /*
     PUSH_USERINT_INTO_VECTOR(n_pfcands);
@@ -2104,8 +2101,12 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(JERUp);
     PUSH_USERFLOAT_INTO_VECTOR(JERDn);
 
-    PUSH_USERINT_INTO_VECTOR(partonFlavour);
-    PUSH_USERINT_INTO_VECTOR(hadronFlavour);
+    if (isMC){
+      PUSH_USERINT_INTO_VECTOR(is_genMatched);
+      PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
+      PUSH_USERINT_INTO_VECTOR(partonFlavour);
+      PUSH_USERINT_INTO_VECTOR(hadronFlavour);
+    }
 
     if (filledObjects) filledObjects->push_back(&(*obj));
     n_skimmed_objects++;
@@ -2120,9 +2121,6 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, pass_looseId);
   PUSH_VECTOR_WITH_NAME(colName, pass_tightId);
   PUSH_VECTOR_WITH_NAME(colName, pass_leptonVetoId);
-
-  PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
-  PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_pfcands);
@@ -2165,8 +2163,12 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, JERUp);
   PUSH_VECTOR_WITH_NAME(colName, JERDn);
 
-  PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
-  PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
+  if (isMC){
+    PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
+    PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
+    PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
+    PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
+  }
 
   return n_skimmed_objects;
 }
