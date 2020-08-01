@@ -219,17 +219,17 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
 
   // The (data) event should have at least one electron, muon, or photon.
   // If all cuts are -1, passNobjects is true and no filtering on the number of objects is done.
-  // N_electrons/photons += N_superclusters for the purpose of T&P
   bool passNobjects = (minNmuons<0 && minNelectrons<0 && minNleptons<0 && minNphotons<0 && minNak4jets<0 && minNak8jets<0);
 #define passNobjects_or_statement(n_objs, min_n_objs) if (min_n_objs>=0) passNobjects |= (n_objs>=static_cast<size_t const>(min_n_objs));
   passNobjects_or_statement(n_muons, minNmuons);
-  passNobjects_or_statement((n_electrons+n_reducedSuperclusters), minNelectrons);
-  passNobjects_or_statement((n_muons+n_electrons+n_reducedSuperclusters), minNleptons);
-  passNobjects_or_statement((n_photons+n_reducedSuperclusters), minNphotons);
+  passNobjects_or_statement(n_electrons, minNelectrons);
+  passNobjects_or_statement((n_muons+n_electrons), minNleptons);
+  passNobjects_or_statement(n_photons, minNphotons);
   passNobjects_or_statement(n_ak4jets, minNak4jets);
   passNobjects_or_statement(n_ak8jets, minNak8jets);
 #undef passNobjects_or_statement
-  if (includeLJetsSelection) passNobjects |= ((n_muons+n_electrons)>=1 && (n_ak4jets+n_ak8jets)>=1); // No need to count superclusters here
+  if (includeLJetsSelection) passNobjects |= ((n_muons+n_electrons)>=1 && (n_ak4jets+n_ak8jets)>=1);
+  if (keepExtraSuperclusters) passNobjects |= (n_electrons>=1 && n_reducedSuperclusters>=1); // Even if the superclusters are included, >=2 SCs with 0 reco. electrons does not make sense for T&P with Z. 
   isSelected &= passNobjects;
 
   // MET info
@@ -2809,6 +2809,7 @@ bool CMS3Ntuplizer::fillGenVariables(
     recordGenJets(iEvent, false, filledGenAK4Jets); // ak4jets
     recordGenJets(iEvent, true, filledGenAK8Jets); // ak8jets
   }
+
   return true;
 }
 
