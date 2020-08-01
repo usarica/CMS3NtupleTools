@@ -29,6 +29,8 @@ protected:
   float pfmet_XYcorr_xCoeffA; float pfmet_XYcorr_xCoeffB;
   float pfmet_XYcorr_yCoeffA; float pfmet_XYcorr_yCoeffB;
 
+  bool has_genmatching;
+
   void clear();
 
   bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
@@ -40,6 +42,8 @@ protected:
   bool applyJetCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
   bool applyMETParticleShifts(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+
+  static void checkOptionalInfo(BaseTree* tree, bool& flag_genmatching);
 
 public:
   // Constructors
@@ -57,7 +61,7 @@ public:
 
   bool wrapTree(BaseTree* tree);
 
-  static void bookBranches(BaseTree* tree);
+  void bookBranches(BaseTree* tree);
 
 };
 
