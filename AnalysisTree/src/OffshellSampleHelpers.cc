@@ -241,6 +241,9 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "TGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TGJets_leptonDecays_TuneCP5_13TeV-madgraph-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM" });
     if (sname == "TTGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     // W + jets
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_0j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_1j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_2j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "WJets_lnu_HT_70-100" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-70To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "WJets_lnu_HT_100-200" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     if (sname == "WJets_lnu_HT_200-400" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
@@ -279,22 +282,6 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "QCD_HT_2000-inf" || sname == "QCD_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM" });
     // tt + jets
     if (sname == "TTJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTJets_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v1/MINIAODSIM" });
-    if (sname == "GJets_topology"){
-      constructSamplesList("GJets_HT", syst, samples);
-      constructSamplesList("QCD_HT", syst, samples);
-      constructSamplesList("WJets_lnu", syst, samples);
-      constructSamplesList("ZJets_nunu", syst, samples);
-      constructSamplesList("ZGJets_nunu_nlo_inclusive", syst, samples);
-      constructSamplesList("ZGJets_nunu_nlo_pTG_130-inf", syst, samples);
-      constructSamplesList("ZGJets_ll_pTG_40-130", syst, samples); // FIXME: LO sample at the moment, switch when ZGJets_ll_nlo_pTG_40-130 is available
-      //constructSamplesList("ZGJets_ll_nlo_pTG_40-130", syst, samples);
-      constructSamplesList("ZGJets_ll_nlo_pTG_130-inf", syst, samples);
-      constructSamplesList("TTJets", syst, samples);
-      constructSamplesList("TGJets", syst, samples);
-      constructSamplesList("TTGJets", syst, samples);
-      constructSamplesList("qqWG_lnu", syst, samples);
-      constructSamplesList("WZG", syst, samples);
-    }
   }
   else if (theDataYear == 2017){
     // Data
@@ -493,13 +480,18 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "GJets_HT_600-inf" || sname == "GJets_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
     if (sname == "TGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TGJets_leptonDecays_TuneCP5_PSweights_13TeV-amcatnlo-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
     if (sname == "TTGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTGJets_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_100-200" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_200-400" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_400-600" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_600-800" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_800-1200" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_1200-2500" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_2500-inf" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_0j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_1j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_1j_ext") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_2j") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_Njets" || sname == "WJets_lnu_2j_ext") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_100-200" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_200-400" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_400-600" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_600-800" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-600To800_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_800-1200" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-800To1200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_1200-2500" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-1200To2500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_2500-inf" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-2500ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v3/MINIAODSIM" });
     if (sname == "ZJets_nunu_HT_100-200" || sname == "ZJets_nunu" || sname == "ZJets_nunu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZJetsToNuNu_HT-100To200_13TeV-madgraph/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
     if (sname == "ZJets_nunu_HT_200-400" || sname == "ZJets_nunu" || sname == "ZJets_nunu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZJetsToNuNu_HT-200To400_13TeV-madgraph/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
     if (sname == "ZJets_nunu_HT_400-600" || sname == "ZJets_nunu" || sname == "ZJets_nunu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZJetsToNuNu_HT-400To600_13TeV-madgraph/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
@@ -523,22 +515,6 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "QCD_HT_1000-1500" || sname == "QCD_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/QCD_HT1000to1500_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14-v1/MINIAODSIM" });
     if (sname == "QCD_HT_1500-2000" || sname == "QCD_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/QCD_HT1500to2000_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
     if (sname == "QCD_HT_2000-inf" || sname == "QCD_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/QCD_HT2000toInf_TuneCP5_13TeV-madgraph-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM" });
-    if (sname == "GJets_topology"){
-      constructSamplesList("GJets_HT", syst, samples);
-      constructSamplesList("QCD_HT", syst, samples);
-      constructSamplesList("WJets_lnu", syst, samples);
-      constructSamplesList("ZJets_nunu", syst, samples);
-      constructSamplesList("ZGJets_nunu_nlo_inclusive", syst, samples);
-      constructSamplesList("ZGJets_nunu_nlo_pTG_130-inf", syst, samples);
-      constructSamplesList("ZGJets_ll_pTG_40-130", syst, samples); // FIXME: LO sample at the moment, switch when ZGJets_ll_nlo_pTG_40-130 is available
-      //constructSamplesList("ZGJets_ll_nlo_pTG_40-130", syst, samples);
-      constructSamplesList("ZGJets_ll_nlo_pTG_130-inf", syst, samples);
-      constructSamplesList("TTJets", syst, samples);
-      constructSamplesList("TGJets", syst, samples);
-      constructSamplesList("TTGJets", syst, samples);
-      constructSamplesList("qqWG_lnu", syst, samples);
-      constructSamplesList("WZG", syst, samples);
-    }
   }
   else if (theDataYear == 2016){
     // Data
@@ -766,13 +742,15 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "TGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TGJets_leptonDecays_13TeV_amcatnlo_madspin_pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
     if (sname == "TTGJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTGJets_TuneCUETP8M1_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
     // W + jets
-    if (sname == "WJets_lnu_HT_100-200" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_200-400" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_400-600" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_600-800" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_800-1200" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_1200-2500" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
-    if (sname == "WJets_lnu_HT_2500-inf" || sname == "WJets_lnu" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_inclusive") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu" || sname == "WJets_lnu_inclusive_ext") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v1/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_100-200" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-100To200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_200-400" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-200To400_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext2-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_400-600" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-400To600_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_600-800" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-600To800_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_800-1200" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-800To1200_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_1200-2500" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-1200To2500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
+    if (sname == "WJets_lnu_HT_2500-inf" || sname == "WJets_lnu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/WJetsToLNu_HT-2500ToInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
     // Z + jets, Z->nunu
     if (sname == "ZJets_nunu_HT_100-200" || sname == "ZJets_nunu" || sname == "ZJets_nunu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZJetsToNuNu_HT-100To200_13TeV-madgraph/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
     if (sname == "ZJets_nunu_HT_200-400" || sname == "ZJets_nunu" || sname == "ZJets_nunu_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/ZJetsToNuNu_HT-200To400_13TeV-madgraph/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
@@ -800,20 +778,6 @@ void SampleHelpers::constructSamplesList(TString const& sname, SystematicsHelper
     if (sname == "QCD_HT_2000-inf" || sname == "QCD_HT") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/QCD_HT2000toInf_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3_ext1-v2/MINIAODSIM" });
     // tt + jets
     if (sname == "TTJets") HelperFunctions::appendVector<TString>(samples, std::vector<TString>{ "/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8/RunIISummer16MiniAODv3-PUMoriond17_94X_mcRun2_asymptotic_v3-v2/MINIAODSIM" });
-
-    if (sname == "GJets_topology"){
-      constructSamplesList("GJets_HT", syst, samples);
-      constructSamplesList("QCD_HT", syst, samples);
-      constructSamplesList("WJets_lnu", syst, samples);
-      constructSamplesList("ZJets_nunu", syst, samples);
-      constructSamplesList("ZGJets_nunu_nlo", syst, samples);
-      constructSamplesList("ZGJets_ll_nlo", syst, samples);
-      constructSamplesList("TTJets", syst, samples);
-      constructSamplesList("TGJets", syst, samples);
-      constructSamplesList("TTGJets", syst, samples);
-      constructSamplesList("qqWG_lnu", syst, samples);
-      constructSamplesList("WZG", syst, samples);
-    }
   }
 
 
