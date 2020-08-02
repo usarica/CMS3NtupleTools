@@ -2432,8 +2432,10 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   can.SetFrameFillStyle(0);
   can.SetFrameBorderMode(0);
   can.SetLogy(true);
+  gStyle->SetPaintTextFormat(".1e");
+  hist->SetMarkerSize(0.8);
 
-  hist->Draw("colz");
+  hist->Draw("colztext");
 
   TPaveText pavetext(0.15, 0.93, 0.85, 1, "brNDC");
   pavetext.SetBorderSize(0);
@@ -2455,7 +2457,7 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   text = pavetext.AddText(0.79, 0.45, cErgTev);
   text->SetTextSize(0.0315);
 
-  TPaveText ptLabel(0.20, 0.9, 0.50, 0.85, "brNDC");
+  TPaveText ptLabel(0.20, 0.9, 0.50, 0.88, "brNDC");
   ptLabel.SetBorderSize(0);
   ptLabel.SetFillStyle(0);
   ptLabel.SetTextAlign(12);
@@ -2477,11 +2479,13 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   can.Close();
 
   curdir->cd();
+
+  gStyle->SetPaintTextFormat("g");
 }
 
 std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const& hlist){
-  int nbins_eta = hlist.front()->GetNbinsY();
-  int nbins_pt = hlist.front()->GetNbinsX();
+  int nbins_eta = hlist.front()->GetNbinsX();
+  int nbins_pt = hlist.front()->GetNbinsY();
   std::vector<TGraphAsymmErrors*> res(nbins_eta, nullptr);
 
   for (int ieta=0; ieta<nbins_eta; ieta++){
@@ -2507,6 +2511,8 @@ std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const&
       }
       errorDns.at(ipt).second = std::sqrt(errorDns.at(ipt).second);
       errorUps.at(ipt).second = std::sqrt(errorUps.at(ipt).second);
+
+      //MELAout << "Point " << ipt << " = (" << points.at(ipt).first << " +" << errorUps.at(ipt).first << " / -" << errorDns.at(ipt).first << ", " << points.at(ipt).second << " +" << errorUps.at(ipt).second << " / -" << errorDns.at(ipt).second << ")" << endl;
     }
 
     res.at(ieta) = HelperFunctions::makeGraphAsymErrFromPair(points, errorDns, errorUps, TString("gr_")+htmplist.front()->GetName());
@@ -2514,6 +2520,181 @@ std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const&
   }
 
   return res;
+}
+
+void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString ptitle, std::vector<TGraphAsymmErrors*> grlist){
+  const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
+
+  bool isData = cname_app.Contains("eff_MC");
+
+  unsigned int nplottables = grlist.size();
+  std::vector<TString> labels; labels.reserve(nplottables);
+  double ymin=99, ymax=-99;
+  for (unsigned int ig=0; ig<grlist.size(); ig++){
+    auto& gr = grlist.at(ig);
+    labels.push_back(gr->GetTitle());
+    gr->SetTitle("");
+
+    gr->GetXaxis()->SetNdivisions(505);
+    gr->GetXaxis()->SetLabelFont(42);
+    gr->GetXaxis()->SetLabelOffset(0.007);
+    gr->GetXaxis()->SetLabelSize(0.04);
+    gr->GetXaxis()->SetTitleSize(0.06);
+    gr->GetXaxis()->SetTitleOffset(0.9);
+    gr->GetXaxis()->SetTitleFont(42);
+    gr->GetYaxis()->SetNdivisions(505);
+    gr->GetYaxis()->SetLabelFont(42);
+    gr->GetYaxis()->SetLabelOffset(0.007);
+    gr->GetYaxis()->SetLabelSize(0.04);
+    gr->GetYaxis()->SetTitleSize(0.06);
+    gr->GetYaxis()->SetTitleOffset(1.1);
+    gr->GetYaxis()->SetTitleFont(42);
+
+    //gr->GetYaxis()->SetRangeUser(0.4, 1.5);
+
+    Color_t theColor=0;
+    switch (ig){
+    case 0:
+      theColor = kRed;
+      break;
+    case 1:
+      theColor = kBlue;
+      break;
+    case 2:
+      theColor = kViolet;
+      break;
+    case 3:
+      theColor = kOrange-3;
+      break;
+    case 4:
+      theColor = kGreen+2;
+      break;
+    case 5:
+      theColor = kAzure-2;
+      break;
+    case 6:
+      theColor = kCyan-3;
+      break;
+    case 7:
+      theColor = kMagenta-3;
+      break;
+    case 8:
+      theColor = kYellow-3;
+      break;
+    case 9:
+      theColor = kBlue+2;
+      break;
+    default:
+      MELAerr << "Please define more colors!" << endl;
+      assert(0);
+      theColor = kBlack;
+      break;
+    }
+
+    gr->SetLineWidth(2);
+    gr->SetLineColor(theColor);
+    gr->SetMarkerColor(theColor);
+    gr->SetMarkerSize(1.2);
+
+    for (int ip=0; ip<gr->GetN(); ip++){
+      ymin = std::min(ymin, gr->GetY()[ip]-std::abs(gr->GetEYlow()[ip]));
+      ymax = std::max(ymax, gr->GetY()[ip]+std::abs(gr->GetEYhigh()[ip]));
+    }
+  }
+  ymin *= 0.95;
+  ymax *= 1.1;
+  for (auto& gr:grlist) gr->GetYaxis()->SetRangeUser(ymin, ymax);
+
+  TDirectory* curdir = gDirectory;
+  gSystem->mkdir(coutput_main, true);
+
+  TString canvasname = Form("c_%s", cname_app.Data());
+  TCanvas can(canvasname, "", 800, 800);
+  can.cd();
+  gStyle->SetOptStat(0);
+  can.SetFillColor(0);
+  can.SetBorderMode(0);
+  can.SetBorderSize(2);
+  can.SetTickx(1);
+  can.SetTicky(1);
+  can.SetLeftMargin(0.17);
+  can.SetRightMargin(0.05);
+  can.SetTopMargin(0.07);
+  can.SetBottomMargin(0.13);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  can.SetFrameFillStyle(0);
+  can.SetFrameBorderMode(0);
+  can.SetLogx(true);
+
+  TLegend* legend = new TLegend(
+    0.55,
+    0.90-0.10/4.*2.*float(nplottables),
+    0.90,
+    0.90
+  );
+  legend->SetBorderSize(0);
+  legend->SetTextFont(42);
+  legend->SetTextSize(0.03);
+  legend->SetLineColor(1);
+  legend->SetLineStyle(1);
+  legend->SetLineWidth(1);
+  legend->SetFillColor(0);
+  legend->SetFillStyle(0);
+  TText* text;
+
+  bool isFirstGraph = true;
+  for (unsigned int ig=0; ig<grlist.size();ig++){
+    auto& gr = grlist.at(ig);
+    TString stropt = (isFirstGraph ? "ae1p" : "e1psame");
+    gr->Draw(stropt);
+    legend->AddEntry(gr, labels.at(ig), "ep");
+    isFirstGraph = false;
+  }
+  for (auto& gr:grlist) gr->GetYaxis()->SetRangeUser(ymin, ymax);
+
+  legend->Draw("same");
+
+  TPaveText pavetext(0.15, 0.93, 0.85, 1, "brNDC");
+  pavetext.SetBorderSize(0);
+  pavetext.SetFillStyle(0);
+  pavetext.SetTextAlign(12);
+  pavetext.SetTextFont(42);
+  pavetext.SetTextSize(0.045);
+  text = pavetext.AddText(0.025, 0.45, "#font[61]{CMS}");
+  text->SetTextSize(0.044);
+  if (isData){
+    text = pavetext.AddText(0.135, 0.42, "#font[52]{Preliminary}");
+    text->SetTextSize(0.0315);
+  }
+  TString cErgTev = Form("#font[42]{%.1f fb^{-1} (13 TeV)}", lumi);
+  text = pavetext.AddText(0.79, 0.45, cErgTev);
+  text->SetTextSize(0.0315);
+
+  TPaveText ptLabel(0.20, 0.9, 0.50, 0.85, "brNDC");
+  ptLabel.SetBorderSize(0);
+  ptLabel.SetFillStyle(0);
+  ptLabel.SetTextAlign(12);
+  ptLabel.SetTextFont(42);
+  ptLabel.SetTextSize(0.045);
+  text = ptLabel.AddText(0.025, 0.45, ptitle);
+  text->SetTextSize(0.0315);
+
+  ptLabel.Draw();
+  pavetext.Draw();
+  can.RedrawAxis();
+  can.Modified();
+  can.Update();
+  if (!SampleHelpers::checkRunOnCondor()){
+    can.SaveAs(coutput_main + Form("/%s.pdf", can.GetName()));
+    can.SaveAs(coutput_main + Form("/%s.png", can.GetName()));
+    //can.SaveAs(coutput_main + Form("/%s.root", can.GetName()));
+  }
+
+  delete legend;
+  can.Close();
+
+  curdir->cd();
 }
 
 void combineEfficiencies(
@@ -3113,6 +3294,120 @@ void combineEfficiencies(
     HIST_COMMAND(SF_AltMCDn, Form("%s %s SF (alt. MC down)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
     HIST_COMMAND(SF_AltMCUp, Form("%s %s SF (alt. MC up)", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()));
 #undef HIST_COMMAND
+
+    // Get 1D TGraph slices
+    std::vector<TGraphAsymmErrors*> eff_data_slices =
+      getEffSF_PtSliceGraphs(
+        {
+          &(h_eff_data_Nominal_list.at(osel)),
+          &(h_eff_data_StatDn_list.at(osel)),
+          &(h_eff_data_StatUp_list.at(osel)),
+          &(h_eff_data_SystDn_list.at(osel)),
+          &(h_eff_data_SystUp_list.at(osel))
+        }
+    );
+    for (int ibin=0; ibin<(int) eff_data_slices.size(); ibin++){
+      float eta_low = (ibin==-1 ? -99. : binning_eta.getBinLowEdge(ibin));
+      float eta_high = (ibin==(int) binning_eta.getNbins() ? 99. : binning_eta.getBinHighEdge(ibin));
+      TString strbinning_eta = "eta_";
+      TString strcut_eta;
+      if (eta_low<-10.f){
+        strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s<%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_high).Data());
+      }
+      else if (eta_high>10.f){
+        strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+        strcut_eta = Form("%s>=%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data());
+      }
+      else{
+        strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s in [%s, %s)", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data(), convertFloatToString(eta_high).Data());
+      }
+
+      auto& gr = eff_data_slices.at(ibin);
+      gr->SetName(Form("eff_data_%s", strbinning_eta.Data()));
+      gr->SetTitle(strcut_eta.Data());
+    }
+    std::vector<TGraphAsymmErrors*> eff_MC_slices =
+      getEffSF_PtSliceGraphs(
+        {
+          &(h_eff_MC_Nominal_list.at(osel)),
+          &(h_eff_MC_StatDn_list.at(osel)),
+          &(h_eff_MC_StatUp_list.at(osel)),
+          &(h_eff_MC_SystDn_list.at(osel)),
+          &(h_eff_MC_SystUp_list.at(osel)),
+          &(h_eff_MC_PUDn_list.at(osel)),
+          &(h_eff_MC_PUUp_list.at(osel)),
+          &(h_eff_MC_AltMCDn_list.at(osel)),
+          &(h_eff_MC_AltMCUp_list.at(osel))
+        }
+    );
+    for (int ibin=0; ibin<(int) eff_MC_slices.size(); ibin++){
+      float eta_low = (ibin==-1 ? -99. : binning_eta.getBinLowEdge(ibin));
+      float eta_high = (ibin==(int) binning_eta.getNbins() ? 99. : binning_eta.getBinHighEdge(ibin));
+      TString strbinning_eta = "eta_";
+      TString strcut_eta;
+      if (eta_low<-10.f){
+        strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s<%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_high).Data());
+      }
+      else if (eta_high>10.f){
+        strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+        strcut_eta = Form("%s>=%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data());
+      }
+      else{
+        strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s in [%s, %s)", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data(), convertFloatToString(eta_high).Data());
+      }
+
+      auto& gr = eff_MC_slices.at(ibin);
+      gr->SetName(Form("eff_MC_%s", strbinning_eta.Data()));
+      gr->SetTitle(strcut_eta.Data());
+    }
+    std::vector<TGraphAsymmErrors*> SF_slices =
+      getEffSF_PtSliceGraphs(
+        {
+          &(h_SF_Nominal_list.at(osel)),
+          &(h_SF_StatDn_list.at(osel)),
+          &(h_SF_StatUp_list.at(osel)),
+          &(h_SF_SystDn_list.at(osel)),
+          &(h_SF_SystUp_list.at(osel)),
+          &(h_SF_PUDn_list.at(osel)),
+          &(h_SF_PUUp_list.at(osel)),
+          &(h_SF_AltMCDn_list.at(osel)),
+          &(h_SF_AltMCUp_list.at(osel))
+        }
+    );
+    for (int ibin=0; ibin<(int) SF_slices.size(); ibin++){
+      float eta_low = (ibin==-1 ? -99. : binning_eta.getBinLowEdge(ibin));
+      float eta_high = (ibin==(int) binning_eta.getNbins() ? 99. : binning_eta.getBinHighEdge(ibin));
+      TString strbinning_eta = "eta_";
+      TString strcut_eta;
+      if (eta_low<-10.f){
+        strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s<%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_high).Data());
+      }
+      else if (eta_high>10.f){
+        strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+        strcut_eta = Form("%s>=%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data());
+      }
+      else{
+        strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+        strcut_eta = Form("%s in [%s, %s)", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data(), convertFloatToString(eta_high).Data());
+      }
+
+      auto& gr = SF_slices.at(ibin);
+      gr->SetName(Form("SF_%s", strbinning_eta.Data()));
+      gr->SetTitle(strcut_eta.Data());
+    }
+
+    plotEffSFEtaSlice(coutput_plots+"/EffSFSlices", strFinalState+"_eff_data_slices_"+strIdIsoOutTypes.at(osel), Form("%s %s eff. data", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()), eff_data_slices);
+    plotEffSFEtaSlice(coutput_plots+"/EffSFSlices", strFinalState+"_eff_MC_slices_"+strIdIsoOutTypes.at(osel), Form("%s %s eff. MC", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()), eff_MC_slices);
+    plotEffSFEtaSlice(coutput_plots+"/EffSFSlices", strFinalState+"_SF_slices_"+strIdIsoOutTypes.at(osel), Form("%s %s SF", (is_ee ? "e" : "#mu"), strIdIsoOutLabels.at(osel).Data()), SF_slices);
+
+    for (auto& gr:eff_data_slices) delete gr;
+    for (auto& gr:eff_MC_slices) delete gr;
+    for (auto& gr:SF_slices) delete gr;
   }
   for (auto& hh:h_SF_Nominal_list) foutput->WriteTObject(&hh);
   for (auto& hh:h_SF_StatDn_list) foutput->WriteTObject(&hh);
