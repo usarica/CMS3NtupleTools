@@ -272,7 +272,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   }
 
   val = SF_nominal_val + SF_err_val;
-  if (effval) *effval *= val;
+  if (effval) *effval = std::min(1.f, (*effval)*val);
 }
 void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, MuonScaleFactorHandler::EfficiencyType type, float& val, float* effval) const{
   val = 1;

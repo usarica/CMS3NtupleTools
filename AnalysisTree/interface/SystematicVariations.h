@@ -7,7 +7,7 @@
 namespace SystematicsHelpers{
 
   enum SystematicVariationTypes{
-    sNominal,
+    sNominal = 0,
 
     tPDFScaleDn, tPDFScaleUp,
     tQCDScaleDn, tQCDScaleUp,
@@ -47,6 +47,8 @@ namespace SystematicsHelpers{
     sUncorrected // For checks
   };
 
+  bool isDownSystematic(SystematicsHelpers::SystematicVariationTypes const& type);
+  bool isUpSystematic(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystCoreName(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystName(SystematicsHelpers::SystematicVariationTypes const& type);
 

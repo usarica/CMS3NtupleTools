@@ -11,6 +11,7 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   switch (type){
   case sNominal:
     return "Nominal";
+
   case tPDFScaleDn:
   case tPDFScaleUp:
     return "FacScale";
@@ -33,6 +34,15 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case eEleEffDn:
   case eEleEffUp:
     return "ElectronEff";
+  case eEleEffStatDn:
+  case eEleEffStatUp:
+    return "ElectronEff_Stat";
+  case eEleEffSystDn:
+  case eEleEffSystUp:
+    return "ElectronEff_Syst";
+  case eEleEffAltMCDn:
+  case eEleEffAltMCUp:
+    return "ElectronEff_AltMC";
   case eEleScaleDn:
   case eEleScaleUp:
     return "ElectronScale";
@@ -43,6 +53,15 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case eMuEffDn:
   case eMuEffUp:
     return "MuonEff";
+  case eMuEffStatDn:
+  case eMuEffStatUp:
+    return "MuonEff_Stat";
+  case eMuEffSystDn:
+  case eMuEffSystUp:
+    return "MuonEff_Syst";
+  case eMuEffAltMCDn:
+  case eMuEffAltMCUp:
+    return "MuonEff_AltMC";
   case eMuScaleDn:
   case eMuScaleUp:
     return "MuonScale";
@@ -76,6 +95,10 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
   case eBTagSFUp:
     return "BTagSF";
 
+  case eL1PrefiringDn:
+  case eL1PrefiringUp:
+    return "L1Prefiring";
+
   case sUncorrected:
     return "Uncorrected";
 
@@ -85,61 +108,17 @@ std::string SystematicsHelpers::getSystCoreName(SystematicsHelpers::SystematicVa
     return "";
   }
 }
+bool SystematicsHelpers::isDownSystematic(SystematicsHelpers::SystematicVariationTypes const& type){
+  if (type<nSystematicVariations && type!=sNominal) return (((int) type)%2 == 1);
+  else return false;
+}
+bool SystematicsHelpers::isUpSystematic(SystematicsHelpers::SystematicVariationTypes const& type){
+  if (type<nSystematicVariations && type!=sNominal) return (((int) type)%2 == 0);
+  else return false;
+}
 std::string SystematicsHelpers::getSystName(SystematicsHelpers::SystematicVariationTypes const& type){
   std::string res = getSystCoreName(type);
-  switch (type){
-  case tPDFScaleDn:
-  case tQCDScaleDn:
-  case tAsMZDn:
-  case tPDFReplicaDn:
-  case tPythiaScaleDn:
-  case tPythiaTuneDn:
-  case eEleEffDn:
-  case eEleScaleDn:
-  case eEleResDn:
-  case eMuEffDn:
-  case eMuScaleDn:
-  case eMuResDn:
-  case ePhoEffDn:
-  case ePhoScaleDn:
-  case ePhoResDn:
-  case eMETDn:
-  case eJECDn:
-  case eJERDn:
-  case ePUDn:
-  case eBTagSFDn:
-    res = res + "Dn";
-    break;
-
-  case tPDFScaleUp:
-  case tQCDScaleUp:
-  case tAsMZUp:
-  case tPDFReplicaUp:
-  case tPythiaScaleUp:
-  case tPythiaTuneUp:
-  case eEleEffUp:
-  case eEleScaleUp:
-  case eEleResUp:
-  case eMuEffUp:
-  case eMuScaleUp:
-  case eMuResUp:
-  case ePhoEffUp:
-  case ePhoScaleUp:
-  case ePhoResUp:
-  case eMETUp:
-  case eJECUp:
-  case eJERUp:
-  case ePUUp:
-  case eBTagSFUp:
-    res = res + "Up";
-
-  case sNominal:
-  case sUncorrected:
-    break;
-
-  default:
-    MELAerr << "SystematicsHelpers::getSystName: Systematic " << type << " is not defined!" << endl;
-    assert(0);
-  }
+  if (SystematicsHelpers::isDownSystematic(type)) res = res + "Dn";
+  else if (SystematicsHelpers::isUpSystematic(type)) res = res + "Up";
   return res;
 }
