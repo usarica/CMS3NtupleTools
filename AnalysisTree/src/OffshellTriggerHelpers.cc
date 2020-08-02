@@ -297,7 +297,7 @@ void TriggerHelpers::configureHLTmap(){
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kPt, 60.f } } } } },
       { "HLT_PFMET120_PFMHT120_IDTight_PFHT60_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f }, { HLTObjectProperties::kPt, 60.f } } } } },
       { "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_v*", { { HLTObjectProperties::kMET_NoMu, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT_NoMu, { { HLTObjectProperties::kMass, 120.f } } } } },
-      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } },
+      { "HLT_PFMET120_PFMHT120_IDTight_v*", { { HLTObjectProperties::kMET, { { HLTObjectProperties::kPt, 120.f } } }, { HLTObjectProperties::kHT, { { HLTObjectProperties::kMass, 120.f } } } } }
     };
     break;
   case 2018:
