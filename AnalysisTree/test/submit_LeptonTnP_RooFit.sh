@@ -116,7 +116,7 @@ done
 done
 done
 
-# Do ee events next
+# Do mumu events next
 for eeGapCode in -1; do
 for minPtTag in "${minPtTags_mumu[@]}"; do
 for syst in "${systOptions[@]}"; do

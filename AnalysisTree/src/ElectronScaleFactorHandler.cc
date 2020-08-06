@@ -314,7 +314,7 @@ void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::Systematic
   }
 
   val = SF_nominal_val + SF_err_val;
-  if (effval) *effval *= val;
+  if (effval) *effval = std::min(1.f, (*effval)*val);
 }
 void ElectronScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, ElectronObject const* obj, ElectronScaleFactorHandler::EfficiencyType type, float& val, float* effval) const{
   val = 1;
