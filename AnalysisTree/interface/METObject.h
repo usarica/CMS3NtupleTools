@@ -12,8 +12,11 @@ MET_VARIABLE(float, met_JECUp, 0) \
 MET_VARIABLE(float, metPhi_JECUp, 0) \
 MET_VARIABLE(float, met_JECDn, 0) \
 MET_VARIABLE(float, metPhi_JECDn, 0) \
+MET_VARIABLE(float, met_Raw, 0) \
+MET_VARIABLE(float, metPhi_Raw, 0) \
 MET_VARIABLE(float, metSignificance, 0)
 
+// JER shifts are not recorded for PUPPI MET because they do not apply.
 #define MET_JERSHIFT_VARIABLES \
 MET_VARIABLE(float, metShift_px_JERNominal, 0) \
 MET_VARIABLE(float, metShift_py_JERNominal, 0) \
@@ -22,21 +25,9 @@ MET_VARIABLE(float, metShift_py_JERUp, 0) \
 MET_VARIABLE(float, metShift_px_JERDn, 0) \
 MET_VARIABLE(float, metShift_py_JERDn, 0)
 
-#define MET_EXTRA_PT_VARIABLES \
-MET_VARIABLE(float, met_original, 0)
-
-#define MET_EXTRA_PHI_VARIABLES \
-MET_VARIABLE(float, metPhi_original, 0)
-
-
-#define MET_EXTRA_VARIABLES \
-MET_EXTRA_PT_VARIABLES \
-MET_EXTRA_PHI_VARIABLES
-
 #define MET_VARIABLES \
 MET_RECORDED_VARIABLES \
-MET_JERSHIFT_VARIABLES \
-MET_EXTRA_VARIABLES
+MET_JERSHIFT_VARIABLES
 
 
 class METVariables{

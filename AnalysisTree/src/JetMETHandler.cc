@@ -266,12 +266,7 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   MET_RECORDED_VARIABLES;
   MET_JERSHIFT_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.met_Nominal;
-  MET_EXTRA_PT_VARIABLES;
-#undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = pfmet->extras.metPhi_Nominal;
-  MET_EXTRA_PHI_VARIABLES;
-#undef MET_VARIABLE
+
   pfmet->setSystematic(syst);
 
   /*************/
@@ -281,12 +276,7 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = *pfpuppimet_##NAME;
   MET_RECORDED_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.met_Nominal;
-  MET_EXTRA_PT_VARIABLES;
-#undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = pfpuppimet->extras.metPhi_Nominal;
-  MET_EXTRA_PHI_VARIABLES;
-#undef MET_VARIABLE
+
   pfpuppimet->setSystematic(syst);
 
   return true;

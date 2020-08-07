@@ -102,8 +102,8 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
     phi_ref = &(extras.metPhi_JECUp);
     break;
   case sUncorrected:
-    pt_ref = &(extras.met_original);
-    phi_ref = &(extras.metPhi_original);
+    pt_ref = &(extras.met_Raw);
+    phi_ref = &(extras.metPhi_Raw);
     break;
   default:
     pt_ref = &(extras.met_Nominal);
@@ -112,10 +112,12 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
   }
 
   ParticleObject::LorentzVector_t tmp_p4((*pt_ref) * std::cos(*phi_ref), (*pt_ref) * std::sin(*phi_ref), 0., 0.);
-  if (addXYShifts) tmp_p4 += currentXYshift;
-  if (addJERShifts) tmp_p4 += currentJERShift;
-  if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
-  if (!currentMETCorrections.empty()) tmp_p4 += currentMETCorrections.at(4*addXYShifts + 2*addJERShifts + 1*addParticleShifts);
+  if (currentSyst != sUncorrected){
+    if (addXYShifts) tmp_p4 += currentXYshift;
+    if (addJERShifts) tmp_p4 += currentJERShift;
+    if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
+    if (!currentMETCorrections.empty()) tmp_p4 += currentMETCorrections.at(4*addXYShifts + 2*addJERShifts + 1*addParticleShifts);
+  }
 
   pt = tmp_p4.Pt();
   phi = tmp_p4.Phi();
