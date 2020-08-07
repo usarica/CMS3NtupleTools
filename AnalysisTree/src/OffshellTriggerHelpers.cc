@@ -28,12 +28,20 @@ std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties con
   unsigned int isize=0;
   for (auto const& type:types){
     std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
+    if (it == HLT_type_proplist_map.cend()){
+      MELAerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
+      assert(0);
+    }
     isize += it->second.size();
   }
 
   std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > res; res.reserve(isize);
   for (auto const& type:types){
     std::unordered_map< TriggerHelpers::TriggerType, std::vector<HLTTriggerPathProperties> >::const_iterator it = HLT_type_proplist_map.find(type);
+    if (it == HLT_type_proplist_map.cend()){
+      MELAerr << "TriggerHelpers::getHLTMenuProperties: Trigger type " << type << " is not defined in the HLT type-properties map." << endl;
+      assert(0);
+    }
     for (auto const& hltprop:it->second) res.emplace_back(type, &hltprop);
   }
 
