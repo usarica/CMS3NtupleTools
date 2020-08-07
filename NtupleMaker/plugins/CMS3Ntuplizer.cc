@@ -309,6 +309,9 @@ void CMS3Ntuplizer::recordGenInfo(edm::Event const& iEvent){
   SET_GENINFO_VARIABLE(qscale);
   SET_GENINFO_VARIABLE(alphaS);
 
+  SET_GENINFO_VARIABLE(genhardpartons_HT);
+  SET_GENINFO_VARIABLE(genhardpartons_MHT);
+
   SET_GENINFO_VARIABLE(genjets_HT);
   SET_GENINFO_VARIABLE(genjets_MHT);
 

@@ -297,10 +297,20 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     float& sumEt = result->sumEt; sumEt=0;
     LorentzVector tempvect(0, 0, 0, 0);
 
+    // Compute HT and MHT from hard gen. partons
+    float& genhardpartons_HT = result->genhardpartons_HT;
+    float& genhardpartons_MHT = result->genhardpartons_MHT;
+    genhardpartons_HT = genhardpartons_MHT = 0;
+    LorentzVector tempvect_hardpartons(0, 0, 0, 0);
+
     for (std::vector<reco::GenParticle>::const_iterator genps_it = prunedGenParticles->begin(); genps_it != prunedGenParticles->end(); genps_it++){
       auto const* genps = &(*genps_it);
       int id = genps->pdgId();
       if (PDGHelpers::isANeutrino(id) && genps->status()==1) tempvect += genps->p4();
+      if (PDGHelpers::isAKnownJet(id) && genps->isHardProcess() && (genps->status()==1 || genps->status()==23 || genps->status()==24)){
+        tempvect_hardpartons += genps->p4();
+        genhardpartons_HT += genps->pt();
+      }
       if (PDGHelpers::isAGluon(id) && !genps->isHardProcess()){
         std::vector<reco::GenParticle const*> tmp_daughters;
         MCUtilities::getAllDaughters(genps, tmp_daughters, false);
@@ -349,6 +359,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     } // End loop over gen particles
 
     sumEt = tempvect.pt();
+    genhardpartons_MHT = tempvect.Pt();
 
     n_shower_gluons_to_bottom = shower_gluons_to_bottom.size();
     n_shower_gluons_to_charm = shower_gluons_to_charm.size();
@@ -363,7 +374,7 @@ void GenMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       tempvect += genjet_it->p4();
       result->genjets_HT += genjet_it->pt();
     }
-    result->genjets_MHT = tempvect.Pt(); 
+    result->genjets_MHT = tempvect.Pt();
   }
 
   // Compute K factors

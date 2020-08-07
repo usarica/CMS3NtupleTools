@@ -17,6 +17,9 @@ struct GenInfo{
   float qscale;
   float alphaS;
 
+  float genhardpartons_HT;
+  float genhardpartons_MHT;
+
   float genjets_HT;
   float genjets_MHT;
 

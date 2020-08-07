@@ -12,6 +12,10 @@
 
 #define GENINFO_CORE_VARIABLES \
 GENINFO_VARIABLE(float, xsec, 1) \
+GENINFO_VARIABLE(float, genhardpartons_HT, 0) \
+GENINFO_VARIABLE(float, genhardpartons_MHT, 0) \
+GENINFO_VARIABLE(float, genjets_HT, 0) \
+GENINFO_VARIABLE(float, genjets_MHT, 0) \
 GENINFO_VARIABLE(float, genmet_met, 0) \
 GENINFO_VARIABLE(float, genmet_metPhi, 0) \
 GENINFO_VARIABLE(cms3_nShowerGluons_t, n_shower_gluons_to_bottom, 0) \
