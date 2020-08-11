@@ -283,7 +283,7 @@ bool ElectronSelectionHelpers::testFakeableBase(ElectronObject const& part){
   return (
     part.testSelectionBit(bit_preselectionTight_id)
     &&
-    testFakeableBaseIso(part)
+    part.testSelectionBit(kFakeableBaseIso)
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
     );
@@ -347,6 +347,8 @@ void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
   part.setSelectionBit(kTightKin, testTightKin(part));
 
   part.setSelectionBit(kProbeId, testProbeId(part));
+
+  part.setSelectionBit(kFakeableBaseIso, testFakeableBaseIso(part));
 
   // The functions below test the bits set in the steps above.
   part.setSelectionBit(kFakeableBase, testFakeableBase(part));

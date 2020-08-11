@@ -8,16 +8,6 @@
 
 
 class MuonScaleFactorHandler : public ScaleFactorHandlerBase{
-public:
-  enum EfficiencyType{
-    kIdEff = 0,
-    kLooseIsoEff,
-    kTightIsoEff,
-    kAllEffs,
-
-    nEfficiencyTypes
-  };
-
 protected:
   ExtendedHistogram_2D eff_mc_id_hists;
   ExtendedHistogram_2D eff_mc_iso_loose_hists;
@@ -36,8 +26,8 @@ public:
   bool setup();
   void reset();
 
-  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, MuonScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
-  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, MuonScaleFactorHandler::EfficiencyType type, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const;
+  void getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, float& val, float* effval) const;
 
 };
 
