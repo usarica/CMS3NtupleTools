@@ -2389,11 +2389,37 @@ void findModeAndConfidenceInterval(
   }
 }
 
-void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, TH2D* hist, double zmin, double zmax){
+void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, TH2D* inhist, double zmin, double zmax){
+  TDirectory* curdir = gDirectory;
+
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 
-  bool isSF = TString(hist->GetName()).Contains("SF");
-  bool isData = TString(hist->GetName()).Contains("data");
+  bool isSF = TString(inhist->GetName()).Contains("SF");
+  bool isData = TString(inhist->GetName()).Contains("data");
+
+  TH2D* hist = nullptr;
+  {
+    ExtendedBinning xbinning = HelperFunctions::getExtendedBinning(inhist, 0);
+    ExtendedBinning ybinning = HelperFunctions::getExtendedBinning(inhist, 1);
+
+    // Patch y binning upper value
+    ybinning.setBinBoundary(ybinning.getNbins(), 200);
+
+    // Construct copy histogram
+    hist = new TH2D(
+      Form("%s_copy", inhist->GetName()), inhist->GetTitle(),
+      xbinning.getNbins(), xbinning.getBinning(),
+      ybinning.getNbins(), ybinning.getBinning()
+    );
+    for (unsigned int ix=0; ix<=xbinning.getNbins()+1; ix++){
+      for (unsigned int iy=0; iy<=ybinning.getNbins()+1; iy++){
+        hist->SetBinContent(ix, iy, inhist->GetBinContent(ix, iy));
+        hist->SetBinError(ix, iy, inhist->GetBinError(ix, iy));
+      }
+    }
+    hist->GetXaxis()->SetTitle(inhist->GetXaxis()->GetTitle());
+    hist->GetYaxis()->SetTitle(inhist->GetYaxis()->GetTitle());
+  }
 
   hist->GetZaxis()->SetRangeUser(zmin, zmax);
   hist->SetTitle("");
@@ -2413,10 +2439,9 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   hist->GetYaxis()->SetTitleOffset(1.1);
   hist->GetYaxis()->SetTitleFont(42);
 
-  TDirectory* curdir = gDirectory;
   gSystem->mkdir(coutput_main, true);
 
-  TString canvasname = Form("c_%s_%s", cname_app.Data(), hist->GetName());
+  TString canvasname = Form("c_%s_%s", cname_app.Data(), inhist->GetName());
   TCanvas can(canvasname, "", 1000, 800);
   can.SetFillColor(0);
   can.SetBorderMode(0);
@@ -2432,7 +2457,7 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   can.SetFrameFillStyle(0);
   can.SetFrameBorderMode(0);
   can.SetLogy(true);
-  gStyle->SetPaintTextFormat(".1e");
+  gStyle->SetPaintTextFormat(".2f");
   hist->SetMarkerSize(0.8);
 
   hist->Draw("colztext");
@@ -2481,6 +2506,84 @@ void plotEffSF(TString const& coutput_main, TString cname_app, TString ptitle, T
   curdir->cd();
 
   gStyle->SetPaintTextFormat("g");
+
+  delete hist;
+}
+
+std::vector<TH2D*> getPOGIDEffSF(bool is_ee, unsigned int is_data_MC_SF){
+  TDirectory* curdir = gDirectory;
+  std::vector<TH2D*> hlist; hlist.reserve(3);
+  TString cinput;
+  TString hname;
+  if (is_ee){
+    cinput = Form("%i_ElectronMVA90noiso.root", SampleHelpers::theDataYear);
+    if (is_data_MC_SF == 0) hname = "EGamma_EffData2D";
+    else if (is_data_MC_SF == 1) hname = "EGamma_EffMC2D";
+    else if (is_data_MC_SF == 2) hname = "EGamma_SF2D";
+  }
+  else{
+    if (SampleHelpers::theDataYear == 2017){
+      if (is_data_MC_SF == 0){
+        cinput = "EfficienciesStudies_2017_rootfiles_RunBCDEF_data_ID.root";
+        hname = "NUM_MediumPromptID_DEN_genTracks_pt_abseta";
+      }
+      else if (is_data_MC_SF == 1){
+        cinput = "EfficienciesStudies_2017_rootfiles_RunBCDEF_mc_ID.root";
+        hname = "NUM_MediumPromptID_DEN_genTracks_pt_abseta";
+      }
+      else if (is_data_MC_SF == 2){
+        cinput = "EfficienciesStudies_2017_rootfiles_RunBCDEF_SF_ID.root";
+        hname = "NUM_MediumPromptID_DEN_genTracks_pt_abseta";
+      }
+    }
+    else if (SampleHelpers::theDataYear == 2018){
+      if (is_data_MC_SF == 0){
+        cinput = "EfficienciesStudies_2018_rootfiles_RunABCD_data_ID.root";
+        hname = "NUM_MediumPromptID_DEN_TrackerMuons_pt_abseta";
+      }
+      else if (is_data_MC_SF == 1){
+        cinput = "EfficienciesStudies_2018_rootfiles_RunABCD_mc_ID.root";
+        hname = "NUM_MediumPromptID_DEN_TrackerMuons_pt_abseta";
+      }
+      else if (is_data_MC_SF == 2){
+        cinput = "EfficienciesStudies_2018_rootfiles_RunABCD_SF_ID.root";
+        hname = "NUM_MediumPromptID_DEN_TrackerMuons_pt_abseta";
+      }
+    }
+  }
+  MELAout << "getPOGIDEffSF: cinput = " << cinput << ", hname = " << hname << endl;
+  if (cinput == "" || hname == "" || !HostHelpers::FileExists(cinput)) return hlist;
+
+  TFile* finput = TFile::Open(cinput, "read");
+  TH2D* inhist = (TH2D*) finput->Get(hname);
+
+  curdir->cd();
+
+  // Transpose the input histogram
+  ExtendedBinning xbinning = HelperFunctions::getExtendedBinning(inhist, (is_ee ? 0 : 1));
+  ExtendedBinning ybinning = HelperFunctions::getExtendedBinning(inhist, (is_ee ? 1 : 0));
+
+  for (int isyst=0; isyst<3; isyst++){
+    TH2D* res = new TH2D(
+      Form("%s_copy%i", inhist->GetName(), isyst), inhist->GetTitle(),
+      xbinning.getNbins(), xbinning.getBinning(),
+      ybinning.getNbins(), ybinning.getBinning()
+    );
+    for (unsigned int ix=0; ix<=xbinning.getNbins()+1; ix++){
+      for (unsigned int iy=0; iy<=ybinning.getNbins()+1; iy++){
+        double bc = inhist->GetBinContent((is_ee ? ix : iy), (is_ee ? iy : ix));
+        if (isyst == 1) bc -= inhist->GetBinError((is_ee ? ix : iy), (is_ee ? iy : ix));
+        else if (isyst == 2) bc += inhist->GetBinError((is_ee ? ix : iy), (is_ee ? iy : ix));
+        res->SetBinContent(ix, iy, bc);
+      }
+    }
+    hlist.push_back(res);
+  }
+
+  finput->Close();
+  curdir->cd();
+
+  return hlist;
 }
 
 std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const& hlist){
@@ -2494,7 +2597,8 @@ std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const&
     
     std::vector<std::pair<double, double>> points(nbins_pt, std::pair<double, double>(0,0)), errorDns(nbins_pt, std::pair<double, double>(0, 0)), errorUps(nbins_pt, std::pair<double, double>(0, 0));
     for (int ipt=0; ipt<nbins_pt; ipt++){
-      points.at(ipt).first = htmplist.front()->GetXaxis()->GetBinCenter(ipt+1);
+      if (ipt==nbins_pt-1 && htmplist.front()->GetXaxis()->GetBinCenter(ipt+1)>1000.f) points.at(ipt).first = (200.f + htmplist.front()->GetXaxis()->GetBinLowEdge(ipt+1))/2.f;
+      else points.at(ipt).first = htmplist.front()->GetXaxis()->GetBinCenter(ipt+1);
       points.at(ipt).second = htmplist.front()->GetBinContent(ipt+1);
       for (unsigned int ihp=0; ihp<(htmplist.size()-1)/2; ihp++){
         double edn = htmplist.at(1+ihp*2)->GetBinContent(ipt+1) - points.at(ipt).second;
@@ -2525,11 +2629,130 @@ std::vector<TGraphAsymmErrors*> getEffSF_PtSliceGraphs(std::vector<TH2D*> const&
 void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString ptitle, std::vector<TGraphAsymmErrors*> grlist){
   const float lumi = SampleHelpers::getIntegratedLuminosity(SampleHelpers::theDataPeriod);
 
-  bool isData = cname_app.Contains("eff_MC");
+  bool isSF = cname_app.Contains("SF");
+  bool isData = cname_app.Contains("eff_data");
+  bool is_ee = !cname_app.Contains("mumu");
+  bool checkPOGID = !cname_app.Contains("passId_pass") && (!is_ee || (is_ee && cname_app.Contains("nongap_gap")));
+  MELAout << "plotEffSFEtaSlice: Plotting " << cname_app << " + " << ptitle << endl;
+
+  double ymin=99, ymax=-99;
+
+  std::vector<TH2D*> hlist_POG;
+  std::vector<TGraphAsymmErrors*> grlist_POG;
+  std::vector<TString> labels_POG;
+  if (checkPOGID){
+    MELAout << "plotEffSFEtaSlice: Acquiring POG histograms..." << endl;
+    hlist_POG = getPOGIDEffSF(is_ee, 0*isData + 1*(!isSF && !isData) + 2*isSF);
+  }
+  bool hasPOGRefs = !hlist_POG.empty();
+  ExtendedBinning binning_eta_POG;
+  if (checkPOGID && !hasPOGRefs) MELAerr << "plotEffSFEtaSlice: Attempted to acquire POG historams but failed." << endl;
+  if (hasPOGRefs){
+    grlist_POG = getEffSF_PtSliceGraphs(hlist_POG);
+    binning_eta_POG = HelperFunctions::getExtendedBinning(hlist_POG.front(), 0);
+
+    for (int ibin=0; ibin<(int) binning_eta_POG.getNbins(); ibin++){
+      float eta_low = (ibin==-1 ? -99. : binning_eta_POG.getBinLowEdge(ibin));
+      float eta_high = (ibin==(int) binning_eta_POG.getNbins() ? 99. : binning_eta_POG.getBinHighEdge(ibin));
+      bool is_abs_eta = (binning_eta_POG.getBinLowEdge(0) == 0.);
+      TString strbinning_eta;
+      TString strcut_eta;
+      if (!is_abs_eta){
+        strbinning_eta = "eta_";
+        if (eta_low<-10.f){
+          strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+          strcut_eta = Form("%s<%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_high).Data());
+        }
+        else if (eta_high>10.f){
+          strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+          strcut_eta = Form("%s>=%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data());
+        }
+        else{
+          strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+          strcut_eta = Form("%s in [%s, %s)", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data(), convertFloatToString(eta_high).Data());
+        }
+      }
+      else{
+        strbinning_eta = "abseta_";
+        if (eta_low<-10.f){
+          strbinning_eta += Form("lt_%s", convertFloatToTitleString(eta_high).Data());
+          strcut_eta = Form("|%s|<%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_high).Data());
+        }
+        else if (eta_high>10.f){
+          strbinning_eta += Form("ge_%s", convertFloatToTitleString(eta_low).Data());
+          strcut_eta = Form("|%s|>=%s", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data());
+        }
+        else{
+          strbinning_eta += Form("%s_%s", convertFloatToTitleString(eta_low).Data(), convertFloatToTitleString(eta_high).Data());
+          strcut_eta = Form("|%s| in [%s, %s)", (is_ee ? "#eta_{SC}" : "#eta"), convertFloatToString(eta_low).Data(), convertFloatToString(eta_high).Data());
+        }
+      }
+
+      auto& gr = grlist_POG.at(ibin);
+      gr->SetName(Form("pog_%s", strbinning_eta.Data())); gr->SetTitle("");
+      labels_POG.push_back(strcut_eta.Data());
+
+      Color_t theColor=0;
+      switch (ibin + (is_ee ? (unsigned int) 0 : grlist.size()/2)){
+      case 0:
+        theColor = kRed;
+        break;
+      case 1:
+        theColor = kBlue;
+        break;
+      case 2:
+        theColor = kViolet;
+        break;
+      case 3:
+        theColor = kOrange-3;
+        break;
+      case 4:
+        theColor = kGreen+2;
+        break;
+      case 5:
+        theColor = kAzure-2;
+        break;
+      case 6:
+        theColor = kCyan-3;
+        break;
+      case 7:
+        theColor = kMagenta-3;
+        break;
+      case 8:
+        theColor = kYellow-3;
+        break;
+      case 9:
+        theColor = kBlue+2;
+        break;
+      default:
+        MELAerr << "Please define more colors!" << endl;
+        assert(0);
+        theColor = kBlack;
+        break;
+      }
+
+      gr->SetLineWidth(2);
+      gr->SetLineColor(theColor);
+      gr->SetLineStyle(7);
+      gr->SetMarkerColor(theColor);
+      gr->SetMarkerSize(1.5);
+      gr->SetMarkerStyle(24);
+
+      if (is_ee && (std::abs(binning_eta_POG.getBinLowEdge(ibin) - 1.4442)<0.001 || std::abs(binning_eta_POG.getBinLowEdge(ibin) + 1.566)<0.001)) continue;
+      // adjust min. and max. y
+      for (int ip=0; ip<gr->GetN(); ip++){
+        ymin = std::min(ymin, gr->GetY()[ip]-std::abs(gr->GetEYlow()[ip]));
+        ymax = std::max(ymax, gr->GetY()[ip]+std::abs(gr->GetEYhigh()[ip]));
+      }
+    }
+
+    // No need for the histograms any longer
+    for (auto& hh:hlist_POG) delete hh;
+    hlist_POG.clear();
+  }
 
   unsigned int nplottables = grlist.size();
   std::vector<TString> labels; labels.reserve(nplottables);
-  double ymin=99, ymax=-99;
   for (unsigned int ig=0; ig<grlist.size(); ig++){
     auto& gr = grlist.at(ig);
     labels.push_back(gr->GetTitle());
@@ -2602,7 +2825,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
     }
   }
   ymin *= 0.95;
-  ymax *= 1.1;
+  ymax *= 1.2;
   for (auto& gr:grlist) gr->GetYaxis()->SetRangeUser(ymin, ymax);
 
   TDirectory* curdir = gDirectory;
@@ -2628,10 +2851,10 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
   can.SetLogx(true);
 
   TLegend* legend = new TLegend(
-    0.55,
-    0.90-0.10/4.*2.*float(nplottables),
-    0.90,
-    0.90
+    0.45,
+    0.90-0.10/4.*2.*float(nplottables/2)-0.05,
+    0.675,
+    0.90-0.05
   );
   legend->SetBorderSize(0);
   legend->SetTextFont(42);
@@ -2641,19 +2864,66 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
   legend->SetLineWidth(1);
   legend->SetFillColor(0);
   legend->SetFillStyle(0);
+
+  TLegend* legend_split = new TLegend(
+    0.675,
+    0.90-0.10/4.*2.*float(nplottables/2)-0.05,
+    0.90,
+    0.90-0.05
+  );
+  legend_split->SetBorderSize(0);
+  legend_split->SetTextFont(42);
+  legend_split->SetTextSize(0.03);
+  legend_split->SetLineColor(1);
+  legend_split->SetLineStyle(1);
+  legend_split->SetLineWidth(1);
+  legend_split->SetFillColor(0);
+  legend_split->SetFillStyle(0);
+
   TText* text;
+
+  TString strlegendcore = (is_ee ? "#eta_{SC} in" : "#eta in");
+  TPaveText plegend(
+    0.50,
+    0.90-0.05,
+    0.675,
+    0.90,
+    "brNDC"
+  );
+  plegend.SetBorderSize(0);
+  plegend.SetFillStyle(0);
+  plegend.SetTextAlign(12);
+  plegend.SetTextFont(42);
+  plegend.SetTextSize(0.03);
+  plegend.AddText(0, 0, strlegendcore);
 
   bool isFirstGraph = true;
   for (unsigned int ig=0; ig<grlist.size();ig++){
     auto& gr = grlist.at(ig);
     TString stropt = (isFirstGraph ? "ae1p" : "e1psame");
     gr->Draw(stropt);
-    legend->AddEntry(gr, labels.at(ig), "ep");
+    TString strlabel = labels.at(ig);
+    HelperFunctions::replaceString(strlabel, "#eta_{SC} in ", "");
+    HelperFunctions::replaceString(strlabel, "#eta in ", "");
+    if (ig<grlist.size()/2) legend->AddEntry(gr, strlabel, "ep");
+    else legend_split->AddEntry(gr, strlabel, "ep");
     isFirstGraph = false;
   }
+  for (unsigned int ig=0; ig<grlist_POG.size(); ig++){
+    auto& gr = grlist_POG.at(ig);
+    if (is_ee && (std::abs(binning_eta_POG.getBinLowEdge(ig) - 1.4442)<0.001 || std::abs(binning_eta_POG.getBinLowEdge(ig) + 1.566)<0.001)) continue;
+    gr->Draw("e1plsame");
+    //TString strlabel = labels_POG.at(ig);
+    //HelperFunctions::replaceString(strlabel, "#eta_{SC} in ", "");
+    //HelperFunctions::replaceString(strlabel, "#eta in ", "");
+    //if (ig<grlist.size()/2) legend->AddEntry(gr, strlabel, "ep");
+    //else legend_split->AddEntry(gr, strlabel, "ep");
+  }
   for (auto& gr:grlist) gr->GetYaxis()->SetRangeUser(ymin, ymax);
+  for (auto& gr:grlist_POG) gr->GetYaxis()->SetRangeUser(ymin, ymax);
 
   legend->Draw("same");
+  legend_split->Draw("same");
 
   TPaveText pavetext(0.15, 0.93, 0.85, 1, "brNDC");
   pavetext.SetBorderSize(0);
@@ -2663,8 +2933,12 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
   pavetext.SetTextSize(0.045);
   text = pavetext.AddText(0.025, 0.45, "#font[61]{CMS}");
   text->SetTextSize(0.044);
-  if (isData){
-    text = pavetext.AddText(0.135, 0.42, "#font[52]{Preliminary}");
+  if (isData || isSF){
+    text = pavetext.AddText(0.165, 0.42, "#font[52]{Preliminary}");
+    text->SetTextSize(0.0315);
+  }
+  else{
+    text = pavetext.AddText(0.165, 0.42, "#font[52]{Simulation}");
     text->SetTextSize(0.0315);
   }
   TString cErgTev = Form("#font[42]{%.1f fb^{-1} (13 TeV)}", lumi);
@@ -2682,6 +2956,7 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
 
   ptLabel.Draw();
   pavetext.Draw();
+  plegend.Draw();
   can.RedrawAxis();
   can.Modified();
   can.Update();
@@ -2692,9 +2967,12 @@ void plotEffSFEtaSlice(TString const& coutput_main, TString cname_app, TString p
   }
 
   delete legend;
+  delete legend_split;
   can.Close();
 
   curdir->cd();
+
+  for (auto& gr:grlist_POG) delete gr;
 }
 
 void combineEfficiencies(

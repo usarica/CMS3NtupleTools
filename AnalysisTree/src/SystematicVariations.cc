@@ -116,6 +116,13 @@ bool SystematicsHelpers::isUpSystematic(SystematicsHelpers::SystematicVariationT
   if (type<nSystematicVariations && type!=sNominal) return (((int) type)%2 == 0);
   else return false;
 }
+SystematicsHelpers::SystematicVariationTypes SystematicsHelpers::getSystComplement(SystematicsHelpers::SystematicVariationTypes const& type){
+  bool isDn = SystematicsHelpers::isDownSystematic(type);
+  bool isUp = SystematicsHelpers::isUpSystematic(type);
+  if (isDn == isUp) return type;
+  else if (isDn) return static_cast<SystematicsHelpers::SystematicVariationTypes>(static_cast<int>(type)+1);
+  else /*if (isUp)*/ return static_cast<SystematicsHelpers::SystematicVariationTypes>(static_cast<int>(type)-1);
+}
 std::string SystematicsHelpers::getSystName(SystematicsHelpers::SystematicVariationTypes const& type){
   std::string res = getSystCoreName(type);
   if (SystematicsHelpers::isDownSystematic(type)) res = res + "Dn";

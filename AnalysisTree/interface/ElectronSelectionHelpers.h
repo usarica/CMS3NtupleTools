@@ -25,6 +25,7 @@ namespace ElectronSelectionHelpers{
 
     kProbeId,
 
+    kFakeableBaseIso,
     kFakeableBase,
     kFakeable,
 

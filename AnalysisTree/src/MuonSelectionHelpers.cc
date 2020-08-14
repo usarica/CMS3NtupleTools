@@ -176,7 +176,7 @@ bool MuonSelectionHelpers::testFakeableBase(MuonObject const& part){
   return (
     part.testSelectionBit(bit_preselectionTight_id)
     &&
-    testFakeableBaseIso(part)
+    part.testSelectionBit(kFakeableBaseIso)
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
     &&
@@ -184,9 +184,11 @@ bool MuonSelectionHelpers::testFakeableBase(MuonObject const& part){
     );
 }
 bool MuonSelectionHelpers::testFakeable(MuonObject const& part){
-  bool res = false;
-  if (part.testSelectionBit(kFakeableBase)) res = (isoThr_fakeable_trkIso<0.f || part.extras.trkIso03_trackerSumPt<isoThr_fakeable_trkIso);
-  return res;
+  return (
+    part.testSelectionBit(kFakeableBase)
+    &&
+    (isoThr_fakeable_trkIso<0.f || part.extras.trkIso03_trackerSumPt<isoThr_fakeable_trkIso)
+    );
 }
 bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){
   return (
@@ -249,8 +251,10 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   part.setSelectionBit(kProbeId, testProbeId(part));
   part.setSelectionBit(kProbeSTAId, testProbeSTAId(part));
 
+  part.setSelectionBit(kFakeableBaseIso, testFakeableBaseIso(part));
+
   // The functions below test the bits set in the steps above.
-  part.setSelectionBit(kFakeableBase, testFakeableBase(part)); // Re-tests isolation
+  part.setSelectionBit(kFakeableBase, testFakeableBase(part));
   part.setSelectionBit(kFakeable, testFakeable(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
