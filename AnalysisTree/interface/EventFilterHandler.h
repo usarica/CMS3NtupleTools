@@ -19,6 +19,12 @@
 
 class EventFilterHandler : public IvyBase{
 public:
+  enum METFilterCutType{
+    kMETFilters_Standard = 0,
+    kMETFilters_Tight,
+    nMETFilterCutTypes
+  };
+
   static const std::string colName_HLTpaths;
   static const std::string colName_triggerobjects;
   static const std::string colName_metfilters;
@@ -79,7 +85,7 @@ public:
     METObject const* pfmet,
     HLTTriggerPathObject const** firstPassingHLTPath = nullptr
   ) const;
-  bool passMETFilters() const;
+  bool passMETFilters(EventFilterHandler::METFilterCutType const& cuttype) const;
   // Special event filters for various specific issues
   bool test2018HEMFilter(
     SimEventHandler const* simEventHandler,
@@ -103,7 +109,7 @@ public:
   std::unordered_map<std::string, bool> const& getMETFilters() const{ return this->product_metfilters; }
 
   void bookBranches(BaseTree* intree);
-  static std::vector<std::string> acquireMETFilterFlags(BaseTree* intree);
+  static std::vector<std::string> acquireMETFilterFlags(BaseTree* intree, EventFilterHandler::METFilterCutType const& cuttype);
 
 };
 
