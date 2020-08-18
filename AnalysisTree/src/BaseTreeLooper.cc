@@ -16,6 +16,8 @@ BaseTreeLooper::BaseTreeLooper() :
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
   maxNEvents(-1),
+  eventIndex_begin(-1),
+  eventIndex_end(-1),
   firstTreeOutput(true)
 {
   setExternalProductList();
@@ -26,6 +28,8 @@ BaseTreeLooper::BaseTreeLooper(BaseTree* inTree) :
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
   maxNEvents(-1),
+  eventIndex_begin(-1),
+  eventIndex_end(-1),
   firstTreeOutput(true)
 {
   this->addTree(inTree);
@@ -38,6 +42,8 @@ BaseTreeLooper::BaseTreeLooper(std::vector<BaseTree*> const& inTreeList) :
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
   maxNEvents(-1),
+  eventIndex_begin(-1),
+  eventIndex_end(-1),
   firstTreeOutput(true),
 
   treeList(inTreeList)
@@ -74,7 +80,9 @@ void BaseTreeLooper::setExternalProductTree(BaseTree* extTree){
   if (extTree) firstTreeOutput = true;
 }
 
-void BaseTreeLooper::setMaximumEvents(int n){ maxNEvents=n; }
+void BaseTreeLooper::setMaximumEvents(int n){ maxNEvents = n; }
+void BaseTreeLooper::setEventIndexRange(int istart, int iend){ eventIndex_begin = istart; eventIndex_end = iend; }
+
 
 void BaseTreeLooper::addProduct(SimpleEntry& product, unsigned int* ev_rec){
   this->productListRef->push_back(product);
@@ -108,9 +116,13 @@ void BaseTreeLooper::loop(bool keepProducts){
     if (it_globalWgt!=globalWeights.cend()) globalTreeWeight = it_globalWgt->second;
 
     MELAout << "BaseTreeLooper::loop: Looping over " << tree->sampleIdentifier << " events" << endl;
-    int ev=0;
     const int nevents = tree->getNEvents();
-    while (tree->getEvent(ev)){
+    int ev_start = 0;
+    if (eventIndex_begin>0) ev_start = eventIndex_begin;
+    int ev_end = nevents;
+    if (eventIndex_end>0) ev_end = eventIndex_end;
+    for (int ev=ev_start;ev<ev_end;ev++){
+      if (!tree->getEvent(ev)) continue;
       if (maxNEvents>=0 && (int) ev_rec==maxNEvents) break;
       SimpleEntry product;
       if (tree->isValidEvent()){

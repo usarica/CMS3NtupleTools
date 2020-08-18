@@ -22,6 +22,10 @@ protected:
   // Max. events to process
   int maxNEvents;
 
+  // Event index ranges
+  int eventIndex_begin;
+  int eventIndex_end;
+
   // Flag for output tree
   bool firstTreeOutput;
 
@@ -74,6 +78,9 @@ public:
 
   // Max. events
   void setMaximumEvents(int n);
+
+  // Event index offset
+  void setEventIndexRange(int istart, int iend);
 
   // Get-functions
   int const& getMaximumEvents() const{ return maxNEvents; }
