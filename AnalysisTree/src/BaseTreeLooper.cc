@@ -64,8 +64,8 @@ void BaseTreeLooper::addSFHandler(ScaleFactorHandlerBase* handler){
 }
 
 void BaseTreeLooper::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
-  if (extProductListRef) this->productListRef=extProductListRef;
-  else this->productListRef=&(this->productList);
+  if (extProductListRef) this->productListRef = extProductListRef;
+  else this->productListRef = &(this->productList);
 }
 
 void BaseTreeLooper::setExternalProductTree(BaseTree* extTree){
@@ -79,11 +79,14 @@ void BaseTreeLooper::setMaximumEvents(int n){ maxNEvents=n; }
 void BaseTreeLooper::addProduct(SimpleEntry& product, unsigned int* ev_rec){
   this->productListRef->push_back(product);
   if (ev_rec) (*ev_rec)++;
+
+  // Record products to external tree
+  this->recordProductsToTree();
 }
 
 void BaseTreeLooper::recordProductsToTree(){
   if (!this->productTree) return;
-  BaseTree::writeSimpleEntries(this->productListRef->begin(), this->productListRef->end(), this->productTree, firstTreeOutput);
+  BaseTree::writeSimpleEntries(this->productListRef->cbegin(), this->productListRef->cend(), this->productTree, firstTreeOutput);
   this->clearProducts();
 }
 
@@ -118,9 +121,6 @@ void BaseTreeLooper::loop(bool keepProducts){
       HelperFunctions::progressbar(ev, nevents);
       ev++; ev_acc++;
     }
-
-    // Record products to external tree
-    this->recordProductsToTree();
   } // End loop over the trees
   MELAout << "BaseTreeLooper::loop: Total number of products: " << ev_rec << " / " << ev_acc << endl;
 }
@@ -134,4 +134,4 @@ void BaseTreeLooper::moveProducts(std::vector<SimpleEntry>& targetColl){
   MELAout << "BaseTreeLooper::moveProducts: Target list final size: " << targetColl.size() << endl;
 }
 
-void BaseTreeLooper::clearProducts(){ std::vector<SimpleEntry> emptyList; std::swap(emptyList, *productListRef); }
+void BaseTreeLooper::clearProducts(){ productListRef->clear(); }
