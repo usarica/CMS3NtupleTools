@@ -9,12 +9,14 @@
 #include "ScaleFactorHandlerBase.h"
 #include "SystematicVariations.h"
 #include "TriggerHelpersCore.h"
+#include "ParticleDisambiguator.h"
+#include "DileptonHandler.h"
 
 
 class BaseTreeLooper : IvyBase{
 protected:
   // Function to determine if event should be included
-  bool(*looperFunction)(BaseTreeLooper const*, BaseTree*, float const&, SimpleEntry&);
+  bool(*looperFunction)(BaseTreeLooper*, BaseTree*, float const&, SimpleEntry&);
 
   // Systematics type
   SystematicsHelpers::SystematicVariationTypes registeredSyst;
@@ -26,8 +28,9 @@ protected:
   int eventIndex_begin;
   int eventIndex_end;
 
-  // Flag for output tree
-  bool firstTreeOutput;
+  // Some ready-made stuff
+  ParticleDisambiguator particleDisambiguator;
+  DileptonHandler dileptonHandler;
 
   // Input trees
   std::vector<BaseTree*> treeList;
@@ -44,16 +47,24 @@ protected:
 
   // External dependencies
   std::unordered_map<BaseTree*, float> globalWeights;
-  std::unordered_map<TString, void(*)(BaseTreeLooper const*, BaseTree*, SimpleEntry&)> externalFunctions;
+  std::unordered_map<TString, void(*)(BaseTreeLooper*, BaseTree*, SimpleEntry&)> externalFunctions;
+
+  // Output trees
+  std::vector<BaseTree*> productTreeList;
+
+  // Flags for output trees
+  std::unordered_map<BaseTree*, bool> firstTreeOutput;
 
   // List of products
   std::vector<SimpleEntry> productList;
   std::vector<SimpleEntry>* productListRef;
-  BaseTree* productTree;
+  BaseTree* currentProductTree;
   void addProduct(SimpleEntry& product, unsigned int* ev_rec=nullptr);
 
   // Flush product list into tree
   void recordProductsToTree();
+
+  bool wrapTree(BaseTree* tree);
 
 public:
   // Constructors
@@ -66,15 +77,17 @@ public:
   virtual ~BaseTreeLooper();
 
   // Add the necessary objects
-  void addExternalFunction(TString fcnname, void(*fcn)(BaseTreeLooper const*, BaseTree*, SimpleEntry&));
+  void addExternalFunction(TString fcnname, void(*fcn)(BaseTreeLooper*, BaseTree*, SimpleEntry&));
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
 
-  void setLooperFunction(bool(*fcn)(BaseTreeLooper const*, BaseTree*, float const&, SimpleEntry&)){ looperFunction = fcn; }
+  void setLooperFunction(bool(*fcn)(BaseTreeLooper*, BaseTree*, float const&, SimpleEntry&)){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }
 
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
-  void setExternalProductTree(BaseTree* extTree=nullptr);
+  void setCurrentOutputTree(BaseTree* extTree=nullptr);
+  void addOutputTree(BaseTree* extTree);
+  void addOutputTrees(std::vector<BaseTree*> trees);
 
   // Max. events
   void setMaximumEvents(int n);
