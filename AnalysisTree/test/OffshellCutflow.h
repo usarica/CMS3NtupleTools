@@ -1,73 +1,135 @@
-#include "common_includes.h"
-#include "ParticleSelectionHelpers.h"
+#include <cassert>
+#include "DileptonObject.h"
+#include "MELAStreamHelpers.hh"
 
 
 using namespace std;
+using namespace MELAStreamHelpers;
 
 
-bool check_dPhi_pTll_pTmiss(float const& val, size_t const& n_ak4jets_tight, bool use_old=true){
-  float thr;
-  if (use_old) thr=0.5;
-  else{
-    if (n_ak4jets_tight==0) thr=2.6;
-    else if (n_ak4jets_tight==1) thr=1.6;
-    else /*if (n_ak4jets_tight==2)*/ thr=1.0;
+namespace OffshellCutflow{
+  enum FinalStateType{
+    fs_ZZ_2l2nu,
+    fs_WW_2l2nu,
+    nFinalStateTypes
+  };
+
+  // Final state configuration
+  FinalStateType activeFinalState = nFinalStateTypes;
+
+  void setActiveFinalState(FinalStateType const& type){ activeFinalState = type; }
+
+  // Selection functions
+  bool check_dPhi_pTll_pTmiss(float const& val){
+    constexpr float thr = 1.f;
+    return std::abs(val)>=thr;
   }
-  return std::abs(val)>=thr;
-}
 
-bool check_dPhi_pTlljets_pTmiss(float const& val, bool use_old=true){
-  if (use_old) return true;
-  float thr=2.6;
-  return std::abs(val)>=thr;
-}
+  bool check_dPhi_pTlljets_pTmiss(float const& val){
+    constexpr float thr=2.5f;
+    return std::abs(val)>=thr;
+  }
 
-bool check_min_abs_dPhi_pTj_pTmiss(float const& val, bool use_old=true){
-  float thr;
-  if (use_old) thr=0.5;
-  else thr=0.5/*0.6*/;
-  return std::abs(val)>=thr;
-}
+  bool check_min_abs_dPhi_pTj_pTmiss(float const& val){
+    constexpr float thr=0.25f;
+    return std::abs(val)>=thr;
+  }
 
-#define _old_ZZ_met_thr_ 125.f
-#define _new_ZZ_met_thr_ 125.f
-#define _old_WW_met_thr_ 20.f
-#define _new_WW_met_thr_ 20.f
-bool check_pTmiss_over_pTlljets(float const& pTmiss, float const& pTlljets, bool use_old=true, bool useZZ=true){
-  return true;
-  if (use_old || pTlljets==0.f) return true;
-  float thr=std::pow((useZZ ? _new_ZZ_met_thr_ : _new_WW_met_thr_)/pTlljets, 1.5);
-  return pTmiss/pTlljets>=thr;
-}
+  bool check_pTmiss(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+      thr=125.f;
+      break;
+    case fs_WW_2l2nu:
+      thr=20.f;
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTmiss: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
 
-bool check_pTmiss(float const& val, bool use_old=true, bool useZZ=true){
-  return val>=(use_old ? (useZZ ? _old_ZZ_met_thr_ : _old_WW_met_thr_) : (useZZ ? _new_ZZ_met_thr_ : _new_WW_met_thr_));
-}
+  bool check_Nb_veto(size_t const& nbs){
+    return (nbs==0);
+  }
 
-bool check_Nb_veto(size_t const& nbs){
-  return (nbs==0);
-}
+  bool check_pTl1(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+      thr=25.f;
+      break;
+    case fs_WW_2l2nu:
+      thr=25.f;
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTl1: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
 
-bool check_pTl1(float const& val, bool use_old=true){
-  return val>=(use_old ? 25.f : 25.f);
-}
+  bool check_pTl2(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+      thr=25.f;
+      break;
+    case fs_WW_2l2nu:
+      thr=20.f;
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTl2: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
 
-bool check_pTl2(float const& val, bool use_old=true){
-  return val>=(use_old ? 25.f : 25.f);
-}
+  bool check_pTll(float const& val){
+    float thr=-1;
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+      thr=55.f;
+      break;
+    case fs_WW_2l2nu:
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_pTll: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return val>=thr;
+  }
 
-bool check_pTll(float const& val, bool use_old=true){
-  return val>=(use_old ? 55.f : 55.f);
-}
+  bool check_ml1(DileptonObject const& dilepton){
+    constexpr float MZ_VAL_CUTS = 91.2f;
+    bool const isSF = dilepton.isSF();
+    float const val = dilepton.m();
+    float thr[2]={ -1, -1 };
+    switch (activeFinalState){
+    case fs_ZZ_2l2nu:
+      thr[0]=MZ_VAL_CUTS-15.f;
+      thr[1]=MZ_VAL_CUTS+15.f;
+      break;
+    case fs_WW_2l2nu:
+      thr[0]=(isSF ? MZ_VAL_CUTS+15.f : 70.f);
+      break;
+    default:
+      MELAerr << "OffshellCutflow::check_mll: The active final state " << activeFinalState << " is not specified." << endl;
+      assert(0);
+      break;
+    }
+    return (thr[0]<0.f || val>=thr[0]) && (thr[1]<0.f || val<thr[1]);
+  }
 
-bool check_ml1(float const& val, bool use_old=true, bool useZZ=true){
-  if (useZZ) return val>=(use_old ? 76.f : 81.f) && val<(use_old ? 106.f : 101.f);
-  else return val>=(use_old ? 106.f : 101.f);
-}
+  bool check_cutbased_VBF_category(std::vector<AK4JetObject*> const& ak4jets_tight, ParticleObject const* theChosenCand){
+    if (!theChosenCand) return false;
 
-bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4jets_tight, ParticleObject const* theChosenCand, bool use_old=true){
-  if (!use_old) return kd>=0.8;
-  else{
     if (ak4jets_tight.size()<2) return false;
     auto itFirstJet = ak4jets_tight.cbegin();
     AK4JetObject* leading_jet = *itFirstJet; itFirstJet++;
@@ -85,35 +147,5 @@ bool check_VBF_category(float const& kd, std::vector<AK4JetObject*> const& ak4je
     }
     return true;
   }
-}
 
-bool check_NoExtraLeptons(std::vector<MuonObject*> const& muons, std::vector<ElectronObject*> const& electrons, ParticleObject const* theChosenCand, bool use_old=true){
-  typedef bool (*MuonVetoFcn)(MuonObject const*);
-  typedef bool (*ElectronVetoFcn)(ElectronObject const*);
-
-  MuonVetoFcn muonVetoFcn=nullptr;
-  ElectronVetoFcn electronVetoFcn=nullptr;
-  //if (use_old){
-    muonVetoFcn = &ParticleSelectionHelpers::isLooseParticle<MuonObject>;
-    electronVetoFcn = &ParticleSelectionHelpers::isLooseParticle<ElectronObject>;
-  //}
-  //else{
-  //  muonVetoFcn = &ParticleSelectionHelpers::isVetoParticle<MuonObject>;
-  //  electronVetoFcn = &ParticleSelectionHelpers::isVetoParticle<ElectronObject>;
-  //}
-
-  std::vector<ParticleObject*> const& daughters = theChosenCand->getDaughters();
-  size_t nleptons = muons.size()+electrons.size();
-  std::vector<ParticleObject*> extraVetoLeptons; if (nleptons>0) extraVetoLeptons.reserve(nleptons);
-
-  for (auto const& muon:muons){
-    if (ParticleObject::checkParticleExists(dynamic_cast<ParticleObject*>(muon), daughters)) continue;
-    if (muonVetoFcn(muon)) extraVetoLeptons.push_back(muon);
-  }
-  for (auto const& electron:electrons){
-    if (ParticleObject::checkParticleExists(dynamic_cast<ParticleObject*>(electron), daughters)) continue;
-    if (electronVetoFcn(electron)) extraVetoLeptons.push_back(electron);
-  }
-
-  return extraVetoLeptons.empty();
 }
