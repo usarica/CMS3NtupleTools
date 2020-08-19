@@ -24,8 +24,13 @@ BaseTreeLooper::BaseTreeLooper() :
   registeredSyst(SystematicsHelpers::nSystematicVariations),
   maxNEvents(-1),
   eventIndex_begin(-1),
-  eventIndex_end(-1)
+  eventIndex_end(-1),
+
+  isData_currentTree(false),
+  isQCD_currentTree(false)
+
 {
+  set_pTG_exception_range(-1, -1);
   setExternalProductList();
   setCurrentOutputTree();
 }
@@ -35,9 +40,14 @@ BaseTreeLooper::BaseTreeLooper(BaseTree* inTree) :
   registeredSyst(SystematicsHelpers::nSystematicVariations),
   maxNEvents(-1),
   eventIndex_begin(-1),
-  eventIndex_end(-1)
+  eventIndex_end(-1),
+
+  isData_currentTree(false),
+  isQCD_currentTree(false)
+
 {
   this->addTree(inTree);
+  set_pTG_exception_range(-1, -1);
   setExternalProductList();
   setCurrentOutputTree();
 }
@@ -50,8 +60,12 @@ BaseTreeLooper::BaseTreeLooper(std::vector<BaseTree*> const& inTreeList) :
   eventIndex_begin(-1),
   eventIndex_end(-1),
 
+  isData_currentTree(false),
+  isQCD_currentTree(false),
+
   treeList(inTreeList)
 {
+  set_pTG_exception_range(-1, -1);
   setExternalProductList();
   setCurrentOutputTree();
 }
@@ -61,7 +75,7 @@ void BaseTreeLooper::addTree(BaseTree* tree){
   if (tree && !HelperFunctions::checkListVariable(this->treeList, tree)) this->treeList.push_back(tree);
 }
 
-void BaseTreeLooper::addExternalFunction(TString fcnname, void(*fcn)(BaseTreeLooper*, BaseTree*, SimpleEntry&)){
+void BaseTreeLooper::addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn){
   if (!fcn) return;
   if (externalFunctions.find(fcnname)!=externalFunctions.end()) MELAerr << "BaseTreeLooper::addExternalFunction: " << fcnname << " already exists but will override it regardless." << endl;
   externalFunctions[fcnname] = fcn;
@@ -121,16 +135,23 @@ void BaseTreeLooper::recordProductsToTree(){
 bool BaseTreeLooper::wrapTree(BaseTree* tree){
   if (!tree) return false;
   bool res = true;
-  bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier);
+
+  // Sample flags
+  TString const& sid = tree->sampleIdentifier;
+  this->isData_currentTree = SampleHelpers::checkSampleIsData(sid);
+  this->isQCD_currentTree = !this->isData_currentTree && sid.Contains("QCD") && sid.Contains("HT");
+  if (!this->isData_currentTree && (sid.Contains("ZGTo2NuG") || sid.Contains("ZGTo2LG")) && sid.Contains("amcatnloFXFX") && !sid.Contains("PtG-130")) set_pTG_exception_range(-1, 130);
+  else set_pTG_exception_range(-1, -1);
+
   for (auto const& handler:registeredHandlers){
     bool isHandlerForSim = (dynamic_cast<GenInfoHandler*>(handler) != nullptr || dynamic_cast<SimEventHandler*>(handler) != nullptr);
     EventFilterHandler* eventFilter = dynamic_cast<EventFilterHandler*>(handler);
     if (eventFilter){
       bool isFirstInputFile = (tree == treeList.front());
-      eventFilter->setTrackDataEvents(isData);
-      eventFilter->setCheckUniqueDataEvent(isData && !isFirstInputFile);
+      eventFilter->setTrackDataEvents(this->isData_currentTree);
+      eventFilter->setCheckUniqueDataEvent(this->isData_currentTree && !isFirstInputFile);
     }
-    if (!isData || (isData && !isHandlerForSim)) res &= handler->wrapTree(tree);
+    if (!this->isData_currentTree || (this->isData_currentTree && !isHandlerForSim)) res &= handler->wrapTree(tree);
   }
   res &= IvyBase::wrapTree(tree);
   return res;
@@ -167,7 +188,7 @@ void BaseTreeLooper::loop(bool keepProducts){
         if (tree->getEvent(ev)){
           SimpleEntry product;
           if (tree->isValidEvent()){
-            if (this->looperFunction(this, tree, globalTreeWeight, product)){
+            if (this->looperFunction(this, globalTreeWeight, product)){
               if (keepProducts) this->addProduct(product, &ev_rec);
             }
           }

@@ -13,10 +13,14 @@
 #include "DileptonHandler.h"
 
 
-class BaseTreeLooper : IvyBase{
+class BaseTreeLooper : public IvyBase{
+public:
+  typedef bool(*LooperCoreFunction_t)(BaseTreeLooper*, float const&, SimpleEntry&);
+  typedef void(*LooperExtFunction_t)(BaseTreeLooper*, SimpleEntry&);
+
 protected:
   // Function to determine if event should be included
-  bool(*looperFunction)(BaseTreeLooper*, BaseTree*, float const&, SimpleEntry&);
+  LooperCoreFunction_t looperFunction;
 
   // Systematics type
   SystematicsHelpers::SystematicVariationTypes registeredSyst;
@@ -27,6 +31,11 @@ protected:
   // Event index ranges
   int eventIndex_begin;
   int eventIndex_end;
+
+  // Variables set per tree
+  bool isData_currentTree;
+  bool isQCD_currentTree;
+  float pTG_true_exception_range[2];
 
   // Some ready-made stuff
   ParticleDisambiguator particleDisambiguator;
@@ -47,7 +56,7 @@ protected:
 
   // External dependencies
   std::unordered_map<BaseTree*, float> globalWeights;
-  std::unordered_map<TString, void(*)(BaseTreeLooper*, BaseTree*, SimpleEntry&)> externalFunctions;
+  std::unordered_map<TString, LooperExtFunction_t> externalFunctions;
 
   // Output trees
   std::vector<BaseTree*> productTreeList;
@@ -60,6 +69,9 @@ protected:
   std::vector<SimpleEntry>* productListRef;
   BaseTree* currentProductTree;
   void addProduct(SimpleEntry& product, unsigned int* ev_rec=nullptr);
+
+  // Set pTG exception range
+  void set_pTG_exception_range(float const& vlow, float const& vhigh){ pTG_true_exception_range[0] = vlow; pTG_true_exception_range[1] = vhigh; }
 
   // Flush product list into tree
   void recordProductsToTree();
@@ -77,11 +89,11 @@ public:
   virtual ~BaseTreeLooper();
 
   // Add the necessary objects
-  void addExternalFunction(TString fcnname, void(*fcn)(BaseTreeLooper*, BaseTree*, SimpleEntry&));
+  void addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn);
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
 
-  void setLooperFunction(bool(*fcn)(BaseTreeLooper*, BaseTree*, float const&, SimpleEntry&)){ looperFunction = fcn; }
+  void setLooperFunction(BaseTreeLooper::LooperCoreFunction_t fcn){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }
 
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
@@ -97,11 +109,18 @@ public:
 
   // Get-functions
   int const& getMaximumEvents() const{ return maxNEvents; }
+  bool const& getCurrentTreeFlag_IsData() const{ return isData_currentTree; }
+  bool const& getCurrentTreeFlag_QCDException() const{ return isQCD_currentTree; }
+  bool getPTGExceptionRange(float& vlow, float& vhigh) const{ vlow = pTG_true_exception_range[0]; vhigh = pTG_true_exception_range[1]; return (vlow!=vhigh); }
   SystematicsHelpers::SystematicVariationTypes const& getSystematic() const{ return registeredSyst; }
   std::vector<IvyBase*> const& getObjectHandlers() const{ return registeredHandlers; }
   std::vector<ScaleFactorHandlerBase*> const& getSFHandlers() const{ return registeredSFHandlers; }
-  std::unordered_map<TString, std::vector< std::string > > const& getHLTMenus(){ return registeredHLTMenus; }
-  std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > const& getHLTMenuProperties(){ return registeredHLTMenuProperties; }
+  std::unordered_map<TString, std::vector< std::string > > const& getHLTMenus() const{ return registeredHLTMenus; }
+  std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > const& getHLTMenuProperties() const{ return registeredHLTMenuProperties; }
+  ParticleDisambiguator& getParticleDisambiguator(){ return particleDisambiguator; }
+  ParticleDisambiguator const& getParticleDisambiguator() const{ return particleDisambiguator; }
+  DileptonHandler& getDileptonHandler(){ return dileptonHandler; }
+  DileptonHandler const& getDileptonHandler() const{ return dileptonHandler; }
 
   bool hasSimpleHLTMenus() const{ return registeredHLTMenus.size()>0; }
   bool hasHLTMenuProperties() const{ return registeredHLTMenuProperties.size()>0; }
