@@ -571,6 +571,9 @@ void getTrees(
   // Loop over all events
   theLooper.loop(true);
 
+  // No need for the inputs
+  for (auto& ss:sample_trees) delete ss;
+
   // Write output
   foutput->cd();
   tout->writeToFile(foutput);
