@@ -4,7 +4,7 @@
 CMS3Tag=combined
 CMSSW_release=CMSSW_10_2_22
 CMSSW_release_name=    #Leave this blank if you don't know what it is.  It's just a marker in case you have multiple identical directories.  Don't forget the underscore!
-export SCRAM_ARCH=slc7_amd64_gcc700
+export SCRAM_ARCH=slc6_amd64_gcc700
 
 #--Here there be dragons----
 export CMS_PATH=/cvmfs/cms.cern.ch
@@ -63,8 +63,8 @@ git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
 )
 
 # MELA
-git clone git@github.com:cms-analysis/HiggsAnalysis-JHUGenMELA.git JHUGenMELA
-(cd JHUGenMELA; source setup.sh -j;)
+git clone git@github.com:JHUGenMELA/JHUGenMELA.git
+./JHUGenMELA/setup.sh -j
 
 # MELA Analytics
 git clone git@github.com:MELALabs/MelaAnalytics.git
