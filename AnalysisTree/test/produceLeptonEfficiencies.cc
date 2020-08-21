@@ -790,7 +790,7 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
           if (
             jet->testSelectionBit(AK4JetSelectionHelpers::kTightId)
             &&
-            (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kPUJetId))
+            (!applyPUIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightPUJetId))
             &&
             (!applyTightLeptonVetoIdToAK4Jets || jet->testSelectionBit(AK4JetSelectionHelpers::kTightLeptonVetoId))
             &&

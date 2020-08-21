@@ -239,9 +239,10 @@ float EventFilterHandler::getTriggerWeight(
   return 0;
 }
 
-bool EventFilterHandler::passMETFilters() const{
+bool EventFilterHandler::passMETFilters(EventFilterHandler::METFilterCutType const& cuttype) const{
   bool res = true;
-  for (auto it:product_metfilters) res &= it.second;
+  auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(currentTree, cuttype);
+  for (auto const& it:product_metfilters){ if (HelperFunctions::checkListVariable(strmetfilters, it.first)) res &= it.second; }
   return res;
 }
 
@@ -445,7 +446,7 @@ bool EventFilterHandler::constructTriggerObjects(){
 }
 
 bool EventFilterHandler::constructMETFilters(){
-  auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(currentTree);
+  auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(currentTree, EventFilterHandler::nMETFilterCutTypes);
   product_metfilters.clear();
 
   bool allVariablesPresent = true;
@@ -539,7 +540,7 @@ bool EventFilterHandler::accumulateRunLumiEventBlock(){
   return true;
 }
 
-std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* intree){
+std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* intree, EventFilterHandler::METFilterCutType const& cuttype){
   std::vector<std::string> res;
 
   switch (SampleHelpers::theDataYear){
@@ -551,7 +552,10 @@ std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* int
       "HBHENoiseIsoFilter",
       "EcalDeadCellTriggerPrimitiveFilter"
     };
-    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)) res.push_back("globalSuperTightHalo2016Filter"); // For data or non-FS MC
+    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)){ // For data or non-FS MC
+      if (cuttype>=EventFilterHandler::kMETFilters_Standard) res.push_back("globalSuperTightHalo2016Filter");
+      if (cuttype>=EventFilterHandler::kMETFilters_Tight) res.push_back("globalTightHalo2016Filter");
+    }
     if (SampleHelpers::checkSampleIsData(intree->sampleIdentifier)) res.push_back("eeBadScFilter"); // Only for data
 
     if (!SampleHelpers::checkSampleIs80X(intree->sampleIdentifier)){ // These MET filters are available in CMSSW_VERSION>=94X
@@ -572,7 +576,10 @@ std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* int
       //"BadChargedCandidateFilter", // FIXME: To be updated following https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2017_data
       "ecalBadCalibFilterUpdated"
     };
-    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)) res.push_back("globalSuperTightHalo2016Filter"); // For data or non-FS MC
+    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)){ // For data or non-FS MC
+      if (cuttype>=EventFilterHandler::kMETFilters_Standard) res.push_back("globalSuperTightHalo2016Filter");
+      if (cuttype>=EventFilterHandler::kMETFilters_Tight) res.push_back("globalTightHalo2016Filter");
+    }
     if (SampleHelpers::checkSampleIsData(intree->sampleIdentifier)) res.push_back("eeBadScFilter"); // Only for data
     break;
   }
@@ -587,7 +594,10 @@ std::vector<std::string> EventFilterHandler::acquireMETFilterFlags(BaseTree* int
       //"BadChargedCandidateFilter", // FIXME: To be updated following https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#2018_data
       "ecalBadCalibFilterUpdated"
     };
-    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)) res.push_back("globalSuperTightHalo2016Filter"); // For data or non-FS MC
+    if (!SampleHelpers::checkSampleIsFastSim(intree->sampleIdentifier)){ // For data or non-FS MC
+      if (cuttype>=EventFilterHandler::kMETFilters_Standard) res.push_back("globalSuperTightHalo2016Filter");
+      if (cuttype>=EventFilterHandler::kMETFilters_Tight) res.push_back("globalTightHalo2016Filter");
+    }
     if (SampleHelpers::checkSampleIsData(intree->sampleIdentifier)) res.push_back("eeBadScFilter"); // Only for data
     break;
   }
@@ -624,7 +634,7 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 #undef EVENTFILTER_VERTEX_VARIABLE
 
   // Book MET filters
-  auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(tree);
+  auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(tree, EventFilterHandler::nMETFilterCutTypes);
   for (auto const& strmetfilter:strmetfilters){
     tree->bookBranch<bool>(strmetfilter, true); // Default should be true to avoid non-existing branches
     this->addConsumed<bool>(strmetfilter);

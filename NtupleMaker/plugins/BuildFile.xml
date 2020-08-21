@@ -29,7 +29,7 @@
 <use   name="EgammaAnalysis/ElectronTools"/>
 <use   name="PhysicsTools/NanoAOD"/>
 <use   name="NNKit/FatJetNN"/>
-<use   name="ZZMatrixElement/MELA"/>
+<use   name="JHUGenMELA/MELA"/>
 <use   name="CommonLHETools/LHEHandler"/>
 <use   name="CMSDataTools/AnalysisTree"/>
 <use   name="MelaAnalytics/EventContainer"/>
@@ -43,7 +43,7 @@
 <library   file="*.cc" name="CMS3NtupleMakerPlugins">
   <Flags CPPDEFINES="CMSSW_VERSION=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_//g -e s/patch\.//)"/>
   <Flags CPPDEFINES="CMSSW_VERSION_MAJOR=$(shell echo ${CMSSW_VERSION}|sed -e s/CMSSW_// -e s/_.*//g)"/>
-  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/ZZMatrixElement/MELA/interface/" />
+  <flags CPPFLAGS="-I$(CMSSW_BASE)/src/JHUGenMELA/MELA/interface/" />
   <flags CXXFLAGS="-g -O3"/>
   <flags EDM_PLUGIN="1"/>
 </library>

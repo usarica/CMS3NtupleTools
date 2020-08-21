@@ -49,6 +49,7 @@ namespace SystematicsHelpers{
 
   bool isDownSystematic(SystematicsHelpers::SystematicVariationTypes const& type);
   bool isUpSystematic(SystematicsHelpers::SystematicVariationTypes const& type);
+  SystematicsHelpers::SystematicVariationTypes getSystComplement(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystCoreName(SystematicsHelpers::SystematicVariationTypes const& type);
   std::string getSystName(SystematicsHelpers::SystematicVariationTypes const& type);
 

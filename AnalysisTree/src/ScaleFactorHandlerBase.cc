@@ -1,5 +1,6 @@
 #include "ScaleFactorHandlerBase.h"
 #include "TDirectory.h"
+#include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -15,12 +16,7 @@ void ScaleFactorHandlerBase::closeFile(TFile*& f){
   f = nullptr;
 }
 
-void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){
-  if (!ax) return;
-  int nbins = ax->GetNbins();
-  for (int ix=1; ix<=nbins+1; ix++) res.addBinBoundary(ax->GetBinLowEdge(ix));
-  res.setLabel(ax->GetTitle());
-}
+void ScaleFactorHandlerBase::getAxisBinning(TAxis const* ax, ExtendedBinning& res){ res = HelperFunctions::getExtendedBinning(ax); }
 template<> bool ScaleFactorHandlerBase::getHistogram<TH1F, ExtendedHistogram_1D>(ExtendedHistogram_1D& h, TFile*& f, TString s){
   TDirectory* curdir = gDirectory;
   if (s=="") return false;

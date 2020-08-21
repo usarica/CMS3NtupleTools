@@ -1,4 +1,6 @@
+#include <cassert>
 #include "MuonScaleFactorHandler.h"
+#include "MuonSelectionHelpers.h"
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
 #include "TDirectory.h"
@@ -153,12 +155,13 @@ void MuonScaleFactorHandler::evalScaleFactorFromHistogram(float& theSF, float& t
   theSF *= bc; theSFRelErr = sqrt(pow(theSFRelErr, 2)+pow(be, 2));
 }
 
-void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, MuonScaleFactorHandler::EfficiencyType type, float& val, float* effval) const{
+void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, float const& pt, float const& eta, bool const& passId, bool const& passLooseIso, bool const& passTightIso, float& val, float* effval) const{
   using namespace SystematicsHelpers;
 
   val = 1;
   if (effval) *effval = 1;
 
+  constexpr unsigned int n_ID_iso_types = 3;
   std::vector<SystematicVariationTypes> const allowedSysts={
     sNominal,
     eMuEffStatDn, eMuEffStatUp,
@@ -172,13 +175,14 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
   else if (syst == eMuEffUp) activeSysts = std::vector<SystematicVariationTypes>{ eMuEffStatUp, eMuEffSystUp, eMuEffAltMCUp };
   else if (HelperFunctions::checkListVariable(allowedSysts, syst)) activeSysts = std::vector<SystematicVariationTypes>{ syst };
 
-  std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(kAllEffs);
-  std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(kAllEffs);
+  // Obtain nominal histograms
+  std::vector<ExtendedHistogram_2D const*> hlist_eff_mc; hlist_eff_mc.reserve(n_ID_iso_types);
+  std::vector<ExtendedHistogram_2D const*> hlist_SF_nominal; hlist_SF_nominal.reserve(n_ID_iso_types);
   {
     auto it_syst_SF_id_map = syst_SF_id_map.find(sNominal);
     auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(sNominal);
     auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(sNominal);
-    if ((type == kAllEffs || type == kIdEff) && it_syst_SF_id_map!=syst_SF_id_map.cend()){
+    if (it_syst_SF_id_map!=syst_SF_id_map.cend()){
       hlist_eff_mc.push_back(&eff_mc_id_hists);
       hlist_SF_nominal.push_back(&(it_syst_SF_id_map->second));
     }
@@ -186,7 +190,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       hlist_eff_mc.push_back(nullptr);
       hlist_SF_nominal.push_back(nullptr);
     }
-    if ((type == kAllEffs || type == kLooseIsoEff) && it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()){
+    if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()){
       hlist_eff_mc.push_back(&eff_mc_iso_loose_hists);
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_loose_map->second));
     }
@@ -194,7 +198,7 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       hlist_eff_mc.push_back(nullptr);
       hlist_SF_nominal.push_back(nullptr);
     }
-    if ((type == kAllEffs || type == kTightIsoEff) && it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()){
+    if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()){
       hlist_eff_mc.push_back(&eff_mc_iso_tight_hists);
       hlist_SF_nominal.push_back(&(it_syst_SF_iso_tight_map->second));
     }
@@ -203,82 +207,191 @@ void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVari
       hlist_SF_nominal.push_back(nullptr);
     }
   }
-  std::vector<float> SF_nominal_list; SF_nominal_list.reserve(kAllEffs);
+  // Obtain nominal efficiencies before ID/iso assessment
+  std::vector<float> eff_nominal_unscaled_list(n_ID_iso_types, 1);
+  std::vector<float> eff_nominal_scaled_list(n_ID_iso_types, 1);
   {
     auto it_SF = hlist_SF_nominal.begin();
     auto it_eff_mc = hlist_eff_mc.begin();
+    unsigned int isel = 0;
     while (it_SF != hlist_SF_nominal.end()){
+      assert(isel<n_ID_iso_types);
+
       float SF_val = 1;
       if (*it_SF){
         float SF_err = 0;
         evalScaleFactorFromHistogram(SF_val, SF_err, pt, eta, **it_SF, false, false);
-        if (effval){
-          float eff_err = 0;
-          evalScaleFactorFromHistogram(*effval, eff_err, pt, eta, **it_eff_mc, false, false);
-        }
+        float eff_err = 0;
+        evalScaleFactorFromHistogram(eff_nominal_unscaled_list.at(isel), eff_err, pt, eta, **it_eff_mc, false, false);
       }
 
-      SF_nominal_list.push_back(SF_val);
+      eff_nominal_scaled_list.at(isel) = std::max(0.f, std::min(1.f, SF_val * eff_nominal_unscaled_list.at(isel)));
 
       it_SF++;
       it_eff_mc++;
+      isel++;
     }
   }
-
+  // Calculate the actual ID+iso efficiency based on the three flags
   float SF_err_val = 0;
   float SF_nominal_val = 1;
-  for (auto const& v:SF_nominal_list) SF_nominal_val *= v;
+  float eff_nominal_unscaled_val = 1;
+  float eff_nominal_scaled_val = 1;
+  for (unsigned int isel=0; isel<n_ID_iso_types; isel++){
+    if (!passId && isel>0) continue;
+    if (!passLooseIso && isel>1) continue;
+    float tmp_eff_unscaled=1;
+    float tmp_eff_scaled=1;
+    bool checkFlag = false;
+    if (isel==0) checkFlag = passId;
+    else if (isel==1) checkFlag = passLooseIso;
+    else checkFlag = passTightIso;
+    if (checkFlag){
+      tmp_eff_unscaled = eff_nominal_unscaled_list.at(isel);
+      tmp_eff_scaled = eff_nominal_scaled_list.at(isel);
+    }
+    else{
+      tmp_eff_unscaled = 1. - eff_nominal_unscaled_list.at(isel);
+      tmp_eff_scaled = 1. - eff_nominal_scaled_list.at(isel);
+    }
+    SF_nominal_val *= tmp_eff_scaled / tmp_eff_unscaled;
+    eff_nominal_unscaled_val *= tmp_eff_unscaled;
+    eff_nominal_scaled_val *= tmp_eff_scaled;
+  }
+
   if (!(activeSysts.size() == 1 && activeSysts.front() == sNominal)){
-    std::vector< std::vector<float> > systs_SF_list; systs_SF_list.reserve(activeSysts.size());
-    for (auto const& asyst:activeSysts){
-      auto it_syst_SF_id_map = syst_SF_id_map.find(asyst);
-      auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst);
-      auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst);
+    std::vector< std::vector<float> > eff_syst_scaled_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types, 1));
+    std::vector< std::vector<float> > eff_syst_scaled_complement_lists(activeSysts.size(), std::vector<float>(n_ID_iso_types, 1));
+    {
+      unsigned int ias = 0;
+      for (auto const& asyst:activeSysts){
+        std::vector<float>& eff_syst_scaled_list = eff_syst_scaled_lists.at(ias);
+        std::vector<float>& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
 
-      std::vector<ExtendedHistogram_2D const*> hlist_SF; hlist_SF.reserve(kAllEffs);
-      if ((type == kAllEffs || type == kIdEff) && it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF.push_back(&(it_syst_SF_id_map->second));
-      else hlist_SF.push_back(nullptr);
-      if ((type == kAllEffs || type == kLooseIsoEff) && it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_loose_map->second));
-      else hlist_SF.push_back(nullptr);
-      if ((type == kAllEffs || type == kTightIsoEff) && it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_tight_map->second));
-      else hlist_SF.push_back(nullptr);
+        std::vector<ExtendedHistogram_2D const*> hlist_SF; hlist_SF.reserve(n_ID_iso_types);
+        {
+          auto it_syst_SF_id_map = syst_SF_id_map.find(asyst);
+          auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst);
+          auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst);
 
-      systs_SF_list.push_back(std::vector<float>(hlist_SF.size(), 1));
-      std::vector<float>& current_SF_list = systs_SF_list.back();
-
-      auto it_SF = hlist_SF.begin();
-      auto it_SF_val = current_SF_list.begin();
-      while (it_SF != hlist_SF.end()){
-        if (*it_SF){
-          float val_err = 0;
-          evalScaleFactorFromHistogram(*it_SF_val, val_err, pt, eta, **it_SF, false, false);
+          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF.push_back(&(it_syst_SF_id_map->second));
+          else hlist_SF.push_back(nullptr);
+          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_loose_map->second));
+          else hlist_SF.push_back(nullptr);
+          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF.push_back(&(it_syst_SF_iso_tight_map->second));
+          else hlist_SF.push_back(nullptr);
         }
-        else{
-          *it_SF_val = SF_nominal_list.at(it_SF - hlist_SF.begin());
+
+        // Get complementary syst
+        std::vector<ExtendedHistogram_2D const*> hlist_SF_cpl; hlist_SF_cpl.reserve(n_ID_iso_types);
+        if (activeSysts.size() > 1){
+          SystematicVariationTypes asyst_cpl = getSystComplement(asyst);
+          auto it_syst_SF_id_map = syst_SF_id_map.find(asyst_cpl);
+          auto it_syst_SF_iso_loose_map = syst_SF_iso_loose_map.find(asyst_cpl);
+          auto it_syst_SF_iso_tight_map = syst_SF_iso_tight_map.find(asyst_cpl);
+
+          if (it_syst_SF_id_map!=syst_SF_id_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_id_map->second));
+          else hlist_SF_cpl.push_back(nullptr);
+          if (it_syst_SF_iso_loose_map!=syst_SF_iso_loose_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_loose_map->second));
+          else hlist_SF_cpl.push_back(nullptr);
+          if (it_syst_SF_iso_tight_map!=syst_SF_iso_tight_map.cend()) hlist_SF_cpl.push_back(&(it_syst_SF_iso_tight_map->second));
+          else hlist_SF_cpl.push_back(nullptr);
         }
-        it_SF++;
-        it_SF_val++;
+
+        {
+          auto it_SF = hlist_SF.begin(); // Input
+          auto it_SF_cpl = hlist_SF_cpl.begin(); // Input
+          auto it_eff_nominal_unscaled_val = eff_nominal_unscaled_list.begin(); // Input
+          auto it_eff_nominal_scaled_val = eff_nominal_scaled_list.begin(); // Input
+          auto it_eff_syst_scaled_val = eff_syst_scaled_list.begin(); // Output
+          auto it_eff_syst_scaled_cpl_val = eff_syst_scaled_complement_list.begin(); // Output
+          while (it_SF != hlist_SF.end()){
+            if (*it_SF){
+              float SF_val = 1;
+              float val_err = 0;
+              evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF, false, false);
+              *it_eff_syst_scaled_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
+            }
+            else *it_eff_syst_scaled_val = *it_eff_nominal_scaled_val;
+
+            if (!hlist_SF_cpl.empty()){
+              if (*it_SF_cpl){
+                float SF_val = 1;
+                float val_err = 0;
+                evalScaleFactorFromHistogram(SF_val, val_err, pt, eta, **it_SF_cpl, false, false);
+                *it_eff_syst_scaled_cpl_val = std::max(0.f, std::min(1.f, SF_val * (*it_eff_nominal_unscaled_val)));
+              }
+              else *it_eff_syst_scaled_cpl_val = *it_eff_nominal_scaled_val;
+
+              it_SF_cpl++;
+            }
+            else *it_eff_syst_scaled_cpl_val = *it_eff_syst_scaled_val;
+
+            it_SF++;
+            it_eff_nominal_unscaled_val++;
+            it_eff_nominal_scaled_val++;
+            it_eff_syst_scaled_val++;
+            it_eff_syst_scaled_cpl_val++;
+          }
+        }
+
+        ias++;
       }
     }
-    for (auto const& syst_SF_list:systs_SF_list){
-      float SF_syst=1;
-      for (auto const& v:syst_SF_list) SF_syst *= v;
+    for (unsigned int ias=0; ias<activeSysts.size(); ias++){
+      auto const& asyst = activeSysts.at(ias);
+      std::vector<float> const& eff_syst_scaled_list = eff_syst_scaled_lists.at(ias);
+      std::vector<float> const& eff_syst_scaled_complement_list = eff_syst_scaled_complement_lists.at(ias);
+
+      float eff_syst = 1;
+      for (unsigned int isel=0; isel<n_ID_iso_types; isel++){
+        if (!passId && isel>0) continue;
+        if (!passLooseIso && isel>1) continue;
+        
+        float tmp_eff_syst=1;
+        
+        bool checkFlag = false;
+        if (isel==0) checkFlag = passId;
+        else if (isel==1) checkFlag = passLooseIso;
+        else checkFlag = passTightIso;
+
+        if (activeSysts.size() == 1) tmp_eff_syst = eff_syst_scaled_list.at(isel);
+        else{
+          if (isDownSystematic(asyst)) tmp_eff_syst = std::min(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
+          else tmp_eff_syst = std::max(eff_syst_scaled_list.at(isel), eff_syst_scaled_complement_list.at(isel));
+        }
+
+        if (!checkFlag) tmp_eff_syst = 1. - tmp_eff_syst;
+
+        eff_syst *= tmp_eff_syst;
+      }
+
+      float SF_syst = eff_syst / eff_nominal_unscaled_val;
       if (activeSysts.size() == 1) SF_err_val = SF_syst - SF_nominal_val;
       else{
         SF_err_val = std::sqrt(std::pow(SF_err_val, 2) + std::pow(SF_syst - SF_nominal_val, 2));
-        if (syst == eMuEffDn || syst == eMuEffStatDn || syst == eMuEffSystDn || syst == eMuEffAltMCDn) SF_err_val *= -1.;
+        if (SF_syst < SF_nominal_val) SF_err_val *= -1.;
       }
     }
   }
 
   val = SF_nominal_val + SF_err_val;
-  if (effval) *effval = std::min(1.f, (*effval)*val);
+  if (effval) *effval = std::max(0.f, std::min(1.f, eff_nominal_unscaled_val*val));
 }
-void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, MuonScaleFactorHandler::EfficiencyType type, float& val, float* effval) const{
+void MuonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVariationTypes const& syst, MuonObject const* obj, float& val, float* effval) const{
   val = 1;
   if (effval) *effval = 0;
 
   if (!obj) return;
 
-  getIdIsoSFAndEff(syst, obj->pt(), obj->eta(), type, val, effval);
+  bool passId = (
+    obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_id)
+    &&
+    (MuonSelectionHelpers::bit_preselection_time != MuonSelectionHelpers::kValidMuonSystemTime || obj->testSelectionBit(MuonSelectionHelpers::bit_preselection_time))
+    );
+  bool passLooseIso = passId && obj->testSelectionBit(MuonSelectionHelpers::kFakeableBaseIso);
+  bool passTightIso = passId && obj->testSelectionBit(MuonSelectionHelpers::bit_preselectionTight_iso);
+  if (passTightIso) assert(passLooseIso);
+
+  getIdIsoSFAndEff(syst, obj->pt(), obj->eta(), passId, passLooseIso, passTightIso, val, effval);
 }

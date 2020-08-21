@@ -63,8 +63,8 @@ git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
 )
 
 # MELA
-git clone git@github.com:cms-analysis/HiggsAnalysis-ZZMatrixElement.git ZZMatrixElement
-(cd ZZMatrixElement; source setup.sh -j;)
+git clone git@github.com:cms-analysis/HiggsAnalysis-JHUGenMELA.git JHUGenMELA
+(cd JHUGenMELA; source setup.sh -j;)
 
 # MELA Analytics
 git clone git@github.com:MELALabs/MelaAnalytics.git

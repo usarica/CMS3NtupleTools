@@ -30,6 +30,7 @@ namespace MuonSelectionHelpers{
     kProbeId, // TnP
     kProbeSTAId, // TnP STA
 
+    kFakeableBaseIso,
     kFakeableBase,
     kFakeable,
 
