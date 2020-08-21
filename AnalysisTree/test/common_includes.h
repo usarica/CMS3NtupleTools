@@ -35,6 +35,8 @@
 
 #include "DiscriminantClasses.h"
 
+#include "BaseTreeLooper.h"
+
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"

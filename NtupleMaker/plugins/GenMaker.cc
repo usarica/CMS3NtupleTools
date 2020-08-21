@@ -4,7 +4,7 @@
 #include <CMS3/NtupleMaker/interface/plugins/GenMaker.h>
 #include <CMS3/NtupleMaker/interface/MCUtilities.h>
 
-#include <ZZMatrixElement/MELA/interface/PDGHelpers.h>
+#include <JHUGenMELA/MELA/interface/PDGHelpers.h>
 
 #include "MELAStreamHelpers.hh"
 
