@@ -22,9 +22,11 @@ BaseTreeLooper::BaseTreeLooper() :
   IvyBase(),
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
+
   maxNEvents(-1),
   eventIndex_begin(-1),
   eventIndex_end(-1),
+  useChunkIndices(false),
 
   isData_currentTree(false),
   isQCD_currentTree(false)
@@ -34,19 +36,21 @@ BaseTreeLooper::BaseTreeLooper() :
   setExternalProductList();
   setCurrentOutputTree();
 }
-BaseTreeLooper::BaseTreeLooper(BaseTree* inTree) :
+BaseTreeLooper::BaseTreeLooper(BaseTree* inTree, double wgt) :
   IvyBase(),
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
+
   maxNEvents(-1),
   eventIndex_begin(-1),
   eventIndex_end(-1),
+  useChunkIndices(false),
 
   isData_currentTree(false),
   isQCD_currentTree(false)
 
 {
-  this->addTree(inTree);
+  this->addTree(inTree, wgt);
   set_pTG_exception_range(-1, -1);
   setExternalProductList();
   setCurrentOutputTree();
@@ -56,9 +60,11 @@ BaseTreeLooper::BaseTreeLooper(std::vector<BaseTree*> const& inTreeList) :
 
   looperFunction(nullptr),
   registeredSyst(SystematicsHelpers::nSystematicVariations),
+
   maxNEvents(-1),
   eventIndex_begin(-1),
   eventIndex_end(-1),
+  useChunkIndices(false),
 
   isData_currentTree(false),
   isQCD_currentTree(false),
@@ -71,8 +77,11 @@ BaseTreeLooper::BaseTreeLooper(std::vector<BaseTree*> const& inTreeList) :
 }
 BaseTreeLooper::~BaseTreeLooper(){}
 
-void BaseTreeLooper::addTree(BaseTree* tree){
-  if (tree && !HelperFunctions::checkListVariable(this->treeList, tree)) this->treeList.push_back(tree);
+void BaseTreeLooper::addTree(BaseTree* tree, double wgt){
+  if (tree && !HelperFunctions::checkListVariable(this->treeList, tree)){
+    this->treeList.push_back(tree);
+    setExternalWeight(tree, wgt);
+  }
 }
 
 void BaseTreeLooper::addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn){
@@ -85,6 +94,15 @@ void BaseTreeLooper::addObjectHandler(IvyBase* handler){
 }
 void BaseTreeLooper::addSFHandler(ScaleFactorHandlerBase* handler){
   if (handler && !HelperFunctions::checkListVariable(this->registeredSFHandlers, handler)) this->registeredSFHandlers.push_back(handler);
+}
+
+void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
+  if (!tree) return;
+  if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
+    << "BaseTreeLooper::setExternalWeight: Warning! Tree " << tree->sampleIdentifier
+    << " is not in the list of input trees, but a weight of " << wgt << " is being assigned to it."
+    << endl;
+  globalWeights[tree] = wgt;
 }
 
 void BaseTreeLooper::setExternalProductList(std::vector<SimpleEntry>* extProductListRef){
@@ -164,6 +182,19 @@ void BaseTreeLooper::loop(bool keepProducts){
     return;
   }
 
+  // Count total number of events
+  int nevents_total = 0;
+  for (auto& tree:treeList) nevents_total += tree->getNEvents();
+
+  // Adjust event ranges to actual event indices
+  if (this->useChunkIndices && eventIndex_end>0){
+    const int ichunk = eventIndex_begin;
+    const int nchunks = eventIndex_end;
+    int ev_inc = static_cast<int>(float(nevents_total)/float(nchunks));
+    eventIndex_begin = ev_inc*ichunk;
+    eventIndex_end = std::min(nevents_total, (ichunk == nchunks-1 ? nevents_total : eventIndex_begin + ev_inc));
+  }
+
   // Loop over the trees
   unsigned int ev_traversed=0;
   unsigned int ev_acc=0;
@@ -172,7 +203,16 @@ void BaseTreeLooper::loop(bool keepProducts){
     // Skip the tree if it cannot be wrapped
     if (!(this->wrapTree(tree))) continue;
 
-    float globalTreeWeight = 1;
+    if (
+      this->isData_currentTree
+      &&
+      (eventIndex_begin>0 || (eventIndex_end>0 && eventIndex_end<nevents_total))
+      ){
+      MELAerr << "BaseTreeLooper::loop: " << tree->sampleIdentifier << " is a data tree, and splitting events is not permitted for data!" << endl;
+      assert(0);
+    }
+
+    double globalTreeWeight = 1;
     auto it_globalWgt = globalWeights.find(tree);
     if (it_globalWgt!=globalWeights.cend()) globalTreeWeight = it_globalWgt->second;
 

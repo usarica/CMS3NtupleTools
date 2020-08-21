@@ -106,7 +106,6 @@ std::vector<float> BtagHelpers::getBtagWPs(bool is80X){
   return res;
 }
 
-
 TString BtagHelpers::getBtagSFFileName(BtagWPType type){
   TString res;
 
