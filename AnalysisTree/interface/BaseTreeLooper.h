@@ -15,7 +15,7 @@
 
 class BaseTreeLooper : public IvyBase{
 public:
-  typedef bool(*LooperCoreFunction_t)(BaseTreeLooper*, float const&, SimpleEntry&);
+  typedef bool(*LooperCoreFunction_t)(BaseTreeLooper*, double const&, SimpleEntry&);
   typedef void(*LooperExtFunction_t)(BaseTreeLooper*, SimpleEntry&);
 
 protected:
@@ -31,6 +31,7 @@ protected:
   // Event index ranges
   int eventIndex_begin;
   int eventIndex_end;
+  bool useChunkIndices;
 
   // Variables set per tree
   bool isData_currentTree;
@@ -55,7 +56,7 @@ protected:
   std::unordered_map<TString, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > > registeredHLTMenuProperties;
 
   // External dependencies
-  std::unordered_map<BaseTree*, float> globalWeights;
+  std::unordered_map<BaseTree*, double> globalWeights;
   std::unordered_map<TString, LooperExtFunction_t> externalFunctions;
 
   // Output trees
@@ -81,20 +82,23 @@ protected:
 public:
   // Constructors
   BaseTreeLooper();
-  BaseTreeLooper(BaseTree* inTree);
+  BaseTreeLooper(BaseTree* inTree, double wgt=1);
   BaseTreeLooper(std::vector<BaseTree*> const& inTreeList);
-  void addTree(BaseTree* tree);
 
   // Destructors
   virtual ~BaseTreeLooper();
 
   // Add the necessary objects
+  void addTree(BaseTree* tree, double wgt=1); // Adds a new input tree
   void addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn);
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
+  void addHLTMenu(TString name, std::vector< std::string > const& hltmenu);
+  void addHLTMenu(TString name, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltmenu);
 
   void setLooperFunction(BaseTreeLooper::LooperCoreFunction_t fcn){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }
+  void setExternalWeight(BaseTree* tree, double const& wgt);
 
   void setExternalProductList(std::vector<SimpleEntry>* extProductListRef=nullptr);
   void setCurrentOutputTree(BaseTree* extTree=nullptr);
@@ -104,8 +108,9 @@ public:
   // Max. events
   void setMaximumEvents(int n);
 
-  // Event index offset
+  // Event index range
   void setEventIndexRange(int istart, int iend);
+  void setEventIndexRangeBySampleChunks(bool flag){ useChunkIndices = flag; } // Set if the function above uses chunk indices instead of actual event ranges
 
   // Get-functions
   int const& getMaximumEvents() const{ return maxNEvents; }
