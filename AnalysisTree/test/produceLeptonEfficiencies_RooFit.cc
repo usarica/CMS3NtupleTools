@@ -31,8 +31,8 @@
 #include <HiggsAnalysis/CombinedLimit/interface/FastTemplateFunc.h>
 #include <HiggsAnalysis/CombinedLimit/interface/RooRealFlooredSumPdf.h>
 #include <HiggsAnalysis/CombinedLimit/interface/HZZ2L2QRooPdfs.h>
-#include <ZZMatrixElement/MELA/interface/TNumericUtil.hh>
-#include <ZZMatrixElement/MELA/interface/MELANCSplineFactory_1D.h>
+#include <JHUGenMELA/MELA/interface/TNumericUtil.hh>
+#include <JHUGenMELA/MELA/interface/MELANCSplineFactory_1D.h>
 #include <CMSDataTools/AnalysisTree/interface/ExtendedFunctions.h>
 #include <CMS3/MELAHelpers/interface/CMS3MELAHelpers.h>
 

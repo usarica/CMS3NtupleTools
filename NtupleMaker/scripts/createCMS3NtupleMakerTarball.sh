@@ -17,8 +17,8 @@ external \
 bin \
 src/CMSDataTools \
 src/CommonLHETools \
-src/ZZMatrixElement/MELA \
-src/ZZMatrixElement/setup.sh \
+src/JHUGenMELA/MELA \
+src/JHUGenMELA/setup.sh \
 src/MelaAnalytics \
 src/PhysicsTools \
 src/RecoEcal \
@@ -27,7 +27,7 @@ src/EgammaAnalysis \
 src/NNKit \
 src/CMS3 \
 --exclude=lib/${SCRAM_ARCH}/* \
---exclude=src/ZZMatrixElement/MELA/test/reference \
+--exclude=src/JHUGenMELA/MELA/test/reference \
 --exclude=src/CommonLHETools/LHEHandler/test/*.root \
 --exclude=src/CMS3/AnalysisTree \
 --exclude=src/CMS3/NtupleMaker/test/output* \

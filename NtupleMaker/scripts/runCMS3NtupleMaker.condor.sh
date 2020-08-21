@@ -128,16 +128,16 @@ echo "================================="
 
 
 # Needed to locate the include directory of MELA classes. It can get lost.
-export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/interface
+export ROOT_INCLUDE_PATH=${ROOT_INCLUDE_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/interface
 # Ensure CMSSW can find libmcfm
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}
 # Do not do the one below instead of the above; it will create problems when loading the MELA library interactively
-# cp ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
+# cp ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/${SCRAM_ARCH}/*.so ${CMSSW_BASE}/lib/${SCRAM_ARCH}/
 
 
 # Compile CMSSW-dependent packages
 (
-  cd ZZMatrixElement
+  cd JHUGenMELA
 
   ./setup.sh clean
   ./setup.sh -j &>> compilation.log
@@ -173,12 +173,12 @@ echo -e "\n--- Begin RUN ---\n"
 RUNDIR=$(pwd)
 # Copy MELA-linked objects in case symlink does not work
 ## Taken from Mela.cc
-cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/process.DAT ./
-cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/br.sm1 ./
-cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/br.sm2 ./
-cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/ffwarn.dat ./
-cp -f ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/input.DAT ./
-cp -rf ${CMSSW_BASE}/src/ZZMatrixElement/MELA/data/Pdfdata ./
+cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/process.DAT ./
+cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/br.sm1 ./
+cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/br.sm2 ./
+cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/ffwarn.dat ./
+cp -f ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/input.DAT ./
+cp -rf ${CMSSW_BASE}/src/JHUGenMELA/MELA/data/Pdfdata ./
 # Run main_pset.py
 RUNFILE=main_pset.py
 RUN_CMD=$(runGenericExecutable.py --executable="$RUNFILE" --command="$FCNARGS" --dry)

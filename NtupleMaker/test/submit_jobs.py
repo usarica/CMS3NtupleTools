@@ -12,7 +12,7 @@ from metis.StatsParser import StatsParser
 from metis.Utils import send_email, interruptible_sleep
 from metis.Optimizer import Optimizer
 
-# To make tarfile use command:  mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "ZZMatrixElement/MELA/data/Pdfdata" "*ZZMatrixElement/MELA/data/*.root"
+# To make tarfile use command:  mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "JHUGenMELA/MELA/data/Pdfdata" "*JHUGenMELA/MELA/data/*.root"
 
 def get_tasks(csvs, tarfile, tag, doTestRun):
 
