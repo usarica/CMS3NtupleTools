@@ -491,6 +491,8 @@ void getTrees(
   theLooper.addSFHandler(&btagSFHandler);
   // Set output tree
   theLooper.addOutputTree(tout);
+  // Register the HLT menus
+  theLooper.addHLTMenu("SinglePhoton", triggerPropsCheckList);
 
   curdir->cd();
 

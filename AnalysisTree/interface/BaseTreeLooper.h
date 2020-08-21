@@ -93,6 +93,8 @@ public:
   void addExternalFunction(TString fcnname, BaseTreeLooper::LooperExtFunction_t fcn);
   void addObjectHandler(IvyBase* handler);
   void addSFHandler(ScaleFactorHandlerBase* handler);
+  void addHLTMenu(TString name, std::vector< std::string > const& hltmenu);
+  void addHLTMenu(TString name, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltmenu);
 
   void setLooperFunction(BaseTreeLooper::LooperCoreFunction_t fcn){ looperFunction = fcn; }
   void setSystematic(SystematicsHelpers::SystematicVariationTypes const& syst){ registeredSyst = syst; }

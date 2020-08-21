@@ -96,6 +96,15 @@ void BaseTreeLooper::addSFHandler(ScaleFactorHandlerBase* handler){
   if (handler && !HelperFunctions::checkListVariable(this->registeredSFHandlers, handler)) this->registeredSFHandlers.push_back(handler);
 }
 
+void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::string > const& hltmenu){
+  if (registeredHLTMenus.find(name)!=registeredHLTMenus.end()) MELAerr << "BaseTreeLooper::addHLTMenu: Simple HLT menu " << name << " already exists but will override it regardless." << endl;
+  registeredHLTMenus[name] = hltmenu;
+}
+void BaseTreeLooper::addHLTMenu(TString name, std::vector< std::pair<TriggerHelpers::TriggerType, HLTTriggerPathProperties const*> > const& hltmenu){
+  if (registeredHLTMenuProperties.find(name)!=registeredHLTMenuProperties.end()) MELAerr << "BaseTreeLooper::addHLTMenu: HLT menu properties " << name << " already exists but will override it regardless." << endl;
+  registeredHLTMenuProperties[name] = hltmenu;
+}
+
 void BaseTreeLooper::setExternalWeight(BaseTree* tree, double const& wgt){
   if (!tree) return;
   if (this->verbosity>=TVar::INFO && !HelperFunctions::checkListVariable(treeList, tree)) MELAout
