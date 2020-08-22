@@ -1074,6 +1074,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_egPFElectron_t, id_egamma_pfElectron_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV1_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV2_Bits, n_objects);
 
@@ -1190,6 +1191,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
 
+    PUSH_USERINT_INTO_VECTOR(id_egamma_pfElectron_Bits);
+
     PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulationV1_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_triggerEmulationV2_Bits);
 
@@ -1297,6 +1300,8 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Loose_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, id_egamma_pfElectron_Bits);
 
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulationV1_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_triggerEmulationV2_Bits);
