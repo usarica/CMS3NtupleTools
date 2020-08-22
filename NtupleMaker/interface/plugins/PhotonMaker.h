@@ -16,6 +16,7 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
+#include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 
 
 class PhotonMaker : public edm::stream::EDProducer<>{
@@ -32,6 +33,8 @@ protected:
   std::unordered_map< std::string, std::vector< StringCutObjectSelector<pat::Photon, true> > > MVACutObjects;
 
   edm::EDGetTokenT< edm::View<pat::Photon> > photonsToken;
+
+  edm::EDGetTokenT< edm::View<pat::PackedCandidate> > pfcandsToken;
 
   edm::EDGetTokenT< double > rhoToken;
 
@@ -50,8 +53,15 @@ private:
   void setCutBasedIdUserVariables(edm::View<pat::Photon>::const_iterator const&, pat::Photon&, std::string const&, std::string const&) const;
 
   void setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_iterator const&, pat::Photon&) const;
+  void setEGammaPFPhotonIdSelectionBits(edm::View<pat::Photon>::const_iterator const&, pat::PackedCandidate const*, pat::Photon&) const;
 
   static float getRecHitEnergyTime(DetId const&, EcalRecHitCollection const*, EcalRecHitCollection const*, unsigned short, unsigned short, float* outtime=nullptr);
+
+  void get_photon_pfphoton_matchMap(
+    edm::Event const& iEvent,
+    edm::Handle< edm::View<pat::Photon> > const& photonsHandle, edm::Handle< edm::View<pat::PackedCandidate> > const& pfcandsHandle,
+    std::unordered_map<pat::Photon const*, pat::PackedCandidate const*>& res
+  ) const;
 
 };
 

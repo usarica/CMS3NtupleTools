@@ -14,13 +14,14 @@
 #include <DataFormats/EcalDetId/interface/EEDetId.h>
 #include <DataFormats/EcalDetId/interface/EcalSubdetector.h>
 
-#include "CMS3/NtupleMaker/interface/plugins/PhotonMaker.h"
-#include "CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h"
+#include <CMS3/NtupleMaker/interface/plugins/PhotonMaker.h>
+#include <CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h>
+#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
-#include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 
-#include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -40,6 +41,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
   setupMVACuts();
 
   photonsToken = consumes< edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
+
+  pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("pfcandsInputTag"));
 
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
 
@@ -73,6 +76,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle< edm::View<pat::Photon> > photons_h;
   iEvent.getByToken(photonsToken, photons_h);
   if (!photons_h.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting photons from the event...");
+
+  edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
+  iEvent.getByToken(pfcandsToken, pfcandsHandle);
+  if (!pfcandsHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting the PF candidate collection from the event...");
+  //std::unordered_map<pat::Photon const*, pat::PackedCandidate const*> photon_pfphoton_map;
+  //get_photon_pfphoton_matchMap(iEvent, photons_h, pfcandsHandle, photon_pfphoton_map);
 
   edm::Handle< EcalRecHitCollection > ebhitsHandle;
   iEvent.getByToken(ebhitsToken, ebhitsHandle);
@@ -123,16 +132,17 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // Id variables
     photon_result.addUserFloat("etaSC", photon->superCluster()->eta());
+    photon_result.addUserInt("hcal_is_valid", photon->hadTowOverEmValid()); // Same as reco::Photon::hadronicOverEmValid()
     photon_result.addUserFloat("hOverE", photon->hadronicOverEm());
     photon_result.addUserFloat("hOverEtowBC", photon->hadTowOverEm());
     photon_result.addUserFloat("sigmaIEtaIEta", photon->sigmaIetaIeta());
-    //photon_result.addUserFloat("full5x5_hOverE", photon->hadronicOverEm());
-    //photon_result.addUserFloat("full5x5_hOverEtowBC", photon->hadTowOverEm());
+    photon_result.addUserFloat("sigmaIPhiIPhi", photon->showerShapeVariables().sigmaIphiIphi); // There is no such reco::Photon::sigmaIphiIphi() equivalent...
+    photon_result.addUserFloat("r9", photon->r9());
     photon_result.addUserFloat("full5x5_sigmaIEtaIEta", photon->full5x5_sigmaIetaIeta());
     photon_result.addUserFloat("full5x5_sigmaIPhiIPhi", photon->full5x5_showerShapeVariables().sigmaIphiIphi); // There is no such reco::Photon::full5x5_sigmaIphiIphi() equivalent...
     photon_result.addUserFloat("full5x5_r9", photon->full5x5_r9());
 
-    // Compute the swiss cross variable
+    // Compute the swiss cross variable and add seed time
     float E4overE1 = -99;
     float seedTime = 0;
     reco::CaloClusterPtr photon_seed = photon->seed();
@@ -142,7 +152,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if (photon_seed.isNonnull()){
       auto const& seedHitsAndFractions = photon_seed->hitsAndFractions();
       if (!seedHitsAndFractions.empty()){
-        const DetId seedId = seedHitsAndFractions.at(0).first;
+        const DetId seedId = seedHitsAndFractions.front().first;
         float e1 = getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, 0, &seedTime);
         if (e1>0.f){
           float s4 = 0;
@@ -168,8 +178,15 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     setCutBasedIdUserVariables(photon, photon_result, "cutBasedPhotonID-Fall17-94X-V2-tight", "Fall17V2_Tight");
 
     // Isolation
-    photon_result.addUserFloat("tkIsoHollow03", photon->trkSumPtHollowConeDR03());
-    photon_result.addUserFloat("ntkIsoHollow03", photon->nTrkHollowConeDR03());
+    // Refer to parameter settings in RecoEgamma/PhotonIdentification/python/isolationCalculator_cfi.py
+    photon_result.addUserFloat("trkIso03_hollow", photon->trkSumPtHollowConeDR03());
+    photon_result.addUserFloat("trkIso03_hollow_ntrk", photon->nTrkHollowConeDR03());
+    photon_result.addUserFloat("trkIso03_solid", photon->trkSumPtSolidConeDR03());
+    photon_result.addUserFloat("trkIso03_solid_ntrk", photon->nTrkSolidConeDR03());
+    photon_result.addUserFloat("ecalRecHitIso03", photon->ecalRecHitSumEtConeDR03());
+    photon_result.addUserFloat("hcalTowerIso03", photon->hcalTowerSumEtConeDR03());
+
+    // PF cluster isolations
     photon_result.addUserFloat("ecalPFClusterIso", photon->ecalPFClusterIso());
     photon_result.addUserFloat("hcalPFClusterIso", photon->hcalPFClusterIso());
 
@@ -181,6 +198,7 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserFloat("pfNeutralHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoNeutralHadron(*photon, year_, rho_event));
     photon_result.addUserFloat("pfEMIso_EAcorr", PhotonSelectionHelpers::photonPFIsoEM(*photon, year_, rho_event));
     photon_result.addUserFloat("pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(*photon, year_, rho_event));
+    photon_result.addUserFloat("pfWorstChargedHadronIso", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(*photon, year_, pfcandsHandle->begin(), pfcandsHandle->end()));
 
     // Uses the 'pfEMIso_EAcorr' user float, so call this function after setting this user variable
     setCutBasedHGGIdSelectionBits(photon, photon_result);
@@ -191,10 +209,65 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // Associated candidates
     auto associated_pfcands = photon->associatedPackedPFCandidates();
-    double associated_pfcands_sum_sc_pt=0;
-    for (auto const& pfcand:associated_pfcands) associated_pfcands_sum_sc_pt += pfcand->pt();
-    photon_result.addUserInt("n_associated_pfcands", associated_pfcands.size());
+    pat::PackedCandidate const* closestPFPhoton_associated = nullptr;
+    float min_dR_photon_pfphoton_associated = -1;
+    std::vector<pat::PackedCandidate const*> pfphotoncands;
+    unsigned int n_associated_pfcands = associated_pfcands.size();
+    double associated_pfcands_sum_sc_pt = 0;
+    for (auto const& pfcand:associated_pfcands){
+      associated_pfcands_sum_sc_pt += pfcand->pt();
+      if (pfcand->pdgId() == 22) pfphotoncands.push_back(&(*pfcand));
+    }
+    unsigned int n_associated_pfphotons = pfphotoncands.size();
+    // Do photon - PFcand matching
+    {
+      std::vector<pat::Photon const*> dummy_photon_list; dummy_photon_list.push_back(&(*photon));
+      std::unordered_map<pat::Photon const*, pat::PackedCandidate const*> patphoton_pfphoton_map;
+      CMS3ObjectHelpers::matchParticles(
+        CMS3ObjectHelpers::kMatchBy_DeltaR,
+        dummy_photon_list.begin(), dummy_photon_list.end(),
+        pfphotoncands.begin(), pfphotoncands.end(),
+        patphoton_pfphoton_map
+      );
+      auto it_match = patphoton_pfphoton_map.find(&(*photon));
+      if (it_match != patphoton_pfphoton_map.end() && it_match->second){
+        closestPFPhoton_associated = it_match->second;
+        min_dR_photon_pfphoton_associated = reco::deltaR(closestPFPhoton_associated->p4(), photon->p4());
+      }
+    }
+    // Record
+    photon_result.addUserInt("n_associated_pfcands", n_associated_pfcands);
+    photon_result.addUserInt("n_associated_pfphotons", n_associated_pfphotons);
     photon_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
+    photon_result.addUserFloat("min_dR_photon_pfphoton_associated", min_dR_photon_pfphoton_associated);
+    {
+      float closestPFPhoton_associated_px=0, closestPFPhoton_associated_py=0;
+      if (closestPFPhoton_associated){
+        closestPFPhoton_associated_px = closestPFPhoton_associated->px();
+        closestPFPhoton_associated_py = closestPFPhoton_associated->py();
+      }
+      photon_result.addUserFloat("closestPFPhoton_associated_px", closestPFPhoton_associated_px);
+      photon_result.addUserFloat("closestPFPhoton_associated_py", closestPFPhoton_associated_py);
+    }
+
+    // Do the same with global matching
+    // No need for global matching because they only give dR>dR_hollow candidates, which are useless for this purpose.
+    /*
+    pat::PackedCandidate const* closestPFPhoton_global = nullptr;
+    float min_dR_photon_pfphoton_global = -1;
+    {
+      auto it_match = photon_pfphoton_map.find(&(*photon));
+      if (it_match != photon_pfphoton_map.end() && it_match->second){
+        closestPFPhoton_global = it_match->second;
+        min_dR_photon_pfphoton_global = reco::deltaR(closestPFPhoton_global->p4(), photon->p4());
+      }
+    }
+    photon_result.addUserFloat("min_dR_photon_pfphoton_global", min_dR_photon_pfphoton_global);
+    */
+
+    // Add EGamma PFPhoton ID
+    // Use the associated PF photon candidate for MET safety checks
+    setEGammaPFPhotonIdSelectionBits(photon, closestPFPhoton_associated, photon_result);
 
     //////////////////////
     // Fiduciality Mask //
@@ -300,6 +373,7 @@ void PhotonMaker::setCutBasedIdUserVariables(edm::View<pat::Photon>::const_itera
 }
 
 void PhotonMaker::setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_iterator const& photon, pat::Photon& photon_result) const{
+  // Taken from AN-19-149
   double const etaSC = photon->superCluster()->eta();
   double const abs_etaSC = std::abs(etaSC);
   double const hOverE = photon->hadronicOverEm();
@@ -308,7 +382,7 @@ void PhotonMaker::setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_it
   double const r9 = photon->r9();
   double const r9_full5x5 = photon->full5x5_r9();
   double const pfPhotonIsoCorr = photon_result.userFloat("pfEMIso_EAcorr");
-  double const trkIso = photon->trackIso();
+  double const trkIso = photon->trkSumPtHollowConeDR03();
   bool isEB = photon->isEB();
   if (isEB == photon->isEE()) isEB = (abs_etaSC<1.479);
 
@@ -324,6 +398,17 @@ void PhotonMaker::setCutBasedHGGIdSelectionBits(edm::View<pat::Photon>::const_it
 
   photon_result.addUserInt("id_cutBased_HGG_Bits", pass_HGGId);
 }
+
+void PhotonMaker::setEGammaPFPhotonIdSelectionBits(edm::View<pat::Photon>::const_iterator const& photon, pat::PackedCandidate const* pfCand, pat::Photon& photon_result) const{
+  // Selection flow follows RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc
+  cms3_photon_cutbasedbits_egPFPhoton_t id_egamma_pfPhoton_Bits = 0;
+
+  if (PhotonSelectionHelpers::testEGammaPFPhotonSelection(*photon, year_)) id_egamma_pfPhoton_Bits |= 1 << ISEGAMMAPFPHOTON_BASE;
+  if (PhotonSelectionHelpers::testEGammaPFPhotonMETSafetySelection(*photon, pfCand, year_)) id_egamma_pfPhoton_Bits |= 1 << ISEGAMMAPFPHOTON_METSAFE;
+
+  photon_result.addUserInt("id_egamma_pfPhoton_Bits", id_egamma_pfPhoton_Bits);
+}
+
 float PhotonMaker::getRecHitEnergyTime(DetId const& id, EcalRecHitCollection const* ebhits, EcalRecHitCollection const* eehits, unsigned short di, unsigned short dj, float* outtime){
   if (!ebhits || !eehits) return 0;
 
@@ -345,6 +430,26 @@ float PhotonMaker::getRecHitEnergyTime(DetId const& id, EcalRecHitCollection con
     }
   }
   return 0;
+}
+
+void PhotonMaker::get_photon_pfphoton_matchMap(
+  edm::Event const& iEvent,
+  edm::Handle< edm::View<pat::Photon> > const& photonsHandle, edm::Handle< edm::View<pat::PackedCandidate> > const& pfcandsHandle,
+  std::unordered_map<pat::Photon const*, pat::PackedCandidate const*>& res
+) const{
+  if (photonsHandle->empty() || pfcandsHandle->empty()) return;
+
+  std::vector<pat::PackedCandidate const*> pfphotons; pfphotons.reserve(pfcandsHandle->size());
+  for (auto it_pfcand = pfcandsHandle->begin(); it_pfcand != pfcandsHandle->end(); it_pfcand++){
+    if (it_pfcand->pdgId() == 22) pfphotons.push_back(&(*it_pfcand));
+  }
+
+  CMS3ObjectHelpers::matchParticles(
+    CMS3ObjectHelpers::kMatchBy_DeltaR,
+    photonsHandle->begin(), photonsHandle->end(),
+    pfphotons.begin(), pfphotons.end(),
+    res
+  );
 }
 
 

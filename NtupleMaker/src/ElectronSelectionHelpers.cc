@@ -172,6 +172,65 @@ namespace ElectronSelectionHelpers{
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
+  bool testEGammaPFElectronSelection(pat::Electron const& obj, int const& year){
+    // This function must be the same as RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::passElectronSelection
+    if (!(year==2016 || year==2017 || year==2018)) cms::Exception("UnknownYear") << "ElectronSelectionHelpers::testEGammaPFElectronSelection: Year " << year << " is not implemented!" << std::endl;
+
+    bool passEleSelection = false;
+
+    // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
+    constexpr double ele_iso_pt_ = 10.;
+
+    constexpr bool badHcal_eleEnable_ = false;
+    const double badHcal_full5x5_sigmaIetaIeta_[2]={ 0.0106, 0.0387 };
+    const double badHcal_eInvPInv_[2]={ 0.184, 0.0721 };
+    const double badHcal_dEta_[2]={ 0.0032*2., 0.00632*2. };
+    const double badHcal_dPhi_[2]={ 0.0547, 0.0394 };
+
+    constexpr double ele_noniso_mva_ = -0.1;
+    const double ele_iso_mva_[2]={ -0.1875, -0.1075 };
+    const double ele_iso_combIso_[2]={ 10., 10. };
+
+    bool isEE = std::abs(obj.eta()) > 1.485;
+    double uncorr_pt = obj.pt(); // Has to be the uncorrected one
+    bool validHoverE = obj.hcalOverEcalValid();
+    if (uncorr_pt > ele_iso_pt_){
+      double isoDr03 = obj.dr03TkSumPt() + obj.dr03EcalRecHitSumEt() + obj.dr03HcalTowerSumEt();
+      if (isoDr03 < ele_iso_combIso_[isEE]) passEleSelection = (obj.mva_Isolated() > ele_iso_mva_[isEE]);
+    }
+
+    if (obj.mva_e_pi() > ele_noniso_mva_){
+      if (validHoverE || !badHcal_eleEnable_) passEleSelection = true;
+      else{
+        if (
+          obj.full5x5_sigmaIetaIeta() < badHcal_full5x5_sigmaIetaIeta_[isEE]
+          &&
+          std::abs(1. - obj.eSuperClusterOverP())/obj.ecalEnergy() < badHcal_eInvPInv_[isEE]
+          &&
+          std::abs(obj.deltaEtaSeedClusterTrackAtVtx()) < badHcal_dEta_[isEE] // looser in case of misalignment
+          &&
+          std::abs(obj.deltaPhiSuperClusterTrackAtVtx()) < badHcal_dPhi_[isEE]
+          ) passEleSelection = true;
+      }
+    }
+
+    return passEleSelection;
+  }
+  bool testEGammaPFElectronPrimarySelection(pat::Electron const& obj, int const& year){
+    // This function must be the same as RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::isElectron
+    if (!(year==2016 || year==2017 || year==2018)) cms::Exception("UnknownYear") << "ElectronSelectionHelpers::testEGammaPFElectronPrimarySelection: Year " << year << " is not implemented!" << std::endl;
+
+    // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
+    constexpr unsigned int ele_missinghits_ = 1;
+    unsigned int nmisshits = obj.gsfTrack()->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS);
+    return (nmisshits <= ele_missinghits_);
+  }
+  bool testEGammaPFElectronMETSafetySelection(pat::Electron const& /*obj*/, pat::PackedCandidate const* pfCand, int const& /*year*/){
+    // This function out to be encoding the information from RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::isElectronSafeForJetMET
+    if (pfCand) return pfCand->isGoodEgamma();
+    else return false;
+  }
+
   bool testSkimElectron(pat::Electron const& obj, int const& /*year*/){
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());

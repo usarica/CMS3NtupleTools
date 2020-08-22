@@ -23,6 +23,13 @@ namespace ElectronSelectionHelpers{
   float electronPFIsoComb(pat::Electron const& obj, int const& year, ElectronSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute PF iso. value, uses rho instead of delta beta
   float electronMiniIsoComb(pat::Electron const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute mini. iso. value
 
+  // Same as PFEGammaFilters::passElectronSelection
+  bool testEGammaPFElectronSelection(pat::Electron const& obj, int const& year);
+  // Same as PFEGammaFilters::isElectron, used to disambiguate good electron && good photon cases
+  bool testEGammaPFElectronPrimarySelection(pat::Electron const& obj, int const& year);
+  // Same as PFEGammaFilters::isElectronSafeForJetMET
+  bool testEGammaPFElectronMETSafetySelection(pat::Electron const& obj, pat::PackedCandidate const* pfCand, int const& year);
+
   bool testSkimElectron(pat::Electron const& obj, int const& year);
 
 }

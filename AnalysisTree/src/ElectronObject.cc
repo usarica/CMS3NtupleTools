@@ -119,8 +119,9 @@ void ElectronObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar con
   }
   For this reason, the etaSC selection applied below may need to be refined in future recos. For now, this is what miniAOD does.
   */
+  constexpr ParticleObject::LorentzVector_t::Scalar dR_veto_EM = 0.08;
   const float abs_etaSC = std::abs(this->etaSC());
-  if (abs_etaSC>=ECALGeometrySpecifications::ECAL_EE_EB_cross_eta && dR_fsr<=0.08) return;
+  if (abs_etaSC>=ECALGeometrySpecifications::ECAL_EE_EB_cross_eta && dR_fsr<=dR_veto_EM) return;
 
   if (dR_fsr<0.3){
     extras.pfIso03_sum_neutral_nofsr -= pt_fsr;

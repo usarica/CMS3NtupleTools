@@ -58,6 +58,7 @@
 #include "CMS3/NtupleMaker/interface/plugins/MatchUtilities.h"
 #include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include "CMS3/NtupleMaker/interface/ElectronSelectionHelpers.h"
+#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include "CMS3/Dictionaries/interface/EgammaFiduciality.h"
@@ -80,34 +81,24 @@ ElectronMaker::ElectronMaker(const ParameterSet& iConfig) :
   aliasprefix_(iConfig.getUntrackedParameter<string>("aliasPrefix")),
   year_(iConfig.getParameter<int>("year")),
 
-  MVACuts_(iConfig.getParameter<edm::VParameterSet>("MVACuts")),
-
-  trksInputTag_                (iConfig.getParameter<edm::InputTag>("trksInputTag")),
-  gsftracksInputTag_           (iConfig.getParameter<edm::InputTag>("gsftracksInputTag")),
-
-  ebReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("ebReducedRecHitCollectionTag")),
-  eeReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("eeReducedRecHitCollectionTag")),
-  esReducedRecHitCollectionTag (iConfig.getParameter<edm::InputTag>("esReducedRecHitCollectionTag")),
-
-  rhoInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoInputTag")),
-  rhoCaloInputTag_                 (iConfig.getParameter<edm::InputTag>("rhoCaloInputTag"))
+  MVACuts_(iConfig.getParameter<edm::VParameterSet>("MVACuts"))
 {
   setupMVACuts();
 
   electronsToken  = consumes<edm::View<pat::Electron>  >(iConfig.getParameter<edm::InputTag>("electronsInputTag"));
 
-  beamSpotToken  = consumes<LorentzVector>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
+  beamSpotToken  = consumes<reco::BeamSpot>(iConfig.getParameter<edm::InputTag>("beamSpotInputTag"));
 
   vtxToken  = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
 
   recoConversionToken = consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("recoConversionInputTag"));
 
-  ebReducedRecHitCollection = mayConsume<EcalRecHitCollection>(ebReducedRecHitCollectionTag);
-  eeReducedRecHitCollection = mayConsume<EcalRecHitCollection>(eeReducedRecHitCollectionTag);
-  esReducedRecHitCollection = mayConsume<EcalRecHitCollection>(esReducedRecHitCollectionTag);
+  ebhitsToken = consumes< EcalRecHitCollection >(iConfig.getParameter<edm::InputTag>("EBHitsInputTag"));
+  eehitsToken = consumes< EcalRecHitCollection >(iConfig.getParameter<edm::InputTag>("EEHitsInputTag"));
+  //eshitsToken = consumes< EcalRecHitCollection >(iConfig.getParameter<edm::InputTag>("ESHitsInputTag"));
 
-  rhoToken = consumes< double >(rhoInputTag_);
-  rhoCaloToken = consumes< double >(rhoCaloInputTag_);
+  rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
+  rhoCaloToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoCaloInputTag"));
 
   produces<pat::ElectronCollection>().setBranchAlias(aliasprefix_);
 }
@@ -170,6 +161,23 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   iEvent.getByToken(recoConversionToken, convs_h);
   if (!convs_h.isValid()) throw cms::Exception("ElectronMaker::produce: error getting conversion collection");
 
+  /////////////////////
+  // Hit collections //
+  /////////////////////
+  edm::Handle< EcalRecHitCollection > ebhitsHandle;
+  iEvent.getByToken(ebhitsToken, ebhitsHandle);
+  if (!ebhitsHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting EB hits from the event...");
+
+  edm::Handle< EcalRecHitCollection > eehitsHandle;
+  iEvent.getByToken(eehitsToken, eehitsHandle);
+  if (!eehitsHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting EE hits from the event...");
+
+  /*
+  edm::Handle< EcalRecHitCollection > eshitsHandle;
+  iEvent.getByToken(eshitsToken, eshitsHandle);
+  if (!eshitsHandle.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting ES hits from the event...");
+  */
+
   ///////////////////////////
   // TransientTrackBuilder //
   ///////////////////////////
@@ -183,9 +191,10 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   //////////////
   // Beamspot //
   //////////////
-  Handle<LorentzVector> beamSpotH;
+  edm::Handle<reco::BeamSpot> beamSpotH;
   iEvent.getByToken(beamSpotToken, beamSpotH);
-  const Point beamSpot = beamSpotH.isValid() ? Point(beamSpotH->x(), beamSpotH->y(), beamSpotH->z()) : Point(0, 0, 0);
+  if (!beamSpotH.isValid()) throw cms::Exception("ElectronMaker::produce: Error getting the beam spot from the event...");
+  const Point beamSpot = beamSpotH->position();
 
   /////////////////////////
   // Loop Over Electrons //
@@ -225,6 +234,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     if (el->isEcalEnergyCorrected()) electronTypeMask |= 1 << ISECALENERGYCORRECTED;
     if (el->trackerDrivenSeed()) electronTypeMask |= 1 << ISTRACKERDRIVEN;
     if (el->ecalDrivenSeed()) electronTypeMask |= 1 << ISECALDRIVEN;
+    if (el->passingPflowPreselection()) electronTypeMask |= 1 << ISPFPRESELECTED;
     if (el->passingCutBasedPreselection()) electronTypeMask |= 1 << ISCUTPRESELECTED;
     // el->ecalDriven() == el->ecalDrivenSeed() && el->passingCutBasedPreselection(), so no need to keep a bit for that
     if (el->passingMvaPreselection()) electronTypeMask |= 1 << ISMVAPRESELECTED;
@@ -391,18 +401,46 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     electron_result.addUserFloat("pfIso04_sum_charged_nofsr", pfIso04_sum_charged_nofsr);
     electron_result.addUserFloat("pfIso04_sum_neutral_nofsr", pfIso04_sum_neutral_nofsr);
 
-    // We used to make these using the cluster tools, but now we can take them directly from RECO electron
-    electron_result.addUserFloat("sigmaIPhiIPhi", el->sigmaIphiIphi());
 
-    // Take these directly from the PAT electron of the miniAOD
-    electron_result.addUserFloat("full5x5_sigmaIPhiIPhi", el->full5x5_sigmaIphiIphi());
-    electron_result.addUserFloat("full5x5_sigmaEtaEta", el->full5x5_sigmaEtaEta());
+    ////////
+    // ID //
+    ////////
+    //electron_result.addUserFloat("full5x5_sigmaEtaEta", el->full5x5_sigmaEtaEta());
     electron_result.addUserFloat("full5x5_sigmaIEtaIEta", el->full5x5_sigmaIetaIeta());
+    electron_result.addUserFloat("full5x5_sigmaIPhiIPhi", el->full5x5_sigmaIphiIphi());
     electron_result.addUserFloat("full5x5_r9", el->full5x5_r9());
-    electron_result.addUserFloat("r9", el->r9());
+    electron_result.addUserFloat("full5x5_hOverE", el->full5x5_hcalOverEcal());
     electron_result.addUserFloat("full5x5_e1x5", el->full5x5_e1x5());
     electron_result.addUserFloat("full5x5_e5x5", el->full5x5_e5x5());
     electron_result.addUserFloat("full5x5_e2x5Max", el->full5x5_e2x5Max());
+    //electron_result.addUserFloat("sigmaEtaEta", el->sigmaEtaEta());
+    electron_result.addUserFloat("sigmaIEtaIEta", el->sigmaIetaIeta());
+    electron_result.addUserFloat("sigmaIPhiIPhi", el->sigmaIphiIphi());
+    electron_result.addUserFloat("r9", el->r9());
+    //electron_result.addUserFloat("hOverE", el->hadronicOverEm());
+    electron_result.addUserFloat("hOverE", el->hcalOverEcal());
+
+    electron_result.addUserFloat("eOverPIn", el->eSuperClusterOverP());
+    electron_result.addUserFloat("eOverPOut", el->eEleClusterOverPout());
+    electron_result.addUserFloat("fbrem", el->fbrem());
+    electron_result.addUserFloat("dEtaIn", el->deltaEtaSuperClusterTrackAtVtx());
+    electron_result.addUserFloat("dEtaOut", el->deltaEtaSeedClusterTrackAtCalo());
+    electron_result.addUserFloat("dPhiIn", el->deltaPhiSuperClusterTrackAtVtx());
+    electron_result.addUserFloat("dPhiOut", el->deltaPhiSeedClusterTrackAtCalo());
+
+    ////////////
+    // Charge //
+    ////////////
+    unsigned char charge_consistency_bits=0;
+    if (el->isGsfCtfChargeConsistent()) charge_consistency_bits |= (1 << 0);
+    if (el->isGsfScPixChargeConsistent()) charge_consistency_bits |= (1 << 1);
+    if (el->isGsfCtfScPixChargeConsistent()) charge_consistency_bits |= (1 << 2); // Used also in some ids
+    int trk_q = gsfTrack->charge();
+    electron_result.addUserInt("charge", el->charge());
+    //electron_result.addUserInt("threeCharge", el->threeCharge());
+    electron_result.addUserInt("trk_charge", trk_q);
+    electron_result.addUserInt("SC_pixCharge", el->scPixCharge());
+    electron_result.addUserInt("charge_consistency_bits", charge_consistency_bits);
 
     ///////////////////////////////////////////////////////
     // Get cluster info that is not stored in the object //
@@ -455,35 +493,6 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //get from RECO            electron_result.addUserFloat("sigmaIPhiIPhi", isfinite(lcovs[2]) ? lcovs[2] > 0 ? sqrt(lcovs[2]) : -1 * sqrt(-1 * lcovs[2]) : -1. );
     //
     //            //
-
-
-    ////////
-    // ID //
-    ////////
-    //electron_result.addUserFloat("hOverE", el->hadronicOverEm());
-    electron_result.addUserFloat("hOverE", el->hcalOverEcal());
-    electron_result.addUserFloat("full5x5_hOverE", el->full5x5_hcalOverEcal());
-    electron_result.addUserFloat("eOverPIn", el->eSuperClusterOverP());
-    electron_result.addUserFloat("eOverPOut", el->eEleClusterOverPout());
-    electron_result.addUserFloat("fbrem", el->fbrem());
-    electron_result.addUserFloat("dEtaIn", el->deltaEtaSuperClusterTrackAtVtx());
-    electron_result.addUserFloat("dEtaOut", el->deltaEtaSeedClusterTrackAtCalo());
-    electron_result.addUserFloat("dPhiIn", el->deltaPhiSuperClusterTrackAtVtx());
-    electron_result.addUserFloat("dPhiOut", el->deltaPhiSeedClusterTrackAtCalo());
-
-    ////////////
-    // Charge //
-    ////////////
-    unsigned char charge_consistency_bits=0;
-    if (el->isGsfCtfChargeConsistent()) charge_consistency_bits |= (1 << 0);
-    if (el->isGsfScPixChargeConsistent()) charge_consistency_bits |= (1 << 1);
-    if (el->isGsfCtfScPixChargeConsistent()) charge_consistency_bits |= (1 << 2); // Used also in some ids
-    int trk_q = gsfTrack->charge();
-    electron_result.addUserInt("charge", el->charge());
-    //electron_result.addUserInt("threeCharge", el->threeCharge());
-    electron_result.addUserInt("trk_charge", trk_q);
-    electron_result.addUserInt("SC_pixCharge", el->scPixCharge());
-    electron_result.addUserInt("charge_consistency_bits", charge_consistency_bits);
 
     ////////////
     // Tracks //
@@ -605,7 +614,30 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     //////////////////////////////////////////////
     // Flag For Vertex Fit Conversion Rejection //
     //////////////////////////////////////////////
-    electron_result.addUserInt("conv_vtx_flag", static_cast<int>(!el->passConversionVeto())); // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
+    // PAT variable: http://cmslxr.fnal.gov/lxr/source/PhysicsTools/PatAlgos/plugins/PATElectronProducer.cc#467
+    electron_result.addUserInt("conv_vtx_flag", static_cast<int>(!el->passConversionVeto()));
+
+    // Compute the swiss cross variable and add seed time
+    float E4overE1 = -99;
+    float seedTime = 0;
+    reco::CaloClusterPtr electron_seed = el->seed();
+    if (electron_seed.isNonnull()){
+      auto const& seedHitsAndFractions = electron_seed->hitsAndFractions();
+      if (!seedHitsAndFractions.empty()){
+        const DetId seedId = seedHitsAndFractions.front().first;
+        float e1 = getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, 0, &seedTime);
+        if (e1>0.f){
+          float s4 = 0;
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 1, 0);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), -1, 0);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, 1);
+          s4 += getRecHitEnergyTime(seedId, ebhitsHandle.product(), eehitsHandle.product(), 0, -1);
+          E4overE1 = s4/e1;
+        }
+      }
+    }
+    electron_result.addUserFloat("E4overE1", E4overE1);
+    electron_result.addUserFloat("seedTime", seedTime);
 
     //////////////////////
     // genMatch miniAOD //
@@ -664,10 +696,50 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     // Associated candidates //
     ///////////////////////////
     auto associated_pfcands = el->associatedPackedPFCandidates();
-    double associated_pfcands_sum_sc_pt=0;
-    for (auto const& pfcand:associated_pfcands) associated_pfcands_sum_sc_pt += pfcand->pt();
-    electron_result.addUserInt("n_associated_pfcands", associated_pfcands.size());
+    pat::PackedCandidate const* closestPFElectron_associated = nullptr;
+    float min_dR_electron_pfelectron_associated = -1;
+    std::vector<pat::PackedCandidate const*> pfelectroncands;
+    unsigned int n_associated_pfcands = associated_pfcands.size();
+    double associated_pfcands_sum_sc_pt = 0;
+    for (auto const& pfcand:associated_pfcands){
+      associated_pfcands_sum_sc_pt += pfcand->pt();
+      if (std::abs(pfcand->pdgId()) == 11) pfelectroncands.push_back(&(*pfcand));
+    }
+    unsigned int n_associated_pfelectrons = pfelectroncands.size();
+    // Do electron - PFcand matching
+    {
+      std::vector<pat::Electron const*> dummy_electron_list; dummy_electron_list.push_back(&(*el));
+      std::unordered_map<pat::Electron const*, pat::PackedCandidate const*> patelectron_pfelectron_map;
+      CMS3ObjectHelpers::matchParticles(
+        CMS3ObjectHelpers::kMatchBy_DeltaR,
+        dummy_electron_list.begin(), dummy_electron_list.end(),
+        pfelectroncands.begin(), pfelectroncands.end(),
+        patelectron_pfelectron_map
+      );
+      auto it_match = patelectron_pfelectron_map.find(&(*el));
+      if (it_match != patelectron_pfelectron_map.end() && it_match->second){
+        closestPFElectron_associated = it_match->second;
+        min_dR_electron_pfelectron_associated = reco::deltaR(closestPFElectron_associated->p4(), el->p4());
+      }
+    }
+    // Record
+    electron_result.addUserInt("n_associated_pfcands", n_associated_pfcands);
+    electron_result.addUserInt("n_associated_pfelectrons", n_associated_pfelectrons);
     electron_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
+    electron_result.addUserFloat("min_dR_electron_pfelectron_associated", min_dR_electron_pfelectron_associated);
+    {
+      float closestPFElectron_associated_px=0, closestPFElectron_associated_py=0;
+      if (closestPFElectron_associated){
+        closestPFElectron_associated_px = closestPFElectron_associated->px();
+        closestPFElectron_associated_py = closestPFElectron_associated->py();
+      }
+      electron_result.addUserFloat("closestPFElectron_associated_px", closestPFElectron_associated_px);
+      electron_result.addUserFloat("closestPFElectron_associated_py", closestPFElectron_associated_py);
+    }
+
+    // Add EGamma PFPhoton ID
+    // Use the associated PF photon candidate for MET safety checks
+    setEGammaPFElectronIdSelectionBits(el, closestPFElectron_associated, electron_result);
 
     // Put the object into the result collection
     result->emplace_back(electron_result);
@@ -767,6 +839,17 @@ void ElectronMaker::setCutBasedIdUserVariables(edm::View<pat::Electron>::const_i
     electron_result.addUserInt("id_cutBased_"+id_identifier+"_Bits", cutbits);
   }
   else throw cms::Exception("ElectronMaker::setMVAIdUserVariables: Id "+id_name+" is not stored!");
+}
+
+void ElectronMaker::setEGammaPFElectronIdSelectionBits(edm::View<pat::Electron>::const_iterator const& electron, pat::PackedCandidate const* pfCand, pat::Electron& electron_result) const{
+  // Selection flow follows RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc
+  cms3_electron_cutbasedbits_egPFElectron_t id_egamma_pfElectron_Bits = 0;
+
+  if (ElectronSelectionHelpers::testEGammaPFElectronSelection(*electron, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_BASE;
+  if (ElectronSelectionHelpers::testEGammaPFElectronPrimarySelection(*electron, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_PRIMARY;
+  if (ElectronSelectionHelpers::testEGammaPFElectronMETSafetySelection(*electron, pfCand, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_METSAFE;
+
+  electron_result.addUserInt("id_egamma_pfElectron_Bits", id_egamma_pfElectron_Bits);
 }
 
 void ElectronMaker::applyTriggerEmulationCuts(double const& rho, edm::View<pat::Electron>::const_iterator const& el, pat::Electron& electron_result, unsigned int const& trigVersion) const{
@@ -1466,6 +1549,29 @@ void ElectronMaker::applyTriggerEmulationCuts(double const& rho, edm::View<pat::
   }
 
   electron_result.addUserInt(Form("id_cutBased_triggerEmulationV%u_Bits", trigVersion+1), trigcutbits);
+}
+
+float ElectronMaker::getRecHitEnergyTime(DetId const& id, EcalRecHitCollection const* ebhits, EcalRecHitCollection const* eehits, unsigned short di, unsigned short dj, float* outtime){
+  if (!ebhits || !eehits) return 0;
+
+  DetId nid = DetId(0);
+  bool isEB = false;
+  if (id.subdetId() == EcalBarrel){
+    nid = EBDetId::offsetBy(id, di, dj);
+    isEB = true;
+  }
+  else if (id.subdetId() == EcalEndcap) nid = EEDetId::offsetBy(id, di, dj);
+
+  if (nid == DetId(0)) return 0;
+
+  EcalRecHitCollection const& rechits = (isEB ? *ebhits : *eehits);
+  for (auto const& rechit:rechits){
+    if (rechit.detid() == nid){
+      if (outtime) *outtime = rechit.time();
+      return rechit.energy();
+    }
+  }
+  return 0;
 }
 
 

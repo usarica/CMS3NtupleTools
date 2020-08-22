@@ -10,7 +10,7 @@ namespace FSRSelectionHelpers{
     bool SCVeto = false;
     auto electron_pfcands = electron->associatedPackedPFCandidates();
     if (!electron_pfcands.empty()){
-      for (auto electron_pfcand:electron_pfcands){
+      for (auto const& electron_pfcand:electron_pfcands){
         if (pfcand == &(*electron_pfcand)){
           SCVeto = true;
           break;
@@ -35,7 +35,7 @@ namespace FSRSelectionHelpers{
     bool SCVeto = false;
     auto photon_pfcands = photon->associatedPackedPFCandidates();
     if (!photon_pfcands.empty()){
-      for (auto photon_pfcand:photon_pfcands){
+      for (auto const& photon_pfcand:photon_pfcands){
         if (pfcand == &(*photon_pfcand)){
           SCVeto = true;
           break;

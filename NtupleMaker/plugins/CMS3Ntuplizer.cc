@@ -1039,6 +1039,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr_smear_totalDn, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_sigmaIEtaIEta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_sigmaIPhiIPhi, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, full5x5_r9, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, r9, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, E4overE1, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, seedTime, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(cms3_electron_charge_consistency_bits_t, charge_consistency_bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, conv_vtx_flag, n_objects);
@@ -1093,10 +1101,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, SIP3D, n_objects);
 
-  /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfelectrons, n_objects);
+  /*
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
+  MAKE_VECTOR_WITH_RESERVE(float, min_dR_electron_pfelectron_associated, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_px, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_py, n_objects);
 
   // Fiduciality and type masks use bits from interface/EgammaFiduciality.h.
   // These are needed to define gap regions (fid_mask ISGAP bit) or being ECAL-driven (type mask ISECALDRIVEN and ISCUTPRESELECTED bits)
@@ -1130,6 +1142,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_scale_totalDn);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalUp);
     PUSH_USERFLOAT_INTO_VECTOR(scale_smear_corr_smear_totalDn);
+
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_sigmaIEtaIEta);
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_sigmaIPhiIPhi);
+    PUSH_USERFLOAT_INTO_VECTOR(full5x5_r9);
+    PUSH_USERFLOAT_INTO_VECTOR(r9);
+
+    PUSH_USERFLOAT_INTO_VECTOR(E4overE1);
+    PUSH_USERFLOAT_INTO_VECTOR(seedTime);
 
     PUSH_USERINT_INTO_VECTOR(charge_consistency_bits);
 
@@ -1199,11 +1219,15 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(dz_firstPV);
     PUSH_USERFLOAT_INTO_VECTOR(SIP3D);
 
-    /*
     // PF candidate properties
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
+    PUSH_USERINT_INTO_VECTOR(n_associated_pfelectrons);
+    /*
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
     */
+    PUSH_USERFLOAT_INTO_VECTOR(min_dR_electron_pfelectron_associated);
+    PUSH_USERFLOAT_INTO_VECTOR(closestPFElectron_associated_px);
+    PUSH_USERFLOAT_INTO_VECTOR(closestPFElectron_associated_py);
 
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
@@ -1224,6 +1248,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
 
   PUSH_VECTOR_WITH_NAME(colName, ecalEnergy);
   PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIEtaIEta);
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIPhiIPhi);
+  PUSH_VECTOR_WITH_NAME(colName, full5x5_r9);
+  PUSH_VECTOR_WITH_NAME(colName, r9);
+
+  PUSH_VECTOR_WITH_NAME(colName, E4overE1);
+  PUSH_VECTOR_WITH_NAME(colName, seedTime);
 
   PUSH_VECTOR_WITH_NAME(colName, charge_consistency_bits);
 
@@ -1293,10 +1325,14 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, dz_firstPV);
   PUSH_VECTOR_WITH_NAME(colName, SIP3D);
 
-  /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
+  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfelectrons);
+  /*
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
   */
+  PUSH_VECTOR_WITH_NAME(colName, min_dR_electron_pfelectron_associated);
+  PUSH_VECTOR_WITH_NAME(colName, closestPFElectron_associated_px);
+  PUSH_VECTOR_WITH_NAME(colName, closestPFElectron_associated_py);
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
@@ -1469,6 +1505,15 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_hgg_t, id_cutBased_HGG_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_photon_cutbasedbits_egPFPhoton_t, id_egamma_pfPhoton_Bits, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(bool, hcal_is_valid, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, hOverE, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, hOverEtowBC, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, r9, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, sigmaIEtaIEta, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, sigmaIPhiIPhi, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, full5x5_r9, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, full5x5_sigmaIEtaIEta, n_objects);
@@ -1482,10 +1527,23 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfNeutralHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfEMIso_EAcorr, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, trkIso03_hollow, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, trkIso03_solid, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, ecalRecHitIso03, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, hcalTowerIso03, n_objects);
 
   /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
+  */
+
+  // Info about PF photon requirements
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfphotons, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, min_dR_photon_pfphoton_associated, n_objects);
+  /*
+  MAKE_VECTOR_WITH_RESERVE(float, min_dR_photon_pfphoton_global, n_objects);
   */
 
   MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
@@ -1538,7 +1596,18 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Loose_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Medium_Bits);
     PUSH_USERINT_INTO_VECTOR(id_cutBased_Fall17V2_Tight_Bits);
+    // HGG Run 2 id bits
     PUSH_USERINT_INTO_VECTOR(id_cutBased_HGG_Bits);
+    // EGamma PFPhoton id
+    PUSH_USERINT_INTO_VECTOR(id_egamma_pfPhoton_Bits);
+
+    PUSH_USERINT_INTO_VECTOR(hcal_is_valid);
+    PUSH_USERFLOAT_INTO_VECTOR(hOverE);
+    PUSH_USERFLOAT_INTO_VECTOR(hOverEtowBC);
+
+    PUSH_USERFLOAT_INTO_VECTOR(r9);
+    PUSH_USERFLOAT_INTO_VECTOR(sigmaIEtaIEta);
+    PUSH_USERFLOAT_INTO_VECTOR(sigmaIPhiIPhi);
 
     PUSH_USERFLOAT_INTO_VECTOR(full5x5_r9);
     PUSH_USERFLOAT_INTO_VECTOR(full5x5_sigmaIEtaIEta);
@@ -1552,10 +1621,22 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfNeutralHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfEMIso_EAcorr);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso);
+
+    PUSH_USERFLOAT_INTO_VECTOR(trkIso03_hollow);
+    PUSH_USERFLOAT_INTO_VECTOR(trkIso03_solid);
+    PUSH_USERFLOAT_INTO_VECTOR(ecalRecHitIso03);
+    PUSH_USERFLOAT_INTO_VECTOR(hcalTowerIso03);
 
     /*
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
+    */
+
+    PUSH_USERINT_INTO_VECTOR(n_associated_pfphotons);
+    PUSH_USERFLOAT_INTO_VECTOR(min_dR_photon_pfphoton_associated);
+    /*
+    PUSH_USERFLOAT_INTO_VECTOR(min_dR_photon_pfphoton_global);
     */
 
     // Masks
@@ -1594,6 +1675,15 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Medium_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_Fall17V2_Tight_Bits);
   PUSH_VECTOR_WITH_NAME(colName, id_cutBased_HGG_Bits);
+  PUSH_VECTOR_WITH_NAME(colName, id_egamma_pfPhoton_Bits);
+
+  PUSH_VECTOR_WITH_NAME(colName, hcal_is_valid);
+  PUSH_VECTOR_WITH_NAME(colName, hOverE);
+  PUSH_VECTOR_WITH_NAME(colName, hOverEtowBC);
+
+  PUSH_VECTOR_WITH_NAME(colName, r9);
+  PUSH_VECTOR_WITH_NAME(colName, sigmaIEtaIEta);
+  PUSH_VECTOR_WITH_NAME(colName, sigmaIPhiIPhi);
 
   PUSH_VECTOR_WITH_NAME(colName, full5x5_r9);
   PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIEtaIEta);
@@ -1607,10 +1697,22 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
   PUSH_VECTOR_WITH_NAME(colName, pfNeutralHadronIso_EAcorr);
   PUSH_VECTOR_WITH_NAME(colName, pfEMIso_EAcorr);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso);
+
+  PUSH_VECTOR_WITH_NAME(colName, trkIso03_hollow);
+  PUSH_VECTOR_WITH_NAME(colName, trkIso03_solid);
+  PUSH_VECTOR_WITH_NAME(colName, ecalRecHitIso03);
+  PUSH_VECTOR_WITH_NAME(colName, hcalTowerIso03);
 
   /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
+  */
+
+  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfphotons);
+  PUSH_VECTOR_WITH_NAME(colName, min_dR_photon_pfphoton_associated);
+  /*
+  PUSH_VECTOR_WITH_NAME(colName, min_dR_photon_pfphoton_global);
   */
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);

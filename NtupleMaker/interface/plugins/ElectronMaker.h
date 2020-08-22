@@ -20,27 +20,27 @@
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/Math/interface/Point3D.h"
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Jet.h"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 
 #include "RecoEgamma/EgammaTools/interface/ConversionFinder.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
-#include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
 #include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 #include "CommonTools/ParticleFlow/interface/PFPileUpAlgo.h"
-#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "Math/VectorUtil.h"
-
-#include "DataFormats/PatCandidates/interface/Electron.h"
-#include "DataFormats/PatCandidates/interface/Jet.h"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 
 
 typedef math::XYZTLorentzVectorF LorentzVector;
@@ -62,7 +62,10 @@ private:
   void setupMVACuts();
   void setMVAIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
   void setCutBasedIdUserVariables(edm::View<pat::Electron>::const_iterator const&, pat::Electron&, std::string const&, std::string const&) const;
+  void setEGammaPFElectronIdSelectionBits(edm::View<pat::Electron>::const_iterator const&, pat::PackedCandidate const*, pat::Electron&) const;
   void applyTriggerEmulationCuts(double const&, edm::View<pat::Electron>::const_iterator const&, pat::Electron&, unsigned int const&) const;
+
+  static float getRecHitEnergyTime(DetId const&, EcalRecHitCollection const*, EcalRecHitCollection const*, unsigned short, unsigned short, float* outtime=nullptr);
 
 protected:
   std::string aliasprefix_;
@@ -70,27 +73,16 @@ protected:
 
   edm::VParameterSet MVACuts_;
 
-  edm::InputTag trksInputTag_;
-  edm::InputTag gsftracksInputTag_;
-
-  edm::InputTag ebReducedRecHitCollectionTag;
-  edm::InputTag eeReducedRecHitCollectionTag;
-  edm::InputTag esReducedRecHitCollectionTag;
-
-  edm::InputTag rhoInputTag_;
-  edm::InputTag rhoCaloInputTag_;
-
-
   std::unordered_map< std::string, std::vector< StringCutObjectSelector<pat::Electron, true> > > MVACutObjects;
 
-  edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   edm::EDGetTokenT<edm::View<pat::Electron>  > electronsToken;
-  edm::EDGetTokenT<LorentzVector> beamSpotToken;
+  edm::EDGetTokenT<reco::BeamSpot> beamSpotToken;
+  edm::EDGetTokenT<reco::VertexCollection> vtxToken;
   edm::EDGetTokenT<reco::ConversionCollection> recoConversionToken;
 
-  edm::EDGetTokenT<EcalRecHitCollection> ebReducedRecHitCollection;
-  edm::EDGetTokenT<EcalRecHitCollection> eeReducedRecHitCollection;
-  edm::EDGetTokenT<EcalRecHitCollection> esReducedRecHitCollection;
+  edm::EDGetTokenT<EcalRecHitCollection> ebhitsToken;
+  edm::EDGetTokenT<EcalRecHitCollection> eehitsToken;
+  //edm::EDGetTokenT<EcalRecHitCollection> eshitsToken;
 
   edm::EDGetTokenT< double > rhoToken;
   edm::EDGetTokenT< double > rhoCaloToken;

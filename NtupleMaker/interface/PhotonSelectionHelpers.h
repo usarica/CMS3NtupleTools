@@ -2,8 +2,14 @@
 #define CMS3_PHOTONSELECTIONHELPERS_H
 
 #include <cmath>
+#include <unordered_map>
 #include <DataFormats/PatCandidates/interface/Photon.h>
-#include "CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h"
+#include <DataFormats/PatCandidates/interface/PackedCandidate.h>
+#include <DataFormats/VertexReco/interface/Vertex.h>
+#include <DataFormats/VertexReco/interface/VertexFwd.h>
+
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+#include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 
 namespace PhotonSelectionHelpers{
@@ -26,50 +32,70 @@ namespace PhotonSelectionHelpers{
 
   float photonEffArea(pat::Photon const& obj, int const& year, PhotonSelectionHelpers::EffectiveAreaType const& eatype); // For PF and mini. iso. See https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/photons_cff.py EAFile_MiniIso entries
 
-  template<typename PFCandIterable> float photonFSRIso(pat::Photon const& obj, int const& year, PFCandIterable const& pfcands_begin, PFCandIterable const& pfcands_end);
+  template<typename PFCandIterable> float photonPFIsoWorstChargedHadron(pat::Photon const& obj, int const& year, PFCandIterable const& pfcands_begin, PFCandIterable const& pfcands_end);
 
   float photonPFIsoChargedHadron(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoNeutralHadron(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho); // Absolute PF iso. value, uses rho instead of delta beta
 
+  // Same as PFEGammaFilters::passPhotonSelection
+  bool testEGammaPFPhotonSelection(pat::Photon const& obj, int const& year);
+  // Same as PFEGammaFilters::isPhotonSafeForJetMET
+  bool testEGammaPFPhotonMETSafetySelection(pat::Photon const& obj, pat::PackedCandidate const* pfCand, int const& year);
+
   bool testSkimPhoton(pat::Photon const& obj, int const& year);
 
 }
 
-template<typename PFCandIterable> float PhotonSelectionHelpers::photonFSRIso(pat::Photon const& obj, int const& /*year*/, PFCandIterable const& pfcands_begin, PFCandIterable const& pfcands_end){
+template<typename PFCandIterable> float PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(pat::Photon const& obj, int const& /*year*/, PFCandIterable const& pfcands_begin, PFCandIterable const& pfcands_end){
   constexpr double cut_deltaR = selection_iso_deltaR;
 
-  constexpr double cut_deltaRself_ch = 0.0001;
-  constexpr double cut_pt_ch = 0.2;
-  double sum_ch=0;
+  constexpr double cut_deltaRself = 1e-5;
+  constexpr double cut_pt = 0.;
 
-  constexpr double cut_deltaRself_ne = 0.01;
-  constexpr double cut_pt_ne = 0.5;
-  double sum_nh=0;
+  auto associated_pfcands_refvec = obj.associatedPackedPFCandidates();
+  std::vector<pat::PackedCandidate const*> associated_pfcands; associated_pfcands.reserve(associated_pfcands_refvec.size());
+  for (auto const& it_pfcand:associated_pfcands_refvec) associated_pfcands.push_back(&(*it_pfcand));
 
+  double res = 0;
+  std::unordered_map<reco::Vertex const*, double> vtx_iso_map;
   for (PFCandIterable it_pfcands = pfcands_begin; it_pfcands!=pfcands_end; it_pfcands++){
     pat::PackedCandidate const* pfcand;
     CMS3ObjectHelpers::getObjectPointer(it_pfcands, pfcand);
     if (!pfcand) continue;
 
-    double dr = reco::deltaR(obj.p4(), pfcand->p4());
-    if (dr>=cut_deltaR) continue;
+    // Omit candidates in veto cone
+    if (HelperFunctions::checkListVariable(associated_pfcands, pfcand)) continue;
 
-    int id = std::abs(pfcand->pdgId());
+    unsigned int abs_id = std::abs(pfcand->pdgId());
+    if (abs_id!=211) continue;
+
     int charge = pfcand->charge();
+    if (charge==0) continue;
+
     double pt = pfcand->pt();
-    if (charge!=0){
-      // Charged hadrons
-      if (dr>cut_deltaRself_ch && pt>cut_pt_ch && id==211) sum_ch += pt;
+    if (pt<=cut_pt) continue;
+
+    double dr = reco::deltaR(obj.p4(), pfcand->p4());
+    if (dr>=cut_deltaR || dr<cut_deltaRself) continue;
+
+    reco::VertexRef vtxref = pfcand->vertexRef();
+    if (!vtxref.isNonnull()) continue;
+
+    if (pfcand->fromPV(vtxref.key()) < pat::PackedCandidate::PVTight) continue;
+
+    reco::Vertex const* vtx = vtxref.get();
+    auto it_tmp = vtx_iso_map.find(vtx);
+    if (it_tmp == vtx_iso_map.end()){
+      vtx_iso_map[vtx] = 0;
+      it_tmp = vtx_iso_map.find(vtx);
     }
-    else{
-      // Neutral particles
-      if (dr>cut_deltaRself_ne && pt>cut_pt_ne && (id==22|| id==130)) sum_nh += pt;
-    }
+    it_tmp->second += pt;
   }
 
-  return (sum_ch + sum_nh);
+  for (auto& it:vtx_iso_map) res = std::max(res, it.second);
+  return res;
 }
 
 

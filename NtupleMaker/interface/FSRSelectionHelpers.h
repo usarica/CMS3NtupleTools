@@ -50,11 +50,11 @@ template<typename PFCandIterable> float FSRSelectionHelpers::fsrIso(pat::PackedC
 
   constexpr double cut_deltaRself_ch = 0.0001;
   constexpr double cut_pt_ch = 0.2;
-  double sum_ch=0;
+  double sum_ch = 0;
 
   constexpr double cut_deltaRself_ne = 0.01;
   constexpr double cut_pt_ne = 0.5;
-  double sum_nh=0;
+  double sum_ne = 0;
 
   for (PFCandIterable it_pfcands = pfcands_begin; it_pfcands!=pfcands_end; it_pfcands++){
     pat::PackedCandidate const* pfcand;
@@ -74,11 +74,11 @@ template<typename PFCandIterable> float FSRSelectionHelpers::fsrIso(pat::PackedC
     }
     else{
       // Neutral particles
-      if ((abs_id==22 || abs_id==130) && dr>cut_deltaRself_ne && pt>cut_pt_ne) sum_nh += pt;
+      if ((abs_id==22 || abs_id==130) && dr>cut_deltaRself_ne && pt>cut_pt_ne) sum_ne += pt;
     }
   }
 
-  return (sum_ch + sum_nh);
+  return (sum_ch + sum_ne);
 }
 
 
