@@ -158,6 +158,11 @@ void CMS3Ntuplizer::endJob(){}
 void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSetup){
   bool isSelected = true;
 
+  // Packed PF candidates are consumed in more than one function, so access it here
+  edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
+  iEvent.getByToken(pfcandsToken, pfcandsHandle);
+  if (!pfcandsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::analyze: Error getting the PF candidate collection from the event...");
+
   /********************************/
   /* Set the communicator entries */
   /********************************/
@@ -181,7 +186,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   // FSR candidates
   std::vector<FSRCandidateInfo> filledFSRInfos;
   /*size_t n_fsrcands = */this->fillFSRCandidates(
-    iEvent,
+    pfcandsHandle,
     &filledMuons, &filledElectrons,
     &filledFSRInfos
   );
@@ -194,12 +199,15 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   size_t n_reducedSuperclusters = this->fillReducedSuperclusters(iEvent, &filledElectrons, &filledPhotons, /*filledReducedSuperclusters*/nullptr);
 
   // ak4 jets
-  //std::vector<pat::Jet const*> filledAK4Jets;
-  size_t n_ak4jets = this->fillAK4Jets(iEvent, /*&filledAK4Jets*/nullptr);
+  std::vector<pat::Jet const*> filledAK4Jets;
+  size_t n_ak4jets = this->fillAK4Jets(iEvent, &filledMuons, &filledElectrons, &filledPhotons, &filledAK4Jets);
 
   // ak8 jets
-  //std::vector<pat::Jet const*> filledAK8Jets;
-  size_t n_ak8jets = this->fillAK8Jets(iEvent, /*&filledAK8Jets*/nullptr);
+  std::vector<pat::Jet const*> filledAK8Jets;
+  size_t n_ak8jets = this->fillAK8Jets(iEvent, &filledMuons, &filledElectrons, &filledPhotons, &filledAK8Jets);
+
+  // Check the muon, electron and photon objects for overlaps with jets
+  this->fillJetOverlapInfo(pfcandsHandle, &filledMuons, &filledElectrons, &filledPhotons, &filledAK4Jets, &filledAK8Jets);
 
   // Isolated tracks
   /*size_t n_isotracks = */this->fillIsotracks(iEvent, nullptr);
@@ -1107,9 +1115,28 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   /*
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_px, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_py, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, min_dR_electron_pfelectron_associated, n_objects);
+  // These two are not needed because momentum of electron and PF electron are within a 100 MeV of each other (much less at small pT)
+  /*
   MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_py, n_objects);
+  */
+
+  // Only for checks
+  /*
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_mu, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_e, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_mu, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_e, n_objects);
+  */
 
   // Fiduciality and type masks use bits from interface/EgammaFiduciality.h.
   // These are needed to define gap regions (fid_mask ISGAP bit) or being ECAL-driven (type mask ISECALDRIVEN and ISCUTPRESELECTED bits)
@@ -1228,9 +1255,27 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     /*
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
     */
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_px);
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_py);
     PUSH_USERFLOAT_INTO_VECTOR(min_dR_electron_pfelectron_associated);
+    /*
     PUSH_USERFLOAT_INTO_VECTOR(closestPFElectron_associated_px);
     PUSH_USERFLOAT_INTO_VECTOR(closestPFElectron_associated_py);
+    */
+
+    // Only for checks
+    /*
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_ch);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_nh);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_em);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_mu);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_e);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_ch);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_nh);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_em);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_mu);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_e);
+    */
 
     // Masks
     PUSH_USERINT_INTO_VECTOR(fid_mask);
@@ -1335,9 +1380,27 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   /*
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
   */
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_px);
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_py);
   PUSH_VECTOR_WITH_NAME(colName, min_dR_electron_pfelectron_associated);
+  /*
   PUSH_VECTOR_WITH_NAME(colName, closestPFElectron_associated_px);
   PUSH_VECTOR_WITH_NAME(colName, closestPFElectron_associated_py);
+  */
+
+  // Only for checks
+  /*
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_ch);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_nh);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_em);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_mu);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_e);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_ch);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_nh);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_em);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_mu);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_e);
+  */
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
   PUSH_VECTOR_WITH_NAME(colName, type_mask);
@@ -1345,15 +1408,12 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   return n_skimmed_objects;
 }
 size_t CMS3Ntuplizer::fillFSRCandidates(
-  edm::Event const& iEvent,
+  edm::Handle< edm::View<pat::PackedCandidate> > const& pfcandsHandle,
   std::vector<pat::Muon const*> const* filledMuons, std::vector<pat::Electron const*> const* filledElectrons,
   std::vector<FSRCandidateInfo>* filledObjects
 ){
   std::string const& colNameFSR = CMS3Ntuplizer::colName_fsrcands;
 
-  edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
-  iEvent.getByToken(pfcandsToken, pfcandsHandle);
-  if (!pfcandsHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillFSRCandidates: Error getting the PF candidate collection from the event...");
   size_t n_objects = pfcandsHandle->size();
   size_t n_skimmed_objects=0;
 
@@ -1532,23 +1592,50 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(float, pfChargedHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfNeutralHadronIso_EAcorr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfEMIso_EAcorr, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_allVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_pt0p1_minDR0p02_allVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_pt0p1_minDR0p02_dxy_dz_firstPV_allVtxs, n_objects);
+  /*
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Tight_NoDZ_allVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Tight_NoDZ_goodVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Tight_or_DZ0p1_allVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Tight_or_DZ0p1_goodVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Loose_NoDZ_allVtxs, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, pfWorstChargedHadronIso_Loose_NoDZ_goodVtxs, n_objects);
+  */
 
   MAKE_VECTOR_WITH_RESERVE(float, trkIso03_hollow, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, trkIso03_solid, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, ecalRecHitIso03, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, hcalTowerIso03, n_objects);
 
-  /*
   MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfphotons, n_objects);
+  /*
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
-
-  // Info about PF photon requirements
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfphotons, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_px, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_py, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, min_dR_photon_pfphoton_associated, n_objects);
   /*
   MAKE_VECTOR_WITH_RESERVE(float, min_dR_photon_pfphoton_global, n_objects);
+  */
+  MAKE_VECTOR_WITH_RESERVE(float, closestPFPhoton_associated_px, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, closestPFPhoton_associated_py, n_objects);
+
+  // Only for checks
+  /*
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_mu, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmax_e, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_ch, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_nh, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_em, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_mu, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, dRmin_e, n_objects);
   */
 
   MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
@@ -1626,22 +1713,50 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
     PUSH_USERFLOAT_INTO_VECTOR(pfChargedHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfNeutralHadronIso_EAcorr);
     PUSH_USERFLOAT_INTO_VECTOR(pfEMIso_EAcorr);
-    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso);
+
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_allVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_pt0p1_minDR0p02_allVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_pt0p1_minDR0p02_dxy_dz_firstPV_allVtxs);
+    /*
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Tight_NoDZ_allVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Tight_NoDZ_goodVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Tight_or_DZ0p1_allVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Tight_or_DZ0p1_goodVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Loose_NoDZ_allVtxs);
+    PUSH_USERFLOAT_INTO_VECTOR(pfWorstChargedHadronIso_Loose_NoDZ_goodVtxs);
+    */
 
     PUSH_USERFLOAT_INTO_VECTOR(trkIso03_hollow);
     PUSH_USERFLOAT_INTO_VECTOR(trkIso03_solid);
     PUSH_USERFLOAT_INTO_VECTOR(ecalRecHitIso03);
     PUSH_USERFLOAT_INTO_VECTOR(hcalTowerIso03);
 
-    /*
     PUSH_USERINT_INTO_VECTOR(n_associated_pfcands);
+    PUSH_USERINT_INTO_VECTOR(n_associated_pfphotons);
+    /*
     PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_sc_pt);
     */
-
-    PUSH_USERINT_INTO_VECTOR(n_associated_pfphotons);
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_px);
+    PUSH_USERFLOAT_INTO_VECTOR(associated_pfcands_sum_py);
     PUSH_USERFLOAT_INTO_VECTOR(min_dR_photon_pfphoton_associated);
     /*
     PUSH_USERFLOAT_INTO_VECTOR(min_dR_photon_pfphoton_global);
+    */
+    PUSH_USERFLOAT_INTO_VECTOR(closestPFPhoton_associated_px);
+    PUSH_USERFLOAT_INTO_VECTOR(closestPFPhoton_associated_py);
+
+    // Only for checks
+    /*
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_ch);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_nh);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_em);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_mu);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmax_e);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_ch);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_nh);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_em);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_mu);
+    PUSH_USERFLOAT_INTO_VECTOR(dRmin_e);
     */
 
     // Masks
@@ -1702,22 +1817,50 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   PUSH_VECTOR_WITH_NAME(colName, pfChargedHadronIso_EAcorr);
   PUSH_VECTOR_WITH_NAME(colName, pfNeutralHadronIso_EAcorr);
   PUSH_VECTOR_WITH_NAME(colName, pfEMIso_EAcorr);
-  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso);
+
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_allVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_pt0p1_minDR0p02_allVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_pt0p1_minDR0p02_dxy_dz_firstPV_allVtxs);
+  /*
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Tight_NoDZ_allVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Tight_NoDZ_goodVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Tight_or_DZ0p1_allVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Tight_or_DZ0p1_goodVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Loose_NoDZ_allVtxs);
+  PUSH_VECTOR_WITH_NAME(colName, pfWorstChargedHadronIso_Loose_NoDZ_goodVtxs);
+  */
 
   PUSH_VECTOR_WITH_NAME(colName, trkIso03_hollow);
   PUSH_VECTOR_WITH_NAME(colName, trkIso03_solid);
   PUSH_VECTOR_WITH_NAME(colName, ecalRecHitIso03);
   PUSH_VECTOR_WITH_NAME(colName, hcalTowerIso03);
 
-  /*
   PUSH_VECTOR_WITH_NAME(colName, n_associated_pfcands);
+  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfphotons);
+  /*
   PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_sc_pt);
   */
-
-  PUSH_VECTOR_WITH_NAME(colName, n_associated_pfphotons);
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_px);
+  PUSH_VECTOR_WITH_NAME(colName, associated_pfcands_sum_py);
   PUSH_VECTOR_WITH_NAME(colName, min_dR_photon_pfphoton_associated);
   /*
   PUSH_VECTOR_WITH_NAME(colName, min_dR_photon_pfphoton_global);
+  */
+  PUSH_VECTOR_WITH_NAME(colName, closestPFPhoton_associated_px);
+  PUSH_VECTOR_WITH_NAME(colName, closestPFPhoton_associated_py);
+
+  // Only for checks
+  /*
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_ch);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_nh);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_em);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_mu);
+  PUSH_VECTOR_WITH_NAME(colName, dRmax_e);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_ch);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_nh);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_em);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_mu);
+  PUSH_VECTOR_WITH_NAME(colName, dRmin_e);
   */
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
@@ -1883,8 +2026,13 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
   return n_skimmed_objects;
 }
 
-size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
+size_t CMS3Ntuplizer::fillAK4Jets(
+  edm::Event const& iEvent,
+  std::vector<pat::Muon const*>* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*>* filledPhotons,
+  std::vector<pat::Jet const*>* filledObjects
+){
   constexpr AK4JetSelectionHelpers::AK4JetType jetType = AK4JetSelectionHelpers::AK4PFCHS;
+  constexpr double ConeRadiusConstant = AK4JetSelectionHelpers::ConeRadiusConstant;
   std::string const& colName = CMS3Ntuplizer::colName_ak4jets;
 
   edm::Handle< edm::View<pat::Jet> > ak4jetsHandle;
@@ -1937,35 +2085,71 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, NEMF, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, CEMF, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, JECL1Nominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_py, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JECL1Nominal, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECNominal, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECUp, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JERNominal, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JERDn, n_objects);
+
+  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JERUp, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak4jetsHandle->begin(); obj != ak4jetsHandle->end(); obj++){
-    if (!AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType)) continue;
+    bool doContinue = AK4JetSelectionHelpers::testSkimAK4Jet(*obj, this->year, jetType);
+    if (!doContinue && filledMuons){
+      for (auto const& part:(*filledMuons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    if (!doContinue && filledElectrons){
+      for (auto const& part:(*filledElectrons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    if (!doContinue && filledPhotons){
+      for (auto const& part:(*filledPhotons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    if (!doContinue) continue;
 
     const double uncorrected_energy = AK4JetSelectionHelpers::getUncorrectedJetEnergy(*obj);
 
     // Core particle quantities
     // These are the uncorrected momentum components!
-    pt.push_back(obj->pt());
+    pt.push_back(AK4JetSelectionHelpers::getUncorrectedJetPt(*obj));
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
-    mass.push_back(obj->mass());
+    mass.push_back(AK4JetSelectionHelpers::getUncorrectedJetMass(*obj));
 
     pass_looseId.push_back(AK4JetSelectionHelpers::testLooseAK4Jet(*obj, this->year, jetType));
     pass_tightId.push_back(AK4JetSelectionHelpers::testTightAK4Jet(*obj, this->year, jetType));
@@ -2004,21 +2188,32 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
     NEMF.push_back(obj->neutralEmEnergy() / uncorrected_energy);
     CEMF.push_back(obj->chargedEmEnergy() / uncorrected_energy);
 
-    PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JECUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JECDn);
-
-    PUSH_USERFLOAT_INTO_VECTOR(JECL1Nominal);
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_px);
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_py);
 
-    PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JERUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JERDn);
+    PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
+    PUSH_USERFLOAT_INTO_VECTOR(JECL1Nominal);
+    PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECNominal);
 
     if (isMC){
+      PUSH_USERFLOAT_INTO_VECTOR(JECDn);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECDn);
+
+      PUSH_USERFLOAT_INTO_VECTOR(JECUp);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECUp);
+
+      PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JERNominal);
+
+      PUSH_USERFLOAT_INTO_VECTOR(JERDn);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JERDn);
+
+      PUSH_USERFLOAT_INTO_VECTOR(JERUp);
+      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JERUp);
+
       PUSH_USERINT_INTO_VECTOR(is_genMatched);
       PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
+
       PUSH_USERINT_INTO_VECTOR(partonFlavour);
       PUSH_USERINT_INTO_VECTOR(hadronFlavour);
     }
@@ -2070,29 +2265,45 @@ size_t CMS3Ntuplizer::fillAK4Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, NEMF);
   PUSH_VECTOR_WITH_NAME(colName, CEMF);
 
-  PUSH_VECTOR_WITH_NAME(colName, JECNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JECUp);
-  PUSH_VECTOR_WITH_NAME(colName, JECDn);
-
-  PUSH_VECTOR_WITH_NAME(colName, JECL1Nominal);
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_px);
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_py);
 
-  PUSH_VECTOR_WITH_NAME(colName, JERNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JERUp);
-  PUSH_VECTOR_WITH_NAME(colName, JERDn);
+  PUSH_VECTOR_WITH_NAME(colName, JECNominal);
+  PUSH_VECTOR_WITH_NAME(colName, JECL1Nominal);
+  PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECNominal);
 
   if (isMC){
+    PUSH_VECTOR_WITH_NAME(colName, JECDn);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECDn);
+
+    PUSH_VECTOR_WITH_NAME(colName, JECUp);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECUp);
+
+    PUSH_VECTOR_WITH_NAME(colName, JERNominal);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JERNominal);
+
+    PUSH_VECTOR_WITH_NAME(colName, JERDn);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JERDn);
+
+    PUSH_VECTOR_WITH_NAME(colName, JERUp);
+    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JERUp);
+
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
+
     PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
     PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
   }
 
   return n_skimmed_objects;
 }
-size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet const*>* filledObjects){
+size_t CMS3Ntuplizer::fillAK8Jets(
+  edm::Event const& iEvent,
+  std::vector<pat::Muon const*>* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*>* filledPhotons,
+  std::vector<pat::Jet const*>* filledObjects
+){
   const AK8JetSelectionHelpers::AK8JetType jetType = (this->is80X ? AK8JetSelectionHelpers::AK8PFCHS : AK8JetSelectionHelpers::AK8PFPUPPI);
+  constexpr double ConeRadiusConstant = AK8JetSelectionHelpers::ConeRadiusConstant;
   std::string const& colName = CMS3Ntuplizer::colName_ak8jets;
 
   edm::Handle< edm::View<pat::Jet> > ak8jetsHandle;
@@ -2144,28 +2355,57 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   MAKE_VECTOR_WITH_RESERVE(float, axis2, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
-
+  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, partonFlavour, n_objects);
   MAKE_VECTOR_WITH_RESERVE(cms3_jet_genflavor_t, hadronFlavour, n_objects);
 
   size_t n_skimmed_objects=0;
   for (edm::View<pat::Jet>::const_iterator obj = ak8jetsHandle->begin(); obj != ak8jetsHandle->end(); obj++){
-    if (!AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year)) continue;
+    bool doContinue = AK8JetSelectionHelpers::testSkimAK8Jet(*obj, this->year);
+
+    // ak8 jets are not used for MET calculations, so we don't have to keep interesting jets.
+    /*
+    if (!doContinue && filledMuons){
+      for (auto const& part:(*filledMuons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    if (!doContinue && filledElectrons){
+      for (auto const& part:(*filledElectrons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    if (!doContinue && filledPhotons){
+      for (auto const& part:(*filledPhotons)){
+        if (reco::deltaR(obj->p4(), part->p4())<ConeRadiusConstant){
+          doContinue = true;
+          break;
+        }
+      }
+    }
+    */
+    if (!doContinue) continue;
 
     // Core particle quantities
     // These are the uncorrected momentum components!
-    pt.push_back(obj->pt());
+    pt.push_back(AK8JetSelectionHelpers::getUncorrectedJetPt(*obj));
     eta.push_back(obj->eta());
     phi.push_back(obj->phi());
-    mass.push_back(obj->mass());
+    mass.push_back(AK8JetSelectionHelpers::getUncorrectedJetMass(*obj));
 
     pass_looseId.push_back(AK8JetSelectionHelpers::testLooseAK8Jet(*obj, this->year, jetType));
     pass_tightId.push_back(AK8JetSelectionHelpers::testTightAK8Jet(*obj, this->year, jetType));
@@ -2204,16 +2444,16 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
     PUSH_USERFLOAT_INTO_VECTOR(axis2);
 
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JECUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JECDn);
-
-    PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
-    PUSH_USERFLOAT_INTO_VECTOR(JERUp);
-    PUSH_USERFLOAT_INTO_VECTOR(JERDn);
-
     if (isMC){
+      PUSH_USERFLOAT_INTO_VECTOR(JECDn);
+      PUSH_USERFLOAT_INTO_VECTOR(JECUp);
+      PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
+      PUSH_USERFLOAT_INTO_VECTOR(JERDn);
+      PUSH_USERFLOAT_INTO_VECTOR(JERUp);
+
       PUSH_USERINT_INTO_VECTOR(is_genMatched);
       PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
+
       PUSH_USERINT_INTO_VECTOR(partonFlavour);
       PUSH_USERINT_INTO_VECTOR(hadronFlavour);
     }
@@ -2266,16 +2506,17 @@ size_t CMS3Ntuplizer::fillAK8Jets(edm::Event const& iEvent, std::vector<pat::Jet
   PUSH_VECTOR_WITH_NAME(colName, axis2);
 
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JECUp);
-  PUSH_VECTOR_WITH_NAME(colName, JECDn);
-
-  PUSH_VECTOR_WITH_NAME(colName, JERNominal);
-  PUSH_VECTOR_WITH_NAME(colName, JERUp);
-  PUSH_VECTOR_WITH_NAME(colName, JERDn);
-
   if (isMC){
+    PUSH_VECTOR_WITH_NAME(colName, JECDn);
+    PUSH_VECTOR_WITH_NAME(colName, JECUp);
+
+    PUSH_VECTOR_WITH_NAME(colName, JERNominal);
+    PUSH_VECTOR_WITH_NAME(colName, JERDn);
+    PUSH_VECTOR_WITH_NAME(colName, JERUp);
+
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
+
     PUSH_VECTOR_WITH_NAME(colName, partonFlavour);
     PUSH_VECTOR_WITH_NAME(colName, hadronFlavour);
   }
@@ -2507,6 +2748,229 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
 
   return nvtxs_good;
 }
+
+void CMS3Ntuplizer::fillJetOverlapInfo(
+  edm::Handle< edm::View<pat::PackedCandidate> > const& pfcandsHandle,
+  std::vector<pat::Muon const*>* filledMuons, std::vector<pat::Electron const*> const* filledElectrons, std::vector<pat::Photon const*>* filledPhotons,
+  std::vector<pat::Jet const*>* filledAK4Jets, std::vector<pat::Jet const*>* filledAK8Jets
+){
+  constexpr double ConeRadiusConstant_AK4Jets = AK4JetSelectionHelpers::ConeRadiusConstant;
+  constexpr double ConeRadiusConstant_AK8Jets = AK8JetSelectionHelpers::ConeRadiusConstant;
+
+  // Muon overlaps
+  {
+    std::string const& colName = CMS3Ntuplizer::colName_muons;
+
+
+  }
+
+  // Electron overlaps
+  {
+    std::string const& colName = CMS3Ntuplizer::colName_electrons;
+
+    size_t n_objects = (filledElectrons ? filledElectrons->size() : 0);
+
+    MAKE_VECTOR_WITH_RESERVE(short, ak4jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
+
+    MAKE_VECTOR_WITH_RESERVE(short, ak8jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
+
+    if (filledElectrons){
+      for (auto const& part:(*filledElectrons)){
+        auto pfcands_part = part->associatedPackedPFCandidates();
+
+        // ak4 jets
+        short idx_ak4jet = -1;
+        reco::Candidate::LorentzVector sump4_ak4jet_common(0, 0, 0, 0);
+        {
+          unsigned short ijet = 0;
+          for (auto const& jet:(*filledAK4Jets)){
+            if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK4Jets){
+              idx_ak4jet = ijet;
+
+              auto const& pfcands_jet = jet->daughterPtrVector();
+              for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+                size_t ipf = it_pfcand_jet->key();
+                pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+                for (auto const& pfcand_part:pfcands_part){
+                  if (pfcand_jet == &(*pfcand_part)){
+                    sump4_ak4jet_common += pfcand_jet->p4();
+                    break; // Break the inner loop over particle PF candidates
+                  }
+                }
+              }
+
+              break;
+            }
+            ijet++;
+          }
+        }
+        // Fill ak4 jet quantities
+        ak4jet_match_index.push_back(idx_ak4jet);
+        ak4jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak4jet_common.pt());
+        ak4jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak4jet_common.eta());
+        ak4jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak4jet_common.phi());
+        ak4jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak4jet_common.mass());
+
+        // ak8 jets
+        short idx_ak8jet = -1;
+        reco::Candidate::LorentzVector sump4_ak8jet_common(0, 0, 0, 0);
+        {
+          unsigned short ijet = 0;
+          for (auto const& jet:(*filledAK8Jets)){
+            if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK8Jets){
+              idx_ak8jet = ijet;
+
+              auto const& pfcands_jet = jet->daughterPtrVector();
+              for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+                size_t ipf = it_pfcand_jet->key();
+                pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+                for (auto const& pfcand_part:pfcands_part){
+                  if (pfcand_jet == &(*pfcand_part)){
+                    sump4_ak8jet_common += pfcand_jet->p4();
+                    break; // Break the inner loop over particle PF candidates
+                  }
+                }
+              }
+
+              break;
+            }
+            ijet++;
+          }
+        }
+        // Fill ak8 jet quantities
+        ak8jet_match_index.push_back(idx_ak8jet);
+        ak8jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak8jet_common.pt());
+        ak8jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak8jet_common.eta());
+        ak8jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak8jet_common.phi());
+        ak8jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak8jet_common.mass());
+      }
+    }
+
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_index);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_pt);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_eta);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_phi);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_mass);
+
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_index);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_pt);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_eta);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_phi);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_mass);
+  }
+
+  // Photon overlaps
+  {
+    std::string const& colName = CMS3Ntuplizer::colName_photons;
+
+    size_t n_objects = (filledPhotons ? filledPhotons->size() : 0);
+
+    MAKE_VECTOR_WITH_RESERVE(short, ak4jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
+
+    MAKE_VECTOR_WITH_RESERVE(short, ak8jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
+
+    if (filledPhotons){
+      for (auto const& part:(*filledPhotons)){
+        auto pfcands_part = part->associatedPackedPFCandidates();
+
+        // ak4 jets
+        short idx_ak4jet = -1;
+        reco::Candidate::LorentzVector sump4_ak4jet_common(0, 0, 0, 0);
+        {
+          unsigned short ijet = 0;
+          for (auto const& jet:(*filledAK4Jets)){
+            if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK4Jets){
+              idx_ak4jet = ijet;
+
+              auto const& pfcands_jet = jet->daughterPtrVector();
+              for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+                size_t ipf = it_pfcand_jet->key();
+                pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+                for (auto const& pfcand_part:pfcands_part){
+                  if (pfcand_jet == &(*pfcand_part)){
+                    sump4_ak4jet_common += pfcand_jet->p4();
+                    break; // Break the inner loop over particle PF candidates
+                  }
+                }
+              }
+
+              break;
+            }
+            ijet++;
+          }
+        }
+        // Fill ak4 jet quantities
+        ak4jet_match_index.push_back(idx_ak4jet);
+        ak4jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak4jet_common.pt());
+        ak4jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak4jet_common.eta());
+        ak4jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak4jet_common.phi());
+        ak4jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak4jet_common.mass());
+
+        // ak8 jets
+        short idx_ak8jet = -1;
+        reco::Candidate::LorentzVector sump4_ak8jet_common(0, 0, 0, 0);
+        {
+          unsigned short ijet = 0;
+          for (auto const& jet:(*filledAK8Jets)){
+            if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK8Jets){
+              idx_ak8jet = ijet;
+
+              auto const& pfcands_jet = jet->daughterPtrVector();
+              for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+                size_t ipf = it_pfcand_jet->key();
+                pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+                for (auto const& pfcand_part:pfcands_part){
+                  if (pfcand_jet == &(*pfcand_part)){
+                    sump4_ak8jet_common += pfcand_jet->p4();
+                    break; // Break the inner loop over particle PF candidates
+                  }
+                }
+              }
+
+              break;
+            }
+            ijet++;
+          }
+        }
+        // Fill ak8 jet quantities
+        ak8jet_match_index.push_back(idx_ak8jet);
+        ak8jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak8jet_common.pt());
+        ak8jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak8jet_common.eta());
+        ak8jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak8jet_common.phi());
+        ak8jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak8jet_common.mass());
+      }
+    }
+
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_index);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_pt);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_eta);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_phi);
+    PUSH_VECTOR_WITH_NAME(colName, ak4jet_match_commonPFCandidates_sump4_mass);
+
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_index);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_pt);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_eta);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_phi);
+    PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_mass);
+  }
+}
+
 
 bool CMS3Ntuplizer::fillEventVariables(edm::Event const& iEvent){
   edm::Handle< double > rhoHandle;

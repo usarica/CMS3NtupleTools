@@ -171,7 +171,7 @@ protected:
   size_t fillMuons(edm::Event const&, std::vector<pat::Muon const*>*);
   size_t fillElectrons(edm::Event const&, std::vector<pat::Electron const*>*);
   size_t fillFSRCandidates(
-    edm::Event const&,
+    edm::Handle< edm::View<pat::PackedCandidate> > const&,
     std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*,
     std::vector<FSRCandidateInfo>*
   );
@@ -179,11 +179,25 @@ protected:
 
   size_t fillReducedSuperclusters(edm::Event const&, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*, std::vector<reco::SuperCluster const*>*);
 
-  size_t fillAK4Jets(edm::Event const&, std::vector<pat::Jet const*>*);
-  size_t fillAK8Jets(edm::Event const&, std::vector<pat::Jet const*>*);
+  size_t fillAK4Jets(
+    edm::Event const&,
+    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
+    std::vector<pat::Jet const*>*
+  );
+  size_t fillAK8Jets(
+    edm::Event const&,
+    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
+    std::vector<pat::Jet const*>*
+  );
   size_t fillIsotracks(edm::Event const&, std::vector<IsotrackInfo const*>*);
 
   size_t fillVertices(edm::Event const&, std::vector<reco::Vertex const*>*);
+
+  void fillJetOverlapInfo(
+    edm::Handle< edm::View<pat::PackedCandidate> > const&,
+    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
+    std::vector<pat::Jet const*>*, std::vector<pat::Jet const*>*
+  );
 
   bool fillEventVariables(edm::Event const&);
   bool fillTriggerInfo(edm::Event const&);
