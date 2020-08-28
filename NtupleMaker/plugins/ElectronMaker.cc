@@ -66,10 +66,13 @@
 
 #include "CMSDataTools/AnalysisTree/interface/HelperFunctions.h"
 
+#include "MELAStreamHelpers.hh"
 
+
+using namespace std;
 using namespace reco;
 using namespace edm;
-using namespace std;
+using namespace MELAStreamHelpers;
 
 
 typedef math::XYZPoint Point;
@@ -197,7 +200,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
   const Point beamSpot = beamSpotH->position();
 
   /////////////////////////
-  // Loop Over Electrons //
+  // Loop over electrons //
   /////////////////////////
   size_t evt_nels = els_h->size(); result->reserve(evt_nels);
   size_t electronIndex = 0;
@@ -700,9 +703,11 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     float min_dR_electron_pfelectron_associated = -1;
     std::vector<pat::PackedCandidate const*> pfelectroncands;
     unsigned int n_associated_pfcands = associated_pfcands.size();
-    double associated_pfcands_sum_sc_pt = 0;
+    double associated_pfcands_sum_sc_pt = 0, associated_pfcands_sum_px = 0, associated_pfcands_sum_py = 0;
     for (auto const& pfcand:associated_pfcands){
       associated_pfcands_sum_sc_pt += pfcand->pt();
+      associated_pfcands_sum_px += pfcand->px();
+      associated_pfcands_sum_py += pfcand->py();
       if (std::abs(pfcand->pdgId()) == 11) pfelectroncands.push_back(&(*pfcand));
     }
     unsigned int n_associated_pfelectrons = pfelectroncands.size();
@@ -726,7 +731,65 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
     electron_result.addUserInt("n_associated_pfcands", n_associated_pfcands);
     electron_result.addUserInt("n_associated_pfelectrons", n_associated_pfelectrons);
     electron_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
+    electron_result.addUserFloat("associated_pfcands_sum_px", associated_pfcands_sum_px);
+    electron_result.addUserFloat("associated_pfcands_sum_py", associated_pfcands_sum_py);
     electron_result.addUserFloat("min_dR_electron_pfelectron_associated", min_dR_electron_pfelectron_associated);
+    // Only for checks
+    /*
+    {
+      double dRmax_ch=-1;
+      double dRmax_nh=-1;
+      double dRmax_em=-1;
+      double dRmax_mu=-1;
+      double dRmax_e=-1;
+      double dRmin_ch=-1;
+      double dRmin_nh=-1;
+      double dRmin_em=-1;
+      double dRmin_mu=-1;
+      double dRmin_e=-1;
+      for (auto const& pfcand:associated_pfcands){
+        //if (pfcand->vertexRef().key()!=0) continue;
+        unsigned int abs_id = std::abs(pfcand->pdgId());
+        double dr = reco::deltaR(el->p4(), pfcand->p4());
+        if (abs_id == 211){
+          dRmax_ch = std::max(dRmax_ch, dr);
+          if (dRmin_ch<0. || dRmin_ch>dr) dRmin_ch = dr;
+        }
+        else if (abs_id == 130){
+          dRmax_nh = std::max(dRmax_nh, dr);
+          if (dRmin_nh<0. || dRmin_nh>dr) dRmin_nh = dr;
+        }
+        else if (abs_id == 22){
+          dRmax_em = std::max(dRmax_em, dr);
+          if (dRmin_em<0. || dRmin_em>dr) dRmin_em = dr;
+        }
+        else if (abs_id == 11){
+          dRmax_e = std::max(dRmax_e, dr);
+          if (dRmin_e<0. || dRmin_e>dr) dRmin_e = dr;
+        }
+        else if (abs_id == 13){
+          dRmax_mu = std::max(dRmax_mu, dr);
+          if (dRmin_mu<0. || dRmin_mu>dr) dRmin_mu = dr;
+        }
+        //if (pfcand->vertexRef().key()!=0){
+        //  MELAout << "PF cand (id=" << pfcand->pdgId() << ", dR=" << dr << ", dz=" << pfcand->dzAssociatedPV() << ") has vtx " << pfcand->vertexRef().key() << endl;
+        //}
+      }
+      electron_result.addUserFloat("dRmax_ch", dRmax_ch);
+      electron_result.addUserFloat("dRmax_nh", dRmax_nh);
+      electron_result.addUserFloat("dRmax_em", dRmax_em);
+      electron_result.addUserFloat("dRmax_mu", dRmax_mu);
+      electron_result.addUserFloat("dRmax_e", dRmax_e);
+      electron_result.addUserFloat("dRmin_ch", dRmin_ch);
+      electron_result.addUserFloat("dRmin_nh", dRmin_nh);
+      electron_result.addUserFloat("dRmin_em", dRmin_em);
+      electron_result.addUserFloat("dRmin_mu", dRmin_mu);
+      electron_result.addUserFloat("dRmin_e", dRmin_e);
+    }
+    */
+
+    // Not needed because momentum of electron and PF electron are within a 100 MeV of each other (much less at small pT)
+    /*
     {
       float closestPFElectron_associated_px=0, closestPFElectron_associated_py=0;
       if (closestPFElectron_associated){
@@ -736,6 +799,7 @@ void ElectronMaker::produce(Event& iEvent, const EventSetup& iSetup){
       electron_result.addUserFloat("closestPFElectron_associated_px", closestPFElectron_associated_px);
       electron_result.addUserFloat("closestPFElectron_associated_py", closestPFElectron_associated_py);
     }
+    */
 
     // Add EGamma PFPhoton ID
     // Use the associated PF photon candidate for MET safety checks

@@ -10,9 +10,16 @@ namespace AK8JetSelectionHelpers{
     AK8PFPUPPI
   };
 
+  // Cone radius
+  constexpr double ConeRadiusConstant = 0.8;
+
   // Skim selection
   constexpr double selection_skim_pt = 100.;
   constexpr double selection_skim_eta = 4.7;
+
+  double getUncorrectedJetEnergy(pat::Jet const& obj);
+  double getUncorrectedJetPt(pat::Jet const& obj);
+  double getUncorrectedJetMass(pat::Jet const& obj);
 
   bool testSkimAK8Jet(pat::Jet const& obj, int const& year);
   bool testLooseAK8Jet(pat::Jet const& obj, int const& year, AK8JetSelectionHelpers::AK8JetType const& type);

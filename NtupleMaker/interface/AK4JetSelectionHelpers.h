@@ -10,12 +10,19 @@ namespace AK4JetSelectionHelpers{
     AK4PFPUPPI
   };
 
+  // Cone radius
+  constexpr double ConeRadiusConstant = 0.4;
+
+  // MET pT threshold
+  constexpr double selection_METJERC_pt = 15.; // Applied on corrected no-mu p4
+
   // Skim selection
   constexpr double selection_skim_pt = 20.;
   constexpr double selection_skim_eta = 4.7;
 
   double getUncorrectedJetEnergy(pat::Jet const& obj);
   double getUncorrectedJetPt(pat::Jet const& obj);
+  double getUncorrectedJetMass(pat::Jet const& obj);
 
   bool testSkimAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);

@@ -7,8 +7,18 @@
 
 namespace AK8JetSelectionHelpers{
 
+  double getUncorrectedJetEnergy(pat::Jet const& obj){
+    return obj.energy(); // p4 of the PFJetMaker output is the uncorrected one.
+  }
+  double getUncorrectedJetPt(pat::Jet const& obj){
+    return obj.pt(); // p4 of the PFJetMaker output is the uncorrected one.
+  }
+  double getUncorrectedJetMass(pat::Jet const& obj){
+    return obj.mass(); // p4 of the PFJetMaker output is the uncorrected one.
+  }
+
   bool testSkimAK8Jet(pat::Jet const& obj, int const& /*year*/){
-    double uncorr_pt = obj.pt(); // Has to be the uncorrected one
+    double uncorr_pt = getUncorrectedJetPt(obj); // Has to be the uncorrected one
     double eta = std::abs(obj.eta());
 
     double JECNominal = obj.userFloat("JECNominal");

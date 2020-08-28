@@ -38,6 +38,7 @@ protected:
   bool refurbishSelections_;
 
   edm::EDGetTokenT< edm::View<pat::Muon> > muonsToken;
+
   edm::EDGetTokenT<reco::VertexCollection> vtxToken;
 
   edm::EDGetTokenT< double > rhoToken;

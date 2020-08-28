@@ -51,7 +51,7 @@
 using namespace std;
 using namespace reco;
 using namespace edm;
-
+using namespace MELAStreamHelpers;
 
 typedef math::XYZPoint Point;
 
@@ -302,7 +302,6 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     ////////
     // PF //
     ////////
-
     // PF isolation
     MuonPFIsolation const& pfIsoR03 = muon->pfIsolationR03();
     muon_result.addUserFloat("pfIso03_sumChargedHadronPt", pfIsoR03.sumChargedHadronPt);
@@ -352,6 +351,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserInt("pfCand_particleId", 0);
       muon_result.addUserInt("pfCand_idx", -1);
     }
+
 
     ////////
     // IP //

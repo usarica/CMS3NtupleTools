@@ -7,10 +7,13 @@
 namespace AK4JetSelectionHelpers{
 
   double getUncorrectedJetEnergy(pat::Jet const& obj){
-    return obj.energy(); // p4 of the PFJetMAker output is the uncorrected one.
+    return obj.energy(); // p4 of the PFJetMaker output is the uncorrected one.
   }
   double getUncorrectedJetPt(pat::Jet const& obj){
-    return obj.pt(); // p4 of the PFJetMAker output is the uncorrected one.
+    return obj.pt(); // p4 of the PFJetMaker output is the uncorrected one.
+  }
+  double getUncorrectedJetMass(pat::Jet const& obj){
+    return obj.mass(); // p4 of the PFJetMaker output is the uncorrected one.
   }
 
   bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){
