@@ -131,28 +131,28 @@ namespace PhotonSelectionHelpers{
     return ea;
   }
 
-  float photonPFIsoChargedHadron(pat::Photon const& obj, int const& year, double const& rho){
-    double ch = obj.chargedHadronIso();
+  float photonPFIsoChargedHadron(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override){
+    double ch = (iso_override ? *iso_override : (double) obj.chargedHadronIso());
     double ea_ch = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_ch);
 
     return std::max(0., ch - rho * ea_ch);
   }
-  float photonPFIsoNeutralHadron(pat::Photon const& obj, int const& year, double const& rho){
-    double nh = obj.neutralHadronIso();
+  float photonPFIsoNeutralHadron(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override){
+    double nh = (iso_override ? *iso_override : (double) obj.neutralHadronIso());
     double ea_nh = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_nh);
 
     return std::max(0., nh - rho * ea_nh);
   }
-  float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho){
-    double em = obj.photonIso();
+  float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override){
+    double em = (iso_override ? *iso_override : (double) obj.photonIso());
     double ea_em = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_em);
 
     return std::max(0., em - rho * ea_em);
   }
-  float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho){
-    double ch = obj.chargedHadronIso();
-    double nh = obj.neutralHadronIso();
-    double em = obj.photonIso();
+  float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override_ch, double const* iso_override_nh, double const* iso_override_em){
+    double ch = (iso_override_ch ? *iso_override_ch : (double) obj.chargedHadronIso());
+    double nh = (iso_override_nh ? *iso_override_nh : (double) obj.neutralHadronIso());
+    double em = (iso_override_em ? *iso_override_em : (double) obj.photonIso());
     double ea_ch = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_ch);
     double ea_nh = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_nh);
     double ea_em = PhotonSelectionHelpers::photonEffArea(obj, year, PhotonEA_em);
