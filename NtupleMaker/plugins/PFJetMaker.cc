@@ -17,6 +17,9 @@
 #include <CMS3/NtupleMaker/interface/plugins/PFJetMaker.h>
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
+#include <CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h>
+#include <CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h>
+
 #include "TRandom3.h"
 
 #include "MELAStreamHelpers.hh"
@@ -133,6 +136,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     const double JECval = 1./undoJEC;
     const double JECval_L1 = relJECval_L1/undoJEC;
     const double& JECval_L1L2L3 = JECval;
+    jet_result.addUserFloat("JECNominal", JECval);
+    jet_result.addUserFloat("JECL1Nominal", JECval_L1);
 
     auto const corrected_p4 = pfjet_it->p4();
     const double corrected_pt = pfjet_it->pt();
@@ -141,8 +146,11 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     //const double jet_abseta = std::abs(jet_eta);
     const double uncorrected_pt = pfjet_it->pt()*undoJEC;
     const double uncorrected_mass = pfjet_it->mass()*undoJEC;
+    const double& uncorrected_eta = jet_eta;
+    const double& uncorrected_phi = jet_phi;
+    const double abs_uncorrected_eta = std::abs(uncorrected_eta);
 
-    jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, jet_eta, jet_phi, uncorrected_mass));
+    jet_result.setP4(reco::Particle::PolarLorentzVector(uncorrected_pt, uncorrected_eta, uncorrected_phi, uncorrected_mass));
     auto const uncorrected_p4 = jet_result.p4();
 
     // PF candidates
@@ -150,30 +158,45 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     jet_result.addUserInt("n_pfcands", pfjet_cands.size());
     size_t n_mucands = 0;
     LorentzVectorD p4_mucands(0, 0, 0, 0);
-    {
+    // Only needed for slim jets
+    if (!isFatJet){
       for (auto cand_it = pfjet_cands.cbegin(); cand_it != pfjet_cands.cend(); cand_it++){
         size_t ipf = cand_it->key();
         pat::PackedCandidate const& pfc = pfCandidates->at(ipf);
+        // The following selection requirements come from process.basicJetsForMetModifiedMET [of type EDProducer("PATJetCleanerForType1MET")]
+        //   skipMuonSelection = cms.string('isGlobalMuon | isStandAloneMuon'),
+        //   skipMuons = cms.bool(True),
+        // Inside JetMETCorrections/Type1MET/interface/JetCleanerForType1METT.h:
+        //   if ( mu != nullptr && (*skipMuonSelection_)(*mu) )...
         if (!pfc.isGlobalMuon() && !pfc.isStandAloneMuon()) continue;
         p4_mucands = p4_mucands + pfc.p4();
         n_mucands++;
       }
-      jet_result.addUserInt("n_mucands", n_mucands);
-      jet_result.addUserFloat("mucands_sump4_px", p4_mucands.px());
-      jet_result.addUserFloat("mucands_sump4_py", p4_mucands.py());
-      jet_result.addUserFloat("mucands_sump4_pz", p4_mucands.pz());
-      jet_result.addUserFloat("mucands_sump4_E", p4_mucands.energy());
     }
-
-    jet_result.addUserFloat("JECNominal", static_cast<const float>(JECval));
-    jet_result.addUserFloat("JECL1Nominal", static_cast<const float>(JECval_L1));
+    jet_result.addUserInt("n_mucands", n_mucands);
+    jet_result.addUserFloat("mucands_sump4_px", p4_mucands.px());
+    jet_result.addUserFloat("mucands_sump4_py", p4_mucands.py());
+    jet_result.addUserFloat("mucands_sump4_pz", p4_mucands.pz());
+    jet_result.addUserFloat("mucands_sump4_E", p4_mucands.energy());
+    // The following selection requirements come from process.basicJetsForMetModifiedMET [of type EDProducer("PATJetCleanerForType1MET")]
+    //   skipEM = cms.bool(True),
+    //   skipEMfractionThreshold = cms.double(0.9),
+    // Inside JetMETCorrections/Type1MET/interface/JetCleanerForType1METT.h:
+    //   double emEnergyFraction = jet.chargedEmEnergyFraction() + jet.neutralEmEnergyFraction();
+    //   if(skipEM_&&emEnergyFraction>skipEMfractionThreshold_ ) continue;
+    bool const hasMETJERCSafeEM = !isFatJet && ((pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9);
+    // process.basicJetsForMetModifiedMET also has uncorrected_p4_nomus.Pt()*JECNominal>=15. Do not set that here...
+    bool const passMETEEFix2017 = !isFatJet && (!METshift_fixEE2017 || (METshift_fixEE2017 && (uncorrected_pt > 50. || abs_uncorrected_eta < 2.65 || abs_uncorrected_eta > 3.139)));
+    bool const passMETJERCCuts = hasMETJERCSafeEM && passMETEEFix2017 && abs_uncorrected_eta<=9.9;
 
     // Get JEC uncertainties 
     jecUnc.setJetEta(jet_eta);
     jecUnc.setJetPt(corrected_pt);
-    const double jec_unc = jecUnc.getUncertainty(true);
-    jet_result.addUserFloat("JECUp", static_cast<const float>(JECval*(1.+jec_unc)));
-    jet_result.addUserFloat("JECDn", static_cast<const float>(JECval*(1.-jec_unc)));
+    const double jec_unc = (isMC ? (double) jecUnc.getUncertainty(true) : 0.);
+    const double JECval_dn = JECval*(1.-jec_unc);
+    const double JECval_up = JECval*(1.+jec_unc);
+    jet_result.addUserFloat("JECDn", JECval_dn);
+    jet_result.addUserFloat("JECUp", JECval_up);
 
     // Use the corrected pT, corrected_pt
     double pt_jer = corrected_pt, pt_jerup = corrected_pt, pt_jerdn = corrected_pt;
@@ -217,14 +240,14 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
 
       double sf    = resolution_sf.getScaleFactor(res_sf_parameters, Variation::NOMINAL);
-      double sf_up = resolution_sf.getScaleFactor(res_sf_parameters, Variation::UP);
       double sf_dn = resolution_sf.getScaleFactor(res_sf_parameters, Variation::DOWN);
+      double sf_up = resolution_sf.getScaleFactor(res_sf_parameters, Variation::UP);
 
       if (is_genMatched){
         // Apply scaling
         pt_jer   = max(0., gen_pt + sf   *(corrected_pt-gen_pt));
-        pt_jerup = max(0., gen_pt + sf_up*(corrected_pt-gen_pt));
         pt_jerdn = max(0., gen_pt + sf_dn*(corrected_pt-gen_pt));
+        pt_jerup = max(0., gen_pt + sf_up*(corrected_pt-gen_pt));
       }
       else{
         // Apply smearing
@@ -232,69 +255,103 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         rand.SetSeed(std::abs(static_cast<int>(std::sin(jet_phi)*100000)));
         const double smear = rand.Gaus(0., 1.);
         const double sigma   = sqrt(sf   *sf   -1.) * res_pt*corrected_pt;
-        const double sigmaup = sqrt(sf_up*sf_up-1.) * res_pt*corrected_pt;
         const double sigmadn = sqrt(sf_dn*sf_dn-1.) * res_pt*corrected_pt;
+        const double sigmaup = sqrt(sf_up*sf_up-1.) * res_pt*corrected_pt;
         pt_jer   = std::max(0., smear*sigma   + corrected_pt);
-        pt_jerup = std::max(0., smear*sigmaup + corrected_pt);
         pt_jerdn = std::max(0., smear*sigmadn + corrected_pt);
+        pt_jerup = std::max(0., smear*sigmaup + corrected_pt);
       }
 
       double const JERval = pt_jer/corrected_pt;
       double const JERval_up = pt_jerup/corrected_pt;
       double const JERval_dn = pt_jerdn/corrected_pt;
-      jet_result.addUserFloat("JERNominal", static_cast<float>(JERval));
-      jet_result.addUserFloat("JERUp", static_cast<float>(JERval_up));
-      jet_result.addUserFloat("JERDn", static_cast<float>(JERval_dn));
+      jet_result.addUserFloat("JERNominal", JERval);
+      jet_result.addUserFloat("JERDn", JERval_dn);
+      jet_result.addUserFloat("JERUp", JERval_up);
 
-      if (
-        !isFatJet
-        &&
-        (pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9
-        &&
-        std::abs(uncorrected_p4.Eta())<=9.9
-        &&
-        (!METshift_fixEE2017 || (METshift_fixEE2017 && (uncorrected_p4.Pt() > 50. || std::abs(uncorrected_p4.Eta()) < 2.65 || std::abs(uncorrected_p4.Eta()) > 3.139)))
-        ){
-        // In propagating JER corrections and variations, p4_mucands is assumed to be measured well enough.
-        // This means that JER corrections are assumed to originate from non-muon sources.
-        reco::Candidate::LorentzVector uncorrected_p4_nomus = uncorrected_p4 - p4_mucands;
-        reco::Candidate::LorentzVector rawJetP4offsetCorr = uncorrected_p4_nomus*JECval_L1;
-        reco::Candidate::LorentzVector corrJetP4 = uncorrected_p4_nomus*JECval_L1L2L3;
-        reco::Candidate::LorentzVector diffJetP4 = (corrJetP4 - rawJetP4offsetCorr); // -diffJetP4 is already part of nominal MET
+      if (!isFatJet){
+        bool isMETJERCSafe_JEC_JER[6]={ 0 };
+        if (passMETJERCCuts){
+          // In propagating JER corrections and variations, p4_mucands is assumed to be measured well enough.
+          // This means that JER corrections are assumed to originate from non-muon sources.
+          reco::Candidate::LorentzVector uncorrected_p4_nomus = uncorrected_p4 - p4_mucands;
+          reco::Candidate::LorentzVector corrJetP4 = uncorrected_p4_nomus*JECval_L1L2L3;
+          reco::Candidate::LorentzVector rawJetP4offsetCorr = uncorrected_p4_nomus*JECval_L1;
+          reco::Candidate::LorentzVector diffJetP4 = (corrJetP4 - rawJetP4offsetCorr); // -diffJetP4 is already part of nominal MET
 
-        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERNominal = uncorrected_p4*JERval - p4_mucands;
-        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1;
-        reco::Candidate::LorentzVector corrJetP4_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1L2L3;
-        reco::Candidate::LorentzVector diffJetP4_JERNominal = (corrJetP4_JERNominal - rawJetP4offsetCorr_JERNominal);
+          reco::Candidate::LorentzVector uncorrected_p4_nomus_JERNominal = uncorrected_p4*JERval - p4_mucands;
+          reco::Candidate::LorentzVector corrJetP4_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1L2L3;
+          reco::Candidate::LorentzVector rawJetP4offsetCorr_JERNominal = uncorrected_p4_nomus_JERNominal*JECval_L1;
+          reco::Candidate::LorentzVector diffJetP4_JERNominal = (corrJetP4_JERNominal - rawJetP4offsetCorr_JERNominal);
 
-        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERUp = uncorrected_p4*JERval_up - p4_mucands;
-        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1;
-        reco::Candidate::LorentzVector corrJetP4_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1L2L3;
-        reco::Candidate::LorentzVector diffJetP4_JERUp = (corrJetP4_JERUp - rawJetP4offsetCorr_JERUp);
+          reco::Candidate::LorentzVector uncorrected_p4_nomus_JERDn = uncorrected_p4*JERval_dn - p4_mucands;
+          reco::Candidate::LorentzVector corrJetP4_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1L2L3;
+          reco::Candidate::LorentzVector rawJetP4offsetCorr_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1;
+          reco::Candidate::LorentzVector diffJetP4_JERDn = (corrJetP4_JERDn - rawJetP4offsetCorr_JERDn);
 
-        reco::Candidate::LorentzVector uncorrected_p4_nomus_JERDn = uncorrected_p4*JERval_dn - p4_mucands;
-        reco::Candidate::LorentzVector rawJetP4offsetCorr_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1;
-        reco::Candidate::LorentzVector corrJetP4_JERDn = uncorrected_p4_nomus_JERDn*JECval_L1L2L3;
-        reco::Candidate::LorentzVector diffJetP4_JERDn = (corrJetP4_JERDn - rawJetP4offsetCorr_JERDn);
+          reco::Candidate::LorentzVector uncorrected_p4_nomus_JERUp = uncorrected_p4*JERval_up - p4_mucands;
+          reco::Candidate::LorentzVector corrJetP4_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1L2L3;
+          reco::Candidate::LorentzVector rawJetP4offsetCorr_JERUp = uncorrected_p4_nomus_JERUp*JECval_L1;
+          reco::Candidate::LorentzVector diffJetP4_JERUp = (corrJetP4_JERUp - rawJetP4offsetCorr_JERUp);
 
-        // JER variations
-        // First take out diffJetP4 from MET
-        if (corrJetP4.Pt()>15.){
-          // Double negative = positive
-          *METshift_JERNominal += diffJetP4;
-          *METshift_JERUp += diffJetP4;
-          *METshift_JERDn += diffJetP4;
+          // These are needed only for setting isMETSafe flags for JEC dn/up variations
+          reco::Candidate::LorentzVector corrJetP4_JECDn = uncorrected_p4_nomus*JECval_dn;
+          reco::Candidate::LorentzVector corrJetP4_JECUp = uncorrected_p4_nomus*JECval_up;
+
+          // JER variations
+          // First take out diffJetP4 from MET
+          if (corrJetP4.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
+            isMETJERCSafe_JEC_JER[0] = true;
+            // Double negative = positive
+            *METshift_JERNominal += diffJetP4;
+            *METshift_JERUp += diffJetP4;
+            *METshift_JERDn += diffJetP4;
+          }
+          if (corrJetP4_JECDn.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt) isMETJERCSafe_JEC_JER[1] = true;
+          if (corrJetP4_JECUp.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt) isMETJERCSafe_JEC_JER[2] = true;
+          // Add back the relevant diffJetP4 variations
+          if (corrJetP4_JERNominal.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
+            isMETJERCSafe_JEC_JER[3] = true;
+            *METshift_JERNominal += -diffJetP4_JERNominal;
+          }
+          if (corrJetP4_JERDn.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
+            isMETJERCSafe_JEC_JER[4] = true;
+            *METshift_JERDn += -diffJetP4_JERDn;
+          }
+          if (corrJetP4_JERUp.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
+            isMETJERCSafe_JEC_JER[5] = true;
+            *METshift_JERUp += -diffJetP4_JERUp;
+          }
         }
-        // Add back the relevant diffJetP4 variations
-        if (corrJetP4_JERNominal.Pt()>15.) *METshift_JERNominal += -diffJetP4_JERNominal;
-        if (corrJetP4_JERUp.Pt()>15.) *METshift_JERUp += -diffJetP4_JERUp;
-        if (corrJetP4_JERDn.Pt()>15.) *METshift_JERDn += -diffJetP4_JERDn;
+        jet_result.addUserInt("isMETJERCSafe_JECNominal", isMETJERCSafe_JEC_JER[0]);
+        jet_result.addUserInt("isMETJERCSafe_JECDn", isMETJERCSafe_JEC_JER[1]);
+        jet_result.addUserInt("isMETJERCSafe_JECUp", isMETJERCSafe_JEC_JER[2]);
+        jet_result.addUserInt("isMETJERCSafe_JERNominal", isMETJERCSafe_JEC_JER[3]);
+        jet_result.addUserInt("isMETJERCSafe_JERDn", isMETJERCSafe_JEC_JER[4]);
+        jet_result.addUserInt("isMETJERCSafe_JERUp", isMETJERCSafe_JEC_JER[5]);
       }
     }
     else{
       jet_result.addUserFloat("JERNominal", 1.f);
-      jet_result.addUserFloat("JERUp", 1.f);
       jet_result.addUserFloat("JERDn", 1.f);
+      jet_result.addUserFloat("JERUp", 1.f);
+
+      if (!isFatJet){
+        bool isMETJERCSafe_JEC_JER = false;
+
+        // Determine MET safety
+        if (passMETJERCCuts){
+          reco::Candidate::LorentzVector uncorrected_p4_nomus = uncorrected_p4 - p4_mucands;
+          reco::Candidate::LorentzVector corrJetP4 = uncorrected_p4_nomus*JECval_L1L2L3;
+          isMETJERCSafe_JEC_JER = corrJetP4.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt;
+        }
+        jet_result.addUserInt("isMETJERCSafe_JECNominal", isMETJERCSafe_JEC_JER);
+        jet_result.addUserInt("isMETJERCSafe_JECDn", isMETJERCSafe_JEC_JER);
+        jet_result.addUserInt("isMETJERCSafe_JECUp", isMETJERCSafe_JEC_JER);
+        jet_result.addUserInt("isMETJERCSafe_JERNominal", isMETJERCSafe_JEC_JER);
+        jet_result.addUserInt("isMETJERCSafe_JERDn", isMETJERCSafe_JEC_JER);
+        jet_result.addUserInt("isMETJERCSafe_JERUp", isMETJERCSafe_JEC_JER);
+      }
     }
 
     // Gen matching info
