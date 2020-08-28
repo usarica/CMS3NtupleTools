@@ -16,7 +16,7 @@ namespace FSRSelectionHelpers{
   // FSR skim
   constexpr double selection_match_fsr_deltaR = 0.5;
   constexpr double selection_skim_fsr_pt = 2.;
-  constexpr double selection_skim_fsr_eta = 2.4;
+  constexpr double selection_skim_fsr_eta = 2.5;
   constexpr double selection_skim_fsr_min_reldr = 0.012; // min. DR/pt**2 threshold
   constexpr double selection_skim_fsr_reliso = 1.8; // fsrIso / pT threshold
 

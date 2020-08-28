@@ -6,6 +6,8 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include <DataFormats/Common/interface/RefToPtr.h>
+
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
@@ -16,6 +18,7 @@
 
 #include <CMS3/NtupleMaker/interface/plugins/PhotonMaker.h>
 #include <CMS3/NtupleMaker/interface/PhotonSelectionHelpers.h>
+#include "CMS3/NtupleMaker/interface/VertexSelectionHelpers.h"
 #include <CMS3/NtupleMaker/interface/CMS3ObjectHelpers.h>
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
@@ -23,13 +26,16 @@
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
 
+#include "MELAStreamHelpers.hh"
+
 
 typedef math::XYZTLorentzVectorF LorentzVector;
 typedef math::XYZPoint Point;
 
+using namespace std;
 using namespace reco;
 using namespace edm;
-using namespace std;
+using namespace MELAStreamHelpers;
 
 
 PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
@@ -43,6 +49,8 @@ PhotonMaker::PhotonMaker(const edm::ParameterSet& iConfig) :
   photonsToken = consumes< edm::View<pat::Photon> >(iConfig.getParameter<edm::InputTag>("photonsInputTag"));
 
   pfcandsToken = consumes< edm::View<pat::PackedCandidate> >(iConfig.getParameter<edm::InputTag>("pfcandsInputTag"));
+
+  vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
 
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
 
@@ -66,23 +74,41 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   // Get the inputs //
   ////////////////////
 
-  // Rho
-  edm::Handle< double > rhoHandle;
-  iEvent.getByToken(rhoToken, rhoHandle);
-  if (!rhoHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting rho from the event...");
-  const double& rho_event = *rhoHandle;
-
   // Photons
   edm::Handle< edm::View<pat::Photon> > photons_h;
   iEvent.getByToken(photonsToken, photons_h);
   if (!photons_h.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting photons from the event...");
 
+  // PF candidates
   edm::Handle< edm::View<pat::PackedCandidate> > pfcandsHandle;
   iEvent.getByToken(pfcandsToken, pfcandsHandle);
   if (!pfcandsHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting the PF candidate collection from the event...");
   //std::unordered_map<pat::Photon const*, pat::PackedCandidate const*> photon_pfphoton_map;
   //get_photon_pfphoton_matchMap(iEvent, photons_h, pfcandsHandle, photon_pfphoton_map);
 
+  // Primary vertices
+  edm::Handle<reco::VertexCollection> vertexHandle;
+  iEvent.getByToken(vtxToken, vertexHandle);
+  if (!vertexHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting vertex collection from the event...");
+  reco::VertexRefCollection vtxrefs_all; vtxrefs_all.reserve(vertexHandle->size());
+  reco::VertexRefCollection vtxrefs_good; vtxrefs_good.reserve(vertexHandle->size());
+  {
+    unsigned int ivtx=0;
+    for (auto it_vtx = vertexHandle->begin(); it_vtx != vertexHandle->end(); it_vtx++){
+      reco::VertexRef vtxref(vertexHandle, ivtx);
+      vtxrefs_all.push_back(vtxref);
+      if (VertexSelectionHelpers::testGoodVertex(*it_vtx)) vtxrefs_good.push_back(vtxref);
+      ivtx++;
+    }
+  }
+
+  // Rho
+  edm::Handle< double > rhoHandle;
+  iEvent.getByToken(rhoToken, rhoHandle);
+  if (!rhoHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting rho from the event...");
+  const double& rho_event = *rhoHandle;
+
+  // EB and EE hits
   edm::Handle< EcalRecHitCollection > ebhitsHandle;
   iEvent.getByToken(ebhitsToken, ebhitsHandle);
   if (!ebhitsHandle.isValid()) throw cms::Exception("PhotonMaker::produce: Error getting EB hits from the event...");
@@ -93,11 +119,12 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   size_t nTotalPhotons = photons_h->size(); result->reserve(nTotalPhotons);
   size_t photonIndex = 0;
-  for (View<pat::Photon>::const_iterator photon = photons_h->begin(); photon != photons_h->end(); photon++/*, photonIndex++*/) {
+  for (edm::View<pat::Photon>::const_iterator photon = photons_h->begin(); photon != photons_h->end(); photon++, photonIndex++){
     pat::Photon photon_result(*photon);
 
     // Get the reference to reco::Photon
-    //const edm::RefToBase<pat::Photon> recoPhoton = photons_h->refAt(photonIndex);
+    edm::RefToBase<pat::Photon> photon_reco_ref = photons_h->refAt(photonIndex);
+    reco::CandidatePtr photon_reco_ptr = edm::refToPtr(photon_reco_ref.castTo<reco::CandidateRef>());
 
     // Scale and smearing corrections are now stored in the miniAOD https://twiki.cern.ch/twiki/bin/view/CMS/EgammaMiniAODV2#Energy_Scale_and_Smearing
     float uncorrected_pt = photon->pt();
@@ -190,15 +217,80 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserFloat("ecalPFClusterIso", photon->ecalPFClusterIso());
     photon_result.addUserFloat("hcalPFClusterIso", photon->hcalPFClusterIso());
 
-    // PFIso of reco::Photon
-    photon_result.addUserFloat("pfChargedHadronIso", photon->reco::Photon::chargedHadronIso());
-    photon_result.addUserFloat("pfNeutralHadronIso", photon->reco::Photon::neutralHadronIso());
-    photon_result.addUserFloat("pfEMIso", photon->reco::Photon::photonIso());
-    photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoChargedHadron(*photon, year_, rho_event));
-    photon_result.addUserFloat("pfNeutralHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoNeutralHadron(*photon, year_, rho_event));
-    photon_result.addUserFloat("pfEMIso_EAcorr", PhotonSelectionHelpers::photonPFIsoEM(*photon, year_, rho_event));
-    photon_result.addUserFloat("pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(*photon, year_, rho_event));
-    photon_result.addUserFloat("pfWorstChargedHadronIso", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(*photon, year_, pfcandsHandle->begin(), pfcandsHandle->end()));
+    // PF isolation of reco::Photon
+    photon_result.addUserFloat("pfChargedHadronIso_reco", photon->reco::Photon::chargedHadronIso());
+    photon_result.addUserFloat("pfNeutralHadronIso_reco", photon->reco::Photon::neutralHadronIso());
+    photon_result.addUserFloat("pfEMIso_reco", photon->reco::Photon::photonIso());
+
+    // PF isolation from user floats (these are the ones used in the ID)
+    std::vector<double> mappedIsolationValues(nPFIsolationValueMapTypes, -1);
+    {
+      unsigned int iso_type = 0;
+      for (auto& mappedIsolationValue:mappedIsolationValues){
+        mappedIsolationValue = getIsolationFromUserFloat(photon, (PFIsolationValueMapType) iso_type);
+        iso_type++;
+      }
+    }
+    photon_result.addUserFloat("pfChargedHadronIso", mappedIsolationValues.at(kPFChargedHadronIsolation));
+    photon_result.addUserFloat("pfNeutralHadronIso", mappedIsolationValues.at(kPFNeutralHadronIsolation));
+    photon_result.addUserFloat("pfEMIso", mappedIsolationValues.at(kPFPhotonIsolation));
+    photon_result.addUserFloat("pfChargedHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoChargedHadron(photon_result, year_, rho_event, &(mappedIsolationValues.at(kPFChargedHadronIsolation))));
+    photon_result.addUserFloat("pfNeutralHadronIso_EAcorr", PhotonSelectionHelpers::photonPFIsoNeutralHadron(photon_result, year_, rho_event, &(mappedIsolationValues.at(kPFNeutralHadronIsolation))));
+    photon_result.addUserFloat("pfEMIso_EAcorr", PhotonSelectionHelpers::photonPFIsoEM(photon_result, year_, rho_event, &(mappedIsolationValues.at(kPFPhotonIsolation))));
+    photon_result.addUserFloat(
+      "pfIso_comb", PhotonSelectionHelpers::photonPFIsoComb(
+        photon_result, year_, rho_event,
+        &(mappedIsolationValues.at(kPFChargedHadronIsolation)), &(mappedIsolationValues.at(kPFNeutralHadronIsolation)), &(mappedIsolationValues.at(kPFPhotonIsolation))
+      )
+    );
+
+    // Worst charged hadron isolation
+    // (Welcome to the nightmare of having too many choices)
+    // None of these below require vertex fit quality. Why? I don't know...
+    photon_result.addUserFloat("pfWorstChargedHadronIso_allVtxs", mappedIsolationValues.at(kPFWorstChargedIsolation)); // This one is consistent with mappedIsolationValues.at(kPFChargedHadronIsolation).
+    photon_result.addUserFloat("pfWorstChargedHadronIso_pt0p1_minDR0p02_allVtxs", mappedIsolationValues.at(kPFWorstChargedIsolationConeVeto)); // This one adds dR>0.02 AND pT>0.1 GeV requirements, no idea why...
+    photon_result.addUserFloat("pfWorstChargedHadronIso_pt0p1_minDR0p02_dxy_dz_firstPV_allVtxs", mappedIsolationValues.at(kPFWorstChargedIsolationConeVetoPVConstr)); // This one also requires dxy snd dz to be calculated wrt. PV[0], again no idea why...
+
+    // Custom calculations of charged hadron isolations using different fit constraint and dz requirements
+    // These calculations are disabled in order to save time and space.
+    /*
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Tight_NoDZ_allVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_all, pfcandsHandle->begin(), pfcandsHandle->end(),
+        false, -1
+      )
+    );
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Tight_NoDZ_goodVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_good, pfcandsHandle->begin(), pfcandsHandle->end(),
+        false, -1
+      )
+    );
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Tight_or_DZ0p1_allVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_all, pfcandsHandle->begin(), pfcandsHandle->end(),
+        false, 0.1
+      )
+    );
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Tight_or_DZ0p1_goodVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_good, pfcandsHandle->begin(), pfcandsHandle->end(),
+        false, 0.1
+      )
+    );
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Loose_NoDZ_allVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_all, pfcandsHandle->begin(), pfcandsHandle->end(),
+        true, -1
+      )
+    );
+    photon_result.addUserFloat(
+      "pfWorstChargedHadronIso_Loose_NoDZ_goodVtxs", PhotonSelectionHelpers::photonPFIsoWorstChargedHadron(
+        *photon, year_, vtxrefs_good, pfcandsHandle->begin(), pfcandsHandle->end(),
+        true, -1
+      )
+    );
+    */
 
     // Uses the 'pfEMIso_EAcorr' user float, so call this function after setting this user variable
     setCutBasedHGGIdSelectionBits(photon, photon_result);
@@ -213,9 +305,11 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     float min_dR_photon_pfphoton_associated = -1;
     std::vector<pat::PackedCandidate const*> pfphotoncands;
     unsigned int n_associated_pfcands = associated_pfcands.size();
-    double associated_pfcands_sum_sc_pt = 0;
+    double associated_pfcands_sum_sc_pt = 0, associated_pfcands_sum_px = 0, associated_pfcands_sum_py = 0;
     for (auto const& pfcand:associated_pfcands){
       associated_pfcands_sum_sc_pt += pfcand->pt();
+      associated_pfcands_sum_px += pfcand->px();
+      associated_pfcands_sum_py += pfcand->py();
       if (pfcand->pdgId() == 22) pfphotoncands.push_back(&(*pfcand));
     }
     unsigned int n_associated_pfphotons = pfphotoncands.size();
@@ -239,7 +333,62 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     photon_result.addUserInt("n_associated_pfcands", n_associated_pfcands);
     photon_result.addUserInt("n_associated_pfphotons", n_associated_pfphotons);
     photon_result.addUserFloat("associated_pfcands_sum_sc_pt", associated_pfcands_sum_sc_pt);
-    photon_result.addUserFloat("min_dR_photon_pfphoton_associated", min_dR_photon_pfphoton_associated);
+    photon_result.addUserFloat("associated_pfcands_sum_px", associated_pfcands_sum_px);
+    photon_result.addUserFloat("associated_pfcands_sum_py", associated_pfcands_sum_py);
+    photon_result.addUserFloat("min_dR_photon_pfphoton_associated", min_dR_photon_pfphoton_associated); // May need to cut dR<0.04, or even 0.02, needs to be checked
+    // Only for checks
+    /*
+    {
+      double dRmax_ch=-1;
+      double dRmax_nh=-1;
+      double dRmax_em=-1;
+      double dRmax_mu=-1;
+      double dRmax_e=-1;
+      double dRmin_ch=-1;
+      double dRmin_nh=-1;
+      double dRmin_em=-1;
+      double dRmin_mu=-1;
+      double dRmin_e=-1;
+      for (auto const& pfcand:associated_pfcands){
+        //if (pfcand->vertexRef().key()!=0) continue;
+        unsigned int abs_id = std::abs(pfcand->pdgId());
+        double dr = reco::deltaR(photon->p4(), pfcand->p4());
+        if (abs_id == 211){
+          dRmax_ch = std::max(dRmax_ch, dr);
+          if (dRmin_ch<0. || dRmin_ch>dr) dRmin_ch = dr;
+        }
+        else if (abs_id == 130){
+          dRmax_nh = std::max(dRmax_nh, dr);
+          if (dRmin_nh<0. || dRmin_nh>dr) dRmin_nh = dr;
+        }
+        else if (abs_id == 22){
+          dRmax_em = std::max(dRmax_em, dr);
+          if (dRmin_em<0. || dRmin_em>dr) dRmin_em = dr;
+        }
+        else if (abs_id == 11){
+          dRmax_e = std::max(dRmax_e, dr);
+          if (dRmin_e<0. || dRmin_e>dr) dRmin_e = dr;
+        }
+        else if (abs_id == 13){
+          dRmax_mu = std::max(dRmax_mu, dr);
+          if (dRmin_mu<0. || dRmin_mu>dr) dRmin_mu = dr;
+        }
+        //if (pfcand->vertexRef().key()!=0){
+        //  MELAout << "PF cand (id=" << pfcand->pdgId() << ", dR=" << dr << ", dz=" << pfcand->dzAssociatedPV() << ") has vtx " << pfcand->vertexRef().key() << endl;
+        //}
+      }
+      photon_result.addUserFloat("dRmax_ch", dRmax_ch);
+      photon_result.addUserFloat("dRmax_nh", dRmax_nh);
+      photon_result.addUserFloat("dRmax_em", dRmax_em);
+      photon_result.addUserFloat("dRmax_mu", dRmax_mu);
+      photon_result.addUserFloat("dRmax_e", dRmax_e);
+      photon_result.addUserFloat("dRmin_ch", dRmin_ch);
+      photon_result.addUserFloat("dRmin_nh", dRmin_nh);
+      photon_result.addUserFloat("dRmin_em", dRmin_em);
+      photon_result.addUserFloat("dRmin_mu", dRmin_mu);
+      photon_result.addUserFloat("dRmin_e", dRmin_e);
+    }
+    */
     {
       float closestPFPhoton_associated_px=0, closestPFPhoton_associated_py=0;
       if (closestPFPhoton_associated){
@@ -294,7 +443,6 @@ void PhotonMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
     // Put the object into the result collection
     result->emplace_back(photon_result);
-    photonIndex++;
   }
 
   // Put the result collection into the event
@@ -430,6 +578,44 @@ float PhotonMaker::getRecHitEnergyTime(DetId const& id, EcalRecHitCollection con
     }
   }
   return 0;
+}
+
+float PhotonMaker::getIsolationFromUserFloat(edm::View<pat::Photon>::const_iterator const& photon, PhotonMaker::PFIsolationValueMapType const& iso_type){
+  float res = -1;
+  /*
+  // This is the basic code to get values from a value map. cand is of type reco::CandidatePtr
+  if (!vmap.isValid()) throw cms::Exception("PhotonMaker::getIsolationFromValueMap: Value map is invalid...");
+  else if (vmap->contains(cand.id())) res = (*vmap)[cand];
+  else if (vmap->idSize() == 1 && cand.id() == edm::ProductID()) res = vmap->begin()[cand.key()];
+  else throw cms::Exception("PhotonMaker::getIsolationFromValueMap: Failed to obtain value for the photon from the value map...");
+  */
+  // Access isolations from user flaots directly
+  std::string iso_name;
+  switch (iso_type){
+  case kPFChargedHadronIsolation:
+    iso_name = "phoChargedIsolation";
+    break;
+  case kPFNeutralHadronIsolation:
+    iso_name = "phoNeutralHadronIsolation";
+    break;
+  case kPFPhotonIsolation:
+    iso_name = "phoPhotonIsolation";
+    break;
+  case kPFWorstChargedIsolation:
+    iso_name = "phoWorstChargedIsolation";
+    break;
+  case kPFWorstChargedIsolationConeVeto:
+    iso_name = "phoWorstChargedIsolationConeVeto";
+    break;
+  case kPFWorstChargedIsolationConeVetoPVConstr:
+    iso_name = "phoWorstChargedIsolationConeVetoPVConstr";
+    break;
+  default:
+    throw cms::Exception(Form("PhotonMaker::getIsolationFromUserFloat: Failed to determine isolation name for type %i.", iso_type));
+    break;
+  }
+  res = photon->userFloat(iso_name);
+  return res;
 }
 
 void PhotonMaker::get_photon_pfphoton_matchMap(

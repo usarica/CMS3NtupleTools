@@ -708,6 +708,7 @@ elif (opts.year == 2018):
                           era='2018-Prompt')
 
 from CMS3.NtupleMaker.utils.replaceMVAValuesByRaw import getMVACutflowDictionary,replaceMVAValuesByRaw # Needed to get Rawvalues instead of values
+from CMS3.NtupleMaker.utils.addIsolationValuesFromMap import addIsolationValuesFromMap # Needed to add extra isolation values used in cut-based photon ids
 allMVAcuts=cms.VPSet()
 electronMVAcuts=cms.VPSet()
 photonMVAcuts=cms.VPSet()
@@ -723,6 +724,8 @@ replaceMVAValuesByRaw(process.slimmedElectrons, allMVAcuts)
 replaceMVAValuesByRaw(process.slimmedPhotons, allMVAcuts)
 process.electronMaker.MVACuts = electronMVAcuts
 process.photonMaker.MVACuts = photonMVAcuts
+addIsolationValuesFromMap(process.slimmedPhotons, True)
+
 
 #for idmod in my_eleid_modules:
 #    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)

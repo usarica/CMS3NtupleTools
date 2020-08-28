@@ -13,6 +13,8 @@ photonMaker = cms.EDProducer(
 
    pfcandsInputTag = cms.InputTag("packedPFCandidates"),
 
+   vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
+
    rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),
 
    EBHitsInputTag = cms.InputTag("reducedEgamma:reducedEBRecHits"),

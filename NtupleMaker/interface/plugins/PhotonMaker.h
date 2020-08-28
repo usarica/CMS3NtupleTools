@@ -2,6 +2,7 @@
 #define NTUPLEMAKER_PHOTONMAKER_H
 
 #include <memory>
+#include <vector>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -10,6 +11,11 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include <CommonTools/Utils/interface/StringCutObjectSelector.h>
+
+#include <DataFormats/Common/interface/Handle.h>
+#include <DataFormats/Common/interface/View.h>
+
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 #include "DataFormats/EcalRecHit/interface/EcalRecHitCollections.h"
 
@@ -36,6 +42,8 @@ protected:
 
   edm::EDGetTokenT< edm::View<pat::PackedCandidate> > pfcandsToken;
 
+  edm::EDGetTokenT<reco::VertexCollection> vtxToken;
+
   edm::EDGetTokenT< double > rhoToken;
 
   edm::EDGetTokenT< EcalRecHitCollection > ebhitsToken;
@@ -43,6 +51,17 @@ protected:
 
 
 private:
+  enum PFIsolationValueMapType{
+    kPFChargedHadronIsolation = 0,
+    kPFNeutralHadronIsolation,
+    kPFPhotonIsolation,
+    kPFWorstChargedIsolation,
+    kPFWorstChargedIsolationConeVeto,
+    kPFWorstChargedIsolationConeVetoPVConstr,
+
+    nPFIsolationValueMapTypes
+  };
+
   virtual void beginJob();
   virtual void endJob();
 
@@ -56,6 +75,8 @@ private:
   void setEGammaPFPhotonIdSelectionBits(edm::View<pat::Photon>::const_iterator const&, pat::PackedCandidate const*, pat::Photon&) const;
 
   static float getRecHitEnergyTime(DetId const&, EcalRecHitCollection const*, EcalRecHitCollection const*, unsigned short, unsigned short, float* outtime=nullptr);
+
+  static float getIsolationFromUserFloat(edm::View<pat::Photon>::const_iterator const&, PhotonMaker::PFIsolationValueMapType const&);
 
   void get_photon_pfphoton_matchMap(
     edm::Event const& iEvent,
