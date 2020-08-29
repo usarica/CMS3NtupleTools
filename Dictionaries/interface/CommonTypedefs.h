@@ -12,6 +12,8 @@ typedef unsigned int cms3_absid_t;
 typedef short cms3_genstatus_t;
 typedef unsigned short cms3_nShowerGluons_t;
 
+typedef short cms3_refkey_t;
+
 typedef unsigned int cms3_muon_pogselectorbits_t;
 
 typedef uint16_t cms3_egamma_fid_type_mask_t;
@@ -31,5 +33,7 @@ typedef unsigned char cms3_photon_cutbasedbits_egPFPhoton_t;
 
 typedef char cms3_jet_genflavor_t;
 typedef unsigned char cms3_jet_pujetid_t;
+
+typedef uint16_t cms3_pfcand_qualityflag_t;
 
 #endif

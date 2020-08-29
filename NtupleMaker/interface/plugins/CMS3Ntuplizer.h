@@ -43,9 +43,6 @@
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 
-#include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
-#include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
-
 #include <CMS3/NtupleMaker/interface/GenInfo.h>
 #include <CMS3/NtupleMaker/interface/TriggerInfo.h>
 #include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
@@ -53,6 +50,10 @@
 #include <CMS3/NtupleMaker/interface/METInfo.h>
 #include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
 #include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
+#include <CMS3/NtupleMaker/interface/PFCandidateInfo.h>
+
+#include <CMSDataTools/AnalysisTree/interface/SimpleEntry.h>
+#include <CMSDataTools/AnalysisTree/interface/BaseTree.h>
 
 
 class CMS3Ntuplizer : public edm::one::EDAnalyzer<edm::one::SharedResources>{
@@ -172,31 +173,39 @@ protected:
   size_t fillElectrons(edm::Event const&, std::vector<pat::Electron const*>*);
   size_t fillFSRCandidates(
     edm::Handle< edm::View<pat::PackedCandidate> > const&,
-    std::vector<pat::Muon const*> const*, std::vector<pat::Electron const*> const*,
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&,
     std::vector<FSRCandidateInfo>*
   );
-  size_t fillPhotons(edm::Event const&, std::vector<FSRCandidateInfo>*, std::vector<pat::Photon const*>*); // Not std::vector<FSRCandidateInfo> const* because the veto photon lists need to be modified.
+  // The FSRCandidateInfos are modified, so pass non-const reference below.
+  size_t fillPhotons(edm::Event const&, std::vector<FSRCandidateInfo>&, std::vector<pat::Photon const*>*); // Not std::vector<FSRCandidateInfo> const* because the veto photon lists need to be modified.
 
-  size_t fillReducedSuperclusters(edm::Event const&, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*> const*, std::vector<reco::SuperCluster const*>*);
+  size_t fillReducedSuperclusters(edm::Event const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&, std::vector<reco::SuperCluster const*>*);
 
   size_t fillAK4Jets(
     edm::Event const&,
-    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
     std::vector<pat::Jet const*>*
   );
   size_t fillAK8Jets(
     edm::Event const&,
-    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
     std::vector<pat::Jet const*>*
   );
+
   size_t fillIsotracks(edm::Event const&, std::vector<IsotrackInfo const*>*);
 
   size_t fillVertices(edm::Event const&, std::vector<reco::Vertex const*>*);
 
   void fillJetOverlapInfo(
     edm::Handle< edm::View<pat::PackedCandidate> > const&,
-    std::vector<pat::Muon const*>*, std::vector<pat::Electron const*> const*, std::vector<pat::Photon const*>*,
-    std::vector<pat::Jet const*>*, std::vector<pat::Jet const*>*
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
+    std::vector<pat::Jet const*> const&, std::vector<pat::Jet const*> const&,
+    std::vector<PFCandidateInfo>&
+  );
+  void fillPFCandidates(
+    std::vector<reco::Vertex const*> const&,
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
+    std::vector<PFCandidateInfo> const&
   );
 
   bool fillEventVariables(edm::Event const&);

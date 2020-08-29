@@ -16,42 +16,6 @@ namespace AK4JetSelectionHelpers{
     return obj.mass(); // p4 of the PFJetMaker output is the uncorrected one.
   }
 
-  bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){
-    double uncorr_pt = getUncorrectedJetPt(obj); // Has to be the uncorrected one
-    double eta = std::abs(obj.eta());
-
-    double JECNominal = obj.userFloat("JECNominal");
-    double JECUp = obj.userFloat("JECUp");
-    double JECDn = obj.userFloat("JECDn");
-
-    double JERNominal = obj.userFloat("JERNominal");
-    double JERUp = obj.userFloat("JERUp");
-    double JERDn = obj.userFloat("JERDn");
-
-    return (
-      eta<selection_skim_eta && (
-        uncorr_pt>=selection_skim_pt
-        ||
-        // Only JEC-applied jet momenta
-        uncorr_pt*JECNominal>=selection_skim_pt
-        ||
-        uncorr_pt*JECUp>=selection_skim_pt
-        ||
-        uncorr_pt*JECDn>=selection_skim_pt
-        ||
-        // JEC*JER
-        uncorr_pt*JECNominal*JERNominal>=selection_skim_pt
-        ||
-        uncorr_pt*JECNominal*JERUp>=selection_skim_pt
-        ||
-        uncorr_pt*JECNominal*JERDn>=selection_skim_pt
-        ||
-        uncorr_pt*JECUp*JERNominal>=selection_skim_pt
-        ||
-        uncorr_pt*JECDn*JERNominal>=selection_skim_pt
-        )
-      );
-  }
   bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type){
     if (year!=2016 && year!=2017 && year!=2018) cms::Exception("UnknownYear") << "AK4JetSelectionHelpers::testLooseAK4Jet: Year " << year << " is not implemented!" << std::endl;
 
@@ -185,6 +149,54 @@ namespace AK4JetSelectionHelpers{
     else cms::Exception("UnknownType") << "AK4JetSelectionHelpers::testLeptonVetoAK4Jet: Type " << type << " is not implemented!" << std::endl;
 
     return true;
+  }
+
+  bool testAK4JetMETSafety(pat::Jet const& obj){
+    unsigned char flag = 0;
+    flag += obj.userInt("isMETJERCSafe_JECNominal");
+    flag += obj.userInt("isMETJERCSafe_JECDn");
+    flag += obj.userInt("isMETJERCSafe_JECUp");
+    flag += obj.userInt("isMETJERCSafe_JERNominal");
+    flag += obj.userInt("isMETJERCSafe_JERDn");
+    flag += obj.userInt("isMETJERCSafe_JERUp");
+    return flag>0;
+  }
+
+  bool testSkimAK4Jet(pat::Jet const& obj, int const& /*year*/, AK4JetSelectionHelpers::AK4JetType const& /*type*/){
+    double uncorr_pt = getUncorrectedJetPt(obj); // Has to be the uncorrected one
+    double eta = std::abs(obj.eta());
+
+    double JECNominal = obj.userFloat("JECNominal");
+    double JECUp = obj.userFloat("JECUp");
+    double JECDn = obj.userFloat("JECDn");
+
+    double JERNominal = obj.userFloat("JERNominal");
+    double JERUp = obj.userFloat("JERUp");
+    double JERDn = obj.userFloat("JERDn");
+
+    return (
+      eta<selection_skim_eta && (
+        uncorr_pt>=selection_skim_pt
+        ||
+        // Only JEC-applied jet momenta
+        uncorr_pt*JECNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECUp>=selection_skim_pt
+        ||
+        uncorr_pt*JECDn>=selection_skim_pt
+        ||
+        // JEC*JER
+        uncorr_pt*JECNominal*JERNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECNominal*JERUp>=selection_skim_pt
+        ||
+        uncorr_pt*JECNominal*JERDn>=selection_skim_pt
+        ||
+        uncorr_pt*JECUp*JERNominal>=selection_skim_pt
+        ||
+        uncorr_pt*JECDn*JERNominal>=selection_skim_pt
+        )
+      );
   }
 
 }

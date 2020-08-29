@@ -24,11 +24,13 @@ namespace AK4JetSelectionHelpers{
   double getUncorrectedJetPt(pat::Jet const& obj);
   double getUncorrectedJetMass(pat::Jet const& obj);
 
-  bool testSkimAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testLooseAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testTightAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
   bool testLeptonVetoAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
-  // Bad muon id requires accessing MET, so it should not be done here
+
+  bool testAK4JetMETSafety(pat::Jet const& obj);
+
+  bool testSkimAK4Jet(pat::Jet const& obj, int const& year, AK4JetSelectionHelpers::AK4JetType const& type);
 
 }
 
