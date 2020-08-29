@@ -69,7 +69,7 @@ void PFJetMaker::beginJob(){}
 void PFJetMaker::endJob(){}
 
 void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  const double ConeRadiusConstant = (!isFatJet ? 0.4 : 0.8);
+  const double ConeRadiusConstant = (!isFatJet ? AK4JetSelectionHelpers::ConeRadiusConstant : AK8JetSelectionHelpers::ConeRadiusConstant);
   const std::string strsubjet = (isPuppi ? "SoftDropPuppi" : "SoftDrop");
 
   auto result = std::make_unique<pat::JetCollection>();
