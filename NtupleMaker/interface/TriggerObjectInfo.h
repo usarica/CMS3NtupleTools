@@ -13,16 +13,16 @@ struct TriggerObjectInfo{
   std::vector<bool> passAllTriggerFiltersList;
 
   size_t triggerObjectCollectionIndex;
-  std::vector<int> types;
+  std::vector<cms3_triggertype_t> types;
   CMSLorentzVector_d p4;
 
   TriggerObjectInfo();
-  TriggerObjectInfo(size_t const&, std::vector<int> const&, CMSLorentzVector_d const&);
+  TriggerObjectInfo(size_t const&, std::vector<cms3_triggertype_t> const&, CMSLorentzVector_d const&);
   TriggerObjectInfo(TriggerObjectInfo const&);
 
   void addTriggerCollectionIndex(cms3_triggerIndex_t const&, bool const&);
 
-  int bestType() const;
+  cms3_triggertype_t bestType() const;
 
 };
 

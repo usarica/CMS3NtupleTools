@@ -217,8 +217,8 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
       if (!associatedTriggerIndices.empty()){
         // Need to filter the filter id ints for 0s
         unsigned int nFilterIds = filter_ids.size();
-        std::vector<int> filter_id_types; filter_id_types.reserve(nFilterIds);
-        for (auto const& filter_id:filter_ids){ if (nFilterIds==1 || filter_id!=0) filter_id_types.emplace_back(filter_id); }
+        std::vector<cms3_triggertype_t> filter_id_types; filter_id_types.reserve(nFilterIds);
+        for (auto const& filter_id:filter_ids){ if (nFilterIds==1 || filter_id!=0) filter_id_types.push_back(filter_id); }
         if (filter_id_types.empty()){
           MELAerr << "Filter id types for trigger object " << iTO << " are all 0!" << endl;
           MELAerr << "\t- path_namesASSOCIATED = " << path_namesASSOCIATED << endl;

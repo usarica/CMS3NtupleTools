@@ -11,6 +11,7 @@ typedef cms3_listIndex_short_t cms3_listSize_t;
 typedef short cms3_listIndex_signed_short_t;
 typedef int cms3_listIndex_signed_long_t;
 
+typedef short cms3_triggertype_t;
 typedef cms3_listIndex_short_t cms3_triggerIndex_t;
 
 typedef char cms3_charge_t;

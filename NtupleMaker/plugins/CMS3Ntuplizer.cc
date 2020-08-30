@@ -3506,7 +3506,7 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
   PUSH_VECTOR_WITH_NAME(colName, HLTprescale);
 
   // Trigger objects
-  MAKE_VECTOR_WITHOUT_RESERVE(cms3_id_t, type);
+  MAKE_VECTOR_WITHOUT_RESERVE(cms3_triggertype_t, type);
   MAKE_VECTOR_WITHOUT_RESERVE(float, pt);
   MAKE_VECTOR_WITHOUT_RESERVE(float, eta);
   MAKE_VECTOR_WITHOUT_RESERVE(float, phi);
