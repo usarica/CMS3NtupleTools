@@ -658,8 +658,8 @@ void CMS3Ntuplizer::recordGenParticles(
   MAKE_VECTOR_WITH_RESERVE(bool, isLastCopy, n_objects); // (i)
   MAKE_VECTOR_WITH_RESERVE(bool, isLastCopyBeforeFSR, n_objects); // (j)
 
-  MAKE_VECTOR_WITH_RESERVE(int, mom0_index, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(int, mom1_index, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_signed_long_t, mom0_index, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_signed_long_t, mom1_index, n_objects);
 
   // Record all reco::GenParticle objects
   for (reco::GenParticle const* obj:allGenParticles){
@@ -701,7 +701,7 @@ void CMS3Ntuplizer::recordGenParticles(
     if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
-      int index=-1;
+      cms3_listIndex_signed_long_t index=-1;
       for (reco::GenParticle const* tmpobj:allGenParticles){
         index++;
         if (tmpobj == obj) continue;
@@ -712,7 +712,7 @@ void CMS3Ntuplizer::recordGenParticles(
     else mom0_index.push_back(-1);
     if (mothers.size()>1){
       const reco::GenParticle* mom = mothers.at(1);
-      int index=-1;
+      cms3_listIndex_signed_long_t index=-1;
       for (reco::GenParticle const* tmpobj:allGenParticles){
         index++;
         if (tmpobj == obj) continue;
@@ -751,7 +751,7 @@ void CMS3Ntuplizer::recordGenParticles(
     if (this->keepGenParticles==kAll) MCUtilities::getAllMothers(obj, mothers, false);
     if (mothers.size()>0){
       const reco::GenParticle* mom = mothers.at(0);
-      int index=-1;
+      cms3_listIndex_signed_long_t index=-1;
       for (reco::GenParticle const* tmpobj:allGenParticles){
         index++;
         if (mom == tmpobj) break;
@@ -761,7 +761,7 @@ void CMS3Ntuplizer::recordGenParticles(
     else mom0_index.push_back(-1);
     if (mothers.size()>1){
       const reco::GenParticle* mom = mothers.at(1);
-      int index=-1;
+      cms3_listIndex_signed_long_t index=-1;
       for (reco::GenParticle const* tmpobj:allGenParticles){
         index++;
         if (mom == tmpobj) break;
@@ -2585,7 +2585,7 @@ size_t CMS3Ntuplizer::fillIsotracks(edm::Event const& iEvent, std::vector<Isotra
   MAKE_VECTOR_WITH_RESERVE(bool, is_tightTrack, n_objects);
 
   /*
-  MAKE_VECTOR_WITH_RESERVE(int, nearestPFcand_id, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_id_t, nearestPFcand_id, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, nearestPFcand_deltaR, n_objects);
   */
 
@@ -3365,7 +3365,7 @@ void CMS3Ntuplizer::fillPFCandidates(
     if (nImperfectOverlaps==0) continue;
 
     reco::VertexRef PVref = obj.obj->vertexRef();
-    int PVrefkey = -1;
+    cms3_refkey_t PVrefkey = -1;
     if (PVref.isNonnull()) PVrefkey = PVref.key();
 
     pt.push_back(obj.pt());
