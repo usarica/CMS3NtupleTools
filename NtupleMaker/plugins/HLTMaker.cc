@@ -1,3 +1,7 @@
+#include <limits>
+
+#include <FWCore/Utilities/interface/EDMException.h>
+
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
 #include <CMS3/NtupleMaker/interface/plugins/HLTMaker.h>
 #include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
@@ -157,6 +161,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         // L1prescale = 1 is already the case
       }
 
+      // Must pass 'i', the absolute index
       cached_triggerinfos.emplace_back(name, i, passTrigger, HLTprescale, L1prescale);
     }
   }
@@ -165,7 +170,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     result->emplace_back(obj);
     // Update trigger accept flag
     auto& tmp_obj = result->back();
-    tmp_obj.passTrigger = triggerResultsH_->accept(tmp_obj.index);
+    tmp_obj.passTrigger = triggerResultsH_->accept(tmp_obj.index); // Must refer to absolute trigger collection index
     /*
     if (tmp_obj.name!=triggerNames_.triggerName(tmp_obj.index)) throw cms::Exception("InvalidTriggerName")
       << "Cached trigger info name " << tmp_obj.name << " != " << triggerNames_.triggerName(tmp_obj.index)
@@ -175,6 +180,10 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
   //std::copy(cached_triggerinfos.begin(), cached_triggerinfos.end(), result->begin());
 
   if (recordFilteredTrigObjects_){
+    if (cached_triggerinfos.size()>std::numeric_limits<cms3_triggerIndex_t>::max()) throw cms::Exception("NumericPrecision")
+      << "The size of cached trigger objects (" << cached_triggerinfos.size()
+      << ") exceeds the limit of cms3_triggerIndex_t (" << std::numeric_limits<cms3_triggerIndex_t>::max() << ")";
+
     size_t nTOs = triggerObjectStandAlonesH_->size();
     filteredTriggerObjectInfos->reserve(nTOs);
     size_t iTO=0;
@@ -189,7 +198,7 @@ void HLTMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
       std::vector< std::string > path_namesASSOCIATED = TO.pathNames(false); // 'false' refers to making sure that the object associated with the filters for a given trigger
       std::vector< std::string > path_namesPASS = TO.pathNames(true); // 'true' refers to making sure that the object passed all filters for a given trigger
-      std::vector<std::pair<unsigned int, bool>> associatedTriggerIndices; associatedTriggerIndices.reserve(cached_triggerinfos.size());
+      std::vector<std::pair<cms3_triggerIndex_t, bool>> associatedTriggerIndices; associatedTriggerIndices.reserve(cached_triggerinfos.size());
       {
         unsigned int iCachedTriggerInfo = 0;
         for (auto const& cached_triggerinfo:cached_triggerinfos){

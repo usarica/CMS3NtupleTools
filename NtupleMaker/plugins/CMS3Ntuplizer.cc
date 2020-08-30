@@ -210,7 +210,7 @@ void CMS3Ntuplizer::analyze(edm::Event const& iEvent, const edm::EventSetup& iSe
   // Fill important PF candidates
   // Check the muon, electron and photon objects for overlaps with jets and with themselves
   std::vector<PFCandidateInfo> filledPFCandAssociations; filledPFCandAssociations.reserve(pfcandsHandle->size());
-  this->fillJetOverlapInfo(pfcandsHandle, filledMuons, filledElectrons, filledPhotons, filledAK4Jets, filledAK8Jets, filledPFCandAssociations);
+  this->fillJetOverlapInfo(pfcandsHandle, filledMuons, filledElectrons, filledPhotons, filledFSRInfos, filledAK4Jets, filledAK8Jets, filledPFCandAssociations);
   PFCandidateInfo::linkFSRCandidates(filledFSRInfos, filledPFCandAssociations); // Link the FSR candidates as well
   fillPFCandidates(
     filledVertices,
@@ -423,7 +423,7 @@ void CMS3Ntuplizer::recordGenParticles(
     genFSPhotons.reserve(prunedGenParticles->size());
     for (auto const& part:(*prunedGenParticles)){
       if (part.status()!=1) continue;
-      unsigned int id = std::abs(part.pdgId());
+      cms3_absid_t id = std::abs(part.pdgId());
       if (id==13) genFSMuons.push_back(&part);
       else if (id==11) genFSElectrons.push_back(&part);
       else if (id==22) genFSPhotons.push_back(&part);
@@ -519,8 +519,8 @@ void CMS3Ntuplizer::recordGenParticles(
   std::vector<reco::GenParticle const*> allGenParticles; allGenParticles.reserve(prunedGenParticles->size() + packedGenParticles->size());
   // Fill with the pruned collection first
   for (reco::GenParticle const& part:(*prunedGenParticles)){
-    int st = part.status();
-    unsigned int id = std::abs(part.pdgId());
+    cms3_genstatus_t st = part.status();
+    cms3_absid_t id = std::abs(part.pdgId());
     if (
       (this->keepGenParticles==kReducedFinalStatesAndHardProcesses && !part.isHardProcess() && st!=1)
       ||
@@ -562,9 +562,9 @@ void CMS3Ntuplizer::recordGenParticles(
   // Adapted from GeneratorInterface/RivetInterface/plugins/MergedGenParticleProducer.cc
   std::vector<pat::PackedGenParticle const*> uniquePackedGenParticles; uniquePackedGenParticles.reserve(packedGenParticles->size());
   for (pat::PackedGenParticle const& packedGenParticle:(*packedGenParticlesHandle)){
-    int st = packedGenParticle.status();
-    int id_signed = packedGenParticle.pdgId();
-    unsigned int id = std::abs(id_signed);
+    cms3_genstatus_t st = packedGenParticle.status();
+    cms3_id_t id_signed = packedGenParticle.pdgId();
+    cms3_absid_t id = std::abs(id_signed);
 
     double match_ref = -1;
     for (reco::GenParticle const& prunedGenParticle:(*prunedGenParticles)){
@@ -1119,15 +1119,15 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, SIP3D, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfelectrons, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listSize_t, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listSize_t, n_associated_pfelectrons, n_objects);
   /*
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_py, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, min_dR_electron_pfelectron_associated, n_objects);
-  // These two are not needed because momentum of electron and PF electron are within a 100 MeV of each other (much less at small pT)
+  // These two are not needed because momentum of electron and PF electron are within 100 MeV of each other (much less at small pT)
   /*
   MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, closestPFElectron_associated_py, n_objects);
@@ -1487,8 +1487,8 @@ size_t CMS3Ntuplizer::fillFSRCandidates(
   MAKE_VECTOR_WITH_RESERVE(float, eta, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mass, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, fsrMatch_muon_index_list, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, fsrMatch_electron_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, fsrMatch_muon_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, fsrMatch_electron_index_list, n_objects);
   for (auto const& obj:writableFSRCandidates){
     pt.push_back(obj->pt());
     eta.push_back(obj->eta());
@@ -1496,9 +1496,9 @@ size_t CMS3Ntuplizer::fillFSRCandidates(
     mass.push_back(obj->mass());
 
     // Get the dR-ordered matched lepton index lists
-    std::vector<unsigned int> muon_indices;
+    std::vector<cms3_listIndex_short_t> muon_indices; muon_indices.reserve(obj->matched_muon_list.size());
     for (auto const& muon:obj->matched_muon_list){
-      unsigned int imuon=0;
+      cms3_listIndex_short_t imuon=0;
       for (auto const& obj:filledMuons){
         if (obj==muon){
           muon_indices.push_back(imuon);
@@ -1509,9 +1509,9 @@ size_t CMS3Ntuplizer::fillFSRCandidates(
     }
     fsrMatch_muon_index_list.push_back(muon_indices);
 
-    std::vector<unsigned int> electron_indices;
+    std::vector<cms3_listIndex_short_t> electron_indices; electron_indices.reserve(obj->matched_electron_list.size());
     for (auto const& electron:obj->matched_electron_list){
-      unsigned int ielectron=0;
+      cms3_listIndex_short_t ielectron=0;
       for (auto const& obj:filledElectrons){
         if (obj==electron){
           electron_indices.push_back(ielectron);
@@ -1619,8 +1619,8 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   MAKE_VECTOR_WITH_RESERVE(float, ecalRecHitIso03, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, hcalTowerIso03, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfcands, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, n_associated_pfphotons, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listSize_t, n_associated_pfcands, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listSize_t, n_associated_pfphotons, n_objects);
   /*
   MAKE_VECTOR_WITH_RESERVE(float, associated_pfcands_sum_sc_pt, n_objects);
   */
@@ -1879,15 +1879,15 @@ size_t CMS3Ntuplizer::fillPhotons(edm::Event const& iEvent, std::vector<FSRCandi
   {
     std::string const& colNameFSR = CMS3Ntuplizer::colName_fsrcands;
 
-    MAKE_VECTOR_WITH_DEFAULT_ASSIGN(std::vector<unsigned int>, photonVeto_index_list, filledFSRCandidates.size());
+    MAKE_VECTOR_WITH_DEFAULT_ASSIGN(std::vector<cms3_listIndex_short_t>, photonVeto_index_list, filledFSRCandidates.size());
 
     {
       size_t i_fsrInfo=0;
       for (auto const& fsrInfo:filledFSRCandidates){
-        std::vector<unsigned int>& photonVeto_indices = photonVeto_index_list.at(i_fsrInfo);
+        auto& photonVeto_indices = photonVeto_index_list.at(i_fsrInfo);
         photonVeto_indices.reserve(fsrInfo.veto_photon_list.size());
         for (auto const& photon:fsrInfo.veto_photon_list){
-          unsigned int iphoton=0;
+          cms3_listIndex_short_t iphoton=0;
           for (auto const& obj:filledPhotons){
             if (obj==photon){
               photonVeto_indices.push_back(iphoton);
@@ -2706,7 +2706,7 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
 
   bool didFirstVertex = false;
   bool didFirstGoodVertex = false;
-  unsigned int nvtxs=0, nvtxs_good=0;
+  cms3_listSize_t nvtxs=0, nvtxs_good=0;
   for (reco::VertexCollection::const_iterator obj = vtxHandle->begin(); obj != vtxHandle->end(); obj++){
     bool isGoodVtx = VertexSelectionHelpers::testGoodVertex(*obj);
 
@@ -2766,7 +2766,7 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
 
 void CMS3Ntuplizer::fillJetOverlapInfo(
   edm::Handle< edm::View<pat::PackedCandidate> > const& pfcandsHandle,
-  std::vector<pat::Muon const*> const& filledMuons, std::vector<pat::Electron const*> const& filledElectrons, std::vector<pat::Photon const*> const& filledPhotons,
+  std::vector<pat::Muon const*> const& filledMuons, std::vector<pat::Electron const*> const& filledElectrons, std::vector<pat::Photon const*> const& filledPhotons, std::vector<FSRCandidateInfo> const& filledFSRCandidates,
   std::vector<pat::Jet const*> const& filledAK4Jets, std::vector<pat::Jet const*> const& filledAK8Jets,
   std::vector<PFCandidateInfo>& filledPFCandAssociations
 ){
@@ -2779,31 +2779,30 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
     size_t n_objects = filledMuons.size();
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak4jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak4jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak8jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak8jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
 
     {
-      unsigned int ipart = 0;
+      cms3_listSize_t ipart = 0;
       for (auto const& part:filledMuons){
-        // ak4 jets
-        short idx_ak4jet = -1;
-        reco::Candidate::LorentzVector sump4_ak4jet_common(0, 0, 0, 0);
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak4jet_common_index_sump4_pairs;
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak8jet_common_index_sump4_pairs;
 
-        // ak8 jets
-        short idx_ak8jet = -1;
-        reco::Candidate::LorentzVector sump4_ak8jet_common(0, 0, 0, 0);
 
         reco::CandidatePtr pfCandPtr = part->sourceCandidatePtr(0);
         if (pfCandPtr.isNonnull()){
+          ak4jet_common_index_sump4_pairs.reserve(filledAK4Jets.size());
+          ak8jet_common_index_sump4_pairs.reserve(filledAK8Jets.size());
+
           size_t ipfpart = pfCandPtr.key();
           pat::PackedCandidate const* pfcand_part = &(pfcandsHandle->at(ipfpart));
 
@@ -2812,23 +2811,26 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
           // ak4 jets
           {
-            unsigned short ijet = 0;
+            cms3_listSize_t ijet = 0;
             for (auto const& jet:filledAK4Jets){
               if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK4Jets){
-                idx_ak4jet = ijet;
+                cms3_listSize_t n_pfcands_matched = 0;
+                reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
                 auto const& pfcands_jet = jet->daughterPtrVector();
                 for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
                   size_t ipf = it_pfcand_jet->key();
                   pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
                   if (pfcand_jet == pfcand_part){
-                    sump4_ak4jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+                    
                     pfcandInfo.addAK4JetMatch(ijet);
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
 
-                break;
+                if (n_pfcands_matched>0) ak4jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
               }
               ijet++;
             }
@@ -2836,23 +2838,26 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
           // ak8 jets
           {
-            unsigned short ijet = 0;
+            cms3_listSize_t ijet = 0;
             for (auto const& jet:filledAK8Jets){
               if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK8Jets){
-                idx_ak8jet = ijet;
+                cms3_listSize_t n_pfcands_matched = 0;
+                reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
                 auto const& pfcands_jet = jet->daughterPtrVector();
                 for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
                   size_t ipf = it_pfcand_jet->key();
                   pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
                   if (pfcand_jet == pfcand_part){
-                    sump4_ak8jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+
                     pfcandInfo.addAK8JetMatch(ijet);
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
 
-                break;
+                if (n_pfcands_matched>0) ak8jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
               }
               ijet++;
             }
@@ -2860,18 +2865,56 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
         }
 
         // Fill ak4 jet quantities
-        ak4jet_match_index.push_back(idx_ak4jet);
-        ak4jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak4jet_common.pt());
-        ak4jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak4jet_common.eta());
-        ak4jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak4jet_common.phi());
-        ak4jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak4jet_common.mass());
+        {
+          size_t n_matches = ak4jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak4jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak4jet_match_index.push_back(tmplist_index);
+          ak4jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak4jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak4jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak4jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
 
         // Fill ak8 jet quantities
-        ak8jet_match_index.push_back(idx_ak8jet);
-        ak8jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak8jet_common.pt());
-        ak8jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak8jet_common.eta());
-        ak8jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak8jet_common.phi());
-        ak8jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak8jet_common.mass());
+        {
+          size_t n_matches = ak8jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak8jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak8jet_match_index.push_back(tmplist_index);
+          ak8jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak8jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak8jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak8jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
 
         ipart++;
       }
@@ -2896,21 +2939,24 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
     size_t n_objects = filledElectrons.size();
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak4jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak4jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak8jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak8jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
 
     {
-      unsigned int ipart = 0;
+      cms3_listSize_t ipart = 0;
       for (auto const& part:filledElectrons){
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak4jet_common_index_sump4_pairs; ak4jet_common_index_sump4_pairs.reserve(filledAK4Jets.size());
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak8jet_common_index_sump4_pairs; ak8jet_common_index_sump4_pairs.reserve(filledAK8Jets.size());
+
         auto pfcands_part = part->associatedPackedPFCandidates();
 
         // Add the main particle associations
@@ -2921,13 +2967,12 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
         //MELAout << "\t- After electron " << ipart << ", number of PF candidate infos = " << filledPFCandAssociations.size() << " (number of associated particles = " << pfcands_part.size() << ")" << endl;
 
         // ak4 jets
-        short idx_ak4jet = -1;
-        reco::Candidate::LorentzVector sump4_ak4jet_common(0, 0, 0, 0);
         {
-          unsigned short ijet = 0;
+          cms3_listSize_t ijet = 0;
           for (auto const& jet:filledAK4Jets){
             if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK4Jets){
-              idx_ak4jet = ijet;
+              cms3_listSize_t n_pfcands_matched = 0;
+              reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
               auto const& pfcands_jet = jet->daughterPtrVector();
               for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
@@ -2938,32 +2983,27 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
                     PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
                     pfcandInfo.addAK4JetMatch(ijet);
 
-                    sump4_ak4jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
               }
 
-              break;
+              if (n_pfcands_matched>0) ak4jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
             }
             ijet++;
           }
         }
-        // Fill ak4 jet quantities
-        ak4jet_match_index.push_back(idx_ak4jet);
-        ak4jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak4jet_common.pt());
-        ak4jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak4jet_common.eta());
-        ak4jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak4jet_common.phi());
-        ak4jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak4jet_common.mass());
 
         // ak8 jets
-        short idx_ak8jet = -1;
-        reco::Candidate::LorentzVector sump4_ak8jet_common(0, 0, 0, 0);
         {
-          unsigned short ijet = 0;
+          cms3_listSize_t ijet = 0;
           for (auto const& jet:filledAK8Jets){
             if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK8Jets){
-              idx_ak8jet = ijet;
+              cms3_listSize_t n_pfcands_matched = 0;
+              reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
               auto const& pfcands_jet = jet->daughterPtrVector();
               for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
@@ -2974,23 +3014,71 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
                     PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
                     pfcandInfo.addAK8JetMatch(ijet);
 
-                    sump4_ak8jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
               }
 
-              break;
+              if (n_pfcands_matched>0) ak8jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
             }
             ijet++;
           }
         }
+
+        // Fill ak4 jet quantities
+        {
+          size_t n_matches = ak4jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak4jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak4jet_match_index.push_back(tmplist_index);
+          ak4jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak4jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak4jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak4jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
+
         // Fill ak8 jet quantities
-        ak8jet_match_index.push_back(idx_ak8jet);
-        ak8jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak8jet_common.pt());
-        ak8jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak8jet_common.eta());
-        ak8jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak8jet_common.phi());
-        ak8jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak8jet_common.mass());
+        {
+          size_t n_matches = ak8jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak8jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak8jet_match_index.push_back(tmplist_index);
+          ak8jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak8jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak8jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak8jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
 
         ipart++;
       }
@@ -3015,21 +3103,24 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
     size_t n_objects = filledPhotons.size();
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak4jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak4jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak4jet_match_commonPFCandidates_sump4_mass, n_objects);
 
-    MAKE_VECTOR_WITH_RESERVE(short, ak8jet_match_index, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
-    MAKE_VECTOR_WITH_RESERVE(float, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, ak8jet_match_index, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_pt, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_eta, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_phi, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<float>, ak8jet_match_commonPFCandidates_sump4_mass, n_objects);
 
     {
-      unsigned int ipart = 0;
+      cms3_listSize_t ipart = 0;
       for (auto const& part:filledPhotons){
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak4jet_common_index_sump4_pairs; ak4jet_common_index_sump4_pairs.reserve(filledAK4Jets.size());
+        std::vector< std::pair<cms3_listIndex_short_t, reco::Candidate::LorentzVector> > ak8jet_common_index_sump4_pairs; ak8jet_common_index_sump4_pairs.reserve(filledAK8Jets.size());
+
         auto pfcands_part = part->associatedPackedPFCandidates();
 
         // Add the main particle associations
@@ -3037,16 +3128,14 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
           PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
           pfcandInfo.addParticleMatch(part->pdgId(), ipart);
         }
-        //MELAout << "\t- After photon " << ipart << ", number of PF candidate infos = " << filledPFCandAssociations.size() << " (number of associated particles = " << pfcands_part.size() << ")" << endl;
 
         // ak4 jets
-        short idx_ak4jet = -1;
-        reco::Candidate::LorentzVector sump4_ak4jet_common(0, 0, 0, 0);
         {
-          unsigned short ijet = 0;
+          cms3_listSize_t ijet = 0;
           for (auto const& jet:filledAK4Jets){
             if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK4Jets){
-              idx_ak4jet = ijet;
+              cms3_listSize_t n_pfcands_matched = 0;
+              reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
               auto const& pfcands_jet = jet->daughterPtrVector();
               for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
@@ -3057,32 +3146,27 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
                     PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
                     pfcandInfo.addAK4JetMatch(ijet);
 
-                    sump4_ak4jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
               }
 
-              break;
+              if (n_pfcands_matched>0) ak4jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
             }
             ijet++;
           }
         }
-        // Fill ak4 jet quantities
-        ak4jet_match_index.push_back(idx_ak4jet);
-        ak4jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak4jet_common.pt());
-        ak4jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak4jet_common.eta());
-        ak4jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak4jet_common.phi());
-        ak4jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak4jet_common.mass());
 
         // ak8 jets
-        short idx_ak8jet = -1;
-        reco::Candidate::LorentzVector sump4_ak8jet_common(0, 0, 0, 0);
         {
-          unsigned short ijet = 0;
+          cms3_listSize_t ijet = 0;
           for (auto const& jet:filledAK8Jets){
             if (reco::deltaR(jet->p4(), part->p4())<ConeRadiusConstant_AK8Jets){
-              idx_ak8jet = ijet;
+              cms3_listSize_t n_pfcands_matched = 0;
+              reco::Candidate::LorentzVector sump4_common(0, 0, 0, 0);
 
               auto const& pfcands_jet = jet->daughterPtrVector();
               for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
@@ -3093,23 +3177,71 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
                     PFCandidateInfo& pfcandInfo = PFCandidateInfo::make_and_get_PFCandidateInfo(filledPFCandAssociations, &(*pfcand_part));
                     pfcandInfo.addAK8JetMatch(ijet);
 
-                    sump4_ak8jet_common += pfcand_jet->p4();
+                    n_pfcands_matched++;
+                    sump4_common += pfcand_jet->p4();
+
                     break; // Break the inner loop over particle PF candidates
                   }
                 }
               }
 
-              break;
+              if (n_pfcands_matched>0) ak8jet_common_index_sump4_pairs.emplace_back(ijet, sump4_common);
             }
             ijet++;
           }
         }
+
+        // Fill ak4 jet quantities
+        {
+          size_t n_matches = ak4jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak4jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak4jet_match_index.push_back(tmplist_index);
+          ak4jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak4jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak4jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak4jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
+
         // Fill ak8 jet quantities
-        ak8jet_match_index.push_back(idx_ak8jet);
-        ak8jet_match_commonPFCandidates_sump4_pt.push_back(sump4_ak8jet_common.pt());
-        ak8jet_match_commonPFCandidates_sump4_eta.push_back(sump4_ak8jet_common.eta());
-        ak8jet_match_commonPFCandidates_sump4_phi.push_back(sump4_ak8jet_common.phi());
-        ak8jet_match_commonPFCandidates_sump4_mass.push_back(sump4_ak8jet_common.mass());
+        {
+          size_t n_matches = ak8jet_common_index_sump4_pairs.size();
+
+          MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_short_t, tmplist_index, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_pt, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_eta, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_phi, n_matches);
+          MAKE_VECTOR_WITH_RESERVE(float, tmplist_mass, n_matches);
+
+          for (auto const& pp:ak8jet_common_index_sump4_pairs){
+            auto const& tmp_p4 = pp.second;
+            tmplist_index.push_back(pp.first);
+            tmplist_pt.push_back(tmp_p4.pt());
+            tmplist_eta.push_back(tmp_p4.eta());
+            tmplist_phi.push_back(tmp_p4.phi());
+            tmplist_mass.push_back(tmp_p4.mass());
+          }
+
+          ak8jet_match_index.push_back(tmplist_index);
+          ak8jet_match_commonPFCandidates_sump4_pt.push_back(tmplist_pt);
+          ak8jet_match_commonPFCandidates_sump4_eta.push_back(tmplist_eta);
+          ak8jet_match_commonPFCandidates_sump4_phi.push_back(tmplist_phi);
+          ak8jet_match_commonPFCandidates_sump4_mass.push_back(tmplist_mass);
+        }
 
         ipart++;
       }
@@ -3126,6 +3258,65 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
     PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_eta);
     PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_phi);
     PUSH_VECTOR_WITH_NAME(colName, ak8jet_match_commonPFCandidates_sump4_mass);
+  }
+
+  // FSR overlaps
+  {
+    std::string const& colName = CMS3Ntuplizer::colName_fsrcands;
+
+    size_t n_objects = filledFSRCandidates.size();
+
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, fsrMatch_ak4jet_index_list, n_objects);
+    MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, fsrMatch_ak8jet_index_list, n_objects);
+
+    for (auto const& part:filledFSRCandidates){
+      pat::PackedCandidate const* pfcand_part = part.obj;
+
+      // ak4 jets
+      std::vector<cms3_listIndex_short_t> ak4jet_indices; ak4jet_indices.reserve(filledAK4Jets.size());
+      {
+        cms3_listSize_t ijet = 0;
+        for (auto const& jet:filledAK4Jets){
+          if (reco::deltaR(jet->p4(), part.p4())<ConeRadiusConstant_AK4Jets){
+            auto const& pfcands_jet = jet->daughterPtrVector();
+            for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+              size_t ipf = it_pfcand_jet->key();
+              pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+              if (pfcand_jet == pfcand_part){
+                ak4jet_indices.push_back(ijet);
+                break; // Break the inner loop over particle PF candidates
+              }
+            }
+          }
+          ijet++;
+        }
+      }
+      fsrMatch_ak4jet_index_list.push_back(ak4jet_indices);
+
+      // ak8 jets
+      std::vector<cms3_listIndex_short_t> ak8jet_indices; ak8jet_indices.reserve(filledAK8Jets.size());
+      {
+        cms3_listSize_t ijet = 0;
+        for (auto const& jet:filledAK8Jets){
+          if (reco::deltaR(jet->p4(), part.p4())<ConeRadiusConstant_AK8Jets){
+            auto const& pfcands_jet = jet->daughterPtrVector();
+            for (auto it_pfcand_jet = pfcands_jet.cbegin(); it_pfcand_jet != pfcands_jet.cend(); it_pfcand_jet++){
+              size_t ipf = it_pfcand_jet->key();
+              pat::PackedCandidate const* pfcand_jet = &(pfcandsHandle->at(ipf));
+              if (pfcand_jet == pfcand_part){
+                ak8jet_indices.push_back(ijet);
+                break; // Break the inner loop over particle PF candidates
+              }
+            }
+          }
+          ijet++;
+        }
+      }
+      fsrMatch_ak8jet_index_list.push_back(ak8jet_indices);
+    }
+
+    PUSH_VECTOR_WITH_NAME(colName, fsrMatch_ak4jet_index_list);
+    PUSH_VECTOR_WITH_NAME(colName, fsrMatch_ak8jet_index_list);
   }
 }
 void CMS3Ntuplizer::fillPFCandidates(
@@ -3148,14 +3339,14 @@ void CMS3Ntuplizer::fillPFCandidates(
   MAKE_VECTOR_WITH_RESERVE(cms3_id_t, id, n_objects);
 
   // Entries in the PFCandidateInfo
-  MAKE_VECTOR_WITH_RESERVE(short, matched_FSRCandidate_index, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listIndex_signed_short_t, matched_FSRCandidate_index, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, matched_muon_index_list, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, matched_electron_index_list, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, matched_photon_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, matched_muon_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, matched_electron_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, matched_photon_index_list, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, matched_ak4jet_index_list, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(std::vector<unsigned int>, matched_ak8jet_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, matched_ak4jet_index_list, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(std::vector<cms3_listIndex_short_t>, matched_ak8jet_index_list, n_objects);
 
   // Other PF candidate properties
   MAKE_VECTOR_WITH_RESERVE(cms3_pfcand_qualityflag_t, qualityFlag, n_objects);
@@ -3167,13 +3358,15 @@ void CMS3Ntuplizer::fillPFCandidates(
   MAKE_VECTOR_WITH_RESERVE(float, dz_firstPV, n_objects);
 
   for (auto const& obj:pfcandInfos){
-    unsigned short nImperfectOverlaps, nPerfectOverlaps;
+    cms3_listIndex_long_t nImperfectOverlaps, nPerfectOverlaps;
     obj.analyzeParticleOverlaps(filledMuons, filledElectrons, filledPhotons, nImperfectOverlaps, nPerfectOverlaps);
 
     // Skip candidates that contain no overlaps.
     if (nImperfectOverlaps==0) continue;
 
     reco::VertexRef PVref = obj.obj->vertexRef();
+    int PVrefkey = -1;
+    if (PVref.isNonnull()) PVrefkey = PVref.key();
 
     pt.push_back(obj.pt());
     eta.push_back(obj.eta());
@@ -3193,7 +3386,7 @@ void CMS3Ntuplizer::fillPFCandidates(
 
     qualityFlag.push_back(obj.obj->status());
 
-    is_associated_firstPV.push_back(PVref.key() == 0);
+    is_associated_firstPV.push_back(PVrefkey == 0);
     dxy_associatedPV.push_back(obj.obj->dxy());
     dz_associatedPV.push_back(obj.obj->dzAssociatedPV());
     dxy_firstPV.push_back((vtx_firstPV ? obj.obj->dxy(vtx_firstPV->position()) : 0.f));
@@ -3282,7 +3475,7 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
   MAKE_VECTOR_WITH_RESERVE(std::string, name, n_triggers);
 #if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
 #else
-  MAKE_VECTOR_WITH_RESERVE(unsigned int, index, n_triggers);
+  MAKE_VECTOR_WITH_RESERVE(cms3_listSize_t, index, n_triggers);
 #endif
   MAKE_VECTOR_WITH_RESERVE(bool, passTrigger, n_triggers);
   MAKE_VECTOR_WITH_RESERVE(int, L1prescale, n_triggers);
@@ -3318,8 +3511,8 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
   MAKE_VECTOR_WITHOUT_RESERVE(float, eta);
   MAKE_VECTOR_WITHOUT_RESERVE(float, phi);
   MAKE_VECTOR_WITHOUT_RESERVE(float, mass);
-  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<unsigned int>, associatedTriggers);
-  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<unsigned int>, passedTriggers);
+  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<cms3_triggerIndex_t>, associatedTriggers);
+  MAKE_VECTOR_WITHOUT_RESERVE(std::vector<cms3_triggerIndex_t>, passedTriggers);
   if (processTriggerObjectInfos){
     edm::Handle< edm::View<TriggerObjectInfo> > triggerObjectInfoHandle;
     iEvent.getByToken(triggerObjectInfoToken, triggerObjectInfoHandle);
@@ -3344,23 +3537,23 @@ bool CMS3Ntuplizer::fillTriggerInfo(edm::Event const& iEvent){
       size_t const nAssociatedTriggers = trigObj->triggerCollectionIndices.size();
       assert(nAssociatedTriggers == trigObj->passAllTriggerFiltersList.size());
 
-      associatedTriggers.emplace_back(std::vector<unsigned int>());
-      std::vector<unsigned int>& trigObj_associatedTriggers = associatedTriggers.back();
+      associatedTriggers.emplace_back(std::vector<cms3_triggerIndex_t>());
+      std::vector<cms3_triggerIndex_t>& trigObj_associatedTriggers = associatedTriggers.back();
       trigObj_associatedTriggers.reserve(nAssociatedTriggers);
 
-      passedTriggers.emplace_back(std::vector<unsigned int>());
-      std::vector<unsigned int>& trigObj_passedTriggers = passedTriggers.back();
+      passedTriggers.emplace_back(std::vector<cms3_triggerIndex_t>());
+      std::vector<cms3_triggerIndex_t>& trigObj_passedTriggers = passedTriggers.back();
       trigObj_passedTriggers.reserve(nAssociatedTriggers);
 
-      std::vector<unsigned int>::const_iterator triggerCollectionIndices_end = trigObj->triggerCollectionIndices.cend();
+      std::vector<cms3_triggerIndex_t>::const_iterator triggerCollectionIndices_end = trigObj->triggerCollectionIndices.cend();
       //std::vector<bool>::const_iterator passAllTriggerFiltersList_end = trigObj->passAllTriggerFiltersList.cend();
-      std::vector<unsigned int>::const_iterator it_triggerCollectionIndices = trigObj->triggerCollectionIndices.cbegin();
+      std::vector<cms3_triggerIndex_t>::const_iterator it_triggerCollectionIndices = trigObj->triggerCollectionIndices.cbegin();
       std::vector<bool>::const_iterator it_passAllTriggerFiltersList = trigObj->passAllTriggerFiltersList.cbegin();
       while (it_triggerCollectionIndices!=triggerCollectionIndices_end){
 #if TRIGGEROBJECTINFO_INDEX_BY_ORIGINAL == 0
-        unsigned int const& pos = *it_triggerCollectionIndices;
+        cms3_triggerIndex_t const& pos = *it_triggerCollectionIndices;
 #else
-        unsigned int pos=0;
+        cms3_triggerIndex_t pos=0;
         for (auto const& trigIndex:index){
           if (*it_triggerCollectionIndices == trigIndex) break;
           pos++;

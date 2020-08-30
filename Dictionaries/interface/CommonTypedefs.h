@@ -4,6 +4,15 @@
 #include <cstdint>
 
 
+typedef unsigned short cms3_listIndex_short_t;
+typedef unsigned int cms3_listIndex_long_t;
+typedef cms3_listIndex_short_t cms3_listSize_t;
+
+typedef short cms3_listIndex_signed_short_t;
+typedef int cms3_listIndex_signed_long_t;
+
+typedef cms3_listIndex_short_t cms3_triggerIndex_t;
+
 typedef char cms3_charge_t;
 
 typedef int cms3_id_t;

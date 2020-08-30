@@ -5,10 +5,11 @@
 
 #include <string>
 #include <CMSDataTools/AnalysisTree/interface/CMSLorentzVector.h>
+#include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 
 struct TriggerObjectInfo{
-  std::vector<unsigned int> triggerCollectionIndices;
+  std::vector<cms3_triggerIndex_t> triggerCollectionIndices;
   std::vector<bool> passAllTriggerFiltersList;
 
   size_t triggerObjectCollectionIndex;
@@ -19,7 +20,7 @@ struct TriggerObjectInfo{
   TriggerObjectInfo(size_t const&, std::vector<int> const&, CMSLorentzVector_d const&);
   TriggerObjectInfo(TriggerObjectInfo const&);
 
-  void addTriggerCollectionIndex(unsigned int const&, bool const&);
+  void addTriggerCollectionIndex(cms3_triggerIndex_t const&, bool const&);
 
   int bestType() const;
 

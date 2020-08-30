@@ -1,5 +1,5 @@
-#ifndef CMS3_FSRCandidateInfo_H
-#define CMS3_FSRCandidateInfo_H
+#ifndef CMS3_FSRCANDIDATEINFO_H
+#define CMS3_FSRCANDIDATEINFO_H
 
 
 #include <vector>

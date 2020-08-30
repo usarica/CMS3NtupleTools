@@ -198,7 +198,7 @@ protected:
 
   void fillJetOverlapInfo(
     edm::Handle< edm::View<pat::PackedCandidate> > const&,
-    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
+    std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&, std::vector<FSRCandidateInfo> const&,
     std::vector<pat::Jet const*> const&, std::vector<pat::Jet const*> const&,
     std::vector<PFCandidateInfo>&
   );

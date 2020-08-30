@@ -1,3 +1,4 @@
+#include <cassert>
 #include <algorithm>
 #include <utility>
 #include <DataFormats/HLTReco/interface/TriggerTypeDefs.h>
@@ -22,7 +23,7 @@ TriggerObjectInfo::TriggerObjectInfo(TriggerObjectInfo const& other) :
   p4(other.p4)
 {}
 
-void TriggerObjectInfo::addTriggerCollectionIndex(unsigned int const& index, bool const& passedAllFilters){
+void TriggerObjectInfo::addTriggerCollectionIndex(cms3_triggerIndex_t const& index, bool const& passedAllFilters){
   triggerCollectionIndices.push_back(index);
   passAllTriggerFiltersList.push_back(passedAllFilters);
 }

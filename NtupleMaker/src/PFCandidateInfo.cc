@@ -33,12 +33,12 @@ CMSLorentzVector_d::Scalar PFCandidateInfo::pt() const{ return obj->pt(); }
 CMSLorentzVector_d::Scalar PFCandidateInfo::eta() const{ return obj->eta(); }
 CMSLorentzVector_d::Scalar PFCandidateInfo::phi() const{ return obj->phi(); }
 CMSLorentzVector_d::Scalar PFCandidateInfo::mass() const{ return obj->mass(); }
-int PFCandidateInfo::pdgId() const{ return obj->pdgId(); }
+cms3_id_t PFCandidateInfo::pdgId() const{ return obj->pdgId(); }
 float PFCandidateInfo::charge() const{ return obj->charge(); }
 
-std::vector<unsigned int>& PFCandidateInfo::getParticleMatchList(int const& id_){
-  unsigned int abs_id = std::abs(id_);
-  std::vector<unsigned int>* idx_list = nullptr;
+PFCandidateInfo::index_list_t& PFCandidateInfo::getParticleMatchList(cms3_id_t const& id_){
+  cms3_absid_t abs_id = std::abs(id_);
+  index_list_t* idx_list = nullptr;
   switch (abs_id){
   case 13:
     idx_list = &(this->matched_muons);
@@ -55,9 +55,9 @@ std::vector<unsigned int>& PFCandidateInfo::getParticleMatchList(int const& id_)
   }
   return *idx_list;
 }
-std::vector<unsigned int> const& PFCandidateInfo::getParticleMatchList(int const& id_) const{
-  unsigned int abs_id = std::abs(id_);
-  std::vector<unsigned int> const* idx_list = nullptr;
+PFCandidateInfo::index_list_t const& PFCandidateInfo::getParticleMatchList(cms3_id_t const& id_) const{
+  cms3_absid_t abs_id = std::abs(id_);
+  index_list_t const* idx_list = nullptr;
   switch (abs_id){
   case 13:
     idx_list = &(this->matched_muons);
@@ -75,38 +75,38 @@ std::vector<unsigned int> const& PFCandidateInfo::getParticleMatchList(int const
   return *idx_list;
 }
 
-bool PFCandidateInfo::findParticleMatch(int const& id_, unsigned int const& idx) const{
-  std::vector<unsigned int> const& idx_list = getParticleMatchList(id_);
+bool PFCandidateInfo::findParticleMatch(cms3_id_t const& id_, PFCandidateInfo::index_t const& idx) const{
+  index_list_t const& idx_list = getParticleMatchList(id_);
   return HelperFunctions::checkListVariable(idx_list, idx);
 }
-bool PFCandidateInfo::findAK4JetMatch(unsigned int const& idx) const{
+bool PFCandidateInfo::findAK4JetMatch(PFCandidateInfo::index_t const& idx) const{
   return HelperFunctions::checkListVariable(matched_ak4jets, idx);
 }
-bool PFCandidateInfo::findAK8JetMatch(unsigned int const& idx) const{
+bool PFCandidateInfo::findAK8JetMatch(PFCandidateInfo::index_t const& idx) const{
   return HelperFunctions::checkListVariable(matched_ak8jets, idx);
 }
 
-void PFCandidateInfo::addParticleMatch(int const& id_, unsigned int const& idx){
+void PFCandidateInfo::addParticleMatch(cms3_id_t const& id_, PFCandidateInfo::index_t const& idx){
   if (!findParticleMatch(id_, idx)){
-    std::vector<unsigned int>& idx_list = getParticleMatchList(id_);
+    index_list_t& idx_list = getParticleMatchList(id_);
     idx_list.push_back(idx);
   }
 }
-void PFCandidateInfo::addAK4JetMatch(unsigned int const& idx){
+void PFCandidateInfo::addAK4JetMatch(PFCandidateInfo::index_t const& idx){
   if (!findAK4JetMatch(idx)) matched_ak4jets.push_back(idx);
 }
-void PFCandidateInfo::addAK8JetMatch(unsigned int const& idx){
+void PFCandidateInfo::addAK8JetMatch(PFCandidateInfo::index_t const& idx){
   if (!findAK8JetMatch(idx)) matched_ak8jets.push_back(idx);
 }
 
 void PFCandidateInfo::analyzeParticleOverlaps(
   std::vector<pat::Muon const*> const& /*muons*/, std::vector<pat::Electron const*> const& electrons, std::vector<pat::Photon const*> const& photons,
-  unsigned short& nImperfectOverlaps, unsigned short& nPerfectOverlaps
+  cms3_listIndex_long_t& nImperfectOverlaps, cms3_listIndex_long_t& nPerfectOverlaps
 ) const{
   // Count total possible matches
-  short n_matches_muon = matched_muons.size();
-  short n_matches_electron = matched_electrons.size();
-  short n_matches_photon = matched_photons.size();
+  cms3_listIndex_long_t n_matches_muon = matched_muons.size();
+  cms3_listIndex_long_t n_matches_electron = matched_electrons.size();
+  cms3_listIndex_long_t n_matches_photon = matched_photons.size();
   nImperfectOverlaps = (
     (n_matches_muon*(n_matches_muon-1))/2 + n_matches_muon*(n_matches_electron + n_matches_photon)
     +
@@ -115,14 +115,14 @@ void PFCandidateInfo::analyzeParticleOverlaps(
     (n_matches_photon*(n_matches_photon-1))/2
     );
 
-  std::vector< std::pair<unsigned int, unsigned int> > eg_perfect_matches; eg_perfect_matches.reserve(matched_electrons.size()*matched_photons.size());
-  for (unsigned int const& iele:matched_electrons){
+  std::vector< std::pair<index_t, index_t> > eg_perfect_matches; eg_perfect_matches.reserve(matched_electrons.size()*matched_photons.size());
+  for (auto const& iele:matched_electrons){
     pat::Electron const* electron = electrons.at(iele);
-    unsigned short electron_n_associated_pfcands = electron->userInt("n_associated_pfcands");
+    cms3_listSize_t electron_n_associated_pfcands = electron->userInt("n_associated_pfcands");
     float electron_associated_pfcands_sum_sc_pt = electron->userFloat("associated_pfcands_sum_sc_pt");
-    for (unsigned int const& ipho:matched_photons){
+    for (auto const& ipho:matched_photons){
       pat::Photon const* photon = photons.at(ipho);
-      unsigned short photon_n_associated_pfcands = photon->userInt("n_associated_pfcands");
+      cms3_listSize_t photon_n_associated_pfcands = photon->userInt("n_associated_pfcands");
       float photon_associated_pfcands_sum_sc_pt = photon->userFloat("associated_pfcands_sum_sc_pt");
       if (
         electron_n_associated_pfcands == photon_n_associated_pfcands
