@@ -183,11 +183,13 @@ protected:
 
   size_t fillAK4Jets(
     edm::Event const&,
+    edm::Handle< edm::View<pat::PackedCandidate> > const&, std::vector<pat::PackedCandidate const*> const&,
     std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
     std::vector<pat::Jet const*>*
   );
   size_t fillAK8Jets(
     edm::Event const&,
+    edm::Handle< edm::View<pat::PackedCandidate> > const&, std::vector<pat::PackedCandidate const*> const&,
     std::vector<pat::Muon const*> const&, std::vector<pat::Electron const*> const&, std::vector<pat::Photon const*> const&,
     std::vector<pat::Jet const*>*
   );
