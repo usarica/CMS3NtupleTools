@@ -164,6 +164,7 @@ namespace PhotonSelectionHelpers{
   // Parameters are from RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
   bool testEGammaPFPhotonSelection(pat::Photon const& obj, int const& year){
     // This function must be the same as RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::passPhotonSelection
+    // Bad HCAL mitigation is separated to a new function.
     if (!(year==2016 || year==2017 || year==2018)) cms::Exception("UnknownYear") << "PhotonSelectionHelpers::testEGammaPFPhotonSelection: Year " << year << " is not implemented!" << std::endl;
 
     // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
@@ -172,10 +173,6 @@ namespace PhotonSelectionHelpers{
     constexpr double ph_combIso_ = 10.;
     constexpr double ph_sietaieta_eb_ = 0.0125;
     constexpr double ph_sietaieta_ee_ = 0.034;
-
-    const bool badHcal_phoEnable_ = false;
-    constexpr double badHcal_phoTrkSolidConeIso_offs_ = 10.;
-    constexpr double badHcal_phoTrkSolidConeIso_slope_ = 0.3;
 
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
 
@@ -187,10 +184,27 @@ namespace PhotonSelectionHelpers{
     // Isolation variables in 0.3 cone combined
     if (obj.trkSumPtHollowConeDR03() + obj.ecalRecHitSumEtConeDR03() + obj.hcalTowerSumEtConeDR03() > ph_combIso_) return false;
 
-    // Patch for bad hcal
-    if (badHcal_phoEnable_ && !validHoverE && obj.trkSumPtSolidConeDR03() > badHcal_phoTrkSolidConeIso_offs_ + badHcal_phoTrkSolidConeIso_slope_ * uncorr_pt) return false;
-
     if (obj.sigmaIetaIeta() > (obj.isEB() ? ph_sietaieta_eb_ : ph_sietaieta_ee_)) return false;
+
+    return true;
+  }
+  bool testEGammaPFPhotonSelection_BadHCALMitigation(pat::Photon const& obj, int const& year){
+    // This function must be the same as RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::passPhotonSelection
+    // This is the bad HCAL mitigation separated.
+    if (!(year==2016 || year==2017 || year==2018)) cms::Exception("UnknownYear") << "PhotonSelectionHelpers::testEGammaPFPhotonSelection_BadHCALMitigation: Year " << year << " is not implemented!" << std::endl;
+
+    // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
+    constexpr double ph_Et_ = 10.;
+    constexpr double badHcal_phoTrkSolidConeIso_offs_ = 10.;
+    constexpr double badHcal_phoTrkSolidConeIso_slope_ = 0.3;
+
+    double uncorr_pt = obj.pt(); // Has to be the uncorrected one
+
+    // Photon ET
+    if (uncorr_pt < ph_Et_) return false;
+
+    bool validHoverE = obj.hadTowOverEmValid();
+    if (!validHoverE && obj.trkSumPtSolidConeDR03() > badHcal_phoTrkSolidConeIso_offs_ + badHcal_phoTrkSolidConeIso_slope_ * uncorr_pt) return false;
 
     return true;
   }

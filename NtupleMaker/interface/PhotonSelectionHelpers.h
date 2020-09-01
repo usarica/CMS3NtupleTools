@@ -45,8 +45,9 @@ namespace PhotonSelectionHelpers{
   float photonPFIsoEM(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override=nullptr); // Absolute PF iso. value, uses rho instead of delta beta
   float photonPFIsoComb(pat::Photon const& obj, int const& year, double const& rho, double const* iso_override_ch=nullptr, double const* iso_override_nh=nullptr, double const* iso_override_em=nullptr); // Absolute PF iso. value, uses rho instead of delta beta
 
-  // Same as PFEGammaFilters::passPhotonSelection
+  // Same as PFEGammaFilters::passPhotonSelection. Bad HCAL mitigation is separated though.
   bool testEGammaPFPhotonSelection(pat::Photon const& obj, int const& year);
+  bool testEGammaPFPhotonSelection_BadHCALMitigation(pat::Photon const& obj, int const& year);
   // Same as PFEGammaFilters::isPhotonSafeForJetMET
   bool testEGammaPFPhotonMETSafetySelection(pat::Photon const& obj, pat::PackedCandidate const* pfCand, int const& year);
 

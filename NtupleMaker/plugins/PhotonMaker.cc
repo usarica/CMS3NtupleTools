@@ -552,6 +552,7 @@ void PhotonMaker::setEGammaPFPhotonIdSelectionBits(edm::View<pat::Photon>::const
   cms3_photon_cutbasedbits_egPFPhoton_t id_egamma_pfPhoton_Bits = 0;
 
   if (PhotonSelectionHelpers::testEGammaPFPhotonSelection(*photon, year_)) id_egamma_pfPhoton_Bits |= 1 << ISEGAMMAPFPHOTON_BASE;
+  if (PhotonSelectionHelpers::testEGammaPFPhotonSelection_BadHCALMitigation(*photon, year_)) id_egamma_pfPhoton_Bits |= 1 << ISEGAMMAPFPHOTON_BASE_BADHCALMITIGATED;
   if (PhotonSelectionHelpers::testEGammaPFPhotonMETSafetySelection(*photon, pfCand, year_)) id_egamma_pfPhoton_Bits |= 1 << ISEGAMMAPFPHOTON_METSAFE;
 
   photon_result.addUserInt("id_egamma_pfPhoton_Bits", id_egamma_pfPhoton_Bits);

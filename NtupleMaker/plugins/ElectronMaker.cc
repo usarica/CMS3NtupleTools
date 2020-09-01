@@ -910,6 +910,7 @@ void ElectronMaker::setEGammaPFElectronIdSelectionBits(edm::View<pat::Electron>:
   cms3_electron_cutbasedbits_egPFElectron_t id_egamma_pfElectron_Bits = 0;
 
   if (ElectronSelectionHelpers::testEGammaPFElectronSelection(*electron, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_BASE;
+  if (ElectronSelectionHelpers::testEGammaPFElectronSelection_BadHCALMitigation(*electron, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_BASE_BADHCALMITIGATED;
   if (ElectronSelectionHelpers::testEGammaPFElectronPrimarySelection(*electron, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_PRIMARY;
   if (ElectronSelectionHelpers::testEGammaPFElectronMETSafetySelection(*electron, pfCand, year_)) id_egamma_pfElectron_Bits |= 1 << ISEGAMMAPFELECTRON_METSAFE;
 

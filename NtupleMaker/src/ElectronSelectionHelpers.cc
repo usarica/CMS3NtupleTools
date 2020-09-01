@@ -180,27 +180,39 @@ namespace ElectronSelectionHelpers{
 
     // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
     constexpr double ele_iso_pt_ = 10.;
-
-    constexpr bool badHcal_eleEnable_ = false;
-    const double badHcal_full5x5_sigmaIetaIeta_[2]={ 0.0106, 0.0387 };
-    const double badHcal_eInvPInv_[2]={ 0.184, 0.0721 };
-    const double badHcal_dEta_[2]={ 0.0032*2., 0.00632*2. };
-    const double badHcal_dPhi_[2]={ 0.0547, 0.0394 };
-
     constexpr double ele_noniso_mva_ = -0.1;
     const double ele_iso_mva_[2]={ -0.1875, -0.1075 };
     const double ele_iso_combIso_[2]={ 10., 10. };
 
     bool isEE = std::abs(obj.eta()) > 1.485;
     double uncorr_pt = obj.pt(); // Has to be the uncorrected one
-    bool validHoverE = obj.hcalOverEcalValid();
     if (uncorr_pt > ele_iso_pt_){
       double isoDr03 = obj.dr03TkSumPt() + obj.dr03EcalRecHitSumEt() + obj.dr03HcalTowerSumEt();
       if (isoDr03 < ele_iso_combIso_[isEE]) passEleSelection = (obj.mva_Isolated() > ele_iso_mva_[isEE]);
     }
 
+    if (obj.mva_e_pi() > ele_noniso_mva_) passEleSelection = true;
+
+    return passEleSelection;
+  }
+  bool testEGammaPFElectronSelection_BadHCALMitigation(pat::Electron const& obj, int const& year){
+    // This function must be the same as RecoParticleFlow/PFProducer/src/PFEGammaFilters.cc::PFEGammaFilters::passElectronSelection
+    if (!(year==2016 || year==2017 || year==2018)) cms::Exception("UnknownYear") << "ElectronSelectionHelpers::testEGammaPFElectronSelection_BadHCALMitigation: Year " << year << " is not implemented!" << std::endl;
+
+    bool passEleSelection = false;
+
+    // Parameters as in RecoParticleFlow/PFProducer/python/particleFlow_cfi.py
+    const double badHcal_full5x5_sigmaIetaIeta_[2]={ 0.0106, 0.0387 };
+    const double badHcal_eInvPInv_[2]={ 0.184, 0.0721 };
+    const double badHcal_dEta_[2]={ 0.0032*2., 0.00632*2. };
+    const double badHcal_dPhi_[2]={ 0.0547, 0.0394 };
+    constexpr double ele_noniso_mva_ = -0.1;
+
+    bool isEE = std::abs(obj.eta()) > 1.485;
+    bool validHoverE = obj.hcalOverEcalValid();
+
     if (obj.mva_e_pi() > ele_noniso_mva_){
-      if (validHoverE || !badHcal_eleEnable_) passEleSelection = true;
+      if (validHoverE) passEleSelection = true;
       else{
         if (
           obj.full5x5_sigmaIetaIeta() < badHcal_full5x5_sigmaIetaIeta_[isEE]
