@@ -88,6 +88,12 @@ protected:
     double& relJECUnc
   );
 
+  void compute_METShift(
+    reco::Particle::LorentzVector const& p4_jet_uncorrected, reco::Particle::LorentzVector const& p4_mucands,
+    double const& JEC_L1L2L3, double const& JEC_L1, double const& JERval,
+    char const& iJECshift,
+    bool& flag_isGoodMET, reco::Particle::LorentzVector& p4_metShift
+  );
 
 };
 

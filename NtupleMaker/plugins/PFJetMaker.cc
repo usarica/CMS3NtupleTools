@@ -212,7 +212,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
     //   if(skipEM_&&emEnergyFraction>skipEMfractionThreshold_ ) continue;
     bool const hasMETJERCSafeEM = !isFatJet && ((pfjet_it->chargedEmEnergy() + pfjet_it->neutralEmEnergy())/uncorrected_p4.energy()<=0.9);
     // process.basicJetsForMetModifiedMET also has uncorrected_p4_nomus.Pt()*JECNominal>=15. Do not set that here...
-    bool const passMETEEFix2017 = !isFatJet && (!METshift_fixEE2017 || (METshift_fixEE2017 && (uncorrected_pt > 50. || abs_uncorrected_eta < 2.65 || abs_uncorrected_eta > 3.139)));
+    bool const passMETEEFix2017 = !isFatJet && (!METshift_fixEE2017 || (uncorrected_pt > 50. || abs_uncorrected_eta < 2.65 || abs_uncorrected_eta > 3.139));
     bool const passMETJERCCuts = hasMETJERCSafeEM && passMETEEFix2017 && abs_uncorrected_eta<=9.9;
 
     // Get JEC uncertainties 
@@ -305,31 +305,57 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         if (passMETJERCCuts){
           // In propagating JER corrections and variations, p4_mucands is assumed to be measured well enough.
           // This means that JER corrections are assumed to originate from non-muon sources.
-          reco::Candidate::LorentzVector uncorrected_p4_nomus[nMETShiftTypes];
-          reco::Candidate::LorentzVector corrJetP4[nMETShiftTypes];
-          reco::Candidate::LorentzVector rawJetP4offsetCorr[nMETShiftTypes];
-          reco::Candidate::LorentzVector diffJetP4[nMETShiftTypes];
 
-          uncorrected_p4_nomus[kMETShift_JECNominal] = uncorrected_p4_nomus[kMETShift_JECDn] = uncorrected_p4_nomus[kMETShift_JECUp] = uncorrected_p4 - p4_mucands;
-          uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal] = uncorrected_p4_nomus[kMETShift_JECDn_JERNominal] = uncorrected_p4_nomus[kMETShift_JECUp_JERNominal] = uncorrected_p4*JERval - p4_mucands;
-          uncorrected_p4_nomus[kMETShift_JECNominal_JERDn] = uncorrected_p4*JERval_dn - p4_mucands;
-          uncorrected_p4_nomus[kMETShift_JECNominal_JERUp] = uncorrected_p4*JERval_up - p4_mucands;
-
-          // Various JEC values
-          // FIXME
-          double JEC_L1L2L3_nomus_noJER=JECval, JEC_L1_nomus_noJER=JECval_L1, JECUnc_nomus_noJER=jec_unc;
-          double JEC_L1L2L3_nomus_JERNominal=JECval, JEC_L1_nomus_JERNominal=JECval_L1, JECUnc_nomus_JERNominal=jec_unc;
-          double JEC_L1L2L3_nomus_JERDn=JECval, JEC_L1_nomus_JERDn=JECval_L1;
-          double JEC_L1L2L3_nomus_JERUp=JECval, JEC_L1_nomus_JERUp=JECval_L1;
-
-          // FIXME
-          run_JetUncertainty(
-            uncorrected_p4_nomus[kMETShift_JECNominal].pt()*JEC_L1L2L3_nomus_noJER, uncorrected_p4_nomus[kMETShift_JECNominal].eta(), uncorrected_p4_nomus[kMETShift_JECNominal].phi(),
-            JECUnc_nomus_noJER
+          // JEC variations with no JER
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, 1.,
+            0,
+            isMETJERCSafe_JEC_JER[kMETShift_JECNominal], *(p4_METshift[kMETShift_JECNominal])
           );
-          run_JetUncertainty(
-            uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal].pt()*JEC_L1L2L3_nomus_JERNominal, uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal].eta(), uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal].phi(),
-            JECUnc_nomus_JERNominal
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, 1.,
+            -1,
+            isMETJERCSafe_JEC_JER[kMETShift_JECDn], *(p4_METshift[kMETShift_JECDn])
+          );
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, 1.,
+            +1,
+            isMETJERCSafe_JEC_JER[kMETShift_JECUp], *(p4_METshift[kMETShift_JECUp])
+          );
+          // JEC variations with JER
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, JERval,
+            0,
+            isMETJERCSafe_JEC_JER[kMETShift_JECNominal_JERNominal], *(p4_METshift[kMETShift_JECNominal_JERNominal])
+          );
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, JERval,
+            -1,
+            isMETJERCSafe_JEC_JER[kMETShift_JECDn_JERNominal], *(p4_METshift[kMETShift_JECDn_JERNominal])
+          );
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, JERval,
+            +1,
+            isMETJERCSafe_JEC_JER[kMETShift_JECUp_JERNominal], *(p4_METshift[kMETShift_JECUp_JERNominal])
+          );
+          // JER variations
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, JERval_dn,
+            0,
+            isMETJERCSafe_JEC_JER[kMETShift_JECNominal_JERDn], *(p4_METshift[kMETShift_JECNominal_JERDn])
+          );
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, JERval_up,
+            0,
+            isMETJERCSafe_JEC_JER[kMETShift_JECNominal_JERUp], *(p4_METshift[kMETShift_JECNominal_JERUp])
           );
 
           /*
@@ -372,41 +398,6 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
           );
           */
 
-          corrJetP4[kMETShift_JECNominal] = uncorrected_p4_nomus[kMETShift_JECNominal]*JEC_L1L2L3_nomus_noJER;
-          rawJetP4offsetCorr[kMETShift_JECNominal] = uncorrected_p4_nomus[kMETShift_JECNominal]*JEC_L1_nomus_noJER;
-
-          corrJetP4[kMETShift_JECDn] = uncorrected_p4_nomus[kMETShift_JECDn]*JEC_L1L2L3_nomus_noJER*(1.-JECUnc_nomus_noJER);
-          rawJetP4offsetCorr[kMETShift_JECDn] = uncorrected_p4_nomus[kMETShift_JECDn]*JEC_L1_nomus_noJER;
-
-          corrJetP4[kMETShift_JECUp] = uncorrected_p4_nomus[kMETShift_JECUp]*JEC_L1L2L3_nomus_noJER*(1.+JECUnc_nomus_noJER);
-          rawJetP4offsetCorr[kMETShift_JECUp] = uncorrected_p4_nomus[kMETShift_JECUp]*JEC_L1_nomus_noJER;
-
-          corrJetP4[kMETShift_JECNominal_JERNominal] = uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal]*JEC_L1L2L3_nomus_JERNominal;
-          rawJetP4offsetCorr[kMETShift_JECNominal_JERNominal] = uncorrected_p4_nomus[kMETShift_JECNominal_JERNominal]*JEC_L1_nomus_JERNominal;
-
-          corrJetP4[kMETShift_JECNominal_JERDn] = uncorrected_p4_nomus[kMETShift_JECNominal_JERDn]*JEC_L1L2L3_nomus_JERDn;
-          rawJetP4offsetCorr[kMETShift_JECNominal_JERDn] = uncorrected_p4_nomus[kMETShift_JECNominal_JERDn]*JEC_L1_nomus_JERDn;
-
-          corrJetP4[kMETShift_JECNominal_JERUp] = uncorrected_p4_nomus[kMETShift_JECNominal_JERUp]*JEC_L1L2L3_nomus_JERUp;
-          rawJetP4offsetCorr[kMETShift_JECNominal_JERUp] = uncorrected_p4_nomus[kMETShift_JECNominal_JERUp]*JEC_L1_nomus_JERUp;
-
-          corrJetP4[kMETShift_JECDn_JERNominal] = uncorrected_p4_nomus[kMETShift_JECDn_JERNominal]*JEC_L1L2L3_nomus_JERNominal*(1.-JECUnc_nomus_JERNominal);
-          rawJetP4offsetCorr[kMETShift_JECDn_JERNominal] = uncorrected_p4_nomus[kMETShift_JECDn_JERNominal]*JEC_L1_nomus_JERNominal;
-
-          corrJetP4[kMETShift_JECUp_JERNominal] = uncorrected_p4_nomus[kMETShift_JECUp_JERNominal]*JEC_L1L2L3_nomus_JERNominal*(1.+JECUnc_nomus_JERNominal);
-          rawJetP4offsetCorr[kMETShift_JECUp_JERNominal] = uncorrected_p4_nomus[kMETShift_JECUp_JERNominal]*JEC_L1_nomus_JERNominal;
-
-          for (unsigned short imet=0; imet<(unsigned short) nMETShiftTypes; imet++){
-            diffJetP4[imet] = corrJetP4[imet] - rawJetP4offsetCorr[imet];
-
-            // FIXME
-            if (corrJetP4[imet].Pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
-              isMETJERCSafe_JEC_JER[imet] = true;
-            }
-            if (isMETJERCSafe_JEC_JER[0]){
-              if (imet != (unsigned short) kMETShift_JECNominal) *(p4_METshift[imet]) = -diffJetP4[imet]+diffJetP4[kMETShift_JECNominal];
-            }
-          }
         }
 
         jet_result.addUserInt("isMETJERCSafe_JECNominal", isMETJERCSafe_JEC_JER[kMETShift_JECNominal]);
@@ -429,22 +420,13 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
         // Determine MET safety
         if (passMETJERCCuts){
-          reco::Candidate::LorentzVector uncorrected_p4_nomus = uncorrected_p4 - p4_mucands;
-
-          // JECs for the no-mu no-JER case
-          double JEC_L1L2L3_nomus_noJER=JECval;
-          /*
-          double JEC_L1L2L3_nomus_noJER=1, JEC_L1_nomus_noJER=1;
-          run_JetCorrector_JEC_L123_L1(
-            uncorrected_p4_nomus.pt(), uncorrected_p4_nomus.eta(), uncorrected_p4_nomus.phi(),
-            jet_area, rho_event, nGoodJECPVs,
-            JEC_L1L2L3_nomus_noJER, JEC_L1_nomus_noJER
+          reco::Candidate::LorentzVector p4_dummy;
+          compute_METShift(
+            uncorrected_p4, p4_mucands,
+            JECval, JECval_L1, 1.,
+            0,
+            isMETJERCSafe_JEC_JER, p4_dummy
           );
-          */
-
-          reco::Candidate::LorentzVector corrJetP4 = uncorrected_p4_nomus*JEC_L1L2L3_nomus_noJER;
-
-          isMETJERCSafe_JEC_JER = corrJetP4.Pt()>AK4JetSelectionHelpers::selection_METJERC_pt;
         }
 
         jet_result.addUserInt("isMETJERCSafe_JECNominal", isMETJERCSafe_JEC_JER);
@@ -676,6 +658,8 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   iEvent.put(std::move(result));
   if (isMC && !isFatJet){
+    for (unsigned short imet=1; imet<(unsigned short) nMETShiftTypes; imet++) *(p4_METshift[imet]) -= *(p4_METshift[0]);
+
     iEvent.put(std::move(p4_METshift[kMETShift_JECDn]), "METshiftJECDn");
     iEvent.put(std::move(p4_METshift[kMETShift_JECUp]), "METshiftJECUp");
     iEvent.put(std::move(p4_METshift[kMETShift_JECNominal_JERNominal]), "METshiftJECNominalJERNominal");
@@ -732,6 +716,39 @@ void PFJetMaker::run_JetUncertainty(
     relJECUnc = jetUncEstimator->getUncertainty(true);
   }
   else throw cms::Exception("JetUncertainty") << "PFJetMaker::run_JetUncertainty: Jet uncertainty estimator is not initialized.";
+}
+
+void PFJetMaker::compute_METShift(
+  reco::Particle::LorentzVector const& p4_jet_uncorrected, reco::Particle::LorentzVector const& p4_mucands,
+  double const& JEC_L1L2L3, double const& JEC_L1, double const& JERval,
+  char const& iJECshift,
+  bool& flag_isGoodMET, reco::Particle::LorentzVector& p4_metShift
+){
+  reco::Particle::LorentzVector p4_uncorrected_nomus_noJER = p4_jet_uncorrected - p4_mucands;
+  reco::Particle::LorentzVector p4_corrected_nomus_noJER = p4_uncorrected_nomus_noJER*JEC_L1L2L3;
+
+  reco::Particle::LorentzVector p4_uncorrected_nomus = p4_jet_uncorrected*JERval - p4_mucands;
+  reco::Particle::LorentzVector p4_corrected_nomus = p4_uncorrected_nomus*JEC_L1L2L3;
+  reco::Particle::LorentzVector p4_offsetCorrected_nomus = p4_uncorrected_nomus*JEC_L1;
+
+  if (iJECshift!=0){
+    double jec_unc = 0;
+
+    run_JetUncertainty(
+      p4_corrected_nomus.pt(), p4_corrected_nomus.eta(), p4_corrected_nomus.phi(),
+      jec_unc
+    );
+    if (iJECshift<0) jec_unc *= -1.;
+
+    p4_corrected_nomus = p4_corrected_nomus*(1. + jec_unc);
+  }
+
+  if (p4_corrected_nomus_noJER.pt()>AK4JetSelectionHelpers::selection_METJERC_pt){
+    flag_isGoodMET = true;
+    reco::Particle::LorentzVector p4_diff_nomus = p4_corrected_nomus - p4_offsetCorrected_nomus;
+
+    p4_metShift += -p4_diff_nomus;
+  }
 }
 
 
