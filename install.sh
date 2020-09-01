@@ -63,7 +63,7 @@ git clone git@github.com:usarica/CMS3NtupleTools.git CMS3
 )
 
 # MELA
-git clone git@github.com:JHUGenMELA/JHUGenMELA.git
+git clone git@github.com:JHUGen/JHUGenMELA.git
 ./JHUGenMELA/setup.sh -j
 
 # MELA Analytics
