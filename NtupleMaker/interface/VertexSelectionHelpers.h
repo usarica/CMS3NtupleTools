@@ -8,9 +8,12 @@
 namespace VertexSelectionHelpers{
   constexpr double vtx_rho_thr = 2.;
   constexpr double vtx_z_thr = 24.;
-  constexpr double vtx_ndof_thr = 4.;
+  constexpr double vtx_ndof_thr = 4.; // Uses >
+  constexpr double vtx_ndof_JEC_thr = 4.; // Uses >=
 
   bool testGoodVertex(reco::Vertex const& vtx);
+  bool testJECGoodVertex(reco::Vertex const& vtx);
+
 }
 
 

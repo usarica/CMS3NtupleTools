@@ -11,6 +11,7 @@ vpint = VarParsing.VarParsing.varType.int
 vpfloat = VarParsing.VarParsing.varType.float
 vpstring = VarParsing.VarParsing.varType.string
 opts.register('dumpProcess'    , False  , mytype=vpbool)
+opts.register('doTimingTest'    , False  , mytype=vpbool)
 opts.register('data'    , False  , mytype=vpbool)
 opts.register('globaltag'    , ""  , mytype=vpstring)
 opts.register('inputs'    , ""  , mytype=vpstring) # comma separated list of input files
@@ -100,6 +101,9 @@ if not opts.data and opts.year<2016:
    raise RuntimeError("MC processing must define a year>=2016!")
 if opts.data and opts.year<2016:
    raise RuntimeError("Data processing must define a year>=2016!")
+
+if opts.doTimingTest:
+   print "Timing test is enabled. Please redirect output to a text file."
 
 import CMS3.NtupleMaker.configProcessName as configProcessName
 configProcessName.isFastSim=opts.fastsim
@@ -437,6 +441,12 @@ if jecVersion != "":
    ## Add an es_prefer statement to resolve a possible conflict from simultaneous connection to a global tag
    process.es_prefer_jec = cms.ESPrefer('PoolDBESSource','jec')
 
+   ## Common JEC levels
+   commonJEClevels = cms.vstring(['L1FastJet','L2Relative','L3Absolute'])
+   ## Data applies L2L3Residual corrections as well
+   if opts.data:
+      commonJEClevels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
+
    #updated_deep_discriminators = []
 
    from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
@@ -457,6 +467,7 @@ if jecVersion != "":
       updateBtagging=(opts.year == 2016 or opts.year == 2017)
       )
    process.pfJetMaker.pfJetsInputTag = cms.InputTag(finalSlimmedJetsCollection)
+   process.pfJetMaker.JEClevels = commonJEClevels
 
    ######################
    ### AK4 PUPPI JETS ###
@@ -473,6 +484,7 @@ if jecVersion != "":
       updateBtagging=(opts.year == 2016 or opts.year == 2017)
       )
    process.pfJetPUPPIMaker.pfJetsInputTag = cms.InputTag(finalSlimmedJetsPuppiCollection)
+   process.pfJetPUPPIMaker.JEClevels = commonJEClevels
 
    ################
    ### AK8 JETS ###
@@ -481,12 +493,9 @@ if jecVersion != "":
    process.slimmedJetAK8CorrFactors = updatedPatJetCorrFactors.clone(
       src = cms.InputTag("slimmedJetsAK8"),
       primaryVertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute']),
+      levels = commonJEClevels,
       payload = ak8jetsTag
       )
-   ## Data applies L2L3Residual corrections as well
-   if opts.data:
-      process.slimmedJetAK8CorrFactors.levels = cms.vstring(['L1FastJet','L2Relative','L3Absolute','L2L3Residual'])
    ## This is the new input jet collection
    process.slimmedCorrectedJetsAK8 = updatedPatJets.clone(
       jetSource = cms.InputTag("slimmedJetsAK8"),
@@ -494,6 +503,7 @@ if jecVersion != "":
       )
    ## Replace inputs from slimmedJets
    process.subJetMaker.pfJetsInputTag = cms.InputTag('slimmedCorrectedJetsAK8')
+   process.subJetMaker.JEClevels = commonJEClevels
 else:
    raise RuntimeError("JEC version is unknown!")
 
@@ -911,7 +921,7 @@ process.p = cms.Path(total_path)
 
 
 process.Timing = cms.Service("Timing",
-        summaryOnly = cms.untracked.bool(True)
+        summaryOnly = cms.untracked.bool(not opts.doTimingTest)
         )
 
 # for use with Valgrind. After enabling, can do
@@ -925,7 +935,7 @@ process.Timing = cms.Service("Timing",
 #    )
 
 if not opts.globaltag:
-    process.GlobalTag.globaltag = "102X_upgrade2018_realistic_v15"
+    raise RuntimeError("The globaltag option is mandatory.")
 else:
     process.GlobalTag.globaltag = opts.globaltag
 if not opts.inputs:

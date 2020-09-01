@@ -135,9 +135,13 @@ protected:
   edm::EDGetTokenT< reco::SuperClusterCollection > reducedSuperclusterToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERNominal;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERUp;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JERDn;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECDn; // The shift from this input should be the same as PFMET-JECDn
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECUp; // The shift from this input should be the same as PFMET-JECUp
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERNominal;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERDn;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERUp;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECDn_JERNominal;
+  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECUp_JERNominal;
   edm::EDGetTokenT< METInfo > puppimetToken;
 
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;

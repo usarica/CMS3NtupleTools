@@ -28,12 +28,12 @@ namespace AK4JetSelectionHelpers{
     double NEMF = obj.neutralEmEnergy() / uncorrE;
     double CHF = obj.chargedHadronEnergy() / uncorrE;
     double CEMF = obj.chargedEmEnergy() / uncorrE;
-    //double MUF = obj.muonEnergy() / uncorrE; // Requirement for this variable is in loose id
 
     int CM = obj.chargedMultiplicity();
     int NM = obj.neutralMultiplicity();
     int NumConst = CM+NM;
 
+    // 2016: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
     if (type==AK4PFCHS){
       return (
         ((NHF<0.99 && NEMF<0.99 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
@@ -67,7 +67,6 @@ namespace AK4JetSelectionHelpers{
     double NEMF = obj.neutralEmEnergy() / uncorrE;
     double CHF = obj.chargedHadronEnergy() / uncorrE;
     double CEMF = obj.chargedEmEnergy() / uncorrE;
-    //double MUF = obj.muonEnergy() / uncorrE; // Requirement for this variable is in loose id
 
     int CM = obj.chargedMultiplicity();
     int NM = obj.neutralMultiplicity();
@@ -75,7 +74,7 @@ namespace AK4JetSelectionHelpers{
 
     // 2016: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
     // 2017: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
-    // 2018: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
+    // 2018: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
     if (type==AK4PFCHS){
       if (year==2016) return (
         ((NHF<0.90 && NEMF<0.90 && NumConst>1) && ((eta<=2.4 && CHF>0. && CM>0 && CEMF<0.99) || eta>2.4) && eta<=2.7)
@@ -140,7 +139,7 @@ namespace AK4JetSelectionHelpers{
 
     // 2016: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2016
     // 2017: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2017
-    // 2018: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13TeVRun2018
+    // 2018: https://twiki.cern.ch/twiki/bin/view/CMS/JetID13TeVRun2018
     if (type==AK4PFCHS || type==AK4PFPUPPI){
       return (
         (MUF<0.8 && eta<=2.7) || eta>2.7
@@ -156,9 +155,11 @@ namespace AK4JetSelectionHelpers{
     flag += obj.userInt("isMETJERCSafe_JECNominal");
     flag += obj.userInt("isMETJERCSafe_JECDn");
     flag += obj.userInt("isMETJERCSafe_JECUp");
-    flag += obj.userInt("isMETJERCSafe_JERNominal");
-    flag += obj.userInt("isMETJERCSafe_JERDn");
-    flag += obj.userInt("isMETJERCSafe_JERUp");
+    flag += obj.userInt("isMETJERCSafe_JECNominal_JERNominal");
+    flag += obj.userInt("isMETJERCSafe_JECNominal_JERDn");
+    flag += obj.userInt("isMETJERCSafe_JECNominal_JERUp");
+    flag += obj.userInt("isMETJERCSafe_JECDn_JERNominal");
+    flag += obj.userInt("isMETJERCSafe_JECUp_JERNominal");
     return flag>0;
   }
 

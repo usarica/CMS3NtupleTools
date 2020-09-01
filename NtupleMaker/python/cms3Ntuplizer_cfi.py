@@ -30,9 +30,13 @@ cms3ntuple = cms.EDAnalyzer(
 
 
    pfmetSrc = cms.InputTag("pfmetMaker"),
-   pfmetShiftSrc_JERNominal = cms.InputTag("pfJetMaker","METshiftJERNominal"),
-   pfmetShiftSrc_JERUp = cms.InputTag("pfJetMaker","METshiftJERUp"),
-   pfmetShiftSrc_JERDn = cms.InputTag("pfJetMaker","METshiftJERDn"),
+   pfmetShiftSrc_JECDn = cms.InputTag("pfJetMaker","METshiftJECDn"),
+   pfmetShiftSrc_JECUp = cms.InputTag("pfJetMaker","METshiftJECUp"),
+   pfmetShiftSrc_JECNominal_JERNominal = cms.InputTag("pfJetMaker","METshiftJECNominalJERNominal"),
+   pfmetShiftSrc_JECNominal_JERUp = cms.InputTag("pfJetMaker","METshiftJECNominalJERUp"),
+   pfmetShiftSrc_JECNominal_JERDn = cms.InputTag("pfJetMaker","METshiftJECNominalJERDn"),
+   pfmetShiftSrc_JECDn_JERNominal = cms.InputTag("pfJetMaker","METshiftJECDnJERNominal"),
+   pfmetShiftSrc_JECUp_JERNominal = cms.InputTag("pfJetMaker","METshiftJECUpJERNominal"),
 
    puppimetSrc = cms.InputTag("pfmetpuppiMaker"),
 

@@ -2,6 +2,7 @@
 #define NTUPLEMAKER_PFJETMAKER_H
 
 #include <string>
+#include <vector>
 #include <memory>
 
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -11,6 +12,9 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+
+#include <CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h>
+#include <CondFormats/JetMETObjects/interface/FactorizedJetCorrector.h>
 
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
@@ -25,6 +29,19 @@ public:
   ~PFJetMaker();
 
 private:
+  enum METShiftType{
+    kMETShift_JECNominal,
+    kMETShift_JECDn,
+    kMETShift_JECUp,
+    kMETShift_JECNominal_JERNominal,
+    kMETShift_JECNominal_JERDn,
+    kMETShift_JECNominal_JERUp,
+    kMETShift_JECDn_JERNominal,
+    kMETShift_JECUp_JERNominal,
+
+    nMETShiftTypes
+  };
+
   virtual void beginJob();
   virtual void endJob();
 
@@ -40,6 +57,12 @@ protected:
   bool isFatJet;
   bool isPuppi;
   bool METshift_fixEE2017;
+  std::vector<std::string> JEClevels;
+
+  unsigned long long cacheId_rcdJEC;
+
+  std::shared_ptr<FactorizedJetCorrector> jetCorrector;
+  std::shared_ptr<JetCorrectionUncertainty> jetUncEstimator;
 
   edm::EDGetTokenT<double> rhoToken;
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;
@@ -49,12 +72,22 @@ protected:
 
   edm::EDGetTokenT< edm::View<reco::GenJet> > genJetsToken;
 
-
   void get_reco_gen_matchMap(
     edm::Event const&,
     edm::Handle< edm::View<pat::Jet> > const&, edm::Handle< edm::View<reco::GenJet> > const&,
     std::unordered_map<pat::Jet const*, reco::GenJet const*>&
   ) const;
+
+  void run_JetCorrector_JEC_L123_L1(
+    double const& jet_pt_uncorrected, double const& jet_eta, double const& jet_phi,
+    double const& jet_area, double const& rho, int const& npv,
+    double& JEC_L123, double& JEC_L1
+  );
+  void run_JetUncertainty(
+    double const& jet_pt_corrected, double const& jet_eta, double const& jet_phi,
+    double& relJECUnc
+  );
+
 
 };
 
