@@ -273,7 +273,7 @@ bool ElectronSelectionHelpers::testTightKin(ElectronObject const& part){
 }
 
 bool ElectronSelectionHelpers::testProbeId(ElectronObject const& part){
-  return part.extras.ecalEnergy*part.extras.sinTheta_SC_pos>=ptThr_skim_loose;
+  return part.extras.ecalEnergy*std::sin(part.extras.thetaSC_pos)>=ptThr_skim_loose;
 }
 
 bool ElectronSelectionHelpers::testPtEtaGen(ElectronObject const& part){

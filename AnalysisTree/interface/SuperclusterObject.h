@@ -6,7 +6,7 @@
 
 #define SUPERCLUSTER_COMMON_VARIABLES \
 SUPERCLUSTER_VARIABLE(float, energy, 0) \
-SUPERCLUSTER_VARIABLE(float, sinTheta_SC_pos, 0) \
+SUPERCLUSTER_VARIABLE(float, thetaSC_pos, 0) \
 SUPERCLUSTER_VARIABLE(cms3_egamma_fid_type_mask_t, fid_mask, 0)
 
 #define SUPERCLUSTER_VARIABLES \

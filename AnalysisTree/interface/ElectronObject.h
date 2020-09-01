@@ -8,7 +8,7 @@
 #define ELECTRON_COMMON_IDISO_MOMENTUMSCALE_VARIABLES \
 ELECTRON_VARIABLE(float, etaSC, 0) \
 ELECTRON_VARIABLE(float, ecalEnergy, 0) \
-ELECTRON_VARIABLE(float, sinTheta_SC_pos, 0) \
+ELECTRON_VARIABLE(float, thetaSC_pos, 0) \
 ELECTRON_VARIABLE(float, scale_smear_corr, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalUp, 1) \
 ELECTRON_VARIABLE(float, scale_smear_corr_scale_totalDn, 1) \

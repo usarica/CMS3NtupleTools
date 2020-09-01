@@ -1087,7 +1087,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   MAKE_VECTOR_WITH_RESERVE(float, etaSC, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, ecalEnergy, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, sinTheta_SC_pos, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, thetaSC_pos, n_objects);
 
   // Has no convention correspondence in nanoAOD
   MAKE_VECTOR_WITH_RESERVE(float, scale_smear_corr, n_objects);
@@ -1209,7 +1209,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
     PUSH_USERFLOAT_INTO_VECTOR(etaSC);
 
     PUSH_USERFLOAT_INTO_VECTOR(ecalEnergy);
-    sinTheta_SC_pos.push_back(!obj->superCluster().isNull() ? std::sin(obj->superCluster()->position().theta()) : -99.);
+    thetaSC_pos.push_back(!obj->superCluster().isNull() ? obj->superCluster()->position().theta() : -99.);
 
     // Scale and smear
     // Nominal value: Needs to multiply the uncorrected p4 at analysis level
@@ -1344,7 +1344,7 @@ size_t CMS3Ntuplizer::fillElectrons(edm::Event const& iEvent, std::vector<pat::E
   PUSH_VECTOR_WITH_NAME(colName, etaSC);
 
   PUSH_VECTOR_WITH_NAME(colName, ecalEnergy);
-  PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+  PUSH_VECTOR_WITH_NAME(colName, thetaSC_pos);
 
   PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIEtaIEta);
   PUSH_VECTOR_WITH_NAME(colName, full5x5_sigmaIPhiIPhi);
@@ -1972,7 +1972,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
   MAKE_VECTOR_WITH_RESERVE(float, phi, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, energy, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, correctedEnergy, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, sinTheta_SC_pos, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, thetaSC_pos, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(cms3_egamma_fid_type_mask_t, fid_mask, n_objects);
 
@@ -2012,7 +2012,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
     phi.push_back(obj->phi());
     energy.push_back(obj->energy());
     correctedEnergy.push_back(obj->correctedEnergy());
-    sinTheta_SC_pos.push_back(std::sin(obj->position().theta()));
+    thetaSC_pos.push_back(obj->position().theta());
 
     // Masks
     cms3_egamma_fid_type_mask_t fiducialityMask = 0;  // The enums are in interface/EgammaFiduciality.h
@@ -2066,7 +2066,7 @@ size_t CMS3Ntuplizer::fillReducedSuperclusters(
   PUSH_VECTOR_WITH_NAME(colName, phi);
   PUSH_VECTOR_WITH_NAME(colName, energy);
   PUSH_VECTOR_WITH_NAME(colName, correctedEnergy);
-  PUSH_VECTOR_WITH_NAME(colName, sinTheta_SC_pos);
+  PUSH_VECTOR_WITH_NAME(colName, thetaSC_pos);
 
   PUSH_VECTOR_WITH_NAME(colName, fid_mask);
 
