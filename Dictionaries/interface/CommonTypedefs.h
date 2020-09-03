@@ -25,6 +25,7 @@ typedef unsigned short cms3_nShowerGluons_t;
 typedef short cms3_refkey_t;
 
 typedef unsigned int cms3_muon_pogselectorbits_t;
+typedef unsigned char cms3_muon_cutbasedbits_h4l_t;
 
 typedef uint16_t cms3_egamma_fid_type_mask_t;
 

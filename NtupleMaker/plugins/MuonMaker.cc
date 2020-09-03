@@ -129,6 +129,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.setSelectors(POG_selector_bits);
 #endif
     }
+    // Update high-pT muon ID
+    constexpr unsigned int bitpos_highPtMuon = MuonSelectionHelpers::getPOGSelectorBitPosition(static_cast<uint64_t>(reco::Muon::CutBasedIdGlobalHighPt));
+    bool pass_updatedHighPtMuonId = hasVertex && MuonSelectionHelpers::testUpdatedHighPtMuon(*muon, *firstVertex, this->year_);
+    HelperFunctions::set_bit(POG_selector_bits, bitpos_highPtMuon, pass_updatedHighPtMuonId);
     // Test/re-test trigger loose id
     constexpr unsigned int bitpos_looseTriggerId = MuonSelectionHelpers::getPOGSelectorBitPosition(static_cast<uint64_t>(reco::Muon::TriggerIdLoose));
     bool pass_looseTriggerId = MuonSelectionHelpers::testLooseTriggerId(*muon, this->year_);
@@ -348,7 +352,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserInt("pfCand_charge", pfCandRef->charge());
       muon_result.addUserInt("pfCand_particleId", pfCandRef->pdgId());
       muon_result.addUserInt("pfCand_idx", pfCandRef.key());
-      muon_result.addUserInt("pfCand_is_goodMETPFMuon", MuonSelectionHelpers::testGoodMETPFMuon(pfCandidatesHandle->at(pfCandRef.key())));
+      muon_result.addUserInt("has_pfMuon_goodMET", MuonSelectionHelpers::testGoodMETPFMuon(pfCandidatesHandle->at(pfCandRef.key())));
     }
     else{
       muon_result.addUserFloat("pfCand_pt", -1);
@@ -358,7 +362,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserInt("pfCand_charge", 0);
       muon_result.addUserInt("pfCand_particleId", 0);
       muon_result.addUserInt("pfCand_idx", -1);
-      muon_result.addUserInt("pfCand_is_goodMETPFMuon", false);
+      muon_result.addUserInt("has_pfMuon_goodMET", false);
     }
 
 
@@ -440,11 +444,62 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
     muon_result.addUserFloat("miniIso_sum_neutral_nofsr", miniIso_sum_neutral_nofsr);
     //delete mu2;
 
+    // At last, set other selection bits
+    setCutBasedH4lIdSelectionBits(muon, muon_result);
 
+    // Place the muon result in the results collection
     result->emplace_back(muon_result);
   }
 
   iEvent.put(std::move(result));
+}
+
+void MuonMaker::setCutBasedH4lIdSelectionBits(edm::View<pat::Muon>::const_iterator const& muon, pat::Muon& muon_result) const{
+  if (this->year_<2016 || this->year_>2018) cms::Exception("UnknownYear") << "MuonMaker::setCutBasedH4lIdSelectionBits: Year " << this->year_ << " is not implemented.";
+
+  cms3_muon_cutbasedbits_h4l_t id_cutBased_H4l_Bits = 0;
+
+  const reco::TrackRef bestTrack = muon->muonBestTrack();
+  bool validBestTrack = bestTrack.isNonnull();
+  if (validBestTrack){
+    float abs_dxy = std::abs(muon_result.userFloat("dxy_bestTrack_firstPV"));
+    float abs_dz = std::abs(muon_result.userFloat("dz_bestTrack_firstPV"));
+    bool passMinimal = (
+      ((muon->isGlobalMuon() || (muon->isTrackerMuon() && muon->numberOfMatches()>0)) && muon->muonBestTrackType()!=reco::Muon::OuterTrack)
+      &&
+      abs_dxy < 0.5f && abs_dz < 1.f
+      );
+    HelperFunctions::set_bit(id_cutBased_H4l_Bits, 0, passMinimal);
+    if (passMinimal){
+      const reco::TrackRef innerTrack = muon->innerTrack();
+      bool validInnerTrack = innerTrack.isNonnull();
+
+      bool passSIP3D = std::abs(muon_result.userFloat("SIP3D"))<4.f;
+      bool isPF = muon->isPFMuon();
+      bool isTrackerHighPt = (
+        abs_dxy < 0.2f && abs_dz < 0.5f
+        &&
+        (bestTrack->ptError()/bestTrack->pt()) < 0.3
+        &&
+        muon->numberOfMatchedStations() > 1
+        &&
+        validInnerTrack
+        &&
+        innerTrack->hitPattern().numberOfValidPixelHits() > 0 && innerTrack->hitPattern().trackerLayersWithMeasurement() > 5
+        );
+
+      // The actual ID is described as
+      //   bool isTight = isPF || (isTrackerHighPt && muon->pt()>200.f);
+      //   bool isGood = isTight && passSIP3D;
+      //   return isGood;
+      // In other words, ([1] || ([2] && pt>200)) && [3].
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 1, isPF);
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 2, isTrackerHighPt);
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 3, passSIP3D);
+    }
+  }
+
+  muon_result.addUserInt("id_cutBased_H4l_Bits", id_cutBased_H4l_Bits);
 }
 
 

@@ -3,6 +3,10 @@
 #include <FWCore/Utilities/interface/Exception.h>
 #include <DataFormats/TrackReco/interface/Track.h>
 #include <DataFormats/TrackReco/interface/TrackFwd.h>
+#include <DataFormats/MuonReco/interface/MuonSelectors.h>
+
+#include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
+
 #include <CMS3/NtupleMaker/interface/MuonSelectionHelpers.h>
 
 
@@ -83,6 +87,51 @@ namespace MuonSelectionHelpers{
     if (sum_neutral_nofsr) *sum_neutral_nofsr = sum_neutral_nofsr_val;
 
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
+  }
+
+  bool testUpdatedHighPtMuon(pat::Muon const& obj, reco::Vertex const& vtx, int const& year){
+    if (year<2016 || year>2018) return ((obj.selectors() & reco::Muon::CutBasedIdGlobalHighPt) == reco::Muon::CutBasedIdGlobalHighPt);
+    //
+    // Below is a direct copy from CMSSW_10_4_X/DataFormats/MuonReco/src/MuonSelectors.cc::isHighPtMuon
+    //
+#if CMSSW_VERSION_MAJOR>10 || (CMSSW_VERSION_MAJOR==10 && CMSSW_VERSION_MINOR>=4)
+    return muon::isHighPtMuon(obj);
+#else
+    if (!obj.isGlobalMuon()) return false;
+
+    bool muValHits = (
+      obj.globalTrack()->hitPattern().numberOfValidMuonHits()>0
+      ||
+      obj.tunePMuonBestTrack()->hitPattern().numberOfValidMuonHits()>0
+      );
+
+    bool muMatchedSt = obj.numberOfMatchedStations()>1;
+    if (!muMatchedSt){
+      if (obj.isTrackerMuon() && obj.numberOfMatchedStations()==1){
+        if (
+          obj.expectedNnumberOfMatchedStations()<2
+          ||
+          !(obj.stationMask()==1 || obj.stationMask()==16)
+          ||
+          obj.numberOfMatchedRPCLayers()>2
+          )
+          muMatchedSt = true;
+      }
+    }
+
+    bool muID = muValHits && muMatchedSt;
+
+    bool hits =
+      obj.innerTrack()->hitPattern().trackerLayersWithMeasurement() > 5
+      &&
+      obj.innerTrack()->hitPattern().numberOfValidPixelHits() > 0;
+
+    bool momQuality = obj.tunePMuonBestTrack()->ptError()/obj.tunePMuonBestTrack()->pt() < 0.3;
+
+    bool ip = fabs(obj.innerTrack()->dxy(vtx.position())) < 0.2 && fabs(obj.innerTrack()->dz(vtx.position())) < 0.5;
+
+    return muID && hits && momQuality && ip;
+#endif
   }
 
   bool testGoodMETPFMuon(pat::PackedCandidate const& pfcand){

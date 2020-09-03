@@ -47,7 +47,7 @@ const std::string CMS3Ntuplizer::colName_superclusters = "superclusters";
 const std::string CMS3Ntuplizer::colName_isotracks = "isotracks";
 const std::string CMS3Ntuplizer::colName_ak4jets = "ak4jets";
 const std::string CMS3Ntuplizer::colName_ak8jets = "ak8jets";
-const std::string CMS3Ntuplizer::colName_jetOverlapMap = "jetOverlapMap";
+const std::string CMS3Ntuplizer::colName_overlapMap = "overlapMap";
 const std::string CMS3Ntuplizer::colName_pfcands = "pfcands";
 const std::string CMS3Ntuplizer::colName_vtxs = "vtxs";
 const std::string CMS3Ntuplizer::colName_triggerinfos = "triggers";
@@ -885,6 +885,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(cms3_charge_t, charge, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(cms3_muon_pogselectorbits_t, POG_selector_bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_muon_cutbasedbits_h4l_t, id_cutBased_H4l_Bits, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_comb_nofsr, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, pfIso03_sum_charged_nofsr, n_objects);
@@ -906,7 +907,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   MAKE_VECTOR_WITH_RESERVE(bool, pass_tightCharge, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_probeForTnP_STA, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, pfCand_is_goodMETPFMuon, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(bool, has_pfMuon_goodMET, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(int, time_comb_ndof, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, time_comb_IPInOut, n_objects);
@@ -946,6 +947,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERINT_INTO_VECTOR(charge);
 
     PUSH_USERINT_INTO_VECTOR(POG_selector_bits);
+    PUSH_USERINT_INTO_VECTOR(id_cutBased_H4l_Bits);
 
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_comb_nofsr);
     PUSH_USERFLOAT_INTO_VECTOR(pfIso03_sum_charged_nofsr);
@@ -967,7 +969,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
     PUSH_USERINT_INTO_VECTOR(pass_tightCharge);
     PUSH_USERINT_INTO_VECTOR(is_probeForTnP);
     PUSH_USERINT_INTO_VECTOR(is_probeForTnP_STA);
-    PUSH_USERINT_INTO_VECTOR(pfCand_is_goodMETPFMuon);
+    PUSH_USERINT_INTO_VECTOR(has_pfMuon_goodMET);
 
     if (keepMuonTimingInfo){
       PUSH_USERINT_INTO_VECTOR(time_comb_ndof);
@@ -1013,6 +1015,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, charge);
 
   PUSH_VECTOR_WITH_NAME(colName, POG_selector_bits);
+  PUSH_VECTOR_WITH_NAME(colName, id_cutBased_H4l_Bits);
 
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_comb_nofsr);
   PUSH_VECTOR_WITH_NAME(colName, pfIso03_sum_charged_nofsr);
@@ -1034,7 +1037,7 @@ size_t CMS3Ntuplizer::fillMuons(edm::Event const& iEvent, std::vector<pat::Muon 
   PUSH_VECTOR_WITH_NAME(colName, pass_tightCharge);
   PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP);
   PUSH_VECTOR_WITH_NAME(colName, is_probeForTnP_STA);
-  PUSH_VECTOR_WITH_NAME(colName, pfCand_is_goodMETPFMuon);
+  PUSH_VECTOR_WITH_NAME(colName, has_pfMuon_goodMET);
 
   if (keepMuonTimingInfo){
     PUSH_VECTOR_WITH_NAME(colName, time_comb_ndof);
@@ -2840,7 +2843,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
   // Muon overlaps
   {
-    std::string colName = CMS3Ntuplizer::colName_jetOverlapMap + "_" + CMS3Ntuplizer::colName_muons;
+    std::string colName = CMS3Ntuplizer::colName_overlapMap + "_" + CMS3Ntuplizer::colName_muons;
 
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_jet_match_index);
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_particle_match_index);
@@ -2993,7 +2996,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
   // Electron overlaps
   {
-    std::string colName = CMS3Ntuplizer::colName_jetOverlapMap + "_" + CMS3Ntuplizer::colName_electrons;
+    std::string colName = CMS3Ntuplizer::colName_overlapMap + "_" + CMS3Ntuplizer::colName_electrons;
 
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_jet_match_index);
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_particle_match_index);
@@ -3165,7 +3168,7 @@ void CMS3Ntuplizer::fillJetOverlapInfo(
 
   // Photon overlaps
   {
-    std::string colName = CMS3Ntuplizer::colName_jetOverlapMap + "_" + CMS3Ntuplizer::colName_photons;
+    std::string colName = CMS3Ntuplizer::colName_overlapMap + "_" + CMS3Ntuplizer::colName_photons;
 
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_jet_match_index);
     MAKE_VECTOR_WITHOUT_RESERVE(cms3_listIndex_short_t, ak4jets_particle_match_index);

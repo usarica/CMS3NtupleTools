@@ -84,7 +84,7 @@ protected:
   static const std::string colName_isotracks;
   static const std::string colName_ak4jets;
   static const std::string colName_ak8jets;
-  static const std::string colName_jetOverlapMap;
+  static const std::string colName_overlapMap;
   static const std::string colName_vtxs;
   static const std::string colName_pfcands;
   static const std::string colName_triggerinfos;
@@ -255,7 +255,7 @@ template<typename T> void CMS3Ntuplizer::cleanUnusedCollection(bool const& isSel
     ||
     bname.BeginsWith(CMS3Ntuplizer::colName_ak8jets.data())
     ||
-    bname.BeginsWith(CMS3Ntuplizer::colName_jetOverlapMap.data())
+    bname.BeginsWith(CMS3Ntuplizer::colName_overlapMap.data())
     ||
     bname.BeginsWith(CMS3Ntuplizer::colName_vtxs.data())
     ||

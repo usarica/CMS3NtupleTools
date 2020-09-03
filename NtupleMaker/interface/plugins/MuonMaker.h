@@ -45,6 +45,8 @@ protected:
 
   edm::EDGetTokenT< double > rhoToken;
 
+  void setCutBasedH4lIdSelectionBits(edm::View<pat::Muon>::const_iterator const&, pat::Muon&) const;
+
 };
 
 
