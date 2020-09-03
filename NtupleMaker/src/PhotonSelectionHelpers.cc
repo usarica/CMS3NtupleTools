@@ -178,7 +178,6 @@ namespace PhotonSelectionHelpers{
 
     // Photon ET
     if (uncorr_pt < ph_Et_) return false;
-    bool validHoverE = obj.hadTowOverEmValid();
 
     if (obj.hadTowOverEm() > ph_loose_hoe_) return false;
     // Isolation variables in 0.3 cone combined
