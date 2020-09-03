@@ -6,6 +6,7 @@
 #include "CMS3/NtupleMaker/interface/TriggerObjectInfo.h"
 #include "CMS3/NtupleMaker/interface/METFilterInfo.h"
 #include "CMS3/NtupleMaker/interface/METInfo.h"
+#include "CMS3/NtupleMaker/interface/METShiftInfo.h"
 
 
 namespace{
@@ -22,6 +23,9 @@ namespace{
     edm::Wrapper< std::vector<TriggerObjectInfo> > dummy_vtriggerobjectinfo_wrapper;
 
     edm::Wrapper<METFilterInfo> dummy_metfilterinfo_wrapper;
+
     edm::Wrapper<METInfo> dummy_metinfo_wrapper;
+
+    edm::Wrapper<METShiftInfo> dummy_metshiftinfo_wrapper;
   };
 }

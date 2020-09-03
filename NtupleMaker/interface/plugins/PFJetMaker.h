@@ -29,19 +29,6 @@ public:
   ~PFJetMaker();
 
 private:
-  enum METShiftType{
-    kMETShift_JECNominal,
-    kMETShift_JECDn,
-    kMETShift_JECUp,
-    kMETShift_JECNominal_JERNominal,
-    kMETShift_JECNominal_JERDn,
-    kMETShift_JECNominal_JERUp,
-    kMETShift_JECDn_JERNominal,
-    kMETShift_JECUp_JERNominal,
-
-    nMETShiftTypes
-  };
-
   virtual void beginJob();
   virtual void endJob();
 
@@ -89,10 +76,11 @@ protected:
   );
 
   void compute_METShift(
+    bool preserve_corrected_jet_p4,
     reco::Particle::LorentzVector const& p4_jet_uncorrected, reco::Particle::LorentzVector const& p4_mucands,
     double const& JEC_L1L2L3, double const& JEC_L1, double const& JERval,
-    char const& iJECshift,
-    bool& flag_isGoodMET, reco::Particle::LorentzVector& p4_metShift
+    char const& iJECshift, double const& nativeRelJECUnc,
+    bool& flag_isGoodMET, reco::Particle::LorentzVector& p4_metShift, double* jec_unc_nomus = nullptr
   );
 
 };

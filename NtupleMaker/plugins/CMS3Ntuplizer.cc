@@ -26,6 +26,7 @@
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
+#include <CMS3/Dictionaries/interface/JetMETEnums.h>
 
 #include <CMSDataTools/AnalysisTree/interface/HelperFunctions.h>
 
@@ -115,15 +116,11 @@ CMS3Ntuplizer::CMS3Ntuplizer(const edm::ParameterSet& pset_) :
 
   pfmetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("pfmetSrc"));
   puppimetToken = consumes< METInfo >(pset.getParameter<edm::InputTag>("puppimetSrc"));
-  if (isMC){
-    pfmetshiftToken_JECDn = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECDn"));
-    pfmetshiftToken_JECUp = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECUp"));
-    pfmetshiftToken_JECNominal_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECNominal_JERNominal"));
-    pfmetshiftToken_JECNominal_JERDn = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECNominal_JERDn"));
-    pfmetshiftToken_JECNominal_JERUp = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECNominal_JERUp"));
-    pfmetshiftToken_JECDn_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECDn_JERNominal"));
-    pfmetshiftToken_JECUp_JERNominal = consumes< reco::Particle::LorentzVector >(pset.getParameter<edm::InputTag>("pfmetShiftSrc_JECUp_JERNominal"));
 
+  pfmetshiftToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftSrc"));
+  pfmetshiftP4PreservedToken = consumes< METShiftInfo >(pset.getParameter<edm::InputTag>("pfmetShiftP4PreservedSrc"));
+
+  if (isMC){
     genInfoToken = consumes< GenInfo >(pset.getParameter<edm::InputTag>("genInfoSrc"));
     prunedGenParticlesToken = consumes< reco::GenParticleCollection >(pset.getParameter<edm::InputTag>("prunedGenParticlesSrc"));
     packedGenParticlesToken = consumes< pat::PackedGenParticleCollection >(pset.getParameter<edm::InputTag>("packedGenParticlesSrc"));
@@ -2137,26 +2134,18 @@ size_t CMS3Ntuplizer::fillAK4Jets(
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_px, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, mucands_sump4_py, n_objects);
 
+  MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_Bits, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(cms3_metsafety_t, isMETJERCSafe_p4Preserved_Bits, n_objects);
+
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JECL1Nominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECNominal, n_objects);
 
-  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECDn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECDn_JERNominal, n_objects);
-
-  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECUp_JERNominal, n_objects);
-
+  MAKE_VECTOR_WITH_RESERVE(float, relJECUnc, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, relJECUnc_nomus, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, relJECUnc_nomus_JERNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECNominal_JERNominal, n_objects);
-
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECNominal_JERDn, n_objects);
-
   MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(bool, isMETJERCSafe_JECNominal_JERUp, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched, n_objects);
   MAKE_VECTOR_WITH_RESERVE(bool, is_genMatched_fullCone, n_objects);
@@ -2260,27 +2249,19 @@ size_t CMS3Ntuplizer::fillAK4Jets(
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_px);
     PUSH_USERFLOAT_INTO_VECTOR(mucands_sump4_py);
 
+    PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_Bits);
+    PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_p4Preserved_Bits);
+
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
     PUSH_USERFLOAT_INTO_VECTOR(JECL1Nominal);
-    PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECNominal);
 
     if (isMC){
-      PUSH_USERFLOAT_INTO_VECTOR(JECDn);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECDn);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECDn_JERNominal);
-
-      PUSH_USERFLOAT_INTO_VECTOR(JECUp);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECUp);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECUp_JERNominal);
-
+      PUSH_USERFLOAT_INTO_VECTOR(relJECUnc);
+      PUSH_USERFLOAT_INTO_VECTOR(relJECUnc_nomus);
+      PUSH_USERFLOAT_INTO_VECTOR(relJECUnc_nomus_JERNominal);
       PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECNominal_JERNominal);
-
       PUSH_USERFLOAT_INTO_VECTOR(JERDn);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECNominal_JERDn);
-
       PUSH_USERFLOAT_INTO_VECTOR(JERUp);
-      PUSH_USERINT_INTO_VECTOR(isMETJERCSafe_JECNominal_JERUp);
 
       PUSH_USERINT_INTO_VECTOR(is_genMatched);
       PUSH_USERINT_INTO_VECTOR(is_genMatched_fullCone);
@@ -2339,27 +2320,19 @@ size_t CMS3Ntuplizer::fillAK4Jets(
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_px);
   PUSH_VECTOR_WITH_NAME(colName, mucands_sump4_py);
 
+  PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_Bits);
+  PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_p4Preserved_Bits);
+
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
   PUSH_VECTOR_WITH_NAME(colName, JECL1Nominal);
-  PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECNominal);
 
   if (isMC){
-    PUSH_VECTOR_WITH_NAME(colName, JECDn);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECDn);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECDn_JERNominal);
-
-    PUSH_VECTOR_WITH_NAME(colName, JECUp);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECUp);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECUp_JERNominal);
-
+    PUSH_VECTOR_WITH_NAME(colName, relJECUnc);
+    PUSH_VECTOR_WITH_NAME(colName, relJECUnc_nomus);
+    PUSH_VECTOR_WITH_NAME(colName, relJECUnc_nomus_JERNominal);
     PUSH_VECTOR_WITH_NAME(colName, JERNominal);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECNominal_JERNominal);
-
     PUSH_VECTOR_WITH_NAME(colName, JERDn);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECNominal_JERDn);
-
     PUSH_VECTOR_WITH_NAME(colName, JERUp);
-    PUSH_VECTOR_WITH_NAME(colName, isMETJERCSafe_JECNominal_JERUp);
 
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched);
     PUSH_VECTOR_WITH_NAME(colName, is_genMatched_fullCone);
@@ -2429,8 +2402,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(
   MAKE_VECTOR_WITH_RESERVE(float, axis2, n_objects);
 
   MAKE_VECTOR_WITH_RESERVE(float, JECNominal, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECDn, n_objects);
-  MAKE_VECTOR_WITH_RESERVE(float, JECUp, n_objects);
+  MAKE_VECTOR_WITH_RESERVE(float, relJECUnc, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERNominal, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERDn, n_objects);
   MAKE_VECTOR_WITH_RESERVE(float, JERUp, n_objects);
@@ -2530,8 +2502,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(
 
     PUSH_USERFLOAT_INTO_VECTOR(JECNominal);
     if (isMC){
-      PUSH_USERFLOAT_INTO_VECTOR(JECDn);
-      PUSH_USERFLOAT_INTO_VECTOR(JECUp);
+      PUSH_USERFLOAT_INTO_VECTOR(relJECUnc);
       PUSH_USERFLOAT_INTO_VECTOR(JERNominal);
       PUSH_USERFLOAT_INTO_VECTOR(JERDn);
       PUSH_USERFLOAT_INTO_VECTOR(JERUp);
@@ -2592,9 +2563,7 @@ size_t CMS3Ntuplizer::fillAK8Jets(
 
   PUSH_VECTOR_WITH_NAME(colName, JECNominal);
   if (isMC){
-    PUSH_VECTOR_WITH_NAME(colName, JECDn);
-    PUSH_VECTOR_WITH_NAME(colName, JECUp);
-
+    PUSH_VECTOR_WITH_NAME(colName, relJECUnc);
     PUSH_VECTOR_WITH_NAME(colName, JERNominal);
     PUSH_VECTOR_WITH_NAME(colName, JERDn);
     PUSH_VECTOR_WITH_NAME(colName, JERUp);
@@ -3713,6 +3682,8 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
 #define SET_MET_VARIABLE(HANDLE, NAME, COLLNAME) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), HANDLE->NAME);
 #define SET_MET_SHIFT(NAME, COLLNAME, VAL) commonEntry.setNamedVal((std::string(COLLNAME) + "_" + #NAME).data(), VAL);
 
+  using namespace JetMETEnums;
+
   edm::Handle<METInfo> metHandle;
 
   // PF MET
@@ -3740,48 +3711,51 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
   SET_MET_VARIABLE(metHandle, met_UnclusteredEnUp, pfmetCollName);
   SET_MET_VARIABLE(metHandle, metPhi_UnclusteredEnUp, pfmetCollName);
 
+  edm::Handle< METShiftInfo > pfmetshiftHandle;
+  iEvent.getByToken(pfmetshiftToken, pfmetshiftHandle);
+  if (!pfmetshiftHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET default shifts handle from the event...");
+
+  edm::Handle< METShiftInfo > pfmetshiftP4PreservedHandle;
+  iEvent.getByToken(pfmetshiftP4PreservedToken, pfmetshiftP4PreservedHandle);
+  if (!pfmetshiftP4PreservedHandle.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET p4-preserved shifts handle from the event...");
+
+  SET_MET_SHIFT(metShift_px_JECNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal).Px()));
+  SET_MET_SHIFT(metShift_py_JECNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal).Py()));
+
+  // metShift_p4Preserved[hypo] is relative to metShift[hypo]
+  SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal).Px()));
+  SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal).Py()));
+
   if (isMC){
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECDn;
-    iEvent.getByToken(pfmetshiftToken_JECDn, pfmetshiftHandle_JECDn);
-    if (!pfmetshiftHandle_JECDn.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC down (no JER) shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECDn, pfmetCollName, float(pfmetshiftHandle_JECDn->Px()));
-    SET_MET_SHIFT(metShift_py_JECDn, pfmetCollName, float(pfmetshiftHandle_JECDn->Py()));
+    SET_MET_SHIFT(metShift_px_JECDn, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECDn).Px()));
+    SET_MET_SHIFT(metShift_py_JECDn, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECDn).Py()));
+    SET_MET_SHIFT(metShift_px_JECUp, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECUp).Px()));
+    SET_MET_SHIFT(metShift_py_JECUp, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECUp).Py()));
+    SET_MET_SHIFT(metShift_px_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_py_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Py()));
+    SET_MET_SHIFT(metShift_px_JECNominal_JERDn, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERDn).Px()));
+    SET_MET_SHIFT(metShift_py_JECNominal_JERDn, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERDn).Py()));
+    SET_MET_SHIFT(metShift_px_JECNominal_JERUp, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERUp).Px()));
+    SET_MET_SHIFT(metShift_py_JECNominal_JERUp, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECNominal_JERUp).Py()));
+    SET_MET_SHIFT(metShift_px_JECDn_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECDn_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECDn_JERNominal).Py()));
+    SET_MET_SHIFT(metShift_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECUp_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftHandle->metshifts.at(kMETShift_JECUp_JERNominal).Py()));
 
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECUp;
-    iEvent.getByToken(pfmetshiftToken_JECUp, pfmetshiftHandle_JECUp);
-    if (!pfmetshiftHandle_JECUp.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC up (no JER) shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECUp, pfmetCollName, float(pfmetshiftHandle_JECUp->Px()));
-    SET_MET_SHIFT(metShift_py_JECUp, pfmetCollName, float(pfmetshiftHandle_JECUp->Py()));
-
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECNominal_JERNominal;
-    iEvent.getByToken(pfmetshiftToken_JECNominal_JERNominal, pfmetshiftHandle_JECNominal_JERNominal);
-    if (!pfmetshiftHandle_JECNominal_JERNominal.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC nominal, JER nominal shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERNominal->Px()));
-    SET_MET_SHIFT(metShift_py_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERNominal->Py()));
-
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECNominal_JERDn;
-    iEvent.getByToken(pfmetshiftToken_JECNominal_JERDn, pfmetshiftHandle_JECNominal_JERDn);
-    if (!pfmetshiftHandle_JECNominal_JERDn.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC nominal, JER down shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECNominal_JERDn, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERDn->Px()));
-    SET_MET_SHIFT(metShift_py_JECNominal_JERDn, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERDn->Py()));
-
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECNominal_JERUp;
-    iEvent.getByToken(pfmetshiftToken_JECNominal_JERUp, pfmetshiftHandle_JECNominal_JERUp);
-    if (!pfmetshiftHandle_JECNominal_JERUp.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC nominal, JER up shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECNominal_JERUp, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERUp->Px()));
-    SET_MET_SHIFT(metShift_py_JECNominal_JERUp, pfmetCollName, float(pfmetshiftHandle_JECNominal_JERUp->Py()));
-
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECDn_JERNominal;
-    iEvent.getByToken(pfmetshiftToken_JECDn_JERNominal, pfmetshiftHandle_JECDn_JERNominal);
-    if (!pfmetshiftHandle_JECDn_JERNominal.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC down, JER nominal shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECDn_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECDn_JERNominal->Px()));
-    SET_MET_SHIFT(metShift_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECDn_JERNominal->Py()));
-
-    edm::Handle< reco::Particle::LorentzVector > pfmetshiftHandle_JECUp_JERNominal;
-    iEvent.getByToken(pfmetshiftToken_JECUp_JERNominal, pfmetshiftHandle_JECUp_JERNominal);
-    if (!pfmetshiftHandle_JECUp_JERNominal.isValid()) throw cms::Exception("CMS3Ntuplizer::fillMETVariables: Error getting the PF MET JEC up, JER nominal shift handle from the event...");
-    SET_MET_SHIFT(metShift_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECUp_JERNominal->Px()));
-    SET_MET_SHIFT(metShift_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftHandle_JECUp_JERNominal->Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECDn, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECDn).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECDn, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECDn).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECUp, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECUp, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERNominal).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERDn, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERDn).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERDn, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERDn).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERUp, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERUp).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERUp, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECNominal_JERUp).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECDn_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECDn_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECDn_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECDn_JERNominal).Py()));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp_JERNominal).Px()));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECUp_JERNominal, pfmetCollName, float(pfmetshiftP4PreservedHandle->metshifts.at(kMETShift_JECUp_JERNominal).Py()));
   }
   else{
     SET_MET_SHIFT(metShift_px_JECDn, pfmetCollName, float(0));
@@ -3798,6 +3772,21 @@ bool CMS3Ntuplizer::fillMETVariables(edm::Event const& iEvent){
     SET_MET_SHIFT(metShift_py_JECDn_JERNominal, pfmetCollName, float(0));
     SET_MET_SHIFT(metShift_px_JECUp_JERNominal, pfmetCollName, float(0));
     SET_MET_SHIFT(metShift_py_JECUp_JERNominal, pfmetCollName, float(0));
+
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECDn, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECDn, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERDn, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERDn, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECNominal_JERUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECNominal_JERUp, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECDn_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECDn_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_px_JECUp_JERNominal, pfmetCollName, float(0));
+    SET_MET_SHIFT(metShift_p4Preserved_py_JECUp_JERNominal, pfmetCollName, float(0));
   }
 
   /*

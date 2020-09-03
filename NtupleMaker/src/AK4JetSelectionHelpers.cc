@@ -152,14 +152,8 @@ namespace AK4JetSelectionHelpers{
 
   bool testAK4JetMETSafety(pat::Jet const& obj){
     unsigned char flag = 0;
-    flag += obj.userInt("isMETJERCSafe_JECNominal");
-    flag += obj.userInt("isMETJERCSafe_JECDn");
-    flag += obj.userInt("isMETJERCSafe_JECUp");
-    flag += obj.userInt("isMETJERCSafe_JECNominal_JERNominal");
-    flag += obj.userInt("isMETJERCSafe_JECNominal_JERDn");
-    flag += obj.userInt("isMETJERCSafe_JECNominal_JERUp");
-    flag += obj.userInt("isMETJERCSafe_JECDn_JERNominal");
-    flag += obj.userInt("isMETJERCSafe_JECUp_JERNominal");
+    flag += obj.userInt("isMETJERCSafe_Bits");
+    flag += obj.userInt("isMETJERCSafe_p4Preserved_Bits");
     return flag>0;
   }
 

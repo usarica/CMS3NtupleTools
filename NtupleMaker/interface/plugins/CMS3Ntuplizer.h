@@ -48,6 +48,7 @@
 #include <CMS3/NtupleMaker/interface/TriggerObjectInfo.h>
 #include <CMS3/NtupleMaker/interface/METFilterInfo.h>
 #include <CMS3/NtupleMaker/interface/METInfo.h>
+#include <CMS3/NtupleMaker/interface/METShiftInfo.h>
 #include <CMS3/NtupleMaker/interface/IsotrackInfo.h>
 #include <CMS3/NtupleMaker/interface/FSRCandidateInfo.h>
 #include <CMS3/NtupleMaker/interface/PFCandidateInfo.h>
@@ -135,13 +136,8 @@ protected:
   edm::EDGetTokenT< reco::SuperClusterCollection > reducedSuperclusterToken;
 
   edm::EDGetTokenT< METInfo > pfmetToken;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECDn; // The shift from this input should be the same as PFMET-JECDn
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECUp; // The shift from this input should be the same as PFMET-JECUp
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERNominal;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERDn;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECNominal_JERUp;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECDn_JERNominal;
-  edm::EDGetTokenT< reco::Particle::LorentzVector > pfmetshiftToken_JECUp_JERNominal;
+  edm::EDGetTokenT< METShiftInfo > pfmetshiftToken; // JECDn an Up shifts from this container should be the same as those from PFMET.
+  edm::EDGetTokenT< METShiftInfo > pfmetshiftP4PreservedToken;
   edm::EDGetTokenT< METInfo > puppimetToken;
 
   edm::EDGetTokenT< reco::VertexCollection > vtxToken;

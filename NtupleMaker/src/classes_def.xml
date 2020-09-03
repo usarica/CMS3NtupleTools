@@ -26,4 +26,7 @@
   <class name="METInfo"/>
   <class name="edm::Wrapper< METInfo >" persistent="false"/>
 
+  <class name="METShiftInfo"/>
+  <class name="edm::Wrapper< METShiftInfo>" persistent="false"/>
+
 </lcgdict>

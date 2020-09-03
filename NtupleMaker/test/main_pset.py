@@ -651,11 +651,13 @@ runMetCorAndUncFromMiniAOD(
 useExistingWeightsFlag = not opts.recomputePuppiWeights
 process.puppiNoLep.useExistingWeights = useExistingWeightsFlag
 process.puppi.useExistingWeights = useExistingWeightsFlag
+from CMS3.NtupleMaker.utils.fixProcessPuppiSources import fixProcessPuppiSources
+fixProcessPuppiSources(process, slimmedJetsPuppiCollection, ak4puppijetsTag)
 ## These variables are somehow dropped
 #process.slimmedCorrectedJets.userData.userFloats.src += ['pileupJetIdUpdated:fullDiscriminant']
 #process.slimmedCorrectedJets.userData.userInts.src += ['pileupJetIdUpdated:fullId']
 
-print "jetSelectorForMetModifiedMET.cut = ",process.jetSelectorForMetModifiedMET.cut
+#print "jetSelectorForMetModifiedMET.cut = ",process.jetSelectorForMetModifiedMET.cut
 
 
 # Apply E/Gamma corrections if needed
