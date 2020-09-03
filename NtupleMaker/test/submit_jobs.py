@@ -49,7 +49,7 @@ def get_tasks(csvs, tarfile, tag, doTestRun):
         outputfilename = outputfilename + ".root"
         print "Output file: ",outputfilename
 
-        events_per_output = (200e3 if isdata else 200e3)
+        events_per_output = (150e3 if isdata else 150e3)
         pset_args = "xsec={} BR={} ".format(sample.info["xsec"], sample.info["efact"]) + sample.info["options"]
         global_tag = re.search("globaltag=(\w+)",pset_args).groups()[0]
         extra = dict()
