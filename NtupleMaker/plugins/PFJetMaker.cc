@@ -22,6 +22,7 @@
 #include <CMS3/NtupleMaker/interface/AK4JetSelectionHelpers.h>
 #include <CMS3/NtupleMaker/interface/AK8JetSelectionHelpers.h>
 #include <CMS3/NtupleMaker/interface/VertexSelectionHelpers.h>
+#include <CMS3/NtupleMaker/interface/MuonSelectionHelpers.h>
 #include <CMS3/NtupleMaker/interface/METShiftInfo.h>
 
 #include "TRandom3.h"
@@ -196,7 +197,7 @@ void PFJetMaker::produce(edm::Event& iEvent, const edm::EventSetup& iSetup){
         //   skipMuons = cms.bool(True),
         // Inside JetMETCorrections/Type1MET/interface/JetCleanerForType1METT.h:
         //   if ( mu != nullptr && (*skipMuonSelection_)(*mu) )...
-        if (!pfc.isGlobalMuon() && !pfc.isStandAloneMuon()) continue;
+        if (!MuonSelectionHelpers::testGoodMETPFMuon(pfc)) continue;
         p4_mucands = p4_mucands + pfc.p4();
         n_mucands++;
       }

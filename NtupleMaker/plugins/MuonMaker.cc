@@ -63,6 +63,9 @@ MuonMaker::MuonMaker(const ParameterSet& iConfig) :
   refurbishSelections_(iConfig.getParameter<bool>("refurbishSelections"))
 {
   muonsToken = consumes< edm::View<pat::Muon> >(iConfig.getParameter<InputTag>("muonsInputTag"));
+
+  pfCandidatesToken = consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfCandidatesInputTag"));
+
   vtxToken = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("vtxInputTag"));
 
   rhoToken = consumes< double >(iConfig.getParameter<edm::InputTag>("rhoInputTag"));
@@ -96,6 +99,10 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
   }
   bool hasVertex = (!vertexCollection->empty());
   bool hasGoodVertex = (firstGoodVertex!=vertexCollection->end());
+
+  edm::Handle<pat::PackedCandidateCollection> pfCandidatesHandle;
+  iEvent.getByToken(pfCandidatesToken, pfCandidatesHandle);
+  if (!pfCandidatesHandle.isValid()) throw cms::Exception("MuonMaker::produce: Error getting the PF candidate collection from the event...");
 
   edm::Handle< edm::View<pat::Muon> > mus_h;
   iEvent.getByToken(muonsToken, mus_h);
@@ -341,6 +348,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserInt("pfCand_charge", pfCandRef->charge());
       muon_result.addUserInt("pfCand_particleId", pfCandRef->pdgId());
       muon_result.addUserInt("pfCand_idx", pfCandRef.key());
+      muon_result.addUserInt("pfCand_is_goodMETPFMuon", MuonSelectionHelpers::testGoodMETPFMuon(pfCandidatesHandle->at(pfCandRef.key())));
     }
     else{
       muon_result.addUserFloat("pfCand_pt", -1);
@@ -350,6 +358,7 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
       muon_result.addUserInt("pfCand_charge", 0);
       muon_result.addUserInt("pfCand_particleId", 0);
       muon_result.addUserInt("pfCand_idx", -1);
+      muon_result.addUserInt("pfCand_is_goodMETPFMuon", false);
     }
 
 

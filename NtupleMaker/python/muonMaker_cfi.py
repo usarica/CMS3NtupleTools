@@ -10,6 +10,8 @@ muonMaker = cms.EDProducer(
 
    muonsInputTag = cms.InputTag("slimmedMuons"),
 
+   pfCandidatesInputTag = cms.InputTag("packedPFCandidates"),
+
    vtxInputTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
 
    rhoInputTag = cms.InputTag("fixedGridRhoFastjetAll"),

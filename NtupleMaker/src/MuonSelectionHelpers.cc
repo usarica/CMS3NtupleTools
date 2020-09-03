@@ -85,6 +85,13 @@ namespace MuonSelectionHelpers{
     return (sum_charged_nofsr_val + std::max(0., sum_neutral_nofsr_val - fsr));
   }
 
+  bool testGoodMETPFMuon(pat::PackedCandidate const& pfcand){
+    // The following selection requirements come from process.basicJetsForMetModifiedMET [of type EDProducer("PATJetCleanerForType1MET")]
+    //   skipMuonSelection = cms.string('isGlobalMuon | isStandAloneMuon'),
+    //   skipMuons = cms.bool(True),
+    return (pfcand.isGlobalMuon() || pfcand.isStandAloneMuon());
+  }
+
   bool testLooseTriggerId(pat::Muon const& obj, int const& /*year*/){
 #if CMSSW_VERSION_MAJOR>=10 
     return muon::isLooseTriggerMuon(obj);

@@ -3,7 +3,7 @@
 cmd=cmsRun
 pset=main_pset.py
 nevents=100
-outputdir=outputs/
+outputdir=outputs
 
 mkdir -p $outputdir
 

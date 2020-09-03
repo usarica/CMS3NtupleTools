@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <DataFormats/PatCandidates/interface/Muon.h>
+#include <DataFormats/PatCandidates/interface/PackedCandidate.h>
 
 
 namespace MuonSelectionHelpers{
@@ -25,6 +26,8 @@ namespace MuonSelectionHelpers{
 
   float muonPFIsoComb(pat::Muon const& obj, int const& year, MuonSelectionHelpers::IsolationType const& type, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr, double* sum_neutral_EAcorr_nofsr); // Absolute PF iso. value, uses delta beta correction instead of EA*rho, but sum_neutral_EAcorr_nofsr return the EA-corrected value for optional use.
   float muonMiniIsoComb(pat::Muon const& obj, int const& year, double const& rho, double const& fsr, double* sum_charged_nofsr, double* sum_neutral_nofsr); // Absolute mini. iso. value
+
+  bool testGoodMETPFMuon(pat::PackedCandidate const& pfcand);
 
   bool testLooseTriggerId(pat::Muon const& obj, int const& year); // Test loose trigger id
   bool testTightCharge(pat::Muon const& obj, int const& year); // Test error on charge determination via track pT error
