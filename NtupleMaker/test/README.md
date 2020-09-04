@@ -63,11 +63,15 @@ source setup.sh
 cd ..
 ```
 2. Make a tarball for the worker node:
-```bash
+```
+bash
 mtarfile tarball_v1.tar.xz --xz --xz_level 3 -x "CMS3/AnalysisTree" "HiggsAnalysis/CombinedLimit" "JHUGenMELA/MEMCalculators" "JHUGenMELA/PythonWrapper" "JHUGenMELA/MEKD" "JHUGenMELA/MELA/test/reference"
 ```
-3. Submit jobs in a GNU screen with `python submit_jobs.py /home/users/usarica/work/public/for200313/*.csv samples_Data_*.csv --tarfile tarball_v0.tar.xz --tag OFFSHELL_v0` (after appropriate
-edits of the arguments).
+3. Submit jobs in a GNU screen with 
+```
+python submit_jobs.py /home/users/usarica/work/public/for200313/*.csv samples_Data_*.csv --tarfile tarball_v1.tar.xz --tag OFFSHELL_v0
+```
+(after appropriate edits of the arguments).
 Note: I recommend using `DO_TEST=True` with a dummy/different `tag` to submit a handful of events
 for the first sample in each csv file. If those jobs succeed, switch to the actual `tag` for production and turn off `DO_TEST`.
 4. Visit the monitoring page to view progress and output location.
