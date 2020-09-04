@@ -6,9 +6,11 @@
 
 
 #define FSR_VECTOR_VARIABLES \
-FSR_VECTOR_VARIABLE(std::vector<unsigned int>, fsrMatch_muon_index_list) \
-FSR_VECTOR_VARIABLE(std::vector<unsigned int>, fsrMatch_electron_index_list) \
-FSR_VECTOR_VARIABLE(std::vector<unsigned int>, photonVeto_index_list)
+FSR_VECTOR_VARIABLE(std::vector<cms3_listIndex_short_t>, fsrMatch_muon_index_list) \
+FSR_VECTOR_VARIABLE(std::vector<cms3_listIndex_short_t>, fsrMatch_electron_index_list) \
+FSR_VECTOR_VARIABLE(std::vector<cms3_listIndex_short_t>, fsrMatch_ak4jet_index_list) \
+FSR_VECTOR_VARIABLE(std::vector<cms3_listIndex_short_t>, fsrMatch_ak8jet_index_list) \
+FSR_VECTOR_VARIABLE(std::vector<cms3_listIndex_short_t>, photonVeto_index_list)
 
 #define FSR_VARIABLES \
 FSR_VECTOR_VARIABLES

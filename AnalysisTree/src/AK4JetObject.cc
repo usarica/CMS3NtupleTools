@@ -1,8 +1,10 @@
 #include <cassert>
 #include <algorithm>
 #include <utility>
+#include <CMS3/Dictionaries/interface/JetMETEnums.h>
 #include "AK4JetObject.h"
 #include "BtagHelpers.h"
+#include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -33,33 +35,45 @@ AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
 
 AK4JetObject::AK4JetObject() :
   ParticleObject(),
+  mom_original(0, 0, 0, 0),
   extras(),
+  currentSyst(SystematicsHelpers::sNominal),
   currentJEC_full(1),
   currentJEC_L1only(1),
+  currentJEC_nomus(1),
   currentJER(1),
   currentSystScale(1)
 {}
 AK4JetObject::AK4JetObject(LorentzVector_t const& momentum_) :
   ParticleObject(0, momentum_),
+  mom_original(momentum_),
   extras(),
+  currentSyst(SystematicsHelpers::sNominal),
   currentJEC_full(1),
   currentJEC_L1only(1),
+  currentJEC_nomus(1),
   currentJER(1),
   currentSystScale(1)
 {}
 AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   ParticleObject(other),
+  mom_original(other.mom_original),
   extras(other.extras),
+  currentSyst(other.currentSyst),
   currentJEC_full(other.currentJEC_full),
   currentJEC_L1only(other.currentJEC_L1only),
+  currentJEC_nomus(other.currentJEC_nomus),
   currentJER(other.currentJER),
   currentSystScale(other.currentSystScale)
 {}
 void AK4JetObject::swap(AK4JetObject& other){
   ParticleObject::swap(other);
+  std::swap(mom_original, other.mom_original);
   extras.swap(other.extras);
+  std::swap(currentSyst, other.currentSyst);
   std::swap(currentJEC_full, other.currentJEC_full);
   std::swap(currentJEC_L1only, other.currentJEC_L1only);
+  std::swap(currentJEC_nomus, other.currentJEC_nomus);
   std::swap(currentJER, other.currentJER);
   std::swap(currentSystScale, other.currentSystScale);
 }
@@ -96,47 +110,98 @@ float AK4JetObject::getBtagValue() const{
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
+  currentJEC_L1only = extras.JECL1Nominal; // This should always be the same.
   currentJEC_full = 1;
+  currentJEC_nomus = 1;
   currentJER = 1;
-  currentJEC_L1only = 1;
+  momentum = mom_original;
   switch (syst){
   case eJECDn:
-    currentJEC_full = extras.JECDn;
+    currentJEC_full = extras.JECNominal*(1.f - extras.relJECUnc);
+    currentJEC_nomus = extras.JECNominal*(1.f - extras.relJECUnc_nomus_JERNominal);
     currentJER = extras.JERNominal;
-    currentJEC_L1only = currentJEC_full/extras.JECNominal*extras.JECL1Nominal;
     break;
   case eJECUp:
-    currentJEC_full = extras.JECUp;
+    currentJEC_full = extras.JECNominal*(1.f + extras.relJECUnc);
+    currentJEC_nomus = extras.JECNominal*(1.f + extras.relJECUnc_nomus_JERNominal);
     currentJER = extras.JERNominal;
-    currentJEC_L1only = currentJEC_full/extras.JECNominal*extras.JECL1Nominal;
     break;
   case eJERDn:
     currentJEC_full = extras.JECNominal;
+    currentJEC_nomus = extras.JECNominal;
     currentJER = extras.JERDn;
-    currentJEC_L1only = extras.JECL1Nominal;
     break;
   case eJERUp:
     currentJEC_full = extras.JECNominal;
+    currentJEC_nomus = extras.JECNominal;
     currentJER = extras.JERUp;
-    currentJEC_L1only = extras.JECL1Nominal;
     break;
   case sUncorrected:
     break;
   default:
     currentJEC_full = extras.JECNominal;
+    currentJEC_nomus = extras.JECNominal;
     currentJER = extras.JERNominal;
-    currentJEC_L1only = extras.JECL1Nominal;
     break;
   }
   float scale = currentJEC_full * currentJER;
   // Test new pt
-  float newpt = momentum.Pt() * (scale/currentSystScale);
-  if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt() * currentSystScale;
-  momentum = momentum * (scale/currentSystScale);
+  float newpt = momentum.Pt() * scale;
+  if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt();
+  momentum = momentum * scale;
   currentSystScale = scale;
+  currentSyst = syst;
 }
 
-ParticleObject::LorentzVector_t AK4JetObject::p4_nomu() const{
-  if (momentum.Pt()<=1e-5) return momentum;
-  else return momentum - LorentzVector_t(extras.mucands_sump4_px, extras.mucands_sump4_py, 0, 0)*currentJEC_full;
+// What were we saying? Ah yes, multiple, confusing versions...
+bool AK4JetObject::isMETSafe(bool useP4Preserved) const{
+  using namespace JetMETEnums;
+  using namespace SystematicsHelpers;
+
+  METShiftType shift_type = nMETShiftTypes;
+  switch (currentSyst){
+  case eJECDn:
+    shift_type = kMETShift_JECDn_JERNominal;
+    break;
+  case eJECUp:
+    shift_type = kMETShift_JECUp_JERNominal;
+    break;
+  case eJERDn:
+    shift_type = kMETShift_JECNominal_JERDn;
+    break;
+  case eJERUp:
+    shift_type = kMETShift_JECNominal_JERUp;
+    break;
+  case sUncorrected:
+    shift_type = nMETShiftTypes;
+    break;
+  default:
+    shift_type = kMETShift_JECNominal_JERNominal;
+    break;
+  }
+
+  if (shift_type != nMETShiftTypes){
+    if (!useP4Preserved) return HelperFunctions::test_bit(this->extras.isMETJERCSafe_Bits, shift_type);
+    else return HelperFunctions::test_bit(this->extras.isMETJERCSafe_p4Preserved_Bits, shift_type);
+  }
+  return false;
+}
+ParticleObject::LorentzVector_t AK4JetObject::getT1METContribution(bool useP4Preserved) const{
+  LorentzVector_t res(0, 0, 0, 0);
+  if (this->isMETSafe(useP4Preserved)){
+    if (!useP4Preserved){
+      LorentzVector_t p4_uncorrected_nomus = mom_original - this->p4_mucands();
+      LorentzVector_t p4_offsetCorrected_nomus = p4_uncorrected_nomus*currentJEC_L1only;
+      LorentzVector_t p4_corrected_nomus = p4_uncorrected_nomus*currentJEC_full*currentJER;
+      LorentzVector_t p4_diff_nomus = p4_corrected_nomus - p4_offsetCorrected_nomus;
+      res = -p4_diff_nomus;
+    }
+    else{
+      LorentzVector_t p4_offsetCorrected_nomus = mom_original*currentJEC_L1only - this->p4_mucands();
+      LorentzVector_t p4_corrected_nomus = this->p4_nomus_basic();
+      LorentzVector_t p4_diff_nomus = p4_corrected_nomus - p4_offsetCorrected_nomus;
+      res = -p4_diff_nomus;
+    }
+  }
+  return res;
 }

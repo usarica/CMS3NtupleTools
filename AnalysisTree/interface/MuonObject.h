@@ -7,9 +7,11 @@
 
 #define MUON_IDISO_VARIABLES \
 MUON_VARIABLE(cms3_muon_pogselectorbits_t, POG_selector_bits, 0) \
+MUON_VARIABLE(cms3_muon_cutbasedbits_h4l_t, id_cutBased_H4l_Bits, 0) \
 MUON_VARIABLE(bool, pass_tightCharge, 0) \
 MUON_VARIABLE(bool, is_probeForTnP, 0) \
 MUON_VARIABLE(bool, is_probeForTnP_STA, 0) \
+MUON_VARIABLE(bool, has_pfMuon_goodMET, 0) \
 MUON_VARIABLE(float, dxy_bestTrack_firstPV, 0) \
 MUON_VARIABLE(float, dz_bestTrack_firstPV, 0) \
 MUON_VARIABLE(float, SIP3D, 0) \

@@ -15,20 +15,24 @@ const std::string VertexHandler::colName = "vtxs";
 
 VertexHandler::VertexHandler() :
   IvyBase(),
-  product_nvtxs(0),
-  product_nvtxs_good(0),
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) product_##NAME(DEFVAL),
+  VERTEX_EVENT_VARIABLES
+#undef VERTEX_EVENT_VARIABLE
   product_hasGoodPrimaryVertex(false)
 {
-  this->addConsumed<unsigned int>(VertexHandler::colName + "_nvtxs");
-  this->addConsumed<unsigned int>(VertexHandler::colName + "_nvtxs_good");
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(VertexHandler::colName + "_" + #NAME);
+  VERTEX_EVENT_VARIABLES;
+#undef VERTEX_EVENT_VARIABLE
 #define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(VertexHandler::colName + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef VERTEX_VARIABLE
 }
 
 void VertexHandler::clear(){
-  product_nvtxs = product_nvtxs_good = 0;
-  product_hasGoodPrimaryVertex=false;
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) product_##NAME = DEFVAL;
+  VERTEX_EVENT_VARIABLES;
+#undef VERTEX_EVENT_VARIABLE
+  product_hasGoodPrimaryVertex = false;
   
   for (ProductType_t*& prod:productList) delete prod;
   productList.clear();
@@ -44,11 +48,12 @@ bool VertexHandler::constructVertices(){
 
     // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedValue(VertexHandler::colName + "_" + #NAME, product_##NAME);
+  VERTEX_EVENT_VARIABLES;
+#undef VERTEX_EVENT_VARIABLE
 #define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(VertexHandler::colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES;
 #undef VERTEX_VARIABLE
-  allVariablesPresent &= this->getConsumedValue(VertexHandler::colName + "_nvtxs", product_nvtxs);
-  allVariablesPresent &= this->getConsumedValue(VertexHandler::colName + "_nvtxs_good", product_nvtxs_good);
   if (!allVariablesPresent){
     if (this->verbosity>=TVar::ERROR) MELAerr << "VertexHandler::constructVertices: Not all variables are consumed properly!" << endl;
     assert(0);
@@ -94,8 +99,9 @@ bool VertexHandler::constructVertices(){
 void VertexHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
-  tree->bookBranch<unsigned int>(VertexHandler::colName + "_nvtxs", 0);
-  tree->bookBranch<unsigned int>(VertexHandler::colName + "_nvtxs_good", 0);
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(VertexHandler::colName + "_" + #NAME, DEFVAL);
+  VERTEX_EVENT_VARIABLES;
+#undef VERTEX_EVENT_VARIABLE
 #define VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(VertexHandler::colName + "_" + #NAME, nullptr);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES
 #undef VERTEX_VARIABLE

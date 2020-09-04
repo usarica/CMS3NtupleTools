@@ -171,7 +171,7 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
   if (muons){
     for (auto const& part:(*muons)){
       if (ParticleSelectionHelpers::isFSRSuitable(part)){
-        unsigned int const& uid = part->getUniqueIdentifier();
+        cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
         for (auto const& fsrCand:fsrCandidates){
           if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_muon_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
         }
@@ -181,7 +181,7 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
   if (electrons){
     for (auto const& part:(*electrons)){
       if (ParticleSelectionHelpers::isFSRSuitable(part)){
-        unsigned int const& uid = part->getUniqueIdentifier();
+        cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
         for (auto const& fsrCand:fsrCandidates){
           if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_electron_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
         }
@@ -218,7 +218,7 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
   std::vector< std::pair< float, std::pair<FSRObject*, PhotonObject*> > > fsrObj_photon_dR_map;
   if (photons){
     for (auto const& part:(*photons)){
-      unsigned int const& uid = part->getUniqueIdentifier();
+      cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
       bool isRejected=false;
       for (auto const& fsr_lepton_match:fsr_lepton_final_map){
         auto const& fsrObj = fsr_lepton_match.fsrObj;

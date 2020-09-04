@@ -28,11 +28,11 @@ TriggerObject::TriggerObject() :
   ParticleObject(),
   extras()
 {}
-TriggerObject::TriggerObject(cms3_id_t id_) :
+TriggerObject::TriggerObject(cms3_triggertype_t id_) :
   ParticleObject(id_),
   extras()
 {}
-TriggerObject::TriggerObject(cms3_id_t id_, LorentzVector_t const& momentum_) :
+TriggerObject::TriggerObject(cms3_triggertype_t id_, LorentzVector_t const& momentum_) :
   ParticleObject(id_, momentum_),
   extras()
 {}

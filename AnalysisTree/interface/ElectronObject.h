@@ -32,8 +32,15 @@ ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Veto_Bits, 
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Loose_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Medium_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_t, id_cutBased_Fall17V2_Tight_Bits, 0) \
+ELECTRON_VARIABLE(cms3_electron_cutbasedbits_egPFElectron_t, id_egamma_pfElectron_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV1_Bits, 0) \
 ELECTRON_VARIABLE(cms3_electron_cutbasedbits_triggeremulation_t, id_cutBased_triggerEmulationV2_Bits, 0) \
+ELECTRON_VARIABLE(float, full5x5_sigmaIEtaIEta, 0) \
+ELECTRON_VARIABLE(float, full5x5_sigmaIPhiIPhi, 0) \
+ELECTRON_VARIABLE(float, full5x5_r9, 0) \
+ELECTRON_VARIABLE(float, r9, 0) \
+ELECTRON_VARIABLE(float, E4overE1, 0) \
+ELECTRON_VARIABLE(float, seedTime, 0) \
 ELECTRON_VARIABLE(float, dxy_firstPV, 0) \
 ELECTRON_VARIABLE(float, dz_firstPV, 0) \
 ELECTRON_VARIABLE(float, SIP3D, 0) \
@@ -46,7 +53,13 @@ ELECTRON_VARIABLE(float, pfIso04_comb_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_sum_charged_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_sum_neutral_nofsr, 0) \
 ELECTRON_VARIABLE(float, miniIso_comb_nofsr, 0) \
-ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0)
+ELECTRON_VARIABLE(float, miniIso_comb_nofsr_uncorrected, 0) \
+ELECTRON_VARIABLE(cms3_listSize_t, n_associated_pfcands, 0) \
+ELECTRON_VARIABLE(cms3_listSize_t, n_associated_pfelectrons, 0) \
+ELECTRON_VARIABLE(float, associated_pfcands_sum_px, 0) \
+ELECTRON_VARIABLE(float, associated_pfcands_sum_py, 0) \
+ELECTRON_VARIABLE(float, min_dR_electron_pfelectron_associated, 0)
+
 
 #define ELECTRON_MVAID_EXTRA_VARIABLES \
 ELECTRON_VARIABLE(float, id_MVA_Fall17V2_Iso_Val, 0) \

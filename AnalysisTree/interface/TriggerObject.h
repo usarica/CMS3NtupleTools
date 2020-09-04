@@ -8,10 +8,10 @@
 
 
 #define TRIGGEROBJECT_EXTRA_VARIABLES \
-TRIGGEROBJECT_VARIABLE(std::vector<unsigned int>, associatedTriggers, std::vector<unsigned int>()) \
-TRIGGEROBJECT_VARIABLE(std::vector<unsigned int>, passedTriggers, std::vector<unsigned int>())
+TRIGGEROBJECT_VARIABLE(std::vector<cms3_triggerIndex_t>, associatedTriggers, std::vector<cms3_triggerIndex_t>()) \
+TRIGGEROBJECT_VARIABLE(std::vector<cms3_triggerIndex_t>, passedTriggers, std::vector<cms3_triggerIndex_t>())
 #define TRIGGEROBJECT_MOMENTUM_VARIABLES \
-TRIGGEROBJECT_VARIABLE(int, type, 0) \
+TRIGGEROBJECT_VARIABLE(cms3_triggertype_t, type, 0) \
 TRIGGEROBJECT_VARIABLE(float, pt, 0) \
 TRIGGEROBJECT_VARIABLE(float, eta, 0) \
 TRIGGEROBJECT_VARIABLE(float, phi, 0) \
@@ -41,15 +41,16 @@ public:
   TriggerObjectVariables extras;
 
   TriggerObject();
-  TriggerObject(int id_);
-  TriggerObject(int id_, LorentzVector_t const& mom_);
+  TriggerObject(cms3_triggertype_t id_);
+  TriggerObject(cms3_triggertype_t id_, LorentzVector_t const& mom_);
   TriggerObject(const TriggerObject& other);
   TriggerObject& operator=(const TriggerObject& other);
   ~TriggerObject(){}
 
   void swap(TriggerObject& other);
 
-  bool isTriggerObjectType(trigger::TriggerObjectType const& TOtype) const{ return (id == (int) TOtype); }
+  trigger::TriggerObjectType getTriggerObjectType() const{ return (trigger::TriggerObjectType) id; }
+  bool isTriggerObjectType(trigger::TriggerObjectType const& TOtype) const{ return (this->getTriggerObjectType() == TOtype); }
 
   template<typename T> static void getMatchedPhysicsObjects(
     std::vector<TriggerObject const*> const& allPassedTOs, std::vector<trigger::TriggerObjectType> const& TOreqs, double const& dRmatch,

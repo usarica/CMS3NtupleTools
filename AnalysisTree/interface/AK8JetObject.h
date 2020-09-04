@@ -5,23 +5,13 @@
 
 
 #define AK8JET_RECO_VARIABLES \
-/*AK8JET_VARIABLE(size_t, n_pfcands, 0)*/ \
-/*AK8JET_VARIABLE(size_t, n_mucands, 0)*/ \
-/*AK8JET_VARIABLE(size_t, n_softdrop_subjets, 0)*/ \
-/*AK8JET_VARIABLE(float, area, 0)*/ \
-/*AK8JET_VARIABLE(float, pt_resolution, 0)*/ \
-/*AK8JET_VARIABLE(float, ptDistribution, 0)*/ \
-/*AK8JET_VARIABLE(float, totalMultiplicity, 0)*/ \
-/*AK8JET_VARIABLE(float, axis1, 0)*/ \
-/*AK8JET_VARIABLE(float, axis2, 0)*/ \
-AK8JET_VARIABLE(float, JECNominal, 0) \
-AK8JET_VARIABLE(float, JECUp, 0) \
-AK8JET_VARIABLE(float, JECDn, 0) \
-AK8JET_VARIABLE(float, JERNominal, 0) \
-AK8JET_VARIABLE(float, JERUp, 0) \
-AK8JET_VARIABLE(float, JERDn, 0) \
+AK8JET_VARIABLE(float, JECNominal, 0)
 
 #define AK8JET_GENINFO_VARIABLES \
+AK8JET_VARIABLE(float, relJECUnc, 0) \
+AK8JET_VARIABLE(float, JERNominal, 1) \
+AK8JET_VARIABLE(float, JERDn, 1) \
+AK8JET_VARIABLE(float, JERUp, 1) \
 AK8JET_VARIABLE(bool, is_genMatched, false) \
 AK8JET_VARIABLE(bool, is_genMatched_fullCone, false) \
 AK8JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
@@ -47,6 +37,9 @@ public:
 };
 
 class AK8JetObject : public ParticleObject{
+protected:
+  LorentzVector_t mom_original;
+
 public:
   constexpr static float ConeRadiusConstant = 0.8;
 

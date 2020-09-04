@@ -28,7 +28,6 @@ public:
   static const std::string colName_HLTpaths;
   static const std::string colName_triggerobjects;
   static const std::string colName_metfilters;
-  static const std::string colName_vertices;
 
 protected:
   bool trackDataEvents;
@@ -37,7 +36,6 @@ protected:
   bool checkTriggerObjectsForHLTPaths;
 
   bool product_passCommonSkim;
-  bool product_hasGoodVertex;
   bool product_uniqueEvent;
 
   std::vector<HLTTriggerPathObject*> product_HLTpaths;
@@ -51,7 +49,6 @@ protected:
   bool constructHLTPaths();
   bool constructTriggerObjects();
   bool constructMETFilters();
-  bool constructVertexFilter();
   bool accumulateRunLumiEventBlock();
 
 public:
@@ -95,7 +92,6 @@ public:
     std::vector<AK8JetObject*> const* ak8jets
   ) const;
   bool const& passCommonSkim() const{ return product_passCommonSkim; }
-  bool const& hasGoodVertex() const{ return product_hasGoodVertex; }
   // For data trees. MC is always true
   bool const& isUniqueDataEvent() const{ return product_uniqueEvent; }
 

@@ -13,9 +13,11 @@ public:
 
 protected:
   // These two variables are not the same as the size of the vertex collection stored
-  unsigned int product_nvtxs;
-  unsigned int product_nvtxs_good;
+#define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) TYPE product_##NAME;
+  VERTEX_EVENT_VARIABLES;
+#undef VERTEX_EVENT_VARIABLE
   bool product_hasGoodPrimaryVertex;
+
   std::vector<ProductType_t*> productList;
 
   void clear();
@@ -29,9 +31,12 @@ public:
 
   bool constructVertices();
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
-  unsigned int const& getNVertices() const{ return product_nvtxs; }
-  unsigned int const& getNGoodVertices() const{ return product_nvtxs_good; }
-  bool hasGoodVertex() const{ return product_nvtxs_good>0; }
+  cms3_listSize_t const& getNVertices() const{ return product_n_vtxs; }
+  cms3_listSize_t const& getNGoodVertices() const{ return product_n_vtxs_good; }
+  cms3_listSize_t const& getNGoodJECVertices() const{ return product_n_vtxs_good_JEC; }
+  bool hasVertex() const{ return product_n_vtxs>0; }
+  bool hasGoodVertex() const{ return product_n_vtxs_good>0; }
+  bool hasGoodJECVertex() const{ return product_n_vtxs_good_JEC>0; }
   bool const& hasGoodPrimaryVertex() const{ return product_hasGoodPrimaryVertex; }
 
   static void bookBranches(BaseTree* tree);

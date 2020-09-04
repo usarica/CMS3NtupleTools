@@ -9,22 +9,11 @@
 AK4JET_VARIABLE(bool, pass_looseId, false) \
 AK4JET_VARIABLE(bool, pass_tightId, false) \
 AK4JET_VARIABLE(bool, pass_leptonVetoId, false) \
-AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId, false) \
-AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId_default, false) \
-/*AK4JET_VARIABLE(size_t, n_pfcands, 0)*/ \
-/*AK4JET_VARIABLE(size_t, n_mucands, 0)*/ \
-/*AK4JET_VARIABLE(float, area, 0)*/ \
-/*AK4JET_VARIABLE(float, pt_resolution, 0)*/ \
-/*AK4JET_VARIABLE(float, ptDistribution, 0)*/ \
-/*AK4JET_VARIABLE(float, totalMultiplicity, 0)*/ \
-/*AK4JET_VARIABLE(float, axis1, 0)*/ \
-/*AK4JET_VARIABLE(float, axis2, 0)*/ \
+AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId, 0) \
+AK4JET_VARIABLE(cms3_jet_pujetid_t, pileupJetId_default, 0) \
+AK4JET_VARIABLE(cms3_metsafety_t, isMETJERCSafe_Bits, 0) \
+AK4JET_VARIABLE(cms3_metsafety_t, isMETJERCSafe_p4Preserved_Bits, 0) \
 AK4JET_VARIABLE(float, JECNominal, 1) \
-AK4JET_VARIABLE(float, JECUp, 1) \
-AK4JET_VARIABLE(float, JECDn, 1) \
-AK4JET_VARIABLE(float, JERNominal, 1) \
-AK4JET_VARIABLE(float, JERUp, 1) \
-AK4JET_VARIABLE(float, JERDn, 1) \
 AK4JET_VARIABLE(float, JECL1Nominal, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_px, 1) \
 AK4JET_VARIABLE(float, mucands_sump4_py, 1) \
@@ -32,6 +21,12 @@ AK4JET_VARIABLE(float, NEMF, 0) \
 AK4JET_VARIABLE(float, CEMF, 0)
 
 #define AK4JET_GENINFO_VARIABLES \
+AK4JET_VARIABLE(float, relJECUnc, 0) \
+AK4JET_VARIABLE(float, relJECUnc_nomus, 0) \
+AK4JET_VARIABLE(float, relJECUnc_nomus_JERNominal, 0) \
+AK4JET_VARIABLE(float, JERNominal, 1) \
+AK4JET_VARIABLE(float, JERDn, 1) \
+AK4JET_VARIABLE(float, JERUp, 1) \
 AK4JET_VARIABLE(bool, is_genMatched, false) \
 AK4JET_VARIABLE(bool, is_genMatched_fullCone, false) \
 AK4JET_VARIABLE(cms3_jet_genflavor_t, partonFlavour, 0) \
@@ -72,12 +67,17 @@ public:
 };
 
 class AK4JetObject : public ParticleObject{
+protected:
+  LorentzVector_t mom_original;
+
 public:
   constexpr static float ConeRadiusConstant = 0.4;
 
   AK4JetVariables extras;
+  SystematicsHelpers::SystematicVariationTypes currentSyst;
   float currentJEC_full;
   float currentJEC_L1only;
+  float currentJEC_nomus;
   float currentJER;
   float currentSystScale;
 
@@ -94,11 +94,16 @@ public:
   BTagEntry::JetFlavor getBTagJetFlavor() const;
   float getBtagValue() const;
 
-  float const& getJECValue(bool useL1only=false) const{ return (!useL1only? currentJEC_full : currentJEC_L1only); }
+  float const& getJECValue(bool useL1only = false, bool use_nomus = false) const{ return (!useL1only? (!use_nomus ? currentJEC_full : currentJEC_nomus) : currentJEC_L1only); }
   float const& getJERValue() const{ return currentJER; }
 
-  LorentzVector_t uncorrected_p4() const{ return this->p4()*(1.f/currentSystScale); }
-  LorentzVector_t p4_nomu() const;
+  LorentzVector_t uncorrected_p4() const{ return this->mom_original; }
+  LorentzVector_t p4_mucands() const{ return LorentzVector_t(this->extras.mucands_sump4_px, this->extras.mucands_sump4_py, 0, 0); }
+  // Unfortunately, there could be multiple versions of this function. This one is the most straightforward version.
+  LorentzVector_t p4_nomus_basic() const{ return this->p4() - this->p4_mucands(); }
+  // And here is why:
+  bool isMETSafe(bool useP4Preserved) const;
+  LorentzVector_t getT1METContribution(bool useP4Preserved) const; // Notice this function already returns -p4_diff
 
 };
 

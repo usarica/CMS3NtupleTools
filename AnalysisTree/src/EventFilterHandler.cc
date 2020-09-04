@@ -16,14 +16,9 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-#define EVENTFILTER_VERTEX_VARIABLES \
-EVENTFILTER_VERTEX_VARIABLE(unsigned int, nvtxs_good, 0)
-
-
 const std::string EventFilterHandler::colName_HLTpaths = "triggers";
 const std::string EventFilterHandler::colName_triggerobjects = "triggerObjects";
 const std::string EventFilterHandler::colName_metfilters = "metfilter";
-const std::string EventFilterHandler::colName_vertices = "vtxs";
 
 EventFilterHandler::EventFilterHandler() :
   IvyBase(),
@@ -41,11 +36,6 @@ EventFilterHandler::EventFilterHandler() :
 #define HLTTRIGGERPATH_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(EventFilterHandler::colName_HLTpaths + "_" + #NAME);
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
-
-  // Vertex variables
-#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME);
-  EVENTFILTER_VERTEX_VARIABLES;
-#undef EVENTFILTER_VERTEX_VARIABLE
 }
 
 void EventFilterHandler::clear(){
@@ -69,8 +59,6 @@ bool EventFilterHandler::constructFilters(){
     this->constructHLTPaths()
     &&
     this->constructMETFilters()
-    &&
-    this->constructVertexFilter()
     &&
     this->accumulateRunLumiEventBlock()
     );
@@ -144,27 +132,27 @@ float EventFilterHandler::getTriggerWeight(
   std::vector<AK4JetObject const*> ak4jets_trigcheck; if (ak4jets){ ak4jets_trigcheck.reserve(ak4jets->size()); for (auto const& jet:(*ak4jets)){ if (ParticleSelectionHelpers::isJetForTriggerChecking(jet)) ak4jets_trigcheck.push_back(jet); } }
   std::vector<AK8JetObject const*> ak8jets_trigcheck; if (ak8jets){ ak8jets_trigcheck.reserve(ak8jets->size()); for (auto const& jet:(*ak8jets)){ if (ParticleSelectionHelpers::isJetForTriggerChecking(jet)) ak8jets_trigcheck.push_back(jet); } }
 
-  ParticleObject::LorentzVector_t pfmet_p4, pfmet_nomu_p4;
+  ParticleObject::LorentzVector_t pfmet_p4, pfmet_nomus_p4;
   if (pfmet){
     pfmet_p4 = pfmet->p4(true, true, true);
-    pfmet_nomu_p4 = pfmet_p4;
-    for (auto const& part:muons_trigcheck) pfmet_nomu_p4 += part->p4();
+    pfmet_nomus_p4 = pfmet_p4;
+    for (auto const& part:muons_trigcheck) pfmet_nomus_p4 += part->p4();
   }
 
-  float ht_pt=0, ht_nomu_pt=0;
-  ParticleObject::LorentzVector_t ht_p4, ht_nomu_p4;
+  float ht_pt=0, ht_nomus_pt=0;
+  ParticleObject::LorentzVector_t ht_p4, ht_nomus_p4;
   for (auto const& jet:ak4jets_trigcheck){
-    auto jet_p4_nomu = jet->p4_nomu();
+    auto jet_p4_nomus = jet->p4_nomus_basic();
     auto const& jet_p4 = jet->p4();
 
     ht_pt += jet_p4.Pt();
     ht_p4 += jet_p4;
 
-    ht_nomu_pt += jet_p4_nomu.Pt();
-    ht_nomu_p4 += jet_p4_nomu;
+    ht_nomus_pt += jet_p4_nomus.Pt();
+    ht_nomus_p4 += jet_p4_nomus;
   }
   ht_p4 = ParticleObject::PolarLorentzVector_t(ht_pt, 0, 0, ht_p4.Pt());
-  ht_nomu_p4 = ParticleObject::PolarLorentzVector_t(ht_nomu_pt, 0, 0, ht_nomu_p4.Pt());
+  ht_nomus_p4 = ParticleObject::PolarLorentzVector_t(ht_nomus_pt, 0, 0, ht_nomus_p4.Pt());
 
   for (auto const& enumType_props_pair:hltpathprops_){
     assert(enumType_props_pair.second != nullptr);
@@ -218,9 +206,9 @@ float EventFilterHandler::getTriggerWeight(
             ak4jets_trigcheck,
             ak8jets_trigcheck,
             pfmet_p4,
-            pfmet_nomu_p4,
+            pfmet_nomus_p4,
             ht_p4,
-            ht_nomu_p4
+            ht_nomus_p4
           )
           ){
           float wgt = 1.f;
@@ -366,7 +354,7 @@ bool EventFilterHandler::constructHLTPaths(){
   HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
   {
-    size_t itrig=0;
+    cms3_triggerIndex_t itrig=0;
     while (it_HLTpaths_name != itEnd_HLTpaths_name){
       product_HLTpaths.push_back(new HLTTriggerPathObject());
       HLTTriggerPathObject*& obj = product_HLTpaths.back();
@@ -375,7 +363,7 @@ bool EventFilterHandler::constructHLTPaths(){
       HLTTRIGGERPATH_VARIABLES;
 #undef HLTTRIGGERPATH_VARIABLE
 
-      // Set particle index as its unique identifier
+      // Set list index as its unique identifier
       obj->setUniqueIdentifier(itrig);
 
       // Associate trigger objects
@@ -462,29 +450,6 @@ bool EventFilterHandler::constructMETFilters(){
 
   return allVariablesPresent;
 }
-
-bool EventFilterHandler::constructVertexFilter(){
-#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
-  EVENTFILTER_VERTEX_VARIABLES;
-#undef EVENTFILTER_VERTEX_VARIABLE
-
-  // Beyond this point starts checks and selection
-  bool allVariablesPresent = true;
-#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(EventFilterHandler::colName_vertices + "_" + #NAME, NAME);
-  EVENTFILTER_VERTEX_VARIABLES;
-#undef EVENTFILTER_VERTEX_VARIABLE
-  if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "EventFilterHandler::constructVertexFilter: Not all variables are consumed properly!" << endl;
-    assert(0);
-  }
-
-  if (this->verbosity>=TVar::DEBUG) MELAout << "EventFilterHandler::constructVertexFilter: All variables are set up!" << endl;
-
-  product_hasGoodVertex = ((*nvtxs_good)>0);
-
-  return true;
-}
-
 
 bool EventFilterHandler::accumulateRunLumiEventBlock(){
   bool isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
@@ -628,11 +593,6 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 #undef TRIGGEROBJECT_VARIABLE
   }
 
-  // Vertex variables
-#define EVENTFILTER_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(EventFilterHandler::colName_vertices + "_" + #NAME, DEFVAL);
-  EVENTFILTER_VERTEX_VARIABLES;
-#undef EVENTFILTER_VERTEX_VARIABLE
-
   // Book MET filters
   auto strmetfilters = EventFilterHandler::acquireMETFilterFlags(tree, EventFilterHandler::nMETFilterCutTypes);
   for (auto const& strmetfilter:strmetfilters){
@@ -648,6 +608,3 @@ void EventFilterHandler::bookBranches(BaseTree* tree){
 #undef RUNLUMIEVENT_VARIABLE
   }
 }
-
-
-#undef EVENTFILTER_VERTEX_VARIABLES

@@ -26,21 +26,25 @@ AK8JetVariables& AK8JetVariables::operator=(const AK8JetVariables& other){
 
 AK8JetObject::AK8JetObject() :
   ParticleObject(),
+  mom_original(0, 0, 0, 0),
   extras(),
   currentSystScale(1)
 {}
 AK8JetObject::AK8JetObject(LorentzVector_t const& momentum_) :
   ParticleObject(0, momentum_),
+  mom_original(momentum_),
   extras(),
   currentSystScale(1)
 {}
 AK8JetObject::AK8JetObject(const AK8JetObject& other) :
   ParticleObject(other),
+  mom_original(other.mom_original),
   extras(other.extras),
   currentSystScale(other.currentSystScale)
 {}
 void AK8JetObject::swap(AK8JetObject& other){
   ParticleObject::swap(other);
+  std::swap(mom_original, other.mom_original);
   extras.swap(other.extras);
   std::swap(currentSystScale, other.currentSystScale);
 }
@@ -54,13 +58,14 @@ AK8JetObject::~AK8JetObject(){}
 void AK8JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  float scale=1;
+  float scale = 1;
+  momentum = mom_original;
   switch (syst){
   case eJECDn:
-    scale = extras.JECDn * extras.JERNominal;
+    scale = extras.JECNominal*(1.f - extras.relJECUnc) * extras.JERNominal;
     break;
   case eJECUp:
-    scale = extras.JECUp * extras.JERNominal;
+    scale = extras.JECNominal*(1.f + extras.relJECUnc) * extras.JERNominal;
     break;
   case eJERDn:
     scale = extras.JECNominal * extras.JERDn;
@@ -74,6 +79,8 @@ void AK8JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
     scale = extras.JECNominal * extras.JERNominal;
     break;
   }
-  momentum = momentum * (scale/currentSystScale);
+  float newpt = momentum.Pt() * scale;
+  if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt();
+  momentum = momentum * scale;
   currentSystScale = scale;
 }

@@ -15,7 +15,7 @@ HLTTRIGGERPATH_VARIABLE(int, HLTprescale, 1)
 
 class HLTTriggerPathObject{
 protected:
-  unsigned int uniqueIdentifier;
+  cms3_triggerIndex_t uniqueIdentifier;
   std::vector<TriggerObject const*> passedTriggerObjects;
   std::vector<TriggerObject const*> failedTriggerObjects;
 
@@ -30,9 +30,9 @@ public:
 
   void swap(HLTTriggerPathObject& other);
 
-  void setUniqueIdentifier(unsigned int uid_){ uniqueIdentifier = uid_; }
-  unsigned int const& getUniqueIdentifier() const{ return uniqueIdentifier; }
-  unsigned int& getUniqueIdentifier(){ return uniqueIdentifier; }
+  void setUniqueIdentifier(cms3_triggerIndex_t const& uid_){ uniqueIdentifier = uid_; }
+  cms3_triggerIndex_t const& getUniqueIdentifier() const{ return uniqueIdentifier; }
+  cms3_triggerIndex_t& getUniqueIdentifier(){ return uniqueIdentifier; }
 
   void setTriggerObjects(std::vector<TriggerObject*> const& triggerObjects);
 
