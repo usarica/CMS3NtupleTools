@@ -33,9 +33,10 @@ namespace AK4JetSelectionHelpers{
   };
 
   constexpr float ptThr_gen = 15.;
-  constexpr float ptThr_skim_btag = 20.;
   constexpr float ptThr_skim_loose = 30.;
   constexpr float ptThr_skim_tight = 30.;
+  constexpr float ptThr_btag = 20.;
+  constexpr float ptThr_PUId = 50.; // Upper bound
 
   constexpr float etaThr_gen = 5.2;
   constexpr float etaThr_skim_loose = 4.7;

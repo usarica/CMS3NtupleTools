@@ -41,23 +41,23 @@ using namespace MELAStreamHelpers;
 
 
 bool AK4JetSelectionHelpers::testLoosePUJetId(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId, 2);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 2);
 }
 bool AK4JetSelectionHelpers::testMediumPUJetId(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId, 1);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 1);
 }
 bool AK4JetSelectionHelpers::testTightPUJetId(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId, 0);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 0);
 }
 
 bool AK4JetSelectionHelpers::testLoosePUJetId_Default(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 2);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 2);
 }
 bool AK4JetSelectionHelpers::testMediumPUJetId_Default(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 1);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 1);
 }
 bool AK4JetSelectionHelpers::testTightPUJetId_Default(AK4JetObject const& part){
-  return HelperFunctions::test_bit(part.extras.pileupJetId_default, 0);
+  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 0);
 }
 
 bool AK4JetSelectionHelpers::testTightLeptonVetoId(AK4JetObject const& part){ return part.extras.pass_leptonVetoId; }
@@ -65,6 +65,9 @@ bool AK4JetSelectionHelpers::testTightLeptonVetoId(AK4JetObject const& part){ re
 bool AK4JetSelectionHelpers::testLooseId(AK4JetObject const& part){ return part.extras.pass_looseId; }
 bool AK4JetSelectionHelpers::testTightId(AK4JetObject const& part){ return part.extras.pass_tightId; }
 
+bool AK4JetSelectionHelpers::testPtEtaGen(AK4JetObject const& part){
+  return (part.pt()>=ptThr_gen && std::abs(part.eta())<etaThr_gen);
+}
 bool AK4JetSelectionHelpers::testLooseKin(AK4JetObject const& part){
   return (part.pt()>=ptThr_skim_loose && std::abs(part.eta())<etaThr_skim_loose);
 }
@@ -72,9 +75,6 @@ bool AK4JetSelectionHelpers::testTightKin(AK4JetObject const& part){
   return (part.pt()>=ptThr_skim_tight && std::abs(part.eta())<etaThr_skim_tight);
 }
 
-bool AK4JetSelectionHelpers::testPtEtaGen(AK4JetObject const& part){
-  return (part.pt()>=ptThr_gen && std::abs(part.eta())<etaThr_gen);
-}
 bool AK4JetSelectionHelpers::testPreselectionLoose(AK4JetObject const& part){
   return (
     part.testSelectionBit(bit_preselectionLoose_id)
@@ -98,7 +98,7 @@ bool AK4JetSelectionHelpers::testBtaggable(AK4JetObject const& part){
   return (
     part.testSelectionBit(bit_preselectionTight_id)
     &&
-    part.pt()>=ptThr_skim_btag && std::abs(part.eta())<(SampleHelpers::theDataYear<=2016 ? 2.4f : 2.5f)
+    part.pt()>=ptThr_btag && std::abs(part.eta())<(SampleHelpers::theDataYear<=2016 ? 2.4f : 2.5f) // For jets out of tracker acceptance, b-tagging is meanningless.
     &&
     (PUIdWP==nSelectionBits || part.testSelectionBit(PUIdWP))
     &&
