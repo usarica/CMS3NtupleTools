@@ -41,6 +41,7 @@ namespace AK4JetSelectionHelpers{
   constexpr float etaThr_gen = 5.2;
   constexpr float etaThr_skim_loose = 4.7;
   constexpr float etaThr_skim_tight = 4.7;
+  constexpr float etaThr_PUId = 5.;
 
   // Preselection loose = AND of bits below
   const SelectionBits bit_preselectionLoose_id = kTightId;

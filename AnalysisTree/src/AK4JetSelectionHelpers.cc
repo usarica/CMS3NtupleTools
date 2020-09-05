@@ -41,23 +41,23 @@ using namespace MELAStreamHelpers;
 
 
 bool AK4JetSelectionHelpers::testLoosePUJetId(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 2);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 2);
 }
 bool AK4JetSelectionHelpers::testMediumPUJetId(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 1);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 1);
 }
 bool AK4JetSelectionHelpers::testTightPUJetId(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 0);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId, 0);
 }
 
 bool AK4JetSelectionHelpers::testLoosePUJetId_Default(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 2);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 2);
 }
 bool AK4JetSelectionHelpers::testMediumPUJetId_Default(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 1);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 1);
 }
 bool AK4JetSelectionHelpers::testTightPUJetId_Default(AK4JetObject const& part){
-  return part.pt()>=ptThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 0);
+  return part.pt()>=ptThr_PUId || std::abs(part.eta())>=etaThr_PUId || HelperFunctions::test_bit(part.extras.pileupJetId_default, 0);
 }
 
 bool AK4JetSelectionHelpers::testTightLeptonVetoId(AK4JetObject const& part){ return part.extras.pass_leptonVetoId; }
