@@ -9,9 +9,9 @@ namespace PhotonSelectionHelpers{
     kGenPtEta,
 
     kConversionSafe,
-
     kInTimeSeed,
     kBeamHaloSafe,
+
     kSpikeSafe,
 
     kPFPhotonId,
@@ -100,14 +100,21 @@ namespace PhotonSelectionHelpers{
   constexpr SelectionBits bit_SFTampon_iso = kMediumIso;
   constexpr SelectionBits bit_SFTampon_kin = bit_preselectionTight_kin;
 
-  constexpr SelectionBits bit_preselection_conversion = nSelectionBits; // kConversionSafe (enable in loose and tight preselection) or nSelectionBits (disable)
-
   float getIsolationDRmax(PhotonObject const& part);
 
   float absPFIso_DR0p3(PhotonObject const& part);
   float relPFIso_DR0p3(PhotonObject const& part);
 
   void setSelectionBits(PhotonObject& part);
+
+  // User functions to disable or enable selection features
+  void setApplyConversionSafety(bool flag);
+  void setApplySeedTimeVeto(bool flag);
+  void setApplyBeamHaloVeto(bool flag);
+  void setApplySpikeVeto(bool flag);
+  // Notice these two are separated!
+  void setApplyPFId(bool flag);
+  void setApplyPFMETSafety(bool flag);
 
 }
 

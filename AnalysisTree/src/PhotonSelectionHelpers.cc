@@ -8,6 +8,14 @@
 
 
 namespace PhotonSelectionHelpers{
+  bool applyConversionSafety = false;
+  bool applySeedTimeVeto = false;
+  bool applyBeamHaloVeto = false;
+  bool applySpikeVeto = false;
+  bool applyPFId = false;
+  bool applyPFMETSafety = false;
+
+
   bool testPtEtaGen(PhotonObject const& part);
 
   bool testConversionSafe(PhotonObject const& part);
@@ -45,6 +53,14 @@ namespace PhotonSelectionHelpers{
 
 using namespace std;
 using namespace MELAStreamHelpers;
+
+
+void PhotonSelectionHelpers::setApplyConversionSafety(bool flag){ applyConversionSafety = flag; }
+void PhotonSelectionHelpers::setApplySeedTimeVeto(bool flag){ applySeedTimeVeto = flag; }
+void PhotonSelectionHelpers::setApplyBeamHaloVeto(bool flag){ applyBeamHaloVeto = flag; }
+void PhotonSelectionHelpers::setApplySpikeVeto(bool flag){ applySpikeVeto = flag; }
+void PhotonSelectionHelpers::setApplyPFId(bool flag){ applyPFId = flag; }
+void PhotonSelectionHelpers::setApplyPFMETSafety(bool flag){ applyPFMETSafety = flag; }
 
 
 float PhotonSelectionHelpers::getIsolationDRmax(PhotonObject const& /*part*/){
@@ -231,7 +247,17 @@ bool PhotonSelectionHelpers::testPreselectionLoose(PhotonObject const& part){
     &&
     part.testSelectionBit(bit_preselectionLoose_kin)
     &&
-    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
+    (!applyConversionSafety || part.testSelectionBit(kConversionSafe))
+    &&
+    (!applySeedTimeVeto || part.testSelectionBit(kInTimeSeed))
+    &&
+    (!applyBeamHaloVeto || part.testSelectionBit(kBeamHaloSafe))
+    &&
+    (!applySpikeVeto || part.testSelectionBit(kSpikeSafe))
+    &&
+    (!applyPFId || part.testSelectionBit(kPFPhotonId))
+    &&
+    (!applyPFMETSafety || part.testSelectionBit(kPFMETSafe))
     );
 }
 bool PhotonSelectionHelpers::testPreselectionTight(PhotonObject const& part){
@@ -242,7 +268,17 @@ bool PhotonSelectionHelpers::testPreselectionTight(PhotonObject const& part){
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
     &&
-    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
+    (!applyConversionSafety || part.testSelectionBit(kConversionSafe))
+    &&
+    (!applySeedTimeVeto || part.testSelectionBit(kInTimeSeed))
+    &&
+    (!applyBeamHaloVeto || part.testSelectionBit(kBeamHaloSafe))
+    &&
+    (!applySpikeVeto || part.testSelectionBit(kSpikeSafe))
+    &&
+    (!applyPFId || part.testSelectionBit(kPFPhotonId))
+    &&
+    (!applyPFMETSafety || part.testSelectionBit(kPFMETSafe))
     );
 }
 bool PhotonSelectionHelpers::testSFTampon(PhotonObject const& part){
@@ -255,8 +291,6 @@ bool PhotonSelectionHelpers::testSFTampon(PhotonObject const& part){
     part.testSelectionBit(bit_SFTampon_iso)
     &&
     part.testSelectionBit(bit_SFTampon_kin)
-    &&
-    (bit_preselection_conversion != kConversionSafe || part.testSelectionBit(bit_preselection_conversion))
     );
 }
 void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){

@@ -201,7 +201,14 @@ void PhotonScaleFactorHandler::getIdIsoSFAndEff(SystematicsHelpers::SystematicVa
 
   if (!obj) return;
 
-  bool const isTight = ParticleSelectionHelpers::isTightParticle(obj);
+  // FIXME(?): May need to revise this selection later...
+  bool const isTight = (
+    obj->testSelectionBit(bit_preselectionTight_id)
+    &&
+    obj->testSelectionBit(bit_preselectionTight_iso)
+    &&
+    obj->testSelectionBit(bit_preselectionTight_kin)
+    );
   bool const isTampon = obj->testSelectionBit(kSFTampon);
 
   getIdIsoSFAndEff(syst, obj->pt(), obj->etaSC(), isTight, isTampon, val, effval);
