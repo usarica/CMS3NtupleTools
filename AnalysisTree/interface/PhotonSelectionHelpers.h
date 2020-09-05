@@ -10,6 +10,13 @@ namespace PhotonSelectionHelpers{
 
     kConversionSafe,
 
+    kInTimeSeed,
+    kBeamHaloSafe,
+    kSpikeSafe,
+
+    kPFPhotonId,
+    kPFMETSafe,
+
     kVetoId,
     kVetoIso,
     kVetoKin,
@@ -60,6 +67,19 @@ namespace PhotonSelectionHelpers{
   constexpr float isoThr_loose = 0.1;
   constexpr float isoThr_medium = 0.1;
   constexpr float isoThr_tight = 0.1;
+
+  // Seed time threshold for cosmics and other stuff
+  constexpr float seedTimeThr = 0.2;
+
+  // MIP total energy threshold for beam halo safety (meaningful for barrel photons only, endcap photons have MIPTotalEnergy set to 0)
+  constexpr float mipTotalEnergyThr = 4.9;
+
+  // Spike cleanup
+  constexpr float full5x5_sigmaIEtaIEtaThr = 0.001;
+  constexpr float full5x5_sigmaIPhiIPhiThr = 0.001;
+
+  // PF photon id delta R matching threshold
+  constexpr float mindRThr_photon_pfphoton = 0.04;
 
   constexpr PhotonId idType_preselection = kCutBasedId_Fall17V2;
   constexpr PhotonIso isoType_preselection = kPFIsoDR0p3;

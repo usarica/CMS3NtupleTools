@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
+
 #include "PhotonSelectionHelpers.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
@@ -8,6 +11,13 @@ namespace PhotonSelectionHelpers{
   bool testPtEtaGen(PhotonObject const& part);
 
   bool testConversionSafe(PhotonObject const& part);
+
+  bool testInTimeSeed(PhotonObject const& part);
+  bool testBeamHaloSafe(PhotonObject const& part);
+  bool testSpikeSafe(PhotonObject const& part);
+
+  bool testPFPhotonId(PhotonObject const& part);
+  bool testPFMETSafe(PhotonObject const& part);
 
   bool testVetoId(PhotonObject const& part);
   bool testVetoIso(PhotonObject const& part);
@@ -49,6 +59,29 @@ float PhotonSelectionHelpers::getIsolationDRmax(PhotonObject const& /*part*/){
 float PhotonSelectionHelpers::absPFIso_DR0p3(PhotonObject const& part){ return part.extras.pfIso_comb; }
 float PhotonSelectionHelpers::relPFIso_DR0p3(PhotonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }
 
+bool PhotonSelectionHelpers::testConversionSafe(PhotonObject const& part){ return (!part.extras.hasPixelSeed && part.extras.passElectronVeto); }
+
+bool PhotonSelectionHelpers::testInTimeSeed(PhotonObject const& part){ return std::abs(part.extras.seedTime)<seedTimeThr; }
+bool PhotonSelectionHelpers::testBeamHaloSafe(PhotonObject const& part){ return part.extras.MIPTotalEnergy<mipTotalEnergyThr; }
+bool PhotonSelectionHelpers::testSpikeSafe(PhotonObject const& part){
+  return part.extras.full5x5_sigmaIEtaIEta<full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi<full5x5_sigmaIPhiIPhiThr;
+}
+
+bool PhotonSelectionHelpers::testPFPhotonId(PhotonObject const& part){
+  auto const& ibit = part.extras.id_egamma_pfPhoton_Bits;
+  constexpr bool testBadHCAL = true;
+  return (
+    part.extras.n_associated_pfphotons==1
+    &&
+    HelperFunctions::test_bit(ibit, ISEGAMMAPFPHOTON_BASE)
+    &&
+    (!testBadHCAL || HelperFunctions::test_bit(ibit, ISEGAMMAPFPHOTON_BASE_BADHCALMITIGATED))
+    &&
+    part.extras.min_dR_photon_pfphoton_associated<mindRThr_photon_pfphoton
+    );
+}
+bool PhotonSelectionHelpers::testPFMETSafe(PhotonObject const& part){ return HelperFunctions::test_bit(part.extras.id_egamma_pfPhoton_Bits, ISEGAMMAPFPHOTON_METSAFE); }
+
 /*
 From https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Applying_Individual_Cuts_of_a_Se
 For cut-based selection, the bit map is the following:
@@ -56,12 +89,11 @@ For cut-based selection, the bit map is the following:
 1: SC eta multi. range
 2: Single tower H/E
 3: Full 5x5 sigmaIetaIeta
-4: Iso_ch 
+4: Iso_ch
 5: Iso_nh
 6: Iso_em
 */
 #define TEST_CUTBASED_BIT(ibit) (HelperFunctions::test_bit(ibit, 0) && HelperFunctions::test_bit(ibit, 1) && HelperFunctions::test_bit(ibit, 2) && HelperFunctions::test_bit(ibit, 3))
-bool PhotonSelectionHelpers::testConversionSafe(PhotonObject const& part){ return (!part.extras.hasPixelSeed && part.extras.passElectronVeto); }
 bool PhotonSelectionHelpers::testVetoId(PhotonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_Fall17V2:
@@ -233,6 +265,13 @@ void PhotonSelectionHelpers::setSelectionBits(PhotonObject& part){
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
   part.setSelectionBit(kConversionSafe, testConversionSafe(part));
+
+  part.setSelectionBit(kInTimeSeed, testInTimeSeed(part));
+  part.setSelectionBit(kBeamHaloSafe, testBeamHaloSafe(part));
+  part.setSelectionBit(kSpikeSafe, testSpikeSafe(part));
+
+  part.setSelectionBit(kPFPhotonId, testPFPhotonId(part));
+  part.setSelectionBit(kPFMETSafe, testPFMETSafe(part));
 
   part.setSelectionBit(kVetoId, testVetoId(part));
   part.setSelectionBit(kVetoIso, testVetoIso(part));
