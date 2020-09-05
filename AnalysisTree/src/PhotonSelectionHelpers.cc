@@ -88,7 +88,7 @@ bool PhotonSelectionHelpers::testConversionSafe(PhotonObject const& part){ retur
 bool PhotonSelectionHelpers::testInTimeSeed(PhotonObject const& part){ return std::abs(part.extras.seedTime)<seedTimeThr; }
 bool PhotonSelectionHelpers::testBeamHaloSafe(PhotonObject const& part){ return part.extras.MIPTotalEnergy<mipTotalEnergyThr; }
 bool PhotonSelectionHelpers::testSpikeSafe(PhotonObject const& part){
-  return part.extras.full5x5_sigmaIEtaIEta<full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi<full5x5_sigmaIPhiIPhiThr;
+  return part.extras.full5x5_sigmaIEtaIEta>=full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi>=full5x5_sigmaIPhiIPhiThr;
 }
 
 bool PhotonSelectionHelpers::testPFPhotonId(PhotonObject const& part){

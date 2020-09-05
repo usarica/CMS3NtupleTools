@@ -90,7 +90,7 @@ bool ElectronSelectionHelpers::getAllowFakeableInLooseSelection(){ return allowF
 float ElectronSelectionHelpers::getIsolationDRmax(ElectronObject const& part){
   if (isoType_preselection == kPFIsoDR0p3) return 0.3;
   else if (isoType_preselection == kPFIsoDR0p4) return 0.4;
-  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.pt()/part.currentSystScale, 50.), 200.));
+  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.uncorrected_pt(), 50.), 200.));
   else{
     MELAerr << "ElectronSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
@@ -126,7 +126,7 @@ bool ElectronSelectionHelpers::testConversionSafe(ElectronObject const& part){ r
 
 bool ElectronSelectionHelpers::testInTimeSeed(ElectronObject const& part){ return std::abs(part.extras.seedTime)<seedTimeThr; }
 bool ElectronSelectionHelpers::testSpikeSafe(ElectronObject const& part){
-  return part.extras.full5x5_sigmaIEtaIEta<full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi<full5x5_sigmaIPhiIPhiThr;
+  return part.extras.full5x5_sigmaIEtaIEta>=full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi>=full5x5_sigmaIPhiIPhiThr;
 }
 
 bool ElectronSelectionHelpers::testPFElectronId(ElectronObject const& part){

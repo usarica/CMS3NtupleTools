@@ -3,7 +3,10 @@
 
 #include <DataFormats/MuonReco/interface/Muon.h>
 
+#include <CMS3/Dictionaries/interface/MuonEnums.h>
+
 #include "MuonSelectionHelpers.h"
+#include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 
 
@@ -52,8 +55,9 @@ namespace MuonSelectionHelpers{
 
 
 using namespace std;
-using namespace MELAStreamHelpers;
 using namespace reco;
+using namespace MuonEnums;
+using namespace MELAStreamHelpers;
 
 
 void MuonSelectionHelpers::setAllowProbeIdInLooseSelection(bool flag){ allowProbeIdInLooseSelection = flag; }
@@ -82,7 +86,7 @@ float MuonSelectionHelpers::relMiniIso(MuonObject const& part){ float pt = part.
 float MuonSelectionHelpers::getIsolationDRmax(MuonObject const& part){
   if (isoType_preselection == kPFIsoDR0p3 || isoType_preselection == kPFIsoDR0p3_EACorrected) return 0.3;
   else if (isoType_preselection == kPFIsoDR0p4 || isoType_preselection == kPFIsoDR0p4_EACorrected) return 0.4;
-  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.pt()/part.currentSystScale, 50.), 200.));
+  else if (isoType_preselection == kMiniIso) return (10. / std::min(std::max(part.uncorrected_pt(), 50.), 200.));
   else{
     MELAerr << "MuonSelectionHelpers::getIsolationDRmax: Isolation type " << isoType_preselection << " is not implemented." << endl;
     assert(0);
@@ -112,6 +116,12 @@ bool MuonSelectionHelpers::testVetoId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
     return ((part.extras.POG_selector_bits & ID_CUTBASED_VETO) == ID_CUTBASED_VETO);
+  case kCutBasedId_H4l:
+    return (
+      HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_Minimal) && HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_SIP3D)
+      &&
+      (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
+      );
   default:
     MELAerr << "MuonSelectionHelpers::testVetoId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -122,6 +132,12 @@ bool MuonSelectionHelpers::testLooseId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
     return ((part.extras.POG_selector_bits & ID_CUTBASED_LOOSE) == ID_CUTBASED_LOOSE);
+  case kCutBasedId_H4l:
+    return (
+      HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_Minimal) && HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_SIP3D)
+      &&
+      (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
+      );
   default:
     MELAerr << "MuonSelectionHelpers::testLooseId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -132,6 +148,12 @@ bool MuonSelectionHelpers::testMediumId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
     return ((part.extras.POG_selector_bits & ID_CUTBASED_MEDIUM) == ID_CUTBASED_MEDIUM);
+  case kCutBasedId_H4l:
+    return (
+      HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_Minimal) && HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_SIP3D)
+      &&
+      (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
+      );
   default:
     MELAerr << "MuonSelectionHelpers::testMediumId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);
@@ -142,6 +164,12 @@ bool MuonSelectionHelpers::testTightId(MuonObject const& part){
   switch (idType_preselection){
   case kCutBasedId_MuonPOG:
     return ((part.extras.POG_selector_bits & ID_CUTBASED_TIGHT) == ID_CUTBASED_TIGHT);
+  case kCutBasedId_H4l:
+    return (
+      HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_Minimal) && HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_SIP3D)
+      &&
+      (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_PFID) || (HelperFunctions::test_bit(part.extras.id_cutBased_H4l_Bits, kH4lSelection_HighPt) && part.pt()>200.f))
+      );
   default:
     MELAerr << "MuonSelectionHelpers::testTightId: Id " << idType_preselection << " is not implemented!" << endl;
     assert(0);

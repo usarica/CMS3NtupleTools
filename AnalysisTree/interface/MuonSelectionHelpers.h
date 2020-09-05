@@ -42,7 +42,8 @@ namespace MuonSelectionHelpers{
     nSelectionBits
   };
   enum MuonId{
-    kCutBasedId_MuonPOG
+    kCutBasedId_MuonPOG,
+    kCutBasedId_H4l
   };
   enum MuonIso{
     kMiniIso,

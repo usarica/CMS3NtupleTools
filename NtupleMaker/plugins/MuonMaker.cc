@@ -44,6 +44,7 @@
 #include "CMS3/NtupleMaker/interface/MuonSelectionHelpers.h"
 
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
+#include <CMS3/Dictionaries/interface/MuonEnums.h>
 
 #include "MELAStreamHelpers.hh"
 
@@ -455,6 +456,8 @@ void MuonMaker::produce(Event& iEvent, const EventSetup& iSetup){
 }
 
 void MuonMaker::setCutBasedH4lIdSelectionBits(edm::View<pat::Muon>::const_iterator const& muon, pat::Muon& muon_result) const{
+  using namespace MuonEnums;
+
   if (this->year_<2016 || this->year_>2018) cms::Exception("UnknownYear") << "MuonMaker::setCutBasedH4lIdSelectionBits: Year " << this->year_ << " is not implemented.";
 
   cms3_muon_cutbasedbits_h4l_t id_cutBased_H4l_Bits = 0;
@@ -469,7 +472,7 @@ void MuonMaker::setCutBasedH4lIdSelectionBits(edm::View<pat::Muon>::const_iterat
       &&
       abs_dxy < 0.5f && abs_dz < 1.f
       );
-    HelperFunctions::set_bit(id_cutBased_H4l_Bits, 0, passMinimal);
+    HelperFunctions::set_bit(id_cutBased_H4l_Bits, kH4lSelection_Minimal, passMinimal);
     if (passMinimal){
       const reco::TrackRef innerTrack = muon->innerTrack();
       bool validInnerTrack = innerTrack.isNonnull();
@@ -493,9 +496,9 @@ void MuonMaker::setCutBasedH4lIdSelectionBits(edm::View<pat::Muon>::const_iterat
       //   bool isGood = isTight && passSIP3D;
       //   return isGood;
       // In other words, ([1] || ([2] && pt>200)) && [3].
-      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 1, isPF);
-      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 2, isTrackerHighPt);
-      HelperFunctions::set_bit(id_cutBased_H4l_Bits, 3, passSIP3D);
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, kH4lSelection_PFID, isPF);
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, kH4lSelection_HighPt, isTrackerHighPt);
+      HelperFunctions::set_bit(id_cutBased_H4l_Bits, kH4lSelection_SIP3D, passSIP3D);
     }
   }
 
