@@ -1,4 +1,6 @@
 #include <cassert>
+#include <cmath>
+
 #include "AK8JetSelectionHelpers.h"
 #include "MELAStreamHelpers.hh"
 
@@ -25,14 +27,14 @@ bool AK8JetSelectionHelpers::testLooseId(AK8JetObject const& part){ return true;
 bool AK8JetSelectionHelpers::testTightId(AK8JetObject const& part){ return true; }
 
 bool AK8JetSelectionHelpers::testLooseKin(AK8JetObject const& part){
-  return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+  return (part.pt()>=ptThr_skim_loose && std::abs(part.eta())<etaThr_skim_loose);
 }
 bool AK8JetSelectionHelpers::testTightKin(AK8JetObject const& part){
-  return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+  return (part.pt()>=ptThr_skim_tight && std::abs(part.eta())<etaThr_skim_tight);
 }
 
 bool AK8JetSelectionHelpers::testPtEtaGen(AK8JetObject const& part){
-  return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+  return (part.pt()>=ptThr_gen && std::abs(part.eta())<etaThr_gen);
 }
 bool AK8JetSelectionHelpers::testPreselectionLoose(AK8JetObject const& part){
   return (

@@ -24,6 +24,8 @@ namespace AK4JetSelectionHelpers{
     kTightId,
     kTightKin,
 
+    kBtaggable,
+
     kPreselectionLoose,
     kPreselectionTight,
 
@@ -31,6 +33,7 @@ namespace AK4JetSelectionHelpers{
   };
 
   constexpr float ptThr_gen = 15.;
+  constexpr float ptThr_skim_btag = 20.;
   constexpr float ptThr_skim_loose = 30.;
   constexpr float ptThr_skim_tight = 30.;
 

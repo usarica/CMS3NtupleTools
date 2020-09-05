@@ -1,5 +1,8 @@
 #include <cassert>
 #include <cmath>
+
+#include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
+
 #include "ElectronSelectionHelpers.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
@@ -10,7 +13,25 @@ namespace ElectronSelectionHelpers{
   std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> electron_triggeremulationV1_bits;
   std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> electron_triggeremulationV2_bits;
 
+  bool applyConversionSafety = false;
+  bool applySeedTimeVeto = false;
+  bool applySpikeVeto = false;
+  bool applyPFId = false;
+  bool applyPFMETSafety = false;
+  bool allowProbeIdInLooseSelection = false;
+  bool allowFakeableInLooseSelection = false;
+
+
   bool testPtEtaGen(ElectronObject const& part);
+
+  bool testConversionSafe(ElectronObject const& part);
+
+  bool testInTimeSeed(ElectronObject const& part);
+  bool testSpikeSafe(ElectronObject const& part);
+
+  bool testPFElectronId(ElectronObject const& part);
+  bool testPFElectronPreference(ElectronObject const& part); // Preference over PF photon id in overlapping candidates
+  bool testPFMETSafe(ElectronObject const& part);
 
   bool testVetoId(ElectronObject const& part);
   bool testVetoIso(ElectronObject const& part);
@@ -35,6 +56,7 @@ namespace ElectronSelectionHelpers{
   bool testFakeable(ElectronObject const& part);
 
   bool testPreselectionVeto(ElectronObject const& part);
+  bool testPreselectionLoose_NoIso(ElectronObject const& part);
   bool testPreselectionLoose(ElectronObject const& part);
   bool testPreselectionTight(ElectronObject const& part);
 }
@@ -47,6 +69,23 @@ using namespace MELAStreamHelpers;
 void ElectronSelectionHelpers::clearTriggerEmulationBits(){ electron_triggeremulationV1_bits.clear(); electron_triggeremulationV2_bits.clear(); }
 void ElectronSelectionHelpers::setTriggerEmulationV1Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist){ electron_triggeremulationV1_bits = bitlist; }
 void ElectronSelectionHelpers::setTriggerEmulationV2Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist){ electron_triggeremulationV2_bits = bitlist; }
+
+void ElectronSelectionHelpers::setApplyConversionSafety(bool flag){ applyConversionSafety = flag; }
+void ElectronSelectionHelpers::setApplySeedTimeVeto(bool flag){ applySeedTimeVeto = flag; }
+void ElectronSelectionHelpers::setApplySpikeVeto(bool flag){ applySpikeVeto = flag; }
+void ElectronSelectionHelpers::setApplyPFId(bool flag){ applyPFId = flag; }
+void ElectronSelectionHelpers::setApplyPFMETSafety(bool flag){ applyPFMETSafety = flag; }
+void ElectronSelectionHelpers::setAllowProbeIdInLooseSelection(bool flag){ allowProbeIdInLooseSelection = flag; }
+void ElectronSelectionHelpers::setAllowFakeableInLooseSelection(bool flag){ allowFakeableInLooseSelection = flag; }
+
+bool ElectronSelectionHelpers::getApplyConversionSafety(){ return applyConversionSafety; }
+bool ElectronSelectionHelpers::getApplySeedTimeVeto(){ return applySeedTimeVeto; }
+bool ElectronSelectionHelpers::getApplySpikeVeto(){ return applySpikeVeto; }
+bool ElectronSelectionHelpers::getApplyPFId(){ return applyPFId; }
+bool ElectronSelectionHelpers::getApplyPFMETSafety(){ return applyPFMETSafety; }
+bool ElectronSelectionHelpers::getAllowProbeIdInLooseSelection(){ return allowProbeIdInLooseSelection; }
+bool ElectronSelectionHelpers::getAllowFakeableInLooseSelection(){ return allowFakeableInLooseSelection; }
+
 
 float ElectronSelectionHelpers::getIsolationDRmax(ElectronObject const& part){
   if (isoType_preselection == kPFIsoDR0p3) return 0.3;
@@ -81,6 +120,35 @@ float ElectronSelectionHelpers::computeIso(ElectronObject const& part){
   else if (isoType_preselection == kMiniIso) return relMiniIso(part);
   else MELAerr << "ElectronSelectionHelpers::computeIso: Isolation " << isoType_preselection << " with id " << idType_preselection << " is not implemented." << endl;
   return 999.f;
+}
+
+bool ElectronSelectionHelpers::testConversionSafe(ElectronObject const& part){ return part.extras.conv_vtx_flag; }
+
+bool ElectronSelectionHelpers::testInTimeSeed(ElectronObject const& part){ return std::abs(part.extras.seedTime)<seedTimeThr; }
+bool ElectronSelectionHelpers::testSpikeSafe(ElectronObject const& part){
+  return part.extras.full5x5_sigmaIEtaIEta<full5x5_sigmaIEtaIEtaThr && part.extras.full5x5_sigmaIPhiIPhi<full5x5_sigmaIPhiIPhiThr;
+}
+
+bool ElectronSelectionHelpers::testPFElectronId(ElectronObject const& part){
+  auto const& ibit = part.extras.id_egamma_pfElectron_Bits;
+  constexpr bool testBadHCAL = true;
+  return (
+    part.extras.n_associated_pfelectrons==1
+    &&
+    HelperFunctions::test_bit(ibit, ISEGAMMAPFELECTRON_BASE)
+    &&
+    (!testBadHCAL || HelperFunctions::test_bit(ibit, ISEGAMMAPFELECTRON_BASE_BADHCALMITIGATED))
+    &&
+    part.extras.min_dR_electron_pfelectron_associated<mindRThr_electron_pfelectron
+    );
+}
+bool ElectronSelectionHelpers::testPFElectronPreference(ElectronObject const& part){ return HelperFunctions::test_bit(part.extras.id_egamma_pfElectron_Bits, ISEGAMMAPFELECTRON_PRIMARY); }
+bool ElectronSelectionHelpers::testPFMETSafe(ElectronObject const& part){
+  if (applyPFMETSafety && !applyPFId){
+    MELAerr << "ElectronSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
+    assert(0);
+  }
+  return HelperFunctions::test_bit(part.extras.id_egamma_pfElectron_Bits, ISEGAMMAPFELECTRON_METSAFE);
 }
 
 /*
@@ -307,14 +375,53 @@ bool ElectronSelectionHelpers::testPreselectionVeto(ElectronObject const& part){
     part.testSelectionBit(bit_preselectionVeto_kin)
     );
 }
+bool ElectronSelectionHelpers::testPreselectionLoose_NoIso(ElectronObject const& part){
+  bool const isProbe = (!allowProbeIdInLooseSelection ? false : part.testSelectionBit(kProbeId));
+  bool const isFakeable = (!allowFakeableInLooseSelection ? false : part.testSelectionBit(kFakeable));
+  return (
+    part.testSelectionBit(bit_preselectionLoose_id)
+    &&
+    part.testSelectionBit(bit_preselectionLoose_kin)
+    &&
+    (!applyConversionSafety || part.testSelectionBit(kConversionSafe))
+    &&
+    (!applySeedTimeVeto || part.testSelectionBit(kInTimeSeed))
+    &&
+    (!applySpikeVeto || part.testSelectionBit(kSpikeSafe))
+    &&
+    (!applyPFId || part.testSelectionBit(kPFElectronId))
+    &&
+    (!applyPFMETSafety || part.testSelectionBit(kPFMETSafe))
+    )
+    ||
+    isFakeable
+    ||
+    isProbe;
+}
 bool ElectronSelectionHelpers::testPreselectionLoose(ElectronObject const& part){
+  bool const isProbe = (!allowProbeIdInLooseSelection ? false : part.testSelectionBit(kProbeId));
+  bool const isFakeable = (!allowFakeableInLooseSelection ? false : part.testSelectionBit(kFakeable));
   return (
     part.testSelectionBit(bit_preselectionLoose_id)
     &&
     part.testSelectionBit(bit_preselectionLoose_iso)
     &&
     part.testSelectionBit(bit_preselectionLoose_kin)
-    );
+    &&
+    (!applyConversionSafety || part.testSelectionBit(kConversionSafe))
+    &&
+    (!applySeedTimeVeto || part.testSelectionBit(kInTimeSeed))
+    &&
+    (!applySpikeVeto || part.testSelectionBit(kSpikeSafe))
+    &&
+    (!applyPFId || part.testSelectionBit(kPFElectronId))
+    &&
+    (!applyPFMETSafety || part.testSelectionBit(kPFMETSafe))
+    )
+    ||
+    isFakeable
+    ||
+    isProbe;
 }
 bool ElectronSelectionHelpers::testPreselectionTight(ElectronObject const& part){
   return (
@@ -323,12 +430,31 @@ bool ElectronSelectionHelpers::testPreselectionTight(ElectronObject const& part)
     part.testSelectionBit(bit_preselectionTight_iso)
     &&
     part.testSelectionBit(bit_preselectionTight_kin)
+    &&
+    (!applyConversionSafety || part.testSelectionBit(kConversionSafe))
+    &&
+    (!applySeedTimeVeto || part.testSelectionBit(kInTimeSeed))
+    &&
+    (!applySpikeVeto || part.testSelectionBit(kSpikeSafe))
+    &&
+    (!applyPFId || part.testSelectionBit(kPFElectronId))
+    &&
+    (!applyPFMETSafety || part.testSelectionBit(kPFMETSafe))
     );
 }
 void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
   part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
+
+  part.setSelectionBit(kConversionSafe, testConversionSafe(part));
+
+  part.setSelectionBit(kInTimeSeed, testInTimeSeed(part));
+  part.setSelectionBit(kSpikeSafe, testSpikeSafe(part));
+
+  part.setSelectionBit(kPFElectronId, testPFElectronId(part));
+  part.setSelectionBit(kPFElectronPreferable, testPFElectronPreference(part));
+  part.setSelectionBit(kPFMETSafe, testPFMETSafe(part));
 
   part.setSelectionBit(kVetoId, testVetoId(part));
   part.setSelectionBit(kVetoIso, testVetoIso(part));
@@ -354,6 +480,7 @@ void ElectronSelectionHelpers::setSelectionBits(ElectronObject& part){
   part.setSelectionBit(kFakeableBase, testFakeableBase(part));
   part.setSelectionBit(kFakeable, testFakeable(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
+  part.setSelectionBit(kPreselectionLoose_NoIso, testPreselectionLoose_NoIso(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }

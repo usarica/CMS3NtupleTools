@@ -1,9 +1,12 @@
 #include <cassert>
 #include <algorithm>
 #include <utility>
+
 #include <CMS3/Dictionaries/interface/JetMETEnums.h>
+
 #include "AK4JetObject.h"
 #include "BtagHelpers.h"
+#include "AK4JetSelectionHelpers.h"
 #include "HelperFunctions.h"
 #include "MELAStreamHelpers.hh"
 
@@ -83,6 +86,8 @@ BTagEntry::JetFlavor AK4JetObject::getBTagJetFlavor() const{
   else return BTagEntry::FLAV_UDSG;
 }
 float AK4JetObject::getBtagValue() const{
+  if (!this->testSelectionBit(AK4JetSelectionHelpers::kBtaggable)) return -1;
+
   switch (BtagHelpers::btagWPType){
   case BtagHelpers::kDeepFlav_Loose:
   case BtagHelpers::kDeepFlav_Medium:

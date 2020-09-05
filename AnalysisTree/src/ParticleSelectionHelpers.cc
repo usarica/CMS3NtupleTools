@@ -7,19 +7,20 @@
 #include "HelperFunctions.h"
 
 
-namespace ParticleSelectionHelpers{
-  bool useFakeableLeptonsInLooseSelection = false; // Allows fakeable leptons to be usable in jet cleaning or trigger checking
-  bool useProbeLeptonsInLooseSelection = false; // Allows probe leptons to be usable in jet cleaning or trigger checking
+void ParticleSelectionHelpers::setUseProbeLeptonsInLooseSelection(bool flag){
+  MuonSelectionHelpers::setAllowProbeIdInLooseSelection(flag);
+  ElectronSelectionHelpers::setAllowProbeIdInLooseSelection(flag);
 }
-
-
-void ParticleSelectionHelpers::setUseFakeableLeptonsInLooseSelection(bool flag){ useFakeableLeptonsInLooseSelection = flag; }
-void ParticleSelectionHelpers::setUseProbeLeptonsInLooseSelection(bool flag){ useProbeLeptonsInLooseSelection = flag; }
+void ParticleSelectionHelpers::setUseFakeableLeptonsInLooseSelection(bool flag){
+  MuonSelectionHelpers::setAllowFakeableInLooseSelection(flag);
+  ElectronSelectionHelpers::setAllowFakeableInLooseSelection(flag);
+}
 
 
 // Veto, loose and tight particle ids
 #define SELECTION_TYPES \
 SELECTION_TYPE(Veto) \
+SELECTION_TYPE(Loose) \
 SELECTION_TYPE(Tight)
 #define SELECTION_TYPE(TYPE) \
 template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
@@ -35,25 +36,6 @@ SELECTION_TYPES;
 #undef SELECTION_TYPE
 #undef SELECTION_TYPES
 
-#define SELECTION_TYPES \
-SELECTION_TYPE(Loose)
-#define SELECTION_TYPE(TYPE) \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(MuonObject const* part){ \
-  bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(MuonSelectionHelpers::kFakeable)); \
-  bool const isProbe = (!useProbeLeptonsInLooseSelection ? false : part->testSelectionBit(MuonSelectionHelpers::kProbeId)); \
-  return (part->testSelectionBit(MuonSelectionHelpers::kPreselection##TYPE) || isFakeable || isProbe); \
-} \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(ElectronObject const* part){ \
-  bool const isFakeable = (!useFakeableLeptonsInLooseSelection ? false : part->testSelectionBit(ElectronSelectionHelpers::kFakeable)); \
-  bool const isProbe = (!useProbeLeptonsInLooseSelection ? false : part->testSelectionBit(ElectronSelectionHelpers::kProbeId)); \
-  return (part->testSelectionBit(ElectronSelectionHelpers::kPreselection##TYPE) || isFakeable || isProbe); \
-} \
-template<> bool ParticleSelectionHelpers::is##TYPE##Particle(PhotonObject const* part){ \
-  return part->testSelectionBit(PhotonSelectionHelpers::kPreselection##TYPE); \
-}
-SELECTION_TYPES;
-#undef SELECTION_TYPE
-#undef SELECTION_TYPES
 
 // Implementation of generic veto-tight ids
 #define SELECTION_TYPES \
@@ -83,26 +65,8 @@ template<> bool ParticleSelectionHelpers::isFSRSuitable<ParticleObject>(Particle
   else if (electron) return isFSRSuitable(electron);
   else return false;
 }
-template<> bool ParticleSelectionHelpers::isFSRSuitable<MuonObject>(MuonObject const* part){
-  using namespace MuonSelectionHelpers;
-  // Test everything as in MuonSelectionHelpers::testPreselectionLoose except isolation
-  return (
-    part->testSelectionBit(bit_preselectionLoose_id)
-    &&
-    part->testSelectionBit(bit_preselectionLoose_kin)
-    &&
-    (bit_preselection_time != kValidMuonSystemTime || part->testSelectionBit(bit_preselection_time))
-    );
-}
-template<> bool ParticleSelectionHelpers::isFSRSuitable<ElectronObject>(ElectronObject const* part){
-  using namespace ElectronSelectionHelpers;
-  // Test everything as in ElectronSelectionHelpers::testPreselectionLoose except isolation
-  return (
-    part->testSelectionBit(bit_preselectionLoose_id)
-    &&
-    part->testSelectionBit(bit_preselectionLoose_kin)
-    );
-}
+template<> bool ParticleSelectionHelpers::isFSRSuitable<MuonObject>(MuonObject const* part){ return part->testSelectionBit(MuonSelectionHelpers::kPreselectionLoose_NoIso); }
+template<> bool ParticleSelectionHelpers::isFSRSuitable<ElectronObject>(ElectronObject const* part){ return part->testSelectionBit(ElectronSelectionHelpers::kPreselectionLoose_NoIso); }
 
 
 // Functions for jets
@@ -132,11 +96,15 @@ SELECTION_TYPES;
 
 
 template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK4JetObject>(AK4JetObject const* jet){
-  // No PU jet id requirement, so do not use the isTightJet flag.
-  return jet->testSelectionBit(AK4JetSelectionHelpers::kTightId) && jet->pt()>=30.f;
+  // No PU jet id requirement, so do not use the isTightJet check.
+  // No eta requirement either...
+  return jet->testSelectionBit(AK4JetSelectionHelpers::bit_preselectionTight_id) && jet->pt()>=AK4JetSelectionHelpers::ptThr_skim_tight;
 }
 template<> bool ParticleSelectionHelpers::isJetForHEMVeto<AK8JetObject>(AK8JetObject const* jet){
-  return jet->testSelectionBit(AK8JetSelectionHelpers::kTightId) && jet->pt()>=30.f;
+  // No eta requirement.
+  return jet->testSelectionBit(AK8JetSelectionHelpers::bit_preselectionTight_id) && jet->pt()>=AK8JetSelectionHelpers::ptThr_skim_HEMcheck;
 }
 
-template<> bool ParticleSelectionHelpers::isJetForBtagSF<AK4JetObject>(AK4JetObject const* jet){ return isTightJet(jet); }
+template<> bool ParticleSelectionHelpers::isJetForBtagSF<AK4JetObject>(AK4JetObject const* jet){
+  return jet->testSelectionBit(AK4JetSelectionHelpers::kBtaggable);
+}

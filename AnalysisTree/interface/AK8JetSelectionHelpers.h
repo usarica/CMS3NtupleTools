@@ -20,6 +20,7 @@ namespace AK8JetSelectionHelpers{
   };
 
   constexpr float ptThr_gen = 150.;
+  constexpr float ptThr_skim_HEMcheck = 30.; // Literally any ak8 jet
   constexpr float ptThr_skim_loose = 175.;
   constexpr float ptThr_skim_tight = 200.;
 

@@ -10,6 +10,15 @@ namespace ElectronSelectionHelpers{
   enum SelectionBits{
     kGenPtEta,
 
+    kConversionSafe,
+    kInTimeSeed,
+
+    kSpikeSafe,
+
+    kPFElectronId,
+    kPFElectronPreferable,
+    kPFMETSafe,
+
     kVetoId,
     kVetoIso,
     kVetoKin,
@@ -30,6 +39,7 @@ namespace ElectronSelectionHelpers{
     kFakeable,
 
     kPreselectionVeto,
+    kPreselectionLoose_NoIso,
     kPreselectionLoose,
     kPreselectionTight,
 
@@ -75,6 +85,18 @@ namespace ElectronSelectionHelpers{
   constexpr float isoThr_tight = 0.1;
   constexpr float isoThr_fakeable = 0.4;
 
+  // Seed time threshold for cosmics and other stuff
+  // In ns. A bit tight, but oh well...
+  constexpr float seedTimeThr = 1.;
+
+  // Spike cleanup
+  constexpr float full5x5_sigmaIEtaIEtaThr = 0.001;
+  constexpr float full5x5_sigmaIPhiIPhiThr = 0.001;
+
+  // PF electron id delta R matching threshold
+  // Hopefully all values are already ~0 in reco.
+  constexpr float mindRThr_electron_pfelectron = 0.04;
+
   constexpr ElectronId idType_preselection = kMVAId_Fall17V2_NoIso;
   constexpr ElectronIso isoType_preselection = kPFIsoDR0p3;
 
@@ -109,6 +131,28 @@ namespace ElectronSelectionHelpers{
   void clearTriggerEmulationBits();
   void setTriggerEmulationV1Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist);
   void setTriggerEmulationV2Bits(std::vector<ElectronTriggerCutEnums::ElectronTriggerCutTypes> const& bitlist);
+
+  // User functions to disable or enable other selection features for 'loose' and 'tight' preselection
+  void setApplyConversionSafety(bool flag);
+  void setApplySeedTimeVeto(bool flag);
+  void setApplySpikeVeto(bool flag);
+  // Notice these two are separated!
+  // Notice also that if PF id is to be applied, there should be an external check
+  // for the kPFElectronPreferable flag as well when photon overlaps are present.
+  void setApplyPFId(bool flag);
+  void setApplyPFMETSafety(bool flag);
+  // T&P and fake rate functions
+  void setAllowProbeIdInLooseSelection(bool flag);
+  void setAllowFakeableInLooseSelection(bool flag);
+
+  // Get functions to read the state of the flags
+  bool getApplyConversionSafety();
+  bool getApplySeedTimeVeto();
+  bool getApplySpikeVeto();
+  bool getApplyPFId();
+  bool getApplyPFMETSafety();
+  bool getAllowProbeIdInLooseSelection();
+  bool getAllowFakeableInLooseSelection();
 
 }
 

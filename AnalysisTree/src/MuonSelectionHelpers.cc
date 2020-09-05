@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 
 #include <DataFormats/MuonReco/interface/Muon.h>
 
@@ -8,6 +9,8 @@
 
 // These are functions hidden from the user
 namespace MuonSelectionHelpers{
+  bool allowProbeIdInLooseSelection = false;
+  bool allowFakeableInLooseSelection = false;
   float isoThr_fakeable_trkIso = -1;
 
   bool testPtEtaGen(MuonObject const& part);
@@ -42,6 +45,7 @@ namespace MuonSelectionHelpers{
   bool testFakeable(MuonObject const& part);
 
   bool testPreselectionVeto(MuonObject const& part);
+  bool testPreselectionLoose_NoIso(MuonObject const& part);
   bool testPreselectionLoose(MuonObject const& part);
   bool testPreselectionTight(MuonObject const& part);
 }
@@ -52,7 +56,12 @@ using namespace MELAStreamHelpers;
 using namespace reco;
 
 
+void MuonSelectionHelpers::setAllowProbeIdInLooseSelection(bool flag){ allowProbeIdInLooseSelection = flag; }
+void MuonSelectionHelpers::setAllowFakeableInLooseSelection(bool flag){ allowFakeableInLooseSelection = flag; }
 void MuonSelectionHelpers::doRequireTrackerIsolationInFakeable(float const& isothr){ isoThr_fakeable_trkIso = isothr; }
+
+bool MuonSelectionHelpers::getAllowProbeIdInLooseSelection(){ return allowProbeIdInLooseSelection; }
+bool MuonSelectionHelpers::getAllowFakeableInLooseSelection(){ return allowFakeableInLooseSelection; }
 
 
 float MuonSelectionHelpers::absPFIso_DR0p3(MuonObject const& part){ return part.extras.pfIso03_comb_nofsr; }
@@ -153,24 +162,24 @@ bool MuonSelectionHelpers::testSoftIso(MuonObject const& part){ return (computeI
 bool MuonSelectionHelpers::testFakeableBaseIso(MuonObject const& part){ return (computeIso(part)<isoThr_fakeable); }
 
 bool MuonSelectionHelpers::testVetoKin(MuonObject const& part){
-  return (part.pt()>=ptThr_skim_veto && fabs(part.eta())<etaThr_skim_veto);
+  return (part.pt()>=ptThr_skim_veto && std::abs(part.eta())<etaThr_skim_veto);
 }
 bool MuonSelectionHelpers::testLooseKin(MuonObject const& part){
-  return (part.pt()>=ptThr_skim_loose && fabs(part.eta())<etaThr_skim_loose);
+  return (part.pt()>=ptThr_skim_loose && std::abs(part.eta())<etaThr_skim_loose);
 }
 bool MuonSelectionHelpers::testMediumKin(MuonObject const& part){
-  return (part.pt()>=ptThr_skim_medium && fabs(part.eta())<etaThr_skim_medium);
+  return (part.pt()>=ptThr_skim_medium && std::abs(part.eta())<etaThr_skim_medium);
 }
 bool MuonSelectionHelpers::testTightKin(MuonObject const& part){
-  return (part.pt()>=ptThr_skim_tight && fabs(part.eta())<etaThr_skim_tight);
+  return (part.pt()>=ptThr_skim_tight && std::abs(part.eta())<etaThr_skim_tight);
 }
-bool MuonSelectionHelpers::testSoftKin(MuonObject const& part){ return (part.pt()>=ptThr_skim_soft && fabs(part.eta())<etaThr_skim_soft); }
+bool MuonSelectionHelpers::testSoftKin(MuonObject const& part){ return (part.pt()>=ptThr_skim_soft && std::abs(part.eta())<etaThr_skim_soft); }
 
 bool MuonSelectionHelpers::testProbeId(MuonObject const& part){ return part.extras.is_probeForTnP; }
 bool MuonSelectionHelpers::testProbeSTAId(MuonObject const& part){ return part.extras.is_probeForTnP_STA; }
 
 bool MuonSelectionHelpers::testPtEtaGen(MuonObject const& part){
-  return (part.pt()>=ptThr_gen && fabs(part.eta())<etaThr_gen);
+  return (part.pt()>=ptThr_gen && std::abs(part.eta())<etaThr_gen);
 }
 bool MuonSelectionHelpers::testFakeableBase(MuonObject const& part){
   return (
@@ -199,7 +208,24 @@ bool MuonSelectionHelpers::testPreselectionVeto(MuonObject const& part){
     part.testSelectionBit(bit_preselectionVeto_kin)
     );
 }
+bool MuonSelectionHelpers::testPreselectionLoose_NoIso(MuonObject const& part){
+  bool const isProbe = (!allowProbeIdInLooseSelection ? false : part.testSelectionBit(kProbeId));
+  bool const isFakeable = (!allowFakeableInLooseSelection ? false : part.testSelectionBit(kFakeable));
+  return (
+    part.testSelectionBit(bit_preselectionLoose_id)
+    &&
+    part.testSelectionBit(bit_preselectionLoose_kin)
+    &&
+    (bit_preselection_time != kValidMuonSystemTime || part.testSelectionBit(bit_preselection_time))
+    )
+    ||
+    isFakeable
+    ||
+    isProbe;
+}
 bool MuonSelectionHelpers::testPreselectionLoose(MuonObject const& part){
+  bool const isProbe = (!allowProbeIdInLooseSelection ? false : part.testSelectionBit(kProbeId));
+  bool const isFakeable = (!allowFakeableInLooseSelection ? false : part.testSelectionBit(kFakeable));
   return (
     part.testSelectionBit(bit_preselectionLoose_id)
     &&
@@ -208,7 +234,11 @@ bool MuonSelectionHelpers::testPreselectionLoose(MuonObject const& part){
     part.testSelectionBit(bit_preselectionLoose_kin)
     &&
     (bit_preselection_time != kValidMuonSystemTime || part.testSelectionBit(bit_preselection_time))
-    );
+    )
+    ||
+    isFakeable
+    ||
+    isProbe;
 }
 bool MuonSelectionHelpers::testPreselectionTight(MuonObject const& part){
   return (
@@ -257,6 +287,7 @@ void MuonSelectionHelpers::setSelectionBits(MuonObject& part){
   part.setSelectionBit(kFakeableBase, testFakeableBase(part));
   part.setSelectionBit(kFakeable, testFakeable(part));
   part.setSelectionBit(kPreselectionVeto, testPreselectionVeto(part));
+  part.setSelectionBit(kPreselectionLoose_NoIso, testPreselectionLoose_NoIso(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }

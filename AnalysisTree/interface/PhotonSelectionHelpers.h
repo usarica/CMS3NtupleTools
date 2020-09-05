@@ -69,7 +69,8 @@ namespace PhotonSelectionHelpers{
   constexpr float isoThr_tight = 0.1;
 
   // Seed time threshold for cosmics and other stuff
-  constexpr float seedTimeThr = 1.; // In ns. A bit tight, but oh well...
+  // In ns. A bit tight, but oh well...
+  constexpr float seedTimeThr = 1.;
 
   // MIP total energy threshold for beam halo safety (meaningful for barrel photons only, endcap photons have MIPTotalEnergy set to 0)
   constexpr float mipTotalEnergyThr = 4.9;
@@ -107,14 +108,24 @@ namespace PhotonSelectionHelpers{
 
   void setSelectionBits(PhotonObject& part);
 
-  // User functions to disable or enable selection features
+  // User functions to disable or enable selection features for 'loose' and 'tight' preselection
   void setApplyConversionSafety(bool flag);
   void setApplySeedTimeVeto(bool flag);
   void setApplyBeamHaloVeto(bool flag);
   void setApplySpikeVeto(bool flag);
   // Notice these two are separated!
+  // Notice also that if PF id is to be applied, there should be an external check
+  // for the ElectronSelectionHelpers::kPFElectronPreferable flag as well for any overlapping electron.
   void setApplyPFId(bool flag);
   void setApplyPFMETSafety(bool flag);
+
+  // Get functions to read the state of the flags
+  bool getApplyConversionSafety();
+  bool getApplySeedTimeVeto();
+  bool getApplyBeamHaloVeto();
+  bool getApplySpikeVeto();
+  bool getApplyPFId();
+  bool getApplyPFMETSafety();
 
 }
 

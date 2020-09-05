@@ -35,6 +35,7 @@ namespace MuonSelectionHelpers{
     kFakeable,
 
     kPreselectionVeto,
+    kPreselectionLoose_NoIso,
     kPreselectionLoose,
     kPreselectionTight,
 
@@ -115,7 +116,15 @@ namespace MuonSelectionHelpers{
 
   void setSelectionBits(MuonObject& part);
 
+  // User-configurable T&P and fake rate application options
+  void setAllowProbeIdInLooseSelection(bool flag);
+  void setAllowFakeableInLooseSelection(bool flag);
   void doRequireTrackerIsolationInFakeable(float const& isothr);
+
+  // Get functions for user-configurable flags
+  bool getAllowProbeIdInLooseSelection();
+  bool getAllowFakeableInLooseSelection();
+
 }
 
 

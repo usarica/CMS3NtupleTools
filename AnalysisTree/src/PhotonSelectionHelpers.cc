@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 
@@ -62,6 +63,13 @@ void PhotonSelectionHelpers::setApplySpikeVeto(bool flag){ applySpikeVeto = flag
 void PhotonSelectionHelpers::setApplyPFId(bool flag){ applyPFId = flag; }
 void PhotonSelectionHelpers::setApplyPFMETSafety(bool flag){ applyPFMETSafety = flag; }
 
+bool PhotonSelectionHelpers::getApplyConversionSafety(){ return applyConversionSafety; }
+bool PhotonSelectionHelpers::getApplySeedTimeVeto(){ return applySeedTimeVeto; }
+bool PhotonSelectionHelpers::getApplyBeamHaloVeto(){ return applyBeamHaloVeto; }
+bool PhotonSelectionHelpers::getApplySpikeVeto(){ return applySpikeVeto; }
+bool PhotonSelectionHelpers::getApplyPFId(){ return applyPFId; }
+bool PhotonSelectionHelpers::getApplyPFMETSafety(){ return applyPFMETSafety; }
+
 
 float PhotonSelectionHelpers::getIsolationDRmax(PhotonObject const& /*part*/){
   if (isoType_preselection == kPFIsoDR0p3) return 0.3;
@@ -96,7 +104,13 @@ bool PhotonSelectionHelpers::testPFPhotonId(PhotonObject const& part){
     part.extras.min_dR_photon_pfphoton_associated<mindRThr_photon_pfphoton
     );
 }
-bool PhotonSelectionHelpers::testPFMETSafe(PhotonObject const& part){ return HelperFunctions::test_bit(part.extras.id_egamma_pfPhoton_Bits, ISEGAMMAPFPHOTON_METSAFE); }
+bool PhotonSelectionHelpers::testPFMETSafe(PhotonObject const& part){
+  if (applyPFMETSafety && !applyPFId){
+    MELAerr << "PhotonSelectionHelpers::testPFMETSafe: applyPFId must be set to 'true' as well." << endl;
+    assert(0);
+  }
+  return HelperFunctions::test_bit(part.extras.id_egamma_pfPhoton_Bits, ISEGAMMAPFPHOTON_METSAFE);
+}
 
 /*
 From https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2#Applying_Individual_Cuts_of_a_Se
