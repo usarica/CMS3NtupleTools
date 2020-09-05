@@ -5,29 +5,71 @@
 #include "ParticleObject.h"
 
 
-#define MET_RECORDED_VARIABLES \
+#define MET_RECORDED_CORE_VARIABLES \
 MET_VARIABLE(float, met_Nominal, 0) \
 MET_VARIABLE(float, metPhi_Nominal, 0) \
-MET_VARIABLE(float, met_JECUp, 0) \
-MET_VARIABLE(float, metPhi_JECUp, 0) \
+MET_VARIABLE(float, met_Raw, 0) \
+MET_VARIABLE(float, metPhi_Raw, 0)
+#define MET_RECORDED_GENINFO_VARIABLES \
 MET_VARIABLE(float, met_JECDn, 0) \
 MET_VARIABLE(float, metPhi_JECDn, 0) \
-MET_VARIABLE(float, met_Raw, 0) \
-MET_VARIABLE(float, metPhi_Raw, 0) \
-MET_VARIABLE(float, metSignificance, 0)
+MET_VARIABLE(float, met_JECUp, 0) \
+MET_VARIABLE(float, metPhi_JECUp, 0)
+#define MET_RECORDED_VARIABLES \
+MET_RECORDED_CORE_VARIABLES \
+MET_RECORDED_GENINFO_VARIABLES
 
 // JER shifts are not recorded for PUPPI MET because they do not apply.
-#define MET_JERSHIFT_VARIABLES \
-MET_VARIABLE(float, metShift_px_JERNominal, 0) \
-MET_VARIABLE(float, metShift_py_JERNominal, 0) \
-MET_VARIABLE(float, metShift_px_JERUp, 0) \
-MET_VARIABLE(float, metShift_py_JERUp, 0) \
-MET_VARIABLE(float, metShift_px_JERDn, 0) \
-MET_VARIABLE(float, metShift_py_JERDn, 0)
+#define MET_SHIFT_CORE_VARIABLES \
+MET_VARIABLE(float, metShift_px_JECNominal, 0) \
+MET_VARIABLE(float, metShift_py_JECNominal, 0) \
+MET_VARIABLE(float, metShift_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_py_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERNominal, 0)
+#define MET_SHIFT_GENINFO_VARIABLES \
+MET_VARIABLE(float, metShift_px_JECDn, 0) \
+MET_VARIABLE(float, metShift_py_JECDn, 0) \
+MET_VARIABLE(float, metShift_px_JECUp, 0) \
+MET_VARIABLE(float, metShift_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_px_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_py_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_px_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_py_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_px_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_py_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_px_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_py_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERDn, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECNominal_JERUp, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECDn_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_px_JECUp_JERNominal, 0) \
+MET_VARIABLE(float, metShift_p4Preserved_py_JECUp_JERNominal, 0)
+
+#define MET_SHIFT_VARIABLES \
+MET_SHIFT_CORE_VARIABLES \
+MET_SHIFT_GENINFO_VARIABLES
+
+#define MET_CORE_VARIABLES \
+MET_RECORDED_CORE_VARIABLES \
+MET_SHIFT_CORE_VARIABLES
+
+#define MET_GENINFO_VARIABLES \
+MET_RECORDED_GENINFO_VARIABLES \
+MET_SHIFT_GENINFO_VARIABLES
 
 #define MET_VARIABLES \
 MET_RECORDED_VARIABLES \
-MET_JERSHIFT_VARIABLES
+MET_SHIFT_VARIABLES
 
 
 class METVariables{
@@ -50,13 +92,16 @@ public:
 
 protected:
   SystematicsHelpers::SystematicVariationTypes currentSyst;
+  ParticleObject::LorentzVector_t currentMETShift_noJER;
+  ParticleObject::LorentzVector_t currentMETShift;
+  ParticleObject::LorentzVector_t currentMETShift_p4Preserved_noJER;
+  ParticleObject::LorentzVector_t currentMETShift_p4Preserved;
   ParticleObject::LorentzVector_t currentXYshift;
-  ParticleObject::LorentzVector_t currentJERShift;
   ParticleObject::LorentzVector_t particleMomentumCorrections;
 
   std::vector<ParticleObject::LorentzVector_t> currentMETCorrections;
 
-  void setJERShifts();
+  void setMETShifts();
 
 public:
   METObject();
@@ -75,15 +120,15 @@ public:
   void setParticleShifts(ParticleObject::LorentzVector_t const& shift){ particleMomentumCorrections=shift; }
   void setParticleShifts(float const& shift_x, float const& shift_y){ this->setParticleShifts(ParticleObject::LorentzVector_t(shift_x, shift_y, 0., 0.)); }
 
-  void setMETCorrection(ParticleObject::LorentzVector_t const& corr, bool hasXYShifts, bool hasJERShifts, bool addParticleShifts);
+  void setMETCorrection(ParticleObject::LorentzVector_t const& corr, bool hasXYShifts, bool hasJERShifts, bool addParticleShifts, bool preserveP4);
 
-  void getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts) const;
-  ParticleObject::LorentzVector_t::Scalar met(bool addXYShifts, bool addJERShifts, bool addParticleShifts) const;
-  ParticleObject::LorentzVector_t::Scalar phi(bool addXYShifts, bool addJERShifts, bool addParticleShifts) const;
-  ParticleObject::LorentzVector_t::Scalar pt(bool addXYShifts, bool addJERShifts, bool addParticleShifts) const{ return met(addXYShifts, addJERShifts, addParticleShifts); }
-  ParticleObject::LorentzVector_t::Scalar px(bool addXYShifts, bool addJERShifts, bool addParticleShifts, float phi_rot=0) const;
-  ParticleObject::LorentzVector_t::Scalar py(bool addXYShifts, bool addJERShifts, bool addParticleShifts, float phi_rot=0) const;
-  ParticleObject::LorentzVector_t p4(bool addXYShifts, bool addJERShifts, bool addParticleShifts, float phi_rot=0) const;
+  void getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
+  ParticleObject::LorentzVector_t::Scalar met(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
+  ParticleObject::LorentzVector_t::Scalar phi(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
+  ParticleObject::LorentzVector_t::Scalar pt(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const{ return met(addXYShifts, addJERShifts, addParticleShifts, preserveP4); }
+  ParticleObject::LorentzVector_t::Scalar px(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
+  ParticleObject::LorentzVector_t::Scalar py(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
+  ParticleObject::LorentzVector_t p4(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4, float phi_rot=0) const;
 
 };
 

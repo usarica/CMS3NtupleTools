@@ -151,6 +151,7 @@ void METCorrectionHandler::applyCorrections(
   float const& genMET, float const& genMETPhi,
   METObject* obj, bool isPFMET
 ) const{
+  constexpr bool iP4Preserve = false; // FIXME
   static const std::vector<SystematicsHelpers::SystematicVariationTypes> allowedSysts{
     SystematicsHelpers::sNominal,
     SystematicsHelpers::eJECDn, SystematicsHelpers::eJECUp,
@@ -209,9 +210,9 @@ void METCorrectionHandler::applyCorrections(
       else if (syst == SystematicsHelpers::eMETUp) SF = SF_nominal + std::sqrt(std::pow(sigma_up_data / sigma_nominal_MC - SF_nominal, 2) + std::pow(sigma_nominal_data / sigma_dn_MC - SF_nominal, 2));
 
       for (unsigned short iPMS=0; iPMS<2; iPMS++){
-        ParticleObject::LorentzVector_t met_p4_diff = obj->p4((bool) iXY, (bool) iJER, (bool) iPMS) - genmet_p4;
+        ParticleObject::LorentzVector_t met_p4_diff = obj->p4((bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve) - genmet_p4;
         met_p4_diff *= SF-1.f;
-        obj->setMETCorrection(met_p4_diff, (bool) iXY, (bool) iJER, (bool) iPMS);
+        obj->setMETCorrection(met_p4_diff, (bool) iXY, (bool) iJER, (bool) iPMS, (bool) iP4Preserve);
       }
     }
   }

@@ -43,9 +43,7 @@ JetMETHandler::JetMETHandler() :
   pfmet_XYcorr_xCoeffA(0),
   pfmet_XYcorr_xCoeffB(0),
   pfmet_XYcorr_yCoeffA(0),
-  pfmet_XYcorr_yCoeffB(0),
-
-  has_genmatching(false)
+  pfmet_XYcorr_yCoeffB(0)
 {
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
@@ -54,11 +52,10 @@ JetMETHandler::JetMETHandler() :
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
 #undef AK8JET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME);
-  MET_RECORDED_VARIABLES;
-  MET_JERSHIFT_VARIABLES;
+  MET_CORE_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME);
-  MET_RECORDED_VARIABLES;
+  MET_RECORDED_CORE_VARIABLES;
 #undef MET_VARIABLE
 
   // Vertex variables
@@ -92,6 +89,8 @@ bool JetMETHandler::constructJetMET(SystematicsHelpers::SystematicVariationTypes
 }
 
 bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
+  bool const isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak4jets_##NAME, itEnd_ak4jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
   AK4JET_GENINFO_VARIABLES;
@@ -101,7 +100,7 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
   bool allVariablesPresent = true;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak4jets + "_" + #NAME, &itBegin_ak4jets_##NAME, &itEnd_ak4jets_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
-  if (this->has_genmatching){
+  if (!isData){
     AK4JET_GENINFO_VARIABLES;
   }
 #undef AK4JET_VARIABLE
@@ -134,7 +133,7 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
       // Set extras
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_ak4jets_##NAME;
       AK4JET_RECO_VARIABLES;
-      if (this->has_genmatching){
+      if (!isData){
         AK4JET_GENINFO_VARIABLES;
       }
 #undef AK4JET_VARIABLE
@@ -150,7 +149,7 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
       ip++;
 #define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) it_ak4jets_##NAME++;
       VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK4JETS;
-      if (this->has_genmatching){
+      if (!isData){
         AK4JET_GENINFO_VARIABLES;
       }
 #undef AK4JET_VARIABLE
@@ -162,6 +161,8 @@ bool JetMETHandler::constructAK4Jets(SystematicsHelpers::SystematicVariationType
   return true;
 }
 bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst){
+  bool const isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_ak8jets_##NAME, itEnd_ak8jets_##NAME;
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
   AK8JET_GENINFO_VARIABLES;
@@ -171,7 +172,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
   bool allVariablesPresent = true;
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(JetMETHandler::colName_ak8jets + "_" + #NAME, &itBegin_ak8jets_##NAME, &itEnd_ak8jets_##NAME);
   VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
-  if (this->has_genmatching){
+  if (!isData){
     AK8JET_GENINFO_VARIABLES;
   }
 #undef AK8JET_VARIABLE
@@ -205,7 +206,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
       // Set extras
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) obj->extras.NAME = *it_ak8jets_##NAME;
       AK8JET_RECO_VARIABLES;
-      if (this->has_genmatching){
+      if (!isData){
         AK8JET_GENINFO_VARIABLES;
       }
 #undef AK8JET_VARIABLE
@@ -221,7 +222,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
       ip++;
 #define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) it_ak8jets_##NAME++;
       VECTOR_ITERATOR_HANDLER_DIRECTIVES_AK8JETS;
-      if (this->has_genmatching){
+      if (!isData){
         AK8JET_GENINFO_VARIABLES;
       }
 #undef AK8JET_VARIABLE
@@ -233,9 +234,10 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
   return true;
 }
 bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes const& syst){
+  bool const isData = SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier);
+
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfmet_##NAME = nullptr;
-  MET_RECORDED_VARIABLES;
-  MET_JERSHIFT_VARIABLES;
+  MET_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) TYPE const* pfpuppimet_##NAME = nullptr;
   MET_RECORDED_VARIABLES;
@@ -244,11 +246,16 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   // Beyond this point starts checks and selection
   bool allVariablesPresent = true;
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfmet + "_" + #NAME, pfmet_##NAME);
-  MET_RECORDED_VARIABLES;
-  MET_JERSHIFT_VARIABLES;
+  MET_CORE_VARIABLES;
+  if (!isData){
+    MET_GENINFO_VARIABLES;
+  }
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) allVariablesPresent &= this->getConsumed(JetMETHandler::colName_pfpuppimet + "_" + #NAME, pfpuppimet_##NAME);
-  MET_RECORDED_VARIABLES;
+  MET_RECORDED_CORE_VARIABLES;
+  if (!isData){
+    MET_RECORDED_GENINFO_VARIABLES;
+  }
 #undef MET_VARIABLE
 
   if (!allVariablesPresent){
@@ -263,8 +270,10 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   /**********/
   pfmet = new METObject();
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfmet->extras.NAME = *pfmet_##NAME;
-  MET_RECORDED_VARIABLES;
-  MET_JERSHIFT_VARIABLES;
+  MET_CORE_VARIABLES;
+  if (!isData){
+    MET_GENINFO_VARIABLES;
+  }
 #undef MET_VARIABLE
 
   pfmet->setSystematic(syst);
@@ -274,7 +283,10 @@ bool JetMETHandler::constructMET(SystematicsHelpers::SystematicVariationTypes co
   /*************/
   pfpuppimet = new METObject();
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) pfpuppimet->extras.NAME = *pfpuppimet_##NAME;
-  MET_RECORDED_VARIABLES;
+  MET_RECORDED_CORE_VARIABLES;
+  if (!isData){
+    MET_RECORDED_GENINFO_VARIABLES;
+  }
 #undef MET_VARIABLE
 
   pfpuppimet->setSystematic(syst);
@@ -390,20 +402,6 @@ bool JetMETHandler::applyJetCleaning(std::vector<MuonObject*> const* muons, std:
   ak8jets = ak8jets_new;
 
   return true;
-}
-
-void JetMETHandler::checkOptionalInfo(BaseTree* tree, bool& flag_genmatching){
-  flag_genmatching = true;
-
-  std::vector<TString> bnames;
-  tree->getValidBranchNamesWithoutAlias(bnames, false);
-
-#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) flag_genmatching &= (std::find(bnames.cbegin(), bnames.cend(), JetMETHandler::colName_ak4jets + "_" + #NAME)!=bnames.cend());
-#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) flag_genmatching &= (std::find(bnames.cbegin(), bnames.cend(), JetMETHandler::colName_ak8jets + "_" + #NAME)!=bnames.cend());
-  AK4JET_GENINFO_VARIABLES;
-  AK8JET_GENINFO_VARIABLES;
-#undef AK8JET_VARIABLE
-#undef AK4JET_VARIABLE
 }
 
 bool JetMETHandler::wrapTree(BaseTree* tree){
@@ -526,18 +524,16 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
     }
   }
 
-  JetMETHandler::checkOptionalInfo(tree, this->has_genmatching);
-
   return IvyBase::wrapTree(tree);
 }
 
 void JetMETHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
-  JetMETHandler::checkOptionalInfo(tree, this->has_genmatching);
-#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME); this->defineConsumedSloppy(#NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME, nullptr);
-#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME); this->defineConsumedSloppy(#NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
-  if (this->has_genmatching){
+  bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier);
+#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_ak4jets + "_" + #NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME, nullptr);
+#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_ak8jets + "_" + #NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
+  if (!isData){
     AK4JET_GENINFO_VARIABLES;
     AK8JET_GENINFO_VARIABLES;
   }
@@ -552,12 +548,19 @@ void JetMETHandler::bookBranches(BaseTree* tree){
 #undef AK8JET_VARIABLE
 
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
-  MET_RECORDED_VARIABLES;
-  MET_JERSHIFT_VARIABLES;
+  MET_CORE_VARIABLES;
 #undef MET_VARIABLE
 #define MET_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
-  MET_RECORDED_VARIABLES;
+  MET_RECORDED_CORE_VARIABLES;
 #undef MET_VARIABLE
+  if (!isData){
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_pfmet + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_pfmet + "_" + #NAME); tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
+    MET_GENINFO_VARIABLES;
+#undef MET_VARIABLE
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_pfpuppimet + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_pfpuppimet + "_" + #NAME); tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
+    MET_RECORDED_GENINFO_VARIABLES;
+#undef MET_VARIABLE
+  }
 
   // Vertex variables
 #define JETMET_METXY_VERTEX_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(JetMETHandler::colName_vertices + "_" + #NAME, DEFVAL);

@@ -54,7 +54,7 @@ public:
 
   void swap(AK8JetObject& other);
 
-  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst);
 
 };
 

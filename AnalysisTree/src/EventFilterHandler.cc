@@ -134,7 +134,7 @@ float EventFilterHandler::getTriggerWeight(
 
   ParticleObject::LorentzVector_t pfmet_p4, pfmet_nomus_p4;
   if (pfmet){
-    pfmet_p4 = pfmet->p4(true, true, true);
+    pfmet_p4 = pfmet->p4(true, true, true, true);
     pfmet_nomus_p4 = pfmet_p4;
     for (auto const& part:muons_trigcheck) pfmet_nomus_p4 += part->p4();
   }

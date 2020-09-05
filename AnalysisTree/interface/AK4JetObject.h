@@ -75,9 +75,7 @@ public:
 
   AK4JetVariables extras;
   SystematicsHelpers::SystematicVariationTypes currentSyst;
-  float currentJEC_full;
-  float currentJEC_L1only;
-  float currentJEC_nomus;
+  float currentJEC;
   float currentJER;
   float currentSystScale;
 
@@ -89,12 +87,12 @@ public:
 
   void swap(AK4JetObject& other);
 
-  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&);
+  void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst);
 
   BTagEntry::JetFlavor getBTagJetFlavor() const;
   float getBtagValue() const;
 
-  float const& getJECValue(bool useL1only = false, bool use_nomus = false) const{ return (!useL1only? (!use_nomus ? currentJEC_full : currentJEC_nomus) : currentJEC_L1only); }
+  float const& getJECValue() const{ return currentJEC; }
   float const& getJERValue() const{ return currentJER; }
 
   LorentzVector_t uncorrected_p4() const{ return this->mom_original; }
@@ -102,8 +100,18 @@ public:
   // Unfortunately, there could be multiple versions of this function. This one is the most straightforward version.
   LorentzVector_t p4_nomus_basic() const{ return this->p4() - this->p4_mucands(); }
   // And here is why:
-  bool isMETSafe(bool useP4Preserved) const;
-  LorentzVector_t getT1METContribution(bool useP4Preserved) const; // Notice this function already returns -p4_diff
+  bool isMETSafe(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER) const;
+  bool isMETSafe(bool useP4Preserved, bool applyJER) const{ return isMETSafe(currentSyst, useP4Preserved, applyJER); }
+  // Returns whether a contribution can/should be acquired. Notice p4_metShift=-(corrected - uncorrected)
+  bool getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const;
+  bool getT1METShift(bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const{ return getT1METShift(currentSyst, useP4Preserved, applyJER, p4_metShift); }
+
+  static LorentzVector_t compute_METShift(
+    bool preserve_corrected_jet_p4,
+    ParticleObject::LorentzVector_t const& p4_jet_uncorrected, ParticleObject::LorentzVector_t const& p4_mucands,
+    float const& JEC_L1L2L3, float const& JEC_L1, float const& JERval,
+    char const& iJECshift, float const& nativeRelJECUnc
+  );
 
 };
 

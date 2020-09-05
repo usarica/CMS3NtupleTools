@@ -38,9 +38,7 @@ AK4JetObject::AK4JetObject() :
   mom_original(0, 0, 0, 0),
   extras(),
   currentSyst(SystematicsHelpers::sNominal),
-  currentJEC_full(1),
-  currentJEC_L1only(1),
-  currentJEC_nomus(1),
+  currentJEC(1),
   currentJER(1),
   currentSystScale(1)
 {}
@@ -49,9 +47,7 @@ AK4JetObject::AK4JetObject(LorentzVector_t const& momentum_) :
   mom_original(momentum_),
   extras(),
   currentSyst(SystematicsHelpers::sNominal),
-  currentJEC_full(1),
-  currentJEC_L1only(1),
-  currentJEC_nomus(1),
+  currentJEC(1),
   currentJER(1),
   currentSystScale(1)
 {}
@@ -60,9 +56,7 @@ AK4JetObject::AK4JetObject(const AK4JetObject& other) :
   mom_original(other.mom_original),
   extras(other.extras),
   currentSyst(other.currentSyst),
-  currentJEC_full(other.currentJEC_full),
-  currentJEC_L1only(other.currentJEC_L1only),
-  currentJEC_nomus(other.currentJEC_nomus),
+  currentJEC(other.currentJEC),
   currentJER(other.currentJER),
   currentSystScale(other.currentSystScale)
 {}
@@ -71,9 +65,7 @@ void AK4JetObject::swap(AK4JetObject& other){
   std::swap(mom_original, other.mom_original);
   extras.swap(other.extras);
   std::swap(currentSyst, other.currentSyst);
-  std::swap(currentJEC_full, other.currentJEC_full);
-  std::swap(currentJEC_L1only, other.currentJEC_L1only);
-  std::swap(currentJEC_nomus, other.currentJEC_nomus);
+  std::swap(currentJEC, other.currentJEC);
   std::swap(currentJER, other.currentJER);
   std::swap(currentSystScale, other.currentSystScale);
 }
@@ -110,41 +102,34 @@ float AK4JetObject::getBtagValue() const{
 void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst){
   using namespace SystematicsHelpers;
 
-  currentJEC_L1only = extras.JECL1Nominal; // This should always be the same.
-  currentJEC_full = 1;
-  currentJEC_nomus = 1;
+  currentJEC = 1;
   currentJER = 1;
   momentum = mom_original;
   switch (syst){
   case eJECDn:
-    currentJEC_full = extras.JECNominal*(1.f - extras.relJECUnc);
-    currentJEC_nomus = extras.JECNominal*(1.f - extras.relJECUnc_nomus_JERNominal);
+    currentJEC = extras.JECNominal*(1.f - extras.relJECUnc);
     currentJER = extras.JERNominal;
     break;
   case eJECUp:
-    currentJEC_full = extras.JECNominal*(1.f + extras.relJECUnc);
-    currentJEC_nomus = extras.JECNominal*(1.f + extras.relJECUnc_nomus_JERNominal);
+    currentJEC = extras.JECNominal*(1.f + extras.relJECUnc);
     currentJER = extras.JERNominal;
     break;
   case eJERDn:
-    currentJEC_full = extras.JECNominal;
-    currentJEC_nomus = extras.JECNominal;
+    currentJEC = extras.JECNominal;
     currentJER = extras.JERDn;
     break;
   case eJERUp:
-    currentJEC_full = extras.JECNominal;
-    currentJEC_nomus = extras.JECNominal;
+    currentJEC = extras.JECNominal;
     currentJER = extras.JERUp;
     break;
   case sUncorrected:
     break;
   default:
-    currentJEC_full = extras.JECNominal;
-    currentJEC_nomus = extras.JECNominal;
+    currentJEC = extras.JECNominal;
     currentJER = extras.JERNominal;
     break;
   }
-  float scale = currentJEC_full * currentJER;
+  float scale = currentJEC * currentJER;
   // Test new pt
   float newpt = momentum.Pt() * scale;
   if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt();
@@ -154,30 +139,48 @@ void AK4JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
 }
 
 // What were we saying? Ah yes, multiple, confusing versions...
-bool AK4JetObject::isMETSafe(bool useP4Preserved) const{
+bool AK4JetObject::isMETSafe(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER) const{
   using namespace JetMETEnums;
   using namespace SystematicsHelpers;
 
   METShiftType shift_type = nMETShiftTypes;
-  switch (currentSyst){
-  case eJECDn:
-    shift_type = kMETShift_JECDn_JERNominal;
-    break;
-  case eJECUp:
-    shift_type = kMETShift_JECUp_JERNominal;
-    break;
-  case eJERDn:
-    shift_type = kMETShift_JECNominal_JERDn;
-    break;
-  case eJERUp:
-    shift_type = kMETShift_JECNominal_JERUp;
-    break;
-  case sUncorrected:
-    shift_type = nMETShiftTypes;
-    break;
-  default:
-    shift_type = kMETShift_JECNominal_JERNominal;
-    break;
+  if (applyJER){
+    switch (syst){
+    case eJECDn:
+      shift_type = kMETShift_JECDn_JERNominal;
+      break;
+    case eJECUp:
+      shift_type = kMETShift_JECUp_JERNominal;
+      break;
+    case eJERDn:
+      shift_type = kMETShift_JECNominal_JERDn;
+      break;
+    case eJERUp:
+      shift_type = kMETShift_JECNominal_JERUp;
+      break;
+    case sUncorrected:
+      shift_type = nMETShiftTypes;
+      break;
+    default:
+      shift_type = kMETShift_JECNominal_JERNominal;
+      break;
+    }
+  }
+  else{
+    switch (syst){
+    case eJECDn:
+      shift_type = kMETShift_JECDn;
+      break;
+    case eJECUp:
+      shift_type = kMETShift_JECUp;
+      break;
+    case sUncorrected:
+      shift_type = nMETShiftTypes;
+      break;
+    default:
+      shift_type = kMETShift_JECNominal;
+      break;
+    }
   }
 
   if (shift_type != nMETShiftTypes){
@@ -186,22 +189,94 @@ bool AK4JetObject::isMETSafe(bool useP4Preserved) const{
   }
   return false;
 }
-ParticleObject::LorentzVector_t AK4JetObject::getT1METContribution(bool useP4Preserved) const{
-  LorentzVector_t res(0, 0, 0, 0);
-  if (this->isMETSafe(useP4Preserved)){
-    if (!useP4Preserved){
-      LorentzVector_t p4_uncorrected_nomus = mom_original - this->p4_mucands();
-      LorentzVector_t p4_offsetCorrected_nomus = p4_uncorrected_nomus*currentJEC_L1only;
-      LorentzVector_t p4_corrected_nomus = p4_uncorrected_nomus*currentJEC_full*currentJER;
-      LorentzVector_t p4_diff_nomus = p4_corrected_nomus - p4_offsetCorrected_nomus;
-      res = -p4_diff_nomus;
+bool AK4JetObject::getT1METShift(SystematicsHelpers::SystematicVariationTypes const& syst, bool useP4Preserved, bool applyJER, ParticleObject::LorentzVector_t& p4_metShift) const{
+  using namespace SystematicsHelpers;
+
+  if (syst == sUncorrected) return false;
+
+  bool res = this->isMETSafe(syst, useP4Preserved, applyJER);
+  if (res){
+    float const& JEC_L1L2L3 = extras.JECNominal;
+    float const& JEC_L1 = extras.JECL1Nominal;
+    char iJECshift = 0;
+    float relJECUnc = 0;
+    float JERval = 1;
+    if (applyJER){
+      switch (syst){
+      case eJECDn:
+        iJECshift = -1;
+        relJECUnc = extras.relJECUnc_nomus_JERNominal;
+        JERval = extras.JERNominal;
+        break;
+      case eJECUp:
+        iJECshift = +1;
+        relJECUnc = extras.relJECUnc_nomus_JERNominal;
+        JERval = extras.JERNominal;
+        break;
+      case eJERDn:
+        JERval = extras.JERDn;
+        break;
+      case eJERUp:
+        JERval = extras.JERUp;
+        break;
+      default:
+        JERval = extras.JERNominal;
+        break;
+      }
     }
     else{
-      LorentzVector_t p4_offsetCorrected_nomus = mom_original*currentJEC_L1only - this->p4_mucands();
-      LorentzVector_t p4_corrected_nomus = this->p4_nomus_basic();
-      LorentzVector_t p4_diff_nomus = p4_corrected_nomus - p4_offsetCorrected_nomus;
-      res = -p4_diff_nomus;
+      switch (syst){
+      case eJECDn:
+        iJECshift = -1;
+        relJECUnc = extras.relJECUnc_nomus;
+        break;
+      case eJECUp:
+        iJECshift = +1;
+        relJECUnc = extras.relJECUnc_nomus;
+        break;
+      default:
+        break;
+      }
     }
+
+    p4_metShift += AK4JetObject::compute_METShift(
+      useP4Preserved,
+      mom_original, this->p4_mucands(),
+      JEC_L1L2L3, JEC_L1, JERval,
+      iJECshift, relJECUnc
+    );
   }
   return res;
+}
+
+ParticleObject::LorentzVector_t AK4JetObject::compute_METShift(
+  bool preserve_corrected_jet_p4,
+  ParticleObject::LorentzVector_t const& p4_jet_uncorrected, ParticleObject::LorentzVector_t const& p4_mucands,
+  float const& JEC_L1L2L3, float const& JEC_L1, float const& JERval,
+  char const& iJECshift, float const& relJECUnc
+){
+  LorentzVector_t p4_metShift;
+
+  if (!preserve_corrected_jet_p4){
+    LorentzVector_t p4_uncorrected_nomus = p4_jet_uncorrected - p4_mucands;
+    LorentzVector_t p4_offsetCorrected_nomus = p4_uncorrected_nomus*JEC_L1;
+
+    LorentzVector_t p4_corrected_nomus = p4_uncorrected_nomus*JEC_L1L2L3*JERval;
+    if (iJECshift!=0) p4_corrected_nomus = p4_corrected_nomus*(1. + relJECUnc*(iJECshift<0 ? -1. : 1.));
+
+    p4_metShift = -(p4_corrected_nomus - p4_offsetCorrected_nomus);
+  }
+  else{
+    LorentzVector_t p4_offsetCorrected = p4_jet_uncorrected*JEC_L1;
+    LorentzVector_t p4_offsetCorrected_nomus = p4_offsetCorrected - p4_mucands;
+
+    LorentzVector_t p4_corrected = p4_jet_uncorrected*JEC_L1L2L3*JERval;
+    if (iJECshift!=0) p4_corrected = p4_corrected*(1. + relJECUnc*(iJECshift<0 ? -1. : 1.));
+
+    LorentzVector_t p4_corrected_nomus = p4_corrected - p4_mucands;
+
+    p4_metShift = -(p4_corrected_nomus - p4_offsetCorrected_nomus);
+  }
+
+  return p4_metShift;
 }
