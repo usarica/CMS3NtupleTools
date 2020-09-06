@@ -27,6 +27,9 @@ ElectronVariables& ElectronVariables::operator=(const ElectronVariables& other){
   return *this;
 }
 
+
+const std::string ElectronObject::colName = "electrons";
+
 ElectronObject::ElectronObject() :
   ParticleObject(),
   extras(),
@@ -139,5 +142,5 @@ void ElectronObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar con
   }
 }
 
-
 ParticleObject::LorentzVector_t::Scalar ElectronObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }
+ParticleObject::LorentzVector_t ElectronObject::uncorrected_p4() const{ return this->p4()/currentSystScale; }

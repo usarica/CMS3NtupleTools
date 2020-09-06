@@ -24,6 +24,9 @@ MuonVariables& MuonVariables::operator=(const MuonVariables& other){
   return *this;
 }
 
+
+const std::string MuonObject::colName = "muons";
+
 MuonObject::MuonObject() :
   ParticleObject(),
   extras(),
@@ -109,3 +112,8 @@ void MuonObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& 
 }
 
 ParticleObject::LorentzVector_t::Scalar MuonObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }
+ParticleObject::LorentzVector_t MuonObject::uncorrected_p4() const{
+  ParticleObject::LorentzVector_t res;
+  res = PolarLorentzVector_t(this->uncorrected_pt(), momentum.Eta(), momentum.Phi(), momentum.M());
+  return res;
+}

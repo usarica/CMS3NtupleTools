@@ -71,6 +71,9 @@ namespace MuonSelectionHelpers{
   constexpr float etaThr_skim_soft = 2.4;
 
   // Isolation thresholds
+  // Note:
+  // These threshold are for the POG id type.
+  // H4l id type should use 0.35 instead.
   constexpr float isoThr_veto = 0.15;
   constexpr float isoThr_loose = 0.15;
   constexpr float isoThr_medium = 0.15;

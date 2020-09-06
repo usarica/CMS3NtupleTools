@@ -1,7 +1,10 @@
 #ifndef MUONOBJECT_H
 #define MUONOBJECT_H
 
+#include <string>
+
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
+
 #include "ParticleObject.h"
 
 
@@ -79,6 +82,8 @@ public:
 
 class MuonObject : public ParticleObject{
 public:
+  static const std::string colName;
+
   MuonVariables extras;
   float currentSystScale;
 
@@ -95,6 +100,7 @@ public:
   void applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar const& dR_fsr, ParticleObject::LorentzVector_t::Scalar const& pt_fsr);
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
+  ParticleObject::LorentzVector_t uncorrected_p4() const;
 
 };
 

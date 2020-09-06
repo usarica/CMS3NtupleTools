@@ -4,6 +4,7 @@
 #include <DataFormats/Math/interface/deltaR.h>
 #include <Math/GenVector/DisplacementVector2D.h>
 #include <DataFormats/Math/interface/Vector3D.h>
+
 #include <CMS3/Dictionaries/interface/CommonTypedefs.h>
 
 #include "CMSLorentzVector.h"
@@ -17,9 +18,10 @@ public:
   typedef math::PtEtaPhiMLorentzVector PolarLorentzVector_t;
   typedef math::XYZVectorD Vector3D_t;
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
+  typedef cms3_listIndex_long_t UniqueId_t;
 
   cms3_id_t id;
-  unsigned int uniqueIdentifier;
+  UniqueId_t uniqueIdentifier;
   unsigned long long selectionBits;
   LorentzVector_t momentum;
 
@@ -40,7 +42,7 @@ public:
   void setPdgId(cms3_id_t const& id_){ id=id_; }
   void setP4(LorentzVector_t const& momentum_){ momentum=momentum_; }
 
-  void setUniqueIdentifier(unsigned short uid_){ uniqueIdentifier = uid_; }
+  void setUniqueIdentifier(UniqueId_t uid_){ uniqueIdentifier = uid_; }
 
   void resetSelectionBits(){ selectionBits=0; }
   void setSelectionBit(unsigned int ibit, bool val);

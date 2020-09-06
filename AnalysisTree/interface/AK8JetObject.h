@@ -1,6 +1,8 @@
 #ifndef AK8JETOBJECT_H
 #define AK8JETOBJECT_H
 
+#include <string>
+
 #include "ParticleObject.h"
 
 
@@ -42,6 +44,8 @@ protected:
 
 public:
   constexpr static float ConeRadiusConstant = 0.8;
+
+  static const std::string colName;
 
   AK8JetVariables extras;
   float currentSystScale;

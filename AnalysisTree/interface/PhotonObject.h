@@ -1,6 +1,8 @@
 #ifndef PHOTONOBJECT_H
 #define PHOTONOBJECT_H
 
+#include <string>
+
 #include "ParticleObject.h"
 
 
@@ -84,6 +86,8 @@ public:
 
 class PhotonObject : public ParticleObject{
 public:
+  static const std::string colName;
+
   PhotonVariables extras;
   float currentSystScale;
 
@@ -106,6 +110,7 @@ public:
   bool isGap() const{ return this->isAnyGap(); }
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
+  ParticleObject::LorentzVector_t uncorrected_p4() const;
 
 };
 

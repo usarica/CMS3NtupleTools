@@ -26,6 +26,9 @@ PhotonVariables& PhotonVariables::operator=(const PhotonVariables& other){
   return *this;
 }
 
+
+const std::string PhotonObject::colName = "photons";
+
 PhotonObject::PhotonObject() :
   ParticleObject(),
   extras(),
@@ -94,3 +97,4 @@ void PhotonObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
 }
 
 ParticleObject::LorentzVector_t::Scalar PhotonObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }
+ParticleObject::LorentzVector_t PhotonObject::uncorrected_p4() const{ return this->p4()/currentSystScale; }

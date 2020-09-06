@@ -25,6 +25,9 @@ AK8JetVariables& AK8JetVariables::operator=(const AK8JetVariables& other){
   return *this;
 }
 
+
+const std::string AK8JetObject::colName = "ak8jets";
+
 AK8JetObject::AK8JetObject() :
   ParticleObject(),
   mom_original(0, 0, 0, 0),

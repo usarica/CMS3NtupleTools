@@ -1,7 +1,10 @@
 #ifndef ELECTRONOBJECT_H
 #define ELECTRONOBJECT_H
 
+#include <string>
+
 #include "ParticleObject.h"
+
 
 #define ELECTRONS_HAVE_FALL17V1_CUTBASED 0
 
@@ -112,6 +115,8 @@ public:
 
 class ElectronObject : public ParticleObject{
 public:
+  static const std::string colName;
+
   ElectronVariables extras;
   float currentSystScale;
 
@@ -136,6 +141,7 @@ public:
   bool isGap() const{ return this->isAnyGap(); }
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
+  ParticleObject::LorentzVector_t uncorrected_p4() const;
 
 };
 

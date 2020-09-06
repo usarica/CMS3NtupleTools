@@ -17,7 +17,7 @@ PHOTON_VARIABLE(float, phi, 0) \
 PHOTON_VARIABLE(float, mass, 0)
 
 
-const std::string PhotonHandler::colName = "photons";
+const std::string PhotonHandler::colName = PhotonObject::colName;
 
 PhotonHandler::PhotonHandler() :
   IvyBase(),

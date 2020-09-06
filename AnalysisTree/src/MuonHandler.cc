@@ -17,7 +17,7 @@ MUON_VARIABLE(float, mass, 0) \
 MUON_VARIABLE(cms3_charge_t, charge, 0)
 
 
-const std::string MuonHandler::colName = "muons";
+const std::string MuonHandler::colName = MuonObject::colName;
 
 MuonHandler::MuonHandler() :
   IvyBase(),

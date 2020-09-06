@@ -29,8 +29,8 @@ AK8JET_RECO_VARIABLES
 JETMET_METXY_VERTEX_VARIABLE(unsigned int, nvtxs, 0)
 
 
-const std::string JetMETHandler::colName_ak4jets = "ak4jets";
-const std::string JetMETHandler::colName_ak8jets = "ak8jets";
+const std::string& JetMETHandler::colName_ak4jets = AK4JetObject::colName;
+const std::string& JetMETHandler::colName_ak8jets = AK8JetObject::colName;
 const std::string JetMETHandler::colName_pfmet = "pfmet";
 const std::string JetMETHandler::colName_pfpuppimet = "puppimet";
 const std::string JetMETHandler::colName_vertices = "vtxs";

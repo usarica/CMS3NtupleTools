@@ -19,7 +19,7 @@ ELECTRON_VARIABLE(float, mass, 0) \
 ELECTRON_VARIABLE(cms3_charge_t, charge, 0)
 
 
-const std::string ElectronHandler::colName = "electrons";
+const std::string ElectronHandler::colName = ElectronObject::colName;
 
 ElectronHandler::ElectronHandler() :
   IvyBase(),
