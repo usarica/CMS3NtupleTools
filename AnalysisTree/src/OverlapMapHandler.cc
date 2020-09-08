@@ -22,6 +22,8 @@ template<> void OverlapMapHandler<MuonObject, AK4JetObject>::bookBranches(BaseTr
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -71,6 +73,7 @@ template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMap
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 
@@ -88,6 +91,8 @@ template<> void OverlapMapHandler<MuonObject, AK8JetObject>::bookBranches(BaseTr
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -137,6 +142,7 @@ template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMap
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 
@@ -154,6 +160,8 @@ template<> void OverlapMapHandler<ElectronObject, AK4JetObject>::bookBranches(Ba
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -203,6 +211,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 
@@ -220,6 +229,8 @@ template<> void OverlapMapHandler<ElectronObject, AK8JetObject>::bookBranches(Ba
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -269,6 +280,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 
@@ -286,6 +298,8 @@ template<> void OverlapMapHandler<PhotonObject, AK4JetObject>::bookBranches(Base
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -335,6 +349,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 
@@ -352,6 +367,8 @@ template<> void OverlapMapHandler<PhotonObject, AK8JetObject>::bookBranches(Base
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -401,5 +418,6 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
     }
   }
 
+  this->cacheEvent();
   return true;
 }

@@ -31,6 +31,8 @@ PFCandidateHandler::PFCandidateHandler() :
 
 
 bool PFCandidateHandler::constructPFCandidates(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -88,6 +90,7 @@ bool PFCandidateHandler::constructPFCandidates(SystematicsHelpers::SystematicVar
   // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
+  this->cacheEvent();
   return true;
 }
 

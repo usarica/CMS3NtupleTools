@@ -18,7 +18,7 @@ protected:
 public:
   OverlapMapElementBase() : index_pair(-1,-1){}
   OverlapMapElementBase(OverlapMapElementBase const& other) : index_pair(other.index_pair){}
-  ~OverlapMapElementBase(){}
+  virtual ~OverlapMapElementBase(){}
 
   bool isValid() const{ return index_pair.first>=0 && index_pair.second>=0; }
 
@@ -34,6 +34,8 @@ public:
 template<typename T, typename U> struct OverlapMapElementExtras{
   OverlapMapElementExtras(){}
   OverlapMapElementExtras(OverlapMapElementExtras<T, U> const& other){}
+  virtual ~OverlapMapElementExtras(){}
+
   void swap(OverlapMapElementExtras& other){}
   OverlapMapElementExtras<T, U>& operator=(OverlapMapElementExtras<T, U> const& other){
     OverlapMapElementExtras<T, U> tmp(other);
@@ -247,7 +249,7 @@ protected:
 public:
   OverlapMapElement() : OverlapMapElementBase(), OverlapMapElementExtras<T, U>(), linkedElementPair(nullptr, nullptr){}
   OverlapMapElement(OverlapMapElement const& other) : OverlapMapElementBase(other), OverlapMapElementExtras<T, U>(other), linkedElementPair(other.linkedElementPair){}
-  ~OverlapMapElement(){}
+  virtual ~OverlapMapElement(){}
 
   void swap(OverlapMapElement<T, U>& other){
     std::swap(index_pair, other.index_pair);

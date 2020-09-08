@@ -77,6 +77,8 @@ JetMETHandler::JetMETHandler() :
 }
 
 void JetMETHandler::clear(){
+  this->resetCache();
+
   for (auto*& prod:ak4jets) delete prod;
   ak4jets.clear();
   for (auto*& prod:ak8jets) delete prod;
@@ -90,6 +92,8 @@ bool JetMETHandler::constructJetMET(
   std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons,
   std::vector<PFCandidateObject*> const* pfcandidates
 ){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -101,6 +105,7 @@ bool JetMETHandler::constructJetMET(
     constructMET(syst) && assignMETXYShifts(syst) && applyMETParticleShifts(hasOverlapMaps && (pfcandidates!=nullptr), muons, electrons, photons)
     );
 
+  if (res) this->cacheEvent();
   return res;
 }
 
@@ -249,7 +254,7 @@ bool JetMETHandler::constructAK8Jets(SystematicsHelpers::SystematicVariationType
 
   return true;
 }
-bool JetMETHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates){
+bool JetMETHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const{
   if (!pfcandidates) return true;
 
   for (auto const& part:(*pfcandidates)){
@@ -264,6 +269,14 @@ bool JetMETHandler::associatePFCandidates(std::vector<PFCandidateObject*> const*
 
 bool JetMETHandler::linkOverlapElements() const{
   if (!hasOverlapMaps) return true;
+
+  overlapMap_muons_ak4jets->constructOverlapMaps();
+  overlapMap_electrons_ak4jets->constructOverlapMaps();
+  overlapMap_photons_ak4jets->constructOverlapMaps();
+
+  overlapMap_muons_ak8jets->constructOverlapMaps();
+  overlapMap_electrons_ak8jets->constructOverlapMaps();
+  overlapMap_photons_ak8jets->constructOverlapMaps();
 
   for (auto const& ome:overlapMap_muons_ak4jets->getProducts()) ome->linkSecondElement(ak4jets);
   for (auto const& ome:overlapMap_electrons_ak4jets->getProducts()) ome->linkSecondElement(ak4jets);

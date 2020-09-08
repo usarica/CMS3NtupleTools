@@ -24,7 +24,10 @@ const std::string ElectronHandler::colName = ElectronObject::colName;
 ElectronHandler::ElectronHandler() :
   IvyBase(),
   has_mvaid_extras(false),
-  has_genmatching(false)
+  has_genmatching(false),
+  hasOverlapMaps(false),
+  overlapMap_electrons_ak4jets(nullptr),
+  overlapMap_electrons_ak8jets(nullptr)
 {
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME);
   ELECTRON_MOMENTUM_VARIABLES;
@@ -32,10 +35,45 @@ ElectronHandler::ElectronHandler() :
 #undef ELECTRON_VARIABLE
 }
 
-bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst){
+
+bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<PFCandidateObject*> const* pfcandidates){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
+  bool res = (constructElectronObjects(syst) && associatePFCandidates(pfcandidates) && linkOverlapElements());
+
+  if (res) this->cacheEvent();
+  return res;
+}
+
+bool ElectronHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const{
+  if (!pfcandidates) return true;
+
+  for (auto const& pfcand:(*pfcandidates)){
+    auto const& associated_particle_indices = pfcand->extras.matched_electron_index_list;
+    for (auto const& part:productList){
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+    }
+  }
+
+  return true;
+}
+
+bool ElectronHandler::linkOverlapElements() const{
+  if (!hasOverlapMaps) return true;
+
+  overlapMap_electrons_ak4jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_electrons_ak4jets->getProducts()) ome->linkFirstElement(productList);
+
+  overlapMap_electrons_ak8jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_electrons_ak8jets->getProducts()) ome->linkFirstElement(productList);
+
+  return true;
+}
+
+bool ElectronHandler::constructElectronObjects(SystematicsHelpers::SystematicVariationTypes const& syst){
 #define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
   ELECTRON_MOMENTUM_VARIABLES;
   ELECTRON_VARIABLES;
@@ -54,11 +92,11 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   }
 #undef ELECTRON_VARIABLE
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "ElectronHandler::constructElectrons: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "ElectronHandler::constructElectronObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "ElectronHandler::constructElectrons: All variables are set up!" << endl;
+  if (this->verbosity>=TVar::DEBUG) MELAout << "ElectronHandler::constructElectronObjects: All variables are set up!" << endl;
 
   if (itBegin_charge == itEnd_charge) return true; // Construction is successful, it is just that no electrons exist.
 
@@ -71,7 +109,7 @@ bool ElectronHandler::constructElectrons(SystematicsHelpers::SystematicVariation
   {
     size_t ip=0;
     while (it_charge != itEnd_charge){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "ElectronHandler::constructElectrons: Attempting electron " << ip << "..." << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "ElectronHandler::constructElectronObjects: Attempting electron " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -164,6 +202,15 @@ void ElectronHandler::bookBranches(BaseTree* tree){
     ELECTRON_GENINFO_VARIABLES;
   }
 #undef ELECTRON_VARIABLE
+}
+
+void ElectronHandler::registerOverlapMaps(
+  OverlapMapHandler<ElectronObject, AK4JetObject>& overlapMap_electrons_ak4jets_,
+  OverlapMapHandler<ElectronObject, AK8JetObject>& overlapMap_electrons_ak8jets_
+){
+  overlapMap_electrons_ak4jets = &overlapMap_electrons_ak4jets_;
+  overlapMap_electrons_ak8jets = &overlapMap_electrons_ak8jets_;
+  hasOverlapMaps = true;
 }
 
 

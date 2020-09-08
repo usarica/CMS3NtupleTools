@@ -26,6 +26,8 @@ SuperclusterHandler::SuperclusterHandler() : IvyBase()
 
 
 bool SuperclusterHandler::constructSuperclusters(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -85,6 +87,7 @@ bool SuperclusterHandler::constructSuperclusters(SystematicsHelpers::SystematicV
     // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
+  this->cacheEvent();
   return true;
 }
 

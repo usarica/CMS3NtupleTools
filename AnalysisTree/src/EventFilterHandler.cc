@@ -39,6 +39,8 @@ EventFilterHandler::EventFilterHandler() :
 }
 
 void EventFilterHandler::clear(){
+  this->resetCache();
+
   product_passCommonSkim = true;
   product_uniqueEvent = true;
   for (auto*& prod:product_HLTpaths) delete prod;
@@ -48,6 +50,8 @@ void EventFilterHandler::clear(){
 }
 
 bool EventFilterHandler::constructFilters(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -63,6 +67,7 @@ bool EventFilterHandler::constructFilters(){
     this->accumulateRunLumiEventBlock()
     );
 
+  if (res) this->cacheEvent();
   return res;
 }
 

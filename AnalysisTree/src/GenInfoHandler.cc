@@ -28,6 +28,8 @@ GenInfoHandler::GenInfoHandler() :
 {}
 
 void GenInfoHandler::clear(){
+  this->resetCache();
+
   delete genInfo; genInfo=nullptr;
 
   for (auto*& part:lheparticles) delete part;
@@ -38,10 +40,14 @@ void GenInfoHandler::clear(){
 }
 
 bool GenInfoHandler::constructGenInfo(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
   bool res = constructCoreGenInfo(syst) && constructLHEParticles() && constructGenParticles();
+
+  if (res) this->cacheEvent();
   return res;
 }
 

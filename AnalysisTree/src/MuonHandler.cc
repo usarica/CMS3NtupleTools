@@ -22,7 +22,10 @@ const std::string MuonHandler::colName = MuonObject::colName;
 MuonHandler::MuonHandler() :
   IvyBase(),
   has_precomputed_timing(false),
-  has_genmatching(false)
+  has_genmatching(false),
+  hasOverlapMaps(false),
+  overlapMap_muons_ak4jets(nullptr),
+  overlapMap_muons_ak8jets(nullptr)
 {
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME);
   MUON_MOMENTUM_VARIABLES;
@@ -32,10 +35,44 @@ MuonHandler::MuonHandler() :
 }
 
 
-bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<PFCandidateObject*> const* pfcandidates){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
+  bool res = (constructMuonObjects(syst) && associatePFCandidates(pfcandidates) && linkOverlapElements());
+
+  if (res) this->cacheEvent();
+  return res;
+}
+
+bool MuonHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const{
+  if (!pfcandidates) return true;
+
+  for (auto const& pfcand:(*pfcandidates)){
+    auto const& associated_particle_indices = pfcand->extras.matched_muon_index_list;
+    for (auto const& part:productList){
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+    }
+  }
+
+  return true;
+}
+
+bool MuonHandler::linkOverlapElements() const{
+  if (!hasOverlapMaps) return true;
+
+  overlapMap_muons_ak4jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_muons_ak4jets->getProducts()) ome->linkFirstElement(productList);
+
+  overlapMap_muons_ak8jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_muons_ak8jets->getProducts()) ome->linkFirstElement(productList);
+
+  return true;
+}
+
+bool MuonHandler::constructMuonObjects(SystematicsHelpers::SystematicVariationTypes const& syst){
 #define MUON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
   MUON_MOMENTUM_VARIABLES;
   MUON_VARIABLES;
@@ -59,11 +96,11 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
 #undef MUON_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "MuonHandler::constructMuons: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "MuonHandler::constructMuonObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: All variables are set up!" << endl;
+  if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuonObjects: All variables are set up!" << endl;
 
   if (itBegin_charge == itEnd_charge) return true; // Construction is successful, it is just that no muons exist.
 
@@ -76,7 +113,7 @@ bool MuonHandler::constructMuons(SystematicsHelpers::SystematicVariationTypes co
   {
     size_t ip=0;
     while (it_charge != itEnd_charge){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuons: Attempting muon " << ip << "..." << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "MuonHandler::constructMuonObjects: Attempting muon " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -185,6 +222,15 @@ void MuonHandler::bookBranches(BaseTree* tree){
     MUON_GENINFO_VARIABLES;
   }
 #undef MUON_VARIABLE
+}
+
+void MuonHandler::registerOverlapMaps(
+  OverlapMapHandler<MuonObject, AK4JetObject>& overlapMap_muons_ak4jets_,
+  OverlapMapHandler<MuonObject, AK8JetObject>& overlapMap_muons_ak8jets_
+){
+  overlapMap_muons_ak4jets = &overlapMap_muons_ak4jets_;
+  overlapMap_muons_ak8jets = &overlapMap_muons_ak8jets_;
+  hasOverlapMaps = true;
 }
 
 

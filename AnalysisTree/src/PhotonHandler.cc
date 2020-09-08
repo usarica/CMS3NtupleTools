@@ -21,7 +21,10 @@ const std::string PhotonHandler::colName = PhotonObject::colName;
 
 PhotonHandler::PhotonHandler() :
   IvyBase(),
-  has_genmatching(false)
+  has_genmatching(false),
+  hasOverlapMaps(false),
+  overlapMap_photons_ak4jets(nullptr),
+  overlapMap_photons_ak8jets(nullptr)
 {
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME);
   PHOTON_MOMENTUM_VARIABLES;
@@ -30,10 +33,44 @@ PhotonHandler::PhotonHandler() :
 }
 
 
-bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst){
+bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<PFCandidateObject*> const* pfcandidates){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
+  bool res = (constructPhotonObjects(syst) && associatePFCandidates(pfcandidates) && linkOverlapElements());
+
+  if (res) this->cacheEvent();
+  return res;
+}
+
+bool PhotonHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const{
+  if (!pfcandidates) return true;
+
+  for (auto const& pfcand:(*pfcandidates)){
+    auto const& associated_particle_indices = pfcand->extras.matched_photon_index_list;
+    for (auto const& part:productList){
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+    }
+  }
+
+  return true;
+}
+
+bool PhotonHandler::linkOverlapElements() const{
+  if (!hasOverlapMaps) return true;
+
+  overlapMap_photons_ak4jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_photons_ak4jets->getProducts()) ome->linkFirstElement(productList);
+
+  overlapMap_photons_ak8jets->constructOverlapMaps();
+  for (auto const& ome:overlapMap_photons_ak8jets->getProducts()) ome->linkFirstElement(productList);
+
+  return true;
+}
+
+bool PhotonHandler::constructPhotonObjects(SystematicsHelpers::SystematicVariationTypes const& syst){
 #define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME;
   PHOTON_MOMENTUM_VARIABLES;
   PHOTON_VARIABLES;
@@ -50,11 +87,11 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
 #undef PHOTON_VARIABLE
 
   if (!allVariablesPresent){
-    if (this->verbosity>=TVar::ERROR) MELAerr << "PhotonHandler::constructPhotons: Not all variables are consumed properly!" << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "PhotonHandler::constructPhotonObjects: Not all variables are consumed properly!" << endl;
     assert(0);
   }
 
-  if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotons: All variables are set up!" << endl;
+  if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotonObjects: All variables are set up!" << endl;
 
   if (itBegin_pt == itEnd_pt) return true; // Construction is successful, it is just that no photons exist.
 
@@ -67,7 +104,7 @@ bool PhotonHandler::constructPhotons(SystematicsHelpers::SystematicVariationType
   {
     size_t ip=0;
     while (it_pt != itEnd_pt){
-      if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotons: Attempting photon " << ip << "..." << endl;
+      if (this->verbosity>=TVar::DEBUG) MELAout << "PhotonHandler::constructPhotonObjects: Attempting photon " << ip << "..." << endl;
 
       ParticleObject::LorentzVector_t momentum;
       momentum = ParticleObject::PolarLorentzVector_t(*it_pt, *it_eta, *it_phi, *it_mass); // Yes you have to do this on a separate line because CMSSW...
@@ -145,6 +182,15 @@ void PhotonHandler::bookBranches(BaseTree* tree){
     PHOTON_GENINFO_VARIABLES;
   }
 #undef PHOTON_VARIABLE
+}
+
+void PhotonHandler::registerOverlapMaps(
+  OverlapMapHandler<PhotonObject, AK4JetObject>& overlapMap_photons_ak4jets_,
+  OverlapMapHandler<PhotonObject, AK8JetObject>& overlapMap_photons_ak8jets_
+){
+  overlapMap_photons_ak4jets = &overlapMap_photons_ak4jets_;
+  overlapMap_photons_ak8jets = &overlapMap_photons_ak8jets_;
+  hasOverlapMaps = true;
 }
 
 

@@ -43,7 +43,7 @@ protected:
 
   bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
-  bool associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates);
+  bool associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const;
   bool linkOverlapElements() const;
   bool applyJetCleaning(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 

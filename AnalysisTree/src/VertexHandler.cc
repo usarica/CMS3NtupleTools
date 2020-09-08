@@ -29,6 +29,8 @@ VertexHandler::VertexHandler() :
 }
 
 void VertexHandler::clear(){
+  this->resetCache();
+
 #define VERTEX_EVENT_VARIABLE(TYPE, NAME, DEFVAL) product_##NAME = DEFVAL;
   VERTEX_EVENT_VARIABLES;
 #undef VERTEX_EVENT_VARIABLE
@@ -39,6 +41,8 @@ void VertexHandler::clear(){
 }
 
 bool VertexHandler::constructVertices(){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -93,6 +97,7 @@ bool VertexHandler::constructVertices(){
     }
   }
 
+  this->cacheEvent();
   return true;
 }
 

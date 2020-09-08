@@ -58,6 +58,8 @@ SimEventHandler::~SimEventHandler(){
 }
 
 void SimEventHandler::clear(){
+  this->resetCache();
+
   product_rnds.clear();
   theChosenDataPeriod = "";
   hasHEM2018Issue = false;
@@ -207,12 +209,15 @@ void SimEventHandler::clearPUHistograms(){
 }
 
 bool SimEventHandler::constructSimEvent(SystematicsHelpers::SystematicVariationTypes const& syst){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
   if (SampleHelpers::checkSampleIsData(currentTree->sampleIdentifier)) return true;
 
   bool res = this->constructRandomNumbers() && this->constructPUWeight(syst) && this->constructL1PrefiringWeight(syst);
 
+  if (res) this->cacheEvent();
   return res;
 }
 bool SimEventHandler::constructRandomNumbers(){

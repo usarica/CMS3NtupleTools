@@ -31,6 +31,8 @@ IsotrackHandler::IsotrackHandler() : IvyBase()
 }
 
 bool IsotrackHandler::constructIsotracks(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -87,7 +89,10 @@ bool IsotrackHandler::constructIsotracks(std::vector<MuonObject*> const* muons, 
     // Sort particles
   ParticleObjectHelpers::sortByGreaterPt(productList);
 
-  return applyCleaning(muons, electrons);
+  bool res = applyCleaning(muons, electrons);
+
+  if (res) this->cacheEvent();
+  return res;
 }
 
 bool IsotrackHandler::applyCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons){

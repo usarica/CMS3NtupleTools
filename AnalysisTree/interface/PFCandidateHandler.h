@@ -15,7 +15,7 @@ public:
 protected:
   std::vector<ProductType_t*> productList;
 
-  void clear(){ for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
+  void clear(){ this->resetCache(); for (ProductType_t*& prod:productList) delete prod; productList.clear(); }
 
 public:
   // Constructors

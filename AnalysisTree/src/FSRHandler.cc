@@ -33,6 +33,8 @@ FSRHandler::FSRHandler() : IvyBase()
 }
 
 void FSRHandler::clear(){
+  this->resetCache();
+
   muons_postFSR.clear();
   electrons_postFSR.clear();
   photons_postFSR.clear();
@@ -46,6 +48,8 @@ void FSRHandler::clear(){
 }
 
 bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
+  if (this->isAlreadyCached()) return true;
+
   clear();
   if (!currentTree) return false;
 
@@ -61,8 +65,10 @@ bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons
     if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructPostFSRParticles: The input photon collection cannot be empty!" << endl;
     assert(0);
   }
+  bool res = constructFSRObjects() && reconstructPostFSRObjects(muons, electrons, photons);
 
-  return constructFSRObjects() && reconstructPostFSRObjects(muons, electrons, photons);
+  if (res) this->cacheEvent();
+  return res;
 }
 
 bool FSRHandler::constructFSRObjects(){
