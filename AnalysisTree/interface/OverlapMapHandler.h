@@ -30,7 +30,20 @@ public:
 
   void bookBranches(BaseTree* tree);
 
+  ProductType_t* getMatchingOverlapMap(T* firstElement, U* secondElement) const;
+
 };
+
+template<typename T, typename U> typename OverlapMapHandler<T, U>::ProductType_t* OverlapMapHandler<T, U>::getMatchingOverlapMap(T* firstElement, U* secondElement) const{
+  ProductType_t* res = nullptr;
+  for (auto const& product:productList){
+    if (product->hasIdenticalElements(firstElement, secondElement)){
+      res = product;
+      break;
+    }
+  }
+  return res;
+}
 
 
 #define OVERLAPMAP_SPECIALIZATIONS \

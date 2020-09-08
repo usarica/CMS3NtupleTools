@@ -265,14 +265,26 @@ public:
   bool linkFirstElement(std::vector<T*> const& elist);
   bool linkSecondElement(std::vector<U*> const& elist);
 
+  bool hasIdenticalElements(T* firstElement, U* secondElement) const;
+
   ParticleObject::LorentzVector_t p4_common() const{ return ParticleObject::LorentzVector_t(0, 0, 0, 0); }
   ParticleObject::LorentzVector_t p4_commonMuCands_goodMET() const{ return ParticleObject::LorentzVector_t(0, 0, 0, 0); }
 
 };
+template<typename T, typename U> bool OverlapMapElement<T, U>::hasIdenticalElements(T* firstElement, U* secondElement) const{
+  if (this->isLinked()) return (firstElement == linkedElementPair.first && secondElement == linkedElementPair.second);
+  else if (firstElement && secondElement && this->isValid()) return (
+    (ParticleObject::UniqueId_t) index_pair.first == firstElement->getUniqueIdentifier()
+    &&
+    (ParticleObject::UniqueId_t) index_pair.second == secondElement->getUniqueIdentifier()
+    );
+  else return false;
+}
+
 template<typename T, typename U> bool OverlapMapElement<T, U>::linkFirstElement(std::vector<T*> const& elist){
   if (index_pair.first<0) return false;
   for (auto const& ee:elist){
-    if ((ParticleObject::UniqueId_t) index_pair.first == ee->uniqueIdentifier){
+    if ((ParticleObject::UniqueId_t) index_pair.first == ee->getUniqueIdentifier()){
       linkedElementPair.first = ee;
       return true;
     }
@@ -282,7 +294,7 @@ template<typename T, typename U> bool OverlapMapElement<T, U>::linkFirstElement(
 template<typename T, typename U> bool OverlapMapElement<T, U>::linkSecondElement(std::vector<U*> const& elist){
   if (index_pair.second<0) return false;
   for (auto const& ee:elist){
-    if ((ParticleObject::UniqueId_t) index_pair.second == ee->uniqueIdentifier){
+    if ((ParticleObject::UniqueId_t) index_pair.second == ee->getUniqueIdentifier()){
       linkedElementPair.second = ee;
       return true;
     }

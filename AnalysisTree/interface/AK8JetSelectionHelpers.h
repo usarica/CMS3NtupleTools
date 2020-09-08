@@ -34,7 +34,8 @@ namespace AK8JetSelectionHelpers{
   const SelectionBits bit_preselectionTight_id = kTightId;
   const SelectionBits bit_preselectionTight_kin = kTightKin;
 
-  void setSelectionBits(AK8JetObject& part);
+  void setSelectionBits(AK8JetObject& part, bool resetIDs = true, bool resetKinematics = true);
+
 }
 
 

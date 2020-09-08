@@ -170,8 +170,8 @@ float EventFilterHandler::getTriggerWeight(
             MELAout << "EventFilterHandler::getTriggerWeight: Checking " << prod->name << " trigger objects:" << endl;
             MELAout << "\t- Number of passed trigger objects: " << passedTriggerObjects.size() << endl;
             MELAout << "\t\t- Trigger object types: ";
-            std::vector<int> TOtypes;
-            for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->id);
+            std::vector<trigger::TriggerObjectType> TOtypes;
+            for (auto const& TOobj:passedTriggerObjects) TOtypes.push_back(TOobj->getTriggerObjectType());
             MELAout << TOtypes << endl;
             MELAout << "\t- Number of muons: " << muons_trigcheck.size() << endl;
             MELAout << "\t- Number of electrons: " << electrons_trigcheck.size() << endl;

@@ -22,6 +22,9 @@ template<> void OverlapMapHandler<MuonObject, AK4JetObject>::bookBranches(BaseTr
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
@@ -85,6 +88,9 @@ template<> void OverlapMapHandler<MuonObject, AK8JetObject>::bookBranches(BaseTr
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
@@ -148,6 +154,9 @@ template<> void OverlapMapHandler<ElectronObject, AK4JetObject>::bookBranches(Ba
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
@@ -211,6 +220,9 @@ template<> void OverlapMapHandler<ElectronObject, AK8JetObject>::bookBranches(Ba
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
@@ -274,6 +286,9 @@ template<> void OverlapMapHandler<PhotonObject, AK4JetObject>::bookBranches(Base
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
@@ -337,6 +352,9 @@ template<> void OverlapMapHandler<PhotonObject, AK8JetObject>::bookBranches(Base
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps(){
+  clear();
+  if (!currentTree) return false;
+
   bool allVariablesPresent = true;
 
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \

@@ -2,6 +2,7 @@
 #define MUONSELECTIONHELPERS_H
 
 #include "MuonObject.h"
+#include "PFCandidateObject.h"
 
 
 namespace MuonSelectionHelpers{
@@ -128,6 +129,9 @@ namespace MuonSelectionHelpers{
   // Get functions for user-configurable flags
   bool getAllowProbeIdInLooseSelection();
   bool getAllowFakeableInLooseSelection();
+
+  // Muon selectors for PFCandidateObjects
+  bool testGoodMETPFMuon(PFCandidateObject const& part);
 
 }
 

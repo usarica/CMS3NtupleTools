@@ -67,6 +67,10 @@ void MuonSelectionHelpers::doRequireTrackerIsolationInFakeable(float const& isot
 bool MuonSelectionHelpers::getAllowProbeIdInLooseSelection(){ return allowProbeIdInLooseSelection; }
 bool MuonSelectionHelpers::getAllowFakeableInLooseSelection(){ return allowFakeableInLooseSelection; }
 
+bool MuonSelectionHelpers::testGoodMETPFMuon(PFCandidateObject const& part){
+  // The following selection requirements should be identical to NtupleMaker::MuonSelectionHelpers:
+  return (part.isGlobalMuon() || part.isStandaloneMuon());
+}
 
 float MuonSelectionHelpers::absPFIso_DR0p3(MuonObject const& part){ return part.extras.pfIso03_comb_nofsr; }
 float MuonSelectionHelpers::relPFIso_DR0p3(MuonObject const& part){ float pt = part.pt(); return (pt>0. ? absPFIso_DR0p3(part)/pt : 0.f); }

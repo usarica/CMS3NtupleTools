@@ -18,14 +18,14 @@ public:
   typedef math::PtEtaPhiMLorentzVector PolarLorentzVector_t;
   typedef math::XYZVectorD Vector3D_t;
   typedef ROOT::Math::DisplacementVector2D< ROOT::Math::Cartesian2D<double> > Vector2D_t;
-  typedef cms3_listIndex_long_t UniqueId_t;
+  typedef cms3_listIndex_short_t UniqueId_t;
 
+protected:
   cms3_id_t id;
   UniqueId_t uniqueIdentifier;
   unsigned long long selectionBits;
   LorentzVector_t momentum;
 
-protected:
   std::vector<ParticleObject*> mothers;
   std::vector<ParticleObject*> daughters;
 
@@ -56,8 +56,8 @@ public:
   LorentzVector_t& p4(){ return momentum; }
   virtual void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const&){}
 
-  unsigned int const& getUniqueIdentifier() const{ return uniqueIdentifier; }
-  unsigned int& getUniqueIdentifier(){ return uniqueIdentifier; }
+  UniqueId_t const& getUniqueIdentifier() const{ return uniqueIdentifier; }
+  UniqueId_t& getUniqueIdentifier(){ return uniqueIdentifier; }
 
   unsigned long long const& getSelectionBits() const{ return selectionBits; }
   unsigned long long& getSelectionBits(){ return selectionBits; }
@@ -74,6 +74,7 @@ public:
   LorentzVector_t::Scalar phi() const{ return momentum.Phi(); }
   LorentzVector_t::Scalar rapidity() const{ return momentum.Rapidity(); }
   virtual LorentzVector_t::Scalar uncorrected_pt() const{ return pt(); }
+  virtual LorentzVector_t uncorrected_p4() const{ return p4(); }
   LorentzVector_t::Scalar energy() const{ return this->t(); }
   LorentzVector_t::Scalar mass() const{ return this->m(); }
   LorentzVector_t::Scalar dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }

@@ -50,18 +50,19 @@ bool AK8JetSelectionHelpers::testPreselectionTight(AK8JetObject const& part){
     part.testSelectionBit(bit_preselectionTight_kin)
     );
 }
-void AK8JetSelectionHelpers::setSelectionBits(AK8JetObject& part){
+void AK8JetSelectionHelpers::setSelectionBits(AK8JetObject& part, bool resetIDs, bool resetKinematics){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
-  part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
+  if (resetKinematics) part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
-  part.setSelectionBit(kLooseId, testLooseId(part));
-  part.setSelectionBit(kLooseKin, testLooseKin(part));
+  if (resetIDs) part.setSelectionBit(kLooseId, testLooseId(part));
+  if (resetKinematics) part.setSelectionBit(kLooseKin, testLooseKin(part));
 
-  part.setSelectionBit(kTightId, testTightId(part));
-  part.setSelectionBit(kTightKin, testTightKin(part));
+  if (resetIDs) part.setSelectionBit(kTightId, testTightId(part));
+  if (resetKinematics) part.setSelectionBit(kTightKin, testTightKin(part));
 
   // The functions below test the bits set in the steps above.
+  // They are always reset.
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }

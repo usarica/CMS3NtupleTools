@@ -116,29 +116,31 @@ void AK4JetSelectionHelpers::setPUIdWP(SelectionBits flag){
 }
 void AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(bool flag){ applyTightLeptonVetoIdToJets = flag; }
 
-void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part){
+void AK4JetSelectionHelpers::setSelectionBits(AK4JetObject& part, bool resetIDs, bool resetKinematics){
   static_assert(std::numeric_limits<unsigned long long>::digits >= nSelectionBits);
 
-  part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
+  if (resetKinematics) part.setSelectionBit(kGenPtEta, testPtEtaGen(part));
 
-  part.setSelectionBit(kLoosePUJetId, testLoosePUJetId(part));
-  part.setSelectionBit(kMediumPUJetId, testMediumPUJetId(part));
-  part.setSelectionBit(kTightPUJetId, testTightPUJetId(part));
+  if (resetIDs) part.setSelectionBit(kLoosePUJetId, testLoosePUJetId(part));
+  if (resetIDs) part.setSelectionBit(kMediumPUJetId, testMediumPUJetId(part));
+  if (resetIDs) part.setSelectionBit(kTightPUJetId, testTightPUJetId(part));
 
-  part.setSelectionBit(kLoosePUJetId_default, testLoosePUJetId_Default(part));
-  part.setSelectionBit(kMediumPUJetId_default, testMediumPUJetId_Default(part));
-  part.setSelectionBit(kTightPUJetId_default, testTightPUJetId_Default(part));
+  if (resetIDs) part.setSelectionBit(kLoosePUJetId_default, testLoosePUJetId_Default(part));
+  if (resetIDs) part.setSelectionBit(kMediumPUJetId_default, testMediumPUJetId_Default(part));
+  if (resetIDs) part.setSelectionBit(kTightPUJetId_default, testTightPUJetId_Default(part));
 
-  part.setSelectionBit(kTightLeptonVetoId, testTightLeptonVetoId(part));
+  if (resetIDs) part.setSelectionBit(kTightLeptonVetoId, testTightLeptonVetoId(part));
 
-  part.setSelectionBit(kLooseId, testLooseId(part));
-  part.setSelectionBit(kLooseKin, testLooseKin(part));
+  if (resetIDs) part.setSelectionBit(kLooseId, testLooseId(part));
+  if (resetKinematics) part.setSelectionBit(kLooseKin, testLooseKin(part));
 
-  part.setSelectionBit(kTightId, testTightId(part));
-  part.setSelectionBit(kTightKin, testTightKin(part));
+  if (resetIDs) part.setSelectionBit(kTightId, testTightId(part));
+  if (resetKinematics) part.setSelectionBit(kTightKin, testTightKin(part));
 
   // The functions below test the bits set in the steps above.
-  part.setSelectionBit(kBtaggable, testBtaggable(part));
+  // The b-taggable function tests pT and eta, but they should pertain to values before any external jet modifications. Hence the use of 'resetIDs'.
+  // The rest should always be re-tested.
+  if (resetIDs) part.setSelectionBit(kBtaggable, testBtaggable(part));
   part.setSelectionBit(kPreselectionLoose, testPreselectionLoose(part));
   part.setSelectionBit(kPreselectionTight, testPreselectionTight(part));
 }

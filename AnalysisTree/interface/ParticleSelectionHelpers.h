@@ -31,6 +31,7 @@ SELECTION_TYPE(Tight)
 #undef SELECTION_TYPES
 
   template<typename T> bool isParticleForJetCleaning(T const* part);
+  template<typename T> bool isGoodMETParticle(T const* part);
   template<typename T> bool isParticleForIsotrackCleaning(T const* part);
   template<typename T> bool isParticleForTriggerChecking(T const* part);
 
@@ -68,6 +69,11 @@ template<typename T> bool ParticleSelectionHelpers::isParticleForJetCleaning(T c
 template bool ParticleSelectionHelpers::isParticleForJetCleaning<MuonObject>(MuonObject const*);
 template bool ParticleSelectionHelpers::isParticleForJetCleaning<ElectronObject>(ElectronObject const*);
 template bool ParticleSelectionHelpers::isParticleForJetCleaning<PhotonObject>(PhotonObject const*);
+
+template<typename T> bool ParticleSelectionHelpers::isGoodMETParticle(T const* part){ return isLooseParticle(part); }
+template bool ParticleSelectionHelpers::isGoodMETParticle<MuonObject>(MuonObject const*);
+template bool ParticleSelectionHelpers::isGoodMETParticle<ElectronObject>(ElectronObject const*);
+template bool ParticleSelectionHelpers::isGoodMETParticle<PhotonObject>(PhotonObject const*);
 
 template<typename T> bool ParticleSelectionHelpers::isParticleForIsotrackCleaning(T const* part){ return isLooseParticle(part); }
 template bool ParticleSelectionHelpers::isParticleForIsotrackCleaning<MuonObject>(MuonObject const*);

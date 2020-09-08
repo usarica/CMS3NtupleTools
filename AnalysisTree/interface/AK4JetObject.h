@@ -99,6 +99,11 @@ public:
   float const& getJECValue() const{ return currentJEC; }
   float const& getJERValue() const{ return currentJER; }
 
+  SystematicsHelpers::SystematicVariationTypes const& getCurrentSyst() const{ return currentSyst; }
+
+  void reset_uncorrected_p4(LorentzVector_t const& new_p4){ this->mom_original = new_p4; }
+  void reset_p4_mucands(LorentzVector_t const& new_p4){ this->extras.mucands_sump4_px = new_p4.Px(); this->extras.mucands_sump4_py = new_p4.Py(); }
+
   LorentzVector_t uncorrected_p4() const{ return this->mom_original; }
   LorentzVector_t p4_mucands() const{ return LorentzVector_t(this->extras.mucands_sump4_px, this->extras.mucands_sump4_py, 0, 0); }
   // Unfortunately, there could be multiple versions of this function. This one is the most straightforward version.

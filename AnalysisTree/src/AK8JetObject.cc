@@ -32,24 +32,28 @@ AK8JetObject::AK8JetObject() :
   ParticleObject(),
   mom_original(0, 0, 0, 0),
   extras(),
+  currentSyst(SystematicsHelpers::sNominal),
   currentSystScale(1)
 {}
 AK8JetObject::AK8JetObject(LorentzVector_t const& momentum_) :
   ParticleObject(0, momentum_),
   mom_original(momentum_),
   extras(),
+  currentSyst(SystematicsHelpers::sNominal),
   currentSystScale(1)
 {}
 AK8JetObject::AK8JetObject(const AK8JetObject& other) :
   ParticleObject(other),
   mom_original(other.mom_original),
   extras(other.extras),
+  currentSyst(other.currentSyst),
   currentSystScale(other.currentSystScale)
 {}
 void AK8JetObject::swap(AK8JetObject& other){
   ParticleObject::swap(other);
   std::swap(mom_original, other.mom_original);
   extras.swap(other.extras);
+  std::swap(currentSyst, other.currentSyst);
   std::swap(currentSystScale, other.currentSystScale);
 }
 AK8JetObject& AK8JetObject::operator=(const AK8JetObject& other){
@@ -87,4 +91,5 @@ void AK8JetObject::makeFinalMomentum(SystematicsHelpers::SystematicVariationType
   if (newpt<1e-5 && momentum.Pt()>0.f) scale = 1e-5 / momentum.Pt();
   momentum = momentum * scale;
   currentSystScale = scale;
+  currentSyst = syst;
 }

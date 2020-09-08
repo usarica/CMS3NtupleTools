@@ -44,7 +44,8 @@ METObject::METObject(const METObject& other) :
   currentMETShift_p4Preserved(other.currentMETShift_p4Preserved),
   currentXYshift(other.currentXYshift),
   particleMomentumCorrections(other.particleMomentumCorrections),
-  currentMETCorrections(other.currentMETCorrections)
+  currentMETCorrections(other.currentMETCorrections),
+  currentJetOverlapCorrections(other.currentJetOverlapCorrections)
 {}
 void METObject::swap(METObject& other){
   extras.swap(other.extras);
@@ -56,6 +57,7 @@ void METObject::swap(METObject& other){
   std::swap(currentXYshift, other.currentXYshift);
   std::swap(particleMomentumCorrections, other.particleMomentumCorrections);
   std::swap(currentMETCorrections, other.currentMETCorrections);
+  std::swap(currentJetOverlapCorrections, other.currentJetOverlapCorrections);
 }
 METObject& METObject::operator=(const METObject& other){
   METObject tmp(other);
@@ -115,6 +117,11 @@ void METObject::setMETCorrection(ParticleObject::LorentzVector_t const& corr, bo
   currentMETCorrections.at(8*preserveP4 + 4*hasParticleShifts + 2*hasJERShifts + 1*hasXYShifts) = corr;
 }
 
+void METObject::setJetOverlapCorrection(ParticleObject::LorentzVector_t const& corr, bool hasJERShifts, bool preserveP4){
+  if (currentJetOverlapCorrections.empty()) currentJetOverlapCorrections.assign(4, ParticleObject::LorentzVector_t(0, 0, 0, 0));
+  currentJetOverlapCorrections.at(2*preserveP4 + 1*hasJERShifts) = corr;
+}
+
 void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const{
   using namespace SystematicsHelpers;
 
@@ -133,6 +140,7 @@ void METObject::getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShi
     if (addParticleShifts) tmp_p4 += particleMomentumCorrections;
 
     if (!currentMETCorrections.empty()) tmp_p4 += currentMETCorrections.at(8*preserveP4 + 4*addParticleShifts + 2*addJERShifts + 1*addXYShifts);
+    if (!currentJetOverlapCorrections.empty()) tmp_p4 += currentMETCorrections.at(2*preserveP4 + 1*addJERShifts);
   }
   else{
     float const& pt_ref = extras.met_Raw;

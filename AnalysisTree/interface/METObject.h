@@ -100,6 +100,7 @@ protected:
   ParticleObject::LorentzVector_t particleMomentumCorrections;
 
   std::vector<ParticleObject::LorentzVector_t> currentMETCorrections;
+  std::vector<ParticleObject::LorentzVector_t> currentJetOverlapCorrections;
 
   void setMETShifts();
 
@@ -121,6 +122,8 @@ public:
   void setParticleShifts(float const& shift_x, float const& shift_y){ this->setParticleShifts(ParticleObject::LorentzVector_t(shift_x, shift_y, 0., 0.)); }
 
   void setMETCorrection(ParticleObject::LorentzVector_t const& corr, bool hasXYShifts, bool hasJERShifts, bool addParticleShifts, bool preserveP4);
+
+  void setJetOverlapCorrection(ParticleObject::LorentzVector_t const& corr, bool hasJERShifts, bool preserveP4);
 
   void getPtPhi(float& pt, float& phi, bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;
   ParticleObject::LorentzVector_t::Scalar met(bool addXYShifts, bool addJERShifts, bool addParticleShifts, bool preserveP4) const;

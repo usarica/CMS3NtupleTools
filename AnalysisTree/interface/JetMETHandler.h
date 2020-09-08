@@ -4,6 +4,8 @@
 #include <vector>
 #include "IvyBase.h"
 #include "SystematicVariations.h"
+#include "PFCandidateObject.h"
+#include "OverlapMapHandler.h"
 #include "MuonObject.h"
 #include "ElectronObject.h"
 #include "PhotonObject.h"
@@ -21,6 +23,14 @@ public:
   static const std::string colName_vertices;
 
 protected:
+  bool hasOverlapMaps;
+  OverlapMapHandler<MuonObject, AK4JetObject>* overlapMap_muons_ak4jets;
+  OverlapMapHandler<MuonObject, AK8JetObject>* overlapMap_muons_ak8jets;
+  OverlapMapHandler<ElectronObject, AK4JetObject>* overlapMap_electrons_ak4jets;
+  OverlapMapHandler<ElectronObject, AK8JetObject>* overlapMap_electrons_ak8jets;
+  OverlapMapHandler<PhotonObject, AK4JetObject>* overlapMap_photons_ak4jets;
+  OverlapMapHandler<PhotonObject, AK8JetObject>* overlapMap_photons_ak8jets;
+
   std::vector<AK4JetObject*> ak4jets;
   std::vector<AK8JetObject*> ak8jets;
   METObject* pfmet;
@@ -33,13 +43,13 @@ protected:
 
   bool constructAK4Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
   bool constructAK8Jets(SystematicsHelpers::SystematicVariationTypes const& syst);
+  bool associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates);
+  bool linkOverlapElements() const;
+  bool applyJetCleaning(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+
   bool constructMET(SystematicsHelpers::SystematicVariationTypes const& syst);
-
   bool assignMETXYShifts(SystematicsHelpers::SystematicVariationTypes const& syst);
-
-  bool applyJetCleaning(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
-
-  bool applyMETParticleShifts(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+  bool applyMETParticleShifts(bool usePFCandidates, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
 public:
   // Constructors
@@ -48,7 +58,11 @@ public:
   // Destructors
   ~JetMETHandler(){ clear(); }
 
-  bool constructJetMET(SystematicsHelpers::SystematicVariationTypes const& syst, std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+  bool constructJetMET(
+    SystematicsHelpers::SystematicVariationTypes const& syst,
+    std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons,
+    std::vector<PFCandidateObject*> const* pfcandidates
+  );
 
   std::vector<AK4JetObject*> const& getAK4Jets() const{ return ak4jets; }
   std::vector<AK8JetObject*> const& getAK8Jets() const{ return ak8jets; }
@@ -58,6 +72,15 @@ public:
   bool wrapTree(BaseTree* tree);
 
   void bookBranches(BaseTree* tree);
+
+  void registerOverlapMaps(
+    OverlapMapHandler<MuonObject, AK4JetObject>& overlapMap_muons_ak4jets_,
+    OverlapMapHandler<MuonObject, AK8JetObject>& overlapMap_muons_ak8jets_,
+    OverlapMapHandler<ElectronObject, AK4JetObject>& overlapMap_electrons_ak4jets_,
+    OverlapMapHandler<ElectronObject, AK8JetObject>& overlapMap_electrons_ak8jets_,
+    OverlapMapHandler<PhotonObject, AK4JetObject>& overlapMap_photons_ak4jets_,
+    OverlapMapHandler<PhotonObject, AK8JetObject>& overlapMap_photons_ak8jets_
+  );
 
 };
 

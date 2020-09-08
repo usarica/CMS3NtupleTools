@@ -44,7 +44,7 @@ OVERLAPMAP_SPECIALIZATION(MuonObject, AK8JetObject)
 #define OVERLAPMAP_SPECIALIZATION(T1, T2) \
 template<> ParticleObject::LorentzVector_t OverlapMapElement<T1, T2>::p4_commonMuCands_goodMET() const{ \
   ParticleObject::LorentzVector_t res; \
-  if (linkedElementPair.first){ \
+  if (linkedElementPair.first && linkedElementPair.first->extras.has_pfMuon_goodMET){ \
     res = linkedElementPair.first->uncorrected_p4(); \
   } \
   return res; \

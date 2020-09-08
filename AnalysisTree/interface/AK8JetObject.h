@@ -48,6 +48,7 @@ public:
   static const std::string colName;
 
   AK8JetVariables extras;
+  SystematicsHelpers::SystematicVariationTypes currentSyst;
   float currentSystScale;
 
   AK8JetObject();
@@ -59,6 +60,10 @@ public:
   void swap(AK8JetObject& other);
 
   void makeFinalMomentum(SystematicsHelpers::SystematicVariationTypes const& syst);
+
+  SystematicsHelpers::SystematicVariationTypes const& getCurrentSyst() const{ return currentSyst; }
+
+  void reset_uncorrected_p4(LorentzVector_t const& new_p4){ this->mom_original = new_p4; }
 
 };
 

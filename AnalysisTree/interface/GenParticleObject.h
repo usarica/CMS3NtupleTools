@@ -13,8 +13,8 @@ GENPARTICLE_VARIABLE(float, phi, 0) \
 GENPARTICLE_VARIABLE(float, mass, 0)
 
 #define GENPARTICLE_MOTHER_VARIABLES \
-GENPARTICLE_VARIABLE(int, mom0_index, 0) \
-GENPARTICLE_VARIABLE(int, mom1_index, 0)
+GENPARTICLE_VARIABLE(cms3_listIndex_signed_long_t, mom0_index, -1) \
+GENPARTICLE_VARIABLE(cms3_listIndex_signed_long_t, mom1_index, -1)
 
 #define GENPARTICLE_EXTRA_VARIABLES \
 GENPARTICLE_VARIABLE(bool, is_packed, false) \
