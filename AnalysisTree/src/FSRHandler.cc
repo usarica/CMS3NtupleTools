@@ -264,6 +264,8 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
     bool isMuon = std::abs(lepton->pdgId())==13; // Either a muon or an electron
     if (isMuon){
       MuonObject* lepton_postFSR = new MuonObject(*(dynamic_cast<MuonObject const*>(lepton)));
+      lepton_postFSR->resetMothers();
+      lepton_postFSR->resetDaughters();
 
       // Apply object corrections
       lepton_postFSR->applyFSRIsoCorr(dR_fsr_lepton, fsrObj->pt());
@@ -284,6 +286,8 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
     }
     else{
       ElectronObject* lepton_postFSR = new ElectronObject(*(dynamic_cast<ElectronObject const*>(lepton)));
+      lepton_postFSR->resetMothers();
+      lepton_postFSR->resetDaughters();
 
       // Apply object corrections
       lepton_postFSR->applyFSRIsoCorr(dR_fsr_lepton, fsrObj->pt());

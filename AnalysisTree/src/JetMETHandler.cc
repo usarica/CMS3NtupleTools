@@ -368,7 +368,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            part->getDeepDaughters(daughters_part);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -394,7 +395,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            part->getDeepDaughters(daughters_part);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -420,7 +422,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            part->getDeepDaughters(daughters_part);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);

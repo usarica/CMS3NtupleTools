@@ -104,7 +104,10 @@ public:
   std::vector<ParticleObject*> const& getDaughters()const{ return daughters; }
   bool hasMother(ParticleObject* part) const;
   bool hasDaughter(ParticleObject* part) const;
+  void resetMothers(){ mothers.clear(); }
+  void resetDaughters(){ daughters.clear(); }
 
+  void getDeepDaughters(std::vector<ParticleObject*>& deepdaus);
   void getDeepDaughters(std::vector<ParticleObject const*>& deepdaus) const;
 
   static bool checkParticleExists(ParticleObject*, const std::vector<ParticleObject*>&);
