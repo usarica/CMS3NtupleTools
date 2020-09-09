@@ -102,11 +102,13 @@ bool JetMETHandler::constructJetMET(
   if (!currentTree) return false;
 
   bool res = (
-    constructAK4Jets(syst) && constructAK8Jets(syst) && associatePFCandidates(pfcandidates)
+    constructAK4Jets(syst) && constructAK8Jets(syst) && constructMET(syst)
     &&
-    linkOverlapElements() && applyJetCleaning(hasOverlapMaps && (pfcandidates!=nullptr), muons, electrons, photons)
+    associatePFCandidates(pfcandidates) && linkOverlapElements()
     &&
-    constructMET(syst) && assignMETXYShifts(syst) && applyMETParticleShifts(hasOverlapMaps && (pfcandidates!=nullptr), muons, electrons, photons)
+    applyJetCleaning(hasOverlapMaps && (pfcandidates!=nullptr), muons, electrons, photons)
+    &&
+    assignMETXYShifts(syst) && applyMETParticleShifts(hasOverlapMaps && (pfcandidates!=nullptr), muons, electrons, photons)
     );
 
   if (res) this->cacheEvent();
@@ -378,8 +380,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           MuonObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
-          if (thePart->hasFSR()){
-            for (auto const& dau:thePart->getDaughters()){
+          if (part->hasFSR()){
+            for (auto const& dau:part->getDaughters()){
               MuonObject* thePartDau = dynamic_cast<MuonObject*>(dau);
               FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
               if (!thePart && thePartDau) thePart = thePartDau;
@@ -408,11 +410,23 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
+            if (this->verbosity>=TVar::DEBUG) MELAout
+              << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with muon " << thePart->getUniqueIdentifier() << ":"
+              << "\n\t- Jet p4 = " << jet->p4()
+              << "\n\t- Particle p4 = " << thePart->p4()
+              << "\n\t- Overlap p4 = " << p4_overlap
+              << "\n\t- Overlap muons p4 = " << p4_overlap_mucands
+              << endl;
           }
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
               sump4_overlaps += theFSR->p4();
+              if (this->verbosity>=TVar::DEBUG) MELAout
+                << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with muon FSR " << theFSR->getUniqueIdentifier() << ":"
+                << "\n\t- Jet p4 = " << jet->p4()
+                << "\n\t- FSR p4 = " << theFSR->p4()
+                << endl;
             }
           }
         }
@@ -422,8 +436,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           ElectronObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
-          if (thePart->hasFSR()){
-            for (auto const& dau:thePart->getDaughters()){
+          if (part->hasFSR()){
+            for (auto const& dau:part->getDaughters()){
               ElectronObject* thePartDau = dynamic_cast<ElectronObject*>(dau);
               FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
               if (!thePart && thePartDau) thePart = thePartDau;
@@ -452,11 +466,23 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
+            if (this->verbosity>=TVar::DEBUG) MELAout
+              << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with electron " << thePart->getUniqueIdentifier() << ":"
+              << "\n\t- Jet p4 = " << jet->p4()
+              << "\n\t- Particle p4 = " << thePart->p4()
+              << "\n\t- Overlap p4 = " << p4_overlap
+              << "\n\t- Overlap muons p4 = " << p4_overlap_mucands
+              << endl;
           }
           if (theFSR){
             if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
               hasCorrections = true;
               sump4_overlaps += theFSR->p4();
+              if (this->verbosity>=TVar::DEBUG) MELAout
+                << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with electron FSR " << theFSR->getUniqueIdentifier() << ":"
+                << "\n\t- Jet p4 = " << jet->p4()
+                << "\n\t- FSR p4 = " << theFSR->p4()
+                << endl;
             }
           }
         }
@@ -485,6 +511,13 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
+            if (this->verbosity>=TVar::DEBUG) MELAout
+              << "JetMETHandler::applyJetCleaning: ak4 jet " << jet->getUniqueIdentifier() << " has overlap with photon " << part->getUniqueIdentifier() << ":"
+              << "\n\t- Jet p4 = " << jet->p4()
+              << "\n\t- Particle p4 = " << part->p4()
+              << "\n\t- Overlap p4 = " << p4_overlap
+              << "\n\t- Overlap muons p4 = " << p4_overlap_mucands
+              << endl;
           }
         }
       }
@@ -506,6 +539,12 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           p4_jet_uncorrected_new -= pfcand->uncorrected_p4();
           if (MuonSelectionHelpers::testGoodMETPFMuon(*pfcand)) p4_jet_uncorrected_mucands_new -= pfcand->uncorrected_p4();
         }
+        if (this->verbosity>=TVar::DEBUG){
+          MELAout << "\t- Old uncorrected p4 = " << p4_jet_uncorrected_old << endl;
+          MELAout << "\t- Old uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_old << endl;
+          MELAout << "\t- New uncorrected p4 = " << p4_jet_uncorrected_new << endl;
+          MELAout << "\t- New uncorrected mu candidates p4 = " << p4_jet_uncorrected_mucands_new << endl;
+        }
 
         jet->reset_uncorrected_p4(p4_jet_uncorrected_new);
         jet->reset_p4_mucands(p4_jet_uncorrected_mucands_new);
@@ -523,6 +562,11 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           for (unsigned char ip4=0; ip4<2; ip4++){
             sump4_METContribution_old[2*ip4 + ijer] += p4_METContribution_old[2*ip4 + ijer];
             sump4_METContribution_new[2*ip4 + ijer] += p4_METContribution_new[2*ip4 + ijer];
+
+            if (this->verbosity>=TVar::DEBUG){
+              MELAout << "\t- Old MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_old[2*ip4 + ijer] << endl;
+              MELAout << "\t- New MET contribution " << (ijer==0 ? "without" : "with") << " JER, " << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_METContribution_new[2*ip4 + ijer] << endl;
+            }
           }
         }
       }
@@ -535,9 +579,15 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
     // Propagate MET corrections from overlap removal
     for (unsigned char ijer=0; ijer<2; ijer++){
       for (unsigned char ip4=0; ip4<2; ip4++){
-        pfmet->setJetOverlapCorrection(sump4_METContribution_new[2*ip4 + ijer] - sump4_METContribution_old[2*ip4 + ijer], ijer, ip4);
+        ParticleObject::LorentzVector_t p4_corr = sump4_METContribution_new[2*ip4 + ijer] - sump4_METContribution_old[2*ip4 + ijer];
+        if (this->verbosity>=TVar::DEBUG) MELAout
+          << "Total MET overlap correction "
+          << (ijer==0 ? "without" : "with") << " JER, "
+          << (ip4==0 ? "without" : "with") << " p4 preservation = " << p4_corr
+          << endl;
+        pfmet->setJetOverlapCorrection(p4_corr, ijer, ip4);
         // Set the same correction for PUPPI
-        pfpuppimet->setJetOverlapCorrection(sump4_METContribution_new[2*ip4 + ijer] - sump4_METContribution_old[2*ip4 + ijer], ijer, ip4);
+        pfpuppimet->setJetOverlapCorrection(p4_corr, ijer, ip4);
       }
     }
 
@@ -552,8 +602,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           MuonObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
-          if (thePart->hasFSR()){
-            for (auto const& dau:thePart->getDaughters()){
+          if (part->hasFSR()){
+            for (auto const& dau:part->getDaughters()){
               MuonObject* thePartDau = dynamic_cast<MuonObject*>(dau);
               FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
               if (!thePart && thePartDau) thePart = thePartDau;
@@ -593,8 +643,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
           ElectronObject* thePart = nullptr;
           FSRObject* theFSR = nullptr;
-          if (thePart->hasFSR()){
-            for (auto const& dau:thePart->getDaughters()){
+          if (part->hasFSR()){
+            for (auto const& dau:part->getDaughters()){
               ElectronObject* thePartDau = dynamic_cast<ElectronObject*>(dau);
               FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
               if (!thePart && thePartDau) thePart = thePartDau;
@@ -763,6 +813,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       if (!ParticleSelectionHelpers::isGoodMETParticle(part)) continue;
       ParticleObject::LorentzVector_t p4_uncorrected = part->uncorrected_p4();
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to muon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
   if (electrons){
@@ -777,6 +828,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       */
       ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to electron " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
   if (photons){
@@ -791,6 +843,7 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
       */
       ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
+      if (this->verbosity>=TVar::DEBUG) MELAout << "JetMETHandler::applyMETParticleShifts: MET shift due to photon " << part->getUniqueIdentifier() << " p4 = " << -(part->p4() - p4_uncorrected) << endl;
     }
   }
 
@@ -927,8 +980,14 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
   bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier);
-#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_ak4jets + "_" + #NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME, nullptr);
-#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_ak8jets + "_" + #NAME); tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
+#define AK4JET_VARIABLE(TYPE, NAME, DEFVAL) \
+this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME); \
+this->defineConsumedSloppy(JetMETHandler::colName_ak4jets + "_" + #NAME); \
+tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak4jets + "_" + #NAME, nullptr);
+#define AK8JET_VARIABLE(TYPE, NAME, DEFVAL) \
+this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME); \
+this->defineConsumedSloppy(JetMETHandler::colName_ak8jets + "_" + #NAME); \
+tree->bookBranch<std::vector<TYPE>*>(JetMETHandler::colName_ak8jets + "_" + #NAME, nullptr);
   if (!isData){
     AK4JET_GENINFO_VARIABLES;
     AK8JET_GENINFO_VARIABLES;
@@ -950,10 +1009,16 @@ void JetMETHandler::bookBranches(BaseTree* tree){
   MET_RECORDED_CORE_VARIABLES;
 #undef MET_VARIABLE
   if (!isData){
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_pfmet + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_pfmet + "_" + #NAME); tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) \
+this->addConsumed<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME); \
+this->defineConsumedSloppy(JetMETHandler::colName_pfmet + "_" + #NAME); \
+tree->bookBranch<TYPE>(JetMETHandler::colName_pfmet + "_" + #NAME, DEFVAL);
     MET_GENINFO_VARIABLES;
 #undef MET_VARIABLE
-#define MET_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(JetMETHandler::colName_pfpuppimet + "_" + #NAME); this->defineConsumedSloppy(JetMETHandler::colName_pfpuppimet + "_" + #NAME); tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
+#define MET_VARIABLE(TYPE, NAME, DEFVAL) \
+this->addConsumed<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME); \
+this->defineConsumedSloppy(JetMETHandler::colName_pfpuppimet + "_" + #NAME); \
+tree->bookBranch<TYPE>(JetMETHandler::colName_pfpuppimet + "_" + #NAME, DEFVAL);
     MET_RECORDED_GENINFO_VARIABLES;
 #undef MET_VARIABLE
   }

@@ -78,6 +78,8 @@ void produceSkims(
   OverlapMapHandler<ElectronObject, AK8JetObject> overlapMap_electrons_ak8jets;
   OverlapMapHandler<PhotonObject, AK4JetObject> overlapMap_photons_ak4jets;
   OverlapMapHandler<PhotonObject, AK8JetObject> overlapMap_photons_ak8jets;
+  // No need to register jet overlaps because we do not reconstruct jets in the skimmer.
+  /*
   muonHandler.registerOverlapMaps(
     overlapMap_muons_ak4jets,
     overlapMap_muons_ak8jets
@@ -98,6 +100,7 @@ void produceSkims(
     overlapMap_photons_ak4jets,
     overlapMap_photons_ak8jets
   );
+  */
 
   genInfoHandler.setAllowLargeGenWeightRemoval(true);
 

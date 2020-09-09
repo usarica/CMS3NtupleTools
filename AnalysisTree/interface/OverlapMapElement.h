@@ -285,6 +285,9 @@ public:
 
   bool hasIdenticalElements(T* firstElement, U* secondElement) const;
 
+  std::pair<T*, U*> const& getLinkedElementPair() const{ return linkedElementPair; }
+  std::pair<T*, U*>& getLinkedElementPair(){ return linkedElementPair; }
+
   ParticleObject::LorentzVector_t p4_common() const{ return ParticleObject::LorentzVector_t(0, 0, 0, 0); }
   ParticleObject::LorentzVector_t p4_commonMuCands_goodMET() const{ return ParticleObject::LorentzVector_t(0, 0, 0, 0); }
 
