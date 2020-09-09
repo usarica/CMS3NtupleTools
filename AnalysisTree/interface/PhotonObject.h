@@ -86,8 +86,6 @@ public:
 
 class PhotonObject : public ParticleObject{
 public:
-  static const std::string colName;
-
   PhotonVariables extras;
   float currentSystScale;
 

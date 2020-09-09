@@ -2752,7 +2752,7 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
 
   bool didFirstVertex = false;
   bool didFirstGoodVertex = false;
-  cms3_listSize_t nvtxs=0, nvtxs_good=0, n_vtxs_good_JEC=0;
+  cms3_vtxs_nvtxs_t nvtxs=0, nvtxs_good=0, nvtxs_good_JEC=0;
   for (reco::VertexCollection::const_iterator obj = vtxHandle->begin(); obj != vtxHandle->end(); obj++){
     bool isGoodVtx = VertexSelectionHelpers::testGoodVertex(*obj);
     bool isJECGoodVtx = VertexSelectionHelpers::testJECGoodVertex(*obj);
@@ -2784,14 +2784,14 @@ size_t CMS3Ntuplizer::fillVertices(edm::Event const& iEvent, std::vector<reco::V
     }
 
     if (isGoodVtx) nvtxs_good++;
-    if (isJECGoodVtx) n_vtxs_good_JEC++;
+    if (isJECGoodVtx) nvtxs_good_JEC++;
     nvtxs++;
   }
 
   // Record the counts
   commonEntry.setNamedVal(TString(colName)+"_nvtxs", nvtxs);
   commonEntry.setNamedVal(TString(colName)+"_nvtxs_good", nvtxs_good);
-  commonEntry.setNamedVal(TString(colName)+"_nvtxs_good_JEC", n_vtxs_good_JEC);
+  commonEntry.setNamedVal(TString(colName)+"_nvtxs_good_JEC", nvtxs_good_JEC);
 
   // Pass collections to the communicator
   PUSH_VECTOR_WITH_NAME(colName, is_fake);

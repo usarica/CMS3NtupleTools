@@ -27,8 +27,6 @@ PhotonVariables& PhotonVariables::operator=(const PhotonVariables& other){
 }
 
 
-const std::string PhotonObject::colName = "photons";
-
 PhotonObject::PhotonObject() :
   ParticleObject(),
   extras(),

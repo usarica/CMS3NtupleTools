@@ -61,6 +61,7 @@ void produceSkims(
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
   EventFilterHandler eventFilter;
+  PFCandidateHandler pfcandidateHandler;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
@@ -70,6 +71,33 @@ void produceSkims(
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
   ParticleDisambiguator particleDisambiguator;
+
+  OverlapMapHandler<MuonObject, AK4JetObject> overlapMap_muons_ak4jets;
+  OverlapMapHandler<MuonObject, AK8JetObject> overlapMap_muons_ak8jets;
+  OverlapMapHandler<ElectronObject, AK4JetObject> overlapMap_electrons_ak4jets;
+  OverlapMapHandler<ElectronObject, AK8JetObject> overlapMap_electrons_ak8jets;
+  OverlapMapHandler<PhotonObject, AK4JetObject> overlapMap_photons_ak4jets;
+  OverlapMapHandler<PhotonObject, AK8JetObject> overlapMap_photons_ak8jets;
+  muonHandler.registerOverlapMaps(
+    overlapMap_muons_ak4jets,
+    overlapMap_muons_ak8jets
+  );
+  electronHandler.registerOverlapMaps(
+    overlapMap_electrons_ak4jets,
+    overlapMap_electrons_ak8jets
+  );
+  photonHandler.registerOverlapMaps(
+    overlapMap_photons_ak4jets,
+    overlapMap_photons_ak8jets
+  );
+  jetHandler.registerOverlapMaps(
+    overlapMap_muons_ak4jets,
+    overlapMap_muons_ak8jets,
+    overlapMap_electrons_ak4jets,
+    overlapMap_electrons_ak8jets,
+    overlapMap_photons_ak4jets,
+    overlapMap_photons_ak8jets
+  );
 
   genInfoHandler.setAllowLargeGenWeightRemoval(true);
 
@@ -193,6 +221,9 @@ void produceSkims(
       genInfoHandler.wrapTree(&sample_tree);
     }
 
+    pfcandidateHandler.bookBranches(&sample_tree);
+    pfcandidateHandler.wrapTree(&sample_tree);
+
     muonHandler.bookBranches(&sample_tree);
     muonHandler.wrapTree(&sample_tree);
 
@@ -225,6 +256,15 @@ void produceSkims(
 
     vertexHandler.bookBranches(&sample_tree);
     vertexHandler.wrapTree(&sample_tree);
+
+    overlapMap_muons_ak4jets.bookBranches(&sample_tree); overlapMap_muons_ak4jets.wrapTree(&sample_tree);
+    overlapMap_muons_ak8jets.bookBranches(&sample_tree); overlapMap_muons_ak8jets.wrapTree(&sample_tree);
+
+    overlapMap_electrons_ak4jets.bookBranches(&sample_tree); overlapMap_electrons_ak4jets.wrapTree(&sample_tree);
+    overlapMap_electrons_ak8jets.bookBranches(&sample_tree); overlapMap_electrons_ak8jets.wrapTree(&sample_tree);
+
+    overlapMap_photons_ak4jets.bookBranches(&sample_tree); overlapMap_photons_ak4jets.wrapTree(&sample_tree);
+    overlapMap_photons_ak8jets.bookBranches(&sample_tree); overlapMap_photons_ak8jets.wrapTree(&sample_tree);
 
     eventFilter.bookBranches(&sample_tree);
     eventFilter.wrapTree(&sample_tree);
@@ -302,7 +342,7 @@ void produceSkims(
       }
 
       eventFilter.constructFilters();
-      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters() || !eventFilter.hasGoodVertex()) continue;
+      if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
 
       vertexHandler.constructVertices();
       if (!vertexHandler.hasGoodPrimaryVertex()) continue;
@@ -321,9 +361,12 @@ void produceSkims(
 
       bool doRecordTree[nFinalStateTypes]={ 0 };
       for (auto const& syst:allowedSysts){
-        muonHandler.constructMuons(syst);
-        electronHandler.constructElectrons(syst);
-        photonHandler.constructPhotons(syst);
+        pfcandidateHandler.constructPFCandidates(syst);
+        auto const& pfcandidates = pfcandidateHandler.getProducts();
+
+        muonHandler.constructMuons(syst, &pfcandidates);
+        electronHandler.constructElectrons(syst, &pfcandidates);
+        photonHandler.constructPhotons(syst, &pfcandidates);
 
         // Particle counts before disambiguation
         size_t n_muons_tight_predisambiguation = 0;
@@ -416,6 +459,21 @@ void produceSkims(
           ||
           (n_photons_tight_predisambiguation==1 && n_leptons_tight_predisambiguation==0)
           );
+
+        // Reset the caches because the next systematic should re-reconstruct the particles from scratch
+        pfcandidateHandler.resetCache();
+        muonHandler.resetCache();
+        electronHandler.resetCache();
+        isotrackHandler.resetCache();
+        photonHandler.resetCache();
+        fsrHandler.resetCache();
+        jetHandler.resetCache();
+        overlapMap_muons_ak4jets.resetCache();
+        overlapMap_muons_ak8jets.resetCache();
+        overlapMap_electrons_ak4jets.resetCache();
+        overlapMap_electrons_ak8jets.resetCache();
+        overlapMap_photons_ak4jets.resetCache();
+        overlapMap_photons_ak8jets.resetCache();
       }
 
       // Combine triggers after object combinations

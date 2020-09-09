@@ -1,7 +1,11 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "RunLumiEventBlock.h"
 #include "ParticleObjectHelpers.h"
 #include "SamplesCore.h"
+#include "FSRObject.h"
 #include "JetMETHandler.h"
 #include "MuonSelectionHelpers.h"
 #include "ElectronSelectionHelpers.h"
@@ -29,14 +33,14 @@ AK8JET_VARIABLE(float, phi, 0) \
 AK8JET_VARIABLE(float, mass, 0) \
 AK8JET_RECO_VARIABLES
 #define JETMET_METXY_VERTEX_VARIABLES \
-JETMET_METXY_VERTEX_VARIABLE(unsigned int, nvtxs, 0)
+JETMET_METXY_VERTEX_VARIABLE(cms3_vtxs_nvtxs_t, nvtxs, 0)
 
 
-const std::string& JetMETHandler::colName_ak4jets = AK4JetObject::colName;
-const std::string& JetMETHandler::colName_ak8jets = AK8JetObject::colName;
-const std::string JetMETHandler::colName_pfmet = "pfmet";
-const std::string JetMETHandler::colName_pfpuppimet = "puppimet";
-const std::string JetMETHandler::colName_vertices = "vtxs";
+const std::string JetMETHandler::colName_ak4jets = GlobalCollectionNames::colName_ak4jets;
+const std::string JetMETHandler::colName_ak8jets = GlobalCollectionNames::colName_ak8jets;
+const std::string JetMETHandler::colName_pfmet = GlobalCollectionNames::colName_pfmet;
+const std::string JetMETHandler::colName_pfpuppimet = GlobalCollectionNames::colName_puppimet;
+const std::string JetMETHandler::colName_vertices = GlobalCollectionNames::colName_vtxs;
 
 JetMETHandler::JetMETHandler() :
   IvyBase(),
@@ -259,9 +263,19 @@ bool JetMETHandler::associatePFCandidates(std::vector<PFCandidateObject*> const*
 
   for (auto const& part:(*pfcandidates)){
     auto const& associated_ak4jet_indices = part->extras.matched_ak4jet_index_list;
-    for (auto const& jet:ak4jets){ if (HelperFunctions::checkListVariable(associated_ak4jet_indices, jet->getUniqueIdentifier())) jet->addDaughter(part); }
+    for (auto const& jet:ak4jets){
+      if (HelperFunctions::checkListVariable(associated_ak4jet_indices, jet->getUniqueIdentifier())){
+        jet->addDaughter(part);
+        part->addMother(jet);
+      }
+    }
     auto const& associated_ak8jet_indices = part->extras.matched_ak8jet_index_list;
-    for (auto const& jet:ak8jets){ if (HelperFunctions::checkListVariable(associated_ak8jet_indices, jet->getUniqueIdentifier())) jet->addDaughter(part); }
+    for (auto const& jet:ak8jets){
+      if (HelperFunctions::checkListVariable(associated_ak8jet_indices, jet->getUniqueIdentifier())){
+        jet->addDaughter(part);
+        part->addMother(jet);
+      }
+    }
   }
 
   return true;
@@ -362,14 +376,25 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (muons){
         for (auto const& part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          auto overlapElement = overlapMap_muons_ak4jets->getMatchingOverlapMap(part, jet);
+          MuonObject* thePart = nullptr;
+          FSRObject* theFSR = nullptr;
+          if (thePart->hasFSR()){
+            for (auto const& dau:thePart->getDaughters()){
+              MuonObject* thePartDau = dynamic_cast<MuonObject*>(dau);
+              FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
+              if (!thePart && thePartDau) thePart = thePartDau;
+              if (!theFSR && theFSRDau) theFSR = theFSRDau;
+            }
+          }
+          else thePart = part;
+          auto overlapElement = overlapMap_muons_ak4jets->getMatchingOverlapMap(thePart, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
-            part->getDeepDaughters(daughters_part);
+            thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -384,19 +409,36 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
           }
+          if (theFSR){
+            if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
+              hasCorrections = true;
+              sump4_overlaps += theFSR->p4();
+            }
+          }
         }
       }
       if (electrons){
         for (auto const& part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          auto overlapElement = overlapMap_electrons_ak4jets->getMatchingOverlapMap(part, jet);
+          ElectronObject* thePart = nullptr;
+          FSRObject* theFSR = nullptr;
+          if (thePart->hasFSR()){
+            for (auto const& dau:thePart->getDaughters()){
+              ElectronObject* thePartDau = dynamic_cast<ElectronObject*>(dau);
+              FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
+              if (!thePart && thePartDau) thePart = thePartDau;
+              if (!theFSR && theFSRDau) theFSR = theFSRDau;
+            }
+          }
+          else thePart = part;
+          auto overlapElement = overlapMap_electrons_ak4jets->getMatchingOverlapMap(thePart, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
-            part->getDeepDaughters(daughters_part);
+            thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -410,6 +452,12 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             }
             sump4_overlaps += p4_overlap;
             sump4_overlaps_mucands += p4_overlap_mucands;
+          }
+          if (theFSR){
+            if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak4jet_index_list, jet->getUniqueIdentifier())){
+              hasCorrections = true;
+              sump4_overlaps += theFSR->p4();
+            }
           }
         }
       }
@@ -423,7 +471,7 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
             ParticleObject::LorentzVector_t p4_overlap_mucands = overlapElement->p4_commonMuCands_goodMET();
             std::vector<ParticleObject*> daughters_part;
-            part->getDeepDaughters(daughters_part);
+            part->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -502,12 +550,24 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
       if (muons){
         for (auto const& part:(*muons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          auto overlapElement = overlapMap_muons_ak8jets->getMatchingOverlapMap(part, jet);
+          MuonObject* thePart = nullptr;
+          FSRObject* theFSR = nullptr;
+          if (thePart->hasFSR()){
+            for (auto const& dau:thePart->getDaughters()){
+              MuonObject* thePartDau = dynamic_cast<MuonObject*>(dau);
+              FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
+              if (!thePart && thePartDau) thePart = thePartDau;
+              if (!theFSR && theFSRDau) theFSR = theFSRDau;
+            }
+          }
+          else thePart = part;
+          auto overlapElement = overlapMap_muons_ak8jets->getMatchingOverlapMap(thePart, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -520,17 +580,35 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
             }
             sump4_overlaps += p4_overlap;
           }
+          if (theFSR){
+            if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak8jet_index_list, jet->getUniqueIdentifier())){
+              hasCorrections = true;
+              sump4_overlaps += theFSR->p4();
+            }
+          }
         }
       }
       if (electrons){
         for (auto const& part:(*electrons)){
           if (!ParticleSelectionHelpers::isParticleForJetCleaning(part)) continue;
-          auto overlapElement = overlapMap_electrons_ak8jets->getMatchingOverlapMap(part, jet);
+          ElectronObject* thePart = nullptr;
+          FSRObject* theFSR = nullptr;
+          if (thePart->hasFSR()){
+            for (auto const& dau:thePart->getDaughters()){
+              ElectronObject* thePartDau = dynamic_cast<ElectronObject*>(dau);
+              FSRObject* theFSRDau = dynamic_cast<FSRObject*>(dau);
+              if (!thePart && thePartDau) thePart = thePartDau;
+              if (!theFSR && theFSRDau) theFSR = theFSRDau;
+            }
+          }
+          else thePart = part;
+          auto overlapElement = overlapMap_electrons_ak8jets->getMatchingOverlapMap(thePart, jet);
           // If an overlap element is found, it means the particle overlaps with the jet.
           if (overlapElement){
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            thePart->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -542,6 +620,12 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
               }
             }
             sump4_overlaps += p4_overlap;
+          }
+          if (theFSR){
+            if (HelperFunctions::checkListVariable(theFSR->extras.fsrMatch_ak8jet_index_list, jet->getUniqueIdentifier())){
+              hasCorrections = true;
+              sump4_overlaps += theFSR->p4();
+            }
           }
         }
       }
@@ -553,7 +637,8 @@ bool JetMETHandler::applyJetCleaning(bool usePFCandidates, std::vector<MuonObjec
           if (overlapElement){
             hasCorrections = true;
             ParticleObject::LorentzVector_t p4_overlap = overlapElement->p4_common();
-            auto const& daughters_part = part->getDaughters();
+            std::vector<ParticleObject*> daughters_part;
+            part->getDeepDaughters(daughters_part, false);
             auto const& daughters_jet = jet->getDaughters();
             for (auto const& daughter_part:daughters_part){
               PFCandidateObject* pfcand = dynamic_cast<PFCandidateObject*>(daughter_part);
@@ -664,7 +749,7 @@ bool JetMETHandler::assignMETXYShifts(SystematicsHelpers::SystematicVariationTyp
     return false;
   }
 
-  float const npv = std::min(*nvtxs, (unsigned int) 100); // Effective number of primary vertices
+  float const npv = std::min(*nvtxs, (cms3_vtxs_nvtxs_t) 100); // Effective number of primary vertices
   float METxcorr = -(pfmet_XYcorr_xCoeffA*npv + pfmet_XYcorr_xCoeffB);
   float METycorr = -(pfmet_XYcorr_yCoeffA*npv + pfmet_XYcorr_yCoeffB);
   pfmet->setXYShift(METxcorr, METycorr);
@@ -683,20 +768,28 @@ bool JetMETHandler::applyMETParticleShifts(bool usePFCandidates, std::vector<Muo
   if (electrons){
     for (auto const* part:(*electrons)){
       if (!ParticleSelectionHelpers::isGoodMETParticle(part)) continue;
+      // PF MET uses PF candidates directly.
+      /*
       ParticleObject::LorentzVector_t p4_uncorrected = part->uncorrected_p4();
       if (!(part->testSelection(ElectronSelectionHelpers::kPFElectronId) && part->testSelection(ElectronSelectionHelpers::kPFMETSafe))){
         p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       }
+      */
+      ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
     }
   }
   if (photons){
     for (auto const* part:(*photons)){
       if (!ParticleSelectionHelpers::isGoodMETParticle(part)) continue;
+      // PF MET uses PF candidates directly.
+      /*
       ParticleObject::LorentzVector_t p4_uncorrected = part->uncorrected_p4();
       if (!(part->testSelection(PhotonSelectionHelpers::kPFPhotonId) && part->testSelection(PhotonSelectionHelpers::kPFMETSafe))){
         p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       }
+      */
+      ParticleObject::LorentzVector_t p4_uncorrected = ParticleObject::LorentzVector_t(part->extras.associated_pfcands_sum_px, part->extras.associated_pfcands_sum_py, 0, 0);
       pfmet_particleShift += -(part->p4() - p4_uncorrected);
     }
   }

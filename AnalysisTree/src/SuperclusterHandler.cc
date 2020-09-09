@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "SuperclusterHandler.h"
 #include "MELAStreamHelpers.hh"
@@ -15,7 +18,7 @@ SUPERCLUSTER_VARIABLE(float, phi, 0) \
 SUPERCLUSTER_VARIABLES
 
 
-const std::string SuperclusterHandler::colName = "superclusters";
+const std::string SuperclusterHandler::colName = GlobalCollectionNames::colName_superclusters;
 
 SuperclusterHandler::SuperclusterHandler() : IvyBase()
 {

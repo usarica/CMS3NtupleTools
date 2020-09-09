@@ -1,6 +1,9 @@
 #include <cassert>
 #include <algorithm>
 #include <utility>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "FSRHandler.h"
 #include "MuonSelectionHelpers.h"
@@ -21,7 +24,7 @@ FSR_VARIABLE(float, mass, 0) \
 FSR_VARIABLES
 
 
-const std::string FSRHandler::colName = "fsrcands";
+const std::string FSRHandler::colName = GlobalCollectionNames::colName_fsrcands;
 
 FSRHandler::FSRHandler() : IvyBase()
 {
@@ -47,7 +50,7 @@ void FSRHandler::clear(){
   fsrCandidates.clear();
 }
 
-bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
+bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons, std::vector<PFCandidateObject*> const* pfcandidates){
   if (this->isAlreadyCached()) return true;
 
   clear();
@@ -65,7 +68,7 @@ bool FSRHandler::constructPostFSRParticles(std::vector<MuonObject*> const* muons
     if (this->verbosity>=TVar::ERROR) MELAerr << "FSRHandler::constructPostFSRParticles: The input photon collection cannot be empty!" << endl;
     assert(0);
   }
-  bool res = constructFSRObjects() && reconstructPostFSRObjects(muons, electrons, photons);
+  bool res = constructFSRObjects() && associatePFCandidates(pfcandidates) && reconstructPostFSRObjects(muons, electrons, photons);
 
   if (res) this->cacheEvent();
   return res;
@@ -135,16 +138,23 @@ bool FSRHandler::constructFSRObjects(){
 
   return true;
 }
+
+bool FSRHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const{
+  if (!pfcandidates) return true;
+
+  for (auto const& pfcand:(*pfcandidates)){
+    for (auto const& part:fsrCandidates){
+      if (pfcand->extras.matched_FSRCandidate_index>=0 && (ParticleObject::UniqueId_t) pfcand->extras.matched_FSRCandidate_index == part->getUniqueIdentifier()) part->addDaughter(pfcand);
+    }
+  }
+
+  return true;
+}
+
 bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons){
   if (fsrCandidates.empty()) return true; // No need to do anything if there are no FSR candidates to merge
 
-  muons_owned.reserve(fsrCandidates.size());
-  electrons_owned.reserve(fsrCandidates.size());
-
-  if (muons) muons_postFSR.reserve(muons->size());
-  if (electrons) electrons_postFSR.reserve(electrons->size());
-  if (photons) photons_postFSR.reserve(photons->size());
-
+  // Temporary struct for intermediate purposes
   struct fsr_lepton_matchSpecs{
     FSRObject* fsrObj;
     ParticleObject* lepton;
@@ -153,12 +163,12 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
     fsr_lepton_matchSpecs() :
       fsrObj(nullptr),
       lepton(nullptr),
-      dR(-1)
+      dR(9999)
     {}
     fsr_lepton_matchSpecs(FSRObject* fsrObj_, ParticleObject* lepton_) :
       fsrObj(fsrObj_),
       lepton(lepton_),
-      dR((fsrObj && lepton ? ParticleObject::LorentzVector_t::Scalar(fsrObj->deltaR(lepton)) : ParticleObject::LorentzVector_t::Scalar(-1)))
+      dR((fsrObj && lepton ? ParticleObject::LorentzVector_t::Scalar(fsrObj->deltaR(lepton)) : ParticleObject::LorentzVector_t::Scalar(9999)))
     {}
     fsr_lepton_matchSpecs(fsr_lepton_matchSpecs const& other) :
       fsrObj(other.fsrObj),
@@ -173,36 +183,48 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
     bool operator <= (fsr_lepton_matchSpecs const& other) const{ return (*this < other || *this == other); }
   };
 
-  std::vector<fsr_lepton_matchSpecs> fsr_lepton_match_list; fsr_lepton_match_list.reserve(fsrCandidates.size()*((muons ? muons->size() : 0)+(electrons ? electrons->size() : 0)));
-  if (muons){
-    for (auto const& part:(*muons)){
-      if (ParticleSelectionHelpers::isFSRSuitable(part)){
-        cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
-        for (auto const& fsrCand:fsrCandidates){
-          if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_muon_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
-        }
-      }
-    }
-  }
-  if (electrons){
-    for (auto const& part:(*electrons)){
-      if (ParticleSelectionHelpers::isFSRSuitable(part)){
-        cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
-        for (auto const& fsrCand:fsrCandidates){
-          if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_electron_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
-        }
-      }
-    }
-  }
+  muons_owned.reserve(fsrCandidates.size());
+  electrons_owned.reserve(fsrCandidates.size());
 
-  // Ensure that there is a 1-1 matching by smallest dR
-  std::vector< fsr_lepton_matchSpecs > fsr_lepton_final_map; fsr_lepton_final_map.reserve(fsr_lepton_match_list.size());
-  for (auto const& fsr_lepton_match:fsr_lepton_match_list){
-    bool doSkip = false;
-    for (auto const& fsr_lepton_final_match:fsr_lepton_final_map){
-      if (fsr_lepton_match.fsrObj == fsr_lepton_final_match.fsrObj || fsr_lepton_match.lepton == fsr_lepton_final_match.lepton){ doSkip=true; break; }
+  if (muons) muons_postFSR.reserve(muons->size());
+  if (electrons) electrons_postFSR.reserve(electrons->size());
+  if (photons) photons_postFSR.reserve(photons->size());
+
+  // Final map to be used
+  std::vector<fsr_lepton_matchSpecs> fsr_lepton_final_map;
+  {
+    // Intermediate map to collect and sort
+    std::vector<fsr_lepton_matchSpecs> fsr_lepton_match_list; fsr_lepton_match_list.reserve(fsrCandidates.size()*((muons ? muons->size() : 0)+(electrons ? electrons->size() : 0)));
+    if (muons){
+      for (auto const& part:(*muons)){
+        if (ParticleSelectionHelpers::isFSRSuitable(part)){
+          auto const& uid = part->getUniqueIdentifier();
+          for (auto const& fsrCand:fsrCandidates){
+            if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_muon_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
+          }
+        }
+      }
     }
-    if (!doSkip) fsr_lepton_final_map.emplace_back(fsr_lepton_match);
+    if (electrons){
+      for (auto const& part:(*electrons)){
+        if (ParticleSelectionHelpers::isFSRSuitable(part)){
+          auto const& uid = part->getUniqueIdentifier();
+          for (auto const& fsrCand:fsrCandidates){
+            if (HelperFunctions::checkListVariable(fsrCand->extras.fsrMatch_electron_index_list, uid)) HelperFunctions::addByLowest(fsr_lepton_match_list, fsr_lepton_matchSpecs(fsrCand, part), false);
+          }
+        }
+      }
+    }
+
+    // Ensure that there is a 1-1 matching by smallest dR
+    fsr_lepton_final_map.reserve(fsr_lepton_match_list.size());
+    for (auto const& fsr_lepton_match:fsr_lepton_match_list){
+      bool doSkip = false;
+      for (auto const& fsr_lepton_final_match:fsr_lepton_final_map){
+        if (fsr_lepton_match.fsrObj == fsr_lepton_final_match.fsrObj || fsr_lepton_match.lepton == fsr_lepton_final_match.lepton){ doSkip=true; break; }
+      }
+      if (!doSkip) fsr_lepton_final_map.emplace_back(fsr_lepton_match);
+    }
   }
 
   // Add unpaired muons and electrons to the post-FSR collections without cloning them
@@ -221,38 +243,28 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
     }
   }
   // Clean photons from FSR candidates
-  std::vector< std::pair< float, std::pair<FSRObject*, PhotonObject*> > > fsrObj_photon_dR_map;
   if (photons){
     for (auto const& part:(*photons)){
-      cms3_listIndex_short_t const uid = part->getUniqueIdentifier();
+      auto const& uid = part->getUniqueIdentifier();
       bool isRejected=false;
       for (auto const& fsr_lepton_match:fsr_lepton_final_map){
         auto const& fsrObj = fsr_lepton_match.fsrObj;
         if (HelperFunctions::checkListVariable(fsrObj->extras.photonVeto_index_list, uid)){
-          isRejected=true;
           float dR = fsrObj->deltaR(part);
-          HelperFunctions::addByHighest(fsrObj_photon_dR_map, dR, std::pair<FSRObject*, PhotonObject*>(fsrObj, part));
+          isRejected = (
+            part->extras.n_associated_pfphotons>=1
+            &&
+            (
+              dR<0.1f
+              ||
+              (fsrObj->px() == part->extras.closestPFPhoton_associated_px && fsrObj->py() == part->extras.closestPFPhoton_associated_py)
+              )
+            );
+          if (isRejected) fsrObj->setAssociatedPhoton(part);
         }
       }
       if (!isRejected) photons_postFSR.push_back(part);
     }
-  }
-  // Associate rejected photons to the FSR candidates
-  while (!fsrObj_photon_dR_map.empty()){
-    auto const& fsrObj_photon_dR_assoc = fsrObj_photon_dR_map.back();
-    if (fsrObj_photon_dR_assoc.first>=0.1f) break;
-
-    FSRObject* const& fsrObj = fsrObj_photon_dR_assoc.second.first;
-    PhotonObject* const& photon = fsrObj_photon_dR_assoc.second.second;
-    fsrObj->setAssociatedPhoton(photon);
-
-    // Ensure that once an FSR - photon association is done, either that FSR or that photon are never used again.
-    std::vector<size_t> invIdx; invIdx.reserve(fsrObj_photon_dR_map.size());
-    for (int i=(int) fsrObj_photon_dR_map.size()-1; i>=0; i--){
-      auto const& assoc = fsrObj_photon_dR_map.at(i);
-      if (assoc.second.first == fsrObj || assoc.second.second == photon) invIdx.push_back(i);
-    }
-    for (auto const& idx:invIdx) fsrObj_photon_dR_map.erase(fsrObj_photon_dR_map.begin()+idx);
   }
 
   // Now reconstruct dressed leptons by cloning undressed leptons and applying corrections and selection
@@ -270,13 +282,12 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
       // Apply object corrections
       lepton_postFSR->applyFSRIsoCorr(dR_fsr_lepton, fsrObj->pt());
 
-      // Add p4 of the fsrObj, or if the fsrObj is also associated with a photon, the p3 of the photon itself
-      // Notice that on the line above, the pT of the original FSR object is used. That usage is correct because isolations are calculated from PF candidates.
-      lepton_postFSR->p4() += (fsrObj->associatedPhoton ? fsrObj->associatedPhoton->p4() : fsrObj->p4());
+      // Add p4 of the fsrObj
+      lepton_postFSR->p4() += fsrObj->p4();
 
       // Add the original lepton and the FSR cand. as the daughters of the dressed lepton
-      lepton_postFSR->addDaughter(lepton);
-      lepton_postFSR->addDaughter(fsrObj);
+      lepton_postFSR->addDaughter(lepton); lepton->addMother(lepton_postFSR);
+      lepton_postFSR->addDaughter(fsrObj); fsrObj->addMother(lepton_postFSR);
 
       // Set selection flags
       MuonSelectionHelpers::setSelectionBits(*lepton_postFSR);
@@ -292,13 +303,12 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
       // Apply object corrections
       lepton_postFSR->applyFSRIsoCorr(dR_fsr_lepton, fsrObj->pt());
 
-      // Add p4 of the fsrObj, or if the fsrObj is also associated with a photon, the p3 of the photon itself
-      // Notice that on the line above, the pT of the original FSR object is used. That usage is correct because isolations are calculated from PF candidates.
-      lepton_postFSR->p4() += (fsrObj->associatedPhoton ? fsrObj->associatedPhoton->p4() : fsrObj->p4());
+      // Add p4 of the fsrObj
+      lepton_postFSR->p4() += fsrObj->p4();
 
       // Add the original lepton and the FSR cand. as the daughters of the dressed lepton
-      lepton_postFSR->addDaughter(lepton);
-      lepton_postFSR->addDaughter(fsrObj);
+      lepton_postFSR->addDaughter(lepton); lepton->addMother(lepton_postFSR);
+      lepton_postFSR->addDaughter(fsrObj); fsrObj->addMother(lepton_postFSR);
 
       // Set selection flags
       ElectronSelectionHelpers::setSelectionBits(*lepton_postFSR);
@@ -314,7 +324,6 @@ bool FSRHandler::reconstructPostFSRObjects(std::vector<MuonObject*> const* muons
   ParticleObjectHelpers::sortByGreaterPt(electrons_owned);
   ParticleObjectHelpers::sortByGreaterPt(electrons_postFSR);
   // No need to sort photons: Rejecting some does not change the order.
-  //ParticleObjectHelpers::sortByGreaterPt(photons_postFSR);
 
   // Check collection sizes
   if (muons) assert(muons->size() == muons_postFSR.size());

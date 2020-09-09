@@ -64,10 +64,10 @@ public:
 
   float charge() const;
   LorentzVector_t::Scalar m() const{ return momentum.M(); }
-  LorentzVector_t::Scalar x() const{ return momentum.X(); }
-  LorentzVector_t::Scalar y() const{ return momentum.Y(); }
-  LorentzVector_t::Scalar z() const{ return momentum.Z(); }
-  LorentzVector_t::Scalar t() const{ return momentum.T(); }
+  LorentzVector_t::Scalar px() const{ return momentum.X(); }
+  LorentzVector_t::Scalar py() const{ return momentum.Y(); }
+  LorentzVector_t::Scalar pz() const{ return momentum.Z(); }
+  LorentzVector_t::Scalar E() const{ return momentum.T(); }
   LorentzVector_t::Scalar p() const{ return momentum.P(); }
   LorentzVector_t::Scalar pt() const{ return momentum.Pt(); }
   LorentzVector_t::Scalar eta() const{ return momentum.Eta(); }
@@ -75,17 +75,31 @@ public:
   LorentzVector_t::Scalar rapidity() const{ return momentum.Rapidity(); }
   virtual LorentzVector_t::Scalar uncorrected_pt() const{ return pt(); }
   virtual LorentzVector_t uncorrected_p4() const{ return p4(); }
-  LorentzVector_t::Scalar energy() const{ return this->t(); }
+  LorentzVector_t::Scalar energy() const{ return this->E(); }
   LorentzVector_t::Scalar mass() const{ return this->m(); }
   LorentzVector_t::Scalar dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
   LorentzVector_t::Scalar dot(const LorentzVector_t& v) const{ return (momentum.T()*v.T()-(momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z())); }
-  LorentzVector_t::Scalar dot(const ParticleObject& part) const{ return dot(part.momentum); }
-  LorentzVector_t::Scalar dot(const ParticleObject* part) const{ if (part!=0) return dot(*part); else return 0; }
-  LorentzVector_t::Scalar deltaR(const TLorentzVector& v) const{ TLorentzVector tmp(momentum.X(), momentum.Y(), momentum.Z(), momentum.T()); return tmp.DeltaR(v); }
-  LorentzVector_t::Scalar deltaR(const LorentzVector_t& v) const{ return reco::deltaR(momentum, v); }
-  LorentzVector_t::Scalar deltaR(const ParticleObject& part) const{ return deltaR(part.momentum); }
-  LorentzVector_t::Scalar deltaR(const ParticleObject* part) const{ if (part) return deltaR(*part); else return -1; }
+  LorentzVector_t::Scalar dot(const ParticleObject& part) const{ return dot(part.p4()); }
+  LorentzVector_t::Scalar dot(const ParticleObject* part) const{ return (part ? dot(*part) : LorentzVector_t::Scalar(0)); }
+  LorentzVector_t::Scalar euclidean_dot(const TLorentzVector& v) const{ return (momentum.T()*v.T()+momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z()); }
+  LorentzVector_t::Scalar euclidean_dot(const LorentzVector_t& v) const{ return (momentum.T()*v.T()+momentum.X()*v.X()+momentum.Y()*v.Y()+momentum.Z()*v.Z()); }
+  LorentzVector_t::Scalar euclidean_dot(const ParticleObject& part) const{ return euclidean_dot(part.p4()); }
+  LorentzVector_t::Scalar euclidean_dot(const ParticleObject* part) const{ return (part ? euclidean_dot(*part) : LorentzVector_t::Scalar(0)); }
+  LorentzVector_t::Scalar deltaR(LorentzVector_t::Scalar eta_, LorentzVector_t::Scalar phi_) const;
+  LorentzVector_t::Scalar deltaR(const TLorentzVector& v) const{ return deltaR(v.Eta(), v.Phi()); }
+  LorentzVector_t::Scalar deltaR(const LorentzVector_t& v) const{ return deltaR(v.Eta(), v.Phi()); }
+  LorentzVector_t::Scalar deltaR(const ParticleObject& part) const{ return deltaR(part.p4()); }
+  LorentzVector_t::Scalar deltaR(const ParticleObject* part) const{ return (part ? deltaR(*part) : LorentzVector_t::Scalar(-1)); }
+  LorentzVector_t::Scalar deltaEta(LorentzVector_t::Scalar eta_) const;
+  LorentzVector_t::Scalar deltaEta(const TLorentzVector& v) const{ return deltaEta(v.Eta()); }
+  LorentzVector_t::Scalar deltaEta(const LorentzVector_t& v) const{ return deltaEta(v.Eta()); }
+  LorentzVector_t::Scalar deltaEta(const ParticleObject& part) const{ return deltaEta(part.eta()); }
+  LorentzVector_t::Scalar deltaEta(const ParticleObject* part) const{ return (part ? deltaEta(*part) : LorentzVector_t::Scalar(0)); }
   LorentzVector_t::Scalar deltaPhi(LorentzVector_t::Scalar phi_) const;
+  LorentzVector_t::Scalar deltaPhi(const TLorentzVector& v) const{ return deltaPhi(v.Phi()); }
+  LorentzVector_t::Scalar deltaPhi(const LorentzVector_t& v) const{ return deltaPhi(v.Phi()); }
+  LorentzVector_t::Scalar deltaPhi(const ParticleObject& part) const{ return deltaPhi(part.phi()); }
+  LorentzVector_t::Scalar deltaPhi(const ParticleObject* part) const{ return (part ? deltaPhi(*part) : LorentzVector_t::Scalar(0)); }
 
   Vector3D_t vect() const{ return Vector3D_t(momentum.X(), momentum.Y(), momentum.Z()); }
   Vector2D_t vect_trans() const{ return Vector2D_t(momentum.X(), momentum.Y()); }
@@ -107,8 +121,8 @@ public:
   void resetMothers(){ mothers.clear(); }
   void resetDaughters(){ daughters.clear(); }
 
-  void getDeepDaughters(std::vector<ParticleObject*>& deepdaus);
-  void getDeepDaughters(std::vector<ParticleObject const*>& deepdaus) const;
+  void getDeepDaughters(std::vector<ParticleObject*>& deepdaus, bool addSelf);
+  void getDeepDaughters(std::vector<ParticleObject const*>& deepdaus, bool addSelf) const;
 
   static bool checkParticleExists(ParticleObject*, const std::vector<ParticleObject*>&);
   static bool checkDeepDaughtership(ParticleObject const* part1, ParticleObject const* part2);

@@ -47,8 +47,6 @@ private:
   };
 
 public:
-  static const std::string colName;
-
   PFCandidateVariables extras;
 
   PFCandidateObject();

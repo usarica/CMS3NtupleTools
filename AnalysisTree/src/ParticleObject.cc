@@ -57,6 +57,16 @@ float ParticleObject::charge() const{
   if (id<0) cpos *= -1.;
   return cpos;
 }
+ParticleObject::LorentzVector_t::Scalar ParticleObject::deltaR(LorentzVector_t::Scalar eta_, LorentzVector_t::Scalar phi_) const{
+  ParticleObject::LorentzVector_t::Scalar res;
+  HelperFunctions::deltaR(eta(), phi(), eta_, phi_, res);
+  return res;
+}
+ParticleObject::LorentzVector_t::Scalar ParticleObject::deltaEta(LorentzVector_t::Scalar eta_) const{
+  ParticleObject::LorentzVector_t::Scalar res;
+  HelperFunctions::deltaEta(eta(), eta_, res);
+  return res;
+}
 ParticleObject::LorentzVector_t::Scalar ParticleObject::deltaPhi(LorentzVector_t::Scalar phi_) const{
   ParticleObject::LorentzVector_t::Scalar res;
   HelperFunctions::deltaPhi(phi(), phi_, res);
@@ -78,19 +88,19 @@ void ParticleObject::addDaughter(ParticleObject* myParticle){ if (!checkParticle
 bool ParticleObject::hasMother(ParticleObject* part) const{ return checkParticleExists(part, mothers); }
 bool ParticleObject::hasDaughter(ParticleObject* part) const{ return checkParticleExists(part, daughters); }
 
-void ParticleObject::getDeepDaughters(std::vector<ParticleObject*>& deepdaus){
+void ParticleObject::getDeepDaughters(std::vector<ParticleObject*>& deepdaus, bool addSelf){
   if (this->getNDaughters()==0){
-    if (!HelperFunctions::checkListVariable(deepdaus, (ParticleObject*) this)) deepdaus.push_back(this);
+    if (addSelf && !HelperFunctions::checkListVariable(deepdaus, (ParticleObject*) this)) deepdaus.push_back(this);
   }
   else{
-    for (auto const& dau:daughters) dau->getDeepDaughters(deepdaus);
+    for (auto const& dau:daughters) dau->getDeepDaughters(deepdaus, true);
   }
 }
-void ParticleObject::getDeepDaughters(std::vector<ParticleObject const*>& deepdaus) const{
+void ParticleObject::getDeepDaughters(std::vector<ParticleObject const*>& deepdaus, bool addSelf) const{
   if (this->getNDaughters()==0){
-    if (!HelperFunctions::checkListVariable(deepdaus, (ParticleObject const*) this)) deepdaus.push_back(this);
+    if (addSelf && !HelperFunctions::checkListVariable(deepdaus, (ParticleObject const*) this)) deepdaus.push_back(this);
   }
   else{
-    for (auto const& dau:daughters) dau->getDeepDaughters(deepdaus);
+    for (auto const& dau:daughters) dau->getDeepDaughters(deepdaus, true);
   }
 }

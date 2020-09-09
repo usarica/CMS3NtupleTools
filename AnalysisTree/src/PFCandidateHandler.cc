@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "PFCandidateHandler.h"
 #include "MELAStreamHelpers.hh"
@@ -19,7 +22,7 @@ PFCANDIDATE_MOMENTUM_VARIABLES \
 PFCANDIDATE_VARIABLES
 
 
-const std::string PFCandidateHandler::colName = PFCandidateObject::colName;
+const std::string PFCandidateHandler::colName = GlobalCollectionNames::colName_pfcands;
 
 PFCandidateHandler::PFCandidateHandler() :
   IvyBase()

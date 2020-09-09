@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "PhotonHandler.h"
 #include "PhotonSelectionHelpers.h"
@@ -17,7 +20,7 @@ PHOTON_VARIABLE(float, phi, 0) \
 PHOTON_VARIABLE(float, mass, 0)
 
 
-const std::string PhotonHandler::colName = PhotonObject::colName;
+const std::string PhotonHandler::colName = GlobalCollectionNames::colName_photons;
 
 PhotonHandler::PhotonHandler() :
   IvyBase(),
@@ -51,7 +54,10 @@ bool PhotonHandler::associatePFCandidates(std::vector<PFCandidateObject*> const*
   for (auto const& pfcand:(*pfcandidates)){
     auto const& associated_particle_indices = pfcand->extras.matched_photon_index_list;
     for (auto const& part:productList){
-      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())){
+        part->addDaughter(pfcand);
+        pfcand->addMother(part);
+      }
     }
   }
 

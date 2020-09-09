@@ -71,6 +71,13 @@ void ParticleDisambiguator::disambiguateParticles(
           bool isTightPart = ParticleSelectionHelpers::isTightParticle(part);
           bool isLoosePart = ParticleSelectionHelpers::isLooseParticle(part);
           bool isVetoPart = ParticleSelectionHelpers::isVetoParticle(part);
+          bool shareAllPFCands = (
+            part->extras.n_associated_pfcands == product->extras.n_associated_pfcands
+            &&
+            part->extras.associated_pfcands_sum_px == product->extras.associated_pfcands_sum_px
+            &&
+            part->extras.associated_pfcands_sum_py == product->extras.associated_pfcands_sum_py
+            );
           if (
             !(
               isTightPart
@@ -80,7 +87,7 @@ void ParticleDisambiguator::disambiguateParticles(
               (isVetoPart && !isLooseProduct)
               )
             ) continue;
-          if (reco::deltaR(product->p4(), part->p4())<0.1){ doRemove=true; break; }
+          if (shareAllPFCands || reco::deltaR(product->p4(), part->p4())<0.1){ doRemove=true; break; }
         }
       }
       if (!doRemove) photons_new.push_back(product);

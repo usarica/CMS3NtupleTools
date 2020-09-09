@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "ElectronHandler.h"
 #include "SamplesCore.h"
@@ -19,7 +22,7 @@ ELECTRON_VARIABLE(float, mass, 0) \
 ELECTRON_VARIABLE(cms3_charge_t, charge, 0)
 
 
-const std::string ElectronHandler::colName = ElectronObject::colName;
+const std::string ElectronHandler::colName = GlobalCollectionNames::colName_electrons;
 
 ElectronHandler::ElectronHandler() :
   IvyBase(),
@@ -54,7 +57,10 @@ bool ElectronHandler::associatePFCandidates(std::vector<PFCandidateObject*> cons
   for (auto const& pfcand:(*pfcandidates)){
     auto const& associated_particle_indices = pfcand->extras.matched_electron_index_list;
     for (auto const& part:productList){
-      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())){
+        part->addDaughter(pfcand);
+        pfcand->addMother(part);
+      }
     }
   }
 

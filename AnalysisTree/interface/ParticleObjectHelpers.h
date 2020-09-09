@@ -79,8 +79,8 @@ template<typename T> bool ParticleObjectHelpers::objHasGreaterPt(T const& earlie
 template<typename T> bool ParticleObjectHelpers::ptrHasGreaterPt(T const* earlier, T const* later){ return (earlier && (!later || (earlier->pt() > later->pt()))); }
 
 template<typename T> bool ParticleObjectHelpers::objHasGreaterScalarSumPt(T const& earlier, T const& later){
-  std::vector<ParticleObject const*> deepDaus_earlier; earlier.getDeepDaughters(deepDaus_earlier);
-  std::vector<ParticleObject const*> deepDaus_later; later.getDeepDaughters(deepDaus_later);
+  std::vector<ParticleObject const*> deepDaus_earlier; earlier.getDeepDaughters(deepDaus_earlier, true);
+  std::vector<ParticleObject const*> deepDaus_later; later.getDeepDaughters(deepDaus_later, true);
   float scsumpt_earlier=0; for (auto const& dau:deepDaus_earlier) scsumpt_earlier += dau->pt();
   float scsumpt_later=0; for (auto const& dau:deepDaus_later) scsumpt_later += dau->pt();
   return (scsumpt_earlier > scsumpt_later);

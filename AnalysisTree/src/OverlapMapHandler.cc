@@ -1,5 +1,7 @@
 #include <cassert>
 
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "OverlapMapHandler.h"
 #include "MELAStreamHelpers.hh"
 
@@ -8,7 +10,7 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-template<> const std::string OverlapMapHandler<MuonObject, AK4JetObject>::colName = "overlapMap_" + MuonObject::colName + "_" + AK4JetObject::colName;
+template<> const std::string OverlapMapHandler<MuonObject, AK4JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_muons + "_" + GlobalCollectionNames::colName_ak4jets;
 template<> OverlapMapHandler<MuonObject, AK4JetObject>::OverlapMapHandler() :
   IvyBase()
 {
@@ -77,7 +79,7 @@ template<> bool OverlapMapHandler<MuonObject, AK4JetObject>::constructOverlapMap
   return true;
 }
 
-template<> const std::string OverlapMapHandler<MuonObject, AK8JetObject>::colName = "overlapMap_" + MuonObject::colName + "_" + AK8JetObject::colName;
+template<> const std::string OverlapMapHandler<MuonObject, AK8JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_muons + "_" + GlobalCollectionNames::colName_ak8jets;
 template<> OverlapMapHandler<MuonObject, AK8JetObject>::OverlapMapHandler() :
   IvyBase()
 {
@@ -146,17 +148,17 @@ template<> bool OverlapMapHandler<MuonObject, AK8JetObject>::constructOverlapMap
   return true;
 }
 
-template<> const std::string OverlapMapHandler<ElectronObject, AK4JetObject>::colName = "overlapMap_" + ElectronObject::colName + "_" + AK4JetObject::colName;
+template<> const std::string OverlapMapHandler<ElectronObject, AK4JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_electrons + "_" + GlobalCollectionNames::colName_ak4jets;
 template<> OverlapMapHandler<ElectronObject, AK4JetObject>::OverlapMapHandler() :
   IvyBase()
 {
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(this->colName + "_" + #NAME);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> void OverlapMapHandler<ElectronObject, AK4JetObject>::bookBranches(BaseTree* tree){
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(this->colName + "_" + #NAME, nullptr);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverlapMaps(){
@@ -170,7 +172,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
   std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME; \
   allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(this->colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
@@ -183,7 +185,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   {
@@ -199,14 +201,14 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
 
       // Set extras
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_##NAME;
-      OVERLAPMAP_ELECTRONS_JETS_LINKED_VARIABLES;
+      OVERLAPMAP_ELECTRONS_AK4JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+      OVERLAPMAP_ELECTRONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
     }
   }
@@ -215,17 +217,17 @@ template<> bool OverlapMapHandler<ElectronObject, AK4JetObject>::constructOverla
   return true;
 }
 
-template<> const std::string OverlapMapHandler<ElectronObject, AK8JetObject>::colName = "overlapMap_" + ElectronObject::colName + "_" + AK8JetObject::colName;
+template<> const std::string OverlapMapHandler<ElectronObject, AK8JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_electrons + "_" + GlobalCollectionNames::colName_ak8jets;
 template<> OverlapMapHandler<ElectronObject, AK8JetObject>::OverlapMapHandler() :
   IvyBase()
 {
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(this->colName + "_" + #NAME);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> void OverlapMapHandler<ElectronObject, AK8JetObject>::bookBranches(BaseTree* tree){
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(this->colName + "_" + #NAME, nullptr);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverlapMaps(){
@@ -239,7 +241,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
   std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME; \
   allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(this->colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
@@ -252,7 +254,7 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+  OVERLAPMAP_ELECTRONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   {
@@ -268,14 +270,14 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
 
       // Set extras
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_##NAME;
-      OVERLAPMAP_ELECTRONS_JETS_LINKED_VARIABLES;
+      OVERLAPMAP_ELECTRONS_AK8JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      OVERLAPMAP_ELECTRONS_JETS_VARIABLES;
+      OVERLAPMAP_ELECTRONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
     }
   }
@@ -284,17 +286,17 @@ template<> bool OverlapMapHandler<ElectronObject, AK8JetObject>::constructOverla
   return true;
 }
 
-template<> const std::string OverlapMapHandler<PhotonObject, AK4JetObject>::colName = "overlapMap_" + PhotonObject::colName + "_" + AK4JetObject::colName;
+template<> const std::string OverlapMapHandler<PhotonObject, AK4JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_photons + "_" + GlobalCollectionNames::colName_ak4jets;
 template<> OverlapMapHandler<PhotonObject, AK4JetObject>::OverlapMapHandler() :
   IvyBase()
 {
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(this->colName + "_" + #NAME);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> void OverlapMapHandler<PhotonObject, AK4JetObject>::bookBranches(BaseTree* tree){
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(this->colName + "_" + #NAME, nullptr);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapMaps(){
@@ -308,7 +310,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
   std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME; \
   allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(this->colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
@@ -321,7 +323,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   {
@@ -337,14 +339,14 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
 
       // Set extras
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_##NAME;
-      OVERLAPMAP_PHOTONS_JETS_LINKED_VARIABLES;
+      OVERLAPMAP_PHOTONS_AK4JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+      OVERLAPMAP_PHOTONS_AK4JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
     }
   }
@@ -353,17 +355,17 @@ template<> bool OverlapMapHandler<PhotonObject, AK4JetObject>::constructOverlapM
   return true;
 }
 
-template<> const std::string OverlapMapHandler<PhotonObject, AK8JetObject>::colName = "overlapMap_" + PhotonObject::colName + "_" + AK8JetObject::colName;
+template<> const std::string OverlapMapHandler<PhotonObject, AK8JetObject>::colName = GlobalCollectionNames::colName_overlapMap + "_" + GlobalCollectionNames::colName_photons + "_" + GlobalCollectionNames::colName_ak8jets;
 template<> OverlapMapHandler<PhotonObject, AK8JetObject>::OverlapMapHandler() :
   IvyBase()
 {
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(this->colName + "_" + #NAME);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> void OverlapMapHandler<PhotonObject, AK8JetObject>::bookBranches(BaseTree* tree){
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<std::vector<TYPE>*>(this->colName + "_" + #NAME, nullptr);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 }
 template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapMaps(){
@@ -377,7 +379,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) \
   std::vector<TYPE>::const_iterator itBegin_##NAME, itEnd_##NAME; \
   allVariablesPresent &= this->getConsumedCIterators<std::vector<TYPE>>(this->colName + "_" + #NAME, &itBegin_##NAME, &itEnd_##NAME);
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   if (!allVariablesPresent){
@@ -390,7 +392,7 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
   size_t n_products = (itEnd_particle_match_index - itBegin_particle_match_index);
   productList.reserve(n_products);
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) auto it_##NAME = itBegin_##NAME;
-  OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+  OVERLAPMAP_PHOTONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
   {
@@ -406,14 +408,14 @@ template<> bool OverlapMapHandler<PhotonObject, AK8JetObject>::constructOverlapM
 
       // Set extras
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) obj->NAME = *it_##NAME;
-      OVERLAPMAP_PHOTONS_JETS_LINKED_VARIABLES;
+      OVERLAPMAP_PHOTONS_AK8JETS_LINKED_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
 
       if (this->verbosity>=TVar::DEBUG) MELAout << "\t- Success!" << endl;
 
       ip++;
 #define OVERLAPMAP_VARIABLE(TYPE, NAME, DEFVAL) it_##NAME++;
-      OVERLAPMAP_PHOTONS_JETS_VARIABLES;
+      OVERLAPMAP_PHOTONS_AK8JETS_VARIABLES;
 #undef OVERLAPMAP_VARIABLE
     }
   }

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <utility>
 #include "MuonObject.h"
+#include "FSRObject.h"
 
 
 MuonVariables::MuonVariables(){
@@ -24,8 +25,6 @@ MuonVariables& MuonVariables::operator=(const MuonVariables& other){
   return *this;
 }
 
-
-const std::string MuonObject::colName = "muons";
 
 MuonObject::MuonObject() :
   ParticleObject(),
@@ -116,4 +115,11 @@ ParticleObject::LorentzVector_t MuonObject::uncorrected_p4() const{
   ParticleObject::LorentzVector_t res;
   res = PolarLorentzVector_t(this->uncorrected_pt(), momentum.Eta(), momentum.Phi(), momentum.M());
   return res;
+}
+
+bool MuonObject::hasFSR() const{
+  for (auto const& dau:daughters){
+    if (dynamic_cast<FSRObject*>(dau)) return true;
+  }
+  return false;
 }

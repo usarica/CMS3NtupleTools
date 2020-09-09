@@ -7,6 +7,7 @@
 #include "MuonObject.h"
 #include "ElectronObject.h"
 #include "PhotonObject.h"
+#include "PFCandidateObject.h"
 #include "ParticleDisambiguator.h"
 
 
@@ -30,6 +31,7 @@ protected:
   void clear();
 
   bool constructFSRObjects();
+  bool associatePFCandidates(std::vector<PFCandidateObject*> const* pfcandidates) const;
   bool reconstructPostFSRObjects(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
 
 public:
@@ -39,7 +41,7 @@ public:
   // Destructors
   ~FSRHandler(){ clear(); }
 
-  bool constructPostFSRParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons);
+  bool constructPostFSRParticles(std::vector<MuonObject*> const* muons, std::vector<ElectronObject*> const* electrons, std::vector<PhotonObject*> const* photons, std::vector<PFCandidateObject*> const* pfcandidates);
 
   std::vector<FSRObject*> const& getFSRCandidates() const{ return fsrCandidates; }
   std::vector<MuonObject*> const& getMuons() const{ return muons_postFSR; }

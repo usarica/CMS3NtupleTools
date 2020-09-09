@@ -115,8 +115,6 @@ public:
 
 class ElectronObject : public ParticleObject{
 public:
-  static const std::string colName;
-
   ElectronVariables extras;
   float currentSystScale;
 
@@ -142,6 +140,8 @@ public:
 
   ParticleObject::LorentzVector_t::Scalar uncorrected_pt() const;
   ParticleObject::LorentzVector_t uncorrected_p4() const;
+
+  bool hasFSR() const;
 
 };
 

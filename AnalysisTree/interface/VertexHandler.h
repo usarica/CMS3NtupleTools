@@ -31,12 +31,12 @@ public:
 
   bool constructVertices();
   std::vector<ProductType_t*> const& getProducts() const{ return productList; }
-  cms3_listSize_t const& getNVertices() const{ return product_n_vtxs; }
-  cms3_listSize_t const& getNGoodVertices() const{ return product_n_vtxs_good; }
-  cms3_listSize_t const& getNGoodJECVertices() const{ return product_n_vtxs_good_JEC; }
-  bool hasVertex() const{ return product_n_vtxs>0; }
-  bool hasGoodVertex() const{ return product_n_vtxs_good>0; }
-  bool hasGoodJECVertex() const{ return product_n_vtxs_good_JEC>0; }
+  cms3_listSize_t const& getNVertices() const{ return product_nvtxs; }
+  cms3_listSize_t const& getNGoodVertices() const{ return product_nvtxs_good; }
+  cms3_listSize_t const& getNGoodJECVertices() const{ return product_nvtxs_good_JEC; }
+  bool hasVertex() const{ return product_nvtxs>0; }
+  bool hasGoodVertex() const{ return product_nvtxs_good>0; }
+  bool hasGoodJECVertex() const{ return product_nvtxs_good_JEC>0; }
   bool const& hasGoodPrimaryVertex() const{ return product_hasGoodPrimaryVertex; }
 
   static void bookBranches(BaseTree* tree);

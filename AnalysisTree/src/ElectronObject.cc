@@ -4,6 +4,7 @@
 #include <CMS3/Dictionaries/interface/EgammaFiduciality.h>
 #include "ECALGeometrySpecifications.h"
 #include "ElectronObject.h"
+#include "FSRObject.h"
 
 
 ElectronVariables::ElectronVariables(){
@@ -27,8 +28,6 @@ ElectronVariables& ElectronVariables::operator=(const ElectronVariables& other){
   return *this;
 }
 
-
-const std::string ElectronObject::colName = "electrons";
 
 ElectronObject::ElectronObject() :
   ParticleObject(),
@@ -144,3 +143,10 @@ void ElectronObject::applyFSRIsoCorr(ParticleObject::LorentzVector_t::Scalar con
 
 ParticleObject::LorentzVector_t::Scalar ElectronObject::uncorrected_pt() const{ return this->pt()/currentSystScale; }
 ParticleObject::LorentzVector_t ElectronObject::uncorrected_p4() const{ return this->p4()/currentSystScale; }
+
+bool ElectronObject::hasFSR() const{
+  for (auto const& dau:daughters){
+    if (dynamic_cast<FSRObject*>(dau)) return true;
+  }
+  return false;
+}

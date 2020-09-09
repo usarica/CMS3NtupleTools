@@ -25,8 +25,6 @@ PFCandidateVariables& PFCandidateVariables::operator=(const PFCandidateVariables
 }
 
 
-const std::string PFCandidateObject::colName = "pfcands";
-
 PFCandidateObject::PFCandidateObject() :
   ParticleObject(),
   extras()

@@ -35,7 +35,6 @@ public:
 class FSRObject : public ParticleObject{
 public:
   FSRVariables extras;
-  PhotonObject* associatedPhoton;
 
   FSRObject();
   FSRObject(LorentzVector_t const& mom_);
@@ -45,7 +44,7 @@ public:
 
   void swap(FSRObject& other);
 
-  void setAssociatedPhoton(PhotonObject* part){ associatedPhoton = part; }
+  void setAssociatedPhoton(PhotonObject* part){ this->addMother(part); }
 
 };
 

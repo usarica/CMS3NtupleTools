@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "MuonHandler.h"
 #include "MuonSelectionHelpers.h"
@@ -17,7 +20,7 @@ MUON_VARIABLE(float, mass, 0) \
 MUON_VARIABLE(cms3_charge_t, charge, 0)
 
 
-const std::string MuonHandler::colName = MuonObject::colName;
+const std::string MuonHandler::colName = GlobalCollectionNames::colName_muons;
 
 MuonHandler::MuonHandler() :
   IvyBase(),
@@ -53,7 +56,10 @@ bool MuonHandler::associatePFCandidates(std::vector<PFCandidateObject*> const* p
   for (auto const& pfcand:(*pfcandidates)){
     auto const& associated_particle_indices = pfcand->extras.matched_muon_index_list;
     for (auto const& part:productList){
-      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())) part->addDaughter(pfcand);
+      if (HelperFunctions::checkListVariable(associated_particle_indices, part->getUniqueIdentifier())){
+        part->addDaughter(pfcand);
+        pfcand->addMother(part);
+      }
     }
   }
 

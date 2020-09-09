@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "ParticleObjectHelpers.h"
 #include "IsotrackHandler.h"
 #include "IsotrackSelectionHelpers.h"
@@ -21,7 +24,7 @@ ISOTRACK_VARIABLE(cms3_id_t, id, 0) \
 ISOTRACK_VARIABLES
 
 
-const std::string IsotrackHandler::colName = "isotracks";
+const std::string IsotrackHandler::colName = GlobalCollectionNames::colName_isotracks;
 
 IsotrackHandler::IsotrackHandler() : IvyBase()
 {

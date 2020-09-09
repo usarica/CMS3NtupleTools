@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "VertexHandler.h"
 #include "MELAStreamHelpers.hh"
 
@@ -11,7 +14,7 @@ using namespace MELAStreamHelpers;
 VERTEX_VARIABLES
 
 
-const std::string VertexHandler::colName = "vtxs";
+const std::string VertexHandler::colName = GlobalCollectionNames::colName_vtxs;
 
 VertexHandler::VertexHandler() :
   IvyBase(),

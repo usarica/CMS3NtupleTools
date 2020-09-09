@@ -23,9 +23,7 @@ OVERLAPMAP_SPECIALIZATIONS;
 
 #define OVERLAPMAP_SPECIALIZATIONS \
 OVERLAPMAP_SPECIALIZATION(ElectronObject, AK4JetObject) \
-OVERLAPMAP_SPECIALIZATION(ElectronObject, AK8JetObject) \
-OVERLAPMAP_SPECIALIZATION(PhotonObject, AK4JetObject) \
-OVERLAPMAP_SPECIALIZATION(PhotonObject, AK8JetObject)
+OVERLAPMAP_SPECIALIZATION(PhotonObject, AK4JetObject)
 #define OVERLAPMAP_SPECIALIZATION(T1, T2) \
 template<> ParticleObject::LorentzVector_t OverlapMapElement<T1, T2>::p4_commonMuCands_goodMET() const{ \
   ParticleObject::LorentzVector_t res; \
@@ -39,8 +37,7 @@ OVERLAPMAP_SPECIALIZATIONS;
 #undef OVERLAPMAP_SPECIALIZATIONS
 
 #define OVERLAPMAP_SPECIALIZATIONS \
-OVERLAPMAP_SPECIALIZATION(MuonObject, AK4JetObject) \
-OVERLAPMAP_SPECIALIZATION(MuonObject, AK8JetObject)
+OVERLAPMAP_SPECIALIZATION(MuonObject, AK4JetObject)
 #define OVERLAPMAP_SPECIALIZATION(T1, T2) \
 template<> ParticleObject::LorentzVector_t OverlapMapElement<T1, T2>::p4_commonMuCands_goodMET() const{ \
   ParticleObject::LorentzVector_t res; \

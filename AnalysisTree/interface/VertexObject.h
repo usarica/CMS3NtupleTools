@@ -11,9 +11,9 @@ VERTEX_VARIABLE(bool, is_good, false)
 
 // These are defined for the entire event
 #define VERTEX_EVENT_VARIABLES \
-VERTEX_EVENT_VARIABLE(cms3_listSize_t, n_vtxs, 0) \
-VERTEX_EVENT_VARIABLE(cms3_listSize_t, n_vtxs_good, 0) \
-VERTEX_EVENT_VARIABLE(cms3_listSize_t, n_vtxs_good_JEC, 0)
+VERTEX_EVENT_VARIABLE(cms3_vtxs_nvtxs_t, nvtxs, 0) \
+VERTEX_EVENT_VARIABLE(cms3_vtxs_nvtxs_t, nvtxs_good, 0) \
+VERTEX_EVENT_VARIABLE(cms3_vtxs_nvtxs_t, nvtxs_good_JEC, 0)
 
 
 class VertexVariables{

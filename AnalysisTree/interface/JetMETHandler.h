@@ -16,8 +16,8 @@
 
 class JetMETHandler : public IvyBase{
 public:
-  static const std::string& colName_ak4jets;
-  static const std::string& colName_ak8jets;
+  static const std::string colName_ak4jets;
+  static const std::string colName_ak8jets;
   static const std::string colName_pfmet;
   static const std::string colName_pfpuppimet;
   static const std::string colName_vertices;

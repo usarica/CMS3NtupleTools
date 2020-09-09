@@ -1,4 +1,7 @@
 #include <cassert>
+
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "SamplesCore.h"
 #include "HelperFunctions.h"
 #include "GenInfoHandler.h"
@@ -9,8 +12,8 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-const std::string GenInfoHandler::colName_lheparticles = "lheparticles";
-const std::string GenInfoHandler::colName_genparticles = "genparticles";
+const std::string GenInfoHandler::colName_lheparticles = GlobalCollectionNames::colName_lheparticles;
+const std::string GenInfoHandler::colName_genparticles = GlobalCollectionNames::colName_genparticles;
 
 GenInfoHandler::GenInfoHandler() :
   IvyBase(),

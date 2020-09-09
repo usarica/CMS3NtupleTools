@@ -15,6 +15,8 @@
 #include "DileptonHandler.h"
 #include "IsotrackHandler.h"
 #include "FSRHandler.h"
+#include "OverlapMapHandler.h"
+#include "PFCandidateHandler.h"
 #include "EventFilterHandler.h"
 
 #include "ParticleObjectHelpers.h"

@@ -75,8 +75,6 @@ protected:
 public:
   constexpr static float ConeRadiusConstant = 0.4;
 
-  static const std::string colName;
-
   AK4JetVariables extras;
   SystematicsHelpers::SystematicVariationTypes currentSyst;
   float currentJEC;

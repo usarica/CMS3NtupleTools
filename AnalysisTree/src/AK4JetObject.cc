@@ -37,8 +37,6 @@ AK4JetVariables& AK4JetVariables::operator=(const AK4JetVariables& other){
 }
 
 
-const std::string AK4JetObject::colName = "ak4jets";
-
 AK4JetObject::AK4JetObject() :
   ParticleObject(),
   mom_original(0, 0, 0, 0),

@@ -1,6 +1,8 @@
 #include <cassert>
 #include "TRandom3.h"
 
+#include <CMS3/Dictionaries/interface/GlobalCollectionNames.h>
+
 #include "EventFilterHandler.h"
 #include "SamplesCore.h"
 #include "HelperFunctionsCore.h"
@@ -16,9 +18,9 @@ using namespace std;
 using namespace MELAStreamHelpers;
 
 
-const std::string EventFilterHandler::colName_HLTpaths = "triggers";
-const std::string EventFilterHandler::colName_triggerobjects = "triggerObjects";
-const std::string EventFilterHandler::colName_metfilters = "metfilter";
+const std::string EventFilterHandler::colName_HLTpaths = GlobalCollectionNames::colName_triggers;
+const std::string EventFilterHandler::colName_triggerobjects = GlobalCollectionNames::colName_triggerObjects;
+const std::string EventFilterHandler::colName_metfilters = GlobalCollectionNames::colName_metfilter;
 
 EventFilterHandler::EventFilterHandler() :
   IvyBase(),
