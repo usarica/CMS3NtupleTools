@@ -64,5 +64,19 @@ OVERLAPMAP_SPECIALIZATIONS;
 #undef OVERLAPMAP_SPECIALIZATION
 #undef OVERLAPMAP_SPECIALIZATIONS
 
+#define OVERLAPMAP_SPECIALIZATIONS \
+OVERLAPMAP_SPECIALIZATION(MuonObject, AK4JetObject, muons, ak4jets) \
+OVERLAPMAP_SPECIALIZATION(MuonObject, AK8JetObject, muons, ak8jets) \
+OVERLAPMAP_SPECIALIZATION(ElectronObject, AK4JetObject, electrons, ak4jets) \
+OVERLAPMAP_SPECIALIZATION(ElectronObject, AK8JetObject, electrons, ak8jets) \
+OVERLAPMAP_SPECIALIZATION(PhotonObject, AK4JetObject, photons, ak4jets) \
+OVERLAPMAP_SPECIALIZATION(PhotonObject, AK8JetObject, photons, ak8jets)
+
+#define OVERLAPMAP_SPECIALIZATION(T1, T2, U1, U2) typedef OverlapMapHandler<T1, T2> OverlapMapHandler_##U1##_##U2##_t;
+
+OVERLAPMAP_SPECIALIZATIONS;
+
+#undef OVERLAPMAP_SPECIALIZATION
+#undef OVERLAPMAP_SPECIALIZATIONS
 
 #endif

@@ -18,7 +18,9 @@ namespace LooperFunctionHelpers{
   bool use_MET_XYCorr = true;
   bool use_MET_JERCorr = true;
   bool use_MET_ParticleMomCorr = true;
+  bool use_MET_p4Preservation = true;
 
+  void setMETOptions(bool use_MET_Puppi_, bool use_MET_XYCorr_, bool use_MET_JERCorr_, bool use_MET_ParticleMomCorr_, bool use_MET_p4Preservation_);
 
   // Helpers for jets
   bool applyPUIdToAK4Jets = true;
@@ -38,9 +40,18 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   // Define handlers
 #define OBJECT_HANDLER_COMMON_DIRECTIVES \
   HANDLER_DIRECTIVE(EventFilterHandler, eventFilter) \
+  HANDLER_DIRECTIVE(PFCandidateHandler, pfcandidateHandler) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_muons_ak4jets_t, overlapMap_muons_ak4jets) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_muons_ak8jets_t, overlapMap_muons_ak8jets) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_electrons_ak4jets_t, overlapMap_electrons_ak4jets) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_electrons_ak8jets_t, overlapMap_electrons_ak8jets) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_photons_ak4jets_t, overlapMap_photons_ak4jets) \
+  HANDLER_DIRECTIVE(OverlapMapHandler_photons_ak8jets_t, overlapMap_photons_ak8jets) \
   HANDLER_DIRECTIVE(MuonHandler, muonHandler) \
   HANDLER_DIRECTIVE(ElectronHandler, electronHandler) \
   HANDLER_DIRECTIVE(PhotonHandler, photonHandler) \
+  HANDLER_DIRECTIVE(SuperclusterHandler, superclusterHandler) \
+  HANDLER_DIRECTIVE(FSRHandler, fsrHandler) \
   HANDLER_DIRECTIVE(JetMETHandler, jetHandler) \
   HANDLER_DIRECTIVE(IsotrackHandler, isotrackHandler) \
   HANDLER_DIRECTIVE(VertexHandler, vertexHandler)
@@ -54,7 +65,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   HANDLER_DIRECTIVE(MuonScaleFactorHandler, muonSFHandler) \
   HANDLER_DIRECTIVE(ElectronScaleFactorHandler, electronSFHandler) \
   HANDLER_DIRECTIVE(PhotonScaleFactorHandler, photonSFHandler) \
-  HANDLER_DIRECTIVE(BtagScaleFactorHandler, btagSFHandler)
+  HANDLER_DIRECTIVE(BtagScaleFactorHandler, btagSFHandler) \
+  HANDLER_DIRECTIVE(METCorrectionHandler, metCorrectionHandler)
 
   // Get the current tree
   BaseTree* currentTree = theLooper->getWrappedTree();
@@ -132,6 +144,7 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   BRANCH_COMMAND(float, event_wgt_SFs) \
   BRANCH_COMMAND(float, event_pTmiss) \
   BRANCH_COMMAND(float, event_phimiss) \
+  BRANCH_COMMAND(bool, event_passTightMETFilters) \
   BRANCH_COMMAND(float, genmet_pTmiss) \
   BRANCH_COMMAND(float, genmet_phimiss) \
   BRANCH_COMMAND(unsigned int, event_n_vtxs_good) \
@@ -206,9 +219,12 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
     if (event_wgt==0.f) return false;
   }
 
-  muonHandler->constructMuons(theGlobalSyst);
-  electronHandler->constructElectrons(theGlobalSyst);
-  photonHandler->constructPhotons(theGlobalSyst);
+  pfcandidateHandler->constructPFCandidates(theGlobalSyst);
+  auto const& pfcandidates = pfcandidateHandler->getProducts();
+
+  muonHandler->constructMuons(theGlobalSyst, &pfcandidates);
+  electronHandler->constructElectrons(theGlobalSyst, &pfcandidates);
+  photonHandler->constructPhotons(theGlobalSyst, &pfcandidates);
   particleDisambiguator.disambiguateParticles(muonHandler, electronHandler, photonHandler);
 
   auto const& muons = muonHandler->getProducts();
@@ -277,21 +293,15 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
   if (hasVetoIsotrack) return false;
 
-  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons);
+  jetHandler->constructJetMET(theGlobalSyst, &muons, &electrons, &photons, &pfcandidates);
   auto const& ak4jets = jetHandler->getAK4Jets();
   auto const& ak8jets = jetHandler->getAK8Jets();
-  auto const& pfmet = jetHandler->getPFMET();
-  auto const& puppimet = jetHandler->getPFPUPPIMET();
-
-  auto const& eventmet = (use_MET_Puppi ? puppimet : pfmet);
-  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr);
-  event_pTmiss = event_met_p4.Pt();
-  event_phimiss = event_met_p4.Phi();
 
   eventFilter->constructFilters();
   if (isData && !eventFilter->isUniqueDataEvent()) return false;
 
-  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight) || !eventFilter->hasGoodVertex()) return false;
+  if (!eventFilter->passCommonSkim() || !eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Standard)) return false;
+  event_passTightMETFilters = eventFilter->passMETFilters(EventFilterHandler::kMETFilters_Tight);
 
   vertexHandler->constructVertices();
   if (!vertexHandler->hasGoodPrimaryVertex()) return false;
@@ -338,8 +348,18 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   }
   if (n_ak4jets_tight_pt30_btagged_loose>0) return false;
   event_wgt_SFs *= SF_btagging;
-
   event_n_ak4jets_pt30 = ak4jets_tight.size();
+
+  auto const& eventmet = (use_MET_Puppi ? jetHandler->getPFPUPPIMET() : jetHandler->getPFMET());
+  if (!isData) metCorrectionHandler->applyCorrections(
+    simEventHandler->getChosenDataPeriod(),
+    genmet_pTmiss, genmet_phimiss,
+    eventmet, !use_MET_Puppi
+  );
+  auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
+  event_pTmiss = event_met_p4.Pt();
+  event_phimiss = event_met_p4.Phi();
+
   min_abs_dPhi_pTj_pTmiss = TMath::Pi();
   for (auto const& jet:ak4jets_tight){
     ak4jets_pt.push_back(jet->pt());
@@ -369,6 +389,14 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
 #undef OBJECT_HANDLER_DIRECTIVES
 }
 
+void LooperFunctionHelpers::setMETOptions(bool use_MET_Puppi_, bool use_MET_XYCorr_, bool use_MET_JERCorr_, bool use_MET_ParticleMomCorr_, bool use_MET_p4Preservation_){
+  use_MET_Puppi = use_MET_Puppi_;
+  use_MET_XYCorr = use_MET_XYCorr_;
+  use_MET_JERCorr = use_MET_JERCorr_;
+  use_MET_ParticleMomCorr = use_MET_ParticleMomCorr_;
+  use_MET_p4Preservation = use_MET_p4Preservation_;
+}
+
 void LooperFunctionHelpers::setAK4JetSelectionOptions(bool applyPUIdToAK4Jets_, bool applyTightLeptonVetoIdToAK4Jets_){
   applyPUIdToAK4Jets = applyPUIdToAK4Jets_;
   applyTightLeptonVetoIdToAK4Jets = applyTightLeptonVetoIdToAK4Jets_;
@@ -387,7 +415,11 @@ void getTrees(
   TString prodVersion, TString strdate,
   int ichunk, int nchunks,
   SystematicsHelpers::SystematicVariationTypes theGlobalSyst = SystematicsHelpers::sNominal,
-  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false
+  // Jet ID options
+  bool applyPUIdToAK4Jets=true, bool applyTightLeptonVetoIdToAK4Jets=false,
+  // MET options
+  bool use_MET_Puppi=false,
+  bool use_MET_XYCorr=true, bool use_MET_JERCorr=true, bool use_MET_ParticleMomCorr=true, bool use_MET_p4Preservation=true
 ){
   if (nchunks==1) nchunks = 0;
   if (nchunks>0 && (ichunk<0 || ichunk==nchunks)) return;
@@ -401,10 +433,15 @@ void getTrees(
   AK4JetSelectionHelpers::setApplyTightLeptonVetoIdToJets(applyTightLeptonVetoIdToAK4Jets); // Default is 'false'
   LooperFunctionHelpers::setAK4JetSelectionOptions(applyPUIdToAK4Jets, applyTightLeptonVetoIdToAK4Jets);
 
+  // Set flags for MET
+  LooperFunctionHelpers::setMETOptions(use_MET_Puppi, use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
+
   TString const coutput_main =
     "output/SinglePhotonEvents/SkimTrees/" + strdate
-    + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId")
-    + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + (applyPUIdToAK4Jets ? "WithPUJetId" : "NoPUJetId") + "_" + (applyTightLeptonVetoIdToAK4Jets ? "WithTightLeptonJetId" : "NoTightLeptonJetId")
+    + "/" + (use_MET_Puppi ? "PUPPIMET" : "PFMET")
+    + "_" + (use_MET_XYCorr ? "WithXY" : "NoXY") + "_" + (use_MET_JERCorr ? "WithJER" : "NoJER")
+    + "_" + (use_MET_ParticleMomCorr ? "WithPartMomCorr" : "NoPartMomCorr") + "_" + (use_MET_p4Preservation ? "P4Preserved" : "P4Default")
     + "/" + period;
 
   SampleHelpers::configure(period, "hadoop_skims:"+prodVersion);
@@ -450,17 +487,48 @@ void getTrees(
   SimEventHandler simEventHandler;
   GenInfoHandler genInfoHandler;
   EventFilterHandler eventFilter;
+  PFCandidateHandler pfcandidateHandler;
   MuonHandler muonHandler;
   ElectronHandler electronHandler;
   PhotonHandler photonHandler;
+  //SuperclusterHandler superclusterHandler;
+  //FSRHandler fsrHandler;
   JetMETHandler jetHandler;
   IsotrackHandler isotrackHandler;
   VertexHandler vertexHandler;
+
+  OverlapMapHandler<MuonObject, AK4JetObject> overlapMap_muons_ak4jets;
+  OverlapMapHandler<MuonObject, AK8JetObject> overlapMap_muons_ak8jets;
+  OverlapMapHandler<ElectronObject, AK4JetObject> overlapMap_electrons_ak4jets;
+  OverlapMapHandler<ElectronObject, AK8JetObject> overlapMap_electrons_ak8jets;
+  OverlapMapHandler<PhotonObject, AK4JetObject> overlapMap_photons_ak4jets;
+  OverlapMapHandler<PhotonObject, AK8JetObject> overlapMap_photons_ak8jets;
+  muonHandler.registerOverlapMaps(
+    overlapMap_muons_ak4jets,
+    overlapMap_muons_ak8jets
+  );
+  electronHandler.registerOverlapMaps(
+    overlapMap_electrons_ak4jets,
+    overlapMap_electrons_ak8jets
+  );
+  photonHandler.registerOverlapMaps(
+    overlapMap_photons_ak4jets,
+    overlapMap_photons_ak8jets
+  );
+  jetHandler.registerOverlapMaps(
+    overlapMap_muons_ak4jets,
+    overlapMap_muons_ak8jets,
+    overlapMap_electrons_ak4jets,
+    overlapMap_electrons_ak8jets,
+    overlapMap_photons_ak4jets,
+    overlapMap_photons_ak8jets
+  );
 
   MuonScaleFactorHandler muonSFHandler;
   ElectronScaleFactorHandler electronSFHandler;
   PhotonScaleFactorHandler photonSFHandler;
   BtagScaleFactorHandler btagSFHandler;
+  METCorrectionHandler metCorrectionHandler;
 
   genInfoHandler.setAcquireLHEMEWeights(false);
   genInfoHandler.setAcquireLHEParticles(false);
@@ -478,17 +546,28 @@ void getTrees(
   theLooper.addObjectHandler(&simEventHandler);
   theLooper.addObjectHandler(&genInfoHandler);
   theLooper.addObjectHandler(&eventFilter);
+  theLooper.addObjectHandler(&pfcandidateHandler);
   theLooper.addObjectHandler(&muonHandler);
   theLooper.addObjectHandler(&electronHandler);
   theLooper.addObjectHandler(&photonHandler);
+  //theLooper.addObjectHandler(&superclusterHandler);
+  //theLooper.addObjectHandler(&fsrHandler);
   theLooper.addObjectHandler(&jetHandler);
   theLooper.addObjectHandler(&isotrackHandler);
   theLooper.addObjectHandler(&vertexHandler);
+  theLooper.addObjectHandler(&overlapMap_muons_ak4jets);
+  theLooper.addObjectHandler(&overlapMap_muons_ak8jets);
+  theLooper.addObjectHandler(&overlapMap_electrons_ak4jets);
+  theLooper.addObjectHandler(&overlapMap_electrons_ak8jets);
+  theLooper.addObjectHandler(&overlapMap_photons_ak4jets);
+  theLooper.addObjectHandler(&overlapMap_photons_ak8jets);
+
   // Set SF handlers
   theLooper.addSFHandler(&muonSFHandler);
   theLooper.addSFHandler(&electronSFHandler);
   theLooper.addSFHandler(&photonSFHandler);
   theLooper.addSFHandler(&btagSFHandler);
+  theLooper.addSFHandler(&metCorrectionHandler);
   // Set output tree
   theLooper.addOutputTree(tout);
   // Register the HLT menus
@@ -501,6 +580,8 @@ void getTrees(
     BaseTree* sample_tree = new BaseTree(SampleHelpers::getDatasetFileName(sname), "cms3ntuple/SinglePhoton", "", ""); sample_trees.push_back(sample_tree);
     sample_tree->sampleIdentifier = SampleHelpers::getSampleIdentifier(sname);
 
+    std::vector<TString> allbranchnames; sample_tree->getValidBranchNamesWithoutAlias(allbranchnames, false);
+
     double sum_wgts = (isData ? 1.f : 0.f);
     float xsec = 1;
     float xsec_scale = 1;
@@ -511,6 +592,21 @@ void getTrees(
       sample_tree->getVal("xsec", xsec);
       sample_tree->releaseBranch("xsec");
       xsec *= 1000.;
+
+      // Reset gen. and lHE particle settings
+      {
+        bool has_lheMEweights = false;
+        bool has_lheparticles = false;
+        bool has_genparticles = false;
+        for (auto const& bname:allbranchnames){
+          if (bname.Contains("p_Gen") || bname.Contains("LHECandMass")) has_lheMEweights=true;
+          else if (bname.Contains(GenInfoHandler::colName_lheparticles)) has_lheparticles = true;
+          else if (bname.Contains(GenInfoHandler::colName_genparticles)) has_genparticles = true;
+        }
+        genInfoHandler.setAcquireLHEMEWeights(has_lheMEweights);
+        genInfoHandler.setAcquireLHEParticles(has_lheparticles);
+        genInfoHandler.setAcquireGenParticles(has_genparticles);
+      }
 
       // Book branches
       simEventHandler.bookBranches(sample_tree);
@@ -556,6 +652,7 @@ void getTrees(
     MELAout << "\t- Global weight = " << globalWeight << endl;
 
     // Configure handlers
+    pfcandidateHandler.bookBranches(sample_tree);
     muonHandler.bookBranches(sample_tree);
     electronHandler.bookBranches(sample_tree);
     photonHandler.bookBranches(sample_tree);
@@ -563,6 +660,25 @@ void getTrees(
     isotrackHandler.bookBranches(sample_tree);
     vertexHandler.bookBranches(sample_tree);
     eventFilter.bookBranches(sample_tree);
+
+    /*
+    bool hasSuperclusters = false;
+    for (auto const& bname:allbranchnames){
+      if (bname.BeginsWith(SuperclusterHandler::colName.data())){
+        hasSuperclusters = true;
+        break;
+      }
+    }
+    if (hasSuperclusters) superclusterHandler.bookBranches(sample_tree);
+    */
+    //fsrHandler.bookBranches(sample_tree);
+
+    overlapMap_muons_ak4jets.bookBranches(sample_tree);
+    overlapMap_muons_ak8jets.bookBranches(sample_tree);
+    overlapMap_electrons_ak4jets.bookBranches(sample_tree);
+    overlapMap_electrons_ak8jets.bookBranches(sample_tree);
+    overlapMap_photons_ak4jets.bookBranches(sample_tree);
+    overlapMap_photons_ak8jets.bookBranches(sample_tree);
 
     sample_tree->silenceUnused();
 
