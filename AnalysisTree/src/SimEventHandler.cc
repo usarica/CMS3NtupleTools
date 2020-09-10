@@ -67,6 +67,19 @@ void SimEventHandler::clear(){
   l1prefiringWeight = nullptr;
 }
 
+/*
+How to obtain the data PU histograms:
+1) Set up a CMSSW area other than CMSSW_10_2_X (9.4.9 works)
+2) Run
+pulatest=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/PileUp/pileup_latest.txt
+pulatest=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/pileup_latest.txt
+pulatest=/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PileUp/pileup_latest.txt
+pileupCalc.py -i NtupleMaker/data/LumiJSON/${jsonfile} --inputLumiJSON ${pulatest} --calcMode true --minBiasXsec 69200 --maxPileupBin 100 --numPileupBins 100 ${jsonfile}_PUnominal.root
+pileupCalc.py -i NtupleMaker/data/LumiJSON/${jsonfile} --inputLumiJSON ${pulatest} --calcMode true --minBiasXsec 66016.8 --maxPileupBin 100 --numPileupBins 100 ${jsonfile}_PUdn.root
+pileupCalc.py -i NtupleMaker/data/LumiJSON/${jsonfile} --inputLumiJSON ${pulatest} --calcMode true --minBiasXsec 72383.2 --maxPileupBin 100 --numPileupBins 100 ${jsonfile}_PUup.root
+The minBiasXsec variations are for the 4.6% uncertainty recommended in https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData#Pileup_JSON_Files_For_Run_II.
+More information can be found there as well.
+*/
 void SimEventHandler::setupPUHistograms(){
   TDirectory* curdir = gDirectory;
   TDirectory* uppermostdir = SampleHelpers::rootTDirectory;
