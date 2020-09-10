@@ -34,7 +34,7 @@ void ParticleDisambiguator::disambiguateParticles(
               (isVetoPart && !isLooseProduct)
               )
             ) continue;
-          if (reco::deltaR(product->p4(), part->p4())<0.05){ doRemove=true; break; }
+          if (product->deltaR(part)<0.05){ doRemove=true; break; }
         }
       }
       if (!doRemove) electrons_new.push_back(product);
@@ -63,7 +63,7 @@ void ParticleDisambiguator::disambiguateParticles(
               (isVetoPart && !isLooseProduct)
               )
             ) continue;
-          if (reco::deltaR(product->p4(), part->p4())<0.1){ doRemove=true; break; }
+          if (product->deltaR(part)<0.1){ doRemove=true; break; }
         }
       }
       if (!doRemove && electrons){
@@ -72,6 +72,8 @@ void ParticleDisambiguator::disambiguateParticles(
           bool isLoosePart = ParticleSelectionHelpers::isLooseParticle(part);
           bool isVetoPart = ParticleSelectionHelpers::isVetoParticle(part);
           bool shareAllPFCands = (
+            part->extras.n_associated_pfcands>0
+            &&
             part->extras.n_associated_pfcands == product->extras.n_associated_pfcands
             &&
             part->extras.associated_pfcands_sum_px == product->extras.associated_pfcands_sum_px
@@ -87,7 +89,7 @@ void ParticleDisambiguator::disambiguateParticles(
               (isVetoPart && !isLooseProduct)
               )
             ) continue;
-          if (shareAllPFCands || reco::deltaR(product->p4(), part->p4())<0.1){ doRemove=true; break; }
+          if (shareAllPFCands || product->deltaR(part)<0.1){ doRemove=true; break; }
         }
       }
       if (!doRemove) photons_new.push_back(product);
