@@ -1,9 +1,11 @@
 #include <cassert>
-#include <string>
 #include <stdexcept>
+#include <cmath>
+#include <unordered_map>
 #include "HostHelpersCore.h"
 #include "HelperFunctions.h"
 #include "SamplesCore.h"
+#include "SamplesCore.hpp"
 #include "MELAStreamHelpers.hh"
 #include "TRandom3.h"
 
@@ -12,6 +14,11 @@ namespace SampleHelpers{
   int theDataYear=2018;
   TString theDataPeriod="2018"; // Initialize the extern here to 2018
   TString theInputDirectory=""; // Initialize the extern here to empty string
+
+  std::vector< std::pair< std::pair<unsigned int, unsigned int>, TString > > const runRange_dataPeriod_list = define_runRange_dataPeriod_list();
+  std::vector< std::pair<unsigned int, double> > const runNumber_lumi_pair_list = define_runNumber_lumi_pair_list();
+  std::unordered_map<TString, double> const dataPeriod_lumi_map = define_dataPeriod_lumi_map();
+
 }
 
 
@@ -39,25 +46,47 @@ void SampleHelpers::setInputDirectory(TString s){
   theInputDirectory=s;
 }
 
-bool SampleHelpers::testDataPeriodIsLikeData(){
+int const& SampleHelpers::getDataYear(){ return theDataYear; }
+TString const& SampleHelpers::getDataPeriod(){ return theDataPeriod; }
+TString const& SampleHelpers::getInputDirectory(){ return theInputDirectory; }
+
+bool SampleHelpers::testDataPeriodIsLikeData(TString const& period){
   int try_year=-1;
   bool has_exception = false;
-  try{ try_year = std::stoi(theDataPeriod.Data()); }
+  try{ try_year = std::stoi(period.Data()); }
   catch (std::invalid_argument& e){ has_exception = true; }
   if (!has_exception && try_year>0){
     // Check if the data period string contains just the year
-    if (theDataPeriod == Form("%i", try_year)) return false;
+    if (period == Form("%i", try_year)) return false;
     else{
       const char test_chars[]="ABCDEFGHIJKL";
       const unsigned int n_test_chars = strlen(test_chars);
       for (unsigned int ic=0; ic<n_test_chars; ic++){
         TString test_data_period = Form("%i%c", try_year, test_chars[ic]);
-        if (theDataPeriod.Contains(test_data_period)) return true;
+        if (period.Contains(test_data_period)) return true;
       }
       return false;
     }
   }
   else return false;
+}
+bool SampleHelpers::testDataPeriodIsLikeData(){ return testDataPeriodIsLikeData(theDataPeriod); }
+
+int SampleHelpers::getDataYearFromPeriod(TString const& period){
+  int try_year=-1;
+  bool has_exception = false;
+  try{ try_year = std::stoi(period.Data()); }
+  catch (std::invalid_argument& e){ has_exception = true; }
+  if (has_exception){
+    std::string strtmp = period.Data();
+    strtmp.erase(std::remove_if(strtmp.begin(), strtmp.end(), [] (char c){ return !std::isalpha(c); }), strtmp.end());
+    try{ try_year = std::stoi(strtmp.data()); }
+    catch (std::invalid_argument& e){
+      MELAerr << "SampleHelpers::getDataYearFromPeriod: Failed to acquire year from period " << period << endl;
+      assert(0);
+    }
+  }
+  return try_year;
 }
 
 std::vector<TString> SampleHelpers::getValidDataPeriods(){
@@ -72,62 +101,44 @@ std::vector<TString> SampleHelpers::getValidDataPeriods(){
   return res;
 }
 TString SampleHelpers::getDataPeriodFromRunNumber(unsigned int run){
-  if (run>=272007 && run<=275376) return "2016B";
-  else if (run>=275657 && run<=276283) return "2016C";
-  else if (run>=276315 && run<=276811) return "2016D";
-  else if (run>=276831 && run<=277420) return "2016E";
-  else if (run>=277772 && run<=278808) return "2016F";
-  else if (run>=278820 && run<=280385) return "2016G";
-  else if (run>=280919 && run<=284044) return "2016H";
-  else if (run>=297046 && run<=299329) return "2017B";
-  else if (run>=299368 && run<=302029) return "2017C";
-  else if (run>=302030 && run<=303434) return "2017D";
-  else if (run>=303824 && run<=304797) return "2017E";
-  else if (run>=305040 && run<=306462) return "2017F";
-  else if (run>=315252 && run<=316995) return "2018A";
-  else if (run>=317080 && run<=319310) return "2018B";
-  else if (run>=319337 && run<=320065) return "2018C";
-  else if (run>=320673 && run<=325175) return "2018D";
-  else{
-    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range!" << endl;
-    assert(0);
-    return -1;
+  TString res;
+  for (auto const& rr_dp:runRange_dataPeriod_list){
+    if (run>=rr_dp.first.first && run<=rr_dp.first.second){
+      res = rr_dp.second;
+      break;
+    }
   }
-}
-bool SampleHelpers::isHEM2018Affected(unsigned int run){ return (run>=319077); }
-float SampleHelpers::getIntegratedLuminosity(TString const& period){
-  // To install brilcalc, do
-  // export PATH=$HOME/.local/bin:/cvmfs/cms-bril.cern.ch/brilconda/bin:$PATH
-  // pip install brilws --user --upgrade (pip install brilws --user if running for the first time)
-  // and then run the different brilcalc lumi ... commands
-  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions16/13TeV/Final/Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON.txt
-  if (period == "2016") return 35.882515397;
-  else if (period == "2016B") return 5.711130443;
-  else if (period == "2016C") return 2.572903492;
-  else if (period == "2016D") return 4.242291558;
-  else if (period == "2016E") return 4.025228139;
-  else if (period == "2016F") return 3.104509131;
-  else if (period == "2016G") return 7.575824256;
-  else if (period == "2016H") return 8.650628378;
-  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/ReReco/Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt
-  else if (period == "2017") return 41.529152052;
-  else if (period == "2017B") return 4.793969901;
-  else if (period == "2017C") return 9.632746391;
-  else if (period == "2017D") return 4.247792713;
-  else if (period == "2017E") return 9.314581018;
-  else if (period == "2017F") return 13.540062029;
-  //// Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PREAPPROVED.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/PromptReco/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt
-  // Using brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -u /fb -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt
-  else if (period == "2018") return 59.740565209;
-  else if (period == "2018A") return 14.027614284;
-  else if (period == "2018B") return 7.066552173;
-  else if (period == "2018C") return 6.898816878;
-  else if (period == "2018D") return 31.747581874;
-  else if (period == "2018_HEMaffected") return 38.662770627;
-  else{
-    MELAerr << "SampleHelpers::getIntegratedLuminosity(" << period << "): Period is not defined." << endl;
+  if (res==""){
+    MELAerr << "SampleHelpers::getDataPeriodFromRunNumber: Run " << run << " is not defined in any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_list!" << endl;
     assert(0);
-    return -1;
+  }
+  return res;
+}
+std::pair<unsigned int, unsigned int> SampleHelpers::getRunRangeFromDataPeriod(TString const& period){
+  std::pair<unsigned int, unsigned int> res(0, 0);
+  for (auto const& rr_dp:runRange_dataPeriod_list){
+    if (rr_dp.second.Contains(period)){
+      if (res.first==0) res.first = rr_dp.first.first;
+      else res.first = std::min(res.first, rr_dp.first.first);
+      if (res.second==0) res.second = rr_dp.first.second;
+      else res.second = std::max(res.second, rr_dp.first.second);
+    }
+  }
+  if (res.first == res.second){
+    MELAerr << "SampleHelpers::getRunRangeFromDataPeriod: Period " << period << " is not defined for any range. Please check the implementation of SampleHelpers::define_runRange_dataPeriod_list!" << endl;
+    assert(0);
+  }
+  return res;
+}
+
+bool SampleHelpers::isHEM2018Affected(unsigned int run){ return (run>=319077); }
+double SampleHelpers::getIntegratedLuminosity(TString const& period){
+  std::unordered_map<TString, double>::const_iterator it;
+  if (HelperFunctions::getUnorderedMapIterator(period, dataPeriod_lumi_map, it)) return it->second;
+  else{
+    MELAerr << "SampleHelpers::getIntegratedLuminosity: Period " << period << " is not found in the data period - luminosity map. Please revise the construction of this map!" << endl;
+    assert(0);
+    return 0;
   }
 }
 

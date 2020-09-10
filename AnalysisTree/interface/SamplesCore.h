@@ -4,6 +4,7 @@
 #include "HostHelpersCore.h"
 #include <string>
 #include <vector>
+#include <utility>
 
 // Package directory
 #ifndef xstr_lit
@@ -33,11 +34,19 @@ namespace SampleHelpers{
   void setDataPeriod(TString s);
   void setInputDirectory(TString s);
 
+  int const& getDataYear();
+  TString const& getDataPeriod();
+  TString const& getInputDirectory();
+
+  int getDataYearFromPeriod(TString const& period);
+
   TString getDataPeriodFromRunNumber(unsigned int run);
+  std::pair<unsigned int, unsigned int> getRunRangeFromDataPeriod(TString const& period);
   bool isHEM2018Affected(unsigned int run);
   std::vector<TString> getValidDataPeriods();
+  bool testDataPeriodIsLikeData(TString const& period);
   bool testDataPeriodIsLikeData();
-  float getIntegratedLuminosity(TString const& period);
+  double getIntegratedLuminosity(TString const& period);
 
   std::string getDatasetCoreName(std::string sname);
 
