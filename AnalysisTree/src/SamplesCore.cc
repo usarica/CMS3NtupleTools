@@ -149,7 +149,7 @@ std::string SampleHelpers::getDatasetCoreName(std::string sname){
   return sname;
 }
 
-TString SampleHelpers::getSampleIdentifier(TString strinput){
+TString SampleHelpers::getSampleIdentifier(TString const& strinput){
   TString res="";
   std::vector<TString> splitstr; char delimiter='/';
   HelperFunctions::splitOptionRecursive(strinput, splitstr, delimiter);
@@ -161,7 +161,7 @@ TString SampleHelpers::getSampleIdentifier(TString strinput){
   }
   return res;
 }
-bool SampleHelpers::checkSampleIsData(TString strid, TString* theSampleDataPeriod){
+bool SampleHelpers::checkSampleIsData(TString const& strid, TString* theSampleDataPeriod){
   if (strid.Contains("AODSIM")) return false;
   std::vector<TString> strperiods = SampleHelpers::getValidDataPeriods();
   for (TString const& strperiod:strperiods){
@@ -172,10 +172,10 @@ bool SampleHelpers::checkSampleIsData(TString strid, TString* theSampleDataPerio
   }
   return false;
 }
-bool SampleHelpers::checkSampleIs80X(TString strid){ return strid.Contains("Summer16MiniAODv2"); }
-bool SampleHelpers::checkSampleIsFastSim(TString strid){ return false; }
+bool SampleHelpers::checkSampleIs80X(TString const& strid){ return strid.Contains("Summer16MiniAODv2"); }
+bool SampleHelpers::checkSampleIsFastSim(TString const& strid){ return false; }
 
-TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed, float* rndnum){
+TString SampleHelpers::getRandomDataPeriod(unsigned long long const& iseed, float* rndnum){
   if (rndnum) *rndnum = -1;
   std::vector<TString> const valid_periods = getValidDataPeriods();
   if (std::find(valid_periods.cbegin(), valid_periods.cend(), theDataPeriod)==valid_periods.cend()){
@@ -198,7 +198,7 @@ TString SampleHelpers::getRandomDataPeriod(unsigned long long iseed, float* rndn
 }
 
 bool SampleHelpers::checkRunOnCondor(){ return HostHelpers::FileExists("RUNNING_ON_CONDOR"); }
-void SampleHelpers::addToCondorTransferList(TString fname){
+void SampleHelpers::addToCondorTransferList(TString const& fname){
   if (!checkRunOnCondor()) return;
   ofstream olf("EXTERNAL_TRANSFER_LIST.LST", ios_base::app);
   olf << fname.Data() << endl;

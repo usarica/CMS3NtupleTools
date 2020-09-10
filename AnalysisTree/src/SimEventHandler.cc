@@ -44,7 +44,7 @@ SimEventHandler::SimEventHandler() :
 {
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME);
-#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017){ this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME); }
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::getDataYear() == 2016 || SampleHelpers::getDataYear() == 2017){ this->addConsumed<TYPE>(#NAME); this->defineConsumedSloppy(#NAME); }
   SIMEVENT_ALLVARIABLES;
 #undef SIMEVENT_L1PREFIRINGVARIABLE
 #undef SIMEVENT_PUVARIABLE
@@ -73,18 +73,18 @@ void SimEventHandler::setupPUHistograms(){
 
   std::vector<TString> dataperiods = SampleHelpers::getValidDataPeriods();
 
-  TString mcpufile = Form("PU_MC_%i.root", SampleHelpers::theDataYear);
+  TString mcpufile = Form("PU_MC_%i.root", SampleHelpers::getDataYear());
   std::vector<TString> datapucores;
-  switch (SampleHelpers::theDataYear){
+  switch (SampleHelpers::getDataYear()){
   case 2016:
     datapucores = std::vector<TString>{
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_272007_lastRun_275376",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_275657_lastRun_276283",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_276315_lastRun_276811",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_276831_lastRun_277420",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_277772_lastRun_278808",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_278820_lastRun_280385",
-      "Cert_271036-284044_13TeV_PromptReco_Collisions16_JSON_firstRun_280919_lastRun_284044"
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_272007_lastRun_275376",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_275657_lastRun_276283",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_276315_lastRun_276811",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_276831_lastRun_277420",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_277772_lastRun_278808",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_278820_lastRun_280385",
+      "Cert_271036-284044_13TeV_ReReco_07Aug2017_Collisions16_JSON_firstRun_280919_lastRun_284044"
     };
     break;
   case 2017:
@@ -105,7 +105,7 @@ void SimEventHandler::setupPUHistograms(){
     };
     break;
   default:
-    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::setupPUHistograms: Data year " << SampleHelpers::theDataYear << " is not defined." << endl;
+    if (this->verbosity>=TVar::ERROR) MELAerr << "SimEventHandler::setupPUHistograms: Data year " << SampleHelpers::getDataYear() << " is not defined." << endl;
     assert(0);
     break;
   }
@@ -163,7 +163,7 @@ void SimEventHandler::setupPUHistograms(){
 
   // Get exceptional MC histograms
   if (hmc){
-    std::vector<TString> exceptionalSampleList = SampleHelpers::getPUExceptions(SampleHelpers::theDataYear);
+    std::vector<TString> exceptionalSampleList = SampleHelpers::getPUExceptions(SampleHelpers::getDataYear());
     for (auto const& strsample:exceptionalSampleList){
       TH1F* hfill = nullptr;
 
@@ -331,7 +331,7 @@ bool SimEventHandler::constructPUWeight(SystematicsHelpers::SystematicVariationT
   return true;
 }
 bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicVariationTypes const& syst){
-  if (!(SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017)) return true;
+  if (!(SampleHelpers::getDataYear() == 2016 || SampleHelpers::getDataYear() == 2017)) return true;
 
 #define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) TYPE const* NAME = nullptr;
   SIMEVENT_L1PREFIRINGVARIABLES;
@@ -366,7 +366,7 @@ bool SimEventHandler::constructL1PrefiringWeight(SystematicsHelpers::SystematicV
 bool SimEventHandler::wrapTree(BaseTree* tree){
   if (!tree) return false;
 
-  hasPUException = (SampleHelpers::hasPUException(tree->sampleIdentifier, SampleHelpers::theDataYear));
+  hasPUException = (SampleHelpers::hasPUException(tree->sampleIdentifier, SampleHelpers::getDataYear()));
   if (hasPUException) MELAout << "SimEventHandler::wrapTree: Warning! Sample " << tree->sampleIdentifier << " has a PU exception." << endl;
 
   return IvyBase::wrapTree(tree);
@@ -378,7 +378,7 @@ void SimEventHandler::bookBranches(BaseTree* tree){
 
 #define SIMEVENT_RNDVARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL);
 #define SIMEVENT_PUVARIABLE(TYPE, NAME, DEFVAL) tree->bookBranch<TYPE>(#NAME, DEFVAL);
-#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::theDataYear == 2016 || SampleHelpers::theDataYear == 2017) tree->bookBranch<TYPE>(#NAME, DEFVAL);
+#define SIMEVENT_L1PREFIRINGVARIABLE(TYPE, NAME, DEFVAL) if (SampleHelpers::getDataYear() == 2016 || SampleHelpers::getDataYear() == 2017) tree->bookBranch<TYPE>(#NAME, DEFVAL);
   SIMEVENT_ALLVARIABLES;
 #undef SIMEVENT_L1PREFIRINGVARIABLE
 #undef SIMEVENT_PUVARIABLE

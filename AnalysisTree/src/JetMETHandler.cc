@@ -858,7 +858,7 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
 
   // 200314: The following is taken from https://lathomas.web.cern.ch/lathomas/METStuff/XYCorrections/XYMETCorrection.h
   // The formula is corr = -(A*npv + B).
-  TString theDP = SampleHelpers::theDataPeriod;
+  TString theDP = SampleHelpers::getDataPeriod();
   bool const isData = SampleHelpers::checkSampleIsData(tree->sampleIdentifier, &theDP);
   if (isData){
     if (theDP == "2016B"){
@@ -953,7 +953,7 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
     }
   }
   else{
-    switch (SampleHelpers::theDataYear){
+    switch (SampleHelpers::getDataYear()){
     case 2016:
       pfmet_XYcorr_xCoeffA = -0.195191; pfmet_XYcorr_xCoeffB = -0.170948;
       pfmet_XYcorr_yCoeffA = -0.0311891; pfmet_XYcorr_yCoeffB = 0.787627;
@@ -967,7 +967,7 @@ bool JetMETHandler::wrapTree(BaseTree* tree){
       pfmet_XYcorr_yCoeffA = 0.115685; pfmet_XYcorr_yCoeffB = 0.0128193;
       break;
     default:
-      MELAerr << "JetMETHandler::wrapTree: Year " << SampleHelpers::theDataYear << " is undefined for the MC MET corrections." << endl;
+      MELAerr << "JetMETHandler::wrapTree: Year " << SampleHelpers::getDataYear() << " is undefined for the MC MET corrections." << endl;
       return false;
       break;
     }

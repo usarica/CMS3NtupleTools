@@ -50,15 +50,15 @@ namespace SampleHelpers{
 
   std::string getDatasetCoreName(std::string sname);
 
-  TString getSampleIdentifier(TString strinput);
-  bool checkSampleIsData(TString strid, TString* theSampleDataPeriod=nullptr);
-  bool checkSampleIs80X(TString strid);
-  bool checkSampleIsFastSim(TString strid);
+  TString getSampleIdentifier(TString const& strinput);
+  bool checkSampleIsData(TString const& strid, TString* theSampleDataPeriod=nullptr);
+  bool checkSampleIs80X(TString const& strid);
+  bool checkSampleIsFastSim(TString const& strid);
 
-  TString getRandomDataPeriod(unsigned long long iseed, float* rndnum=nullptr);
+  TString getRandomDataPeriod(unsigned long long const& iseed, float* rndnum=nullptr);
 
   bool checkRunOnCondor();
-  void addToCondorTransferList(TString fname);
+  void addToCondorTransferList(TString const& fname);
 
 }
 
