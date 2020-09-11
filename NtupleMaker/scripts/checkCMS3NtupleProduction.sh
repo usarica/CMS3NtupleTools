@@ -26,9 +26,8 @@ declare -a rese
 declare -a resf
 declare -a ress
 
-cd $chkdir
-
-for d in $(ls ./); do
+for f in $(find $chkdir -name condor.sub); do
+  d=${f//\/condor.sub}
   if [[ ! -d $d ]];then
     continue
   fi
@@ -36,12 +35,16 @@ for d in $(ls ./); do
   let countOK=0
   let dirok=1
   let nsubjobs=0
-  for logfilename in $(ls ./$d/Logs | grep -e "log_"); do
+  for logfilename in $(ls $d/Logs | grep -e "log_"); do
     resb=( )
     rese=( )
     resf=( )
     ress=( )
 
+    jobnumber=${logfilename//log_job.}
+    jobnumber=${jobnumber//.txt}
+    runningjob=$(condor_q -constraint "ClusterId==$jobnumber" -af:j '')
+    
     fread="$d/Logs/$logfilename"
 
     if [[ $skiplongfile -eq 1 ]]; then
@@ -84,8 +87,8 @@ for d in $(ls ./); do
     let size_resf=${#resf[@]}
     let size_ress=${#ress[@]}
 
-    if [[ ! -s $d/Logs/$logfilename ]];then
-      echo "$d status is not yet determined"
+    if [[ ${#runningjob[@]} -gt 0 ]]; then
+      echo "$d is still running"
       let nUNKNOWN=$nUNKNOWN+1
       let dirok=0
     elif [[ $size_resb -gt 0 ]] && [[ $size_resb -eq $size_rese ]] && [[ $size_resb -eq $size_ress ]] && [[ $size_resb -eq $size_resf ]];then
@@ -124,8 +127,9 @@ for d in $(ls ./); do
   fi
 
   if [[ $nsubjobs -eq 0 ]];then
+    echo "$d does not have any subjobs run yet. Marking as failed."
+    let nFAIL=$nFAIL+1
     let dirok=0
-    echo "$d does not have any subjobs run yet."
   fi
 
   if [[ $dirok -eq 1 ]];then
@@ -139,7 +143,5 @@ for d in $(ls ./); do
   fi
 
 done
-
-cd -
 
 echo "(OK:COPY_FAIL:FILE_DNE:FAIL:UNKNOWN) = (${nOK}:${nCOPYFAIL}:${nFILEDNE}:${nFAIL}:${nUNKNOWN})"
