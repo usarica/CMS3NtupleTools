@@ -202,7 +202,7 @@ void MuonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
   MuonHandler::checkOptionalInfo(tree, this->has_precomputed_timing, this->has_genmatching);
-#define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+#define MUON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(MuonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(MuonHandler::colName + "_" + #NAME);
   if (this->has_precomputed_timing){
     MUON_PRETESTED_VARIABLES;
   }

@@ -189,7 +189,7 @@ void ElectronHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
   ElectronHandler::checkOptionalInfo(tree, this->has_mvaid_extras, this->has_genmatching);
-#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+#define ELECTRON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(ElectronHandler::colName + "_" + #NAME); this->defineConsumedSloppy(ElectronHandler::colName + "_" + #NAME);
   if (this->has_mvaid_extras){
     ELECTRON_MVAID_EXTRA_VARIABLES;
   }

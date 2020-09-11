@@ -175,7 +175,7 @@ void PhotonHandler::bookBranches(BaseTree* tree){
   if (!tree) return;
 
   PhotonHandler::checkOptionalInfo(tree, this->has_genmatching);
-#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(#NAME);
+#define PHOTON_VARIABLE(TYPE, NAME, DEFVAL) this->addConsumed<std::vector<TYPE>*>(PhotonHandler::colName + "_" + #NAME); this->defineConsumedSloppy(PhotonHandler::colName + "_" + #NAME);
   if (this->has_genmatching){
     PHOTON_GENINFO_VARIABLES;
   }
