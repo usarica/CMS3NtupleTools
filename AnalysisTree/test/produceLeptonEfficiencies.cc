@@ -806,7 +806,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         if (!isData) metCorrectionHandler.applyCorrections(
           simEventHandler.getChosenDataPeriod(),
           genmet_pTmiss, genmet_phimiss,
-          pfmet, true
+          pfmet, true,
+          &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
         auto pfmet_p4 = pfmet->p4(true, true, true);
         pfmet_pTmiss = pfmet_p4.Pt();
@@ -816,7 +817,8 @@ BRANCH_COMMAND(float, relPFIso_DR0p4_DBcorr_l2)
         if (!isData) metCorrectionHandler.applyCorrections(
           simEventHandler.getChosenDataPeriod(),
           genmet_pTmiss, genmet_phimiss,
-          puppimet, false
+          puppimet, false,
+          &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear))
         );
         auto puppimet_p4 = puppimet->p4(true, true, true);
         puppimet_pTmiss = puppimet_p4.Pt();

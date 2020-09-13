@@ -938,7 +938,7 @@ void getTrees(int procsel, int ichunk, int nchunks, TString strdate, TString yea
       met_uncorr_pt = pfmet->pt(false, false, false);
       met_uncorr_phi = pfmet->phi(false, false, false);
       if (applyMETResCorr && !isData)
-        metCorrectionHandler.applyCorrections(simEventHandler.getChosenDataPeriod(), genmet_pt, genmet_phi, pfmet, true);
+        metCorrectionHandler.applyCorrections(simEventHandler.getChosenDataPeriod(), genmet_pt, genmet_phi, pfmet, true, &(simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear)));
 
       pTmiss = pfmet->pt(true, true, true);
       phimiss = pfmet->phi(true, true, true);

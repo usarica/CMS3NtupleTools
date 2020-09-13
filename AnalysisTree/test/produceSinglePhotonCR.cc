@@ -354,7 +354,8 @@ bool LooperFunctionHelpers::looperRule(BaseTreeLooper* theLooper, double const& 
   if (!isData) metCorrectionHandler->applyCorrections(
     simEventHandler->getChosenDataPeriod(),
     genmet_pTmiss, genmet_phimiss,
-    eventmet, !use_MET_Puppi
+    eventmet, !use_MET_Puppi,
+    &(simEventHandler->getRandomNumber(SimEventHandler::kGenMETSmear))
   );
   auto event_met_p4 = eventmet->p4(use_MET_XYCorr, use_MET_JERCorr, use_MET_ParticleMomCorr, use_MET_p4Preservation);
   event_pTmiss = event_met_p4.Pt();

@@ -106,8 +106,12 @@ void testHandlers(int procsel){
     MELAout << "================" << endl;
 
     simEventHandler.constructSimEvent(theGlobalSyst);
-    MELAout << "Sample chosen data period: " << simEventHandler.getChosenDataPeriod() << " with random number " << simEventHandler.getRandomNumberSeed(SimEventHandler::kDataPeriod) << "." << endl;
-    MELAout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumberSeed(SimEventHandler::kGenMETSmear) << endl;
+    MELAout << "Sample chosen data period: "
+      << simEventHandler.getChosenDataPeriod() << " with global and local random numbers "
+      << simEventHandler.getRandomNumber(SimEventHandler::kDataPeriod_global) << ", "
+      << simEventHandler.getRandomNumber(SimEventHandler::kDataPeriod_local)
+      << "." << endl;
+    MELAout << "\t- Gen. MET random number: " << simEventHandler.getRandomNumber(SimEventHandler::kGenMETSmear) << endl;
     MELAout << "\t- PU weight: " << simEventHandler.getPileUpWeight() << endl;
 
     genInfoHandler.constructGenInfo(theGlobalSyst);
