@@ -87,7 +87,7 @@ for f in $(find $chkdir -name condor.sub); do
     let size_resf=${#resf[@]}
     let size_ress=${#ress[@]}
 
-    if [[ ${#runningjob[@]} -gt 0 ]]; then
+    if [[ ${#runningjob[@]} -gt 0 ]] && [[ ${runningjob[0]} != "" ]]; then
       echo "$d is still running"
       let nUNKNOWN=$nUNKNOWN+1
       let dirok=0
