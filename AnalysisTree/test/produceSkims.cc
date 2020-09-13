@@ -106,6 +106,7 @@ void produceSkims(
 
   eventFilter.setTrackDataEvents(false);
   eventFilter.setCheckUniqueDataEvent(false);
+  eventFilter.setCheckHLTPathRunRanges(false);
 
   std::vector<TString> sampleList;
   SampleHelpers::constructSamplesList(strSampleSet, SystematicsHelpers::sNominal, sampleList);
@@ -196,12 +197,15 @@ void produceSkims(
           simEventHandler.constructSimEvent(SystematicsHelpers::sNominal);
           puwgt = simEventHandler.getPileUpWeight();
           sum_wgts.at(idp) += genwgt * puwgt;
+          simEventHandler.resetCache();
           simEventHandler.constructSimEvent(SystematicsHelpers::ePUDn);
           puwgt = simEventHandler.getPileUpWeight();
           sum_wgts_PUDn.at(idp) += genwgt * puwgt;
+          simEventHandler.resetCache();
           simEventHandler.constructSimEvent(SystematicsHelpers::ePUUp);
           puwgt = simEventHandler.getPileUpWeight();
           sum_wgts_PUUp.at(idp) += genwgt * puwgt;
+          simEventHandler.resetCache();
         }
         SampleHelpers::setDataPeriod(period);
       }
@@ -344,7 +348,7 @@ void produceSkims(
         if (genwgt==0.) continue;
       }
 
-      eventFilter.constructFilters();
+      eventFilter.constructFilters(nullptr);
       if (!eventFilter.passCommonSkim() || !eventFilter.passMETFilters(EventFilterHandler::kMETFilters_Standard)) continue;
 
       vertexHandler.constructVertices();
